@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@core/*": ["./src/core/*"],
+      "@common-utils/*": ["src/core/utils/*"],
+      "@api-clients/*": ["./src/core/apiClients/*"],
+      "@types/*": ["./src/core/types/*"],
+      "@modules/*": ["./src/modules/*"],
+      "@chat/*": ["./src/modules/chat/*"],
+      "@chat-helpers/*": ["./src/modules/chat/helpers/*"],
+      "@chat-pages/*": ["./src/modules/chat/pages/*"],
+      "@chat-components/*": ["./src/modules/chat/pages/components/*"],
+      "@chat-tests/*": ["./src/modules/chat/tests/*"]
+    },
+    "target": "ES2019",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
+}
