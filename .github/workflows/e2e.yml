@@ -26,6 +26,10 @@ on:
           - '@P0'
           - '@P1'
 
+permissions:
+  pages: write
+  id-token: write
+
 jobs:
   test:
     timeout-minutes: 60
