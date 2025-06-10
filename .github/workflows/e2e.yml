@@ -27,6 +27,7 @@ on:
           - '@P1'
 
 permissions:
+  contents: read
   pages: write
   id-token: write
 
