@@ -6,7 +6,15 @@ on:
       - main
   workflow_dispatch: # allows manual triggering of the workflow
     inputs:
-      test_type:
+      module_name:
+        description: 'Select the module to test'
+        required: true
+        default: 'chat'
+        type: choice
+        options:
+          - 'chat'
+          - 'feed'
+      priority_filter:
         description: 'Select test cases by priority'
         required: true
         default: '@P0'
@@ -28,5 +36,14 @@ jobs:
           node-version: 20
       - name: install dependencies
         run: npm ci # install dependencies based on package-lock.json
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
       - name: Run playwright tests
-        run: npm run test:chat -- --grep=${{ inputs.test_type }}
+        run: npm run test:${{ inputs.module_name }} -- --grep=${{ inputs.priority_filter }}
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 2
