@@ -3,7 +3,7 @@ import { BaseApiClient } from '../baseApiClient';
 import { IUserManagementOperations } from '../interfaces/IUserManagementOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { User, SearchUserResponse } from '@core/types/user.type';
-import { AddUserResponse } from '@core/types/group.type';
+import { AddUserResponse, ChatGroup } from '@core/types/group.type';
 import { Roles } from '@core/constants/roles';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { IdentityService } from './IdentityService';
@@ -101,7 +101,7 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
     const roleId = await this.identityService.fetchRoleId(Roles.END_USER);
 
     await test.step(`Activate user ${firstName} ${lastName}`, async () => {
-      await this.post(`/v1/identity/internal/accounts/users/${userId}/password`, {
+      const response = await this.post(`/v1/identity/internal/accounts/users/${userId}/password`, {
         data: {
           password: password,
         },
@@ -111,7 +111,9 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
           'x-smtip-tenant-user-role': roleId.toString(),
         },
         useInternalBackendUrl: true,
+        timeout: 50_000,
       });
+      await this.validateResponse(response);
     });
   }
 }
