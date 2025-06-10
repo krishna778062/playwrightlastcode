@@ -4,9 +4,9 @@ on:
   pull_request:
     branches:
       - main
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
   workflow_dispatch: # allows manual triggering of the workflow
     inputs:
       module_name:
@@ -56,12 +56,18 @@ jobs:
           name: playwright-report-${{ steps.timestampid.outputs.timestamp }}
           path: playwright-report/
           retention-days: 2
-
-      - name: Push the new files to github pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Deploy Playwright Report
+        id: deployment
+        uses: actions/deploy-pages@v2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./playwright-report
           destination_dir: ${{ steps.timestampid.outputs.timestamp }}
+      # - name: Push the new files to github pages
+      #   uses: peaceiris/actions-gh-pages@v3
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     publish_dir: ./playwright-report
+      #     destination_dir: ${{ steps.timestampid.outputs.timestamp }}
       - name: Write URL in summary
         run: echo "### Test results (link available after 20 secs) - https://${{ github.repository_owner }}.github.io/central-ui-automation/${{ steps.timestampid.outputs.timestamp }}/" >> $GITHUB_STEP_SUMMARY
