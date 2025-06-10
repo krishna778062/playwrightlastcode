@@ -1,0 +1,30 @@
+name: UI E2E Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: # allows manual triggering of the workflow
+    inputs:
+      test_type:
+        description: 'Select test cases by priority'
+        required: true
+        default: '@P0'
+        type: choice
+        enum: ['@P0', '@P1']
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - name: install dependencies
+        run: npm ci # install dependencies based on package-lock.json
+      - name: Run playwright tests
+        run: echo "testing out job for ${{ inputs.test_type }}"
