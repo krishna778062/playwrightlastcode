@@ -29,4 +29,4 @@ jobs:
       - name: install dependencies
         run: npm ci # install dependencies based on package-lock.json
       - name: Run playwright tests
-        run: echo "testing out job for ${{ inputs.test_type }}"
+        run: npm run test:chat -- --grep=${{ inputs.test_type }}
