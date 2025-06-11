@@ -26,10 +26,10 @@ on:
           - '@P0'
           - '@P1'
 
-# permissions:
-#   contents: read
-#   pages: write
-#   id-token: write
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   test:
