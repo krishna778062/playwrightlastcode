@@ -34,21 +34,19 @@ const outputFile = path.join(PLAYWRIGHT_REPORT_DIR, 'summary.html');
 
 // Function to generate trace viewer URL
 function getTraceViewerUrl(tracePath) {
+    // Get the path relative to the project root and ensure it starts from test-results
     const relativePath = path.relative(PROJECT_ROOT, tracePath);
     return `https://trace.playwright.dev/?trace=${encodeURIComponent(BASE_URL + '/' + relativePath)}`;
 }
 
-// Function to get server start command
+// Function to get server start command - No longer needed
 function getServerCommand() {
-    if (BASE_URL.includes('localhost')) {
-        return `npx http-server . -p ${LOCAL_SERVER_PORT} --cors`;
-    }
-    return ''; // No command needed for remote URLs
+    return ''; // Removed local server command
 }
 
 // Function to get the Playwright report path
 function getPlaywrightReportPath() {
-    return './index.html'; // Since we'll be inside playwright-report folder
+    return './index.html'; // Root-relative path
 }
 
 // Create HTML content
@@ -228,22 +226,11 @@ reportData.suites.forEach(suite => {
                         <td>${duration}s</td>
                         <td>
                             ${tracePath ? 
-                                `<div>
-                                    <button onclick="copyCommand(this)" class="view-trace" data-command="npx playwright show-trace &quot;${tracePath}&quot;">
-                                        View Trace Locally
-                                    </button>
-                                    <a href="${getTraceViewerUrl(tracePath)}" 
-                                       target="_blank" 
-                                       class="view-trace" 
-                                       style="margin-left: 10px;">
-                                        View in Browser
-                                    </a>
-                                    ${getServerCommand() ? 
-                                        `<div class="note" style="margin-top: 10px; font-size: 0.8em;">
-                                            Note: For browser viewing, run: <code>${getServerCommand()}</code>
-                                        </div>` : 
-                                        ''}
-                                </div>` : 
+                                `<a href="${getTraceViewerUrl(tracePath)}" 
+                                    target="_blank" 
+                                    class="view-trace">
+                                    View Trace
+                                </a>` : 
                                 '<button class="view-trace" disabled>No Trace</button>'}
                         </td>
                     </tr>
@@ -380,14 +367,14 @@ const indexHtml = `<!DOCTYPE html>
         <a href="./index.html">View Detailed Report</a>
     </div>
     <script>
-        // Redirect to the detailed report by default
-        window.location.href = './index.html';
+        // Redirect to the summary report by default
+        window.location.href = './summary.html';
     </script>
 </body>
 </html>`;
 
-// Save the index file
-fs.writeFileSync(path.join(PLAYWRIGHT_REPORT_DIR, 'home.html'), indexHtml);
+// Save the index file as the root index.html
+fs.writeFileSync(path.join(PLAYWRIGHT_REPORT_DIR, 'index.html'), indexHtml);
 
 // If we're in development mode and OPEN_REPORT is set
 if (process.env.OPEN_REPORT) {
