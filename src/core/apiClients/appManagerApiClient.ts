@@ -1,8 +1,8 @@
 import { APIRequestContext } from '@playwright/test';
-import { ChatService } from './services/ChatService';
-import { UserManagementService } from './services/UserManagementService';
-import { IdentityService } from './services/IdentityService';
-import { BaseApiClient } from './baseApiClient';
+import { ChatService } from '@chat/api/services/ChatService';
+import { UserManagementService } from '@core/apiClients/services/UserManagementService';
+import { IdentityService } from '@core/apiClients/services/IdentityService';
+import { BaseApiClient } from '@core/apiClients/baseApiClient';
 
 export class AppManagerApiClient extends BaseApiClient {
   private readonly chatService: ChatService;

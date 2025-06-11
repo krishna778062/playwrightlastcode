@@ -1,6 +1,6 @@
 import { APIRequestContext, test } from '@playwright/test';
-import { BaseApiClient } from '../baseApiClient';
-import { IChatAdminOperations, CreateChatGroupParams } from '../interfaces/IChatOperations';
+import { BaseApiClient } from '@core/apiClients/baseApiClient';
+import { IChatAdminOperations, CreateChatGroupParams } from '../../types/chat-operations.interface';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { ChatGroup, CreateGroupResponse } from '@core/types/group.type';
 

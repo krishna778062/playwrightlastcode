@@ -4,18 +4,6 @@ import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { ApiError } from '@core/apiClients/apiError';
 import { HttpClient } from '@core/apiClients/httpClient';
 
-// Common types for API responses
-export interface ApiErrorResponse {
-  error?: string;
-  message?: string;
-  status?: number;
-}
-
-export type ApiClientConstructor<T extends BaseApiClient> = new (
-  context: APIRequestContext,
-  baseUrl?: string
-) => T;
-
 export abstract class BaseApiClient extends HttpClient {
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
