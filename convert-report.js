@@ -1,5 +1,25 @@
 const fs = require('fs');
 const path = require('path');
+const net = require('net');
+
+// Function to find an available port
+function findAvailablePort(startPort) {
+    return new Promise((resolve, reject) => {
+        const server = net.createServer();
+        server.listen(startPort, '127.0.0.1', () => {
+            const port = server.address().port;
+            server.close(() => resolve(port));
+        });
+        server.on('error', (err) => {
+            if (err.code === 'EADDRINUSE') {
+                // Port is in use, try the next one
+                resolve(findAvailablePort(startPort + 1));
+            } else {
+                reject(err);
+            }
+        });
+    });
+}
 
 // Get command line arguments
 const args = process.argv.slice(2);
@@ -8,10 +28,10 @@ const inputFile = args[0] || 'test-results/test-results.json';
 const PROJECT_ROOT = path.resolve(__dirname);
 const TEST_RESULTS_DIR = path.join(PROJECT_ROOT, 'test-results');
 const PLAYWRIGHT_REPORT_DIR = path.join(PROJECT_ROOT, 'playwright-report');
-const LOCAL_SERVER_PORT = process.env.PORT || 3000;
+const DEFAULT_PORT = 9323;
 
 // Get base URL from environment variable or use localhost as default
-const BASE_URL = process.env.TRACE_VIEWER_BASE_URL || `http://localhost:${LOCAL_SERVER_PORT}`;
+const BASE_URL = process.env.TRACE_VIEWER_BASE_URL || `http://localhost:${process.env.PORT || DEFAULT_PORT}`;
 
 // Ensure playwright-report directory exists
 if (!fs.existsSync(PLAYWRIGHT_REPORT_DIR)) {
@@ -34,9 +54,13 @@ const outputFile = path.join(PLAYWRIGHT_REPORT_DIR, 'summary.html');
 
 // Function to generate trace viewer URL
 function getTraceViewerUrl(tracePath) {
-    // Get the path relative to the project root and ensure it starts from test-results
-    const relativePath = path.relative(PROJECT_ROOT, tracePath);
-    return `https://trace.playwright.dev/?trace=${encodeURIComponent(BASE_URL + '/' + relativePath)}`;
+    // Get the path relative to the test-results directory
+    const testResultsRelativePath = path.relative(TEST_RESULTS_DIR, tracePath);
+    // Remove any leading slashes and ensure clean path joining
+    const cleanBasePath = BASE_URL.replace(/\/$/, '');
+    const traceUrl = `${cleanBasePath}/test-results/${testResultsRelativePath}`;
+    console.log('Generated trace URL:', traceUrl); // For debugging
+    return `https://trace.playwright.dev/?trace=${encodeURIComponent(traceUrl)}`;
 }
 
 // Function to get server start command - No longer needed
@@ -46,7 +70,7 @@ function getServerCommand() {
 
 // Function to get the Playwright report path
 function getPlaywrightReportPath() {
-    return './index.html'; // Root-relative path
+    return './index.html'; // Keep Playwright's original index.html
 }
 
 // Create HTML content
@@ -330,8 +354,8 @@ const finalHtml = htmlContent + tableRows + `
 fs.writeFileSync(outputFile, finalHtml);
 console.log(`Interactive HTML report generated successfully: ${outputFile}`);
 
-// Create an index.html that redirects to the Playwright report but adds our summary link
-const indexHtml = `<!DOCTYPE html>
+// Create an index.html that serves as the landing page
+const landingHtml = `<!DOCTYPE html>
 <html>
 <head>
     <title>Test Results</title>
@@ -367,18 +391,27 @@ const indexHtml = `<!DOCTYPE html>
         <a href="./index.html">View Detailed Report</a>
     </div>
     <script>
-        // Redirect to the summary report by default
-        window.location.href = './summary.html';
+        // Redirect to summary by default
+        if (window.location.pathname.endsWith('home.html')) {
+            window.location.href = './summary.html';
+        }
     </script>
 </body>
 </html>`;
 
-// Save the index file as the root index.html
-fs.writeFileSync(path.join(PLAYWRIGHT_REPORT_DIR, 'index.html'), indexHtml);
+// Save the landing page
+fs.writeFileSync(path.join(PLAYWRIGHT_REPORT_DIR, 'home.html'), landingHtml);
 
 // If we're in development mode and OPEN_REPORT is set
 if (process.env.OPEN_REPORT) {
-    const port = process.env.PORT || 3000;
-    const openCommand = process.platform === 'win32' ? 'start' : 'open';
-    require('child_process').exec(`${openCommand} http://localhost:${port}/playwright-report/summary.html`);
+    (async () => {
+        try {
+            const availablePort = await findAvailablePort(DEFAULT_PORT);
+            const openCommand = process.platform === 'win32' ? 'start' : 'open';
+            require('child_process').exec(`${openCommand} http://localhost:${availablePort}/playwright-report/summary.html`);
+            console.log(`Report will be available at: http://localhost:${availablePort}/playwright-report/summary.html`);
+        } catch (err) {
+            console.error('Error finding available port:', err);
+        }
+    })();
 } 

@@ -83,12 +83,27 @@ jobs:
           name: playwright-report
           path: report-content
 
+      # Re-generate the report with correct GitHub Pages URL
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Re-generate HTML Report with correct URL
+        env:
+          TRACE_VIEWER_BASE_URL: 'https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}'
+        run: |
+          npm run generate-report:custom report-content/test-results/test-results.json
+
       # Copy test-results and playwright-report contents to root level
       - name: Prepare deployment content
         run: |
           mkdir -p deploy-content
           cp -r report-content/test-results deploy-content/
-          cp -r report-content/playwright-report/* deploy-content/
+          cp -r playwright-report/* deploy-content/
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
@@ -97,4 +112,22 @@ jobs:
 
       - name: Deploy to GitHub Pages
         id: deployment
+        uses: actions/deploy-pages@v4
+        
+      - name: Update report with final URL
+        if: success()
+        env:
+          TRACE_VIEWER_BASE_URL: 'https://${{ steps.deployment.outputs.page_url }}'
+        run: |
+          npm run generate-report:custom report-content/test-results/test-results.json
+          cp -r playwright-report/* deploy-content/
+          
+      - name: Re-upload Pages Artifact with updated URL
+        if: success()
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: deploy-content
+
+      - name: Re-deploy to GitHub Pages
+        if: success()
         uses: actions/deploy-pages@v4
