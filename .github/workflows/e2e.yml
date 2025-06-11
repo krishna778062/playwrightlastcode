@@ -54,19 +54,40 @@ jobs:
       - name: Run playwright tests
         run: npm run test:${{ inputs.module_name || 'chat' }} -- --grep=${{ inputs.priority_filter || '@P0' }}
 
-      - name: Upload Playwright Report
+      - name: Generate HTML Report
+        if: ${{ !cancelled() }}
+        env:
+          TRACE_VIEWER_BASE_URL: 'https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}'
+        run: |
+          npm run generate-report:custom test-results/test-results.json
+
+      - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report-${{ steps.timestampid.outputs.timestamp }}
-          path: playwright-report/
+          name: playwright-report
+          path: |
+            test-results/
+            playwright-report/
           retention-days: 1
 
-      - name: upload playwright report as an artifact
+  deploy:
+    needs: test
+    runs-on: [kubernetes]
+    if: ${{ !cancelled() }}
+    
+    steps:
+      - name: Download Test Results
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+
+      - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: playwright-report/
+          path: playwright-report
 
-      - name: Deploy Playwright Report
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

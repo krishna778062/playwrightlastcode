@@ -1,0 +1,19 @@
+<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="61.20381499999999">
+<testsuite name="ui-tests/direct-message/user-chat.spec.ts" timestamp="2025-06-11T13:42:10.524Z" hostname="chromium" tests="1" failures="0" skipped="0" time="57.253" errors="0">
+<testcase name="Test chat application with multiple users › Verify that user 1 can open direct message with user 2 and they both are able to send message to each other" classname="ui-tests/direct-message/user-chat.spec.ts" time="57.253">
+<properties>
+<property name="zephyrId" value="https://simpplr.atlassian.net/browse/CONT-5376">
+</property>
+<property name="description" value="">
+</property>
+<property name="storyId" value="https://simpplr.atlassian.net/browse/CONT-5376">
+</property>
+</properties>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../../../test-results/ui-tests-direct-message-us-c936a--send-message-to-each-other-chromium/trace.zip]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>
