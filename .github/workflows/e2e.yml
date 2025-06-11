@@ -31,11 +31,18 @@ permissions:
   pages: write
   id-token: write
 
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
-  test:
+  test-and-deploy:
     timeout-minutes: 60
-    # use self hosted runner with tag kubernetes
     runs-on: [kubernetes]
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -46,7 +53,7 @@ jobs:
           node-version: 20
 
       - name: install dependencies
-        run: npm ci # install dependencies based on package-lock.json
+        run: npm ci
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
@@ -55,79 +62,26 @@ jobs:
         run: npm run test:${{ inputs.module_name || 'chat' }} -- --grep=${{ inputs.priority_filter || '@P0' }}
 
       - name: Generate HTML Report
-        if: ${{ !cancelled() }}
+        if: always()
         env:
           TRACE_VIEWER_BASE_URL: ${{ vars.PAGES_URL || format('https://{0}.github.io/{1}', github.repository_owner, github.event.repository.name) }}
         run: |
           npm run generate-report:custom test-results/test-results.json
 
-      - name: Upload Test Results
-        uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: playwright-report
-          path: |
-            test-results/
-            playwright-report/
-          retention-days: 1
-
-  deploy:
-    needs: test
-    runs-on: [kubernetes]
-    if: ${{ !cancelled() }}
-    
-    steps:
-      - name: Download Test Results
-        uses: actions/download-artifact@v4
-        with:
-          name: playwright-report
-          path: report-content
-
-      # Re-generate the report with correct GitHub Pages URL
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Re-generate HTML Report with correct URL
-        env:
-          TRACE_VIEWER_BASE_URL: 'https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}'
-        run: |
-          npm run generate-report:custom report-content/test-results/test-results.json
-
-      # Copy test-results and playwright-report contents to root level
       - name: Prepare deployment content
+        if: always()
         run: |
           mkdir -p deploy-content
-          cp -r report-content/test-results deploy-content/
+          cp -r test-results deploy-content/
           cp -r playwright-report/* deploy-content/
 
       - name: Upload Pages Artifact
+        if: always()
         uses: actions/upload-pages-artifact@v3
         with:
           path: deploy-content
 
       - name: Deploy to GitHub Pages
+        if: always()
         id: deployment
-        uses: actions/deploy-pages@v4
-        
-      - name: Update report with final URL
-        if: success()
-        env:
-          TRACE_VIEWER_BASE_URL: 'https://${{ steps.deployment.outputs.page_url }}'
-        run: |
-          npm run generate-report:custom report-content/test-results/test-results.json
-          cp -r playwright-report/* deploy-content/
-          
-      - name: Re-upload Pages Artifact with updated URL
-        if: success()
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: deploy-content
-
-      - name: Re-deploy to GitHub Pages
-        if: success()
         uses: actions/deploy-pages@v4
