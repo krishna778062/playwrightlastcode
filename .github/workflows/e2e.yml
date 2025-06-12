@@ -73,10 +73,11 @@ jobs:
         env:
           TEST_ENV: ${{ inputs.environment || 'qa' }}
         run: |
-          if [ "${{ inputs.priority_filter }}" = "all" ]; then
+          PRIORITY="${{ inputs.priority_filter }}"
+          if [ "$PRIORITY" = "all" ]; then
             npm run test:${{ inputs.module_name || 'chat' }} -- --workers=${{ inputs.workers }}
           else
-            npm run test:${{ inputs.module_name || 'chat' }} -- --grep=${{ inputs.priority_filter || '@P0' }} --workers=${{ inputs.workers }}
+            npm run test:${{ inputs.module_name || 'chat' }} -- --grep="$PRIORITY" --workers=${{ inputs.workers }}
           fi
 
       - name: Generate HTML Report
