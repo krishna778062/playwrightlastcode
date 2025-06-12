@@ -58,6 +58,14 @@ jobs:
       - name: Run playwright tests
         run: npm run test:${{ inputs.module_name || 'chat' }} -- --grep=${{ inputs.priority_filter || '@P0' }}
 
+      - name: Generate HTML Report
+        if: always()
+        env:
+          TRACE_VIEWER_BASE_URL: https://shiny-adventure-jnkoq9z.pages.github.io/
+        run: |
+          echo "Using base URL: $TRACE_VIEWER_BASE_URL"
+          npm run generate-report:custom test-results/test-results.json
+
       - name: Prepare deployment content
         if: always()
         run: |
@@ -75,13 +83,3 @@ jobs:
         if: always()
         id: deployment
         uses: actions/deploy-pages@v4
-
-      - name: Generate HTML Report
-        if: always()
-        env:
-          TRACE_VIEWER_BASE_URL: ${{ vars.PAGES_URL || format('https://{0}', steps.deployment.outputs.page_url) }}
-        run: |
-          echo "Using base URL: $TRACE_VIEWER_BASE_URL"
-          npm run generate-report:custom test-results/test-results.json
-          cp -r test-results/* deploy-content/test-results/
-          cp -r playwright-report/* deploy-content/
