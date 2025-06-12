@@ -70,20 +70,7 @@ jobs:
         if: always()
         run: |
           mkdir -p deploy-content
-          mkdir -p deploy-content/test-results
-          
-          # Debug: Show what's in test-results
-          echo "Contents of test-results directory:"
-          ls -la test-results/
-          
-          # Copy test results with proper permissions
-          echo "Copying test results..."
-          cp -rv test-results/* deploy-content/test-results/
-          chmod -R 644 deploy-content/test-results/*.zip
-          
-          echo "Copying playwright report..."
           cp -rv playwright-report/* deploy-content/
-          
           echo "Final deploy-content structure:"
           find deploy-content -type f
 
