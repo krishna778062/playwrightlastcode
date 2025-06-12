@@ -7,3 +7,7 @@ node_modules/
 
 # VS Code
 .vscode/
+
+# Test Reports
+report.xml
+report.json

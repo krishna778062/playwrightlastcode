@@ -1,0 +1,256 @@
+{
+  "config": {
+    "configFile": "/Users/prateek.parashar/Desktop/central-ui-automation/src/modules/chat/playwright.chat.config.ts",
+    "rootDir": "/Users/prateek.parashar/Desktop/central-ui-automation/src/modules/chat/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/test-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/prateek.parashar/Desktop/central-ui-automation/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "browserInfo": "Chromium"
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/prateek.parashar/Desktop/central-ui-automation/src/modules/chat/tests",
+        "testIgnore": [
+          "**/api-tests/**"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.52.0",
+    "workers": 5,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "ui-tests/direct-message/user-chat.spec.ts",
+      "file": "ui-tests/direct-message/user-chat.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Test chat application with multiple users",
+          "file": "ui-tests/direct-message/user-chat.spec.ts",
+          "line": 9,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Verify that user 1 can open direct message with user 2 and they both are able to send message to each other",
+              "ok": true,
+              "tags": [
+                "chat",
+                "P0"
+              ],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [
+                    {
+                      "type": "zephyrId",
+                      "description": "https://simpplr.atlassian.net/browse/CONT-5376"
+                    },
+                    {
+                      "type": "description"
+                    },
+                    {
+                      "type": "storyId",
+                      "description": "https://simpplr.atlassian.net/browse/CONT-5376"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 67231,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "steps": [
+                        {
+                          "title": "Simultaneously logging in and navigating to chats for users  0, 1",
+                          "duration": 27740,
+                          "steps": [
+                            {
+                              "title": "Logging in and navigating to chats for user Narciso_Carter@example.com",
+                              "duration": 10234,
+                              "steps": [
+                                {
+                                  "title": "Verifying the login page is loaded",
+                                  "duration": 7943
+                                }
+                              ]
+                            },
+                            {
+                              "title": "Logging in and navigating to chats for user Joesph41@example.com",
+                              "duration": 10221,
+                              "steps": [
+                                {
+                                  "title": "Verifying the login page is loaded",
+                                  "duration": 7930
+                                }
+                              ]
+                            },
+                            {
+                              "title": "Logging in and navigating to chats for user Joesph41@example.com",
+                              "duration": 1857,
+                              "steps": [
+                                {
+                                  "title": "check page rendering",
+                                  "duration": 54
+                                }
+                              ]
+                            },
+                            {
+                              "title": "Logging in and navigating to chats for user Narciso_Carter@example.com",
+                              "duration": 1722,
+                              "steps": [
+                                {
+                                  "title": "check page rendering",
+                                  "duration": 56
+                                }
+                              ]
+                            },
+                            {
+                              "title": "Logging in and navigating to chats for user Narciso_Carter@example.com",
+                              "duration": 8411,
+                              "steps": [
+                                {
+                                  "title": "Opening message inbox",
+                                  "duration": 3934
+                                }
+                              ]
+                            },
+                            {
+                              "title": "Logging in and navigating to chats for user Joesph41@example.com",
+                              "duration": 8603,
+                              "steps": [
+                                {
+                                  "title": "Opening message inbox",
+                                  "duration": 4171
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "title": "User 1 opening direct message with Jabari Herman",
+                          "duration": 9963
+                        },
+                        {
+                          "title": "User 1 sending message to user 2",
+                          "duration": 555
+                        },
+                        {
+                          "title": "User 2 opening direct message with Tyra Wiza",
+                          "duration": 1798,
+                          "steps": [
+                            {
+                              "title": "Verifying user Tyra Wiza is present in direct message section",
+                              "duration": 730
+                            }
+                          ]
+                        },
+                        {
+                          "title": "Verifying user 2 is able to see the message from user 1",
+                          "duration": 5162
+                        },
+                        {
+                          "title": "User 2 sending Hello, This is message from user 2 message to user 1",
+                          "duration": 124
+                        },
+                        {
+                          "title": "Verifying user 1 is able to see the message Hello, This is message from user 2 from user 2",
+                          "duration": 1043
+                        }
+                      ],
+                      "startTime": "2025-06-11T13:38:29.728Z",
+                      "annotations": [
+                        {
+                          "type": "zephyrId",
+                          "description": "https://simpplr.atlassian.net/browse/CONT-5376"
+                        },
+                        {
+                          "type": "description"
+                        },
+                        {
+                          "type": "storyId",
+                          "description": "https://simpplr.atlassian.net/browse/CONT-5376"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/prateek.parashar/Desktop/central-ui-automation/test-results/ui-tests-direct-message-us-c936a--send-message-to-each-other-chromium/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "28d2cc3a04d71b57d484-023e6e0186856fece438",
+              "file": "ui-tests/direct-message/user-chat.spec.ts",
+              "line": 36,
+              "column": 9
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-06-11T13:38:26.489Z",
+    "duration": 73391.3,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
