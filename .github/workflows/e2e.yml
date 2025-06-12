@@ -61,8 +61,10 @@ jobs:
       - name: Generate HTML Report
         if: always()
         env:
-          TRACE_VIEWER_BASE_URL: ${{ vars.PAGES_URL || format('https://{0}.github.io/{1}', github.repository_owner, github.event.repository.name) }}
+          # Use PAGES_URL if set, otherwise construct from repository info
+          TRACE_VIEWER_BASE_URL: ${{ vars.PAGES_URL || format('https://{0}', steps.deployment.outputs.page_url) }}
         run: |
+          echo "Using base URL: $TRACE_VIEWER_BASE_URL"
           npm run generate-report:custom test-results/test-results.json
 
       - name: Prepare deployment content

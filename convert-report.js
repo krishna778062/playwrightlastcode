@@ -56,10 +56,19 @@ const outputFile = path.join(PLAYWRIGHT_REPORT_DIR, 'summary.html');
 function getTraceViewerUrl(tracePath) {
     // Get the path relative to the test-results directory
     const testResultsRelativePath = path.relative(TEST_RESULTS_DIR, tracePath);
-    // Remove any leading slashes and ensure clean path joining
-    const cleanBasePath = BASE_URL.replace(/\/$/, '');
-    const traceUrl = `${cleanBasePath}/test-results/${testResultsRelativePath}`;
-    console.log('Generated trace URL:', traceUrl); // For debugging
+    
+    // Clean up the base URL - remove any trailing slashes
+    const cleanBaseUrl = BASE_URL.replace(/\/+$/, '');
+    
+    // For debugging
+    console.log('Base URL:', cleanBaseUrl);
+    console.log('Trace path:', testResultsRelativePath);
+    
+    // Construct the full URL making sure we don't have double slashes
+    const traceUrl = `${cleanBaseUrl}/test-results/${testResultsRelativePath}`;
+    console.log('Final trace URL:', traceUrl);
+    
+    // Ensure the URL is properly encoded
     return `https://trace.playwright.dev/?trace=${encodeURIComponent(traceUrl)}`;
 }
 
