@@ -31,10 +31,14 @@ permissions:
   pages: write
   id-token: write
 
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
-  test:
+  test-and-deploy:
     timeout-minutes: 60
-    # use self hosted runner with tag kubernetes
     runs-on: [kubernetes]
     steps:
       - name: Checkout code
@@ -46,7 +50,7 @@ jobs:
           node-version: 20
 
       - name: install dependencies
-        run: npm ci # install dependencies based on package-lock.json
+        run: npm ci
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
@@ -54,19 +58,29 @@ jobs:
       - name: Run playwright tests
         run: npm run test:${{ inputs.module_name || 'chat' }} -- --grep=${{ inputs.priority_filter || '@P0' }}
 
-      - name: Upload Playwright Report
-        uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: playwright-report-${{ steps.timestampid.outputs.timestamp }}
-          path: playwright-report/
-          retention-days: 1
+      - name: Generate HTML Report
+        if: always()
+        env:
+          TRACE_VIEWER_BASE_URL: https://shiny-adventure-jnkoq9z.pages.github.io/
+        run: |
+          echo "Using base URL: $TRACE_VIEWER_BASE_URL"
+          npm run generate-report:custom test-results/test-results.json
 
-      - name: upload playwright report as an artifact
+      - name: Prepare deployment content
+        if: always()
+        run: |
+          mkdir -p deploy-content
+          cp -rv playwright-report/* deploy-content/
+          echo "Final deploy-content structure:"
+          find deploy-content -type f
+
+      - name: Upload Pages Artifact
+        if: always()
         uses: actions/upload-pages-artifact@v3
         with:
-          path: playwright-report/
+          path: deploy-content
 
-      - name: Deploy Playwright Report
+      - name: Deploy to GitHub Pages
+        if: always()
         id: deployment
         uses: actions/deploy-pages@v4
