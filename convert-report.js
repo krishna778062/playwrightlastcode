@@ -58,11 +58,11 @@ function getTraceViewerUrl(tracePath) {
     const testResultsRelativePath = path.relative(TEST_RESULTS_DIR, tracePath);
     
     // If we have a base URL, use it, otherwise just use the relative path
-    const tracePath = BASE_URL ? 
+    const fullTracePath = BASE_URL ? 
         `${BASE_URL}/test-results/${testResultsRelativePath}` :
         `test-results/${testResultsRelativePath}`;
     
-    return `https://trace.playwright.dev/?trace=${encodeURIComponent(tracePath)}`;
+    return `https://trace.playwright.dev/?trace=${encodeURIComponent(fullTracePath)}`;
 }
 
 // Function to get the Playwright report path
