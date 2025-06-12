@@ -26,7 +26,6 @@ const args = process.argv.slice(2);
 const inputFile = args[0] || 'test-results/test-results.json';
 
 const PROJECT_ROOT = path.resolve(__dirname);
-const TEST_RESULTS_DIR = path.join(PROJECT_ROOT, 'test-results');
 const PLAYWRIGHT_REPORT_DIR = path.join(PROJECT_ROOT, 'playwright-report');
 const DEFAULT_PORT = 9323;
 
@@ -52,22 +51,9 @@ const reportData = JSON.parse(fs.readFileSync(inputFile, 'utf-8'));
 // Generate output filename based on input filename but place it in playwright-report
 const outputFile = path.join(PLAYWRIGHT_REPORT_DIR, 'summary.html');
 
-// Function to generate trace viewer URL
-function getTraceViewerUrl(tracePath) {
-    // Get the path relative to the test-results directory
-    const testResultsRelativePath = path.relative(TEST_RESULTS_DIR, tracePath);
-    
-    // If we have a base URL, use it, otherwise just use the relative path
-    const fullTracePath = BASE_URL ? 
-        `${BASE_URL}/test-results/${testResultsRelativePath}` :
-        `test-results/${testResultsRelativePath}`;
-    
-    return `https://trace.playwright.dev/?trace=${encodeURIComponent(fullTracePath)}`;
-}
-
 // Function to get the Playwright report path
 function getPlaywrightReportPath() {
-    return './index.html'; // Keep Playwright's original index.html
+    return './index.html';
 }
 
 // Function to inject base URL into HTML
@@ -77,6 +63,11 @@ function injectBaseUrl(html) {
         window.process = { env: { TRACE_VIEWER_BASE_URL: '${BASE_URL}' } };
     </script>`;
     return html.replace('</head>', `${script}</head>`);
+}
+
+// Function to get test ID from test result
+function getPlaywrightTestId(test) {
+    return test.id || 'N/A';
 }
 
 // Create HTML content
@@ -149,7 +140,7 @@ const htmlContent = `
         .summary span {
             margin-right: 20px;
         }
-        .view-trace {
+        .view-report {
             padding: 6px 12px;
             background-color: #007bff;
             color: white;
@@ -160,30 +151,12 @@ const htmlContent = `
             display: inline-block;
             margin-bottom: 5px;
         }
-        .view-trace:hover {
+        .view-report:hover {
             background-color: #0056b3;
         }
-        .view-trace:disabled {
+        .view-report:disabled {
             background-color: #ccc;
             cursor: not-allowed;
-        }
-        .note {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #fff3cd;
-            border: 1px solid #ffeeba;
-            border-radius: 4px;
-            color: #856404;
-        }
-        .command {
-            font-family: monospace;
-            background-color: #f8f9fa;
-            padding: 5px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            color: #666;
-            display: block;
-            margin-top: 5px;
         }
     </style>
 </head>
@@ -196,7 +169,7 @@ const htmlContent = `
             <span>Failed: <strong id="failedTests" style="color: #f44336">0</strong></span>
             <span>Duration: <strong id="totalDuration">0s</strong></span>
             <div style="margin-top: 10px;">
-                <a href="${getPlaywrightReportPath()}" class="view-trace" style="text-decoration: none;" target="_blank">
+                <a href="${getPlaywrightReportPath()}" class="view-report" style="text-decoration: none;" target="_blank">
                     View Detailed Playwright Report
                 </a>
             </div>
@@ -211,9 +184,6 @@ const htmlContent = `
                 <option value="failed">Failed</option>
             </select>
         </div>
-        <div class="note">
-            Note: You can view traces either in the web viewer or locally using the provided command.
-        </div>
         <table id="resultsTable">
             <thead>
                 <tr>
@@ -222,7 +192,7 @@ const htmlContent = `
                     <th onclick="sortTable(2)">Title ↕</th>
                     <th onclick="sortTable(3)">Status ↕</th>
                     <th onclick="sortTable(4)">Duration ↕</th>
-                    <th>Trace</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -242,13 +212,9 @@ reportData.suites.forEach(suite => {
         
         subSuite.specs.forEach(spec => {
             spec.tests.forEach(test => {
-                const testId = test.annotations.find(a => a.type === 'zephyrId')?.description || 'N/A';
+                const testId = getPlaywrightTestId(test);
                 const status = test.results[0].status;
                 const duration = (test.results[0].duration / 1000).toFixed(2);
-                
-                // Find trace attachment if it exists
-                const traceAttachment = test.results[0].attachments?.find(a => a.name === 'trace');
-                const tracePath = traceAttachment ? traceAttachment.path : null;
                 
                 status === 'passed' ? passedTests++ : failedTests++;
                 totalDuration += parseFloat(duration);
@@ -261,14 +227,11 @@ reportData.suites.forEach(suite => {
                         <td class="${status}">${status.toUpperCase()}</td>
                         <td>${duration}s</td>
                         <td>
-                            ${tracePath ? 
-                                `<a href="${getTraceViewerUrl(tracePath)}" 
-                                    target="_blank" 
-                                    class="view-trace"
-                                    data-trace-path="${tracePath}">
-                                    View Trace
-                                </a>` : 
-                                '<button class="view-trace" disabled>No Trace</button>'}
+                            <a href="./index.html#?testId=${encodeURIComponent(testId)}" 
+                                target="_blank" 
+                                class="view-report">
+                                View Report
+                            </a>
                         </td>
                     </tr>
                 `;
@@ -341,18 +304,6 @@ const finalHtml = htmlContent + tableRows + `
                     switching = true;
                 }
             }
-        }
-
-        // Add copy command function
-        function copyCommand(button) {
-            const command = button.getAttribute('data-command');
-            navigator.clipboard.writeText(command).then(() => {
-                const originalText = button.textContent;
-                button.textContent = 'Command Copied!';
-                setTimeout(() => {
-                    button.textContent = originalText;
-                }, 2000);
-            });
         }
 
         // Add event listeners
