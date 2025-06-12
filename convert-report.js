@@ -64,17 +64,8 @@ function getTraceViewerUrl(tracePath) {
     console.log('Base URL:', cleanBaseUrl);
     console.log('Trace path:', testResultsRelativePath);
     
-    // Construct the full URL making sure we don't have double slashes
-    const traceUrl = `${cleanBaseUrl}/test-results/${testResultsRelativePath}`;
-    console.log('Final trace URL:', traceUrl);
-    
-    // Ensure the URL is properly encoded
-    return `https://trace.playwright.dev/?trace=${encodeURIComponent(traceUrl)}`;
-}
-
-// Function to get server start command - No longer needed
-function getServerCommand() {
-    return ''; // Removed local server command
+    // Return the trace path with the placeholder - it will be replaced client-side
+    return `https://trace.playwright.dev/?trace=TRACE_VIEWER_BASE_URL/test-results/${testResultsRelativePath}`;
 }
 
 // Function to get the Playwright report path
@@ -87,6 +78,10 @@ const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
+    <script>
+        // Set the base URL from environment variable
+        window.TRACE_VIEWER_BASE_URL = '${BASE_URL}';
+    </script>
     <style>
         body {
             font-family: Arial, sans-serif;
