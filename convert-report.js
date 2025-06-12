@@ -30,8 +30,8 @@ const TEST_RESULTS_DIR = path.join(PROJECT_ROOT, 'test-results');
 const PLAYWRIGHT_REPORT_DIR = path.join(PROJECT_ROOT, 'playwright-report');
 const DEFAULT_PORT = 9323;
 
-// Get base URL from environment variable or use localhost as default
-const BASE_URL = process.env.TRACE_VIEWER_BASE_URL || `http://localhost:${process.env.PORT || DEFAULT_PORT}`;
+// Get base URL from environment variable
+const BASE_URL = process.env.TRACE_VIEWER_BASE_URL || '';
 
 // Ensure playwright-report directory exists
 if (!fs.existsSync(PLAYWRIGHT_REPORT_DIR)) {
@@ -57,21 +57,26 @@ function getTraceViewerUrl(tracePath) {
     // Get the path relative to the test-results directory
     const testResultsRelativePath = path.relative(TEST_RESULTS_DIR, tracePath);
     
-    // Clean up the base URL - remove any trailing slashes
-    const cleanBaseUrl = BASE_URL.replace(/\/+$/, '');
+    // If we have a base URL, use it, otherwise just use the relative path
+    const tracePath = BASE_URL ? 
+        `${BASE_URL}/test-results/${testResultsRelativePath}` :
+        `test-results/${testResultsRelativePath}`;
     
-    // For debugging
-    console.log('Base URL:', cleanBaseUrl);
-    console.log('Trace path:', testResultsRelativePath);
-    
-    // Construct the full URL with proper encoding
-    const traceUrl = `${cleanBaseUrl}/test-results/${testResultsRelativePath}`;
-    return `https://trace.playwright.dev/?trace=${encodeURIComponent(traceUrl)}`;
+    return `https://trace.playwright.dev/?trace=${encodeURIComponent(tracePath)}`;
 }
 
 // Function to get the Playwright report path
 function getPlaywrightReportPath() {
     return './index.html'; // Keep Playwright's original index.html
+}
+
+// Function to inject base URL into HTML
+function injectBaseUrl(html) {
+    const script = `
+    <script>
+        window.process = { env: { TRACE_VIEWER_BASE_URL: '${BASE_URL}' } };
+    </script>`;
+    return html.replace('</head>', `${script}</head>`);
 }
 
 // Create HTML content
@@ -359,7 +364,7 @@ const finalHtml = htmlContent + tableRows + `
 `;
 
 // Write the HTML file
-fs.writeFileSync(outputFile, finalHtml);
+fs.writeFileSync(outputFile, injectBaseUrl(finalHtml));
 console.log(`Interactive HTML report generated successfully: ${outputFile}`);
 
 // Create an index.html that serves as the landing page
