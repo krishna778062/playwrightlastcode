@@ -64,8 +64,9 @@ function getTraceViewerUrl(tracePath) {
     console.log('Base URL:', cleanBaseUrl);
     console.log('Trace path:', testResultsRelativePath);
     
-    // Return the trace path with the placeholder - it will be replaced client-side
-    return `https://trace.playwright.dev/?trace=TRACE_VIEWER_BASE_URL/test-results/${testResultsRelativePath}`;
+    // Construct the full URL with proper encoding
+    const traceUrl = `${cleanBaseUrl}/test-results/${testResultsRelativePath}`;
+    return `https://trace.playwright.dev/?trace=${encodeURIComponent(traceUrl)}`;
 }
 
 // Function to get the Playwright report path
@@ -78,6 +79,8 @@ const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <title>Test Execution Report</title>
     <script>
         // Set the base URL from environment variable
         window.TRACE_VIEWER_BASE_URL = '${BASE_URL}';
@@ -256,7 +259,8 @@ reportData.suites.forEach(suite => {
                             ${tracePath ? 
                                 `<a href="${getTraceViewerUrl(tracePath)}" 
                                     target="_blank" 
-                                    class="view-trace">
+                                    class="view-trace"
+                                    data-trace-path="${tracePath}">
                                     View Trace
                                 </a>` : 
                                 '<button class="view-trace" disabled>No Trace</button>'}
