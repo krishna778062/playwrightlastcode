@@ -8,7 +8,12 @@
     "format:check": "prettier --check .",
     "test:chat": "npx playwright test --config=src/modules/chat/playwright.chat.config.ts",
     "test:chat:P0": "npx playwright test --config=src/modules/chat/playwright.chat.config.ts --grep=@P0",
-    "test:chat:smoke": "npx playwright test --config=src/modules/chat/playwright.chat.config.ts --grep=@smoke"
+    "test:chat:smoke": "npx playwright test --config=src/modules/chat/playwright.chat.config.ts --grep=@smoke",
+    "start-report-server": "http-server . -p 3000 --cors",
+    "generate-report": "node convert-report.js",
+    "generate-report:custom": "node convert-report.js",
+    "serve-report": "npm run generate-report && concurrently \"npm run start-report-server\" \"sleep 1 && OPEN_REPORT=true node convert-report.js\"",
+    "serve-report:custom": "npm run generate-report:custom && concurrently \"npm run start-report-server\" \"sleep 1 && OPEN_REPORT=true npm run generate-report:custom\""
   },
   "keywords": [],
   "author": "",
@@ -22,10 +27,15 @@
     "@typescript-eslint/parser": "^8.33.1",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
+    "http-server": "^14.1.1",
+    "junit-report-builder": "^5.1.1",
+    "junit-xml2html-converter": "^0.0.1",
     "prettier": "^3.5.3",
-    "tsconfig-paths": "^4.2.0"
+    "tsconfig-paths": "^4.2.0",
+    "xmldom": "^0.6.0"
   },
   "dependencies": {
-    "dotenv": "^16.5.0"
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0"
   }
 }

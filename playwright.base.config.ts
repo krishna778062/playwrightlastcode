@@ -11,9 +11,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   timeout: TIMEOUTS.VERY_LONG,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  retries: process.env.CI ? 1 : 0,
+  workers: process.env.CI ? 1 : 2,
+  reporter: [['html', { open: 'never' }], ['json', { outputFile: `${TEST_RESULTS_DIR}/test-results.json` }]],
   outputDir: TEST_RESULTS_DIR,
   use: {
     trace: 'on',
@@ -26,7 +26,7 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        headless: true,
+        headless: process.env.CI ? true : false,
         permissions: ['camera', 'microphone'],
         launchOptions: {
           args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],

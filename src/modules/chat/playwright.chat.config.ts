@@ -12,12 +12,9 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      metadata: {
-        browserInfo: 'Chromium',
-      },
       use: {
         ...devices['Desktop Chrome'],
-        headless: true,
+        headless: process.env.CI ? true : true,
         permissions: ['camera', 'microphone'],
         launchOptions: {
           args: [

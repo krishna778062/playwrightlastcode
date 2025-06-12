@@ -14,6 +14,13 @@ interface RequestOptionsBase {
   useInternalBackendUrl?: boolean;
 }
 
+export interface ValidateResponseOptions {
+  expectedStatusCodes?: number[];
+  allowEmptyResponse?: boolean;
+  customValidation?: (response: APIResponse) => Promise<void>;
+  throwOnError?: boolean;
+}
+
 export interface GetRequestOptions extends GetOptions, RequestOptionsBase {}
 export interface PostRequestOptions extends PostOptions, RequestOptionsBase {}
 export interface PutRequestOptions extends PutOptions, RequestOptionsBase {}
@@ -66,10 +73,45 @@ export class HttpClient {
     return this.context.patch(this.getUrl(endpoint, { useInternalBackendUrl }), requestOptions);
   }
 
-  protected async parseResponse<T>(response: APIResponse): Promise<T> {
-    if (!response.ok()) {
-      throw new ApiError(response.status(), await response.text(), response.url());
+  protected async validateResponse(
+    response: APIResponse,
+    options: ValidateResponseOptions = {}
+  ): Promise<void> {
+    const {
+      expectedStatusCodes = [200, 201, 204],
+      allowEmptyResponse = true,
+      customValidation,
+      throwOnError = true,
+    } = options;
+
+    if (!expectedStatusCodes.includes(response.status())) {
+      const error = new ApiError(response.status(), await response.text(), response.url());
+      if (throwOnError) {
+        throw error;
+      }
     }
+
+    if (!allowEmptyResponse && (await response.text()) === '') {
+      const error = new ApiError(
+        response.status(),
+        'Response body is empty when it was expected to have content',
+        response.url()
+      );
+      if (throwOnError) {
+        throw error;
+      }
+    }
+
+    if (customValidation) {
+      await customValidation(response);
+    }
+  }
+
+  protected async parseResponse<T>(
+    response: APIResponse,
+    validationOptions?: ValidateResponseOptions
+  ): Promise<T> {
+    await this.validateResponse(response, validationOptions);
     return response.json() as T;
   }
 }
