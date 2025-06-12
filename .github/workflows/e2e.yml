@@ -28,6 +28,17 @@ on:
         options:
           - 'qa'
           - 'uat'
+      workers:
+        description: 'Number of parallel workers to run tests'
+        required: true
+        default: '3'
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+          - '4'
+          - '5'
 
 permissions:
   contents: read
@@ -63,9 +74,9 @@ jobs:
           TEST_ENV: ${{ inputs.environment || 'qa' }}
         run: |
           if [ "${{ inputs.priority_filter }}" = "all" ]; then
-            npm run test:${{ inputs.module_name || 'chat' }}
+            npm run test:${{ inputs.module_name || 'chat' }} -- --workers=${{ inputs.workers }}
           else
-            npm run test:${{ inputs.module_name || 'chat' }} -- --grep=${{ inputs.priority_filter || '@P0' }}
+            npm run test:${{ inputs.module_name || 'chat' }} -- --grep=${{ inputs.priority_filter || '@P0' }} --workers=${{ inputs.workers }}
           fi
 
       - name: Generate HTML Report
