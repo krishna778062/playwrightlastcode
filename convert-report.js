@@ -2,35 +2,16 @@ const fs = require('fs');
 const path = require('path');
 const net = require('net');
 
-// Function to find an available port
-function findAvailablePort(startPort) {
-    return new Promise((resolve, reject) => {
-        const server = net.createServer();
-        server.listen(startPort, '127.0.0.1', () => {
-            const port = server.address().port;
-            server.close(() => resolve(port));
-        });
-        server.on('error', (err) => {
-            if (err.code === 'EADDRINUSE') {
-                // Port is in use, try the next one
-                resolve(findAvailablePort(startPort + 1));
-            } else {
-                reject(err);
-            }
-        });
-    });
-}
+const PROJECT_ROOT = path.resolve(__dirname);
+const PLAYWRIGHT_REPORT_DIR = path.join(PROJECT_ROOT, 'playwright-report');
+const DEFAULT_PORT = 3000;
+
+// Get base URL from environment variable
+const BASE_URL = process.env.TRACE_VIEWER_BASE_URL || '';
 
 // Get command line arguments
 const args = process.argv.slice(2);
 const inputFile = args[0] || 'test-results/test-results.json';
-
-const PROJECT_ROOT = path.resolve(__dirname);
-const PLAYWRIGHT_REPORT_DIR = path.join(PROJECT_ROOT, 'playwright-report');
-const DEFAULT_PORT = 9323;
-
-// Get base URL from environment variable
-const BASE_URL = process.env.TRACE_VIEWER_BASE_URL || '';
 
 // Ensure playwright-report directory exists
 if (!fs.existsSync(PLAYWRIGHT_REPORT_DIR)) {
@@ -205,21 +186,33 @@ let totalDuration = 0;
 let passedTests = 0;
 let failedTests = 0;
 
-reportData.suites.forEach(suite => {
-    suite.suites.forEach(subSuite => {
+console.log('Starting to process test results...');
+
+reportData.suites.forEach((suite, suiteIndex) => {
+    console.log(`Processing suite ${suiteIndex}:`, suite.title);
+    
+    suite.suites.forEach((subSuite, subIndex) => {
         const suiteName = subSuite.title;
         suites.add(suiteName);
+        console.log(`Processing subsuite ${subIndex}:`, suiteName);
         
-        subSuite.specs.forEach(spec => {
+        subSuite.specs.forEach((spec, specIndex) => {
+            // Extract the test ID from the spec
+            console.log('Processing spec:', spec.title);
+            console.log('Spec ID:', spec.id);
+            
             spec.tests.forEach(test => {
-                const testId = getPlaywrightTestId(test);
+                const testId = spec.id; // Use the spec's ID for the test
                 const status = test.results[0].status;
                 const duration = (test.results[0].duration / 1000).toFixed(2);
+                
+                console.log(`Creating table row for test with ID: ${testId}`);
                 
                 status === 'passed' ? passedTests++ : failedTests++;
                 totalDuration += parseFloat(duration);
                 
-                tableRows += `
+                // Create the table row with the test ID
+                const row = `
                     <tr data-suite="${suiteName}" data-status="${status}">
                         <td>${suiteName}</td>
                         <td>${testId}</td>
@@ -235,10 +228,15 @@ reportData.suites.forEach(suite => {
                         </td>
                     </tr>
                 `;
+                
+                console.log('Generated link:', `./index.html#?testId=${encodeURIComponent(testId)}`);
+                tableRows += row;
             });
         });
     });
 });
+
+console.log('Finished processing test results.');
 
 const finalHtml = htmlContent + tableRows + `
             </tbody>
@@ -368,14 +366,7 @@ fs.writeFileSync(path.join(PLAYWRIGHT_REPORT_DIR, 'home.html'), landingHtml);
 
 // If we're in development mode and OPEN_REPORT is set
 if (process.env.OPEN_REPORT) {
-    (async () => {
-        try {
-            const availablePort = await findAvailablePort(DEFAULT_PORT);
-            const openCommand = process.platform === 'win32' ? 'start' : 'open';
-            require('child_process').exec(`${openCommand} http://localhost:${availablePort}/playwright-report/summary.html`);
-            console.log(`Report will be available at: http://localhost:${availablePort}/playwright-report/summary.html`);
-        } catch (err) {
-            console.error('Error finding available port:', err);
-        }
-    })();
+    const openCommand = process.platform === 'win32' ? 'start' : 'open';
+    require('child_process').exec(`${openCommand} http://localhost:${DEFAULT_PORT}/playwright-report/summary.html`);
+    console.log(`Report will be available at: http://localhost:${DEFAULT_PORT}/playwright-report/summary.html`);
 } 
