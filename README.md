@@ -80,6 +80,39 @@ npm install
   ```
   This will start a local server at [http://localhost:3000](http://localhost:3000) and open the Playwright HTML report.
 
+## Running Tests Manually via GitHub Actions
+
+You can manually trigger the UI E2E automation suite directly from GitHub Actions using the provided workflow. This is useful for on-demand test runs, selecting specific modules, priorities, environments, and parallelism.
+
+### How to Trigger
+
+1. Go to your repository on GitHub.
+2. Click on the **Actions** tab.
+3. Select the **UI E2E Tests** workflow from the list on the left.
+4. Click the **Run workflow** button.
+5. Fill in the required inputs:
+   - **module_name**: Select the module to test (e.g., `chat`, `feed`).
+   - **priority_filter**: Choose which test priorities to run (`@P0`, `@P1`, or `all`).
+   - **environment**: Select the environment (`qa`, `uat`).
+   - **workers**: Set the number of parallel workers (1–5).
+6. Click **Run workflow** to start the suite with your chosen parameters.
+
+### Example
+
+To run all P0 tests for the chat module in the QA environment with 3 workers:
+
+- `module_name`: `chat`
+- `priority_filter`: `@P0`
+- `environment`: `qa`
+- `workers`: `3`
+
+The workflow will:
+
+- Install dependencies and Playwright browsers
+- Run the selected tests with the specified filters and parallelism
+- Generate and upload the HTML report
+- Deploy the report to GitHub Pages
+
 ## Framework Design
 
 ### Core (`src/core`)
@@ -137,6 +170,131 @@ npm install
 - [Faker](https://fakerjs.dev/) for test data generation
 - [http-server](https://www.npmjs.com/package/http-server) for serving reports
 
+## Best Practices for Writing Tests
+
+### 1. Add Test Metadata
+
+Always annotate your test cases with relevant metadata for traceability and reporting. Use the `tagTest` utility from `@core/utils/testDecorator` to add:
+
+- Zephyr test case ID
+- Story ID
+- Custom tags
+- Descriptions
+
+**Example:**
+
+```typescript
+import { tagTest } from '@core/utils/testDecorator';
+
+test('My test case', async () => {
+  tagTest(test.info(), {
+    zephyrTestId: 'CONT-1234',
+    storyId: 'STORY-5678',
+    description: 'Verify user can send a message',
+    customTags: ['@direct-message'],
+  });
+  // ...test steps...
+});
+```
+
+### 2. Categorize Tests with Tags
+
+Use enums/constants to tag your tests for filtering and reporting:
+
+- **Test Type:** Use `TestGroupType` (e.g., SMOKE, REGRESSION)
+- **Test Priority:** Use `TestPriority` (e.g., P0, P1)
+
+**Example:**
+
+```typescript
+import { TestPriority } from '@core/constants/testPriority';
+import { TestGroupType } from '@core/constants/testType';
+
+test(
+  'Critical smoke test',
+  {
+    tag: [TestPriority.P0, TestGroupType.SMOKE],
+  },
+  async () => {
+    // ...test steps...
+  }
+);
+```
+
+### 3. Full Example
+
+From `user-chat.spec.ts`:
+
+```typescript
+test(
+  'Verify that user 1 can open direct message with user 2 and they both are able to send message to each other',
+  {
+    tag: [TestPriority.P0],
+  },
+  async () => {
+    tagTest(test.info(), {
+      zephyrTestId: 'CONT-5376',
+      storyId: 'CONT-5376',
+      customTags: ['@direct-message'],
+    });
+    // ...test steps...
+  }
+);
+```
+
 ---
 
 For more details, refer to the codebase and module-specific files. Contributions and suggestions are welcome!
+
+## Managing Environment-Specific Data
+
+Environment-specific configuration (such as API endpoints, credentials, or feature flags) is managed using `.env`-style files located in the `env/` directory at the project root.  
+Typical files include:
+
+- `env/qa.env` — for the QA environment
+- `env/uat.env` — for the UAT environment
+
+**How it works:**
+
+- The framework loads the appropriate environment file based on the `TEST_ENV` variable (e.g., `qa`, `uat`).
+- These files are parsed at runtime to inject environment variables into your tests and application code.
+
+**Example usage:**
+
+```sh
+TEST_ENV=qa npm run test:chat
+```
+
+This will load variables from `env/qa.env`.
+
+---
+
+## Playwright Configuration Structure
+
+The framework uses a layered Playwright configuration approach for flexibility and maintainability:
+
+- **Base Configuration:**  
+  `playwright.base.config.ts`  
+  Contains all common Playwright settings (timeouts, reporters, device settings, etc.) shared across modules.
+
+- **Module-Specific Configuration:**  
+  Each module can extend or override the base config.  
+  For example, `src/modules/chat/playwright.chat.config.ts` imports the base config and customizes it for the chat module (e.g., test directory, browser launch options).
+
+**How to extend:**
+
+```typescript
+// src/modules/chat/playwright.chat.config.ts
+import baseConfig from '../../../playwright.base.config';
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+  ...baseConfig,
+  // Module-specific overrides here
+});
+```
+
+**Best Practice:**  
+Always put shared settings in the base config and only override in the module config when necessary.
+
+---
