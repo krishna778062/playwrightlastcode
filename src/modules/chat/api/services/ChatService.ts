@@ -1,8 +1,9 @@
 import { APIRequestContext, test } from '@playwright/test';
-import { BaseApiClient } from '@core/apiClients/baseApiClient';
-import { IChatAdminOperations, CreateChatGroupParams } from '../../types/chat-operations.interface';
+import { BaseApiClient } from '@core/api/clients/baseApiClient';
+import { IChatAdminOperations } from '@chat/api/interfaces/IChatAdminOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { ChatGroup, CreateGroupResponse } from '@core/types/group.type';
+import { CreateChatGroupParams } from '@chat/types/chat.type';
 
 export class ChatService extends BaseApiClient implements IChatAdminOperations {
   constructor(context: APIRequestContext, baseUrl?: string) {

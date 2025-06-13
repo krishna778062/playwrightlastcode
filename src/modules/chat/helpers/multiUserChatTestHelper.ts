@@ -1,6 +1,5 @@
-import { ApiClientFactory } from '@core/apiClients/apiClientFactory';
-import { AppManagerApiClient } from '@core/apiClients/appManagerApiClient';
-import { TestDataBuilderUsingAPI } from '@/src/core/utils/testDataBuilder';
+import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
+import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { Roles } from '@core/constants/roles';
 import { Browser, Page, test } from '@playwright/test';
@@ -8,13 +7,15 @@ import { BrowserFactory, MultiUserContexts } from '@/src/core/utils/browserFacto
 import { LoginPage } from '@modules/chat/pages/loginPage';
 import { ChatAppPage } from '@modules/chat/pages/chatsPage';
 import { ChatTestUser, ChatTestSetupConfig, ChatTestSetupResult } from '@modules/chat/types';
+import { ChatGroupTestDataBuilder } from '../builders';
+import { User } from '../../../core/types/user.type';
 
 export class BaseMultiUserChatTest {
   private static readonly DEFAULT_PASSWORD = 'Simpplr@2025';
   protected appManagerApiClient!: AppManagerApiClient;
   protected groupName!: string;
   protected testUsers!: ChatTestUser[];
-  protected testDataBuilder!: TestDataBuilderUsingAPI;
+  protected chatTestDataBuilder!: ChatGroupTestDataBuilder;
   protected multiUserContexts!: MultiUserContexts;
   protected browserFactory!: BrowserFactory;
 
@@ -27,7 +28,7 @@ export class BaseMultiUserChatTest {
   async setup(browser: Browser, config: ChatTestSetupConfig) {
     const setupResult = await BaseMultiUserChatTest.init(config);
     this.appManagerApiClient = setupResult.appManagerApiClient;
-    this.testDataBuilder = setupResult.testDataBuilder;
+    this.chatTestDataBuilder = setupResult.testDataBuilder;
     this.groupName = setupResult.groupName;
     this.testUsers = setupResult.users;
     this.browserFactory = new BrowserFactory(browser);
@@ -225,37 +226,43 @@ export class BaseMultiUserChatTest {
    * @returns The setup result containing users, group name, and API clients
    */
   static async init(config: ChatTestSetupConfig): Promise<ChatTestSetupResult> {
-    // Create app manager client
+    // 1. Create app manager client and test data builder
     const appManagerApiClient = await this.createAppManagerClient();
-    const testDataBuilder = new TestDataBuilderUsingAPI(appManagerApiClient);
-
-    // Create users based on roles
-    const users: ChatTestUser[] = [];
+    const chatGroupTestDataBuilder = new ChatGroupTestDataBuilder(appManagerApiClient);
+    const userBuilder = chatGroupTestDataBuilder.getUserBuilder();
+    // 2. Create users as per config
+    const createdUsers: (User & { userId: string })[] = [];
     for (const [role, count] of Object.entries(config.usersByRole)) {
-      const newUsers = await this.addAndActivateUsers(
-        testDataBuilder,
-        role as Roles,
-        count,
-        config.password
-      );
-      users.push(...newUsers);
+      const users = await userBuilder.addUsersToSystem(count, role as Roles, config.password);
+      createdUsers.push(...users.map(u => u.user));
     }
 
-    // Get chat user IDs for all users
-    const usersWithChatIds = await this.addChatUserIds(appManagerApiClient, users);
+    // 3. Get chat user IDs for all users
+    const usersWithChatIds: ChatTestUser[] = await Promise.all(
+      createdUsers.map(async user => ({
+        ...user,
+        chatUserId: await appManagerApiClient
+          .getUserManagementService()
+          .getChatUserId(user.first_name, user.last_name),
+      }))
+    );
 
-    // Create group and add users to it
+    // 4. Create group
     const groupName = config.groupName || TestDataGenerator.generateGroupName();
     await appManagerApiClient.getChatService().createChatGroup(
       groupName,
-      usersWithChatIds.map(user => user.chatUserId!)
+      usersWithChatIds.map(user => user.chatUserId),
+      {
+        conversationType: 'GROUP',
+      }
     );
 
+    // 5. Return all relevant data
     return {
       users: usersWithChatIds,
       groupName,
       appManagerApiClient,
-      testDataBuilder,
+      testDataBuilder: chatGroupTestDataBuilder,
     };
   }
 
@@ -270,32 +277,32 @@ export class BaseMultiUserChatTest {
     });
   }
 
-  public static async addAndActivateUsers(
-    testDataBuilder: TestDataBuilderUsingAPI,
-    role: Roles,
-    count: number,
-    password: string = this.DEFAULT_PASSWORD
-  ): Promise<ChatTestUser[]> {
-    let listOfChatTestUsers: ChatTestUser[] | undefined;
+  // public static async addAndActivateUsers(
+  //   testDataBuilder: TestDataBuilderUsingAPI,
+  //   role: Roles,
+  //   count: number,
+  //   password: string = this.DEFAULT_PASSWORD
+  // ): Promise<ChatTestUser[]> {
+  //   let listOfChatTestUsers: ChatTestUser[] | undefined;
 
-    await test.step(`Adding and activating ${count} users for role ${role}`, async () => {
-      const userPromises: Promise<ChatTestUser>[] = [];
-      for (let i = 0; i < count; i++) {
-        const newUser = testDataBuilder.addAndActivateUser(
-          TestDataGenerator.generateUser(),
-          role,
-          password
-        ) as Promise<ChatTestUser>;
-        userPromises.push(newUser);
-      }
-      listOfChatTestUsers = await Promise.all(userPromises);
-    });
+  //   await test.step(`Adding and activating ${count} users for role ${role}`, async () => {
+  //     const userPromises: Promise<ChatTestUser>[] = [];
+  //     for (let i = 0; i < count; i++) {
+  //       const newUser = testDataBuilder.addAndActivateUser(
+  //         TestDataGenerator.generateUser(),
+  //         role,
+  //         password
+  //       ) as Promise<ChatTestUser>;
+  //       userPromises.push(newUser);
+  //     }
+  //     listOfChatTestUsers = await Promise.all(userPromises);
+  //   });
 
-    if (listOfChatTestUsers === undefined) {
-      throw new Error('Failed to add and activate users');
-    }
-    return listOfChatTestUsers;
-  }
+  //   if (listOfChatTestUsers === undefined) {
+  //     throw new Error('Failed to add and activate users');
+  //   }
+  //   return listOfChatTestUsers;
+  // }
 
   private static async addChatUserIds(
     appManagerApiClient: AppManagerApiClient,

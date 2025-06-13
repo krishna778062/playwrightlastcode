@@ -6,3 +6,6 @@ export * from './group.type';
 
 // Audience related types
 export * from './audience.type';
+
+// HTTP client related types
+export * from './http.type';

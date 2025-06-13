@@ -1,7 +1,7 @@
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
-import { BasePage } from './basePage';
+import { BasePage } from '@/src/core/pages/basePage';
 import { expect, Page } from '@playwright/test';
-import { TopNavBarComponent } from './components/topNavBarComponent';
+import { TopNavBarComponent } from '@chat/components/topNavBarComponent';
 import { TIMEOUTS } from '@core/constants/timeouts';
 
 export class HomePage extends BasePage {
