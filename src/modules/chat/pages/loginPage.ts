@@ -1,8 +1,8 @@
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
-import { BasePage } from './basePage';
+import { BasePage } from '@/src/core/pages/basePage';
 import { Locator, Page, expect, test } from '@playwright/test';
-import { HomePage } from './homePage';
+import { HomePage } from '@chat/pages/homePage';
 
 export class LoginPage extends BasePage {
   readonly usernameInput: Locator;

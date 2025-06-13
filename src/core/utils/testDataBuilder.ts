@@ -1,5 +1,5 @@
-import { AppManagerApiClient } from '@core/apiClients/appManagerApiClient';
-import { CreateChatGroupParams } from '@core/apiClients/interfaces/IChatOperations';
+import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
+import { CreateChatGroupParams } from '@chat/types/chat.type';
 import { Roles } from '@core/constants/roles';
 import { TestDataGenerator } from './testDataGenerator';
 import { test } from '@playwright/test';

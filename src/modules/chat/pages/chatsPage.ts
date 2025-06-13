@@ -1,9 +1,9 @@
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
-import { BasePage } from './basePage';
+import { BasePage } from '@/src/core/pages/basePage';
 import { Locator, Page, expect } from '@playwright/test';
-import { ChatInboxSideBarComponent } from './components/chatInboxSideBarComponent';
-import { GroupChatWindowComponent } from './components/groupChatWindowComponent';
+import { ChatInboxSideBarComponent } from '@chat/components/chatInboxSideBarComponent';
+import { GroupChatWindowComponent } from '@chat/components/groupChatWindowComponent';
 
 export class ChatAppPage extends BasePage {
   protected readonly chatAppContainer: Locator;

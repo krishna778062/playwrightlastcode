@@ -5,7 +5,7 @@
       "@/*": ["./*"],
       "@core/*": ["./src/core/*"],
       "@common-utils/*": ["src/core/utils/*"],
-      "@api-clients/*": ["./src/core/apiClients/*"],
+      "@api/*": ["./src/core/api/*"],
       "@types/*": ["./src/core/types/*"],
       "@modules/*": ["./src/modules/*"],
       "@chat/*": ["./src/modules/chat/*"],

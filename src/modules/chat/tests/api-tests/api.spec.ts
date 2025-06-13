@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
-import { AppManagerApiClient } from '@core/apiClients/appManagerApiClient';
-import { ApiClientFactory } from '@core/apiClients/apiClientFactory';
+import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
+import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { Roles } from '@core/constants/roles';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 

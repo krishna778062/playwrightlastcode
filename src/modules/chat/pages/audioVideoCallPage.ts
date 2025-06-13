@@ -1,6 +1,6 @@
 import { expect, Locator, test } from '@playwright/test';
 import { Page } from '@playwright/test';
-import { BasePage } from './basePage';
+import { BasePage } from '@/src/core/pages/basePage';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 

@@ -1,10 +1,10 @@
 import { test } from '@playwright/test';
 import { BaseMultiUserChatTest } from '@chat-helpers/multiUserChatTestHelper';
 import { Roles } from '@core/constants/roles';
-import { tagTest } from '../../../../../core/utils/testDecorator';
-import { TestPriority } from '../../../../../core/constants/testPriority';
-import { TestSuite } from '../../../../../core/constants/testSuite';
-import { CHAT_TEST_DATA } from '../../test-data/chat.test-data';
+import { tagTest } from '@core/utils/testDecorator';
+import { TestPriority } from '@core/constants/testPriority';
+import { TestSuite } from '@core/constants/testSuite';
+import { CHAT_TEST_DATA } from '@chat/tests/test-data/chat.test-data';
 
 test.describe(
   'Test chat application with multiple users',
