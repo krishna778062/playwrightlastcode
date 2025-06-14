@@ -49,7 +49,7 @@ export class MessageBaseComponent extends BaseComponent {
         await this.openMessageActions({
           stepInfo: `${options?.stepInfo} - Opening Message Actions`,
         });
-        await this.messageActionsContainer.getByLabel(reaction).click();
+        await this.clickOnElement(this.messageActionsContainer.getByLabel(reaction));
       } catch (error) {
         console.log(`Retrying to react on message to add more resilience`);
         const messageActionsContainerCoordinates = await this.messageContainer.boundingBox();
@@ -67,7 +67,7 @@ export class MessageBaseComponent extends BaseComponent {
           this.messageActionsContainer,
           `expecting message actions container to be visible after clicking on the reaction`
         ).toBeVisible();
-        await this.messageActionsContainer.getByLabel(reaction).click();
+        await this.clickOnElement(this.messageActionsContainer.getByLabel(reaction));
       }
     });
   }
@@ -85,7 +85,7 @@ export class MessageBaseComponent extends BaseComponent {
   async openEmojiPicker(): Promise<void> {
     await test.step(`Opening the emoji picker`, async () => {
       await this.openMessageActions();
-      await this.emojiPickerButton.click();
+      await this.clickOnElement(this.emojiPickerButton);
     });
   }
 
@@ -95,28 +95,28 @@ export class MessageBaseComponent extends BaseComponent {
         this.emojiPickerContainer,
         `expecting emoji picker container to be visible`
       ).toBeVisible();
-      await this.emojiPickerContainer.getByRole('button').click();
+      await this.clickOnElement(this.emojiPickerContainer.getByRole('button'));
     });
   }
 
   async deleteMessage(): Promise<void> {
     await test.step(`Deleting the message`, async () => {
       await this.openMessageActions();
-      await this.messageActionsContainer.getByLabel('delete icon').click();
+      await this.clickOnElement(this.messageActionsContainer.getByLabel('delete icon'));
     });
   }
 
   async openMessageActionsMenuFrom3Dots(): Promise<void> {
     await test.step(`Opening the message actions menu from 3 dots`, async () => {
       await this.messageContainer.hover();
-      await this.threeDotsButtonToOpenMessageActionsMenu.click();
+      await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu);
     });
   }
 
   async deleteMessageFromMessageActionsMenu(): Promise<void> {
     await test.step(`Deleting the message from the message actions menu`, async () => {
       await this.openMessageActionsMenuFrom3Dots();
-      await this.deleteMessageButtonFromMessageActionsMenu.click();
+      await this.clickOnElement(this.deleteMessageButtonFromMessageActionsMenu);
     });
   }
 }

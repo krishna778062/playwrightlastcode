@@ -114,24 +114,26 @@ export class IncomingAudioVideoCallComponent extends BaseComponent {
        * We need to wait for the user to be redirected to the audio video call page
        * and we will return the audio video call page
        */
-      const audioVideoCallPagePromise = this.page
-        .context()
-        .waitForEvent('page', { timeout: 30_000 });
-      await this.acceptIncomingCallButton.click();
-      audioVideoCallPage = await audioVideoCallPagePromise;
+      audioVideoCallPage = await this.clickAndWaitForNewPageToOpen(
+        () => this.clickOnElement(this.acceptIncomingCallButton),
+        {
+          timeout: 30_000,
+          stepInfo: 'Clicking on accept incoming call button should redirect to call page',
+        }
+      );
     });
     return new AudioVideoCallPage(audioVideoCallPage!);
   }
 
   async rejectIncomingCall(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Rejecting incoming call`, async () => {
-      await this.rejectIncomingCallButton.click();
+      await this.clickOnElement(this.rejectIncomingCallButton);
     });
   }
 
   async enableCamera(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Enabling camera`, async () => {
-      await this.enableCameraButton.click();
+      await this.clickOnElement(this.enableCameraButton);
     });
   }
 

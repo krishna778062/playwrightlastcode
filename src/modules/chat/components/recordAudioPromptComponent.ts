@@ -20,6 +20,9 @@ export class RecordAudioPromptComponent extends BaseComponent {
     );
   }
 
+  /**
+   * Verifies that the record audio prompt component is visible
+   */
   async verifyTheComponentIsVisible(): Promise<void> {
     await test.step(`Verifying that the record audio prompt component is visible`, async () => {
       await expect(
@@ -29,6 +32,9 @@ export class RecordAudioPromptComponent extends BaseComponent {
     });
   }
 
+  /**
+   * Verifies that the audio recording is in progress
+   */
   async verifyTheAudioRecordingIsInProgress(): Promise<void> {
     await test.step(`Verifying that the audio recording is in progress`, async () => {
       await expect(
@@ -65,24 +71,32 @@ export class RecordAudioPromptComponent extends BaseComponent {
     });
   }
 
+  /**
+   * Completes the audio recording
+   */
   async completeTheAudioRecording(): Promise<void> {
     await test.step(`Completing the audio recording`, async () => {
-      await this.stopAudioRecordingButton.click();
+      await this.clickOnElement(this.stopAudioRecordingButton);
     });
   }
 
+  /**
+   * Records audio and adds it to the chat
+   * @param options - The options to pass to the function
+   */
   async recordAudioAndAddItToTheChat(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Recording audio and adding it to the chat`, async () => {
       await this.verifyTheAudioRecordingIsInProgress();
       //wait for 2 seconds to get the audio recorded
       await this.page.waitForTimeout(2_000);
-
-      //when we click on done button, there will be a request to upload video we will wait for that request
-      const uploadAudioRequestPromise = this.page.waitForRequest(
-        request => request.url().includes('attachments') && request.method() === 'POST'
+      await this.performActionAndWaitForRequest(
+        () => this.completeTheAudioRecording(),
+        request => request.url().includes('attachments') && request.method() === 'POST',
+        {
+          timeout: 40_000,
+          stepInfo: 'Clicking on complete recording should record the audio and upload it',
+        }
       );
-      await this.completeTheAudioRecording();
-      await uploadAudioRequestPromise;
       await this.verifyTheAudioRecordingIsNotInProgress();
     });
   }

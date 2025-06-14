@@ -50,7 +50,7 @@ export class FocusedMessageComponent extends MessageBaseComponent {
   async reactOnMessage(reaction: MessageEmojis, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `React on message: ${reaction}`, async () => {
       await this.openMessageActions(options);
-      await this.messageActionsContainer.getByLabel(reaction).click();
+      await this.clickOnElement(this.messageActionsContainer.getByLabel(reaction));
     });
   }
 
@@ -67,7 +67,7 @@ export class FocusedMessageComponent extends MessageBaseComponent {
   async openEmojiPicker(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Opening the emoji picker`, async () => {
       await this.openMessageActions(options);
-      await this.emojiPickerButton.click();
+      await this.clickOnElement(this.emojiPickerButton);
     });
   }
 
@@ -79,7 +79,7 @@ export class FocusedMessageComponent extends MessageBaseComponent {
           this.emojiPickerContainer,
           `expecting emoji picker container to be visible`
         ).toBeVisible();
-        await this.emojiPickerContainer.getByRole('button').click();
+        await this.clickOnElement(this.emojiPickerContainer.getByRole('button'));
       }
     );
   }
@@ -87,7 +87,7 @@ export class FocusedMessageComponent extends MessageBaseComponent {
   async deleteMessage(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Deleting the message`, async () => {
       await this.openMessageActions(options);
-      await this.messageActionsContainer.getByLabel('delete icon').click();
+      await this.clickOnElement(this.messageActionsContainer.getByLabel('delete icon'));
     });
   }
 
@@ -100,7 +100,7 @@ export class FocusedMessageComponent extends MessageBaseComponent {
           this.threeDotsButtonToOpenMessageActionsMenu,
           `expecting three dots button to be visible`
         ).toBeVisible();
-        await this.threeDotsButtonToOpenMessageActionsMenu.click({ delay: 500 });
+        await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 100 });
       }
     );
   }
@@ -110,7 +110,7 @@ export class FocusedMessageComponent extends MessageBaseComponent {
       options?.stepInfo ?? `Deleting the message from the message actions menu`,
       async () => {
         await this.openMessageActionsMenuFrom3Dots(options);
-        await this.deleteMessageButtonFromMessageActionsMenu.click();
+        await this.clickOnElement(this.deleteMessageButtonFromMessageActionsMenu);
       }
     );
   }
@@ -133,11 +133,11 @@ export class FocusedMessageComponent extends MessageBaseComponent {
           this.replyInThreadButton,
           `expecting reply in thread button to be visible`
         ).toBeVisible({ timeout: 3_000 });
-        await this.replyInThreadButton.click();
+        await this.clickOnElement(this.replyInThreadButton);
       } catch (error) {
         console.log(`Retrying to open the reply thread to add more resilience`);
         await this.openMessageActionsMenuFrom3Dots();
-        await this.replyInThreadButton.click();
+        await this.clickOnElement(this.replyInThreadButton);
       }
     });
     return new MessageReplyThreadComponent(this.page, this.replyThreadComponentContainer);

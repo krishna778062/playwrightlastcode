@@ -20,7 +20,7 @@ export class TopNavBarComponent extends BaseComponent {
    */
   async openMessageInbox(options?: { stepInfo?: string; timeout?: number }): Promise<void> {
     await test.step(options?.stepInfo || `Opening message inbox`, async () => {
-      await this.messageInboxButton.click();
+      await this.clickOnElement(this.messageInboxButton);
     });
   }
 
@@ -35,7 +35,7 @@ export class TopNavBarComponent extends BaseComponent {
   }): Promise<ChatAppPage> {
     await test.step(options?.stepInfo || `Navigating to conversations screen`, async () => {
       await this.openMessageInbox();
-      await this.seeAllMessagesButton.click();
+      await this.clickOnElement(this.seeAllMessagesButton);
       await this.page.waitForURL(/chat\/conversations/, {
         timeout: options?.timeout || TIMEOUTS.MEDIUM,
       });

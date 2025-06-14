@@ -176,9 +176,9 @@ export class RecordVideoPromptComponent extends BaseComponent {
       `expecting my video stream container to be visible`
     ).toBeVisible();
     //video streams take some time to load, so we will wait for 1.2 seconds
-    await this.page.waitForTimeout(1_200);
-    await this.recordVideoButton.click();
-    await this.page.waitForTimeout(timeToRecord);
+    await this.sleep(1_200);
+    await this.clickOnElement(this.recordVideoButton);
+    await this.sleep(timeToRecord);
     await this.stopTheVideoRecording();
     await this.addTheRecordedVideoToTheChat();
   }
@@ -193,7 +193,7 @@ export class RecordVideoPromptComponent extends BaseComponent {
     }
   ): Promise<void> {
     await test.step(options?.stepInfo ?? `Starting the video recording`, async () => {
-      await this.recordVideoButton.click();
+      await this.clickOnElement(this.recordVideoButton);
       //verify that the video recording is in progress
       await this.verifyVideoRecordingIsInProgress();
     });
@@ -204,7 +204,7 @@ export class RecordVideoPromptComponent extends BaseComponent {
    */
   async stopTheVideoRecording(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Stopping the video recording`, async () => {
-      await this.stopVideoRecordingButton.click();
+      await this.clickOnElement(this.stopVideoRecordingButton);
       //verify that the video recording is not in progress
       await this.verifyVideoRecordingIsNotInProgress();
     });
@@ -216,7 +216,7 @@ export class RecordVideoPromptComponent extends BaseComponent {
       if (await this.audioButtonInOnState.isVisible()) {
         return;
       }
-      await this.audioButtonInOffState.click();
+      await this.clickOnElement(this.audioButtonInOffState);
     });
   }
 
@@ -226,7 +226,7 @@ export class RecordVideoPromptComponent extends BaseComponent {
       if (await this.audioButtonInOffState.isVisible()) {
         return;
       }
-      await this.audioButtonInOnState.click();
+      await this.clickOnElement(this.audioButtonInOnState);
     });
   }
 
@@ -236,7 +236,7 @@ export class RecordVideoPromptComponent extends BaseComponent {
       if (await this.videoButtonInOnState.isVisible()) {
         return;
       }
-      await this.videoButtonInOffState.click();
+      await this.clickOnElement(this.videoButtonInOffState);
     });
   }
 
@@ -246,7 +246,7 @@ export class RecordVideoPromptComponent extends BaseComponent {
       if (await this.videoButtonInOffState.isVisible()) {
         return;
       }
-      await this.videoButtonInOnState.click();
+      await this.clickOnElement(this.videoButtonInOnState);
     });
   }
 }
