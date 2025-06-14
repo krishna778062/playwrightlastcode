@@ -74,7 +74,7 @@ export class AudioVideoCallPage extends BasePage {
     await test.step(options?.stepInfo ?? `Enabling microphone`, async () => {
       //check if the microphone is already enabled
       if (!(await this.isMicrophoneEnabled())) {
-        await this.audioCallButton.click();
+        await this.clickOnElement(this.audioCallButton);
       } else {
         console.log('Microphone is already enabled, hence not clicking on it');
       }
@@ -88,7 +88,7 @@ export class AudioVideoCallPage extends BasePage {
   async enableVideo(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Enabling video`, async () => {
       if (await this.isVideoEnabled()) {
-        await this.videoCallButton.click();
+        await this.clickOnElement(this.videoCallButton);
       } else {
         console.log('Video is already enabled, hence not clicking on it');
       }
@@ -102,7 +102,7 @@ export class AudioVideoCallPage extends BasePage {
   async disableMicrophone(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Disabling microphone`, async () => {
       if (await this.isMicrophoneEnabled()) {
-        await this.audioCallButton.click();
+        await this.clickOnElement(this.audioCallButton);
       } else {
         console.log('Microphone is already disabled, hence not clicking on it');
       }
@@ -116,7 +116,7 @@ export class AudioVideoCallPage extends BasePage {
   async disableVideo(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Disabling video`, async () => {
       if (await this.isVideoEnabled()) {
-        await this.videoCallButton.click();
+        await this.clickOnElement(this.videoCallButton);
       } else {
         console.log('Video is already disabled, hence not clicking on it');
       }
@@ -157,7 +157,7 @@ export class AudioVideoCallPage extends BasePage {
    */
   async endCall(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Ending call`, async () => {
-      await this.endCallButton.click();
+      await this.clickOnElement(this.endCallButton);
     });
   }
 
@@ -236,13 +236,13 @@ export class AudioVideoCallPage extends BasePage {
 
   async openMeetingParticipantList(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Opening meeting participant list`, async () => {
-      await this.attendeeListButton.click();
+      await this.clickOnElement(this.attendeeListButton);
     });
   }
 
   async closeMeetingParticipantList(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Closing meeting participant list`, async () => {
-      await this.closeMeetingParticipantListButton.click();
+      await this.clickOnElement(this.closeMeetingParticipantListButton);
     });
   }
 
@@ -273,8 +273,8 @@ export class AudioVideoCallPage extends BasePage {
         this.addParticipantForm,
         `expecting add participant form to be visible`
       ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-      await this.inviteParticipantInputSearchField.click();
-      await this.inviteParticipantInputSearchField.fill(userName);
+      await this.clickOnElement(this.inviteParticipantInputSearchField);
+      await this.fillInElement(this.inviteParticipantInputSearchField, userName);
       //wait for the user suggestion in dropdwon to be visible
       await expect(
         this.userSelectionDropdownOptions.first(),
@@ -288,12 +288,11 @@ export class AudioVideoCallPage extends BasePage {
        * we need to wait for the API call to be successful
        * and then we can close the add participant form
        */
-      const inviteUserToMeetingPromise = this.page.waitForResponse(
+      await this.clickAndWaitForResponse(
+        () => this.clickOnElement(this.addButtonToInviteParticipant),
         response => response.url().includes('/invite') && response.status() === 201,
-        { timeout: 20_000 }
+        { timeout: 20000, stepInfo: 'Inviting user to meeting' }
       );
-      await this.addButtonToInviteParticipant.click();
-      await inviteUserToMeetingPromise;
       await expect(
         this.meetingParticipantNameInList,
         `expecting meeting participant name in list to be visible`

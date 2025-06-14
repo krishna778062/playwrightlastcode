@@ -146,12 +146,11 @@ export class GroupChatWindowComponent extends BaseComponent {
        * We need to wait for the user to be redirected to the call page
        * and we will return the call page
        */
-      const audioVideoCallPagePromise = this.page
-        .context()
-        .waitForEvent('page', { timeout: 30_000 });
       const button = callType === 'audio' ? this.audioCallButton : this.videoCallButton;
-      await button.click();
-      audioVideoCallPage = await audioVideoCallPagePromise;
+      audioVideoCallPage = await this.clickAndWaitForNewPageToOpen(
+        () => this.clickOnElement(button),
+        { timeout: 30_000, stepInfo: 'Clicking on call button should redirect to call page' }
+      );
     });
     return new AudioVideoCallPage(audioVideoCallPage!);
   }

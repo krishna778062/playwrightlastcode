@@ -19,13 +19,10 @@ export class GroupChatsSectionComponent extends BaseComponent {
    */
   async expandGroupChatsSection(): Promise<void> {
     await test.step(`Expanding group chats section`, async () => {
-      await this.pageActions.waitForElementToBe(this.groupChatsExpandCollapseButton, {
-        timeout: TIMEOUTS.MEDIUM,
-        expectedState: ElementState.VISIBLE,
-      });
+      await this.verifier.verifyTheElementIsVisible(this.groupChatsExpandCollapseButton);
       //check if the group chats section is expanded
       if ((await this.groupChatsExpandCollapseButton.getAttribute('aria-expanded')) === 'false') {
-        await this.groupChatsExpandCollapseButton.click();
+        await this.clickOnElement(this.groupChatsExpandCollapseButton);
       } else {
         console.log('Group chats section is already expanded');
       }
@@ -37,13 +34,10 @@ export class GroupChatsSectionComponent extends BaseComponent {
    */
   async collapseGroupChatsSection(): Promise<void> {
     await test.step(`Collapse group chats section if it is expanded`, async () => {
-      await this.pageActions.waitForElementToBe(this.groupChatsExpandCollapseButton, {
-        timeout: TIMEOUTS.MEDIUM,
-        expectedState: ElementState.VISIBLE,
-      });
+      await this.verifier.verifyTheElementIsVisible(this.groupChatsExpandCollapseButton);
       //check if the group chats section is expanded
       if ((await this.groupChatsExpandCollapseButton.getAttribute('aria-expanded')) === 'true') {
-        await this.groupChatsExpandCollapseButton.click();
+        await this.clickOnElement(this.groupChatsExpandCollapseButton);
       } else {
         console.log('Group chats section is already expanded');
       }
@@ -66,20 +60,14 @@ export class GroupChatsSectionComponent extends BaseComponent {
       const groupChatLocator = this.page
         .locator(`[data-testid*=${groupChatName}]`)
         .filter({ hasText: groupChatName });
-      const isGroupChatVisible = await this.pageActions.isElementVisible(groupChatLocator, {
-        timeout: TIMEOUTS.MEDIUM,
-        expectedState: ElementState.VISIBLE,
-      });
+      const isGroupChatVisible = await this.verifier.verifyTheElementIsVisible(groupChatLocator);
       //refresh the page if the group chat is not visible
       if (!isGroupChatVisible) {
         await this.page.reload();
-        await this.pageActions.waitForElementToBe(groupChatLocator, {
-          timeout: TIMEOUTS.MEDIUM,
-          expectedState: ElementState.VISIBLE,
-        });
+        await this.verifier.verifyTheElementIsVisible(groupChatLocator);
       }
       //click on the group chat
-      await groupChatLocator.click();
+      await this.clickOnElement(groupChatLocator);
       //verify the group chat is opened
       await this.verifyGroupChatHasOpened(groupChatName);
     });

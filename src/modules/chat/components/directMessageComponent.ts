@@ -74,7 +74,7 @@ export class DirectMessageComponent extends BaseComponent {
       async () => {
         const directMessageItemFromUser =
           await this.waitUntilUserIsPresentInDirectMessageSection(userName);
-        await directMessageItemFromUser.click();
+        await this.clickOnElement(directMessageItemFromUser);
       }
     );
     return new GroupChatWindowComponent(this.page, this.focusedChatComponentContainer);

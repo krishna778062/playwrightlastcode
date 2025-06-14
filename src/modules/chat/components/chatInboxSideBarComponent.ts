@@ -46,17 +46,17 @@ export class ChatInboxSideBarComponent extends BaseComponent {
     }
   ) {
     await test.step(options?.stepInfo ?? `Opening direct message with ${userName}`, async () => {
-      await this.createNewMessageOrGroupButton.click();
+      await this.clickOnElement(this.createNewMessageOrGroupButton);
       //this will open a dropdown with options to create new message or group [NOTE: depends on configuration]
-      await this.dropDownOptionCreateNewMessage.click();
+      await this.clickOnElement(this.dropDownOptionCreateNewMessage);
       //expecting create new message form to be visible
       await expect(
         this.createNewMessageForm,
         `expecting create new message form to be visible`
       ).toBeVisible();
       //select the user from the input box
-      await this.inputBoxInCreateNewMessageForm.click();
-      await this.inputBoxInCreateNewMessageForm.fill(userName);
+      await this.clickOnElement(this.inputBoxInCreateNewMessageForm);
+      await this.fillInElement(this.inputBoxInCreateNewMessageForm, userName);
       //atleast 1 dropdwon option is visible for user search result
       await expect(
         this.userSelectionDropdownOptions.first(),
@@ -64,18 +64,19 @@ export class ChatInboxSideBarComponent extends BaseComponent {
       ).toBeVisible();
 
       //select the user from the dropdown
-      await this.userSelectionDropdownOptions.filter({ hasText: userName }).first().click();
+      await this.clickOnElement(
+        this.userSelectionDropdownOptions.filter({ hasText: userName }).first()
+      );
       //start the chart
       /**
        * when we create start chat button , there is an API call happens behind the scene
        * we should wait until that call is successfull to proceed ahead in the flow
        */
-      const createChatPromise = this.page.waitForResponse(
+      await this.clickAndWaitForResponse(
+        () => this.startChatButton.click({ delay: 1_000 }),
         response => response.url().includes('chat/conversations') && response.status() === 201,
-        { timeout: 20_000 }
+        { timeout: 20000, stepInfo: 'Creating chat' }
       );
-      await this.startChatButton.click({ delay: 1_000 });
-      await createChatPromise;
 
       //now wait until the create message form is disappeared
       await expect(

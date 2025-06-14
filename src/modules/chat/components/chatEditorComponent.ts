@@ -58,8 +58,8 @@ export class ChatEditorComponent extends BaseComponent {
     }
   ): Promise<void> {
     await test.step(options?.stepInfo ?? `Sending message: ${message}`, async () => {
-      await this.inputTextBox.fill(message);
-      await this.sendMessageButton.click();
+      await this.fillInElement(this.inputTextBox, message);
+      await this.clickOnElement(this.sendMessageButton);
     });
   }
 
@@ -92,7 +92,7 @@ export class ChatEditorComponent extends BaseComponent {
   }): Promise<RecordVideoPromptComponent> {
     let recordVideoPromptComponent: RecordVideoPromptComponent;
     await test.step(options?.stepInfo ?? `Clicking on record video option`, async () => {
-      await this.recordVideoButton.click();
+      await this.clickOnElement(this.recordVideoButton);
       recordVideoPromptComponent = new RecordVideoPromptComponent(this.page);
       await recordVideoPromptComponent.verifyTheComponentIsVisible();
     });
@@ -104,7 +104,7 @@ export class ChatEditorComponent extends BaseComponent {
   }): Promise<RecordAudioPromptComponent> {
     let recordAudioPromptComponent: RecordAudioPromptComponent;
     await test.step(options?.stepInfo ?? `Clicking on record audio option`, async () => {
-      await this.recordAudioButton.click();
+      await this.clickOnElement(this.recordAudioButton);
       recordAudioPromptComponent = new RecordAudioPromptComponent(this.page);
       await recordAudioPromptComponent.verifyTheComponentIsVisible();
     });
