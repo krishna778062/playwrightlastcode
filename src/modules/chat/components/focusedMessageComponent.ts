@@ -57,10 +57,9 @@ export class FocusedMessageComponent extends MessageBaseComponent {
   async openMessageActions(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Opening the message actions`, async () => {
       await this.focusedMessageContainer.hover();
-      await expect(
-        this.messageActionsContainer,
-        `expecting message actions container to be visible`
-      ).toBeVisible();
+      await this.verifier.verifyTheElementIsVisible(this.messageActionsContainer, {
+        assertionMessage: 'expecting message actions container to be visible',
+      });
     });
   }
 
@@ -75,10 +74,9 @@ export class FocusedMessageComponent extends MessageBaseComponent {
     await test.step(
       options?.stepInfo ?? `Picking any random emoji from the emoji picker`,
       async () => {
-        await expect(
-          this.emojiPickerContainer,
-          `expecting emoji picker container to be visible`
-        ).toBeVisible();
+        await this.verifier.verifyTheElementIsVisible(this.emojiPickerContainer, {
+          assertionMessage: 'expecting emoji picker container to be visible',
+        });
         await this.clickOnElement(this.emojiPickerContainer.getByRole('button'));
       }
     );
@@ -96,10 +94,12 @@ export class FocusedMessageComponent extends MessageBaseComponent {
       options?.stepInfo ?? `Opening the message actions menu from 3 dots`,
       async () => {
         await this.focusedMessageContainer.hover();
-        await expect(
+        await this.verifier.verifyTheElementIsVisible(
           this.threeDotsButtonToOpenMessageActionsMenu,
-          `expecting three dots button to be visible`
-        ).toBeVisible();
+          {
+            assertionMessage: 'expecting three dots button to be visible',
+          }
+        );
         await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 100 });
       }
     );
@@ -129,10 +129,10 @@ export class FocusedMessageComponent extends MessageBaseComponent {
        */
       try {
         await this.openMessageActionsMenuFrom3Dots();
-        await expect(
-          this.replyInThreadButton,
-          `expecting reply in thread button to be visible`
-        ).toBeVisible({ timeout: 3_000 });
+        await this.verifier.verifyTheElementIsVisible(this.replyInThreadButton, {
+          assertionMessage: 'expecting reply in thread button to be visible',
+          timeout: 3_000,
+        });
         await this.clickOnElement(this.replyInThreadButton);
       } catch (error) {
         console.log(`Retrying to open the reply thread to add more resilience`);

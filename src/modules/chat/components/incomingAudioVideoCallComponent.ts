@@ -65,36 +65,34 @@ export class IncomingAudioVideoCallComponent extends BaseComponent {
   ): Promise<IncomingAudioVideoCallComponent> {
     const isGroupChat = options?.isGroupChat ?? false;
     await test.step(options?.stepInfo ?? `Verifying incoming call is received`, async () => {
-      await expect(
-        this.incomingCallContainer,
-        `expecting incoming call container to be visible`
-      ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-      await expect(this.callerName, `expecting caller name to be visible`).toHaveText(callerName);
+      await this.verifier.verifyTheElementIsVisible(this.incomingCallContainer, {
+        assertionMessage: 'expecting incoming call container to be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.callerName, {
+        assertionMessage: 'expecting caller name to be visible',
+      });
 
       if (typeOfCall === 'audio') {
-        await expect(
-          this.enableCameraButton,
-          `expecting enable video button to be visible`
-        ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+        await this.verifier.verifyTheElementIsVisible(this.enableCameraButton, {
+          assertionMessage: 'expecting enable video button to be visible',
+        });
       } else {
         //for video call, we will see the incoming video call stream preview
         if (isGroupChat) {
-          await expect(
-            this.incomingCallGroupImageContainer,
-            `expecting incoming call group image container to be visible`
-          ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+          await this.verifier.verifyTheElementIsVisible(this.incomingCallGroupImageContainer, {
+            assertionMessage: 'expecting incoming call group image container to be visible',
+          });
         } else {
-          await expect(
-            this.incomingVideoCallStreamPreview,
-            `expecting incoming video call stream preview to be visible`
-          ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+          await this.verifier.verifyTheElementIsVisible(this.incomingVideoCallStreamPreview, {
+            assertionMessage: 'expecting incoming video call stream preview to be visible',
+          });
         }
         //video should already be enabled
-        await expect(this.cameraButton, `expecting camera button to be visible`).toBeVisible({
-          timeout: TIMEOUTS.MEDIUM,
+        await this.verifier.verifyTheElementIsVisible(this.cameraButton, {
+          assertionMessage: 'expecting camera button to be visible',
         });
-        await expect(this.enableCameraButton, `expecting video to be already enabed`).toBeHidden({
-          timeout: TIMEOUTS.MEDIUM,
+        await this.verifier.verifyTheElementIsNotVisible(this.enableCameraButton, {
+          assertionMessage: 'expecting video to be already enabed',
         });
       }
     });
@@ -144,7 +142,9 @@ export class IncomingAudioVideoCallComponent extends BaseComponent {
   async isCameraDisabled(): Promise<boolean> {
     //if the camera is disabled, the button to enable camera will be visible
     try {
-      await this.enableCameraButton.waitFor({ state: 'visible' });
+      await this.verifier.verifyTheElementIsVisible(this.enableCameraButton, {
+        assertionMessage: 'expecting enable camera button to be visible',
+      });
       return true;
     } catch (error) {
       return false;
@@ -158,7 +158,9 @@ export class IncomingAudioVideoCallComponent extends BaseComponent {
   async isCameraEnabled(): Promise<boolean> {
     //if the camera is enabled, the button to enable camera will be hidden
     try {
-      await this.enableCameraButton.waitFor({ state: 'hidden' });
+      await this.verifier.verifyTheElementIsNotVisible(this.enableCameraButton, {
+        assertionMessage: 'expecting enable camera button to be hidden',
+      });
       return true;
     } catch (error) {
       return false;
@@ -187,10 +189,9 @@ export class IncomingAudioVideoCallComponent extends BaseComponent {
    */
   async verifyIcomingCallModalIsVisible(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Verifying incoming call modal is visible`, async () => {
-      await expect(
-        this.incomingCallContainer,
-        `expecting incoming call container to be visible`
-      ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await this.verifier.verifyTheElementIsVisible(this.incomingCallContainer, {
+        assertionMessage: 'expecting incoming call container to be visible',
+      });
     });
   }
 
@@ -202,10 +203,9 @@ export class IncomingAudioVideoCallComponent extends BaseComponent {
     await test.step(
       options?.stepInfo ?? `Verifying incoming call modal is not visible`,
       async () => {
-        await expect(
-          this.incomingCallContainer,
-          `expecting incoming call container to be hidden`
-        ).toBeHidden({ timeout: TIMEOUTS.MEDIUM });
+        await this.verifier.verifyTheElementIsNotVisible(this.incomingCallContainer, {
+          assertionMessage: 'expecting incoming call container to be hidden',
+        });
       }
     );
   }

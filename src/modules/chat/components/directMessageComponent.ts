@@ -33,10 +33,10 @@ export class DirectMessageComponent extends BaseComponent {
       options?.stepInfo ?? `Verifying user ${userName} is present in direct message section`,
       async () => {
         directMessageItemFromUser = this.directMessageItem.filter({ hasText: userName });
-        await expect(
-          directMessageItemFromUser,
-          `expecting direct message item from user ${userName} to be visible`
-        ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+        await this.verifier.verifyTheElementIsVisible(directMessageItemFromUser, {
+          assertionMessage: `expecting direct message item from user ${userName} to be visible`,
+          timeout: TIMEOUTS.MEDIUM,
+        });
       }
     );
     return directMessageItemFromUser!;

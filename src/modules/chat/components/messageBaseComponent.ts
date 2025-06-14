@@ -63,10 +63,10 @@ export class MessageBaseComponent extends BaseComponent {
         };
         await this.page.mouse.move(messageContainerCentre.x, messageContainerCentre.y);
         //expect the message actions container to be visible
-        await expect(
-          this.messageActionsContainer,
-          `expecting message actions container to be visible after clicking on the reaction`
-        ).toBeVisible();
+        await this.verifier.verifyTheElementIsVisible(this.messageActionsContainer, {
+          assertionMessage:
+            'expecting message actions container to be visible after clicking on the reaction',
+        });
         await this.clickOnElement(this.messageActionsContainer.getByLabel(reaction));
       }
     });
@@ -75,10 +75,9 @@ export class MessageBaseComponent extends BaseComponent {
   async openMessageActions(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Opening the message actions`, async () => {
       await this.messageContainer.hover();
-      await expect(
-        this.messageActionsContainer,
-        `expecting message actions container to be visible`
-      ).toBeVisible();
+      await this.verifier.verifyTheElementIsVisible(this.messageActionsContainer, {
+        assertionMessage: 'expecting message actions container to be visible',
+      });
     });
   }
 
@@ -91,10 +90,9 @@ export class MessageBaseComponent extends BaseComponent {
 
   async pickAnyRandomEmojiFromEmojiPicker(): Promise<void> {
     await test.step(`Picking any random emoji from the emoji picker`, async () => {
-      await expect(
-        this.emojiPickerContainer,
-        `expecting emoji picker container to be visible`
-      ).toBeVisible();
+      await this.verifier.verifyTheElementIsVisible(this.emojiPickerContainer, {
+        assertionMessage: 'expecting emoji picker container to be visible',
+      });
       await this.clickOnElement(this.emojiPickerContainer.getByRole('button'));
     });
   }

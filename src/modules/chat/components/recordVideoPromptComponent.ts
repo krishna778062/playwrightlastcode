@@ -49,10 +49,9 @@ export class RecordVideoPromptComponent extends BaseComponent {
    * Verifies that the record video prompt component is visible
    */
   async verifyTheComponentIsVisible(): Promise<void> {
-    await expect(
-      this.recordVideoButton,
-      `expecting record video button to be visible`
-    ).toBeVisible();
+    await this.verifier.verifyTheElementIsVisible(this.recordVideoButton, {
+      assertionMessage: 'expecting record video button to be visible',
+    });
   }
 
   /**
@@ -69,30 +68,27 @@ export class RecordVideoPromptComponent extends BaseComponent {
    * Verifies that the record button is enabled
    */
   async verifyRecordButtonIsEnabled(): Promise<void> {
-    await expect(
-      this.recordVideoButton,
-      `expecting record video button to be enabled`
-    ).toBeEnabled();
+    await this.verifier.verifyTheElementIsEnabled(this.recordVideoButton, {
+      assertionMessage: 'expecting record video button to be enabled',
+    });
   }
 
   /**
    * Verifies that the video recording is in progress
    */
   async verifyVideoRecordingIsInProgress(): Promise<void> {
-    await expect(
-      this.videoRecordingProgressBar,
-      `expecting video recording progress bar to be visible`
-    ).toBeVisible();
+    await this.verifier.verifyTheElementIsVisible(this.videoRecordingProgressBar, {
+      assertionMessage: 'expecting video recording progress bar to be visible',
+    });
   }
 
   /**
    * Verifies that the video recording is not in progress
    */
   async verifyVideoRecordingIsNotInProgress(): Promise<void> {
-    await expect(
-      this.videoRecordingProgressBar,
-      `expecting video recording progress bar to be not visible`
-    ).not.toBeVisible();
+    await this.verifier.verifyTheElementIsNotVisible(this.videoRecordingProgressBar, {
+      assertionMessage: 'expecting video recording progress bar to be not visible',
+    });
   }
 
   /**
@@ -116,22 +112,20 @@ export class RecordVideoPromptComponent extends BaseComponent {
    * Verifies if the user is able to play the recorded video
    */
   async verifyIfUserIsAbleToPlayTheRecordedVideo(): Promise<void> {
-    await expect(
-      this.recordingDoneButton,
-      `expecting recording done button to be visible`
-    ).toBeVisible();
+    await this.verifier.verifyTheElementIsVisible(this.recordingDoneButton, {
+      assertionMessage: 'expecting recording done button to be visible',
+    });
     //get the current recorded video stream length
-    await expect(
-      this.recordedVideoRangeSlider,
-      `expecting recorded video range slider to be visible`
-    ).toBeVisible();
+    await this.verifier.verifyTheElementIsVisible(this.recordedVideoRangeSlider, {
+      assertionMessage: 'expecting recorded video range slider to be visible',
+    });
     //get the current recorded video stream length
     let initialPlayedVideoLength = await this.recordedVideoRangeSlider.getAttribute('value');
     //click on the resume button to play the recorded video
     await this.resumeVideoRecordingButton.click(); //same resume button is used to play the recorded video
 
     //wait for 2 seconds
-    await this.page.waitForTimeout(2000);
+    await this.sleep(2_000);
 
     //now get the current played video length
     let currentPlayedVideoLength = await this.recordedVideoRangeSlider.getAttribute('value');
@@ -143,13 +137,14 @@ export class RecordVideoPromptComponent extends BaseComponent {
    * Adds the recorded video to the chat
    */
   async addTheRecordedVideoToTheChat(): Promise<void> {
-    //we will intercept the PUT request to know the uploaded is done and then we can proceed with the test
-    const uploadVideoRequestPromise = this.page.waitForRequest(
-      request => request.url().includes('attachments') && request.method() === 'POST',
-      { timeout: 60_000 }
-    );
-    await this.recordingDoneButton.last().click();
-    await uploadVideoRequestPromise;
+    //click on the recording done button and wait for the request to be completed
+    await test.step(`Clicking on the recording done button and waiting for the request to be completed`, async () => {
+      await this.performActionAndWaitForRequest(
+        () => this.recordingDoneButton.last().click(),
+        request => request.url().includes('attachments') && request.method() === 'POST',
+        { timeout: 60_000 }
+      );
+    });
   }
 
   /**
@@ -171,10 +166,9 @@ export class RecordVideoPromptComponent extends BaseComponent {
       await this.enableCamera();
     }
     //verify the video stream preview is visible
-    await expect(
-      this.myVideoStreamContainer,
-      `expecting my video stream container to be visible`
-    ).toBeVisible();
+    await this.verifier.verifyTheElementIsVisible(this.myVideoStreamContainer, {
+      assertionMessage: 'expecting my video stream container to be visible',
+    });
     //video streams take some time to load, so we will wait for 1.2 seconds
     await this.sleep(1_200);
     await this.clickOnElement(this.recordVideoButton);

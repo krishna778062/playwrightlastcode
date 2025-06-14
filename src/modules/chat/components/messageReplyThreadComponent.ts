@@ -38,10 +38,9 @@ export class MessageReplyThreadComponent extends BaseComponent {
    */
   async verifyIsComponentVisible(): Promise<void> {
     await test.step(`Verifying that the reply thread component is visible`, async () => {
-      await expect(
-        this.replyThreadComponentContainer,
-        `expected reply thread component to be visible`
-      ).toBeVisible();
+      await this.verifier.verifyTheElementIsVisible(this.replyThreadComponentContainer, {
+        assertionMessage: 'expected reply thread component to be visible',
+      });
     });
   }
 
@@ -118,20 +117,13 @@ export class MessageReplyThreadComponent extends BaseComponent {
     await test.step(
       options?.stepInfo ?? `Waiting for message to be present in reply thread: ${message}`,
       async () => {
-        await expect(
-          this.focusedMessageInReplyThreadContainer,
-          `expected message to be present in reply thread`
-        ).toBeVisible({
+        await this.verifier.verifyTheElementIsVisible(this.focusedMessageInReplyThreadContainer, {
+          assertionMessage: 'expected message to be present in reply thread',
           timeout: options?.timeout ?? TIMEOUTS.MEDIUM,
         });
-        replyThreadMessage = this.focusedMessageInReplyThreadContainer
-          // .locator('section')
-          // .locator('p')
-          .filter({ hasText: message });
-        await expect(
-          replyThreadMessage,
-          `expected message to be present in reply thread`
-        ).toBeVisible({
+        replyThreadMessage = this.focusedMessageInReplyThreadContainer.filter({ hasText: message });
+        await this.verifier.verifyTheElementIsVisible(replyThreadMessage, {
+          assertionMessage: 'expected message to be present in reply thread',
           timeout: options?.timeout ?? TIMEOUTS.MEDIUM,
         });
       }

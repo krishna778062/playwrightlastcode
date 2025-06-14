@@ -121,14 +121,11 @@ export class ChatEditorComponent extends BaseComponent {
       options?.stepInfo ?? `Verifying that the video is visible as attachement in the chat editor`,
       async () => {
         //verify that the attachments container has video in it
-        await expect(
-          this.attachementsContainer,
-          `expecting attachements container to be visible`
-        ).toBeVisible();
+        await this.verifier.verifyTheElementIsVisible(this.attachementsContainer);
         //get the attachements container text
         const videoAttachment = this.attachementsContainer.locator('video');
         //verify that the video attachment is visible
-        await expect(videoAttachment, `expecting video attachment to be visible`).toBeVisible();
+        await this.verifier.verifyTheElementIsVisible(videoAttachment);
         //verify that the video attachment has the correct src
       }
     );
@@ -140,18 +137,17 @@ export class ChatEditorComponent extends BaseComponent {
     await test.step(
       options?.stepInfo ?? `Verifying that the audio is visible as attachement in the chat editor`,
       async () => {
-        //verify that the attachments container has video in it
-        await expect(
-          this.attachementsContainer,
-          `expecting attachements container to be visible`
-        ).toBeVisible();
+        await this.verifier.verifyTheElementIsVisible(this.attachementsContainer, {
+          assertionMessage: 'expecting attachements container to be visible',
+        });
         //get the attachements container text
         const audioAttachment = this.attachementsContainer
           .locator("[class*='Attachments_audioContainer']")
           .first();
         //verify that the audio attachment is visible
-        await expect(audioAttachment, `expecting audio attachment to be visible`).toBeVisible();
-        //verify that the audio attachment has the correct src
+        await this.verifier.verifyTheElementIsVisible(audioAttachment, {
+          assertionMessage: 'expecting audio attachment to be visible',
+        });
       }
     );
   }

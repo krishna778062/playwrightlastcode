@@ -5,47 +5,298 @@ export class BaseVerificationUtil {
     this.page = page;
   }
 
-  async verifyTheElementIsVisible(locator: Locator, message?: string): Promise<boolean> {
+  /**
+   * Verifies that the element is visible
+   * @param locator - The locator to verify
+   * @param message - The message to display if the verification fails
+   * @returns True if the element is visible, false otherwise
+   */
+  async verifyTheElementIsVisible(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ): Promise<boolean> {
     try {
-      await expect(locator, message ?? `expecting ${locator} to be visible`).toBeVisible();
+      await expect(
+        locator,
+        options?.assertionMessage ?? `expecting ${locator} to be visible`
+      ).toBeVisible({
+        timeout: options?.timeout || 8_000,
+      });
       return true;
     } catch (error) {
       //if we want we can take screenshot here
       throw new Error(
-        message ? `${message}\n${error}` : `Verification failed: Element not visible.\n${error}`
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element not visible.\n${error}`
       );
     }
   }
 
-  async verifyTheElementIsNotVisible(locator: Locator, message?: string) {
-    try {
-      await expect(locator, message ?? `expecting ${locator} to be not visible`).toBeHidden();
-    } catch (error) {
-      throw new Error(
-        message ? `${message}\n${error}` : `Verification failed: Element visible.\n${error}`
-      );
+  /**
+   * Verifies that the element is not visible
+   * @param locator - The locator to verify
+   * @param options - The options to pass to the verification
+   */
+  async verifyTheElementIsNotVisible(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
     }
-  }
-
-  async verifyTheElementIsEnabled(locator: Locator, message?: string) {
-    try {
-      await expect(locator, message ?? `expecting ${locator} to be enabled`).toBeEnabled();
-    } catch (error) {
-      throw new Error(
-        message ? `${message}\n${error}` : `Verification failed: Element not enabled.\n${error}`
-      );
-    }
-  }
-
-  async verifyCountOfElementsIsEqualTo(locator: Locator, count: number, message?: string) {
+  ) {
     try {
       await expect(
         locator,
-        message ?? `expecting ${locator} to have ${count} elements`
-      ).toHaveCount(count);
+        options?.assertionMessage ?? `expecting ${locator} to be not visible`
+      ).toBeHidden({
+        timeout: options?.timeout || 8_000,
+      });
     } catch (error) {
       throw new Error(
-        message ? `${message}\n${error}` : `Verification failed: Element count mismatch.\n${error}`
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element visible.\n${error}`
+      );
+    }
+  }
+
+  /**
+   * Verifies that the element is enabled
+   * @param locator - The locator to verify
+   * @param options - The options to pass to the verification
+   */
+  async verifyTheElementIsEnabled(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(
+        locator,
+        options?.assertionMessage ?? `expecting ${locator} to be enabled`
+      ).toBeEnabled();
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element not enabled.\n${error}`
+      );
+    }
+  }
+
+  /**
+   * Verifies that the count of elements is equal to the expected count
+   * @param locator - The locator to verify
+   * @param expectedCount - The expected count of elements
+   * @param options - The options to pass to the verification
+   */
+  async verifyCountOfElementsIsEqualTo(
+    locator: Locator,
+    expectedCount: number,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(
+        locator,
+        options?.assertionMessage ?? `expecting ${locator} to have ${expectedCount} elements`
+      ).toHaveCount(expectedCount);
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element count mismatch.\n${error}`
+      );
+    }
+  }
+
+  /**
+   * Verifies that the element contains text
+   * @param locator - The locator to verify
+   * @param text - The text to verify
+   * @param options - The options to pass to the verification
+   */
+  async verifyElementContainsText(
+    locator: Locator,
+    text: string,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(
+        locator,
+        options?.assertionMessage ?? `expecting ${locator} to contain text ${text}`
+      ).toContainText(text);
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element does not contain text.\n${error}`
+      );
+    }
+  }
+
+  /**
+   * Verifies that the element has text
+   * @param locator - The locator to verify
+   * @param text - The text to verify
+   * @param options - The options to pass to the verification
+   */
+  async verfifyEelementHasText(
+    locator: Locator,
+    text: string,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(
+        locator,
+        options?.assertionMessage ?? `expecting ${locator} to have text ${text}`
+      ).toHaveText(text);
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element does not have text.\n${error}`
+      );
+    }
+  }
+
+  /**
+   * Waits for the element to be visible
+   * @param locator - The locator to wait for
+   * @param options - The options to pass to the verification
+   */
+  async waitUntilElementIsVisible(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      stepInfo?: string;
+    }
+  ) {
+    try {
+      await locator.waitFor({
+        state: 'visible',
+        timeout: options?.timeout || 8_000,
+      });
+    } catch (error) {
+      throw new Error(
+        options?.stepInfo
+          ? `${options.stepInfo}\n${error}`
+          : `Waiting for element to be visible failed.\n${error}`
+      );
+    }
+  }
+
+  /**
+   * Waits for the element to be hidden
+   * @param locator - The locator to wait for
+   * @param options - The options to pass to the verification
+   */
+  async waitUntilElementIsHidden(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      stepInfo?: string;
+    }
+  ) {
+    try {
+      await locator.waitFor({
+        state: 'hidden',
+        timeout: options?.timeout || 8_000,
+      });
+    } catch (error) {
+      throw new Error(
+        options?.stepInfo
+          ? `${options.stepInfo}\n${error}`
+          : `Waiting for element to be hidden failed.\n${error}`
+      );
+    }
+  }
+
+  /**
+   * Waits for the element count to be equal to the expected count
+   * @param locator - The locator to wait for
+   * @param expectedCount - The expected count of elements
+   * @param options - The options to pass to the verification
+   */
+  async waitUntilElementCountIsEqualTo(
+    locator: Locator,
+    expectedCount: number,
+    options?: {
+      timeout?: number;
+      stepInfo?: string;
+    }
+  ) {
+    await expect(
+      locator,
+      options?.stepInfo ?? `expecting ${locator} to have ${expectedCount} elements`
+    ).toHaveCount(expectedCount, {
+      timeout: options?.timeout || 8_000,
+    });
+  }
+
+  /**
+   * Waits for the page to navigate to the expected URL
+   * @param url - The URL to wait for
+   * @param options - The options to pass to the verification
+   */
+  async waitUntilPageHasNavigatedTo(
+    url: string,
+    options?: {
+      timeout?: number;
+      stepInfo?: string;
+    }
+  ) {
+    try {
+      await this.page.waitForURL(url, {
+        timeout: options?.timeout || 8_000,
+      });
+    } catch (error) {
+      throw new Error(
+        options?.stepInfo
+          ? `${options.stepInfo}\n${error}`
+          : `Waiting for page to navigate to ${url} failed.\n${error}`
+      );
+    }
+  }
+
+  /**
+   * Verifies that the element is in the viewport
+   * @param locator - The locator to verify
+   * @param options - The options to pass to the verification
+   */
+  async verifyElementIsInViewport(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      stepInfo?: string;
+    }
+  ) {
+    try {
+      await expect(
+        locator,
+        options?.stepInfo ?? `expecting ${locator} to be in viewport`
+      ).toBeInViewport({
+        timeout: options?.timeout || 8_000,
+      });
+    } catch (error) {
+      throw new Error(
+        options?.stepInfo
+          ? `${options.stepInfo}\n${error}`
+          : `Verification failed: Element not in viewport.\n${error}`
       );
     }
   }

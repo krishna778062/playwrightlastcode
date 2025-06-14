@@ -86,7 +86,8 @@ export class GroupChatsSectionComponent extends BaseComponent {
   async verifyGroupChatHasOpened(groupChatName: string) {
     await test.step(`Verifying group chat ${groupChatName} has opened`, async () => {
       const groupChatHeader = this.focusedGroupChatHeader.filter({ hasText: groupChatName });
-      await expect(groupChatHeader, `expecting group chat header to be visible`).toBeVisible({
+      await this.verifier.verifyTheElementIsVisible(groupChatHeader, {
+        assertionMessage: 'expecting group chat header to be visible',
         timeout: TIMEOUTS.MEDIUM,
       });
     });

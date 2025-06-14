@@ -50,18 +50,16 @@ export class ChatInboxSideBarComponent extends BaseComponent {
       //this will open a dropdown with options to create new message or group [NOTE: depends on configuration]
       await this.clickOnElement(this.dropDownOptionCreateNewMessage);
       //expecting create new message form to be visible
-      await expect(
-        this.createNewMessageForm,
-        `expecting create new message form to be visible`
-      ).toBeVisible();
+      await this.verifier.verifyTheElementIsVisible(this.createNewMessageForm, {
+        assertionMessage: 'expecting create new message form to be visible',
+      });
       //select the user from the input box
       await this.clickOnElement(this.inputBoxInCreateNewMessageForm);
       await this.fillInElement(this.inputBoxInCreateNewMessageForm, userName);
       //atleast 1 dropdwon option is visible for user search result
-      await expect(
-        this.userSelectionDropdownOptions.first(),
-        `expecting user selection dropdown to be visible`
-      ).toBeVisible();
+      await this.verifier.verifyTheElementIsVisible(this.userSelectionDropdownOptions.first(), {
+        assertionMessage: 'expecting user selection dropdown to be visible',
+      });
 
       //select the user from the dropdown
       await this.clickOnElement(
@@ -79,10 +77,9 @@ export class ChatInboxSideBarComponent extends BaseComponent {
       );
 
       //now wait until the create message form is disappeared
-      await expect(
-        this.createNewMessageForm,
-        `expecting create message form to be disappeared`
-      ).not.toBeVisible();
+      await this.verifier.verifyTheElementIsNotVisible(this.createNewMessageForm, {
+        assertionMessage: 'expecting create message form to be disappeared',
+      });
     });
   }
 }

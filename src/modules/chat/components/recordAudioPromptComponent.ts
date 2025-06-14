@@ -25,10 +25,9 @@ export class RecordAudioPromptComponent extends BaseComponent {
    */
   async verifyTheComponentIsVisible(): Promise<void> {
     await test.step(`Verifying that the record audio prompt component is visible`, async () => {
-      await expect(
-        this.recordAudioContainer,
-        `expecting record audio prompt component to be visible`
-      ).toBeVisible();
+      await this.verifier.verifyTheElementIsVisible(this.recordAudioContainer, {
+        assertionMessage: 'expecting record audio prompt component to be visible',
+      });
     });
   }
 
@@ -37,10 +36,9 @@ export class RecordAudioPromptComponent extends BaseComponent {
    */
   async verifyTheAudioRecordingIsInProgress(): Promise<void> {
     await test.step(`Verifying that the audio recording is in progress`, async () => {
-      await expect(
-        this.recordAudioContainer,
-        `expecting record audio container to be visible`
-      ).toBeVisible();
+      await this.verifier.verifyTheElementIsVisible(this.recordAudioContainer, {
+        assertionMessage: 'expecting record audio container to be visible',
+      });
     });
   }
 
@@ -64,10 +62,9 @@ export class RecordAudioPromptComponent extends BaseComponent {
    */
   async verifyTheAudioRecordingIsNotInProgress(): Promise<void> {
     await test.step(`Verifying that the audio recording is not in progress`, async () => {
-      await expect(
-        this.stopAudioRecordingButton,
-        `expecting stop audio recording button to not be visible`
-      ).not.toBeVisible();
+      await this.verifier.verifyTheElementIsNotVisible(this.stopAudioRecordingButton, {
+        assertionMessage: 'expecting stop audio recording button to not be visible',
+      });
     });
   }
 
@@ -88,7 +85,7 @@ export class RecordAudioPromptComponent extends BaseComponent {
     await test.step(options?.stepInfo ?? `Recording audio and adding it to the chat`, async () => {
       await this.verifyTheAudioRecordingIsInProgress();
       //wait for 2 seconds to get the audio recorded
-      await this.page.waitForTimeout(2_000);
+      await this.sleep(2_000);
       await this.performActionAndWaitForRequest(
         () => this.completeTheAudioRecording(),
         request => request.url().includes('attachments') && request.method() === 'POST',
