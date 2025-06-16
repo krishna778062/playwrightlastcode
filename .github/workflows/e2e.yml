@@ -15,7 +15,10 @@ on:
 
 jobs:
   test-aws-connection:
-    runs-on: [kubernetes]
+    runs-on: [kubernetes] # Changed to use GitHub-hosted runner
+    permissions:
+      id-token: write # Needed for OIDC authentication
+      contents: read # Needed to checkout code
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -28,6 +31,7 @@ jobs:
           aws-region: us-west-2
           role-duration-seconds: 1200
           role-session-name: MySessionName
+          role-chaining: true
 
       # Test S3 Access
       - name: List S3 Bucket Contents
