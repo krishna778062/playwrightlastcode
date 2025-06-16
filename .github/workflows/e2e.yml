@@ -27,6 +27,7 @@ jobs:
           role-to-assume: arn:aws:iam::693891728731:role/non-prod-deployer
           aws-region: us-west-2
           role-duration-seconds: 1200
+          role-skip-session-tagging: true
       # Test S3 Access
       - name: List S3 Bucket Contents
         run: |
