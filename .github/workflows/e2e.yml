@@ -31,8 +31,6 @@ jobs:
           aws-region: us-west-2
           role-duration-seconds: 1200
           role-session-name: MySessionName
-          role-chaining: true
-
       # Test S3 Access
       - name: List S3 Bucket Contents
         run: |
