@@ -1,25 +1,9 @@
-name: UI E2E Tests
+# name: UI E2E Tests
+name: Test AWS S3 Connection
 
 on:
   workflow_dispatch: # allows manual triggering of the workflow
     inputs:
-      module_name:
-        description: 'Select the module to test'
-        required: true
-        default: 'chat'
-        type: choice
-        options:
-          - 'chat'
-          - 'feed'
-      priority_filter:
-        description: 'Select test cases by priority'
-        required: true
-        default: '@P0'
-        type: choice
-        options:
-          - '@P0'
-          - '@P1'
-          - 'all'
       environment:
         description: 'Select the environment to run tests against'
         required: true
@@ -28,81 +12,27 @@ on:
         options:
           - 'qa'
           - 'uat'
-      workers:
-        description: 'Number of parallel workers to run tests'
-        required: true
-        default: '3'
-        type: choice
-        options:
-          - '1'
-          - '2'
-          - '3'
-          - '4'
-          - '5'
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Allow only one concurrent deployment
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
 
 jobs:
-  test-and-deploy:
-    timeout-minutes: 60
+  test-aws-connection:
     runs-on: [kubernetes]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: set up Node.js
-        uses: actions/setup-node@v3
+      # Configure AWS Credentials with Role Assumption
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          node-version: 20
+          role-to-assume: arn:aws:iam::693891728731:role/non-prod-deployer
+          aws-region: us-west-2
+          role-session-name: GithubActionsSession
+          role-duration-seconds: 1200 # 20 minutes
+          output-credentials: true
 
-      - name: install dependencies
-        run: npm ci
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-
-      - name: Run playwright tests
-        env:
-          TEST_ENV: ${{ inputs.environment || 'qa' }}
+      # Test S3 Access
+      - name: List S3 Bucket Contents
         run: |
-          PRIORITY="${{ inputs.priority_filter }}"
-          if [ "$PRIORITY" = "all" ]; then
-            npm run test:${{ inputs.module_name || 'chat' }} -- --workers=${{ inputs.workers }}
-          else
-            npm run test:${{ inputs.module_name || 'chat' }} -- --grep="$PRIORITY" --workers=${{ inputs.workers }}
-          fi
-
-      - name: Generate HTML Report
-        if: always()
-        env:
-          TRACE_VIEWER_BASE_URL: https://shiny-adventure-jnkoq9z.pages.github.io/
-        run: |
-          echo "Using base URL: $TRACE_VIEWER_BASE_URL"
-          npm run generate-report:custom test-results/test-results.json
-
-      - name: Prepare deployment content
-        if: always()
-        run: |
-          mkdir -p deploy-content
-          cp -rv playwright-report/* deploy-content/
-          echo "Final deploy-content structure:"
-          find deploy-content -type f
-
-      - name: Upload Pages Artifact
-        if: always()
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: deploy-content
-
-      - name: Deploy to GitHub Pages
-        if: always()
-        id: deployment
-        uses: actions/deploy-pages@v4
+          echo "Attempting to list contents of S3 bucket..."
+          aws s3 ls s3://simpplr-e2e-automation 
+          echo "Successfully listed bucket contents!"
