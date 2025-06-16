@@ -16,9 +16,6 @@ on:
 jobs:
   test-aws-connection:
     runs-on: [kubernetes] # Changed to use GitHub-hosted runner
-    permissions:
-      id-token: write # Needed for OIDC authentication
-      contents: read # Needed to checkout code
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
