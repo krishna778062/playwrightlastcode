@@ -1,9 +1,25 @@
-# name: UI E2E Tests
-name: Test AWS S3 Connection
+name: UI E2E Tests
 
 on:
   workflow_dispatch: # allows manual triggering of the workflow
     inputs:
+      module_name:
+        description: 'Select the module to test'
+        required: true
+        default: 'chat'
+        type: choice
+        options:
+          - 'chat'
+          - 'feed'
+      priority_filter:
+        description: 'Select test cases by priority'
+        required: true
+        default: '@P0'
+        type: choice
+        options:
+          - '@P0'
+          - '@P1'
+          - 'all'
       environment:
         description: 'Select the environment to run tests against'
         required: true
@@ -39,9 +55,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Configure AWS Credentials with Role Assumption
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4.1.0
+      - name: set up Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 20
 
