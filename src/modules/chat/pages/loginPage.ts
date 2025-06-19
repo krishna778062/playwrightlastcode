@@ -40,7 +40,7 @@ export class LoginPage extends BasePage {
     options?: { stepInfo?: string; timeout?: number }
   ): Promise<HomePage> {
     await this.performLoginWithPassword(username, password, options);
-    await this.page.waitForURL('/home', { timeout: options?.timeout || TIMEOUTS.MEDIUM });
+    await this.page.waitForURL(/.*\/home$/, { timeout: options?.timeout || TIMEOUTS.MEDIUM });
     return new HomePage(this.page);
   }
 

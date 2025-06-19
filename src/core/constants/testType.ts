@@ -1,5 +1,5 @@
 export enum TestGroupType {
-  SMOKE = 'smoke',
+  SMOKE = '@smoke',
   SANITY = 'sanity',
   REGRESSION = 'regression',
 }
