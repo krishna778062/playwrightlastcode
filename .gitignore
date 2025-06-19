@@ -11,3 +11,7 @@ node_modules/
 # Test Reports
 report.xml
 report.json
+
+# App Configurations
+/config/*.env
+!/config/*.env.example
