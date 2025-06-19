@@ -4,4 +4,6 @@ export enum Environments {
   STAGE = 'stage',
   DEV = 'dev',
   LOCAL = 'local',
+  CHAT = 'chat',
+  ZEPHYR = 'zephyr',
 }
