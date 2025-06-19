@@ -12,10 +12,29 @@ on:
         options:
           - 'qa'
           - 'uat'
+      workers:
+        description: 'Number of parallel workers to run tests'
+        required: true
+        default: '3'
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+          - '4'
+          - '5'
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
-  test-aws-connection:
-    runs-on: [kubernetes] # Changed to use GitHub-hosted runner
+  test-and-upload:
+    timeout-minutes: 60
+    runs-on: [kubernetes]
+    env:
+      S3_BUCKET: simpplr-e2e-automation
+      MODULE_NAME: ${{ inputs.module_name || 'chat' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -24,13 +43,71 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4.1.0
         with:
-          role-to-assume: arn:aws:iam::693891728731:role/non-prod-deployer
-          aws-region: us-west-2
-          role-duration-seconds: 1200
+          node-version: 20
+
+      - name: install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          aws-access-key-id: ${{ secrets.CICD_USER_AGENT_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.CICD_USER_AGENT_SECRET_ACCESS_KEY }}
+          role-to-assume: 'arn:aws:iam::693891728731:role/non-prod-deployer'
+          aws-region: 'us-west-2'
           role-skip-session-tagging: true
-      # Test S3 Access
-      - name: List S3 Bucket Contents
+          role-duration-seconds: 1200
+
+      - name: Run playwright tests
+        env:
+          TEST_ENV: ${{ inputs.environment || 'qa' }}
         run: |
-          echo "Attempting to list contents of S3 bucket..."
-          aws s3 ls s3://simpplr-e2e-automation 
-          echo "Successfully listed bucket contents!"
+          PRIORITY="${{ inputs.priority_filter }}"
+          if [ "$PRIORITY" = "all" ]; then
+            npm run test:${{ inputs.module_name || 'chat' }} -- --workers=${{ inputs.workers }}
+          else
+            npm run test:${{ inputs.module_name || 'chat' }} -- --grep="$PRIORITY" --workers=${{ inputs.workers }}
+          fi
+
+      - name: Set timestamp
+        id: timestamp
+        run: |
+          echo "TIMESTAMP=$(date +"%Y-%m-%d-%H-%M-%S")" >> $GITHUB_ENV
+          echo "Timestamp set to: $TIMESTAMP"
+
+      - name: Generate HTML Report
+        if: always()
+        run: |
+          npm run generate-report:custom test-results/test-results.json
+
+      - name: Upload Report to S3
+        if: always()
+        run: |
+          # Upload to timestamped folder
+          echo "Uploading report to S3..."
+          aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }} --recursive
+
+          # Update latest folder
+          echo "Updating latest folder..."
+          aws s3 rm s3://${S3_BUCKET}/${MODULE_NAME}/latest --recursive
+          aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/latest --recursive
+
+          # Create index.html in module root to redirect to latest
+          echo '<!DOCTYPE html>
+          <html>
+            <head>
+              <meta http-equiv="refresh" content="0; url=./latest/index.html">
+            </head>
+            <body>
+              <p>Redirecting to latest report...</p>
+            </body>
+          </html>' > index.html
+
+          aws s3 cp index.html s3://${S3_BUCKET}/${MODULE_NAME}/index.html
+
+          echo "Report uploaded successfully!"
+          echo "Latest report available at: s3://${S3_BUCKET}/${MODULE_NAME}/latest"
+          echo "Timestamped report available at: s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}"
