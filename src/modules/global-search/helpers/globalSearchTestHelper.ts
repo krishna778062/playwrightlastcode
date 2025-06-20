@@ -38,7 +38,7 @@ export class GlobalSearchTestHelper {
     console.log('=== Environment:', currentEnv, '===');
 
     // Load environment variables if not already loaded
-    loadEnvVariables(currentEnv);
+    // loadEnvVariables(currentEnv);
 
     // Get environment variables from env file
     const baseUrl = process.env.FRONTEND_BASE_URL;
@@ -56,8 +56,11 @@ export class GlobalSearchTestHelper {
     }
 
     // Navigate directly to the login page first
-    const loginUrl = `${baseUrl}${PAGE_ENDPOINTS.LOGIN_PAGE}`;
-    await this.page.goto(loginUrl);
+    // const loginUrl = `${baseUrl}${PAGE_ENDPOINTS.LOGIN_PAGE}`;
+    // await this.page.goto(loginUrl);
+
+    const loginPage = new LoginPage(this.page);
+    await loginPage.loadPage();
 
     // Then proceed with the login process
     this.homePage = await this.loginPage.login(adminEmail, adminPassword, {

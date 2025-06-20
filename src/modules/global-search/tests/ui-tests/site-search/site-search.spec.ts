@@ -9,13 +9,6 @@ import { loadEnvVariables } from '@core/utils/envLoader';
 import { Environments } from '@core/constants/environments';
 import { TestGroupType } from '@core/constants/testType';
 
-// Load environment variables dynamically based on TEST_ENV
-const currentEnv = (process.env.TEST_ENV as Environments) || Environments.TEST;
-console.log('Current environment:', currentEnv);
-
-// Load environment variables
-loadEnvVariables(currentEnv);
-
 // Test data for site search scenarios
 const siteSearchTestData: SiteSearchTestData[] = [
   {
@@ -31,7 +24,7 @@ const siteSearchTestData: SiteSearchTestData[] = [
 ];
 
 test.describe(
-  `Test Global Search - Site Search functionality - Environment: ${currentEnv.toUpperCase()}`,
+  `Test Global Search - Site Search functionality`,
   {
     tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.SITE_SEARCH],
   },
@@ -42,14 +35,11 @@ test.describe(
     });
     let globalSearchTestHelper: GlobalSearchTestHelper;
 
-    test.beforeEach(
-      `Setting up the test environment for site search - Environment: ${currentEnv.toUpperCase()}`,
-      async ({ browser }) => {
-        globalSearchTestHelper = new GlobalSearchTestHelper();
-        await globalSearchTestHelper.setup(browser);
-        await globalSearchTestHelper.loginAsWorkplaceAdmin();
-      }
-    );
+    test.beforeEach(`Setting up the test environment for site search`, async ({ browser }) => {
+      globalSearchTestHelper = new GlobalSearchTestHelper();
+      await globalSearchTestHelper.setup(browser);
+      await globalSearchTestHelper.loginAsWorkplaceAdmin();
+    });
 
     test.afterEach(async () => {
       await globalSearchTestHelper.cleanup();
@@ -57,7 +47,7 @@ test.describe(
 
     for (const data of siteSearchTestData) {
       test(
-        `Verify Site Search results for ${data.siteType} site "${data.term}" in category "${data.category}" - Environment: ${currentEnv.toUpperCase()}`,
+        `Verify Site Search results for ${data.siteType} site "${data.term}" in category "${data.category}"`,
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE],
         },
@@ -89,6 +79,10 @@ test.describe(
           if (data.siteType === SITE_SEARCH_TEST_DATA.SITE_TYPES.PRIVATE) {
             await globalSearchComponent.verifyLockIconIsDisplayed(data.term, data.siteType, {
               stepInfo: `Verifying lock icon is displayed for private site "${data.term}"`,
+            });
+          } else if (data.siteType === SITE_SEARCH_TEST_DATA.SITE_TYPES.PUBLIC) {
+            await globalSearchComponent.verifyLockIconIsDisplayed(data.term, data.siteType, {
+              stepInfo: `Verifying lock icon is NOT displayed for public site "${data.term}"`,
             });
           }
 

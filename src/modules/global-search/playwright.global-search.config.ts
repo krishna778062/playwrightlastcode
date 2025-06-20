@@ -16,7 +16,7 @@ export default defineConfig({
   reporter: 'html',
   use: {
     ...baseConfig.use,
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    baseURL: process.env.FRONTEND_BASE_URL || '',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

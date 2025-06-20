@@ -3,6 +3,7 @@ import { ElementState } from '@/src/core/utils/pageActions';
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
 import { PageActions } from '@/src/core/utils/pageActions';
+import { th } from '@faker-js/faker/.';
 
 export class GlobalSearchComponent extends BaseComponent {
   readonly searchInput: Locator;
@@ -14,7 +15,7 @@ export class GlobalSearchComponent extends BaseComponent {
   readonly siteLabel: Locator;
   readonly siteIcon: Locator;
   readonly copyLinkButton: Locator;
-  readonly lockIcon: Locator;
+  // readonly lockIcon: Locator;
   readonly copiedText: Locator;
   protected pageActions: PageActions;
 
@@ -32,7 +33,7 @@ export class GlobalSearchComponent extends BaseComponent {
     this.siteLabel = this.page.locator('xpath=//*[contains(@class,"site-label")]');
     this.siteIcon = this.page.locator('xpath=//*[contains(@class,"site-icon")]');
     this.copyLinkButton = this.page.locator('xpath=//*[contains(@class,"copy-link")]');
-    this.lockIcon = this.page.locator('xpath=//*[contains(@class,"lock-icon")]');
+    // this.lockIcon = this.page.locator('xpath=//*[contains(@class,"lock-icon")]');
     this.copiedText = this.page.getByText('Copied');
   }
 
@@ -55,12 +56,25 @@ export class GlobalSearchComponent extends BaseComponent {
     return await test.step(
       options?.stepInfo || `Verifying result "${term}" is displayed`,
       async () => {
-        await this.page.waitForLoadState('networkidle');
-        const resultElement = this.page.locator(
-          `xpath=//h2[contains(@class,"title_listTi") and text()="${term}"]`
+        const searchResults = this.page.locator(
+          `xpath=//h2[contains(@class,"itle_listTi") and text()="${term}"]`
         );
-        await resultElement.scrollIntoViewIfNeeded();
-        return await resultElement.isVisible();
+        await searchResults.scrollIntoViewIfNeeded();
+        return await searchResults.isVisible();
+      }
+    );
+  }
+
+  async verifyLockIconIsDisplayed(term: string, siteType: string, options?: { stepInfo?: string }) {
+    await test.step(
+      options?.stepInfo || `Verifying lock icon for "${term}" based on site type "${siteType}"`,
+      async () => {
+        const lockIcon = this.page.locator(`xpath=//*[text()="${term}"]/../i`);
+        if (siteType !== 'public') {
+          await this.verifier.verifyTheElementIsVisible(lockIcon);
+        } else {
+          await this.verifier.verifyTheElementIsNotVisible(lockIcon);
+        }
       }
     );
   }
@@ -140,20 +154,6 @@ export class GlobalSearchComponent extends BaseComponent {
       async () => {
         await this.verifier.waitUntilElementIsVisible(this.copiedText);
         await expect(this.copiedText).toBeVisible();
-      }
-    );
-  }
-
-  async verifyLockIconIsDisplayed(term: string, siteType: string, options?: { stepInfo?: string }) {
-    await test.step(
-      options?.stepInfo || `Verifying lock icon for "${term}" based on site type "${siteType}"`,
-      async () => {
-        if (siteType !== 'public') {
-          await this.verifier.waitUntilElementIsVisible(this.lockIcon);
-          await expect(this.lockIcon).toBeVisible();
-        } else {
-          await expect(this.lockIcon).not.toBeVisible();
-        }
       }
     );
   }
