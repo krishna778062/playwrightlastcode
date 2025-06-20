@@ -3,13 +3,11 @@ import { BasePage } from '@/src/core/pages/basePage';
 import { expect, Page } from '@playwright/test';
 import { TopNavBarComponent } from '@chat/components/topNavBarComponent';
 import { TIMEOUTS } from '@core/constants/timeouts';
-import { FooterComponent } from '@platforms/component/FooterComponent';
+import { FooterComponent } from '../component/FooterComponent';
 
 export class HomePage extends BasePage {
-  
-  readonly footer: FooterComponent;
-
   readonly topNavBarComponent: TopNavBarComponent;
+  footer: FooterComponent;
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.HOME_PAGE);
     this.topNavBarComponent = new TopNavBarComponent(page);

@@ -12,7 +12,9 @@
       "@chat-helpers/*": ["./src/modules/chat/helpers/*"],
       "@chat-pages/*": ["./src/modules/chat/pages/*"],
       "@chat-components/*": ["./src/modules/chat/pages/components/*"],
-      "@chat-tests/*": ["./src/modules/chat/tests/*"]
+      "@chat-tests/*": ["./src/modules/chat/tests/*"],
+      "@platforms/*": ["./src/modules/platforms/*"],
+      "@platforms-tests/*": ["./src/modules/platforms/tests/*"]
     },
     "target": "ES2019",
     "module": "commonjs",
