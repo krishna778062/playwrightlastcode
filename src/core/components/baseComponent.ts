@@ -8,7 +8,7 @@ export class BaseComponent extends BaseActionUtil {
   readonly rootLocator: Locator; //this is the root locator of the component
   //if we want to use the root locator of the component, we can pass it to the constructor
   //if we don't pass anything, we will use the body locator as the root locator
-  protected readonly pageActions: PageActions;
+  readonly pageActions: PageActions;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page);
