@@ -20,16 +20,11 @@ export class FocusedMessageComponent extends MessageBaseComponent {
     this.messageActionsContainer = this.focusedMessageContainer.getByTestId('message-action-root');
     this.emojiPickerButton = this.messageActionsContainer.getByLabel('addEmoji icon');
     this.emojiPickerContainer = this.page.locator("[class*='EmojiPicker_root']").first();
-    this.emojiPickerEmojisGroupsContainer = this.emojiPickerContainer.locator(
-      "[EmojiPicker_emojiGroupWrapper']"
-    );
-    this.threeDotsButtonToOpenMessageActionsMenu =
-      this.focusedMessageContainer.getByTestId('message-action-trigger');
+    this.emojiPickerEmojisGroupsContainer = this.emojiPickerContainer.locator("[EmojiPicker_emojiGroupWrapper']");
+    this.threeDotsButtonToOpenMessageActionsMenu = this.focusedMessageContainer.getByTestId('message-action-trigger');
     this.deleteMessageButtonFromMessageActionsMenu = this.page.getByTestId('deleteMessageButton');
     this.replyInThreadButton = this.page.getByTestId('replyInThreadButton');
-    this.replyThreadComponentContainer = this.page.locator(
-      "[data-variant='thread'][class*='styles_root_']"
-    );
+    this.replyThreadComponentContainer = this.page.locator("[data-variant='thread'][class*='styles_root_']");
   }
 
   /**
@@ -39,10 +34,7 @@ export class FocusedMessageComponent extends MessageBaseComponent {
   async getMessageText(options?: { stepInfo?: string }): Promise<string | null> {
     let messageText: string | null = null;
     await test.step(options?.stepInfo ?? `Getting the text of the message`, async () => {
-      messageText = await this.focusedMessageContainer
-        .locator('section')
-        .locator('p')
-        .textContent();
+      messageText = await this.focusedMessageContainer.locator('section').locator('p').textContent();
     });
     return messageText;
   }
@@ -71,15 +63,12 @@ export class FocusedMessageComponent extends MessageBaseComponent {
   }
 
   async pickAnyRandomEmojiFromEmojiPicker(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(
-      options?.stepInfo ?? `Picking any random emoji from the emoji picker`,
-      async () => {
-        await this.verifier.verifyTheElementIsVisible(this.emojiPickerContainer, {
-          assertionMessage: 'expecting emoji picker container to be visible',
-        });
-        await this.clickOnElement(this.emojiPickerContainer.getByRole('button'));
-      }
-    );
+    await test.step(options?.stepInfo ?? `Picking any random emoji from the emoji picker`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.emojiPickerContainer, {
+        assertionMessage: 'expecting emoji picker container to be visible',
+      });
+      await this.clickOnElement(this.emojiPickerContainer.getByRole('button'));
+    });
   }
 
   async deleteMessage(options?: { stepInfo?: string }): Promise<void> {
@@ -90,29 +79,20 @@ export class FocusedMessageComponent extends MessageBaseComponent {
   }
 
   async openMessageActionsMenuFrom3Dots(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(
-      options?.stepInfo ?? `Opening the message actions menu from 3 dots`,
-      async () => {
-        await this.focusedMessageContainer.hover();
-        await this.verifier.verifyTheElementIsVisible(
-          this.threeDotsButtonToOpenMessageActionsMenu,
-          {
-            assertionMessage: 'expecting three dots button to be visible',
-          }
-        );
-        await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 100 });
-      }
-    );
+    await test.step(options?.stepInfo ?? `Opening the message actions menu from 3 dots`, async () => {
+      await this.focusedMessageContainer.hover();
+      await this.verifier.verifyTheElementIsVisible(this.threeDotsButtonToOpenMessageActionsMenu, {
+        assertionMessage: 'expecting three dots button to be visible',
+      });
+      await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 100 });
+    });
   }
 
   async deleteMessageFromMessageActionsMenu(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(
-      options?.stepInfo ?? `Deleting the message from the message actions menu`,
-      async () => {
-        await this.openMessageActionsMenuFrom3Dots(options);
-        await this.clickOnElement(this.deleteMessageButtonFromMessageActionsMenu);
-      }
-    );
+    await test.step(options?.stepInfo ?? `Deleting the message from the message actions menu`, async () => {
+      await this.openMessageActionsMenuFrom3Dots(options);
+      await this.clickOnElement(this.deleteMessageButtonFromMessageActionsMenu);
+    });
   }
 
   /**

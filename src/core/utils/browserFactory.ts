@@ -1,8 +1,12 @@
 import { Browser, BrowserContext, Page, test } from '@playwright/test';
+import { v4 as uuidv4 } from 'uuid';
+import path from 'path';
+import { FileUtil } from '@/src/core/utils/fileUtil';
 
 export interface UserContext {
   context: BrowserContext;
   page: Page;
+  videoDir?: string;
 }
 
 export interface MultiUserContexts {
@@ -17,56 +21,39 @@ export class BrowserFactory {
   }
 
   /**
-   * Creates browser contexts for multiple users
-   * @param userIdentifiers Array of unique identifiers for each user (e.g. email addresses)
-   * @returns Object mapping user identifiers to their browser contexts and pages
+   * Creates a new browser context and page
+   * @param options - The options for the context and page
+   * @returns A UserContext object containing the new context and page
    */
-  async createMultiUserContexts(userIdentifiers: string[]): Promise<MultiUserContexts> {
-    // Create contexts and pages in parallel for better performance
-    let multiUserContexts: MultiUserContexts | undefined;
-    await test.step('Creating browser contexts for multiple users', async () => {
-      const contextPromises = userIdentifiers.map(async () => this.browser.newContext());
-      const contexts = await Promise.all(contextPromises);
+  async createNewContextAndPage(options?: { recordVideo?: boolean }): Promise<UserContext> {
+    const contextOptions: any = {};
+    let videoDir: string | undefined;
 
-      const pagePromises = contexts.map(context => context.newPage());
-      const pages = await Promise.all(pagePromises);
-
-      // Create the mapping of user identifiers to their contexts and pages
-      multiUserContexts = userIdentifiers.reduce((acc, userId, index) => {
-        acc[userId] = {
-          context: contexts[index],
-          page: pages[index],
-        };
-        return acc;
-      }, {} as MultiUserContexts);
-    });
-
-    if (multiUserContexts === undefined) {
-      throw new Error('Failed to create browser contexts for multiple users');
+    if (options?.recordVideo) {
+      const videoTempDir = path.join('videos', uuidv4());
+      FileUtil.createDir(videoTempDir);
+      videoDir = videoTempDir;
+      contextOptions.recordVideo = {
+        dir: videoDir,
+      };
     }
-    return multiUserContexts;
+    const context = await this.browser.newContext(contextOptions);
+    const page = await context.newPage();
+    return { context, page, videoDir };
   }
 
   /**
-   * Cleans up all browser contexts safely without throwing exceptions
-   * @param contexts Object containing browser contexts to clean up
+   * Closes a browser context safely.
+   * @param context - The browser context to close.
+   * @param userId - Optional user identifier for logging purposes.
    */
-  async cleanupContexts(contexts: MultiUserContexts): Promise<void> {
-    await test.step('Cleaning up all browser contexts', async () => {
-      try {
-        if (!contexts) return;
-
-        // Close contexts sequentially
-        for (const [userId, { context }] of Object.entries(contexts)) {
-          try {
-            await context?.close({ reason: `Tear down for user ${userId}` });
-          } catch (error) {
-            console.error(`Failed to close context for user ${userId}:`, error);
-          }
-        }
-      } catch (error) {
-        console.error('Unexpected error during context cleanup:', error);
-      }
-    });
+  public static async closeContext(context: BrowserContext, userId?: string): Promise<void> {
+    try {
+      const reason = userId ? `Tear down for user ${userId}` : 'Tear down';
+      await context.close({ reason });
+    } catch (error) {
+      const userMsg = userId ? `for user ${userId}` : '';
+      console.error(`Failed to close context ${userMsg}:`, error);
+    }
   }
 }

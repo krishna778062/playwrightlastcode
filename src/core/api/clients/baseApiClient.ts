@@ -15,20 +15,13 @@ export abstract class BaseApiClient extends HttpClient {
    * @param baseUrl Base URL for the API
    * @returns Promise resolving to APIRequestContext
    */
-  static async loginViaApi(
-    creds: { username: string; password: string },
-    baseUrl: string
-  ): Promise<APIRequestContext> {
+  static async loginViaApi(creds: { username: string; password: string }, baseUrl: string): Promise<APIRequestContext> {
     const tmpContext = await request.newContext();
-
     try {
       // Validate user
-      const validateUserNameRes = await tmpContext.post(
-        `${baseUrl}${API_ENDPOINTS.identity.validate}`,
-        {
-          data: { loginIdentifier: creds.username },
-        }
-      );
+      const validateUserNameRes = await tmpContext.post(`${baseUrl}${API_ENDPOINTS.identity.validate}`, {
+        data: { loginIdentifier: creds.username },
+      });
 
       if (!validateUserNameRes.ok()) {
         throw new ApiError(
@@ -56,11 +49,7 @@ export abstract class BaseApiClient extends HttpClient {
       });
 
       if (!loginApiRes.ok()) {
-        throw new ApiError(
-          loginApiRes.status(),
-          `Login failed for email: ${creds.username}`,
-          loginApiRes.url()
-        );
+        throw new ApiError(loginApiRes.status(), `Login failed for email: ${creds.username}`, loginApiRes.url());
       }
 
       const storageState = await tmpContext.storageState();

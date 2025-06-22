@@ -16,5 +16,3 @@ export interface BaseApiResponse {
 
 // Type for API Client constructor
 export type ApiClientConstructor<T> = new (context: APIRequestContext, baseUrl?: string) => T;
-
-

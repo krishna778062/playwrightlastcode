@@ -33,9 +33,7 @@ export class RecordVideoPromptComponent extends BaseComponent {
     this.cancelButton = this.page.getByRole('button', { name: 'Close' });
     this.myVideoStreamContainer = this.page.locator("video[aria-label='Preview']");
 
-    this.videoRecordingProgressBar = this.page.locator(
-      "[class*='RecordVideo_progressBarContainer']"
-    );
+    this.videoRecordingProgressBar = this.page.locator("[class*='RecordVideo_progressBarContainer']");
 
     this.pauseVideoRecordingButton = this.page.getByRole('button', { name: 'Pause' });
     this.stopVideoRecordingButton = this.page.getByRole('button', { name: 'Stop' });
@@ -58,10 +56,7 @@ export class RecordVideoPromptComponent extends BaseComponent {
    * Verifies that the record button is disabled
    */
   async verifyRecordButtonIsDisabled(): Promise<void> {
-    await expect(
-      this.recordVideoButton,
-      `expecting record video button to be disabled`
-    ).toBeDisabled();
+    await expect(this.recordVideoButton, `expecting record video button to be disabled`).toBeDisabled();
   }
 
   /**
@@ -171,10 +166,26 @@ export class RecordVideoPromptComponent extends BaseComponent {
     });
     //video streams take some time to load, so we will wait for 1.2 seconds
     await this.sleep(1_200);
-    await this.clickOnElement(this.recordVideoButton);
+    await this.clickToStartTheVideoRecording();
     await this.sleep(timeToRecord);
     await this.stopTheVideoRecording();
     await this.addTheRecordedVideoToTheChat();
+  }
+
+  async clickToStartTheVideoRecording(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo ?? `Clicking to start the video recording`, async () => {
+      try {
+        await this.clickOnElement(this.recordVideoButton);
+        await this.verifier.verifyTheElementIsNotVisible(this.recordVideoButton, {
+          assertionMessage: 'expecting record video button to be not visible',
+          timeout: 2_000,
+        });
+      } catch (error) {
+        //wait for 2 second and then again click on it
+        await this.sleep(2_000);
+        await this.clickOnElement(this.recordVideoButton);
+      }
+    });
   }
 
   /**

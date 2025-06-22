@@ -19,9 +19,7 @@ export class HttpClient {
     this.context = context;
     this.baseUrl = baseUrl || process.env.API_BASE_URL || '';
     if (!this.baseUrl) {
-      throw new Error(
-        'BaseUrl must be provided either through constructor or API_BASE_URL environment variable'
-      );
+      throw new Error('BaseUrl must be provided either through constructor or API_BASE_URL environment variable');
     }
   }
 
@@ -57,10 +55,7 @@ export class HttpClient {
     return this.context.patch(this.getUrl(endpoint, { useInternalBackendUrl }), requestOptions);
   }
 
-  protected async validateResponse(
-    response: APIResponse,
-    options: ValidateResponseOptions = {}
-  ): Promise<void> {
+  protected async validateResponse(response: APIResponse, options: ValidateResponseOptions = {}): Promise<void> {
     const {
       expectedStatusCodes = [200, 201, 204],
       allowEmptyResponse = true,
@@ -91,10 +86,7 @@ export class HttpClient {
     }
   }
 
-  protected async parseResponse<T>(
-    response: APIResponse,
-    validationOptions?: ValidateResponseOptions
-  ): Promise<T> {
+  protected async parseResponse<T>(response: APIResponse, validationOptions?: ValidateResponseOptions): Promise<T> {
     await this.validateResponse(response, validationOptions);
     return response.json() as T;
   }
