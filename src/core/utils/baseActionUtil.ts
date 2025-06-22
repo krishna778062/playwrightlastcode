@@ -147,18 +147,26 @@ export class BaseActionUtil {
 
   /**
    * Clicks on an element and waits for a new page to open
-   * @param action - The action to perform
+   * @param actionToPerform - The action to perform
    * @param options - The options to pass to the click method
    * @returns The new page
+   *
+   * @example
+   * ```ts
+   * await this.clickAndWaitForNewPageToOpen(()=>this.clickOnElement(this.privacyPolicyLink), {
+   *   timeout: TIMEOUTS.MEDIUM,
+   *   stepInfo: 'Clicking on privacy policy link should redirect to privacy policy page',
+   * });
+   * ```
    */
   async clickAndWaitForNewPageToOpen(
-    action: () => Promise<any>,
+    actionToPerform: () => Promise<any>,
     options?: { timeout?: number; stepInfo?: string }
   ): Promise<Page> {
     const { timeout = 30000, stepInfo } = options || {};
     return await test.step(stepInfo || 'Trigger action and wait for new page', async () => {
       const newPagePromise = this.page.context().waitForEvent('page', { timeout });
-      await action();
+      await actionToPerform();
       return await newPagePromise;
     });
   }

@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 import { MultiUserChatTestHelper } from '@chat-helpers/multiUserChatTestHelper';
 import { MessageEmojis } from '@core/constants/messageEmojis';
 import { Roles } from '@core/constants/roles';
-import { CHAT_TEST_DATA } from '@chat/tests/test-data/chat.test-data';
+import { CHAT_TEST_DATA } from '@/src/modules/chat/test-data/chat.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { ChatTestUser } from '../../../types';

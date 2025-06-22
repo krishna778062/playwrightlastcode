@@ -1,12 +1,10 @@
 import { test } from '@playwright/test';
-import { GlobalSearchTestHelper } from '@global-search/helpers/globalSearchTestHelper';
 import { tagTest } from '@core/utils/testDecorator';
 import { TestPriority } from '@core/constants/testPriority';
-import { GlobalSearchTestSuite } from '@global-search/constants/testSuite';
-import { SITE_SEARCH_TEST_DATA } from '@global-search/tests/test-data/site-search.test-data';
-import { SiteSearchTestData } from '@global-search/types/site-search.type';
-import { loadEnvVariables } from '@core/utils/envLoader';
-import { Environments } from '@core/constants/environments';
+import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
+import { SITE_SEARCH_TEST_DATA } from '@/src/modules/global-search/tests/test-data/site-search.test-data';
+import { SiteSearchTestData } from '@/src/modules/global-search/types/site-search.type';
+import { GlobalSearchTestHelper } from '@/src/modules/global-search/helpers/globalSearchTestHelper';
 import { TestGroupType } from '@core/constants/testType';
 
 // Test data for site search scenarios

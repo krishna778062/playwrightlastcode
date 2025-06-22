@@ -1,8 +1,7 @@
 import { expect, Page } from '@playwright/test';
 import { BasePage } from '@/src/core/pages/basePage';
-import { GlobalSearchComponent } from '@global-search/components/globalSearchComponent';
 import { TIMEOUTS } from '../../../core/constants/timeouts';
-import { PageActions } from '@/src/core/utils/pageActions';
+import { GlobalSearchComponent } from '../components/globalSearchComponent';
 
 export class GlobalSearchPage extends BasePage {
   private globalSearchComponent: GlobalSearchComponent;
@@ -17,9 +16,8 @@ export class GlobalSearchPage extends BasePage {
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await expect(
-      this.globalSearchComponent.searchInput,
-      'Expecting search bar should be visible'
-    ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    await expect(this.globalSearchComponent.searchInput, 'Expecting search bar should be visible').toBeVisible({
+      timeout: TIMEOUTS.MEDIUM,
+    });
   }
 }

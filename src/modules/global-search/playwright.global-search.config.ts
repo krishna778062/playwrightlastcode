@@ -1,30 +1,32 @@
-import { defineConfig, devices } from '@playwright/test';
+import { devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 import baseConfig from '../../../playwright.base.config';
+import { PROJECT_ROOT } from '../../core/constants/paths';
+import path from 'path';
 
 export default defineConfig({
   ...baseConfig,
-  testDir: './tests',
-  testMatch: '**/*.spec.ts',
-  timeout: 180000,
-  expect: {
-    timeout: 30000,
-  },
-  fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
-  use: {
-    ...baseConfig.use,
-    baseURL: process.env.FRONTEND_BASE_URL || '',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
-  },
+  name: 'Global Search UI Automation',
+  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'global-search', 'tests'),
+  testIgnore: '**/api-tests/**',
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'global-search-chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.FRONTEND_BASE_URL,
+        headless: process.env.CI ? true : true,
+        permissions: ['camera', 'microphone'],
+        launchOptions: {
+          args: [
+            '--disable-gpu', // Disable GPU acceleration
+            '--no-sandbox', // Disable sandbox
+            '--disable-dev-shm-usage', // Disable /dev/shm usage
+            '--use-fake-ui-for-media-stream', // Use fake UI for media stream
+            '--use-fake-device-for-media-stream', // Use fake device for media stream
+          ],
+        },
+      },
     },
   ],
 });
