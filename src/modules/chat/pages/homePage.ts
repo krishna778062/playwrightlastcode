@@ -32,3 +32,4 @@ export class HomePage extends BasePage {
     ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
   }
 }
+

@@ -1,7 +1,5 @@
 import { Locator, Page, test } from '@playwright/test';
 import { BaseComponent } from '@/src/core/components/baseComponent';
-import { TIMEOUTS } from '@core/constants/timeouts';
-import { ChatAppPage } from '@chat/pages/chatsPage';
 
 export class TopNavBarComponent extends BaseComponent {
   readonly profileSettingsButton: Locator;
@@ -24,22 +22,9 @@ export class TopNavBarComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Navigates to the chats page
-   * @param options - The options for the step
-   * @returns The chats page
-   */
-  async navigateToChatsPage(options?: {
-    stepInfo?: string;
-    timeout?: number;
-  }): Promise<ChatAppPage> {
-    await test.step(options?.stepInfo || `Navigating to conversations screen`, async () => {
-      await this.openMessageInbox();
+  async clickSeeAllMessages(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || `Clicking 'See all messages'`, async () => {
       await this.clickOnElement(this.seeAllMessagesButton);
-      await this.page.waitForURL(/chat\/conversations/, {
-        timeout: options?.timeout || TIMEOUTS.MEDIUM,
-      });
     });
-    return new ChatAppPage(this.page);
   }
 }

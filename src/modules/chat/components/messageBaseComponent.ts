@@ -17,11 +17,8 @@ export class MessageBaseComponent extends BaseComponent {
     this.messageActionsContainer = this.messageContainer.getByTestId('message-action-root');
     this.emojiPickerButton = this.messageActionsContainer.getByLabel('addEmoji icon');
     this.emojiPickerContainer = this.page.locator("[class*='EmojiPicker_root']").first();
-    this.emojiPickerEmojisGroupsContainer = this.emojiPickerContainer.locator(
-      "[EmojiPicker_emojiGroupWrapper']"
-    );
-    this.threeDotsButtonToOpenMessageActionsMenu =
-      this.messageContainer.getByTestId('message-action-trigger');
+    this.emojiPickerEmojisGroupsContainer = this.emojiPickerContainer.locator("[EmojiPicker_emojiGroupWrapper']");
+    this.threeDotsButtonToOpenMessageActionsMenu = this.messageContainer.getByTestId('message-action-trigger');
     this.deleteMessageButtonFromMessageActionsMenu = this.page.getByTestId('deleteMessageButton');
   }
 
@@ -54,18 +51,13 @@ export class MessageBaseComponent extends BaseComponent {
         console.log(`Retrying to react on message to add more resilience`);
         const messageActionsContainerCoordinates = await this.messageContainer.boundingBox();
         const messageContainerCentre = {
-          x:
-            (messageActionsContainerCoordinates?.x ?? 0) +
-            (messageActionsContainerCoordinates?.width ?? 0) / 2,
-          y:
-            (messageActionsContainerCoordinates?.y ?? 0) +
-            (messageActionsContainerCoordinates?.height ?? 0) / 2,
+          x: (messageActionsContainerCoordinates?.x ?? 0) + (messageActionsContainerCoordinates?.width ?? 0) / 2,
+          y: (messageActionsContainerCoordinates?.y ?? 0) + (messageActionsContainerCoordinates?.height ?? 0) / 2,
         };
         await this.page.mouse.move(messageContainerCentre.x, messageContainerCentre.y);
         //expect the message actions container to be visible
         await this.verifier.verifyTheElementIsVisible(this.messageActionsContainer, {
-          assertionMessage:
-            'expecting message actions container to be visible after clicking on the reaction',
+          assertionMessage: 'expecting message actions container to be visible after clicking on the reaction',
         });
         await this.clickOnElement(this.messageActionsContainer.getByLabel(reaction));
       }

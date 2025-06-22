@@ -17,13 +17,11 @@ export class MessageReplyThreadComponent extends BaseComponent {
   constructor(page: Page, replyThreadComponentContainer: Locator) {
     super(page);
     this.replyThreadComponentContainer = replyThreadComponentContainer;
-    this.chatEditorComponentContainer =
-      this.replyThreadComponentContainer.locator("[class*='Editor_root_']");
+    this.chatEditorComponentContainer = this.replyThreadComponentContainer.locator("[class*='Editor_root_']");
     this.messageListInReplyThreadContainer = this.replyThreadComponentContainer.locator(
       "[class*='List_messageListWrapper']"
     );
-    this.focusedMessageInReplyThreadContainer =
-      this.messageListInReplyThreadContainer.locator('article[data-index]'); //data-index separates replies from the parent message
+    this.focusedMessageInReplyThreadContainer = this.messageListInReplyThreadContainer.locator('article[data-index]'); //data-index separates replies from the parent message
 
     //components initalisation
     this.chatEditorComponent = new ChatEditorComponent(page, this.chatEditorComponentContainer);
@@ -47,8 +45,8 @@ export class MessageReplyThreadComponent extends BaseComponent {
   /**
    * @param message - the message to be added in the reply thread
    */
-  async addNewMessageInReplyThread(message: string): Promise<void> {
-    await test.step(`Adding new message : ${message} in reply thread`, async () => {
+  async sendMessage(message: string, options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo ?? `Adding new message : ${message} in reply thread`, async () => {
       await this.getChatEditorComponent().sendMessage(message);
     });
   }
@@ -70,20 +68,16 @@ export class MessageReplyThreadComponent extends BaseComponent {
         `Getting the focused message in reply thread either by index or by message text : ${byMessageTextOrByIndex}`,
       async () => {
         if (typeof byMessageTextOrByIndex === 'number') {
-          const focusedMessageLocator =
-            this.focusedMessageInReplyThreadContainer.nth(byMessageTextOrByIndex);
+          const focusedMessageLocator = this.focusedMessageInReplyThreadContainer.nth(byMessageTextOrByIndex);
           focusedMessageInReplyThreadComponent = new FocusedMessageInReplyThreadComponent(
             this.page,
             focusedMessageLocator
           );
         } else if (typeof byMessageTextOrByIndex === 'string') {
-          const replyThreadMessage = await this.waitForMessageToBePresentInReplyThread(
-            byMessageTextOrByIndex,
-            {
-              stepInfo: `Waiting until user starts seeing the message in reply thread: ${byMessageTextOrByIndex}`,
-              timeout: options?.timeout ?? TIMEOUTS.MEDIUM,
-            }
-          );
+          const replyThreadMessage = await this.waitForMessageToBePresentInReplyThread(byMessageTextOrByIndex, {
+            stepInfo: `Waiting until user starts seeing the message in reply thread: ${byMessageTextOrByIndex}`,
+            timeout: options?.timeout ?? TIMEOUTS.MEDIUM,
+          });
           focusedMessageInReplyThreadComponent = new FocusedMessageInReplyThreadComponent(
             this.page,
             replyThreadMessage
@@ -92,9 +86,7 @@ export class MessageReplyThreadComponent extends BaseComponent {
       }
     );
     if (!focusedMessageInReplyThreadComponent) {
-      throw new Error(
-        `Focused message in reply thread component not found for the message: ${byMessageTextOrByIndex}`
-      );
+      throw new Error(`Focused message in reply thread component not found for the message: ${byMessageTextOrByIndex}`);
     }
     return focusedMessageInReplyThreadComponent;
   }
@@ -114,20 +106,17 @@ export class MessageReplyThreadComponent extends BaseComponent {
     }
   ): Promise<Locator> {
     let replyThreadMessage: Locator | undefined;
-    await test.step(
-      options?.stepInfo ?? `Waiting for message to be present in reply thread: ${message}`,
-      async () => {
-        await this.verifier.verifyTheElementIsVisible(this.focusedMessageInReplyThreadContainer, {
-          assertionMessage: 'expected message to be present in reply thread',
-          timeout: options?.timeout ?? TIMEOUTS.MEDIUM,
-        });
-        replyThreadMessage = this.focusedMessageInReplyThreadContainer.filter({ hasText: message });
-        await this.verifier.verifyTheElementIsVisible(replyThreadMessage, {
-          assertionMessage: 'expected message to be present in reply thread',
-          timeout: options?.timeout ?? TIMEOUTS.MEDIUM,
-        });
-      }
-    );
+    await test.step(options?.stepInfo ?? `Waiting for message to be present in reply thread: ${message}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.focusedMessageInReplyThreadContainer, {
+        assertionMessage: 'expected message to be present in reply thread',
+        timeout: options?.timeout ?? TIMEOUTS.MEDIUM,
+      });
+      replyThreadMessage = this.focusedMessageInReplyThreadContainer.filter({ hasText: message });
+      await this.verifier.verifyTheElementIsVisible(replyThreadMessage, {
+        assertionMessage: 'expected message to be present in reply thread',
+        timeout: options?.timeout ?? TIMEOUTS.MEDIUM,
+      });
+    });
     if (!replyThreadMessage) {
       throw new Error(`Message: ${message} not found in reply thread`);
     }

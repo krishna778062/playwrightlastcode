@@ -10,12 +10,8 @@ export class DirectMessageComponent extends BaseComponent {
   constructor(page: Page) {
     super(page);
     this.directMessageContainer = this.page.getByTestId('chat.dm-text');
-    this.directMessageItem = this.directMessageContainer.locator(
-      "[data-testid*='direct-message-item']"
-    );
-    this.focusedChatComponentContainer = this.page.locator(
-      "[data-variant='chat'][class*='styles_root_']"
-    );
+    this.directMessageItem = this.directMessageContainer.locator("[data-testid*='direct-message-item']");
+    this.focusedChatComponentContainer = this.page.locator("[data-variant='chat'][class*='styles_root_']");
   }
 
   async expandDirectMessageSection(): Promise<void> {}
@@ -26,6 +22,7 @@ export class DirectMessageComponent extends BaseComponent {
     userName: string,
     options?: {
       stepInfo?: string;
+      timeout?: number;
     }
   ): Promise<Locator> {
     let directMessageItemFromUser: Locator;
@@ -35,7 +32,7 @@ export class DirectMessageComponent extends BaseComponent {
         directMessageItemFromUser = this.directMessageItem.filter({ hasText: userName });
         await this.verifier.verifyTheElementIsVisible(directMessageItemFromUser, {
           assertionMessage: `expecting direct message item from user ${userName} to be visible`,
-          timeout: TIMEOUTS.MEDIUM,
+          timeout: options?.timeout ?? TIMEOUTS.MEDIUM,
         });
       }
     );
@@ -50,33 +47,26 @@ export class DirectMessageComponent extends BaseComponent {
   ): Promise<number> {
     let numberOfNewMessageNotifications: number;
     await test.step(
-      options?.stepInfo ??
-        `Fetching number of new message notifications appearing for DM from user ${userName}`,
+      options?.stepInfo ?? `Fetching number of new message notifications appearing for DM from user ${userName}`,
       async () => {
         const directMessageItemFromUser = this.directMessageItem.filter({ hasText: userName });
-        const numberOfNewMessageNotificationsText = await directMessageItemFromUser
-          .getByLabel('Stamp')
-          .textContent();
+        const numberOfNewMessageNotificationsText = await directMessageItemFromUser.getByLabel('Stamp').textContent();
         numberOfNewMessageNotifications = Number(numberOfNewMessageNotificationsText) ?? 0;
       }
     );
     return numberOfNewMessageNotifications!;
   }
 
-  async openDirectMessageWithUser(
+  async getDirectMessageItemForUser(
     userName: string,
     options?: {
       stepInfo?: string;
+      timeout?: number;
     }
-  ): Promise<GroupChatWindowComponent> {
-    await test.step(
-      options?.stepInfo ?? `Opening direct message with user ${userName}`,
-      async () => {
-        const directMessageItemFromUser =
-          await this.waitUntilUserIsPresentInDirectMessageSection(userName);
-        await this.clickOnElement(directMessageItemFromUser);
-      }
-    );
-    return new GroupChatWindowComponent(this.page, this.focusedChatComponentContainer);
+  ): Promise<Locator> {
+    return await this.waitUntilUserIsPresentInDirectMessageSection(userName, {
+      stepInfo: options?.stepInfo,
+      timeout: options?.timeout ?? TIMEOUTS.MEDIUM,
+    });
   }
 }

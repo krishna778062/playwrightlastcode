@@ -31,55 +31,42 @@ export class ChatInboxSideBarComponent extends BaseComponent {
     this.userSelectionDropdownOptions = this.page.locator("div[role='menuitem']");
   }
 
+  // --- Actions ---
+
+  async clickCreateNewMessageButton(): Promise<void> {
+    await this.clickOnElement(this.createNewMessageOrGroupButton);
+    await this.clickOnElement(this.dropDownOptionCreateNewMessage);
+  }
+
+  async searchAndSelectUser(userName: string): Promise<void> {
+    await this.clickOnElement(this.inputBoxInCreateNewMessageForm);
+    await this.fillInElement(this.inputBoxInCreateNewMessageForm, userName);
+    await this.verifier.verifyTheElementIsVisible(this.userSelectionDropdownOptions.first());
+    await this.clickOnElement(this.userSelectionDropdownOptions.filter({ hasText: userName }).first());
+  }
+
+  async clickStartChatButton(): Promise<void> {
+    await this.clickAndWaitForResponse(
+      () => this.startChatButton.click({ delay: 1_000 }),
+      response => response.url().includes('chat/conversations') && response.status() === 201,
+      { timeout: 20000, stepInfo: 'Creating chat' }
+    );
+    await this.verifier.verifyTheElementIsNotVisible(this.createNewMessageForm);
+  }
+
+  // --- Verifications ---
+
+  async verifyCreateNewMessageFormIsVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.createNewMessageForm, {
+      assertionMessage: 'expecting create new message form to be visible',
+    });
+  }
+
   getGroupChatsSection(): GroupChatsSectionComponent {
     return new GroupChatsSectionComponent(this.page);
   }
 
   getDirectMessageComponent(): DirectMessageComponent {
     return new DirectMessageComponent(this.page);
-  }
-
-  async openDirectMessageWithUser(
-    userName: string,
-    options?: {
-      stepInfo?: string;
-    }
-  ) {
-    await test.step(options?.stepInfo ?? `Opening direct message with ${userName}`, async () => {
-      await this.clickOnElement(this.createNewMessageOrGroupButton);
-      //this will open a dropdown with options to create new message or group [NOTE: depends on configuration]
-      await this.clickOnElement(this.dropDownOptionCreateNewMessage);
-      //expecting create new message form to be visible
-      await this.verifier.verifyTheElementIsVisible(this.createNewMessageForm, {
-        assertionMessage: 'expecting create new message form to be visible',
-      });
-      //select the user from the input box
-      await this.clickOnElement(this.inputBoxInCreateNewMessageForm);
-      await this.fillInElement(this.inputBoxInCreateNewMessageForm, userName);
-      //atleast 1 dropdwon option is visible for user search result
-      await this.verifier.verifyTheElementIsVisible(this.userSelectionDropdownOptions.first(), {
-        assertionMessage: 'expecting user selection dropdown to be visible',
-      });
-
-      //select the user from the dropdown
-      await this.clickOnElement(
-        this.userSelectionDropdownOptions.filter({ hasText: userName }).first()
-      );
-      //start the chart
-      /**
-       * when we create start chat button , there is an API call happens behind the scene
-       * we should wait until that call is successfull to proceed ahead in the flow
-       */
-      await this.clickAndWaitForResponse(
-        () => this.startChatButton.click({ delay: 1_000 }),
-        response => response.url().includes('chat/conversations') && response.status() === 201,
-        { timeout: 20000, stepInfo: 'Creating chat' }
-      );
-
-      //now wait until the create message form is disappeared
-      await this.verifier.verifyTheElementIsNotVisible(this.createNewMessageForm, {
-        assertionMessage: 'expecting create message form to be disappeared',
-      });
-    });
   }
 }

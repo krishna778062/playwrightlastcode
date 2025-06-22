@@ -7,7 +7,12 @@ node_modules/
 
 # VS Code
 .vscode/
+videos/
 
 # Test Reports
 report.xml
 report.json
+
+# App Configurations
+/config/*.env
+!/config/*.env.example

@@ -200,13 +200,10 @@ export class IncomingAudioVideoCallComponent extends BaseComponent {
    * @param options - The options for the verification
    */
   async verifyIcomingCallModalIsNotVisible(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(
-      options?.stepInfo ?? `Verifying incoming call modal is not visible`,
-      async () => {
-        await this.verifier.verifyTheElementIsNotVisible(this.incomingCallContainer, {
-          assertionMessage: 'expecting incoming call container to be hidden',
-        });
-      }
-    );
+    await test.step(options?.stepInfo ?? `Verifying incoming call modal is not visible`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.incomingCallContainer, {
+        assertionMessage: 'expecting incoming call container to be hidden',
+      });
+    });
   }
 }

@@ -42,18 +42,15 @@ on:
 
 permissions:
   contents: read
-  pages: write
   id-token: write
 
-# Allow only one concurrent deployment
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
-
 jobs:
-  test-and-deploy:
+  test-and-upload:
     timeout-minutes: 60
     runs-on: [kubernetes]
+    env:
+      S3_BUCKET: simpplr-e2e-automation
+      MODULE_NAME: ${{ inputs.module_name || 'chat' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -69,6 +66,16 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          aws-access-key-id: ${{ secrets.CICD_USER_AGENT_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.CICD_USER_AGENT_SECRET_ACCESS_KEY }}
+          role-to-assume: 'arn:aws:iam::693891728731:role/non-prod-deployer'
+          aws-region: 'us-west-2'
+          role-skip-session-tagging: true
+          role-duration-seconds: 1200
+
       - name: Run playwright tests
         env:
           TEST_ENV: ${{ inputs.environment || 'qa' }}
@@ -80,29 +87,42 @@ jobs:
             npm run test:${{ inputs.module_name || 'chat' }} -- --grep="$PRIORITY" --workers=${{ inputs.workers }}
           fi
 
+      - name: Set timestamp
+        id: timestamp
+        run: |
+          echo "TIMESTAMP=$(date +"%Y-%m-%d-%H-%M-%S")" >> $GITHUB_ENV
+          echo "Timestamp set to: $TIMESTAMP"
+
       - name: Generate HTML Report
         if: always()
-        env:
-          TRACE_VIEWER_BASE_URL: https://shiny-adventure-jnkoq9z.pages.github.io/
         run: |
-          echo "Using base URL: $TRACE_VIEWER_BASE_URL"
           npm run generate-report:custom test-results/test-results.json
 
-      - name: Prepare deployment content
+      - name: Upload Report to S3
         if: always()
         run: |
-          mkdir -p deploy-content
-          cp -rv playwright-report/* deploy-content/
-          echo "Final deploy-content structure:"
-          find deploy-content -type f
+          # Upload to timestamped folder
+          echo "Uploading report to S3..."
+          aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }} --recursive
 
-      - name: Upload Pages Artifact
-        if: always()
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: deploy-content
+          # Update latest folder
+          echo "Updating latest folder..."
+          aws s3 rm s3://${S3_BUCKET}/${MODULE_NAME}/latest --recursive
+          aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/latest --recursive
 
-      - name: Deploy to GitHub Pages
-        if: always()
-        id: deployment
-        uses: actions/deploy-pages@v4
+          # Create index.html in module root to redirect to latest
+          echo '<!DOCTYPE html>
+          <html>
+            <head>
+              <meta http-equiv="refresh" content="0; url=./latest/index.html">
+            </head>
+            <body>
+              <p>Redirecting to latest report...</p>
+            </body>
+          </html>' > index.html
+
+          aws s3 cp index.html s3://${S3_BUCKET}/${MODULE_NAME}/index.html
+
+          echo "Report uploaded successfully!"
+          echo "Latest report available at: s3://${S3_BUCKET}/${MODULE_NAME}/latest"
+          echo "Timestamped report available at: s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}"
