@@ -5,7 +5,7 @@ import { Locator, Page, expect, test } from '@playwright/test';
 import { ChatInboxSideBarComponent } from '@chat/components/chatInboxSideBarComponent';
 import { GroupChatWindowComponent } from '@chat/components/groupChatWindowComponent';
 import { MessageReplyThreadComponent } from '../components/messageReplyThreadComponent';
-import { CHAT_TEST_DATA } from '../tests/test-data/chat.test-data';
+import { CHAT_TEST_DATA } from '../test-data/chat.test-data';
 
 export class ChatAppPage extends BasePage {
   protected readonly chatAppContainer: Locator;

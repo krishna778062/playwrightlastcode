@@ -1,16 +1,15 @@
 import { test } from '@playwright/test';
-import { tagTest } from '@core/utils/testDecorator';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestSuite } from '@core/constants/testSuite';
-import { CHAT_TEST_DATA } from '@chat/tests/test-data/chat.test-data';
+import { CHAT_TEST_DATA } from '@/src/modules/chat/test-data/chat.test-data';
 import { Roles } from '@core/constants/roles';
-import { MultiUserChatTestHelper } from '../../../helpers/multiUserChatTestHelper';
-import { ChatHelper } from '../../../helpers/chatHelper';
+import { MultiUserChatTestHelper } from '@chat/helpers/multiUserChatTestHelper';
+import { ChatHelper } from '@chat/helpers/chatHelper';
 
 test.describe(
   'Test chat application with attachment',
   {
-    tag: [TestSuite.CHAT],
+    tag: [TestSuite.CHAT_ATTACHMENT],
   },
   () => {
     let multiUserChatTest: MultiUserChatTestHelper;

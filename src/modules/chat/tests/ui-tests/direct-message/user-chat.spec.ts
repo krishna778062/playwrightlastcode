@@ -3,7 +3,7 @@ import { Roles } from '@core/constants/roles';
 import { tagTest } from '@core/utils/testDecorator';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestSuite } from '@core/constants/testSuite';
-import { CHAT_TEST_DATA } from '@chat/tests/test-data/chat.test-data';
+import { CHAT_TEST_DATA } from '@/src/modules/chat/test-data/chat.test-data';
 import { MultiUserChatTestHelper } from '../../../helpers/multiUserChatTestHelper';
 import { TestGroupType } from '../../../../../core/constants/testType';
 import { ChatTestUser } from '../../../types';

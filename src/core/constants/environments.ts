@@ -1,7 +1,4 @@
 export enum Environments {
   QA = 'qa',
-  PROD = 'prod',
-  STAGE = 'stage',
-  DEV = 'dev',
-  LOCAL = 'local',
+  UAT = 'uat',
 }

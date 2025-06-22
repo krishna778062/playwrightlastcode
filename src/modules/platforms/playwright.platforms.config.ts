@@ -6,17 +6,17 @@ import path from 'path';
 
 export default defineConfig({
   ...baseConfig,
-  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'chat', 'tests'),
+  name: 'Platforms UI Automation',
+  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'platforms', 'tests'),
   testIgnore: '**/api-tests/**',
-  workers: process.env.CI ? 2 : 1,
-  timeout: 180_000,
   projects: [
     {
-      name: 'chat-chromium',
+      name: 'platforms-chromium',
       use: {
         ...devices['Desktop Chrome'],
-        permissions: ['camera', 'microphone'],
         baseURL: process.env.FRONTEND_BASE_URL,
+        headless: process.env.CI ? true : true,
+        permissions: ['camera', 'microphone'],
         launchOptions: {
           args: [
             '--disable-gpu', // Disable GPU acceleration
