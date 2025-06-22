@@ -19,10 +19,7 @@ export class BaseVerificationUtil {
     }
   ): Promise<boolean> {
     try {
-      await expect(
-        locator,
-        options?.assertionMessage ?? `expecting ${locator} to be visible`
-      ).toBeVisible({
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be visible`).toBeVisible({
         timeout: options?.timeout || 8_000,
       });
       return true;
@@ -49,10 +46,7 @@ export class BaseVerificationUtil {
     }
   ) {
     try {
-      await expect(
-        locator,
-        options?.assertionMessage ?? `expecting ${locator} to be not visible`
-      ).toBeHidden({
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be not visible`).toBeHidden({
         timeout: options?.timeout || 8_000,
       });
     } catch (error) {
@@ -77,10 +71,7 @@ export class BaseVerificationUtil {
     }
   ) {
     try {
-      await expect(
-        locator,
-        options?.assertionMessage ?? `expecting ${locator} to be enabled`
-      ).toBeEnabled();
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be enabled`).toBeEnabled();
     } catch (error) {
       throw new Error(
         options?.assertionMessage
@@ -133,10 +124,9 @@ export class BaseVerificationUtil {
     }
   ) {
     try {
-      await expect(
-        locator,
-        options?.assertionMessage ?? `expecting ${locator} to contain text ${text}`
-      ).toContainText(text);
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to contain text ${text}`).toContainText(
+        text
+      );
     } catch (error) {
       throw new Error(
         options?.assertionMessage
@@ -161,10 +151,7 @@ export class BaseVerificationUtil {
     }
   ) {
     try {
-      await expect(
-        locator,
-        options?.assertionMessage ?? `expecting ${locator} to have text ${text}`
-      ).toHaveText(text);
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to have text ${text}`).toHaveText(text);
     } catch (error) {
       throw new Error(
         options?.assertionMessage
@@ -193,9 +180,7 @@ export class BaseVerificationUtil {
       });
     } catch (error) {
       throw new Error(
-        options?.stepInfo
-          ? `${options.stepInfo}\n${error}`
-          : `Waiting for element to be visible failed.\n${error}`
+        options?.stepInfo ? `${options.stepInfo}\n${error}` : `Waiting for element to be visible failed.\n${error}`
       );
     }
   }
@@ -219,9 +204,7 @@ export class BaseVerificationUtil {
       });
     } catch (error) {
       throw new Error(
-        options?.stepInfo
-          ? `${options.stepInfo}\n${error}`
-          : `Waiting for element to be hidden failed.\n${error}`
+        options?.stepInfo ? `${options.stepInfo}\n${error}` : `Waiting for element to be hidden failed.\n${error}`
       );
     }
   }
@@ -240,12 +223,12 @@ export class BaseVerificationUtil {
       stepInfo?: string;
     }
   ) {
-    await expect(
-      locator,
-      options?.stepInfo ?? `expecting ${locator} to have ${expectedCount} elements`
-    ).toHaveCount(expectedCount, {
-      timeout: options?.timeout || 8_000,
-    });
+    await expect(locator, options?.stepInfo ?? `expecting ${locator} to have ${expectedCount} elements`).toHaveCount(
+      expectedCount,
+      {
+        timeout: options?.timeout || 8_000,
+      }
+    );
   }
 
   /**
@@ -266,9 +249,7 @@ export class BaseVerificationUtil {
       });
     } catch (error) {
       throw new Error(
-        options?.stepInfo
-          ? `${options.stepInfo}\n${error}`
-          : `Waiting for page to navigate to ${url} failed.\n${error}`
+        options?.stepInfo ? `${options.stepInfo}\n${error}` : `Waiting for page to navigate to ${url} failed.\n${error}`
       );
     }
   }
@@ -286,17 +267,12 @@ export class BaseVerificationUtil {
     }
   ) {
     try {
-      await expect(
-        locator,
-        options?.stepInfo ?? `expecting ${locator} to be in viewport`
-      ).toBeInViewport({
+      await expect(locator, options?.stepInfo ?? `expecting ${locator} to be in viewport`).toBeInViewport({
         timeout: options?.timeout || 8_000,
       });
     } catch (error) {
       throw new Error(
-        options?.stepInfo
-          ? `${options.stepInfo}\n${error}`
-          : `Verification failed: Element not in viewport.\n${error}`
+        options?.stepInfo ? `${options.stepInfo}\n${error}` : `Verification failed: Element not in viewport.\n${error}`
       );
     }
   }

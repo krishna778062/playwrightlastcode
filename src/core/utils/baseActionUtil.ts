@@ -32,10 +32,7 @@ export class BaseActionUtil {
   async clickOnElement(selectorOrLocator: string | Locator, options?: CustomClickOptions) {
     //we will use this option later in catch block
     const selfHealing = options?.selfHealing ?? false;
-    const eleToClick =
-      typeof selectorOrLocator === 'string'
-        ? this.getLocator(selectorOrLocator)
-        : selectorOrLocator;
+    const eleToClick = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
     try {
       await eleToClick.click(options);
     } catch (error) {
@@ -49,16 +46,9 @@ export class BaseActionUtil {
    * @param value - The value to fill in
    * @param options - The options to pass to the fill method
    */
-  async fillInElement(
-    selectorOrLocator: string | Locator,
-    value: string,
-    options?: CustomFillOptions
-  ) {
+  async fillInElement(selectorOrLocator: string | Locator, value: string, options?: CustomFillOptions) {
     const selfHealing = options?.selfHealing ?? false;
-    const eleToFill =
-      typeof selectorOrLocator === 'string'
-        ? this.getLocator(selectorOrLocator)
-        : selectorOrLocator;
+    const eleToFill = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
     try {
       await eleToFill.fill(value, options);
     } catch (error) {
@@ -73,15 +63,8 @@ export class BaseActionUtil {
    * @param options - The options to pass to the type method
    *
    */
-  async typeInElement(
-    selectorOrLocator: string | Locator,
-    textToType: string,
-    options?: CustomTypeOptions
-  ) {
-    const eleToType =
-      typeof selectorOrLocator === 'string'
-        ? this.getLocator(selectorOrLocator)
-        : selectorOrLocator;
+  async typeInElement(selectorOrLocator: string | Locator, textToType: string, options?: CustomTypeOptions) {
+    const eleToType = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
     try {
       await eleToType.pressSequentially(textToType, options);
     } catch (error) {
@@ -100,10 +83,7 @@ export class BaseActionUtil {
     options?: LocatorGetAttributeOptions
   ) {
     try {
-      const ele =
-        typeof selectorOrLocator === 'string'
-          ? this.getLocator(selectorOrLocator)
-          : selectorOrLocator;
+      const ele = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
       return await ele.getAttribute(attributeName, options);
     } catch (error) {
       throw PlaywrightErrorHandler.handle(error, PlaywrightAction.GET_ATTRIBUTE, selectorOrLocator);

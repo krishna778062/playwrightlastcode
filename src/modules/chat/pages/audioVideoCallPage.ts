@@ -22,9 +22,7 @@ export class AudioVideoCallPage extends BasePage {
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.AUDIO_VIDEO_CALL_PAGE);
     this.mediaControlContainer = this.page.locator("[class*='MediaControls_meetingContainer']");
-    this.audioCallButton = this.mediaControlContainer.getByLabel(
-      'call.record_video_modal.aria_label.microphone'
-    );
+    this.audioCallButton = this.mediaControlContainer.getByLabel('call.record_video_modal.aria_label.microphone');
     this.videoCallButton = this.mediaControlContainer.getByLabel('video');
     this.endCallButton = this.page.getByRole('button', { name: 'End', exact: true });
     this.videoTile = this.page.getByTestId('video-tile');
@@ -55,15 +53,11 @@ export class AudioVideoCallPage extends BasePage {
    * @param options - The options for the verification
    */
   async verifyThePageIsLoaded(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(
-      options?.stepInfo ?? `Verifying the audio video call page is loaded`,
-      async () => {
-        await expect(
-          this.mediaControlContainer.first(),
-          `expecting media control container to be visible`
-        ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-      }
-    );
+    await test.step(options?.stepInfo ?? `Verifying the audio video call page is loaded`, async () => {
+      await expect(this.mediaControlContainer.first(), `expecting media control container to be visible`).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
   }
 
   /**
@@ -182,29 +176,25 @@ export class AudioVideoCallPage extends BasePage {
     videoStreamEnabled: boolean = true,
     options?: { stepInfo?: string }
   ): Promise<void> {
-    await test.step(
-      options?.stepInfo ?? `Verifying video stream from user is visible`,
-      async () => {
-        const userVideoStream = this.getVideoStreamForUser(userName).locator('video');
+    await test.step(options?.stepInfo ?? `Verifying video stream from user is visible`, async () => {
+      const userVideoStream = this.getVideoStreamForUser(userName).locator('video');
+      await expect(userVideoStream, `expecting video stream to be visible from user ${userName}`).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      //verify is video stream enabled from user
+      if (videoStreamEnabled) {
+        await expect(userVideoStream, `expecting video stream to be enabled from user ${userName}`).toHaveAttribute(
+          'autoplay',
+          'true'
+        );
+      } else {
         await expect(
           userVideoStream,
-          `expecting video stream to be visible from user ${userName}`
-        ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-
-        //verify is video stream enabled from user
-        if (videoStreamEnabled) {
-          await expect(
-            userVideoStream,
-            `expecting video stream to be enabled from user ${userName}`
-          ).toHaveAttribute('autoplay', 'true');
-        } else {
-          await expect(
-            userVideoStream,
-            `expecting video stream to be disabled from user ${userName}`
-          ).not.toHaveAttribute('autoplay', 'true');
-        }
+          `expecting video stream to be disabled from user ${userName}`
+        ).not.toHaveAttribute('autoplay', 'true');
       }
-    );
+    });
   }
 
   /**
@@ -220,10 +210,7 @@ export class AudioVideoCallPage extends BasePage {
     });
   }
 
-  async verifyCountOfMeetingParticipants(
-    count: number,
-    options?: { stepInfo?: string }
-  ): Promise<void> {
+  async verifyCountOfMeetingParticipants(count: number, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Verifying count of meeting participants`, async () => {
       await this.openMeetingParticipantList();
       await expect(
@@ -251,17 +238,11 @@ export class AudioVideoCallPage extends BasePage {
    * @param userName - The name of the user
    * @param options - The options for the verification
    */
-  async verifyMeetingParticipantNameInList(
-    userName: string,
-    options?: { stepInfo?: string }
-  ): Promise<void> {
+  async verifyMeetingParticipantNameInList(userName: string, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Verifying meeting participant name in list`, async () => {
       await this.openMeetingParticipantList();
       const userNameInList = this.meetingParticipantNameInList.filter({ hasText: userName });
-      await expect(
-        userNameInList,
-        `expecting meeting participant name in list to be visible`
-      ).toHaveText(userName);
+      await expect(userNameInList, `expecting meeting participant name in list to be visible`).toHaveText(userName);
       await this.closeMeetingParticipantList();
     });
   }
@@ -269,10 +250,9 @@ export class AudioVideoCallPage extends BasePage {
   async inviteUserToThisMeeting(userName: string, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Inviting user to this meeting`, async () => {
       await this.openMeetingParticipantList();
-      await expect(
-        this.addParticipantForm,
-        `expecting add participant form to be visible`
-      ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await expect(this.addParticipantForm, `expecting add participant form to be visible`).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
       await this.clickOnElement(this.inviteParticipantInputSearchField);
       await this.fillInElement(this.inviteParticipantInputSearchField, userName);
       //wait for the user suggestion in dropdwon to be visible

@@ -5,6 +5,7 @@ import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { FocusedMessageComponent } from '@chat/components/focusedMessageComponent';
 import { AudioVideoCallPage } from '@chat/pages/audioVideoCallPage';
 import { IncomingAudioVideoCallComponent } from '@chat/components/incomingAudioVideoCallComponent';
+import { MessageReplyThreadComponent } from './messageReplyThreadComponent';
 
 export class GroupChatWindowComponent extends BaseComponent {
   readonly focusedChatHeader: Locator;
@@ -18,19 +19,13 @@ export class GroupChatWindowComponent extends BaseComponent {
     super(page);
     this.groupChatWindowContainer = groupChatWindowContainer;
     this.focusedChatHeader = this.groupChatWindowContainer.locator('[class*="ChatHeader_header"]');
-    this.listChatMessagesComponent = this.groupChatWindowContainer.locator(
-      "article[data-variant='chat']"
-    );
+    this.listChatMessagesComponent = this.groupChatWindowContainer.locator("article[data-variant='chat']");
     this.chatEditorComponent = new ChatEditorComponent(
       page,
       this.groupChatWindowContainer.locator("[class*='Editor_root_']")
     );
-    this.audioCallButton = this.groupChatWindowContainer
-      .locator("button[aria-label*='Start a call']")
-      .nth(0);
-    this.videoCallButton = this.groupChatWindowContainer
-      .locator("button[aria-label*='Start a call']")
-      .nth(1);
+    this.audioCallButton = this.groupChatWindowContainer.locator("button[aria-label*='Start a call']").nth(0);
+    this.videoCallButton = this.groupChatWindowContainer.locator("button[aria-label*='Start a call']").nth(1);
   }
 
   /**
@@ -39,6 +34,22 @@ export class GroupChatWindowComponent extends BaseComponent {
    */
   getChatEditorComponent(): ChatEditorComponent {
     return this.chatEditorComponent;
+  }
+
+  /**
+   * Sends a message in the chat
+   * @param message - The message to send
+   * @param options - Optional parameters
+   */
+  async sendMessage(
+    message: string,
+    options?: {
+      stepInfo?: string;
+    }
+  ) {
+    return await this.getChatEditorComponent().sendMessage(message, {
+      stepInfo: options?.stepInfo,
+    });
   }
 
   getIncomingAudioVideoCallComponent(): IncomingAudioVideoCallComponent {
@@ -69,18 +80,15 @@ export class GroupChatWindowComponent extends BaseComponent {
               break;
             }
           }
-          expect(
-            messageFoundInList,
-            `expecting message: ${message} to be present in the list of chat messages`
-          ).toBe(true);
+          expect(messageFoundInList, `expecting message: ${message} to be present in the list of chat messages`).toBe(
+            true
+          );
         }).toPass({ timeout: options?.timeout ?? TIMEOUTS.MEDIUM });
       }
     );
   }
 
-  async getFocusedMessageObjectFromListOfChatMessages(
-    messageText: string
-  ): Promise<FocusedMessageComponent> {
+  async getFocusedMessageObjectFromListOfChatMessages(messageText: string): Promise<FocusedMessageComponent> {
     let messageComponent: FocusedMessageComponent | undefined;
     await test.step(`Getting focused message object from list of chat messages`, async () => {
       const listOfMessages = await this.listChatMessagesComponent.all();
@@ -91,10 +99,7 @@ export class GroupChatWindowComponent extends BaseComponent {
           break;
         }
       }
-      expect(
-        messageComponent,
-        `Message: ${messageText} not found in the list of chat messages`
-      ).toBeDefined();
+      expect(messageComponent, `Message: ${messageText} not found in the list of chat messages`).toBeDefined();
     });
     return messageComponent!;
   }
@@ -107,16 +112,12 @@ export class GroupChatWindowComponent extends BaseComponent {
     }
   ) {
     await test.step(
-      options?.stepInfo ??
-        `Verifying message: ${message} is not present in the list of chat messages`,
+      options?.stepInfo ?? `Verifying message: ${message} is not present in the list of chat messages`,
       async () => {
         await expect(async () => {
           const listOfMessages = await this.listChatMessagesComponent.all();
           for (const eachMessage of listOfMessages) {
-            const fetchedMessageText = await eachMessage
-              .locator('section')
-              .locator('p')
-              .textContent();
+            const fetchedMessageText = await eachMessage.locator('section').locator('p').textContent();
             expect(
               fetchedMessageText,
               `expecting message: ${message} to be not present in the list of chat messages`
@@ -147,11 +148,30 @@ export class GroupChatWindowComponent extends BaseComponent {
        * and we will return the call page
        */
       const button = callType === 'audio' ? this.audioCallButton : this.videoCallButton;
-      audioVideoCallPage = await this.clickAndWaitForNewPageToOpen(
-        () => this.clickOnElement(button),
-        { timeout: 30_000, stepInfo: 'Clicking on call button should redirect to call page' }
-      );
+      audioVideoCallPage = await this.clickAndWaitForNewPageToOpen(() => this.clickOnElement(button), {
+        timeout: 30_000,
+        stepInfo: 'Clicking on call button should redirect to call page',
+      });
     });
     return new AudioVideoCallPage(audioVideoCallPage!);
+  }
+
+  async replyToMessage(
+    messageToReplyTo: string,
+    replyMessage: string,
+    options?: {
+      stepInfo?: string;
+    }
+  ): Promise<MessageReplyThreadComponent> {
+    let replyThreadComponent: MessageReplyThreadComponent;
+    return await test.step(
+      options?.stepInfo ?? `Replying to message "${messageToReplyTo}" with "${replyMessage}"`,
+      async () => {
+        const message = await this.getFocusedMessageObjectFromListOfChatMessages(messageToReplyTo);
+        replyThreadComponent = await message.openReplyThread();
+        await replyThreadComponent.sendMessage(replyMessage);
+        return replyThreadComponent;
+      }
+    );
   }
 }
