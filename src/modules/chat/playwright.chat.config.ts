@@ -6,16 +6,20 @@ import path from 'path';
 
 export default defineConfig({
   ...baseConfig,
-  name: 'Chat UI Automation',
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'chat', 'tests'),
   testIgnore: '**/api-tests/**',
+  workers: process.env.CI ? 2 : 1,
+  timeout: 180_000,
   projects: [
     {
-      name: 'chromium',
+      name: 'chat-chromium',
       use: {
         ...devices['Desktop Chrome'],
+        trace: process.env.CI ? 'retry-with-trace' : 'on',
+        screenshot: process.env.CI ? 'only-on-failure' : 'on',
         headless: process.env.CI ? true : true,
         permissions: ['camera', 'microphone'],
+        baseURL: process.env.FRONTEND_BASE_URL,
         launchOptions: {
           args: [
             '--disable-gpu', // Disable GPU acceleration

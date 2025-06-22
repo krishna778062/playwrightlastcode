@@ -52,14 +52,11 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
   async getChatUserId(firstName: string, lastName: string): Promise<string> {
     let userId: string = '';
     await test.step(`Fetch the chat user id of the user ${firstName} ${lastName}`, async () => {
-      const response = await this.get(
-        API_ENDPOINTS.appManagement.users.getUserId(firstName, lastName)
-      );
+      const response = await this.get(API_ENDPOINTS.appManagement.users.getUserId(firstName, lastName));
       const responseJson = await this.parseResponse<SearchUserResponse>(response);
-      expect(
-        responseJson.result.records.length,
-        `Expecting user ${firstName} ${lastName} to be found`
-      ).toBeGreaterThan(0);
+      expect(responseJson.result.records.length, `Expecting user ${firstName} ${lastName} to be found`).toBeGreaterThan(
+        0
+      );
       userId = responseJson.result.records[0].id;
     });
     return userId;
@@ -73,9 +70,7 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
   async waitForUserToBeAdded(firstName: string, lastName: string): Promise<void> {
     await test.step(`Wait for user ${firstName} ${lastName} to be added to the system`, async () => {
       await expect(async () => {
-        const response = await this.get(
-          API_ENDPOINTS.appManagement.users.getUserId(firstName, lastName)
-        );
+        const response = await this.get(API_ENDPOINTS.appManagement.users.getUserId(firstName, lastName));
         const responseJson = await this.parseResponse<SearchUserResponse>(response);
         expect(
           responseJson.result.records.length,
@@ -91,11 +86,7 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
    * @param lastName - The last name of the user
    * @returns Promise<void>
    */
-  async activateUser(
-    firstName: string,
-    lastName: string,
-    password = 'Simpplr@2025'
-  ): Promise<void> {
+  async activateUser(firstName: string, lastName: string, password = 'Simpplr@2025'): Promise<void> {
     await this.waitForUserToBeAdded(firstName, lastName);
     const userId = await this.identityService.getIdentityUserId(firstName, lastName);
     const roleId = await this.identityService.fetchRoleId(Roles.END_USER);

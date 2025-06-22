@@ -5,8 +5,12 @@ A centralized, scalable, and modular end-to-end UI automation framework built wi
 ## Core Principles
 
 - **Centralization of Common Logic:**
-  - All shared utilities, base classes, API clients, types, and constants reside in `src/core`.
+  - All shared utilities, base classes, API clients, types, and helpers reside in `src/core`.
   - This ensures maximum code reuse and a single source of truth for common logic.
+- **Layered Architecture:**
+  - **Tests:** Describe the business logic and user flow. They should be readable and high-level.
+  - **Helpers:** Act as a "driver" or "interface" layer. They orchestrate complex, multi-step user actions (e.g., `openDirectMessageWithUser`). Tests should call helpers, not page objects directly.
+  - **Page Objects/Components:** Represent the UI. They provide the low-level "tools" (locators and basic interactions like `click` or `fill`) for helpers to use.
 - **Modularization:**
   - Module-specific APIs, pages, components, helpers, and tests are organized under `src/modules/<module-name>` (e.g., `src/modules/chat`).
   - Each module is self-contained, making it easy to extend or add new modules.
@@ -18,19 +22,20 @@ central-ui-automation/
 ├── src/
 │   ├── core/                # Shared utilities, base classes, API clients, types, constants
 │   │   ├── api/             # Core API clients, services, interfaces, factories
-│   │   ├── builders/        # Shared builder patterns
 │   │   ├── components/      # Shared UI components (if any)
 │   │   ├── constants/       # Shared constants (e.g., environments, timeouts)
-│   │   ├── pages/           # Shared page objects (if any)
+│   │   ├── helpers/         # Shared, stateless action helpers (e.g., LoginHelper)
+│   │   ├── pages/           # Shared page objects (e.g., LoginPage, HomePage)
+│   │   ├── test-data-builders/ # Shared test data builder patterns
 │   │   ├── types/           # Shared TypeScript types
 │   │   └── utils/           # Shared utility functions
 │   └── modules/
 │       └── chat/            # Example module: Chat
 │           ├── api/         # Module-specific API services and interfaces
-│           ├── builders/    # Module-specific builders
 │           ├── components/  # Module-specific UI components
-│           ├── helpers/     # Module-specific helpers
+│           ├── helpers/     # Module-specific helpers (e.g., ChatHelper facade)
 │           ├── pages/       # Module-specific page objects
+│           ├── test-data-builders/ # Module-specific test data builders
 │           ├── tests/       # Module-specific tests (api-tests, ui-tests)
 │           └── types/       # Module-specific types
 ├── playwright.base.config.ts    # Base Playwright config (shared)
@@ -118,17 +123,24 @@ The workflow will:
 ### Core (`src/core`)
 
 - **api/**: Contains base API clients, shared services, interfaces, and factories for API instantiation.
+- **pages/**: Contains shared, cross-module page objects, such as `LoginPage` or `HomePage`.
+- **helpers/**: Provides shared, stateless helper classes for common, reusable actions (e.g., `LoginHelper`).
 - **utils/**: Shared utility functions (e.g., environment loader, test data generators, browser factory).
+- **test-data-builders/**: Shared builder patterns for creating test data.
 - **types/**: Shared TypeScript types (e.g., user, group, API types).
 - **constants/**: Shared constants (e.g., environment names, timeouts, paths).
 
 ### Modules (`src/modules/<module>`)
 
-- Each module (e.g., `chat`) contains its own APIs, pages, components, helpers, builders, types, and tests.
+Each module (e.g., `chat`) contains its own APIs, pages, components, helpers, builders, types, and tests.
+
 - **api/**: Module-specific API services and interfaces.
-- **pages/**: Page objects for UI automation.
-- **components/**: UI components specific to the module.
-- **tests/**: Contains `ui-tests` and `api-tests` for the module.
+- **pages/**: Page objects for UI automation. A Page Object should only provide locators and simple, granular interactions (`clickButton`, `fillInput`). It should not contain complex business logic.
+- **components/**: UI components specific to the module, following the same principles as Page Objects.
+- **helpers/**: This is the "driver" or "controller" layer for your tests. Helpers orchestrate sequences of actions on pages and components to perform a complete business action (e.g., `openDirectMessageWithUser`).
+  - **Facade Pattern:** For discoverability, a module should expose a single entry-point helper (e.g., `ChatHelper`). This facade provides access to more specialized helpers (e.g., `ChatHelper.directMessages`, `ChatHelper.common`).
+- **tests/**: Contains `ui-tests` and `api-tests` for the module. Tests should be clean, readable, and call methods from the helper layer.
+- **test-data-builders/**: Module-specific logic for building complex test data.
 
 ### Test Organization
 
@@ -223,9 +235,12 @@ test(
 
 ### 3. Full Example
 
-From `user-chat.spec.ts`:
+This example from `user-chat.spec.ts` demonstrates the framework's design patterns. The test is readable and high-level, calling the `ChatHelper` facade to orchestrate actions.
 
 ```typescript
+import { ChatHelper } from '@chat/helpers/chatHelper';
+import { TestPriority } from '@core/constants/testPriority';
+
 test(
   'Verify that user 1 can open direct message with user 2 and they both are able to send message to each other',
   {
@@ -234,10 +249,28 @@ test(
   async () => {
     tagTest(test.info(), {
       zephyrTestId: 'CONT-5376',
-      storyId: 'CONT-5376',
-      customTags: ['@direct-message'],
     });
-    // ...test steps...
+
+    const [user1ChatsPage, user2ChatsPage] = await multiUserChatTest.loginMultipleUsersAndNavigateToChats();
+
+    // User 1 creates new chat with user 2
+    await ChatHelper.directMessages.openDirectMessageWithUser(user1ChatsPage, user2.fullName, {
+      stepInfo: `User 1 opening direct message with ${user2.fullName}`,
+    });
+
+    // User 1 sends a message
+    await ChatHelper.common.sendMessage(user1ChatsPage, 'Hello from User 1', {
+      stepInfo: `User 1 sending first message`,
+    });
+
+    // User 2 opens the chat and replies
+    await ChatHelper.directMessages.openUserDirectMessageItemInInbox(user2ChatsPage, user1.fullName);
+    await ChatHelper.common.sendMessage(user2ChatsPage, 'Hello back from User 2!', {
+      stepInfo: `User 2 replying`,
+    });
+
+    // User 1 verifies the reply is visible
+    await ChatHelper.common.verifyMessageIsVisible(user1ChatsPage, 'Hello back from User 2!');
   }
 );
 ```

@@ -112,12 +112,7 @@ export class ZephyrClient {
     return response.json();
   }
 
-  private generateJwt(
-    method: string,
-    path: string,
-    queryParams?: string,
-    body?: Record<string, unknown>
-  ): string {
+  private generateJwt(method: string, path: string, queryParams?: string, body?: Record<string, unknown>): string {
     // Create canonical request
     const canonicalParts = [method, path, queryParams || ''];
     if ((method === 'POST' || method === 'PUT') && body) {
