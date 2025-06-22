@@ -15,9 +15,6 @@ export default defineConfig({
       name: 'chat-chromium',
       use: {
         ...devices['Desktop Chrome'],
-        trace: process.env.CI ? 'retry-with-trace' : 'on',
-        screenshot: process.env.CI ? 'only-on-failure' : 'on',
-        headless: process.env.CI ? true : true,
         permissions: ['camera', 'microphone'],
         baseURL: process.env.FRONTEND_BASE_URL,
         launchOptions: {

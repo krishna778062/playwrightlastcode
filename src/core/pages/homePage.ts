@@ -4,17 +4,25 @@ import { expect, Page, test } from '@playwright/test';
 import { TopNavBarComponent } from '@core/components/topNavBarComponent';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { ChatAppPage } from '@chat/pages/chatsPage';
+import { FooterComponent } from '@core/components/footerComponent';
 
 export class HomePage extends BasePage {
   readonly topNavBarComponent: TopNavBarComponent;
+  readonly footer: FooterComponent;
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.HOME_PAGE);
     this.topNavBarComponent = new TopNavBarComponent(page);
+    this.footer = new FooterComponent(page, this.page.locator('#site-footer'));
   }
 
   getTopNavBarComponent(): TopNavBarComponent {
     return this.topNavBarComponent;
   }
+
+  getFooterComponent(): FooterComponent {
+    return this.footer;
+  }
+
   /**
    * Verifies the home page is loaded
    */

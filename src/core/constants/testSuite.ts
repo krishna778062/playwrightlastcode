@@ -1,6 +1,6 @@
 export enum TestSuite {
-  CHAT = '@chat',
-  CHAT_DIRECT = '@chat.direct',
-  CHAT_GROUP = '@chat.group',
-  PLATFORM = "@PLATFORM",
+  CHAT_ATTACHMENT = '@chat-attachment',
+  CHAT_DIRECT = '@direct-chat',
+  CHAT_GROUP = '@group-chat',
+  FOOTER = '@footer',
 }

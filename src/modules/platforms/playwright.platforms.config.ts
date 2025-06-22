@@ -11,9 +11,10 @@ export default defineConfig({
   testIgnore: '**/api-tests/**',
   projects: [
     {
-      name: 'chromium',
+      name: 'platforms-chromium',
       use: {
         ...devices['Desktop Chrome'],
+        baseURL: process.env.FRONTEND_BASE_URL,
         headless: process.env.CI ? true : true,
         permissions: ['camera', 'microphone'],
         launchOptions: {

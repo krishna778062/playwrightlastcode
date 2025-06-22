@@ -13,6 +13,7 @@ import { TestUser } from '@core/types/test.types';
 import { HomePage } from '@core/pages/homePage';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { TIMEOUTS } from '../../../core/constants/timeouts';
+import { getEnvConfig } from '../../../core/utils/getEnvConfig';
 
 export class MultiUserChatTestHelper {
   private static readonly DEFAULT_PASSWORD = 'Simpplr@2025';
@@ -30,10 +31,10 @@ export class MultiUserChatTestHelper {
     const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
       type: 'credentials',
       credentials: {
-        username: process.env.APP_MANAGER_USERNAME!,
-        password: process.env.APP_MANAGER_PASSWORD!,
+        username: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
       },
-      baseUrl: process.env.API_BASE_URL!,
+      baseUrl: getEnvConfig().apiBaseUrl,
     });
 
     const chatGroupTestDataBuilder = new ChatGroupTestDataBuilder(appManagerApiClient);
