@@ -171,6 +171,21 @@ export class BaseActionUtil {
     });
   }
 
+  async peformActionAndWaitForPageNavigation(
+    actionToPerform: () => Promise<any>,
+    expectedUrl: string | RegExp,
+    options?: { timeout?: number; stepInfo?: string }
+  ): Promise<Page> {
+    const { timeout = 30000, stepInfo } = options || {};
+    return await test.step(
+      stepInfo || `Trigger action and wait for page navigation to url : ${expectedUrl}`,
+      async () => {
+        await actionToPerform();
+        await this.page.waitForURL(expectedUrl, { timeout });
+        return this.page;
+      }
+    );
+  }
   /**
    * Sleeps for a given time
    * @param timeInMs - The time to sleep for in milliseconds
@@ -179,5 +194,14 @@ export class BaseActionUtil {
     await test.step(`Sleeping/Waiting for ${timeInMs} milliseconds`, async () => {
       await this.page.waitForTimeout(timeInMs);
     });
+  }
+
+  /**
+   * Navigates back to the previous page
+   * @param options - The options to pass to the goBack method
+   * @returns The previous page
+   */
+  async goBackToPreviousPage(options?: { stepInfo?: string; timeout?: number }) {
+    await this.page.goBack({ waitUntil: 'domcontentloaded', timeout: options?.timeout ?? 20_000 });
   }
 }

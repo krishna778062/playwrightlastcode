@@ -5,14 +5,17 @@ import { TopNavBarComponent } from '@core/components/topNavBarComponent';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { ChatAppPage } from '@chat/pages/chatsPage';
 import { FooterComponent } from '@core/components/footerComponent';
+import { GlobalSearchBarComponent } from '../../modules/global-search/components/globalSearchBarComponent';
 
 export class HomePage extends BasePage {
   readonly topNavBarComponent: TopNavBarComponent;
   readonly footer: FooterComponent;
+  readonly globalSearchComponent: GlobalSearchBarComponent;
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.HOME_PAGE);
     this.topNavBarComponent = new TopNavBarComponent(page);
     this.footer = new FooterComponent(page, this.page.locator('#site-footer'));
+    this.globalSearchComponent = new GlobalSearchBarComponent(page);
   }
 
   getTopNavBarComponent(): TopNavBarComponent {
@@ -21,6 +24,10 @@ export class HomePage extends BasePage {
 
   getFooterComponent(): FooterComponent {
     return this.footer;
+  }
+
+  getGlobalSearchComponent(): GlobalSearchBarComponent {
+    return this.globalSearchComponent;
   }
 
   /**

@@ -1,8 +1,7 @@
-import { TIMEOUTS } from '@core/constants/timeouts';
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
 
-export class GlobalSearchComponent extends BaseComponent {
+export class SearchResultsComponent extends BaseComponent {
   readonly searchInput: Locator;
   readonly searchButton: Locator;
   readonly searchResultsContainer: Locator;
@@ -30,23 +29,10 @@ export class GlobalSearchComponent extends BaseComponent {
     this.copiedText = this.page.getByText('Copied');
   }
 
-  async InputTermInSearchBar(term: string, options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || `Searching for "${term}" in global search`, async () => {
-      await this.typeInElement(this.searchInput, term);
-    });
-  }
-
-  async clickSearchButton(options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || `Clicking on Search button`, async () => {
-      await this.clickOnElement(this.searchButton);
-      await this.verifier.waitUntilElementIsVisible(this.searchResultsContainer);
-    });
-  }
-
   async verifyResultIsDisplayed(term: string, options?: { stepInfo?: string }): Promise<boolean> {
     return await test.step(options?.stepInfo || `Verifying result "${term}" is displayed`, async () => {
       const searchResults = this.page.locator(`xpath=//h2[contains(@class,"itle_listTi") and text()="${term}"]`);
-      await searchResults.scrollIntoViewIfNeeded();
+      // await searchResults.scrollIntoViewIfNeeded();
       return await this.verifier.verifyTheElementIsVisible(searchResults);
     });
   }
@@ -137,25 +123,6 @@ export class GlobalSearchComponent extends BaseComponent {
     await test.step(options?.stepInfo || `Clicking on category "${category}" of "${term}"`, async () => {
       const categoryElement = this.page.locator(`xpath=//*[contains(@class,"category") and text()="${category}"]`);
       await this.clickOnElement(categoryElement);
-    });
-  }
-
-  async verifyNavigatingToPage(pageName: string, options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || `Verifying navigation to "${pageName}" page`, async () => {
-      await this.page.waitForLoadState('networkidle');
-      // Add specific verification logic based on the page type
-      if (pageName.includes('Sales') || pageName.includes('Finance')) {
-        await expect(this.page).toHaveURL(/.*\/sites\/.*/);
-      } else if (pageName.includes('Departments')) {
-        await expect(this.page).toHaveURL(/.*\/categories\/.*/);
-      }
-    });
-  }
-
-  async navigateBackToPreviousPage(options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || 'Navigating back to previous page', async () => {
-      await this.page.goBack();
-      await this.page.waitForLoadState('networkidle');
     });
   }
 }

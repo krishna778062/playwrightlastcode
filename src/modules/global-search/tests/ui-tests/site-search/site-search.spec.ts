@@ -6,6 +6,9 @@ import { SITE_SEARCH_TEST_DATA } from '@/src/modules/global-search/tests/test-da
 import { SiteSearchTestData } from '@/src/modules/global-search/types/site-search.type';
 import { GlobalSearchTestHelper } from '@/src/modules/global-search/helpers/globalSearchTestHelper';
 import { TestGroupType } from '@core/constants/testType';
+import { LoginHelper } from '../../../../../core/helpers/loginHelper';
+import { getEnvConfig } from '../../../../../core/utils/getEnvConfig';
+import { GlobalSearchBarComponent } from '../../../components/globalSearchBarComponent';
 
 // Test data for site search scenarios
 const siteSearchTestData: SiteSearchTestData[] = [
@@ -27,20 +30,18 @@ test.describe(
     tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.SITE_SEARCH],
   },
   () => {
-    test.describe.configure({
-      timeout: SITE_SEARCH_TEST_DATA.CONFIG.DEFAULT_TIMEOUT,
-      mode: 'default',
-    });
-    let globalSearchTestHelper: GlobalSearchTestHelper;
-
-    test.beforeEach(`Setting up the test environment for site search`, async ({ browser }) => {
-      globalSearchTestHelper = new GlobalSearchTestHelper();
-      await globalSearchTestHelper.setup(browser);
-      await globalSearchTestHelper.loginAsWorkplaceAdmin();
+    let globalSearchComponent: GlobalSearchBarComponent;
+    test.beforeEach(`Setting up the test environment for site search`, async ({ page }) => {
+      const homePage = await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
+      });
+      await homePage.verifyThePageIsLoaded();
+      globalSearchComponent = homePage.getGlobalSearchComponent();
     });
 
     test.afterEach(async () => {
-      await globalSearchTestHelper.cleanup();
+      // await globalSearchTestHelper.cleanup();
     });
 
     for (const data of siteSearchTestData) {
@@ -55,21 +56,18 @@ test.describe(
             storyId: 'SEN-12408',
           });
 
-          const globalSearchPage = globalSearchTestHelper.getGlobalSearchPage();
-          const globalSearchComponent = globalSearchPage.getGlobalSearchComponent();
-
-          globalSearchPage.verifyThePageIsLoaded();
-
           // type the search term in search bar
-          await globalSearchComponent.InputTermInSearchBar(data.term, {
+          await globalSearchComponent.inputTermInSearchBar(data.term, {
             stepInfo: `Searching for site "${data.term}"`,
           });
 
           // clicking on search button
-          await globalSearchComponent.clickSearchButton({ stepInfo: 'clicking on search button' });
+          const globalSearchPage = await globalSearchComponent.clickSearchButton({
+            stepInfo: 'clicking on search button',
+          });
 
           // Verify search results
-          await globalSearchComponent.verifyResultIsDisplayed(data.term, {
+          await globalSearchPage.verifyResultIsDisplayed(data.term, {
             stepInfo: `Verifying site "${data.term}" is displayed in results`,
           });
 
