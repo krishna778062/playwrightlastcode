@@ -15,15 +15,15 @@ const inputFile = args[0] || 'test-results/test-results.json';
 
 // Ensure playwright-report directory exists
 if (!fs.existsSync(PLAYWRIGHT_REPORT_DIR)) {
-    fs.mkdirSync(PLAYWRIGHT_REPORT_DIR, { recursive: true });
+  fs.mkdirSync(PLAYWRIGHT_REPORT_DIR, { recursive: true });
 }
 
 // Validate input file exists
 if (!fs.existsSync(inputFile)) {
-    console.error(`Error: Input file '${inputFile}' not found`);
-    console.log('Usage: node convert-report.js [input-file.json]');
-    console.log('Example: node convert-report.js custom-report.json');
-    process.exit(1);
+  console.error(`Error: Input file '${inputFile}' not found`);
+  console.log('Usage: node convert-report.js [input-file.json]');
+  console.log('Example: node convert-report.js custom-report.json');
+  process.exit(1);
 }
 
 // Read the JSON report
@@ -34,21 +34,35 @@ const outputFile = path.join(PLAYWRIGHT_REPORT_DIR, 'summary.html');
 
 // Function to get the Playwright report path
 function getPlaywrightReportPath() {
-    return './index.html';
+  return './index.html';
 }
 
 // Function to inject base URL into HTML
 function injectBaseUrl(html) {
-    const script = `
+  const script = `
     <script>
-        window.process = { env: { TRACE_VIEWER_BASE_URL: '${BASE_URL}' } };
+        // Function to get base URL dynamically
+        function getTraceViewerBaseUrl() {
+            const url = new URL(window.location.href);
+            // Remove the HTML file name from the path
+            const pathParts = url.pathname.split('/');
+            pathParts.pop(); // Remove the last part (HTML file name)
+            return url.origin + pathParts.join('/');
+        }
+        
+        // Set the base URL dynamically
+        window.process = { 
+            env: { 
+                TRACE_VIEWER_BASE_URL: getTraceViewerBaseUrl()
+            } 
+        };
     </script>`;
-    return html.replace('</head>', `${script}</head>`);
+  return html.replace('</head>', `${script}</head>`);
 }
 
 // Function to get test ID from test result
 function getPlaywrightTestId(test) {
-    return test.id || 'N/A';
+  return test.id || 'N/A';
 }
 
 // Create HTML content
@@ -189,30 +203,30 @@ let failedTests = 0;
 console.log('Starting to process test results...');
 
 reportData.suites.forEach((suite, suiteIndex) => {
-    console.log(`Processing suite ${suiteIndex}:`, suite.title);
-    
-    suite.suites.forEach((subSuite, subIndex) => {
-        const suiteName = subSuite.title;
-        suites.add(suiteName);
-        console.log(`Processing subsuite ${subIndex}:`, suiteName);
-        
-        subSuite.specs.forEach((spec, specIndex) => {
-            // Extract the test ID from the spec
-            console.log('Processing spec:', spec.title);
-            console.log('Spec ID:', spec.id);
-            
-            spec.tests.forEach(test => {
-                const testId = spec.id; // Use the spec's ID for the test
-                const status = test.results[0].status;
-                const duration = (test.results[0].duration / 1000).toFixed(2);
-                
-                console.log(`Creating table row for test with ID: ${testId}`);
-                
-                status === 'passed' ? passedTests++ : failedTests++;
-                totalDuration += parseFloat(duration);
-                
-                // Create the table row with the test ID
-                const row = `
+  console.log(`Processing suite ${suiteIndex}:`, suite.title);
+
+  suite.suites.forEach((subSuite, subIndex) => {
+    const suiteName = subSuite.title;
+    suites.add(suiteName);
+    console.log(`Processing subsuite ${subIndex}:`, suiteName);
+
+    subSuite.specs.forEach((spec, specIndex) => {
+      // Extract the test ID from the spec
+      console.log('Processing spec:', spec.title);
+      console.log('Spec ID:', spec.id);
+
+      spec.tests.forEach(test => {
+        const testId = spec.id; // Use the spec's ID for the test
+        const status = test.results[0].status;
+        const duration = (test.results[0].duration / 1000).toFixed(2);
+
+        console.log(`Creating table row for test with ID: ${testId}`);
+
+        status === 'passed' ? passedTests++ : failedTests++;
+        totalDuration += parseFloat(duration);
+
+        // Create the table row with the test ID
+        const row = `
                     <tr data-suite="${suiteName}" data-status="${status}">
                         <td>${suiteName}</td>
                         <td>${testId}</td>
@@ -228,17 +242,20 @@ reportData.suites.forEach((suite, suiteIndex) => {
                         </td>
                     </tr>
                 `;
-                
-                console.log('Generated link:', `./index.html#?testId=${encodeURIComponent(testId)}`);
-                tableRows += row;
-            });
-        });
+
+        console.log('Generated link:', `./index.html#?testId=${encodeURIComponent(testId)}`);
+        tableRows += row;
+      });
     });
+  });
 });
 
 console.log('Finished processing test results.');
 
-const finalHtml = htmlContent + tableRows + `
+const finalHtml =
+  htmlContent +
+  tableRows +
+  `
             </tbody>
         </table>
     </div>
@@ -366,7 +383,11 @@ fs.writeFileSync(path.join(PLAYWRIGHT_REPORT_DIR, 'home.html'), landingHtml);
 
 // If we're in development mode and OPEN_REPORT is set
 if (process.env.OPEN_REPORT) {
-    const openCommand = process.platform === 'win32' ? 'start' : 'open';
-    require('child_process').exec(`${openCommand} http://localhost:${DEFAULT_PORT}/playwright-report/summary.html`);
-    console.log(`Report will be available at: http://localhost:${DEFAULT_PORT}/playwright-report/summary.html`);
-} 
+  const openCommand = process.platform === 'win32' ? 'start' : 'open';
+  require('child_process').exec(
+    `${openCommand} http://localhost:${DEFAULT_PORT}/playwright-report/summary.html`
+  );
+  console.log(
+    `Report will be available at: http://localhost:${DEFAULT_PORT}/playwright-report/summary.html`
+  );
+}

@@ -1,16 +1,16 @@
-import { BaseTestDataBuilder } from '@core/builders/BaseTestDataBuilder';
-import { UserTestDataBuilder } from '@core/builders/UserTestDataBuilder';
+import { UserTestDataBuilder } from '@core/test-data-builders/UserTestDataBuilder';
 import { CreateChatGroupParams } from '@chat/types/chat.type';
 import { Roles } from '@core/constants/roles';
 import { User } from '@core/types/user.type';
 import { test } from '@playwright/test';
-import { AppManagerApiClient } from '../../../core/api/clients/appManagerApiClient';
+import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 
-export class ChatGroupTestDataBuilder extends BaseTestDataBuilder {
-  protected readonly userBuilder: UserTestDataBuilder;
+export class ChatGroupTestDataBuilder {
+  private readonly userBuilder: UserTestDataBuilder;
+  private readonly apiClient: AppManagerApiClient;
 
   constructor(apiClient: AppManagerApiClient) {
-    super(apiClient);
+    this.apiClient = apiClient;
     this.userBuilder = new UserTestDataBuilder(apiClient);
   }
 
@@ -86,7 +86,7 @@ export class ChatGroupTestDataBuilder extends BaseTestDataBuilder {
 
       // Handle new users if specified
       if (users?.createNew && Object.keys(users.createNew).length > 0) {
-        const createdUsers = await this.getUserBuilder().createUsersWithRoles(users.createNew);
+        const createdUsers = await this.userBuilder.createUsersWithRoles(users.createNew);
         usersByRoleMap = createdUsers.usersByRole;
         allUsers = createdUsers.allUsers;
         allUserIds = await this.getChatUserIds(allUsers);
@@ -110,11 +110,7 @@ export class ChatGroupTestDataBuilder extends BaseTestDataBuilder {
 
       if (shouldCreateNewGroup) {
         // Create new group with all user IDs
-        const createdGroupName = await this.createChatGroup(
-          groupName,
-          allUserIds,
-          options?.groupParams
-        );
+        const createdGroupName = await this.createChatGroup(groupName, allUserIds, options?.groupParams);
         groupInfo = { name: createdGroupName };
       } else {
         // Use existing group

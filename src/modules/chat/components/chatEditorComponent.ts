@@ -30,9 +30,7 @@ export class ChatEditorComponent extends BaseComponent {
     this.sendMessageButton = this.chatEditorComponentContainer.getByLabel('Send message');
 
     //toolbar container
-    this.toolbarContainer = this.chatEditorComponentContainer.locator(
-      "[class*='_toolbarWrapper_']"
-    );
+    this.toolbarContainer = this.chatEditorComponentContainer.locator("[class*='_toolbarWrapper_']");
     //toolbar buttons
     this.boldButton = this.toolbarContainer.getByLabel('Bold');
 
@@ -42,9 +40,7 @@ export class ChatEditorComponent extends BaseComponent {
     this.recordVideoButton = this.chatEditorComponentContainer.getByLabel('Record video');
 
     //attachements
-    this.attachementsContainer = this.chatEditorComponentContainer.locator(
-      "[class*='Attachment_attachmentRoot']"
-    );
+    this.attachementsContainer = this.chatEditorComponentContainer.locator("[class*='Attachment_attachmentRoot']");
   }
 
   /**
@@ -87,9 +83,7 @@ export class ChatEditorComponent extends BaseComponent {
    * Clicks on the record video option
    * which opens the record video prompt component
    */
-  async clickOnRecordVideoOption(options?: {
-    stepInfo?: string;
-  }): Promise<RecordVideoPromptComponent> {
+  async clickOnRecordVideoOption(options?: { stepInfo?: string }): Promise<RecordVideoPromptComponent> {
     let recordVideoPromptComponent: RecordVideoPromptComponent;
     await test.step(options?.stepInfo ?? `Clicking on record video option`, async () => {
       await this.clickOnElement(this.recordVideoButton);
@@ -99,9 +93,7 @@ export class ChatEditorComponent extends BaseComponent {
     return recordVideoPromptComponent!;
   }
 
-  async clickOnRecordAudioOption(options?: {
-    stepInfo?: string;
-  }): Promise<RecordAudioPromptComponent> {
+  async clickOnRecordAudioOption(options?: { stepInfo?: string }): Promise<RecordAudioPromptComponent> {
     let recordAudioPromptComponent: RecordAudioPromptComponent;
     await test.step(options?.stepInfo ?? `Clicking on record audio option`, async () => {
       await this.clickOnElement(this.recordAudioButton);
@@ -114,9 +106,7 @@ export class ChatEditorComponent extends BaseComponent {
   /**
    * Verifies that the video is visible as attachement in the chat editor
    */
-  async verifyTheVideoIsVisibleAsAttachementInTheChatEditor(options?: {
-    stepInfo?: string;
-  }): Promise<void> {
+  async verifyTheVideoIsVisibleAsAttachementInTheChatEditor(options?: { stepInfo?: string }): Promise<void> {
     await test.step(
       options?.stepInfo ?? `Verifying that the video is visible as attachement in the chat editor`,
       async () => {
@@ -131,9 +121,7 @@ export class ChatEditorComponent extends BaseComponent {
     );
   }
 
-  async verifyTheAudioIsVisibleAsAttachementInTheChatEditor(options?: {
-    stepInfo?: string;
-  }): Promise<void> {
+  async verifyTheAudioIsVisibleAsAttachementInTheChatEditor(options?: { stepInfo?: string }): Promise<void> {
     await test.step(
       options?.stepInfo ?? `Verifying that the audio is visible as attachement in the chat editor`,
       async () => {
@@ -141,9 +129,7 @@ export class ChatEditorComponent extends BaseComponent {
           assertionMessage: 'expecting attachements container to be visible',
         });
         //get the attachements container text
-        const audioAttachment = this.attachementsContainer
-          .locator("[class*='Attachments_audioContainer']")
-          .first();
+        const audioAttachment = this.attachementsContainer.locator("[class*='Attachments_audioContainer']").first();
         //verify that the audio attachment is visible
         await this.verifier.verifyTheElementIsVisible(audioAttachment, {
           assertionMessage: 'expecting audio attachment to be visible',

@@ -1,10 +1,17 @@
-import { BaseTestDataBuilder } from '@core/builders/BaseTestDataBuilder';
+import { AppManagerApiClient } from '@api/clients/appManagerApiClient';
+import { test } from '@playwright/test';
 import { Roles } from '@core/constants/roles';
 import { User } from '@core/types/user.type';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
-import { test } from '@playwright/test';
+import { TestUser } from '@core/types/test.types';
 
-export class UserTestDataBuilder extends BaseTestDataBuilder {
+export class UserTestDataBuilder {
+  private readonly apiClient: AppManagerApiClient;
+
+  constructor(apiClient: AppManagerApiClient) {
+    this.apiClient = apiClient;
+  }
+
   /**
    * Adds and activates multiple users to the system with the specified role and password
    * @param count - The number of users to add
@@ -19,24 +26,23 @@ export class UserTestDataBuilder extends BaseTestDataBuilder {
    * // Add 2 admin users with a custom password
    * const admins = await userBuilder.addUsersToSystem(2, Roles.ADMIN, 'MySecretPass!');
    */
-  async addUsersToSystem(count: number, role: Roles, password: string = 'Password123') {
-    let result: {
-      user: User & { userId: string };
-      role: Roles;
-    }[] = [];
+  async addUsersToSystem(count: number, role: Roles, password: string = 'Password123'): Promise<TestUser[]> {
+    const createdUsers: TestUser[] = [];
 
     await test.step(`Adding ${count} users with role ${role}`, async () => {
       for (let i = 0; i < count; i++) {
         const user = TestDataGenerator.generateUser();
 
         const { userId } = await this.addAndActivateUser(user, role, password);
-        result.push({
-          user: { ...user, userId },
+        createdUsers.push({
+          ...user,
+          userId,
+          fullName: `${user.first_name} ${user.last_name}`,
           role,
         });
       }
     });
-    return result;
+    return createdUsers;
   }
 
   /**
@@ -52,16 +58,15 @@ export class UserTestDataBuilder extends BaseTestDataBuilder {
    * });
    */
   async createUsersWithRoles(usersByRole: { [key in Roles]?: number } = {}) {
-    const addedUsers: User[] = [];
-    const usersByRoleMap: { [key in Roles]?: User[] } = {};
+    const addedUsers: TestUser[] = [];
+    const usersByRoleMap: { [key in Roles]?: TestUser[] } = {};
 
     await test.step('Creating users with specified roles', async () => {
       // Add users for each role
       for (const [role, count] of Object.entries(usersByRole)) {
         if (!count) continue;
 
-        const usersWithRole = await this.addUsersToSystem(count, role as Roles);
-        const users = usersWithRole.map(u => u.user);
+        const users = await this.addUsersToSystem(count, role as Roles);
         addedUsers.push(...users);
         usersByRoleMap[role as Roles] = users;
       }
@@ -80,20 +85,17 @@ export class UserTestDataBuilder extends BaseTestDataBuilder {
    * @param password - The password to set for the user
    * @returns The added and activated user with their userId
    */
-  async addAndActivateUser(
-    user: User,
-    role: Roles,
-    password: string
-  ): Promise<User & { userId: string }> {
+  async addAndActivateUser(user: User, role: Roles, password: string): Promise<TestUser> {
     return await test.step(`Adding and activating user ${user.first_name} ${user.last_name}`, async () => {
       const addUserResponse = await this.apiClient.getUserManagementService().addUser(user, role);
-      await this.apiClient
-        .getUserManagementService()
-        .waitForUserToBeAdded(user.first_name, user.last_name);
-      await this.apiClient
-        .getUserManagementService()
-        .activateUser(user.first_name, user.last_name, password);
-      return { ...user, userId: addUserResponse.user_id };
+      await this.apiClient.getUserManagementService().waitForUserToBeAdded(user.first_name, user.last_name);
+      await this.apiClient.getUserManagementService().activateUser(user.first_name, user.last_name, password);
+      return {
+        ...user,
+        userId: addUserResponse.user_id,
+        fullName: `${user.first_name} ${user.last_name}`,
+        role,
+      };
     });
   }
 }

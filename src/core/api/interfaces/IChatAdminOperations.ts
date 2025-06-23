@@ -15,11 +15,7 @@ export interface IChatAdminOperations {
    * @param params - Optional parameters for group creation
    * @returns Promise with the created group response
    */
-  createChatGroup(
-    name: string,
-    userIds: string[],
-    params?: CreateChatGroupParams
-  ): Promise<CreateGroupResponse>;
+  createChatGroup(name: string, userIds: string[], params?: CreateChatGroupParams): Promise<CreateGroupResponse>;
 
   /**
    * Adds users to an existing chat group

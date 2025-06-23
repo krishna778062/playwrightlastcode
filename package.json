@@ -6,9 +6,10 @@
   "scripts": {
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:chat": "npx playwright test --config=src/modules/chat/playwright.chat.config.ts",
-    "test:chat:P0": "npx playwright test --config=src/modules/chat/playwright.chat.config.ts --grep=@P0",
-    "test:chat:smoke": "npx playwright test --config=src/modules/chat/playwright.chat.config.ts --grep=@smoke",
+    "test:chat": "MODULE_NAME=chat npx playwright test --config=src/modules/chat/playwright.chat.config.ts",
+    "test:platforms": "MODULE_NAME=platforms npx playwright test --config=src/modules/platforms/playwright.platforms.config.ts",
+    "test:chat:P0": "MODULE_NAME=chat npx playwright test --config=src/modules/chat/playwright.chat.config.ts --grep=@P0",
+    "test:chat:smoke": "MODULE_NAME=chat npx playwright test --config=src/modules/chat/playwright.chat.config.ts --grep=@smoke",
     "start-report-server": "http-server . -p 3000 --cors",
     "generate-report": "node convert-report.js",
     "generate-report:custom": "node convert-report.js",
@@ -21,7 +22,8 @@
   "type": "commonjs",
   "devDependencies": {
     "@faker-js/faker": "^9.8.0",
-    "@playwright/test": "^1.52.0",
+    "@playwright/test": "^1.53.1",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.15.24",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.33.1",
@@ -35,7 +37,9 @@
     "xmldom": "^0.6.0"
   },
   "dependencies": {
+    "crypto": "^1.0.1",
     "dotenv": "^16.5.0",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2"
   }
 }

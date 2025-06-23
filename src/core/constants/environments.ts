@@ -5,4 +5,5 @@ export enum Environments {
   DEV = 'dev',
   LOCAL = 'local',
   TEST = 'test',
+  UAT = 'uat',
 }

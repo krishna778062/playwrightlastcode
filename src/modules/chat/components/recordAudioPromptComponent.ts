@@ -12,12 +12,8 @@ export class RecordAudioPromptComponent extends BaseComponent {
     this.recordAudioContainer = this.page.locator("[class*='RecordAudio_wrapper']");
     this.cancelButton = this.recordAudioContainer.getByLabel('Cancel');
     this.stopAudioRecordingButton = this.recordAudioContainer.getByRole('button', { name: 'Done' });
-    this.audioRecordingProgressBar = this.recordAudioContainer.locator(
-      "div[class*='RecordAudio_visualizer__LaUAT']"
-    );
-    this.audioRecordingDuration = this.recordAudioContainer.locator(
-      "div[class*='RecordAudio_visualizer__LaUAT'] + p"
-    );
+    this.audioRecordingProgressBar = this.recordAudioContainer.locator("div[class*='RecordAudio_visualizer__LaUAT']");
+    this.audioRecordingDuration = this.recordAudioContainer.locator("div[class*='RecordAudio_visualizer__LaUAT'] + p");
   }
 
   /**
@@ -81,11 +77,11 @@ export class RecordAudioPromptComponent extends BaseComponent {
    * Records audio and adds it to the chat
    * @param options - The options to pass to the function
    */
-  async recordAudioAndAddItToTheChat(options?: { stepInfo?: string }): Promise<void> {
+  async recordAudioAndAddItToTheChat(recordingDuration: number = 2000, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Recording audio and adding it to the chat`, async () => {
       await this.verifyTheAudioRecordingIsInProgress();
       //wait for 2 seconds to get the audio recorded
-      await this.sleep(2_000);
+      await this.sleep(recordingDuration);
       await this.performActionAndWaitForRequest(
         () => this.completeTheAudioRecording(),
         request => request.url().includes('attachments') && request.method() === 'POST',

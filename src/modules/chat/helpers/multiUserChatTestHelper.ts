@@ -1,63 +1,94 @@
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
-import { Roles } from '@core/constants/roles';
 import { Browser, Page, test } from '@playwright/test';
-import { BrowserFactory, MultiUserContexts } from '@/src/core/utils/browserFactory';
-import { LoginPage } from '@modules/chat/pages/loginPage';
+import { LoginPage } from '@core/pages/loginPage';
 import { ChatAppPage } from '@modules/chat/pages/chatsPage';
 import { ChatTestUser, ChatTestSetupConfig, ChatTestSetupResult } from '@modules/chat/types';
-import { ChatGroupTestDataBuilder } from '../builders';
-import { User } from '../../../core/types/user.type';
+import { ChatGroupTestDataBuilder } from '@chat/test-data-builders/ChatGroupTestDataBuilder';
+import { Roles } from '@core/constants/roles';
+import { MultiUserTestHelper } from '@core/helpers/multiUserTestHelper';
+import { MultiUserContexts } from '@core/utils/browserFactory';
+import { TestUser } from '@core/types/test.types';
+import { HomePage } from '@core/pages/homePage';
+import { LoginHelper } from '@core/helpers/loginHelper';
+import { TIMEOUTS } from '../../../core/constants/timeouts';
+import { getEnvConfig } from '../../../core/utils/getEnvConfig';
 
-export class BaseMultiUserChatTest {
+export class MultiUserChatTestHelper {
   private static readonly DEFAULT_PASSWORD = 'Simpplr@2025';
-  protected appManagerApiClient!: AppManagerApiClient;
-  protected groupName!: string;
-  protected testUsers!: ChatTestUser[];
-  protected chatTestDataBuilder!: ChatGroupTestDataBuilder;
-  protected multiUserContexts!: MultiUserContexts;
-  protected browserFactory!: BrowserFactory;
+  public testData!: ChatTestSetupResult;
+  private multiUserTestHelper!: MultiUserTestHelper;
+  private multiUserContexts!: MultiUserContexts;
 
   /**
    * Sets up a complete chat test environment
    * @param config Configuration for the chat test setup
-   * @returns Setup result containing users, group name, and API clients
    */
-
   async setup(browser: Browser, config: ChatTestSetupConfig) {
-    const setupResult = await BaseMultiUserChatTest.init(config);
-    this.appManagerApiClient = setupResult.appManagerApiClient;
-    this.chatTestDataBuilder = setupResult.testDataBuilder;
-    this.groupName = setupResult.groupName;
-    this.testUsers = setupResult.users;
-    this.browserFactory = new BrowserFactory(browser);
-  }
+    this.multiUserTestHelper = new MultiUserTestHelper(browser, { recordVideo: config.recordVideo });
+    // 1. Create app manager client and test data builder
+    const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
+      type: 'credentials',
+      credentials: {
+        username: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
+      },
+      baseUrl: getEnvConfig().apiBaseUrl,
+    });
 
-  getPageForUser(email: string) {
-    return this.multiUserContexts[email].page;
-  }
+    const chatGroupTestDataBuilder = new ChatGroupTestDataBuilder(appManagerApiClient);
+    const userBuilder = chatGroupTestDataBuilder.getUserBuilder();
 
-  getContextForUser(email: string) {
-    return this.multiUserContexts[email];
-  }
-
-  getTestUser(email: string) {
-    return this.testUsers.find(user => user.email === email);
-  }
-
-  getTestUserByIndex(index: number) {
-    return this.testUsers[index];
-  }
-
-  getTestUserByName(firstName: string, lastName: string) {
-    return this.testUsers.find(
-      user => user.first_name === firstName && user.last_name === lastName
+    // 2. Create users as per config
+    const createdUsers: TestUser[] = [];
+    for (const [role, count] of Object.entries(config.usersByRole)) {
+      const users = await userBuilder.addUsersToSystem(count, role as Roles, config.password);
+      createdUsers.push(...users);
+    }
+    // 3. Get chat user IDs for all users
+    const usersWithChatIds: ChatTestUser[] = await Promise.all(
+      createdUsers.map(async user => ({
+        ...user,
+        chatUserId: await appManagerApiClient.getUserManagementService().getChatUserId(user.first_name, user.last_name),
+      }))
     );
+
+    // 4. Create group
+    const groupName = config.groupName || TestDataGenerator.generateGroupName();
+    if (config.createGroup !== false) {
+      await appManagerApiClient.getChatService().createChatGroup(
+        groupName,
+        usersWithChatIds.map(user => user.chatUserId),
+        {
+          conversationType: 'GROUP',
+        }
+      );
+    }
+
+    // 5. Store all relevant data
+    this.testData = {
+      users: usersWithChatIds,
+      groupName,
+      appManagerApiClient,
+      testDataBuilder: chatGroupTestDataBuilder,
+    };
   }
 
-  getGroupName() {
-    return this.groupName;
+  /**
+   * Returns the test data object
+   * @returns The test data object
+   */
+  public getTestData(): ChatTestSetupResult {
+    return this.testData;
+  }
+
+  public getPageForUser(email: string) {
+    return this.multiUserTestHelper.getPageForUser(email);
+  }
+
+  public getContextForUser(email: string) {
+    return this.multiUserTestHelper.getContextForUser(email);
   }
 
   /**
@@ -67,24 +98,16 @@ export class BaseMultiUserChatTest {
    * @param password - The password of the user to login
    * @returns The chats page
    */
-  async loginAndNavigateToChats(
+  async loginAndNavigateToChatsPage(
     page: Page,
     email: string,
     password: string,
     options?: { stepInfo?: string; timeout?: number }
   ) {
-    const loginPage = new LoginPage(page);
-    await loginPage.loadPage({
-      stepInfo: options?.stepInfo || `Loading login page for user ${email}`,
-      timeout: options?.timeout,
-    });
-    const homePage = await loginPage.login(email, password, {
-      stepInfo: options?.stepInfo || `Logging in for user ${email}`,
-      timeout: options?.timeout,
-    });
-    await homePage.getTopNavBarComponent().navigateToChatsPage({
+    const homePage = await LoginHelper.loginWithPassword(page, { email, password });
+    await homePage.navigateToChatsPage({
       stepInfo: options?.stepInfo || `Navigating to chats page for user ${email}`,
-      timeout: options?.timeout,
+      timeout: options?.timeout || TIMEOUTS.LONG,
     });
     return new ChatAppPage(page);
   }
@@ -99,16 +122,11 @@ export class BaseMultiUserChatTest {
 
     await test.step(`Simultaneously logging in and navigating to chats for users  ${userIndices.join(', ')}`, async () => {
       const loginPromises = userIndices.map(async index => {
-        const user = this.getTestUserByIndex(index);
+        const user = this.testData.users[index];
         const page = this.getPageForUser(user.email);
-        return this.loginAndNavigateToChats(
-          page,
-          user.email,
-          BaseMultiUserChatTest.DEFAULT_PASSWORD,
-          {
-            stepInfo: `Logging in and navigating to chats for user ${user.email}`,
-          }
-        );
+        return this.loginAndNavigateToChatsPage(page, user.email, MultiUserChatTestHelper.DEFAULT_PASSWORD, {
+          stepInfo: `Logging in and navigating to chats for user ${user.email}`,
+        });
       });
       listOfChatAppPages = await Promise.all(loginPromises);
     });
@@ -125,20 +143,13 @@ export class BaseMultiUserChatTest {
    * @param groupName - Name of the group to open
    * @param userIndices - Array of user indices to identify users in step info (optional)
    */
-  async openGroupChatForMultipleUsers(
-    chatPages: ChatAppPage[],
-    groupName: string,
-    userIndices?: number[]
-  ) {
+  async openGroupChatForMultipleUsers(chatPages: ChatAppPage[], groupName: string, userIndices?: number[]) {
     await test.step(`Opening group chat ${groupName} for multiple users simultaneously`, async () => {
       const openChatPromises = chatPages.map((chatPage, index) => {
         const userNumber = userIndices ? userIndices[index] + 1 : index + 1;
-        return chatPage
-          .getInboxSideBarComponent()
-          .getGroupChatsSection()
-          .openGroupChat(groupName, {
-            stepInfo: `User ${userNumber} opening group chat ${groupName}`,
-          });
+        return chatPage.openGroupChat(groupName, {
+          stepInfo: `User ${userNumber} opening group chat ${groupName}`,
+        });
       });
       await Promise.all(openChatPromises);
     });
@@ -163,157 +174,28 @@ export class BaseMultiUserChatTest {
     await test.step(`Verifying message "${message}" for multiple users simultaneously`, async () => {
       const verifyPromises = chatPages.map((chatPage, index) => {
         const userNumber = options?.userIndices ? options.userIndices[index] + 1 : index + 1;
-        return chatPage
-          .getFocusedChatComponent()
-          .verifyMessageIsPresentInListOfChatMessages(message, {
-            stepInfo: `Verifying message "${message}" is present for User ${userNumber}`,
-            timeout: options?.timeout,
-          });
+        return chatPage.verifyMessageIsVisible(message, {
+          stepInfo: `Verifying message "${message}" is present for User ${userNumber}`,
+          timeout: options?.timeout,
+        });
       });
       await Promise.all(verifyPromises);
     });
   }
 
   /**
-   * Send a reply message in a thread
-   * @param chatPage - The chat page of the user sending the reply
-   * @param messageToReplyTo - The message to reply to
-   * @param replyMessage - The reply message to send
-   * @param options - Optional parameters
-   * @param options.userNumber - User number for step info (defaults to 1)
-   * @returns The reply thread component
-   */
-  async sendReplyMessageInThread(
-    chatPage: ChatAppPage,
-    messageToReplyTo: string,
-    replyMessage: string,
-    options?: {
-      userNumber?: number;
-    }
-  ) {
-    const userNumber = options?.userNumber || 1;
-    return await test.step(`User ${userNumber} replying to message "${messageToReplyTo}"`, async () => {
-      const message = await chatPage
-        .getFocusedChatComponent()
-        .getFocusedMessageObjectFromListOfChatMessages(messageToReplyTo);
-      const replyThreadComponent = await message.openReplyThread();
-      await replyThreadComponent.getChatEditorComponent().sendMessage(replyMessage, {
-        stepInfo: `User ${userNumber} sending reply: "${replyMessage}"`,
-      });
-      return replyThreadComponent;
-    });
-  }
-
-  /**
    * Cleanup the test environment
    */
-  async cleanup() {
-    await this.browserFactory?.cleanupContexts(this.multiUserContexts);
+  public async cleanup() {
+    await this.multiUserTestHelper.cleanup();
   }
 
   /**
-   * Create multi user contexts
+   * Creates browser contexts for a specific set of users
+   * @param userIndices Array of indices for the users who need a browser context
    */
-  async createMultiUserContexts() {
-    this.multiUserContexts = await this.browserFactory.createMultiUserContexts(
-      this.testUsers.map(user => user.email)
-    );
-  }
-
-  /**
-   * Initialize the test environment
-   * @param config - The configuration for the test environment
-   * @returns The setup result containing users, group name, and API clients
-   */
-  static async init(config: ChatTestSetupConfig): Promise<ChatTestSetupResult> {
-    // 1. Create app manager client and test data builder
-    const appManagerApiClient = await this.createAppManagerClient();
-    const chatGroupTestDataBuilder = new ChatGroupTestDataBuilder(appManagerApiClient);
-    const userBuilder = chatGroupTestDataBuilder.getUserBuilder();
-    // 2. Create users as per config
-    const createdUsers: (User & { userId: string })[] = [];
-    for (const [role, count] of Object.entries(config.usersByRole)) {
-      const users = await userBuilder.addUsersToSystem(count, role as Roles, config.password);
-      createdUsers.push(...users.map(u => u.user));
-    }
-
-    // 3. Get chat user IDs for all users
-    const usersWithChatIds: ChatTestUser[] = await Promise.all(
-      createdUsers.map(async user => ({
-        ...user,
-        chatUserId: await appManagerApiClient
-          .getUserManagementService()
-          .getChatUserId(user.first_name, user.last_name),
-      }))
-    );
-
-    // 4. Create group
-    const groupName = config.groupName || TestDataGenerator.generateGroupName();
-    await appManagerApiClient.getChatService().createChatGroup(
-      groupName,
-      usersWithChatIds.map(user => user.chatUserId),
-      {
-        conversationType: 'GROUP',
-      }
-    );
-
-    // 5. Return all relevant data
-    return {
-      users: usersWithChatIds,
-      groupName,
-      appManagerApiClient,
-      testDataBuilder: chatGroupTestDataBuilder,
-    };
-  }
-
-  private static async createAppManagerClient(): Promise<AppManagerApiClient> {
-    return await ApiClientFactory.createClient(AppManagerApiClient, {
-      type: 'credentials',
-      credentials: {
-        username: process.env.APP_MANAGER_USERNAME!,
-        password: process.env.APP_MANAGER_PASSWORD!,
-      },
-      baseUrl: process.env.API_BASE_URL!,
-    });
-  }
-
-  // public static async addAndActivateUsers(
-  //   testDataBuilder: TestDataBuilderUsingAPI,
-  //   role: Roles,
-  //   count: number,
-  //   password: string = this.DEFAULT_PASSWORD
-  // ): Promise<ChatTestUser[]> {
-  //   let listOfChatTestUsers: ChatTestUser[] | undefined;
-
-  //   await test.step(`Adding and activating ${count} users for role ${role}`, async () => {
-  //     const userPromises: Promise<ChatTestUser>[] = [];
-  //     for (let i = 0; i < count; i++) {
-  //       const newUser = testDataBuilder.addAndActivateUser(
-  //         TestDataGenerator.generateUser(),
-  //         role,
-  //         password
-  //       ) as Promise<ChatTestUser>;
-  //       userPromises.push(newUser);
-  //     }
-  //     listOfChatTestUsers = await Promise.all(userPromises);
-  //   });
-
-  //   if (listOfChatTestUsers === undefined) {
-  //     throw new Error('Failed to add and activate users');
-  //   }
-  //   return listOfChatTestUsers;
-  // }
-
-  private static async addChatUserIds(
-    appManagerApiClient: AppManagerApiClient,
-    users: ChatTestUser[]
-  ): Promise<ChatTestUser[]> {
-    const chatUserIdPromises = users.map(async user => {
-      const chatUserId = await appManagerApiClient
-        .getUserManagementService()
-        .getChatUserId(user.first_name, user.last_name);
-      return { ...user, chatUserId };
-    });
-    return await Promise.all(chatUserIdPromises);
+  public async createContextsForUsers(userIndices: number[]) {
+    const usersToCreateContextsFor = userIndices.map(index => this.testData.users[index]);
+    this.multiUserContexts = await this.multiUserTestHelper.createContextsForUsers(usersToCreateContextsFor);
   }
 }

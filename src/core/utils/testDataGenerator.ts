@@ -38,7 +38,7 @@ export class TestDataGenerator {
   static generateUniqueEmail(prefix?: string): string {
     const timestamp = Date.now();
     const randomString = faker.string.alphanumeric(6);
-    const emailPrefix = prefix || faker.internet.userName();
+    const emailPrefix = prefix || faker.internet.username();
     return `${emailPrefix}.${timestamp}.${randomString}@example.com`;
   }
 
