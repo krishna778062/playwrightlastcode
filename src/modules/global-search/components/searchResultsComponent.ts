@@ -2,8 +2,6 @@ import { BaseComponent } from '@/src/core/components/baseComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
 
 export class SearchResultsComponent extends BaseComponent {
-  readonly searchInput: Locator;
-  readonly searchButton: Locator;
   readonly searchResultsContainer: Locator;
   readonly resultTitle: Locator;
   readonly resultCategory: Locator;
@@ -16,8 +14,6 @@ export class SearchResultsComponent extends BaseComponent {
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
-    this.searchInput = this.page.getByPlaceholder('Search', { exact: false });
-    this.searchButton = this.page.locator('button[aria-label="Search"]');
     this.searchResultsContainer = this.page.locator('xpath=(//*[contains(@class,"eContainer-module")])[1]');
     this.resultTitle = this.page.locator('xpath=//h2[contains(@class,"title_listTi")]');
     this.resultCategory = this.page.locator('xpath=//*[contains(@class,"category")]');
@@ -31,9 +27,22 @@ export class SearchResultsComponent extends BaseComponent {
 
   async verifyResultIsDisplayed(term: string, options?: { stepInfo?: string }): Promise<boolean> {
     return await test.step(options?.stepInfo || `Verifying result "${term}" is displayed`, async () => {
-      const searchResults = this.page.locator(`xpath=//h2[contains(@class,"itle_listTi") and text()="${term}"]`);
-      // await searchResults.scrollIntoViewIfNeeded();
-      return await this.verifier.verifyTheElementIsVisible(searchResults);
+      const searchResults = this.page.locator(`h2[class*="listTitle"]:has-text("${term}")`);
+      await searchResults.waitFor({ state: 'attached', timeout: 10000 });
+      await searchResults.scrollIntoViewIfNeeded({ timeout: 10000 });
+      return await this.verifier.verifyTheElementIsVisible(searchResults, { timeout: 20000 });
+    });
+  }
+
+  async verifyCategoryIsDisplayed(term: string, category: string, options?: { stepInfo?: string }) {
+    return this.verifyTextNearTitle(term, category, {
+      stepInfo: options?.stepInfo || `Verifying category "${category}" is displayed for "${term}"`,
+    });
+  }
+
+  async verifySiteLabelIsDisplayed(term: string, label: string, options?: { stepInfo?: string }) {
+    return this.verifyTextNearTitle(term, label, {
+      stepInfo: options?.stepInfo || `Verifying label "${label}" is displayed for "${term}"`,
     });
   }
 
@@ -51,24 +60,10 @@ export class SearchResultsComponent extends BaseComponent {
     );
   }
 
-  async verifyCategoryIsDisplayed(term: string, category: string, options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || `Verifying category "${category}" of "${term}" is displayed`, async () => {
-      const categoryElement = this.page.locator(`[class*="category"][text()='${category}']`);
-      await this.verifier.waitUntilElementIsVisible(categoryElement);
-    });
-  }
-
   async verifyThumbnailIsDisplayed(term: string, options?: { stepInfo?: string }) {
     await test.step(options?.stepInfo || `Verifying thumbnail for "${term}" is displayed`, async () => {
       const thumbnailElement = this.page.locator(`[class*="thumbnail"]`);
       await this.verifier.waitUntilElementIsVisible(thumbnailElement);
-    });
-  }
-
-  async verifySiteLabelIsDisplayed(term: string, options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || `Verifying site label for "${term}" is displayed`, async () => {
-      const siteLabelElement = this.page.locator(`[class*="site-label"]`);
-      await this.verifier.waitUntilElementIsVisible(siteLabelElement);
     });
   }
 
@@ -123,6 +118,15 @@ export class SearchResultsComponent extends BaseComponent {
     await test.step(options?.stepInfo || `Clicking on category "${category}" of "${term}"`, async () => {
       const categoryElement = this.page.locator(`xpath=//*[contains(@class,"category") and text()="${category}"]`);
       await this.clickOnElement(categoryElement);
+    });
+  }
+
+  async verifyTextNearTitle(term: string, text: string, options?: { stepInfo?: string }) {
+    await test.step(options?.stepInfo || `Verifying text "${text}" is displayed for "${term}"`, async () => {
+      const element = this.page
+        .locator(`div:has(h2[class*="listTitle"]:has-text("${term}")) :has-text("${text}")`)
+        .first();
+      return await this.verifier.verifyTheElementIsVisible(element, { timeout: 20000 });
     });
   }
 }

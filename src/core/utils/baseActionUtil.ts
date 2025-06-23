@@ -171,7 +171,7 @@ export class BaseActionUtil {
     });
   }
 
-  async peformActionAndWaitForPageNavigation(
+  async performActionAndWaitForPageNavigation(
     actionToPerform: () => Promise<any>,
     expectedUrl: string | RegExp,
     options?: { timeout?: number; stepInfo?: string }

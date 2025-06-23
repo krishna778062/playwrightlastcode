@@ -29,6 +29,6 @@ export class GlobalSearchPage extends BasePage {
   }
 
   async verifyResultIsDisplayed(term: string, options?: { stepInfo?: string }): Promise<void> {
-    await this.searchResultsComponent.verifyResultIsDisplayed(term, options);
+    await this.getSearchResultsComponent().verifyResultIsDisplayed(term, options);
   }
 }

@@ -14,6 +14,9 @@ export const SITE_SEARCH_TEST_DATA = {
     PUBLIC: 'public',
     PRIVATE: 'private',
   },
+  LABELS: {
+    SITE: 'site',
+  },
   MESSAGES: {
     COPIED: 'Copied',
     SITE_LABEL: 'site',
