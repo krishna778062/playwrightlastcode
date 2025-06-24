@@ -1,28 +1,36 @@
 import { BaseComponent } from '@/src/core/components/baseComponent';
+import { $ } from '@faker-js/faker/dist/airline-BUL6NtOJ';
 import { expect, Locator, Page, test } from '@playwright/test';
+import { text } from 'stream/consumers';
 
 export class SearchResultsComponent extends BaseComponent {
-  readonly searchResultsContainer: Locator;
-  readonly resultTitle: Locator;
-  readonly resultCategory: Locator;
-  readonly resultThumbnail: Locator;
-  readonly siteLabel: Locator;
-  readonly siteIcon: Locator;
-  readonly copyLinkButton: Locator;
+  // readonly searchResultsContainer!: Locator;
+  // readonly resultTitle!: Locator;
+  // readonly resultCategory!: Locator;
+  // readonly resultThumbnail!: Locator;
+  // readonly siteLabel!: Locator;
+  // readonly siteIcon!: Locator;
+  // readonly copyLinkButton!: Locator;
   // readonly lockIcon: Locator;
   readonly copiedText: Locator;
+  readonly categoryText: Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
-    this.searchResultsContainer = this.page.locator('xpath=(//*[contains(@class,"eContainer-module")])[1]');
-    this.resultTitle = this.page.locator('xpath=//h2[contains(@class,"title_listTi")]');
-    this.resultCategory = this.page.locator('xpath=//*[contains(@class,"category")]');
-    this.resultThumbnail = this.page.locator('xpath=//*[contains(@class,"thumbnail")]');
-    this.siteLabel = this.page.locator('xpath=//*[contains(@class,"site-label")]');
-    this.siteIcon = this.page.locator('xpath=//*[contains(@class,"site-icon")]');
-    this.copyLinkButton = this.page.locator('xpath=//*[contains(@class,"copy-link")]');
-    // this.lockIcon = this.page.locator('xpath=//*[contains(@class,"lock-icon")]');
     this.copiedText = this.page.getByText('Copied');
+    this.categoryText = this.page.locator('h2[class*="ist-headi"]');
+  }
+
+  getElementNearTitle(term: string, options?: { selector?: string; text?: string }): Locator {
+    const listItem = this.page.getByRole('listitem').filter({
+      has: this.page.getByRole('heading', { name: term }),
+    });
+    if (options?.selector) {
+      return listItem.locator(options.selector);
+    } else if (options?.text) {
+      return listItem.getByText(options.text);
+    }
+    throw new Error('Either selector or text must be provided');
   }
 
   async verifyResultIsDisplayed(term: string, options?: { stepInfo?: string }): Promise<boolean> {
@@ -35,14 +43,38 @@ export class SearchResultsComponent extends BaseComponent {
   }
 
   async verifyCategoryIsDisplayed(term: string, category: string, options?: { stepInfo?: string }) {
-    return this.verifyTextNearTitle(term, category, {
-      stepInfo: options?.stepInfo || `Verifying category "${category}" is displayed for "${term}"`,
+    const element = this.getElementNearTitle(term, { text: category });
+    await test.step(options?.stepInfo || `Verifying category "${category}" is displayed for "${term}"`, async () => {
+      await this.verifier.verifyTheElementIsVisible(element, { timeout: 20000 });
+    });
+  }
+
+  async clickOnCategory(term: string, category: string, options?: { stepInfo?: string }) {
+    const element = this.getElementNearTitle(term, { text: category });
+    await test.step(options?.stepInfo || `Clicking category "${category}" for "${term}"`, async () => {
+      await this.performActionAndWaitForPageNavigation(() => this.clickOnElement(element), /category/);
+      await this.verifier.waitUntilElementIsVisible(this.categoryText, { timeout: 100000 });
     });
   }
 
   async verifySiteLabelIsDisplayed(term: string, label: string, options?: { stepInfo?: string }) {
-    return this.verifyTextNearTitle(term, label, {
-      stepInfo: options?.stepInfo || `Verifying label "${label}" is displayed for "${term}"`,
+    const element = this.getElementNearTitle(term, { text: label });
+    await test.step(options?.stepInfo || `Verifying label "${label}" is displayed for "${term}"`, async () => {
+      await this.verifier.verifyTheElementIsVisible(element, { timeout: 20000 });
+    });
+  }
+
+  async verifyThumbnailIsDisplayed(term: string, options?: { stepInfo?: string }) {
+    const element = this.getElementNearTitle(term, { selector: 'img[class*="Emblem-module__image"]' });
+    await test.step(options?.stepInfo || `Verifying thumbnail is displayed for "${term}"`, async () => {
+      await this.verifier.verifyTheElementIsVisible(element, { timeout: 20000 });
+    });
+  }
+
+  async verifySiteIconIsDisplayed(term: string, options?: { stepInfo?: string }) {
+    const element = this.getElementNearTitle(term, { selector: '[data-testid="i-sites"]' });
+    await test.step(options?.stepInfo || `Verifying site icon is displayed for "${term}"`, async () => {
+      await this.verifier.verifyTheElementIsVisible(element, { timeout: 20000 });
     });
   }
 
@@ -58,20 +90,6 @@ export class SearchResultsComponent extends BaseComponent {
         }
       }
     );
-  }
-
-  async verifyThumbnailIsDisplayed(term: string, options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || `Verifying thumbnail for "${term}" is displayed`, async () => {
-      const thumbnailElement = this.page.locator(`[class*="thumbnail"]`);
-      await this.verifier.waitUntilElementIsVisible(thumbnailElement);
-    });
-  }
-
-  async verifySiteIconIsDisplayed(term: string, options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || `Verifying site icon for "${term}" is displayed`, async () => {
-      const siteIconElement = this.page.locator(`[class*="site-icon"]`);
-      await this.verifier.waitUntilElementIsVisible(siteIconElement);
-    });
   }
 
   async mouseOverOnResult(term: string, options?: { stepInfo?: string }) {
@@ -111,22 +129,6 @@ export class SearchResultsComponent extends BaseComponent {
     await test.step(options?.stepInfo || `Clicking on thumbnail of "${term}"`, async () => {
       const thumbnailElement = this.page.locator(`[class*="thumbnail"]`);
       await this.clickOnElement(thumbnailElement);
-    });
-  }
-
-  async clickOnCategory(term: string, category: string, options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || `Clicking on category "${category}" of "${term}"`, async () => {
-      const categoryElement = this.page.locator(`xpath=//*[contains(@class,"category") and text()="${category}"]`);
-      await this.clickOnElement(categoryElement);
-    });
-  }
-
-  async verifyTextNearTitle(term: string, text: string, options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || `Verifying text "${text}" is displayed for "${term}"`, async () => {
-      const element = this.page
-        .locator(`div:has(h2[class*="listTitle"]:has-text("${term}")) :has-text("${text}")`)
-        .first();
-      return await this.verifier.verifyTheElementIsVisible(element, { timeout: 20000 });
     });
   }
 }

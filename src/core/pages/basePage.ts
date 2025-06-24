@@ -63,4 +63,14 @@ export abstract class BasePage extends BaseActionUtil {
       await this.navigateTo(givenPageUrl);
     });
   }
+
+  /**
+   *
+   * @param options
+   */
+  async navigateBack(options?: { stepInfo?: string }) {
+    await test.step(options?.stepInfo || 'Navigate back to previous page', async () => {
+      await this.page.goBack();
+    });
+  }
 }

@@ -78,8 +78,22 @@ test.describe(
           });
 
           await globalSearchPage.getSearchResultsComponent().verifySiteLabelIsDisplayed(data.term, data.label, {
-            stepInfo: `Verifying site label is displayed for "${data.term}"`,
+            stepInfo: `Verifying "${data.label} label is displayed for "${data.term}"`,
           });
+
+          await globalSearchPage.getSearchResultsComponent().verifyThumbnailIsDisplayed(data.term, {
+            stepInfo: `Verifying thumbnail is displayed for "${data.term}" `,
+          });
+
+          await globalSearchPage.getSearchResultsComponent().verifySiteIconIsDisplayed(data.term, {
+            stepInfo: `Verifying site icon is displayed for "${data.term}" `,
+          });
+
+          await globalSearchPage.getSearchResultsComponent().clickOnCategory(data.term, data.category, {
+            stepInfo: `Verifying clicking on category and navigated to "${data.category}" `,
+          });
+
+          await globalSearchPage.navigateBack({ stepInfo: 'Navigating back to previous page' });
 
           // Verify site-specific behaviors
           // if (data.siteType === SITE_SEARCH_TEST_DATA.SITE_TYPES.PRIVATE) {
