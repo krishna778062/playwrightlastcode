@@ -84,6 +84,7 @@ export class BaseActionUtil {
   ) {
     try {
       const ele = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
+      console.log(`Getting attribute ${attributeName} from element ${ele}`);
       return await ele.getAttribute(attributeName, options);
     } catch (error) {
       throw PlaywrightErrorHandler.handle(error, PlaywrightAction.GET_ATTRIBUTE, selectorOrLocator);

@@ -123,6 +123,23 @@ export class GroupChatWindowComponent extends BaseComponent {
     return messageComponent!;
   }
 
+  async getFocusedMessageIdFromListOfChatMessages(messageText: string): Promise<FocusedMessageComponent> {
+    let messageId: string;
+    await test.step(`Getting focused message data-message-id from list of chat messages`, async () => {
+      const listOfMessages = await this.listChatMessagesComponent.all();
+      for (const eachMessage of listOfMessages) {
+        const fetchedMessageText = await eachMessage.locator('section').locator('p').textContent();
+        if (fetchedMessageText === messageText) {
+          console.log(`eachMessage: ${eachMessage.toString()}`);
+          messageId = await eachMessage.getAttribute('data-message-id');
+          break;
+        }
+      }
+      expect(messageId, `Message: ${messageId} to not be undefined`).not.toBeUndefined();
+    });
+    return messageId!;
+  }
+
   async verifyMessageIsNotPresentInListOfChatMessages(
     message: string,
     options?: {

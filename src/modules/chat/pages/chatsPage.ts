@@ -340,7 +340,20 @@ export class ChatAppPage extends BasePage {
   async deleteMessage(message: string, options?: { stepInfo?: string }) {
     await test.step(options?.stepInfo ?? `Deleting message ${message}`, async () => {
       const messageItem = await this.getFocusedChatComponent().getFocusedMessageObjectFromListOfChatMessages(message);
-      await messageItem.deleteMessageFromMessageActionsMenu();
+      await messageItem.deleteMessage();
+    });
+  }
+
+  async getDataMessageId(message: string, options?: { stepInfo?: string }) {
+    return await test.step(options?.stepInfo ?? `Getting data message id for message ${message}`, async () => {
+      return await this.getFocusedChatComponent().getFocusedMessageIdFromListOfChatMessages(message);
+    });
+  }
+
+  async verifyTheMessageAppearsDeleted(messageID: string, options?: { stepInfo?: string }) {
+    await test.step(options?.stepInfo ?? `Verifying the message appears deleted`, async () => {
+      const messageItem = this.page.locator(`article[data-message-id='${messageID}']`);
+      await expect(messageItem, `expecting message item to be deleted`).toBeVisible();
     });
   }
 }

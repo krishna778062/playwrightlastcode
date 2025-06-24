@@ -86,7 +86,7 @@ test.describe('Group Chat Mentions', () => {
     await user2ChatPage.clickOnMessageInMentionsSection(groupName, `@${user2.fullName} Hi, How are you?`);
   });
 
-  test.only('verify if user clicks on a mentioned message which is deleted, it should not open the message in mentions section', async ({
+  test('verify if user clicks on a mentioned message which is deleted, it should not open the message in mentions section', async ({
     groupName,
     multiUserChatTestHelper,
   }) => {
@@ -94,8 +94,11 @@ test.describe('Group Chat Mentions', () => {
     await user1ChatPage.openGroupChat(groupName);
     await user1ChatPage.sendMessage('Hello This message if from user 1');
     await user1ChatPage.verifyMessageIsVisible('Hello This message if from user 1');
+
     await user1ChatPage.sendMessageWithPeopleMention(user2.fullName, 'Hi, How are you?');
     await user1ChatPage.verifyMessageIsVisible(`@${user2.fullName} Hi, How are you?`);
+    const messageId = await user1ChatPage.getDataMessageId(`@${user2.fullName} Hi, How are you?`);
+    console.log(`messageId for user 1 is : ${messageId}`);
 
     //user 2 opens mention section and verify the message is present
     await user2ChatPage.sleep(3000);
@@ -109,6 +112,8 @@ test.describe('Group Chat Mentions', () => {
     //now user 1 deletes the message
     await user1ChatPage.deleteMessage(`@${user2.fullName} Hi, How are you?`);
     //verify user 2 is not able to see the message in mentions section
-    await user2ChatPage.page.pause();
+    await user2ChatPage.clickOnMessageInMentionsSection(groupName, `@${user2.fullName} Hi, How are you?`);
+
+    await user2ChatPage.verifyTheMessageAppearsDeleted(String(messageId));
   });
 });
