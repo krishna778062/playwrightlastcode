@@ -6,6 +6,7 @@ import { FocusedMessageComponent } from '@chat/components/focusedMessageComponen
 import { AudioVideoCallPage } from '@chat/pages/audioVideoCallPage';
 import { IncomingAudioVideoCallComponent } from '@chat/components/incomingAudioVideoCallComponent';
 import { MessageReplyThreadComponent } from './messageReplyThreadComponent';
+import { MentionListComponent } from './chatMentionListComponent';
 
 export class GroupChatWindowComponent extends BaseComponent {
   readonly focusedChatHeader: Locator;
@@ -14,6 +15,7 @@ export class GroupChatWindowComponent extends BaseComponent {
   readonly chatEditorComponent: ChatEditorComponent;
   readonly audioCallButton: Locator;
   readonly videoCallButton: Locator;
+  readonly mentionListComponent: MentionListComponent;
 
   constructor(page: Page, groupChatWindowContainer: Locator) {
     super(page);
@@ -26,6 +28,7 @@ export class GroupChatWindowComponent extends BaseComponent {
     );
     this.audioCallButton = this.groupChatWindowContainer.locator("button[aria-label*='Start a call']").nth(0);
     this.videoCallButton = this.groupChatWindowContainer.locator("button[aria-label*='Start a call']").nth(1);
+    this.mentionListComponent = new MentionListComponent(page);
   }
 
   /**
@@ -34,6 +37,10 @@ export class GroupChatWindowComponent extends BaseComponent {
    */
   getChatEditorComponent(): ChatEditorComponent {
     return this.chatEditorComponent;
+  }
+
+  getMentionListComponent(): MentionListComponent {
+    return this.mentionListComponent;
   }
 
   /**
@@ -86,6 +93,18 @@ export class GroupChatWindowComponent extends BaseComponent {
         }).toPass({ timeout: options?.timeout ?? TIMEOUTS.MEDIUM });
       }
     );
+  }
+
+  async getMessageItemFromChat(message: string, options?: { stepInfo?: string }): Promise<Locator> {
+    await this.verifyMessageIsPresentInListOfChatMessages(message);
+    for (const eachMessage of await this.listChatMessagesComponent.all()) {
+      //fetch message
+      const messageText = await eachMessage.locator('section').locator('p').textContent();
+      if (messageText === message) {
+        return eachMessage;
+      }
+    }
+    throw new Error(`Message: ${message} not found in the list of chat messages`);
   }
 
   async getFocusedMessageObjectFromListOfChatMessages(messageText: string): Promise<FocusedMessageComponent> {

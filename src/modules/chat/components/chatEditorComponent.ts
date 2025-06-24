@@ -55,6 +55,18 @@ export class ChatEditorComponent extends BaseComponent {
   ): Promise<void> {
     await test.step(options?.stepInfo ?? `Sending message: ${message}`, async () => {
       await this.fillInElement(this.inputTextBox, message);
+      await this.clickOnSendMessageButton();
+    });
+  }
+
+  async appendMessage(message: string, options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo ?? `Appending to existing message: ${message}`, async () => {
+      await this.inputTextBox.pressSequentially(message);
+    });
+  }
+
+  async clickOnSendMessageButton(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo ?? `Clicking on send message button`, async () => {
       await this.clickOnElement(this.sendMessageButton);
     });
   }

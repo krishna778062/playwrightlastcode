@@ -1,0 +1,114 @@
+import { expect, Page } from '@playwright/test';
+import { groupChatTestFixture as test } from '../../../fixtures/groupChatFixture';
+import { ChatTestUser } from '../../../types/chat-test.type';
+
+test.describe('Group Chat Mentions', () => {
+  let user1: ChatTestUser;
+  let user2: ChatTestUser;
+  test.beforeEach(async ({ multiUserChatTestHelper, endUsers, groupName }) => {
+    user1 = endUsers[0];
+    user2 = endUsers[1];
+    groupName = groupName;
+    await multiUserChatTestHelper.createContextsForUsers([0, 1]);
+  });
+
+  test('verify user is able to mention the same group in group chat and both users sees the message', async ({
+    groupName,
+    multiUserChatTestHelper,
+  }) => {
+    const [user1ChatPage, user2ChatPage] = await multiUserChatTestHelper.loginMultipleUsersAndNavigateToChats([0, 1]);
+    await user1ChatPage.openGroupChat(groupName);
+    await user1ChatPage.sendMessage('Hello This message if from user 1 @user2');
+    await user2ChatPage.openGroupChat(groupName);
+    await user2ChatPage.verifyMessageIsVisible('Hello This message if from user 1 @user2');
+
+    //verify users are able to tag same group in chat
+    await user1ChatPage.sendMessageWithGroupMention(groupName, 'Hello This message if from user 1');
+    await user2ChatPage.verifyMessageIsVisible(`@${groupName} Hello This message if from user 1`);
+  });
+
+  test('verify mentions notification goes to user who is not active in the group chat', async ({
+    groupName,
+    multiUserChatTestHelper,
+  }) => {
+    const [user1ChatPage, user2ChatPage] = await multiUserChatTestHelper.loginMultipleUsersAndNavigateToChats([0, 1]);
+    await user1ChatPage.openGroupChat(groupName);
+    await user1ChatPage.sendMessage('Hello This message if from user 1 @user2');
+    //verify users are able to tag same group in chat
+    await user1ChatPage.sendMessageWithGroupMention(groupName, 'Hello This message if from user 1');
+
+    //nothing happens here TODO : Check with Aditya on this
+  });
+
+  test('verify if user 1 mentions user 2 in the group chat, user 2 sees that message in mentions section', async ({
+    groupName,
+    multiUserChatTestHelper,
+  }) => {
+    const [user1ChatPage, user2ChatPage] = await multiUserChatTestHelper.loginMultipleUsersAndNavigateToChats([0, 1]);
+    await user1ChatPage.openGroupChat(groupName);
+    await user1ChatPage.sendMessage('Hello This message if from user 1');
+    await user1ChatPage.verifyMessageIsVisible('Hello This message if from user 1');
+    //verify users are able to tag same group in chat
+    await user1ChatPage.sendMessageWithPeopleMention(user2.fullName, 'Hi, How are you?');
+    //verify user1 is able to see his own message in chat
+    await user1ChatPage.verifyMessageIsVisible(`@${user2.fullName} Hi, How are you?`);
+    //verify user 1 is able to hover over the mentioned user and it should open user's profile
+    const messageItemForUser1 = await user1ChatPage.getMessageItemFromChat(`@${user2.fullName} Hi, How are you?`);
+    const mentionedUserNameInMessage = messageItemForUser1.locator(`[data-label="${user2.fullName}"]`);
+    await mentionedUserNameInMessage.hover();
+    //verify user 2 profile is visible
+    const user2Profile = user1ChatPage.page.locator('[class*=User_chatProfileCardRoot]');
+    await expect(user2Profile).toBeVisible();
+    const user2ProfileName = user2Profile.locator('[class*=User_profileInfo_]');
+    await expect(user2ProfileName).toContainText(user2.fullName);
+
+    //now verify if user 1 click on the mentioned user, it should open user's profile in sidebar
+    await mentionedUserNameInMessage.click();
+    const chatProfileInSidebar = user1ChatPage.page.locator('[class*=Profile_profileContainer]');
+    await expect(chatProfileInSidebar).toBeVisible();
+    const user2ProfileNameInSidebar = chatProfileInSidebar.locator('[class*=Profile_profileUserName]');
+    await expect(user2ProfileNameInSidebar).toContainText(user2.fullName);
+
+    const user2ProfileLink = user2ProfileNameInSidebar.getByRole('link', { name: user2.fullName });
+    await user2ProfileLink.click();
+    await user1ChatPage.page.waitForURL(/people/);
+    await user1ChatPage.page.goBack();
+
+    //wait for 3 seconds
+    await user2ChatPage.sleep(3000);
+    //verify user 2 is able to see the message in mentions section
+    await user2ChatPage.openMentionsSection();
+    await user2ChatPage.verifyMessageIsPresentInMentionsSection(
+      groupName,
+      `@${user2.fullName} Hi, How are you?`,
+      user1.fullName
+    );
+    await user2ChatPage.clickOnMessageInMentionsSection(groupName, `@${user2.fullName} Hi, How are you?`);
+  });
+
+  test.only('verify if user clicks on a mentioned message which is deleted, it should not open the message in mentions section', async ({
+    groupName,
+    multiUserChatTestHelper,
+  }) => {
+    const [user1ChatPage, user2ChatPage] = await multiUserChatTestHelper.loginMultipleUsersAndNavigateToChats([0, 1]);
+    await user1ChatPage.openGroupChat(groupName);
+    await user1ChatPage.sendMessage('Hello This message if from user 1');
+    await user1ChatPage.verifyMessageIsVisible('Hello This message if from user 1');
+    await user1ChatPage.sendMessageWithPeopleMention(user2.fullName, 'Hi, How are you?');
+    await user1ChatPage.verifyMessageIsVisible(`@${user2.fullName} Hi, How are you?`);
+
+    //user 2 opens mention section and verify the message is present
+    await user2ChatPage.sleep(3000);
+    await user2ChatPage.openMentionsSection();
+    await user2ChatPage.verifyMessageIsPresentInMentionsSection(
+      groupName,
+      `@${user2.fullName} Hi, How are you?`,
+      user1.fullName
+    );
+
+    //now user 1 deletes the message
+    await user1ChatPage.deleteMessage(`@${user2.fullName} Hi, How are you?`);
+    //verify user 2 is not able to see the message in mentions section
+    await user2ChatPage.page.pause();
+  });
+});

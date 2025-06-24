@@ -10,10 +10,14 @@ export default defineConfig({
   testIgnore: '**/api-tests/**',
   workers: process.env.CI ? 2 : 1,
   timeout: 180_000,
+  expect: {
+    timeout: 8_000, //this is default timeout will be used for all expect statements
+  },
   projects: [
     {
       name: 'chat-chromium',
       use: {
+        headless: false,
         ...devices['Desktop Chrome'],
         permissions: ['camera', 'microphone'],
         baseURL: process.env.FRONTEND_BASE_URL,

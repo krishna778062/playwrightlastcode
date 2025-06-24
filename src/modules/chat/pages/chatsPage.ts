@@ -238,4 +238,109 @@ export class ChatAppPage extends BasePage {
       stepInfo: options?.stepInfo ?? `User accepting incoming ${callType} call from group name ${groupName}`,
     });
   }
+
+  async sendMessageWithGroupMention(groupName: string, message: string, options?: { stepInfo?: string }) {
+    await test.step(
+      options?.stepInfo ?? `Sending message ${message} and mention group mention: ${groupName}`,
+      async () => {
+        await this.getFocusedChatComponent()
+          .getChatEditorComponent()
+          .inputTextBox.pressSequentially(`@${groupName.slice(0, groupName.length - 1)}`, {
+            delay: 200,
+          });
+        await this.getFocusedChatComponent().getMentionListComponent().verifyMentionListIsVisible({ timeout: 20_000 });
+        await this.getFocusedChatComponent().getMentionListComponent().selectMentionItem(groupName);
+        await this.getFocusedChatComponent().getMentionListComponent().verifyMentionListIsNotVisible();
+        await this.getFocusedChatComponent().getChatEditorComponent().appendMessage(message);
+        await this.getFocusedChatComponent().getChatEditorComponent().clickOnSendMessageButton();
+      }
+    );
+  }
+
+  async sendMessageWithPeopleMention(userName: string, message: string, options?: { stepInfo?: string }) {
+    await test.step(
+      options?.stepInfo ?? `Sending message ${message} and mention userName mention: ${userName}`,
+      async () => {
+        await this.getFocusedChatComponent().getChatEditorComponent().inputTextBox.pressSequentially(`@${userName}`, {
+          delay: 200,
+        });
+        await this.getFocusedChatComponent().getMentionListComponent().verifyMentionListIsVisible({ timeout: 20_000 });
+        await this.getFocusedChatComponent().getMentionListComponent().selectMentionItem(userName);
+        await this.getFocusedChatComponent().getMentionListComponent().verifyMentionListIsNotVisible();
+        await this.getFocusedChatComponent().getChatEditorComponent().appendMessage(message);
+        await this.getFocusedChatComponent().getChatEditorComponent().clickOnSendMessageButton();
+      }
+    );
+  }
+
+  async openMentionsSection(options?: { stepInfo?: string }) {
+    await test.step(options?.stepInfo ?? `Opening mentions section`, async () => {
+      await this.page.getByTestId('chat.mentions-section').click();
+    });
+  }
+
+  async verifyMessageIsPresentInMentionsSection(
+    groupName: string,
+    message: string,
+    senderName: string,
+    options?: { stepInfo?: string }
+  ) {
+    await test.step(
+      options?.stepInfo ?? `Verifying message ${message} is present in mentions section for group ${groupName}`,
+      async () => {
+        await expect(async () => {
+          let isMessageFound = false;
+          const messageItem = await this.page.getByTestId('message-item').all();
+          for (const eachMessageItem of messageItem) {
+            const messageBody = await eachMessageItem.locator('section').locator('p').textContent();
+            const groupName = await eachMessageItem.locator('h4').textContent();
+            console.log(`messageBody: ${messageBody}, groupName: ${groupName}`);
+            console.log(`expected message: ${message}`);
+            console.log(`expected groupName: ${groupName}`);
+            if (messageBody?.includes(message) && groupName?.includes(groupName)) {
+              isMessageFound = true;
+              break;
+            }
+          }
+          expect(
+            isMessageFound,
+            `Expecting message ${message} is present in mentions section for group ${groupName}`
+          ).toBe(true);
+        }, `Polling - Expect loop`).toPass({
+          timeout: 8_000,
+        });
+      }
+    );
+  }
+
+  async clickOnMessageInMentionsSection(groupName: string, message: string, options?: { stepInfo?: string }) {
+    await test.step(
+      options?.stepInfo ?? `Clicking on message ${message} in mentions section for group ${groupName}`,
+      async () => {
+        const messageItemList = await this.page.getByTestId('message-item').all();
+        for (const messageItem of messageItemList) {
+          const messageBody = await messageItem.locator('section').locator('p').textContent();
+          const groupName = await messageItem.locator('h4').textContent();
+          if (messageBody?.includes(message) && groupName?.includes(groupName)) {
+            await messageItem.click();
+            return;
+          }
+        }
+        throw new Error(`Message ${message} not found in mentions section for group ${groupName}`);
+      }
+    );
+  }
+
+  async getMessageItemFromChat(message: string, options?: { stepInfo?: string }): Promise<Locator> {
+    return await this.getFocusedChatComponent().getMessageItemFromChat(message, {
+      stepInfo: options?.stepInfo,
+    });
+  }
+
+  async deleteMessage(message: string, options?: { stepInfo?: string }) {
+    await test.step(options?.stepInfo ?? `Deleting message ${message}`, async () => {
+      const messageItem = await this.getFocusedChatComponent().getFocusedMessageObjectFromListOfChatMessages(message);
+      await messageItem.deleteMessageFromMessageActionsMenu();
+    });
+  }
 }
