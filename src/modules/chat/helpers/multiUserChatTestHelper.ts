@@ -2,31 +2,29 @@ import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { Browser, Page, test } from '@playwright/test';
-import { LoginPage } from '@core/pages/loginPage';
 import { ChatAppPage } from '@modules/chat/pages/chatsPage';
 import { ChatTestUser, ChatTestSetupConfig, ChatTestSetupResult } from '@modules/chat/types';
 import { ChatGroupTestDataBuilder } from '@chat/test-data-builders/ChatGroupTestDataBuilder';
 import { Roles } from '@core/constants/roles';
 import { MultiUserTestHelper } from '@core/helpers/multiUserTestHelper';
-import { MultiUserContexts } from '@core/utils/browserFactory';
-import { TestUser } from '@core/types/test.types';
-import { HomePage } from '@core/pages/homePage';
 import { LoginHelper } from '@core/helpers/loginHelper';
-import { TIMEOUTS } from '../../../core/constants/timeouts';
-import { getEnvConfig } from '../../../core/utils/getEnvConfig';
+import { TIMEOUTS } from '@core/constants/timeouts';
+import { getEnvConfig } from '@core/utils/getEnvConfig';
 
-export class MultiUserChatTestHelper {
+export class MultiUserChatTestHelper extends MultiUserTestHelper {
   private static readonly DEFAULT_PASSWORD = 'Simpplr@2025';
+
   public testData!: ChatTestSetupResult;
-  private multiUserTestHelper!: MultiUserTestHelper;
-  private multiUserContexts!: MultiUserContexts;
+
+  constructor(browser: Browser, recordVideo: boolean = false) {
+    super(browser, { recordVideo });
+  }
 
   /**
    * Sets up a complete chat test environment
    * @param config Configuration for the chat test setup
    */
-  async setup(browser: Browser, config: ChatTestSetupConfig) {
-    this.multiUserTestHelper = new MultiUserTestHelper(browser, { recordVideo: config.recordVideo });
+  async setup(config: ChatTestSetupConfig) {
     // 1. Create app manager client and test data builder
     const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
       type: 'credentials',
@@ -41,14 +39,13 @@ export class MultiUserChatTestHelper {
     const userBuilder = chatGroupTestDataBuilder.getUserBuilder();
 
     // 2. Create users as per config
-    const createdUsers: TestUser[] = [];
     for (const [role, count] of Object.entries(config.usersByRole)) {
       const users = await userBuilder.addUsersToSystem(count, role as Roles, config.password);
-      createdUsers.push(...users);
+      this.testUsers.push(...users);
     }
     // 3. Get chat user IDs for all users
     const usersWithChatIds: ChatTestUser[] = await Promise.all(
-      createdUsers.map(async user => ({
+      this.testUsers.map(async user => ({
         ...user,
         chatUserId: await appManagerApiClient.getUserManagementService().getChatUserId(user.first_name, user.last_name),
       }))
@@ -81,14 +78,6 @@ export class MultiUserChatTestHelper {
    */
   public getTestData(): ChatTestSetupResult {
     return this.testData;
-  }
-
-  public getPageForUser(email: string) {
-    return this.multiUserTestHelper.getPageForUser(email);
-  }
-
-  public getContextForUser(email: string) {
-    return this.multiUserTestHelper.getContextForUser(email);
   }
 
   /**
@@ -184,18 +173,12 @@ export class MultiUserChatTestHelper {
   }
 
   /**
-   * Cleanup the test environment
-   */
-  public async cleanup() {
-    await this.multiUserTestHelper.cleanup();
-  }
-
-  /**
    * Creates browser contexts for a specific set of users
    * @param userIndices Array of indices for the users who need a browser context
    */
-  public async createContextsForUsers(userIndices: number[]) {
+
+  public async createContextsForUsersBasedOnIndex(userIndices: number[]) {
     const usersToCreateContextsFor = userIndices.map(index => this.testData.users[index]);
-    this.multiUserContexts = await this.multiUserTestHelper.createContextsForUsers(usersToCreateContextsFor);
+    await this.createContextsForUsers(usersToCreateContextsFor);
   }
 }

@@ -1,25 +1,44 @@
 import { expect, Page } from '@playwright/test';
-import { groupChatTestFixture as test } from '../../../fixtures/groupChatFixture';
-import { ChatTestUser } from '../../../types/chat-test.type';
+import { groupChatTestFixture as test } from '@chat/fixtures/groupChatFixture';
+import { ChatTestUser } from '@chat/types/chat-test.type';
+import { ChatAppPage } from '@chat/pages/chatsPage';
 
 test.describe('Group Chat Mentions', () => {
   let user1: ChatTestUser;
   let user2: ChatTestUser;
-  test.beforeEach(async ({ multiUserChatTestHelper, endUsers, groupName }) => {
-    user1 = endUsers[0];
-    user2 = endUsers[1];
-    groupName = groupName;
-    await multiUserChatTestHelper.createContextsForUsers([0, 1]);
+  let user1ChatPage: ChatAppPage;
+  let user2ChatPage: ChatAppPage;
+  test.beforeEach(async ({ endUsersForChat, user1Page, user2Page }) => {
+    user1 = endUsersForChat[0];
+    user2 = endUsersForChat[1];
+    user1ChatPage = new ChatAppPage(user1Page);
+    user2ChatPage = new ChatAppPage(user2Page);
+    await Promise.all([user1ChatPage.loadPage({ timeout: 40_000 }), user2ChatPage.loadPage({ timeout: 40_000 })]);
+  });
+
+  test.afterEach(async () => {
+    await user1ChatPage?.page?.close();
+    await user2ChatPage?.page?.close();
   });
 
   test('verify user is able to mention the same group in group chat and both users sees the message', async ({
     groupName,
-    multiUserChatTestHelper,
   }) => {
-    const [user1ChatPage, user2ChatPage] = await multiUserChatTestHelper.loginMultipleUsersAndNavigateToChats([0, 1]);
-    await user1ChatPage.openGroupChat(groupName);
-    await user1ChatPage.sendMessage('Hello This message if from user 1 @user2');
-    await user2ChatPage.openGroupChat(groupName);
+    // const [user1ChatPage, user2ChatPage] = await multiUserChatTestHelper.loginMultipleUsersAndNavigateToChats([0, 1]);
+    await user1ChatPage.openGroupChat(groupName, {
+      stepInfo: `user 1 opening group ${groupName}`,
+    });
+    await user1ChatPage.sendMessage('Hello This message if from user 1 @user2', {
+      stepInfo: `user 1 sending message "Hello This message if from user 1 @user2"`,
+    });
+    await user1ChatPage.verifyMessageIsVisible('Hello This message if from user 1 @user2', {
+      stepInfo: `user 1 verifying message "Hello This message if from user 1 @user2"`,
+    });
+
+    //now user 2 opens the group chat and verifies the message
+    await user2ChatPage.openGroupChat(groupName, {
+      stepInfo: `user 2 opening group ${groupName}`,
+    });
     await user2ChatPage.verifyMessageIsVisible('Hello This message if from user 1 @user2');
 
     //verify users are able to tag same group in chat
@@ -27,13 +46,11 @@ test.describe('Group Chat Mentions', () => {
     await user2ChatPage.verifyMessageIsVisible(`@${groupName} Hello This message if from user 1`);
   });
 
-  test('verify mentions notification goes to user who is not active in the group chat', async ({
-    groupName,
-    multiUserChatTestHelper,
-  }) => {
-    const [user1ChatPage, user2ChatPage] = await multiUserChatTestHelper.loginMultipleUsersAndNavigateToChats([0, 1]);
+  test('verify mentions notification goes to user who is not active in the group chat', async ({ groupName }) => {
+    // const [user1ChatPage, user2ChatPage] = await multiUserChatTestHelper.loginMultipleUsersAndNavigateToChats([0, 1]);
     await user1ChatPage.openGroupChat(groupName);
     await user1ChatPage.sendMessage('Hello This message if from user 1 @user2');
+    await user1ChatPage.verifyMessageIsVisible('Hello This message if from user 1 @user2');
     //verify users are able to tag same group in chat
     await user1ChatPage.sendMessageWithGroupMention(groupName, 'Hello This message if from user 1');
 
@@ -42,9 +59,8 @@ test.describe('Group Chat Mentions', () => {
 
   test('verify if user 1 mentions user 2 in the group chat, user 2 sees that message in mentions section', async ({
     groupName,
-    multiUserChatTestHelper,
   }) => {
-    const [user1ChatPage, user2ChatPage] = await multiUserChatTestHelper.loginMultipleUsersAndNavigateToChats([0, 1]);
+    // const [user1ChatPage, user2ChatPage] = await multiUserChatTestHelper.loginMultipleUsersAndNavigateToChats([0, 1]);
     await user1ChatPage.openGroupChat(groupName);
     await user1ChatPage.sendMessage('Hello This message if from user 1');
     await user1ChatPage.verifyMessageIsVisible('Hello This message if from user 1');
@@ -88,9 +104,8 @@ test.describe('Group Chat Mentions', () => {
 
   test('verify if user clicks on a mentioned message which is deleted, it should not open the message in mentions section', async ({
     groupName,
-    multiUserChatTestHelper,
   }) => {
-    const [user1ChatPage, user2ChatPage] = await multiUserChatTestHelper.loginMultipleUsersAndNavigateToChats([0, 1]);
+    // const [user1ChatPage, user2ChatPage] = await multiUserChatTestHelper.loginMultipleUsersAndNavigateToChats([0, 1]);
     await user1ChatPage.openGroupChat(groupName);
     await user1ChatPage.sendMessage('Hello This message if from user 1');
     await user1ChatPage.verifyMessageIsVisible('Hello This message if from user 1');

@@ -1,5 +1,5 @@
 import { Browser, BrowserContext, Page, test } from '@playwright/test';
-import { v4 as uuidv4 } from 'uuid';
+import { nanoid } from 'nanoid';
 import path from 'path';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 
@@ -30,7 +30,7 @@ export class BrowserFactory {
     let videoDir: string | undefined;
 
     if (options?.recordVideo) {
-      const videoTempDir = path.join('videos', uuidv4());
+      const videoTempDir = path.join('videos', nanoid());
       FileUtil.createDir(videoTempDir);
       videoDir = videoTempDir;
       contextOptions.recordVideo = {

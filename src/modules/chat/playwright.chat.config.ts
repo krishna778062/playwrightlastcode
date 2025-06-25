@@ -18,6 +18,7 @@ export default defineConfig({
       name: 'chat-chromium',
       use: {
         headless: false,
+        video: 'on',
         ...devices['Desktop Chrome'],
         permissions: ['camera', 'microphone'],
         baseURL: process.env.FRONTEND_BASE_URL,

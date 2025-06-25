@@ -243,10 +243,11 @@ export class ChatAppPage extends BasePage {
     await test.step(
       options?.stepInfo ?? `Sending message ${message} and mention group mention: ${groupName}`,
       async () => {
+        await this.getFocusedChatComponent().getChatEditorComponent().inputTextBox.click();
         await this.getFocusedChatComponent()
           .getChatEditorComponent()
           .inputTextBox.pressSequentially(`@${groupName.slice(0, groupName.length - 1)}`, {
-            delay: 200,
+            delay: 300,
           });
         await this.getFocusedChatComponent().getMentionListComponent().verifyMentionListIsVisible({ timeout: 20_000 });
         await this.getFocusedChatComponent().getMentionListComponent().selectMentionItem(groupName);
