@@ -21,7 +21,7 @@ export class ChatAssertionHelper {
     await test.step(
       options?.stepInfo || `Verifying user 1 is able to add and delete attachment in editor`,
       async () => {
-        const chatEditorComponent = this.chatPage.getFocusedChatComponent().getChatEditorComponent();
+        const chatEditorComponent = this.chatPage.getConversationWindowComponent().getChatEditorComponent();
         await chatEditorComponent.addMediaAttachment(attachmentPath, {
           stepInfo: 'Adding media attachment to the chat',
           attachementRequestTimeout: 40_000,
@@ -57,7 +57,7 @@ export class ChatAssertionHelper {
     options?: { stepInfo?: string; timeout?: number }
   ): Promise<void> {
     await test.step(options?.stepInfo || `Verifying message "${message}" is visible`, async () => {
-      return await this.chatPage.getFocusedChatComponent().verifyMessageIsPresentInListOfChatMessages(message, {
+      return await this.chatPage.getConversationWindowComponent().verifyMessageIsPresentInListOfChatMessages(message, {
         stepInfo: options?.stepInfo,
         timeout: options?.timeout,
       });
@@ -80,7 +80,7 @@ export class ChatAssertionHelper {
         stepInfo: `User 1 Verifying the unsupported file message is not visible`,
       });
       //verify the attachment is not visible
-      await this.chatPage.getFocusedChatComponent().getChatEditorComponent().verifyTheAttachmentIsNotVisible({
+      await this.chatPage.getConversationWindowComponent().getChatEditorComponent().verifyTheAttachmentIsNotVisible({
         stepInfo: `User 1 Verifying the attachment is not visible on the message editor now`,
         timeout: 10_000,
       });
@@ -103,7 +103,7 @@ export class ChatAssertionHelper {
         `Verifying current user sees notification/popup for incoming ${callType} call from group name ${groupName}`,
       async () => {
         return await this.chatPage
-          .getFocusedChatComponent()
+          .getConversationWindowComponent()
           .getIncomingAudioVideoCallComponent()
           .verifyIncomingCallIsReceivedFromCaller(groupName, callType, {
             isGroupChat: true,

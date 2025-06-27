@@ -4,7 +4,7 @@ import { TestSuite } from '@core/constants/testSuite';
 import { ChatAppPage } from '@chat/pages/chatsPage';
 import { ChatTestUser } from '@chat/types/chat-test.type';
 import { expect } from '@playwright/test';
-import { FocusedMessageComponent } from '@chat/components/focusedMessageComponent';
+import { MessageCardComponent } from '@/src/modules/chat/components/messageCardComponent';
 
 test.describe(
   'Test chat application with attachment',
@@ -94,7 +94,7 @@ test.describe(
             stepInfo: `User 1 sending attachment to ${user2Name}`,
           });
           await user1ChatPage
-            .getFocusedChatComponent()
+            .getConversationWindowComponent()
             .getChatEditorComponent()
             .addMediaAttachmentButton.setInputFiles([]);
         }
@@ -120,7 +120,7 @@ test.describe(
             stepInfo: `User 1 sending attachment to ${user2Name}`,
           });
           await user1ChatPage
-            .getFocusedChatComponent()
+            .getConversationWindowComponent()
             .getChatEditorComponent()
             .addMediaAttachmentButton.setInputFiles([]);
         }
@@ -156,7 +156,7 @@ test.describe(
         await expect(user1MessageWithAttachment).toBeVisible();
 
         //open the image attachement for preview
-        const focusedMessageComponent = new FocusedMessageComponent(user1Page, user1MessageWithAttachment);
+        const focusedMessageComponent = new MessageCardComponent(user1Page, user1MessageWithAttachment);
         await focusedMessageComponent.openAttachmentForPreview('image');
 
         await user1ChatPage.getImageAttachementPreviewModalComponent().verifyTheImageAttachementPreviewModalIsVisible({

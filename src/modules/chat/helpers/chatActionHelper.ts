@@ -20,7 +20,7 @@ export class ChatActionHelper {
    */
   public async sendMessage(message: string, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Sending message: "${message}"`, async () => {
-      await this.chatPage.getFocusedChatComponent().sendMessage(message, {
+      await this.chatPage.getConversationWindowComponent().sendMessage(message, {
         stepInfo: options?.stepInfo ?? `Sending message ${message} in focused chat`,
       });
     });
@@ -38,7 +38,7 @@ export class ChatActionHelper {
     options?: { stepInfo?: string }
   ): Promise<MessageReplyThreadComponent> {
     return await test.step(options?.stepInfo || `Replying to message: "${messageToReplyTo}"`, async () => {
-      return await this.chatPage.getFocusedChatComponent().replyToMessage(messageToReplyTo, replyMessage, {
+      return await this.chatPage.getConversationWindowComponent().replyToMessage(messageToReplyTo, replyMessage, {
         stepInfo: options?.stepInfo,
       });
     });
@@ -55,7 +55,7 @@ export class ChatActionHelper {
   ): Promise<void> {
     await test.step(options?.stepInfo || `Sending attachment: "${attachmentPath}"`, async () => {
       const isItValidFile = options?.isItValidFile ?? true;
-      const chatEditorComponent = this.chatPage.getFocusedChatComponent().getChatEditorComponent();
+      const chatEditorComponent = this.chatPage.getConversationWindowComponent().getChatEditorComponent();
       await chatEditorComponent.addMediaAttachment(attachmentPath, {
         stepInfo: 'Adding media attachment to the chat',
         attachementRequestTimeout: 40_000,
@@ -76,7 +76,7 @@ export class ChatActionHelper {
   ): Promise<void> {
     await test.step(options?.stepInfo || `Adding attachment: "${attachmentPath}"`, async () => {
       const isItValidFile = options?.isItValidFile ?? true;
-      const chatEditorComponent = this.chatPage.getFocusedChatComponent().getChatEditorComponent();
+      const chatEditorComponent = this.chatPage.getConversationWindowComponent().getChatEditorComponent();
       await chatEditorComponent.addMediaAttachment(attachmentPath, {
         stepInfo: 'Adding media attachment to the chat',
         attachementRequestTimeout: 40_000,
@@ -91,7 +91,7 @@ export class ChatActionHelper {
   ): Promise<Locator> {
     return await test.step(options?.stepInfo || `Verifying message with attachment is visible`, async () => {
       const messageWithAttachment = await this.chatPage
-        .getFocusedChatComponent()
+        .getConversationWindowComponent()
         .getLastMessageWithAttachment(attachmentType, {
           timeout: options?.timeout,
         });
@@ -148,7 +148,7 @@ export class ChatActionHelper {
   ) {
     const directMessageItem = await this.chatPage
       .getInboxSideBarComponent()
-      .getDirectMessageComponent()
+      .getDirectMessageSectionInInbox()
       .getDirectMessageItemForUser(userName, {
         stepInfo:
           options?.stepInfo ?? `Verifying user ${userName} direct message item is visible in current user's inbox`,
@@ -173,7 +173,7 @@ export class ChatActionHelper {
       stepInfo?: string;
     }
   ) {
-    const chatEditorComponent = this.chatPage.getFocusedChatComponent().getChatEditorComponent();
+    const chatEditorComponent = this.chatPage.getConversationWindowComponent().getChatEditorComponent();
     const recordVideoPromptComponent = await chatEditorComponent.clickOnRecordVideoOption({
       stepInfo: options?.stepInfo ?? `User clicking on record video option`,
     });
@@ -201,7 +201,7 @@ export class ChatActionHelper {
     }
   ) {
     // User 1 records and adds audio
-    const chatEditorComponent = this.chatPage.getFocusedChatComponent().getChatEditorComponent();
+    const chatEditorComponent = this.chatPage.getConversationWindowComponent().getChatEditorComponent();
     const recordAudioPromptComponent = await chatEditorComponent.clickOnRecordAudioOption({
       stepInfo: `User clicking on record audio option`,
     });
@@ -226,7 +226,7 @@ export class ChatActionHelper {
    * @param options - Optional parameters
    */
   async initiateAudioVideoCall(callType: 'audio' | 'video', options?: { stepInfo?: string }) {
-    const user1AudioVideoCallPage = await this.chatPage.getFocusedChatComponent().startCall(callType, {
+    const user1AudioVideoCallPage = await this.chatPage.getConversationWindowComponent().startCall(callType, {
       stepInfo: options?.stepInfo ?? `User initiating ${callType} call`,
     });
     await user1AudioVideoCallPage.verifyThePageIsLoaded({
@@ -252,21 +252,19 @@ export class ChatActionHelper {
     await test.step(
       options?.stepInfo ?? `Sending message ${message} and mention group mention: ${groupName}`,
       async () => {
-        await this.chatPage.getFocusedChatComponent().getChatEditorComponent().inputTextBox.click();
-        await this.chatPage
-          .getFocusedChatComponent()
-          .getChatEditorComponent()
-          .inputTextBox.pressSequentially(`@${groupName.slice(0, groupName.length - 1)}`, {
-            delay: 300,
-          });
-        await this.chatPage
-          .getFocusedChatComponent()
-          .getMentionListComponent()
-          .verifyMentionListIsVisible({ timeout: 20_000 });
-        await this.chatPage.getFocusedChatComponent().getMentionListComponent().selectMentionItem(groupName);
-        await this.chatPage.getFocusedChatComponent().getMentionListComponent().verifyMentionListIsNotVisible();
-        await this.chatPage.getFocusedChatComponent().getChatEditorComponent().appendMessage(message);
-        await this.chatPage.getFocusedChatComponent().getChatEditorComponent().clickOnSendMessageButton();
+        const chatEditor = this.chatPage.getConversationWindowComponent().getChatEditorComponent();
+        await chatEditor.inputTextBox.click();
+        await chatEditor.inputTextBox.pressSequentially(`@${groupName.slice(0, groupName.length - 1)}`, {
+          delay: 300,
+        });
+        const mentionListComponent = this.chatPage.getConversationWindowComponent().getMentionListComponent();
+        await mentionListComponent.verifyMentionListIsVisible({ timeout: 20_000 });
+        await mentionListComponent.selectMentionItem(groupName);
+        await mentionListComponent.verifyMentionListIsNotVisible();
+
+        //now append the message and send it
+        await chatEditor.appendMessage(message);
+        await chatEditor.clickOnSendMessageButton();
       }
     );
   }
@@ -276,19 +274,19 @@ export class ChatActionHelper {
       options?.stepInfo ?? `Sending message ${message} and mention userName mention: ${userName}`,
       async () => {
         await this.chatPage
-          .getFocusedChatComponent()
+          .getConversationWindowComponent()
           .getChatEditorComponent()
           .inputTextBox.pressSequentially(`@${userName}`, {
             delay: 200,
           });
         await this.chatPage
-          .getFocusedChatComponent()
+          .getConversationWindowComponent()
           .getMentionListComponent()
           .verifyMentionListIsVisible({ timeout: 20_000 });
-        await this.chatPage.getFocusedChatComponent().getMentionListComponent().selectMentionItem(userName);
-        await this.chatPage.getFocusedChatComponent().getMentionListComponent().verifyMentionListIsNotVisible();
-        await this.chatPage.getFocusedChatComponent().getChatEditorComponent().appendMessage(message);
-        await this.chatPage.getFocusedChatComponent().getChatEditorComponent().clickOnSendMessageButton();
+        await this.chatPage.getConversationWindowComponent().getMentionListComponent().selectMentionItem(userName);
+        await this.chatPage.getConversationWindowComponent().getMentionListComponent().verifyMentionListIsNotVisible();
+        await this.chatPage.getConversationWindowComponent().getChatEditorComponent().appendMessage(message);
+        await this.chatPage.getConversationWindowComponent().getChatEditorComponent().clickOnSendMessageButton();
       }
     );
   }
@@ -318,7 +316,7 @@ export class ChatActionHelper {
   }
 
   async getMessageItemFromChat(message: string, options?: { stepInfo?: string }): Promise<Locator> {
-    return await this.chatPage.getFocusedChatComponent().getMessageItemFromChat(message, {
+    return await this.chatPage.getConversationWindowComponent().getMessageItemFromChat(message, {
       stepInfo: options?.stepInfo,
     });
   }
@@ -326,15 +324,17 @@ export class ChatActionHelper {
   async deleteMessage(message: string, options?: { stepInfo?: string }) {
     await test.step(options?.stepInfo ?? `Deleting message ${message}`, async () => {
       const messageItem = await this.chatPage
-        .getFocusedChatComponent()
-        .getFocusedMessageObjectFromListOfChatMessages(message);
+        .getConversationWindowComponent()
+        .getFocusedMessageCardFromListOfChatMessages(message);
       await messageItem.deleteMessage();
     });
   }
 
   async getDataMessageId(message: string, options?: { stepInfo?: string }) {
     return await test.step(options?.stepInfo ?? `Getting data message id for message ${message}`, async () => {
-      return await this.chatPage.getFocusedChatComponent().getFocusedMessageIdFromListOfChatMessages(message);
+      return await this.chatPage
+        .getConversationWindowComponent()
+        .getFocusedMessageCardIdFromListOfChatMessages(message);
     });
   }
 }

@@ -3,7 +3,7 @@ import { MessageEmojis } from '@core/constants/messageEmojis';
 import { MessageBaseComponent } from '@chat/components/messageBaseComponent';
 import { MessageReplyThreadComponent } from '@chat/components/messageReplyThreadComponent';
 
-export class FocusedMessageComponent extends MessageBaseComponent {
+export class MessageCardComponent extends MessageBaseComponent {
   readonly focusedMessageContainer: Locator;
   readonly messageActionsContainer: Locator;
   readonly emojiPickerButton: Locator;

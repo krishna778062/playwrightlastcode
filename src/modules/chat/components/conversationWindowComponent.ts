@@ -2,21 +2,24 @@ import { BaseComponent } from '@/src/core/components/baseComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
 import { ChatEditorComponent } from '@chat/components/chatEditorComponent';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
-import { FocusedMessageComponent } from '@chat/components/focusedMessageComponent';
+import { MessageCardComponent } from '@/src/modules/chat/components/messageCardComponent';
 import { AudioVideoCallPage } from '@chat/pages/audioVideoCallPage';
 import { IncomingAudioVideoCallComponent } from '@chat/components/incomingAudioVideoCallComponent';
 import { MessageReplyThreadComponent } from './messageReplyThreadComponent';
 import { ChatMentionsListSection } from './chatMentionsListSection';
 
-export class GroupChatWindowComponent extends BaseComponent {
+export class ConversationWindowComponent extends BaseComponent {
+  //elements
   readonly focusedChatHeader: Locator;
   readonly listChatMessagesComponent: Locator;
   readonly groupChatWindowContainer: Locator;
-  readonly chatEditorComponent: ChatEditorComponent;
   readonly audioCallButton: Locator;
   readonly videoCallButton: Locator;
-  readonly mentionListComponent: ChatMentionsListSection;
   readonly listChatMessagesComponentWithAttachment: Locator;
+  readonly mentionListComponent: ChatMentionsListSection;
+
+  //components
+  readonly chatEditorComponent: ChatEditorComponent;
 
   constructor(page: Page, groupChatWindowContainer: Locator) {
     super(page);
@@ -148,14 +151,14 @@ export class GroupChatWindowComponent extends BaseComponent {
     throw new Error(`Message: ${message} not found in the list of chat messages`);
   }
 
-  async getFocusedMessageObjectFromListOfChatMessages(messageText: string): Promise<FocusedMessageComponent> {
-    let messageComponent: FocusedMessageComponent | undefined;
+  async getFocusedMessageCardFromListOfChatMessages(messageText: string): Promise<MessageCardComponent> {
+    let messageComponent: MessageCardComponent | undefined;
     await test.step(`Getting focused message object from list of chat messages`, async () => {
       const listOfMessages = await this.listChatMessagesComponent.all();
       for (const eachMessage of listOfMessages) {
         const fetchedMessageText = await eachMessage.locator('section').locator('p').textContent();
         if (fetchedMessageText === messageText) {
-          messageComponent = new FocusedMessageComponent(this.page, eachMessage);
+          messageComponent = new MessageCardComponent(this.page, eachMessage);
           break;
         }
       }
@@ -164,7 +167,7 @@ export class GroupChatWindowComponent extends BaseComponent {
     return messageComponent!;
   }
 
-  async getFocusedMessageIdFromListOfChatMessages(messageText: string): Promise<FocusedMessageComponent> {
+  async getFocusedMessageCardIdFromListOfChatMessages(messageText: string): Promise<string> {
     let messageId: string;
     await test.step(`Getting focused message data-message-id from list of chat messages`, async () => {
       const listOfMessages = await this.listChatMessagesComponent.all();
@@ -244,7 +247,7 @@ export class GroupChatWindowComponent extends BaseComponent {
     return await test.step(
       options?.stepInfo ?? `Replying to message "${messageToReplyTo}" with "${replyMessage}"`,
       async () => {
-        const message = await this.getFocusedMessageObjectFromListOfChatMessages(messageToReplyTo);
+        const message = await this.getFocusedMessageCardFromListOfChatMessages(messageToReplyTo);
         replyThreadComponent = await message.openReplyThread();
         await replyThreadComponent.sendMessage(replyMessage);
         return replyThreadComponent;

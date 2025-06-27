@@ -2,7 +2,7 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
 import { Locator, Page, expect, test } from '@playwright/test';
 import { ChatInboxSideBarComponent } from '@chat/components/chatInboxSideBarComponent';
-import { GroupChatWindowComponent } from '@chat/components/groupChatWindowComponent';
+import { ConversationWindowComponent } from '@/src/modules/chat/components/conversationWindowComponent';
 import { UnsupportedFileMessageDialogBox } from '../components/unsupportedFileMessageDialogBox';
 import { ImageAttachementPreviewModal } from '../components/imageAttachementPreviewModal';
 import { DirectMessageSectionInInbox } from '../components/directMessageSectionInChatInbox';
@@ -18,7 +18,7 @@ export class ChatAppPage extends BasePage {
   protected readonly directMessageSectionInInbox: DirectMessageSectionInInbox;
   //components
   protected readonly inboxSideBarComponent: ChatInboxSideBarComponent;
-  protected readonly focusedChatComponent: GroupChatWindowComponent;
+  protected readonly conversationWindow: ConversationWindowComponent;
 
   protected readonly unsupportedFileMessageDialogBoxComponent: UnsupportedFileMessageDialogBox;
 
@@ -40,7 +40,7 @@ export class ChatAppPage extends BasePage {
       this.unsupportedFileMessageDialogBox
     );
     this.inboxSideBarComponent = new ChatInboxSideBarComponent(page, this.inboxSideBarContainer);
-    this.focusedChatComponent = new GroupChatWindowComponent(page, this.groupChatWindowContainer);
+    this.conversationWindow = new ConversationWindowComponent(page, this.groupChatWindowContainer);
     this.imageAttachementPreviewModal = new ImageAttachementPreviewModal(
       page,
       this.page.getByTestId('attachmentPreviewModal')
@@ -64,8 +64,8 @@ export class ChatAppPage extends BasePage {
     return this.inboxSideBarComponent;
   }
 
-  public getFocusedChatComponent(): GroupChatWindowComponent {
-    return this.focusedChatComponent;
+  public getConversationWindowComponent(): ConversationWindowComponent {
+    return this.conversationWindow;
   }
 
   public getDirectMessageSectionInInbox(): DirectMessageSectionInInbox {
