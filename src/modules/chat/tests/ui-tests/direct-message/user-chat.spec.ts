@@ -6,7 +6,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { ChatTestUser } from '@chat/types/chat-test.type';
 import { ChatAppPage } from '@chat/pages/chatsPage';
 
-test.describe('Direct Message between multiple users', { tag: ['@direct-message'] }, () => {
+test.describe.only('Direct Message between multiple users', { tag: ['@direct-message'] }, () => {
   let user1: ChatTestUser;
   let user2: ChatTestUser;
   let user1ChatPage: ChatAppPage;
@@ -22,7 +22,7 @@ test.describe('Direct Message between multiple users', { tag: ['@direct-message'
     }
   );
 
-  test.only(
+  test(
     'Verify that user 1 can open direct message with user 2 and they both are able to send message to each other',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE],
