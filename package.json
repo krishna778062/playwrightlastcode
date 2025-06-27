@@ -30,8 +30,6 @@
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
     "http-server": "^14.1.1",
-    "junit-report-builder": "^5.1.1",
-    "junit-xml2html-converter": "^0.0.1",
     "prettier": "^3.5.3",
     "tsconfig-paths": "^4.2.0",
     "xmldom": "^0.6.0"
@@ -40,6 +38,7 @@
     "crypto": "^1.0.1",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "nanoid": "^5.1.5"
   }
 }

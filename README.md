@@ -142,6 +142,39 @@ Each module (e.g., `chat`) contains its own APIs, pages, components, helpers, bu
 - **tests/**: Contains `ui-tests` and `api-tests` for the module. Tests should be clean, readable, and call methods from the helper layer.
 - **test-data-builders/**: Module-specific logic for building complex test data.
 
+### Action & Assertion Helpers Pattern (Recommended)
+
+To further improve clarity, maintainability, and reusability, the framework uses **Action Helpers** and **Assertion Helpers**. These are composed into the main page object (e.g., `ChatAppPage`) and provide a single, discoverable interface for common actions and verifications.
+
+- **Action Helpers**: Expose all common or higher-level actions (e.g., sending a message, opening a chat, uploading an attachment) via a single interface:
+  ```typescript
+  chatPage.getActions().sendMessage('Hello!');
+  chatPage.getActions().sendAttachment('path/to/file.pdf');
+  ```
+- **Assertion Helpers**: Expose all common assertions (e.g., verifying a message is visible, checking for error dialogs):
+  ```typescript
+  chatPage.getAssertions().verifyMessageIsVisible('Hello!');
+  ```
+
+**Benefits:**
+
+- Cleaner, more readable test cases
+- Centralized, reusable business logic
+- Clear separation between "what" (test intent) and "how" (UI mechanics)
+
+**Direct Component/Page Access:**
+
+- You can still access lower-level components or page objects directly for advanced or one-off scenarios:
+  ```typescript
+  await chatPage.getFocusedChatComponent().getChatEditorComponent().inputTextBox.fill('Raw input');
+  ```
+- If you find yourself repeating such logic, refactor it into the appropriate helper.
+
+**Best Practice:**
+
+- If an action or verification could be reused, put it in the Action Helper or Assertion Helper for that page/module.
+- Avoid overengineering from the start: focus first on building the right components and writing correct tests. As patterns emerge, refactor common logic into helpers.
+
 ### Test Organization
 
 - **UI Tests:** Located under `src/modules/<module>/tests/ui-tests/`
@@ -274,6 +307,31 @@ test(
   }
 );
 ```
+
+### 4. Use Action & Assertion Helpers for Clarity
+
+- Prefer using Action Helpers and Assertion Helpers (e.g., `chatPage.getActions()`, `chatPage.getAssertions()`) for common flows and verifications.
+- Use direct component/page access only for unique or advanced cases. If you repeat such logic, promote it to a helper.
+- This keeps tests readable and business-focused, and centralizes reusable logic.
+
+**Example:**
+
+```typescript
+// Good: Using helpers for clarity and reuse
+await chatPage.getActions().openDirectMessageWithUser('Alice');
+await chatPage.getActions().sendMessage('Hello!');
+await chatPage.getAssertions().verifyMessageIsVisible('Hello!');
+
+// Still possible: Direct access for advanced/one-off needs
+await chatPage.getFocusedChatComponent().getChatEditorComponent().inputTextBox.fill('Raw input');
+```
+
+**Guidance:**
+
+- Start simple: focus on building the right components and writing correct, meaningful tests.
+- Don't force every action/assertion into a helper from the start.
+- As patterns emerge and code is duplicated, move common logic into Action/Assertion Helpers.
+- This keeps the codebase lean and avoids unnecessary abstraction.
 
 ---
 

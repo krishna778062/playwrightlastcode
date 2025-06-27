@@ -87,6 +87,13 @@ jobs:
             npm run test:${{ inputs.module_name || 'chat' }} -- --grep="$PRIORITY" --workers=${{ inputs.workers }}
           fi
 
+      - name: Upload test report to github artifact backup
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: playwright-report
+
       - name: Set timestamp
         id: timestamp
         run: |
