@@ -208,7 +208,7 @@ test.describe(
         });
         await user1ChatPage
           .getActions()
-          .sendAttachment('src/modules/chat/test-data/static-files/videoFiles/video.mp4', {
+          .sendAttachment('src/modules/chat/test-data/static-files/videoFiles/video1.mp4', {
             stepInfo: `User 1 sending attachment to ${user2Name}`,
           });
       }

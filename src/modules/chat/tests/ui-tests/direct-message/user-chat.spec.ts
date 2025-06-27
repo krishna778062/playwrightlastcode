@@ -1,12 +1,10 @@
-import { groupChatTestFixture as test } from '@chat/fixtures/groupChatFixture';
+import { dmTestFixture as test } from '@chat/fixtures/dmFixture';
 import { tagTest } from '@core/utils/testDecorator';
 import { TestPriority } from '@core/constants/testPriority';
 import { CHAT_TEST_DATA } from '@chat/test-data/chat.test-data';
 import { TestGroupType } from '@core/constants/testType';
-import { ChatTestUser } from '../../../types/chat-test.type';
-import { ChatActionHelper } from '../../../helpers/chatActionHelper';
-import { ChatAssertionHelper } from '../../../helpers/chatAssertionHelper';
-import { ChatAppPage } from '../../../pages/chatsPage';
+import { ChatTestUser } from '@chat/types/chat-test.type';
+import { ChatAppPage } from '@chat/pages/chatsPage';
 
 test.describe('Direct Message between multiple users', { tag: ['@direct-message'] }, () => {
   let user1: ChatTestUser;
@@ -24,7 +22,7 @@ test.describe('Direct Message between multiple users', { tag: ['@direct-message'
     }
   );
 
-  test(
+  test.only(
     'Verify that user 1 can open direct message with user 2 and they both are able to send message to each other',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE],
@@ -44,12 +42,12 @@ test.describe('Direct Message between multiple users', { tag: ['@direct-message'
       });
 
       //verify user 2 sees the message appearing in his inbox
-      await user1ChatPage.getActions().openUserDirectMessageItemInInbox(user1.fullName, {
-        stepInfo: `Verifying user 2 is able to see user 1 in his inbox`,
+      await user2ChatPage.getActions().openUserDirectMessageItemInInbox(user1.fullName, {
+        stepInfo: `Verifying user 2 is able to see user 1 in his inbox and opening the direct message with user 1`,
         timeout: 40_000,
       });
 
-      await user1ChatPage.getActions().sendMessage(CHAT_TEST_DATA.MESSAGES.USER2.INITIAL, {
+      await user2ChatPage.getActions().sendMessage(CHAT_TEST_DATA.MESSAGES.USER2.INITIAL, {
         stepInfo: `User 2 sending message ${CHAT_TEST_DATA.MESSAGES.USER2.INITIAL} to user 1`,
       });
 
