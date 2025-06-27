@@ -1,6 +1,5 @@
 import { BaseComponent } from '@/src/core/components/baseComponent';
-import { expect, Locator, Page, test } from '@playwright/test';
-import fs from 'fs';
+import { Locator, Page, test } from '@playwright/test';
 import { RecordVideoPromptComponent } from '@chat/components/recordVideoPromptComponent';
 import { RecordAudioPromptComponent } from '@chat/components/recordAudioPromptComponent';
 
@@ -94,7 +93,6 @@ export class ChatEditorComponent extends BaseComponent {
   ): Promise<void> {
     await test.step(options?.stepInfo ?? `Adding media attachment: ${filePath}`, async () => {
       const waitForAttachementRequestToComplete = options?.waitForAttachementRequestToComplete ?? true;
-      console.log('options?.waitForAttachementRequestToComplete', options?.waitForAttachementRequestToComplete);
       if (waitForAttachementRequestToComplete) {
         await this.performActionAndWaitForRequest(
           () => this.addInputFiles(this.addMediaAttachmentButton, filePath),

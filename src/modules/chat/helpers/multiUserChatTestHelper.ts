@@ -136,7 +136,7 @@ export class MultiUserChatTestHelper extends MultiUserTestHelper {
     await test.step(`Opening group chat ${groupName} for multiple users simultaneously`, async () => {
       const openChatPromises = chatPages.map((chatPage, index) => {
         const userNumber = userIndices ? userIndices[index] + 1 : index + 1;
-        return chatPage.openGroupChat(groupName, {
+        return chatPage.getActions().openGroupChat(groupName, {
           stepInfo: `User ${userNumber} opening group chat ${groupName}`,
         });
       });
@@ -163,7 +163,7 @@ export class MultiUserChatTestHelper extends MultiUserTestHelper {
     await test.step(`Verifying message "${message}" for multiple users simultaneously`, async () => {
       const verifyPromises = chatPages.map((chatPage, index) => {
         const userNumber = options?.userIndices ? options.userIndices[index] + 1 : index + 1;
-        return chatPage.verifyMessageIsVisible(message, {
+        return chatPage.getAssertions().verifyMessageIsVisible(message, {
           stepInfo: `Verifying message "${message}" is present for User ${userNumber}`,
           timeout: options?.timeout,
         });

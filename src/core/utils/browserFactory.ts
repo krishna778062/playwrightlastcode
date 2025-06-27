@@ -56,4 +56,29 @@ export class BrowserFactory {
       console.error(`Failed to close context ${userMsg}:`, error);
     }
   }
+
+  public static async closePageGracefullyForUser(page: Page, userName?: string) {
+    try {
+      //THIS IS USED TO GENERATE A UNIQUE NAME FOR THE VIDEO FILE ATTACHMENT
+      const userNameToUse = userName ?? nanoid();
+      const videoPath = await page.video()?.path();
+      await page.close();
+      if (videoPath) {
+        const projectName = test.info().project.name;
+        const listOfProjects = test.info().config.projects;
+        for (const project of listOfProjects) {
+          if (project.name === projectName) {
+            if (project.use.video === 'on' || project.use.video === 'retain-on-failure') {
+              await test.info().attach(`video-${userNameToUse}`, {
+                path: videoPath,
+                contentType: 'video/webm',
+              });
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to close page:`, error);
+    }
+  }
 }

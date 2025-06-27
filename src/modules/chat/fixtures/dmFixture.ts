@@ -6,22 +6,20 @@ import { Roles } from '../../../core/constants/roles';
 import { ChatGroupTestDataBuilder } from '../test-data-builders/ChatGroupTestDataBuilder';
 import { ApiClientFactory } from '../../../core/api/factories/apiClientFactory';
 import { getEnvConfig } from '../../../core/utils/getEnvConfig';
-import { TestDataGenerator } from '../../../core/utils/testDataGenerator';
 import { BrowserFactory } from '@/src/core/utils/browserFactory';
 
 /**
- * This fixture should be used for tests that are related to group chats
+ * This fixture should be used for tests that are related to direct messages
+ * between 2 users
  * It includes
  * 1. Creating appManagerApiClient
  * 2. Creating endUsersForChat
  * 3. Creating loggedInContexts
- * 4. Creating new group with endUsersForChat
- * 5. Creating user1Page using loggedInContexts
- * 6. Creating user2Page using loggedInContexts
+ * 4. Creating user1Page
+ * 5. Creating user2Page
  */
-export const groupChatTestFixture = test.extend<
+export const dmTestFixture = test.extend<
   {
-    groupName: string;
     user1Page: Page;
     user2Page: Page;
   },
@@ -72,18 +70,6 @@ export const groupChatTestFixture = test.extend<
       await multiUserChatTestHelper.cleanup();
     },
     { scope: 'worker' },
-  ],
-  groupName: [
-    async ({ appManagerApiClient, endUsersForChat }, use) => {
-      const chatGroupTestDataBuilder = new ChatGroupTestDataBuilder(appManagerApiClient);
-      const groupName = TestDataGenerator.generateGroupName();
-      const chatTestUserIds = endUsersForChat.map(user => user.chatUserId);
-      const group = await chatGroupTestDataBuilder.createChatGroup(groupName, chatTestUserIds, {
-        conversationType: 'GROUP',
-      });
-      await use(group);
-    },
-    { scope: 'test' },
   ],
   user1Page: [
     async ({ loggedInContexts, endUsersForChat }, use) => {

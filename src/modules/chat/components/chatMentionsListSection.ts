@@ -1,7 +1,7 @@
 import { Locator, Page, test } from '@playwright/test';
 import { BaseComponent } from '../../../core/components/baseComponent';
 
-export class MentionListComponent extends BaseComponent {
+export class ChatMentionsListSection extends BaseComponent {
   private readonly mentionList: Locator;
   private readonly mentionListItems: Locator;
   constructor(page: Page, rootLocator?: Locator) {

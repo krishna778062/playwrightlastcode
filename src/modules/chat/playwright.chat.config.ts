@@ -1,14 +1,14 @@
 import { devices } from '@playwright/test';
 import { defineConfig } from '@playwright/test';
 import baseConfig from '../../../playwright.base.config';
-import { PROJECT_ROOT } from '../../core/constants/paths';
+import { PROJECT_ROOT } from '@core/constants/paths';
 import path from 'path';
 
 export default defineConfig({
   ...baseConfig,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'chat', 'tests'),
   testIgnore: '**/api-tests/**',
-  workers: process.env.CI ? 2 : 1,
+  workers: process.env.CI ? 2 : 4,
   timeout: 180_000,
   expect: {
     timeout: 8_000, //this is default timeout will be used for all expect statements
@@ -19,6 +19,8 @@ export default defineConfig({
       use: {
         headless: true,
         video: 'off',
+        trace: 'retry-with-trace',
+        screenshot: 'only-on-failure',
         ...devices['Desktop Chrome'],
         permissions: ['camera', 'microphone'],
         baseURL: process.env.FRONTEND_BASE_URL,

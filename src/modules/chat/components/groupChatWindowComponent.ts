@@ -6,7 +6,7 @@ import { FocusedMessageComponent } from '@chat/components/focusedMessageComponen
 import { AudioVideoCallPage } from '@chat/pages/audioVideoCallPage';
 import { IncomingAudioVideoCallComponent } from '@chat/components/incomingAudioVideoCallComponent';
 import { MessageReplyThreadComponent } from './messageReplyThreadComponent';
-import { MentionListComponent } from './chatMentionListComponent';
+import { ChatMentionsListSection } from './chatMentionsListSection';
 
 export class GroupChatWindowComponent extends BaseComponent {
   readonly focusedChatHeader: Locator;
@@ -15,7 +15,7 @@ export class GroupChatWindowComponent extends BaseComponent {
   readonly chatEditorComponent: ChatEditorComponent;
   readonly audioCallButton: Locator;
   readonly videoCallButton: Locator;
-  readonly mentionListComponent: MentionListComponent;
+  readonly mentionListComponent: ChatMentionsListSection;
   readonly listChatMessagesComponentWithAttachment: Locator;
 
   constructor(page: Page, groupChatWindowContainer: Locator) {
@@ -32,7 +32,7 @@ export class GroupChatWindowComponent extends BaseComponent {
     );
     this.audioCallButton = this.groupChatWindowContainer.locator("button[aria-label*='Start a call']").nth(0);
     this.videoCallButton = this.groupChatWindowContainer.locator("button[aria-label*='Start a call']").nth(1);
-    this.mentionListComponent = new MentionListComponent(page);
+    this.mentionListComponent = new ChatMentionsListSection(page);
   }
 
   /**
@@ -43,7 +43,7 @@ export class GroupChatWindowComponent extends BaseComponent {
     return this.chatEditorComponent;
   }
 
-  getMentionListComponent(): MentionListComponent {
+  getMentionListComponent(): ChatMentionsListSection {
     return this.mentionListComponent;
   }
 

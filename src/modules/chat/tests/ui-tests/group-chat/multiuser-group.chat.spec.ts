@@ -34,7 +34,7 @@ test.describe('Group Chat with multiple users', { tag: ['@group-chat'] }, () => 
       await multiUserChatTest.openGroupChatForMultipleUsers([user1ChatPage, user2ChatPage], groupName);
 
       // User 1 sends message
-      await user1ChatPage.sendMessage(CHAT_TEST_DATA.MESSAGES.USER1.INITIAL);
+      await user1ChatPage.getActions().sendMessage(CHAT_TEST_DATA.MESSAGES.USER1.INITIAL);
 
       // Verify message appears for both users
       await multiUserChatTest.verifyMessageAppearsForAllTheUsersInChatSection(
@@ -43,7 +43,7 @@ test.describe('Group Chat with multiple users', { tag: ['@group-chat'] }, () => 
       );
 
       // User 2 sends message
-      await user2ChatPage.sendMessage(CHAT_TEST_DATA.MESSAGES.USER2.INITIAL);
+      await user2ChatPage.getActions().sendMessage(CHAT_TEST_DATA.MESSAGES.USER2.INITIAL);
 
       // Verify message appears for both users
       await multiUserChatTest.verifyMessageAppearsForAllTheUsersInChatSection(
@@ -53,22 +53,18 @@ test.describe('Group Chat with multiple users', { tag: ['@group-chat'] }, () => 
       );
 
       //verify user 1 can reply to user 2's message
-      const replyThreadComponentForUser1 = await user1ChatPage.replyToMessage(
-        CHAT_TEST_DATA.MESSAGES.USER2.INITIAL,
-        CHAT_TEST_DATA.MESSAGES.USER1.REPLY,
-        {
+      const replyThreadComponentForUser1 = await user1ChatPage
+        .getActions()
+        .replyToMessage(CHAT_TEST_DATA.MESSAGES.USER2.INITIAL, CHAT_TEST_DATA.MESSAGES.USER1.REPLY, {
           stepInfo: `User 1 replying to user 2'smessage ${CHAT_TEST_DATA.MESSAGES.USER2.INITIAL}`,
-        }
-      );
+        });
 
       //verify user 2 can add his reply to same thread
-      const replyThreadComponentForUser2 = await user2ChatPage.replyToMessage(
-        CHAT_TEST_DATA.MESSAGES.USER2.INITIAL,
-        CHAT_TEST_DATA.MESSAGES.USER2.REPLY,
-        {
+      const replyThreadComponentForUser2 = await user2ChatPage
+        .getActions()
+        .replyToMessage(CHAT_TEST_DATA.MESSAGES.USER2.INITIAL, CHAT_TEST_DATA.MESSAGES.USER2.REPLY, {
           stepInfo: `User 2 replying to user 1's message ${CHAT_TEST_DATA.MESSAGES.USER1.INITIAL}`,
-        }
-      );
+        });
 
       //now user 1 will get the focused message component from the reply thread based on the message text by user 2
       const user1FocusedMessageInReplyThread = await replyThreadComponentForUser1.getFocusedMessageInReplyThread(
@@ -90,12 +86,14 @@ test.describe('Group Chat with multiple users', { tag: ['@group-chat'] }, () => 
       await multiUserChatTest.openGroupChatForMultipleUsers([user1ChatPage, user2ChatPage], groupName);
 
       // User 1 records and adds video
-      await user1ChatPage.recordAndAddVideoToTheChat(CHAT_TEST_DATA.CONFIG.RECORDING.VIDEO.DEFAULT_DURATION, {
-        keepAudioOn: true,
-        keepVideoOn: true,
-        addMessageWithVideo: CHAT_TEST_DATA.MESSAGES.USER1.INITIAL,
-        stepInfo: `User 1 recording video and adding it to the chat with message ${CHAT_TEST_DATA.MESSAGES.USER1.INITIAL}`,
-      });
+      await user1ChatPage
+        .getActions()
+        .recordAndAddVideoToTheChat(CHAT_TEST_DATA.CONFIG.RECORDING.VIDEO.DEFAULT_DURATION, {
+          keepAudioOn: true,
+          keepVideoOn: true,
+          addMessageWithVideo: CHAT_TEST_DATA.MESSAGES.USER1.INITIAL,
+          stepInfo: `User 1 recording video and adding it to the chat with message ${CHAT_TEST_DATA.MESSAGES.USER1.INITIAL}`,
+        });
       /**
        * TODO: Please extend this test to verify that user 2 can see/play/download the video
        */
@@ -109,12 +107,14 @@ test.describe('Group Chat with multiple users', { tag: ['@group-chat'] }, () => 
       await multiUserChatTest.openGroupChatForMultipleUsers([user1ChatPage, user2ChatPage], groupName);
 
       // User 1 records and adds audio
-      await user1ChatPage.recordAndAddAudioToTheChat(CHAT_TEST_DATA.CONFIG.RECORDING.AUDIO.DEFAULT_DURATION, {
-        keepAudioOn: true,
-        keepVideoOn: true,
-        addMessageWithAudio: CHAT_TEST_DATA.MESSAGES.USER1.INITIAL,
-        stepInfo: `User 1 recording audio and adding it to the chat with message ${CHAT_TEST_DATA.MESSAGES.USER1.INITIAL}`,
-      });
+      await user1ChatPage
+        .getActions()
+        .recordAndAddAudioToTheChat(CHAT_TEST_DATA.CONFIG.RECORDING.AUDIO.DEFAULT_DURATION, {
+          keepAudioOn: true,
+          keepVideoOn: true,
+          addMessageWithAudio: CHAT_TEST_DATA.MESSAGES.USER1.INITIAL,
+          stepInfo: `User 1 recording audio and adding it to the chat with message ${CHAT_TEST_DATA.MESSAGES.USER1.INITIAL}`,
+        });
 
       /**
        * TODO: Please extend this test to verify that the other user can see/play/download the audio
@@ -131,14 +131,16 @@ test.describe('Group Chat with multiple users', { tag: ['@group-chat'] }, () => 
       await multiUserChatTest.openGroupChatForMultipleUsers([user1ChatPage, user2ChatPage], groupName);
 
       // User 1 initiates video call
-      const user1AudioVideoCallPage = await user1ChatPage.initiateAudioVideoCall('video', {
+      const user1AudioVideoCallPage = await user1ChatPage.getActions().initiateAudioVideoCall('video', {
         stepInfo: `User 1 initiating video call in the chat group`,
       });
 
       // User 2 accepts call
-      const user2AudioVideoCallPage = await user2ChatPage.acceptIncomingCallInGroupChat(groupName, 'video', {
-        stepInfo: `User 2 accepting incoming video call`,
-      });
+      const user2AudioVideoCallPage = await user2ChatPage
+        .getActions()
+        .acceptIncomingCallInGroupChat(groupName, 'video', {
+          stepInfo: `User 2 accepting incoming video call`,
+        });
 
       // Verify video streams
       await user2AudioVideoCallPage.verifyMyVideoStreamIsVisible({

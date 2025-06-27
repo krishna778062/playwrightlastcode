@@ -3,9 +3,10 @@ import { tagTest } from '@core/utils/testDecorator';
 import { TestPriority } from '@core/constants/testPriority';
 import { CHAT_TEST_DATA } from '@chat/test-data/chat.test-data';
 import { TestGroupType } from '@core/constants/testType';
-import { ChatTestUser } from '@chat/types/chat-test.type';
-import { ChatHelper } from '@chat/helpers/chatHelper';
-import { ChatAppPage } from '@chat/pages/chatsPage';
+import { ChatTestUser } from '../../../types/chat-test.type';
+import { ChatActionHelper } from '../../../helpers/chatActionHelper';
+import { ChatAssertionHelper } from '../../../helpers/chatAssertionHelper';
+import { ChatAppPage } from '../../../pages/chatsPage';
 
 test.describe('Direct Message between multiple users', { tag: ['@direct-message'] }, () => {
   let user1: ChatTestUser;
@@ -33,37 +34,37 @@ test.describe('Direct Message between multiple users', { tag: ['@direct-message'
         zephyrTestId: 'CONT-5376',
       });
       //user 1 creates new chat with user 2
-      await ChatHelper.directMessages.openDirectMessageWithUser(user1ChatPage, user2.fullName, {
+      await user1ChatPage.getActions().openDirectMessageWithUser(user2.fullName, {
         stepInfo: `User 1 opening direct message with ${user2.fullName}`,
       });
 
       //now user 1 sends message to user 2
-      await ChatHelper.common.sendMessage(user1ChatPage, CHAT_TEST_DATA.MESSAGES.USER1.INITIAL, {
+      await user1ChatPage.getActions().sendMessage(CHAT_TEST_DATA.MESSAGES.USER1.INITIAL, {
         stepInfo: `User 1 sending message to user 2`,
       });
 
       //verify user 2 sees the message appearing in his inbox
-      await ChatHelper.directMessages.openUserDirectMessageItemInInbox(user2ChatPage, user1.fullName, {
+      await user1ChatPage.getActions().openUserDirectMessageItemInInbox(user1.fullName, {
         stepInfo: `Verifying user 2 is able to see user 1 in his inbox`,
         timeout: 40_000,
       });
 
-      await ChatHelper.common.sendMessage(user2ChatPage, CHAT_TEST_DATA.MESSAGES.USER2.INITIAL, {
+      await user1ChatPage.getActions().sendMessage(CHAT_TEST_DATA.MESSAGES.USER2.INITIAL, {
         stepInfo: `User 2 sending message ${CHAT_TEST_DATA.MESSAGES.USER2.INITIAL} to user 1`,
       });
 
       //verify user 1 is able to see the message from user 2
-      await ChatHelper.common.verifyMessageIsVisible(user1ChatPage, CHAT_TEST_DATA.MESSAGES.USER2.INITIAL, {
+      await user1ChatPage.getAssertions().verifyMessageIsVisible(CHAT_TEST_DATA.MESSAGES.USER2.INITIAL, {
         stepInfo: `Verifying user 1 is able to see the message ${CHAT_TEST_DATA.MESSAGES.USER2.INITIAL} from user 2`,
       });
 
       //now user 1 sends message to user 2 in DM window
-      await ChatHelper.common.sendMessage(user1ChatPage, CHAT_TEST_DATA.MESSAGES.USER1.INITIAL, {
+      await user1ChatPage.getActions().sendMessage(CHAT_TEST_DATA.MESSAGES.USER1.INITIAL, {
         stepInfo: `User 1 sending message ${CHAT_TEST_DATA.MESSAGES.USER1.INITIAL} to user 2`,
       });
 
       //we will verify that user 2 is able to see the message from user 1 in his DM window
-      await ChatHelper.common.verifyMessageIsVisible(user2ChatPage, CHAT_TEST_DATA.MESSAGES.USER1.INITIAL, {
+      await user2ChatPage.getAssertions().verifyMessageIsVisible(CHAT_TEST_DATA.MESSAGES.USER1.INITIAL, {
         stepInfo: `Verifying user 2 is able to see the message ${CHAT_TEST_DATA.MESSAGES.USER1.INITIAL} from user 1`,
       });
     }

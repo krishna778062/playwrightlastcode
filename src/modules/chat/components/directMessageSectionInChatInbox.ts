@@ -1,7 +1,6 @@
-import { expect, Locator, Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import { TIMEOUTS } from '@core/constants/timeouts';
-import { GroupChatWindowComponent } from '@chat/components/groupChatWindowComponent';
 
 export class DirectMessageSectionInInbox extends BaseComponent {
   readonly directMessageContainer: Locator;
