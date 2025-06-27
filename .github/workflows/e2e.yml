@@ -10,7 +10,7 @@ on:
         type: choice
         options:
           - 'chat'
-          - 'feed'
+          - 'platforms'
       priority_filter:
         description: 'Select test cases by priority'
         required: true

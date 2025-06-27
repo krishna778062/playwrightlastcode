@@ -6,7 +6,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { ChatTestUser } from '@chat/types/chat-test.type';
 import { ChatAppPage } from '@chat/pages/chatsPage';
 
-test.describe.only('Direct Message between multiple users', { tag: ['@direct-message'] }, () => {
+test.describe('Direct Message between multiple users', { tag: ['@direct-message'] }, () => {
   let user1: ChatTestUser;
   let user2: ChatTestUser;
   let user1ChatPage: ChatAppPage;
