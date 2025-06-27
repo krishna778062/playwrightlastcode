@@ -15,6 +15,7 @@ export class ChatEditorComponent extends BaseComponent {
   readonly addMediaAttachmentButton: Locator;
   readonly recordAudioButton: Locator;
   readonly recordVideoButton: Locator;
+  readonly deleteAttachmentButton: Locator;
 
   //attachements
   readonly attachementsContainer: Locator;
@@ -41,6 +42,7 @@ export class ChatEditorComponent extends BaseComponent {
 
     //attachements
     this.attachementsContainer = this.chatEditorComponentContainer.locator("[class*='Attachment_attachmentRoot']");
+    this.deleteAttachmentButton = this.attachementsContainer.getByTestId('delete-button');
   }
 
   /**
@@ -65,28 +67,45 @@ export class ChatEditorComponent extends BaseComponent {
     });
   }
 
-  async clickOnSendMessageButton(options?: { stepInfo?: string }): Promise<void> {
+  async clickOnSendMessageButton(options?: { stepInfo?: string; timeout?: number }): Promise<void> {
     await test.step(options?.stepInfo ?? `Clicking on send message button`, async () => {
-      await this.clickOnElement(this.sendMessageButton);
+      await this.clickOnElement(this.sendMessageButton, {
+        timeout: options?.timeout ?? 10_000,
+      });
     });
   }
 
   /**
    * Adds a media attachment to the chat
    * @param filePath - The path to the media file
+   * @param options - The options to pass to the function
+   * @param options.stepInfo - The step info to pass to the function
+   * @param options.attachementRequestTimeout - The timeout for the attachement request api call
+   *
+   * Note: This function will wait for the attachement request api call to complete and then return
    */
   async addMediaAttachment(
     filePath: string,
     options?: {
       stepInfo?: string;
+      attachementRequestTimeout?: number;
+      waitForAttachementRequestToComplete?: boolean;
     }
   ): Promise<void> {
     await test.step(options?.stepInfo ?? `Adding media attachment: ${filePath}`, async () => {
-      //first check if file exists at given path
-      if (fs.existsSync(filePath)) {
-        await this.addMediaAttachmentButton.setInputFiles(filePath);
+      const waitForAttachementRequestToComplete = options?.waitForAttachementRequestToComplete ?? true;
+      console.log('options?.waitForAttachementRequestToComplete', options?.waitForAttachementRequestToComplete);
+      if (waitForAttachementRequestToComplete) {
+        await this.performActionAndWaitForRequest(
+          () => this.addInputFiles(this.addMediaAttachmentButton, filePath),
+          request => request.url().includes('attachments') && request.method() === 'POST',
+          {
+            timeout: options?.attachementRequestTimeout ?? 40_000,
+            stepInfo: 'Clicking on add media attachment button should add the media file to the chat',
+          }
+        );
       } else {
-        throw new Error(`File does not exist at path: ${filePath}`);
+        await this.addInputFiles(this.addMediaAttachmentButton, filePath);
       }
     });
   }
@@ -131,6 +150,48 @@ export class ChatEditorComponent extends BaseComponent {
         //verify that the video attachment has the correct src
       }
     );
+  }
+
+  /**
+   * Verifies that the attachment is not visible
+   * @param options - The options to pass to the function
+   * @param options.stepInfo - The step info to pass to the function
+   */
+  async verifyTheAttachmentIsNotVisible(options?: { stepInfo?: string; timeout?: number }): Promise<void> {
+    await test.step(options?.stepInfo ?? `Verifying that the attachment is not visible`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.attachementsContainer, {
+        assertionMessage: 'expecting attachements container to be not visible',
+        timeout: options?.timeout ?? 10_000,
+      });
+    });
+  }
+
+  /**
+   * Verifies that the attachment has been added to the chat editor
+   * @param options - The options to pass to the function
+   * @param options.stepInfo - The step info to pass to the function
+   */
+  async verifyAttachementHasAddedToChatEditor(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(
+      options?.stepInfo ?? `Verifying that the attachment has been added to the chat editor`,
+      async () => {
+        await this.verifier.verifyTheElementIsVisible(this.attachementsContainer, {
+          assertionMessage: 'expecting attachements container to be visible',
+        });
+      }
+    );
+  }
+
+  /**
+   * Deletes the attachment from the chat editor
+   * @param attachmentIndex - The index of the attachment to delete
+   * @param options - The options to pass to the function
+   * @param options.stepInfo - The step info to pass to the function
+   */
+  async deleteAttachementFromChatEditor(attachmentIndex: number = 0, options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo ?? `Deleting the attachment from the chat editor`, async () => {
+      await this.clickOnElement(this.deleteAttachmentButton.nth(attachmentIndex));
+    });
   }
 
   async verifyTheAudioIsVisibleAsAttachementInTheChatEditor(options?: { stepInfo?: string }): Promise<void> {

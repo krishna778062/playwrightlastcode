@@ -6,23 +6,41 @@ import { ChatInboxSideBarComponent } from '@chat/components/chatInboxSideBarComp
 import { GroupChatWindowComponent } from '@chat/components/groupChatWindowComponent';
 import { MessageReplyThreadComponent } from '../components/messageReplyThreadComponent';
 import { CHAT_TEST_DATA } from '../test-data/chat.test-data';
+import { UnsupportedFileMessageDialogBox } from '../components/unsupportedFileMessageDialogBox';
+import { ImageAttachementPreviewModal } from '../components/imageAttachementPreviewModal';
+import { DirectMessageSectionInInbox } from '../components/directMessageSectionInChatInbox';
 
 export class ChatAppPage extends BasePage {
   protected readonly chatAppContainer: Locator;
   protected readonly inboxSideBarContainer: Locator;
   protected readonly groupChatWindowContainer: Locator;
+  protected readonly unsupportedFileMessageDialogBox: Locator;
+  protected readonly imageAttachementPreviewModal: ImageAttachementPreviewModal;
+  protected readonly directMessageSectionInInbox: DirectMessageSectionInInbox;
   //components
   protected readonly inboxSideBarComponent: ChatInboxSideBarComponent;
   protected readonly focusedChatComponent: GroupChatWindowComponent;
+
+  protected readonly unsupportedFileMessageDialogBoxComponent: UnsupportedFileMessageDialogBox;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.CHATS_PAGE);
     this.chatAppContainer = this.page.locator("[class='data-chat-app-wrapper']");
     this.inboxSideBarContainer = this.chatAppContainer.locator("[data-variant='sidebar'][class*='styles_root_']");
     this.groupChatWindowContainer = this.chatAppContainer.locator("[data-variant='chat'][class*='styles_root_']");
+    this.unsupportedFileMessageDialogBox = this.page.getByRole('dialog', { name: 'File unsupported' });
     //components initalisation
+    this.unsupportedFileMessageDialogBoxComponent = new UnsupportedFileMessageDialogBox(
+      page,
+      this.unsupportedFileMessageDialogBox
+    );
     this.inboxSideBarComponent = new ChatInboxSideBarComponent(page, this.inboxSideBarContainer);
     this.focusedChatComponent = new GroupChatWindowComponent(page, this.groupChatWindowContainer);
+    this.imageAttachementPreviewModal = new ImageAttachementPreviewModal(
+      page,
+      this.page.getByTestId('attachmentPreviewModal')
+    );
+    this.directMessageSectionInInbox = new DirectMessageSectionInInbox(page);
   }
 
   public getInboxSideBarComponent(): ChatInboxSideBarComponent {
@@ -31,6 +49,18 @@ export class ChatAppPage extends BasePage {
 
   public getFocusedChatComponent(): GroupChatWindowComponent {
     return this.focusedChatComponent;
+  }
+
+  public getDirectMessageSectionInInbox(): DirectMessageSectionInInbox {
+    return this.directMessageSectionInInbox;
+  }
+
+  public getUnsupportedFileMessageDialogBoxComponent(): UnsupportedFileMessageDialogBox {
+    return this.unsupportedFileMessageDialogBoxComponent;
+  }
+
+  public getImageAttachementPreviewModalComponent(): ImageAttachementPreviewModal {
+    return this.imageAttachementPreviewModal;
   }
 
   /**

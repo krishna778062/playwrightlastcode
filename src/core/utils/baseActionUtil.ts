@@ -1,5 +1,6 @@
 import { APIResponse, Locator, Page, test, Response, Request } from '@playwright/test';
 import { PlaywrightAction, PlaywrightErrorHandler } from './playwrightErrorHandler';
+import { FileUtil } from './fileUtil';
 
 export type LocatorClickOptions = Parameters<Locator['click']>[0];
 export type LocatorFillOptions = Parameters<Locator['fill']>[1];
@@ -180,5 +181,20 @@ export class BaseActionUtil {
     await test.step(`Sleeping/Waiting for ${timeInMs} milliseconds`, async () => {
       await this.page.waitForTimeout(timeInMs);
     });
+  }
+
+  /**
+   * Adds input files to an element
+   * @param selectorOrLocator - The selector or locator to add the input files to
+   * @param filePath - The path to the file to add
+   *
+   */
+  async addInputFiles(selectorOrLocator: string | Locator, filePath: string) {
+    const eleToAdd = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
+    if (FileUtil.fileExists(filePath)) {
+      await eleToAdd.setInputFiles(filePath);
+    } else {
+      throw new Error(`File does not exist at path: ${filePath}`);
+    }
   }
 }

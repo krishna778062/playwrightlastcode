@@ -112,10 +112,7 @@ export const groupChatTestFixture = test.extend<
       if (videoPath) {
         const projectName = test.info().project.name;
         const listOfProjects = test.info().config.projects;
-        console.log('listOfProjects', listOfProjects);
-        console.log('projectName', projectName);
         for (const project of listOfProjects) {
-          console.log('project.use.video', project.use.video);
           if (project.name === projectName) {
             if (project.use.video === 'on' || project.use.video === 'retain-on-failure') {
               await test.info().attach(`video-${endUsersForChat[1].fullName}`, {

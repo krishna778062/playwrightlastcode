@@ -131,4 +131,29 @@ export class FocusedMessageComponent extends MessageBaseComponent {
     });
     return new MessageReplyThreadComponent(this.page, this.replyThreadComponentContainer);
   }
+
+  /**
+
+   * @param attachmentType
+   * @param options 
+   */
+  async openAttachmentForPreview(
+    attachmentType: 'image' | 'file' | 'video',
+    attachmentIndex: number = 0,
+    options?: { stepInfo?: string }
+  ): Promise<void> {
+    await test.step(options?.stepInfo ?? `Clicking on the attachment for preview`, async () => {
+      if (attachmentType === 'image') {
+        await this.clickOnElement(this.focusedMessageContainer.getByLabel('Image preview').nth(attachmentIndex));
+      } else if (attachmentType === 'file') {
+        await this.clickOnElement(
+          this.focusedMessageContainer.getByTestId('filePreviewAttachment').nth(attachmentIndex)
+        );
+      } else if (attachmentType === 'video') {
+        await this.clickOnElement(
+          this.focusedMessageContainer.getByTestId('messageVideoAttachments').nth(attachmentIndex)
+        );
+      }
+    });
+  }
 }

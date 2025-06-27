@@ -16,12 +16,16 @@ export class GroupChatWindowComponent extends BaseComponent {
   readonly audioCallButton: Locator;
   readonly videoCallButton: Locator;
   readonly mentionListComponent: MentionListComponent;
+  readonly listChatMessagesComponentWithAttachment: Locator;
 
   constructor(page: Page, groupChatWindowContainer: Locator) {
     super(page);
     this.groupChatWindowContainer = groupChatWindowContainer;
     this.focusedChatHeader = this.groupChatWindowContainer.locator('[class*="ChatHeader_header"]');
     this.listChatMessagesComponent = this.groupChatWindowContainer.locator("article[data-variant='chat']");
+    this.listChatMessagesComponentWithAttachment = this.listChatMessagesComponent.filter({
+      has: this.page.getByTestId('messageAttachments'),
+    });
     this.chatEditorComponent = new ChatEditorComponent(
       page,
       this.groupChatWindowContainer.locator("[class*='Editor_root_']")
@@ -93,6 +97,43 @@ export class GroupChatWindowComponent extends BaseComponent {
         }).toPass({ timeout: options?.timeout ?? TIMEOUTS.MEDIUM });
       }
     );
+  }
+
+  async getLastMessageWithAttachment(
+    attachmentType: 'image' | 'file' | 'video',
+    options?: {
+      stepInfo?: string;
+      timeout?: number;
+    }
+  ) {
+    //debug total number of messages with attachment
+    const totalMessagesWithAttachment = await this.listChatMessagesComponent
+      .filter({
+        has: this.page.getByTestId('messageAttachments'),
+      })
+      .count();
+    console.log(`Total number of messages with attachment: ${totalMessagesWithAttachment}`);
+
+    let messageWithAttachment: Locator;
+    return await test.step(options?.stepInfo ?? `Verifying message with attachment is visible`, async () => {
+      const listOfMessagesWithAttachment = this.listChatMessagesComponent.filter({
+        has: this.page.getByTestId('messageAttachments'),
+      });
+      if (attachmentType === 'image') {
+        messageWithAttachment = listOfMessagesWithAttachment.filter({
+          has: this.page.getByTestId('messageImageAttachments'),
+        });
+      } else if (attachmentType === 'file') {
+        messageWithAttachment = listOfMessagesWithAttachment.filter({
+          has: this.page.getByTestId('filePreviewAttachment'),
+        });
+      } else if (attachmentType === 'video') {
+        messageWithAttachment = listOfMessagesWithAttachment.filter({
+          has: this.page.getByTestId('messageVideoAttachments'),
+        });
+      }
+      return messageWithAttachment;
+    });
   }
 
   async getMessageItemFromChat(message: string, options?: { stepInfo?: string }): Promise<Locator> {
