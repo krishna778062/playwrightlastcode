@@ -4,7 +4,7 @@ import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { ApiError } from '@core/api/apiError';
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 
-export abstract class BaseApiClient extends HttpClient {
+export class BaseApiClient extends HttpClient {
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
   }
@@ -109,9 +109,75 @@ export abstract class BaseApiClient extends HttpClient {
       throw new Error('No token or csrfid found in the cookies');
     }
 
+    console.log('Cookie:' + `token=${token}; csrfid=${csrfid}`);
     return {
       Cookie: `token=${token}; csrfid=${csrfid}`,
       'x-smtip-csrfid': csrfid,
     };
+  }
+
+  async getCategory(category: string) {
+    const response = await this.post(API_ENDPOINTS.site.category, {
+      data: {
+        size: 16,
+        sortBy: 'alphabetical',
+        term: category,
+      },
+    });
+    const json = await response.json();
+    if (!json.result?.listOfItems?.length) throw new Error('Category not found');
+    return {
+      categoryId: json.result.listOfItems[0].categoryId,
+      name: json.result.listOfItems[0].name,
+    };
+  }
+
+  async createSite(siteType: string, category: string) {
+    const randomNum = Math.floor(Math.random() * 1000000 + 1);
+    const siteName = `AutomateUI_Test_${randomNum}`;
+    const categoryObj = await this.getCategory(category);
+
+    const response = await this.post(API_ENDPOINTS.site.url, {
+      data: {
+        data: {
+          access: siteType,
+          hasPages: true,
+          hasEvents: true,
+          hasAlbums: true,
+          hasDashboard: true,
+          landingPage: 'dashboard',
+          isContentFeedEnabled: true,
+          isContentSubmissionsEnabled: true,
+          isOwner: true,
+          isMembershipAutoApproved: false,
+          isBroadcast: false,
+          name: siteName,
+          category: {
+            categoryId: categoryObj.categoryId,
+            name: categoryObj.name,
+          },
+        },
+      },
+    });
+    const siteJson = await response.json();
+    console.log('Full JSON Response:', JSON.stringify(siteJson, null, 2));
+    if (siteJson.status !== 'success' || !siteJson.result?.siteId) {
+      throw new Error(`Site creation failed. Response: ${JSON.stringify(siteJson)}`);
+    }
+    return { siteName: siteName, siteId: siteJson.result.siteId };
+  }
+
+  async deactivateSite(siteId: string) {
+    const response = await this.post(API_ENDPOINTS.site.deactivate, {
+      data: {
+        ids: [siteId],
+        newStatus: 'deactivated',
+      },
+    });
+    const json = await response.json();
+    if (json.status !== 'success') {
+      throw new Error(`Failed to deactivate site: ${JSON.stringify(json)}`);
+    }
+    return json;
   }
 }

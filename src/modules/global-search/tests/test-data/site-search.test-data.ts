@@ -2,13 +2,8 @@ export const SITE_SEARCH_TEST_DATA = {
   CONFIG: {
     DEFAULT_TIMEOUT: 180_000,
   },
-  SEARCH_TERMS: {
-    SALES: 'Sales',
-    FINANCE: 'Finance',
-  },
   CATEGORIES: {
-    DEPARTMENTS: 'Departments',
-    PROJECTS: 'Projects',
+    CATEGORYNAME: 'Uncategorized',
   },
   SITE_TYPES: {
     PUBLIC: 'public',
@@ -19,7 +14,6 @@ export const SITE_SEARCH_TEST_DATA = {
   },
   MESSAGES: {
     COPIED: 'Copied',
-    SITE_LABEL: 'site',
   },
 } as const;
 
