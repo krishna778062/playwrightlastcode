@@ -10,16 +10,25 @@ export class MessageBaseComponent extends BaseComponent {
   readonly emojiPickerEmojisGroupsContainer: Locator;
   readonly threeDotsButtonToOpenMessageActionsMenu: Locator;
   readonly deleteMessageButtonFromMessageActionsMenu: Locator;
+  readonly deleteMessageConfirmationPrompt: Locator;
+  readonly deleteButtonOnDeleteMessageConfirmationPrompt: Locator;
 
   constructor(page: Page, messageContainer: Locator) {
-    super(page);
+    super(page, messageContainer);
     this.messageContainer = messageContainer;
     this.messageActionsContainer = this.messageContainer.getByTestId('message-action-root');
     this.emojiPickerButton = this.messageActionsContainer.getByLabel('addEmoji icon');
     this.emojiPickerContainer = this.page.locator("[class*='EmojiPicker_root']").first();
     this.emojiPickerEmojisGroupsContainer = this.emojiPickerContainer.locator("[EmojiPicker_emojiGroupWrapper']");
-    this.threeDotsButtonToOpenMessageActionsMenu = this.messageContainer.getByTestId('message-action-trigger');
+    this.threeDotsButtonToOpenMessageActionsMenu = this.messageContainer
+      .getByTestId('message-action-trigger')
+      .filter({ visible: true });
     this.deleteMessageButtonFromMessageActionsMenu = this.page.getByTestId('deleteMessageButton');
+    this.deleteMessageConfirmationPrompt = this.page
+      .locator("[role='dialog']")
+      .filter({ hasText: 'This action cannot be undone' });
+    this.deleteButtonOnDeleteMessageConfirmationPrompt =
+      this.deleteMessageConfirmationPrompt.getByTestId('delete-message-button');
   }
 
   async getMessageText(): Promise<string | null> {
@@ -91,8 +100,12 @@ export class MessageBaseComponent extends BaseComponent {
 
   async deleteMessage(): Promise<void> {
     await test.step(`Deleting the message`, async () => {
-      await this.openMessageActions();
-      await this.clickOnElement(this.messageActionsContainer.getByLabel('delete icon'));
+      await this.openMessageActionsMenuFromThreeDots();
+      await this.clickOnElement(this.deleteMessageButtonFromMessageActionsMenu);
+      await this.verifier.verifyTheElementIsVisible(this.deleteMessageConfirmationPrompt, {
+        assertionMessage: 'expecting delete message confirmation prompt to be visible',
+      });
+      await this.clickOnElement(this.deleteButtonOnDeleteMessageConfirmationPrompt);
     });
   }
 
@@ -103,10 +116,23 @@ export class MessageBaseComponent extends BaseComponent {
     });
   }
 
-  async deleteMessageFromMessageActionsMenu(): Promise<void> {
-    await test.step(`Deleting the message from the message actions menu`, async () => {
-      await this.openMessageActionsMenuFrom3Dots();
-      await this.clickOnElement(this.deleteMessageButtonFromMessageActionsMenu);
+  async openMessageActionsMenuFromThreeDots(): Promise<void> {
+    await test.step(`Opening the message actions menu from 3 dots`, async () => {
+      try {
+        await this.messageContainer.hover();
+        await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { timeout: 5_000, delay: 500 });
+        await this.verifier.verifyTheElementIsVisible(this.deleteMessageButtonFromMessageActionsMenu, {
+          assertionMessage: 'expecting message actions container to be visible after clicking on the reaction',
+        });
+      } catch (error) {
+        console.log(`Retrying to open message actions menu from 3 dots to add more resilience`);
+        await this.messageContainer.hover();
+        await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, {
+          timeout: 5_000,
+          delay: 500,
+          force: true,
+        });
+      }
     });
   }
 }

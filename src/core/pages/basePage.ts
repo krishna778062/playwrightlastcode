@@ -33,7 +33,7 @@ export abstract class BasePage extends BaseActionUtil {
     await test.step(options?.stepInfo || `Loading page ${this.pageUrl}`, async () => {
       if (this.pageUrl !== '') {
         await this.page.goto(this.pageUrl, {
-          waitUntil: 'domcontentloaded',
+          waitUntil: 'load',
           timeout: options?.timeout || TIMEOUTS.MEDIUM,
         });
       } else {

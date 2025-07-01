@@ -1,5 +1,4 @@
 import { TIMEOUTS } from '@core/constants/timeouts';
-import { ElementState } from '@/src/core/utils/pageActions';
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
 
@@ -57,10 +56,11 @@ export class GroupChatsSectionComponent extends BaseComponent {
     }
   ): Promise<void> {
     await test.step(options?.stepInfo ?? `Opening group chat ${groupChatName}`, async () => {
-      const groupChatLocator = this.page
-        .locator(`[data-testid*=${groupChatName}]`)
-        .filter({ hasText: groupChatName });
-      const isGroupChatVisible = await this.verifier.verifyTheElementIsVisible(groupChatLocator);
+      const groupChatLocator = this.page.locator(`[data-testid*=${groupChatName}]`).filter({ hasText: groupChatName });
+      const isGroupChatVisible = await this.verifier.isTheElementVisible(groupChatLocator, {
+        assertionMessage: `expecting group with name ${groupChatName} to be visible`,
+        timeout: 20_000,
+      });
       //refresh the page if the group chat is not visible
       if (!isGroupChatVisible) {
         await this.page.reload();
@@ -105,9 +105,7 @@ export class GroupChatsSectionComponent extends BaseComponent {
     //getting the group chat name
     const groupChatName = await activeGroupChatLocator.getAttribute('aria-label');
     //getting the group chat id
-    const groupChatId = (await activeGroupChatLocator.getAttribute('data-sidebar-chat-id'))?.split(
-      '-'
-    )[1];
+    const groupChatId = (await activeGroupChatLocator.getAttribute('data-sidebar-chat-id'))?.split('-')[1];
     if (!groupChatName || !groupChatId) {
       throw new Error('Group chat name or id is not found');
     }

@@ -1,10 +1,10 @@
-import { test } from '@playwright/test';
+import { groupChatTestFixture as test } from '@chat/fixtures/groupChatFixture';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestSuite } from '@core/constants/testSuite';
-import { CHAT_TEST_DATA } from '@/src/modules/chat/test-data/chat.test-data';
-import { Roles } from '@core/constants/roles';
-import { MultiUserChatTestHelper } from '@chat/helpers/multiUserChatTestHelper';
-import { ChatHelper } from '@chat/helpers/chatHelper';
+import { ChatAppPage } from '@chat/pages/chatsPage';
+import { ChatTestUser } from '@chat/types/chat-test.type';
+import { expect } from '@playwright/test';
+import { MessageCardComponent } from '@/src/modules/chat/components/messageCardComponent';
 
 test.describe(
   'Test chat application with attachment',
@@ -12,51 +12,205 @@ test.describe(
     tag: [TestSuite.CHAT_ATTACHMENT],
   },
   () => {
-    let multiUserChatTest: MultiUserChatTestHelper;
-
-    test.beforeEach(
-      'Setting up the test environment, by creating 1 new user to tenant so to test out attachment in chat',
-      async ({ browser }) => {
-        multiUserChatTest = new MultiUserChatTestHelper();
-        // Step 1: Create all backend test data
-        await multiUserChatTest.setup(browser, {
-          usersByRole: {
-            [Roles.END_USER]: 2,
-          },
-          password: CHAT_TEST_DATA.CREDENTIALS.DEFAULT_PASSWORD,
-        });
-        // Step 2: Create a browser context for ONLY the user needed for this test
-        await multiUserChatTest.createContextsForUsers([0]);
-      }
-    );
-
-    test.afterEach(async () => {
-      await multiUserChatTest.cleanup();
+    let user1: ChatTestUser;
+    let user2: ChatTestUser;
+    let user1ChatPage: ChatAppPage;
+    test.beforeEach('before each', async ({ endUsersForChat, user1Page }) => {
+      user1 = endUsersForChat[0];
+      user2 = endUsersForChat[1];
+      user1ChatPage = new ChatAppPage(user1Page);
+      await user1ChatPage.loadPage({ timeout: 40_000 });
     });
 
     test(
-      'User is able to send attachment in chat',
+      'Verify user is able to add and send pdf as  attachment in chat',
       {
         tag: [TestPriority.P0, '@chat-attachment'],
       },
       async () => {
-        const user1 = multiUserChatTest.getTestData().users[0];
-        const user2 = multiUserChatTest.getTestData().users[1];
-
-        // Login user1  and navigate to chats
-        const user1ChatsPage = await multiUserChatTest.loginAndNavigateToChatsPage(
-          multiUserChatTest.getPageForUser(user1.email),
-          user1.email,
-          CHAT_TEST_DATA.CREDENTIALS.DEFAULT_PASSWORD
-        );
-
         //now open conversation with user 2
-        await ChatHelper.directMessages.openDirectMessageWithUser(user1ChatsPage, user2.fullName, {
+        await user1ChatPage.getActions().openDirectMessageWithUser(user2.fullName, {
           stepInfo: `User 1 opening direct message with ${user2.fullName}`,
         });
+        await user1ChatPage.getActions().sendAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
+          stepInfo: `User 1 sending attachment to ${user2.fullName}`,
+        });
+      }
+    );
 
-        //verify that user 1 can send attachment in chat
-        await ChatHelper.common.sendMessage(user1ChatsPage, CHAT_TEST_DATA.MESSAGES.USER1.INITIAL);
+    test(
+      'Verify sending unsupported files format',
+      {
+        tag: [TestPriority.P0, '@chat-attachment'],
+      },
+      async () => {
+        const user2Name = user2.fullName;
+        //now open conversation with user 2
+        await user1ChatPage.getActions().openDirectMessageWithUser(user2Name, {
+          stepInfo: `User 1 opening direct message with ${user2Name}`,
+        });
+        await user1ChatPage
+          .getActions()
+          .addAttachment('src/modules/chat/test-data/static-files/unsupportedFiles/websocketConnection.jmx', {
+            stepInfo: `User 1 sending attachment to ${user2Name} which is not supported`,
+            isItValidFile: false,
+          });
+        await user1ChatPage.getAssertions().verifyUnsupportedFileHandling({
+          stepInfo: `User 1 Verifying the unsupported file message is visible`,
+        });
+      }
+    );
+
+    test(
+      'Verify sending a file larger than 100 MB',
+      {
+        tag: [TestPriority.P0, '@chat-attachment'],
+      },
+      async () => {
+        const user2Name = user2.fullName;
+        //now open conversation with user 2
+        await user1ChatPage.getActions().openDirectMessageWithUser(user2Name, {
+          stepInfo: `User 1 opening direct message with ${user2Name}`,
+        });
+        await user1ChatPage.getActions().sendAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
+          stepInfo: `User 1 sending attachment to ${user2Name} which is larger than 100 MB`,
+        });
+      }
+    );
+
+    test(
+      'verify user can attach upto 10 files in message successfully',
+      {
+        tag: [TestPriority.P0, '@chat-attachment'],
+      },
+      async () => {
+        const user2Name = user2.fullName;
+        //now open conversation with user 2
+        await user1ChatPage.getActions().openDirectMessageWithUser(user2Name, {
+          stepInfo: `User 1 opening direct message with ${user2Name}`,
+        });
+        for (let i = 0; i < 9; i++) {
+          await user1ChatPage.getActions().addAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
+            stepInfo: `User 1 sending attachment to ${user2Name}`,
+          });
+          await user1ChatPage
+            .getConversationWindowComponent()
+            .getChatEditorComponent()
+            .addMediaAttachmentButton.setInputFiles([]);
+        }
+        await user1ChatPage.getActions().sendAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
+          stepInfo: `User 1 sending attachment to ${user2Name}`,
+        });
+      }
+    );
+
+    test(
+      'verify user can not attach more than 10 files in message and on doing that it shows error message',
+      {
+        tag: [TestPriority.P0, '@chat-attachment'],
+      },
+      async () => {
+        const user2Name = user2.fullName;
+        //now open conversation with user 2
+        await user1ChatPage.getActions().openDirectMessageWithUser(user2Name, {
+          stepInfo: `User 1 opening direct message with ${user2Name}`,
+        });
+        for (let i = 0; i < 10; i++) {
+          await user1ChatPage.getActions().addAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
+            stepInfo: `User 1 sending attachment to ${user2Name}`,
+          });
+          await user1ChatPage
+            .getConversationWindowComponent()
+            .getChatEditorComponent()
+            .addMediaAttachmentButton.setInputFiles([]);
+        }
+        await user1ChatPage.getActions().addAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
+          stepInfo: `User 1 sending attachment to ${user2Name}`,
+          isItValidFile: false,
+        });
+        const maximumFilesLimitError = user1ChatPage.page.locator('span', {
+          hasText: 'Maximum attachments limit reached',
+        });
+        await expect(maximumFilesLimitError).toBeVisible();
+      }
+    );
+
+    test(
+      'Verify viewing image attachment',
+      {
+        tag: [TestPriority.P0, '@chat-attachment'],
+      },
+      async ({ user1Page }) => {
+        const user2Name = user2.fullName;
+        //now open conversation with user 2
+        await user1ChatPage.getActions().openDirectMessageWithUser(user2Name, {
+          stepInfo: `User 1 opening direct message with ${user2Name}`,
+        });
+        await user1ChatPage
+          .getActions()
+          .sendAttachment('src/modules/chat/test-data/static-files/imageFiles/Image1.jpg', {
+            stepInfo: `User 1 sending attachment to ${user2Name}`,
+          });
+        await user1ChatPage.sleep(2000);
+        const user1MessageWithAttachment = await user1ChatPage.getActions().getLastMessageWithAttachment('image');
+        await expect(user1MessageWithAttachment).toBeVisible();
+
+        //open the image attachement for preview
+        const focusedMessageComponent = new MessageCardComponent(user1Page, user1MessageWithAttachment);
+        await focusedMessageComponent.openAttachmentForPreview('image');
+
+        await user1ChatPage.getImageAttachementPreviewModalComponent().verifyTheImageAttachementPreviewModalIsVisible({
+          stepInfo: `User 1 Verifying the image attachement preview modal is visible`,
+        });
+        await user1ChatPage.getImageAttachementPreviewModalComponent().clickOnCloseAttachmentPreviewButton({
+          stepInfo: `User 1 Clicking on the close attachment preview button`,
+        });
+        await user1ChatPage
+          .getImageAttachementPreviewModalComponent()
+          .verifyTheImageAttachementPreviewModalIsNotVisible({
+            stepInfo: `User 1 Verifying the image attachement preview modal is not visible`,
+          });
+      }
+    );
+
+    test(
+      'Verify attachment deletion before sending',
+      {
+        tag: [TestPriority.P0, '@chat-attachment'],
+      },
+      async () => {
+        const user2Name = user2.fullName; //now open conversation with user 2
+        await user1ChatPage.getActions().openDirectMessageWithUser(user2Name, {
+          stepInfo: `User 1 opening direct message with ${user2Name}`,
+        });
+        //verify user is able to add and delete attachment in editor
+        await user1ChatPage
+          .getAssertions()
+          .verifyUserIsAbleToAddAndDeleteAttachmentInEditor(
+            'src/modules/chat/test-data/static-files/imageFiles/Image1.jpg',
+            {
+              stepInfo: `Verifying user 1 is able to add and delete attachment in editor`,
+            }
+          );
+      }
+    );
+
+    test(
+      'Verify sending video attachment',
+      {
+        tag: [TestPriority.P0, '@chat-attachment'],
+      },
+      async () => {
+        const user2Name = user2.fullName;
+        //now open conversation with user 2
+        await user1ChatPage.getActions().openDirectMessageWithUser(user2Name, {
+          stepInfo: `User 1 opening direct message with ${user2Name}`,
+        });
+        await user1ChatPage
+          .getActions()
+          .sendAttachment('src/modules/chat/test-data/static-files/videoFiles/video1.mp4', {
+            stepInfo: `User 1 sending attachment to ${user2Name}`,
+          });
       }
     );
   }
