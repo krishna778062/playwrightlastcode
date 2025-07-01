@@ -9,6 +9,7 @@ import { LoginHelper } from '../../../../../core/helpers/loginHelper';
 import { getEnvConfig } from '../../../../../core/utils/getEnvConfig';
 import { GlobalSearchBarComponent } from '../../../components/globalSearchBarComponent';
 import { BaseApiClient } from '../../../../../core/api/clients/baseApiClient';
+import { AdminApiClient } from '../../../../../core/api/clients/adminApiClient';
 
 // Test data for site search scenarios
 const siteSearchTestData: SiteSearchTestData[] = [
@@ -43,7 +44,7 @@ test.describe(
       // Initialize API client with proper authentication and CSRF token
       try {
         const apiContext = await BaseApiClient.createFromCookies(page);
-        apiClient = new BaseApiClient(apiContext, getEnvConfig().apiBaseUrl);
+        apiClient = new AdminApiClient(apiContext, getEnvConfig().apiBaseUrl);
       } catch (error) {
         console.error('Failed to initialize API client:', error);
         throw error;
@@ -53,7 +54,7 @@ test.describe(
       globalSearchBarComponent = homePage.getGlobalSearchComponent();
     });
 
-    test.afterEach(async () => {
+    test.afterEach(async ({ page }) => {
       if (apiClient && newSiteId) {
         await apiClient.deactivateSite(newSiteId);
       }
@@ -68,7 +69,7 @@ test.describe(
         async ({}) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-12408',
-            storyId: 'SEN-12408',
+            storyId: 'SEN-12305',
           });
 
           const result = await apiClient.createSite(data.siteType, data.category);

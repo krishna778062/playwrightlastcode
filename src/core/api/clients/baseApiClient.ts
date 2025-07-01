@@ -4,7 +4,7 @@ import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { ApiError } from '@core/api/apiError';
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 
-export class BaseApiClient extends HttpClient {
+export abstract class BaseApiClient extends HttpClient {
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
   }
@@ -168,12 +168,15 @@ export class BaseApiClient extends HttpClient {
   }
 
   async deactivateSite(siteId: string) {
-    const response = await this.post(API_ENDPOINTS.site.deactivate, {
+    const fullUrl = this.baseUrl ? `${this.baseUrl}${API_ENDPOINTS.site.deactivate}` : API_ENDPOINTS.site.deactivate;
+    console.log('Deactivate site full URL:', fullUrl);
+    const response = await this.put(API_ENDPOINTS.site.deactivate, {
       data: {
         ids: [siteId],
         newStatus: 'deactivated',
       },
     });
+    console.log('Deactivate site response:', response.status());
     const json = await response.json();
     if (json.status !== 'success') {
       throw new Error(`Failed to deactivate site: ${JSON.stringify(json)}`);

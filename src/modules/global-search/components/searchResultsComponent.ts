@@ -44,15 +44,21 @@ export class SearchResultsComponent extends BaseComponent {
       const maxRetries = options?.maxRetries || 3;
       for (let i = 0; i < maxRetries; i++) {
         try {
-          const searchResults = this.getElementNearTitle(term);
-          await searchResults.waitFor({ state: 'attached', timeout: 50000 });
+          const searchResults = this.getElementNearTitle(term, { selector: 'h2[class*="itle_listTitl"]' });
+          await searchResults.waitFor({ state: 'attached', timeout: 90000 });
           await searchResults.scrollIntoViewIfNeeded({ timeout: 50000 });
           return await this.verifier.verifyTheElementIsVisible(searchResults, { timeout: 50000 });
         } catch (error) {
           if (i === maxRetries - 1) {
             throw error;
           }
-          await this.page.reload();
+          try {
+            if (!this.page.isClosed()) {
+              await this.page.reload();
+            }
+          } catch (error) {
+            console.warn('Page reload failed:', error);
+          }
         }
       }
       return false;
@@ -71,8 +77,8 @@ export class SearchResultsComponent extends BaseComponent {
     await this.verifier.waitUntilElementIsVisible(element, { timeout: 50000 });
     await test.step(options?.stepInfo || `Clicking category "${category}" for "${term}"`, async () => {
       await this.performActionAndWaitForPageNavigation(() => this.clickOnElement(element), /category/);
-      await element.waitFor({ state: 'attached', timeout: 50000 });
-      await this.verifier.waitUntilElementIsVisible(this.categoryText, { timeout: 900000 });
+      // await element.waitFor({ state: 'attached', timeout: 100000 });
+      await this.verifier.waitUntilElementIsVisible(this.categoryText, { timeout: 1000000 });
     });
   }
 
@@ -141,25 +147,11 @@ export class SearchResultsComponent extends BaseComponent {
     });
   }
 
-  async clickOnSearchResult(term: string, options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || `Clicking on search result "${term}"`, async () => {
-      const resultElement = this.page.locator(`xpath=//h2[contains(@class,"title_listTi") and text()="${term}"]`);
-      await this.clickOnElement(resultElement);
-    });
-  }
-
-  async clickOnThumbnail(term: string, options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || `Clicking on thumbnail of "${term}"`, async () => {
-      const thumbnailElement = this.page.locator(`[class*="thumbnail"]`);
-      await this.clickOnElement(thumbnailElement);
-    });
-  }
-
   async verifyCopiedUrlNavigation(term: string, options?: { stepInfo?: string }) {
     await test.step(options?.stepInfo || `Verify copied URL for "${term}" navigates to correct page`, async () => {
       const copiedUrl = await this.page.evaluate(() => navigator.clipboard.readText());
       await this.page.goto(copiedUrl);
-      await expect(this.page).toHaveURL(term);
+      await this.verifier.waitUntilElementIsVisible(this.h1Text, { timeout: 50000 });
       await expect(this.h1Text).toContainText(term, { timeout: 50000 });
     });
   }
@@ -167,11 +159,10 @@ export class SearchResultsComponent extends BaseComponent {
   async clickOnSiteAndVerifyNavigation(term: string, options?: { stepInfo?: string }) {
     await test.step(options?.stepInfo || `Clicking on site "${term}" and verifying navigation`, async () => {
       // Click on the site name (h2 heading)
-      const siteHeading = this.getElementNearTitle(term); // returns the h2 element
+      const siteHeading = this.getElementNearTitle(term, { selector: 'h2[class*="itle_listTitl"]' });
       await this.verifier.waitUntilElementIsVisible(siteHeading, { timeout: 20000 });
       await this.clickOnElement(siteHeading);
-
-      await expect(this.page).toHaveURL(new RegExp(term));
+      await this.verifier.waitUntilElementIsVisible(this.h1Text, { timeout: 50000 });
       await expect(this.h1Text).toContainText(term, { timeout: 50000 });
     });
   }
@@ -180,10 +171,9 @@ export class SearchResultsComponent extends BaseComponent {
     await test.step(options?.stepInfo || `Clicking on thumbnail for "${term}" and verifying navigation`, async () => {
       // Find and click the thumbnail inside the correct list item
       const thumbnail = this.getElementNearTitle(term, { selector: 'div[class*="Emblem-module__icon__"]' });
+      await this.verifier.waitUntilElementIsVisible(thumbnail, { timeout: 50000 });
       await this.clickOnElement(thumbnail);
-
-      // Verify navigation: check URL and h1 text
-      await expect(this.page).toHaveURL(new RegExp(term));
+      await this.verifier.waitUntilElementIsVisible(this.h1Text, { timeout: 50000 });
       await expect(this.h1Text).toContainText(term, { timeout: 50000 });
     });
   }

@@ -15,7 +15,7 @@ export class GlobalSearchBarComponent extends BaseComponent {
 
   async inputTermInSearchBar(term: string, options?: { stepInfo?: string }) {
     await test.step(options?.stepInfo || `Searching for "${term}" in global search`, async () => {
-      await this.typeInElement(this.searchInput, term);
+      await this.fillInElement(this.searchInput, term);
     });
   }
 
