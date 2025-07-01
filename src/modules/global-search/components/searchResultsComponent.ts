@@ -6,13 +6,6 @@ import { console } from 'inspector';
 import { text } from 'stream/consumers';
 
 export class SearchResultsComponent extends BaseComponent {
-  // readonly searchResultsContainer!: Locator;
-  // readonly resultTitle!: Locator;
-  // readonly resultCategory!: Locator;
-  // readonly resultThumbnail!: Locator;
-  // readonly siteLabel!: Locator;
-  // readonly siteIcon!: Locator;
-  // readonly lockIcon: Locator;
   readonly copiedText: Locator;
   readonly categoryText: Locator;
   readonly copyLinkButton: Locator;
@@ -77,7 +70,6 @@ export class SearchResultsComponent extends BaseComponent {
     await this.verifier.waitUntilElementIsVisible(element, { timeout: 50000 });
     await test.step(options?.stepInfo || `Clicking category "${category}" for "${term}"`, async () => {
       await this.performActionAndWaitForPageNavigation(() => this.clickOnElement(element), /category/);
-      // await element.waitFor({ state: 'attached', timeout: 100000 });
       await this.verifier.waitUntilElementIsVisible(this.categoryText, { timeout: 1000000 });
     });
   }
@@ -158,7 +150,6 @@ export class SearchResultsComponent extends BaseComponent {
 
   async clickOnSiteAndVerifyNavigation(term: string, options?: { stepInfo?: string }) {
     await test.step(options?.stepInfo || `Clicking on site "${term}" and verifying navigation`, async () => {
-      // Click on the site name (h2 heading)
       const siteHeading = this.getElementNearTitle(term, { selector: 'h2[class*="itle_listTitl"]' });
       await this.verifier.waitUntilElementIsVisible(siteHeading, { timeout: 20000 });
       await this.clickOnElement(siteHeading);
@@ -169,7 +160,6 @@ export class SearchResultsComponent extends BaseComponent {
 
   async clickOnThumbnailAndVerifyNavigation(term: string, options?: { stepInfo?: string }) {
     await test.step(options?.stepInfo || `Clicking on thumbnail for "${term}" and verifying navigation`, async () => {
-      // Find and click the thumbnail inside the correct list item
       const thumbnail = this.getElementNearTitle(term, { selector: 'div[class*="Emblem-module__icon__"]' });
       await this.verifier.waitUntilElementIsVisible(thumbnail, { timeout: 50000 });
       await this.clickOnElement(thumbnail);
