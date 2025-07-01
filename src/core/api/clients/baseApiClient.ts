@@ -109,7 +109,6 @@ export abstract class BaseApiClient extends HttpClient {
       throw new Error('No token or csrfid found in the cookies');
     }
 
-    console.log('Cookie:' + `token=${token}; csrfid=${csrfid}`);
     return {
       Cookie: `token=${token}; csrfid=${csrfid}`,
       'x-smtip-csrfid': csrfid,
