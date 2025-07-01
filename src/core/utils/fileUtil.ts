@@ -55,4 +55,8 @@ export class FileUtil {
   public static getFilePath(...paths: string[]): string {
     return path.join(...paths);
   }
+
+  public static fileExists(filePath: string): boolean {
+    return fs.existsSync(filePath);
+  }
 }

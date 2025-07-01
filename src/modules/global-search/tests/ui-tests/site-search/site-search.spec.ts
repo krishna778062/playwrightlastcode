@@ -144,14 +144,14 @@ test.describe(
             stepInfo: `Verifying clicking on category and navigated to "${data.category}"`,
           });
 
-          await globalSearchPage.navigateBack({ stepInfo: 'Navigating back to previous page' });
+          await globalSearchPage.goBackToPreviousPage({ stepInfo: 'Navigating back to previous page' });
 
           // Step: Click on the site name and verify navigation
           await globalSearchPage.getSearchResultsComponent().clickOnSiteAndVerifyNavigation(newSiteName, {
             stepInfo: `Clicking on site "${newSiteName}" and verifying navigation`,
           });
 
-          await globalSearchPage.navigateBack({ stepInfo: 'Navigating back to previous page' });
+          await globalSearchPage.goBackToPreviousPage({ stepInfo: 'Navigating back to previous page' });
 
           // Step: Click on the thumbnail and verify navigation
           await globalSearchPage.getSearchResultsComponent().clickOnThumbnailAndVerifyNavigation(newSiteName, {

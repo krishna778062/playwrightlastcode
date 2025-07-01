@@ -10,7 +10,7 @@ on:
         type: choice
         options:
           - 'chat'
-          - 'feed'
+          - 'platforms'
       priority_filter:
         description: 'Select test cases by priority'
         required: true
@@ -86,6 +86,13 @@ jobs:
           else
             npm run test:${{ inputs.module_name || 'chat' }} -- --grep="$PRIORITY" --workers=${{ inputs.workers }}
           fi
+
+      - name: Upload test report to github artifact backup
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: playwright-report
 
       - name: Set timestamp
         id: timestamp

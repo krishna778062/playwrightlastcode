@@ -1,7 +1,8 @@
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
 import { GroupChatsSectionComponent } from '@chat/components/groupChatsSectionComponent';
-import { DirectMessageComponent } from '@chat/components/directMessageComponent';
+import { DirectMessageSectionInInbox } from '@/src/modules/chat/components/directMessageSectionInChatInbox';
+import { ChatMentionsListSection } from './chatMentionsListSection';
 
 export class ChatInboxSideBarComponent extends BaseComponent {
   readonly createNewMessageOrGroupButton: Locator;
@@ -66,7 +67,7 @@ export class ChatInboxSideBarComponent extends BaseComponent {
     return new GroupChatsSectionComponent(this.page);
   }
 
-  getDirectMessageComponent(): DirectMessageComponent {
-    return new DirectMessageComponent(this.page);
+  getDirectMessageSectionInInbox(): DirectMessageSectionInInbox {
+    return new DirectMessageSectionInInbox(this.page);
   }
 }

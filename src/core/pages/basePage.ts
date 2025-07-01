@@ -33,7 +33,7 @@ export abstract class BasePage extends BaseActionUtil {
     await test.step(options?.stepInfo || `Loading page ${this.pageUrl}`, async () => {
       if (this.pageUrl !== '') {
         await this.page.goto(this.pageUrl, {
-          waitUntil: 'domcontentloaded',
+          waitUntil: 'load',
           timeout: options?.timeout || TIMEOUTS.MEDIUM,
         });
       } else {
@@ -61,16 +61,6 @@ export abstract class BasePage extends BaseActionUtil {
   async navigateToPage(givenPageUrl: string) {
     await test.step(`Navigating to page ${givenPageUrl}`, async () => {
       await this.navigateTo(givenPageUrl);
-    });
-  }
-
-  /**
-   *
-   * @param options
-   */
-  async navigateBack(options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || 'Navigate back to previous page', async () => {
-      await this.page.goBack();
     });
   }
 }
