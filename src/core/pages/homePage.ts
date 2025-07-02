@@ -40,6 +40,10 @@ export class HomePage extends BasePage<HomePageActionHelper, HomePageAssertionHe
     return this.footer;
   }
 
+  getGlobalSearchComponent(): GlobalSearchBarComponent {
+    return this.globalSearchComponent;
+  }
+
   /**
    * Verifies the home page is loaded
    */

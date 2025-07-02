@@ -114,4 +114,72 @@ export abstract class BaseApiClient extends HttpClient {
       'x-smtip-csrfid': csrfid,
     };
   }
+
+  async getCategory(category: string) {
+    const response = await this.post(API_ENDPOINTS.site.category, {
+      data: {
+        size: 16,
+        sortBy: 'alphabetical',
+        term: category,
+      },
+    });
+    const json = await response.json();
+    if (!json.result?.listOfItems?.length) throw new Error('Category not found');
+    return {
+      categoryId: json.result.listOfItems[0].categoryId,
+      name: json.result.listOfItems[0].name,
+    };
+  }
+
+  async createSite(siteType: string, category: string) {
+    const randomNum = Math.floor(Math.random() * 1000000 + 1);
+    const siteName = `AutomateUI_Test_${randomNum}`;
+    const categoryObj = await this.getCategory(category);
+
+    const response = await this.post(API_ENDPOINTS.site.url, {
+      data: {
+        data: {
+          access: siteType,
+          hasPages: true,
+          hasEvents: true,
+          hasAlbums: true,
+          hasDashboard: true,
+          landingPage: 'dashboard',
+          isContentFeedEnabled: true,
+          isContentSubmissionsEnabled: true,
+          isOwner: true,
+          isMembershipAutoApproved: false,
+          isBroadcast: false,
+          name: siteName,
+          category: {
+            categoryId: categoryObj.categoryId,
+            name: categoryObj.name,
+          },
+        },
+      },
+    });
+    const siteJson = await response.json();
+    console.log('Full JSON Response:', JSON.stringify(siteJson, null, 2));
+    if (siteJson.status !== 'success' || !siteJson.result?.siteId) {
+      throw new Error(`Site creation failed. Response: ${JSON.stringify(siteJson)}`);
+    }
+    return { siteName: siteName, siteId: siteJson.result.siteId };
+  }
+
+  async deactivateSite(siteId: string) {
+    const fullUrl = this.baseUrl ? `${this.baseUrl}${API_ENDPOINTS.site.deactivate}` : API_ENDPOINTS.site.deactivate;
+    console.log('Deactivate site full URL:', fullUrl);
+    const response = await this.put(API_ENDPOINTS.site.deactivate, {
+      data: {
+        ids: [siteId],
+        newStatus: 'deactivated',
+      },
+    });
+    console.log('Deactivate site response:', response.status());
+    const json = await response.json();
+    if (json.status !== 'success') {
+      throw new Error(`Failed to deactivate site: ${JSON.stringify(json)}`);
+    }
+    return json;
+  }
 }
