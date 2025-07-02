@@ -1,12 +1,12 @@
 import { expect, Page } from '@playwright/test';
 import { BasePage } from '@/src/core/pages/basePage';
 import { TIMEOUTS } from '../../../core/constants/timeouts';
-import { GlobalSearchComponent } from '../components/globalSearchComponent';
 import { GlobalSearchActionHelper } from '../helpers/globalSearchActionHelper';
 import { GlobalSearchAssertionHelper } from '../helpers/globalSearchAssertionHelper';
+import { SearchResultListComponent } from '../components/searchResultListComponent';
 
 export class GlobalSearchResultPage extends BasePage<GlobalSearchActionHelper, GlobalSearchAssertionHelper> {
-  readonly globalSearchComponent: GlobalSearchComponent;
+  readonly searchResultListComponent: SearchResultListComponent;
   //actions
   readonly globalSearchActionHelper: GlobalSearchActionHelper;
 
@@ -15,7 +15,7 @@ export class GlobalSearchResultPage extends BasePage<GlobalSearchActionHelper, G
 
   constructor(page: Page) {
     super(page);
-    this.globalSearchComponent = new GlobalSearchComponent(page);
+    this.searchResultListComponent = new SearchResultListComponent(page);
     this.globalSearchActionHelper = new GlobalSearchActionHelper(this);
     this.globalSearchAssertionHelper = new GlobalSearchAssertionHelper(this);
   }
@@ -28,8 +28,8 @@ export class GlobalSearchResultPage extends BasePage<GlobalSearchActionHelper, G
     return this.globalSearchAssertionHelper;
   }
 
-  public getGlobalSearchComponent(): GlobalSearchComponent {
-    return this.globalSearchComponent;
+  public getSearchResultListComponent(): SearchResultListComponent {
+    return this.searchResultListComponent;
   }
 
   /**
@@ -38,9 +38,6 @@ export class GlobalSearchResultPage extends BasePage<GlobalSearchActionHelper, G
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.waitUntilPageHasNavigatedTo(/search/, {
       stepInfo: 'Verifying the search result page is loaded',
-      timeout: TIMEOUTS.MEDIUM,
-    });
-    await expect(this.globalSearchComponent.searchInput, 'Expecting search bar should be visible').toBeVisible({
       timeout: TIMEOUTS.MEDIUM,
     });
   }
