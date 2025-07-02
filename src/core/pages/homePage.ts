@@ -5,24 +5,31 @@ import { TopNavBarComponent } from '@core/components/topNavBarComponent';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { ChatAppPage } from '@chat/pages/chatsPage';
 import { FooterComponent } from '@core/components/footerComponent';
-import { HomeActionHelper } from '@core/helpers/homeActionHelper';
-import { HomeAssertionHelper } from '@core/helpers/homeAssertionHelper';
+import { HomePageActionHelper } from '@core/helpers/homePageActionHelper';
+import { HomePageAssertionHelper } from '@core/helpers/homePageAssertionHelper';
 
-export class HomePage extends BasePage<HomeActionHelper, HomeAssertionHelper> {
+export class HomePage extends BasePage<HomePageActionHelper, HomePageAssertionHelper> {
   readonly topNavBarComponent: TopNavBarComponent;
   readonly footer: FooterComponent;
 
   //actions
-  readonly homeActionHelper: HomeActionHelper;
+  readonly homeActionHelper: HomePageActionHelper;
 
   //assertions
-  readonly homeAssertionHelper: HomeAssertionHelper;
+  readonly homeAssertionHelper: HomePageAssertionHelper;
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.HOME_PAGE);
     this.topNavBarComponent = new TopNavBarComponent(page);
     this.footer = new FooterComponent(page, this.page.locator('#site-footer'));
-    this.homeActionHelper = new HomeActionHelper(this);
-    this.homeAssertionHelper = new HomeAssertionHelper(this);
+    this.homeActionHelper = new HomePageActionHelper(this);
+    this.homeAssertionHelper = new HomePageAssertionHelper(this);
+  }
+
+  get actions(): HomePageActionHelper {
+    return this.homeActionHelper;
+  }
+  get assertions(): HomePageAssertionHelper {
+    return this.homeAssertionHelper;
   }
 
   getTopNavBarComponent(): TopNavBarComponent {

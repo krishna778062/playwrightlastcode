@@ -255,7 +255,7 @@ export class BaseVerificationUtil {
    * @param options - The options to pass to the verification
    */
   async waitUntilPageHasNavigatedTo(
-    url: string,
+    url: string | RegExp,
     options?: {
       timeout?: number;
       stepInfo?: string;

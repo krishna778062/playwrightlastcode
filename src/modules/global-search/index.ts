@@ -2,17 +2,13 @@
 export { GlobalSearchComponent } from './components/globalSearchComponent';
 
 // Pages
-export { GlobalSearchPage } from './pages/globalSearchPage';
+export { GlobalSearchResultPage as GlobalSearchPage } from './pages/globalSearchResultPage';
 
 // Helpers
 export { GlobalSearchTestHelper } from './helpers/globalSearchTestHelper';
 
 // Types
-export type {
-  GlobalSearchTestSetupConfig,
-  SearchResult,
-  GlobalSearchTestData,
-} from './types/global-search.type';
+export type { GlobalSearchTestSetupConfig, SearchResult, GlobalSearchTestData } from './types/global-search.type';
 
 // Constants
 export { GlobalSearchTestSuite } from './constants/testSuite';

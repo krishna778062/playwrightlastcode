@@ -5,7 +5,7 @@ import { GlobalSearchComponent } from '../components/globalSearchComponent';
 import { GlobalSearchActionHelper } from '../helpers/globalSearchActionHelper';
 import { GlobalSearchAssertionHelper } from '../helpers/globalSearchAssertionHelper';
 
-export class GlobalSearchPage extends BasePage<GlobalSearchActionHelper, GlobalSearchAssertionHelper> {
+export class GlobalSearchResultPage extends BasePage<GlobalSearchActionHelper, GlobalSearchAssertionHelper> {
   readonly globalSearchComponent: GlobalSearchComponent;
   //actions
   readonly globalSearchActionHelper: GlobalSearchActionHelper;
@@ -32,7 +32,14 @@ export class GlobalSearchPage extends BasePage<GlobalSearchActionHelper, GlobalS
     return this.globalSearchComponent;
   }
 
+  /**
+   * Verifies the search result page is loaded
+   */
   async verifyThePageIsLoaded(): Promise<void> {
+    await this.verifier.waitUntilPageHasNavigatedTo(/search/, {
+      stepInfo: 'Verifying the search result page is loaded',
+      timeout: TIMEOUTS.MEDIUM,
+    });
     await expect(this.globalSearchComponent.searchInput, 'Expecting search bar should be visible').toBeVisible({
       timeout: TIMEOUTS.MEDIUM,
     });

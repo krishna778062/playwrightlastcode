@@ -3,8 +3,6 @@ import { BaseComponent } from '@/src/core/components/baseComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
 
 export class GlobalSearchComponent extends BaseComponent {
-  readonly searchInput: Locator;
-  readonly searchButton: Locator;
   readonly searchResultsContainer: Locator;
   readonly resultTitle: Locator;
   readonly resultCategory: Locator;
@@ -17,8 +15,6 @@ export class GlobalSearchComponent extends BaseComponent {
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
-    this.searchInput = this.page.getByPlaceholder('Search', { exact: false });
-    this.searchButton = this.page.locator('button[aria-label="Search"]');
     this.searchResultsContainer = this.page.locator('xpath=(//*[contains(@class,"eContainer-module")])[1]');
     this.resultTitle = this.page.locator('xpath=//h2[contains(@class,"title_listTi")]');
     this.resultCategory = this.page.locator('xpath=//*[contains(@class,"category")]');
@@ -28,19 +24,6 @@ export class GlobalSearchComponent extends BaseComponent {
     this.copyLinkButton = this.page.locator('xpath=//*[contains(@class,"copy-link")]');
     // this.lockIcon = this.page.locator('xpath=//*[contains(@class,"lock-icon")]');
     this.copiedText = this.page.getByText('Copied');
-  }
-
-  async inputTermInSearchBar(term: string, options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || `Searching for "${term}" in global search`, async () => {
-      await this.typeInElement(this.searchInput, term);
-    });
-  }
-
-  async clickSearchButton(options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || `Clicking on Search button`, async () => {
-      await this.clickOnElement(this.searchButton);
-      await this.verifier.waitUntilElementIsVisible(this.searchResultsContainer);
-    });
   }
 
   async verifyResultIsDisplayed(term: string, options?: { stepInfo?: string }): Promise<boolean> {

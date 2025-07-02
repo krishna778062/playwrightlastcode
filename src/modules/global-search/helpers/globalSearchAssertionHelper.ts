@@ -1,7 +1,7 @@
-import { GlobalSearchPage } from '../pages/globalSearchPage';
+import { GlobalSearchResultPage } from '../pages/globalSearchResultPage';
 
 export class GlobalSearchAssertionHelper {
-  constructor(readonly globalSearchPage: GlobalSearchPage) {
+  constructor(readonly globalSearchPage: GlobalSearchResultPage) {
     this.globalSearchPage = globalSearchPage;
   }
 }
