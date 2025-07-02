@@ -27,10 +27,6 @@ test.describe(
     tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.SITE_SEARCH],
   },
   () => {
-    test.describe.configure({
-      timeout: SITE_SEARCH_TEST_DATA.CONFIG.DEFAULT_TIMEOUT,
-      mode: 'default',
-    });
     let globalSearchTestHelper: GlobalSearchTestHelper;
 
     test.beforeEach(`Setting up the test environment for site search`, async ({ browser }) => {

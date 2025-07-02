@@ -5,14 +5,24 @@ import { TopNavBarComponent } from '@core/components/topNavBarComponent';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { ChatAppPage } from '@chat/pages/chatsPage';
 import { FooterComponent } from '@core/components/footerComponent';
+import { HomeActionHelper } from '@core/helpers/homeActionHelper';
+import { HomeAssertionHelper } from '@core/helpers/homeAssertionHelper';
 
-export class HomePage extends BasePage {
+export class HomePage extends BasePage<HomeActionHelper, HomeAssertionHelper> {
   readonly topNavBarComponent: TopNavBarComponent;
   readonly footer: FooterComponent;
+
+  //actions
+  readonly homeActionHelper: HomeActionHelper;
+
+  //assertions
+  readonly homeAssertionHelper: HomeAssertionHelper;
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.HOME_PAGE);
     this.topNavBarComponent = new TopNavBarComponent(page);
     this.footer = new FooterComponent(page, this.page.locator('#site-footer'));
+    this.homeActionHelper = new HomeActionHelper(this);
+    this.homeAssertionHelper = new HomeAssertionHelper(this);
   }
 
   getTopNavBarComponent(): TopNavBarComponent {

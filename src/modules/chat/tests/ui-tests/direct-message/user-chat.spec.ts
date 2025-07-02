@@ -32,37 +32,37 @@ test.describe('Direct Message between multiple users', { tag: ['@direct-message'
         zephyrTestId: 'CONT-5376',
       });
       //user 1 creates new chat with user 2
-      await user1ChatPage.getActions().openDirectMessageWithUser(user2.fullName, {
+      await user1ChatPage.actions.openDirectMessageWithUser(user2.fullName, {
         stepInfo: `User 1 opening direct message with ${user2.fullName}`,
       });
 
       //now user 1 sends message to user 2
-      await user1ChatPage.getActions().sendMessage(CHAT_TEST_DATA.MESSAGES.USER1.INITIAL, {
+      await user1ChatPage.actions.sendMessage(CHAT_TEST_DATA.MESSAGES.USER1.INITIAL, {
         stepInfo: `User 1 sending message to user 2`,
       });
 
       //verify user 2 sees the message appearing in his inbox
-      await user2ChatPage.getActions().openUserDirectMessageItemInInbox(user1.fullName, {
+      await user2ChatPage.actions.openUserDirectMessageItemInInbox(user1.fullName, {
         stepInfo: `Verifying user 2 is able to see user 1 in his inbox and opening the direct message with user 1`,
         timeout: 40_000,
       });
 
-      await user2ChatPage.getActions().sendMessage(CHAT_TEST_DATA.MESSAGES.USER2.INITIAL, {
+      await user2ChatPage.actions.sendMessage(CHAT_TEST_DATA.MESSAGES.USER2.INITIAL, {
         stepInfo: `User 2 sending message ${CHAT_TEST_DATA.MESSAGES.USER2.INITIAL} to user 1`,
       });
 
       //verify user 1 is able to see the message from user 2
-      await user1ChatPage.getAssertions().verifyMessageIsVisible(CHAT_TEST_DATA.MESSAGES.USER2.INITIAL, {
+      await user1ChatPage.assertions.verifyMessageIsVisible(CHAT_TEST_DATA.MESSAGES.USER2.INITIAL, {
         stepInfo: `Verifying user 1 is able to see the message ${CHAT_TEST_DATA.MESSAGES.USER2.INITIAL} from user 2`,
       });
 
       //now user 1 sends message to user 2 in DM window
-      await user1ChatPage.getActions().sendMessage(CHAT_TEST_DATA.MESSAGES.USER1.INITIAL, {
+      await user1ChatPage.actions.sendMessage(CHAT_TEST_DATA.MESSAGES.USER1.INITIAL, {
         stepInfo: `User 1 sending message ${CHAT_TEST_DATA.MESSAGES.USER1.INITIAL} to user 2`,
       });
 
       //we will verify that user 2 is able to see the message from user 1 in his DM window
-      await user2ChatPage.getAssertions().verifyMessageIsVisible(CHAT_TEST_DATA.MESSAGES.USER1.INITIAL, {
+      await user2ChatPage.assertions.verifyMessageIsVisible(CHAT_TEST_DATA.MESSAGES.USER1.INITIAL, {
         stepInfo: `Verifying user 2 is able to see the message ${CHAT_TEST_DATA.MESSAGES.USER1.INITIAL} from user 1`,
       });
     }

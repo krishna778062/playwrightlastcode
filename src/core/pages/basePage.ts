@@ -3,7 +3,7 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 import { BaseActionUtil } from '../utils/baseActionUtil';
 import { BaseVerificationUtil } from '../utils/baseVerificationUtil';
 
-export abstract class BasePage extends BaseActionUtil {
+export abstract class BasePage<TActions, TAssertions> extends BaseActionUtil {
   readonly verifier: BaseVerificationUtil;
   readonly pageUrl: string;
   constructor(page: Page, pageUrl?: string) {
@@ -11,6 +11,10 @@ export abstract class BasePage extends BaseActionUtil {
     this.verifier = new BaseVerificationUtil(page);
     this.pageUrl = pageUrl || '';
   }
+
+  abstract get actions(): TActions;
+
+  abstract get assertions(): TAssertions;
 
   /**
    * @description

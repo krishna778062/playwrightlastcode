@@ -30,7 +30,7 @@ export class GlobalSearchComponent extends BaseComponent {
     this.copiedText = this.page.getByText('Copied');
   }
 
-  async InputTermInSearchBar(term: string, options?: { stepInfo?: string }) {
+  async inputTermInSearchBar(term: string, options?: { stepInfo?: string }) {
     await test.step(options?.stepInfo || `Searching for "${term}" in global search`, async () => {
       await this.typeInElement(this.searchInput, term);
     });

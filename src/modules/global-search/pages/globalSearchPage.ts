@@ -2,16 +2,33 @@ import { expect, Page } from '@playwright/test';
 import { BasePage } from '@/src/core/pages/basePage';
 import { TIMEOUTS } from '../../../core/constants/timeouts';
 import { GlobalSearchComponent } from '../components/globalSearchComponent';
+import { GlobalSearchActionHelper } from '../helpers/globalSearchActionHelper';
+import { GlobalSearchAssertionHelper } from '../helpers/globalSearchAssertionHelper';
 
-export class GlobalSearchPage extends BasePage {
-  private globalSearchComponent: GlobalSearchComponent;
+export class GlobalSearchPage extends BasePage<GlobalSearchActionHelper, GlobalSearchAssertionHelper> {
+  readonly globalSearchComponent: GlobalSearchComponent;
+  //actions
+  readonly globalSearchActionHelper: GlobalSearchActionHelper;
+
+  //assertions
+  readonly globalSearchAssertionHelper: GlobalSearchAssertionHelper;
 
   constructor(page: Page) {
     super(page);
     this.globalSearchComponent = new GlobalSearchComponent(page);
+    this.globalSearchActionHelper = new GlobalSearchActionHelper(this);
+    this.globalSearchAssertionHelper = new GlobalSearchAssertionHelper(this);
   }
 
-  getGlobalSearchComponent(): GlobalSearchComponent {
+  get actions(): GlobalSearchActionHelper {
+    return this.globalSearchActionHelper;
+  }
+
+  get assertions(): GlobalSearchAssertionHelper {
+    return this.globalSearchAssertionHelper;
+  }
+
+  public getGlobalSearchComponent(): GlobalSearchComponent {
     return this.globalSearchComponent;
   }
 
