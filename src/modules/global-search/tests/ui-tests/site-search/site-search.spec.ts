@@ -64,6 +64,7 @@ test.describe(
           await siteResultItem.verifyThumbnailIsDisplayed();
           await siteResultItem.verifyLockIconVisibility(testData.siteType);
           await siteResultItem.verifyNavigationWithCategoryLink(categoryObj.categoryId);
+          await siteResultItem.goBackToPreviousPage();
           await siteResultItem.hoverOverCardAndCopyLink();
           await siteResultItem.verifyCopiedURL(newSiteId);
           await siteResultItem.goBackToPreviousPage();
