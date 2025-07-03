@@ -2,24 +2,9 @@ import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures
 import { tagTest } from '@core/utils/testDecorator';
 import { TestPriority } from '@core/constants/testPriority';
 import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
-import { SITE_SEARCH_TEST_DATA } from '@/src/modules/global-search/tests/test-data/site-search.test-data';
-import { SiteSearchTestData } from '@/src/modules/global-search/types/site-search.type';
+import { SITE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/site-search.test-data';
 import { TestGroupType } from '@core/constants/testType';
 import { HomePage } from '@/src/core/pages/homePage';
-
-// Test data for site search scenarios
-const siteSearchTestData: SiteSearchTestData[] = [
-  {
-    siteType: SITE_SEARCH_TEST_DATA.SITE_TYPES.PUBLIC,
-    category: SITE_SEARCH_TEST_DATA.CATEGORIES.CATEGORYNAME,
-    label: SITE_SEARCH_TEST_DATA.LABELS.SITE,
-  },
-  {
-    siteType: SITE_SEARCH_TEST_DATA.SITE_TYPES.PRIVATE,
-    category: SITE_SEARCH_TEST_DATA.CATEGORIES.CATEGORYNAME,
-    label: SITE_SEARCH_TEST_DATA.LABELS.SITE,
-  },
-];
 
 test.describe(
   `Test Global Search - Site Search functionality`,
@@ -41,9 +26,9 @@ test.describe(
       await appManagerApiClient.getSiteManagementService().deactivateSite(newSiteId);
     });
 
-    for (const data of siteSearchTestData) {
+    for (const testData of SITE_SEARCH_TEST_DATA) {
       test(
-        `Verify Site Search results for a new ${data.siteType} site in category "${data.category}"`,
+        `Verify Site Search results for a new ${testData.siteType} site in category "${testData.category}"`,
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE],
         },
@@ -54,7 +39,7 @@ test.describe(
           });
           const randomNum = Math.floor(Math.random() * 1000000 + 1);
           const newSiteName = `AutomateUI_Test_${randomNum}`;
-          const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(data.category);
+          const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
           const result = await appManagerApiClient.getSiteManagementService().addNewSite({
             name: newSiteName,
             category: {
@@ -75,9 +60,9 @@ test.describe(
 
           await globalSearchResultPage.assertions.verifySiteResultItemDataPoints(siteResultItem, {
             siteName: newSiteName,
-            siteType: data.siteType,
-            category: data.category,
-            label: data.label,
+            siteType: testData.siteType,
+            category: testData.category,
+            label: testData.label,
             description: '',
           });
 
