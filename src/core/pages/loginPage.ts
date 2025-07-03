@@ -3,12 +3,20 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@/src/core/pages/basePage';
 import { Locator, Page, expect, test } from '@playwright/test';
 import { HomePage } from '@core/pages/homePage';
+import { LoginPageActionHelper } from '@core/helpers/loginPageActionHelper';
+import { LoginPageAssertionHelper } from '@core/helpers/loginPageAssertionHelper';
 
-export class LoginPage extends BasePage {
+export class LoginPage extends BasePage<LoginPageActionHelper, LoginPageAssertionHelper> {
   readonly usernameInput: Locator;
   readonly continueButton: Locator;
   readonly passwordInput: Locator;
   readonly signInButton: Locator;
+
+  //actions
+  readonly loginActionHelper: LoginPageActionHelper;
+
+  //assertions
+  readonly loginAssertionHelper: LoginPageAssertionHelper;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.LOGIN_PAGE);
@@ -16,6 +24,16 @@ export class LoginPage extends BasePage {
     this.continueButton = this.page.getByRole('button', { name: 'Continue' });
     this.passwordInput = this.page.locator("input[name='inputPassword']");
     this.signInButton = this.page.getByRole('button', { name: 'Sign in' });
+    this.loginActionHelper = new LoginPageActionHelper(this);
+    this.loginAssertionHelper = new LoginPageAssertionHelper(this);
+  }
+
+  get actions(): LoginPageActionHelper {
+    return this.loginActionHelper;
+  }
+
+  get assertions(): LoginPageAssertionHelper {
+    return this.loginAssertionHelper;
   }
 
   /**
@@ -26,43 +44,6 @@ export class LoginPage extends BasePage {
       await expect(this.usernameInput, `expecting username input to be visible`).toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
       });
-    });
-  }
-
-  /**
-   * Logs in to the application
-   * @param username - The username to log in with
-   * @param password - The password to log in with
-   */
-  async performLogin(username: string, password: string, options?: { timeout?: number }): Promise<HomePage> {
-    await this.performLoginWithPassword(username, password);
-    await this.page.waitForURL('/home', { timeout: options?.timeout || TIMEOUTS.MEDIUM });
-    return new HomePage(this.page);
-  }
-
-  async performLoginWithPassword(
-    username: string,
-    password: string,
-    options?: {
-      timeout?: number;
-    }
-  ) {
-    await test.step(`Logging in with username ${username} and password ${password}`, async () => {
-      await this.usernameInput.fill(username);
-      await this.continueButton.click();
-      await this.page.waitForURL(/authenticate/, {
-        timeout: options?.timeout || TIMEOUTS.MEDIUM,
-      });
-      await this.passwordInput.fill(password);
-      await this.signInButton.click();
-      // await test.step('check page rendering', async step => {
-      // const screenshot = await this.page.screenshot();
-      /**
-       * I have added this for e.g purpose, we can use this extensively for APIs though
-       */
-      // await step.attach('screenshot', { body: screenshot, contentType: 'image/png' });
-      // await step.attach('userInput', { body: username, contentType: 'text/plain' });
-      // });
     });
   }
 }

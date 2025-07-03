@@ -29,10 +29,10 @@ test.describe(
       },
       async () => {
         //now open conversation with user 2
-        await user1ChatPage.getActions().openDirectMessageWithUser(user2.fullName, {
+        await user1ChatPage.actions.openDirectMessageWithUser(user2.fullName, {
           stepInfo: `User 1 opening direct message with ${user2.fullName}`,
         });
-        await user1ChatPage.getActions().sendAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
+        await user1ChatPage.actions.sendAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
           stepInfo: `User 1 sending attachment to ${user2.fullName}`,
         });
       }
@@ -46,16 +46,17 @@ test.describe(
       async () => {
         const user2Name = user2.fullName;
         //now open conversation with user 2
-        await user1ChatPage.getActions().openDirectMessageWithUser(user2Name, {
+        await user1ChatPage.actions.openDirectMessageWithUser(user2Name, {
           stepInfo: `User 1 opening direct message with ${user2Name}`,
         });
-        await user1ChatPage
-          .getActions()
-          .addAttachment('src/modules/chat/test-data/static-files/unsupportedFiles/websocketConnection.jmx', {
+        await user1ChatPage.actions.addAttachment(
+          'src/modules/chat/test-data/static-files/unsupportedFiles/websocketConnection.jmx',
+          {
             stepInfo: `User 1 sending attachment to ${user2Name} which is not supported`,
             isItValidFile: false,
-          });
-        await user1ChatPage.getAssertions().verifyUnsupportedFileHandling({
+          }
+        );
+        await user1ChatPage.assertions.verifyUnsupportedFileHandling({
           stepInfo: `User 1 Verifying the unsupported file message is visible`,
         });
       }
@@ -69,10 +70,10 @@ test.describe(
       async () => {
         const user2Name = user2.fullName;
         //now open conversation with user 2
-        await user1ChatPage.getActions().openDirectMessageWithUser(user2Name, {
+        await user1ChatPage.actions.openDirectMessageWithUser(user2Name, {
           stepInfo: `User 1 opening direct message with ${user2Name}`,
         });
-        await user1ChatPage.getActions().sendAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
+        await user1ChatPage.actions.sendAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
           stepInfo: `User 1 sending attachment to ${user2Name} which is larger than 100 MB`,
         });
       }
@@ -86,11 +87,11 @@ test.describe(
       async () => {
         const user2Name = user2.fullName;
         //now open conversation with user 2
-        await user1ChatPage.getActions().openDirectMessageWithUser(user2Name, {
+        await user1ChatPage.actions.openDirectMessageWithUser(user2Name, {
           stepInfo: `User 1 opening direct message with ${user2Name}`,
         });
         for (let i = 0; i < 9; i++) {
-          await user1ChatPage.getActions().addAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
+          await user1ChatPage.actions.addAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
             stepInfo: `User 1 sending attachment to ${user2Name}`,
           });
           await user1ChatPage
@@ -98,7 +99,7 @@ test.describe(
             .getChatEditorComponent()
             .addMediaAttachmentButton.setInputFiles([]);
         }
-        await user1ChatPage.getActions().sendAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
+        await user1ChatPage.actions.sendAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
           stepInfo: `User 1 sending attachment to ${user2Name}`,
         });
       }
@@ -112,11 +113,11 @@ test.describe(
       async () => {
         const user2Name = user2.fullName;
         //now open conversation with user 2
-        await user1ChatPage.getActions().openDirectMessageWithUser(user2Name, {
+        await user1ChatPage.actions.openDirectMessageWithUser(user2Name, {
           stepInfo: `User 1 opening direct message with ${user2Name}`,
         });
         for (let i = 0; i < 10; i++) {
-          await user1ChatPage.getActions().addAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
+          await user1ChatPage.actions.addAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
             stepInfo: `User 1 sending attachment to ${user2Name}`,
           });
           await user1ChatPage
@@ -124,7 +125,7 @@ test.describe(
             .getChatEditorComponent()
             .addMediaAttachmentButton.setInputFiles([]);
         }
-        await user1ChatPage.getActions().addAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
+        await user1ChatPage.actions.addAttachment('src/modules/chat/test-data/static-files/pdfFiles/1.pdf', {
           stepInfo: `User 1 sending attachment to ${user2Name}`,
           isItValidFile: false,
         });
@@ -143,16 +144,14 @@ test.describe(
       async ({ user1Page }) => {
         const user2Name = user2.fullName;
         //now open conversation with user 2
-        await user1ChatPage.getActions().openDirectMessageWithUser(user2Name, {
+        await user1ChatPage.actions.openDirectMessageWithUser(user2Name, {
           stepInfo: `User 1 opening direct message with ${user2Name}`,
         });
-        await user1ChatPage
-          .getActions()
-          .sendAttachment('src/modules/chat/test-data/static-files/imageFiles/Image1.jpg', {
-            stepInfo: `User 1 sending attachment to ${user2Name}`,
-          });
+        await user1ChatPage.actions.sendAttachment('src/modules/chat/test-data/static-files/imageFiles/Image1.jpg', {
+          stepInfo: `User 1 sending attachment to ${user2Name}`,
+        });
         await user1ChatPage.sleep(2000);
-        const user1MessageWithAttachment = await user1ChatPage.getActions().getLastMessageWithAttachment('image');
+        const user1MessageWithAttachment = await user1ChatPage.actions.getLastMessageWithAttachment('image');
         await expect(user1MessageWithAttachment).toBeVisible();
 
         //open the image attachement for preview
@@ -180,18 +179,16 @@ test.describe(
       },
       async () => {
         const user2Name = user2.fullName; //now open conversation with user 2
-        await user1ChatPage.getActions().openDirectMessageWithUser(user2Name, {
+        await user1ChatPage.actions.openDirectMessageWithUser(user2Name, {
           stepInfo: `User 1 opening direct message with ${user2Name}`,
         });
         //verify user is able to add and delete attachment in editor
-        await user1ChatPage
-          .getAssertions()
-          .verifyUserIsAbleToAddAndDeleteAttachmentInEditor(
-            'src/modules/chat/test-data/static-files/imageFiles/Image1.jpg',
-            {
-              stepInfo: `Verifying user 1 is able to add and delete attachment in editor`,
-            }
-          );
+        await user1ChatPage.assertions.verifyUserIsAbleToAddAndDeleteAttachmentInEditor(
+          'src/modules/chat/test-data/static-files/imageFiles/Image1.jpg',
+          {
+            stepInfo: `Verifying user 1 is able to add and delete attachment in editor`,
+          }
+        );
       }
     );
 
@@ -203,14 +200,12 @@ test.describe(
       async () => {
         const user2Name = user2.fullName;
         //now open conversation with user 2
-        await user1ChatPage.getActions().openDirectMessageWithUser(user2Name, {
+        await user1ChatPage.actions.openDirectMessageWithUser(user2Name, {
           stepInfo: `User 1 opening direct message with ${user2Name}`,
         });
-        await user1ChatPage
-          .getActions()
-          .sendAttachment('src/modules/chat/test-data/static-files/videoFiles/video1.mp4', {
-            stepInfo: `User 1 sending attachment to ${user2Name}`,
-          });
+        await user1ChatPage.actions.sendAttachment('src/modules/chat/test-data/static-files/videoFiles/video1.mp4', {
+          stepInfo: `User 1 sending attachment to ${user2Name}`,
+        });
       }
     );
   }

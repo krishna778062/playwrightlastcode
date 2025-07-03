@@ -9,7 +9,7 @@ import { DirectMessageSectionInInbox } from '../components/directMessageSectionI
 import { ChatActionHelper } from '../helpers/chatActionHelper';
 import { ChatAssertionHelper } from '../helpers/chatAssertionHelper';
 
-export class ChatAppPage extends BasePage {
+export class ChatAppPage extends BasePage<ChatActionHelper, ChatAssertionHelper> {
   protected readonly chatAppContainer: Locator;
   protected readonly inboxSideBarContainer: Locator;
   protected readonly groupChatWindowContainer: Locator;
@@ -80,11 +80,11 @@ export class ChatAppPage extends BasePage {
     return this.imageAttachementPreviewModal;
   }
 
-  public getActions(): ChatActionHelper {
+  public get actions(): ChatActionHelper {
     return this.chatActionHelper;
   }
 
-  public getAssertions(): ChatAssertionHelper {
+  public get assertions(): ChatAssertionHelper {
     return this.chatAssertionHelper;
   }
 }

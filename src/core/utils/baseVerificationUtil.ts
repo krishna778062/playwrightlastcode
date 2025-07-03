@@ -1,4 +1,4 @@
-import { expect, Locator, Page } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 export class BaseVerificationUtil {
   constructor(readonly page: Page) {
@@ -160,7 +160,7 @@ export class BaseVerificationUtil {
    * @param text - The text to verify
    * @param options - The options to pass to the verification
    */
-  async verfifyEelementHasText(
+  async verifyElementHasText(
     locator: Locator,
     text: string,
     options?: {
@@ -192,9 +192,11 @@ export class BaseVerificationUtil {
     }
   ) {
     try {
-      await locator.waitFor({
-        state: 'visible',
-        timeout: options?.timeout || 8_000,
+      await test.step(options?.stepInfo || `Waiting for element to be visible`, async () => {
+        await locator.waitFor({
+          state: 'visible',
+          timeout: options?.timeout || 8_000,
+        });
       });
     } catch (error) {
       throw new Error(
@@ -255,15 +257,17 @@ export class BaseVerificationUtil {
    * @param options - The options to pass to the verification
    */
   async waitUntilPageHasNavigatedTo(
-    url: string,
+    url: string | RegExp,
     options?: {
       timeout?: number;
       stepInfo?: string;
     }
   ) {
     try {
-      await this.page.waitForURL(url, {
-        timeout: options?.timeout || 8_000,
+      await test.step(options?.stepInfo || `Waiting for page to navigate to ${url}`, async () => {
+        await this.page.waitForURL(url, {
+          timeout: options?.timeout || 10_000,
+        });
       });
     } catch (error) {
       throw new Error(

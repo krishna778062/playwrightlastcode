@@ -124,7 +124,7 @@ export class ChatActionHelper {
     options?: { stepInfo?: string; timeout?: number }
   ): Promise<void> {
     await test.step(options?.stepInfo || `Opening direct message for ${userName} from inbox`, async () => {
-      await this.chatPage.getActions().openUserDirectMessageItemInInboxForUser(userName, { timeout: options?.timeout });
+      await this.chatPage.actions.openUserDirectMessageItemInInboxForUser(userName, { timeout: options?.timeout });
     });
   }
 
@@ -236,13 +236,15 @@ export class ChatActionHelper {
   }
 
   async acceptIncomingCallInGroupChat(groupName: string, callType: 'audio' | 'video', options?: { stepInfo?: string }) {
-    const incomingCallComponent = await this.chatPage
-      .getAssertions()
-      .verifyIncomingCallIsReceivedFromCallerInGroupChat(groupName, callType, {
+    const incomingCallComponent = await this.chatPage.assertions.verifyIncomingCallIsReceivedFromCallerInGroupChat(
+      groupName,
+      callType,
+      {
         stepInfo:
           options?.stepInfo ??
           `Verifying current user sees notification/popup for incoming ${callType} call from group name ${groupName}`,
-      });
+      }
+    );
     return await incomingCallComponent.acceptIncomingCall({
       stepInfo: options?.stepInfo ?? `User accepting incoming ${callType} call from group name ${groupName}`,
     });

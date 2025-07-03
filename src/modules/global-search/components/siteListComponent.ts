@@ -1,0 +1,36 @@
+import { ResultListingComponent } from './resultsListComponent';
+import { Locator, Page, test } from '@playwright/test';
+
+export class SiteListComponent extends ResultListingComponent {
+  readonly category: Locator;
+
+  constructor(page: Page, rootLocator?: Locator) {
+    super(page, rootLocator);
+    this.category = this.rootLocator.locator("[aria-label*='Uncategorized'] span");
+  }
+
+  async clickOnCategoryLink() {
+    await test.step(`Clicking on the Category link`, async () => {
+      await this.clickOnElement(this.category);
+    });
+  }
+
+  async verifyCategoryIsDisplayed(expectedCategory: string) {
+    await test.step(`Verifying category "${expectedCategory}" is displayed in the result item`, async () => {
+      await this.verifier.verifyElementHasText(this.category, expectedCategory, {
+        timeout: 20000,
+        assertionMessage: `Verifying category "${expectedCategory}" is displayed in the result item`,
+      });
+    });
+  }
+
+  async verifyNavigationWithCategoryLink(categoryId: string) {
+    await test.step(`Verifying navigation to category link "${categoryId}"`, async () => {
+      await this.clickOnCategoryLink();
+      await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(categoryId), {
+        timeout: 80000,
+        stepInfo: `Verifying navigation to category link to "${categoryId}"`,
+      });
+    });
+  }
+}

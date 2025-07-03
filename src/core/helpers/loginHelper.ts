@@ -14,7 +14,7 @@ export class LoginHelper {
   public static async loginWithPassword(page: Page, user: UserCredentials): Promise<HomePage> {
     const loginPage = new LoginPage(page);
     await loginPage.loadPage({ stepInfo: `Loading login page for user ${user.email}` });
-    const homePage = await loginPage.performLogin(user.email, user.password!);
+    const homePage = await loginPage.actions.performLogin(user.email, user.password!);
     return homePage;
   }
 }
