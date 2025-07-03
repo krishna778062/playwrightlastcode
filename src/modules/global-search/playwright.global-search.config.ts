@@ -17,7 +17,7 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: process.env.FRONTEND_BASE_URL,
         headless: process.env.CI ? false : false,
-        permissions: ['camera', 'microphone'],
+        permissions: ['camera', 'microphone', 'clipboard-read', 'clipboard-write'],
         launchOptions: {
           args: [
             '--disable-gpu', // Disable GPU acceleration

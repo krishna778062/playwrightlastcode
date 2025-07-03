@@ -1,35 +1,41 @@
-import { expect, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from '@/src/core/pages/basePage';
 import { TIMEOUTS } from '../../../core/constants/timeouts';
-import { GlobalSearchActionHelper } from '../helpers/globalSearchActionHelper';
-import { GlobalSearchAssertionHelper } from '../helpers/globalSearchAssertionHelper';
-import { SearchResultListComponent } from '../components/searchResultListComponent';
+import { ResultListingComponent } from '../components/resultsListComponent';
+import { SiteListComponent } from '../components/siteListComponent';
 
-export class GlobalSearchResultPage extends BasePage<GlobalSearchActionHelper, GlobalSearchAssertionHelper> {
-  readonly searchResultListComponent: SearchResultListComponent;
-  //actions
-  readonly globalSearchActionHelper: GlobalSearchActionHelper;
-
-  //assertions
-  readonly globalSearchAssertionHelper: GlobalSearchAssertionHelper;
+export class GlobalSearchResultPage extends BasePage<any, any> {
+  readonly resultListingComponent: ResultListingComponent;
+  readonly siteListingComponent: SiteListComponent;
+  readonly searchResultListContainer: Locator;
+  readonly searchResultListItems: Locator;
+  readonly siteResultItems: Locator;
 
   constructor(page: Page) {
     super(page);
-    this.searchResultListComponent = new SearchResultListComponent(page);
-    this.globalSearchActionHelper = new GlobalSearchActionHelper(this);
-    this.globalSearchAssertionHelper = new GlobalSearchAssertionHelper(this);
+    this.resultListingComponent = new ResultListingComponent(page);
+    this.siteListingComponent = new SiteListComponent(page);
+    this.searchResultListContainer = this.page.locator("div[class*='ResultListWithSidebar_container']");
+    this.searchResultListItems = this.searchResultListContainer.locator('li');
+    this.siteResultItems = this.searchResultListItems.filter({
+      has: this.page.getByTestId('i-sites'),
+    });
   }
 
-  get actions(): GlobalSearchActionHelper {
-    return this.globalSearchActionHelper;
+  get actions(): any {
+    return undefined;
   }
 
-  get assertions(): GlobalSearchAssertionHelper {
-    return this.globalSearchAssertionHelper;
+  get assertions(): any {
+    return undefined;
   }
 
-  public getSearchResultListComponent(): SearchResultListComponent {
-    return this.searchResultListComponent;
+  public getResultListingComponent(): ResultListingComponent {
+    return this.resultListingComponent;
+  }
+
+  public getSiteListingComponent(): SiteListComponent {
+    return this.siteListingComponent;
   }
 
   /**
@@ -40,5 +46,57 @@ export class GlobalSearchResultPage extends BasePage<GlobalSearchActionHelper, G
       stepInfo: 'Verifying the search result page is loaded',
       timeout: TIMEOUTS.MEDIUM,
     });
+  }
+
+  /**
+   * Verify that the search result list is displayed
+   * @returns true if the search result list is displayed, false otherwise
+   */
+  async isSearchResultListDisplayed() {
+    return await this.verifier.verifyTheElementIsVisible(this.searchResultListContainer, { timeout: 50000 });
+  }
+
+  /**
+   * Get the search result items
+   * @returns the search result items
+   */
+  async getSearchResultItems() {
+    await this.waitUntilSearchResultListIsDisplayed();
+    const resultListItems = await this.searchResultListItems.all();
+    return resultListItems;
+  }
+
+  /**
+   * Wait until the search result list is displayed
+   */
+  async waitUntilSearchResultListIsDisplayed() {
+    await this.verifier.waitUntilElementIsVisible(this.searchResultListItems.first(), {
+      timeout: 50000,
+      stepInfo: 'Waiting until atleast 1 search result list item is displayed',
+    });
+  }
+
+  /**
+   * Get the site result items
+   * @returns the site result items
+   */
+  async getSiteResultItems() {
+    await this.waitUntilSearchResultListIsDisplayed();
+    const siteResultItems = await this.siteResultItems.all();
+    return siteResultItems;
+  }
+
+  /**
+   * Get the site result item exactly matching the search term
+   * @param searchTerm - the search term
+   * @returns the site result item
+   */
+  async getSiteResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
+    await this.waitUntilSearchResultListIsDisplayed();
+    const siteResultToLocate = this.siteResultItems.filter({
+      has: this.page.locator('h2', { hasText: searchTerm }),
+    });
+    await this.verifier.verifyTheElementIsVisible(siteResultToLocate, { timeout: 40_000 });
+    return new SiteListComponent(this.page, siteResultToLocate);
   }
 }

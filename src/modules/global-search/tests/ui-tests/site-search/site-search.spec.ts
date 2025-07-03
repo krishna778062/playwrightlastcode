@@ -1,10 +1,11 @@
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { tagTest } from '@core/utils/testDecorator';
 import { TestPriority } from '@core/constants/testPriority';
-import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
+import { GlobalSearchTestSuite } from '../../../constants/testSuite';
 import { SITE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/site-search.test-data';
 import { TestGroupType } from '@core/constants/testType';
 import { HomePage } from '@/src/core/pages/homePage';
+import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
 
 test.describe(
   `Test Global Search - Site Search functionality`,
@@ -41,6 +42,7 @@ test.describe(
           const newSiteName = `AutomateUI_Test_${randomNum}`;
           const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
           const result = await appManagerApiClient.getSiteManagementService().addNewSite({
+            access: testData.siteType,
             name: newSiteName,
             category: {
               categoryId: categoryObj.categoryId,
@@ -56,20 +58,20 @@ test.describe(
 
           //get the site result item
           const siteResultItem =
-            await globalSearchResultPage.actions.getSiteResultItemExactlyMatchingTheSearchTerm(newSiteName);
-
-          await globalSearchResultPage.assertions.verifySiteResultItemDataPoints(siteResultItem, {
-            siteName: newSiteName,
-            siteType: testData.siteType,
-            category: testData.category,
-            label: testData.label,
-            description: '',
-          });
-
-          await globalSearchResultPage.assertions.verifyAllNavigationLinksAreWorkingInSiteResultItem(
-            siteResultItem,
-            newSiteId
-          );
+            await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(newSiteName);
+          await siteResultItem.verifyNameIsDisplayed(newSiteName);
+          await siteResultItem.verifyLabelIsDisplayed(testData.label);
+          await siteResultItem.verifyThumbnailIsDisplayed();
+          await siteResultItem.verifyLockIconVisibility(testData.siteType);
+          await siteResultItem.verifyNavigationWithCategoryLink(categoryObj.categoryId);
+          await siteResultItem.hoverOverCardAndCopyLink();
+          await siteResultItem.verifyCopiedURL(newSiteId);
+          await siteResultItem.goBackToPreviousPage();
+          await siteResultItem.verifyNavigationWithThumbnailLink(newSiteId);
+          await siteResultItem.goBackToPreviousPage();
+          await siteResultItem.verifyNavigationWithHomePageLink();
+          await siteResultItem.goBackToPreviousPage();
+          await siteResultItem.goBackToPreviousPage();
         }
       );
     }
