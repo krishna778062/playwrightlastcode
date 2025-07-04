@@ -10,6 +10,7 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
   readonly searchResultListContainer: Locator;
   readonly searchResultListItems: Locator;
   readonly siteResultItems: Locator;
+  readonly pageResultItems: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -19,6 +20,9 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
     this.searchResultListItems = this.searchResultListContainer.locator('li');
     this.siteResultItems = this.searchResultListItems.filter({
       has: this.page.getByTestId('i-sites'),
+    });
+    this.pageResultItems = this.searchResultListItems.filter({
+      has: this.page.getByTestId('i-page'),
     });
   }
 
@@ -96,7 +100,37 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
     const siteResultToLocate = this.siteResultItems.filter({
       has: this.page.locator('h2', { hasText: searchTerm }),
     });
-    await this.verifier.verifyTheElementIsVisible(siteResultToLocate, { timeout: 40_000 });
-    return new SiteListComponent(this.page, siteResultToLocate);
+
+    try {
+      await this.verifier.verifyTheElementIsVisible(siteResultToLocate, { timeout: 40_000 });
+    } catch (e) {
+      await this.page.reload();
+      await this.waitUntilSearchResultListIsDisplayed();
+      await this.verifier.verifyTheElementIsVisible(siteResultToLocate, { timeout: 40_000 });
+    }
+
+    return new ResultListingComponent(this.page, siteResultToLocate);
+  }
+
+  /**
+   * Get the page result item exactly matching the search term
+   * @param searchTerm - the search term
+   * @returns the site result item
+   */
+  async getPageResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
+    await this.waitUntilSearchResultListIsDisplayed();
+    const siteResultToLocate = this.pageResultItems.filter({
+      has: this.page.locator('h2', { hasText: searchTerm }),
+    });
+
+    try {
+      await this.verifier.verifyTheElementIsVisible(siteResultToLocate, { timeout: 40_000 });
+    } catch (e) {
+      await this.page.reload();
+      await this.waitUntilSearchResultListIsDisplayed();
+      await this.verifier.verifyTheElementIsVisible(siteResultToLocate, { timeout: 40_000 });
+    }
+
+    return new ResultListingComponent(this.page, siteResultToLocate);
   }
 }

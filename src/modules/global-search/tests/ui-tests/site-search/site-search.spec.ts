@@ -5,7 +5,7 @@ import { GlobalSearchTestSuite } from '../../../constants/testSuite';
 import { SITE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/site-search.test-data';
 import { TestGroupType } from '@core/constants/testType';
 import { HomePage } from '@/src/core/pages/homePage';
-import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
+import { SiteListComponent } from '../../../components/siteListComponent';
 
 test.describe(
   `Test Global Search - Site Search functionality`,
@@ -57,8 +57,11 @@ test.describe(
           });
 
           //get the site result item
-          const siteResultItem =
+          const siteResultLocator =
             await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(newSiteName);
+          const siteResultItem = new SiteListComponent(siteResultLocator.page, siteResultLocator.rootLocator);
+
+          //verifying site results
           await siteResultItem.verifyNameIsDisplayed(newSiteName);
           await siteResultItem.verifyLabelIsDisplayed(testData.label);
           await siteResultItem.verifyThumbnailIsDisplayed();
@@ -71,7 +74,6 @@ test.describe(
           await siteResultItem.verifyNavigationWithThumbnailLink(newSiteId);
           await siteResultItem.goBackToPreviousPage();
           await siteResultItem.verifyNavigationWithHomePageLink();
-          await siteResultItem.goBackToPreviousPage();
           await siteResultItem.goBackToPreviousPage();
         }
       );

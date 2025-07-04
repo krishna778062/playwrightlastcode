@@ -39,4 +39,9 @@ export const API_ENDPOINTS = {
     category: '/v1/content/siteCategories/list',
     deactivate: '/v1/content/sites/attributes?attribute=status',
   },
+
+  content: {
+    category: '/pageCategories/list',
+    publish: '/content?action=publish',
+  },
 } as const;
