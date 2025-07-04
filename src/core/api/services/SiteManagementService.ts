@@ -44,9 +44,6 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
   }
 
   async addNewSite(overrides: Partial<SiteCreationPayload> = {}) {
-    // const randomNum = Math.floor(Math.random() * 1000000 + 1);
-    // const siteName = `AutomateUI_Test_${randomNum}`;
-    // const categoryObj = await this.getCategoryId(overrides.category?.name || 'default');
 
     const payload: SiteCreationPayload = {
       ...defaultSitePayload,
