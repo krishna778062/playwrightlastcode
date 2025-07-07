@@ -27,8 +27,8 @@ on:
         default: 'all'
         type: choice
         options:
-          - 'smoke'
-          - 'regression'
+          - '@smoke'
+          - '@regression'
           - 'all'
       environment:
         description: 'Select the environment to run tests against'
