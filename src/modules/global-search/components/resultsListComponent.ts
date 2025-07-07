@@ -36,10 +36,13 @@ export class ResultListingComponent extends BaseComponent {
    * Hover over the card, click the copy link button, and verify the copied URL
    */
   async hoverOverCardAndCopyLink() {
-    await this.rootLocator.hover();
     await test.step(`Mouse over and click on copy link button`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.copyLinkButton, { timeout: 20000 });
-      await this.copyLinkButton.click();
+      await this.rootLocator.hover();
+      await this.verifier.verifyTheElementIsVisible(this.copyLinkButton, {
+        timeout: 20000,
+        assertionMessage: `Verifying copy link button is visible`,
+      });
+      await this.clickOnElement(this.copyLinkButton);
       await this.verifier.verifyElementHasText(this.toolTipMsg, 'Copied', {
         timeout: 5000,
         assertionMessage: `Verifying tooltip Copied text is displayed`,
@@ -47,15 +50,21 @@ export class ResultListingComponent extends BaseComponent {
     });
   }
 
+  /**
+   * Verify the copied URL
+   * @param id - the id of the site
+   */
   async verifyCopiedURL(id: string) {
-    const copiedUrl = await this.page.evaluate(() => navigator.clipboard.readText());
-    await this.page.goto(copiedUrl);
-    if (!copiedUrl.includes(id)) {
-      throw new Error(`Copied URL does not contain id: ${id}. URL: ${copiedUrl}`);
-    }
-    if (!copiedUrl.includes('utm_source=search_result')) {
-      throw new Error(`Copied URL does not contain utm_source=search_result. URL: ${copiedUrl}`);
-    }
+    await test.step(`Verifying copied URL in the clipboard, navigates to the right site and verifies the site`, async () => {
+      const copiedUrl = await this.page.evaluate(() => navigator.clipboard.readText());
+      await this.page.goto(copiedUrl);
+      if (!copiedUrl.includes(id)) {
+        throw new Error(`Copied URL does not contain id: ${id}. URL: ${copiedUrl}`);
+      }
+      if (!copiedUrl.includes('utm_source=search_result')) {
+        throw new Error(`Copied URL does not contain utm_source=search_result. URL: ${copiedUrl}`);
+      }
+    });
   }
 
   /**
