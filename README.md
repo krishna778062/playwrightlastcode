@@ -271,48 +271,83 @@ test(
 This example from `user-chat.spec.ts` demonstrates the framework's design patterns. The test is readable and high-level, calling the `ChatHelper` facade to orchestrate actions.
 
 ```typescript
-import { ChatHelper } from '@chat/helpers/chatHelper';
+import { dmTestFixture as test } from '@chat/fixtures/dmFixture';
+import { tagTest } from '@core/utils/testDecorator';
 import { TestPriority } from '@core/constants/testPriority';
+import { CHAT_TEST_DATA } from '@chat/test-data/chat.test-data';
+import { TestGroupType } from '@core/constants/testType';
+import { ChatTestUser } from '@chat/types/chat-test.type';
+import { ChatAppPage } from '@chat/pages/chatsPage';
 
-test(
-  'Verify that user 1 can open direct message with user 2 and they both are able to send message to each other',
-  {
-    tag: [TestPriority.P0],
-  },
-  async () => {
-    tagTest(test.info(), {
-      zephyrTestId: 'CONT-5376',
-    });
+test.describe('Direct Message between multiple users', { tag: ['@direct-message'] }, () => {
+  let user1: ChatTestUser;
+  let user2: ChatTestUser;
+  let user1ChatPage: ChatAppPage;
+  let user2ChatPage: ChatAppPage;
+  test.beforeEach(
+    'Setting up the test environment, by creating 2 new users to tenant so to test out messaging between them',
+    async ({ endUsersForChat, user1Page, user2Page }) => {
+      user1 = endUsersForChat[0];
+      user2 = endUsersForChat[1];
+      user1ChatPage = new ChatAppPage(user1Page);
+      user2ChatPage = new ChatAppPage(user2Page);
+      await Promise.all([user1ChatPage.loadPage({ timeout: 40_000 }), user2ChatPage.loadPage({ timeout: 40_000 })]);
+    }
+  );
 
-    const [user1ChatsPage, user2ChatsPage] = await multiUserChatTest.loginMultipleUsersAndNavigateToChats();
+  test(
+    'Verify that user 1 can open direct message with user 2 and they both are able to send message to each other',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE],
+    },
+    async () => {
+      tagTest(test.info(), {
+        zephyrTestId: 'CONT-5376',
+      });
+      //user 1 creates new chat with user 2
+      await user1ChatPage.actions.openDirectMessageWithUser(user2.fullName, {
+        stepInfo: `User 1 opening direct message with ${user2.fullName}`,
+      });
 
-    // User 1 creates new chat with user 2
-    await ChatHelper.directMessages.openDirectMessageWithUser(user1ChatsPage, user2.fullName, {
-      stepInfo: `User 1 opening direct message with ${user2.fullName}`,
-    });
+      //now user 1 sends message to user 2
+      await user1ChatPage.actions.sendMessage(CHAT_TEST_DATA.MESSAGES.USER1.INITIAL, {
+        stepInfo: `User 1 sending message to user 2`,
+      });
 
-    // User 1 sends a message
-    await ChatHelper.common.sendMessage(user1ChatsPage, 'Hello from User 1', {
-      stepInfo: `User 1 sending first message`,
-    });
+      //verify user 2 sees the message appearing in his inbox
+      await user2ChatPage.actions.openUserDirectMessageItemInInbox(user1.fullName, {
+        stepInfo: `Verifying user 2 is able to see user 1 in his inbox and opening the direct message with user 1`,
+        timeout: 40_000,
+      });
 
-    // User 2 opens the chat and replies
-    await ChatHelper.directMessages.openUserDirectMessageItemInInbox(user2ChatsPage, user1.fullName);
-    await ChatHelper.common.sendMessage(user2ChatsPage, 'Hello back from User 2!', {
-      stepInfo: `User 2 replying`,
-    });
+      await user2ChatPage.actions.sendMessage(CHAT_TEST_DATA.MESSAGES.USER2.INITIAL, {
+        stepInfo: `User 2 sending message ${CHAT_TEST_DATA.MESSAGES.USER2.INITIAL} to user 1`,
+      });
 
-    // User 1 verifies the reply is visible
-    await ChatHelper.common.verifyMessageIsVisible(user1ChatsPage, 'Hello back from User 2!');
-  }
-);
+      //verify user 1 is able to see the message from user 2
+      await user1ChatPage.assertions.verifyMessageIsVisible(CHAT_TEST_DATA.MESSAGES.USER2.INITIAL, {
+        stepInfo: `Verifying user 1 is able to see the message ${CHAT_TEST_DATA.MESSAGES.USER2.INITIAL} from user 2`,
+      });
+
+      //now user 1 sends message to user 2 in DM window
+      await user1ChatPage.actions.sendMessage(CHAT_TEST_DATA.MESSAGES.USER1.INITIAL, {
+        stepInfo: `User 1 sending message ${CHAT_TEST_DATA.MESSAGES.USER1.INITIAL} to user 2`,
+      });
+
+      //we will verify that user 2 is able to see the message from user 1 in his DM window
+      await user2ChatPage.assertions.verifyMessageIsVisible(CHAT_TEST_DATA.MESSAGES.USER1.INITIAL, {
+        stepInfo: `Verifying user 2 is able to see the message ${CHAT_TEST_DATA.MESSAGES.USER1.INITIAL} from user 1`,
+      });
+    }
+  );
+});
 ```
 
 ### 4. Use Action & Assertion Helpers for Clarity
 
-- Prefer using Action Helpers and Assertion Helpers (e.g., `chatPage.getActions()`, `chatPage.getAssertions()`) for common flows and verifications.
-- Use direct component/page access only for unique or advanced cases. If you repeat such logic, promote it to a helper.
-- This keeps tests readable and business-focused, and centralizes reusable logic.
+- Prefer using Action Helpers and Assertion Helpers directly (e.g., `chatPage.actions.sendMessage()`, `chatPage.assertions.verifyMessageIsVisible()`) for common flows and verifications. This provides a clean and discoverable API for most test scenarios.
+- You can still use direct component/page access for advanced or one-off needs. If you find yourself repeating such logic, promote it to a helper.
+- **Note:** Using Action/Assertion Helpers is an optional pattern. It is recommended to prevent class bloat and to make maintenance easier, but you may choose to access page/component methods directly if it better suits your use case or keeps your classes lean.
 
 **Example:**
 
