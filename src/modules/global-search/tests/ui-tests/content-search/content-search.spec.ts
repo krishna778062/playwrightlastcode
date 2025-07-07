@@ -76,11 +76,6 @@ test.describe(
         newPageID = pageResult.pageId;
         console.log(`Created page : ${pageName} with ID ${newPageID}`);
 
-        // Wait for the backend search API to return the page before proceeding with UI checks.
-        // This polling ensures the test is robust against eventual consistency delays.
-
-        await waitForSearchResultInApi(appManagerApiClient.getGlobalSearchService(), pageName);
-
         // 4. UI Search for the page
         const globalSearchResultPage = await homePage.actions.searchForTerm(pageName, {
           stepInfo: `Searching with term "${pageName}" and intent is to find the content`,

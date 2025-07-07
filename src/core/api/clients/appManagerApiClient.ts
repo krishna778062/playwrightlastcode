@@ -5,7 +5,6 @@ import { IdentityService } from '@core/api/services/IdentityService';
 import { BaseApiClient } from '@/src/core/api/clients/baseApiClient';
 import { SiteManagementService } from '../services/SiteManagementService';
 import { ContentManagementService } from '../services/ContentManagementService';
-import { GlobalSearchService } from '../services/GlobalSearchService';
 
 export class AppManagerApiClient extends BaseApiClient {
   private readonly chatService: ChatService;
@@ -13,7 +12,6 @@ export class AppManagerApiClient extends BaseApiClient {
   private readonly identityService: IdentityService;
   private readonly siteManagementService: SiteManagementService;
   private readonly contentManagementService: ContentManagementService;
-  private readonly globalSearchService: GlobalSearchService;
 
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
@@ -22,7 +20,6 @@ export class AppManagerApiClient extends BaseApiClient {
     this.identityService = new IdentityService(context, baseUrl || '');
     this.siteManagementService = new SiteManagementService(context, baseUrl || '');
     this.contentManagementService = new ContentManagementService(context, baseUrl || '');
-    this.globalSearchService = new GlobalSearchService(context, baseUrl || '');
   }
 
   getChatService(): ChatService {
@@ -43,9 +40,5 @@ export class AppManagerApiClient extends BaseApiClient {
 
   getContentManagementService(): ContentManagementService {
     return this.contentManagementService;
-  }
-
-  getGlobalSearchService(): GlobalSearchService {
-    return this.globalSearchService;
   }
 }
