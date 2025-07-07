@@ -1,8 +1,15 @@
-import { th } from '@faker-js/faker/.';
 import { ResultListingComponent } from './resultsListComponent';
 import { Locator, Page, test } from '@playwright/test';
-import { time } from 'console';
+import { getTodayFormattedDate } from '@/src/core/utils/dateUtil';
 
+/**
+ * ContentListComponent is a UI component class that extends ResultListingComponent.
+ *
+ * It encapsulates interactions and assertions for content search result items in the global search results page.
+ * This includes verifying displayed user, navigation via site and author links, page icon visibility, and date display.
+ *
+ * Use this component in Playwright tests to interact with and assert on content-specific search results.
+ */
 export class ContentListComponent extends ResultListingComponent {
   readonly siteBreadcrumb: Locator;
   readonly resultList: Locator;
@@ -57,12 +64,7 @@ export class ContentListComponent extends ResultListingComponent {
   }
 
   async verifyDateIsDisplayed() {
-    const today = new Date();
-    const formatted = today.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    const formatted = getTodayFormattedDate();
     await test.step(`Verify date ${formatted} is displayed`, async () => {
       await this.verifier.verifyElementHasText(this.resultList.last(), formatted);
     });

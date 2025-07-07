@@ -1,8 +1,9 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from '@/src/core/pages/basePage';
 import { TIMEOUTS } from '../../../core/constants/timeouts';
-import { ResultListingComponent } from '../components/resultsListComponent';
-import { SiteListComponent } from '../components/siteListComponent';
+import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
+import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
+import { waitForSearchResultInApi } from '@/src/modules/global-search/utils/globalSearchTestUtils';
 
 export class GlobalSearchResultPage extends BasePage<any, any> {
   readonly resultListingComponent: ResultListingComponent;
@@ -93,6 +94,7 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
   /**
    * Get the site result item exactly matching the search term
    * @param searchTerm - the search term
+   * @param apiClient - the API client
    * @returns the site result item
    */
   async getSiteResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
@@ -101,15 +103,8 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
       has: this.page.locator('h2', { hasText: searchTerm }),
     });
 
-    try {
-      await this.verifier.verifyTheElementIsVisible(siteResultToLocate, { timeout: 40_000 });
-    } catch (e) {
-      await this.page.reload();
-      await this.waitUntilSearchResultListIsDisplayed();
-      await this.verifier.verifyTheElementIsVisible(siteResultToLocate, { timeout: 40_000 });
-    }
-
-    return new ResultListingComponent(this.page, siteResultToLocate);
+    await this.verifier.verifyTheElementIsVisible(siteResultToLocate, { timeout: 40_000 });
+    return new SiteListComponent(this.page, siteResultToLocate);
   }
 
   /**

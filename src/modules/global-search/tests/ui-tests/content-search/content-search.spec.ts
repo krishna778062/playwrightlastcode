@@ -4,11 +4,10 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { HomePage } from '@/src/core/pages/homePage';
 import { tagTest } from '@core/utils/testDecorator';
-import { GlobalSearchTestSuite } from '../../../constants/testSuite';
-import { ContentListComponent } from '../../../components/contentListComponent';
+import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
+import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 import { PAGE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
-import { defaultPageContentPayload } from '@/src/core/api/services/ContentManagementService';
-import { IContentManagementServices } from '@/src/core/api/interfaces/IContentManagementServices';
+import { waitForSearchResultInApi } from '@/src/modules/global-search/utils/globalSearchTestUtils';
 
 test.describe(
   'Global Search- Content Search functionality',
@@ -62,9 +61,11 @@ test.describe(
         // 3. Create page content
         const randomNum1 = Math.floor(Math.random() * 1000000 + 1);
         const pageName = `AutomateUIPage_Test_${randomNum1}`;
+        const contentDescription = 'AutomateDescription';
         const pageResult = await appManagerApiClient.getContentManagementService().addNewPageContent(newSiteId, {
           contentSubType: testData.contentType,
           title: pageName,
+          bodyHtml: contentDescription,
           contentType: testData.content,
           category: {
             id: pageCategory.categoryId,
@@ -74,6 +75,12 @@ test.describe(
 
         newPageID = pageResult.pageId;
         console.log(`Created page : ${pageName} with ID ${newPageID}`);
+
+        // Wait for the backend search API to return the page before proceeding with UI checks.
+        // This polling ensures the test is robust against eventual consistency delays.
+
+        await waitForSearchResultInApi(appManagerApiClient.getGlobalSearchService(), pageName);
+
         // 4. UI Search for the page
         const globalSearchResultPage = await homePage.actions.searchForTerm(pageName, {
           stepInfo: `Searching with term "${pageName}" and intent is to find the content`,
@@ -87,7 +94,7 @@ test.describe(
         await contentResultItem.verifyNameIsDisplayed(pageName);
         await contentResultItem.verifyLabelIsDisplayed(testData.label);
         await contentResultItem.verifyThumbnailIsDisplayed();
-        await contentResultItem.verifyDescriptionIsDisplayed('AutomateDescription');
+        await contentResultItem.verifyDescriptionIsDisplayed(contentDescription);
         await contentResultItem.verifyUserIsDisplayed('Workplace AppManager');
         await contentResultItem.verifyDateIsDisplayed();
         await contentResultItem.verifyPageIconIsDisplayed();

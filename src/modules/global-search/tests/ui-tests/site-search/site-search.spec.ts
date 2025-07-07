@@ -6,6 +6,8 @@ import { SITE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/sit
 import { TestGroupType } from '@core/constants/testType';
 import { HomePage } from '@/src/core/pages/homePage';
 import { SiteListComponent } from '../../../components/siteListComponent';
+import { waitForSearchResultInApi } from '@/src/modules/global-search/utils/globalSearchTestUtils';
+import { GlobalSearchService } from '@/src/core/api/services/GlobalSearchService';
 
 test.describe(
   `Test Global Search - Site Search functionality`,
@@ -52,14 +54,18 @@ test.describe(
           newSiteId = result.siteId;
           console.log(`Created site: ${newSiteName} with ID: ${newSiteId}`);
 
+          // Wait for the backend search API to return the site before proceeding with UI checks.
+          // This polling ensures the test is robust against eventual consistency delays.
+
+          await waitForSearchResultInApi(appManagerApiClient.getGlobalSearchService(), newSiteName);
+
           const globalSearchResultPage = await homePage.actions.searchForTerm(newSiteName, {
             stepInfo: `Searching with term "${newSiteName} and intent is to find the site"`,
           });
 
           //get the site result item
-          const siteResultLocator =
-            await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(newSiteName);
-          const siteResultItem = new SiteListComponent(siteResultLocator.page, siteResultLocator.rootLocator);
+          const siteResult = await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(newSiteName);
+          const siteResultItem = new SiteListComponent(siteResult.page, siteResult.rootLocator);
 
           //verifying site results
           await siteResultItem.verifyNameIsDisplayed(newSiteName);

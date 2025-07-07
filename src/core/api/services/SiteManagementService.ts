@@ -44,7 +44,6 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
   }
 
   async addNewSite(overrides: Partial<SiteCreationPayload> = {}) {
-
     const payload: SiteCreationPayload = {
       ...defaultSitePayload,
       ...overrides,

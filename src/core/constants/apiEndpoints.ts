@@ -44,4 +44,8 @@ export const API_ENDPOINTS = {
     category: '/pageCategories/list',
     publish: '/content?action=publish',
   },
+
+  globalsearch: {
+    url: '/search-ai/v1/enterprise/search',
+  },
 } as const;
