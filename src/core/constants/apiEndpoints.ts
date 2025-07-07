@@ -39,4 +39,8 @@ export const API_ENDPOINTS = {
     category: '/v1/content/siteCategories/list',
     deactivate: '/v1/content/sites/attributes?attribute=status',
   },
+  linkTile: {
+    create: (siteId: string) => `/v1/content/sites/${siteId}/tiles`,
+    delete: (siteId: string, tileId: string) => `/v1/content/sites/${siteId}/tiles/${tileId}`,
+  },
 } as const;
