@@ -20,6 +20,15 @@ on:
           - '@P0'
           - '@P1'
           - 'all'
+      test_type:
+        description: 'Select the type of tests to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'smoke'
+          - 'regression'
+          - 'all'
       environment:
         description: 'Select the environment to run tests against'
         required: true
@@ -39,6 +48,11 @@ on:
           - '3'
           - '4'
           - '5'
+      feature_tags:
+        description: 'Comma-separated list of feature tags to include in tests (e.g., @chat-attachment)'
+        required: false
+        default: 'all'
+        type: string
 
 permissions:
   contents: read
@@ -82,10 +96,23 @@ jobs:
           TEST_ENV: ${{ inputs.environment || 'qa' }}
         run: |
           PRIORITY="${{ inputs.priority_filter }}"
-          if [ "$PRIORITY" = "all" ]; then
+          TEST_TYPE="${{ inputs.test_type }}"
+          FEATURE_TAGS="${{ inputs.feature_tags || '' }}"
+          ALL_TAGS=()
+          [ "$PRIORITY" != "all" ] && ALL_TAGS+=("$PRIORITY")
+          [ "$TEST_TYPE" != "all" ] && ALL_TAGS+=("@$TEST_TYPE")
+          IFS=',' read -ra FEATURES <<< "$FEATURE_TAGS"
+          for tag in "${FEATURES[@]}"; do
+            [ -n "$tag" ] && ALL_TAGS+=("$tag")
+          done
+          if [ ${#ALL_TAGS[@]} -eq 0 ]; then
             npm run test:${{ inputs.module_name || 'chat' }} -- --workers=${{ inputs.workers }}
           else
-            npm run test:${{ inputs.module_name || 'chat' }} -- --grep="$PRIORITY" --workers=${{ inputs.workers }}
+            GREP_REGEX=""
+            for tag in "${ALL_TAGS[@]}"; do
+              GREP_REGEX="${GREP_REGEX}(?=.*${tag})"
+            done
+            npm run test:${{ inputs.module_name || 'chat' }} -- --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
           fi
 
       - name: Upload test report to github artifact backup
