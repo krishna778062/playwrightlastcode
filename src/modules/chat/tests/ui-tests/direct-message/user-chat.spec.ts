@@ -22,7 +22,7 @@ test.describe('Direct Message between multiple users', { tag: ['@direct-message'
     }
   );
 
-  test.only(
+  test(
     'Verify that user 1 can open direct message with user 2 and they both are able to send message to each other',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE],
