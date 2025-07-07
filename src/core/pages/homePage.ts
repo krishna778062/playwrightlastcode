@@ -1,9 +1,8 @@
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
-import { expect, Page, test } from '@playwright/test';
+import { Page } from '@playwright/test';
 import { TopNavBarComponent } from '@core/components/topNavBarComponent';
 import { TIMEOUTS } from '@core/constants/timeouts';
-import { ChatAppPage } from '@chat/pages/chatsPage';
 import { FooterComponent } from '@core/components/footerComponent';
 import { HomePageActionHelper } from '@core/helpers/homePageActionHelper';
 import { HomePageAssertionHelper } from '@core/helpers/homePageAssertionHelper';
@@ -48,31 +47,5 @@ export class HomePage extends BasePage<HomePageActionHelper, HomePageAssertionHe
       timeout: options?.timeout || TIMEOUTS.MEDIUM,
       assertionMessage: `expecting messaging button to be visible`,
     });
-  }
-
-  /**
-   * Navigates to the chats page
-   * @param options - The options to pass to the method
-   * @param options.stepInfo - The step info to pass to the test.step method
-   * @param options.timeout - The timeout to pass to the method
-   * @returns The chats page
-   */
-  async navigateToChatsPage(options?: { stepInfo?: string; timeout?: number }): Promise<ChatAppPage> {
-    await test.step(options?.stepInfo || `Navigating to conversations screen`, async () => {
-      // await this.topNavBarComponent.openMessageInbox();
-      // await this.topNavBarComponent.clickSeeAllMessages();
-      // await this.page.waitForURL(/chat\/conversations/, {
-      //   timeout: options?.timeout || TIMEOUTS.MEDIUM,
-      // });
-      const actionToPerform = async () => {
-        await this.topNavBarComponent.openMessageInbox({ stepInfo: 'Opening message inbox' });
-        await this.topNavBarComponent.clickSeeAllMessages({ stepInfo: 'Clicking see all messages' });
-      };
-      await this.performActionAndWaitForPageNavigation(actionToPerform, new RegExp(PAGE_ENDPOINTS.CHATS_PAGE), {
-        stepInfo: `Navigating to chats page from home page by opening inbox and clicking see all messages`,
-        timeout: options?.timeout || TIMEOUTS.MEDIUM,
-      });
-    });
-    return new ChatAppPage(this.page);
   }
 }
