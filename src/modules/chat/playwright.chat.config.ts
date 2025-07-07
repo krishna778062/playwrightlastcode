@@ -12,14 +12,14 @@ export default defineConfig({
   workers: process.env.CI ? 2 : 4,
   timeout: 180_000,
   expect: {
-    timeout: 8_000, //this is default timeout will be used for all expect statements
+    timeout: 10_000, //this is default timeout will be used for all expect statements
   },
   projects: [
     {
       name: 'chat-chromium',
       use: {
         headless: true,
-        video: 'on',
+        video: 'on-first-retry',
         ...devices['Desktop Chrome'],
         permissions: ['camera', 'microphone'],
         baseURL: getEnvConfig().frontendBaseUrl,

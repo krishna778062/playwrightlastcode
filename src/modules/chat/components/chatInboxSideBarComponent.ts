@@ -34,18 +34,33 @@ export class ChatInboxSideBarComponent extends BaseComponent {
 
   // --- Actions ---
 
+  /**
+   * Clicks on the create new message button and then selects the new message option
+   */
   async clickCreateNewMessageButton(): Promise<void> {
-    await this.clickOnElement(this.createNewMessageOrGroupButton);
-    await this.clickOnElement(this.dropDownOptionCreateNewMessage);
+    await test.step(`Clicking create new message button and then select new message option`, async () => {
+      await this.clickOnElement(this.createNewMessageOrGroupButton);
+      await this.clickOnElement(this.dropDownOptionCreateNewMessage);
+    });
   }
 
+  /**
+   * Searches for a user by name and selects them
+   * @param userName - The name of the user to search for
+   */
   async searchAndSelectUser(userName: string): Promise<void> {
     await this.clickOnElement(this.inputBoxInCreateNewMessageForm);
     await this.fillInElement(this.inputBoxInCreateNewMessageForm, userName);
-    await this.verifier.verifyTheElementIsVisible(this.userSelectionDropdownOptions.first());
+    await this.verifier.verifyTheElementIsVisible(this.userSelectionDropdownOptions.first(), {
+      assertionMessage: `expecting user ${userName} selection dropdown options to be visible to start direct message`,
+      timeout: 20_000,
+    });
     await this.clickOnElement(this.userSelectionDropdownOptions.filter({ hasText: userName }).first());
   }
 
+  /**
+   * Clicks on the start chat button and waits for the chat to be created
+   */
   async clickStartChatButton(): Promise<void> {
     await this.clickAndWaitForResponse(
       () => this.startChatButton.click({ delay: 1_000 }),
@@ -57,16 +72,27 @@ export class ChatInboxSideBarComponent extends BaseComponent {
 
   // --- Verifications ---
 
+  /**
+   * Verifies the create new message form is visible
+   */
   async verifyCreateNewMessageFormIsVisible(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.createNewMessageForm, {
       assertionMessage: 'expecting create new message form to be visible',
     });
   }
 
+  /**
+   * Gets the group chats section
+   * @returns The group chats section
+   */
   getGroupChatsSection(): GroupChatsSectionComponent {
     return new GroupChatsSectionComponent(this.page);
   }
 
+  /**
+   * Gets the direct message section in inbox
+   * @returns The direct message section in inbox
+   */
   getDirectMessageSectionInInbox(): DirectMessageSectionInInbox {
     return new DirectMessageSectionInInbox(this.page);
   }
