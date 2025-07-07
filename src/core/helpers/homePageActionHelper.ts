@@ -9,6 +9,13 @@ export class HomePageActionHelper {
     this.page = this.homePage.page;
   }
 
+  /**
+   * Searches for a term in the global search
+   * @param searchTerm - The term to search for
+   * @param options - The options to pass to the method
+   * @param options.stepInfo - The step info to pass to the test.step method
+   * @returns The global search result page
+   */
   async searchForTerm(searchTerm: string, options?: { stepInfo?: string }): Promise<GlobalSearchResultPage> {
     return await test.step(options?.stepInfo || `Searching for ${searchTerm}`, async () => {
       await this.homePage.topNavBarComponent.typeInSearchBarInput(searchTerm);

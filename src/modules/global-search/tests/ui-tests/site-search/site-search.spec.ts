@@ -1,13 +1,12 @@
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { tagTest } from '@core/utils/testDecorator';
 import { TestPriority } from '@core/constants/testPriority';
-import { GlobalSearchTestSuite } from '../../../constants/testSuite';
+import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
 import { SITE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/site-search.test-data';
 import { TestGroupType } from '@core/constants/testType';
 import { HomePage } from '@/src/core/pages/homePage';
-import { SiteListComponent } from '../../../components/siteListComponent';
-import { waitForSearchResultInApi } from '@/src/modules/global-search/utils/globalSearchTestUtils';
-import { GlobalSearchService } from '@/src/core/api/services/GlobalSearchService';
+import { EnterpriseSearchHelper } from '@core/helpers/enterpriseSearchHelper';
+import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
 
 test.describe(
   `Test Global Search - Site Search functionality`,
@@ -53,12 +52,13 @@ test.describe(
           });
           newSiteId = result.siteId;
           console.log(`Created site: ${newSiteName} with ID: ${newSiteId}`);
-
-          // Wait for the backend search API to return the site before proceeding with UI checks.
-          // This polling ensures the test is robust against eventual consistency delays.
-
-          await waitForSearchResultInApi(appManagerApiClient.getGlobalSearchService(), newSiteName);
-
+          //wait until the search api starts showing the newly created site in results
+          await EnterpriseSearchHelper.waitForSiteResultToAppearInApiResponse(
+            appManagerApiClient,
+            newSiteName,
+            newSiteName
+          );
+          
           const globalSearchResultPage = await homePage.actions.searchForTerm(newSiteName, {
             stepInfo: `Searching with term "${newSiteName} and intent is to find the site"`,
           });

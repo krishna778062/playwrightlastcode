@@ -12,8 +12,8 @@ import {
 } from '@core/types';
 
 export class HttpClient {
-  protected readonly context: APIRequestContext;
-  protected readonly baseUrl: string;
+  readonly context: APIRequestContext;
+  readonly baseUrl: string;
 
   constructor(context: APIRequestContext, baseUrl?: string) {
     this.context = context;

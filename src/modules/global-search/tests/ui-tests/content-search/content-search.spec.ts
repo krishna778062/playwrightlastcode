@@ -1,5 +1,4 @@
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
-import { expect } from '@playwright/test';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { HomePage } from '@/src/core/pages/homePage';
@@ -7,7 +6,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
 import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 import { PAGE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
-import { waitForSearchResultInApi } from '@/src/modules/global-search/utils/globalSearchTestUtils';
+import { EnterpriseSearchHelper } from '@core/helpers/enterpriseSearchHelper';
 
 test.describe(
   'Global Search- Content Search functionality',
@@ -75,6 +74,13 @@ test.describe(
 
         newPageID = pageResult.pageId;
         console.log(`Created page : ${pageName} with ID ${newPageID}`);
+
+        //wait until the search api starts showing the newly created site in results
+        await EnterpriseSearchHelper.waitForContentResultToAppearInApiResponse(
+          appManagerApiClient,
+          pageName,
+          pageName
+        );
 
         // 4. UI Search for the page
         const globalSearchResultPage = await homePage.actions.searchForTerm(pageName, {

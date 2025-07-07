@@ -3,7 +3,6 @@ import { BasePage } from '@/src/core/pages/basePage';
 import { TIMEOUTS } from '../../../core/constants/timeouts';
 import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
-import { waitForSearchResultInApi } from '@/src/modules/global-search/utils/globalSearchTestUtils';
 
 export class GlobalSearchResultPage extends BasePage<any, any> {
   readonly resultListingComponent: ResultListingComponent;
@@ -102,30 +101,26 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
     const siteResultToLocate = this.siteResultItems.filter({
       has: this.page.locator('h2', { hasText: searchTerm }),
     });
-
-    await this.verifier.verifyTheElementIsVisible(siteResultToLocate, { timeout: 40_000 });
+    await this.verifier.verifyTheElementIsVisible(siteResultToLocate, {
+      timeout: 40_000,
+      assertionMessage: `Verifying the site result item exactly matching the search term: ${searchTerm}`,
+    });
     return new SiteListComponent(this.page, siteResultToLocate);
   }
 
   /**
    * Get the page result item exactly matching the search term
    * @param searchTerm - the search term
-   * @returns the site result item
+   * @returns the content result item
    */
   async getPageResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
     await this.waitUntilSearchResultListIsDisplayed();
-    const siteResultToLocate = this.pageResultItems.filter({
+    const contentResultToLocate = this.pageResultItems.filter({
       has: this.page.locator('h2', { hasText: searchTerm }),
     });
 
-    try {
-      await this.verifier.verifyTheElementIsVisible(siteResultToLocate, { timeout: 40_000 });
-    } catch (e) {
-      await this.page.reload();
-      await this.waitUntilSearchResultListIsDisplayed();
-      await this.verifier.verifyTheElementIsVisible(siteResultToLocate, { timeout: 40_000 });
-    }
+      await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 40_000 });
 
-    return new ResultListingComponent(this.page, siteResultToLocate);
+    return new ResultListingComponent(this.page, contentResultToLocate);
   }
 }
