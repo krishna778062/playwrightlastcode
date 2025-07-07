@@ -65,6 +65,7 @@ test.describe(
           await siteResultItem.verifyNameIsDisplayed(newSiteName);
           await siteResultItem.verifyLabelIsDisplayed(testData.label);
           await siteResultItem.verifyThumbnailIsDisplayed();
+          await siteResultItem.verifySiteIconIsDisplayed();
           await siteResultItem.verifyLockIconVisibility(testData.siteType);
           await siteResultItem.verifyNavigationWithCategoryLink(categoryObj.categoryId);
           await siteResultItem.goBackToPreviousPage();
