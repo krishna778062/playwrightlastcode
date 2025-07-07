@@ -2,7 +2,6 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@/src/core/pages/basePage';
 import { Locator, Page, expect, test } from '@playwright/test';
-import { HomePage } from '@core/pages/homePage';
 import { LoginPageActionHelper } from '@core/helpers/loginPageActionHelper';
 import { LoginPageAssertionHelper } from '@core/helpers/loginPageAssertionHelper';
 

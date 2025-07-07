@@ -70,6 +70,11 @@ export class ChatActionHelper {
     });
   }
 
+  /**
+   * Adds an attachment to the chat
+   * @param attachmentPath - The path to the attachment to add
+   * @param options - Optional parameters for the step
+   */
   public async addAttachment(
     attachmentPath: string,
     options?: { stepInfo?: string; isItValidFile?: boolean }
@@ -85,6 +90,12 @@ export class ChatActionHelper {
     });
   }
 
+  /**
+   * Gets the last message with an attachment
+   * @param attachmentType - The type of attachment to get the last message for
+   * @param options - Optional parameters for the step
+   * @returns The last message with an attachment
+   */
   public async getLastMessageWithAttachment(
     attachmentType: 'image' | 'file' | 'video',
     options?: { stepInfo?: string; timeout?: number }
@@ -128,6 +139,11 @@ export class ChatActionHelper {
     });
   }
 
+  /**
+   * Opens a group chat
+   * @param groupName - The group name to open
+   * @param options - Optional parameters for the step
+   */
   public async openGroupChat(
     groupName: string,
     options?: {
@@ -139,6 +155,11 @@ export class ChatActionHelper {
     });
   }
 
+  /**
+   * Opens a direct message item in the inbox for a given user
+   * @param userName - The user name to open the direct message item for
+   * @param options - Optional parameters for the step
+   */
   public async openUserDirectMessageItemInInboxForUser(
     userName: string,
     options?: {
@@ -191,6 +212,12 @@ export class ChatActionHelper {
     });
   }
 
+  /**
+   * Records and adds audio to the chat
+   * @param duration - The duration of the audio to record
+   * @param options - Optional parameters
+   */
+
   public async recordAndAddAudioToTheChat(
     duration: number = 2_000,
     options?: {
@@ -235,6 +262,12 @@ export class ChatActionHelper {
     return user1AudioVideoCallPage;
   }
 
+  /**
+   * Accepts an incoming call in a group chat
+   * @param groupName - The group name to accept the call from
+   * @param callType - The type of call to accept
+   * @param options - Optional parameters for the step
+   */
   async acceptIncomingCallInGroupChat(groupName: string, callType: 'audio' | 'video', options?: { stepInfo?: string }) {
     const incomingCallComponent = await this.chatPage.assertions.verifyIncomingCallIsReceivedFromCallerInGroupChat(
       groupName,
@@ -250,6 +283,12 @@ export class ChatActionHelper {
     });
   }
 
+  /**
+   * Sends a message with a group mention
+   * @param groupName - The group name to mention
+   * @param message - The message to send
+   * @param options - Optional parameters for the step
+   */
   async sendMessageWithGroupMention(groupName: string, message: string, options?: { stepInfo?: string }) {
     await test.step(
       options?.stepInfo ?? `Sending message ${message} and mention group mention: ${groupName}`,
@@ -271,6 +310,12 @@ export class ChatActionHelper {
     );
   }
 
+  /**
+   * Sends a message with a people mention
+   * @param userName - The user name to mention
+   * @param message - The message to send
+   * @param options - Optional parameters for the step
+   */
   async sendMessageWithPeopleMention(userName: string, message: string, options?: { stepInfo?: string }) {
     await test.step(
       options?.stepInfo ?? `Sending message ${message} and mention userName mention: ${userName}`,
@@ -293,12 +338,22 @@ export class ChatActionHelper {
     );
   }
 
+  /**
+   * Opens the mentions section
+   * @param options - Optional parameters for the step
+   */
   async openMentionsSection(options?: { stepInfo?: string }) {
     await test.step(options?.stepInfo ?? `Opening mentions section`, async () => {
       await this.chatPage.page.getByTestId('chat.mentions-section').click();
     });
   }
 
+  /**
+   * Clicks on a message in the mentions section
+   * @param groupName - The group name to filter the message by
+   * @param message - The message to click on
+   * @param options - Optional parameters for the step
+   */
   async clickOnMessageInMentionsSection(groupName: string, message: string, options?: { stepInfo?: string }) {
     await test.step(
       options?.stepInfo ?? `Clicking on message ${message} in mentions section for group ${groupName}`,
@@ -317,12 +372,23 @@ export class ChatActionHelper {
     );
   }
 
+  /**
+   * Gets the message item from the chat
+   * @param message - The message to get the message item for
+   * @param options - Optional parameters for the step
+   * @returns The message item for the given message
+   */
   async getMessageItemFromChat(message: string, options?: { stepInfo?: string }): Promise<Locator> {
     return await this.chatPage.getConversationWindowComponent().getMessageItemFromChat(message, {
       stepInfo: options?.stepInfo,
     });
   }
 
+  /**
+   * Deletes a message from the chat
+   * @param message - The message to delete
+   * @param options - Optional parameters for the step
+   */
   async deleteMessage(message: string, options?: { stepInfo?: string }) {
     await test.step(options?.stepInfo ?? `Deleting message ${message}`, async () => {
       const messageItem = await this.chatPage
@@ -332,6 +398,12 @@ export class ChatActionHelper {
     });
   }
 
+  /**
+   * Gets the data message id for a given message
+   * @param message - The message to get the data message id for
+   * @param options - Optional parameters for the step
+   * @returns The data message id for the given message
+   */
   async getDataMessageId(message: string, options?: { stepInfo?: string }) {
     return await test.step(options?.stepInfo ?? `Getting data message id for message ${message}`, async () => {
       return await this.chatPage

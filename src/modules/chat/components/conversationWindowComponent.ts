@@ -167,9 +167,9 @@ export class ConversationWindowComponent extends BaseComponent {
     return messageComponent!;
   }
 
-  async getFocusedMessageCardIdFromListOfChatMessages(messageText: string): Promise<string> {
-    let messageId: string;
-    await test.step(`Getting focused message data-message-id from list of chat messages`, async () => {
+  async getFocusedMessageCardIdFromListOfChatMessages(messageText: string): Promise<string | null> {
+    let messageId: string | null;
+    return await test.step(`Getting focused message data-message-id from list of chat messages`, async () => {
       const listOfMessages = await this.listChatMessagesComponent.all();
       for (const eachMessage of listOfMessages) {
         const fetchedMessageText = await eachMessage.locator('section').locator('p').textContent();
@@ -179,9 +179,8 @@ export class ConversationWindowComponent extends BaseComponent {
           break;
         }
       }
-      expect(messageId, `Message: ${messageId} to not be undefined`).not.toBeUndefined();
+      return messageId;
     });
-    return messageId!;
   }
 
   async verifyMessageIsNotPresentInListOfChatMessages(

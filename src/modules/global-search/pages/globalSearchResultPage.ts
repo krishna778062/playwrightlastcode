@@ -96,7 +96,10 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
     const siteResultToLocate = this.siteResultItems.filter({
       has: this.page.locator('h2', { hasText: searchTerm }),
     });
-    await this.verifier.verifyTheElementIsVisible(siteResultToLocate, { timeout: 40_000 });
+    await this.verifier.verifyTheElementIsVisible(siteResultToLocate, {
+      timeout: 40_000,
+      assertionMessage: `Verifying the site result item exactly matching the search term: ${searchTerm}`,
+    });
     return new SiteListComponent(this.page, siteResultToLocate);
   }
 }

@@ -1,7 +1,6 @@
 import { Page, test } from '@playwright/test';
 import { HomePage } from '../pages/homePage';
 import { LoginPage } from '../pages/loginPage';
-import { UserCredentials } from '../types/test.types';
 import { TIMEOUTS } from '../constants/timeouts';
 
 export class LoginPageActionHelper {
@@ -22,6 +21,13 @@ export class LoginPageActionHelper {
     return new HomePage(this.page);
   }
 
+  /**
+   * Logs in to the application with password
+   * @param username - The username to log in with
+   * @param password - The password to log in with
+   * @param options - The options to pass to the method
+   * @param options.timeout - The timeout to pass to the method
+   */
   async performLoginWithPassword(
     username: string,
     password: string,

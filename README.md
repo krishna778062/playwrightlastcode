@@ -148,12 +148,12 @@ To further improve clarity, maintainability, and reusability, the framework uses
 
 - **Action Helpers**: Expose all common or higher-level actions (e.g., sending a message, opening a chat, uploading an attachment) via a single interface:
   ```typescript
-  chatPage.getActions().sendMessage('Hello!');
-  chatPage.getActions().sendAttachment('path/to/file.pdf');
+  chatPage.actions.sendMessage('Hello!');
+  chatPage.actions.sendAttachment('path/to/file.pdf');
   ```
 - **Assertion Helpers**: Expose all common assertions (e.g., verifying a message is visible, checking for error dialogs):
   ```typescript
-  chatPage.getAssertions().verifyMessageIsVisible('Hello!');
+  chatPage.assertions.verifyMessageIsVisible('Hello!');
   ```
 
 **Benefits:**
@@ -318,9 +318,9 @@ test(
 
 ```typescript
 // Good: Using helpers for clarity and reuse
-await chatPage.getActions().openDirectMessageWithUser('Alice');
-await chatPage.getActions().sendMessage('Hello!');
-await chatPage.getAssertions().verifyMessageIsVisible('Hello!');
+await chatPage.actions.openDirectMessageWithUser('Alice');
+await chatPage.actions.sendMessage('Hello!');
+await chatPage.assertions.verifyMessageIsVisible('Hello!');
 
 // Still possible: Direct access for advanced/one-off needs
 await chatPage.getFocusedChatComponent().getChatEditorComponent().inputTextBox.fill('Raw input');

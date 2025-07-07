@@ -68,11 +68,23 @@ export class BrowserFactory {
         const listOfProjects = test.info().config.projects;
         for (const project of listOfProjects) {
           if (project.name === projectName) {
-            if (project.use.video === 'on' || project.use.video === 'retain-on-failure') {
-              await test.info().attach(`video-${userNameToUse}`, {
-                path: videoPath,
-                contentType: 'video/webm',
-              });
+            if (project.use.video !== 'off') {
+              if (project.use.video === 'on-first-retry' && test.info().retry > 0) {
+                await test.info().attach(`video-${userNameToUse}`, {
+                  path: videoPath,
+                  contentType: 'video/webm',
+                });
+              } else if (project.use.video === 'on') {
+                await test.info().attach(`video-${userNameToUse}`, {
+                  path: videoPath,
+                  contentType: 'video/webm',
+                });
+              } else if (project.use.video === 'retain-on-failure' && test.info().status === 'failed') {
+                await test.info().attach(`video-${userNameToUse}`, {
+                  path: videoPath,
+                  contentType: 'video/webm',
+                });
+              }
             }
           }
         }

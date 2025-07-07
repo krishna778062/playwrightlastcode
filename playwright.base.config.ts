@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 import { Environments } from '@/src/core/constants/environments';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { loadEnvVariablesForGivenModule } from './src/core/utils/envLoader';

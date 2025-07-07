@@ -25,7 +25,6 @@ test.describe('Group Chat Mentions', () => {
   test('verify user is able to mention the same group in group chat and both users sees the message', async ({
     groupName,
   }) => {
-    // const [user1ChatPage, user2ChatPage] = await multiUserChatTestHelper.loginMultipleUsersAndNavigateToChats([0, 1]);
     await user1ChatPage.actions.openGroupChat(groupName, {
       stepInfo: `user 1 opening group ${groupName}`,
     });
@@ -48,7 +47,6 @@ test.describe('Group Chat Mentions', () => {
   });
 
   test('verify mentions notification goes to user who is not active in the group chat', async ({ groupName }) => {
-    // const [user1ChatPage, user2ChatPage] = await multiUserChatTestHelper.loginMultipleUsersAndNavigateToChats([0, 1]);
     await user1ChatPage.actions.openGroupChat(groupName);
     await user1ChatPage.actions.sendMessage('Hello This message if from user 1 @user2');
     await user1ChatPage.assertions.verifyMessageIsVisible('Hello This message if from user 1 @user2');
@@ -61,7 +59,6 @@ test.describe('Group Chat Mentions', () => {
   test('verify if user 1 mentions user 2 in the group chat, user 2 sees that message in mentions section', async ({
     groupName,
   }) => {
-    // const [user1ChatPage, user2ChatPage] = await multiUserChatTestHelper.loginMultipleUsersAndNavigateToChats([0, 1]);
     await user1ChatPage.actions.openGroupChat(groupName);
     await user1ChatPage.actions.sendMessage('Hello This message if from user 1');
     await user1ChatPage.assertions.verifyMessageIsVisible('Hello This message if from user 1');
@@ -108,7 +105,6 @@ test.describe('Group Chat Mentions', () => {
   test('verify if user clicks on a mentioned message which is deleted, it should not open the message in mentions section', async ({
     groupName,
   }) => {
-    // const [user1ChatPage, user2ChatPage] = await multiUserChatTestHelper.loginMultipleUsersAndNavigateToChats([0, 1]);
     await user1ChatPage.actions.openGroupChat(groupName);
     await user1ChatPage.actions.sendMessage('Hello This message if from user 1');
     await user1ChatPage.assertions.verifyMessageIsVisible('Hello This message if from user 1');
@@ -116,7 +112,7 @@ test.describe('Group Chat Mentions', () => {
     await user1ChatPage.actions.sendMessageWithPeopleMention(user2.fullName, 'Hi, How are you?');
     await user1ChatPage.assertions.verifyMessageIsVisible(`@${user2.fullName} Hi, How are you?`);
     const messageId = await user1ChatPage.actions.getDataMessageId(`@${user2.fullName} Hi, How are you?`);
-    console.log(`messageId for user 1 is : ${messageId}`);
+    expect(messageId, `messageId for user 1 is not null`).not.toBeNull();
 
     //user 2 opens mention section and verify the message is present
     await user2ChatPage.sleep(3000);

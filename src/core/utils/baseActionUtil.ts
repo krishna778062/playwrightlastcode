@@ -1,6 +1,7 @@
-import { APIResponse, Locator, Page, test, Response, Request } from '@playwright/test';
-import { PlaywrightAction, PlaywrightErrorHandler } from './playwrightErrorHandler';
-import { FileUtil } from './fileUtil';
+import { Locator, Page, test, Response, Request } from '@playwright/test';
+import { PlaywrightAction, PlaywrightErrorHandler } from '@core/utils/playwrightErrorHandler';
+import { FileUtil } from '@core/utils/fileUtil';
+import { TIMEOUTS } from '@core/constants/timeouts';
 
 export type LocatorClickOptions = Parameters<Locator['click']>[0];
 export type LocatorFillOptions = Parameters<Locator['fill']>[1];
@@ -21,8 +22,42 @@ export class BaseActionUtil {
     this.page = page;
   }
 
-  async navigateTo(url: string) {
-    await this.page.goto(url);
+  /**
+   * Gets a locator for a given selector
+   * @param selector - The selector to get the locator for
+   * @returns The locator
+   */
+  getLocator(selector: string) {
+    return this.page.locator(selector);
+  }
+
+  /**
+   * This is wrapper around the playwright page.goto method
+   * It adds a step to the test.step method
+   * It also adds a default waitUntil and timeout
+   *
+   * @example
+   * ```ts
+   * await this.goToUrl('https://www.google.com');
+   * ```
+   *
+   * @description
+   * Navigates to a given url
+   * @param url - The url to navigate to
+   * @param options - The options to pass to the goto method
+   * @param options.waitUntil - The waitUntil option to pass to the goto method
+   * @param options.timeout - The timeout option to pass to the goto method
+   */
+  async goToUrl(
+    url: string,
+    options?: { waitUntil?: 'load' | 'domcontentloaded' | 'networkidle' | 'commit'; timeout?: number }
+  ) {
+    await test.step(`Navigating to ${url}`, async () => {
+      await this.page.goto(url, {
+        waitUntil: options?.waitUntil || 'load',
+        timeout: options?.timeout || TIMEOUTS.MEDIUM,
+      });
+    });
   }
 
   /**
@@ -90,10 +125,6 @@ export class BaseActionUtil {
     } catch (error) {
       throw PlaywrightErrorHandler.handle(error, PlaywrightAction.GET_ATTRIBUTE, selectorOrLocator);
     }
-  }
-
-  getLocator(selector: string) {
-    return this.page.locator(selector);
   }
 
   /**

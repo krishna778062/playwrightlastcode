@@ -1,11 +1,7 @@
 import { Browser, BrowserContext, test } from '@playwright/test';
-import { BrowserFactory, MultiUserContexts, UserContext } from '@/src/core/utils/browserFactory';
-import { ChatTestUser } from '@chat/types';
-import { FileUtil } from '@/src/core/utils/fileUtil';
-import { TestUser } from '../types/test.types';
-import { MultiUserChatTestHelper } from '../../modules/chat/helpers/multiUserChatTestHelper';
-import { LoginHelper } from './loginHelper';
-import { HomePage } from '../pages/homePage';
+import { BrowserFactory, MultiUserContexts } from '@core/utils/browserFactory';
+import { TestUser } from '@core/types/test.types';
+import { LoginHelper } from '@core/helpers/loginHelper';
 
 export class MultiUserTestHelper {
   protected multiUserContexts!: MultiUserContexts;
@@ -46,25 +42,14 @@ export class MultiUserTestHelper {
     }
     for (const [userEmail, { context, videoDir }] of Object.entries(this.multiUserContexts)) {
       await BrowserFactory.closeContext(context, userEmail);
-      // if (this.recordVideo && videoDir) {
-      //   try {
-      //     const files = FileUtil.readDir(videoDir);
-      //     if (files.length > 0) {
-      //       const videoPath = FileUtil.getFilePath(videoDir, files[0]);
-      //       await test.info().attach(`video-${userEmail}`, {
-      //         path: videoPath,
-      //         contentType: 'video/webm',
-      //       });
-      //       // Clean up the temporary directory
-      //       FileUtil.removeDir(videoDir);
-      //     }
-      //   } catch (error) {
-      //     console.error(`Failed to attach video for user ${userEmail}:`, error);
-      //   }
-      // }
     }
   }
 
+  /**
+   * Creates browser contexts for a list of users
+   * @param users - The list of users for which the contexts are required
+   * @returns The browser contexts for the users
+   */
   public async createContextsForUsers(users: TestUser[]) {
     return await test.step(`Creating browser contexts for users`, async () => {
       const contexts: MultiUserContexts = {};
@@ -78,23 +63,11 @@ export class MultiUserTestHelper {
     });
   }
 
-  async loginMultipleUserAndSaveStorageState(listOfUsers: TestUser[]) {
-    const storedStorageStateByEmail: { [key: string]: any } = {};
-    return await test.step(`Simultaneously logging in and navigating to chats for users  ${listOfUsers.map(user => user.email).join(', ')}`, async () => {
-      const loginPromises = listOfUsers.map(async user => {
-        const page = this.getPageForUser(user.email);
-        return await LoginHelper.loginWithPassword(page, { email: user.email, password: this.defaultPassword });
-      });
-      const listOfHomePages = await Promise.all(loginPromises);
-      for (let i = 0; i < listOfUsers.length; i++) {
-        storedStorageStateByEmail[listOfUsers[i].email] = await listOfHomePages[i].page.context().storageState();
-      }
-      //close all the pages
-      await Promise.all(listOfHomePages.map(homePage => homePage.page?.close()));
-      return storedStorageStateByEmail;
-    });
-  }
-
+  /**
+   * Creates logged in contexts for a list of users
+   * @param listOfUsers - The list of users for which the logged in contexts are required
+   * @returns The logged in contexts for the users
+   */
   async createLoggedInContextsForUsers(listOfUsers: TestUser[]) {
     const loggedInContexts: { [key: string]: BrowserContext } = {};
     return await test.step(`Simultaneously logging in and navigating to chats for users  ${listOfUsers.map(user => user.email).join(', ')}`, async () => {
