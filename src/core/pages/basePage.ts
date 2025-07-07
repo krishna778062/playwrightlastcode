@@ -1,9 +1,8 @@
 import { Page, test } from '@playwright/test';
-import { TIMEOUTS } from '@core/constants/timeouts';
-import { BaseActionUtil } from '../utils/baseActionUtil';
-import { BaseVerificationUtil } from '../utils/baseVerificationUtil';
+import { BaseActionUtil } from '@core/utils/baseActionUtil';
+import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
 
-export abstract class BasePage<TActions, TAssertions> extends BaseActionUtil {
+export abstract class BasePage<TActions = undefined, TAssertions = undefined> extends BaseActionUtil {
   readonly verifier: BaseVerificationUtil;
   readonly pageUrl: string;
   constructor(page: Page, pageUrl?: string) {
@@ -12,9 +11,17 @@ export abstract class BasePage<TActions, TAssertions> extends BaseActionUtil {
     this.pageUrl = pageUrl || '';
   }
 
-  abstract get actions(): TActions;
+  /**
+   * Right now, we want to keep the implemention of actions and assertions optional
+   * This is because, if the page does not have many actions and assertions,
+   * it might become an overhead to implement them.
+   *
+   * Ideally we should follow this once we feel the the page class
+   * has started to bloat/become complex.
+   */
+  abstract get actions(): TActions | undefined;
 
-  abstract get assertions(): TAssertions;
+  abstract get assertions(): TAssertions | undefined;
 
   /**
    * @description
@@ -36,35 +43,11 @@ export abstract class BasePage<TActions, TAssertions> extends BaseActionUtil {
   async loadPage(options?: { stepInfo?: string; timeout?: number }) {
     await test.step(options?.stepInfo || `Loading page ${this.pageUrl}`, async () => {
       if (this.pageUrl !== '') {
-        await this.page.goto(this.pageUrl, {
-          waitUntil: 'load',
-          timeout: options?.timeout || TIMEOUTS.MEDIUM,
-        });
+        await this.goToUrl(this.pageUrl);
       } else {
         throw new Error('Page URL is not set for this page');
       }
       await this.verifyThePageIsLoaded();
-    });
-  }
-
-  /**
-   * Reloads the page
-   * @param options - The options to pass to the reloadPage method
-   * @param options.stepInfo - The step info to pass to the test.step method
-   */
-  async reloadPage() {
-    await test.step(`Reloading page ${this.pageUrl}`, async () => {
-      await this.navigateTo(this.pageUrl);
-    });
-  }
-
-  /**
-   * Navigates to the page
-   * @param givenPageUrl - The page URL to navigate to.
-   */
-  async navigateToPage(givenPageUrl: string) {
-    await test.step(`Navigating to page ${givenPageUrl}`, async () => {
-      await this.navigateTo(givenPageUrl);
     });
   }
 }

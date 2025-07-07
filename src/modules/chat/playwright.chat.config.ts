@@ -3,6 +3,7 @@ import { defineConfig } from '@playwright/test';
 import baseConfig from '../../../playwright.base.config';
 import { PROJECT_ROOT } from '@core/constants/paths';
 import path from 'path';
+import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 export default defineConfig({
   ...baseConfig,
@@ -18,12 +19,10 @@ export default defineConfig({
       name: 'chat-chromium',
       use: {
         headless: true,
-        video: 'off',
-        trace: 'retry-with-trace',
-        screenshot: 'only-on-failure',
+        video: 'on',
         ...devices['Desktop Chrome'],
         permissions: ['camera', 'microphone'],
-        baseURL: process.env.FRONTEND_BASE_URL,
+        baseURL: getEnvConfig().frontendBaseUrl,
         launchOptions: {
           args: [
             '--disable-gpu', // Disable GPU acceleration
