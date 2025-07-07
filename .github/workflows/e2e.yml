@@ -11,6 +11,7 @@ on:
         options:
           - 'chat'
           - 'platforms'
+          - 'global-search'
       priority_filter:
         description: 'Select test cases by priority'
         required: true
