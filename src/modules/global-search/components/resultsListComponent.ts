@@ -72,7 +72,7 @@ export class ResultListingComponent extends BaseComponent {
    */
   async clickOnThumbnailLink() {
     await test.step(`Clicking on the thumbnail link`, async () => {
-      await this.clickOnElement(this.thumbnailLink);
+      await this.clickOnElement(this.thumbnailLink, { timeout: 20000 });
     });
   }
 
@@ -81,7 +81,7 @@ export class ResultListingComponent extends BaseComponent {
    */
   async clickOnHomePageLink() {
     await test.step(`Clicking on the home page link`, async () => {
-      await this.clickOnElement(this.headerNavBarHomePageLink);
+      await this.clickOnElement(this.headerNavBarHomePageLink, { timeout: 20000 });
     });
   }
 

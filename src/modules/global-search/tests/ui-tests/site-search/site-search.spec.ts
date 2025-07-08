@@ -6,7 +6,8 @@ import { SITE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/sit
 import { TestGroupType } from '@core/constants/testType';
 import { HomePage } from '@/src/core/pages/homePage';
 import { EnterpriseSearchHelper } from '@core/helpers/enterpriseSearchHelper';
-import { SEARCH_RESULT_ITEM } from '../../../constants/siteTypes';
+import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
+import { SEARCH_RESULT_ITEM } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
   `Test Global Search - Site Search functionality`,
@@ -59,16 +60,20 @@ test.describe(
             newSiteName,
             SEARCH_RESULT_ITEM.SITE
           );
+          
           const globalSearchResultPage = await homePage.actions.searchForTerm(newSiteName, {
             stepInfo: `Searching with term "${newSiteName} and intent is to find the site"`,
           });
 
           //get the site result item
-          const siteResultItem =
-            await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(newSiteName);
+          const siteResult = await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(newSiteName);
+          const siteResultItem = new SiteListComponent(siteResult.page, siteResult.rootLocator);
+
+          //verifying site results
           await siteResultItem.verifyNameIsDisplayed(newSiteName);
           await siteResultItem.verifyLabelIsDisplayed(testData.label);
           await siteResultItem.verifyThumbnailIsDisplayed();
+          await siteResultItem.verifySiteIconIsDisplayed();
           await siteResultItem.verifyLockIconVisibility(testData.siteType);
           await siteResultItem.verifyNavigationWithCategoryLink(categoryObj.categoryId);
           await siteResultItem.goBackToPreviousPage();
@@ -78,7 +83,6 @@ test.describe(
           await siteResultItem.verifyNavigationWithThumbnailLink(newSiteId);
           await siteResultItem.goBackToPreviousPage();
           await siteResultItem.verifyNavigationWithHomePageLink();
-          await siteResultItem.goBackToPreviousPage();
           await siteResultItem.goBackToPreviousPage();
         }
       );

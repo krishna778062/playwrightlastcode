@@ -3,10 +3,12 @@ import { Locator, Page, test } from '@playwright/test';
 
 export class SiteListComponent extends ResultListingComponent {
   readonly category: Locator;
+  readonly siteIcon: Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
     this.category = this.rootLocator.locator("[aria-label*='Uncategorized'] span");
+    this.siteIcon = this.rootLocator.locator("[data-testid='i-sites']");
   }
 
   /**
@@ -42,6 +44,15 @@ export class SiteListComponent extends ResultListingComponent {
         timeout: 80000,
         stepInfo: `Verifying navigation to category link to "${categoryId}"`,
       });
+    });
+  }
+
+  /**
+   * verify site icon is displayed
+   */
+  async verifySiteIconIsDisplayed() {
+    await test.step(`Verifying site icon is displayed`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.siteIcon.nth(1));
     });
   }
 }

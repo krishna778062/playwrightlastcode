@@ -1,8 +1,8 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from '@/src/core/pages/basePage';
 import { TIMEOUTS } from '../../../core/constants/timeouts';
-import { ResultListingComponent } from '../components/resultsListComponent';
-import { SiteListComponent } from '../components/siteListComponent';
+import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
+import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
 import { TileListComponent } from '../components/tileListComponent';
 
 export class GlobalSearchResultPage extends BasePage<any, any> {
@@ -11,6 +11,7 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
   readonly searchResultListContainer: Locator;
   readonly searchResultListItems: Locator;
   readonly siteResultItems: Locator;
+  readonly pageResultItems: Locator;
   readonly tileButton: Locator;
 
   constructor(page: Page) {
@@ -21,6 +22,9 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
     this.searchResultListItems = this.searchResultListContainer.locator('li');
     this.siteResultItems = this.searchResultListItems.filter({
       has: this.page.getByTestId('i-sites'),
+    });
+    this.pageResultItems = this.searchResultListItems.filter({
+      has: this.page.getByTestId('i-page'),
     });
     this.tileButton = this.page.getByRole('button', { name: 'Tiles' });
   }
@@ -109,6 +113,7 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
   /**
    * Get the site result item exactly matching the search term
    * @param searchTerm - the search term
+   * @param apiClient - the API client
    * @returns the site result item
    */
   async getSiteResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
@@ -125,6 +130,22 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
     });
 
     return new SiteListComponent(this.page, siteResultToLocate);
+  }
+
+  /**
+   * Get the page result item exactly matching the search term
+   * @param searchTerm - the search term
+   * @returns the content result item
+   */
+  async getPageResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
+    await this.waitUntilSearchResultListIsDisplayed();
+    const contentResultToLocate = this.pageResultItems.filter({
+      has: this.page.locator('h2', { hasText: searchTerm }),
+    });
+
+      await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 40_000 });
+
+    return new ResultListingComponent(this.page, contentResultToLocate);
   }
 
   async getTileResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
