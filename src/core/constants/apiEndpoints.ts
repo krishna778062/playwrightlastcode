@@ -44,4 +44,8 @@ export const API_ENDPOINTS = {
     category: '/pageCategories/list',
     publish: '/content?action=publish',
   },
+  linkTile: {
+    create: (siteId: string) => `/v1/content/sites/${siteId}/tiles`,
+    delete: (siteId: string, tileId: string) => `/v1/content/sites/${siteId}/tiles/${tileId}`,
+  },
 } as const;

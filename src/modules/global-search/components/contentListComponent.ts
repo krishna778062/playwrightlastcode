@@ -44,8 +44,8 @@ export class ContentListComponent extends ResultListingComponent {
     });
   }
 
-  async verifyUserIsDisplayed(user: string) {
-    await test.step(`Verifying user ${user} is displayed`, async () => {
+  async verifyAuthorIsDisplayed(user: string) {
+    await test.step(`Verifying Author ${user} is displayed`, async () => {
       await this.verifier.verifyElementHasText(this.resultList.first(), user);
     });
   }

@@ -7,4 +7,5 @@ export enum TestSuite {
   CHAT_DIRECT = '@direct-chat',
   CHAT_GROUP = '@group-chat',
   FOOTER = '@footer',
+  LINK_TILE_SEARCH = '@link-tile-search',
 }

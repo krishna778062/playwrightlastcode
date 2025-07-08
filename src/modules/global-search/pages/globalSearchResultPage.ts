@@ -3,6 +3,7 @@ import { BasePage } from '@/src/core/pages/basePage';
 import { TIMEOUTS } from '../../../core/constants/timeouts';
 import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
+import { TileListComponent } from '../components/tileListComponent';
 
 export class GlobalSearchResultPage extends BasePage<any, any> {
   readonly resultListingComponent: ResultListingComponent;
@@ -11,6 +12,7 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
   readonly searchResultListItems: Locator;
   readonly siteResultItems: Locator;
   readonly pageResultItems: Locator;
+  readonly tileButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -24,6 +26,7 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
     this.pageResultItems = this.searchResultListItems.filter({
       has: this.page.getByTestId('i-page'),
     });
+    this.tileButton = this.page.getByRole('button', { name: 'Tiles' });
   }
 
   get actions(): any {
@@ -61,16 +64,6 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
   }
 
   /**
-   * Get the search result items
-   * @returns the search result items
-   */
-  async getSearchResultItems() {
-    await this.waitUntilSearchResultListIsDisplayed();
-    const resultListItems = await this.searchResultListItems.all();
-    return resultListItems;
-  }
-
-  /**
    * Wait until the search result list is displayed
    */
   async waitUntilSearchResultListIsDisplayed() {
@@ -78,6 +71,33 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
       timeout: 50000,
       stepInfo: 'Waiting until atleast 1 search result list item is displayed',
     });
+  }
+
+  /**
+   * Private helper method to handle checkbox retry logic
+   * @param verificationFn - Function that performs the verification
+   */
+  private async handleExactMatchCheckboxRetry(verificationFn: () => Promise<void>) {
+    try {
+      await verificationFn();
+    } catch (error) {
+      // If the verification fails, check if the "Search for an exact match" checkbox is visible and click it
+      const exactMatchCheckbox = this.page.getByRole('checkbox', { name: 'Search for an exact match' });
+      await exactMatchCheckbox.waitFor({ state: 'visible', timeout: 5000 });
+      await exactMatchCheckbox.click();
+      // Retry the verification after clicking the checkbox
+      await verificationFn();
+    }
+  }
+
+  /**
+   * Get the search result items
+   * @returns the search result items
+   */
+  async getSearchResultItems() {
+    await this.waitUntilSearchResultListIsDisplayed();
+    const resultListItems = await this.searchResultListItems.all();
+    return resultListItems;
   }
 
   /**
@@ -101,10 +121,14 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
     const siteResultToLocate = this.siteResultItems.filter({
       has: this.page.locator('h2', { hasText: searchTerm }),
     });
-    await this.verifier.verifyTheElementIsVisible(siteResultToLocate, {
-      timeout: 40_000,
-      assertionMessage: `Verifying the site result item exactly matching the search term: ${searchTerm}`,
+
+    await this.handleExactMatchCheckboxRetry(async () => {
+      await this.verifier.verifyTheElementIsVisible(siteResultToLocate, {
+        timeout: 40_000,
+        assertionMessage: `Verifying the site result item exactly matching the search term: ${searchTerm}`,
+      });
     });
+
     return new SiteListComponent(this.page, siteResultToLocate);
   }
 
@@ -122,5 +146,23 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
       await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 40_000 });
 
     return new ResultListingComponent(this.page, contentResultToLocate);
+  }
+
+  async getTileResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
+    await this.waitUntilSearchResultListIsDisplayed();
+
+    const tileResultToLocate = this.searchResultListItems
+      .filter({
+        has: this.page.getByTestId('i-tile'),
+      })
+      .filter({
+        hasText: searchTerm,
+      });
+
+    await this.handleExactMatchCheckboxRetry(async () => {
+      await this.verifier.verifyTheElementIsVisible(tileResultToLocate, { timeout: 40_000 });
+    });
+
+    return new TileListComponent(this.page, tileResultToLocate, searchTerm);
   }
 }

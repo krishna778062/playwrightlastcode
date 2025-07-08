@@ -61,6 +61,7 @@ test.describe(
         const randomNum1 = Math.floor(Math.random() * 1000000 + 1);
         const pageName = `AutomateUIPage_Test_${randomNum1}`;
         const contentDescription = 'AutomateDescription';
+        const authorName ='Workplace AppManager';
         const pageResult = await appManagerApiClient.getContentManagementService().addNewPageContent(newSiteId, {
           contentSubType: testData.contentType,
           title: pageName,
@@ -76,10 +77,11 @@ test.describe(
         console.log(`Created page : ${pageName} with ID ${newPageID}`);
 
         //wait until the search api starts showing the newly created site in results
-        await EnterpriseSearchHelper.waitForContentResultToAppearInApiResponse(
+        await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
           appManagerApiClient,
           pageName,
-          pageName
+          pageName,
+          'content'
         );
 
         // 4. UI Search for the page
@@ -96,7 +98,7 @@ test.describe(
         await contentResultItem.verifyLabelIsDisplayed(testData.label);
         await contentResultItem.verifyThumbnailIsDisplayed();
         await contentResultItem.verifyDescriptionIsDisplayed(contentDescription);
-        await contentResultItem.verifyUserIsDisplayed('Workplace AppManager');
+        await contentResultItem.verifyAuthorIsDisplayed(authorName);
         await contentResultItem.verifyDateIsDisplayed();
         await contentResultItem.verifyPageIconIsDisplayed();
         await contentResultItem.verifyNavigationWithSiteLink(newSiteId, newSiteName);
@@ -106,7 +108,7 @@ test.describe(
         await contentResultItem.goBackToPreviousPage();
         await contentResultItem.verifyNavigationWithThumbnailLink(newPageID);
         await contentResultItem.goBackToPreviousPage();
-        await contentResultItem.verifyNavigationWithAuthorLink('Workplace AppManager');
+        await contentResultItem.verifyNavigationWithAuthorLink(authorName);
         await contentResultItem.goBackToPreviousPage();
         await contentResultItem.verifyNavigationWithHomePageLink();
         await contentResultItem.goBackToPreviousPage();

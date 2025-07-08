@@ -7,6 +7,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { HomePage } from '@/src/core/pages/homePage';
 import { EnterpriseSearchHelper } from '@core/helpers/enterpriseSearchHelper';
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
+import { SEARCH_RESULT_ITEM } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
   `Test Global Search - Site Search functionality`,
@@ -53,10 +54,11 @@ test.describe(
           newSiteId = result.siteId;
           console.log(`Created site: ${newSiteName} with ID: ${newSiteId}`);
           //wait until the search api starts showing the newly created site in results
-          await EnterpriseSearchHelper.waitForSiteResultToAppearInApiResponse(
+          await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
             appManagerApiClient,
             newSiteName,
-            newSiteName
+            newSiteName,
+            SEARCH_RESULT_ITEM.SITE
           );
           
           const globalSearchResultPage = await homePage.actions.searchForTerm(newSiteName, {
