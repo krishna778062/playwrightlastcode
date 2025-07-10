@@ -14,7 +14,10 @@
       "@chat-components/*": ["./src/modules/chat/pages/components/*"],
       "@chat-tests/*": ["./src/modules/chat/tests/*"],
       "@platforms/*": ["./src/modules/platforms/*"],
-      "@platforms-tests/*": ["./src/modules/platforms/tests/*"]
+      "@platforms-tests/*": ["./src/modules/platforms/tests/*"],
+      "@content/*": ["./src/modules/content/*"],
+      "@content-pages/*": ["./src/modules/content/pages/*"],
+      "@content-tests/*": ["./src/modules/content/tests/*"]
     },
     "target": "ES2019",
     "module": "commonjs",
