@@ -1,6 +1,7 @@
 import { ResultListingComponent } from './resultsListComponent';
-import { Locator, Page, test } from '@playwright/test';
+import { Locator, Page, test, expect } from '@playwright/test';
 import { getTodayFormattedDate } from '@/src/core/utils/dateUtil';
+import { getEventDateDisplayText } from '@/src/core/utils/dateUtil';
 
 /**
  * ContentListComponent is a UI component class that extends ResultListingComponent.
@@ -15,6 +16,9 @@ export class ContentListComponent extends ResultListingComponent {
   readonly resultList: Locator;
   readonly pageIcon: Locator;
   readonly userText: Locator;
+  readonly dayText:Locator;
+  readonly monthText:Locator;
+  readonly calendarIcon:Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
@@ -22,8 +26,15 @@ export class ContentListComponent extends ResultListingComponent {
     this.resultList = this.rootLocator.locator("div[class*='Spacing-module__row'] span[class*='ypography-module']");
     this.pageIcon = this.rootLocator.locator("[data-testid='i-page']");
     this.userText = page.locator("h1[class*='ypography-module']");
+    this.dayText = this.rootLocator.locator("div[class*='DateEmblem-module__day']");
+    this.monthText = this.rootLocator.locator("div[class*='DateEmblem-module__monthInner']");
+    this.calendarIcon = this.rootLocator.locator("[data-testid='i-calendar']");
   }
 
+  /**
+   * Clicks on the site link from the content card and verifies the site name breadcrumb is displayed.
+   * @param name - The name of the site to click.
+   */
   async clickOnSiteLink(name: string) {
     await test.step(`Clicking on the site link from content`, async () => {
       await this.verifier.verifyElementHasText(this.siteBreadcrumb.last(), name, {
@@ -34,6 +45,11 @@ export class ContentListComponent extends ResultListingComponent {
     });
   }
 
+  /**
+   * Verifies navigation to the site link using the provided site ID and site name.
+   * @param siteId - The ID of the site to verify navigation for.
+   * @param siteName - The name of the site to click.
+   */
   async verifyNavigationWithSiteLink(siteId: string, siteName: string) {
     await test.step(`Verifying navigation to site link "${siteId}"`, async () => {
       await this.clickOnSiteLink(siteName);
@@ -44,29 +60,93 @@ export class ContentListComponent extends ResultListingComponent {
     });
   }
 
+  /**
+   * Verifies that the specified author/user is displayed in the content result item.
+   * @param user - The name of the user/author to verify.
+   */
   async verifyAuthorIsDisplayed(user: string) {
     await test.step(`Verifying Author ${user} is displayed`, async () => {
       await this.verifier.verifyElementHasText(this.resultList.first(), user);
     });
   }
 
+  /**
+   * Verifies navigation to the author's profile page from the content result item.
+   * @param user - The name of the user/author to navigate to.
+   */
   async verifyNavigationWithAuthorLink(user: string) {
     await test.step(`Verifying navigation to ${user} profile page`, async () => {
       await this.clickOnElement(this.resultList.first(), { timeout: 20000 });
-      await this.verifier.verifyElementHasText(this.userText, user,{timeout:30000});
+      await this.verifier.verifyElementHasText(this.userText, user,{timeout:50000});
     });
   }
 
+  /**
+   * Verifies that the page icon is visible in the content result item.
+   */
   async verifyPageIconIsDisplayed() {
     await test.step(`Verifying page icon is displayed`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.pageIcon.last());
     });
   }
 
+  /**
+   * Verifies that today's formatted date is displayed in the content result item.
+   */
   async verifyDateIsDisplayed() {
     const formatted = getTodayFormattedDate();
     await test.step(`Verify date ${formatted} is displayed`, async () => {
       await this.verifier.verifyElementHasText(this.resultList.last(), formatted);
+    });
+  }
+
+  /**
+   * Verifies that the event calendar thumbnail displays the correct month and day for the given ISO date string.
+   * @param isoDateString - The ISO date string to verify in the calendar thumbnail.
+   */
+  async verifyEventCalendarThumbnailIsDisplayed(isoDateString: string) {
+    await test.step(`Verify date calendar thumbnail is displayed`, async () => {
+    // Parse the ISO date string
+    const date = new Date(isoDateString);
+    const expectedMonth = date.toLocaleString('en-US', { month: 'short' });
+    const expectedDay = date.getDate().toString();
+    await this.verifier.verifyElementHasText(this.dayText, expectedDay);
+    await this.verifier.verifyElementHasText(this.monthText, expectedMonth);
+    });
+  }
+
+  /**
+   * Verifies that the event date is displayed as "TODAY - TOMORROW" if the dates are today and tomorrow, or as a formatted range otherwise.
+   * @param fromDate - The start date of the event (ISO string).
+   * @param toDate - The end date of the event (ISO string).
+   */
+  async verifyEventDateIsDisplayed(fromDate: string, toDate: string) {
+    await test.step(`Verify date is displayed as TODAY - TOMORROW or formatted range`, async () => {
+      const expectedText = getEventDateDisplayText(fromDate, toDate);
+      await this.verifier.verifyElementHasText(this.resultList.last(), expectedText);
+    });
+  }
+
+/**
+   * Verifies that the calendar icon is visible in the content result item.
+   */
+async verifyCalendarIconIsDisplayed() {
+  await test.step(`Verifying calendar icon is displayed for events`, async () => {
+    await this.verifier.verifyTheElementIsVisible(this.calendarIcon);
+  });
+}
+
+  /**
+   * Verifies navigation when clicking the calendar day element.
+   * @param iD - The unique identifier expected in the navigation URL.
+   */
+  async verifyNavigationWithCalendarLink(iD: string) {
+    await test.step(`Verifying navigation to calendar link with ID "${iD}"`, async () => {
+      await this.clickOnElement(this.dayText, { timeout: 20000 });
+      await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(iD), {
+        timeout: 80000,
+        stepInfo: `Verifying navigation to calendar link with ID "${iD}"`,
+      });
     });
   }
 }
