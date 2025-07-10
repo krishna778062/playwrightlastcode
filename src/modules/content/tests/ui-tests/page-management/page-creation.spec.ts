@@ -20,6 +20,8 @@ test.describe(
       async ({ adminPage, appManagerApiClient }) => {
         tagTest(test.info(), {
           description: 'Test cover image upload functionality during page creation',
+          zephyrTestId: 'CONT-11635',
+          storyId: 'CONT-11635',
         });
 
         // Initialize the content creation page
