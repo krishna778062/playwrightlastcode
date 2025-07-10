@@ -1,8 +1,8 @@
 import { APIRequestContext, expect, test } from '@playwright/test';
-import { BaseApiClient } from '../clients/baseApiClient';
-import { IContentManagementServices } from '../interfaces/IContentManagementServices';
-import { API_ENDPOINTS } from '../../constants/apiEndpoints';
-import { PageCreationPayload, EventCreationPayload } from '../../types/contentManagement.types';
+import { BaseApiClient } from '@api/clients/baseApiClient';
+import { IContentManagementServices } from '@api/interfaces/IContentManagementServices';
+import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
+import { PageCreationPayload, EventCreationPayload } from '@core/types/contentManagement.types';
 
 const defaultBaseContentPayload = {
   listOfFiles: [],
@@ -97,6 +97,11 @@ export class ContentManagementService extends BaseApiClient implements IContentM
     super(context, baseUrl);
   }
 
+  /**
+   * Fetches page categories for a given site.
+   * @param siteId - The site ID.
+   * @returns The first category's ID and name.
+   */
   async getPageCategoryID(siteId: string) {
     return await test.step(
       'Fetching page categories via API post request',
@@ -114,6 +119,12 @@ export class ContentManagementService extends BaseApiClient implements IContentM
     );
   }
 
+  /**
+   * Publishes new page content to a site.
+   * @param siteId - The site ID.
+   * @param overrides - Page content overrides.
+   * @returns The created page's ID.
+   */
   async addNewPageContent(siteId: string, overrides: Partial<typeof defaultPageContentPayload> = {}) {
     return await test.step(
       'Publishing page content via API post request',
@@ -159,6 +170,12 @@ export class ContentManagementService extends BaseApiClient implements IContentM
     );
   }
 
+  /**
+   * Publishes new event content to a site.
+   * @param siteId - The site ID.
+   * @param overrides - Event content overrides.
+   * @returns The created event's ID.
+   */
   async addNewEventContent(siteId: string, overrides: Partial<EventCreationPayload> = {}) {
     return await test.step(
       'Publishing event content via API post request',
