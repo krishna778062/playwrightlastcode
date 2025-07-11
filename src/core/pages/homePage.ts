@@ -1,6 +1,6 @@
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
-import { Page } from '@playwright/test';
+import { Page, Locator, test } from '@playwright/test';
 import { TopNavBarComponent } from '@core/components/topNavBarComponent';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { FooterComponent } from '@core/components/footerComponent';
@@ -10,6 +10,7 @@ import { HomePageAssertionHelper } from '@core/helpers/homePageAssertionHelper';
 export class HomePage extends BasePage<HomePageActionHelper, HomePageAssertionHelper> {
   readonly topNavBarComponent: TopNavBarComponent;
   readonly footer: FooterComponent;
+  readonly createSection: Locator;
 
   //actions
   readonly homeActionHelper: HomePageActionHelper;
@@ -22,6 +23,7 @@ export class HomePage extends BasePage<HomePageActionHelper, HomePageAssertionHe
     this.footer = new FooterComponent(page, this.page.locator('#site-footer'));
     this.homeActionHelper = new HomePageActionHelper(this);
     this.homeAssertionHelper = new HomePageAssertionHelper(this);
+    this.createSection = page.getByRole('button', { name: 'Create' });
   }
 
   get actions(): HomePageActionHelper {
@@ -46,6 +48,12 @@ export class HomePage extends BasePage<HomePageActionHelper, HomePageAssertionHe
     await this.verifier.verifyTheElementIsVisible(this.topNavBarComponent.profileSettingsButton, {
       timeout: options?.timeout || TIMEOUTS.MEDIUM,
       assertionMessage: `expecting messaging button to be visible`,
+    });
+  }
+
+  async clickCreateSection(options?: { stepInfo?: string }) {
+    await test.step(options?.stepInfo || 'Click on Create section', async () => {
+      await this.clickOnElement(this.createSection);
     });
   }
 }

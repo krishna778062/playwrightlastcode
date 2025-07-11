@@ -1,19 +1,22 @@
 import { Page, Locator, expect, test } from '@playwright/test';
 import { BasePage } from '@core/pages/basePage';
 import { CONTENT_TEST_DATA } from '../test-data/content.test-data';
+import { ContentCreationAssertions } from '../helpers/contentAssertionHelper';
+import { HomePage } from '@/src/core/pages/homePage';
+import { AddSiteContentComponents } from '../components/addSiteContentComponents';
 
 export class ContentCreationPage extends BasePage<ContentCreationActions, ContentCreationAssertions> {
   // Page elements
-  private readonly createSection: Locator;
-  private readonly pageOption: Locator;
-  private readonly recentlyUsedSitesList: Locator;
-  private readonly addSpan: Locator;
-  private readonly nextButton: Locator;
-  private readonly addButton: Locator;
-  private readonly squareCropOption: Locator;
-  private readonly coverImageUpload: Locator;
-  private readonly uploadImage: Locator;
-  private readonly uploadImageValidation: Locator;
+  readonly createSection: Locator;
+  readonly pageOption: Locator;
+  readonly recentlyUsedSitesList: Locator;
+  readonly addSpan: Locator;
+  readonly nextButton: Locator;
+  readonly addButton: Locator;
+  readonly squareCropOption: Locator;
+  readonly coverImageUpload: Locator;
+  readonly uploadImage: Locator;
+  readonly uploadImageValidation: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -44,57 +47,19 @@ export class ContentCreationPage extends BasePage<ContentCreationActions, Conten
   get assertions() {
     return new ContentCreationAssertions(this);
   }
-
-  // Getter methods for accessing elements
-  getCreateSection() { return this.createSection; }
-  getPageOption() { return this.pageOption; }
-  getRecentlyUsedSitesList() { return this.recentlyUsedSitesList; }
-  getAddSpan() { return this.addSpan; }
-  getNextButton() { return this.nextButton; }
-  getSquareCropOption() { return this.squareCropOption; }
-  getCoverImageUpload() { return this.coverImageUpload; }
-  getUploadedImage() {return this.uploadImage}
-  getAddButton() {return this.addButton}
-  getUploadImageValidation() {return this.uploadImageValidation}
-}
-
-export class ContentCreationActions {
+}export class ContentCreationActions {
   constructor(private readonly page: ContentCreationPage) {}
 
-  async clickCreateSection(options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || 'Click on Create section', async () => {
-      await this.page.getCreateSection().click();
-    });
-  }
 
-  async clickPageOption(options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || 'Click on Page option', async () => {
-      await this.page.getPageOption().click();
-    });
-  }
 
-  async selectRecentlyUsedSite(options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || 'Click on recently used site', async () => {
-      // Select the first recently used site
-      const firstSite = this.page.getRecentlyUsedSitesList().first();
-      await firstSite.click();
-    });
-  }
-
-  async clickAddButton(options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || 'Click Add button', async () => {
-      await this.page.getAddSpan().click();
-    });
-  }
 
   async uploadCoverImage(fileName: string, options?: { 
-    stepInfo?: string; 
     enableWidescreenCrop?: boolean; 
     enableSquareCrop?: boolean; 
   }) {
-    await test.step(options?.stepInfo || `Upload cover image: ${fileName}`, async () => {
+    await test.step(`Upload cover image: ${fileName}`, async () => {
       // Wait for AddFrom-input element to be present
-      const fileInputElement = this.page.getCoverImageUpload();
+      const fileInputElement = this.page.coverImageUpload;
       
       // Upload the file directly to the input element
       const filePath = `src/modules/content/test-data/static-files/images/${fileName}`;
@@ -104,50 +69,27 @@ export class ContentCreationActions {
       
       
         // Click Next button three times
-        await this.page.getNextButton().click();
-        await this.page.getNextButton().click();
-        await this.page.getNextButton().click();
-        await this.page.getAddButton().click();
+        await this.page.nextButton.click();
+        await this.page.nextButton.click();
+        await this.page.nextButton.click();
+        await this.page.addButton.click();
         console.log('✅ File upload completed, Add button clicked successfully');
         
-      
-      
-      // Wait for upload to complete - check if uploading indicator is present and wait for it to disappear
-      const uploadingIndicator = this.page.getUploadedImage()
-      
-      if (await uploadingIndicator.isVisible({ timeout: 2000 })) {
-        await uploadingIndicator.waitFor({ state: 'hidden', timeout: CONTENT_TEST_DATA.TIMEOUTS.UPLOAD });
-      }
     });
   }
 
-  async createPageWithCoverImage(coverImageFileName: string, options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || 'Create page with cover image', async () => {
-      await this.clickCreateSection({ stepInfo: 'Click on Create section' });
-      await this.clickPageOption({ stepInfo: 'Click on Page text' });
-      await this.selectRecentlyUsedSite({ stepInfo: 'Click on recently used site' });
-      await this.clickAddButton({ stepInfo: 'Click on Add button' });
+  async createPageWithCoverImage(coverImageFileName: string, options?: { enableWidescreenCrop?: boolean; enableSquareCrop?: boolean; }) {
+    await test.step('Create page with cover image', async () => {
+      const homePage = new HomePage(this.page.page);
+      const addSiteContentComponents = new AddSiteContentComponents(this.page);
+      await homePage.clickCreateSection();
+      await addSiteContentComponents.clickPageOption();
+      await addSiteContentComponents.selectRecentlyUsedSite();
+      await addSiteContentComponents.clickAddButton();
       await this.uploadCoverImage(coverImageFileName, {
-        stepInfo: `Upload cover image: ${coverImageFileName}`,
-        enableWidescreenCrop: true,
-        enableSquareCrop: true,
+        enableWidescreenCrop: options?.enableWidescreenCrop ?? true,
+        enableSquareCrop: options?.enableSquareCrop ?? true,
       });
     });
   }
 }
-
-export class ContentCreationAssertions {
-  constructor(private readonly page: ContentCreationPage) {}
-
-  async verifyFileUploadSuccessful(options?: { stepInfo?: string; timeout?: number }) {
-    await test.step(options?.stepInfo || 'Verify file upload is successful', async () => {
-      // Check for success indicators - verify the uploaded image validation element is visible
-      await expect(
-        this.page.getUploadImageValidation(),
-        'Upload success should be indicated'
-      ).toBeVisible({
-        timeout: options?.timeout || CONTENT_TEST_DATA.TIMEOUTS.UPLOAD,
-      });
-    });
-  }
-} 
