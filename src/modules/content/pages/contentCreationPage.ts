@@ -69,10 +69,10 @@ export class ContentCreationPage extends BasePage<ContentCreationActions, Conten
       
       
         // Click Next button three times
-        await this.page.nextButton.click();
-        await this.page.nextButton.click();
-        await this.page.nextButton.click();
-        await this.page.addButton.click();
+        await this.page.clickOnElement(this.page.nextButton);
+        await this.page.clickOnElement(this.page.nextButton);
+        await this.page.clickOnElement(this.page.nextButton);
+        await this.page.clickOnElement(this.page.addButton);
         console.log('✅ File upload completed, Add button clicked successfully');
         
     });

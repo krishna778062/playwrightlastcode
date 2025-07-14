@@ -3,10 +3,11 @@ import { ContentCreationPage } from '../pages/contentCreationPage';
 
 export class AddSiteContentComponents {
   constructor(private readonly page: ContentCreationPage) {}
+  
 
   async clickPageOption() {
     await test.step('Click on Page option', async () => {
-      await this.page.pageOption.click();
+      await this.page.clickOnElement(this.page.pageOption);
     });
   }
 
@@ -14,13 +15,13 @@ export class AddSiteContentComponents {
     await test.step('Click on recently used site', async () => {
       // Select the first recently used site
       const firstSite = this.page.recentlyUsedSitesList.first();
-      await firstSite.click();
+      await this.page.clickOnElement(firstSite);
     });
   }
 
   async clickAddButton() {
     await test.step('Click Add button', async () => {
-      await this.page.addSpan.click();
+      await this.page.clickOnElement(this.page.addSpan);
     });
   }
 } 
