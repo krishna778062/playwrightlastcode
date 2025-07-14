@@ -4,21 +4,21 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
-import { ContentCreationPage } from '@/src/modules/content/pages/contentCreationPage';
 import { ContentCreationAssertions } from '../../../helpers/contentAssertionHelper';
 import { HomePage } from '@/src/core/pages/homePage';
-import { AddSiteContentComponents } from '../../../components/addSiteContentComponents';
+import { PageCreationActions } from '../../../helpers/contentCreationPageActions';
 
 test.describe(
-  'Page Creation with Cover Image Upload',
+  '@PageCreation',
   {
     tag: [ContentTestSuite.PAGE_CREATION, ContentTestSuite.COVER_IMAGE],
   },
   () => {
+
     test(
-      'Verify admin can create page content with cover image upload using Select from computer option',
+      'Verify admin can create a new page with cover image',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, "@cover-image"],
       },
       async ({ adminPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -28,27 +28,18 @@ test.describe(
         });
 
         // Initialize the content creation page
-        const contentCreationPage = new ContentCreationPage(adminPage);
-        const contentCreationAssertions = new ContentCreationAssertions(contentCreationPage);
         const homePage = new HomePage(adminPage);
-        const addSiteContentComponents = new AddSiteContentComponents(contentCreationPage);
-        
-        // Verify the page is loaded (admin is already logged in via fixture)
-        await contentCreationPage.verifyThePageIsLoaded();
+        const addContentModal = await homePage.actions.clickOnAddContentButton();
 
-        // Execute the scenario steps as described
-        // Admin is already logged in via the fixture
-        console.log('✅ Admin user is already logged in via fixture');
+        //use add conent modal to say that i want to create a page using recently used site
+        const pageCreationPage = await addContentModal.completeContentCreationForm("Page", {
+          recentlyUsedSiteIndex: 0,
+        });
 
-        await homePage.clickCreateSection();
+        const pageCreationActions = pageCreationPage.actions as PageCreationActions;
+        const pageCreationAssertions = pageCreationPage.assertions as ContentCreationAssertions;
 
-        await addSiteContentComponents.clickPageOption();
-
-        await addSiteContentComponents.selectRecentlyUsedSite();
-
-        await addSiteContentComponents.clickAddButton();
-
-        await contentCreationPage.actions.uploadCoverImage(
+        await pageCreationActions.uploadCoverImage(
           CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
           {
             enableWidescreenCrop: CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.cropForWidescreen,
@@ -56,7 +47,7 @@ test.describe(
           }
         );
 
-        await contentCreationAssertions.verifyUploadedFileIsVisible({
+        await pageCreationAssertions.verifyUploadedFileIsVisible({
           timeout: CONTENT_TEST_DATA.TIMEOUTS.UPLOAD,
         });
       }

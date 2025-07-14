@@ -7,6 +7,7 @@ export class TopNavBarComponent extends BaseComponent {
   readonly seeAllMessagesButton: Locator;
   readonly globalSearchInputBox: Locator;
   readonly globalSearchButton: Locator;
+  readonly addContentButton: Locator;
   constructor(page: Page) {
     super(page);
     this.profileSettingsButton = this.page.getByLabel('Profile settings');
@@ -14,6 +15,7 @@ export class TopNavBarComponent extends BaseComponent {
     this.seeAllMessagesButton = this.page.getByText('See all messages');
     this.globalSearchInputBox = this.page.locator('input[aria-label*=Search]');
     this.globalSearchButton = this.page.getByRole('button', { name: 'Search', exact: true });
+    this.addContentButton = this.page.getByRole('button', { name: 'Add content' });
   }
 
   /**
@@ -41,6 +43,18 @@ export class TopNavBarComponent extends BaseComponent {
   async clickSearchButton(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Clicking search button`, async () => {
       await this.clickOnElement(this.globalSearchButton);
+    });
+  }
+
+  /**
+   * Clicks on add content button on the top nav bar
+   * @param options - The options for the step
+   */
+
+  async clickOnAddContentButton(options?: { stepInfo?: string }): Promise<void> {
+    return await test.step(options?.stepInfo || `Clicking on add content button on top nav bar`, async () => {
+      await this.clickOnElement(this.addContentButton);
+
     });
   }
 }
