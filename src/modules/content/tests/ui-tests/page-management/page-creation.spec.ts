@@ -7,6 +7,7 @@ import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-
 import { ContentCreationAssertions } from '../../../helpers/contentAssertionHelper';
 import { HomePage } from '@/src/core/pages/homePage';
 import { PageCreationActions } from '../../../helpers/contentCreationPageActions';
+import { CreateComponent } from '../../../components/createComponent';
 
 test.describe(
   '@PageCreation',
@@ -29,7 +30,9 @@ test.describe(
 
         // Initialize the content creation page
         const homePage = new HomePage(adminPage);
-        const addContentModal = await homePage.actions.clickOnAddContentButton();
+        await homePage.actions.clickOnCreateButton();
+        const createComponent = new CreateComponent(adminPage);
+        const addContentModal = await createComponent.selectContentTypeAndCreateContent("Page");
 
         //use add conent modal to say that i want to create a page using recently used site
         const pageCreationPage = await addContentModal.completeContentCreationForm("Page", {

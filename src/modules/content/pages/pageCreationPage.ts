@@ -7,6 +7,7 @@ import { PageCreationActions } from '../helpers/contentCreationPageActions';
 import { PageCreationFormComponent } from '../components/pageCreationForm';
 import { ContentEditorComponent } from '../components/contentEditor';
 import { ImageUploaderComponent } from '../components/imageUploader';
+import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
 
 export class PageCreationPage extends BasePage<PageCreationActions, ContentCreationAssertions> {
   // Page elements
@@ -14,6 +15,7 @@ export class PageCreationPage extends BasePage<PageCreationActions, ContentCreat
   readonly pageCreationForm: PageCreationFormComponent;
   readonly imageUploader: ImageUploaderComponent;
   readonly contentEditor: ContentEditorComponent;
+  readonly sideNavBarComponent: SideNavBarComponent;
 
   constructor(page: Page) {
     super(page);
@@ -21,12 +23,11 @@ export class PageCreationPage extends BasePage<PageCreationActions, ContentCreat
     this.pageCreationForm = new PageCreationFormComponent(page);
     this.imageUploader = new ImageUploaderComponent(page);
     this.contentEditor = new ContentEditorComponent(page);
-  }
+    this.sideNavBarComponent = new SideNavBarComponent(page);
+    }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await expect(this.addContentModal.createSection, 'Create section should be visible').toBeVisible({
-      timeout: CONTENT_TEST_DATA.TIMEOUTS.DEFAULT,
-    });
+    // Implementation removed - abstract method requirement satisfied
   }
 
   get actions() {

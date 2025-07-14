@@ -2,6 +2,7 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
 import { Page, Locator, test } from '@playwright/test';
 import { TopNavBarComponent } from '@core/components/topNavBarComponent';
+import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { FooterComponent } from '@core/components/footerComponent';
 import { HomePageActionHelper } from '@core/helpers/homePageActionHelper';
@@ -9,8 +10,8 @@ import { HomePageAssertionHelper } from '@core/helpers/homePageAssertionHelper';
 
 export class HomePage extends BasePage<HomePageActionHelper, HomePageAssertionHelper> {
   readonly topNavBarComponent: TopNavBarComponent;
+  readonly sideNavBarComponent: SideNavBarComponent;
   readonly footer: FooterComponent;
-  readonly createSection: Locator;
 
   //actions
   readonly homeActionHelper: HomePageActionHelper;
@@ -20,10 +21,10 @@ export class HomePage extends BasePage<HomePageActionHelper, HomePageAssertionHe
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.HOME_PAGE);
     this.topNavBarComponent = new TopNavBarComponent(page);
+    this.sideNavBarComponent = new SideNavBarComponent(page);
     this.footer = new FooterComponent(page, this.page.locator('#site-footer'));
     this.homeActionHelper = new HomePageActionHelper(this);
     this.homeAssertionHelper = new HomePageAssertionHelper(this);
-    this.createSection = page.getByRole('button', { name: 'Create' });
   }
 
   get actions(): HomePageActionHelper {
@@ -51,9 +52,5 @@ export class HomePage extends BasePage<HomePageActionHelper, HomePageAssertionHe
     });
   }
 
-  async clickCreateSection(options?: { stepInfo?: string }) {
-    await test.step(options?.stepInfo || 'Click on Create section', async () => {
-      await this.clickOnElement(this.createSection);
-    });
-  }
+ 
 }

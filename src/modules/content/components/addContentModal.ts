@@ -5,20 +5,9 @@ import { AlbumCreationPage } from '../pages/albumCreationPage';
 import { EventCreationPage } from '../pages/eventCreationPage';
 
 export class AddContentModalComponent extends BaseComponent {
-  readonly createSection: Locator;
-  readonly pageOption: Locator;
-  readonly albumOption: Locator;
-  readonly eventOption: Locator;
   readonly recentlyUsedSitesList: Locator;
   readonly addSpan: Locator;
-  readonly nextButton: Locator;
-  readonly addButton: Locator;
-  readonly squareCropOption: Locator;
-  readonly coverImageUpload: Locator;
-  readonly uploadImage: Locator;
-  readonly uploadImageValidation: Locator;
   readonly cancelButton: Locator;
-  readonly closeButton: Locator;
 
   //select site dropdown
   readonly selectSiteDropdown: Locator;
@@ -33,20 +22,10 @@ export class AddContentModalComponent extends BaseComponent {
   constructor(page: Page) {
     super(page);
     // Initialize locators - these would need to be updated based on actual DOM structure
-    this.createSection = page.getByRole('button', { name: 'Create' });
-    this.addButton = page.getByRole('button', { name: 'Add' });
-    this.pageOption = page.locator('#addContentType_page');
-    this.albumOption = page.locator('#addContentType_album');
-    this.eventOption = page.locator('#addContentType_event');
+  
     this.recentlyUsedSitesList = page.locator("//div[text()='Recently used ']/button");
     this.addSpan = page.locator("//span[text()='Add']");
-    this.coverImageUpload = page.locator("//button[text()='Select from computer']/following-sibling::input");
-    this.nextButton = page.locator("//button[text()='Next']");
-    this.squareCropOption = page.locator('[data-testid="square-crop"]');
-    this.uploadImage = page.locator('//div[contains(@class,"is-uploading")]');
-    this.uploadImageValidation = page.locator('//textarea[@placeholder="Add image caption here"]');
     this.cancelButton = page.getByRole('button', { name: 'Cancel' });
-    this.closeButton = page.getByRole('button', { name: 'Close' });
 
     //select site dropdown
     this.selectSiteDropdown = page.getByPlaceholder('Select a site', { exact: false });
@@ -79,26 +58,6 @@ export class AddContentModalComponent extends BaseComponent {
       // Select the first recently used site
       const siteToSelect = this.recentlyUsedSitesList.nth(index);
       await siteToSelect.click();
-    });
-  }
-
-  /**
-   * Selects the content type option to add in add content modal
-   * @param contentOption - The content type option to add
-   */
-  async selectContentTypeOptionToAdd(contentOption: 'Page' | 'Album' | 'Event') {
-    await test.step(`Select ${contentOption} option to add in add content modal`, async () => {
-      switch (contentOption) {
-        case 'Page':
-          await this.pageOption.click();
-          break;
-        case 'Album':
-          await this.albumOption.click();
-          break;
-        case 'Event':
-          await this.eventOption.click();
-          break;
-      }
     });
   }
 
@@ -219,7 +178,7 @@ export class AddContentModalComponent extends BaseComponent {
      * Based on the content type, it will open the relevant content creation page
      */
     let contentCreationPage: PageCreationPage | AlbumCreationPage | EventCreationPage;
-    await this.selectContentTypeOptionToAdd(contentOption);
+
     if (options?.siteName) {
       await this.selectSiteToAddContentFromDropdown(options.siteName);
     } else {
