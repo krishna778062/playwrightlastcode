@@ -4,10 +4,18 @@ import { HomePage as NewUxHomePage } from '../pages/newUx/homePage';
 import { GlobalSearchResultPage } from '../../modules/global-search/pages/globalSearchResultPage';
 import { AddContentModalComponent } from '../../modules/content/components/addContentModal';
 import { CreateComponent } from '../../modules/content/components/createComponent';
+import { ContentType } from '@/src/modules/content/constants/contentType';
+import { getEnvConfig } from '../utils/getEnvConfig';
+import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
+import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
+import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 
 export class HomePageActionHelper {
   readonly page: Page;
-  constructor(readonly homePage: OldUxHomePage | NewUxHomePage, readonly newUxEnabled:boolean) {
+  constructor(
+    readonly homePage: OldUxHomePage | NewUxHomePage,
+    readonly newUxEnabled: boolean
+  ) {
     this.homePage = homePage;
     this.page = this.homePage.page;
   }
@@ -26,7 +34,7 @@ export class HomePageActionHelper {
       return new GlobalSearchResultPage(this.page);
     });
   }
-  
+
   /**
    * Clicks on add content button from the top nav bar
    * It will open the add content modal
@@ -35,16 +43,15 @@ export class HomePageActionHelper {
    */
   async clickOnCreateButtonOnSideNavBar(options?: { stepInfo?: string }): Promise<CreateComponent> {
     return await test.step(options?.stepInfo || `Clicking on add content button`, async () => {
-      if(this.homePage instanceof NewUxHomePage) {
+      if (this.homePage instanceof NewUxHomePage) {
         await this.homePage.sideNavBarComponent.clickOnCreateButton();
         const createComponent = new CreateComponent(this.page);
         await createComponent.verifyTheCreateComponentIsVisible();
         return createComponent;
-      } 
-      throw new Error("New UX is not enabled, hence this method is not applicable");
+      }
+      throw new Error('New UX is not enabled, hence this method is not applicable');
     });
   }
-
 
   async clickOnCreateContentButtonOnTopNavBar(options?: { stepInfo?: string }): Promise<AddContentModalComponent> {
     return await test.step(options?.stepInfo || `Clicking on create content button on top nav bar`, async () => {
@@ -52,6 +59,34 @@ export class HomePageActionHelper {
       const addContentModal = new AddContentModalComponent(this.page);
       await addContentModal.verifyTheAddContentModalIsVisible();
       return addContentModal;
+    });
+  }
+
+  /**It handles both old and new ux
+   * Opens the create content page for the given content type
+   * @param contentType - The content type to create
+   * @param options - The options for the step
+   * @returns The create content page
+   */
+  async openCreateContentPageForContentType(
+    contentType: ContentType,
+    options?: { stepInfo?: string }
+  ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage> {
+    return await test.step(options?.stepInfo || `Opening create content page for ${contentType}`, async () => {
+      //if new ux is enabled, use side nav bar to create a page
+      if (getEnvConfig().newUxEnabled) {
+        await this.clickOnCreateButtonOnSideNavBar(); //we need to use side bar to open create section
+        const createComponent = new CreateComponent(this.page);
+        await createComponent.verifyTheCreateComponentIsVisible();
+        const addContentModal = await createComponent.selectContentTypeAndCreateContent(contentType);
+        return await addContentModal.completeContentCreationForm(contentType);
+      }
+      else{
+        await this.clickOnCreateContentButtonOnTopNavBar();
+        const addContentModal = new AddContentModalComponent(this.page);
+        await addContentModal.verifyTheAddContentModalIsVisible();
+        return await addContentModal.completeContentCreationForm(contentType);
+      }
     });
   }
 }

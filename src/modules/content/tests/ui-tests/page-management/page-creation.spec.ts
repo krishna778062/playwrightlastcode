@@ -8,8 +8,7 @@ import { PageCreationAssertions } from '@/src/modules/content/helpers/pageCreati
 import { HomePage } from '@/src/core/pages/newUx/homePage';
 import { PageCreationActions } from '@/src/modules/content/helpers/pageCreationActions';
 import { ContentType } from '@/src/modules/content/constants/contentType';
-import { AddContentModalComponent } from '@content/components/addContentModal';
-import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
+import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 
 test.describe(
   '@PageCreation',
@@ -17,17 +16,11 @@ test.describe(
     tag: [ContentTestSuite.PAGE_CREATION, ContentTestSuite.COVER_IMAGE],
   },
   () => {
-    let addContentModal: AddContentModalComponent;
+    let pageCreationPage: PageCreationPage;
     test.beforeEach(async ({ adminPage }) => {
         // Initialize the content creation page
         const homePage = new HomePage(adminPage);
-        //if new ux is enabled, use side nav bar to create a page
-        if(getEnvConfig().newUxEnabled) {
-          const createComponent = await homePage.actions.clickOnCreateButtonOnSideNavBar();
-          addContentModal = await createComponent.selectContentTypeAndCreateContent(ContentType.PAGE);
-        } else {
-          addContentModal = await homePage.actions.clickOnCreateContentButtonOnTopNavBar();
-        }
+        pageCreationPage = await homePage.actions.openCreateContentPageForContentType(ContentType.PAGE) as PageCreationPage;
       });
 
     test(
@@ -41,12 +34,6 @@ test.describe(
           zephyrTestId: 'CONT-11635',
           storyId: 'CONT-11635',
         });
-
-        //use add content modal to say that i want to create a page using recently used site
-        const pageCreationPage = await addContentModal.completeContentCreationForm(ContentType.PAGE, {
-          recentlyUsedSiteIndex: 0,
-        });
-
         const pageCreationActions = pageCreationPage.actions as PageCreationActions;
         const pageCreationAssertions = pageCreationPage.assertions as PageCreationAssertions;
 
