@@ -1,10 +1,15 @@
 import { Page, test } from '@playwright/test';
-import { HomePage } from '../pages/homePage';
+import { HomePage as OldUxHomePage } from '../pages/oldUx/homePage';
+import { HomePage as NewUxHomePage } from '../pages/newUx/homePage';
 import { GlobalSearchResultPage } from '../../modules/global-search/pages/globalSearchResultPage';
+import { getEnvConfig } from '../utils/getEnvConfig';
+import { AddContentModalComponent } from '../../modules/content/components/addContentModal';
+import { CreateComponent } from '../../modules/content/components/createComponent';
+import { ContentType } from '@/src/modules/content/constants/contentType';
 
 export class HomePageActionHelper {
   readonly page: Page;
-  constructor(readonly homePage: HomePage) {
+  constructor(readonly homePage: OldUxHomePage | NewUxHomePage, readonly newUxEnabled:boolean) {
     this.homePage = homePage;
     this.page = this.homePage.page;
   }
@@ -27,11 +32,22 @@ export class HomePageActionHelper {
   /**
    * Clicks on add content button from the top nav bar
    * It will open the add content modal
+   * @param contentType - The content type to create
    * @param options - The options for the step
    */
-  async clickOnCreateButton(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo || `Clicking on add content button`, async () => {
-      await this.homePage.sideNavBarComponent.clickCreateButton();
+  async clickOnContentCreateButton(options?: { stepInfo?: string }): Promise<AddContentModalComponent | CreateComponent> {
+    return await test.step(options?.stepInfo || `Clicking on add content button`, async () => {
+      if(this.homePage instanceof NewUxHomePage) {
+        await this.homePage.sideNavBarComponent.clickOnCreateContentButton();
+        const createComponent = new CreateComponent(this.page);
+        await createComponent.verifyTheCreateComponentIsVisible();
+        return createComponent;
+      } else {
+        await this.homePage.topNavBarComponent.clickOnCreateContentButton();
+        const addContentModal = new AddContentModalComponent(this.page);
+        await addContentModal.verifyTheAddContentModalIsVisible();
+        return addContentModal;
+      }
     });
   }
 }

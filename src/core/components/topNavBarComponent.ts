@@ -51,7 +51,7 @@ export class TopNavBarComponent extends BaseComponent {
    * @param options - The options for the step
    */
 
-  async clickOnAddContentButton(options?: { stepInfo?: string }): Promise<void> {
+  async clickOnCreateContentButton(options?: { stepInfo?: string }): Promise<void> {
     return await test.step(options?.stepInfo || `Clicking on add content button on top nav bar`, async () => {
       await this.clickOnElement(this.addContentButton);
 

@@ -1,19 +1,30 @@
 import { Locator, Page, test } from '@playwright/test';
 import { BaseComponent } from '@/src/core/components/baseComponent';
-import { PageCreationPage } from '../pages/pageCreationPage';
-import { AlbumCreationPage } from '../pages/albumCreationPage';
-import { EventCreationPage } from '../pages/eventCreationPage';
 import { AddContentModalComponent } from './addContentModal';
+import { ContentType } from '@content/constants/contentType';
+/**
+ * This component gives user an 
+ * quick and easy interface to select
+ * the type of entity they want to create
+ * out of them page, album and event belongs to content type
+ * but others belongs to other modules
+ */
 
+/**
+ * TODO: Rename this component to something relevant, CreateComponent does not
+ * relay the right intention of the component
+ */
 export class CreateComponent extends BaseComponent {
   readonly pageOption: Locator;
   readonly albumOption: Locator;
   readonly eventOption: Locator;
+  readonly createComponentContainer: Locator;
   constructor(page: Page) {
     super(page);
     this.pageOption = this.page.locator("p", { hasText: "Page" });
     this.albumOption = this.page.locator("p", { hasText: "Album" });
     this.eventOption = this.page.locator("p", { hasText: "Event" });
+    this.createComponentContainer = this.page.locator("[data-slot='dialog-content']");
   }
 
   /**
@@ -23,14 +34,14 @@ export class CreateComponent extends BaseComponent {
    * @returns The corresponding creation page
    */
   async selectContentTypeAndCreateContent(
-    contentType: 'Page' | 'Album' | 'Event',
+    contentType: ContentType,
     options?: { stepInfo?: string }
   ): Promise<AddContentModalComponent> {
     return await test.step(options?.stepInfo || `Selecting content type: ${contentType}`, async () => {
       // Select the content type
       await this.selectContentType(contentType);
-      
       let addContentModal = new AddContentModalComponent(this.page);
+      await addContentModal.verifyTheAddContentModalIsVisible();
       return addContentModal;
     });
   }
@@ -40,7 +51,7 @@ export class CreateComponent extends BaseComponent {
    * @param contentType - The content type to select
    * @param options - The options for the step
    */
-  async selectContentType(contentType: 'Page' | 'Album' | 'Event', options?: { stepInfo?: string }): Promise<void> {
+  async selectContentType(contentType: ContentType, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Selecting content type: ${contentType}`, async () => {
       switch (contentType) {
         case 'Page':
@@ -55,6 +66,18 @@ export class CreateComponent extends BaseComponent {
       }
     });
   }
-
+  
+  /**
+   * Verifies the create component is visible
+   * We assume that the create component is visible when the create component container is visible
+   * and the page option is visible
+   * @param options - The options for the step stepInfo - The step info to pass to the test.step method
+   */
+  async verifyTheCreateComponentIsVisible(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || `Verifying create content modal is visible`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.createComponentContainer);
+      await this.verifier.verifyTheElementIsVisible(this.pageOption);
+    });
+  }
 
 } 

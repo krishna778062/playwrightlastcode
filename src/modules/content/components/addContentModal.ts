@@ -3,6 +3,7 @@ import { BaseComponent } from '@/src/core/components/baseComponent';
 import { PageCreationPage } from '../pages/pageCreationPage';
 import { AlbumCreationPage } from '../pages/albumCreationPage';
 import { EventCreationPage } from '../pages/eventCreationPage';
+import { ContentType } from '../constants/contentType';
 
 export class AddContentModalComponent extends BaseComponent {
   readonly recentlyUsedSitesList: Locator;
@@ -166,7 +167,7 @@ export class AddContentModalComponent extends BaseComponent {
    * @default 0 - if no index is provided, it will select the first recently used site
    */
   async completeContentCreationForm(
-    contentOption: 'Page' | 'Album' | 'Event',
+    contentOption: ContentType,
     options?: { siteName?: string; templateName?: string; recentlyUsedSiteIndex?: number }
   ) {
     /**
@@ -199,6 +200,8 @@ export class AddContentModalComponent extends BaseComponent {
       case 'Event':
         contentCreationPage = new EventCreationPage(this.page);
         break;
+      default:
+        throw new Error(`Invalid content type: ${contentOption}`);
     }
     await contentCreationPage.verifyThePageIsLoaded();
     return contentCreationPage;

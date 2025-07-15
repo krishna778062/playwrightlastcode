@@ -4,6 +4,7 @@ export type EnvConfig = {
   appManagerPassword: string;
   frontendBaseUrl: string;
   apiBaseUrl: string;
+  newUxEnabled: boolean;
 };
 
 export const getEnvConfig = (): EnvConfig => ({
@@ -12,6 +13,7 @@ export const getEnvConfig = (): EnvConfig => ({
   appManagerPassword: requireEnvVar('APP_MANAGER_PASSWORD'),
   frontendBaseUrl: requireEnvVar('FRONTEND_BASE_URL'),
   apiBaseUrl: requireEnvVar('API_BASE_URL'),
+  newUxEnabled: process.env['NEW_UX_ENABLED'] === 'true' || false,
 });
 
 /**

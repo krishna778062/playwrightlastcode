@@ -4,7 +4,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
 import { SITE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/site-search.test-data';
 import { TestGroupType } from '@core/constants/testType';
-import { HomePage } from '@/src/core/pages/homePage';
+import { HomePage } from '@/src/core/pages/oldUx/homePage';
 import { EnterpriseSearchHelper } from '@core/helpers/enterpriseSearchHelper';
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
 import { SEARCH_RESULT_ITEM } from '@/src/modules/global-search/constants/siteTypes';

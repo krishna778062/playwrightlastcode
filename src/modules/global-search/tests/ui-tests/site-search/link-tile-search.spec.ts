@@ -3,7 +3,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { TestPriority } from '@core/constants/testPriority';
 import { GlobalSearchTestSuite } from '../../../constants/testSuite';
 import { TestGroupType } from '@core/constants/testType';
-import { HomePage } from '@/src/core/pages/homePage';
+import { HomePage } from '@/src/core/pages/oldUx/homePage';
 import {
   getLinkTilePayload,
   LINK_TILE_SEARCH_TEST_DATA,

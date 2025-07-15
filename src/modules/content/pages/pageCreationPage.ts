@@ -1,27 +1,42 @@
-import { Page, expect } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 import { BasePage } from '@core/pages/basePage';
-import { CONTENT_TEST_DATA } from '../test-data/content.test-data';
-import { ContentCreationAssertions } from '../helpers/contentAssertionHelper';
+import { PageCreationAssertions } from '../helpers/pageCreationAssertions';
 import { AddContentModalComponent } from '../components/addContentModal';
-import { PageCreationActions } from '../helpers/contentCreationPageActions';
-import { PageCreationFormComponent } from '../components/pageCreationForm';
+import { PageCreationActions } from '../helpers/pageCreationActions';
 import { ContentEditorComponent } from '../components/contentEditor';
-import { ImageUploaderComponent } from '../components/imageUploader';
 import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
+import { AttachementUploaderComponent } from '../components/attachementUploader';
+import { ImageCropperComponent } from '../components/imageCropper';
 
-export class PageCreationPage extends BasePage<PageCreationActions, ContentCreationAssertions> {
-  // Page elements
+export class PageCreationPage extends BasePage<PageCreationActions, PageCreationAssertions> {
+
+  //root locators of some components
+  readonly coverImageUploaderContainer: Locator;
+  readonly fileAttachmentUploaderContainer: Locator;
+  readonly imageCaptionInputBox: Locator;
+  readonly uploadedCoverImagePreviewContainer: Locator;
+  readonly uploadedCoverImagePreviewImage: Locator;
+  // Page components
   readonly addContentModal: AddContentModalComponent;
-  readonly pageCreationForm: PageCreationFormComponent;
-  readonly imageUploader: ImageUploaderComponent;
+  readonly coverImageUploader: AttachementUploaderComponent;
+  readonly fileAttachmentUploader: AttachementUploaderComponent;
+  readonly imageCropper: ImageCropperComponent;
   readonly contentEditor: ContentEditorComponent;
   readonly sideNavBarComponent: SideNavBarComponent;
 
   constructor(page: Page) {
     super(page);
+    //root locators of some components
+    this.coverImageUploaderContainer = page.locator("[class*='AddFromContainer']").filter({ hasText: "Select from computer" }).nth(0);
+    this.fileAttachmentUploaderContainer = page.locator("[class*='AddFromContainer']").filter({ hasText: "Select from computer" }).nth(1);
+    this.imageCaptionInputBox = page.getByPlaceholder("Add image caption here");
+    this.uploadedCoverImagePreviewContainer = page.locator("[class*='Banner-imageContainer']");
+    this.uploadedCoverImagePreviewImage = this.uploadedCoverImagePreviewContainer.locator("img");
+    // Page components
     this.addContentModal = new AddContentModalComponent(page);
-    this.pageCreationForm = new PageCreationFormComponent(page);
-    this.imageUploader = new ImageUploaderComponent(page);
+    this.coverImageUploader = new AttachementUploaderComponent(page,this.coverImageUploaderContainer);
+    this.fileAttachmentUploader = new AttachementUploaderComponent(page,this.fileAttachmentUploaderContainer);
+    this.imageCropper = new ImageCropperComponent(page);
     this.contentEditor = new ContentEditorComponent(page);
     this.sideNavBarComponent = new SideNavBarComponent(page);
     }
@@ -35,7 +50,7 @@ export class PageCreationPage extends BasePage<PageCreationActions, ContentCreat
   }
 
   get assertions() {
-    return new ContentCreationAssertions(this);
+    return new PageCreationAssertions(this);
   }
 
 }

@@ -13,7 +13,7 @@ export class SideNavBarComponent extends BaseComponent {
    * Clicks on the Create button in the side navigation
    * @param options - The options for the step
    */
-  async clickCreateButton(options?: { stepInfo?: string }): Promise<void> {
+  async clickOnCreateContentButton(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Clicking Create button in side navigation`, async () => {
       await this.clickOnElement(this.createSection);
     });

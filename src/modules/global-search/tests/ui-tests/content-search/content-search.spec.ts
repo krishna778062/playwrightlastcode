@@ -1,7 +1,7 @@
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { HomePage } from '@/src/core/pages/homePage';
+import { HomePage } from '@/src/core/pages/oldUx/homePage';
 import { tagTest } from '@core/utils/testDecorator';
 import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
 import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
