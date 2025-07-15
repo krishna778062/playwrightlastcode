@@ -7,9 +7,9 @@ import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-
 import { PageCreationAssertions } from '@/src/modules/content/helpers/pageCreationAssertions';
 import { HomePage } from '@/src/core/pages/newUx/homePage';
 import { PageCreationActions } from '@/src/modules/content/helpers/pageCreationActions';
-import { CreateComponent } from '@content/components/createComponent';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AddContentModalComponent } from '@content/components/addContentModal';
+import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 
 test.describe(
   '@PageCreation',
@@ -21,11 +21,12 @@ test.describe(
     test.beforeEach(async ({ adminPage }) => {
         // Initialize the content creation page
         const homePage = new HomePage(adminPage);
-        const createComponent = await homePage.actions.clickOnContentCreateButton();
-        if(createComponent instanceof CreateComponent) {
+        //if new ux is enabled, use side nav bar to create a page
+        if(getEnvConfig().newUxEnabled) {
+          const createComponent = await homePage.actions.clickOnCreateButtonOnSideNavBar();
           addContentModal = await createComponent.selectContentTypeAndCreateContent(ContentType.PAGE);
         } else {
-          addContentModal = createComponent;
+          addContentModal = await homePage.actions.clickOnCreateContentButtonOnTopNavBar();
         }
       });
 
