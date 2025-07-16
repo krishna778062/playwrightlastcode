@@ -6,7 +6,6 @@ export class PageCreationAssertions {
   
   constructor(private readonly pageCreationPage: PageCreationPage) {
   }
-  
 
   /**
    * Verifies that the uploaded cover image preview is visible
@@ -19,6 +18,24 @@ export class PageCreationAssertions {
         assertionMessage: 'expected uploaded cover image preview element to be visible',
         timeout: options?.timeout || CONTENT_TEST_DATA.TIMEOUTS.UPLOAD,
       }); 
+    });
+  }
+
+  /**
+   * Verifies that the content was published successfully
+   * @param title - The title of the content to verify
+   */
+  async verifyContentPublishedSuccessfully(title: string): Promise<void> {
+    await test.step(`Verifying content was published successfully`, async () => {
+      // Verify success message is visible
+      await this.pageCreationPage.verifier.verifyTheElementIsVisible(
+        this.pageCreationPage.successMessage("Created page successfully - it's published"),
+        { assertionMessage: "Success message should be visible after publishing" }
+      );
+
+      await this.pageCreationPage.verifier.verifyTheElementIsVisible(this.pageCreationPage.contentTitleHeading(title), {
+        assertionMessage: `Content title "${title}" should be visible in heading`
+      });
     });
   }
 } 

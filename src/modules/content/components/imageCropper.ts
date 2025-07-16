@@ -6,12 +6,14 @@ export class ImageCropperComponent extends BaseComponent {
   readonly cropOptions: Locator;
   readonly nextButton: Locator;
   readonly cancelButton: Locator;
+  readonly addButton: Locator;
   constructor(readonly page: Page) {
     super(page);
     this.imageCropperContainer = page.locator("[class*='ImageCropper-module-container']");
     this.cropOptions = page.locator("button[class*='module-cropListItem']");
     this.nextButton = page.getByRole('button', { name: 'Next' });
     this.cancelButton = page.getByRole('button', { name: 'Cancel' });
+    this.addButton = page.getByRole('button', { name: 'Add' });
   }
   
 
@@ -38,11 +40,10 @@ export class ImageCropperComponent extends BaseComponent {
       await this.cancelButton.click();
     });
   }
-  
-  
 
-
-  
-
-
+  async clickOnAddButton(): Promise<void> {
+    await test.step(`Clicking on add button`, async () => {
+      await this.addButton.click();
+    });
+  }
 }
