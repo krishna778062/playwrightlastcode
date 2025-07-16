@@ -2,6 +2,24 @@ import { PageCreationPage } from "../pages/pageCreationPage";
 import { test } from "@playwright/test";
 import { FileUtil } from "@core/utils/fileUtil";
 import path from "path";
+import { PageContentType } from "../constants/pageContentType";
+
+interface PageCreationOptions {
+  // Required fields
+  title: string;
+  description: string;
+  category: string;
+  contentType: PageContentType;
+
+  // Optional fields
+  coverImage?: {
+    fileName: string;
+    cropOptions?: {
+      widescreen?: boolean;
+      square?: boolean;
+    };
+  };
+}
 
 export class PageCreationActions {
     constructor(private readonly pageCreationPage: PageCreationPage) {
@@ -53,7 +71,6 @@ export class PageCreationActions {
         await this.pageCreationPage.categoryDropdown.press('Enter');
         
         await this.pageCreationPage.clickOnElement(this.pageCreationPage.contentTypeCheckbox(options.contentType));
-        await this.pageCreationPage.page.waitForTimeout(5000);
       });
     }
 
@@ -62,9 +79,41 @@ export class PageCreationActions {
      */
     async publishPage() {
       await test.step(`Publishing page`, async () => {
+        await this.pageCreationPage.page.waitForTimeout(5000);
         await this.pageCreationPage.clickOnElement(this.pageCreationPage.publishButton);
         await this.pageCreationPage.clickOnElement(this.pageCreationPage.skipStepButton);
       });
     }
-  }
+
+    /**
+     * Creates a page with the given options and publishes it
+     * @param options - The options for creating the page
+     * @returns The title of the created page
+     */
+    async createAndPublishPage(options: PageCreationOptions): Promise<string> {
+      return await test.step(`Creating and publishing page with title: ${options.title}`, async () => {
+
+        // Fill in page mandatory details
+        await this.fillPageDetails({
+          title: options.title,
+          description: options.description,
+          category: options.category,
+          contentType: options.contentType
+        });
+        
+        // Upload cover image if provided
+        if (options.coverImage) {
+          await this.uploadCoverImage(options.coverImage.fileName, {
+            widescreenCropOption: options.coverImage.cropOptions?.widescreen,
+            squareCropOption: options.coverImage.cropOptions?.square
+          });
+        }
+      
+        // Publish the page
+        await this.publishPage();
+
+        return options.title;
+      });
+    }
+}
   

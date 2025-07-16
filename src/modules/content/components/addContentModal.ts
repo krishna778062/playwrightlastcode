@@ -35,8 +35,8 @@ export class AddContentModalComponent extends BaseComponent {
 
     //select template dropdown
     this.selectTemplateDropdown = page.getByPlaceholder('Select a template', { exact: false });
-    this.selectTemplateDropdownOption = page.locator('div[class*='Menu-module'] div[role='menuitem']'); //todo - find and add the right locator here //done
-    this.clearButtonOnSelectTemplateDropdown = page.getByLabel('button[aria-label*='Clear']'); //todo - find and add the right locator here //done
+    this.selectTemplateDropdownOption = page.locator("div[class*='Menu-module'] div[role='menuitem']"); //todo - find and add the right locator here //done
+    this.clearButtonOnSelectTemplateDropdown = page.getByLabel("button[aria-label*='Clear']"); //todo - find and add the right locator here //done
   }
 
   /**

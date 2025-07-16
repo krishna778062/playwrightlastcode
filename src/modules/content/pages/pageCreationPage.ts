@@ -7,10 +7,6 @@ import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
 import { AttachementUploaderComponent } from '../components/attachementUploader';
 import { ImageCropperComponent } from '../components/imageCropper';
 
-export enum PageContentType {
-  NEWS = 'News',
-  KNOWLEDGE = 'Knowledge'
-}
 
 export class PageCreationPage extends BasePage<PageCreationActions, PageCreationAssertions> {
   //root locators of some components

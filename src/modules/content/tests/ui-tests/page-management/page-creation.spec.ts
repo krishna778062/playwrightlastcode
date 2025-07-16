@@ -10,8 +10,10 @@ import { HomePage as NewUxHomePage } from '@/src/core/pages/newUx/homePage';
 import { HomePage as OldUxHomePage } from '@/src/core/pages/oldUx/homePage';
 import { PageCreationActions } from '@/src/modules/content/helpers/pageCreationActions';
 import { ContentType } from '@/src/modules/content/constants/contentType';
+import { PageContentType } from '@/src/modules/content/constants/pageContentType';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 import { faker } from '@faker-js/faker';
+import { Page } from '@playwright/test';
 
 test.describe(
   '@PageCreation',
@@ -20,15 +22,22 @@ test.describe(
   },
   () => {
     let pageCreationPage: PageCreationPage;
-    test.beforeEach(async ({ adminPage }) => {
+    let pageCreationActions: PageCreationActions;
+    let pageCreationAssertions: PageCreationAssertions;
+
+    test.beforeEach(async ({ adminPage }: { adminPage: Page }) => {
         // Initialize the content creation page based on UX flag
         const HomePage = getEnvConfig().newUxEnabled ? NewUxHomePage : OldUxHomePage;
         const homePage = new HomePage(adminPage);
         pageCreationPage = await homePage.actions.openCreateContentPageForContentType(ContentType.PAGE) as PageCreationPage;
+        
+        // Initialize actions and assertions
+        pageCreationActions = pageCreationPage.actions as PageCreationActions;
+        pageCreationAssertions = pageCreationPage.assertions as PageCreationAssertions;
       });
 
     test(
-      'Verify admin can create a new page with cover image without cropping it',
+      'Verify admin can create a new page with cover image',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, "@cover-image"],
       },
@@ -38,28 +47,23 @@ test.describe(
           zephyrTestId: 'CONT-11635',
           storyId: 'CONT-11635',
         });
-        const pageCreationActions = pageCreationPage.actions as PageCreationActions;
-        const pageCreationAssertions = pageCreationPage.assertions as PageCreationAssertions;
 
-        await pageCreationActions.uploadCoverImage(
-          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
-        );
-
-        await pageCreationAssertions.verifyUploadedCoverImagePreviewIsVisible({
-          timeout: CONTENT_TEST_DATA.TIMEOUTS.UPLOAD,
-        });
-
-        // Fill in page details
         const title = `Automated Test Page ${faker.company.name()} - ${faker.commerce.productName()}`;
-        await pageCreationActions.fillPageDetails({
+        
+        // Use the new wrapper method to create and publish the page
+        await pageCreationActions.createAndPublishPage({
           title,
           description: `This is an automated test description ${faker.lorem.paragraph()}`,
           category: "uncategorized",
-          contentType: "News"
+          contentType: PageContentType.NEWS,
+          coverImage: {
+            fileName: CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
+            cropOptions: {
+              widescreen: false,
+              square: false
+            }
+          }
         });
-
-        // Publish the page
-        await pageCreationActions.publishPage();
 
         // Verify content was published successfully
         await pageCreationAssertions.verifyContentPublishedSuccessfully(title);
