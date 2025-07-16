@@ -41,21 +41,18 @@ export class PageCreationActions {
      */
     async fillPageDetails(options: { category: string; contentType: string; title: string; description: string }) {
       await test.step(`Filling page details`, async () => {
-        await this.pageCreationPage.titleInput.fill(options.title);
+        //add title
+        await this.pageCreationPage.fillInElement(this.pageCreationPage.titleInput, options.title);
 
-        // Scroll to description section
-        await this.pageCreationPage.descriptionInput.scrollIntoViewIfNeeded();
-        await this.pageCreationPage.descriptionInput.fill(options.description);
-        
-        // Scroll to category section
-        await this.pageCreationPage.categoryDropdown.scrollIntoViewIfNeeded();
-        
+        //add description
+        await this.pageCreationPage.fillInElement(this.pageCreationPage.descriptionInput, options.description);
+      
         // Handle category selection
-        await this.pageCreationPage.categoryDropdown.click();
-        await this.pageCreationPage.categoryDropdown.fill(options.category);
+        await this.pageCreationPage.clickOnElement(this.pageCreationPage.categoryDropdown);
+        await this.pageCreationPage.fillInElement(this.pageCreationPage.categoryDropdown, options.category);
         await this.pageCreationPage.categoryDropdown.press('Enter');
         
-        await this.pageCreationPage.contentTypeCheckbox(options.contentType).click();
+        await this.pageCreationPage.clickOnElement(this.pageCreationPage.contentTypeCheckbox(options.contentType));
         await this.pageCreationPage.page.waitForTimeout(5000);
       });
     }
@@ -65,9 +62,8 @@ export class PageCreationActions {
      */
     async publishPage() {
       await test.step(`Publishing page`, async () => {
-        await this.pageCreationPage.publishButton.click();
-        await this.pageCreationPage.page.waitForTimeout(3000); // Wait for 3 seconds
-        await this.pageCreationPage.skipStepButton.click();
+        await this.pageCreationPage.clickOnElement(this.pageCreationPage.publishButton);
+        await this.pageCreationPage.clickOnElement(this.pageCreationPage.skipStepButton);
       });
     }
   }
