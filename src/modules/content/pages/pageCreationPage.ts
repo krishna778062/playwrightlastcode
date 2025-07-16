@@ -57,7 +57,9 @@ export class PageCreationPage extends BasePage<PageCreationActions, PageCreation
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.titleInput.waitFor({ state: 'visible' });
+    await this.verifier.verifyTheElementIsVisible(this.titleInput, {
+      assertionMessage: 'Page title input should be visible'
+    });
   }
 
   get actions() {
