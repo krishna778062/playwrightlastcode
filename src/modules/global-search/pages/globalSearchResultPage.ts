@@ -4,6 +4,7 @@ import { TIMEOUTS } from '../../../core/constants/timeouts';
 import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
 import { TileListComponent } from '../components/tileListComponent';
+import { test } from '@playwright/test';
 
 export class GlobalSearchResultPage extends BasePage<any, any> {
   readonly resultListingComponent: ResultListingComponent;
@@ -12,6 +13,7 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
   readonly searchResultListItems: Locator;
   readonly siteResultItems: Locator;
   readonly pageResultItems: Locator;
+  readonly eventResultItems: Locator;
   readonly tileButton: Locator;
 
   constructor(page: Page) {
@@ -27,6 +29,10 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
       has: this.page.getByTestId('i-page'),
     });
     this.tileButton = this.page.getByRole('button', { name: 'Tiles' });
+
+    this.eventResultItems = this.searchResultListItems.filter({
+      has: this.page.getByTestId('i-calendar'),
+    });
   }
 
   get actions(): any {
@@ -138,14 +144,40 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
    * @returns the content result item
    */
   async getPageResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
-    await this.waitUntilSearchResultListIsDisplayed();
-    const contentResultToLocate = this.pageResultItems.filter({
-      has: this.page.locator('h2', { hasText: searchTerm }),
-    });
+    return await test.step(
+      `Getting page result item matching the search term "${searchTerm}"`,
+      async () => {
+        await this.waitUntilSearchResultListIsDisplayed();
+        const contentResultToLocate = this.pageResultItems.filter({
+          has: this.page.locator('h2', { hasText: searchTerm }),
+        });
+        await this.handleExactMatchCheckboxRetry(async () => {
+          await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 40_000 });
+        });
+        return new ResultListingComponent(this.page, contentResultToLocate);
+      }
+    );
+  }
 
-      await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 40_000 });
-
-    return new ResultListingComponent(this.page, contentResultToLocate);
+  /**
+   * Get the event result item exactly matching the search term
+   * @param searchTerm - the search term
+   * @returns the content result item
+   */
+  async getEventResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
+    return await test.step(
+      `Getting event result item matching the search term "${searchTerm}"`,
+      async () => {
+        await this.waitUntilSearchResultListIsDisplayed();
+        const contentResultToLocate = this.eventResultItems.filter({
+          has: this.page.locator('h2', { hasText: searchTerm }),
+        });
+        await this.handleExactMatchCheckboxRetry(async () => {
+          await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 40_000 });
+        });
+        return new ResultListingComponent(this.page, contentResultToLocate);
+      }
+    );
   }
 
   async getTileResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {

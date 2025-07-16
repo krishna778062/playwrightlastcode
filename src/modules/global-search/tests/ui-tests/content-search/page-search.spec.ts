@@ -7,9 +7,11 @@ import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/tes
 import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 import { PAGE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
 import { EnterpriseSearchHelper } from '@core/helpers/enterpriseSearchHelper';
+import { buildBodyAndBodyHtml } from '@/src/core/api/services/ContentManagementService';
+import { getTodayDateIsoString} from '@/src/core/utils/dateUtil';
 
 test.describe(
-  'Global Search- Content Search functionality',
+  'Global Search- Page Search functionality',
   {
     tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.CONTENT_SEARCH],
   },
@@ -55,24 +57,27 @@ test.describe(
         newSiteId = result.siteId;
 
         // 2. Get page categories for the new site
-        const pageCategory = await appManagerApiClient.getContentManagementService().getPageCategoryID(newSiteId);
+        let pageCategory: any;
+        pageCategory = await appManagerApiClient.getContentManagementService().getPageCategoryID(newSiteId);
 
         // 3. Create page content
         const randomNum1 = Math.floor(Math.random() * 1000000 + 1);
         const pageName = `AutomateUIPage_Test_${randomNum1}`;
-        const contentDescription = 'AutomateDescription';
+        const contentDescription = 'AutomatePageDescription';
         const authorName ='Workplace AppManager';
+        const { body, bodyHtml } = buildBodyAndBodyHtml(contentDescription, 'page');
         const pageResult = await appManagerApiClient.getContentManagementService().addNewPageContent(newSiteId, {
           contentSubType: testData.contentType,
           title: pageName,
-          bodyHtml: contentDescription,
+          body,
+          bodyHtml,
           contentType: testData.content,
+          publishAt: getTodayDateIsoString(),
           category: {
             id: pageCategory.categoryId,
             name: pageCategory.name,
           },
         });
-
         newPageID = pageResult.pageId;
         console.log(`Created page : ${pageName} with ID ${newPageID}`);
 

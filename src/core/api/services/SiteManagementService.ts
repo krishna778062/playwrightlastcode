@@ -34,7 +34,7 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
    * @returns The category id and name
    */
   async getCategoryId(category: string) {
-    return await test.step(`Getting category id for category using API: ${category}`, async () => {
+    return await test.step(`Getting category id using API: ${category}`, async () => {
       const response = await this.post(API_ENDPOINTS.site.category, {
         data: {
           size: 16,
