@@ -89,4 +89,17 @@ export class HomePageActionHelper {
       }
     });
   }
+
+  async clickOnGlobalFeed(): Promise<void> {
+    await test.step('Click on Global Feed', async () => {
+      const feedLink = this.homePage.page.getByText('Feed', { exact: true });
+      const homeLink = this.homePage.page.getByText('Home', { exact: true });
+      
+      if (await feedLink.isVisible()) {
+        await feedLink.click();
+      } else {
+        await homeLink.click();
+      }
+    });
+  }
 }
