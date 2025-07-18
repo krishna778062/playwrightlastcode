@@ -7,7 +7,7 @@ import { Modules } from './src/core/constants/modules';
 
 //load all env variables from .env file for given module
 loadEnvVariablesForGivenModule(
-  (process.env.TEST_ENV as Environments) || Environments.UAT,
+  (process.env.TEST_ENV as Environments) || Environments.QA,
   process.env.MODULE_NAME || Modules.PLATFORMS
 );
 
