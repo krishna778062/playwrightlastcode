@@ -1,5 +1,5 @@
 import { Page, test } from '@playwright/test';
-import { HomePage } from '../pages/homePage';
+import { HomePage } from '../pages/oldUx/homePage';
 import { LoginPage } from '../pages/loginPage';
 import { TIMEOUTS } from '../constants/timeouts';
 

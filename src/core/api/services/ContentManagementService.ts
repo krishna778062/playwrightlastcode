@@ -217,4 +217,17 @@ export class ContentManagementService extends BaseApiClient implements IContentM
       }
     );
   }
+
+  /**
+   * Deletes content from a site.
+   * @param siteId - The site ID.
+   * @param contentId - The content ID.
+   */
+  async deleteContent(siteId: string, contentId: string) {
+    return await test.step('Deleting page via API delete request', async () => {
+      const response = await this.delete(API_ENDPOINTS.content.delete(siteId, contentId));
+      const json = await response.json();
+      expect(response.status()).toBe(200);
+    });
+  }
 }
