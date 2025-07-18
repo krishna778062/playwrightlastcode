@@ -24,6 +24,8 @@ test.describe(
     let pageCreationPage: PageCreationPage;
     let pageCreationActions: PageCreationActions;
     let pageCreationAssertions: PageCreationAssertions;
+    let publishedPageId: string;
+    let siteIdToPublishPage: string;
 
     test.beforeEach(async ({ adminPage }: { adminPage: Page }) => {
         // Initialize the content creation page based on UX flag
@@ -36,24 +38,35 @@ test.describe(
         pageCreationAssertions = pageCreationPage.assertions as PageCreationAssertions;
       });
 
+    test.afterEach(async ({appManagerApiClient}) => {
+      //delete the published page only if the page is published
+      if (publishedPageId) {
+        await appManagerApiClient.getContentManagementService().deleteContent(siteIdToPublishPage, publishedPageId);
+      }
+      else{
+        console.log('No page was published, hence skipping the deletion');
+      }
+    });
+
     test(
-      'Verify admin can create a new page with cover image',
+      'Verify admin is able to publish a new page created with cover image',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, "@cover-image"],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'Test cover image upload functionality during page creation',
+          description: 'Verify admin is able to publish a new page created with cover image',
           zephyrTestId: 'CONT-11635',
           storyId: 'CONT-11635',
         });
 
         const title = `Automated Test Page ${faker.company.name()} - ${faker.commerce.productName()}`;
+        const description = `This is an automated test description ${faker.lorem.paragraph()}`;
         
         // Use the new wrapper method to create and publish the page
-        await pageCreationActions.createAndPublishPage({
+        const {pageId, siteId} = await pageCreationActions.createAndPublishPage({
           title,
-          description: `This is an automated test description ${faker.lorem.paragraph()}`,
+          description,
           category: "uncategorized",
           contentType: PageContentType.NEWS,
           coverImage: {
@@ -65,7 +78,11 @@ test.describe(
           }
         });
 
-        // Verify content was published successfully
+        //store the page id
+        publishedPageId = pageId;
+        siteIdToPublishPage = siteId;
+
+        // Verify content was published successfully via UI
         await pageCreationAssertions.verifyContentPublishedSuccessfully(title);
       }
     );

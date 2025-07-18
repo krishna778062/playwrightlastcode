@@ -6,6 +6,7 @@ import { PageCreationActions } from '../helpers/pageCreationActions';
 import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
 import { AttachementUploaderComponent } from '../components/attachementUploader';
 import { ImageCropperComponent } from '../components/imageCropper';
+import { PromotePageModal } from '../components/promotePageModal';
 
 
 export class PageCreationPage extends BasePage<PageCreationActions, PageCreationAssertions> {
@@ -30,6 +31,7 @@ export class PageCreationPage extends BasePage<PageCreationActions, PageCreation
   readonly fileAttachmentUploader: AttachementUploaderComponent;
   readonly imageCropper: ImageCropperComponent;
   readonly sideNavBarComponent: SideNavBarComponent;
+  readonly promotePageModal: PromotePageModal;
 
   constructor(page: Page) {
     super(page);
@@ -54,6 +56,7 @@ export class PageCreationPage extends BasePage<PageCreationActions, PageCreation
     this.fileAttachmentUploader = new AttachementUploaderComponent(page,this.fileAttachmentUploaderContainer);
     this.imageCropper = new ImageCropperComponent(page);
     this.sideNavBarComponent = new SideNavBarComponent(page);
+    this.promotePageModal = new PromotePageModal(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
