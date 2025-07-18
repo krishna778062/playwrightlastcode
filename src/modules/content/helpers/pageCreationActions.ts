@@ -93,7 +93,7 @@ export class PageCreationActions {
 
 
   /**
-   * Publishes the page
+   * Publishes the page and waits for the publish api response to be completed
    */
   async publishPage(): Promise<Response> {
     return await test.step(`Publishing page and wait for publish api response`, async () => {
