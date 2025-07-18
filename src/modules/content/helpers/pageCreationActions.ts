@@ -1,5 +1,5 @@
 import { PageCreationPage } from '../pages/pageCreationPage';
-import { request, test } from '@playwright/test';
+import { request, test , Response} from '@playwright/test';
 import { FileUtil } from '@core/utils/fileUtil';
 import { PageContentType } from '../constants/pageContentType';
 import { PageCreationResponse } from '../apis/types/pageCreationResponse';
@@ -90,13 +90,25 @@ export class PageCreationActions {
     });
   }
 
+
+
   /**
    * Publishes the page
    */
-  async publishPage() {
-    await test.step(`Publishing page`, async () => {
-      await this.pageCreationPage.clickOnElement(this.pageCreationPage.publishButton, { delay: 2_000 });
-    });
+  async publishPage(): Promise<Response> {
+    return await test.step(`Publishing page and wait for publish api response`, async () => {
+    const publishResponse = await this.pageCreationPage.performActionAndWaitForResponse(
+      () => this.pageCreationPage.clickOnElement(this.pageCreationPage.publishButton, { delay: 2_000 }),
+      response =>
+        response.url().includes('content?action=publish') &&
+        response.request().method() === 'POST' &&
+        response.status() === 201,
+      {
+        timeout: 20_000,
+      }
+    );
+    return publishResponse;
+  });
   }
 
   /**
@@ -147,16 +159,7 @@ export class PageCreationActions {
       }
 
       // Publish the page
-      const publishResponse = await this.pageCreationPage.performActionAndWaitForResponse(
-        () => this.publishPage(),
-        response =>
-          response.url().includes('content?action=publish') &&
-          response.request().method() === 'POST' &&
-          response.status() === 201,
-        {
-          timeout: 60_000,
-        }
-      );
+      const publishResponse = await this.publishPage();
 
       //json body
       const publishResponseBody = (await publishResponse.json()) as PageCreationResponse;
