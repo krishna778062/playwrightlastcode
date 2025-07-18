@@ -1,5 +1,5 @@
 import { PageCreationPage } from '../pages/pageCreationPage';
-import { request, test } from '@playwright/test';
+import { request, test , Response} from '@playwright/test';
 import { FileUtil } from '@core/utils/fileUtil';
 import { PageContentType } from '../constants/pageContentType';
 import { PageCreationResponse } from '../apis/types/pageCreationResponse';
@@ -38,17 +38,17 @@ export class PageCreationActions {
     }
   ) {
     await test.step(`Upload cover image: ${fileName}`, async () => {
-              //there will be three requests for the cover image to upload different sizes
-        //we will wait until all three requests are completed
-        const reqPromises = [];
-        for (let i = 0; i < 3; i++) {
-          reqPromises.push(
-            this.pageCreationPage.page.waitForResponse(
-              response => response.url().includes('Content-Type=image%2Fpng') && response.request().method() === 'PUT'
-            ),
-            35_000
-          );
-        }
+      //there will be three requests for the cover image to upload different sizes
+      //we will wait until all three requests are completed
+      const reqPromises = [];
+      for (let i = 0; i < 3; i++) {
+        reqPromises.push(
+          this.pageCreationPage.page.waitForResponse(
+            response => response.url().includes('Content-Type=image%2Fpng') && response.request().method() === 'PUT'
+          ),
+          35_000
+        );
+      }
       const imagePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', 'images', fileName);
       await this.pageCreationPage.coverImageUploader.uploadAttachment(imagePath);
       //handle wide screen crop option
@@ -66,7 +66,6 @@ export class PageCreationActions {
 
       //wait for all the requests to be completed
       await Promise.all(reqPromises);
-
     });
   }
 
@@ -107,10 +106,20 @@ export class PageCreationActions {
    *     // Retry with exponential backoff
    *   }
    */
-  async publishPage() {
-    await test.step(`Publishing page`, async () => {
-      await this.pageCreationPage.clickOnElement(this.pageCreationPage.publishButton,{delay: 1_000});
-    });
+  async publishPage(): Promise<Response> {
+    return await test.step(`Publishing page and wait for publish api response`, async () => {
+    const publishResponse = await this.pageCreationPage.performActionAndWaitForResponse(
+      () => this.pageCreationPage.clickOnElement(this.pageCreationPage.publishButton, { delay: 2_000 }),
+      response =>
+        response.url().includes('content?action=publish') &&
+        response.request().method() === 'POST' &&
+        response.status() === 201,
+      {
+        timeout: 20_000,
+      }
+    );
+    return publishResponse;
+  });
   }
 
   /**
@@ -159,30 +168,16 @@ export class PageCreationActions {
           squareCropOption: options.coverImage.cropOptions?.square,
         });
       }
-      
+
       // Publish the page
-      const publishResponse = await this.pageCreationPage.performActionAndWaitForResponse(
-        () => this.publishPage(),
-        response => response.url().includes('content?action=publish') && response.request().method() === 'POST' && response.status() === 201,
-        {
-          timeout: 60_000,
-        }
-      );
+      const publishResponse = await this.publishPage();
 
       //json body
-      const publishResponseBody = await publishResponse.json() as PageCreationResponse;
+      const publishResponseBody = (await publishResponse.json()) as PageCreationResponse;
 
       //fetch the page id from the response
       const pageId = publishResponseBody.result.id;
       const siteId = publishResponseBody.result.site.siteId;
-
-      // verify the promote page modal is visible
-      await this.pageCreationPage.promotePageModal.verifyThePromotePageModalIsVisible();
-
-      // handle the promotion
-      await this.handlePromotePage({
-        skipPromotion: true,
-      });
 
       return {
         title: options.title,
@@ -193,6 +188,22 @@ export class PageCreationActions {
         siteId: siteId,
         response: publishResponseBody,
       };
+    });
+  }
+
+  /**
+   * Handles the promotion of the page
+   * @param options - The options for handling the promotion
+   */
+  async handlePagePromotion(options?: { skipPromotion?: boolean }) {
+    await test.step(`Promoting page`, async () => {
+      const skipPromotion = options?.skipPromotion ?? true;
+      if (skipPromotion) {
+        await this.pageCreationPage.promotePageModal.clickOnSkipPromotionButton();
+      } else {
+        //hanlde the promotion actions
+        await this.pageCreationPage.promotePageModal.handlePromotion(options);
+      }
     });
   }
 }

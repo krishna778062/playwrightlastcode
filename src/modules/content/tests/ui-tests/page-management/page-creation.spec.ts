@@ -82,6 +82,11 @@ test.describe(
         publishedPageId = pageId;
         siteIdToPublishPage = siteId;
 
+        //handle the promotion
+        await pageCreationActions.handlePagePromotion({
+          skipPromotion: true,
+        });
+
         // Verify content was published successfully via UI
         await pageCreationAssertions.verifyContentPublishedSuccessfully(title);
       }
