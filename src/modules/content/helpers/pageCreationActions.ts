@@ -92,7 +92,20 @@ export class PageCreationActions {
   }
 
   /**
-   * Publishes the page
+   * TODO: Improve publish mechanism with better API handling:
+   * - Currently we click publish button and wait for API response
+   * - Need to add polling mechanism to check API response status
+   * - Implement try-catch with proper retries:
+   *   try {
+   *     await this.clickPublishButton()
+   *     const response = await this.waitForPublishResponse()
+   *     if (!response.ok()) {
+   *       throw new Error('Publish failed')
+   *     }
+   *   } catch (error) {
+   *     // Handle API failures
+   *     // Retry with exponential backoff
+   *   }
    */
   async publishPage() {
     await test.step(`Publishing page`, async () => {
