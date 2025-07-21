@@ -1,7 +1,8 @@
 import { Page } from '@playwright/test';
 import { LoginPage } from '@core/pages/loginPage';
 import { UserCredentials } from '@core/types/test.types';
-import { HomePage } from '@/src/core/pages/oldUx/homePage';
+import { OldUxHomePage } from '../pages/homePage/oldUxHomePage';
+import { NewUxHomePage } from '../pages/homePage/newUxHomePage';
 
 export class LoginHelper {
   /**
@@ -11,7 +12,7 @@ export class LoginHelper {
    * @param options - Optional parameters for the login step.
    * @returns An instance of the HomePage.
    */
-  public static async loginWithPassword(page: Page, user: UserCredentials): Promise<HomePage> {
+  public static async loginWithPassword(page: Page, user: UserCredentials): Promise<OldUxHomePage | NewUxHomePage> {
     const loginPage = new LoginPage(page);
     await loginPage.loadPage({ stepInfo: `Loading login page for user ${user.email}` });
     const homePage = await loginPage.actions.performLogin(user.email, user.password!);

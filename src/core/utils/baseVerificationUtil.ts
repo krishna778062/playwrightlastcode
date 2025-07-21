@@ -169,7 +169,9 @@ export class BaseVerificationUtil {
     }
   ) {
     try {
-      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to have text ${text}`).toHaveText(text);
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to have text ${text}`).toHaveText(text, {
+        timeout: options?.timeout || 8_000,
+      });
     } catch (error) {
       throw new Error(
         options?.assertionMessage

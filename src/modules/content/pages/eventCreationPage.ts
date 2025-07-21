@@ -1,7 +1,7 @@
 import { BasePage } from "@/src/core/pages/basePage";
 import { Page } from "@playwright/test";
 
-export class EventCreationPage extends BasePage<any, any> {
+export class EventCreationPage extends BasePage {
     verifyThePageIsLoaded(): Promise<void> {
         throw new Error("Method not implemented.");
     }

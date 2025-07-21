@@ -1,10 +1,10 @@
 import { PageCreationPage } from '../pages/pageCreationPage';
-import { request, test , Response} from '@playwright/test';
+import { test , Response} from '@playwright/test';
 import { FileUtil } from '@core/utils/fileUtil';
 import { PageContentType } from '../constants/pageContentType';
 import { PageCreationResponse } from '../apis/types/pageCreationResponse';
 
-interface PageCreationOptions {
+export interface PageCreationOptions {
   // Required fields
   title: string;
   description: string;
@@ -19,6 +19,22 @@ interface PageCreationOptions {
       square?: boolean;
     };
   };
+}
+
+export interface IPageCreationActions {
+  uploadCoverImage: (fileName: string, options?: { widescreenCropOption?: boolean; squareCropOption?: boolean }) => Promise<void>;
+  fillPageDetails: (options: { category: string; contentType: string; title: string; description: string }) => Promise<void>;
+  publishPage: () => Promise<Response>;
+  handlePromotionPageStep: (options?: { skipPromotion?: boolean }) => Promise<void>;
+  createAndPublishPage: (options: PageCreationOptions) => Promise<{
+    title: string;
+    description: string;
+    category: string;
+    contentType: PageContentType;
+    pageId: string;
+    siteId: string;
+    response: PageCreationResponse;
+  }>;
 }
 
 export class PageCreationActions {
