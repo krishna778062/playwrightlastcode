@@ -33,7 +33,7 @@ export class FeedPage extends BasePage<FeedActionHelper, FeedAssertionHelper> {
   readonly getPostOptionsMenuLocator: (postText: string) => Locator;
 
   constructor(page: Page) {
-    super(page, PAGE_ENDPOINTS.FEED_PAGE);
+    super(page);
 
     // Initialize share thoughts section locators
     this.shareThoughtsButton = page.getByRole('button', { name: 'Share your thoughts' });
