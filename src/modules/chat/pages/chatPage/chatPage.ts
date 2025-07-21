@@ -1,9 +1,9 @@
 import { Locator, Page, expect, test } from '@playwright/test';
-import { ChatPageBase } from './chatPageBase';
+import { ChatPageBase } from '@/src/modules/chat/pages/chatPage/chatPageBase';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
-import { MessageReplyThreadComponent } from '../../components/messageReplyThreadComponent';
-import { IncomingAudioVideoCallComponent } from '../../components/incomingAudioVideoCallComponent';
-import { AudioVideoCallPage } from '../audioVideoCallPage';
+import { MessageReplyThreadComponent } from '@/src/modules/chat/components/messageReplyThreadComponent';
+import { IncomingAudioVideoCallComponent } from '@/src/modules/chat/components/incomingAudioVideoCallComponent';
+import { AudioVideoCallPage } from '@/src/modules/chat/pages/audioVideoCallPage/audioVideoCallPage';
 
 export interface IChatActions {
   sendMessage: (message: string, options?: { stepInfo?: string }) => Promise<void>;

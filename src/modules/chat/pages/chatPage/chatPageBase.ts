@@ -1,10 +1,10 @@
 import { BasePage } from '@core/pages/basePage';
 import { Locator, Page,expect } from '@playwright/test';
-import { DirectMessageSectionInInbox } from '../../components/directMessageSectionInChatInbox';
-import { ImageAttachementPreviewModal } from '../../components/imageAttachementPreviewModal';
-import { ConversationWindowComponent } from '../../components/conversationWindowComponent';
-import { ChatInboxSideBarComponent } from '../../components/chatInboxSideBarComponent';
-import { UnsupportedFileMessageDialogBox } from '../../components/unsupportedFileMessageDialogBox';
+import { DirectMessageSectionInInbox } from '@/src/modules/chat/components/directMessageSectionInChatInbox';
+import { ImageAttachementPreviewModal } from '@/src/modules/chat/components/imageAttachementPreviewModal';
+import { ConversationWindowComponent } from '@/src/modules/chat/components/conversationWindowComponent';
+import { ChatInboxSideBarComponent } from '@/src/modules/chat/components/chatInboxSideBarComponent';
+import { UnsupportedFileMessageDialogBox } from '@/src/modules/chat/components/unsupportedFileMessageDialogBox';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 export interface ChatPageComponents {

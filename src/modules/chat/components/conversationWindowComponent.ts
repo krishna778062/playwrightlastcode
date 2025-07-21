@@ -3,7 +3,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { ChatEditorComponent } from '@chat/components/chatEditorComponent';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { MessageCardComponent } from '@/src/modules/chat/components/messageCardComponent';
-import { AudioVideoCallPage } from '@chat/pages/audioVideoCallPage';
+import { AudioVideoCallPage } from '@/src/modules/chat/pages/audioVideoCallPage/audioVideoCallPage';
 import { IncomingAudioVideoCallComponent } from '@chat/components/incomingAudioVideoCallComponent';
 import { MessageReplyThreadComponent } from './messageReplyThreadComponent';
 import { ChatMentionsListSection } from './chatMentionsListSection';
