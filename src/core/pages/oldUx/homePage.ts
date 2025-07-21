@@ -1,6 +1,6 @@
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
-import { Page, Locator } from '@playwright/test';
+import { Page } from '@playwright/test';
 import { TopNavBarComponent } from '@core/components/topNavBarComponent';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { FooterComponent } from '@core/components/footerComponent';

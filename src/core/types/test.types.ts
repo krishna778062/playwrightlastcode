@@ -11,13 +11,3 @@ export interface UserCredentials {
   email: string;
   password?: string;
 }
-
-export interface EnvConfig {
-  frontendBaseUrl: string;
-  apiBaseUrl: string;
-  appManagerEmail: string;
-  appManagerPassword: string;
-  endUserEmail: string;
-  endUserPassword: string;
-  newUxEnabled?: boolean;
-}
