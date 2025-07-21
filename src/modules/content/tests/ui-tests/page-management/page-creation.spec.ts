@@ -10,8 +10,10 @@ import { HomePage as NewUxHomePage } from '@/src/core/pages/newUx/homePage';
 import { HomePage as OldUxHomePage } from '@/src/core/pages/oldUx/homePage';
 import { PageCreationActions } from '@/src/modules/content/helpers/pageCreationActions';
 import { ContentType } from '@/src/modules/content/constants/contentType';
+import { PageContentType } from '@/src/modules/content/constants/pageContentType';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 import { faker } from '@faker-js/faker';
+import { Page } from '@playwright/test';
 
 test.describe(
   '@PageCreation',
@@ -20,48 +22,72 @@ test.describe(
   },
   () => {
     let pageCreationPage: PageCreationPage;
-    test.beforeEach(async ({ adminPage }) => {
+    let pageCreationActions: PageCreationActions;
+    let pageCreationAssertions: PageCreationAssertions;
+    let publishedPageId: string;
+    let siteIdToPublishPage: string;
+
+    test.beforeEach(async ({ adminPage }: { adminPage: Page }) => {
         // Initialize the content creation page based on UX flag
         const HomePage = getEnvConfig().newUxEnabled ? NewUxHomePage : OldUxHomePage;
         const homePage = new HomePage(adminPage);
         pageCreationPage = await homePage.actions.openCreateContentPageForContentType(ContentType.PAGE) as PageCreationPage;
+        
+        // Initialize actions and assertions
+        pageCreationActions = pageCreationPage.actions as PageCreationActions;
+        pageCreationAssertions = pageCreationPage.assertions as PageCreationAssertions;
       });
 
+    test.afterEach(async ({appManagerApiClient}) => {
+      //delete the published page only if the page is published
+      if (publishedPageId) {
+        await appManagerApiClient.getContentManagementService().deleteContent(siteIdToPublishPage, publishedPageId);
+      }
+      else{
+        console.log('No page was published, hence skipping the deletion');
+      }
+    });
+
     test(
-      'Verify admin can create a new page with cover image without cropping it',
+      'Verify admin is able to publish a new page created with cover image',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, "@cover-image"],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'Test cover image upload functionality during page creation',
+          description: 'Verify admin is able to publish a new page created with cover image',
           zephyrTestId: 'CONT-11635',
           storyId: 'CONT-11635',
         });
-        const pageCreationActions = pageCreationPage.actions as PageCreationActions;
-        const pageCreationAssertions = pageCreationPage.assertions as PageCreationAssertions;
 
-        await pageCreationActions.uploadCoverImage(
-          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
-        );
-
-        await pageCreationAssertions.verifyUploadedCoverImagePreviewIsVisible({
-          timeout: CONTENT_TEST_DATA.TIMEOUTS.UPLOAD,
-        });
-
-        // Fill in page details
         const title = `Automated Test Page ${faker.company.name()} - ${faker.commerce.productName()}`;
-        await pageCreationActions.fillPageDetails({
+        const description = `This is an automated test description ${faker.lorem.paragraph()}`;
+        
+        // Use the new wrapper method to create and publish the page
+        const {pageId, siteId} = await pageCreationActions.createAndPublishPage({
           title,
-          description: `This is an automated test description ${faker.lorem.paragraph()}`,
+          description,
           category: "uncategorized",
-          contentType: "News"
+          contentType: PageContentType.NEWS,
+          coverImage: {
+            fileName: CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
+            cropOptions: {
+              widescreen: false,
+              square: false
+            }
+          }
         });
 
-        // Publish the page
-        await pageCreationActions.publishPage();
+        //store the page id
+        publishedPageId = pageId;
+        siteIdToPublishPage = siteId;
 
-        // Verify content was published successfully
+        //handle the promotion
+        await pageCreationActions.handlePagePromotion({
+          skipPromotion: true,
+        });
+
+        // Verify content was published successfully via UI
         await pageCreationAssertions.verifyContentPublishedSuccessfully(title);
       }
     );

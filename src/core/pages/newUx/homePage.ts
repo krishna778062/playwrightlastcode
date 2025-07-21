@@ -1,6 +1,6 @@
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
-import { Page } from '@playwright/test';
+import { Page, Locator } from '@playwright/test';
 import { TopNavBarComponent } from '@core/components/topNavBarComponent';
 import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
 import { TIMEOUTS } from '@core/constants/timeouts';
@@ -14,6 +14,10 @@ export class HomePage extends BasePage<HomePageActionHelper, HomePageAssertionHe
   readonly sideNavBarComponent: SideNavBarComponent;
   readonly footer: FooterComponent;
 
+  // Navigation locators
+  private readonly feedLink: Locator;
+  private readonly homeLink: Locator;
+
   //actions
   readonly homeActionHelper: HomePageActionHelper;
 
@@ -26,6 +30,22 @@ export class HomePage extends BasePage<HomePageActionHelper, HomePageAssertionHe
     this.footer = new FooterComponent(page, this.page.locator('#site-footer'));
     this.homeActionHelper = new HomePageActionHelper(this, getEnvConfig().newUxEnabled);
     this.homeAssertionHelper = new HomePageAssertionHelper(this, getEnvConfig().newUxEnabled);
+
+    // Initialize navigation locators
+    this.feedLink = page.locator("p:has-text('Feed')");
+    this.homeLink = page.locator("p:has-text('Home')");
+  }
+
+  async clickOnFeedLink(): Promise<void> {
+    await this.clickOnElement(this.feedLink);
+  }
+
+  async clickOnHomeLink(): Promise<void> {
+    await this.clickOnElement(this.homeLink);
+  }
+
+  async isFeedLinkVisible(): Promise<boolean> {
+    return await this.feedLink.isVisible();
   }
 
   get actions(): HomePageActionHelper {

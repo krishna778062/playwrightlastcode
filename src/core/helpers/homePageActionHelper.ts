@@ -92,13 +92,10 @@ export class HomePageActionHelper {
 
   async clickOnGlobalFeed(): Promise<void> {
     await test.step('Click on Global Feed', async () => {
-      const feedLink = this.homePage.page.getByText('Feed', { exact: true });
-      const homeLink = this.homePage.page.getByText('Home', { exact: true });
-      
-      if (await feedLink.isVisible()) {
-        await feedLink.click();
+      if (getEnvConfig().newUxEnabled && this.homePage instanceof NewUxHomePage) {
+        await this.homePage.sideNavBarComponent.clickOnGlobalFeed();
       } else {
-        await homeLink.click();
+        throw new Error('New UX is not enabled, hence this method is not applicable');
       }
     });
   }

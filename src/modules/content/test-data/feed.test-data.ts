@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker';
 export const FEED_TEST_DATA = {
   ATTACHMENTS: {
     IMAGE: 'image1.jpg',
-    DOCUMENT: 'sample.docx',
+    DOCUMENT: 'sample.xlsx',
     FAVICON: 'favicon.png'
   },
   POST_TEXT: {

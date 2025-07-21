@@ -3,10 +3,14 @@ import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class SideNavBarComponent extends BaseComponent {
   readonly createSection: Locator;
+  readonly feedLink: Locator;
+  readonly homeLink: Locator;
 
   constructor(page: Page) {
     super(page);
     this.createSection = page.getByRole('button', { name: 'Create' });
+    this.feedLink = page.locator("p:has-text('Feed')");
+    this.homeLink = page.locator("p:has-text('Home')");
   }
 
   /**
@@ -16,6 +20,16 @@ export class SideNavBarComponent extends BaseComponent {
   async clickOnCreateButton(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Clicking Create button in side navigation`, async () => {
       await this.clickOnElement(this.createSection);
+    });
+  }
+
+  async clickOnGlobalFeed(): Promise<void> {
+    await test.step('Clicking Global Feed button in side navigation', async () => {
+      if (await this.verifier.verifyTheElementIsVisible(this.feedLink)) {
+        await this.clickOnElement(this.feedLink);
+      } else {
+        await this.clickOnElement(this.homeLink);
+      }
     });
   }
 } 

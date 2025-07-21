@@ -33,13 +33,13 @@ test.describe('@FeedPost', { tag: [ContentTestSuite.FEED] }, () => {
   }, async ({ page }) => {
     tagTest(test.info(), {
       description: 'Test feed post creation, editing and deletion with file attachments',
-      zephyrTestId: 'CONT-XXXXX',
-      storyId: 'CONT-XXXXX',
+      zephyrTestId: 'CONT-19533',
+      storyId: 'CONT-19533',
     });
 
     // Get file paths
     const image1Path = path.join(process.cwd(), 'src/modules/content/test-data/static-files/images', FEED_TEST_DATA.ATTACHMENTS.IMAGE);
-    const docxPath = path.join(process.cwd(), 'src/modules/chat/test-data/static-files/excel', FEED_TEST_DATA.ATTACHMENTS.DOCUMENT);
+    const docxPath = path.join(process.cwd(), 'src/modules/content/test-data/static-files/excel', FEED_TEST_DATA.ATTACHMENTS.DOCUMENT);
     const faviconPath = path.join(process.cwd(), 'src/modules/content/test-data/static-files/images', FEED_TEST_DATA.ATTACHMENTS.FAVICON);
 
     // Create post with attachments
@@ -55,11 +55,11 @@ test.describe('@FeedPost', { tag: [ContentTestSuite.FEED] }, () => {
     // Verify post details
     await feedComponent.verifyTimestampDisplayed(postText);
     await feedComponent.verifyFileAttachmentsCount(postText, 2);
-    await feedComponent.verifyFileInfo();
-    await feedComponent.verifyInlineImagePreview();
+    await feedComponent.verifyInlineImage(postText,2);
+    await feedComponent.verifyInlineImagePerview(postText);
 
     // Edit post
-    await feedComponent.openPostOptionsMenu();
+    await feedComponent.openPostOptionsMenu(postText);
     await feedComponent.clickEditOption();
     await feedComponent.verifyEditorVisible();
     const updatedPostText = FEED_TEST_DATA.POST_TEXT.UPDATED;
@@ -67,7 +67,7 @@ test.describe('@FeedPost', { tag: [ContentTestSuite.FEED] }, () => {
     await feedComponent.clickUpdateButton();
 
     // Delete post
-    await feedComponent.openPostOptionsMenu();
+    await feedComponent.openPostOptionsMenu(updatedPostText);
     await feedComponent.clickDeleteOption();
     await feedComponent.verifyDeleteConfirmDialog('Are you sure you want to delete this post?');
     await feedComponent.confirmDelete();
