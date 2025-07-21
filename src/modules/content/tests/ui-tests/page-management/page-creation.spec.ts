@@ -15,21 +15,21 @@ test.describe(
     tag: [ContentTestSuite.PAGE_CREATION, ContentTestSuite.COVER_IMAGE],
   },
   () => {
-  let pageCreationPage: PageCreationPage;
+    let pageCreationPage: PageCreationPage;
     let publishedPageId: string;
     let siteIdToPublishPage: string;
 
     test.beforeEach(async ({ appManagerHomePage }) => {
-        pageCreationPage = await appManagerHomePage.actions.openCreateContentPageForContentType(ContentType.PAGE) as PageCreationPage;
-        
-      });
+      pageCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
+        ContentType.PAGE
+      )) as PageCreationPage;
+    });
 
-    test.afterEach(async ({appManagerApiClient}) => {
+    test.afterEach(async ({ appManagerApiClient }) => {
       //delete the published page only if the page is published
       if (publishedPageId) {
         await appManagerApiClient.getContentManagementService().deleteContent(siteIdToPublishPage, publishedPageId);
-      }
-      else{
+      } else {
         console.log('No page was published, hence skipping the deletion');
       }
     });
@@ -37,7 +37,7 @@ test.describe(
     test(
       'Verify admin is able to publish a new page created with cover image',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, "@cover-image"],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@cover-image'],
       },
       async () => {
         tagTest(test.info(), {
@@ -48,21 +48,20 @@ test.describe(
 
         const title = `Automated Test Page ${faker.company.name()} - ${faker.commerce.productName()}`;
         const description = `This is an automated test description ${faker.lorem.paragraph()}`;
-        
+
         // Use the new wrapper method to create and publish the page
-        await pageCreationPage.page.pause()
-        const {pageId, siteId} = await pageCreationPage.actions.createAndPublishPage({
+        const { pageId, siteId } = await pageCreationPage.actions.createAndPublishPage({
           title,
           description,
-          category: "uncategorized",
+          category: 'uncategorized',
           contentType: PageContentType.NEWS,
           coverImage: {
             fileName: CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
             cropOptions: {
               widescreen: false,
-              square: false
-            }
-          }
+              square: false,
+            },
+          },
         });
 
         //store the page id
@@ -79,4 +78,4 @@ test.describe(
       }
     );
   }
-); 
+);
