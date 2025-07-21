@@ -12,10 +12,6 @@ export class HomePage extends BasePage<HomePageActionHelper, HomePageAssertionHe
   readonly topNavBarComponent: TopNavBarComponent;
   readonly footer: FooterComponent;
 
-  // Navigation locators
-  private readonly feedLink: Locator;
-  private readonly homeLink: Locator;
-
   //actions
   readonly homeActionHelper: HomePageActionHelper;
 
@@ -27,22 +23,6 @@ export class HomePage extends BasePage<HomePageActionHelper, HomePageAssertionHe
     this.footer = new FooterComponent(page, this.page.locator('#site-footer'));
     this.homeActionHelper = new HomePageActionHelper(this, this.newUxEnabled);
     this.homeAssertionHelper = new HomePageAssertionHelper(this, this.newUxEnabled);
-
-    // Initialize navigation locators
-    this.feedLink = page.locator("p:has-text('Feed')");
-    this.homeLink = page.locator("p:has-text('Home')");
-  }
-
-  async clickOnFeedLink(): Promise<void> {
-    await this.clickOnElement(this.feedLink);
-  }
-
-  async clickOnHomeLink(): Promise<void> {
-    await this.clickOnElement(this.homeLink);
-  }
-
-  async isFeedLinkVisible(): Promise<boolean> {
-    return await this.feedLink.isVisible();
   }
 
   get actions(): HomePageActionHelper {
