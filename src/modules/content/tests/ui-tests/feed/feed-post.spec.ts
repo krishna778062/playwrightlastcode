@@ -6,13 +6,13 @@ import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { HomePage as NewUxHomePage } from '@/src/core/pages/newUx/homePage';
 import { HomePage as OldUxHomePage } from '@/src/core/pages/oldUx/homePage';
-import { FeedComponent } from '@/src/modules/content/components/feedComponent';
+import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import path from 'path';
 
 test.describe('@FeedPost', { tag: [ContentTestSuite.FEED] }, () => {
-  let feedComponent: FeedComponent;
+  let feedPage: FeedPage;
 
   test.beforeEach(async ({ page }) => {
     // Login as EndUser1
@@ -25,7 +25,8 @@ test.describe('@FeedPost', { tag: [ContentTestSuite.FEED] }, () => {
     const HomePage = getEnvConfig().newUxEnabled ? NewUxHomePage : OldUxHomePage;
     const homePage = new HomePage(page);
     await homePage.actions.clickOnGlobalFeed();
-    feedComponent = new FeedComponent(page);
+    feedPage = new FeedPage(page);
+    await feedPage.verifyThePageIsLoaded();
   });
 
   test('Verify user can create, edit and delete a feed post with attachments', {
@@ -43,34 +44,34 @@ test.describe('@FeedPost', { tag: [ContentTestSuite.FEED] }, () => {
     const faviconPath = path.join(process.cwd(), 'src/modules/content/test-data/static-files/images', FEED_TEST_DATA.ATTACHMENTS.FAVICON);
 
     // Create post with attachments
-    await feedComponent.clickShareThoughtsButton();
+    await feedPage.actions.clickShareThoughtsButton();
     const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
-    await feedComponent.createPost(postText);
-    await feedComponent.uploadFiles([image1Path, docxPath, faviconPath]);
-    await feedComponent.verifyFilesAttached();
-    await feedComponent.removeAttachedFile();
-    await feedComponent.clickPostButton();
-    await feedComponent.verifyPostCreated(postText);
+    await feedPage.actions.createPost(postText);
+    await feedPage.actions.uploadFiles([image1Path, docxPath, faviconPath]);
+    await feedPage.assertions.verifyFilesAttached();
+    await feedPage.actions.removeAttachedFile();
+    await feedPage.actions.clickPostButton();
+    await feedPage.assertions.verifyPostCreated(postText);
 
     // Verify post details
-    await feedComponent.verifyTimestampDisplayed(postText);
-    await feedComponent.verifyFileAttachmentsCount(postText, 2);
-    await feedComponent.verifyInlineImage(postText,2);
-    await feedComponent.verifyInlineImagePerview(postText);
+    await feedPage.assertions.verifyTimestampDisplayed(postText);
+    await feedPage.assertions.verifyFileAttachmentsCount(postText, 2);
+    await feedPage.assertions.verifyInlineImage(postText, 2);
+    await feedPage.verifyInlineImagePerview(postText);
 
     // Edit post
-    await feedComponent.openPostOptionsMenu(postText);
-    await feedComponent.clickEditOption();
-    await feedComponent.verifyEditorVisible();
+    await feedPage.actions.openPostOptionsMenu(postText);
+    await feedPage.actions.clickEditOption();
+    await feedPage.assertions.verifyEditorVisible();
     const updatedPostText = FEED_TEST_DATA.POST_TEXT.UPDATED;
-    await feedComponent.updatePostText(updatedPostText);
-    await feedComponent.clickUpdateButton();
+    await feedPage.actions.updatePostText(updatedPostText);
+    await feedPage.actions.clickUpdateButton();
 
     // Delete post
-    await feedComponent.openPostOptionsMenu(updatedPostText);
-    await feedComponent.clickDeleteOption();
-    await feedComponent.verifyDeleteConfirmDialog('Are you sure you want to delete this post?');
-    await feedComponent.confirmDelete();
-    await feedComponent.verifyPostDeleted();
+    await feedPage.actions.openPostOptionsMenu(updatedPostText);
+    await feedPage.actions.clickDeleteOption();
+    await feedPage.assertions.verifyDeleteConfirmDialog('Are you sure you want to delete this post?');
+    await feedPage.actions.confirmDelete();
+    await feedPage.assertions.verifyPostDeleted();
   });
 }); 
