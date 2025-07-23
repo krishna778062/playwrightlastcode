@@ -243,7 +243,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       );
       await this.fileUploadInput.setInputFiles(filePaths);
       await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
-      await this.page.waitForTimeout(2000);
       const count = await this.attachedFiles.count();
       const fileNames = await Promise.all(
         (await this.attachedFiles.all()).map(el => el.textContent())
