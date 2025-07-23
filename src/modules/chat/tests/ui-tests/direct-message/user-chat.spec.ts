@@ -4,7 +4,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { CHAT_TEST_DATA } from '@chat/test-data/chat.test-data';
 import { TestGroupType } from '@core/constants/testType';
 import { ChatTestUser } from '@chat/types/chat-test.type';
-import { ChatAppPage } from '@chat/pages/chatsPage';
+import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 
 test.describe('Direct Message between multiple users', { tag: ['@direct-message'] }, () => {
   let user1: ChatTestUser;

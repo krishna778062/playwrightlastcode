@@ -1,7 +1,7 @@
 import { BasePage } from "@/src/core/pages/basePage";
 import { Page } from "@playwright/test";
 
-export class AlbumCreationPage extends BasePage<any, any> {
+export class AlbumCreationPage extends BasePage {
     verifyThePageIsLoaded(): Promise<void> {
         throw new Error("Method not implemented.");
     }

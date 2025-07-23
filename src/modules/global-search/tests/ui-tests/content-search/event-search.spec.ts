@@ -1,7 +1,6 @@
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { HomePage } from '@/src/core/pages/homePage';
 import { tagTest } from '@core/utils/testDecorator';
 import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
 import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
@@ -19,12 +18,56 @@ test.describe(
   () => {
     let newSiteId: string;
     let newEventID: string;
-    let homePage: HomePage;
+    let newSiteName: string;
+    let eventName: string;
+    let contentDescription: string;
+    let authorName: string;
 
-    test.beforeEach(async ({ appManagerUserPage }) => {
-      homePage = new HomePage(appManagerUserPage);
-      await homePage.verifyThePageIsLoaded();
+    const testData = EVENT_SEARCH_TEST_DATA;
+
+    test.beforeEach(async ({ appManagerApiClient }) => {
+      // 1. Create a new site
+      const randomNum = Math.floor(Math.random() * 1000000 + 1);
+      newSiteName = `AutomateUI_Test_${randomNum}`;
+      const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
+      const result = await appManagerApiClient.getSiteManagementService().addNewSite({
+        access: 'public',
+        name: newSiteName,
+        category: {
+          categoryId: categoryObj.categoryId,
+          name: categoryObj.name,
+        },
+      });
+      newSiteId = result.siteId;
+
+      // 2. Create event content
+      eventName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Event`;
+      contentDescription = 'AutomateEventDescription';
+      authorName = process.env.TEST_ENV === 'qa' ? 'Workplace AppManager' : 'Application Manager1';
+      const { body, bodyHtml } = buildBodyAndBodyHtml(contentDescription, 'event');
+      const eventResult = await appManagerApiClient.getContentManagementService().addNewEventContent(newSiteId, {
+        title: eventName,
+        contentType: testData.content,
+        body,
+        bodyHtml,
+        publishAt: getTodayDateIsoString(),
+        startsAt: getTodayDateIsoString(),
+        endsAt: getTomorrowDateIsoString(),
+        timezoneIso: 'Asia/Kolkata',
+        location: 'Gurgaon',
+      });
+      newEventID = eventResult.eventId;
+      console.log(`Created event : ${eventName} with ID ${newEventID}`);
+
+      //wait until the search api starts showing the newly created event in results
+      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
+        appManagerApiClient,
+        eventName,
+        eventName,
+        'content'
+      );
     });
+
 
     test.afterEach(async ({ appManagerApiClient }) => {
       if (newSiteId) {
@@ -32,61 +75,21 @@ test.describe(
       }
     });
 
-    const testData = EVENT_SEARCH_TEST_DATA;
+
+
     test(
       `Verify Content Search results for a new ${testData.content}`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerApiClient }) => {
+      async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-12462',
           storyId: 'SEN-12298',
         });
-        // 1. Create a new site
-        const randomNum = Math.floor(Math.random() * 1000000 + 1);
-        const newSiteName = `AutomateUI_Test_${randomNum}`;
-        const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
-        const result = await appManagerApiClient.getSiteManagementService().addNewSite({
-          access: 'public',
-          name: newSiteName,
-          category: {
-            categoryId: categoryObj.categoryId,
-            name: categoryObj.name,
-          },
-        });
-        newSiteId = result.siteId;
-
-
-        // 2. Create event content
-        const eventName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Event`;
-        const contentDescription = 'AutomateEventDescription';
-        const authorName = 'Workplace AppManager';
-        const { body, bodyHtml } = buildBodyAndBodyHtml(contentDescription, 'event');
-        const eventResult = await appManagerApiClient.getContentManagementService().addNewEventContent(newSiteId, {
-          title: eventName,
-          contentType: testData.content,
-          body,
-          bodyHtml,
-          publishAt: getTodayDateIsoString(),
-          startsAt: getTodayDateIsoString(),
-          endsAt: getTomorrowDateIsoString(),
-          timezoneIso: 'Asia/Kolkata',
-          location: 'Gurgaon',
-        });
-        newEventID = eventResult.eventId;
-        console.log(`Created event : ${eventName} with ID ${newEventID}`);
-
-        //wait until the search api starts showing the newly created event in results
-        await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
-          appManagerApiClient,
-          eventName,
-          eventName,
-          'content'
-        );
 
         // 4. UI Search for the event
-        const globalSearchResultPage = await homePage.actions.searchForTerm(eventName, {
+        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(eventName, {
           stepInfo: `Searching with term "${eventName}" and intent is to find the event`,
         });
 
@@ -100,7 +103,7 @@ test.describe(
         await contentResultItem.verifyEventCalendarThumbnailIsDisplayed(getTodayDateIsoString());
         await contentResultItem.verifyDescriptionIsDisplayed(contentDescription);
         await contentResultItem.verifyAuthorIsDisplayed(authorName);
-        await contentResultItem.verifyEventDateIsDisplayed(getTodayDateIsoString(),getTomorrowDateIsoString());
+        await contentResultItem.verifyEventDateIsDisplayed(getTodayDateIsoString(), getTomorrowDateIsoString());
         await contentResultItem.verifyCalendarIconIsDisplayed();
         await contentResultItem.verifyNavigationWithSiteLink(newSiteId, newSiteName);
         await contentResultItem.goBackToPreviousPage();
@@ -116,4 +119,4 @@ test.describe(
       }
     );
   }
-); 
+);

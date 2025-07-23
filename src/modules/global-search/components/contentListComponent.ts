@@ -77,7 +77,7 @@ export class ContentListComponent extends ResultListingComponent {
   async verifyNavigationWithAuthorLink(user: string) {
     await test.step(`Verifying navigation to ${user} profile page`, async () => {
       await this.clickOnElement(this.resultList.first(), { timeout: 20000 });
-      await this.verifier.verifyElementHasText(this.userText, user,{timeout:50000});
+      await this.verifier.verifyElementHasText(this.userText, user,{timeout:50_000});
     });
   }
 

@@ -1,5 +1,5 @@
 import { Browser, test } from '@playwright/test';
-import { ChatAppPage } from '@modules/chat/pages/chatsPage';
+import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 import { ChatTestSetupResult } from '@modules/chat/types';
 import { MultiUserTestHelper } from '@core/helpers/multiUserTestHelper';
 
