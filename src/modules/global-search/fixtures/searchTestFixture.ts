@@ -3,18 +3,28 @@ import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { LoginHelper } from '../../../core/helpers/loginHelper';
+import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
+import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
 export const searchTestFixtures = test.extend<{
+  appManagerHomePage: NewUxHomePage | OldUxHomePage;
   appManagerUserPage: Page;
   appManagerApiClient: AppManagerApiClient;
 }>({
-  appManagerUserPage: [
+  appManagerHomePage: [
     async ({ page }, use, workerInfo) => {
-      const appManagerUserPage = await LoginHelper.loginWithPassword(page, {
+      const appManagerHomePage = await LoginHelper.loginWithPassword(page, {
         email: getEnvConfig().appManagerEmail,
         password: getEnvConfig().appManagerPassword,
       });
-      await use(appManagerUserPage.page as Page);
+      await appManagerHomePage.verifyThePageIsLoaded()
+      await use(appManagerHomePage);
+    },
+    { scope: 'test' },
+  ],
+  appManagerUserPage: [
+    async ({ appManagerHomePage }, use, workerInfo) => {
+      await use(appManagerHomePage.page as Page);
     },
     { scope: 'test' },
   ],

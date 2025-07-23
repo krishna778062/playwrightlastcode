@@ -1,16 +1,82 @@
-import { Locator, test } from '@playwright/test';
-import { TIMEOUTS } from '@core/constants/timeouts';
-import { ChatAppPage } from '@chat/pages/chatsPage';
-import { MessageReplyThreadComponent } from '@chat/components/messageReplyThreadComponent';
+import { Locator, Page, expect, test } from '@playwright/test';
+import { ChatPageBase } from '@/src/modules/chat/pages/chatPage/chatPageBase';
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
+import { MessageReplyThreadComponent } from '@/src/modules/chat/components/messageReplyThreadComponent';
+import { IncomingAudioVideoCallComponent } from '@/src/modules/chat/components/incomingAudioVideoCallComponent';
+import { AudioVideoCallPage } from '@/src/modules/chat/pages/audioVideoCallPage/audioVideoCallPage';
 
-/**
- * This class contians all the common actions that can be performed on the chat page.
- * Note: You can also access deeper components directly from the chatPage object.
- * But this class is a wrapper around the chatPage object and provides a more user-friendly interface.
- */
-export class ChatActionHelper {
-  constructor(private readonly chatPage: ChatAppPage) {
-    this.chatPage = chatPage;
+export interface IChatActions {
+  sendMessage: (message: string, options?: { stepInfo?: string }) => Promise<void>;
+  deleteMessage: (message: string, options?: { stepInfo?: string }) => Promise<void>;
+  getDataMessageId: (message: string, options?: { stepInfo?: string }) => Promise<string>;
+  getMessageItemFromChat: (message: string, options?: { stepInfo?: string }) => Promise<Locator>;
+  replyToMessage: (
+    messageToReplyTo: string,
+    replyMessage: string,
+    options?: { stepInfo?: string }
+  ) => Promise<MessageReplyThreadComponent>;
+  sendAttachment: (attachmentPath: string, options?: { stepInfo?: string; isItValidFile?: boolean }) => Promise<void>;
+  addAttachment: (attachmentPath: string, options?: { stepInfo?: string; isItValidFile?: boolean }) => Promise<void>;
+  getLastMessageWithAttachment: (
+    attachmentType: 'image' | 'file' | 'video',
+    options?: { stepInfo?: string; timeout?: number }
+  ) => Promise<Locator>;
+  openDirectMessageWithUser: (userName: string, options?: { stepInfo?: string }) => Promise<void>;
+  openUserDirectMessageItemInInbox: (
+    userName: string,
+    options?: { stepInfo?: string; timeout?: number }
+  ) => Promise<void>;
+  openGroupChat: (groupName: string, options?: { stepInfo?: string }) => Promise<void>;
+  openUserDirectMessageItemInInboxForUser: (
+    userName: string,
+    options?: { stepInfo?: string; timeout?: number }
+  ) => Promise<void>;
+  recordAndAddVideoToTheChat: (
+    duration: number,
+    options?: { keepAudioOn?: boolean; keepVideoOn?: boolean; addMessageWithVideo?: string; stepInfo?: string }
+  ) => Promise<void>;
+  recordAndAddAudioToTheChat: (
+    duration: number,
+    options?: { keepAudioOn?: boolean; keepVideoOn?: boolean; addMessageWithAudio?: string; stepInfo?: string }
+  ) => Promise<void>;
+  initiateAudioVideoCall: (callType: 'audio' | 'video', options?: { stepInfo?: string }) => Promise<AudioVideoCallPage>;
+  acceptIncomingCallInGroupChat: (
+    groupName: string,
+    callType: 'audio' | 'video',
+    options?: { stepInfo?: string }
+  ) => Promise<AudioVideoCallPage>;
+  sendMessageWithGroupMention: (groupName: string, message: string, options?: { stepInfo?: string }) => Promise<void>;
+  sendMessageWithPeopleMention: (userName: string, message: string, options?: { stepInfo?: string }) => Promise<void>;
+  openMentionsSection: (options?: { stepInfo?: string }) => Promise<void>;
+  clickOnMessageInMentionsSection: (
+    groupName: string,
+    message: string,
+    options?: { stepInfo?: string }
+  ) => Promise<void>;
+}
+
+export interface IChatAssertions {
+  verifyUserIsAbleToAddAndDeleteAttachmentInEditor: (attachmentPath: string, options?: { stepInfo?: string }) => Promise<void>;
+  verifyMessageIsVisible: (message: string, options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
+  verifyUnsupportedFileHandling: (options?: { stepInfo?: string }) => Promise<void>;
+  verifyIncomingCallIsReceivedFromCallerInGroupChat: (groupName: string, callType: 'audio' | 'video', options?: { stepInfo?: string }) => Promise<IncomingAudioVideoCallComponent>;
+  verifyTheMessageAppearsDeleted: (messageID: string, options?: { stepInfo?: string }) => Promise<void>;
+  verifyMessageIsPresentInMentionsSection: (groupName: string, message: string, senderName: string, options?: { stepInfo?: string }) => Promise<void>;
+}
+
+
+export class ChatAppPage extends ChatPageBase implements IChatActions,IChatAssertions {
+  
+  get actions(): IChatActions {
+    return this as IChatActions;
+  }
+  get assertions(): IChatAssertions {
+    return this as IChatAssertions;
+  }
+
+
+  constructor(page: Page) {
+    super(page);
   }
 
   /**
@@ -20,7 +86,7 @@ export class ChatActionHelper {
    */
   public async sendMessage(message: string, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Sending message: "${message}"`, async () => {
-      await this.chatPage.getConversationWindowComponent().sendMessage(message, {
+      await this.getConversationWindowComponent().sendMessage(message, {
         stepInfo: options?.stepInfo ?? `Sending message ${message} in focused chat`,
       });
     });
@@ -38,7 +104,7 @@ export class ChatActionHelper {
     options?: { stepInfo?: string }
   ): Promise<MessageReplyThreadComponent> {
     return await test.step(options?.stepInfo || `Replying to message: "${messageToReplyTo}"`, async () => {
-      return await this.chatPage.getConversationWindowComponent().replyToMessage(messageToReplyTo, replyMessage, {
+      return await this.getConversationWindowComponent().replyToMessage(messageToReplyTo, replyMessage, {
         stepInfo: options?.stepInfo,
       });
     });
@@ -55,7 +121,7 @@ export class ChatActionHelper {
   ): Promise<void> {
     await test.step(options?.stepInfo || `Sending attachment: "${attachmentPath}"`, async () => {
       const isItValidFile = options?.isItValidFile ?? true;
-      const chatEditorComponent = this.chatPage.getConversationWindowComponent().getChatEditorComponent();
+      const chatEditorComponent = this.getConversationWindowComponent().getChatEditorComponent();
       await chatEditorComponent.addMediaAttachment(attachmentPath, {
         stepInfo: 'Adding media attachment to the chat',
         attachementRequestTimeout: 40_000,
@@ -81,7 +147,7 @@ export class ChatActionHelper {
   ): Promise<void> {
     await test.step(options?.stepInfo || `Adding attachment: "${attachmentPath}"`, async () => {
       const isItValidFile = options?.isItValidFile ?? true;
-      const chatEditorComponent = this.chatPage.getConversationWindowComponent().getChatEditorComponent();
+      const chatEditorComponent = this.getConversationWindowComponent().getChatEditorComponent();
       await chatEditorComponent.addMediaAttachment(attachmentPath, {
         stepInfo: 'Adding media attachment to the chat',
         attachementRequestTimeout: 40_000,
@@ -101,11 +167,12 @@ export class ChatActionHelper {
     options?: { stepInfo?: string; timeout?: number }
   ): Promise<Locator> {
     return await test.step(options?.stepInfo || `Verifying message with attachment is visible`, async () => {
-      const messageWithAttachment = await this.chatPage
-        .getConversationWindowComponent()
-        .getLastMessageWithAttachment(attachmentType, {
+      const messageWithAttachment = await this.getConversationWindowComponent().getLastMessageWithAttachment(
+        attachmentType,
+        {
           timeout: options?.timeout,
-        });
+        }
+      );
       return messageWithAttachment;
     });
   }
@@ -117,7 +184,7 @@ export class ChatActionHelper {
    */
   public async openDirectMessageWithUser(userName: string, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Opening direct message with user: ${userName}`, async () => {
-      const inboxSideBar = this.chatPage.getInboxSideBarComponent();
+      const inboxSideBar = this.getInboxSideBarComponent();
       await inboxSideBar.clickCreateNewMessageButton();
       await inboxSideBar.verifyCreateNewMessageFormIsVisible();
       await inboxSideBar.searchAndSelectUser(userName);
@@ -135,7 +202,7 @@ export class ChatActionHelper {
     options?: { stepInfo?: string; timeout?: number }
   ): Promise<void> {
     await test.step(options?.stepInfo || `Opening direct message for ${userName} from inbox`, async () => {
-      await this.chatPage.actions.openUserDirectMessageItemInInboxForUser(userName, { timeout: options?.timeout });
+      await this.actions.openUserDirectMessageItemInInboxForUser(userName, { timeout: options?.timeout });
     });
   }
 
@@ -150,7 +217,7 @@ export class ChatActionHelper {
       stepInfo?: string;
     }
   ) {
-    return await this.chatPage.getInboxSideBarComponent().getGroupChatsSection().openGroupChat(groupName, {
+    return await this.getInboxSideBarComponent().getGroupChatsSection().openGroupChat(groupName, {
       stepInfo: options?.stepInfo,
     });
   }
@@ -167,8 +234,7 @@ export class ChatActionHelper {
       timeout?: number;
     }
   ) {
-    const directMessageItem = await this.chatPage
-      .getInboxSideBarComponent()
+    const directMessageItem = await this.getInboxSideBarComponent()
       .getDirectMessageSectionInInbox()
       .getDirectMessageItemForUser(userName, {
         stepInfo:
@@ -194,7 +260,7 @@ export class ChatActionHelper {
       stepInfo?: string;
     }
   ) {
-    const chatEditorComponent = this.chatPage.getConversationWindowComponent().getChatEditorComponent();
+    const chatEditorComponent = this.getConversationWindowComponent().getChatEditorComponent();
     const recordVideoPromptComponent = await chatEditorComponent.clickOnRecordVideoOption({
       stepInfo: options?.stepInfo ?? `User clicking on record video option`,
     });
@@ -228,7 +294,7 @@ export class ChatActionHelper {
     }
   ) {
     // User 1 records and adds audio
-    const chatEditorComponent = this.chatPage.getConversationWindowComponent().getChatEditorComponent();
+    const chatEditorComponent = this.getConversationWindowComponent().getChatEditorComponent();
     const recordAudioPromptComponent = await chatEditorComponent.clickOnRecordAudioOption({
       stepInfo: `User clicking on record audio option`,
     });
@@ -253,7 +319,7 @@ export class ChatActionHelper {
    * @param options - Optional parameters
    */
   async initiateAudioVideoCall(callType: 'audio' | 'video', options?: { stepInfo?: string }) {
-    const user1AudioVideoCallPage = await this.chatPage.getConversationWindowComponent().startCall(callType, {
+    const user1AudioVideoCallPage = await this.getConversationWindowComponent().startCall(callType, {
       stepInfo: options?.stepInfo ?? `User initiating ${callType} call`,
     });
     await user1AudioVideoCallPage.verifyThePageIsLoaded({
@@ -269,7 +335,7 @@ export class ChatActionHelper {
    * @param options - Optional parameters for the step
    */
   async acceptIncomingCallInGroupChat(groupName: string, callType: 'audio' | 'video', options?: { stepInfo?: string }) {
-    const incomingCallComponent = await this.chatPage.assertions.verifyIncomingCallIsReceivedFromCallerInGroupChat(
+    const incomingCallComponent = await this.assertions.verifyIncomingCallIsReceivedFromCallerInGroupChat(
       groupName,
       callType,
       {
@@ -293,12 +359,12 @@ export class ChatActionHelper {
     await test.step(
       options?.stepInfo ?? `Sending message ${message} and mention group mention: ${groupName}`,
       async () => {
-        const chatEditor = this.chatPage.getConversationWindowComponent().getChatEditorComponent();
+        const chatEditor = this.getConversationWindowComponent().getChatEditorComponent();
         await chatEditor.inputTextBox.click();
         await chatEditor.inputTextBox.pressSequentially(`@${groupName.slice(0, groupName.length - 1)}`, {
           delay: 300,
         });
-        const mentionListComponent = this.chatPage.getConversationWindowComponent().getMentionListComponent();
+        const mentionListComponent = this.getConversationWindowComponent().getMentionListComponent();
         await mentionListComponent.verifyMentionListIsVisible({ timeout: 20_000 });
         await mentionListComponent.selectMentionItem(groupName);
         await mentionListComponent.verifyMentionListIsNotVisible();
@@ -320,20 +386,18 @@ export class ChatActionHelper {
     await test.step(
       options?.stepInfo ?? `Sending message ${message} and mention userName mention: ${userName}`,
       async () => {
-        await this.chatPage
-          .getConversationWindowComponent()
+        await this.getConversationWindowComponent()
           .getChatEditorComponent()
           .inputTextBox.pressSequentially(`@${userName}`, {
             delay: 200,
           });
-        await this.chatPage
-          .getConversationWindowComponent()
+        await this.getConversationWindowComponent()
           .getMentionListComponent()
           .verifyMentionListIsVisible({ timeout: 20_000 });
-        await this.chatPage.getConversationWindowComponent().getMentionListComponent().selectMentionItem(userName);
-        await this.chatPage.getConversationWindowComponent().getMentionListComponent().verifyMentionListIsNotVisible();
-        await this.chatPage.getConversationWindowComponent().getChatEditorComponent().appendMessage(message);
-        await this.chatPage.getConversationWindowComponent().getChatEditorComponent().clickOnSendMessageButton();
+        await this.getConversationWindowComponent().getMentionListComponent().selectMentionItem(userName);
+        await this.getConversationWindowComponent().getMentionListComponent().verifyMentionListIsNotVisible();
+        await this.getConversationWindowComponent().getChatEditorComponent().appendMessage(message);
+        await this.getConversationWindowComponent().getChatEditorComponent().clickOnSendMessageButton();
       }
     );
   }
@@ -344,7 +408,7 @@ export class ChatActionHelper {
    */
   async openMentionsSection(options?: { stepInfo?: string }) {
     await test.step(options?.stepInfo ?? `Opening mentions section`, async () => {
-      await this.chatPage.page.getByTestId('chat.mentions-section').click();
+      await this.page.getByTestId('chat.mentions-section').click();
     });
   }
 
@@ -358,7 +422,7 @@ export class ChatActionHelper {
     await test.step(
       options?.stepInfo ?? `Clicking on message ${message} in mentions section for group ${groupName}`,
       async () => {
-        const messageItemList = await this.chatPage.page.getByTestId('message-item').all();
+        const messageItemList = await this.page.getByTestId('message-item').all();
         for (const messageItem of messageItemList) {
           const messageBody = await messageItem.locator('section').locator('p').textContent();
           const groupName = await messageItem.locator('h4').textContent();
@@ -379,7 +443,7 @@ export class ChatActionHelper {
    * @returns The message item for the given message
    */
   async getMessageItemFromChat(message: string, options?: { stepInfo?: string }): Promise<Locator> {
-    return await this.chatPage.getConversationWindowComponent().getMessageItemFromChat(message, {
+    return await this.getConversationWindowComponent().getMessageItemFromChat(message, {
       stepInfo: options?.stepInfo,
     });
   }
@@ -391,9 +455,8 @@ export class ChatActionHelper {
    */
   async deleteMessage(message: string, options?: { stepInfo?: string }) {
     await test.step(options?.stepInfo ?? `Deleting message ${message}`, async () => {
-      const messageItem = await this.chatPage
-        .getConversationWindowComponent()
-        .getFocusedMessageCardFromListOfChatMessages(message);
+      const messageItem =
+        await this.getConversationWindowComponent().getFocusedMessageCardFromListOfChatMessages(message);
       await messageItem.deleteMessage();
     });
   }
@@ -404,11 +467,159 @@ export class ChatActionHelper {
    * @param options - Optional parameters for the step
    * @returns The data message id for the given message
    */
-  async getDataMessageId(message: string, options?: { stepInfo?: string }) {
+  async getDataMessageId(message: string, options?: { stepInfo?: string }): Promise<string> {
     return await test.step(options?.stepInfo ?? `Getting data message id for message ${message}`, async () => {
-      return await this.chatPage
-        .getConversationWindowComponent()
-        .getFocusedMessageCardIdFromListOfChatMessages(message);
+      const messageId = await this.getConversationWindowComponent().getFocusedMessageCardIdFromListOfChatMessages(message);
+      if (!messageId) {
+        throw new Error(`Message ${message} not found in chat`);
+      }
+      return messageId;
     });
+  }
+
+  //assertions
+  /**
+   * Verifies that the user is able to add and delete an attachment in the chat editor.
+   * @param attachmentPath - The path to the attachment to add and delete.
+   * @param options - Optional parameters for the step.
+   */
+  public async verifyUserIsAbleToAddAndDeleteAttachmentInEditor(
+    attachmentPath: string,
+    options?: { stepInfo?: string }
+  ): Promise<void> {
+    await test.step(
+      options?.stepInfo || `Verifying user 1 is able to add and delete attachment in editor`,
+      async () => {
+        const chatEditorComponent = this.getConversationWindowComponent().getChatEditorComponent();
+        await chatEditorComponent.addMediaAttachment(attachmentPath, {
+          stepInfo: 'Adding media attachment to the chat',
+          attachementRequestTimeout: 40_000,
+          waitForAttachementRequestToComplete: true,
+        });
+        await this.sleep(2000);
+        //VERIFY delete attachment button is visible and clickin on it will remove the attachement from the message
+        await chatEditorComponent.verifyAttachementHasAddedToChatEditor({
+          stepInfo: 'Verifying attachment is visible in editor',
+        });
+
+        //now user will delete the attachment
+        await chatEditorComponent.deleteAttachementFromChatEditor(0, {
+          stepInfo: 'Deleting the attachment',
+        });
+
+        //verify the attachment is not visible
+        await chatEditorComponent.verifyTheAttachmentIsNotVisible({
+          stepInfo: 'Verifying the attachment is not visible',
+        });
+      }
+    );
+  }
+
+  /**
+   * Verifies that a specific message is visible in the chat window.
+   * @param chatPage - The chat page object for the user.
+   * @param message - The message text to verify.
+   * @param options - Optional parameters for timeout and step info.
+   */
+  public async verifyMessageIsVisible(
+    message: string,
+    options?: { stepInfo?: string; timeout?: number }
+  ): Promise<void> {
+    await test.step(options?.stepInfo || `Verifying message "${message}" is visible`, async () => {
+      return await this.getConversationWindowComponent().verifyMessageIsPresentInListOfChatMessages(message, {
+        stepInfo: options?.stepInfo,
+        timeout: options?.timeout,
+      });
+    });
+  }
+
+  public async verifyUnsupportedFileHandling(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || `Verifying unsupported file handling`, async () => {
+      await this.getUnsupportedFileMessageDialogBoxComponent().verifyTheUnsupportedFileMessageIsVisible({
+        stepInfo: `User 1 Verifying the unsupported file message is visible`,
+      });
+      //verify user is able to click on ok button to close the unsupported file message
+      await this
+        .getUnsupportedFileMessageDialogBoxComponent()
+        .clickOnOkButtonToCloseTheUnsupportedFileMessageDialogBox({
+          stepInfo: `User 1 Clicking on ok button to close the unsupported file message`,
+        });
+      //verify the unsupported file message is not visible
+      await this.getUnsupportedFileMessageDialogBoxComponent().verifyTheUnsupportedFileMessageIsNotVisible({
+        stepInfo: `User 1 Verifying the unsupported file message is not visible`,
+      });
+      //verify the attachment is not visible
+      await this.getConversationWindowComponent().getChatEditorComponent().verifyTheAttachmentIsNotVisible({
+        stepInfo: `User 1 Verifying the attachment is not visible on the message editor now`,
+        timeout: 10_000,
+      });
+    });
+  }
+
+  /**
+   * Accepts an incoming call in a group chat
+   * @param groupName - The name of the group chat
+   * @param callType - The type of call to accept
+   * @param options - Optional parameters
+   */
+  async verifyIncomingCallIsReceivedFromCallerInGroupChat(
+    groupName: string,
+    callType: 'audio' | 'video',
+    options?: { stepInfo?: string }
+  ) {
+    return await test.step(
+      options?.stepInfo ??
+        `Verifying current user sees notification/popup for incoming ${callType} call from group name ${groupName}`,
+      async () => {
+        return await this
+          .getConversationWindowComponent()
+          .getIncomingAudioVideoCallComponent()
+          .verifyIncomingCallIsReceivedFromCaller(groupName, callType, {
+            isGroupChat: true,
+            stepInfo: `Verifying current user sees notification/popup for incoming ${callType} call from group name ${groupName}`,
+          });
+      }
+    );
+  }
+
+  async verifyTheMessageAppearsDeleted(messageID: string, options?: { stepInfo?: string }) {
+    await test.step(options?.stepInfo ?? `Verifying the message appears deleted`, async () => {
+      const messageItem = this.page.locator(`article[data-message-id='${messageID}']`);
+      await expect(messageItem, `expecting message item to be deleted`).toBeVisible();
+    });
+  }
+
+  async verifyMessageIsPresentInMentionsSection(
+    groupName: string,
+    message: string,
+    senderName: string,
+    options?: { stepInfo?: string }
+  ) {
+    await test.step(
+      options?.stepInfo ?? `Verifying message ${message} is present in mentions section for group ${groupName}`,
+      async () => {
+        await expect(async () => {
+          let isMessageFound = false;
+          const messageItem = await this.page.getByTestId('message-item').all();
+          for (const eachMessageItem of messageItem) {
+            const messageBody = await eachMessageItem.locator('section').locator('p').textContent();
+            const groupName = await eachMessageItem.locator('h4').textContent();
+            console.log(`messageBody: ${messageBody}, groupName: ${groupName}`);
+            console.log(`expected message: ${message}`);
+            console.log(`expected groupName: ${groupName}`);
+            if (messageBody?.includes(message) && groupName?.includes(groupName)) {
+              isMessageFound = true;
+              break;
+            }
+          }
+          expect(
+            isMessageFound,
+            `Expecting message ${message} is present in mentions section for group ${groupName}`
+          ).toBe(true);
+        }, `Polling - Expect loop`).toPass({
+          timeout: 8_000,
+        });
+      }
+    );
   }
 }

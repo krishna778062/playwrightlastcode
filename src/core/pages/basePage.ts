@@ -2,7 +2,7 @@ import { Page, test } from '@playwright/test';
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
 
-export abstract class BasePage<TActions = undefined, TAssertions = undefined> extends BaseActionUtil {
+export abstract class BasePage extends BaseActionUtil {
   readonly verifier: BaseVerificationUtil;
   readonly pageUrl: string;
   constructor(page: Page, pageUrl?: string) {
@@ -10,18 +10,6 @@ export abstract class BasePage<TActions = undefined, TAssertions = undefined> ex
     this.verifier = new BaseVerificationUtil(page);
     this.pageUrl = pageUrl || '';
   }
-
-  /**
-   * Right now, we want to keep the implemention of actions and assertions optional
-   * This is because, if the page does not have many actions and assertions,
-   * it might become an overhead to implement them.
-   *
-   * Ideally we should follow this once we feel the the page class
-   * has started to bloat/become complex.
-   */
-  abstract get actions(): TActions | undefined;
-
-  abstract get assertions(): TAssertions | undefined;
 
   /**
    * @description

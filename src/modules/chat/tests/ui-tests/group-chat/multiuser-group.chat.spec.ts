@@ -5,7 +5,7 @@ import { CHAT_TEST_DATA } from '@chat/test-data/chat.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { ChatTestUser } from '@chat/types/chat-test.type';
-import { ChatAppPage } from '@chat/pages/chatsPage';
+import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 
 test.describe('Group Chat with multiple users', { tag: ['@group-chat'] }, () => {
   let user1: ChatTestUser;

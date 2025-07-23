@@ -3,26 +3,39 @@ import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { LoginHelper } from '@core/helpers/loginHelper';
+import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
+import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
 export const contentTestFixture = test.extend<{
-  adminPage: Page;
+  appManagerHomePage:NewUxHomePage|OldUxHomePage;
+  appManagerPage:Page;
   appManagerApiClient: AppManagerApiClient;
 }>({
-  adminPage: [
+  appManagerHomePage: [
     async ({ page }, use) => {
       const adminHomePage = await LoginHelper.loginWithPassword(page, {
         email: getEnvConfig().appManagerEmail,
         password: getEnvConfig().appManagerPassword,
       });
-      await use(adminHomePage.page as Page);
+      await adminHomePage.verifyThePageIsLoaded();
+      await use(adminHomePage);
     },
     { scope: 'test' },
   ],
+
+  appManagerPage: [
+    async ({ appManagerHomePage }, use) => {
+      await use(appManagerHomePage.page as Page);
+    },
+    { scope: 'test' },
+  ],
+
+
   appManagerApiClient: [
-    async ({ adminPage }, use) => {
+    async ({ appManagerPage }, use) => {
       const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
         type: 'cookies',
-        page: adminPage,
+        page: appManagerPage,
         baseUrl: getEnvConfig().apiBaseUrl,
       });
       await use(appManagerApiClient);

@@ -1,7 +1,7 @@
 import { groupChatTestFixture as test } from '@chat/fixtures/groupChatFixture';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestSuite } from '@core/constants/testSuite';
-import { ChatAppPage } from '@chat/pages/chatsPage';
+import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 import { ChatTestUser } from '@chat/types/chat-test.type';
 import { expect } from '@playwright/test';
 import { MessageCardComponent } from '@/src/modules/chat/components/messageCardComponent';
