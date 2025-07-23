@@ -12,25 +12,27 @@ import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/global
 import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
+import { FeedPage } from '@/src/modules/content/pages/feedPage';
 
 export interface ICommonHomePageActions {
   searchForTerm: (searchTerm: string, options?: { stepInfo?: string }) => Promise<GlobalSearchResultPage>;
+  clickOnGlobalFeed: (options?: { stepInfo?: string }) => Promise<void>;
 }
 
-export interface IOldUxHomePageActions extends ICommonHomePageActions{
-    clickOnCreateContentButtonOnTopNavBar: (options?: { stepInfo?: string }) => Promise<AddContentModalComponent>;
-    openCreateContentPageForContentType: (
-      contentType: ContentType,
-      options?: { stepInfo?: string }
-    ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
+export interface IOldUxHomePageActions extends ICommonHomePageActions {
+  clickOnCreateContentButtonOnTopNavBar: (options?: { stepInfo?: string }) => Promise<AddContentModalComponent>;
+  openCreateContentPageForContentType: (
+    contentType: ContentType,
+    options?: { stepInfo?: string }
+  ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
 }
 
-export interface INewUxHomePageActions extends ICommonHomePageActions{
-    clickOnCreateButtonOnSideNavBar: (options?: { stepInfo?: string }) => Promise<CreateComponent>;
-    openCreateContentPageForContentType: (
-      contentType: ContentType,
-      options?: { stepInfo?: string }
-    ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
+export interface INewUxHomePageActions extends ICommonHomePageActions {
+  clickOnCreateButtonOnSideNavBar: (options?: { stepInfo?: string }) => Promise<CreateComponent>;
+  openCreateContentPageForContentType: (
+    contentType: ContentType,
+    options?: { stepInfo?: string }
+  ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
 }
 
 export abstract class BaseHomePage extends BasePage implements ICommonHomePageActions {
@@ -80,6 +82,17 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
       await this.topNavBarComponent.typeInSearchBarInput(searchTerm);
       await this.topNavBarComponent.clickSearchButton();
       return new GlobalSearchResultPage(this.page);
+    });
+  }
+
+  /**
+   * Clicks on the global feed link in the navigation
+   * @param options - The options to pass to the method
+   * @param options.stepInfo - The step info to pass to the test.step method
+   */
+  async clickOnGlobalFeed(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Clicking on global feed', async () => {
+      await this.sideNavBarComponent.clickOnGlobalFeed();
     });
   }
 }

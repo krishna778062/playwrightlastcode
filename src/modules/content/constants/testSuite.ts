@@ -1,5 +1,6 @@
 export enum ContentTestSuite {
   PAGE_CREATION = '@page-creation',
   COVER_IMAGE = '@cover-image',
-  FEED = '@feed'
+  FEED = '@feed',
+  ATTACHMENTS = '@attachments'
 } 
