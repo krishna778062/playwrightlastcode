@@ -102,7 +102,7 @@ test.describe(
         await contentResultItem.verifyNameIsDisplayed(pageName);
         await contentResultItem.verifyLabelIsDisplayed(testData.label);
         await contentResultItem.verifyThumbnailIsDisplayed();
-        // await contentResultItem.verifyDescriptionIsDisplayed(contentDescription);
+        await contentResultItem.verifyDescriptionIsDisplayed(contentDescription);
         await contentResultItem.verifyAuthorIsDisplayed(authorName);
         await contentResultItem.verifyDateIsDisplayed();
         await contentResultItem.verifyPageIconIsDisplayed();

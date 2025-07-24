@@ -98,7 +98,7 @@ test.describe(
         await contentResultItem.verifyNameIsDisplayed(eventName);
         await contentResultItem.verifyLabelIsDisplayed(testData.label);
         await contentResultItem.verifyEventCalendarThumbnailIsDisplayed(getTodayDateIsoString());
-        // await contentResultItem.verifyDescriptionIsDisplayed(contentDescription);
+        await contentResultItem.verifyDescriptionIsDisplayed(contentDescription);
         await contentResultItem.verifyAuthorIsDisplayed(authorName);
         await contentResultItem.verifyEventDateIsDisplayed(getTodayDateIsoString(),getTomorrowDateIsoString());
         await contentResultItem.verifyCalendarIconIsDisplayed();

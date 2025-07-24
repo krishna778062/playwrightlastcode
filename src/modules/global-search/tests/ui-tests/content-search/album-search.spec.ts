@@ -15,7 +15,7 @@ import { getTodayDateIsoString } from '@/src/core/utils/dateUtil';
 test.describe(
   'Global Search- Album Search functionality',
   {
-    tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.CONTENT_SEARCH],
+    tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.CONTENT_SEARCH,"@test"],
   },
   () => {
     let newSiteId: string;
