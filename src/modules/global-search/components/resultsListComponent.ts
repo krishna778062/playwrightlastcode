@@ -72,7 +72,7 @@ export class ResultListingComponent extends BaseComponent {
    */
   async clickOnThumbnailLink() {
     await test.step(`Clicking on the thumbnail link`, async () => {
-      await this.clickOnElement(this.thumbnailLink, { timeout: 80_000 });
+      await this.clickOnElement(this.thumbnailLink, { timeout: 50_000 });
     });
   }
 

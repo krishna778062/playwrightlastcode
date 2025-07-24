@@ -64,7 +64,7 @@ export class ContentListComponent extends ResultListingComponent {
     await test.step(`Verifying navigation to site link "${siteId}"`, async () => {
       await this.clickOnSiteLink(siteName);
       await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(siteId), {
-        timeout: 80000,
+        timeout: 50000,
         stepInfo: `Verifying navigation to site link to "${siteId}"`,
       });
     });
@@ -163,7 +163,7 @@ async verifyCalendarIconIsDisplayed() {
     await test.step(`Verifying navigation to calendar link with ID "${iD}"`, async () => {
       await this.clickOnElement(this.dayText, { timeout: 50_000 });
       await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(iD), {
-        timeout: 80_000,
+        timeout: 50_000,
         stepInfo: `Verifying navigation to calendar link with ID "${iD}"`,
       });
     });
