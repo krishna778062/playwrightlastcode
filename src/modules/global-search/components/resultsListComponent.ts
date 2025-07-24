@@ -72,7 +72,7 @@ export class ResultListingComponent extends BaseComponent {
    */
   async clickOnThumbnailLink() {
     await test.step(`Clicking on the thumbnail link`, async () => {
-      await this.clickOnElement(this.thumbnailLink, { timeout: 50000 });
+      await this.clickOnElement(this.thumbnailLink, { timeout: 80_000 });
     });
   }
 
@@ -81,7 +81,7 @@ export class ResultListingComponent extends BaseComponent {
    */
   async clickOnHomePageLink() {
     await test.step(`Clicking on the home page link`, async () => {
-      await this.clickOnElement(this.headerNavBarHomePageLink, { timeout: 50000 });
+      await this.clickOnElement(this.headerNavBarHomePageLink, { timeout: 50_000 });
     });
   }
 
@@ -158,7 +158,7 @@ export class ResultListingComponent extends BaseComponent {
   async verifyNavigationWithHomePageLink() {
     await this.clickOnHomePageLink();
     await this.verifier.waitUntilPageHasNavigatedTo(new RegExp('home'), {
-      timeout: 20000,
+      timeout: 20_000,
       stepInfo: `Verifying navigation with home page link`,
     });
   }

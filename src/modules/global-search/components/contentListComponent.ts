@@ -161,9 +161,9 @@ async verifyCalendarIconIsDisplayed() {
    */
   async verifyNavigationWithCalendarLink(iD: string) {
     await test.step(`Verifying navigation to calendar link with ID "${iD}"`, async () => {
-      await this.clickOnElement(this.dayText, { timeout: 50000 });
+      await this.clickOnElement(this.dayText, { timeout: 50_000 });
       await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(iD), {
-        timeout: 80000,
+        timeout: 80_000,
         stepInfo: `Verifying navigation to calendar link with ID "${iD}"`,
       });
     });
