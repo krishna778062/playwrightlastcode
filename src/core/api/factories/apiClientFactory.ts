@@ -14,12 +14,7 @@ export class ApiClientFactory {
     }
   ): Promise<T> {
     const context = await this.createContext(options);
-    return new clientConstructor(
-      context,
-      options.baseUrl,
-      options.credentials?.username,
-      options.credentials?.password
-    );
+    return new clientConstructor(context, options.baseUrl);
   }
 
   private static async createContext(options: {

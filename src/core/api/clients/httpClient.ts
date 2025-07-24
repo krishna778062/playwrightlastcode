@@ -10,42 +10,16 @@ import {
   DeleteRequestOptions,
   PatchRequestOptions,
 } from '@core/types';
-import { BaseApiClient } from './baseApiClient';
 
 export class HttpClient {
-  context: APIRequestContext;
+  readonly context: APIRequestContext;
   readonly baseUrl: string;
-  username?: string;
-  password?: string;
 
   constructor(context: APIRequestContext, baseUrl?: string) {
     this.context = context;
     this.baseUrl = baseUrl || process.env.API_BASE_URL || '';
     if (!this.baseUrl) {
       throw new Error('BaseUrl must be provided either through constructor or API_BASE_URL environment variable');
-    }
-  }
-
-  private async reauthenticate(): Promise<void> {
-    if (!this.username || !this.password) {
-      throw new Error('Cannot reauthenticate without username and password');
-    }
-    this.context = await BaseApiClient.loginViaApi({ username: this.username, password: this.password }, this.baseUrl);
-  }
-
-  private async sendRequest(
-    request: (options: any) => Promise<APIResponse>,
-    options?: RequestOptionsBase
-  ): Promise<APIResponse> {
-    try {
-      const response = await request(options);
-      if ([401, 403].includes(response.status())) {
-        await this.reauthenticate();
-        return await request(options);
-      }
-      return response;
-    } catch (error) {
-      throw error;
     }
   }
 
@@ -58,32 +32,27 @@ export class HttpClient {
 
   async get(endpoint: string, options?: GetRequestOptions): Promise<APIResponse> {
     const { useInternalBackendUrl, ...requestOptions } = options || {};
-    const url = this.getUrl(endpoint, { useInternalBackendUrl });
-    return this.sendRequest(() => this.context.get(url, requestOptions), options);
+    return this.context.get(this.getUrl(endpoint, { useInternalBackendUrl }), requestOptions);
   }
 
   async post(endpoint: string, options?: PostRequestOptions): Promise<APIResponse> {
     const { useInternalBackendUrl, ...requestOptions } = options || {};
-    const url = this.getUrl(endpoint, { useInternalBackendUrl });
-    return this.sendRequest(() => this.context.post(url, requestOptions), options);
+    return this.context.post(this.getUrl(endpoint, { useInternalBackendUrl }), requestOptions);
   }
 
   async put(endpoint: string, options?: PutRequestOptions): Promise<APIResponse> {
     const { useInternalBackendUrl, ...requestOptions } = options || {};
-    const url = this.getUrl(endpoint, { useInternalBackendUrl });
-    return this.sendRequest(() => this.context.put(url, requestOptions), options);
+    return this.context.put(this.getUrl(endpoint, { useInternalBackendUrl }), requestOptions);
   }
 
   async delete(endpoint: string, options?: DeleteRequestOptions): Promise<APIResponse> {
     const { useInternalBackendUrl, ...requestOptions } = options || {};
-    const url = this.getUrl(endpoint, { useInternalBackendUrl });
-    return this.sendRequest(() => this.context.delete(url, requestOptions), options);
+    return this.context.delete(this.getUrl(endpoint, { useInternalBackendUrl }), requestOptions);
   }
 
   async patch(endpoint: string, options?: PatchRequestOptions): Promise<APIResponse> {
     const { useInternalBackendUrl, ...requestOptions } = options || {};
-    const url = this.getUrl(endpoint, { useInternalBackendUrl });
-    return this.sendRequest(() => this.context.patch(url, requestOptions), options);
+    return this.context.patch(this.getUrl(endpoint, { useInternalBackendUrl }), requestOptions);
   }
 
   protected async validateResponse(response: APIResponse, options: ValidateResponseOptions = {}): Promise<void> {

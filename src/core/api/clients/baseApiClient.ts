@@ -5,12 +5,8 @@ import { ApiError } from '@core/api/apiError';
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 
 export abstract class BaseApiClient extends HttpClient {
-  username?: string;
-  password?: string;
-  constructor(context: APIRequestContext, baseUrl?: string, username?: string, password?: string) {
+  constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
-    this.username = username;
-    this.password = password;
   }
 
   /**
@@ -117,11 +113,5 @@ export abstract class BaseApiClient extends HttpClient {
       Cookie: `token=${token}; csrfid=${csrfid}`,
       'x-smtip-csrfid': csrfid,
     };
-  }
-
-  protected async getAuthHeaders(): Promise<Record<string, string>> {
-    const storageState = await this.context.storageState();
-    const cookies = storageState.cookies;
-    return BaseApiClient.fetchHeadersFromCookies(cookies);
   }
 }
