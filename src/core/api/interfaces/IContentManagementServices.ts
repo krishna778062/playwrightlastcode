@@ -1,7 +1,11 @@
-import { PageCreationPayload, EventCreationPayload } from '@/src/core/types/contentManagement.types';
+import { PageCreationPayload, EventCreationPayload, AlbumCreationPayload } from '@/src/core/types/contentManagement.types';
 
 export interface IContentManagementServices {
   getPageCategoryID(siteId: string): Promise<any>;
   addNewPageContent(siteId: string, payload?: Partial<PageCreationPayload>): Promise<any>;
   addNewEventContent(siteId: string, payload?: Partial<EventCreationPayload>): Promise<any>;
+  addNewAlbumContent(siteId: string, overrides?: Partial<AlbumCreationPayload>): Promise<any>;
+  getSignedUploadUrl(payload: any): Promise<any>;
+  uploadFileToSignedUrl(uploadUrl: string, filePath: string): Promise<any>;
+  uploadImageAndGetFileId(fileName: string): Promise<string>;
 }

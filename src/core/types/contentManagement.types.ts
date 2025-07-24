@@ -31,3 +31,8 @@ export interface EventCreationPayload extends BaseContentPayload {
   directions: any[];
 }
 
+export interface AlbumCreationPayload extends BaseContentPayload {
+  coverImageMediaId: string;
+  listOfAlbumMedia: { id: string; description: string }[];
+}
+

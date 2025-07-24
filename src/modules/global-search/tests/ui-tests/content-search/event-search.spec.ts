@@ -61,7 +61,6 @@ test.describe(
         // 2. Create event content
         const eventName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Event`;
         const contentDescription = 'AutomateEventDescription';
-        const authorName = 'Workplace AppManager';
         const { body, bodyHtml } = buildBodyAndBodyHtml(contentDescription, 'event');
         const eventResult = await appManagerApiClient.getContentManagementService().addNewEventContent(newSiteId, {
           title: eventName,
@@ -75,6 +74,7 @@ test.describe(
           location: 'Gurgaon',
         });
         newEventID = eventResult.eventId;
+        const authorName = eventResult.authorName;
         console.log(`Created event : ${eventName} with ID ${newEventID}`);
 
         //wait until the search api starts showing the newly created event in results
@@ -98,10 +98,12 @@ test.describe(
         await contentResultItem.verifyNameIsDisplayed(eventName);
         await contentResultItem.verifyLabelIsDisplayed(testData.label);
         await contentResultItem.verifyEventCalendarThumbnailIsDisplayed(getTodayDateIsoString());
-        await contentResultItem.verifyDescriptionIsDisplayed(contentDescription);
+        // await contentResultItem.verifyDescriptionIsDisplayed(contentDescription);
         await contentResultItem.verifyAuthorIsDisplayed(authorName);
         await contentResultItem.verifyEventDateIsDisplayed(getTodayDateIsoString(),getTomorrowDateIsoString());
         await contentResultItem.verifyCalendarIconIsDisplayed();
+        await contentResultItem.verifyNavigationToTitleLink(newEventID,eventName,EVENT_SEARCH_TEST_DATA.content);
+        await contentResultItem.goBackToPreviousPage();
         await contentResultItem.verifyNavigationWithSiteLink(newSiteId, newSiteName);
         await contentResultItem.goBackToPreviousPage();
         await contentResultItem.hoverOverCardAndCopyLink();

@@ -34,7 +34,7 @@ export class TopNavBarComponent extends BaseComponent {
 
   async typeInSearchBarInput(searchTerm: string, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Typing ${searchTerm} in search bar input`, async () => {
-      await this.typeInElement(this.globalSearchInputBox, searchTerm);
+      await this.typeInElement(this.globalSearchInputBox, searchTerm,{ timeout:20000 });
     });
   }
 

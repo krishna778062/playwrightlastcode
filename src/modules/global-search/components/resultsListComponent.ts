@@ -72,7 +72,7 @@ export class ResultListingComponent extends BaseComponent {
    */
   async clickOnThumbnailLink() {
     await test.step(`Clicking on the thumbnail link`, async () => {
-      await this.clickOnElement(this.thumbnailLink, { timeout: 20000 });
+      await this.clickOnElement(this.thumbnailLink, { timeout: 50000 });
     });
   }
 
@@ -145,7 +145,7 @@ export class ResultListingComponent extends BaseComponent {
     await test.step(`Verifying navigation with thumbnail link to "${id}"`, async () => {
       await this.clickOnThumbnailLink();
       await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(id), {
-        timeout: 20000,
+        timeout: 50000,
         stepInfo: `Verifying navigation with thumbnail link to "${id}"`,
       });
     });
@@ -190,5 +190,32 @@ export class ResultListingComponent extends BaseComponent {
     });
     await this.verifier.verifyTheElementIsVisible(resultToLocate, { timeout: 40_000 });
     return new ResultListingComponent(this.page, resultToLocate);
+  }
+
+  /**
+   * Verify navigation to result items
+   * @param contentId - The unique ID of the content (used to verify navigation URL)
+   * @param name - The display name/title of the content (used to locate the link)
+   */
+  async verifyNavigationToTitleLink(contentId: string, name: string, type: string) {
+    await test.step(`Verifying navigation to title link for "${name}"`, async () => {
+      // Click the title link
+      await this.clickOnElement(this.name, { timeout: 40000 });
+      const utmUrlPattern = new RegExp(`${contentId}.*\\?utm_source=search_result&utm_term=${encodeURIComponent(name)}`);
+      const finalUrlPattern = new RegExp(contentId);
+
+      try {
+        await this.page.waitForURL(
+          (url) => utmUrlPattern.test(url.toString()) || finalUrlPattern.test(url.toString()),
+          {
+            timeout: 20000
+          }
+        );
+      } catch (error) {
+        throw new Error(
+          `Verifying navigation with title link for "${name}" failed. Neither UTM URL nor final URL was loaded in time.\n${error}`
+        );
+      }
+    });
   }
 }

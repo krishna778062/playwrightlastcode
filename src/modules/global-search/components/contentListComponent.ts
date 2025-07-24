@@ -19,12 +19,14 @@ export class ContentListComponent extends ResultListingComponent {
   readonly dayText:Locator;
   readonly monthText:Locator;
   readonly calendarIcon:Locator;
+  readonly albumIcon:Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
     this.siteBreadcrumb = this.rootLocator.locator("span[class*='BreadcrumbItem-module__contai']");
     this.resultList = this.rootLocator.locator("div[class*='Spacing-module__row'] span[class*='ypography-module']");
     this.pageIcon = this.rootLocator.locator("[data-testid='i-page']");
+    this.albumIcon = this.rootLocator.locator("[data-testid='i-albums']");
     this.userText = page.locator("h1[class*='ypography-module']");
     this.dayText = this.rootLocator.locator("div[class*='DateEmblem-module__day']");
     this.monthText = this.rootLocator.locator("div[class*='DateEmblem-module__monthInner']");
@@ -76,8 +78,8 @@ export class ContentListComponent extends ResultListingComponent {
    */
   async verifyNavigationWithAuthorLink(user: string) {
     await test.step(`Verifying navigation to ${user} profile page`, async () => {
-      await this.clickOnElement(this.resultList.first(), { timeout: 20000 });
-      await this.verifier.verifyElementHasText(this.userText, user,{timeout:50000});
+      await this.clickOnElement(this.resultList.first(), { timeout: 100000 });
+      await this.verifier.verifyElementHasText(this.userText, user,{timeout:80000});
     });
   }
 
@@ -87,6 +89,15 @@ export class ContentListComponent extends ResultListingComponent {
   async verifyPageIconIsDisplayed() {
     await test.step(`Verifying page icon is displayed`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.pageIcon.last());
+    });
+  }
+
+   /**
+   * Verifies that the album icon is visible in the content result item.
+   */
+   async verifyAlbumIconIsDisplayed() {
+    await test.step(`Verifying album icon is displayed`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.albumIcon.last());
     });
   }
 

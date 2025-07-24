@@ -2,7 +2,7 @@ import { APIRequestContext, expect, test } from '@playwright/test';
 import { BaseApiClient } from '@api/clients/baseApiClient';
 import { IContentManagementServices } from '@api/interfaces/IContentManagementServices';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-import { PageCreationPayload, EventCreationPayload } from '@core/types/contentManagement.types';
+import { PageCreationPayload, EventCreationPayload, AlbumCreationPayload } from '@core/types/contentManagement.types';
 
 const defaultBaseContentPayload = {
   listOfFiles: [],
@@ -40,8 +40,15 @@ const defaultEventContentPayload: EventCreationPayload = {
   body: '{"type":"doc","content":[{"type":"paragraph","attrs":{"indentation":0,"textAlign":"left","className":"","data-sw-sid":null},"content":[{"type":"text","text":"testing event"}]}]}',
 };
 
-export function buildBodyAndBodyHtml(text: string, type: 'page' | 'event') {
-  if (type === 'page') {
+const defaultAlbumContentPayload: AlbumCreationPayload = {
+  ...defaultBaseContentPayload,
+  contentType: 'album',
+  coverImageMediaId: '',
+  listOfAlbumMedia: [],
+};
+
+export function buildBodyAndBodyHtml(text: string, type: 'page' | 'event'|'album') {
+  if (type === 'page' || type === 'album') {
     return {
       body: JSON.stringify({
         type: 'doc',
@@ -165,7 +172,10 @@ export class ContentManagementService extends BaseApiClient implements IContentM
         if (json.status !== 'success' || !json.result?.id) {
           throw new Error(`Page creation failed. Response: ${JSON.stringify(json)}`);
         }
-        return { pageId: json.result.id };
+        return { 
+          pageId: json.result.id,
+          authorName: json.result.authoredBy?.name
+        };
       }
     );
   }
@@ -213,8 +223,132 @@ export class ContentManagementService extends BaseApiClient implements IContentM
         if (json.status !== 'success' || !json.result?.id) {
           throw new Error(`Event creation failed. Response: ${JSON.stringify(json)}`);
         }
-        return { eventId: json.result.id };
+        return { 
+          eventId: json.result.id,
+          authorName: json.result.authoredBy?.name
+        };
       }
     );
+  }
+
+  /**
+   * Publishes new album content to a site.
+   * @param siteId - The site ID.
+   * @param overrides - Album content overrides.
+   * @returns The created album's ID.
+   */
+  async addNewAlbumContent(siteId: string, overrides: Partial<AlbumCreationPayload> = {}) {
+    return await test.step('Publishing album content via API post request', async () => {
+      const payload: AlbumCreationPayload = {
+        ...defaultAlbumContentPayload,
+        ...overrides,
+      };
+      const response = await this.post(API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.publish, {
+        data: {
+          listOfFiles: payload.listOfFiles,
+          publishAt: payload.publishAt,
+          body: payload.body,
+          imgCaption: payload.imgCaption,
+          publishingStatus: payload.publishingStatus,
+          bodyHtml: payload.bodyHtml,
+          imgLayout: payload.imgLayout,
+          title: payload.title,
+          language: payload.language,
+          isFeedEnabled: payload.isFeedEnabled,
+          listOfTopics: payload.listOfTopics,
+          contentType: payload.contentType,
+          isNewTiptap: payload.isNewTiptap,
+          coverImageMediaId: payload.coverImageMediaId,
+          listOfAlbumMedia: payload.listOfAlbumMedia,
+        },
+      });
+      const json = await response.json();
+      if (json.status !== 'success' || !json.result?.id) {
+        throw new Error(`Album creation failed. Response: ${JSON.stringify(json)}`);
+      }
+      return { 
+        albumId: json.result.id,
+        authorName: json.result.authoredBy?.name
+      };
+    });
+  }
+
+  /**
+   * Gets a signed upload URL for a file.
+   * @param payload - File upload metadata.
+   * @returns The signed upload URL and file ID.
+   */
+  async getSignedUploadUrl(payload: any) {
+    return await test.step('Getting signed upload URL for file', async () => {
+      const response = await this.post(API_ENDPOINTS.content.signedUrl, {
+        data: {
+          file_name: payload.file_name,
+          size: payload.size,
+          mime_type: payload.mime_type,
+          type: payload.type
+        }
+      });
+      const json = await response.json();
+      console.log('Signed URL Response:', json);
+      if (json.status !== 'success' || !json.result?.upload_url || !json.result?.file_id) {
+        throw new Error(`Failed to get signed upload URL. Response: ${JSON.stringify(json)}`);
+      }
+      return { uploadUrl: json.result.upload_url, fileId: json.result.file_id };
+    });
+  }
+
+  /**
+   * Uploads a file to a signed upload URL.
+   * @param uploadUrl - The signed upload URL.
+   * @param filePath - The local file path to upload.
+   */
+  async uploadFileToSignedUrl(uploadUrl: string, filePath: string) {
+    return await test.step('Uploading file to signed upload URL', async () => {
+      const fs = await import('fs');
+      const path = await import('path');
+      const fileName = path.basename(filePath);
+      const fileBuffer = fs.readFileSync(filePath);
+      const response = await this.context.post(uploadUrl, {
+        multipart: {
+          file: {
+            name: fileName,
+            mimeType: 'image/jpeg',
+            buffer: fileBuffer,
+          },
+        },
+      });
+
+      if (response.status() !== 200 && response.status() !== 204) {
+        throw new Error(`File upload failed. Status: ${response.status()}`);
+      }
+      console.log('Upload successful');
+      return true;
+    });
+  }
+
+  /**
+   * Uploads an image by file name and returns the fileId after upload.
+   * @param fileName - The name of the file to upload (relative to the test image directory).
+   * @returns The uploaded file's fileId.
+   */
+  async uploadImageAndGetFileId(fileName: string): Promise<string> {
+    const filePath = `${API_ENDPOINTS.fileUpload.albumImg}/${fileName}`;
+    const fs = await import('fs');
+    const stats = fs.statSync(filePath);
+    const size = stats.size;
+
+    // 1. Get signed URL
+    const { uploadUrl, fileId } = await this.getSignedUploadUrl({
+      file_name: fileName,
+      size,
+      mime_type: 'image/jpeg',
+      type: 'content',
+    });
+
+    // 2. Upload file
+    await this.uploadFileToSignedUrl(uploadUrl, filePath);
+
+    // 3. Return fileId
+    return fileId;
   }
 }
