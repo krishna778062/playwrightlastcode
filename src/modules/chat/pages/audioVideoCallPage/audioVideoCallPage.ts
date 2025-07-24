@@ -1,63 +1,33 @@
-import { expect, Locator, test } from '@playwright/test';
-import { Page } from '@playwright/test';
-import { BasePage } from '@/src/core/pages/basePage';
-import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { expect, test } from '@playwright/test';
 import { TIMEOUTS } from '@core/constants/timeouts';
+import { BaseAudioVideoCallPage } from './baseAudioVideoCallPage';
 
-export class AudioVideoCallPage extends BasePage {
-  readonly mediaControlContainer: Locator;
-  readonly audioCallButton: Locator;
-  readonly videoCallButton: Locator;
-  readonly endCallButton: Locator;
-  readonly videoTile: Locator;
-  readonly videoTileNamePlate: Locator;
-  readonly attendeeListButton: Locator;
-  readonly meetingParticipantNameInList: Locator;
-  readonly closeMeetingParticipantListButton: Locator;
-  readonly addParticipantForm: Locator;
-  readonly inviteParticipantInputSearchField: Locator;
-  readonly addButtonToInviteParticipant: Locator;
-  readonly userSelectionDropdownOptions: Locator;
+export interface IAudioVideoCallActions {
+  enableMicrophone: (options?: { stepInfo?: string }) => Promise<void>;
+  enableVideo: (options?: { stepInfo?: string }) => Promise<void>;
+  disableMicrophone: (options?: { stepInfo?: string }) => Promise<void>;
+  disableVideo: (options?: { stepInfo?: string }) => Promise<void>;
+  endCall: (options?: { stepInfo?: string }) => Promise<void>;
+  openMeetingParticipantList: (options?: { stepInfo?: string }) => Promise<void>;
+  closeMeetingParticipantList: (options?: { stepInfo?: string }) => Promise<void>;
+  inviteUserToThisMeeting: (userName: string, options?: { stepInfo?: string }) => Promise<void>;
+}
 
-  constructor(page: Page) {
-    super(page, PAGE_ENDPOINTS.AUDIO_VIDEO_CALL_PAGE);
-    this.mediaControlContainer = this.page.locator("[class*='MediaControls_meetingContainer']");
-    this.audioCallButton = this.mediaControlContainer.getByLabel('call.record_video_modal.aria_label.microphone');
-    this.videoCallButton = this.mediaControlContainer.getByLabel('video');
-    this.endCallButton = this.page.getByRole('button', { name: 'End', exact: true });
-    this.videoTile = this.page.getByTestId('video-tile');
-    this.videoTileNamePlate = this.page.locator("header[class*='ch-nameplate']");
-    this.attendeeListButton = this.page.getByRole('button', {
-      name: 'Attendee count icon',
-      exact: true,
-    });
-    this.meetingParticipantNameInList = this.page.locator("[class*='User_userAvatarWithNam']");
-    this.closeMeetingParticipantListButton = this.page.getByRole('button', {
-      name: 'Cross icon',
-      exact: true,
-    });
-    this.addParticipantForm = this.page.getByTestId('addParticipantForm');
-    this.inviteParticipantInputSearchField = this.addParticipantForm
-      .getByPlaceholder('Invite Participants', { exact: false })
-      .locator('input ');
-    this.addButtonToInviteParticipant = this.addParticipantForm.getByRole('button');
-    this.userSelectionDropdownOptions = this.page.locator("div[role='menuitem']");
+export interface IAudioVideoCallAssertions {
+  verifyCountOfVideoTitles: (count: number, options?: { stepInfo?: string }) => Promise<void>;
+  verifyVideoStreamFromUserIsVisible: (userName: string, videoStreamEnabled: boolean, options?: { stepInfo?: string }) => Promise<void>;
+  verifyMyVideoStreamIsVisible: (options?: { stepInfo?: string }) => Promise<void>;
+  verifyCountOfMeetingParticipants: (count: number, options?: { stepInfo?: string }) => Promise<void>;
+  verifyMeetingParticipantNameInList: (userName: string, options?: { stepInfo?: string }) => Promise<void>;
+}
+
+export class AudioVideoCallPage extends BaseAudioVideoCallPage implements IAudioVideoCallActions, IAudioVideoCallAssertions {
+  get actions(): IAudioVideoCallActions {
+    return this;
   }
 
-  getVideoStreamForUser(userName: string): Locator {
-    return this.videoTile.filter({ has: this.videoTileNamePlate.filter({ hasText: userName }) });
-  }
-
-  /**
-   * Verifies the audio video call page is loaded
-   * @param options - The options for the verification
-   */
-  async verifyThePageIsLoaded(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo ?? `Verifying the audio video call page is loaded`, async () => {
-      await expect(this.mediaControlContainer.first(), `expecting media control container to be visible`).toBeVisible({
-        timeout: TIMEOUTS.MEDIUM,
-      });
-    });
+  get assertions(): IAudioVideoCallAssertions {
+    return this;
   }
 
   /**
@@ -155,6 +125,54 @@ export class AudioVideoCallPage extends BasePage {
     });
   }
 
+  async openMeetingParticipantList(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo ?? `Opening meeting participant list`, async () => {
+      await this.clickOnElement(this.attendeeListButton);
+    });
+  }
+
+  async closeMeetingParticipantList(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo ?? `Closing meeting participant list`, async () => {
+      await this.clickOnElement(this.closeMeetingParticipantListButton);
+    });
+  }
+
+  async inviteUserToThisMeeting(userName: string, options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo ?? `Inviting user to this meeting`, async () => {
+      await this.openMeetingParticipantList();
+      await expect(this.addParticipantForm, `expecting add participant form to be visible`).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(this.inviteParticipantInputSearchField);
+      await this.fillInElement(this.inviteParticipantInputSearchField, userName);
+      //wait for the user suggestion in dropdwon to be visible
+      await expect(
+        this.userSelectionDropdownOptions.first(),
+        `expecting user selection dropdown to be visible`
+      ).toBeVisible();
+
+      //select the user from the dropdown
+      await this.userSelectionDropdownOptions.filter({ hasText: userName }).first().click();
+      /**
+       * when we click to add, there is an API call to add the user to the meeting
+       * we need to wait for the API call to be successful
+       * and then we can close the add participant form
+       */
+      await this.clickAndWaitForResponse(
+        () => this.clickOnElement(this.addButtonToInviteParticipant),
+        response => response.url().includes('/invite') && response.status() === 201,
+        { timeout: 20000, stepInfo: 'Inviting user to meeting' }
+      );
+      await expect(
+        this.meetingParticipantNameInList,
+        `expecting meeting participant name in list to be visible`
+      ).toHaveText(userName);
+      await this.closeMeetingParticipantList();
+    });
+  }
+
+  //---------------------------------Assertions---------------------------------
+
   /**
    * Verifies the count of video titles
    * @param count - The count of video titles
@@ -221,18 +239,6 @@ export class AudioVideoCallPage extends BasePage {
     });
   }
 
-  async openMeetingParticipantList(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo ?? `Opening meeting participant list`, async () => {
-      await this.clickOnElement(this.attendeeListButton);
-    });
-  }
-
-  async closeMeetingParticipantList(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo ?? `Closing meeting participant list`, async () => {
-      await this.clickOnElement(this.closeMeetingParticipantListButton);
-    });
-  }
-
   /**
    * Verifies the meeting participant name in list
    * @param userName - The name of the user
@@ -243,40 +249,6 @@ export class AudioVideoCallPage extends BasePage {
       await this.openMeetingParticipantList();
       const userNameInList = this.meetingParticipantNameInList.filter({ hasText: userName });
       await expect(userNameInList, `expecting meeting participant name in list to be visible`).toHaveText(userName);
-      await this.closeMeetingParticipantList();
-    });
-  }
-
-  async inviteUserToThisMeeting(userName: string, options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo ?? `Inviting user to this meeting`, async () => {
-      await this.openMeetingParticipantList();
-      await expect(this.addParticipantForm, `expecting add participant form to be visible`).toBeVisible({
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      await this.clickOnElement(this.inviteParticipantInputSearchField);
-      await this.fillInElement(this.inviteParticipantInputSearchField, userName);
-      //wait for the user suggestion in dropdwon to be visible
-      await expect(
-        this.userSelectionDropdownOptions.first(),
-        `expecting user selection dropdown to be visible`
-      ).toBeVisible();
-
-      //select the user from the dropdown
-      await this.userSelectionDropdownOptions.filter({ hasText: userName }).first().click();
-      /**
-       * when we click to add, there is an API call to add the user to the meeting
-       * we need to wait for the API call to be successful
-       * and then we can close the add participant form
-       */
-      await this.clickAndWaitForResponse(
-        () => this.clickOnElement(this.addButtonToInviteParticipant),
-        response => response.url().includes('/invite') && response.status() === 201,
-        { timeout: 20000, stepInfo: 'Inviting user to meeting' }
-      );
-      await expect(
-        this.meetingParticipantNameInList,
-        `expecting meeting participant name in list to be visible`
-      ).toHaveText(userName);
       await this.closeMeetingParticipantList();
     });
   }

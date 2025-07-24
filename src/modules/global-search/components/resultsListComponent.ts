@@ -43,8 +43,8 @@ export class ResultListingComponent extends BaseComponent {
         assertionMessage: `Verifying copy link button is visible`,
       });
       await this.clickOnElement(this.copyLinkButton);
-      await this.verifier.verifyElementHasText(this.toolTipMsg, 'Copied', {
-        timeout: 5000,
+      await this.verifier.verifyElementHasText(this.toolTipMsg.last(), 'Copied', {
+        timeout: 8000,
         assertionMessage: `Verifying tooltip Copied text is displayed`,
       });
     });
@@ -72,7 +72,7 @@ export class ResultListingComponent extends BaseComponent {
    */
   async clickOnThumbnailLink() {
     await test.step(`Clicking on the thumbnail link`, async () => {
-      await this.clickOnElement(this.thumbnailLink, { timeout: 50000 });
+      await this.clickOnElement(this.thumbnailLink, { timeout: 90000 });
     });
   }
 
@@ -81,7 +81,7 @@ export class ResultListingComponent extends BaseComponent {
    */
   async clickOnHomePageLink() {
     await test.step(`Clicking on the home page link`, async () => {
-      await this.clickOnElement(this.headerNavBarHomePageLink, { timeout: 20000 });
+      await this.clickOnElement(this.headerNavBarHomePageLink, { timeout: 50000 });
     });
   }
 

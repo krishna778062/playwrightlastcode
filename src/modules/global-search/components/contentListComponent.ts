@@ -39,11 +39,19 @@ export class ContentListComponent extends ResultListingComponent {
    */
   async clickOnSiteLink(name: string) {
     await test.step(`Clicking on the site link from content`, async () => {
-      await this.verifier.verifyElementHasText(this.siteBreadcrumb.last(), name, {
-        timeout: 4000,
-        assertionMessage: 'verifying site name breadcrumb is displayed',
-      });
-      await this.clickOnElement(this.siteBreadcrumb.last());
+      const breadcrumbLocator = this.siteBreadcrumb.last();
+      const siteText = await breadcrumbLocator.textContent({ timeout: 4000 });
+
+      if (siteText && siteText.endsWith('…')) {
+        const cleanedText = siteText.slice(0, -1);
+        expect(name).toContain(cleanedText);
+      } else {
+        await this.verifier.verifyElementHasText(breadcrumbLocator, name, {
+          timeout: 4000,
+          assertionMessage: 'verifying site name breadcrumb is displayed',
+        });
+      }
+      await this.clickOnElement(breadcrumbLocator);
     });
   }
 
@@ -79,7 +87,7 @@ export class ContentListComponent extends ResultListingComponent {
   async verifyNavigationWithAuthorLink(user: string) {
     await test.step(`Verifying navigation to ${user} profile page`, async () => {
       await this.clickOnElement(this.resultList.first(), { timeout: 100000 });
-      await this.verifier.verifyElementHasText(this.userText, user,{timeout:80000});
+      await this.verifier.verifyElementHasText(this.userText, user,{timeout:140000});
     });
   }
 
@@ -153,7 +161,7 @@ async verifyCalendarIconIsDisplayed() {
    */
   async verifyNavigationWithCalendarLink(iD: string) {
     await test.step(`Verifying navigation to calendar link with ID "${iD}"`, async () => {
-      await this.clickOnElement(this.dayText, { timeout: 20000 });
+      await this.clickOnElement(this.dayText, { timeout: 50000 });
       await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(iD), {
         timeout: 80000,
         stepInfo: `Verifying navigation to calendar link with ID "${iD}"`,

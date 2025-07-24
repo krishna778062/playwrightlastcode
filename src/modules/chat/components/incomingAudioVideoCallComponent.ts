@@ -1,7 +1,7 @@
 import { Locator, Page, test, expect } from '@playwright/test';
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import { TIMEOUTS } from '@core/constants/timeouts';
-import { AudioVideoCallPage } from '@chat/pages/audioVideoCallPage';
+import { AudioVideoCallPage } from '@/src/modules/chat/pages/audioVideoCallPage/audioVideoCallPage';
 
 export class IncomingAudioVideoCallComponent extends BaseComponent {
   readonly callerName: Locator;

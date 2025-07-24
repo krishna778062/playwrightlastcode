@@ -4,45 +4,28 @@ import { TestPriority } from '@core/constants/testPriority';
 import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
 import { SITE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/site-search.test-data';
 import { TestGroupType } from '@core/constants/testType';
-import { HomePage } from '@/src/core/pages/homePage';
 import { EnterpriseSearchHelper } from '@core/helpers/enterpriseSearchHelper';
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
 import { SEARCH_RESULT_ITEM } from '@/src/modules/global-search/constants/siteTypes';
 
-test.describe(
-  `Test Global Search - Site Search functionality`,
-  {
-    tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.SITE_SEARCH],
-  },
-  () => {
-    let newSiteId: string;
-    let homePage: HomePage;
-    test.beforeEach(
-      `Setting up the test environment for site search`,
-      async ({ appManagerUserPage, appManagerApiClient }) => {
-        // Initialize API client with proper authentication and CSRF token
-        homePage = new HomePage(appManagerUserPage);
-        await homePage.verifyThePageIsLoaded();
-      }
-    );
-    test.afterEach(`Tearing down the test environment for site search`, async ({ appManagerApiClient }) => {
-      await appManagerApiClient.getSiteManagementService().deactivateSite(newSiteId);
-    });
+for (const testData of SITE_SEARCH_TEST_DATA) {
+  test.describe(
+    `Global Search - Site Search`,
+    {
+      tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.SITE_SEARCH],
+    },
+    () => {
+      let newSiteId: string;
+      let newSiteName: string;
+      let categoryObj: { categoryId: string; name: string };
 
-    for (const testData of SITE_SEARCH_TEST_DATA) {
-      test(
-        `Verify Site Search results for a new ${testData.siteType} site in category "${testData.category}"`,
-        {
-          tag: [TestPriority.P0, TestGroupType.SMOKE],
-        },
-        async ({ appManagerApiClient }) => {
-          tagTest(test.info(), {
-            zephyrTestId: 'SEN-12408',
-            storyId: 'SEN-12305',
-          });
+      test.beforeEach(
+        `Setting up the test environment for site search by creating new site`,
+        async ({appManagerApiClient }) => {
+          // Initialize API client with proper authentication and CSRF token
           const randomNum = Math.floor(Math.random() * 1000000 + 1);
-          const newSiteName = `AutomateUI_Test_${randomNum}`;
-          const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
+          newSiteName = `AutomateUI_Test_${randomNum}`;
+          categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
           const result = await appManagerApiClient.getSiteManagementService().addNewSite({
             access: testData.siteType,
             name: newSiteName,
@@ -60,8 +43,32 @@ test.describe(
             newSiteName,
             SEARCH_RESULT_ITEM.SITE
           );
-          
-          const globalSearchResultPage = await homePage.actions.searchForTerm(newSiteName, {
+        }
+      );
+      test.afterEach(`Tearing down the test environment for site search`, async ({ appManagerApiClient }) => {
+        // Clean up site (if it was created)
+        if (newSiteId) {
+          try {
+            await appManagerApiClient.getSiteManagementService().deactivateSite(newSiteId);
+            console.log(`Successfully deactivated site: ${newSiteId}`);
+          } catch (error) {
+            console.warn(`Failed to deactivate site ${newSiteId}:`, error);
+          }
+        }
+      });
+
+      test(
+        `Verify Site Search results for a new ${testData.siteType} site in category "${testData.category}"`,
+        {
+          tag: [TestPriority.P0, TestGroupType.SMOKE],
+        },
+        async ({ appManagerHomePage }) => {
+          tagTest(test.info(), {
+            zephyrTestId: 'SEN-12408',
+            storyId: 'SEN-12305',
+          });
+
+          const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(newSiteName, {
             stepInfo: `Searching with term "${newSiteName} and intent is to find the site"`,
           });
 
@@ -87,5 +94,5 @@ test.describe(
         }
       );
     }
-  }
-);
+  );
+}
