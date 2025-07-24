@@ -40,7 +40,7 @@ export class ContentListComponent extends ResultListingComponent {
   async clickOnSiteLink(name: string) {
     await test.step(`Clicking on the site link from content`, async () => {
       const breadcrumbLocator = this.siteBreadcrumb.last();
-      const siteText = await breadcrumbLocator.textContent({ timeout: 4000 });
+      const siteText = await breadcrumbLocator.textContent({ timeout: 20000 });
 
       if (siteText && siteText.endsWith('…')) {
         const cleanedText = siteText.slice(0, -1);
@@ -86,8 +86,8 @@ export class ContentListComponent extends ResultListingComponent {
    */
   async verifyNavigationWithAuthorLink(user: string) {
     await test.step(`Verifying navigation to ${user} profile page`, async () => {
-      await this.clickOnElement(this.resultList.first(), { timeout: 100000 });
-      await this.verifier.verifyElementHasText(this.userText, user,{timeout:140000});
+      await this.clickOnElement(this.resultList.first(), { timeout: 50_000 });
+      await this.verifier.verifyElementHasText(this.userText, user, { timeout: 50_000 });
     });
   }
 

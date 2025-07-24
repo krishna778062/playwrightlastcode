@@ -72,7 +72,7 @@ export class ResultListingComponent extends BaseComponent {
    */
   async clickOnThumbnailLink() {
     await test.step(`Clicking on the thumbnail link`, async () => {
-      await this.clickOnElement(this.thumbnailLink, { timeout: 90000 });
+      await this.clickOnElement(this.thumbnailLink, { timeout: 50000 });
     });
   }
 
@@ -145,7 +145,7 @@ export class ResultListingComponent extends BaseComponent {
     await test.step(`Verifying navigation with thumbnail link to "${id}"`, async () => {
       await this.clickOnThumbnailLink();
       await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(id), {
-        timeout: 50000,
+        timeout: 50_000,
         stepInfo: `Verifying navigation with thumbnail link to "${id}"`,
       });
     });

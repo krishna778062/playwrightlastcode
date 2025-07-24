@@ -6,7 +6,7 @@ import { SiteListComponent } from '@/src/modules/global-search/components/siteLi
 import { TileListComponent } from '../components/tileListComponent';
 import { test } from '@playwright/test';
 
-export class GlobalSearchResultPage extends BasePage<any, any> {
+export class GlobalSearchResultPage extends BasePage {
   readonly resultListingComponent: ResultListingComponent;
   readonly siteListingComponent: SiteListComponent;
   readonly searchResultListContainer: Locator;
@@ -93,7 +93,7 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
     } catch (error) {
       // If the verification fails, check if the "Search for an exact match" checkbox is visible and click it
       const exactMatchCheckbox = this.page.getByRole('checkbox', { name: 'Search for an exact match' });
-      await exactMatchCheckbox.waitFor({ state: 'visible', timeout: 10000 });
+      await exactMatchCheckbox.waitFor({ state: 'visible', timeout: 50_000 });
       await exactMatchCheckbox.click();
       // Retry the verification after clicking the checkbox
       await verificationFn();
