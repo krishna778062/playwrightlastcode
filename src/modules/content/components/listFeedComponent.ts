@@ -24,10 +24,8 @@ export class ListFeedComponent extends BaseComponent {
    * @returns Locator for the post timestamp
    */
   readonly getPostTimestampLocator = (postText: string): Locator => 
-    this.page.locator("p")
-      .filter({ hasText: postText })
-      .locator("xpath=./ancestor::div[4]")
-      .locator("div[class*='headerInne'] p a");
+    this.page.locator(`xpath=//p[text()='${postText}']/ancestor::div[4]//div[contains(@class,'nameAndStatement')]/following-sibling::p/a`);
+      
 
   /**
    * Gets a locator for the post attachments
@@ -66,16 +64,22 @@ export class ListFeedComponent extends BaseComponent {
   }
 
   /**
-   * Deletes a post
+   * Gets the timestamp text for a specific post
+   * @param postText - The text of the post to find timestamp for
+   */
+    async getPostTimestamp(postText: string): Promise<void> {
+    await this.getPostTimestampLocator(postText).textContent() || '';
+  }
+
+  /**
+   * Deletes a post with complete verification flow
    * @param postText - Text of the post to delete
    */
   async deletePost(postText: string): Promise<void> {
     await test.step(`Deleting post with text: ${postText}`, async () => {
       await this.openPostOptionsMenu(postText);
       await this.clickDeleteOption();
-      await this.verifyDeleteConfirmDialog('Are you sure you want to delete this post?');
-      await this.confirmDelete();
-      await this.verifyPostDeleted();
+      await this.verifyDeleteFlow('Are you sure you want to delete this post?');
     });
   }
 
@@ -101,7 +105,7 @@ export class ListFeedComponent extends BaseComponent {
   /**
    * Confirms the delete action in the confirmation dialog
    */
-  async confirmDelete(): Promise<void> {
+  private async confirmDelete(): Promise<void> {
     await test.step('Confirm delete', async () => {
       await this.clickOnElement(this.deleteConfirmButton);
     });
@@ -109,9 +113,8 @@ export class ListFeedComponent extends BaseComponent {
 
   /**
    * Clicks the inline image preview to open lightbox
-   * @param postText - Text of the post containing the image
    */
-  async clickInlineImagePreview(postText: string): Promise<void> {
+  private async clickInlineImagePreview(postText: string): Promise<void> {
     await test.step('Click on inline image preview', async () => {
       await this.clickOnElement(this.getLightboxButtonLocator(postText).first());
     });
@@ -120,20 +123,10 @@ export class ListFeedComponent extends BaseComponent {
   /**
    * Closes the image preview lightbox
    */
-  async closeImagePreview(): Promise<void> {
+  private async closeImagePreview(): Promise<void> {
     await test.step('Close image preview', async () => {
       await this.clickOnElement(this.closeButton);
     });
-  }
-
-  /**
-   * Opens and verifies the inline image preview
-   * @param postText - Text of the post containing the image
-   */
-  async verifyInlineImagePerview(postText: string): Promise<void> {
-    await this.clickInlineImagePreview(postText);
-    await this.verifyInlineImagePreviewVisible();
-    await this.closeImagePreview();
   }
 
   /**
@@ -150,43 +143,39 @@ export class ListFeedComponent extends BaseComponent {
   }
 
   /**
-   * Verifies that the post timestamp is displayed
-   * @param postText - Text of the post to verify timestamp for
+   * Verifies complete post details including timestamp, attachments, and image preview
+   * @param postText - Text of the post to verify
+   * @param expectedAttachmentCount - Expected number of attachments
    */
-  async verifyTimestampDisplayed(postText: string): Promise<void> {
-    await test.step('Verify timestamp is displayed', async () => {
+  async verifyPostDetails(postText: string, expectedAttachmentCount: number): Promise<void> {
+    await test.step(`Verify complete post details for: ${postText}`, async () => {
+      // Verify timestamp is displayed
       await this.verifier.verifyTheElementIsVisible(this.getPostTimestampLocator(postText));
+      
+      // Verify file attachments count
+      await expect(this.getPostAttachmentsLocator(postText)).toHaveCount(expectedAttachmentCount);
+      
+      // Verify inline image preview functionality
+      await this.clickInlineImagePreview(postText);
+      await this.verifyInlineImagePreviewVisible();
+      await this.closeImagePreview();
     });
   }
 
   /**
-   * Verifies the number of file attachments on a post
-   * @param postText - Text of the post to verify attachments for
-   * @param expectedCount - Expected number of attachments
-   */
-  async verifyFileAttachmentsCount(postText: string, expectedCount: number): Promise<void> {
-    await test.step(`Verify ${expectedCount} file attachments are displayed`, async () => {
-      const attachments = await this.getPostAttachmentsLocator(postText).all();
-      expect(attachments.length).toBe(expectedCount);
-    });
-  }
-
-  /**
-   * Verifies the delete confirmation dialog
+   * Verifies the complete delete flow including confirmation dialog and final deletion
    * @param expectedText - Expected text in the confirmation dialog
    */
-  async verifyDeleteConfirmDialog(expectedText: string): Promise<void> {
-    await test.step('Verify delete confirmation dialog', async () => {
+  async verifyDeleteFlow(expectedText: string): Promise<void> {
+    await test.step('Verify complete delete flow', async () => {
+      // Verify delete confirmation dialog appears
       await this.verifier.verifyTheElementIsVisible(this.deleteConfirmDialog);
       await expect(this.deleteConfirmDialog).toContainText(expectedText);
-    });
-  }
-
-  /**
-   * Verifies that a post is deleted
-   */
-  async verifyPostDeleted(): Promise<void> {
-    await test.step('Verify post is deleted', async () => {
+      
+      // Confirm deletion
+      await this.confirmDelete();
+      
+      // Verify post is deleted (dialog disappears)
       await this.verifier.verifyTheElementIsNotVisible(this.deleteConfirmDialog);
     });
   }
@@ -194,93 +183,10 @@ export class ListFeedComponent extends BaseComponent {
   /**
    * Verifies that the inline image preview is visible
    */
-  async verifyInlineImagePreviewVisible(): Promise<void> {
+  private async verifyInlineImagePreviewVisible(): Promise<void> {
     await test.step('Verify inline image preview is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.inlineImagePreview.first());
     });
   }
 
-  /**
-   * Gets all visible posts on the current page
-   * @returns Array of post text content
-   */
-  async getAllVisiblePosts(): Promise<string[]> {
-    return await test.step('Get all visible posts', async () => {
-      const posts = await this.page.locator("div[class*='postContent']").all();
-      const postTexts = await Promise.all(posts.map(post => post.textContent()));
-      return postTexts.filter((text): text is string => text !== null);
-    });
-  }
-
-  /**
-   * Verifies that a specific post exists in the feed
-   * @param postText - Text of the post to verify
-   * @returns True if post exists, false otherwise
-   */
-  async verifyPostExists(postText: string): Promise<boolean> {
-    return await test.step(`Verify post "${postText}" exists in feed`, async () => {
-      const posts = await this.getAllVisiblePosts();
-      return posts.some(post => post.includes(postText));
-    });
-  }
-
-  /**
-   * Counts the total number of posts in the current feed view
-   * @returns Number of posts visible
-   */
-  async getPostCount(): Promise<number> {
-    return await test.step('Count total posts in feed', async () => {
-      return await this.page.locator("div[class*='postContent']").count();
-    });
-  }
-
-  /**
-   * Scrolls to load more posts if infinite scroll is implemented
-   */
-  async scrollToLoadMorePosts(): Promise<void> {
-    await test.step('Scroll to load more posts', async () => {
-      await this.page.evaluate(() => {
-        window.scrollTo(0, document.body.scrollHeight);
-      });
-      // Wait for potential new posts to load
-      await this.page.waitForTimeout(2000);
-    });
-  }
-
-  /**
-   * Searches for posts containing specific text
-   * @param searchText - Text to search for in posts
-   * @returns Array of matching posts
-   */
-  async searchPostsByText(searchText: string): Promise<string[]> {
-    return await test.step(`Search posts containing "${searchText}"`, async () => {
-      const allPosts = await this.getAllVisiblePosts();
-      return allPosts.filter(post => post.toLowerCase().includes(searchText.toLowerCase()));
-    });
-  }
-
-  /**
-   * Gets the latest post in the feed
-   * @returns Text content of the most recent post
-   */
-  async getLatestPost(): Promise<string> {
-    return await test.step('Get latest post', async () => {
-      const firstPost = await this.page.locator("div[class*='postContent']").first();
-      return await firstPost.textContent() || '';
-    });
-  }
-
-  /**
-   * Waits for a new post to appear in the feed
-   * @param expectedText - Text of the expected new post
-   * @param timeout - Timeout in milliseconds (default: 10000)
-   */
-  async waitForNewPost(expectedText: string, timeout: number = 10000): Promise<void> {
-    await test.step(`Wait for new post containing "${expectedText}"`, async () => {
-      await this.page.waitForSelector(`div[class*='postContent']:has-text("${expectedText}")`, {
-        state: 'visible',
-        timeout
-      });
-    });
-  }
 } 

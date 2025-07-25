@@ -1,5 +1,5 @@
 import { BaseComponent } from '@core/components/baseComponent';
-import { Locator, Page, expect, test } from '@playwright/test';
+import { Locator, Page, expect, test, Response } from '@playwright/test';
 import { FileUtil } from '@core/utils/fileUtil';
 import { TIMEOUTS } from '@core/constants/timeouts';
 
@@ -14,10 +14,40 @@ export interface FeedPostOptions {
 export interface FeedPostResult {
   postText: string;
   attachmentCount: number;
-  timestamp: string;
+  postId?: string;
 }
 
-export class CreateFeedPostComponent extends BaseComponent {
+export interface FeedPostApiResponse {
+  apiName: string;
+  status: string;
+  message: string;
+  result: {
+    feedId: string;
+  };
+  responseTimeStamp: number;
+  delay: number;
+}
+
+export interface ICreateFeedPostActions {
+  createAndPublishPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
+  editPost: (currentText: string, newText: string) => Promise<void>;
+  clickShareThoughtsButton: () => Promise<void>;
+  createPost: (text: string) => Promise<void>;
+  uploadFiles: (files: string[]) => Promise<void>;
+  removeAttachedFile: () => Promise<void>;
+  clickPostButton: () => Promise<void>;
+  openPostOptionsMenu: (postText: string) => Promise<void>;
+  clickEditOption: () => Promise<void>;
+  updatePostText: (text: string) => Promise<void>;
+  clickUpdateButton: () => Promise<void>;
+}
+
+export interface ICreateFeedPostAssertions {
+  verifyPostCreated: (expectedText: string) => Promise<void>;
+  verifyEditorVisible: () => Promise<void>;
+}
+
+export class CreateFeedPostComponent extends BaseComponent implements ICreateFeedPostActions, ICreateFeedPostAssertions {
   // Share thoughts section
   readonly shareThoughtsButton = this.page.getByRole('button', { name: 'Share your thoughts' });
   readonly feedEditor = this.page.locator("div[aria-describedby='content-description']");
@@ -43,16 +73,7 @@ export class CreateFeedPostComponent extends BaseComponent {
   readonly getFeedTextLocator = (text: string): Locator => 
     this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
 
-  /**
-   * Gets a locator for the post timestamp
-   * @param postText - The text of the post to find timestamp for
-   * @returns Locator for the post timestamp
-   */
-  readonly getPostTimestampLocator = (postText: string): Locator => 
-    this.page.locator("p")
-      .filter({ hasText: postText })
-      .locator("xpath=./ancestor::div[4]")
-      .locator("div[class*='headerInne'] p a");
+
 
   /**
    * Gets a locator for the post options menu
@@ -68,6 +89,14 @@ export class CreateFeedPostComponent extends BaseComponent {
 
   constructor(page: Page) {
     super(page);
+  }
+
+  get actions(): ICreateFeedPostActions {
+    return this;
+  }
+
+  get assertions(): ICreateFeedPostAssertions {
+    return this;
   }
 
   /**
@@ -102,12 +131,18 @@ export class CreateFeedPostComponent extends BaseComponent {
         }
       }
       
-      // Publish post
-      await this.clickPostButton();
+      // Publish the page
+      const postResponse = await this.createFeedPost();
+
+             //json body
+       const feedResponseBody = (await postResponse.json()) as FeedPostApiResponse;
+ 
+       //fetch the page id from the response
+       const postId = feedResponseBody.result.feedId;
+       console.log("postId", postId);
       
       // Wait for post to appear and get details
       await this.verifyPostCreated(options.text);
-      const timestamp = await this.getPostTimestampLocator(options.text).textContent() || '';
       const attachmentCount = options.attachments ? 
         options.attachments.files.length - (options.attachments.removeCount || 0) : 
         0;
@@ -115,7 +150,7 @@ export class CreateFeedPostComponent extends BaseComponent {
       return {
         postText: options.text,
         attachmentCount,
-        timestamp
+        postId
       };
     });
   }
@@ -259,6 +294,22 @@ export class CreateFeedPostComponent extends BaseComponent {
   async verifyEditorVisible(): Promise<void> {
     await test.step('Verify editor is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.feedEditor);
+    });
+  }
+
+  async createFeedPost(): Promise<Response> {
+    return await test.step(`Creating feed post and wait for api response`, async () => {
+      const postResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.postButton, { delay: 2_000 }),
+        response =>
+          response.url().includes('/v1/wfeed/feeds') &&
+          response.request().method() === 'POST' &&
+          response.status() === 201,
+        {
+          timeout: 20_000,
+        }
+      );
+      return postResponse;
     });
   }
 } 

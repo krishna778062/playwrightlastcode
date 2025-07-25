@@ -49,4 +49,11 @@ export const API_ENDPOINTS = {
     create: (siteId: string) => `/v1/content/sites/${siteId}/tiles`,
     delete: (siteId: string, tileId: string) => `/v1/content/sites/${siteId}/tiles/${tileId}`,
   },
+  
+  feed: {
+    create: () => `/v1/wfeed/feeds`,
+    update: (postId: string) => `/v1/wfeed/feeds/${postId}`,
+    delete: (postId: string) => `/v1/wfeed/feeds/${postId}`,
+    list: () => `/v1/rfeed/feeds?nextPageToken=&size=16&sortBy=createdAt&filter=all&feedContext=home`,
+  },
 } as const;
