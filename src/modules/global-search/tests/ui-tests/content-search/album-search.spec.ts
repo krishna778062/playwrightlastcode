@@ -14,80 +14,25 @@ import { getTodayDateIsoString } from '@/src/core/utils/dateUtil';
 test.describe(
   'Global Search- Album Search functionality',
   {
-    tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.CONTENT_SEARCH,"@test"],
+    tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.CONTENT_SEARCH],
   },
   () => {
-    let newSiteId: string;
-    let newAlbumID: string;
-    let newSiteName: string;
-    let albumName: string;
-    let contentDescription: string;
-    let authorName: string;
-
-    test.beforeEach(async ({ appManagerApiClient }) => {
-     // 1. Create a new site
-     const randomNum = Math.floor(Math.random() * 1000000 + 1);
-     newSiteName = `AutomateUI_Test_${randomNum}`;
-     const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(ALBUM_SEARCH_TEST_DATA.category);
-     const result = await appManagerApiClient.getSiteManagementService().addNewSite({
-       access: 'public',
-       name: newSiteName,
-       category: {
-         categoryId: categoryObj.categoryId,
-         name: categoryObj.name,
-       },
-     });
-     newSiteId = result.siteId;
-
-     // 3. Upload cover image and get fileId
-     const fileId = await appManagerApiClient.getContentManagementService().uploadImageAndGetFileId('beach.jpg');
-
-     // 4. Create album content
-     albumName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Album`;
-     contentDescription = 'AutomateAlbumDescription';
-     const { body, bodyHtml } = buildBodyAndBodyHtml(contentDescription, 'album');
-
-     const albumResult = await appManagerApiClient.getContentManagementService().addNewAlbumContent(newSiteId, {
-       title: albumName,
-       body,
-       bodyHtml,
-       publishAt: getTodayDateIsoString(),
-       coverImageMediaId: fileId,
-       listOfAlbumMedia: [{ id: fileId, description: '' }],
-     });
-     newAlbumID = albumResult.albumId;
-     authorName = albumResult.authorName;
-     console.log(`Created album : ${albumName} with ID ${newAlbumID}`);
-
-     //wait until the search api starts showing the newly created album in results
-     await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
-       appManagerApiClient,
-       albumName,
-       albumName,
-       'content'
-     );
-    });
-
-    test.afterEach(async ({ appManagerApiClient }) => {
-      if (newAlbumID) {
-        await appManagerApiClient.getContentManagementService().deleteContent(newSiteId, newAlbumID);
-      }
-      if (newSiteId) {
-        await appManagerApiClient.getSiteManagementService().deactivateSite(newSiteId);
-      }
-    });
-
     test(
       `Verify Content Search results for a new ${ALBUM_SEARCH_TEST_DATA.content}`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerHomePage, contentManagementHelper, appManagerApiClient }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-12410',
           storyId: 'SEN-12297',
         });
+
+        const randomNum = Math.floor(Math.random() * 1000000 + 1);
+        const newSiteName = `AutomateUI_Test_${randomNum}`;
+        const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(ALBUM_SEARCH_TEST_DATA.category);
         
+        const { siteId, contentId, albumName, authorName, contentDescription } = await contentManagementHelper.createAlbum(newSiteName, categoryObj, 'beach.jpg');
 
         // 5. UI Search for the album
         const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(albumName, {
@@ -106,14 +51,14 @@ test.describe(
         await contentResultItem.verifyAuthorIsDisplayed(authorName);
         await contentResultItem.verifyDateIsDisplayed();
         await contentResultItem.verifyAlbumIconIsDisplayed();
-        await contentResultItem.verifyNavigationToTitleLink(newAlbumID,albumName,ALBUM_SEARCH_TEST_DATA.content);
+        await contentResultItem.verifyNavigationToTitleLink(contentId,albumName,ALBUM_SEARCH_TEST_DATA.content);
         await contentResultItem.goBackToPreviousPage();
-        await contentResultItem.verifyNavigationWithSiteLink(newSiteId, newSiteName);
+        await contentResultItem.verifyNavigationWithSiteLink(siteId, newSiteName);
         await contentResultItem.goBackToPreviousPage();
         await contentResultItem.hoverOverCardAndCopyLink();
-        await contentResultItem.verifyCopiedURL(newAlbumID);
+        await contentResultItem.verifyCopiedURL(contentId);
         await contentResultItem.goBackToPreviousPage();
-        await contentResultItem.verifyNavigationWithThumbnailLink(newAlbumID);
+        await contentResultItem.verifyNavigationWithThumbnailLink(contentId);
         await contentResultItem.goBackToPreviousPage();
         await contentResultItem.verifyNavigationWithAuthorLink(authorName);
         await contentResultItem.goBackToPreviousPage();

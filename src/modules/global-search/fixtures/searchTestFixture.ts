@@ -5,11 +5,13 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { LoginHelper } from '../../../core/helpers/loginHelper';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
+import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
 
 export const searchTestFixtures = test.extend<{
   appManagerHomePage: NewUxHomePage | OldUxHomePage;
   appManagerUserPage: Page;
   appManagerApiClient: AppManagerApiClient;
+  contentManagementHelper: ContentManagementHelper;
 }>({
   appManagerHomePage: [
     async ({ page }, use, workerInfo) => {
@@ -37,6 +39,17 @@ export const searchTestFixtures = test.extend<{
         baseUrl: getEnvConfig().apiBaseUrl,
       });
       await use(appManagerApiClient);
+    },
+    { scope: 'test' },
+  ],
+  contentManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const contentManagementHelper = new ContentManagementHelper(appManagerApiClient);
+      try {
+        await use(contentManagementHelper);
+      } finally {
+        await contentManagementHelper.cleanup();
+      }
     },
     { scope: 'test' },
   ],
