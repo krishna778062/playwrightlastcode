@@ -130,11 +130,11 @@ export class ListFeedComponent extends BaseComponent {
   }
 
   /**
-   * Verifies that a post is created and visible
+   * Waits for and verifies that a post is visible
    * @param expectedText - Expected text of the post
    */
-  async verifyPostCreated(expectedText: string): Promise<void> {
-    await test.step('Verify post is created', async () => {
+  async waitForPostToBeVisible(expectedText: string): Promise<void> {
+    await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.getFeedTextLocator(expectedText), {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`

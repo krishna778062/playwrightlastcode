@@ -81,8 +81,9 @@ test.describe(
         createdPostText = postResult.postText;
         createdPostId = postResult.postId || '';
 
-        // Get timestamp from list component (verification moved from create component)
-       await feedPage.getPostTimestamp(postResult.postText);
+                // Wait for post to be visible and get timestamp
+        await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
+        await feedPage.getPostTimestamp(postResult.postText);
       
 
         // Step 2: Verify post details and attachments
@@ -90,6 +91,7 @@ test.describe(
 
         // Step 3: Edit the post
         await feedPage.actions.editPost(postResult.postText, updatedPostText);
+        await feedPage.assertions.waitForPostToBeVisible(updatedPostText);
         createdPostText = updatedPostText;
 
         // Step 4: Delete the post

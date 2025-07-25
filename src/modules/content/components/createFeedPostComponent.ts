@@ -43,7 +43,6 @@ export interface ICreateFeedPostActions {
 }
 
 export interface ICreateFeedPostAssertions {
-  verifyPostCreated: (expectedText: string) => Promise<void>;
   verifyEditorVisible: () => Promise<void>;
 }
 
@@ -141,8 +140,8 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
        const postId = feedResponseBody.result.feedId;
        console.log("postId", postId);
       
-      // Wait for post to appear and get details
-      await this.verifyPostCreated(options.text);
+      // Wait for post to appear
+      // Note: Waiting is handled by list component to avoid duplication
       const attachmentCount = options.attachments ? 
         options.attachments.files.length - (options.attachments.removeCount || 0) : 
         0;
@@ -167,7 +166,7 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
       await this.verifyEditorVisible();
       await this.updatePostText(newText);
       await this.clickUpdateButton();
-      await this.verifyPostCreated(newText);
+      // Note: Post verification should be done at test/page level to avoid duplication
     });
   }
 
@@ -275,18 +274,7 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
     });
   }
 
-  /**
-   * Verifies that a post is created and visible
-   * @param expectedText - Expected text of the post
-   */
-  async verifyPostCreated(expectedText: string): Promise<void> {
-    await test.step('Verify post is created', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.getFeedTextLocator(expectedText), {
-        timeout: TIMEOUTS.MEDIUM,
-        assertionMessage: `Post with text "${expectedText}" should be visible`
-      });
-    });
-  }
+
 
   /**
    * Verifies that the post editor is visible

@@ -19,7 +19,7 @@ export interface IFeedActions {
 export interface IFeedAssertions {
   // High-level verification flows
   verifyPostDetails: (postText: string, expectedAttachmentCount: number) => Promise<void>;
-  verifyPostCreationFlow: (expectedText: string) => Promise<void>;
+  waitForPostToBeVisible: (expectedText: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -73,8 +73,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifyPostDetails(postText, expectedAttachmentCount);
   }
 
-  async verifyPostCreationFlow(expectedText: string): Promise<void> {
-    await this.createFeedPostComponent.verifyPostCreated(expectedText);
+  async waitForPostToBeVisible(expectedText: string): Promise<void> {
+    await this.listFeedComponent.waitForPostToBeVisible(expectedText);
   }
 
   /**
