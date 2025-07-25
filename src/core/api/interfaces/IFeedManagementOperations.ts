@@ -45,30 +45,8 @@ export interface FeedPostResponse {
   };
   createdAt: string;
   updatedAt: string;
-  attachments: FeedPostAttachment[];
+  attachments: string[];
   siteId: string;
 }
 
-export interface FeedPostAttachment {
-  id: string;
-  fileName: string;
-  fileType: string;
-  url: string;
-}
-
-export interface GetFeedPostsOptions {
-  page?: number;
-  perPage?: number;
-  sortBy?: 'createdAt' | 'updatedAt';
-  sortOrder?: 'asc' | 'desc';
-}
-
-export interface FeedPostsListResponse {
-  posts: FeedPostResponse[];
-  pagination: {
-    page: number;
-    perPage: number;
-    total: number;
-    totalPages: number;
-  };
-} 
+ 
