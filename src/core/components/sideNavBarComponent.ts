@@ -9,8 +9,8 @@ export class SideNavBarComponent extends BaseComponent {
   constructor(page: Page) {
     super(page);
     this.createSection = page.getByRole('button', { name: 'Create' });
-    this.feedLink = page.locator("p:has-text('Feed')");
-    this.homeLink = page.locator("p:has-text('Home')");
+    this.feedLink = page.locator("p").filter({ hasText: 'Feed' });
+    this.homeLink = page.locator("p").filter({ hasText: 'Home' });
   }
 
   /**

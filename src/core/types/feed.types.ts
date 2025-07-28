@@ -28,8 +28,4 @@ export interface FeedPostResponse {
   updatedAt: string;
   attachments: string[];
   siteId: string;
-}
-
-
-
- 
+} 

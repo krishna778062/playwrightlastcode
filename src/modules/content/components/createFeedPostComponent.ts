@@ -34,7 +34,7 @@ export interface ICreateFeedPostActions {
   clickShareThoughtsButton: () => Promise<void>;
   createPost: (text: string) => Promise<void>;
   uploadFiles: (files: string[]) => Promise<void>;
-  removeAttachedFile: () => Promise<void>;
+  removeAttachedFile: (index?: number) => Promise<void>;
   clickPostButton: () => Promise<void>;
   openPostOptionsMenu: (postText: string) => Promise<void>;
   clickEditOption: () => Promise<void>;
@@ -200,28 +200,26 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
       );
       await this.fileUploadInput.setInputFiles(filePaths);
       await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
-      const count = await this.attachedFiles.count();
-      const fileNames = await Promise.all(
-        (await this.attachedFiles.all()).map(el => el.textContent())
-      );
-      if (count !== files.length) {
-        throw new Error(`Expected ${files.length} files to be attached, but found ${count}. Files found: ${fileNames.join(', ')}`);
-      }
+      await expect(this.attachedFiles).toHaveCount(files.length);
     });
   }
 
   /**
-   * Removes the first attached file from the post
+   * Removes an attached file from the post by index
+   * @param index - Zero-based index of the file to remove (default: 0 for first file)
    */
-  async removeAttachedFile(): Promise<void> {
-    await test.step('Remove attached file', async () => {
+  async removeAttachedFile(index: number = 0): Promise<void> {
+    await test.step(`Remove attached file at index ${index}`, async () => {
       await this.page.waitForSelector(this.deleteButtonSelector, { state: 'visible', timeout: 30000 });
       const deleteButtons = await this.deleteFileIcon.all();
       if (deleteButtons.length === 0) {
         throw new Error('No delete buttons found');
       }
+      if (index < 0 || index >= deleteButtons.length) {
+        throw new Error(`Invalid index ${index}. Available files: 0-${deleteButtons.length - 1}`);
+      }
       const initialCount = await this.attachedFiles.count();
-      await this.clickOnElement(deleteButtons[0]);
+      await this.clickOnElement(deleteButtons[index]);
       await expect(this.attachedFiles).toHaveCount(initialCount - 1);
     });
   }

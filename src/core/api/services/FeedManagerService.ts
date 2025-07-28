@@ -1,6 +1,6 @@
 import { APIRequestContext, test } from '@playwright/test';
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
-import { IFeedManagementOperations, CreateFeedPostPayload, UpdateFeedPostPayload, FeedPostResponse } from '@core/api/interfaces/IFeedManagementOperations';
+import { IFeedManagementOperations, CreateFeedPostPayload, UpdateFeedPostPayload, FeedPostResponse } from '@core/types';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 
 export class FeedManagerService extends BaseApiClient implements IFeedManagementOperations {
