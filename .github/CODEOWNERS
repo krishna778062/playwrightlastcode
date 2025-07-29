@@ -1,0 +1,36 @@
+# Global repository owners (for overall framework decisions)
+* @prateek-sqa
+
+
+# Core framework components (shared across all modules)
+/src/core/ @prateek-sqa
+
+# Module-specific ownership
+# Chat Module
+/src/modules/chat/ @prateek-sqa
+
+# Content Module
+/src/modules/content/ @prateek-sqa @SonaliGupta0608
+
+
+# Global Search Module
+/src/modules/global-search/ @prateek-sqa @shubhambhar 
+
+# Platforms Module
+/src/modules/platforms/ @prateek-sqa 
+
+# Configuration and build files
+playwright.base.config.ts @prateek-sqa
+*.config.ts @prateek-sqa
+package.json @prateek-sqa
+tsconfig.json @prateek-sqa
+
+# Documentation
+README.md @prateek-sqa
+*.md @prateek-sqa
+
+# GitHub workflows
+.github/workflows/ @prateek-sqa
+
+# Environment files
+env/ @prateek-sqa
