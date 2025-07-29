@@ -159,12 +159,12 @@ async verifyCalendarIconIsDisplayed() {
    * Verifies navigation when clicking the calendar day element.
    * @param iD - The unique identifier expected in the navigation URL.
    */
-  async verifyNavigationWithCalendarLink(iD: string) {
-    await test.step(`Verifying navigation to calendar link with ID "${iD}"`, async () => {
+  async verifyNavigationWithCalendarLink(id: string) {
+    await test.step(`Verifying navigation to calendar link with ID "${id}"`, async () => {
       await this.clickOnElement(this.dayText, { timeout: 50_000 });
-      await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(iD), {
+      await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(id), {
         timeout: 50_000,
-        stepInfo: `Verifying navigation to calendar link with ID "${iD}"`,
+        stepInfo: `Verifying navigation to calendar link with ID "${id}"`,
       });
     });
   }
