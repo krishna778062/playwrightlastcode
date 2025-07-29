@@ -105,7 +105,7 @@ export class ContentListComponent extends ResultListingComponent {
    */
    async verifyAlbumIconIsDisplayed() {
     await test.step(`Verifying album icon is displayed`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.albumIcon.last());
+      await this.verifier.verifyTheElementIsVisible(this.albumIcon);
     });
   }
 
