@@ -44,7 +44,13 @@ export const API_ENDPOINTS = {
     category: '/pageCategories/list',
     publish: '/content?action=publish',
     delete: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}`,
+    signedUrl: '/v1/content/static/signedurl/upload'
   },
+
+  fileUpload: {
+    albumImg: 'src/modules/global-search/test-data',
+  },
+
   linkTile: {
     create: (siteId: string) => `/v1/content/sites/${siteId}/tiles`,
     delete: (siteId: string, tileId: string) => `/v1/content/sites/${siteId}/tiles/${tileId}`,

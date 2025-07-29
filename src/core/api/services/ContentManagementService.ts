@@ -2,7 +2,7 @@ import { APIRequestContext, expect, test } from '@playwright/test';
 import { BaseApiClient } from '@api/clients/baseApiClient';
 import { IContentManagementServices } from '@api/interfaces/IContentManagementServices';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-import { PageCreationPayload, EventCreationPayload } from '@core/types/contentManagement.types';
+import { PageCreationPayload, EventCreationPayload, AlbumCreationPayload } from '@core/types/contentManagement.types';
 
 const defaultBaseContentPayload = {
   listOfFiles: [],
@@ -40,8 +40,15 @@ const defaultEventContentPayload: EventCreationPayload = {
   body: '{"type":"doc","content":[{"type":"paragraph","attrs":{"indentation":0,"textAlign":"left","className":"","data-sw-sid":null},"content":[{"type":"text","text":"testing event"}]}]}',
 };
 
-export function buildBodyAndBodyHtml(text: string, type: 'page' | 'event') {
-  if (type === 'page') {
+const defaultAlbumContentPayload: AlbumCreationPayload = {
+  ...defaultBaseContentPayload,
+  contentType: 'album',
+  coverImageMediaId: '',
+  listOfAlbumMedia: [],
+};
+
+export function buildBodyAndBodyHtml(text: string, type: 'page' | 'event'|'album') {
+  if (type === 'page' || type === 'album') {
     return {
       body: JSON.stringify({
         type: 'doc',
@@ -165,7 +172,10 @@ export class ContentManagementService extends BaseApiClient implements IContentM
         if (json.status !== 'success' || !json.result?.id) {
           throw new Error(`Page creation failed. Response: ${JSON.stringify(json)}`);
         }
-        return { pageId: json.result.id };
+        return { 
+          pageId: json.result.id,
+          authorName: json.result.authoredBy?.name
+        };
       }
     );
   }
@@ -213,9 +223,54 @@ export class ContentManagementService extends BaseApiClient implements IContentM
         if (json.status !== 'success' || !json.result?.id) {
           throw new Error(`Event creation failed. Response: ${JSON.stringify(json)}`);
         }
-        return { eventId: json.result.id };
+        return { 
+          eventId: json.result.id,
+          authorName: json.result.authoredBy?.name
+        };
       }
     );
+  }
+
+  /**
+   * Publishes new album content to a site.
+   * @param siteId - The site ID.
+   * @param overrides - Album content overrides.
+   * @returns The created album's ID.
+   */
+  async addNewAlbumContent(siteId: string, overrides: Partial<AlbumCreationPayload> = {}) {
+    return await test.step('Publishing album content via API post request', async () => {
+      const payload: AlbumCreationPayload = {
+        ...defaultAlbumContentPayload,
+        ...overrides,
+      };
+      const response = await this.post(API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.publish, {
+        data: {
+          listOfFiles: payload.listOfFiles,
+          publishAt: payload.publishAt,
+          body: payload.body,
+          imgCaption: payload.imgCaption,
+          publishingStatus: payload.publishingStatus,
+          bodyHtml: payload.bodyHtml,
+          imgLayout: payload.imgLayout,
+          title: payload.title,
+          language: payload.language,
+          isFeedEnabled: payload.isFeedEnabled,
+          listOfTopics: payload.listOfTopics,
+          contentType: payload.contentType,
+          isNewTiptap: payload.isNewTiptap,
+          coverImageMediaId: payload.coverImageMediaId,
+          listOfAlbumMedia: payload.listOfAlbumMedia,
+        },
+      });
+      const json = await response.json();
+      if (json.status !== 'success' || !json.result?.id) {
+        throw new Error(`Album creation failed. Response: ${JSON.stringify(json)}`);
+      }
+      return { 
+        albumId: json.result.id,
+        authorName: json.result.authoredBy?.name
+      };
+    });
   }
 
   /**
@@ -226,7 +281,6 @@ export class ContentManagementService extends BaseApiClient implements IContentM
   async deleteContent(siteId: string, contentId: string) {
     return await test.step('Deleting page via API delete request', async () => {
       const response = await this.delete(API_ENDPOINTS.content.delete(siteId, contentId));
-      const json = await response.json();
       expect(response.status()).toBe(200);
     });
   }

@@ -4,59 +4,61 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
 import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
-import { EVENT_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
-import { getTodayDateIsoString, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
+import { ALBUM_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
+import { EnterpriseSearchHelper } from '@core/helpers/enterpriseSearchHelper';
+import { buildBodyAndBodyHtml } from '@/src/core/api/services/ContentManagementService';
+import { faker } from '@faker-js/faker';
+import { getTodayDateIsoString } from '@/src/core/utils/dateUtil';
+
 
 test.describe(
-  'Global Search- Event Search functionality',
+  'Global Search- Album Search functionality',
   {
     tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.CONTENT_SEARCH],
   },
   () => {
-    const testData = EVENT_SEARCH_TEST_DATA;
-
     test(
-      `Verify Content Search results for a new ${testData.content}`,
+      `Verify Content Search results for a new ${ALBUM_SEARCH_TEST_DATA.content}`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
       async ({ appManagerHomePage, contentManagementHelper, appManagerApiClient }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'SEN-12462',
-          storyId: 'SEN-12298',
+          zephyrTestId: 'SEN-12410',
+          storyId: 'SEN-12297',
         });
 
         const randomNum = Math.floor(Math.random() * 1000000 + 1);
         const newSiteName = `AutomateUI_Test_${randomNum}`;
-        const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
+        const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(ALBUM_SEARCH_TEST_DATA.category);
+        
+        const { siteId, contentId, albumName, authorName, contentDescription } = await contentManagementHelper.createAlbum(newSiteName, categoryObj, 'beach.jpg');
 
-        const { siteId, contentId, eventName, authorName, contentDescription } = await contentManagementHelper.createEvent(newSiteName, categoryObj, { contentType: testData.content });
-
-        // 4. UI Search for the event
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(eventName, {
-          stepInfo: `Searching with term "${eventName}" and intent is to find the event`,
+        // 5. UI Search for the album
+        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(albumName, {
+          stepInfo: `Searching with term "${albumName}" and intent is to find the content`,
         });
 
-        // 5. Get the content result item using ContentListComponent
-        const resultLocator = await globalSearchResultPage.getEventResultItemExactlyMatchingTheSearchTerm(eventName);
+        // 6. Get the content result item using ContentListComponent
+        const resultLocator = await globalSearchResultPage.getAlbumResultItemExactlyMatchingTheSearchTerm(albumName);
         const contentResultItem = new ContentListComponent(resultLocator.page, resultLocator.rootLocator);
 
-        //verifying event results
-        await contentResultItem.verifyNameIsDisplayed(eventName);
-        await contentResultItem.verifyLabelIsDisplayed(testData.label);
-        await contentResultItem.verifyEventCalendarThumbnailIsDisplayed(getTodayDateIsoString());
+        //verifying album results
+        await contentResultItem.verifyNameIsDisplayed(albumName);
+        await contentResultItem.verifyLabelIsDisplayed(ALBUM_SEARCH_TEST_DATA.label);
+        await contentResultItem.verifyThumbnailIsDisplayed();
         await contentResultItem.verifyDescriptionIsDisplayed(contentDescription);
         await contentResultItem.verifyAuthorIsDisplayed(authorName);
-        await contentResultItem.verifyEventDateIsDisplayed(getTodayDateIsoString(), getTomorrowDateIsoString());
-        await contentResultItem.verifyCalendarIconIsDisplayed();
-        await contentResultItem.verifyNavigationToTitleLink(contentId,eventName,EVENT_SEARCH_TEST_DATA.content);
+        await contentResultItem.verifyDateIsDisplayed();
+        await contentResultItem.verifyAlbumIconIsDisplayed();
+        await contentResultItem.verifyNavigationToTitleLink(contentId,albumName,ALBUM_SEARCH_TEST_DATA.content);
         await contentResultItem.goBackToPreviousPage();
         await contentResultItem.verifyNavigationWithSiteLink(siteId, newSiteName);
         await contentResultItem.goBackToPreviousPage();
         await contentResultItem.hoverOverCardAndCopyLink();
         await contentResultItem.verifyCopiedURL(contentId);
         await contentResultItem.goBackToPreviousPage();
-        await contentResultItem.verifyNavigationWithCalendarLink(contentId);
+        await contentResultItem.verifyNavigationWithThumbnailLink(contentId);
         await contentResultItem.goBackToPreviousPage();
         await contentResultItem.verifyNavigationWithAuthorLink(authorName);
         await contentResultItem.goBackToPreviousPage();
@@ -65,4 +67,4 @@ test.describe(
       }
     );
   }
-);
+); 

@@ -17,3 +17,9 @@ export const EVENT_SEARCH_TEST_DATA: ContentSearchTestCase = {
   content: 'event',
   category: 'Uncategorized',
 };
+
+export const ALBUM_SEARCH_TEST_DATA: ContentSearchTestCase = {
+  label: 'Album',
+  content: 'album',
+  category: 'Uncategorized',
+};

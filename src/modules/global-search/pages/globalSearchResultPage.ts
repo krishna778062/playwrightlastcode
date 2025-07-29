@@ -6,7 +6,7 @@ import { SiteListComponent } from '@/src/modules/global-search/components/siteLi
 import { TileListComponent } from '../components/tileListComponent';
 import { test } from '@playwright/test';
 
-export class GlobalSearchResultPage extends BasePage<any, any> {
+export class GlobalSearchResultPage extends BasePage {
   readonly resultListingComponent: ResultListingComponent;
   readonly siteListingComponent: SiteListComponent;
   readonly searchResultListContainer: Locator;
@@ -14,6 +14,7 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
   readonly siteResultItems: Locator;
   readonly pageResultItems: Locator;
   readonly eventResultItems: Locator;
+  readonly albumResultItems: Locator;
   readonly tileButton: Locator;
 
   constructor(page: Page) {
@@ -27,6 +28,9 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
     });
     this.pageResultItems = this.searchResultListItems.filter({
       has: this.page.getByTestId('i-page'),
+    });
+    this.albumResultItems = this.searchResultListItems.filter({
+      has: this.page.getByTestId('i-albums'),
     });
     this.tileButton = this.page.getByRole('button', { name: 'Tiles' });
 
@@ -89,7 +93,7 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
     } catch (error) {
       // If the verification fails, check if the "Search for an exact match" checkbox is visible and click it
       const exactMatchCheckbox = this.page.getByRole('checkbox', { name: 'Search for an exact match' });
-      await exactMatchCheckbox.waitFor({ state: 'visible', timeout: 5000 });
+      await exactMatchCheckbox.waitFor({ state: 'visible', timeout: 50_000 });
       await exactMatchCheckbox.click();
       // Retry the verification after clicking the checkbox
       await verificationFn();
@@ -173,7 +177,28 @@ export class GlobalSearchResultPage extends BasePage<any, any> {
           has: this.page.locator('h2', { hasText: searchTerm }),
         });
         await this.handleExactMatchCheckboxRetry(async () => {
-          await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 40_000 });
+          await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 50_000 });
+        });
+        return new ResultListingComponent(this.page, contentResultToLocate);
+      }
+    );
+  }
+
+  /**
+   * Get the album result item exactly matching the search term
+   * @param searchTerm - the search term
+   * @returns the content result item
+   */
+  async getAlbumResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
+    return await test.step(
+      `Getting event result item matching the search term "${searchTerm}"`,
+      async () => {
+        await this.waitUntilSearchResultListIsDisplayed();
+        const contentResultToLocate = this.albumResultItems.filter({
+          has: this.page.locator('h2', { hasText: searchTerm }),
+        });
+        await this.handleExactMatchCheckboxRetry(async () => {
+          await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 60_000 });
         });
         return new ResultListingComponent(this.page, contentResultToLocate);
       }
