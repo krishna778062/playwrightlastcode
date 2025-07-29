@@ -4,4 +4,5 @@ export enum GlobalSearchTestSuite {
   SITE_SEARCH = '@site-search',
   CONTENT_SEARCH = '@content-search',
   LINK_TILE_SEARCH = '@tile-search',
+  APPS_SEARCH = '@apps-search',
 }

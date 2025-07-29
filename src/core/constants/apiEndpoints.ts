@@ -55,4 +55,8 @@ export const API_ENDPOINTS = {
     create: (siteId: string) => `/v1/content/sites/${siteId}/tiles`,
     delete: (siteId: string, tileId: string) => `/v1/content/sites/${siteId}/tiles/${tileId}`,
   },
+  apps: {
+    settings: '/v1/account/apps-links-settings',
+    list: '/v1/account/launchpad/apps/list',
+  },
 } as const;
