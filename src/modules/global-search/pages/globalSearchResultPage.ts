@@ -4,6 +4,7 @@ import { TIMEOUTS } from '../../../core/constants/timeouts';
 import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
 import { TileListComponent } from '../components/tileListComponent';
+import { AppContainerComponent } from '../components/appListComponent';
 import { test } from '@playwright/test';
 
 export class GlobalSearchResultPage extends BasePage {
@@ -16,6 +17,7 @@ export class GlobalSearchResultPage extends BasePage {
   readonly eventResultItems: Locator;
   readonly albumResultItems: Locator;
   readonly tileButton: Locator;
+  readonly appResultContainer: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -37,6 +39,8 @@ export class GlobalSearchResultPage extends BasePage {
     this.eventResultItems = this.searchResultListItems.filter({
       has: this.page.getByTestId('i-calendar'),
     });
+
+    this.appResultContainer = this.page.locator("div[class*='AppItemList_appListTopWrapper']");
   }
 
   get actions(): any {
@@ -71,6 +75,14 @@ export class GlobalSearchResultPage extends BasePage {
    */
   async isSearchResultListDisplayed() {
     return await this.verifier.verifyTheElementIsVisible(this.searchResultListContainer, { timeout: 50000 });
+  }
+
+  /**
+   * Verify that the app result list is displayed
+   * @returns true if the app result list is displayed, false otherwise
+   */
+  async isAppResultDisplayed() {
+    return await this.verifier.verifyTheElementIsVisible(this.appResultContainer, { timeout: 50000 });
   }
 
   /**
@@ -148,19 +160,16 @@ export class GlobalSearchResultPage extends BasePage {
    * @returns the content result item
    */
   async getPageResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
-    return await test.step(
-      `Getting page result item matching the search term "${searchTerm}"`,
-      async () => {
-        await this.waitUntilSearchResultListIsDisplayed();
-        const contentResultToLocate = this.pageResultItems.filter({
-          has: this.page.locator('h2', { hasText: searchTerm }),
-        });
-        await this.handleExactMatchCheckboxRetry(async () => {
-          await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 40_000 });
-        });
-        return new ResultListingComponent(this.page, contentResultToLocate);
-      }
-    );
+    return await test.step(`Getting page result item matching the search term "${searchTerm}"`, async () => {
+      await this.waitUntilSearchResultListIsDisplayed();
+      const contentResultToLocate = this.pageResultItems.filter({
+        has: this.page.locator('h2', { hasText: searchTerm }),
+      });
+      await this.handleExactMatchCheckboxRetry(async () => {
+        await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 40_000 });
+      });
+      return new ResultListingComponent(this.page, contentResultToLocate);
+    });
   }
 
   /**
@@ -169,19 +178,16 @@ export class GlobalSearchResultPage extends BasePage {
    * @returns the content result item
    */
   async getEventResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
-    return await test.step(
-      `Getting event result item matching the search term "${searchTerm}"`,
-      async () => {
-        await this.waitUntilSearchResultListIsDisplayed();
-        const contentResultToLocate = this.eventResultItems.filter({
-          has: this.page.locator('h2', { hasText: searchTerm }),
-        });
-        await this.handleExactMatchCheckboxRetry(async () => {
-          await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 50_000 });
-        });
-        return new ResultListingComponent(this.page, contentResultToLocate);
-      }
-    );
+    return await test.step(`Getting event result item matching the search term "${searchTerm}"`, async () => {
+      await this.waitUntilSearchResultListIsDisplayed();
+      const contentResultToLocate = this.eventResultItems.filter({
+        has: this.page.locator('h2', { hasText: searchTerm }),
+      });
+      await this.handleExactMatchCheckboxRetry(async () => {
+        await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 50_000 });
+      });
+      return new ResultListingComponent(this.page, contentResultToLocate);
+    });
   }
 
   /**
@@ -190,19 +196,16 @@ export class GlobalSearchResultPage extends BasePage {
    * @returns the content result item
    */
   async getAlbumResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
-    return await test.step(
-      `Getting event result item matching the search term "${searchTerm}"`,
-      async () => {
-        await this.waitUntilSearchResultListIsDisplayed();
-        const contentResultToLocate = this.albumResultItems.filter({
-          has: this.page.locator('h2', { hasText: searchTerm }),
-        });
-        await this.handleExactMatchCheckboxRetry(async () => {
-          await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 60_000 });
-        });
-        return new ResultListingComponent(this.page, contentResultToLocate);
-      }
-    );
+    return await test.step(`Getting event result item matching the search term "${searchTerm}"`, async () => {
+      await this.waitUntilSearchResultListIsDisplayed();
+      const contentResultToLocate = this.albumResultItems.filter({
+        has: this.page.locator('h2', { hasText: searchTerm }),
+      });
+      await this.handleExactMatchCheckboxRetry(async () => {
+        await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 60_000 });
+      });
+      return new ResultListingComponent(this.page, contentResultToLocate);
+    });
   }
 
   async getTileResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
@@ -221,5 +224,18 @@ export class GlobalSearchResultPage extends BasePage {
     });
 
     return new TileListComponent(this.page, tileResultToLocate, searchTerm);
+  }
+
+  /**
+   * Get the app result item exactly matching the search term
+   * @param searchTerm - the search term
+   * @returns the app result item
+   */
+  async getAppResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
+    await this.isAppResultDisplayed();
+    const appResultToLocate = this.appResultContainer.locator('a').filter({
+      has: this.page.locator('h3', { hasText: searchTerm }),
+    });
+    return new AppContainerComponent(this.page, appResultToLocate);
   }
 }

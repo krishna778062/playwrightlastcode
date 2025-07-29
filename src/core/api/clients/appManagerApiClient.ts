@@ -7,6 +7,7 @@ import { SiteManagementService } from '../services/SiteManagementService';
 import { TileManagementService } from '../services/TileManagementService';
 import { ContentManagementService } from '../services/ContentManagementService';
 import { ImageUploaderService } from '../services/ImageUploaderService';
+import { AppsManagementService } from '../services/AppsManagementService';
 
 export class AppManagerApiClient extends BaseApiClient {
   private readonly chatService: ChatService;
@@ -16,6 +17,8 @@ export class AppManagerApiClient extends BaseApiClient {
   private readonly contentManagementService: ContentManagementService;
   private readonly tileManagementService: TileManagementService;
   private readonly imageUploaderService: ImageUploaderService;
+  private readonly appsManagementService: AppsManagementService;
+
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
     this.chatService = new ChatService(context, baseUrl);
@@ -25,6 +28,7 @@ export class AppManagerApiClient extends BaseApiClient {
     this.tileManagementService = new TileManagementService(context, baseUrl);
     this.contentManagementService = new ContentManagementService(context, baseUrl || '');
     this.imageUploaderService = new ImageUploaderService(this, context);
+    this.appsManagementService = new AppsManagementService(context, baseUrl);
   }
 
   getChatService(): ChatService {
@@ -53,5 +57,9 @@ export class AppManagerApiClient extends BaseApiClient {
 
   getImageUploaderService(): ImageUploaderService {
     return this.imageUploaderService;
+  }
+
+  getAppsManagementService(): AppsManagementService {
+    return this.appsManagementService;
   }
 }
