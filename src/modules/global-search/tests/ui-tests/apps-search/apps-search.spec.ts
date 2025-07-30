@@ -1,8 +1,9 @@
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
-import { tagTest } from '@core/utils/testDecorator';
 import { TestPriority } from '@core/constants/testPriority';
-import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
 import { TestGroupType } from '@core/constants/testType';
+import { tagTest } from '@core/utils/testDecorator';
+
+import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
+import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { generateUniqueTestData } from '@/src/modules/global-search/test-data/apps-search.test-data';
 
 test.describe(

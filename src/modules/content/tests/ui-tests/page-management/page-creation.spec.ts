@@ -1,13 +1,15 @@
-import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { tagTest } from '@core/utils/testDecorator';
+import { faker } from '@faker-js/faker';
+
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
-import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+import { tagTest } from '@core/utils/testDecorator';
+
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
+import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
+import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
-import { faker } from '@faker-js/faker';
+import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
   '@PageCreation',

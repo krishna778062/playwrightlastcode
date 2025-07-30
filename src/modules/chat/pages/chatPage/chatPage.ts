@@ -1,9 +1,10 @@
-import { Locator, Page, expect, test } from '@playwright/test';
-import { ChatPageBase } from '@/src/modules/chat/pages/chatPage/chatPageBase';
+import { expect, Locator, Page, test } from '@playwright/test';
+
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
-import { MessageReplyThreadComponent } from '@/src/modules/chat/components/messageReplyThreadComponent';
 import { IncomingAudioVideoCallComponent } from '@/src/modules/chat/components/incomingAudioVideoCallComponent';
+import { MessageReplyThreadComponent } from '@/src/modules/chat/components/messageReplyThreadComponent';
 import { AudioVideoCallPage } from '@/src/modules/chat/pages/audioVideoCallPage/audioVideoCallPage';
+import { ChatPageBase } from '@/src/modules/chat/pages/chatPage/chatPageBase';
 
 export interface IChatActions {
   sendMessage: (message: string, options?: { stepInfo?: string }) => Promise<void>;
@@ -56,24 +57,33 @@ export interface IChatActions {
 }
 
 export interface IChatAssertions {
-  verifyUserIsAbleToAddAndDeleteAttachmentInEditor: (attachmentPath: string, options?: { stepInfo?: string }) => Promise<void>;
+  verifyUserIsAbleToAddAndDeleteAttachmentInEditor: (
+    attachmentPath: string,
+    options?: { stepInfo?: string }
+  ) => Promise<void>;
   verifyMessageIsVisible: (message: string, options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
   verifyUnsupportedFileHandling: (options?: { stepInfo?: string }) => Promise<void>;
-  verifyIncomingCallIsReceivedFromCallerInGroupChat: (groupName: string, callType: 'audio' | 'video', options?: { stepInfo?: string }) => Promise<IncomingAudioVideoCallComponent>;
+  verifyIncomingCallIsReceivedFromCallerInGroupChat: (
+    groupName: string,
+    callType: 'audio' | 'video',
+    options?: { stepInfo?: string }
+  ) => Promise<IncomingAudioVideoCallComponent>;
   verifyTheMessageAppearsDeleted: (messageID: string, options?: { stepInfo?: string }) => Promise<void>;
-  verifyMessageIsPresentInMentionsSection: (groupName: string, message: string, senderName: string, options?: { stepInfo?: string }) => Promise<void>;
+  verifyMessageIsPresentInMentionsSection: (
+    groupName: string,
+    message: string,
+    senderName: string,
+    options?: { stepInfo?: string }
+  ) => Promise<void>;
 }
 
-
-export class ChatAppPage extends ChatPageBase implements IChatActions,IChatAssertions {
-  
+export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAssertions {
   get actions(): IChatActions {
     return this as IChatActions;
   }
   get assertions(): IChatAssertions {
     return this as IChatAssertions;
   }
-
 
   constructor(page: Page) {
     super(page);
@@ -469,7 +479,8 @@ export class ChatAppPage extends ChatPageBase implements IChatActions,IChatAsser
    */
   async getDataMessageId(message: string, options?: { stepInfo?: string }): Promise<string> {
     return await test.step(options?.stepInfo ?? `Getting data message id for message ${message}`, async () => {
-      const messageId = await this.getConversationWindowComponent().getFocusedMessageCardIdFromListOfChatMessages(message);
+      const messageId =
+        await this.getConversationWindowComponent().getFocusedMessageCardIdFromListOfChatMessages(message);
       if (!messageId) {
         throw new Error(`Message ${message} not found in chat`);
       }
@@ -539,11 +550,11 @@ export class ChatAppPage extends ChatPageBase implements IChatActions,IChatAsser
         stepInfo: `User 1 Verifying the unsupported file message is visible`,
       });
       //verify user is able to click on ok button to close the unsupported file message
-      await this
-        .getUnsupportedFileMessageDialogBoxComponent()
-        .clickOnOkButtonToCloseTheUnsupportedFileMessageDialogBox({
+      await this.getUnsupportedFileMessageDialogBoxComponent().clickOnOkButtonToCloseTheUnsupportedFileMessageDialogBox(
+        {
           stepInfo: `User 1 Clicking on ok button to close the unsupported file message`,
-        });
+        }
+      );
       //verify the unsupported file message is not visible
       await this.getUnsupportedFileMessageDialogBoxComponent().verifyTheUnsupportedFileMessageIsNotVisible({
         stepInfo: `User 1 Verifying the unsupported file message is not visible`,
@@ -571,8 +582,7 @@ export class ChatAppPage extends ChatPageBase implements IChatActions,IChatAsser
       options?.stepInfo ??
         `Verifying current user sees notification/popup for incoming ${callType} call from group name ${groupName}`,
       async () => {
-        return await this
-          .getConversationWindowComponent()
+        return await this.getConversationWindowComponent()
           .getIncomingAudioVideoCallComponent()
           .verifyIncomingCallIsReceivedFromCaller(groupName, callType, {
             isGroupChat: true,

@@ -1,5 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+
 import { MessageEmojis } from '@core/constants/messageEmojis';
+
 import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class MessageBaseComponent extends BaseComponent {

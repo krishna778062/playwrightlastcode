@@ -1,16 +1,16 @@
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
-import { tagTest } from '@core/utils/testDecorator';
 import { TestPriority } from '@core/constants/testPriority';
-import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
 import { TestGroupType } from '@core/constants/testType';
+import { tagTest } from '@core/utils/testDecorator';
+
+import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
+import { SEARCH_RESULT_ITEM, SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
+import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
+import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import {
   LINK_TILE_SEARCH_TEST_DATA,
   PREDEFINED_LINKS,
   TILE_NUMBER_OF_LINKS,
 } from '@/src/modules/global-search/test-data/link-tile-search.test-data';
-import { SEARCH_RESULT_ITEM, SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
-import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
-
 
 for (const numberOfLinks of TILE_NUMBER_OF_LINKS) {
   test.describe(
@@ -23,50 +23,47 @@ for (const numberOfLinks of TILE_NUMBER_OF_LINKS) {
       let tileId: string;
       let newSiteName: string;
 
-      test.beforeEach(
-        'Setting up the test environment for link tile search',
-        async ({ appManagerApiClient }) => {
-          try {
-            // Creating a new site
-            const randomNum = Math.floor(Math.random() * 1000000 + 1);
-            newSiteName = `AutomateUI_Test_${randomNum}`;
+      test.beforeEach('Setting up the test environment for link tile search', async ({ appManagerApiClient }) => {
+        try {
+          // Creating a new site
+          const randomNum = Math.floor(Math.random() * 1000000 + 1);
+          newSiteName = `AutomateUI_Test_${randomNum}`;
 
-            const categoryObj = await appManagerApiClient
-              .getSiteManagementService()
-              .getCategoryId(SEARCH_RESULT_ITEM.CATEGORY);
+          const categoryObj = await appManagerApiClient
+            .getSiteManagementService()
+            .getCategoryId(SEARCH_RESULT_ITEM.CATEGORY);
 
-            const siteResult = await appManagerApiClient.getSiteManagementService().addNewSite({
-              access: SITE_TYPES.PUBLIC,
-              name: newSiteName,
-              category: {
-                categoryId: categoryObj.categoryId,
-                name: categoryObj.name,
-              },
-            });
+          const siteResult = await appManagerApiClient.getSiteManagementService().addNewSite({
+            access: SITE_TYPES.PUBLIC,
+            name: newSiteName,
+            category: {
+              categoryId: categoryObj.categoryId,
+              name: categoryObj.name,
+            },
+          });
 
-            newSiteId = siteResult.siteId;
-            console.log(`Created site: ${newSiteName} with ID: ${newSiteId}`);
+          newSiteId = siteResult.siteId;
+          console.log(`Created site: ${newSiteName} with ID: ${newSiteId}`);
 
-            // Creating a new tile
-            const tileResponse = await appManagerApiClient
-              .getTileManagementService()
-              .createTile(newSiteId, LINK_TILE_SEARCH_TEST_DATA.tileTitle, numberOfLinks, PREDEFINED_LINKS);
+          // Creating a new tile
+          const tileResponse = await appManagerApiClient
+            .getTileManagementService()
+            .createTile(newSiteId, LINK_TILE_SEARCH_TEST_DATA.tileTitle, numberOfLinks, PREDEFINED_LINKS);
 
-            tileId = tileResponse.result.id;
-            console.log(`Created tile: ${LINK_TILE_SEARCH_TEST_DATA.tileTitle} with ID: ${tileId}`);
-            //wait until the search api starts showing the newly created site in results
-            await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
-              appManagerApiClient,
-              LINK_TILE_SEARCH_TEST_DATA.tileTitle,
-              LINK_TILE_SEARCH_TEST_DATA.tileTitle,
-              'tiles'
-            );
-          } catch (error) {
-            console.error('Failed to set up test environment:', error);
-            throw error;
-          }
+          tileId = tileResponse.result.id;
+          console.log(`Created tile: ${LINK_TILE_SEARCH_TEST_DATA.tileTitle} with ID: ${tileId}`);
+          //wait until the search api starts showing the newly created site in results
+          await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
+            appManagerApiClient,
+            LINK_TILE_SEARCH_TEST_DATA.tileTitle,
+            LINK_TILE_SEARCH_TEST_DATA.tileTitle,
+            'tiles'
+          );
+        } catch (error) {
+          console.error('Failed to set up test environment:', error);
+          throw error;
         }
-      );
+      });
 
       test.afterEach('Tearing down the test environment for link tile search', async ({ appManagerApiClient }) => {
         // Clean up tile first (if it was created)
@@ -95,7 +92,7 @@ for (const numberOfLinks of TILE_NUMBER_OF_LINKS) {
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE],
         },
-        async ({appManagerHomePage }) => {
+        async ({ appManagerHomePage }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-12408',
             storyId: 'SEN-12305',

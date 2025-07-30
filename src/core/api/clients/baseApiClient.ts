@@ -1,7 +1,9 @@
 import { APIRequestContext, Cookie, Page, request } from '@playwright/test';
 import fs from 'fs';
-import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
+
 import { ApiError } from '@core/api/apiError';
+import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
+
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 
 export abstract class BaseApiClient extends HttpClient {

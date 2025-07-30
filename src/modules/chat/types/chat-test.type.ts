@@ -1,7 +1,8 @@
-import { TestUser } from '@core/types/test.types';
-import { Roles } from '@core/constants/roles';
-import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { ChatGroupTestDataBuilder } from '@chat/test-data-builders/ChatGroupTestDataBuilder';
+import { Roles } from '@core/constants/roles';
+import { TestUser } from '@core/types/test.types';
+
+import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 
 export interface ChatTestUser extends TestUser {
   chatUserId: string;

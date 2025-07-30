@@ -1,9 +1,10 @@
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
+
 import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
+import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
+import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { PAGE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
 
 test.describe(
@@ -29,7 +30,11 @@ test.describe(
         const siteName = `AutomateUI_Test_${randomNum}`;
         const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
 
-        const { siteId, contentId, pageName, authorName, contentDescription } = await contentManagementHelper.createPage(siteName, categoryObj, { contentType: testData.content, contentSubType: testData.contentType!});
+        const { siteId, contentId, pageName, authorName, contentDescription } =
+          await contentManagementHelper.createPage(siteName, categoryObj, {
+            contentType: testData.content,
+            contentSubType: testData.contentType!,
+          });
 
         // 4. UI Search for the page
         const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(pageName, {
@@ -48,7 +53,7 @@ test.describe(
         await contentResultItem.verifyAuthorIsDisplayed(authorName);
         await contentResultItem.verifyDateIsDisplayed();
         await contentResultItem.verifyPageIconIsDisplayed();
-        await contentResultItem.verifyNavigationToTitleLink(contentId,pageName,PAGE_SEARCH_TEST_DATA.content);
+        await contentResultItem.verifyNavigationToTitleLink(contentId, pageName, PAGE_SEARCH_TEST_DATA.content);
         await contentResultItem.goBackToPreviousPage();
         await contentResultItem.verifyNavigationWithSiteLink(siteId, siteName);
         await contentResultItem.goBackToPreviousPage();

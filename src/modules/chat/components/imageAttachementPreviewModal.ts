@@ -1,5 +1,6 @@
-import { BaseComponent } from '@core/components/baseComponent';
 import { Locator, Page, test } from '@playwright/test';
+
+import { BaseComponent } from '@core/components/baseComponent';
 
 export class ImageAttachementPreviewModal extends BaseComponent {
   readonly imageAttachementPreviewModalContainer: Locator;

@@ -1,5 +1,7 @@
+import { expect, Locator, Page, test } from '@playwright/test';
+
 import { ResultListingComponent } from './resultsListComponent';
-import { Locator, Page, test, expect } from '@playwright/test';
+
 import { getTodayFormattedDate } from '@/src/core/utils/dateUtil';
 import { getEventDateDisplayText } from '@/src/core/utils/dateUtil';
 
@@ -16,10 +18,10 @@ export class ContentListComponent extends ResultListingComponent {
   readonly resultList: Locator;
   readonly pageIcon: Locator;
   readonly userText: Locator;
-  readonly dayText:Locator;
-  readonly monthText:Locator;
-  readonly calendarIcon:Locator;
-  readonly albumIcon:Locator;
+  readonly dayText: Locator;
+  readonly monthText: Locator;
+  readonly calendarIcon: Locator;
+  readonly albumIcon: Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
@@ -100,10 +102,10 @@ export class ContentListComponent extends ResultListingComponent {
     });
   }
 
-   /**
+  /**
    * Verifies that the album icon is visible in the content result item.
    */
-   async verifyAlbumIconIsDisplayed() {
+  async verifyAlbumIconIsDisplayed() {
     await test.step(`Verifying album icon is displayed`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.albumIcon);
     });
@@ -125,12 +127,12 @@ export class ContentListComponent extends ResultListingComponent {
    */
   async verifyEventCalendarThumbnailIsDisplayed(isoDateString: string) {
     await test.step(`Verify date calendar thumbnail is displayed`, async () => {
-    // Parse the ISO date string
-    const date = new Date(isoDateString);
-    const expectedMonth = date.toLocaleString('en-US', { month: 'short' });
-    const expectedDay = date.getDate().toString();
-    await this.verifier.verifyElementHasText(this.dayText, expectedDay);
-    await this.verifier.verifyElementHasText(this.monthText, expectedMonth);
+      // Parse the ISO date string
+      const date = new Date(isoDateString);
+      const expectedMonth = date.toLocaleString('en-US', { month: 'short' });
+      const expectedDay = date.getDate().toString();
+      await this.verifier.verifyElementHasText(this.dayText, expectedDay);
+      await this.verifier.verifyElementHasText(this.monthText, expectedMonth);
     });
   }
 
@@ -146,14 +148,14 @@ export class ContentListComponent extends ResultListingComponent {
     });
   }
 
-/**
+  /**
    * Verifies that the calendar icon is visible in the content result item.
    */
-async verifyCalendarIconIsDisplayed() {
-  await test.step(`Verifying calendar icon is displayed for events`, async () => {
-    await this.verifier.verifyTheElementIsVisible(this.calendarIcon);
-  });
-}
+  async verifyCalendarIconIsDisplayed() {
+    await test.step(`Verifying calendar icon is displayed for events`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.calendarIcon);
+    });
+  }
 
   /**
    * Verifies navigation when clicking the calendar day element.

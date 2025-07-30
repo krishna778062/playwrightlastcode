@@ -1,10 +1,12 @@
+import { expect } from '@playwright/test';
+
 import { groupChatTestFixture as test } from '@chat/fixtures/groupChatFixture';
+import { ChatTestUser } from '@chat/types/chat-test.type';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestSuite } from '@core/constants/testSuite';
-import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
-import { ChatTestUser } from '@chat/types/chat-test.type';
-import { expect } from '@playwright/test';
+
 import { MessageCardComponent } from '@/src/modules/chat/components/messageCardComponent';
+import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 
 test.describe(
   'Test chat application with attachment',

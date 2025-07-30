@@ -1,6 +1,8 @@
 import { expect, Page } from '@playwright/test';
+
 import { groupChatTestFixture as test } from '@chat/fixtures/groupChatFixture';
 import { ChatTestUser } from '@chat/types/chat-test.type';
+
 import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 
 test.describe('Group Chat Mentions', () => {

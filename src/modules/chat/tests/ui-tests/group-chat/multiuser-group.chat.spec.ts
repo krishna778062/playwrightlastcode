@@ -1,10 +1,11 @@
 import { groupChatTestFixture as test } from '@chat/fixtures/groupChatFixture';
 import { MultiUserChatTestHelper } from '@chat/helpers/multiUserChatTestHelper';
-import { MessageEmojis } from '@core/constants/messageEmojis';
 import { CHAT_TEST_DATA } from '@chat/test-data/chat.test-data';
+import { ChatTestUser } from '@chat/types/chat-test.type';
+import { MessageEmojis } from '@core/constants/messageEmojis';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { ChatTestUser } from '@chat/types/chat-test.type';
+
 import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 
 test.describe('Group Chat with multiple users', { tag: ['@group-chat'] }, () => {

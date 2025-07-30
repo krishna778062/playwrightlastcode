@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+
 import { User } from '@core/types/user.type';
 
 export class TestDataGenerator {

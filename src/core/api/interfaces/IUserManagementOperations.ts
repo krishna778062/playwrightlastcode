@@ -1,6 +1,6 @@
-import { User } from '@core/types/user.type';
-import { AddUserResponse } from '@core/types/group.type';
 import { Roles } from '@core/constants/roles';
+import { AddUserResponse } from '@core/types/group.type';
+import { User } from '@core/types/user.type';
 
 export interface IUserManagementOperations {
   /**

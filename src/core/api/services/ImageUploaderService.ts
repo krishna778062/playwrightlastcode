@@ -1,11 +1,15 @@
-import { IImageUploaderService } from '@/src/core/api/interfaces/IImageUploaderService';
 import { APIRequestContext, test } from '@playwright/test';
+
+import { HttpClient } from '@/src/core/api/clients/httpClient';
+import { IImageUploaderService } from '@/src/core/api/interfaces/IImageUploaderService';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { FileUtil } from '@/src/core/utils/fileUtil';
-import { HttpClient } from '@/src/core/api/clients/httpClient';
 
 export class ImageUploaderService implements IImageUploaderService {
-  constructor(private apiClient: HttpClient, private request: APIRequestContext) {}
+  constructor(
+    private apiClient: HttpClient,
+    private request: APIRequestContext
+  ) {}
 
   /**
    * Gets a signed URL from the API for file uploads.
@@ -71,4 +75,4 @@ export class ImageUploaderService implements IImageUploaderService {
     await this.uploadFileToSignedUrl(uploadUrl, filePath, fileName);
     return fileId;
   }
-} 
+}

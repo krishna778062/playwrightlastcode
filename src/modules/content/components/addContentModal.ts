@@ -1,9 +1,11 @@
 import { Locator, Page, test } from '@playwright/test';
-import { BaseComponent } from '@/src/core/components/baseComponent';
-import { PageCreationPage } from '../pages/pageCreationPage';
+
+import { ContentType } from '../constants/contentType';
 import { AlbumCreationPage } from '../pages/albumCreationPage';
 import { EventCreationPage } from '../pages/eventCreationPage';
-import { ContentType } from '../constants/contentType';
+import { PageCreationPage } from '../pages/pageCreationPage';
+
+import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class AddContentModalComponent extends BaseComponent {
   readonly recentlyUsedSitesList: Locator;
@@ -23,7 +25,7 @@ export class AddContentModalComponent extends BaseComponent {
   constructor(page: Page) {
     super(page);
     // Initialize locators - these would need to be updated based on actual DOM structure
-  
+
     this.recentlyUsedSitesList = page.locator("//div[text()='Recently used ']/button");
     this.addSpan = page.locator("//span[text()='Add']");
     this.cancelButton = page.getByRole('button', { name: 'Cancel' });

@@ -1,4 +1,5 @@
 import { test } from '@playwright/test';
+
 import { TestPriority } from '@core/constants/testPriority';
 import { TestSuite } from '@core/constants/testSuite';
 import { LoginHelper } from '@core/helpers/loginHelper';

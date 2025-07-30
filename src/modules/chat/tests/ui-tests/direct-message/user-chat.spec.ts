@@ -1,9 +1,10 @@
 import { dmTestFixture as test } from '@chat/fixtures/dmFixture';
-import { tagTest } from '@core/utils/testDecorator';
-import { TestPriority } from '@core/constants/testPriority';
 import { CHAT_TEST_DATA } from '@chat/test-data/chat.test-data';
-import { TestGroupType } from '@core/constants/testType';
 import { ChatTestUser } from '@chat/types/chat-test.type';
+import { TestPriority } from '@core/constants/testPriority';
+import { TestGroupType } from '@core/constants/testType';
+import { tagTest } from '@core/utils/testDecorator';
+
 import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 
 test.describe('Direct Message between multiple users', { tag: ['@direct-message'] }, () => {

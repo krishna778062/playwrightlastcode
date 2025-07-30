@@ -1,6 +1,7 @@
+import { TestInfo } from '@playwright/test';
+
 import { getStoryUrl, getZephyrTestCaseUrl } from '../constants/testInfraConfig';
 import { TestMetadata } from '../constants/testMetaData';
-import { TestInfo } from '@playwright/test';
 
 /**
  * This function is used to add the test metadata to the test case.
