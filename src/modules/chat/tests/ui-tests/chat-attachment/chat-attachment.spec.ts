@@ -3,15 +3,15 @@ import { expect } from '@playwright/test';
 import { groupChatTestFixture as test } from '@chat/fixtures/groupChatFixture';
 import { ChatTestUser } from '@chat/types/chat-test.type';
 import { TestPriority } from '@core/constants/testPriority';
-import { TestSuite } from '@core/constants/testSuite';
 
 import { MessageCardComponent } from '@/src/modules/chat/components/messageCardComponent';
+import { CHAT_SUITE_TAGS } from '@/src/modules/chat/constants/testTags';
 import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 
 test.describe(
   'Test chat application with attachment',
   {
-    tag: [TestSuite.CHAT_ATTACHMENT],
+    tag: [CHAT_SUITE_TAGS.CHAT_ATTACHMENT],
   },
   () => {
     let user1: ChatTestUser;
@@ -43,7 +43,7 @@ test.describe(
     test(
       'Verify sending unsupported files format',
       {
-        tag: [TestPriority.P0, '@chat-attachment'],
+        tag: [TestPriority.P0],
       },
       async () => {
         const user2Name = user2.fullName;
@@ -67,7 +67,7 @@ test.describe(
     test(
       'Verify sending a file larger than 100 MB',
       {
-        tag: [TestPriority.P0, '@chat-attachment'],
+        tag: [TestPriority.P0],
       },
       async () => {
         const user2Name = user2.fullName;
@@ -84,7 +84,7 @@ test.describe(
     test(
       'verify user can attach upto 10 files in message successfully',
       {
-        tag: [TestPriority.P0, '@chat-attachment'],
+        tag: [TestPriority.P0],
       },
       async () => {
         const user2Name = user2.fullName;
@@ -110,7 +110,7 @@ test.describe(
     test(
       'verify user can not attach more than 10 files in message and on doing that it shows error message',
       {
-        tag: [TestPriority.P0, '@chat-attachment'],
+        tag: [TestPriority.P0],
       },
       async () => {
         const user2Name = user2.fullName;
@@ -141,7 +141,7 @@ test.describe(
     test(
       'Verify viewing image attachment',
       {
-        tag: [TestPriority.P0, '@chat-attachment'],
+        tag: [TestPriority.P0],
       },
       async ({ user1Page }) => {
         const user2Name = user2.fullName;
@@ -177,7 +177,7 @@ test.describe(
     test(
       'Verify attachment deletion before sending',
       {
-        tag: [TestPriority.P0, '@chat-attachment'],
+        tag: [TestPriority.P0],
       },
       async () => {
         const user2Name = user2.fullName; //now open conversation with user 2
@@ -197,7 +197,7 @@ test.describe(
     test(
       'Verify sending video attachment',
       {
-        tag: [TestPriority.P0, '@chat-attachment'],
+        tag: [TestPriority.P0],
       },
       async () => {
         const user2Name = user2.fullName;

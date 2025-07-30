@@ -2,14 +2,14 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
+import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { generateUniqueTestData } from '@/src/modules/global-search/test-data/apps-search.test-data';
 
 test.describe(
   'Test Global Search - Apps Search functionality',
   {
-    tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.APPS_SEARCH],
+    tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.APPS_SEARCH],
   },
   () => {
     let originalAppsSettings: any;

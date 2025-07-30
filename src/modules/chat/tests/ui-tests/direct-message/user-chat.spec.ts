@@ -1,3 +1,4 @@
+import { CHAT_SUITE_TAGS } from '@chat/constants/testTags';
 import { dmTestFixture as test } from '@chat/fixtures/dmFixture';
 import { CHAT_TEST_DATA } from '@chat/test-data/chat.test-data';
 import { ChatTestUser } from '@chat/types/chat-test.type';
@@ -7,7 +8,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 
-test.describe('Direct Message between multiple users', { tag: ['@direct-message'] }, () => {
+test.describe('Direct Message between multiple users', { tag: [CHAT_SUITE_TAGS.DIRECT_MESSAGE] }, () => {
   let user1: ChatTestUser;
   let user2: ChatTestUser;
   let user1ChatPage: ChatAppPage;

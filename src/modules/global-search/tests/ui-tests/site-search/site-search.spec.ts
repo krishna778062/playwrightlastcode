@@ -5,7 +5,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
 import { SEARCH_RESULT_ITEM } from '@/src/modules/global-search/constants/siteTypes';
-import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
+import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { SITE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/site-search.test-data';
 
@@ -13,7 +13,7 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
   test.describe(
     `Global Search - Site Search`,
     {
-      tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.SITE_SEARCH],
+      tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.SITE_SEARCH],
     },
     () => {
       let newSiteId: string;

@@ -4,7 +4,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import { SEARCH_RESULT_ITEM, SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
-import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
+import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import {
   LINK_TILE_SEARCH_TEST_DATA,
@@ -16,7 +16,7 @@ for (const numberOfLinks of TILE_NUMBER_OF_LINKS) {
   test.describe(
     `Test Global Search - Link Tile Search functionality`,
     {
-      tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.LINK_TILE_SEARCH],
+      tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.LINK_TILE_SEARCH],
     },
     () => {
       let newSiteId: string;
