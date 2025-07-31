@@ -32,6 +32,7 @@ A centralized, scalable, and modular end-to-end UI automation framework built wi
 | ------------------------- | ---------------------------------------------------------------------------------- |
 | `npm test`                | **Interactive test runner** (recommended for local development)                    |
 | `npm run setup`           | **One-time setup** - installs dependencies, browsers, and git hooks                |
+| `npm run create:module`   | **Create new module** - scaffolds complete module structure                        |
 | `npm run test:module`     | **Generic module runner** - `npm run test:module <module> [tags] [env] [flags...]` |
 | `npm run test:chat`       | Run chat module tests directly                                                     |
 | `npm run test:chat:P0`    | Run priority P0 chat tests                                                         |
@@ -627,6 +628,54 @@ await chatPage.conversationWindow.getChatEditorComponent().inputTextBox.fill('Ad
 - Reports are served from the `playwright-report/` directory.
 
 ## Adding a New Module
+
+### 🚀 Quick Module Creation (Recommended)
+
+The fastest way to create a new module:
+
+```sh
+npm run create:module
+```
+
+This will:
+
+- Prompt for module name
+- Create complete directory structure
+- Generate template files with proper placeholders
+- Set up environment configurations
+- Create empty directories for future use
+- Make the module immediately available to the interactive test runner
+
+**Example:**
+
+```sh
+$ npm run create:module
+
+🚀 Module Creation Tool
+
+📁 Enter module name: my-feature
+
+Creating module: my-feature
+📋 Copying template structure...
+🔄 Replacing placeholders...
+📝 Renaming files...
+📁 Creating empty directories...
+
+✅ Module 'my-feature' created successfully!
+
+📚 Next steps:
+  1. Navigate to: src/modules/my-feature/
+  2. Add your test tags in: constants/testTags.ts
+  3. Configure environments in: env/
+  4. Add your test data in: test-data/my-feature.test-data.ts
+  5. Run: npm test (to test the new module)
+
+🎯 Your module is ready for the interactive test runner!
+```
+
+### Manual Module Creation
+
+If you prefer to create modules manually:
 
 1. **Create Module Structure**: Create a new folder under `src/modules/<your-module>` following the same structure as existing modules.
 

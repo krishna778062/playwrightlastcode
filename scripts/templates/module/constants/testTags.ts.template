@@ -1,0 +1,16 @@
+export enum {{MODULE_NAME_UPPER}}_FEATURE_TAGS {
+  // Add your feature-specific tags here
+  // Example: FEATURE_A = '@feature-a',
+}
+
+export enum {{MODULE_NAME_UPPER}}_SUITE_TAGS {
+  // Add your test suite tags here
+  // Example: SMOKE = '@smoke',
+}
+
+export const {{MODULE_NAME_UPPER}}_TEST_TAGS = [
+  ...Object.values({{MODULE_NAME_UPPER}}_FEATURE_TAGS),
+  ...Object.values({{MODULE_NAME_UPPER}}_SUITE_TAGS),
+] as const;
+
+export default {{MODULE_NAME_UPPER}}_TEST_TAGS; 
