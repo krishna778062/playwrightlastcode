@@ -8,7 +8,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 
-test.describe('Direct Message between multiple users', { tag: [CHAT_SUITE_TAGS.DIRECT_MESSAGE] }, () => {
+test.describe.only('Direct Message between multiple users', { tag: [CHAT_SUITE_TAGS.DIRECT_MESSAGE] }, () => {
   let user1: ChatTestUser;
   let user2: ChatTestUser;
   let user1ChatPage: ChatAppPage;
