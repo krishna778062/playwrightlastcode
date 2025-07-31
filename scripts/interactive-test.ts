@@ -77,20 +77,16 @@ async function getTestTags(moduleName: string): Promise<string[]> {
       console.warn(`${colors.yellow}⚠️  Could not import ${moduleName} tags: ${importError.message}${colors.reset}`);
     }
 
-    // 4. Add some additional common tags if needed
-    const additionalCommonTags = ['@critical', '@api', '@ui', '@integration'];
-    tags.push(...additionalCommonTags);
-
     // Fallback if no tags were imported at all
     if (tags.length === 0) {
       console.warn(`${colors.yellow}⚠️  No tags found, using fallback tags${colors.reset}`);
-      const fallbackTags = ['@P0', '@P1', '@P2', '@smoke', '@sanity', '@regression', '@critical'];
+      const fallbackTags = ['@P0', '@P1', '@P2', '@smoke', '@sanity', '@regression'];
       tags.push(...fallbackTags);
     }
   } catch (error: any) {
     console.warn(`${colors.yellow}⚠️  Error loading tags: ${error.message}${colors.reset}`);
     // Fallback tags
-    const fallbackTags = ['@P0', '@P1', '@P2', '@smoke', '@sanity', '@regression', '@critical'];
+    const fallbackTags = ['@P0', '@P1', '@P2', '@smoke', '@sanity', '@regression'];
     tags.push(...fallbackTags);
   }
 
@@ -200,7 +196,7 @@ async function main() {
         name: 'workers',
         message: `${colors.blue}⚡ How many parallel workers?${colors.reset}`,
         choices: [
-          { name: `${colors.green}1 worker (sequential)${colors.reset}`, value: 1 },
+          { name: `${colors.green}1 worker${colors.reset}`, value: 1 },
           { name: `${colors.green}2 workers${colors.reset}`, value: 2 },
           { name: `${colors.green}4 workers${colors.reset}`, value: 4 },
           { name: `${colors.green}Auto (default)${colors.reset}`, value: null },
