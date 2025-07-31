@@ -12,6 +12,8 @@ on:
           - 'chat'
           - 'platforms'
           - 'global-search'
+          - 'content'
+          - 'platforms'
       priority_filter:
         description: 'Select test cases by priority'
         required: true
@@ -38,6 +40,8 @@ on:
         options:
           - 'qa'
           - 'uat'
+          - 'test'
+          - 'dev'
       workers:
         description: 'Number of parallel workers to run tests'
         required: true
@@ -67,6 +71,7 @@ jobs:
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       MODULE_NAME: ${{ inputs.module_name || 'chat' }}
+      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -161,6 +166,49 @@ jobs:
           echo "Report uploaded successfully!"
           echo "Latest report available at: s3://${S3_BUCKET}/${MODULE_NAME}/latest"
           echo "Timestamped report available at: s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}"
+          echo ""
+          echo "📊 Test Report Links:"
+          echo "🔗 Latest Report: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html"
+          echo "📅 Timestamped Report: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html"
+
+          # Store report links for Slack notification
+          echo "LATEST_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html" >> $GITHUB_ENV
+          echo "TIMESTAMPED_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html" >> $GITHUB_ENV
+
+      - name: Parse Test Results
+        if: always()
+        run: |
+          # Parse test results from test-results directory
+          if [ -f "test-results/test-results.json" ]; then
+            TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped' test-results/test-results.json)
+            PASSED_TESTS=$(jq -r '.stats.expected' test-results/test-results.json)
+            FAILED_TESTS=$(jq -r '.stats.unexpected' test-results/test-results.json)
+            SKIPPED_TESTS=$(jq -r '.stats.skipped' test-results/test-results.json)
+          else
+            TOTAL_TESTS=0
+            PASSED_TESTS=0
+            FAILED_TESTS=0
+            SKIPPED_TESTS=0
+          fi
+
+          echo "TOTAL_TESTS=$TOTAL_TESTS" >> $GITHUB_ENV
+          echo "PASSED_TESTS=$PASSED_TESTS" >> $GITHUB_ENV
+          echo "FAILED_TESTS=$FAILED_TESTS" >> $GITHUB_ENV
+          echo "SKIPPED_TESTS=$SKIPPED_TESTS" >> $GITHUB_ENV
+
+                    echo "Test Results:"
+          echo "Total: $TOTAL_TESTS, Passed: $PASSED_TESTS, Failed: $FAILED_TESTS, Skipped: $SKIPPED_TESTS"
+
+      - name: Send Slack Notification
+        if: always()
+        run: |
+          # Prepare Slack message
+          MESSAGE="🧪 ${{ inputs.module_name }} module triggered by \`${{ github.actor }}\` on \`${{ inputs.environment }}\` concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.FAILED_TESTS }} ❌) | Report: ${{ env.TIMESTAMPED_REPORT_URL }}"
+
+          # Send to Slack using curl
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"$MESSAGE\"}" \
+            $SLACK_WEBHOOK_URL
 
       - name: Prepare deployment content
         if: always()
