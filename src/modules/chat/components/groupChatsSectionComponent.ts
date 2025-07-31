@@ -1,6 +1,8 @@
-import { TIMEOUTS } from '@core/constants/timeouts';
-import { BaseComponent } from '@/src/core/components/baseComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
+
+import { TIMEOUTS } from '@core/constants/timeouts';
+
+import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class GroupChatsSectionComponent extends BaseComponent {
   readonly groupChatsSectionContainer: Locator;

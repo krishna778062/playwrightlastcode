@@ -1,7 +1,9 @@
-import { BaseComponent } from '@/src/core/components/baseComponent';
 import { Locator, Page, test } from '@playwright/test';
-import { RecordVideoPromptComponent } from '@chat/components/recordVideoPromptComponent';
+
 import { RecordAudioPromptComponent } from '@chat/components/recordAudioPromptComponent';
+import { RecordVideoPromptComponent } from '@chat/components/recordVideoPromptComponent';
+
+import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class ChatEditorComponent extends BaseComponent {
   readonly inputTextBox: Locator;

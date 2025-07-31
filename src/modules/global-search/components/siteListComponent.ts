@@ -1,5 +1,6 @@
-import { ResultListingComponent } from './resultsListComponent';
 import { Locator, Page, test } from '@playwright/test';
+
+import { ResultListingComponent } from './resultsListComponent';
 
 export class SiteListComponent extends ResultListingComponent {
   readonly category: Locator;

@@ -1,4 +1,8 @@
-import { PageCreationPayload, EventCreationPayload, AlbumCreationPayload } from '@/src/core/types/contentManagement.types';
+import {
+  AlbumCreationPayload,
+  EventCreationPayload,
+  PageCreationPayload,
+} from '@/src/core/types/contentManagement.types';
 
 export interface IContentManagementServices {
   getPageCategoryID(siteId: string): Promise<any>;

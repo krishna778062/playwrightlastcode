@@ -2,4 +2,6 @@ export enum Modules {
   PLATFORMS = 'platforms',
   CHAT = 'chat',
   CONTENT = 'content',
+  GLOBAL_SEARCH = 'global-search',
+  INTEGRATIONS = 'integrations',
 }

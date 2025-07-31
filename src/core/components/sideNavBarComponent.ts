@@ -1,4 +1,5 @@
 import { Locator, Page, test } from '@playwright/test';
+
 import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class SideNavBarComponent extends BaseComponent {
@@ -18,4 +19,4 @@ export class SideNavBarComponent extends BaseComponent {
       await this.clickOnElement(this.createSection);
     });
   }
-} 
+}

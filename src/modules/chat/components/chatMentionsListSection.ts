@@ -1,4 +1,5 @@
 import { Locator, Page, test } from '@playwright/test';
+
 import { BaseComponent } from '../../../core/components/baseComponent';
 
 export class ChatMentionsListSection extends BaseComponent {

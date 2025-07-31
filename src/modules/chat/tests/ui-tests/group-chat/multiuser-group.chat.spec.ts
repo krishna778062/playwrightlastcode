@@ -1,13 +1,15 @@
+import { CHAT_FEATURE_TAGS, CHAT_SUITE_TAGS } from '@chat/constants/testTags';
 import { groupChatTestFixture as test } from '@chat/fixtures/groupChatFixture';
 import { MultiUserChatTestHelper } from '@chat/helpers/multiUserChatTestHelper';
-import { MessageEmojis } from '@core/constants/messageEmojis';
 import { CHAT_TEST_DATA } from '@chat/test-data/chat.test-data';
+import { ChatTestUser } from '@chat/types/chat-test.type';
+import { MessageEmojis } from '@core/constants/messageEmojis';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { ChatTestUser } from '@chat/types/chat-test.type';
+
 import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 
-test.describe('Group Chat with multiple users', { tag: ['@group-chat'] }, () => {
+test.describe('Group Chat with multiple users', { tag: [CHAT_SUITE_TAGS.GROUP_CHAT] }, () => {
   let user1: ChatTestUser;
   let user2: ChatTestUser;
   let user1ChatPage: ChatAppPage;
@@ -85,7 +87,7 @@ test.describe('Group Chat with multiple users', { tag: ['@group-chat'] }, () => 
 
   test(
     'veirfy user 1 should be able to record video and add it to the chat and user 2 should be able to play/download the video',
-    { tag: [TestPriority.P0, TestGroupType.REGRESSION, '@video-attachement'] },
+    { tag: [TestPriority.P0, TestGroupType.REGRESSION, CHAT_FEATURE_TAGS.VIDEO_ATTACHMENT] },
     async ({ groupName }) => {
       await multiUserChatTest.openGroupChatForMultipleUsers([user1ChatPage, user2ChatPage], groupName);
 
@@ -104,7 +106,7 @@ test.describe('Group Chat with multiple users', { tag: ['@group-chat'] }, () => 
 
   test(
     'verify user 1 should be able to record audio and add it to the chat and user 2 should be able to play/download the audio',
-    { tag: [TestPriority.P0, TestGroupType.REGRESSION, '@audio-attachement'] },
+    { tag: [TestPriority.P0, TestGroupType.REGRESSION, CHAT_FEATURE_TAGS.AUDIO_ATTACHMENT] },
     async ({ groupName }) => {
       await multiUserChatTest.openGroupChatForMultipleUsers([user1ChatPage, user2ChatPage], groupName);
 
@@ -126,7 +128,7 @@ test.describe('Group Chat with multiple users', { tag: ['@group-chat'] }, () => 
 
   test(
     'verify user 1 is able to initiate video call in group and user 2 is able to join the call',
-    { tag: [TestPriority.P0, TestGroupType.SMOKE, '@video-call'] },
+    { tag: [TestPriority.P0, TestGroupType.SMOKE, CHAT_FEATURE_TAGS.VIDEO_CALL] },
     async ({ groupName }) => {
       await multiUserChatTest.openGroupChatForMultipleUsers([user1ChatPage, user2ChatPage], groupName);
 

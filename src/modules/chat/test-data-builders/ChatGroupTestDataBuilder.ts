@@ -1,9 +1,10 @@
-import { UserTestDataBuilder } from '@core/test-data-builders/UserTestDataBuilder';
-import { CreateChatGroupParams } from '@chat/types/chat.type';
-import { Roles } from '@core/constants/roles';
-import { User } from '@core/types/user.type';
 import { test } from '@playwright/test';
+
+import { CreateChatGroupParams } from '@chat/types/chat.type';
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
+import { Roles } from '@core/constants/roles';
+import { UserTestDataBuilder } from '@core/test-data-builders/UserTestDataBuilder';
+import { User } from '@core/types/user.type';
 
 export class ChatGroupTestDataBuilder {
   private readonly userBuilder: UserTestDataBuilder;

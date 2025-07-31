@@ -1,8 +1,10 @@
-import { BaseApiClient } from '@/src/core/api/clients/baseApiClient';
 import { APIRequestContext } from '@playwright/test';
-import { ITileManagementOperations } from '@/src/core/api/interfaces/ITileManagementOperations';
-import { LinkTilePayload, LinkTileResponse, TileLink } from '../../types/tile.type';
+
 import { API_ENDPOINTS } from '../../constants/apiEndpoints';
+import { LinkTilePayload, LinkTileResponse, TileLink } from '../../types/tile.type';
+
+import { BaseApiClient } from '@/src/core/api/clients/baseApiClient';
+import { ITileManagementOperations } from '@/src/core/api/interfaces/ITileManagementOperations';
 
 const defaultTilePayload: LinkTilePayload = {
   siteId: '',

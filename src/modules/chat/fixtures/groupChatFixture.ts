@@ -1,12 +1,15 @@
 import { BrowserContext, Page, test } from '@playwright/test';
+
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
-import { MultiUserChatTestHelper } from '../helpers/multiUserChatTestHelper';
-import { ChatTestUser } from '../types/chat-test.type';
-import { Roles } from '../../../core/constants/roles';
-import { ChatGroupTestDataBuilder } from '../test-data-builders/ChatGroupTestDataBuilder';
+
 import { ApiClientFactory } from '../../../core/api/factories/apiClientFactory';
+import { Roles } from '../../../core/constants/roles';
 import { getEnvConfig } from '../../../core/utils/getEnvConfig';
 import { TestDataGenerator } from '../../../core/utils/testDataGenerator';
+import { MultiUserChatTestHelper } from '../helpers/multiUserChatTestHelper';
+import { ChatGroupTestDataBuilder } from '../test-data-builders/ChatGroupTestDataBuilder';
+import { ChatTestUser } from '../types/chat-test.type';
+
 import { BrowserFactory } from '@/src/core/utils/browserFactory';
 
 /**

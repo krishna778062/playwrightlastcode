@@ -1,8 +1,10 @@
 import { expect, Locator, test } from '@playwright/test';
 import { Page } from '@playwright/test';
-import { BasePage } from '@/src/core/pages/basePage';
+
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
+
+import { BasePage } from '@/src/core/pages/basePage';
 
 export interface IAudioVideoCallActions {
   enableMicrophone: (options?: { stepInfo?: string }) => Promise<void>;
@@ -14,14 +16,17 @@ export interface IAudioVideoCallActions {
 
 export interface IAudioVideoCallAssertions {
   verifyCountOfVideoTitles: (count: number, options?: { stepInfo?: string }) => Promise<void>;
-  verifyVideoStreamFromUserIsVisible: (userName: string, videoStreamEnabled: boolean, options?: { stepInfo?: string }) => Promise<void>;
+  verifyVideoStreamFromUserIsVisible: (
+    userName: string,
+    videoStreamEnabled: boolean,
+    options?: { stepInfo?: string }
+  ) => Promise<void>;
   verifyMyVideoStreamIsVisible: (options?: { stepInfo?: string }) => Promise<void>;
   verifyCountOfMeetingParticipants: (count: number, options?: { stepInfo?: string }) => Promise<void>;
   verifyMeetingParticipantNameInList: (userName: string, options?: { stepInfo?: string }) => Promise<void>;
 }
 
 export class BaseAudioVideoCallPage extends BasePage {
-
   readonly mediaControlContainer: Locator;
   readonly audioCallButton: Locator;
   readonly videoCallButton: Locator;

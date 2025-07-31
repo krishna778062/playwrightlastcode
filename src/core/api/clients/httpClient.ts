@@ -1,15 +1,17 @@
 import { APIRequestContext, APIResponse } from '@playwright/test';
-import { getInternalBackendUrl } from '@/src/core/utils/urlUtils';
+
 import { ApiError } from '@core/api/apiError';
 import {
-  RequestOptionsBase,
-  ValidateResponseOptions,
+  DeleteRequestOptions,
   GetRequestOptions,
+  PatchRequestOptions,
   PostRequestOptions,
   PutRequestOptions,
-  DeleteRequestOptions,
-  PatchRequestOptions,
+  RequestOptionsBase,
+  ValidateResponseOptions,
 } from '@core/types';
+
+import { getInternalBackendUrl } from '@/src/core/utils/urlUtils';
 
 export class HttpClient {
   readonly context: APIRequestContext;

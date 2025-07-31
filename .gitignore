@@ -5,8 +5,9 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 
-# VS Code
-.vscode/
+# VS Code (keep workspace settings, ignore user-specific)
+.vscode/settings.json.bak
+.vscode/launch.json.bak
 videos/
 
 # Test Reports
@@ -16,3 +17,19 @@ report.json
 # App Configurations
 /config/*.env
 !/config/*.env.example
+
+# Development artifacts
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Coverage reports
+coverage/
+*.lcov
+
+# ESLint cache
+.eslintcache
+
+# TypeScript cache
+*.tsbuildinfo

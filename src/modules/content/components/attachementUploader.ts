@@ -1,11 +1,15 @@
+import { Locator, Page, test } from '@playwright/test';
+
 import { BaseComponent } from '@/src/core/components/baseComponent';
-import { Locator, Page,test } from '@playwright/test';
 
 export class AttachementUploaderComponent extends BaseComponent {
   readonly attachmentUploaderInput: Locator;
-  constructor(readonly page: Page, readonly attachmentUploaderContainer: Locator) {
+  constructor(
+    readonly page: Page,
+    readonly attachmentUploaderContainer: Locator
+  ) {
     super(page);
-    this.attachmentUploaderInput = attachmentUploaderContainer.locator("input");
+    this.attachmentUploaderInput = attachmentUploaderContainer.locator('input');
   }
 
   /**
@@ -14,7 +18,7 @@ export class AttachementUploaderComponent extends BaseComponent {
    */
   async uploadAttachment(fileName: string): Promise<void> {
     await test.step(`Uploading attachment: ${fileName}`, async () => {
-        await this.addInputFiles(this.attachmentUploaderInput,fileName);
+      await this.addInputFiles(this.attachmentUploaderInput, fileName);
     });
   }
 }

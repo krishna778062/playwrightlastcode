@@ -1,5 +1,6 @@
-import { BaseComponent } from '@/src/core/components/baseComponent';
 import { Locator, Page, test } from '@playwright/test';
+
+import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class ResultListingComponent extends BaseComponent {
   readonly name: Locator;
@@ -201,16 +202,15 @@ export class ResultListingComponent extends BaseComponent {
     await test.step(`Verifying navigation to title link for "${name}"`, async () => {
       // Click the title link
       await this.clickOnElement(this.name, { timeout: 40000 });
-      const utmUrlPattern = new RegExp(`${contentId}.*\\?utm_source=search_result&utm_term=${encodeURIComponent(name)}`);
+      const utmUrlPattern = new RegExp(
+        `${contentId}.*\\?utm_source=search_result&utm_term=${encodeURIComponent(name)}`
+      );
       const finalUrlPattern = new RegExp(contentId);
 
       try {
-        await this.page.waitForURL(
-          (url) => utmUrlPattern.test(url.toString()) || finalUrlPattern.test(url.toString()),
-          {
-            timeout: 20000
-          }
-        );
+        await this.page.waitForURL(url => utmUrlPattern.test(url.toString()) || finalUrlPattern.test(url.toString()), {
+          timeout: 20000,
+        });
       } catch (error) {
         throw new Error(
           `Verifying navigation with title link for "${name}" failed. Neither UTM URL nor final URL was loaded in time.\n${error}`
