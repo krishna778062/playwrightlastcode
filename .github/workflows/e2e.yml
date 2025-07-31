@@ -203,7 +203,7 @@ jobs:
         if: always()
         run: |
           # Prepare Slack message with hyperlinks
-          MESSAGE="🧪 *UI Automation Suite* - \`${{ inputs.module_name }}\` module triggered by \`${{ github.actor }}\` on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.FAILED_TESTS }} ❌) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+          MESSAGE="🧪 *UI Automation Suite* - \`${{ inputs.module_name }}\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.FAILED_TESTS }} ❌) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
 
           # Send to Slack using curl
           curl -X POST -H 'Content-type: application/json' \
