@@ -65,7 +65,7 @@ jobs:
     timeout-minutes: 60
     runs-on: [kubernetes]
     env:
-      S3_BUCKET: simpplr-e2e-automation
+      S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       MODULE_NAME: ${{ inputs.module_name || 'chat' }}
     steps:
       - name: Checkout code
@@ -134,34 +134,34 @@ jobs:
         run: |
           npm run generate-report:custom test-results/test-results.json
 
-      # - name: Upload Report to S3
-      #   if: always()
-      #   run: |
-      #     # Upload to timestamped folder
-      #     echo "Uploading report to S3..."
-      #     aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }} --recursive
-      #
-      #     # Update latest folder
-      #     echo "Updating latest folder..."
-      #     aws s3 rm s3://${S3_BUCKET}/${MODULE_NAME}/latest --recursive
-      #     aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/latest --recursive
-      #
-      #     # Create index.html in module root to redirect to latest
-      #     echo '<!DOCTYPE html>
-      #     <html>
-      #       <head>
-      #         <meta http-equiv="refresh" content="0; url=./latest/index.html">
-      #       </head>
-      #       <body>
-      #         <p>Redirecting to latest report...</p>
-      #       </body>
-      #     </html>' > index.html
-      #
-      #     aws s3 cp index.html s3://${S3_BUCKET}/${MODULE_NAME}/index.html
-      #
-      #     echo "Report uploaded successfully!"
-      #     echo "Latest report available at: s3://${S3_BUCKET}/${MODULE_NAME}/latest"
-      #     echo "Timestamped report available at: s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}"
+      - name: Upload Report to S3
+        if: always()
+        run: |
+          # Upload to timestamped folder
+          echo "Uploading report to S3..."
+          aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }} --recursive
+
+          # Update latest folder
+          echo "Updating latest folder..."
+          aws s3 rm s3://${S3_BUCKET}/${MODULE_NAME}/latest --recursive
+          aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/latest --recursive
+
+          # Create index.html in module root to redirect to latest
+          echo '<!DOCTYPE html>
+          <html>
+            <head>
+              <meta http-equiv="refresh" content="0; url=./latest/index.html">
+            </head>
+            <body>
+              <p>Redirecting to latest report...</p>
+            </body>
+          </html>' > index.html
+
+          aws s3 cp index.html s3://${S3_BUCKET}/${MODULE_NAME}/index.html
+
+          echo "Report uploaded successfully!"
+          echo "Latest report available at: s3://${S3_BUCKET}/${MODULE_NAME}/latest"
+          echo "Timestamped report available at: s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}"
 
       - name: Prepare deployment content
         if: always()
@@ -171,13 +171,13 @@ jobs:
           echo "Final deploy-content structure:"
           find deploy-content -type f
 
-      - name: Upload Pages Artifact
-        if: always()
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: deploy-content
+      # - name: Upload Pages Artifact
+      #   if: always()
+      #   uses: actions/upload-pages-artifact@v3
+      #   with:
+      #     path: deploy-content
 
-      - name: Deploy to GitHub Pages
-        if: always()
-        id: deployment
-        uses: actions/deploy-pages@v4
+      # - name: Deploy to GitHub Pages
+      #   if: always()
+      #   id: deployment
+      #   uses: actions/deploy-pages@v4
