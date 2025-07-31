@@ -1,0 +1,24 @@
+export enum GlobalSearchSuiteTags {
+  GLOBAL_SEARCH = '@global-search',
+  ENTERPRISE_SEARCH = '@enterprise-search',
+  SITE_SEARCH = '@site-search',
+  CONTENT_SEARCH = '@content-search',
+  LINK_TILE_SEARCH = '@tile-search',
+  APPS_SEARCH = '@apps-search',
+}
+
+export enum GlobalSearchFeatureTags {
+  SEARCH_FILTERS = '@search-filters',
+  SEARCH_SUGGESTIONS = '@search-suggestions',
+  SEARCH_RESULTS = '@search-results',
+  SEARCH_PAGINATION = '@search-pagination',
+  SEARCH_SORTING = '@search-sorting',
+  ADVANCED_SEARCH = '@advanced-search',
+}
+
+export const GlobalSearchTestTags = [
+  ...Object.values(GlobalSearchSuiteTags),
+  ...Object.values(GlobalSearchFeatureTags),
+] as const;
+
+export default GlobalSearchTestTags;

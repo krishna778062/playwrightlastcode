@@ -1,6 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { BaseComponent } from '@/src/core/components/baseComponent';
 import { test } from '@playwright/test';
+
+import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class RecordVideoPromptComponent extends BaseComponent {
   readonly recordVideoButton: Locator;
@@ -115,7 +116,7 @@ export class RecordVideoPromptComponent extends BaseComponent {
       assertionMessage: 'expecting recorded video range slider to be visible',
     });
     //get the current recorded video stream length
-    let initialPlayedVideoLength = await this.recordedVideoRangeSlider.getAttribute('value');
+    const initialPlayedVideoLength = await this.recordedVideoRangeSlider.getAttribute('value');
     //click on the resume button to play the recorded video
     await this.resumeVideoRecordingButton.click(); //same resume button is used to play the recorded video
 
@@ -123,7 +124,7 @@ export class RecordVideoPromptComponent extends BaseComponent {
     await this.sleep(2_000);
 
     //now get the current played video length
-    let currentPlayedVideoLength = await this.recordedVideoRangeSlider.getAttribute('value');
+    const currentPlayedVideoLength = await this.recordedVideoRangeSlider.getAttribute('value');
     //verify that the current played video length is greater than the initial played video length
     expect(Number(currentPlayedVideoLength)).toBeGreaterThan(Number(initialPlayedVideoLength));
   }

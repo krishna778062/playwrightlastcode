@@ -1,9 +1,11 @@
-import { BaseApiClient } from '@/src/core/api/clients/baseApiClient';
 import { APIRequestContext } from '@playwright/test';
-import { IAppsManagementOperations } from '@/src/core/api/interfaces/IAppsManagementOperations';
-import { App, AppsSettingsPayload, AppsSettingsResponse } from '../../types/app.type';
+import { expect, test } from '@playwright/test';
+
 import { API_ENDPOINTS } from '../../constants/apiEndpoints';
-import { test, expect } from '@playwright/test';
+import { App, AppsSettingsPayload, AppsSettingsResponse } from '../../types/app.type';
+
+import { BaseApiClient } from '@/src/core/api/clients/baseApiClient';
+import { IAppsManagementOperations } from '@/src/core/api/interfaces/IAppsManagementOperations';
 
 export class AppsManagementService extends BaseApiClient implements IAppsManagementOperations {
   constructor(context: APIRequestContext, baseUrl?: string) {

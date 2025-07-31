@@ -11,6 +11,7 @@ This document outlines the code ownership boundaries and approval processes for 
 **Owners:** `@prateek-sqa`
 
 **Responsibilities:**
+
 - Overall framework architecture and design decisions
 - Core shared components (`/src/core/`)
 - Configuration files (Playwright configs, package.json, etc.)
@@ -19,6 +20,7 @@ This document outlines the code ownership boundaries and approval processes for 
 - Environment configuration
 
 **Approval Process:**
+
 - Requires approval from `@prateek-sqa` for all framework-level changes
 - For major architectural changes, additional review may be requested
 
@@ -27,18 +29,22 @@ This document outlines the code ownership boundaries and approval processes for 
 Each module has dedicated ownership:
 
 #### Chat Module
+
 - **Owners:** `@prateek-sqa`
 - **Scope:** `/src/modules/chat/` (entire module including api, components, pages, tests, etc.)
 
 #### Content Module
+
 - **Owners:** `@prateek-sqa`, `@SonaliGupta0608`
 - **Scope:** `/src/modules/content/` (entire module including apis, components, pages, tests, etc.)
 
 #### Global Search Module
+
 - **Owners:** `@prateek-sqa`, `@shubhambhar`
 - **Scope:** `/src/modules/global-search/` (entire module including components, pages, tests, etc.)
 
 #### Platforms Module
+
 - **Owners:** `@prateek-sqa`
 - **Scope:** `/src/modules/platforms/` (entire module including component, pages, tests, etc.)
 
@@ -53,6 +59,7 @@ Developer → Module Owner Review → Merge
 ```
 
 **Requirements:**
+
 - Approval from the module owner(s)
 - All tests must pass
 - Module owner is responsible for all aspects (api, components, pages, tests) within their module
@@ -66,6 +73,7 @@ Developer → Affected Module Owners Review → Framework Admin Review → Merge
 ```
 
 **Requirements:**
+
 - Approval from each affected module owner
 - Approval from `@prateek-sqa` (framework admin)
 - Impact assessment documentation
@@ -79,6 +87,7 @@ Developer → Framework Admin Review → Module Owners Notification → Merge
 ```
 
 **Requirements:**
+
 - Approval from `@prateek-sqa` (framework admin)
 - Notification to all module owners (with 48-hour review period)
 - Comprehensive testing across all modules
@@ -92,6 +101,7 @@ Developer → Framework Admin Review → Merge
 ```
 
 **Requirements:**
+
 - Approval from `@prateek-sqa` (framework admin)
 - Impact assessment on all modules
 
@@ -106,12 +116,14 @@ Developer → Framework Admin Review → Merge
 ### 2. Code Review Guidelines
 
 **Module Owners Should:**
+
 - Review for module-specific business logic correctness
 - Ensure adherence to module-specific patterns
 - Verify test coverage for module functionality
 - Review all aspects of their module (api, components, pages, tests)
 
 **Framework Admin Should:**
+
 - Review for architectural consistency
 - Ensure code follows framework patterns
 - Verify no breaking changes to shared components
@@ -119,11 +131,13 @@ Developer → Framework Admin Review → Merge
 ### 3. Communication
 
 **Before Making Changes:**
+
 - For core changes: Create RFC (Request for Comments) in issues
 - For cross-module changes: Notify affected module owners
 - For new modules: Get framework admin approval for structure
 
 **After Making Changes:**
+
 - Update relevant documentation
 - Notify module owners of shared component changes
 - Update changelog for significant changes
@@ -136,10 +150,10 @@ Developer → Framework Admin Review → Merge
 2. **Module vs Core:** `@prateek-sqa` makes final decision
 3. **Architecture Disputes:** `@prateek-sqa` has final authority
 
-
 ## Team Responsibilities
 
 ### Framework Admin (`@prateek-sqa`)
+
 - Overall framework health and architecture
 - Cross-module coordination
 - Standards enforcement
@@ -150,33 +164,37 @@ Developer → Framework Admin Review → Merge
 ### Module Owners
 
 #### Chat Module (`@prateek-sqa`)
+
 - Chat module functionality (all aspects: api, components, pages, tests)
 - Business logic correctness
 - Module-specific testing
 - Performance within the module
 
 #### Content Module (`@prateek-sqa`, `@SonaliGupta0608`)
+
 - Content module functionality (all aspects: apis, components, pages, tests)
 - Business logic correctness
 - Module-specific testing
 - Performance within the module
 
 #### Global Search Module (`@prateek-sqa`, `@shubhambhar`)
+
 - Global search module functionality (all aspects: components, pages, tests)
 - Business logic correctness
 - Module-specific testing
 - Performance within the module
 
 #### Platforms Module (`@prateek-sqa`)
+
 - Platforms module functionality (all aspects: component, pages, tests)
 - Business logic correctness
 - Module-specific testing
 - Performance within the module
 
-
 ## Getting Started
 
 ### For New Module Owners
+
 1. Contact `@prateek-sqa` for module setup help if needed
 2. Review existing module patterns
 3. Establish module-specific review processes
@@ -186,11 +204,11 @@ Developer → Framework Admin Review → Merge
 
 ### GitHub Handles and Responsibilities
 
-| Handle | Role | Modules |
-|--------|------|---------|
-| `@prateek-sqa` | Framework Admin | All modules + Core + Config |
-| `@SonaliGupta0608` | Content Module Owner | Content module |
-| `@shubhambhar` | Global Search Module Owner | Global Search module |
+| Handle             | Role                       | Modules                     |
+| ------------------ | -------------------------- | --------------------------- |
+| `@prateek-sqa`     | Framework Admin            | All modules + Core + Config |
+| `@SonaliGupta0608` | Content Module Owner       | Content module              |
+| `@shubhambhar`     | Global Search Module Owner | Global Search module        |
 
 ### Adding New Team Members
 
@@ -204,8 +222,9 @@ To add new team members:
 ---
 
 This ownership structure ensures that:
+
 - **Expertise is leveraged:** Module owners have domain expertise
 - **Quality is maintained:** Multiple review layers prevent issues
 - **Innovation is encouraged:** Teams can experiment within their boundaries
 - **Consistency is preserved:** Framework admin ensures architectural coherence
-- **Simplicity is maintained:** Module-level ownership is easy to understand and manage 
+- **Simplicity is maintained:** Module-level ownership is easy to understand and manage

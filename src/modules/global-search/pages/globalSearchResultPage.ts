@@ -1,11 +1,13 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { BasePage } from '@/src/core/pages/basePage';
+import { test } from '@playwright/test';
+
 import { TIMEOUTS } from '../../../core/constants/timeouts';
+import { AppContainerComponent } from '../components/appListComponent';
+import { TileListComponent } from '../components/tileListComponent';
+
+import { BasePage } from '@/src/core/pages/basePage';
 import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
-import { TileListComponent } from '../components/tileListComponent';
-import { AppContainerComponent } from '../components/appListComponent';
-import { test } from '@playwright/test';
 
 export class GlobalSearchResultPage extends BasePage {
   readonly resultListingComponent: ResultListingComponent;

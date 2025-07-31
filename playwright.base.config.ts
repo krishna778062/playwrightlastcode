@@ -1,9 +1,11 @@
 import { defineConfig } from '@playwright/test';
+
+import { Modules } from './src/core/constants/modules';
+import { TEST_RESULTS_DIR } from './src/core/constants/paths';
+import { loadEnvVariablesForGivenModule } from './src/core/utils/envLoader';
+
 import { Environments } from '@/src/core/constants/environments';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
-import { loadEnvVariablesForGivenModule } from './src/core/utils/envLoader';
-import { TEST_RESULTS_DIR } from './src/core/constants/paths';
-import { Modules } from './src/core/constants/modules';
 
 //load all env variables from .env file for given module
 loadEnvVariablesForGivenModule(

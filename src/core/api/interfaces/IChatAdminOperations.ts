@@ -1,4 +1,4 @@
-import { CreateGroupResponse, ChatGroup } from '@core/types/group.type';
+import { ChatGroup, CreateGroupResponse } from '@core/types/group.type';
 
 export interface CreateChatGroupParams {
   description?: string;

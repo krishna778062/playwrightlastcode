@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+
 import { LinkTilePayload } from '../../../core/types/tile.type';
 
 export interface LinkTileSearchTestCase {

@@ -1,8 +1,10 @@
 import { Page } from '@playwright/test';
+
 import { LoginPage } from '@core/pages/loginPage';
 import { UserCredentials } from '@core/types/test.types';
-import { OldUxHomePage } from '../pages/homePage/oldUxHomePage';
+
 import { NewUxHomePage } from '../pages/homePage/newUxHomePage';
+import { OldUxHomePage } from '../pages/homePage/oldUxHomePage';
 
 export class LoginHelper {
   /**

@@ -1,14 +1,17 @@
-import { Locator, Page, test, Response } from '@playwright/test';
-import { BasePage } from '@core/pages/basePage';
-import { AddContentModalComponent } from '../components/addContentModal';
+import { Locator, Page, Response, test } from '@playwright/test';
+
 import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
+import { BasePage } from '@core/pages/basePage';
+
+import { PageCreationResponse } from '../apis/types/pageCreationResponse';
+import { AddContentModalComponent } from '../components/addContentModal';
 import { AttachementUploaderComponent } from '../components/attachementUploader';
 import { ImageCropperComponent } from '../components/imageCropper';
 import { PromotePageModal } from '../components/promotePageModal';
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { PageContentType } from '../constants/pageContentType';
-import { PageCreationResponse } from '../apis/types/pageCreationResponse';
 import { CONTENT_TEST_DATA } from '../test-data/content.test-data';
+
+import { FileUtil } from '@/src/core/utils/fileUtil';
 
 export interface PageCreationOptions {
   // Required fields

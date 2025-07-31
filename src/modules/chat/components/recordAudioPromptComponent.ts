@@ -1,5 +1,6 @@
-import { BaseComponent } from '@/src/core/components/baseComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
+
+import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class RecordAudioPromptComponent extends BaseComponent {
   readonly recordAudioContainer: Locator;

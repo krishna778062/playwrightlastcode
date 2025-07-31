@@ -1,4 +1,5 @@
-import { CreateGroupResponse, ChatGroup } from '@core/types/group.type';
+import { ChatGroup, CreateGroupResponse } from '@core/types/group.type';
+
 import { CreateChatGroupParams } from '@/src/modules/chat/types/chat.type';
 
 export interface IChatAdminOperations {
@@ -9,11 +10,7 @@ export interface IChatAdminOperations {
    * @param params - Optional parameters for group creation
    * @returns Promise with the created group response
    */
-  createChatGroup(
-    name: string,
-    userIds: string[],
-    params?: CreateChatGroupParams
-  ): Promise<CreateGroupResponse>;
+  createChatGroup(name: string, userIds: string[], params?: CreateChatGroupParams): Promise<CreateGroupResponse>;
 
   /**
    * Adds users to an existing chat group

@@ -1,13 +1,12 @@
+import { Page, test } from '@playwright/test';
 
-import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
-import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
-import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { BaseHomePage, INewUxHomePageActions } from './baseHomePage';
-import { ContentType } from '@/src/modules/content/constants/contentType';
+
 import { CreateComponent } from '@/src/modules/content/components/createComponent';
-import { Page,test } from '@playwright/test';
-
-
+import { ContentType } from '@/src/modules/content/constants/contentType';
+import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
+import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
+import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 
 export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions {
   constructor(page: Page) {
@@ -17,7 +16,6 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
   get actions(): INewUxHomePageActions {
     return this;
   }
-
 
   /**
    * Clicks on add content button from the top nav bar
@@ -39,12 +37,11 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
     options?: { stepInfo?: string }
   ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage> {
     return await test.step(options?.stepInfo || `Opening create content page for ${contentType}`, async () => {
-        await this.clickOnCreateButtonOnSideNavBar();
-        const createComponent = new CreateComponent(this.page);
-        await createComponent.verifyTheCreateComponentIsVisible();
-        const addContentModal = await createComponent.selectContentTypeAndCreateContent(contentType);
-        return await addContentModal.completeContentCreationForm(contentType);
-      
+      await this.clickOnCreateButtonOnSideNavBar();
+      const createComponent = new CreateComponent(this.page);
+      await createComponent.verifyTheCreateComponentIsVisible();
+      const addContentModal = await createComponent.selectContentTypeAndCreateContent(contentType);
+      return await addContentModal.completeContentCreationForm(contentType);
     });
   }
 }
