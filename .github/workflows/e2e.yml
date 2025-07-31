@@ -141,9 +141,8 @@ jobs:
           echo "Uploading report to S3..."
           aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }} --recursive
 
-          # Update latest folder
+          # Update latest folder (overwrites existing files)
           echo "Updating latest folder..."
-          aws s3 rm s3://${S3_BUCKET}/${MODULE_NAME}/latest --recursive
           aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/latest --recursive
 
           # Create index.html in module root to redirect to latest
