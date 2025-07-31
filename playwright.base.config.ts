@@ -21,7 +21,7 @@ export default defineConfig({
   use: {
     actionTimeout: 15_000,
     navigationTimeout: 30_000,
-    trace: process.env.CI ? 'retry-with-trace' : 'on',
+    trace: process.env.CI ? 'on' : 'on',
     screenshot: process.env.CI ? 'only-on-failure' : 'on',
     headless: process.env.CI ? true : true,
   },
