@@ -143,9 +143,9 @@ jobs:
             MESSAGE="🧪 *Daily Regression* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.FAILED_TESTS }} ❌) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             echo "MESSAGE: $MESSAGE"
             # Send to Slack using curl
-            # curl -X POST -H 'Content-type: application/json' \
-            #   --data "{\"text\":\"$MESSAGE\"}" \
-            #   $SLACK_WEBHOOK_URL
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\"$MESSAGE\"}" \
+              $SLACK_WEBHOOK_URL
           else
             echo "No tests ran, skipping success notification"
           fi
@@ -160,11 +160,11 @@ jobs:
             if [ "$TOTAL_TESTS" -eq 0 ]; then
               # No tests found
               echo "No tests were found matching the criteria"
-              NO_TESTS_MESSAGE="⚠️ *No Tests Found* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              NO_TESTS_MESSAGE="⚠️ *Daily Regression: No Tests Found* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
               echo "NO_TESTS_MESSAGE: $NO_TESTS_MESSAGE"
-            #   curl -X POST -H 'Content-type: application/json' \
-            #     --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
-            #     $SLACK_WEBHOOK_URL
+              curl -X POST -H 'Content-type: application/json' \
+                --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
+                $SLACK_WEBHOOK_URL
             else
               # Tests were found and executed (pass or fail)
               echo "Tests were found: $TOTAL_TESTS"
@@ -175,7 +175,7 @@ jobs:
             echo "No test results file found - pipeline likely failed"
             FAILURE_MESSAGE="🚨 *Daily Regression Pipeline Failed* - \`${{ matrix.module }}\` module pipeline on \`${{ matrix.environment }}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             echo "FAILURE_MESSAGE: $FAILURE_MESSAGE"
-            # curl -X POST -H 'Content-type: application/json' \
-            #   --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
-            #   $SLACK_WEBHOOK_URL
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
+              $SLACK_WEBHOOK_URL
           fi
