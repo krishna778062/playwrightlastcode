@@ -16,6 +16,7 @@ jobs:
     timeout-minutes: 120
     runs-on: [kubernetes]
     strategy:
+      fail-fast: false
       matrix:
         module: [chat, platforms, global-search, content]
         environment: [qa]
@@ -52,8 +53,8 @@ jobs:
         env:
           TEST_ENV: ${{ matrix.environment }}
         run: |
-          # Run regression tests with P0 and P1 priority
-          npm run test:${{ matrix.module }} -- --grep="@regression" --workers=3
+          # Run regression tests i.e. entire suite
+          npm run test:${{ matrix.module }} -- --workers=3
 
       - name: Upload test report to github artifact backup
         if: always()
