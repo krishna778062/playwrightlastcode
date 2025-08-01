@@ -98,6 +98,7 @@ jobs:
           role-duration-seconds: 1200
 
       - name: Run playwright tests
+        id: run-tests
         env:
           TEST_ENV: ${{ inputs.environment || 'qa' }}
         run: |
@@ -243,7 +244,7 @@ jobs:
           fi
 
       - name: Send Pipeline Failure Notification
-        if: failure() && steps.check-tests.outputs.no_tests_found != 'true'
+        if: failure() && steps.check-tests.outputs.no_tests_found != 'true' && steps.run-tests.outcome == 'failure'
         run: |
           # Prepare failure message
           FAILURE_MESSAGE="🚨 *UI Automation Suite Pipeline Failed* - \`${{ inputs.module_name }}\` module pipeline triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
