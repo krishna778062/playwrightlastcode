@@ -105,19 +105,33 @@ jobs:
           TEST_TYPE="${{ inputs.test_type }}"
           FEATURE_TAGS="${{ inputs.feature_tags || '' }}"
           ALL_TAGS=()
+
+          # Add priority filter (skip if "all")
           [ "$PRIORITY" != "all" ] && ALL_TAGS+=("$PRIORITY")
+
+          # Add test type filter (skip if "all")
           [ "$TEST_TYPE" != "all" ] && ALL_TAGS+=("@$TEST_TYPE")
-          IFS=',' read -ra FEATURES <<< "$FEATURE_TAGS"
-          for tag in "${FEATURES[@]}"; do
-            [ -n "$tag" ] && ALL_TAGS+=("$tag")
-          done
+
+          # Add feature tags (skip if "all")
+          if [ "$FEATURE_TAGS" != "all" ] && [ -n "$FEATURE_TAGS" ]; then
+            IFS=',' read -ra FEATURES <<< "$FEATURE_TAGS"
+            for tag in "${FEATURES[@]}"; do
+              [ -n "$tag" ] && ALL_TAGS+=("$tag")
+            done
+          fi
+
+          echo "Debug: Priority=$PRIORITY, TestType=$TEST_TYPE, FeatureTags=$FEATURE_TAGS"
+          echo "Debug: All tags to filter: ${ALL_TAGS[*]}"
+
           if [ ${#ALL_TAGS[@]} -eq 0 ]; then
+            echo "Running all tests without filters"
             npm run test:${{ inputs.module_name || 'chat' }} -- --workers=${{ inputs.workers }}
           else
             GREP_REGEX=""
             for tag in "${ALL_TAGS[@]}"; do
               GREP_REGEX="${GREP_REGEX}(?=.*${tag})"
             done
+            echo "Running tests with grep filter: $GREP_REGEX"
             npm run test:${{ inputs.module_name || 'chat' }} -- --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
           fi
 
@@ -210,8 +224,26 @@ jobs:
             --data "{\"text\":\"$MESSAGE\"}" \
             $SLACK_WEBHOOK_URL
 
+      - name: Check if tests were found
+        if: always()
+        id: check-tests
+        run: |
+          if [ -f "test-results/test-results.json" ]; then
+            TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped' test-results/test-results.json)
+            if [ "$TOTAL_TESTS" -eq 0 ]; then
+              echo "no_tests_found=true" >> $GITHUB_OUTPUT
+              echo "No tests were found matching the criteria"
+            else
+              echo "no_tests_found=false" >> $GITHUB_OUTPUT
+              echo "Tests were found: $TOTAL_TESTS"
+            fi
+          else
+            echo "no_tests_found=true" >> $GITHUB_OUTPUT
+            echo "No test results file found"
+          fi
+
       - name: Send Pipeline Failure Notification
-        if: failure()
+        if: failure() && steps.check-tests.outputs.no_tests_found != 'true'
         run: |
           # Prepare failure message
           FAILURE_MESSAGE="🚨 *UI Automation Suite Pipeline Failed* - \`${{ inputs.module_name }}\` module pipeline triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
@@ -219,4 +251,15 @@ jobs:
           # Send to Slack using curl
           curl -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
+            $SLACK_WEBHOOK_URL
+
+      - name: Send No Tests Found Notification
+        if: always() && steps.check-tests.outputs.no_tests_found == 'true'
+        run: |
+          # Prepare no tests found message
+          NO_TESTS_MESSAGE="⚠️ *No Tests Found* - \`${{ inputs.module_name }}\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+
+          # Send to Slack using curl
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
             $SLACK_WEBHOOK_URL
