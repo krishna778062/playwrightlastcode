@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
+
 import { TIMEOUTS } from '@core/constants/timeouts';
+
 import { BaseAudioVideoCallPage } from './baseAudioVideoCallPage';
 
 export interface IAudioVideoCallActions {
@@ -15,13 +17,20 @@ export interface IAudioVideoCallActions {
 
 export interface IAudioVideoCallAssertions {
   verifyCountOfVideoTitles: (count: number, options?: { stepInfo?: string }) => Promise<void>;
-  verifyVideoStreamFromUserIsVisible: (userName: string, videoStreamEnabled: boolean, options?: { stepInfo?: string }) => Promise<void>;
+  verifyVideoStreamFromUserIsVisible: (
+    userName: string,
+    videoStreamEnabled: boolean,
+    options?: { stepInfo?: string }
+  ) => Promise<void>;
   verifyMyVideoStreamIsVisible: (options?: { stepInfo?: string }) => Promise<void>;
   verifyCountOfMeetingParticipants: (count: number, options?: { stepInfo?: string }) => Promise<void>;
   verifyMeetingParticipantNameInList: (userName: string, options?: { stepInfo?: string }) => Promise<void>;
 }
 
-export class AudioVideoCallPage extends BaseAudioVideoCallPage implements IAudioVideoCallActions, IAudioVideoCallAssertions {
+export class AudioVideoCallPage
+  extends BaseAudioVideoCallPage
+  implements IAudioVideoCallActions, IAudioVideoCallAssertions
+{
   get actions(): IAudioVideoCallActions {
     return this;
   }

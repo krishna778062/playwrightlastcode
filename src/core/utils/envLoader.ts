@@ -1,7 +1,10 @@
 import dotenv from 'dotenv';
 import path from 'path';
+
 import { Environments } from '@core/constants/environments';
+
 import { PROJECT_ROOT } from '../constants/paths';
+
 import { FileUtil } from './fileUtil';
 
 export function loadEnvVariablesForGivenModule(envName: Environments, moduleName: string) {

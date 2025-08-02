@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+
 import { AppManagerApiClient } from '../api/clients/appManagerApiClient';
 
 export class EnterpriseSearchHelper {
@@ -32,10 +33,9 @@ export class EnterpriseSearchHelper {
         {
           message: `${objectType} result for search term ${searchTerm} to appear in api response`,
         }
-      ).toPass({ intervals: [20000, 30000, 40000,50000], timeout: 60_000 });
+      ).toPass({ intervals: [20000, 30000, 40000, 50000], timeout: 60_000 });
 
       //TODO: We should run a deep check to see if the result item is site and then match the title
     });
   }
-
 }

@@ -1,8 +1,12 @@
 import { Page, test } from '@playwright/test';
+
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
+import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
+
 import { LoginHelper } from '../../../core/helpers/loginHelper';
+
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
@@ -10,6 +14,7 @@ export const searchTestFixtures = test.extend<{
   appManagerHomePage: NewUxHomePage | OldUxHomePage;
   appManagerUserPage: Page;
   appManagerApiClient: AppManagerApiClient;
+  contentManagementHelper: ContentManagementHelper;
 }>({
   appManagerHomePage: [
     async ({ page }, use, workerInfo) => {
@@ -17,14 +22,14 @@ export const searchTestFixtures = test.extend<{
         email: getEnvConfig().appManagerEmail,
         password: getEnvConfig().appManagerPassword,
       });
-      await appManagerHomePage.verifyThePageIsLoaded()
+      await appManagerHomePage.verifyThePageIsLoaded();
       await use(appManagerHomePage);
     },
     { scope: 'test' },
   ],
   appManagerUserPage: [
     async ({ appManagerHomePage }, use, workerInfo) => {
-      await use(appManagerHomePage.page as Page);
+      await use(appManagerHomePage.page);
     },
     { scope: 'test' },
   ],
@@ -37,6 +42,17 @@ export const searchTestFixtures = test.extend<{
         baseUrl: getEnvConfig().apiBaseUrl,
       });
       await use(appManagerApiClient);
+    },
+    { scope: 'test' },
+  ],
+  contentManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const contentManagementHelper = new ContentManagementHelper(appManagerApiClient);
+      try {
+        await use(contentManagementHelper);
+      } finally {
+        await contentManagementHelper.cleanup();
+      }
     },
     { scope: 'test' },
   ],

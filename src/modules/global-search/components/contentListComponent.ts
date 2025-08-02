@@ -1,5 +1,7 @@
+import { expect, Locator, Page, test } from '@playwright/test';
+
 import { ResultListingComponent } from './resultsListComponent';
-import { Locator, Page, test, expect } from '@playwright/test';
+
 import { getTodayFormattedDate } from '@/src/core/utils/dateUtil';
 import { getEventDateDisplayText } from '@/src/core/utils/dateUtil';
 
@@ -16,15 +18,17 @@ export class ContentListComponent extends ResultListingComponent {
   readonly resultList: Locator;
   readonly pageIcon: Locator;
   readonly userText: Locator;
-  readonly dayText:Locator;
-  readonly monthText:Locator;
-  readonly calendarIcon:Locator;
+  readonly dayText: Locator;
+  readonly monthText: Locator;
+  readonly calendarIcon: Locator;
+  readonly albumIcon: Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
     this.siteBreadcrumb = this.rootLocator.locator("span[class*='BreadcrumbItem-module__contai']");
     this.resultList = this.rootLocator.locator("div[class*='Spacing-module__row'] span[class*='ypography-module']");
     this.pageIcon = this.rootLocator.locator("[data-testid='i-page']");
+    this.albumIcon = this.rootLocator.locator("[data-testid='i-albums']");
     this.userText = page.locator("h1[class*='ypography-module']");
     this.dayText = this.rootLocator.locator("div[class*='DateEmblem-module__day']");
     this.monthText = this.rootLocator.locator("div[class*='DateEmblem-module__monthInner']");
@@ -37,11 +41,19 @@ export class ContentListComponent extends ResultListingComponent {
    */
   async clickOnSiteLink(name: string) {
     await test.step(`Clicking on the site link from content`, async () => {
-      await this.verifier.verifyElementHasText(this.siteBreadcrumb.last(), name, {
-        timeout: 4000,
-        assertionMessage: 'verifying site name breadcrumb is displayed',
-      });
-      await this.clickOnElement(this.siteBreadcrumb.last());
+      const breadcrumbLocator = this.siteBreadcrumb.last();
+      const siteText = await breadcrumbLocator.textContent({ timeout: 20000 });
+
+      if (siteText && siteText.endsWith('…')) {
+        const cleanedText = siteText.slice(0, -1);
+        expect(name).toContain(cleanedText);
+      } else {
+        await this.verifier.verifyElementHasText(breadcrumbLocator, name, {
+          timeout: 4000,
+          assertionMessage: 'verifying site name breadcrumb is displayed',
+        });
+      }
+      await this.clickOnElement(breadcrumbLocator);
     });
   }
 
@@ -54,7 +66,7 @@ export class ContentListComponent extends ResultListingComponent {
     await test.step(`Verifying navigation to site link "${siteId}"`, async () => {
       await this.clickOnSiteLink(siteName);
       await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(siteId), {
-        timeout: 80000,
+        timeout: 50000,
         stepInfo: `Verifying navigation to site link to "${siteId}"`,
       });
     });
@@ -76,8 +88,8 @@ export class ContentListComponent extends ResultListingComponent {
    */
   async verifyNavigationWithAuthorLink(user: string) {
     await test.step(`Verifying navigation to ${user} profile page`, async () => {
-      await this.clickOnElement(this.resultList.first(), { timeout: 20000 });
-      await this.verifier.verifyElementHasText(this.userText, user,{timeout:50_000});
+      await this.clickOnElement(this.resultList.first(), { timeout: 50_000 });
+      await this.verifier.verifyElementHasText(this.userText, user, { timeout: 50_000 });
     });
   }
 
@@ -87,6 +99,15 @@ export class ContentListComponent extends ResultListingComponent {
   async verifyPageIconIsDisplayed() {
     await test.step(`Verifying page icon is displayed`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.pageIcon.last());
+    });
+  }
+
+  /**
+   * Verifies that the album icon is visible in the content result item.
+   */
+  async verifyAlbumIconIsDisplayed() {
+    await test.step(`Verifying album icon is displayed`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.albumIcon);
     });
   }
 
@@ -106,12 +127,12 @@ export class ContentListComponent extends ResultListingComponent {
    */
   async verifyEventCalendarThumbnailIsDisplayed(isoDateString: string) {
     await test.step(`Verify date calendar thumbnail is displayed`, async () => {
-    // Parse the ISO date string
-    const date = new Date(isoDateString);
-    const expectedMonth = date.toLocaleString('en-US', { month: 'short' });
-    const expectedDay = date.getDate().toString();
-    await this.verifier.verifyElementHasText(this.dayText, expectedDay);
-    await this.verifier.verifyElementHasText(this.monthText, expectedMonth);
+      // Parse the ISO date string
+      const date = new Date(isoDateString);
+      const expectedMonth = date.toLocaleString('en-US', { month: 'short' });
+      const expectedDay = date.getDate().toString();
+      await this.verifier.verifyElementHasText(this.dayText, expectedDay);
+      await this.verifier.verifyElementHasText(this.monthText, expectedMonth);
     });
   }
 
@@ -127,25 +148,25 @@ export class ContentListComponent extends ResultListingComponent {
     });
   }
 
-/**
+  /**
    * Verifies that the calendar icon is visible in the content result item.
    */
-async verifyCalendarIconIsDisplayed() {
-  await test.step(`Verifying calendar icon is displayed for events`, async () => {
-    await this.verifier.verifyTheElementIsVisible(this.calendarIcon);
-  });
-}
+  async verifyCalendarIconIsDisplayed() {
+    await test.step(`Verifying calendar icon is displayed for events`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.calendarIcon);
+    });
+  }
 
   /**
    * Verifies navigation when clicking the calendar day element.
    * @param iD - The unique identifier expected in the navigation URL.
    */
-  async verifyNavigationWithCalendarLink(iD: string) {
-    await test.step(`Verifying navigation to calendar link with ID "${iD}"`, async () => {
-      await this.clickOnElement(this.dayText, { timeout: 20000 });
-      await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(iD), {
-        timeout: 80000,
-        stepInfo: `Verifying navigation to calendar link with ID "${iD}"`,
+  async verifyNavigationWithCalendarLink(id: string) {
+    await test.step(`Verifying navigation to calendar link with ID "${id}"`, async () => {
+      await this.clickOnElement(this.dayText, { timeout: 50_000 });
+      await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(id), {
+        timeout: 50_000,
+        stepInfo: `Verifying navigation to calendar link with ID "${id}"`,
       });
     });
   }

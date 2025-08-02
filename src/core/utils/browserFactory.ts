@@ -1,6 +1,7 @@
 import { Browser, BrowserContext, Page, test } from '@playwright/test';
 import { nanoid } from 'nanoid';
 import path from 'path';
+
 import { FileUtil } from '@/src/core/utils/fileUtil';
 
 export interface UserContext {

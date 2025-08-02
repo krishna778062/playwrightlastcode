@@ -1,17 +1,19 @@
-import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
-import { BasePage } from '@/src/core/pages/basePage';
-import { Page,test } from '@playwright/test';
-import { TopNavBarComponent } from '@core/components/topNavBarComponent';
-import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
-import { TIMEOUTS } from '@core/constants/timeouts';
+import { Page, test } from '@playwright/test';
+
 import { FooterComponent } from '@core/components/footerComponent';
-import { ContentType } from '@/src/modules/content/constants/contentType';
-import { CreateComponent } from '@/src/modules/content/components/createComponent';
-import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
-import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/globalSearchResultPage';
+import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
+import { TopNavBarComponent } from '@core/components/topNavBarComponent';
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { TIMEOUTS } from '@core/constants/timeouts';
+
+import { BasePage } from '@/src/core/pages/basePage';
 import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
+import { CreateComponent } from '@/src/modules/content/components/createComponent';
+import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
+import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
+import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/globalSearchResultPage';
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
 
 export interface ICommonHomePageActions {

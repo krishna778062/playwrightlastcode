@@ -244,6 +244,39 @@ export class BaseVerificationUtil {
   }
 
   /**
+   * Verifies that the element has the expected attribute value
+   * @param locator - The locator to verify
+   * @param attributeName - The attribute name to verify
+   * @param expectedValue - The expected attribute value
+   * @param options - The options to pass to the verification
+   */
+  async verifyElementHasAttribute(
+    locator: Locator,
+    attributeName: string,
+    expectedValue: string,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(
+        locator,
+        options?.assertionMessage ??
+          `expecting ${locator} to have attribute ${attributeName} with value ${expectedValue}`
+      ).toHaveAttribute(attributeName, expectedValue, {
+        timeout: options?.timeout || 8_000,
+      });
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element does not have expected attribute value.\n${error}`
+      );
+    }
+  }
+
+  /**
    * Waits for the element to be visible
    * @param locator - The locator to wait for
    * @param options - The options to pass to the verification

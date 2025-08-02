@@ -1,9 +1,11 @@
 import { devices } from '@playwright/test';
 import { defineConfig } from '@playwright/test';
-import baseConfig from '../../../playwright.base.config';
-import { PROJECT_ROOT } from '@core/constants/paths';
 import path from 'path';
+
+import { PROJECT_ROOT } from '@core/constants/paths';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
+
+import baseConfig from '../../../playwright.base.config';
 
 export default defineConfig({
   ...baseConfig,
@@ -23,13 +25,9 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: getEnvConfig().frontendBaseUrl,
         launchOptions: {
-          args: [
-            '--disable-gpu',
-            '--no-sandbox',
-            '--disable-dev-shm-usage',
-          ],
+          args: ['--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage'],
         },
       },
     },
   ],
-}); 
+});

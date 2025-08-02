@@ -4,8 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "setup": "./scripts/setup.sh",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "lint": "eslint . --ext .ts,.js --fix",
+    "lint:check": "eslint . --ext .ts,.js",
+    "type-check": "tsc --noEmit",
+    "pre-commit": "lint-staged",
+    "prepare": "husky",
     "test:chat": "MODULE_NAME=chat npx playwright test --config=src/modules/chat/playwright.chat.config.ts",
     "test:platforms": "MODULE_NAME=platforms npx playwright test --config=src/modules/platforms/playwright.platforms.config.ts",
     "test:chat:P0": "MODULE_NAME=chat npx playwright test --config=src/modules/chat/playwright.chat.config.ts --grep=@P0",
@@ -16,27 +22,49 @@
     "test:content": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts",
     "test:content:P0": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts --grep=@P0",
     "test:content:smoke": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts --grep=@smoke",
+    "test:module": "./scripts/test-module.sh",
+    "test:interactive": "ts-node scripts/interactive-test.ts",
+    "test": "npm run test:interactive",
+    "create:module": "ts-node scripts/create-module.ts",
     "start-report-server": "http-server . -p 3000 --cors",
     "generate-report": "node convert-report.js",
     "generate-report:custom": "node convert-report.js",
     "serve-report": "npm run generate-report && concurrently \"npm run start-report-server\" \"sleep 1 && OPEN_REPORT=true node convert-report.js\"",
-    "serve-report:custom": "npm run generate-report:custom && concurrently \"npm run start-report-server\" \"sleep 1 && OPEN_REPORT=true npm run generate-report:custom\""
+    "serve-report:custom": "npm run generate-report:custom && concurrently \"npm run start-report-server\" \"sleep 1 && OPEN_REPORT=true npm run generate-report:custom\"",
+    "test:de:dev": "MODULE_NAME=data-engineering TEST_ENV=dev npx playwright test src/modules/data-engineering/tests/ui-tests/analytics.spec.ts --config=src/modules/data-engineering/playwright.data-engineering.config.ts --project=data-engineering-chromium"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "inquirer": "^8.2.6",
+    "@types/inquirer": "^9.0.7",
+    "ts-node": "^10.9.2",
+    "fs-extra": "^11.2.0",
+    "@types/fs-extra": "^11.0.4",
+    "@eslint/js": "^9.28.0",
     "@faker-js/faker": "^9.8.0",
     "@playwright/test": "^1.53.1",
+    "@types/eslint": "^9.6.1",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/mime-types": "^3.0.1",
     "@types/node": "^22.15.24",
+    "@types/snowflake-sdk": "^1.6.24",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.33.1",
+    "concurrently": "^9.1.2",
     "cross-env": "^7.0.3",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
+    "eslint-import-resolver-typescript": "^3.6.3",
+    "eslint-plugin-import": "^2.30.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
     "http-server": "^14.1.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
     "prettier": "^3.5.3",
     "tsconfig-paths": "^4.2.0",
     "xmldom": "^0.6.0"
@@ -46,6 +74,16 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "nanoid": "^5.1.5"
+    "nanoid": "^5.1.5",
+    "snowflake-sdk": "^2.1.3"
+  },
+  "lint-staged": {
+    "*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   }
 }

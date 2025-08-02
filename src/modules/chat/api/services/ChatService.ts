@@ -1,20 +1,17 @@
 import { APIRequestContext, test } from '@playwright/test';
-import { BaseApiClient } from '@core/api/clients/baseApiClient';
+
 import { IChatAdminOperations } from '@chat/api/interfaces/IChatAdminOperations';
+import { CreateChatGroupParams } from '@chat/types/chat.type';
+import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { ChatGroup, CreateGroupResponse } from '@core/types/group.type';
-import { CreateChatGroupParams } from '@chat/types/chat.type';
 
 export class ChatService extends BaseApiClient implements IChatAdminOperations {
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
   }
 
-  async createChatGroup(
-    name: string,
-    userIds: string[],
-    params?: CreateChatGroupParams
-  ): Promise<CreateGroupResponse> {
+  async createChatGroup(name: string, userIds: string[], params?: CreateChatGroupParams): Promise<CreateGroupResponse> {
     if (userIds.length === 0) {
       throw new Error('User ids are required to create a chat group');
     }
@@ -48,16 +45,12 @@ export class ChatService extends BaseApiClient implements IChatAdminOperations {
   }
 
   async getListOfChatGroups({ page = 1, perPage = 100 }): Promise<ChatGroup[]> {
-    let listOfGroups: ChatGroup[] = [];
+    const listOfGroups: ChatGroup[] = [];
 
     await test.step(`Getting list of chat groups from page ${page}`, async () => {
       while (true) {
-        const response = await this.get(
-          API_ENDPOINTS.appManagement.groups.listOfGroups(page, perPage)
-        );
-        const responseJson = await this.parseResponse<{ result: { records: ChatGroup[] } }>(
-          response
-        );
+        const response = await this.get(API_ENDPOINTS.appManagement.groups.listOfGroups(page, perPage));
+        const responseJson = await this.parseResponse<{ result: { records: ChatGroup[] } }>(response);
         if (responseJson.result.records.length === 0) {
           break;
         }

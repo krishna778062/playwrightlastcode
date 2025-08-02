@@ -59,4 +59,22 @@ export class FileUtil {
   public static fileExists(filePath: string): boolean {
     return fs.existsSync(filePath);
   }
+
+  /**
+   * Reads a file from the given path.
+   * @param filePath - The path to the file.
+   * @returns The file content as a Buffer.
+   */
+  public static readFile(filePath: string): Buffer {
+    return fs.readFileSync(filePath);
+  }
+
+  /**
+   * Gets the size of a file in bytes.
+   * @param filePath - The path to the file.
+   * @returns The size of the file in bytes.
+   */
+  public static getFileSize(filePath: string): number {
+    return fs.statSync(filePath).size;
+  }
 }

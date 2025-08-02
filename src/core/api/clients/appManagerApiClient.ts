@@ -1,11 +1,16 @@
 import { APIRequestContext } from '@playwright/test';
+
 import { ChatService } from '@chat/api/services/ChatService';
-import { UserManagementService } from '@core/api/services/UserManagementService';
 import { IdentityService } from '@core/api/services/IdentityService';
-import { BaseApiClient } from '@/src/core/api/clients/baseApiClient';
+import { UserManagementService } from '@core/api/services/UserManagementService';
+
+import { AppsManagementService } from '../services/AppsManagementService';
+import { ContentManagementService } from '../services/ContentManagementService';
+import { ImageUploaderService } from '../services/ImageUploaderService';
 import { SiteManagementService } from '../services/SiteManagementService';
 import { TileManagementService } from '../services/TileManagementService';
-import { ContentManagementService } from '../services/ContentManagementService';
+
+import { BaseApiClient } from '@/src/core/api/clients/baseApiClient';
 
 export class AppManagerApiClient extends BaseApiClient {
   private readonly chatService: ChatService;
@@ -14,6 +19,9 @@ export class AppManagerApiClient extends BaseApiClient {
   private readonly siteManagementService: SiteManagementService;
   private readonly contentManagementService: ContentManagementService;
   private readonly tileManagementService: TileManagementService;
+  private readonly imageUploaderService: ImageUploaderService;
+  private readonly appsManagementService: AppsManagementService;
+
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
     this.chatService = new ChatService(context, baseUrl);
@@ -22,6 +30,8 @@ export class AppManagerApiClient extends BaseApiClient {
     this.siteManagementService = new SiteManagementService(context, baseUrl);
     this.tileManagementService = new TileManagementService(context, baseUrl);
     this.contentManagementService = new ContentManagementService(context, baseUrl || '');
+    this.imageUploaderService = new ImageUploaderService(this, context);
+    this.appsManagementService = new AppsManagementService(context, baseUrl);
   }
 
   getChatService(): ChatService {
@@ -46,5 +56,13 @@ export class AppManagerApiClient extends BaseApiClient {
 
   getTileManagementService(): TileManagementService {
     return this.tileManagementService;
+  }
+
+  getImageUploaderService(): ImageUploaderService {
+    return this.imageUploaderService;
+  }
+
+  getAppsManagementService(): AppsManagementService {
+    return this.appsManagementService;
   }
 }

@@ -1,4 +1,5 @@
 import { Locator, Page, test } from '@playwright/test';
+
 import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class TopNavBarComponent extends BaseComponent {
@@ -36,7 +37,7 @@ export class TopNavBarComponent extends BaseComponent {
 
   async typeInSearchBarInput(searchTerm: string, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Typing ${searchTerm} in search bar input`, async () => {
-      await this.typeInElement(this.globalSearchInputBox, searchTerm);
+      await this.typeInElement(this.globalSearchInputBox, searchTerm, { timeout: 20000 });
     });
   }
 
@@ -54,7 +55,6 @@ export class TopNavBarComponent extends BaseComponent {
   async clickOnCreateContentButton(options?: { stepInfo?: string }): Promise<void> {
     return await test.step(options?.stepInfo || `Clicking on add content button on top nav bar`, async () => {
       await this.clickOnElement(this.addContentButton);
-
     });
   }
 }

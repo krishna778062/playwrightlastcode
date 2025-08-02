@@ -1,7 +1,9 @@
-import { TileLink } from '../../../core/types/tile.type';
-import { ResultListingComponent } from './resultsListComponent';
 import { Locator, Page, test } from '@playwright/test';
+
 import { TIMEOUTS } from '../../../core/constants/timeouts';
+import { TileLink } from '../../../core/types/tile.type';
+
+import { ResultListingComponent } from './resultsListComponent';
 
 export class TileListComponent extends ResultListingComponent {
   readonly tileTitle: Locator;

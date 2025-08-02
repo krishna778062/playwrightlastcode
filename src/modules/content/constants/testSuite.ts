@@ -3,4 +3,4 @@ export enum ContentTestSuite {
   COVER_IMAGE = '@cover-image',
   FEED = '@feed',
   ATTACHMENTS = '@attachments'
-} 
+}

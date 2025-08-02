@@ -1,8 +1,9 @@
-import { APIRequestContext, expect, test } from '@playwright/test';
 import { BaseApiClient } from '@api/clients/baseApiClient';
 import { IContentManagementServices } from '@api/interfaces/IContentManagementServices';
+import { APIRequestContext, expect, test } from '@playwright/test';
+
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-import { PageCreationPayload, EventCreationPayload } from '@core/types/contentManagement.types';
+import { AlbumCreationPayload, EventCreationPayload, PageCreationPayload } from '@core/types/contentManagement.types';
 
 const defaultBaseContentPayload = {
   listOfFiles: [],
@@ -40,8 +41,15 @@ const defaultEventContentPayload: EventCreationPayload = {
   body: '{"type":"doc","content":[{"type":"paragraph","attrs":{"indentation":0,"textAlign":"left","className":"","data-sw-sid":null},"content":[{"type":"text","text":"testing event"}]}]}',
 };
 
-export function buildBodyAndBodyHtml(text: string, type: 'page' | 'event') {
-  if (type === 'page') {
+const defaultAlbumContentPayload: AlbumCreationPayload = {
+  ...defaultBaseContentPayload,
+  contentType: 'album',
+  coverImageMediaId: '',
+  listOfAlbumMedia: [],
+};
+
+export function buildBodyAndBodyHtml(text: string, type: 'page' | 'event' | 'album') {
+  if (type === 'page' || type === 'album') {
     return {
       body: JSON.stringify({
         type: 'doc',
@@ -103,20 +111,17 @@ export class ContentManagementService extends BaseApiClient implements IContentM
    * @returns The first category's ID and name.
    */
   async getPageCategoryID(siteId: string) {
-    return await test.step(
-      'Fetching page categories via API post request',
-      async () => {
-        const response = await this.post(API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.category, {
-          data: { size: 16 },
-        });
-        const json = await response.json();
-        if (!json.result?.listOfItems?.length) throw new Error('Category not found');
-        return {
-          categoryId: json.result.listOfItems[0].id,
-          name: json.result.listOfItems[0].name,
-        };
-      }
-    );
+    return await test.step('Fetching page categories via API post request', async () => {
+      const response = await this.post(API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.category, {
+        data: { size: 16 },
+      });
+      const json = await response.json();
+      if (!json.result?.listOfItems?.length) throw new Error('Category not found');
+      return {
+        categoryId: json.result.listOfItems[0].id,
+        name: json.result.listOfItems[0].name,
+      };
+    });
   }
 
   /**
@@ -126,48 +131,48 @@ export class ContentManagementService extends BaseApiClient implements IContentM
    * @returns The created page's ID.
    */
   async addNewPageContent(siteId: string, overrides: Partial<typeof defaultPageContentPayload> = {}) {
-    return await test.step(
-      'Publishing page content via API post request',
-      async () => {
-        const payload = {
-          ...defaultPageContentPayload,
-          ...overrides,
+    return await test.step('Publishing page content via API post request', async () => {
+      const payload = {
+        ...defaultPageContentPayload,
+        ...overrides,
+        category: {
+          ...defaultPageContentPayload.category,
+          ...overrides.category,
+        },
+      };
+      console.log('content payload: ', payload);
+      const response = await this.post(API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.publish, {
+        data: {
+          contentSubType: payload.contentSubType,
+          listOfFiles: payload.listOfFiles,
+          publishAt: payload.publishAt,
+          body: payload.body,
+          imgCaption: payload.imgCaption,
+          publishingStatus: payload.publishingStatus,
+          bodyHtml: payload.bodyHtml,
+          imgLayout: payload.imgLayout,
+          title: payload.title,
+          language: payload.language,
+          isFeedEnabled: payload.isFeedEnabled,
+          listOfTopics: payload.listOfTopics,
           category: {
-            ...defaultPageContentPayload.category,
-            ...overrides.category,
+            id: payload.category.id,
+            name: payload.category.name,
           },
-        };
-        console.log('content payload: ', payload);
-        const response = await this.post(API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.publish, {
-          data: {
-            contentSubType: payload.contentSubType,
-            listOfFiles: payload.listOfFiles,
-            publishAt: payload.publishAt,
-            body: payload.body,
-            imgCaption: payload.imgCaption,
-            publishingStatus: payload.publishingStatus,
-            bodyHtml: payload.bodyHtml,
-            imgLayout: payload.imgLayout,
-            title: payload.title,
-            language: payload.language,
-            isFeedEnabled: payload.isFeedEnabled,
-            listOfTopics: payload.listOfTopics,
-            category: {
-              id: payload.category.id,
-              name: payload.category.name,
-            },
-            contentType: payload.contentType,
-            isNewTiptap: payload.isNewTiptap,
-          },
-        });
-        const json = await response.json();
-        console.log('content JSON Response:', JSON.stringify(json, null, 2));
-        if (json.status !== 'success' || !json.result?.id) {
-          throw new Error(`Page creation failed. Response: ${JSON.stringify(json)}`);
-        }
-        return { pageId: json.result.id };
+          contentType: payload.contentType,
+          isNewTiptap: payload.isNewTiptap,
+        },
+      });
+      const json = await response.json();
+      console.log('content JSON Response:', JSON.stringify(json, null, 2));
+      if (json.status !== 'success' || !json.result?.id) {
+        throw new Error(`Page creation failed. Response: ${JSON.stringify(json)}`);
       }
-    );
+      return {
+        pageId: json.result.id,
+        authorName: json.result.authoredBy?.name,
+      };
+    });
   }
 
   /**
@@ -177,45 +182,87 @@ export class ContentManagementService extends BaseApiClient implements IContentM
    * @returns The created event's ID.
    */
   async addNewEventContent(siteId: string, overrides: Partial<EventCreationPayload> = {}) {
-    return await test.step(
-      'Publishing event content via API post request',
-      async () => {
-        const payload: EventCreationPayload = {
-          ...defaultEventContentPayload,
-          ...overrides,
-        };
-        console.log('event payload: ', payload);
-        const response = await this.post(API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.publish, {
-          data: {
-            listOfFiles: payload.listOfFiles,
-            publishAt: payload.publishAt,
-            body: payload.body,
-            imgCaption: payload.imgCaption,
-            startsAt: payload.startsAt,
-            isAllDay: payload.isAllDay,
-            publishingStatus: payload.publishingStatus,
-            endsAt: payload.endsAt,
-            timezoneIso: payload.timezoneIso,
-            bodyHtml: payload.bodyHtml,
-            imgLayout: payload.imgLayout,
-            directions: payload.directions,
-            location: payload.location,
-            title: payload.title,
-            language: payload.language,
-            isFeedEnabled: payload.isFeedEnabled,
-            listOfTopics: payload.listOfTopics,
-            contentType: payload.contentType,
-            isNewTiptap: payload.isNewTiptap,
-          },
-        });
-        const json = await response.json();
-        console.log('event JSON Response:', JSON.stringify(json, null, 2));
-        if (json.status !== 'success' || !json.result?.id) {
-          throw new Error(`Event creation failed. Response: ${JSON.stringify(json)}`);
-        }
-        return { eventId: json.result.id };
+    return await test.step('Publishing event content via API post request', async () => {
+      const payload: EventCreationPayload = {
+        ...defaultEventContentPayload,
+        ...overrides,
+      };
+      console.log('event payload: ', payload);
+      const response = await this.post(API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.publish, {
+        data: {
+          listOfFiles: payload.listOfFiles,
+          publishAt: payload.publishAt,
+          body: payload.body,
+          imgCaption: payload.imgCaption,
+          startsAt: payload.startsAt,
+          isAllDay: payload.isAllDay,
+          publishingStatus: payload.publishingStatus,
+          endsAt: payload.endsAt,
+          timezoneIso: payload.timezoneIso,
+          bodyHtml: payload.bodyHtml,
+          imgLayout: payload.imgLayout,
+          directions: payload.directions,
+          location: payload.location,
+          title: payload.title,
+          language: payload.language,
+          isFeedEnabled: payload.isFeedEnabled,
+          listOfTopics: payload.listOfTopics,
+          contentType: payload.contentType,
+          isNewTiptap: payload.isNewTiptap,
+        },
+      });
+      const json = await response.json();
+      console.log('event JSON Response:', JSON.stringify(json, null, 2));
+      if (json.status !== 'success' || !json.result?.id) {
+        throw new Error(`Event creation failed. Response: ${JSON.stringify(json)}`);
       }
-    );
+      return {
+        eventId: json.result.id,
+        authorName: json.result.authoredBy?.name,
+      };
+    });
+  }
+
+  /**
+   * Publishes new album content to a site.
+   * @param siteId - The site ID.
+   * @param overrides - Album content overrides.
+   * @returns The created album's ID.
+   */
+  async addNewAlbumContent(siteId: string, overrides: Partial<AlbumCreationPayload> = {}) {
+    return await test.step('Publishing album content via API post request', async () => {
+      const payload: AlbumCreationPayload = {
+        ...defaultAlbumContentPayload,
+        ...overrides,
+      };
+      const response = await this.post(API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.publish, {
+        data: {
+          listOfFiles: payload.listOfFiles,
+          publishAt: payload.publishAt,
+          body: payload.body,
+          imgCaption: payload.imgCaption,
+          publishingStatus: payload.publishingStatus,
+          bodyHtml: payload.bodyHtml,
+          imgLayout: payload.imgLayout,
+          title: payload.title,
+          language: payload.language,
+          isFeedEnabled: payload.isFeedEnabled,
+          listOfTopics: payload.listOfTopics,
+          contentType: payload.contentType,
+          isNewTiptap: payload.isNewTiptap,
+          coverImageMediaId: payload.coverImageMediaId,
+          listOfAlbumMedia: payload.listOfAlbumMedia,
+        },
+      });
+      const json = await response.json();
+      if (json.status !== 'success' || !json.result?.id) {
+        throw new Error(`Album creation failed. Response: ${JSON.stringify(json)}`);
+      }
+      return {
+        albumId: json.result.id,
+        authorName: json.result.authoredBy?.name,
+      };
+    });
   }
 
   /**
@@ -226,7 +273,6 @@ export class ContentManagementService extends BaseApiClient implements IContentM
   async deleteContent(siteId: string, contentId: string) {
     return await test.step('Deleting page via API delete request', async () => {
       const response = await this.delete(API_ENDPOINTS.content.delete(siteId, contentId));
-      const json = await response.json();
       expect(response.status()).toBe(200);
     });
   }

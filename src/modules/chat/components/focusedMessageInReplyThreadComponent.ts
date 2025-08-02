@@ -1,4 +1,5 @@
 import { Locator, Page } from '@playwright/test';
+
 import { MessageBaseComponent } from '@chat/components/messageBaseComponent';
 
 export class FocusedMessageInReplyThreadComponent extends MessageBaseComponent {

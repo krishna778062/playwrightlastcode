@@ -1,6 +1,6 @@
-import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
 import path from 'path';
 
 export interface ZephyrConfig {

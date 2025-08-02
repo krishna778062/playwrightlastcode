@@ -1,5 +1,5 @@
-import { ListAudiencesResponse } from '@core/types/audience.type';
 import { Roles } from '@core/constants/roles';
+import { ListAudiencesResponse } from '@core/types/audience.type';
 
 export interface IIdentityAdminOperations {
   /**

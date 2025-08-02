@@ -1,5 +1,6 @@
+import { Locator, Page, test } from '@playwright/test';
+
 import { BaseComponent } from '@/src/core/components/baseComponent';
-import { Locator, Page,test } from '@playwright/test';
 
 export class ImageCropperComponent extends BaseComponent {
   readonly imageCropperContainer: Locator;
@@ -15,7 +16,6 @@ export class ImageCropperComponent extends BaseComponent {
     this.cancelButton = page.getByRole('button', { name: 'Cancel' });
     this.addButton = page.getByRole('button', { name: 'Add' });
   }
-  
 
   async verifyTheImageCropperIsVisible(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Verifying image cropper is visible`, async () => {
@@ -23,12 +23,12 @@ export class ImageCropperComponent extends BaseComponent {
     });
   }
 
-  async selectCropOption(cropOptionToSelect: "Widescreen" | "Square"): Promise<void> {
+  async selectCropOption(cropOptionToSelect: 'Widescreen' | 'Square'): Promise<void> {
     await test.step(`Selecting crop option: ${cropOptionToSelect}`, async () => {
       await this.cropOptions.filter({ hasText: cropOptionToSelect }).click();
     });
   }
-  
+
   async clickOnNextButton(): Promise<void> {
     await test.step(`Clicking on next button`, async () => {
       await this.nextButton.click();

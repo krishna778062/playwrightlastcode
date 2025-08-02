@@ -1,9 +1,10 @@
 import { AppManagerApiClient } from '@api/clients/appManagerApiClient';
 import { test } from '@playwright/test';
+
 import { Roles } from '@core/constants/roles';
+import { TestUser } from '@core/types/test.types';
 import { User } from '@core/types/user.type';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
-import { TestUser } from '@core/types/test.types';
 
 export class UserTestDataBuilder {
   private readonly apiClient: AppManagerApiClient;

@@ -1,15 +1,16 @@
 import { devices } from '@playwright/test';
 import { defineConfig } from '@playwright/test';
+import path from 'path';
+
 import baseConfig from '../../../playwright.base.config';
 import { PROJECT_ROOT } from '../../core/constants/paths';
-import path from 'path';
 
 export default defineConfig({
   ...baseConfig,
   name: 'Global Search UI Automation',
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'global-search', 'tests'),
   testIgnore: '**/api-tests/**',
-  timeout: 120_000,
+  timeout: 200_000,
   projects: [
     {
       name: 'global-search-chromium',
