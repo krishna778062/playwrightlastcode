@@ -128,6 +128,68 @@ export class BaseVerificationUtil {
   }
 
   /**
+   * Verifies that the count of elements is greater than the minimum count
+   * Uses expect polling to enable auto-waiting for the condition to be met
+   * @param locator - The locator to verify
+   * @param minCount - The minimum count threshold
+   * @param options - The options to pass to the verification
+   */
+  async verifyCountOfElementsIsGreaterThan(
+    locator: Locator,
+    minCount: number,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(async () => {
+        const actualCount = await locator.count();
+        expect(actualCount, options?.assertionMessage ?? `expecting ${locator} to have more than ${minCount} elements, but found ${actualCount}`).toBeGreaterThan(minCount);
+      }).toPass({
+        timeout: options?.timeout || 8_000,
+      });
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element count not greater than ${minCount}.\n${error}`
+      );
+    }
+  }
+
+  /**
+   * Verifies that the count of elements is greater than or equal to the minimum count
+   * Uses expect polling to enable auto-waiting for the condition to be met
+   * @param locator - The locator to verify
+   * @param minCount - The minimum count threshold
+   * @param options - The options to pass to the verification
+   */
+  async verifyCountOfElementsIsGreaterThanOrEqualTo(
+    locator: Locator,
+    minCount: number,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(async () => {
+        const actualCount = await locator.count();
+        expect(actualCount, options?.assertionMessage ?? `expecting ${locator} to have at least ${minCount} elements, but found ${actualCount}`).toBeGreaterThanOrEqual(minCount);
+      }).toPass({
+        timeout: options?.timeout || 8_000,
+      });
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element count not greater than or equal to ${minCount}.\n${error}`
+      );
+    }
+  }
+
+  /**
    * Verifies that the element contains text
    * @param locator - The locator to verify
    * @param text - The text to verify
@@ -251,6 +313,52 @@ export class BaseVerificationUtil {
         timeout: options?.timeout || 8_000,
       }
     );
+  }
+
+  /**
+   * Waits for the element count to be greater than the minimum count
+   * Uses expect polling to enable auto-waiting for the condition to be met
+   * @param locator - The locator to wait for
+   * @param minCount - The minimum count threshold
+   * @param options - The options to pass to the verification
+   */
+  async waitUntilElementCountIsGreaterThan(
+    locator: Locator,
+    minCount: number,
+    options?: {
+      timeout?: number;
+      stepInfo?: string;
+    }
+  ) {
+    await expect(async () => {
+      const actualCount = await locator.count();
+      expect(actualCount, options?.stepInfo ?? `expecting ${locator} to have more than ${minCount} elements, but found ${actualCount}`).toBeGreaterThan(minCount);
+    }).toPass({
+      timeout: options?.timeout || 8_000,
+    });
+  }
+
+  /**
+   * Waits for the element count to be greater than or equal to the minimum count
+   * Uses expect polling to enable auto-waiting for the condition to be met
+   * @param locator - The locator to wait for
+   * @param minCount - The minimum count threshold
+   * @param options - The options to pass to the verification
+   */
+  async waitUntilElementCountIsGreaterThanOrEqualTo(
+    locator: Locator,
+    minCount: number,
+    options?: {
+      timeout?: number;
+      stepInfo?: string;
+    }
+  ) {
+    await expect(async () => {
+      const actualCount = await locator.count();
+      expect(actualCount, options?.stepInfo ?? `expecting ${locator} to have at least ${minCount} elements, but found ${actualCount}`).toBeGreaterThanOrEqual(minCount);
+    }).toPass({
+      timeout: options?.timeout || 8_000,
+    });
   }
 
   /**

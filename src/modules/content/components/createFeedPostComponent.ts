@@ -201,10 +201,18 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
   async removeAttachedFile(index: number = 0): Promise<void> {
     await test.step(`Remove attached file at index ${index}`, async () => {
       await this.page.waitForSelector(this.deleteButtonSelector, { state: 'visible', timeout: 30000 });
+      
+      // Verify at least one delete button is available
+      await this.verifier.verifyCountOfElementsIsGreaterThan(
+        this.deleteFileIcon,
+        0,
+        {
+          timeout: 30000,
+          assertionMessage: 'No delete buttons found - expected at least one attached file'
+        }
+      );
+      
       const deleteButtons = await this.deleteFileIcon.all();
-      if (deleteButtons.length === 0) {
-        throw new Error('No delete buttons found');
-      }
       if (index < 0 || index >= deleteButtons.length) {
         throw new Error(`Invalid index ${index}. Available files: 0-${deleteButtons.length - 1}`);
       }
