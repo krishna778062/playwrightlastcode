@@ -13,7 +13,7 @@ export interface IFeedActions {
   deletePost: (postText: string) => Promise<void>;
   
   // Content creation flow
-  createPostWithAttachments: (text: string, files?: string[], removeCount?: number) => Promise<FeedPostResult>;
+  createPostWithAttachments: (text: string, files?: string[]) => Promise<FeedPostResult>;
 }
 
 export interface IFeedAssertions {
@@ -60,10 +60,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.deletePost(postText);
   }
 
-  async createPostWithAttachments(text: string, files?: string[], removeCount?: number): Promise<FeedPostResult> {
+  async createPostWithAttachments(text: string, files?: string[]): Promise<FeedPostResult> {
     const options: FeedPostOptions = {
       text,
-      ...(files && { attachments: { files, removeCount } })
+      ...(files && { attachments: { files } })
     };
     return await this.createAndPublishPost(options);
   }

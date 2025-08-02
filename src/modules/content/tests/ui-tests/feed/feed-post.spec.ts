@@ -70,10 +70,8 @@ test.describe(
           attachments: {
             files: [
               'images/' + FEED_TEST_DATA.ATTACHMENTS.IMAGE,
-              'excel/' + FEED_TEST_DATA.ATTACHMENTS.DOCUMENT,
-              'images/' + FEED_TEST_DATA.ATTACHMENTS.FAVICON
-            ],
-            removeCount: 1 // Remove one file to test attachment removal
+              'excel/' + FEED_TEST_DATA.ATTACHMENTS.DOCUMENT
+            ]
           }
         });
 

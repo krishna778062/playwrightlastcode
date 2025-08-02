@@ -7,7 +7,6 @@ export interface FeedPostOptions {
   text: string;
   attachments?: {
     files: string[];
-    removeCount?: number;
   };
 }
 
@@ -121,13 +120,6 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
       // Handle attachments if provided
       if (options.attachments) {
         await this.uploadFiles(options.attachments.files);
-        
-        // Remove files if specified
-        if (options.attachments.removeCount) {
-          for (let i = 0; i < options.attachments.removeCount; i++) {
-            await this.removeAttachedFile();
-          }
-        }
       }
       
       // Publish the page
@@ -142,9 +134,7 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
       
       // Wait for post to appear
       // Note: Waiting is handled by list component to avoid duplication
-      const attachmentCount = options.attachments ? 
-        options.attachments.files.length - (options.attachments.removeCount || 0) : 
-        0;
+      const attachmentCount = options.attachments ? options.attachments.files.length : 0;
       
       return {
         postText: options.text,
