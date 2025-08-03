@@ -10,7 +10,7 @@ import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient'
 test.describe(
   'ACG Testcases',
   {
-    tag: [TestSuite.ABAC]
+    tag: [TestSuite.ABAC],
   },
   () => {
     test(
@@ -18,14 +18,16 @@ test.describe(
       {
         tag: [TestPriority.P0, `@ABAC`],
       },
-      async ({ appManagerHomePage, appManagerPage, appManagerApiClient}) => {
+      async ({ appManagerHomePage, appManagerPage, appManagerApiClient }) => {
         const platformsBasePage: PlatformsBasePage = new PlatformsBasePage(appManagerPage);
         const loginPage: LoginPage = new LoginPage(appManagerPage);
 
-        await appManagerApiClient.getIdentityService().createCategory("ABAC_Target_Audiences");
-        const categoryId = await appManagerApiClient.getIdentityService().getCategoryId("ABAC_Target_Audiences",100);
-        await appManagerApiClient.getIdentityService().createAudience("ABAC_Target_Audience1",categoryId,"first_name","CONTAINS","something");
-        
+        await appManagerApiClient.getIdentityService().createCategory('ABAC_Target_Audiences');
+        const categoryId = await appManagerApiClient.getIdentityService().getCategoryId('ABAC_Target_Audiences', 100);
+        await appManagerApiClient
+          .getIdentityService()
+          .createAudience('ABAC_Target_Audience1', categoryId, 'first_name', 'CONTAINS', 'something');
+
         await appManagerHomePage.goToUrl(PAGE_ENDPOINTS.ACCESS_CONTROL_GROUPS_PAGE);
 
         await platformsBasePage.accessControlGroupsPage.verifyThePageIsLoaded();
@@ -40,9 +42,15 @@ test.describe(
         await platformsBasePage.accessControlGroupsPage.clickOnButtonWithName('Skip');
         await platformsBasePage.accessControlGroupsPage.clickOnButtonWithName('Skip');
         await platformsBasePage.accessControlGroupsPage.clickOnButtonWithName('Save and activate');
-        await platformsBasePage.accessControlGroupsPage.verifyAcgToastMessage('Access control group was successfully updated',10);
+        await platformsBasePage.accessControlGroupsPage.verifyAcgToastMessage(
+          'Access control group was successfully updated',
+          10
+        );
         await platformsBasePage.accessControlGroupsPage.deleteFirstACG();
-        await platformsBasePage.accessControlGroupsPage.verifyAcgToastMessage('Access control group was successfully deleted',10);
+        await platformsBasePage.accessControlGroupsPage.verifyAcgToastMessage(
+          'Access control group was successfully deleted',
+          10
+        );
 
         await appManagerHomePage.goToUrl(PAGE_ENDPOINTS.LOGOUT);
         await loginPage.verifyThePageIsLoaded();
