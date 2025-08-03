@@ -77,6 +77,22 @@ export class BaseActionUtil {
     }
   }
 
+    /**
+   * Check an element
+   * @param selectorOrLocator - The selector or locator to check on
+   * @param options - The options to pass to the check method
+   */
+    async checkElement(selectorOrLocator: string | Locator, options?: CustomClickOptions) {
+      //we will use this option later in catch block
+      const selfHealing = options?.selfHealing ?? false;
+      const eleToCheck = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
+      try {
+        await eleToCheck.check(options);
+      } catch (error) {
+        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.CLICK, selectorOrLocator);
+      }
+    }
+
   /**
    * Fills in an element
    * @param selectorOrLocator - The selector or locator to fill in
