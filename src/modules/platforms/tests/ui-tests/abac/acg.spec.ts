@@ -1,11 +1,9 @@
-import { test } from '@playwright/test';
+import { platformTestFixture as test } from '@/src/modules/platforms/fixtures/platformFixture';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestSuite } from '@core/constants/testSuite';
-import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { PlatformsBasePage } from '../../../pages/platformsBasePage';
 import { LoginPage } from '@/src/core/pages/loginPage';
-
 
 test.describe(
   'ACG Testcases',
@@ -18,15 +16,12 @@ test.describe(
       {
         tag: [TestPriority.P0, `@ABAC`],
       },
-      async ({ page }) => {
-        const platformsBasePage: PlatformsBasePage = new PlatformsBasePage(page);
-        const loginPage: LoginPage = new LoginPage(page);
-        const homePage = await LoginHelper.loginWithPassword(page, {
-          email: getEnvConfig().appManagerEmail,
-          password: getEnvConfig().appManagerPassword,
-        });
-        await homePage.verifyThePageIsLoaded();
-        await homePage.goToUrl(getEnvConfig().frontendBaseUrl + '/manage/access-control/groups');
+      async ({ appManagerHomePage, appManagerPage }) => {
+        const platformsBasePage: PlatformsBasePage = new PlatformsBasePage(appManagerPage);
+        const loginPage: LoginPage = new LoginPage(appManagerPage);
+        
+        // Use the fixture-provided homePage instead of manual login
+        await appManagerHomePage.goToUrl(getEnvConfig().frontendBaseUrl + '/manage/access-control/groups');
         await platformsBasePage.accessControlGroupsPage.verifyThePageIsLoaded();
         await platformsBasePage.accessControlGroupsPage.clickOnCreateButton('Single');
         await platformsBasePage.accessControlGroupsPage.clickFeatureButton('Alerts');
@@ -43,7 +38,7 @@ test.describe(
         await platformsBasePage.accessControlGroupsPage.verifyAcgToastMessage('Access control group was successfully updated',10);
         await platformsBasePage.accessControlGroupsPage.deleteFirstACG();
         await platformsBasePage.accessControlGroupsPage.verifyAcgToastMessage('Access control group was successfully deleted',10);
-        await homePage.goToUrl(getEnvConfig().frontendBaseUrl + '/logout');
+        await appManagerHomePage.goToUrl(getEnvConfig().frontendBaseUrl + '/logout');
         await loginPage.verifyThePageIsLoaded();
       }
     );

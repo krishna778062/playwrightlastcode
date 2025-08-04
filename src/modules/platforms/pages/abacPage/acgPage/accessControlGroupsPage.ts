@@ -155,6 +155,13 @@ export class AccessControlGroupsPage extends BasePage {
         });
     }
 
+    // 
+      /**
+   * Waiting for ACG sync confirmation toast message takes like 10-120 seconds to appear after the ACG creation.
+   * @param toastMessage - To verify that whether the contents of the toast message contains.
+   * @param numberOfAttempts - To define number of tries incase the toast message is not found in first try
+   * @param options - Optional parameters for the toast message verification step.
+   */
     async verifyAcgToastMessage(toastMessage: string,numberOfAttempts: number,options?: { stepInfo?: string, timeout?: number }): Promise<void> {
         await test.step(options?.stepInfo ?? `Verifying ${toastMessage} toast message`, async () => {
                 var i: number;
