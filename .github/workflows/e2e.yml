@@ -235,7 +235,7 @@ jobs:
         run: |
           # Check if tests were executed
           if [ -f "test-results/test-results.json" ]; then
-            TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped' test-results/test-results.json)
+            TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-results/test-results.json)
 
             if [ "$TOTAL_TESTS" -eq 0 ]; then
               # No tests found
