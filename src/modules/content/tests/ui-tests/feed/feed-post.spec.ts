@@ -18,31 +18,24 @@ test.describe(
     let feedPage: FeedPage;
     let createdPostText: string;
     let createdPostId: string = '';
-    let feedManagerService: FeedManagerService;
 
-    test.beforeEach(async ({ endUserHomePage, feedManagerService: feedService }) => {
+    test.beforeEach(async ({ endUserHomePage }) => {
       // Navigate to feed page using the logged-in enduser fixture
       await endUserHomePage.actions.clickOnGlobalFeed();
       feedPage = new FeedPage(endUserHomePage.page);
       await feedPage.verifyThePageIsLoaded();
-      
-      // Store the feed service for cleanup
-      feedManagerService = feedService;
     });
 
-    test.afterEach(async () => {
+    test.afterEach(async ({ feedManagerService }) => {
       // Cleanup: Delete post using API if test failed and post still exists
-      if (createdPostText && feedManagerService) {
+      if (createdPostId && feedManagerService) {
         try {
-
-          if (createdPostId) {
-            await feedManagerService.deletePost(createdPostId);
-          } else {
-            console.log('No feed was published, hence skipping the deletion');
-          }
+          await feedManagerService.deletePost(createdPostId);
         } catch (error) {
           console.log('Failed to cleanup post via API:', error);
         }
+      } else {
+        console.log('No feed was published or post already deleted, hence skipping the deletion');
       }
     });
 
@@ -94,7 +87,7 @@ test.describe(
 
         // Step 4: Delete the post
         await feedPage.actions.deletePost(updatedPostText);
-        createdPostText = ''; // Clear stored text as post is deleted
+        createdPostId = ''; // Clear post ID as post is already deleted
       }
     );
   }

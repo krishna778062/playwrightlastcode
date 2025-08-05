@@ -2,6 +2,7 @@ import { BaseComponent } from '@core/components/baseComponent';
 import { Locator, Page, expect, test, Response } from '@playwright/test';
 import { FileUtil } from '@core/utils/fileUtil';
 import { TIMEOUTS } from '@core/constants/timeouts';
+import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 
 export interface FeedPostOptions {
   text: string;
@@ -52,10 +53,10 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
   readonly fileUploadInput = this.page.locator("input[type='file']");
   readonly attachedFiles = this.page.locator("div[class='FileItem-name']");
   readonly deleteFileIcon = this.page.locator("button[class*='delete']");
-  readonly postButton = this.page.locator("div[class*='PostFormShareContainer'] button:text('Post')");
+  readonly postButton = this.page.locator("div[class*='PostFormShareContainer']").getByRole('button', { name: 'Post' });
 
   // Post editing section
-  readonly editButton = this.page.locator("div:text('Edit')");
+  readonly editButton = this.page.getByText('Edit');
   readonly updateButton = this.page.getByRole('button', { name: 'Update' });
 
   // File upload section
@@ -218,7 +219,14 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
       }
       const initialCount = await this.attachedFiles.count();
       await this.clickOnElement(deleteButtons[index]);
-      await expect(this.attachedFiles).toHaveCount(initialCount - 1);
+      await this.verifier.verifyCountOfElementsIsEqualTo(
+        this.attachedFiles, 
+        initialCount - 1,
+        {
+          timeout: 10000,
+          assertionMessage: `Expected ${initialCount - 1} files after removing attachment at index ${index}, but count verification failed`
+        }
+      );
     });
   }
 
@@ -286,7 +294,7 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
       const postResponse = await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.postButton, { delay: 2_000 }),
         response =>
-          response.url().includes('/v1/wfeed/feeds') &&
+          response.url().includes(API_ENDPOINTS.feed.create()) &&
           response.request().method() === 'POST' &&
           response.status() === 201,
         {
