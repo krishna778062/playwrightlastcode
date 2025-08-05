@@ -1,8 +1,9 @@
+import { expect, Locator, Page, Response, test } from '@playwright/test';
+
 import { BaseComponent } from '@core/components/baseComponent';
-import { Locator, Page, expect, test, Response } from '@playwright/test';
-import { FileUtil } from '@core/utils/fileUtil';
-import { TIMEOUTS } from '@core/constants/timeouts';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
+import { TIMEOUTS } from '@core/constants/timeouts';
+import { FileUtil } from '@core/utils/fileUtil';
 
 export interface FeedPostOptions {
   text: string;
@@ -46,7 +47,10 @@ export interface ICreateFeedPostAssertions {
   verifyEditorVisible: () => Promise<void>;
 }
 
-export class CreateFeedPostComponent extends BaseComponent implements ICreateFeedPostActions, ICreateFeedPostAssertions {
+export class CreateFeedPostComponent
+  extends BaseComponent
+  implements ICreateFeedPostActions, ICreateFeedPostAssertions
+{
   // Share thoughts section
   readonly shareThoughtsButton = this.page.getByRole('button', { name: 'Share your thoughts' });
   readonly feedEditor = this.page.locator("div[aria-describedby='content-description']");
@@ -69,10 +73,8 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
    * @param text - The text content to find
    * @returns Locator for the post text
    */
-  readonly getFeedTextLocator = (text: string): Locator => 
+  readonly getFeedTextLocator = (text: string): Locator =>
     this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
-
-
 
   /**
    * Gets a locator for the post options menu
@@ -80,9 +82,10 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
    * @returns Locator for the options menu button
    */
   readonly getPostOptionsMenuLocator = (postText: string): Locator =>
-    this.page.locator("p")
+    this.page
+      .locator('p')
       .filter({ hasText: postText })
-      .locator("xpath=./ancestor::div[4]")
+      .locator('xpath=./ancestor::div[4]')
       .locator("button[class*='optionlauncher']")
       .first();
 
@@ -114,33 +117,33 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
     return await test.step(`Creating and publishing feed post with text: ${options.text}`, async () => {
       // Open editor
       await this.clickShareThoughtsButton();
-      
+
       // Add post content
       await this.createPost(options.text);
-      
+
       // Handle attachments if provided
       if (options.attachments) {
         await this.uploadFiles(options.attachments.files);
       }
-      
+
       // Publish the page
       const postResponse = await this.createFeedPost();
 
-             //json body
-       const feedResponseBody = (await postResponse.json()) as FeedPostApiResponse;
- 
-       //fetch the page id from the response
-       const postId = feedResponseBody.result.feedId;
-       console.log("postId", postId);
-      
+      //json body
+      const feedResponseBody = (await postResponse.json()) as FeedPostApiResponse;
+
+      //fetch the page id from the response
+      const postId = feedResponseBody.result.feedId;
+      console.log('postId', postId);
+
       // Wait for post to appear
       // Note: Waiting is handled by list component to avoid duplication
       const attachmentCount = options.attachments ? options.attachments.files.length : 0;
-      
+
       return {
         postText: options.text,
         attachmentCount,
-        postId
+        postId,
       };
     });
   }
@@ -186,9 +189,7 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
    */
   async uploadFiles(files: string[]): Promise<void> {
     await test.step('Upload files to feed post', async () => {
-      const filePaths = files.map(file => 
-        FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', file)
-      );
+      const filePaths = files.map(file => FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', file));
       await this.fileUploadInput.setInputFiles(filePaths);
       await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
       await expect(this.attachedFiles).toHaveCount(files.length);
@@ -202,31 +203,23 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
   async removeAttachedFile(index: number = 0): Promise<void> {
     await test.step(`Remove attached file at index ${index}`, async () => {
       await this.page.waitForSelector(this.deleteButtonSelector, { state: 'visible', timeout: 30000 });
-      
+
       // Verify at least one delete button is available
-      await this.verifier.verifyCountOfElementsIsGreaterThan(
-        this.deleteFileIcon,
-        0,
-        {
-          timeout: 30000,
-          assertionMessage: 'No delete buttons found - expected at least one attached file'
-        }
-      );
-      
+      await this.verifier.verifyCountOfElementsIsGreaterThan(this.deleteFileIcon, 0, {
+        timeout: 30000,
+        assertionMessage: 'No delete buttons found - expected at least one attached file',
+      });
+
       const deleteButtons = await this.deleteFileIcon.all();
       if (index < 0 || index >= deleteButtons.length) {
         throw new Error(`Invalid index ${index}. Available files: 0-${deleteButtons.length - 1}`);
       }
       const initialCount = await this.attachedFiles.count();
       await this.clickOnElement(deleteButtons[index]);
-      await this.verifier.verifyCountOfElementsIsEqualTo(
-        this.attachedFiles, 
-        initialCount - 1,
-        {
-          timeout: 10000,
-          assertionMessage: `Expected ${initialCount - 1} files after removing attachment at index ${index}, but count verification failed`
-        }
-      );
+      await this.verifier.verifyCountOfElementsIsEqualTo(this.attachedFiles, initialCount - 1, {
+        timeout: 10000,
+        assertionMessage: `Expected ${initialCount - 1} files after removing attachment at index ${index}, but count verification failed`,
+      });
     });
   }
 
@@ -278,8 +271,6 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
     });
   }
 
-
-
   /**
    * Verifies that the post editor is visible
    */
@@ -294,7 +285,7 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
       const postResponse = await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.postButton, { delay: 2_000 }),
         response =>
-          response.url().includes(API_ENDPOINTS.feed.create()) &&
+          response.url().includes(API_ENDPOINTS.feed.create) &&
           response.request().method() === 'POST' &&
           response.status() === 201,
         {
@@ -304,4 +295,4 @@ export class CreateFeedPostComponent extends BaseComponent implements ICreateFee
       return postResponse;
     });
   }
-} 
+}
