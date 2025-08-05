@@ -1,5 +1,5 @@
 import { BasePage } from '@core/pages/basePage';
-import { Page } from '@playwright/test';
+import { Page, test, expect } from '@playwright/test';
 import { CreateFeedPostComponent, FeedPostOptions, FeedPostResult } from '../components/createFeedPostComponent';
 import { ListFeedComponent } from '../components/listFeedComponent';
 
@@ -57,7 +57,11 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   }
 
   async deletePost(postText: string): Promise<void> {
-    await this.listFeedComponent.deletePost(postText);
+    await test.step(`Deleting post with text: ${postText}`, async () => {
+      await this.listFeedComponent.openPostOptionsMenu(postText);
+      await this.listFeedComponent.clickDeleteOption();
+      await this.verifyDeleteFlow('Are you sure you want to delete this post?');
+    });
   }
 
   async createPostWithAttachments(text: string, files?: string[]): Promise<FeedPostResult> {
@@ -70,7 +74,36 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   // High-level verification methods
   async verifyPostDetails(postText: string, expectedAttachmentCount: number): Promise<void> {
-    await this.listFeedComponent.verifyPostDetails(postText, expectedAttachmentCount);
+    await test.step(`Verify complete post details for: ${postText}`, async () => {
+      // Verify timestamp is displayed
+      await this.verifier.verifyTheElementIsVisible(this.listFeedComponent.getPostTimestampLocator(postText));
+      
+      // Verify file attachments count
+      await expect(this.listFeedComponent.getPostAttachmentsLocator(postText)).toHaveCount(expectedAttachmentCount);
+      
+      // Verify inline image preview functionality
+      await this.listFeedComponent.clickInlineImagePreview(postText);
+      await this.listFeedComponent.verifyInlineImagePreviewVisible();
+      await this.listFeedComponent.closeImagePreview();
+    });
+  }
+
+  /**
+   * Verifies the complete delete flow including confirmation dialog and final deletion
+   * @param expectedText - Expected text in the confirmation dialog
+   */
+  private async verifyDeleteFlow(expectedText: string): Promise<void> {
+    await test.step('Verify complete delete flow', async () => {
+      // Verify delete confirmation dialog appears
+      await this.verifier.verifyTheElementIsVisible(this.listFeedComponent.deleteConfirmDialog);
+      await expect(this.listFeedComponent.deleteConfirmDialog).toContainText(expectedText);
+      
+      // Confirm deletion
+      await this.listFeedComponent.confirmDelete();
+      
+      // Verify post is deleted (dialog disappears)
+      await this.verifier.verifyTheElementIsNotVisible(this.listFeedComponent.deleteConfirmDialog);
+    });
   }
 
   async waitForPostToBeVisible(expectedText: string): Promise<void> {

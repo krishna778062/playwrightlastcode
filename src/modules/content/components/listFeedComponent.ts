@@ -71,17 +71,7 @@ export class ListFeedComponent extends BaseComponent {
     await this.getPostTimestampLocator(postText).textContent() || '';
   }
 
-  /**
-   * Deletes a post with complete verification flow
-   * @param postText - Text of the post to delete
-   */
-  async deletePost(postText: string): Promise<void> {
-    await test.step(`Deleting post with text: ${postText}`, async () => {
-      await this.openPostOptionsMenu(postText);
-      await this.clickDeleteOption();
-      await this.verifyDeleteFlow('Are you sure you want to delete this post?');
-    });
-  }
+
 
   /**
    * Opens the options menu for a post
@@ -105,7 +95,7 @@ export class ListFeedComponent extends BaseComponent {
   /**
    * Confirms the delete action in the confirmation dialog
    */
-  private async confirmDelete(): Promise<void> {
+  async confirmDelete(): Promise<void> {
     await test.step('Confirm delete', async () => {
       await this.clickOnElement(this.deleteConfirmButton);
     });
@@ -114,7 +104,7 @@ export class ListFeedComponent extends BaseComponent {
   /**
    * Clicks the inline image preview to open lightbox
    */
-  private async clickInlineImagePreview(postText: string): Promise<void> {
+  async clickInlineImagePreview(postText: string): Promise<void> {
     await test.step('Click on inline image preview', async () => {
       await this.clickOnElement(this.getLightboxButtonLocator(postText).first());
     });
@@ -123,7 +113,7 @@ export class ListFeedComponent extends BaseComponent {
   /**
    * Closes the image preview lightbox
    */
-  private async closeImagePreview(): Promise<void> {
+  async closeImagePreview(): Promise<void> {
     await test.step('Close image preview', async () => {
       await this.clickOnElement(this.closeButton);
     });
@@ -142,48 +132,12 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Verifies complete post details including timestamp, attachments, and image preview
-   * @param postText - Text of the post to verify
-   * @param expectedAttachmentCount - Expected number of attachments
-   */
-  async verifyPostDetails(postText: string, expectedAttachmentCount: number): Promise<void> {
-    await test.step(`Verify complete post details for: ${postText}`, async () => {
-      // Verify timestamp is displayed
-      await this.verifier.verifyTheElementIsVisible(this.getPostTimestampLocator(postText));
-      
-      // Verify file attachments count
-      await expect(this.getPostAttachmentsLocator(postText)).toHaveCount(expectedAttachmentCount);
-      
-      // Verify inline image preview functionality
-      await this.clickInlineImagePreview(postText);
-      await this.verifyInlineImagePreviewVisible();
-      await this.closeImagePreview();
-    });
-  }
 
-  /**
-   * Verifies the complete delete flow including confirmation dialog and final deletion
-   * @param expectedText - Expected text in the confirmation dialog
-   */
-  async verifyDeleteFlow(expectedText: string): Promise<void> {
-    await test.step('Verify complete delete flow', async () => {
-      // Verify delete confirmation dialog appears
-      await this.verifier.verifyTheElementIsVisible(this.deleteConfirmDialog);
-      await expect(this.deleteConfirmDialog).toContainText(expectedText);
-      
-      // Confirm deletion
-      await this.confirmDelete();
-      
-      // Verify post is deleted (dialog disappears)
-      await this.verifier.verifyTheElementIsNotVisible(this.deleteConfirmDialog);
-    });
-  }
 
   /**
    * Verifies that the inline image preview is visible
    */
-  private async verifyInlineImagePreviewVisible(): Promise<void> {
+  async verifyInlineImagePreviewVisible(): Promise<void> {
     await test.step('Verify inline image preview is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.inlineImagePreview.first());
     });
