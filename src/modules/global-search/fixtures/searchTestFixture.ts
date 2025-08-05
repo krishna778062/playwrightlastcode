@@ -6,12 +6,14 @@ import { LoginHelper } from '../../../core/helpers/loginHelper';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
+import { IntranetFileHelper } from '@core/helpers/intranetFileHelper';
 
 export const searchTestFixtures = test.extend<{
   appManagerHomePage: NewUxHomePage | OldUxHomePage;
   appManagerUserPage: Page;
   appManagerApiClient: AppManagerApiClient;
   contentManagementHelper: ContentManagementHelper;
+  intranetFileHelper: IntranetFileHelper;
 }>({
   appManagerHomePage: [
     async ({ page }, use, workerInfo) => {
@@ -49,6 +51,17 @@ export const searchTestFixtures = test.extend<{
         await use(contentManagementHelper);
       } finally {
         await contentManagementHelper.cleanup();
+      }
+    },
+    { scope: 'test' },
+  ],
+  intranetFileHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const intranetFileHelper = new IntranetFileHelper(appManagerApiClient);
+      try {
+        await use(intranetFileHelper);
+      } finally {
+        await intranetFileHelper.cleanup();
       }
     },
     { scope: 'test' },

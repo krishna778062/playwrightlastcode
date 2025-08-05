@@ -6,6 +6,9 @@ import { SiteListComponent } from '@/src/modules/global-search/components/siteLi
 import { TileListComponent } from '../components/tileListComponent';
 import { AppContainerComponent } from '../components/appListComponent';
 import { test } from '@playwright/test';
+import { IContentSearch } from '../types/content-search.type';
+import { ContentListComponent } from '../components/contentListComponent';
+import { IntranetFileListComponent } from '../components/intranetFileListComponent';
 
 export class GlobalSearchResultPage extends BasePage {
   readonly resultListingComponent: ResultListingComponent;
@@ -41,6 +44,55 @@ export class GlobalSearchResultPage extends BasePage {
     });
 
     this.appResultContainer = this.page.locator("div[class*='AppItemList_appListTopWrapper']");
+  }
+
+  private getTestIdForFileType(fileType: string): string {
+    switch (fileType) {
+      case 'pdf':
+        return 'i-adobeAcrobat';
+      case 'docx':
+        return 'i-microsoftWord';
+      case 'pptx':
+        return 'i-microsoftPowerPoint';
+      case 'csv':
+        return 'i-file';
+      case 'xlsx':
+        return 'i-microsoftExcel';
+      default:
+        return 'i-files';
+    }
+  }
+
+  /**
+   * Verifies all data points for a content result item, handling different content types.
+   * @param resultItemType - The type of content to verify ('album', 'event', or 'page').
+   * @param data - The content search data to verify.
+   */
+  async verifyResultItemDataPoints(resultItemType: 'album' | 'event' | 'page', data: IContentSearch) {
+    await test.step(`Verifying all data points for a result item of type "${resultItemType}"`, async () => {
+      let resultLocator;
+      if (resultItemType === 'album') {
+        resultLocator = await this.getAlbumResultItemExactlyMatchingTheSearchTerm(data.name);
+      } else if (resultItemType === 'event') {
+        resultLocator = await this.getEventResultItemExactlyMatchingTheSearchTerm(data.name);
+      } else {
+        resultLocator = await this.getPageResultItemExactlyMatchingTheSearchTerm(data.name);
+      }
+      const contentResultItem = new ContentListComponent(resultLocator.page, resultLocator.rootLocator);
+      await contentResultItem.verifyContentResultItem(data);
+    });
+  }
+
+  /**
+   * Verifies all data points for a file result item.
+   * @param data - The file search data to verify.
+   */
+  async verifyIntranetFileResultItem(data: any) {
+    await test.step(`Verifying all data points for a file result item`, async () => {
+      const resultLocator = await this.getFileResultItemExactlyMatchingTheSearchTerm(data.name, data.type);
+      const fileResultItem = new IntranetFileListComponent(resultLocator.page, resultLocator.rootLocator);
+      await fileResultItem.verifyIntranetFileResultItem(data);
+    });
   }
 
   get actions(): any {
@@ -199,6 +251,28 @@ export class GlobalSearchResultPage extends BasePage {
     return await test.step(`Getting event result item matching the search term "${searchTerm}"`, async () => {
       await this.waitUntilSearchResultListIsDisplayed();
       const contentResultToLocate = this.albumResultItems.filter({
+        has: this.page.locator('h2', { hasText: searchTerm }),
+      });
+      await this.handleExactMatchCheckboxRetry(async () => {
+        await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 60_000 });
+      });
+      return new ResultListingComponent(this.page, contentResultToLocate);
+    });
+  }
+
+  /**
+   * Get the file result item exactly matching the search term
+   * @param searchTerm - the search term
+   * @returns the content result item
+   */
+  async getFileResultItemExactlyMatchingTheSearchTerm(searchTerm: string, fileType: string) {
+    return await test.step(`Getting file result item matching the search term "${searchTerm}"`, async () => {
+      await this.waitUntilSearchResultListIsDisplayed();
+      const testId = this.getTestIdForFileType(fileType);
+      const fileResultItems = this.searchResultListItems.filter({
+        has: this.page.getByTestId(testId),
+      });
+      const contentResultToLocate = fileResultItems.filter({
         has: this.page.locator('h2', { hasText: searchTerm }),
       });
       await this.handleExactMatchCheckboxRetry(async () => {

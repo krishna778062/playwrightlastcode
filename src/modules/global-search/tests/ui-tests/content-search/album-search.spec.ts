@@ -3,13 +3,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
-import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 import { ALBUM_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
-import { EnterpriseSearchHelper } from '@core/helpers/enterpriseSearchHelper';
-import { buildBodyAndBodyHtml } from '@/src/core/api/services/ContentManagementService';
-import { faker } from '@faker-js/faker';
-import { getTodayDateIsoString } from '@/src/core/utils/dateUtil';
-
 
 test.describe(
   'Global Search- Album Search functionality',
@@ -39,31 +33,17 @@ test.describe(
           stepInfo: `Searching with term "${albumName}" and intent is to find the content`,
         });
 
-        // 6. Get the content result item using ContentListComponent
-        const resultLocator = await globalSearchResultPage.getAlbumResultItemExactlyMatchingTheSearchTerm(albumName);
-        const contentResultItem = new ContentListComponent(resultLocator.page, resultLocator.rootLocator);
-
-        //verifying album results
-        await contentResultItem.verifyNameIsDisplayed(albumName);
-        await contentResultItem.verifyLabelIsDisplayed(ALBUM_SEARCH_TEST_DATA.label);
-        await contentResultItem.verifyThumbnailIsDisplayed();
-        await contentResultItem.verifyDescriptionIsDisplayed(contentDescription);
-        await contentResultItem.verifyAuthorIsDisplayed(authorName);
-        await contentResultItem.verifyDateIsDisplayed();
-        await contentResultItem.verifyAlbumIconIsDisplayed();
-        await contentResultItem.verifyNavigationToTitleLink(contentId,albumName,ALBUM_SEARCH_TEST_DATA.content);
-        await contentResultItem.goBackToPreviousPage();
-        await contentResultItem.verifyNavigationWithSiteLink(siteId, newSiteName);
-        await contentResultItem.goBackToPreviousPage();
-        await contentResultItem.hoverOverCardAndCopyLink();
-        await contentResultItem.verifyCopiedURL(contentId);
-        await contentResultItem.goBackToPreviousPage();
-        await contentResultItem.verifyNavigationWithThumbnailLink(contentId);
-        await contentResultItem.goBackToPreviousPage();
-        await contentResultItem.verifyNavigationWithAuthorLink(authorName);
-        await contentResultItem.goBackToPreviousPage();
-        await contentResultItem.verifyNavigationWithHomePageLink();
-        await contentResultItem.goBackToPreviousPage();
+        // 6. Verify the album result item's data points
+        await globalSearchResultPage.verifyResultItemDataPoints('album', {
+          name: albumName,
+          label: ALBUM_SEARCH_TEST_DATA.label,
+          description: contentDescription,
+          author: authorName,
+          contentType: 'Album',
+          contentId,
+          siteId,
+          siteName: newSiteName,
+        });
       }
     );
   }

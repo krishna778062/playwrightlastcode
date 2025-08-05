@@ -218,4 +218,10 @@ export class ResultListingComponent extends BaseComponent {
       }
     });
   }
+
+  async goBackToPreviousPage() {
+    await test.step('Navigating back to the previous page', async () => {
+      await this.page.goBack();
+    });
+  }
 }

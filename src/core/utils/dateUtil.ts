@@ -1,18 +1,5 @@
 
 /**
- * Returns today's date formatted as 'Mon DD, YYYY' (e.g., 'Jul 31, 2024').
- * @returns {string} The formatted date string for today.
- */
-export function getTodayFormattedDate(): string {
-  const today = new Date();
-  return today.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
-/**
  * Returns today's date as an ISO string (e.g., '2024-07-31T00:00:00.000Z').
  * @returns {string} The ISO string for today's date.
  */
