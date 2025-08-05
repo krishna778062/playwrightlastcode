@@ -9,7 +9,7 @@ import { IntranetFileListComponent } from '@/src/modules/global-search/component
 test.describe(
   'Global Search - Intranet File Search functionality',
   {
-    tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.FILE_SEARCH,"@test"],
+    tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.FILE_SEARCH],
   },
   () => {
     const testData = INTRANET_FILE_SEARCH_TEST_DATA;
