@@ -39,12 +39,4 @@ export abstract class BasePage extends BaseActionUtil {
     });
   }
 
-  /**
-   * Navigates back in the browser.
-   */
-  async goBack() {
-    await test.step('Navigating back', async () => {
-      await this.page.goBack();
-    });
-  }
 }

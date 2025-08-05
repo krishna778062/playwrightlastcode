@@ -1,6 +1,6 @@
 import { ResultListingComponent } from './resultsListComponent';
 import { Locator, Page, test, expect } from '@playwright/test';
-import { getEventDateDisplayText, getTodayDateIsoString, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
+import { getEventDateDisplayText, getTodayDateIsoString, getTodayFormattedDate, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { IContentSearch } from '@/src/modules/global-search/types/content-search.type';
 import { IntranetFileListComponent } from './intranetFileListComponent';
 
@@ -110,7 +110,7 @@ export class ContentListComponent extends ResultListingComponent {
    */
   async verifyNavigationWithSiteLink(siteId: string, siteName: string) {
     await test.step(`Verifying navigation to site link "${siteId}"`, async () => {
-      await this.clickOnSiteLink(siteName);
+      await this.clickOnSiteLink(siteName,{timeout: 10000});
       await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(siteId), {
         timeout: 50000,
         stepInfo: `Verifying navigation to site link to "${siteId}"`,
@@ -161,7 +161,7 @@ export class ContentListComponent extends ResultListingComponent {
    * Verifies that today's formatted date is displayed in the content result item.
    */
   async verifyDateIsDisplayed() {
-    const formatted = 'a';
+    const formatted = getTodayFormattedDate();
     await test.step(`Verify date ${formatted} is displayed`, async () => {
       await this.verifier.verifyElementContainsText(this.resultList.last(), formatted);
     });
