@@ -131,7 +131,11 @@ export class IntranetFileListComponent extends ContentListComponent {
    */
   async clickOnCloseButton() {
     await test.step(`Click on the close button`, async () => {
-      await this.clickOnElement(this.closeButton.last(),{timeout: 10000});
+      const closeButton = this.closeButton.last();
+      await this.verifier.verifyTheElementIsVisible(closeButton);
+      await this.verifier.verifyTheElementIsEnabled(closeButton);
+      await this.clickOnElement(closeButton);
+      await this.verifier.verifyTheElementIsNotVisible(closeButton);
     });
   }
 

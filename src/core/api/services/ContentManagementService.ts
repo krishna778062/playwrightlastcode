@@ -2,6 +2,7 @@ import { APIRequestContext, expect, test } from '@playwright/test';
 import { BaseApiClient } from '@api/clients/baseApiClient';
 import { IContentManagementServices } from '@api/interfaces/IContentManagementServices';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { PageCreationPayload, EventCreationPayload, AlbumCreationPayload } from '@core/types/contentManagement.types';
 
 const defaultBaseContentPayload = {
@@ -110,20 +111,26 @@ export class ContentManagementService extends BaseApiClient implements IContentM
    * @returns The first category's ID and name.
    */
   async getPageCategoryID(siteId: string) {
-    return await test.step(
-      'Fetching page categories via API post request',
-      async () => {
+    return await test.step('Fetching page categories via API post request', async () => {
+      const categoryInfo = await expect.poll(async () => {
         const response = await this.post(API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.category, {
           data: { size: 16 },
         });
         const json = await response.json();
-        if (!json.result?.listOfItems?.length) throw new Error('Category not found');
-        return {
-          categoryId: json.result.listOfItems[0].id,
-          name: json.result.listOfItems[0].name,
-        };
-      }
-    );
+        if (json.result?.listOfItems?.length) {
+          return {
+            categoryId: json.result.listOfItems[0].id,
+            name: json.result.listOfItems[0].name,
+          };
+        }
+        return null; 
+      }, {
+        message: `Could not find page category for site ${siteId} after 3 retries.`,
+        intervals: [2000, 4000, 6000],
+      }).toBeTruthy();
+      
+      return categoryInfo;
+    });
   }
 
   /**
@@ -282,6 +289,14 @@ export class ContentManagementService extends BaseApiClient implements IContentM
     return await test.step('Deleting page via API delete request', async () => {
       const response = await this.delete(API_ENDPOINTS.content.delete(siteId, contentId));
       expect(response.status()).toBe(200);
+      
+      await expect.poll(async () => {
+        const checkResponse = await this.get(API_ENDPOINTS.content.delete(siteId, contentId));
+        return checkResponse.status();
+      }, {
+        message: `Content with id ${contentId} was not deleted within the specified timeout.`,
+        timeout: TIMEOUTS.LONG
+      }).toBe(404);
     });
   }
 }
