@@ -44,7 +44,7 @@ export const API_ENDPOINTS = {
     category: '/pageCategories/list',
     publish: '/content?action=publish',
     delete: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}`,
-    signedUrl: '/v1/content/static/signedurl/upload'
+    signedUrl: '/v1/content/static/signedurl/upload',
   },
 
   fileUpload: {
@@ -54,6 +54,12 @@ export const API_ENDPOINTS = {
   linkTile: {
     create: (siteId: string) => `/v1/content/sites/${siteId}/tiles`,
     delete: (siteId: string, tileId: string) => `/v1/content/sites/${siteId}/tiles/${tileId}`,
+  },
+
+  feed: {
+    create: `/v1/wfeed/feeds`,
+    update: (postId: string) => `/v1/wfeed/feeds/${postId}`,
+    delete: (postId: string) => `/v1/wfeed/feeds/${postId}`,
   },
   apps: {
     settings: '/v1/account/apps-links-settings',

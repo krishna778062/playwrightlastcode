@@ -9,3 +9,6 @@ export * from './audience.type';
 
 // HTTP client related types
 export * from './http.type';
+
+// Feed related types
+export * from './feed.types';
