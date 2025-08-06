@@ -57,7 +57,10 @@ export class LoginPage extends BasePage implements ILoginPageActions {
     options?: { timeout?: number }
   ): Promise<NewUxHomePage | OldUxHomePage> {
     await this.performLoginWithPassword(username, password);
-    await this.page.waitForURL('/home', { timeout: options?.timeout || TIMEOUTS.MEDIUM });
+    await this.page.waitForURL('/home', {
+      timeout: options?.timeout || TIMEOUTS.MEDIUM,
+      waitUntil: 'domcontentloaded',
+    });
     return getEnvConfig().newUxEnabled ? new NewUxHomePage(this.page) : new OldUxHomePage(this.page);
   }
 

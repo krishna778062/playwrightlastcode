@@ -7,11 +7,15 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
+import { FeedManagerService } from '@core/api/services/FeedManagerService';
 
 export const contentTestFixture = test.extend<{
   appManagerHomePage: NewUxHomePage | OldUxHomePage;
   appManagerPage: Page;
   appManagerApiClient: AppManagerApiClient;
+  endUserHomePage: NewUxHomePage|OldUxHomePage;
+  endUserPage: Page;
+  feedManagerService: FeedManagerService;
 }>({
   appManagerHomePage: [
     async ({ page }, use) => {
@@ -43,4 +47,36 @@ export const contentTestFixture = test.extend<{
     },
     { scope: 'test' },
   ],
+
+  endUserHomePage: [
+    async ({ page }, use) => {
+      const endUserHomePage = await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().endUserEmail,
+        password: getEnvConfig().endUserPassword,
+      });
+      await endUserHomePage.verifyThePageIsLoaded();
+      await use(endUserHomePage);
+    },
+    { scope: 'test' },
+  ],
+
+  endUserPage: [
+    async ({ endUserHomePage }, use) => {
+      await use(endUserHomePage.page as Page);
+    },
+    { scope: 'test' },
+  ],
+
+  feedManagerService: [
+    async ({ endUserPage }, use) => {
+      const feedManagerService = await ApiClientFactory.createClient(FeedManagerService, {
+        type: 'cookies',
+        page: endUserPage,
+        baseUrl: getEnvConfig().apiBaseUrl,
+      });
+      await use(feedManagerService);
+    },
+    { scope: 'test' },
+  ],
 });
+

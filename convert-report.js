@@ -384,10 +384,6 @@ fs.writeFileSync(path.join(PLAYWRIGHT_REPORT_DIR, 'home.html'), landingHtml);
 // If we're in development mode and OPEN_REPORT is set
 if (process.env.OPEN_REPORT) {
   const openCommand = process.platform === 'win32' ? 'start' : 'open';
-  require('child_process').exec(
-    `${openCommand} http://localhost:${DEFAULT_PORT}/playwright-report/summary.html`
-  );
-  console.log(
-    `Report will be available at: http://localhost:${DEFAULT_PORT}/playwright-report/summary.html`
-  );
+  require('child_process').exec(`${openCommand} http://localhost:${DEFAULT_PORT}/playwright-report/summary.html`);
+  console.log(`Report will be available at: http://localhost:${DEFAULT_PORT}/playwright-report/summary.html`);
 }
