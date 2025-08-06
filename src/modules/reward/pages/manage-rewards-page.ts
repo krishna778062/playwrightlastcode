@@ -12,7 +12,7 @@ export class ManageRewardsPage extends BasePage {
     super(page);
     // Initialize locators - these would need to be updated based on actual DOM structure
     this.manageRewardsPageContainer = this.page.locator('div[class*="TypographyBody-module"]');
-    this.manageRewardsPageNotFound = this.page.locator('[data-testid="no-results"]');
+    this.manageRewardsPageNotFound = this.page.getByTestId('no-results');
     this.rewardsOverviewDescriptionText = this.manageRewardsPageContainer.locator('p');
   }
 
@@ -27,7 +27,6 @@ export class ManageRewardsPage extends BasePage {
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await expect(this.rewardsOverviewDescriptionText.last()).toBeVisible();
     await this.verifier.verifyTheElementIsVisible(this.rewardsOverviewDescriptionText.last(), {
       assertionMessage: 'Verify the rewards overview description text is visible',
     });

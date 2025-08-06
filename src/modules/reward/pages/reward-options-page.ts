@@ -5,10 +5,10 @@ import { BasePage } from '@core/pages/basePage';
 
 export class RewardOptionsPage extends BasePage {
   readonly rewardsOptionsContainer: Locator;
-  readonly rewardsOptionsNotFound: Locator;
   readonly rewardOptionLink: Locator;
   readonly rewardsOptionPageNotFound: Locator;
   readonly rewardsOptionsHeader: Locator;
+  readonly searchElement: Locator;
   readonly searchInput: Locator;
   readonly searchInputClearButton: Locator;
   readonly searchButton: Locator;
@@ -18,18 +18,14 @@ export class RewardOptionsPage extends BasePage {
     super(page);
     // Initialize locators - these would need to be updated based on actual DOM structure
     this.rewardsOptionsContainer = page.locator('div[class*="Rewards_content"]');
-    this.rewardsOptionsNotFound = page.locator('[data-testid="no-results"]');
-    this.rewardOptionLink = page.locator('[href="/manage/recognition/rewards/reward-options"] p');
-    this.rewardsOptionPageNotFound = page.locator('[data-testid="no-results"]');
+    this.rewardOptionLink = page.locator(`a[href="${rewardsEndpoint.rewardsOptionsPage}"] p`);
+    this.rewardsOptionPageNotFound = page.getByTestId('no-results');
     this.rewardsOptionsHeader = this.rewardsOptionsContainer.locator('h2[class*="Typography-module__heading1"]');
-    this.searchInput = this.rewardsOptionsContainer.locator('input[aria-label="Search…"]');
-    this.searchInputClearButton = this.rewardsOptionsContainer.locator(
-      '[class*="SearchField_searchWrapper"] button[aria-label="Clear"]'
-    );
-    this.searchButton = this.rewardsOptionsContainer.locator('button[aria-label="Search"]');
-    this.rewardsOptionsShowMoreButton = this.rewardsOptionsContainer.locator(
-      '//button[text()="Show more" and contains(@class,"Button-module__button")]'
-    );
+    this.searchElement = this.rewardsOptionsContainer.locator('form[class*="SearchField_searchWrapper]');
+    this.searchInput = this.searchElement.locator('input[aria-label="Search…"]');
+    this.searchInputClearButton = this.searchElement.locator('button[aria-label="Clear"]');
+    this.searchButton = this.searchElement.locator('button[aria-label="Search"]');
+    this.rewardsOptionsShowMoreButton = this.rewardsOptionsContainer.getByRole('button', { name: 'Show more' });
   }
 
   async visit(): Promise<void> {
@@ -48,7 +44,7 @@ export class RewardOptionsPage extends BasePage {
       ? await expect(this.rewardOptionLink).toBeVisible()
       : await expect(this.rewardOptionLink).toBeHidden();
     expectingToBeVisible
-      ? await expect(this.rewardsOptionsNotFound).toBeHidden()
+      ? await expect(this.rewardsOptionPageNotFound).toBeHidden()
       : await expect(this.rewardOptionLink).toBeVisible();
   }
 }
