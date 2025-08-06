@@ -2,18 +2,18 @@ import { Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
+import { FeedManagerService } from '@core/api/services/FeedManagerService';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
-import { FeedManagerService } from '@core/api/services/FeedManagerService';
 
 export const contentTestFixture = test.extend<{
   appManagerHomePage: NewUxHomePage | OldUxHomePage;
   appManagerPage: Page;
   appManagerApiClient: AppManagerApiClient;
-  endUserHomePage: NewUxHomePage|OldUxHomePage;
+  endUserHomePage: NewUxHomePage | OldUxHomePage;
   endUserPage: Page;
   feedManagerService: FeedManagerService;
 }>({
@@ -51,8 +51,8 @@ export const contentTestFixture = test.extend<{
   endUserHomePage: [
     async ({ page }, use) => {
       const endUserHomePage = await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().endUserEmail,
-        password: getEnvConfig().endUserPassword,
+        email: getEnvConfig().endUserEmail!,
+        password: getEnvConfig().endUserPassword!,
       });
       await endUserHomePage.verifyThePageIsLoaded();
       await use(endUserHomePage);
@@ -62,7 +62,7 @@ export const contentTestFixture = test.extend<{
 
   endUserPage: [
     async ({ endUserHomePage }, use) => {
-      await use(endUserHomePage.page as Page);
+      await use(endUserHomePage.page);
     },
     { scope: 'test' },
   ],
@@ -79,4 +79,3 @@ export const contentTestFixture = test.extend<{
     { scope: 'test' },
   ],
 });
-

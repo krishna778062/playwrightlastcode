@@ -13,7 +13,7 @@ on:
           - 'platforms'
           - 'global-search'
           - 'content'
-          - 'platforms'
+          - 'de'
       priority_filter:
         description: 'Select test cases by priority'
         required: true
@@ -195,24 +195,27 @@ jobs:
         run: |
           # Parse test results from test-results directory
           if [ -f "test-results/test-results.json" ]; then
-            TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped' test-results/test-results.json)
+            TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-results/test-results.json)
             PASSED_TESTS=$(jq -r '.stats.expected' test-results/test-results.json)
             FAILED_TESTS=$(jq -r '.stats.unexpected' test-results/test-results.json)
             SKIPPED_TESTS=$(jq -r '.stats.skipped' test-results/test-results.json)
+            FLAKY_TESTS=$(jq -r '.stats.flaky' test-results/test-results.json)
           else
             TOTAL_TESTS=0
             PASSED_TESTS=0
             FAILED_TESTS=0
             SKIPPED_TESTS=0
+            FLAKY_TESTS=0
           fi
 
           echo "TOTAL_TESTS=$TOTAL_TESTS" >> $GITHUB_ENV
           echo "PASSED_TESTS=$PASSED_TESTS" >> $GITHUB_ENV
           echo "FAILED_TESTS=$FAILED_TESTS" >> $GITHUB_ENV
           echo "SKIPPED_TESTS=$SKIPPED_TESTS" >> $GITHUB_ENV
+          echo "FLAKY_TESTS=$FLAKY_TESTS" >> $GITHUB_ENV
 
-                    echo "Test Results:"
-          echo "Total: $TOTAL_TESTS, Passed: $PASSED_TESTS, Failed: $FAILED_TESTS, Skipped: $SKIPPED_TESTS"
+          echo "Test Results:"
+          echo "Total: $TOTAL_TESTS, Passed: $PASSED_TESTS, Failed: $FAILED_TESTS, Skipped: $SKIPPED_TESTS, Flaky: $FLAKY_TESTS"
 
       - name: Send Slack Notification
         if: always()
@@ -220,7 +223,7 @@ jobs:
           # Only send notification if tests actually ran (TOTAL_TESTS > 0)
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
             # Prepare Slack message with hyperlinks
-            MESSAGE="🧪 *UI Automation Suite* - \`${{ inputs.module_name }}\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.FAILED_TESTS }} ❌) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+            MESSAGE="🧪 *UI Automation Suite* - \`${{ inputs.module_name }}\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.FAILED_TESTS }} ❌ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
 
             # Send to Slack using curl
             curl -X POST -H 'Content-type: application/json' \
