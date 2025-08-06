@@ -12,6 +12,7 @@ on:
           - 'chat'
           - 'platforms'
           - 'global-search'
+          - 'reward'
       priority_filter:
         description: 'Select test cases by priority'
         required: true
@@ -36,6 +37,7 @@ on:
         default: 'qa'
         type: choice
         options:
+          - 'test'
           - 'qa'
           - 'uat'
       workers:
