@@ -41,9 +41,9 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
       await test.step('Verify the Rewards options is visible', async () => {
         await manageRewardsPage.visit();
         rewardIsEnabled = await manageRewardsPage.getTheKeyValueFromTheRewardsCall('enabled');
+        await manageRewardsPage.verifyThePageIsLoaded();
         rewardOptionsIsVisible =
           await rewardOptionsPage.getTheRewardsOptionsValueFromTheEvaluationCall('reward_options');
-        await manageRewardsPage.verifyThePageIsLoaded();
         console.log('Reward Options is visible:', rewardOptionsIsVisible);
         if (Boolean(rewardIsEnabled)) {
           rewardOptionsIsVisible
@@ -88,9 +88,9 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
       await test.step('Verify the Rewards options is visible', async () => {
         await manageRewardsPage.visit();
         rewardIsEnabled = await manageRewardsPage.getTheKeyValueFromTheRewardsCall('enabled');
+        await manageRewardsPage.verifyThePageIsLoaded();
         rewardOptionsIsVisible =
           await rewardOptionsPage.getTheRewardsOptionsValueFromTheEvaluationCall('reward_options');
-        await manageRewardsPage.verifyThePageIsLoaded();
         console.log('Reward Options is visible:', rewardOptionsIsVisible);
         if (Boolean(rewardIsEnabled)) {
           rewardOptionsIsVisible
@@ -135,9 +135,9 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
       await test.step('Verify the Rewards options is visible', async () => {
         await manageRewardsPage.visit();
         rewardIsEnabled = await manageRewardsPage.getTheKeyValueFromTheRewardsCall('enabled');
+        await manageRewardsPage.verifyThePageIsLoaded();
         rewardOptionsIsVisible =
           await rewardOptionsPage.getTheRewardsOptionsValueFromTheEvaluationCall('reward_options');
-        await manageRewardsPage.verifyThePageIsLoaded();
         if (Boolean(rewardIsEnabled)) {
           rewardOptionsIsVisible
             ? await expect(rewardOptionsPage.rewardOptionLink).toBeVisible()
