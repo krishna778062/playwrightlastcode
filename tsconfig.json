@@ -17,7 +17,8 @@
       "@platforms-tests/*": ["./src/modules/platforms/tests/*"],
       "@content/*": ["./src/modules/content/*"],
       "@content-pages/*": ["./src/modules/content/pages/*"],
-      "@content-tests/*": ["./src/modules/content/tests/*"]
+      "@content-tests/*": ["./src/modules/content/tests/*"],
+      "@rewards/*": ["./src/modules/reward/*"]
     },
     "target": "ES2019",
     "module": "commonjs",

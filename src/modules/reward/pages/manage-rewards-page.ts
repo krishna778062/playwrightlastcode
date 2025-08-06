@@ -1,20 +1,29 @@
 import { expect, Locator, Page } from '@playwright/test';
+import { rewardsEndpoint } from '@rewards/constants/pageEndpoint';
 
 import { BasePage } from '@core/pages/basePage';
 
 export class ManageRewardsPage extends BasePage {
   readonly manageRewardsPageContainer: Locator;
+  readonly manageRewardsPageNotFound: Locator;
   readonly rewardsOverviewDescriptionText: Locator;
 
   constructor(page: Page) {
     super(page);
     // Initialize locators - these would need to be updated based on actual DOM structure
     this.manageRewardsPageContainer = this.page.locator('div[class*="TypographyBody-module"]');
+    this.manageRewardsPageNotFound = this.page.locator('[data-testid="no-results"]');
     this.rewardsOverviewDescriptionText = this.manageRewardsPageContainer.locator('p');
   }
 
   async visit(): Promise<void> {
-    await this.page.goto('/manage/recognition/rewards/overview');
+    await this.page.goto(rewardsEndpoint.manageRewardsPage);
+  }
+
+  async hasManageRecognitionPermission(): Promise<boolean> {
+    return await this.page.evaluate(() => {
+      return (window as any).Simpplr?.CurrentUser?.permissions?.includes('recognition_admin_tool');
+    });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -24,18 +33,7 @@ export class ManageRewardsPage extends BasePage {
     });
   }
 
-  async getTheKeyValueFromTheRewardsCall(targetKey: string): Promise<string | null> {
-    const apiUrlPattern = /\/recognition\/admin\/rewards/;
-    const [response] = await Promise.all([
-      this.page.waitForResponse((resp: any) => apiUrlPattern.test(resp.url()) && resp.status() === 200),
-      this.page.reload(), // Trigger the request by reloading
-    ]);
-    const json = await response.json();
-    if (targetKey in json) {
-      console.log(`Key "${targetKey}" found in the response:`, json[targetKey]);
-      return String(json[targetKey]);
-    }
-    console.log(`Key "${targetKey}" not found in the response.`);
-    return null; // Key not found
+  async verifyPageIsNotFound(): Promise<void> {
+    await expect(this.manageRewardsPageNotFound).toBeVisible();
   }
 }

@@ -1,7 +1,8 @@
 import { Page, test } from '@playwright/test';
+import { ManageRewardsPage } from '@rewards/pages/manage-rewards-page';
+import { RewardOptionsPage } from '@rewards/pages/reward-options-page';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
-import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
@@ -14,6 +15,10 @@ export const rewardTestFixture = test.extend<{
   appManagerApiClient: AppManagerApiClient;
   recoManagerHomePage: NewUxHomePage | OldUxHomePage;
   recoManagerPage: Page;
+  standardUserHomePage: NewUxHomePage | OldUxHomePage;
+  standardUserPage: Page;
+  manageRewardsPage: ManageRewardsPage;
+  rewardOptionsPage: RewardOptionsPage;
 }>({
   appManagerHomePage: [
     async ({ page }, use) => {
@@ -32,21 +37,41 @@ export const rewardTestFixture = test.extend<{
     },
     { scope: 'test' },
   ],
-  // Reco Manager setup
+
+  //recognition manager
   recoManagerHomePage: [
     async ({ page }, use) => {
-      const recoHomePage = await LoginHelper.loginWithPassword(page, {
-        email: process.env['RECOGNITION_USER_USERNAME'],
-        password: process.env['RECOGNITION_USER_PASSWORD'],
+      const recognitionHomePage = await LoginHelper.loginWithPassword(page, {
+        email: String(process.env['RECOGNITION_USER_USERNAME']),
+        password: String(process.env['RECOGNITION_USER_PASSWORD']),
       });
-      await recoHomePage.verifyThePageIsLoaded();
-      await use(recoHomePage);
+      await recognitionHomePage.verifyThePageIsLoaded();
+      await use(recognitionHomePage);
     },
     { scope: 'test' },
   ],
   recoManagerPage: [
     async ({ recoManagerHomePage }, use) => {
       await use(recoManagerHomePage.page);
+    },
+    { scope: 'test' },
+  ],
+
+  //standard user
+  standardUserHomePage: [
+    async ({ page }, use) => {
+      const recognitionHomePage = await LoginHelper.loginWithPassword(page, {
+        email: process.env['STANDARD_USER_USERNAME'] || getEnvConfig().appManagerEmail,
+        password: process.env['STANDARD_USER_PASSWORD'] || getEnvConfig().appManagerPassword,
+      });
+      await recognitionHomePage.verifyThePageIsLoaded();
+      await use(recognitionHomePage);
+    },
+    { scope: 'test' },
+  ],
+  standardUserPage: [
+    async ({ standardUserHomePage }, use) => {
+      await use(standardUserHomePage.page);
     },
     { scope: 'test' },
   ],
