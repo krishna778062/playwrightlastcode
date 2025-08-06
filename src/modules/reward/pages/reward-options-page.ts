@@ -51,15 +51,4 @@ export class RewardOptionsPage extends BasePage {
       ? await expect(this.rewardsOptionsNotFound).toBeHidden()
       : await expect(this.rewardOptionLink).toBeVisible();
   }
-
-  async getTheRewardsOptionsValueFromTheEvaluationCall(targetKey: string): Promise<boolean> {
-    const apiUrlPattern = /\/api\/1\.0\/client\/env\/.*\/target\/.*\/evaluations\?cluster=2/;
-    const [response] = await Promise.all([
-      this.page.waitForResponse(resp => apiUrlPattern.test(resp.url()) && resp.status() === 200),
-      this.page.goto('/manage/recognition/rewards/reward-options'), // Replace with the actual triggering action
-    ]);
-    const json = await response.json();
-    const match = json.find((item: any) => item.flag === targetKey);
-    return match?.kind === 'boolean' ? match.value === 'true' : (match?.value ?? null);
-  }
 }

@@ -36,4 +36,16 @@ export class ManageRewardsPage extends BasePage {
   async verifyPageIsNotFound(): Promise<void> {
     await expect(this.manageRewardsPageNotFound).toBeVisible();
   }
+
+  async getTheRewardsOptionsValueFromTheEvaluationCall(targetKey: string): Promise<boolean> {
+    const apiUrlPattern = /\/api\/1\.0\/client\/env\/.*\/target\/.*\/evaluations\?cluster=2/;
+    const [response] = await Promise.all([
+      this.page.waitForResponse(resp => apiUrlPattern.test(resp.url()) && resp.status() === 200),
+      this.page.reload(),
+      this.verifyThePageIsLoaded(),
+    ]);
+    const json = await response.json();
+    const match = json.find((item: any) => item.flag === targetKey);
+    return match?.kind === 'boolean' ? match.value === 'true' : (match?.value ?? null);
+  }
 }

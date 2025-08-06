@@ -26,9 +26,10 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
 
       await test.step('Verify the Rewards options is visible', async () => {
         await manageRewardsPage.visit();
+        await manageRewardsPage.verifyThePageIsLoaded();
         rewardOptionsIsVisible =
-          await rewardOptionsPage.getTheRewardsOptionsValueFromTheEvaluationCall('reward_options');
-        console.log('Reward Options is visible:', rewardOptionsIsVisible);
+          await manageRewardsPage.getTheRewardsOptionsValueFromTheEvaluationCall('reward_options');
+        expect(rewardOptionsIsVisible).toBeTruthy();
         await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(rewardOptionsIsVisible);
       });
     }
@@ -54,7 +55,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
         await manageRewardsPage.visit();
         await manageRewardsPage.verifyThePageIsLoaded();
         rewardOptionsIsVisible =
-          await rewardOptionsPage.getTheRewardsOptionsValueFromTheEvaluationCall('reward_options');
+          await manageRewardsPage.getTheRewardsOptionsValueFromTheEvaluationCall('reward_options');
         expect(rewardOptionsIsVisible).toBeTruthy();
         await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(rewardOptionsIsVisible);
       });
