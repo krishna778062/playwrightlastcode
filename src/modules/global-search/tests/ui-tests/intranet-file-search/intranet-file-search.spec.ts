@@ -1,15 +1,14 @@
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-import { GlobalSearchTestSuite } from '@/src/modules/global-search/constants/testSuite';
+import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
+import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { INTRANET_FILE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/intranet-file-search.test-data';
-import { IntranetFileListComponent } from '@/src/modules/global-search/components/intranetFileListComponent';
 
 test.describe(
   'Global Search - Intranet File Search functionality',
   {
-    tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.FILE_SEARCH],
+    tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.FILE_SEARCH, '@test'],
   },
   () => {
     const testData = INTRANET_FILE_SEARCH_TEST_DATA;
@@ -57,4 +56,4 @@ test.describe(
       );
     }
   }
-); 
+);

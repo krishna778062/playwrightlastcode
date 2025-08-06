@@ -44,7 +44,7 @@ export const API_ENDPOINTS = {
     category: '/pageCategories/list',
     publish: '/content?action=publish',
     delete: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}`,
-    signedUrl: '/v1/content/static/signedurl/upload',,
+    signedUrl: '/v1/content/static/signedurl/upload',
     files: '/v1/content/files',
   },
 

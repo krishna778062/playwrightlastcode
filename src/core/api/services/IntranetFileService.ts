@@ -84,4 +84,4 @@ export class IntranetFileService extends BaseApiClient implements IIntranetFileS
       return await this.associateFileWithSite(siteId, fileId);
     });
   }
-} 
+}
