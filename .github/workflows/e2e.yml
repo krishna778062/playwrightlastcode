@@ -37,9 +37,9 @@ on:
         default: 'qa'
         type: choice
         options:
-          - 'test'
           - 'qa'
           - 'uat'
+          - 'test'
       workers:
         description: 'Number of parallel workers to run tests'
         required: true

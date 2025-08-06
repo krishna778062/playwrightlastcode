@@ -22,7 +22,7 @@
     "test:content": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts",
     "test:content:P0": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts --grep=@P0",
     "test:content:smoke": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts --grep=@smoke",
-    "test:reward": "TEST_ENV=test MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts",
+    "test:reward": "MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts --grep=@smoke",
     "test:module": "./scripts/test-module.sh",
     "test:interactive": "ts-node scripts/interactive-test.ts",
     "test": "npm run test:interactive",
