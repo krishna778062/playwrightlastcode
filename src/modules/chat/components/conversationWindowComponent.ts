@@ -1,12 +1,15 @@
-import { BaseComponent } from '@/src/core/components/baseComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
+
 import { ChatEditorComponent } from '@chat/components/chatEditorComponent';
+import { IncomingAudioVideoCallComponent } from '@chat/components/incomingAudioVideoCallComponent';
+
+import { ChatMentionsListSection } from './chatMentionsListSection';
+import { MessageReplyThreadComponent } from './messageReplyThreadComponent';
+
+import { BaseComponent } from '@/src/core/components/baseComponent';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { MessageCardComponent } from '@/src/modules/chat/components/messageCardComponent';
 import { AudioVideoCallPage } from '@/src/modules/chat/pages/audioVideoCallPage/audioVideoCallPage';
-import { IncomingAudioVideoCallComponent } from '@chat/components/incomingAudioVideoCallComponent';
-import { MessageReplyThreadComponent } from './messageReplyThreadComponent';
-import { ChatMentionsListSection } from './chatMentionsListSection';
 
 export class ConversationWindowComponent extends BaseComponent {
   //elements

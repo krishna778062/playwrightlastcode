@@ -1,7 +1,8 @@
 import { Browser, BrowserContext, test } from '@playwright/test';
-import { BrowserFactory, MultiUserContexts } from '@core/utils/browserFactory';
-import { TestUser } from '@core/types/test.types';
+
 import { LoginHelper } from '@core/helpers/loginHelper';
+import { TestUser } from '@core/types/test.types';
+import { BrowserFactory, MultiUserContexts } from '@core/utils/browserFactory';
 
 export class MultiUserTestHelper {
   protected multiUserContexts!: MultiUserContexts;

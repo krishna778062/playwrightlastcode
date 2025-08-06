@@ -1,8 +1,10 @@
 import { expect, Locator, Page, test } from '@playwright/test';
-import { BaseComponent } from '@/src/core/components/baseComponent';
+
 import { ChatEditorComponent } from '@chat/components/chatEditorComponent';
 import { FocusedMessageInReplyThreadComponent } from '@chat/components/focusedMessageInReplyThreadComponent';
 import { TIMEOUTS } from '@core/constants/timeouts';
+
+import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class MessageReplyThreadComponent extends BaseComponent {
   //locators

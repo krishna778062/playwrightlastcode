@@ -1,6 +1,8 @@
 # Central UI Automation Framework
 
-A centralized, scalable, and modular end-to-end UI automation framework built with [Playwright](https://playwright.dev/) and TypeScript. This framework is designed to support multiple product modules (e.g., chat) while enforcing best practices for code reuse, maintainability, and clarity.
+A centralized, scalable, and modular end-to-end UI automation framework built with [Playwright](https://playwright.dev/) and TypeScript. This framework is designed to support multiple product modules while enforcing best practices for code reuse, maintainability, and clarity.
+
+**🚀 Now featuring an Interactive Test Runner** for the best developer and QA experience - simply run `npm test` to get started!
 
 ## Core Principles
 
@@ -14,6 +16,30 @@ A centralized, scalable, and modular end-to-end UI automation framework built wi
 - **Modularization:**
   - Module-specific APIs, pages, components, and tests are organized under `src/modules/<module-name>` (e.g., `src/modules/chat`).
   - Each module is self-contained, making it easy to extend or add new modules.
+
+## ✨ Key Features
+
+- **🎯 Interactive Test Runner**: User-friendly CLI that guides you through test execution options
+- **🔧 Generic Module Runner**: Single script to run any module with flexible parameters
+- **🏷️ Dynamic Tag Management**: Automatically discovers and combines core and module-specific test tags
+- **⚡ Flexible Execution**: Support for workers, headed/headless mode, and all Playwright CLI options
+- **🚀 One-Command Setup**: `npm run setup` handles entire framework initialization
+- **🔍 Auto-Discovery**: Automatically detects available modules and environments
+
+## Available npm Scripts
+
+| Command                   | Description                                                                        |
+| ------------------------- | ---------------------------------------------------------------------------------- |
+| `npm test`                | **Interactive test runner** (recommended for local development)                    |
+| `npm run setup`           | **One-time setup** - installs dependencies, browsers, and git hooks                |
+| `npm run create:module`   | **Create new module** - scaffolds complete module structure                        |
+| `npm run test:module`     | **Generic module runner** - `npm run test:module <module> [tags] [env] [flags...]` |
+| `npm run test:chat`       | Run chat module tests directly                                                     |
+| `npm run test:chat:P0`    | Run priority P0 chat tests                                                         |
+| `npm run test:chat:smoke` | Run smoke tests for chat module                                                    |
+| `npm run serve-report`    | View latest test reports in browser                                                |
+| `npm run format`          | Format code with Prettier                                                          |
+| `npm run lint`            | Check code with ESLint                                                             |
 
 ## Directory Structure
 
@@ -52,13 +78,55 @@ central-ui-automation/
 - Node.js (v18+ recommended)
 - npm or yarn
 
-### Install Dependencies
+### Quick Setup
+
+The fastest way to get started:
 
 ```sh
-npm install
+npm run setup
 ```
 
+This will:
+
+- Install all dependencies
+- Install Playwright browsers
+- Set up git hooks (locally)
+- Run initial checks
+- Display usage instructions
+
 ### Running Tests
+
+#### 🚀 Interactive Test Runner (Recommended)
+
+For the best developer experience, use our interactive CLI:
+
+```sh
+npm test
+```
+
+This will guide you through:
+
+- **Module Selection**: Choose which module to test (chat, content, global-search, etc.)
+- **Environment**: Select target environment (qa, uat, etc.)
+- **Test Filtering**: Pick from available tags (P0, smoke, module-specific features)
+- **Execution Options**: Set workers, headed/headless mode
+- **Real-time Preview**: See the exact command before execution
+
+#### Direct Module Testing
+
+For CI/CD or when you know exactly what to run:
+
+```sh
+# Generic module runner
+npm run test:module <module> [tags] [env] [flags...]
+
+# Examples:
+npm run test:module chat P0 qa --workers=2
+npm run test:module chat '[P0,smoke]' qa --headed
+npm run test:module content sanity uat --workers=1 --debug
+```
+
+#### Traditional npm Scripts (Still Available)
 
 - **Chat Module UI Tests:**
   ```sh
@@ -66,11 +134,11 @@ npm install
   ```
 - **Run Only P0 Tests:**
   ```sh
-  npm run test:chat:P0
+  npm run test:chat -- --grep="@P0"
   ```
 - **Run Smoke Tests:**
   ```sh
-  npm run test:chat:smoke
+  npm run test:chat -- --grep="@smoke"
   ```
 
 ### Test Reports
@@ -84,6 +152,124 @@ npm install
   npm run serve-report
   ```
   This will start a local server at [http://localhost:3000](http://localhost:3000) and open the Playwright HTML report.
+
+## 🎯 Interactive Test Runner
+
+The framework includes a powerful interactive CLI tool designed to make test execution intuitive for both developers and QA engineers.
+
+### Features
+
+- **🔍 Auto-Discovery**: Automatically detects available modules and environments
+- **🏷️ Smart Tag Management**: Dynamically loads test tags from:
+  - Core constants (P0, P1, P2, smoke, sanity, regression)
+  - Module-specific feature tags (e.g., @chat-attachment, @group-chat)
+- **⚡ Flexible Execution**: Configure workers, headed/headless mode, and other Playwright options
+- **👀 Command Preview**: See exactly what will be executed before running
+- **🚀 One-Click Execution**: No need to remember complex command syntax
+
+### Example Interactive Flow
+
+```sh
+$ npm test
+
+🚀 Interactive Playwright Test Runner
+
+? 📁 Which module do you want to test? › chat
+? 🌍 Which environment? › qa
+? 🏷️ How do you want to filter tests? › Select from common tags
+? 🏷️ Select tags (Use space to select, enter to continue) › @P0, @smoke
+? ⚡ How many parallel workers? › 4 workers (default)
+? 👁️ Run with browser UI visible (headed mode)? › No
+
+📋 Command Preview:
+./scripts/test-module.sh chat [P0,smoke] qa --workers=4
+
+? 🚀 Execute this command? › Yes
+🏃 Running tests...
+```
+
+### Tag Management System
+
+The framework uses a hierarchical tag system:
+
+#### Core Tags (Available in All Modules)
+
+- **Priority**: `@P0`, `@P1`, `@P2` (from `src/core/constants/testPriority.ts`)
+- **Test Type**: `@smoke`, `@sanity`, `@regression` (from `src/core/constants/testType.ts`)
+
+#### Module-Specific Tags
+
+Each module maintains its own tag definitions in `constants/testTags.ts`:
+
+```typescript
+// src/modules/chat/constants/testTags.ts
+export enum CHAT_FEATURE_TAGS {
+  CHAT_ATTACHMENT = '@chat-attachment',
+  GROUP_CHAT = '@group-chat',
+  VIDEO_CALL = '@video-call',
+  // ...
+}
+
+export const CHAT_TEST_TAGS = [...Object.values(CHAT_FEATURE_TAGS)] as const;
+export default CHAT_TEST_TAGS;
+```
+
+The interactive runner automatically combines core and module-specific tags for easy selection.
+
+### 🚨 Troubleshooting & Fallback Options
+
+If you encounter issues with the interactive runner or shell script, you can always fall back to the underlying commands:
+
+#### Option 1: Direct npm Scripts
+
+```sh
+# Run all chat tests
+npm run test:chat
+
+# With specific environment
+TEST_ENV=uat npm run test:chat
+
+# With specific tags
+npm run test:chat -- --grep="@P0"
+
+# With Playwright options
+npm run test:chat -- --workers=2 --headed
+```
+
+#### Option 2: Direct Playwright Commands
+
+```sh
+# Basic command structure
+TEST_ENV=<env> MODULE_NAME=<module> npx playwright test --config=<config-path>
+
+# Examples:
+TEST_ENV=uat MODULE_NAME=chat npx playwright test --config=src/modules/chat/playwright.chat.config.ts
+
+TEST_ENV=qa MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts --grep="@P0"
+
+TEST_ENV=uat MODULE_NAME=chat npx playwright test --config=src/modules/chat/playwright.chat.config.ts --workers=1 --headed --debug
+```
+
+#### Understanding the Hierarchy
+
+All our tools are just convenient wrappers around the core Playwright command:
+
+```
+🎯 Interactive Runner (npm test)
+    ↓ calls
+🔧 Shell Script (npm run test:module)
+    ↓ calls
+📦 npm Scripts (npm run test:chat)
+    ↓ calls
+⚡ Direct Playwright (npx playwright test)
+```
+
+**When to use each:**
+
+- **Interactive Runner**: Best for exploration and daily development
+- **Shell Script**: Perfect for CI/CD and when you know exact parameters
+- **npm Scripts**: Quick access to module-specific tests
+- **Direct Playwright**: Troubleshooting, debugging, or maximum control
 
 ## Running Tests Manually via GitHub Actions
 
@@ -146,37 +332,43 @@ Each module (e.g., `chat`) contains its own APIs, pages, components, and tests.
 The framework supports two patterns based on page complexity:
 
 #### Single Class Pattern (Simple Pages)
+
 For pages with fewer than 50 methods total:
 
 ```typescript
 class LoginPage extends BasePage implements ILoginActions, ILoginAssertions {
   readonly usernameInput: Locator;
   readonly passwordInput: Locator;
-  
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.LOGIN_PAGE);
     // Initialize locators
   }
-  
+
   // Inline action methods
   async login(username: string, password: string) {
     await this.usernameInput.fill(username);
     await this.passwordInput.fill(password);
     await this.loginButton.click();
   }
-  
-  // Inline assertion methods  
+
+  // Inline assertion methods
   async verifyLoginSuccess() {
     await expect(this.successMessage).toBeVisible();
   }
-  
+
   // Clean API grouping
-  get actions(): ILoginActions { return this; }
-  get assertions(): ILoginAssertions { return this; }
+  get actions(): ILoginActions {
+    return this;
+  }
+  get assertions(): ILoginAssertions {
+    return this;
+  }
 }
 ```
 
 #### Base Class Inheritance Pattern (Complex Pages)
+
 For pages with 50+ methods, multiple UX variants, or significant complexity:
 
 ```typescript
@@ -186,12 +378,12 @@ abstract class ChatPageBase extends BasePage {
   readonly inboxSideBarComponent: ChatInboxSideBarComponent;
   readonly conversationWindow: ConversationWindowComponent;
   readonly directMessageSection: DirectMessageSectionInInbox;
-  
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.CHATS_PAGE);
     // Initialize components only
   }
-  
+
   abstract verifyThePageIsLoaded(): Promise<void>;
 }
 
@@ -200,34 +392,39 @@ class ChatAppPage extends ChatPageBase implements IChatActions, IChatAssertions 
   constructor(page: Page) {
     super(page);
   }
-  
+
   // ==================== ACTION METHODS ====================
   async sendMessage(message: string, options?: { stepInfo?: string }) {
     await test.step(options?.stepInfo || `Sending message: "${message}"`, async () => {
       await this.conversationWindow.sendMessage(message);
     });
   }
-  
+
   async openDirectMessageWithUser(userName: string) {
     await this.inboxSideBarComponent.clickCreateNewMessageButton();
     await this.inboxSideBarComponent.searchAndSelectUser(userName);
     await this.inboxSideBarComponent.clickStartChatButton();
   }
-  
+
   // ==================== ASSERTION METHODS ====================
   async verifyMessageIsVisible(message: string) {
     await expect(this.conversationWindow.getMessageByText(message)).toBeVisible();
   }
-  
+
   // ==================== CLEAN API GROUPING ====================
-  get actions(): IChatActions { return this; }
-  get assertions(): IChatAssertions { return this; }
+  get actions(): IChatActions {
+    return this;
+  }
+  get assertions(): IChatAssertions {
+    return this;
+  }
 }
 ```
 
 ### Interface Design for Actions and Assertions
 
 #### Basic Interface Grouping
+
 ```typescript
 // Define clean interfaces for grouping
 interface IChatActions {
@@ -250,9 +447,9 @@ When dealing with multiple UX variants where some methods are common and others 
 ```typescript
 // ❌ BAD: Single interface forces all variants to implement everything
 interface IHomePageActions {
-  searchForTerm(): Promise<void>;           // ✅ Common to both UX variants
-  clickOnModernSidebarButton(): Promise<void>;  // ❌ Only exists in New UX
-  clickOnLegacyMenuButton(): Promise<void>;      // ❌ Only exists in Old UX
+  searchForTerm(): Promise<void>; // ✅ Common to both UX variants
+  clickOnModernSidebarButton(): Promise<void>; // ❌ Only exists in New UX
+  clickOnLegacyMenuButton(): Promise<void>; // ❌ Only exists in Old UX
 }
 
 // ✅ GOOD: Interface inheritance hierarchy
@@ -276,61 +473,69 @@ interface IOldUxHomePageActions extends ICommonHomePageActions {
 ```
 
 #### Implementation with Variants
+
 ```typescript
 // Base class implements only common interface
 abstract class BaseHomePage extends BasePage implements ICommonHomePageActions {
   // Common components
   readonly topNavBarComponent: TopNavBarComponent;
-  
+
   // Only common methods implemented here
   async searchForTerm(term: string): Promise<GlobalSearchResultPage> {
     await this.topNavBarComponent.typeInSearchBarInput(term);
     await this.topNavBarComponent.clickSearchButton();
     return new GlobalSearchResultPage(this.page);
   }
-  
-  get actions(): ICommonHomePageActions { return this; }
+
+  get actions(): ICommonHomePageActions {
+    return this;
+  }
 }
 
 // Variant-specific implementations
 class HomePageNewUx extends BaseHomePage implements INewUxHomePageActions {
   readonly sideNavBarComponent: SideNavBarComponent;
-  
+
   async clickOnCreateButtonOnSideNavBar(): Promise<CreateComponent> {
     await this.sideNavBarComponent.clickOnCreateButton();
     return new CreateComponent(this.page);
   }
-  
+
   // Override with more specific type
-  get actions(): INewUxHomePageActions { return this; }
+  get actions(): INewUxHomePageActions {
+    return this;
+  }
 }
 
 class HomePageOldUx extends BaseHomePage implements IOldUxHomePageActions {
   readonly legacyMenuComponent: LegacyMenuComponent;
-  
+
   async clickOnLegacyAddButton(): Promise<void> {
     await this.legacyMenuComponent.clickAddButton();
   }
-  
-  // Override with more specific type  
-  get actions(): IOldUxHomePageActions { return this; }
+
+  // Override with more specific type
+  get actions(): IOldUxHomePageActions {
+    return this;
+  }
 }
 ```
 
 ### When to Use Each Pattern
 
-| Scenario | Pattern | Reasoning |
-|----------|---------|-----------|
-| **Simple login/signup pages** | Single Class | <50 methods, straightforward UI |
-| **Complex feature pages** | Base Class Inheritance | 50+ methods, better organization |
-| **Multiple UX variants** | Base Class + Interface Inheritance | Code reuse + variant-specific APIs |
-| **Module entry points** | Single Class | Clean, discoverable interface |
+| Scenario                      | Pattern                            | Reasoning                          |
+| ----------------------------- | ---------------------------------- | ---------------------------------- |
+| **Simple login/signup pages** | Single Class                       | <50 methods, straightforward UI    |
+| **Complex feature pages**     | Base Class Inheritance             | 50+ methods, better organization   |
+| **Multiple UX variants**      | Base Class + Interface Inheritance | Code reuse + variant-specific APIs |
+| **Module entry points**       | Single Class                       | Clean, discoverable interface      |
 
 ### Inline Method Pattern with Interface Grouping (Recommended)
 
 Instead of separate helper classes, the framework uses **inline methods** with **interface grouping** to provide clean, discoverable APIs while maintaining all logic within the page class.
 
 **Benefits:**
+
 - **Clean API**: `chatPage.actions.sendMessage()` and `chatPage.assertions.verifyMessageIsVisible()` provide intuitive grouping
 - **No Circular Dependencies**: All methods are part of the same class, eliminating object reference cycles
 - **Better Performance**: No additional object instantiation overhead
@@ -338,6 +543,7 @@ Instead of separate helper classes, the framework uses **inline methods** with *
 - **Type Safety**: Full TypeScript intellisense and type checking
 
 **Implementation Pattern:**
+
 ```typescript
 import { test } from '@playwright/test';
 
@@ -372,7 +578,7 @@ class ChatAppPage extends ChatPageBase implements IChatActions, IChatAssertions 
   get actions(): IChatActions {
     return this; // Same object, but TypeScript only shows action methods
   }
-  
+
   get assertions(): IChatAssertions {
     return this; // Same object, but TypeScript only shows assertion methods
   }
@@ -380,12 +586,14 @@ class ChatAppPage extends ChatPageBase implements IChatActions, IChatAssertions 
 ```
 
 **Integration with Framework:**
+
 - **Page Methods**: Replace the need for separate helper classes while maintaining clean APIs
 - **Components**: Continue to provide granular UI interactions (unchanged)
 - **Tests**: Call page methods directly via the grouped interfaces
 - **Backward Compatibility**: Existing component and page structure remains the same
 
 **Usage in Tests:**
+
 ```typescript
 // Clean, discoverable API - IDE shows only relevant methods
 await chatPage.actions.sendMessage('Hello!');
@@ -397,6 +605,7 @@ await chatPage.conversationWindow.getChatEditorComponent().inputTextBox.fill('Ad
 ```
 
 **Guidance:**
+
 - **Start simple**: For new pages, begin with inline methods in a single class
 - **Refactor when needed**: If a class exceeds ~50 methods, consider the base class inheritance pattern
 - **Use interface grouping**: Always provide `actions` and `assertions` getters for clean APIs
@@ -420,14 +629,96 @@ await chatPage.conversationWindow.getChatEditorComponent().inputTextBox.fill('Ad
 
 ## Adding a New Module
 
-1. Create a new folder under `src/modules/<your-module>`.
-2. Follow the same structure as the `chat` module for APIs, pages, components, and tests.
-3. Choose the appropriate page class pattern based on complexity:
+### 🚀 Quick Module Creation (Recommended)
+
+The fastest way to create a new module:
+
+```sh
+npm run create:module
+```
+
+This will:
+
+- Prompt for module name
+- Create complete directory structure
+- Generate template files with proper placeholders
+- Set up environment configurations
+- Create empty directories for future use
+- Make the module immediately available to the interactive test runner
+
+**Example:**
+
+```sh
+$ npm run create:module
+
+🚀 Module Creation Tool
+
+📁 Enter module name: my-feature
+
+Creating module: my-feature
+📋 Copying template structure...
+🔄 Replacing placeholders...
+📝 Renaming files...
+📁 Creating empty directories...
+
+✅ Module 'my-feature' created successfully!
+
+📚 Next steps:
+  1. Navigate to: src/modules/my-feature/
+  2. Add your test tags in: constants/testTags.ts
+  3. Configure environments in: env/
+  4. Add your test data in: test-data/my-feature.test-data.ts
+  5. Run: npm test (to test the new module)
+
+🎯 Your module is ready for the interactive test runner!
+```
+
+### Manual Module Creation
+
+If you prefer to create modules manually:
+
+1. **Create Module Structure**: Create a new folder under `src/modules/<your-module>` following the same structure as existing modules.
+
+2. **Set Up Test Tags**: Create `src/modules/<your-module>/constants/testTags.ts`:
+
+   ```typescript
+   export enum YOUR_MODULE_FEATURE_TAGS {
+     FEATURE_A = '@feature-a',
+     FEATURE_B = '@feature-b',
+     // Add module-specific feature tags
+   }
+
+   export enum YOUR_MODULE_SUITE_TAGS {
+     SUITE_A = '@suite-a',
+     SUITE_B = '@suite-b',
+     // Add module-specific test suite tags
+   }
+
+   export const YOUR_MODULE_TEST_TAGS = [
+     ...Object.values(YOUR_MODULE_FEATURE_TAGS),
+     ...Object.values(YOUR_MODULE_SUITE_TAGS),
+   ] as const;
+
+   export default YOUR_MODULE_TEST_TAGS;
+   ```
+
+3. **Create Environment Files**: Add environment-specific config files in `src/modules/<your-module>/env/`:
+
+   - `qa.env`
+   - `uat.env`
+   - etc.
+
+4. **Choose Page Architecture**: Select the appropriate page class pattern based on complexity:
+
    - **Simple modules**: Use single class pattern with inline methods
    - **Complex modules**: Use base class inheritance pattern
    - **Multiple UX variants**: Use interface inheritance hierarchy
-4. Register any shared logic in `src/core` if it could be reused by other modules.
-5. Add or extend Playwright config as needed.
+
+5. **Add Playwright Config**: Create `src/modules/<your-module>/playwright.<your-module>.config.ts` extending the base config.
+
+6. **Register Shared Logic**: Add any shared logic to `src/core` if it could be reused by other modules.
+
+7. **Test the Integration**: The interactive test runner will automatically discover your new module and its tags!
 
 ## Contributing
 
@@ -441,10 +732,13 @@ await chatPage.conversationWindow.getChatEditorComponent().inputTextBox.fill('Ad
 ## Tooling & Dependencies
 
 - [Playwright](https://playwright.dev/) for browser automation
-- [TypeScript](https://www.typescriptlang.org/) for type safety
+- [TypeScript](https://www.typescriptlang.org/) for type safety and direct execution via ts-node
 - [Prettier](https://prettier.io/) and [ESLint](https://eslint.org/) for code quality
 - [Faker](https://fakerjs.dev/) for test data generation
 - [http-server](https://www.npmjs.com/package/http-server) for serving reports
+- [inquirer](https://www.npmjs.com/package/inquirer) for interactive CLI prompts
+- [ts-node](https://www.npmjs.com/package/ts-node) for direct TypeScript execution
+- [cross-env](https://www.npmjs.com/package/cross-env) for cross-platform environment variables
 
 ## Best Practices for Writing Tests
 
@@ -540,7 +834,7 @@ test.describe('Direct Message between multiple users', { tag: ['@direct-message'
   let user2: ChatTestUser;
   let user1ChatPage: ChatAppPage;
   let user2ChatPage: ChatAppPage;
-  
+
   test.beforeEach(
     'Setting up the test environment, by creating 2 new users to tenant so to test out messaging between them',
     async ({ endUsersForChat, user1Page, user2Page }) => {
@@ -561,7 +855,7 @@ test.describe('Direct Message between multiple users', { tag: ['@direct-message'
       tagTest(test.info(), {
         zephyrTestId: 'CONT-5376',
       });
-      
+
       // User 1 creates new chat with user 2 using inline method
       await user1ChatPage.actions.openDirectMessageWithUser(user2.fullName, {
         stepInfo: `User 1 opening direct message with ${user2.fullName}`,
@@ -607,24 +901,37 @@ For more details, refer to the codebase and module-specific files. Contributions
 
 ## Managing Environment-Specific Data
 
-Environment-specific configuration (such as API endpoints, credentials, or feature flags) is managed using `.env`-style files located in the `env/` directory at the project root.  
-Typical files include:
+Environment-specific configuration (such as API endpoints, credentials, or feature flags) is managed using `.env`-style files located in each module's `env/` directory.
 
-- `env/qa.env` — for the QA environment
-- `env/uat.env` — for the UAT environment
+**Module-based Environment Structure:**
+
+```
+src/modules/chat/env/
+├── qa.env      # QA environment config
+├── uat.env     # UAT environment config
+└── prod.env    # Production environment config
+```
 
 **How it works:**
 
-- The framework loads the appropriate environment file based on the `TEST_ENV` variable (e.g., `qa`, `uat`).
-- These files are parsed at runtime to inject environment variables into your tests and application code.
+- **Interactive Runner**: Automatically detects available environments for the selected module
+- **Direct Commands**: Use environment name as parameter (`npm run test:module chat P0 qa`)
+- **Traditional Scripts**: Set `TEST_ENV` variable (`TEST_ENV=qa npm run test:chat`)
 
 **Example usage:**
 
 ```sh
+# Interactive (auto-detects environments)
+npm test
+
+# Direct module runner
+npm run test:module chat P0 qa
+
+# Traditional approach
 TEST_ENV=qa npm run test:chat
 ```
 
-This will load variables from `env/qa.env`.
+The framework automatically loads the appropriate environment file and injects variables into your tests.
 
 ---
 

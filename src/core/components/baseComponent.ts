@@ -1,6 +1,8 @@
 import { Locator, Page } from '@playwright/test';
-import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
+
 import { BaseVerificationUtil } from '../utils/baseVerificationUtil';
+
+import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 
 export class BaseComponent extends BaseActionUtil {
   readonly verifier: BaseVerificationUtil;

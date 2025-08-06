@@ -1,4 +1,3 @@
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
@@ -8,7 +7,7 @@ import { ALBUM_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/co
 test.describe(
   'Global Search- Album Search functionality',
   {
-    tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.CONTENT_SEARCH],
+    tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.CONTENT_SEARCH],
   },
   () => {
     test(
@@ -24,9 +23,12 @@ test.describe(
 
         const randomNum = Math.floor(Math.random() * 1000000 + 1);
         const newSiteName = `AutomateUI_Test_${randomNum}`;
-        const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(ALBUM_SEARCH_TEST_DATA.category);
-        
-        const { siteId, contentId, albumName, authorName, contentDescription } = await contentManagementHelper.createAlbum(newSiteName, categoryObj, 'beach.jpg');
+        const categoryObj = await appManagerApiClient
+          .getSiteManagementService()
+          .getCategoryId(ALBUM_SEARCH_TEST_DATA.category);
+
+        const { siteId, contentId, albumName, authorName, contentDescription } =
+          await contentManagementHelper.createAlbum(newSiteName, categoryObj, 'beach.jpg');
 
         // 5. UI Search for the album
         const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(albumName, {
@@ -47,4 +49,4 @@ test.describe(
       }
     );
   }
-); 
+);

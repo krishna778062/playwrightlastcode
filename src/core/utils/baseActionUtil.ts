@@ -1,7 +1,8 @@
-import { Locator, Page, test, Response, Request } from '@playwright/test';
-import { PlaywrightAction, PlaywrightErrorHandler } from '@core/utils/playwrightErrorHandler';
-import { FileUtil } from '@core/utils/fileUtil';
+import { Locator, Page, Request, Response, test } from '@playwright/test';
+
 import { TIMEOUTS } from '@core/constants/timeouts';
+import { FileUtil } from '@core/utils/fileUtil';
+import { PlaywrightAction, PlaywrightErrorHandler } from '@core/utils/playwrightErrorHandler';
 
 export type LocatorClickOptions = Parameters<Locator['click']>[0];
 export type LocatorFillOptions = Parameters<Locator['fill']>[1];

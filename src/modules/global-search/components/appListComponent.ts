@@ -1,5 +1,6 @@
-import { BaseComponent } from '../../../core/components/baseComponent';
 import { Locator, Page, test } from '@playwright/test';
+
+import { BaseComponent } from '../../../core/components/baseComponent';
 import { TIMEOUTS } from '../../../core/constants/timeouts';
 
 /**

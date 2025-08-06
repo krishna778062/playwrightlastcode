@@ -1,8 +1,9 @@
 import { devices } from '@playwright/test';
 import { defineConfig } from '@playwright/test';
+import path from 'path';
+
 import baseConfig from '../../../playwright.base.config';
 import { PROJECT_ROOT } from '../../core/constants/paths';
-import path from 'path';
 
 export default defineConfig({
   ...baseConfig,

@@ -1,12 +1,12 @@
-import { BaseComponent } from "@core/components/baseComponent";
-import { Locator, Page } from "@playwright/test";
+import { Locator, Page } from '@playwright/test';
+
+import { BaseComponent } from '@core/components/baseComponent';
 
 export enum PromotePageOptions {
   ADD_TO_HOME_CAROUSEL = 'Add to home carousel',
   ADD_TO_SITE_CAROUSEL = 'Add to site carousel',
   SEND_NOTIFICATION = 'Send notification',
 }
-
 
 export class PromotePageModal extends BaseComponent {
   readonly skipPromotionButton: Locator;
@@ -27,10 +27,10 @@ export class PromotePageModal extends BaseComponent {
    */
   async verifyThePromotePageModalIsVisible() {
     await this.verifier.verifyTheElementIsVisible(this.promoteButton, {
-      assertionMessage: 'Promote page modal should be visible'
+      assertionMessage: 'Promote page modal should be visible',
     });
   }
-  
+
   /**
    * Closes the promote page modal
    */
@@ -64,19 +64,13 @@ export class PromotePageModal extends BaseComponent {
    * Handles the promotion
    * @param options - The options for handling the promotion
    */
-  async handlePromotion(options?: {
-    skipPromotion?: boolean;
-    promoteAction?: PromotePageOptions;
-  }) {
+  async handlePromotion(options?: { skipPromotion?: boolean; promoteAction?: PromotePageOptions }) {
     const skipPromotion = options?.skipPromotion ?? true;
-    if(skipPromotion) {
+    if (skipPromotion) {
       await this.clickOnSkipPromotionButton();
     } else {
       await this.selectPromoteAction(options?.promoteAction ?? PromotePageOptions.ADD_TO_HOME_CAROUSEL);
       await this.clickOnPromoteButton();
     }
   }
-
-
-
-}   
+}

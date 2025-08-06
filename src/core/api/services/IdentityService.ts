@@ -1,9 +1,10 @@
 import { APIRequestContext, expect, test } from '@playwright/test';
+
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { IIdentityAdminOperations } from '@core/api/interfaces/IIdentityOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-import { ListAudiencesResponse } from '@core/types/audience.type';
 import { Roles } from '@core/constants/roles';
+import { ListAudiencesResponse } from '@core/types/audience.type';
 import { IdentityUserSearchResponse } from '@core/types/user.type';
 
 interface ListRolesResponse {

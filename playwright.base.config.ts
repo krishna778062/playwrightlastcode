@@ -1,9 +1,11 @@
 import { defineConfig } from '@playwright/test';
+
+import { Modules } from './src/core/constants/modules';
+import { TEST_RESULTS_DIR } from './src/core/constants/paths';
+import { loadEnvVariablesForGivenModule } from './src/core/utils/envLoader';
+
 import { Environments } from '@/src/core/constants/environments';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
-import { loadEnvVariablesForGivenModule } from './src/core/utils/envLoader';
-import { TEST_RESULTS_DIR } from './src/core/constants/paths';
-import { Modules } from './src/core/constants/modules';
 
 //load all env variables from .env file for given module
 loadEnvVariablesForGivenModule(
@@ -19,7 +21,7 @@ export default defineConfig({
   use: {
     actionTimeout: 15_000,
     navigationTimeout: 30_000,
-    trace: process.env.CI ? 'retry-with-trace' : 'on',
+    trace: process.env.CI ? 'retain-on-failure' : 'on',
     screenshot: process.env.CI ? 'only-on-failure' : 'on',
     headless: process.env.CI ? true : true,
   },

@@ -1,11 +1,14 @@
 import { Page, test } from '@playwright/test';
+
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
+import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
+
 import { LoginHelper } from '../../../core/helpers/loginHelper';
+
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
-import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
 import { IntranetFileHelper } from '@core/helpers/intranetFileHelper';
 
 export const searchTestFixtures = test.extend<{
@@ -21,14 +24,14 @@ export const searchTestFixtures = test.extend<{
         email: getEnvConfig().appManagerEmail,
         password: getEnvConfig().appManagerPassword,
       });
-      await appManagerHomePage.verifyThePageIsLoaded()
+      await appManagerHomePage.verifyThePageIsLoaded();
       await use(appManagerHomePage);
     },
     { scope: 'test' },
   ],
   appManagerUserPage: [
     async ({ appManagerHomePage }, use, workerInfo) => {
-      await use(appManagerHomePage.page as Page);
+      await use(appManagerHomePage.page);
     },
     { scope: 'test' },
   ],

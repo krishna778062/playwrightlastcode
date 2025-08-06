@@ -1,13 +1,16 @@
 import { APIRequestContext } from '@playwright/test';
+
 import { ChatService } from '@chat/api/services/ChatService';
-import { UserManagementService } from '@core/api/services/UserManagementService';
 import { IdentityService } from '@core/api/services/IdentityService';
-import { BaseApiClient } from '@/src/core/api/clients/baseApiClient';
-import { SiteManagementService } from '../services/SiteManagementService';
-import { TileManagementService } from '../services/TileManagementService';
+import { UserManagementService } from '@core/api/services/UserManagementService';
+
+import { AppsManagementService } from '../services/AppsManagementService';
 import { ContentManagementService } from '../services/ContentManagementService';
 import { ImageUploaderService } from '../services/ImageUploaderService';
-import { AppsManagementService } from '../services/AppsManagementService';
+import { SiteManagementService } from '../services/SiteManagementService';
+import { TileManagementService } from '../services/TileManagementService';
+
+import { BaseApiClient } from '@/src/core/api/clients/baseApiClient';
 import { IntranetFileService } from '../services/IntranetFileService';
 
 export class AppManagerApiClient extends BaseApiClient {

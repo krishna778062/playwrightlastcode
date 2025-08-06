@@ -1,6 +1,8 @@
 import { Locator, Page, test } from '@playwright/test';
-import { BaseComponent } from '@/src/core/components/baseComponent';
+
 import { TIMEOUTS } from '@core/constants/timeouts';
+
+import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class DirectMessageSectionInInbox extends BaseComponent {
   readonly directMessageContainer: Locator;

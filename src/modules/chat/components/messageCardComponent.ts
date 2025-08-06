@@ -1,7 +1,8 @@
 import { expect, Locator, Page, test } from '@playwright/test';
-import { MessageEmojis } from '@core/constants/messageEmojis';
+
 import { MessageBaseComponent } from '@chat/components/messageBaseComponent';
 import { MessageReplyThreadComponent } from '@chat/components/messageReplyThreadComponent';
+import { MessageEmojis } from '@core/constants/messageEmojis';
 
 export class MessageCardComponent extends MessageBaseComponent {
   readonly focusedMessageContainer: Locator;

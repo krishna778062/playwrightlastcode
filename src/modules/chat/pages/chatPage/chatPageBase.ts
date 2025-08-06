@@ -1,21 +1,22 @@
+import { expect, Locator, Page } from '@playwright/test';
+
 import { BasePage } from '@core/pages/basePage';
-import { Locator, Page,expect } from '@playwright/test';
+
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { ChatInboxSideBarComponent } from '@/src/modules/chat/components/chatInboxSideBarComponent';
+import { ConversationWindowComponent } from '@/src/modules/chat/components/conversationWindowComponent';
 import { DirectMessageSectionInInbox } from '@/src/modules/chat/components/directMessageSectionInChatInbox';
 import { ImageAttachementPreviewModal } from '@/src/modules/chat/components/imageAttachementPreviewModal';
-import { ConversationWindowComponent } from '@/src/modules/chat/components/conversationWindowComponent';
-import { ChatInboxSideBarComponent } from '@/src/modules/chat/components/chatInboxSideBarComponent';
 import { UnsupportedFileMessageDialogBox } from '@/src/modules/chat/components/unsupportedFileMessageDialogBox';
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 export interface ChatPageComponents {
-    inboxSideBarComponent: ChatInboxSideBarComponent;
-    conversationWindow: ConversationWindowComponent;
-    directMessageSectionInInbox: DirectMessageSectionInInbox;
-    imageAttachementPreviewModal: ImageAttachementPreviewModal;
-    unsupportedFileMessageDialogBoxComponent: UnsupportedFileMessageDialogBox;
+  inboxSideBarComponent: ChatInboxSideBarComponent;
+  conversationWindow: ConversationWindowComponent;
+  directMessageSectionInInbox: DirectMessageSectionInInbox;
+  imageAttachementPreviewModal: ImageAttachementPreviewModal;
+  unsupportedFileMessageDialogBoxComponent: UnsupportedFileMessageDialogBox;
 }
 
-    
 export abstract class ChatPageBase extends BasePage implements ChatPageComponents {
   //page elements
   readonly chatAppContainer: Locator;

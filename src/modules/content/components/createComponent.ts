@@ -1,9 +1,12 @@
 import { Locator, Page, test } from '@playwright/test';
-import { BaseComponent } from '@/src/core/components/baseComponent';
-import { AddContentModalComponent } from './addContentModal';
+
 import { ContentType } from '@content/constants/contentType';
+
+import { AddContentModalComponent } from './addContentModal';
+
+import { BaseComponent } from '@/src/core/components/baseComponent';
 /**
- * This component gives user an 
+ * This component gives user an
  * quick and easy interface to select
  * the type of entity they want to create
  * out of them page, album and event belongs to content type
@@ -21,9 +24,9 @@ export class CreateComponent extends BaseComponent {
   readonly createComponentContainer: Locator;
   constructor(page: Page) {
     super(page);
-    this.pageOption = this.page.locator("p", { hasText: "Page" });
-    this.albumOption = this.page.locator("p", { hasText: "Album" });
-    this.eventOption = this.page.locator("p", { hasText: "Event" });
+    this.pageOption = this.page.locator('p', { hasText: 'Page' });
+    this.albumOption = this.page.locator('p', { hasText: 'Album' });
+    this.eventOption = this.page.locator('p', { hasText: 'Event' });
     this.createComponentContainer = this.page.locator("[data-slot='dialog-content']");
   }
 
@@ -40,7 +43,7 @@ export class CreateComponent extends BaseComponent {
     return await test.step(options?.stepInfo || `Selecting content type: ${contentType}`, async () => {
       // Select the content type
       await this.selectContentType(contentType);
-      let addContentModal = new AddContentModalComponent(this.page);
+      const addContentModal = new AddContentModalComponent(this.page);
       await addContentModal.verifyTheAddContentModalIsVisible();
       return addContentModal;
     });
@@ -66,7 +69,7 @@ export class CreateComponent extends BaseComponent {
       }
     });
   }
-  
+
   /**
    * Verifies the create component is visible
    * We assume that the create component is visible when the create component container is visible
@@ -79,5 +82,4 @@ export class CreateComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.pageOption);
     });
   }
-
-} 
+}

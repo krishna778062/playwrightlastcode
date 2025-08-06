@@ -1,6 +1,8 @@
-import { Locator, Page, test, expect } from '@playwright/test';
-import { BaseComponent } from '@/src/core/components/baseComponent';
+import { expect, Locator, Page, test } from '@playwright/test';
+
 import { TIMEOUTS } from '@core/constants/timeouts';
+
+import { BaseComponent } from '@/src/core/components/baseComponent';
 import { AudioVideoCallPage } from '@/src/modules/chat/pages/audioVideoCallPage/audioVideoCallPage';
 
 export class IncomingAudioVideoCallComponent extends BaseComponent {

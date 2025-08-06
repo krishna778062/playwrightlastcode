@@ -1,4 +1,3 @@
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
@@ -8,7 +7,7 @@ import { PAGE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/con
 test.describe(
   'Global Search - Page Search functionality',
   {
-    tag: [GlobalSearchTestSuite.GLOBAL_SEARCH, GlobalSearchTestSuite.CONTENT_SEARCH],
+    tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.CONTENT_SEARCH],
   },
   () => {
     const testData = PAGE_SEARCH_TEST_DATA;
@@ -28,7 +27,11 @@ test.describe(
         const siteName = `AutomateUI_Test_${randomNum}`;
         const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
 
-        const { siteId, contentId, pageName, authorName, contentDescription } = await contentManagementHelper.createPage(siteName, categoryObj, { contentType: testData.content, contentSubType: testData.contentType!});
+        const { siteId, contentId, pageName, authorName, contentDescription } =
+          await contentManagementHelper.createPage(siteName, categoryObj, {
+            contentType: testData.content,
+            contentSubType: testData.contentType!,
+          });
 
         // 4. UI Search for the page
         const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(pageName, {

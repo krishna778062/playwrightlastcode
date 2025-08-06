@@ -1,7 +1,8 @@
-import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
-import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
-import { buildBodyAndBodyHtml } from '@/src/core/api/services/ContentManagementService';
 import { faker } from '@faker-js/faker';
+
+import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
+import { buildBodyAndBodyHtml } from '@/src/core/api/services/ContentManagementService';
+import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import { getTodayDateIsoString, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 
 interface Content {
@@ -21,7 +22,7 @@ export class ContentManagementHelper {
    * @param imageName - The name of the image file to be uploaded as the album's cover.
    * @returns An object containing details of the created album and site.
    */
-  async createAlbum(siteName: string, category: { name: string, categoryId: string }, imageName: string) {
+  async createAlbum(siteName: string, category: { name: string; categoryId: string }, imageName: string) {
     const siteResult = await this.appManagerApiClient.getSiteManagementService().addNewSite({
       access: 'public',
       name: siteName,
@@ -53,8 +54,14 @@ export class ContentManagementHelper {
       albumName,
       'content'
     );
-    
-    const createdContent = { siteId, contentId: albumResult.albumId, albumName, authorName: albumResult.authorName, contentDescription };
+
+    const createdContent = {
+      siteId,
+      contentId: albumResult.albumId,
+      albumName,
+      authorName: albumResult.authorName,
+      contentDescription,
+    };
     this.content.push({ siteId, contentId: albumResult.albumId });
 
     return createdContent;
@@ -67,7 +74,11 @@ export class ContentManagementHelper {
    * @param contentInfo - An object containing contentType and contentSubType for the page.
    * @returns An object containing details of the created page and site.
    */
-  async createPage(siteName: string, category: { name: string, categoryId: string }, contentInfo: { contentType: string, contentSubType: string }) {
+  async createPage(
+    siteName: string,
+    category: { name: string; categoryId: string },
+    contentInfo: { contentType: string; contentSubType: string }
+  ) {
     const siteResult = await this.appManagerApiClient.getSiteManagementService().addNewSite({
       access: 'public',
       name: siteName,
@@ -89,7 +100,7 @@ export class ContentManagementHelper {
       bodyHtml,
       category: {
         id: pageCategory.categoryId,
-        name: pageCategory.name
+        name: pageCategory.name,
       },
       contentType: contentInfo.contentType,
       contentSubType: contentInfo.contentSubType,
@@ -101,8 +112,14 @@ export class ContentManagementHelper {
       pageName,
       'content'
     );
-    
-    const createdContent = { siteId, contentId: pageResult.pageId, pageName, authorName: pageResult.authorName, contentDescription };
+
+    const createdContent = {
+      siteId,
+      contentId: pageResult.pageId,
+      pageName,
+      authorName: pageResult.authorName,
+      contentDescription,
+    };
     this.content.push({ siteId, contentId: pageResult.pageId });
 
     return createdContent;
@@ -115,7 +132,11 @@ export class ContentManagementHelper {
    * @param contentInfo - An object containing the contentType for the event.
    * @returns An object containing details of the created event and site.
    */
-  async createEvent(siteName: string, category: { name: string, categoryId: string }, contentInfo: { contentType: string }) {
+  async createEvent(
+    siteName: string,
+    category: { name: string; categoryId: string },
+    contentInfo: { contentType: string }
+  ) {
     const siteResult = await this.appManagerApiClient.getSiteManagementService().addNewSite({
       access: 'public',
       name: siteName,
@@ -147,8 +168,14 @@ export class ContentManagementHelper {
       eventName,
       'content'
     );
-    
-    const createdContent = { siteId, contentId: eventResult.eventId, eventName, authorName: eventResult.authorName, contentDescription };
+
+    const createdContent = {
+      siteId,
+      contentId: eventResult.eventId,
+      eventName,
+      authorName: eventResult.authorName,
+      contentDescription,
+    };
     this.content.push({ siteId, contentId: eventResult.eventId });
 
     return createdContent;
@@ -167,4 +194,4 @@ export class ContentManagementHelper {
       }
     }
   }
-} 
+}
