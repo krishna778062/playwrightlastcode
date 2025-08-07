@@ -22,6 +22,9 @@
     "test:content": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts",
     "test:content:P0": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts --grep=@P0",
     "test:content:smoke": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts --grep=@smoke",
+    "test:reward": "cross-env TEST_ENV=test MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts",
+    "test:reward:test": "cross-env MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts",
+    "test:reward:qa": "cross-env MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts",
     "test:module": "./scripts/test-module.sh",
     "test:interactive": "ts-node scripts/interactive-test.ts",
     "test": "npm run test:interactive",
@@ -31,7 +34,8 @@
     "generate-report:custom": "node convert-report.js",
     "serve-report": "npm run generate-report && concurrently \"npm run start-report-server\" \"sleep 1 && OPEN_REPORT=true node convert-report.js\"",
     "serve-report:custom": "npm run generate-report:custom && concurrently \"npm run start-report-server\" \"sleep 1 && OPEN_REPORT=true npm run generate-report:custom\"",
-    "test:de:dev": "MODULE_NAME=data-engineering TEST_ENV=dev npx playwright test src/modules/data-engineering/tests/ui-tests/analytics.spec.ts --config=src/modules/data-engineering/playwright.data-engineering.config.ts --project=data-engineering-chromium"
+    "test:de:dev": "MODULE_NAME=data-engineering TEST_ENV=dev npx playwright test src/modules/data-engineering/tests/ui-tests/analytics.spec.ts --config=src/modules/data-engineering/playwright.data-engineering.config.ts --project=data-engineering-chromium",
+    "test:de": "MODULE_NAME=data-engineering npx playwright test src/modules/data-engineering/tests/ui-tests/analytics.spec.ts --config=src/modules/data-engineering/playwright.data-engineering.config.ts --project=data-engineering-chromium"
   },
   "keywords": [],
   "author": "",
