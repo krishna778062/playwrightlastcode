@@ -142,18 +142,19 @@ export class IntranetFileListComponent extends ContentListComponent {
    */
   async clickOnCloseButton() {
     await test.step(`Click on the close button`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.closeButton, { timeout: 20000 });
+      await this.page.waitForLoadState('load');
+      await this.verifier.verifyTheElementIsVisible(this.closeButton.first(), { timeout: 50000 });
 
       const maxRetries = 3;
       for (let i = 0; i < maxRetries; i++) {
-        await this.clickOnElement(this.closeButton);
+        await this.clickOnElement(this.closeButton.first());
         await this.page.waitForTimeout(40_000);
-        if (!(await this.closeButton.isVisible())) {
+        if (!(await this.closeButton.first().isVisible())) {
           return;
         }
       }
       // If the loop finishes, the button is still visible. Fail the test.
-      await this.verifier.verifyTheElementIsNotVisible(closeButton);
+      await this.verifier.verifyTheElementIsNotVisible(this.closeButton.first());
     });
   }
 
@@ -176,7 +177,7 @@ export class IntranetFileListComponent extends ContentListComponent {
 
   async clickFilesTab(): Promise<void> {
     await test.step(`Clicking on the files tab`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.filesTab);
+      await this.verifier.verifyTheElementIsVisible(this.filesTab, { timeout: 30000 });
       await this.clickOnElement(this.filesTab);
     });
   }

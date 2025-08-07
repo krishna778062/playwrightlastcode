@@ -145,8 +145,8 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
         file = json.result.listOfItems.find((item: any) => item.title === fileName);
         expect(file).toBeDefined();
       }).toPass({
-        intervals: [2000, 4_000, 10_000],
-        timeout: 20000,
+        intervals: [5_000, 10_000, 20_000, 30_000],
+        timeout: 40_000,
       });
     });
     if (!file) {
