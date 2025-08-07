@@ -5,10 +5,15 @@ import { FileUtil } from '@core/utils/fileUtil';
 import { PlaywrightAction, PlaywrightErrorHandler } from '@core/utils/playwrightErrorHandler';
 
 export type LocatorClickOptions = Parameters<Locator['click']>[0];
+export type LocatorCheckOptions = Parameters<Locator['check']>[0];
 export type LocatorFillOptions = Parameters<Locator['fill']>[1];
 export type LocatorGetAttributeOptions = Parameters<Locator['getAttribute']>[1];
 
 export type CustomClickOptions = LocatorClickOptions & {
+  selfHealing?: boolean;
+};
+
+export type CustomCheckOptions = LocatorCheckOptions & {
   selfHealing?: boolean;
 };
 
@@ -31,6 +36,16 @@ export class BaseActionUtil {
   getLocator(selector: string) {
     return this.page.locator(selector);
   }
+
+    /**
+   * Gets a locator for a given role type and name
+   * @param roleType - The role type (alert, alertdialog, button and applciation e.t.c) to get the locator for
+   * @param name - The name for the role to the locator
+   * @returns The locator
+   */
+  getByRole(roleType: any, name: string){
+    return this.page.getByRole(roleType, { name: name });
+}
 
   /**
    * This is wrapper around the playwright page.goto method
@@ -82,7 +97,7 @@ export class BaseActionUtil {
    * @param selectorOrLocator - The selector or locator to check on
    * @param options - The options to pass to the check method
    */
-    async checkElement(selectorOrLocator: string | Locator, options?: CustomClickOptions) {
+    async checkElement(selectorOrLocator: string | Locator, options?: CustomCheckOptions) {
       //we will use this option later in catch block
       const selfHealing = options?.selfHealing ?? false;
       const eleToCheck = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
@@ -293,4 +308,14 @@ export class BaseActionUtil {
   async goBackToPreviousPage(options?: { stepInfo?: string; timeout?: number }) {
     await this.page.goBack({ waitUntil: 'domcontentloaded', timeout: options?.timeout ?? 20_000 });
   }
+
+    /**
+   * Clicks on button with given name
+   * @param text - Name of the button
+   */
+  async clickOnButtonWithName(text: string): Promise<void> {
+    await test.step(`Click on ${text} button`, async () => {
+        await this.clickOnElement(this.getByRole('button',text));
+    });
+}
 }
