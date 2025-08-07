@@ -5,12 +5,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 /**
- * IntranetFileListComponent is a UI component class that extends ContentListComponent.
- *
- * It encapsulates interactions and assertions for intranet file search result items in the global search results page.
- * This includes verifying the file icon, file type, and download button.
- *
- * Use this component in Playwright tests to interact with and assert on file-specific search results.
+ * The IntranetFileListComponent class is a UI component that represents the intranet file list component.
+ * It provides methods for interacting with the component and verifying its state.
  */
 export class IntranetFileListComponent extends ContentListComponent {
   readonly fileType: Locator;
@@ -21,6 +17,11 @@ export class IntranetFileListComponent extends ContentListComponent {
   readonly loadingBar: Locator;
   readonly uploadButton: Locator;
 
+  /**
+   * Constructs a new instance of the IntranetFileListComponent class.
+   * @param page - The Playwright Page object.
+   * @param rootLocator - The root locator for the component.
+   */
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
     this.fileType = this.rootLocator.locator('[class*="IconWithLabel_label"]');
