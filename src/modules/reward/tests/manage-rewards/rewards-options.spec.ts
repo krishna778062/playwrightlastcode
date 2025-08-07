@@ -73,7 +73,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
       });
       const manageRewardsPage = new ManageRewardsPage(standardUserPage);
 
-      await test.step('Verify the Rewards options is visible', async () => {
+      await test.step('Verify the Rewards options is not visible', async () => {
         const rewardIsEnabled = await manageRewardsPage.hasManageRecognitionPermission();
         expect(rewardIsEnabled).toBeFalsy();
         await manageRewardsPage.visit();
