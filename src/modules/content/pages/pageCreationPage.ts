@@ -101,7 +101,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     this.publishButton = page.getByRole('button', { name: 'Publish' });
     this.skipStepButton = page.locator('button', { hasText: 'Skip this step' });
     this.titleInput = page.locator("textarea[placeholder='Page title']");
-    this.descriptionInput = page.locator("div[contenteditable='true']");
+    this.descriptionInput = page.locator("div[aria-label='Page content']");
     this.contentTitleHeading = (title: string) => page.locator('h1', { hasText: title });
     this.successMessage = (message: string) => page.locator('div[class*="Toast-module"] p', { hasText: message });
     this.contentTypeCheckbox = (type: string) => page.locator('label:has(span)', { hasText: type });
