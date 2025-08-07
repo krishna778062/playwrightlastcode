@@ -148,7 +148,7 @@ export class IntranetFileListComponent extends ContentListComponent {
       const maxRetries = 3;
       for (let i = 0; i < maxRetries; i++) {
         await this.clickOnElement(closeButton);
-        await this.page.waitForTimeout(20_000); // Add a small delay to allow the UI to update
+        await this.page.waitForTimeout(40_000);
         if (!(await closeButton.isVisible())) {
           return;
         }
