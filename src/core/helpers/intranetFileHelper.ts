@@ -2,29 +2,30 @@ import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient'
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import { NewUxHomePage } from '../pages/homePage/newUxHomePage';
 import { Page } from '@playwright/test';
+import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/globalSearchResultPage';
 
 interface FileContent {
   siteId: string;
-  fileId: string;
+  fileId?: string;
 }
 
 export class IntranetFileHelper {
   private content: FileContent[] = [];
   private page: Page;
+  private siteManagementService: any;
+  private userManagementService: any;
 
   constructor(
     private appManagerApiClient: AppManagerApiClient,
     page: Page
   ) {
     this.page = page;
+    this.siteManagementService = appManagerApiClient.getSiteManagementService();
+    this.userManagementService = appManagerApiClient.getUserManagementService();
   }
 
-  async createSiteAndNavigateToIt(
-    homePage: NewUxHomePage,
-    siteName: string,
-    category: { name: string; categoryId: string }
-  ): Promise<{ siteId: string; siteName: string }> {
-    const siteResult = await this.appManagerApiClient.getSiteManagementService().addNewSite({
+  async createSite(siteName: string, category: { name: string; categoryId: string }): Promise<{ siteId: string }> {
+    const siteResult = await this.siteManagementService.addNewSite({
       access: 'public',
       name: siteName,
       category: {
@@ -33,7 +34,7 @@ export class IntranetFileHelper {
       },
     });
     const siteId = siteResult.siteId;
-    this.content.push({ siteId, fileId: '' });
+    this.content.push({ siteId: siteId });
 
     await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
       this.appManagerApiClient,
@@ -42,28 +43,30 @@ export class IntranetFileHelper {
       'site'
     );
 
-    const searchResultPage = await homePage.actions.searchForTerm(siteName, {
-      stepInfo: `Searching for site with name ${siteName}`,
-    });
-
-    const siteResultComponent = await searchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(siteName);
-    await siteResultComponent.verifyNavigationToTitleLink(siteId, siteName, 'site');
-
     return {
-      siteId: siteId,
-      siteName: siteName,
+      siteId,
     };
   }
 
-  async clickFilesTab(): Promise<void> {
-    const filesTab = this.page.locator('a[role="tab"][id="files"]');
-    await filesTab.waitFor({ state: 'visible' });
-    await filesTab.click();
+  async uploadFile(
+    homePage: NewUxHomePage,
+    fileType: { type: string; fileName: string },
+    siteName: string,
+    siteId: string
+  ): Promise<string> {
+    const globalSearchResultPage = await homePage.actions.searchForTerm(siteName, {
+      stepInfo: `Searching with term "${siteName}" and intent is to find the site`,
+    });
+    const siteResultComponent = await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(siteName);
+    await siteResultComponent.verifyNavigationToTitleLink(siteId, siteName, 'site');
+    const intranetFileListComponent = globalSearchResultPage.getIntranetFileListComponent();
+    await intranetFileListComponent.clickFilesTab();
+    const uploadedFileName = await intranetFileListComponent.uploadFileFromComputer(
+      `src/modules/global-search/test-data/${fileType.fileName}`
+    );
+    return uploadedFileName;
   }
 
-  /**
-   * Cleans up all files and sites created by this helper instance.
-   */
   async cleanup() {
     for (const { siteId } of this.content) {
       if (siteId) {

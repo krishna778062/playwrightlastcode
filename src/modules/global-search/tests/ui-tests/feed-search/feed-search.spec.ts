@@ -9,7 +9,7 @@ import { FEED_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/fee
 test.describe(
   'Global Search - Feed Search functionality',
   {
-    tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.FEED_SEARCH, '@test'],
+    tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.FEED_SEARCH],
   },
   () => {
     const testData = FEED_SEARCH_TEST_DATA;

@@ -37,7 +37,7 @@ test.describe(
         });
 
         // 6. Verify the album result item's data points
-        await globalSearchResultPage.verifyResultItemDataPoints('album', {
+        await globalSearchResultPage.verifyContentResultItemDataPoints('album', {
           name: albumName,
           label: ALBUM_SEARCH_TEST_DATA.label,
           description: contentDescription,

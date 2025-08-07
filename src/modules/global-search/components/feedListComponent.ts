@@ -49,7 +49,6 @@ export class FeedListComponent extends ContentListComponent {
       await this.verifyLabelIsDisplayed(data.label);
       await this.verifyAuthorIsDisplayed(data.author);
       await this.verifyDateIsDisplayed();
-
       // Navigation Verifications
       await this.hoverOverCardAndCopyLink();
       await this.verifyCopiedURL(data.feedId);

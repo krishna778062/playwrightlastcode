@@ -38,12 +38,18 @@ export class ResultListingComponent extends BaseComponent {
    */
   async hoverOverCardAndCopyLink() {
     await test.step(`Mouse over and click on copy link button`, async () => {
-      await this.rootLocator.hover();
+      await this.page.waitForLoadState('load');
+      await this.rootLocator.hover({ timeout: 20000 });
       await this.verifier.verifyTheElementIsVisible(this.copyLinkButton, {
         timeout: 20000,
         assertionMessage: `Verifying copy link button is visible`,
       });
-      await this.clickOnElement(this.copyLinkButton);
+      let isVisible = await this.copyLinkButton.isVisible();
+      while (isVisible) {
+        await this.clickOnElement(this.copyLinkButton);
+        await this.page.waitForTimeout(1000); // Add a small delay to allow the UI to update
+        isVisible = await this.copyLinkButton.isVisible();
+      }
       await this.verifier.verifyElementHasText(this.toolTipMsg.last(), 'Copied', {
         timeout: 8000,
         assertionMessage: `Verifying tooltip Copied text is displayed`,

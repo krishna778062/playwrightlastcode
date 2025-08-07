@@ -46,6 +46,7 @@ export const API_ENDPOINTS = {
     delete: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}`,
     signedUrl: '/v1/content/static/signedurl/upload',
     files: '/v1/content/files',
+    listFiles: '/v1/content/files/list',
   },
 
   fileUpload: {

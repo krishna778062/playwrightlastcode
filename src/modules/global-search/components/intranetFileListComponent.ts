@@ -1,5 +1,8 @@
+import { faker } from '@faker-js/faker';
 import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 import { Locator, Page, test, expect } from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * IntranetFileListComponent is a UI component class that extends ContentListComponent.
@@ -14,6 +17,9 @@ export class IntranetFileListComponent extends ContentListComponent {
   readonly downloadLinkButton: Locator;
   readonly closeButton: Locator;
   readonly filesTab: Locator;
+  readonly selectFromComputerButton: Locator;
+  readonly loadingBar: Locator;
+  readonly uploadButton: Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
@@ -21,6 +27,9 @@ export class IntranetFileListComponent extends ContentListComponent {
     this.downloadLinkButton = this.rootLocator.getByRole('button', { name: 'Download' });
     this.closeButton = this.page.locator('[class*="reviewModal-module-actionButto"]');
     this.filesTab = this.page.locator('a[role="tab"][id="files"]');
+    this.selectFromComputerButton = this.page.getByText('select from computer');
+    this.loadingBar = this.page.locator('div[class*="ileItem-loading"]');
+    this.uploadButton = this.page.getByRole('button', { name: 'Upload' });
   }
 
   /**
@@ -40,10 +49,10 @@ export class IntranetFileListComponent extends ContentListComponent {
       // Navigation verifications
       await this.verifyNavigationToTitleLink(data.fileId, data.name, 'file');
       await this.clickOnCloseButton();
+      await this.hoverOverCardAndDownloadLink(data.name);
       await this.verifyNavigationWithSiteLink(data.siteId, data.siteName);
       await this.goBackToPreviousPage();
       await this.hoverOverCardAndCopyLink();
-      await this.hoverOverCardAndDownloadLink(data.name);
       await this.verifyCopiedURLWithFileId(data.fileId);
       await this.goBackToPreviousPage();
       await this.verifyNavigationWithFileThumbnailLink(data.fileId);
@@ -88,14 +97,15 @@ export class IntranetFileListComponent extends ContentListComponent {
    */
   async hoverOverCardAndDownloadLink(expectedFileName: string) {
     await test.step(`Mouse over, click download link button, and verify downloaded file`, async () => {
-      await this.rootLocator.hover();
+      await this.page.waitForLoadState('load');
+      await this.rootLocator.hover({ timeout: 20000 });
       await this.verifier.verifyTheElementIsVisible(this.downloadLinkButton);
-      // const [download] = await Promise.all([
-      //   this.page.waitForEvent('download'),
-      //   this.clickOnElement(this.downloadLinkButton),
-      // ]);
-      // const downloadedFileName = download.suggestedFilename();
-      // expect(downloadedFileName).toBe(expectedFileName);
+      const [download] = await Promise.all([
+        this.page.waitForEvent('download'),
+        this.clickOnElement(this.downloadLinkButton),
+      ]);
+      const downloadedFileName = download.suggestedFilename();
+      expect(downloadedFileName).toBe(expectedFileName);
     });
   }
 
@@ -133,7 +143,16 @@ export class IntranetFileListComponent extends ContentListComponent {
       const closeButton = this.closeButton.last();
       await this.verifier.verifyTheElementIsVisible(closeButton);
       await this.verifier.verifyTheElementIsEnabled(closeButton);
-      await this.clickOnElement(closeButton);
+
+      const maxRetries = 3;
+      for (let i = 0; i < maxRetries; i++) {
+        await this.clickOnElement(closeButton);
+        await this.page.waitForTimeout(1000); // Add a small delay to allow the UI to update
+        if (!(await closeButton.isVisible())) {
+          return;
+        }
+      }
+      // If the loop finishes, the button is still visible. Fail the test.
       await this.verifier.verifyTheElementIsNotVisible(closeButton);
     });
   }
@@ -156,7 +175,57 @@ export class IntranetFileListComponent extends ContentListComponent {
   }
 
   async clickFilesTab(): Promise<void> {
-    await this.filesTab.waitFor({ state: 'visible' });
-    await this.filesTab.click();
+    await test.step(`Clicking on the files tab`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.filesTab);
+      await this.clickOnElement(this.filesTab);
+    });
+  }
+
+  /**
+   * Uploads a file from the local computer by creating a temporary copy with a unique name.
+   *
+   * This method performs the following steps:
+   * 1. Creates a unique file name to avoid conflicts.
+   * 2. Creates a temporary copy of the original file.
+   * 3. Clicks the "select from computer" button to open the file chooser.
+   * 4. Sets the temporary file in the file chooser.
+   * 5. Waits for the upload to complete by monitoring a loading bar.
+   * 6. Clicks the final "Upload" button.
+   * 7. Deletes the temporary file.
+   *
+   * @param originalFilePath - The path of the file to be uploaded from test data.
+   * @returns The unique name of the file that was uploaded.
+   */
+  async uploadFileFromComputer(originalFilePath: string): Promise<string> {
+    const uniqueFileName = await test.step(`Uploading file from computer: ${originalFilePath}`, async () => {
+      const fileExtension = path.extname(originalFilePath);
+      const uniqueName = `${faker.lorem.word()}-${Date.now()}${fileExtension}`;
+      const tempFilePath = path.join(path.dirname(originalFilePath), uniqueName);
+
+      fs.copyFileSync(originalFilePath, tempFilePath);
+
+      try {
+        // cspell:ignore filechooser
+        const fileChooserPromise = this.page.waitForEvent('filechooser');
+        await this.clickOnElement(this.selectFromComputerButton);
+        const fileChooser = await fileChooserPromise;
+        await fileChooser.setFiles(tempFilePath);
+
+        await this.verifier.waitUntilElementIsVisible(this.loadingBar, {
+          stepInfo: 'Verifying that the loading bar is visible after selecting the file',
+        });
+        await this.verifier.waitUntilElementIsHidden(this.loadingBar, {
+          timeout: 60_000,
+          stepInfo: 'Waiting for file upload to complete (loading bar to disappear)',
+        });
+
+        await this.clickOnElement(this.uploadButton);
+      } finally {
+        // Clean up the temporary file
+        fs.unlinkSync(tempFilePath);
+      }
+      return uniqueName;
+    });
+    return uniqueFileName;
   }
 }

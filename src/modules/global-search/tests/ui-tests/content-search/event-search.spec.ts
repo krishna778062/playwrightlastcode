@@ -37,7 +37,7 @@ test.describe(
         });
 
         // 5. Verify the event result item's data points
-        await globalSearchResultPage.verifyResultItemDataPoints('event', {
+        await globalSearchResultPage.verifyContentResultItemDataPoints('event', {
           name: eventName,
           label: testData.label,
           description: contentDescription,

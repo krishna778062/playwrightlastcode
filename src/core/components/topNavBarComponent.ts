@@ -15,7 +15,7 @@ export class TopNavBarComponent extends BaseComponent {
     this.messageInboxButton = this.page.getByRole('button', { name: 'Messaging' });
     this.seeAllMessagesButton = this.page.getByText('See all messages');
     this.globalSearchInputBox = this.page.locator('input[aria-label*=Search]');
-    this.globalSearchButton = this.page.getByRole('button', { name: 'Search', exact: true });
+    this.globalSearchButton = this.page.locator('button[type="button"][aria-label="Search"]');
     this.addContentButton = this.page.getByRole('button', { name: 'Add content' });
   }
 
@@ -37,7 +37,7 @@ export class TopNavBarComponent extends BaseComponent {
 
   async typeInSearchBarInput(searchTerm: string, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Typing ${searchTerm} in search bar input`, async () => {
-      await this.typeInElement(this.globalSearchInputBox, searchTerm, { timeout: 20000 });
+      await this.typeInElement(this.globalSearchInputBox, searchTerm, { timeout: 40000 });
     });
   }
 

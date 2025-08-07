@@ -72,8 +72,8 @@ export const searchTestFixtures = test.extend<{
     { scope: 'test' },
   ],
   intranetFileHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const intranetFileHelper = new IntranetFileHelper(appManagerApiClient);
+    async ({ appManagerApiClient, appManagerUserPage }, use) => {
+      const intranetFileHelper = new IntranetFileHelper(appManagerApiClient, appManagerUserPage);
       try {
         await use(intranetFileHelper);
       } finally {

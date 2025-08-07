@@ -130,6 +130,10 @@ export class GlobalSearchResultPage extends BasePage {
     return this.siteListingComponent;
   }
 
+  public getIntranetFileListComponent(): IntranetFileListComponent {
+    return new IntranetFileListComponent(this.page);
+  }
+
   /**
    * Verifies the search result page is loaded
    */
