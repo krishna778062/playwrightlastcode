@@ -2,20 +2,22 @@ import { Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
+import { FeedManagerService } from '@core/api/services/FeedManagerService';
+import { SiteManagementService } from '@core/api/services/SiteManagementService';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
-import { FeedManagerService } from '@core/api/services/FeedManagerService';
 
 export const contentTestFixture = test.extend<{
   appManagerHomePage: NewUxHomePage | OldUxHomePage;
   appManagerPage: Page;
   appManagerApiClient: AppManagerApiClient;
-  endUserHomePage: NewUxHomePage|OldUxHomePage;
+  endUserHomePage: NewUxHomePage | OldUxHomePage;
   endUserPage: Page;
   feedManagerService: FeedManagerService;
+  siteManagementService: SiteManagementService;
 }>({
   appManagerHomePage: [
     async ({ page }, use) => {
@@ -62,7 +64,7 @@ export const contentTestFixture = test.extend<{
 
   endUserPage: [
     async ({ endUserHomePage }, use) => {
-      await use(endUserHomePage.page as Page);
+      await use(endUserHomePage.page);
     },
     { scope: 'test' },
   ],
@@ -78,5 +80,16 @@ export const contentTestFixture = test.extend<{
     },
     { scope: 'test' },
   ],
-});
 
+  siteManagementService: [
+    async ({ appManagerPage }, use) => {
+      const siteManagementService = await ApiClientFactory.createClient(SiteManagementService, {
+        type: 'cookies',
+        page: appManagerPage,
+        baseUrl: getEnvConfig().apiBaseUrl,
+      });
+      await use(siteManagementService);
+    },
+    { scope: 'test' },
+  ],
+});
