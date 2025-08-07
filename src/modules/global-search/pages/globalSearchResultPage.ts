@@ -330,7 +330,7 @@ export class GlobalSearchResultPage extends BasePage {
         has: this.page.getByTestId('i-tile'),
       })
       .filter({
-        has: this.page.getByRole('link', { name: searchTerm }),
+        hasText: searchTerm,
       });
 
     await this.handleExactMatchCheckboxRetry(async () => {

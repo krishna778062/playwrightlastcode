@@ -27,7 +27,7 @@ export class IntranetFileListComponent extends ContentListComponent {
     super(page, rootLocator);
     this.fileType = this.rootLocator.locator('[class*="IconWithLabel_label"]');
     this.downloadLinkButton = this.rootLocator.getByRole('button', { name: 'Download' });
-    this.closeButton = this.page.locator('[class*="reviewModal-module-closeButton"]');
+    this.closeButton = this.page.locator('[class*="reviewModal-module-closeButton"][data-state="closed"]');
     this.filesTab = this.page.locator('a[role="tab"][id="files"]');
     this.selectFromComputerButton = this.page.getByText('select from computer');
     this.loadingBar = this.page.locator('div[class*="ileItem-loading"]');
@@ -142,14 +142,13 @@ export class IntranetFileListComponent extends ContentListComponent {
    */
   async clickOnCloseButton() {
     await test.step(`Click on the close button`, async () => {
-      const closeButton = this.closeButton.last();
-      await this.verifier.verifyTheElementIsVisible(closeButton);
+      await this.verifier.verifyTheElementIsVisible(this.closeButton, { timeout: 20000 });
 
       const maxRetries = 3;
       for (let i = 0; i < maxRetries; i++) {
-        await this.clickOnElement(closeButton);
+        await this.clickOnElement(this.closeButton);
         await this.page.waitForTimeout(40_000);
-        if (!(await closeButton.isVisible())) {
+        if (!(await this.closeButton.isVisible())) {
           return;
         }
       }
