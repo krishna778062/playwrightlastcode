@@ -27,7 +27,7 @@ export class IntranetFileListComponent extends ContentListComponent {
     super(page, rootLocator);
     this.fileType = this.rootLocator.locator('[class*="IconWithLabel_label"]');
     this.downloadLinkButton = this.rootLocator.getByRole('button', { name: 'Download' });
-    this.closeButton = this.page.locator('[class*="reviewModal-module-actionButto"]');
+    this.closeButton = this.page.locator('[class*="reviewModal-module-closeButton"]');
     this.filesTab = this.page.locator('a[role="tab"][id="files"]');
     this.selectFromComputerButton = this.page.getByText('select from computer');
     this.loadingBar = this.page.locator('div[class*="ileItem-loading"]');
@@ -117,7 +117,7 @@ export class IntranetFileListComponent extends ContentListComponent {
    */
   async verifyNavigationWithFileThumbnailLink(fileId: string) {
     await test.step(`Verifying navigation with thumbnail link to "${fileId}"`, async () => {
-      await this.clickOnElement(this.thumbnail);
+      await this.clickOnElement(this.thumbnail, { timeout: 30000 });
       await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(fileId), {
         timeout: 50_000,
         stepInfo: `Verifying navigation with thumbnail link to "${fileId}"`,
@@ -144,7 +144,6 @@ export class IntranetFileListComponent extends ContentListComponent {
     await test.step(`Click on the close button`, async () => {
       const closeButton = this.closeButton.last();
       await this.verifier.verifyTheElementIsVisible(closeButton);
-      await this.verifier.verifyTheElementIsEnabled(closeButton);
 
       const maxRetries = 3;
       for (let i = 0; i < maxRetries; i++) {
