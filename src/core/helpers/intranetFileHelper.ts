@@ -1,6 +1,7 @@
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
-import { API_ENDPOINTS } from '../constants/apiEndpoints';
+import { NewUxHomePage } from '../pages/homePage/newUxHomePage';
+import { Page } from '@playwright/test';
 
 interface FileContent {
   siteId: string;
@@ -9,8 +10,14 @@ interface FileContent {
 
 export class IntranetFileHelper {
   private content: FileContent[] = [];
+  private page: Page;
 
-  constructor(private appManagerApiClient: AppManagerApiClient) {}
+  constructor(
+    private appManagerApiClient: AppManagerApiClient,
+    page: Page
+  ) {
+    this.page = page;
+  }
 
   /**
    * Creates a new site and uploads a file to it.
@@ -18,13 +25,11 @@ export class IntranetFileHelper {
    * @param category - The site category object, containing name and categoryId.
    * @returns An object containing details of the uploaded file and site.
    */
-  async createFile(
+  async createSiteAndNavigateToIt(
+    homePage: NewUxHomePage,
     siteName: string,
-    category: { name: string; categoryId: string },
-    fileName: string,
-    mimeType: string,
-    fileType: string
-  ) {
+    category: { name: string; categoryId: string }
+  ): Promise<{ siteId: string; siteName: string }> {
     const siteResult = await this.appManagerApiClient.getSiteManagementService().addNewSite({
       access: 'public',
       name: siteName,
@@ -34,32 +39,32 @@ export class IntranetFileHelper {
       },
     });
     const siteId = siteResult.siteId;
-
-    const randomNum = Math.floor(Math.random() * 1000000 + 1);
-    const uniqueFileName = `File_Test_${randomNum}`;
-    const uniqueFileNameWithExt = `${uniqueFileName}.${fileType}`;
-    const filePath = `${API_ENDPOINTS.fileUpload.albumImg}/${fileName}`;
-
-    const fileResult = await this.appManagerApiClient
-      .getIntranetFileService()
-      .uploadFileAndGetId(siteId, uniqueFileNameWithExt, filePath, mimeType);
+    this.content.push({ siteId, fileId: '' });
 
     await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
       this.appManagerApiClient,
-      uniqueFileNameWithExt,
-      uniqueFileNameWithExt,
-      'file'
+      siteName,
+      siteName,
+      'site'
     );
 
-    const createdContent = {
-      siteId,
-      fileId: fileResult.fileId,
-      fileName: uniqueFileNameWithExt,
-      authorName: fileResult.authorName,
-    };
-    this.content.push({ siteId, fileId: fileResult.fileId });
+    const searchResultPage = await homePage.actions.searchForTerm(siteName, {
+      stepInfo: `Searching for site with name ${siteName}`,
+    });
 
-    return createdContent;
+    const siteResultComponent = await searchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(siteName);
+    await siteResultComponent.verifyNavigationToTitleLink(siteId, siteName, 'site');
+
+    return {
+      siteId: siteId,
+      siteName: siteName,
+    };
+  }
+
+  async clickFilesTab(): Promise<void> {
+    const filesTab = this.page.locator('a[role="tab"][id="files"]');
+    await filesTab.waitFor({ state: 'visible' });
+    await filesTab.click();
   }
 
   /**
@@ -72,4 +77,4 @@ export class IntranetFileHelper {
       }
     }
   }
-} 
+}

@@ -77,26 +77,4 @@ export class FileUtil {
   public static getFileSize(filePath: string): number {
     return fs.statSync(filePath).size;
   }
-
-  /**
-   * Uploads a file to a pre-signed URL.
-   * @param signedUrl - The pre-signed URL for the upload.
-   * @param filePath - The path to the file to upload.
-   * @param mimeType - The MIME type of the file.
-   */
-  public static async uploadFileToSignedUrl(signedUrl: string, filePath: string, mimeType: string): Promise<void> {
-    const fileContent = this.readFile(filePath);
-    const request = (await import('playwright')).request;
-    const context = await request.newContext();
-    const response = await context.post(signedUrl, {
-      headers: {
-        'Content-Type': mimeType,
-      },
-      data: fileContent,
-    });
-    if (response.status() !== 200) {
-      throw new Error(`Failed to upload file to signed URL. Status: ${response.status()}`);
-    }
-    console.log('File uploaded successfully to signed URL.');
-  }
 }

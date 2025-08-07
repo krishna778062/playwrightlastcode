@@ -11,7 +11,6 @@ import { SiteManagementService } from '../services/SiteManagementService';
 import { TileManagementService } from '../services/TileManagementService';
 
 import { BaseApiClient } from '@/src/core/api/clients/baseApiClient';
-import { IntranetFileService } from '../services/IntranetFileService';
 
 export class AppManagerApiClient extends BaseApiClient {
   private readonly chatService: ChatService;
@@ -22,7 +21,6 @@ export class AppManagerApiClient extends BaseApiClient {
   private readonly tileManagementService: TileManagementService;
   private readonly imageUploaderService: ImageUploaderService;
   private readonly appsManagementService: AppsManagementService;
-  private readonly intranetFileService: IntranetFileService;
 
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
@@ -34,7 +32,6 @@ export class AppManagerApiClient extends BaseApiClient {
     this.contentManagementService = new ContentManagementService(context, baseUrl || '');
     this.imageUploaderService = new ImageUploaderService(this, context);
     this.appsManagementService = new AppsManagementService(context, baseUrl);
-    this.intranetFileService = new IntranetFileService(context, baseUrl);
   }
 
   getChatService(): ChatService {
@@ -67,9 +64,5 @@ export class AppManagerApiClient extends BaseApiClient {
 
   getAppsManagementService(): AppsManagementService {
     return this.appsManagementService;
-  }
-
-  getIntranetFileService(): IntranetFileService {
-    return this.intranetFileService;
   }
 }

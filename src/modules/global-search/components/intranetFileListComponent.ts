@@ -13,14 +13,14 @@ export class IntranetFileListComponent extends ContentListComponent {
   readonly fileType: Locator;
   readonly downloadLinkButton: Locator;
   readonly closeButton: Locator;
+  readonly filesTab: Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
     this.fileType = this.rootLocator.locator('[class*="IconWithLabel_label"]');
     this.downloadLinkButton = this.rootLocator.getByRole('button', { name: 'Download' });
-    this.closeButton = this.page.locator(
-      '[class*="reviewModal-module-actionButto"]'
-    );
+    this.closeButton = this.page.locator('[class*="reviewModal-module-actionButto"]');
+    this.filesTab = this.page.locator('a[role="tab"][id="files"]');
   }
 
   /**
@@ -99,11 +99,11 @@ export class IntranetFileListComponent extends ContentListComponent {
     });
   }
 
-   /**
+  /**
    * Verify the navigation with the file thumbnail link
    * @param expectedUrl - the expected url
    */
-   async verifyNavigationWithFileThumbnailLink(fileId: string) {
+  async verifyNavigationWithFileThumbnailLink(fileId: string) {
     await test.step(`Verifying navigation with thumbnail link to "${fileId}"`, async () => {
       await this.clickOnElement(this.thumbnail);
       await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(fileId), {
@@ -113,7 +113,6 @@ export class IntranetFileListComponent extends ContentListComponent {
     });
   }
 
-  
   /**
    * Verify the File thumbnail is displayed in the site result item
    */
@@ -145,20 +144,19 @@ export class IntranetFileListComponent extends ContentListComponent {
    */
   async verifyCopiedURLWithFileId(fileId: string) {
     await test.step(`Verifying copied URL in the clipboard, navigates to the right file and verifies the file`, async () => {
-      const copiedUrl = await this.page.evaluate(() =>
-        navigator.clipboard.readText()
-      );
+      const copiedUrl = await this.page.evaluate(() => navigator.clipboard.readText());
       await this.page.goto(copiedUrl);
       if (!copiedUrl.includes(fileId)) {
-        throw new Error(
-          `Copied URL does not contain id: ${fileId}. URL: ${copiedUrl}`
-        );
+        throw new Error(`Copied URL does not contain id: ${fileId}. URL: ${copiedUrl}`);
       }
       if (!copiedUrl.endsWith('?provider=intranet')) {
-        throw new Error(
-          `Copied URL does not end with "?provider=intranet". URL: ${copiedUrl}`
-        );
+        throw new Error(`Copied URL does not end with "?provider=intranet". URL: ${copiedUrl}`);
       }
     });
   }
-} 
+
+  async clickFilesTab(): Promise<void> {
+    await this.filesTab.waitFor({ state: 'visible' });
+    await this.filesTab.click();
+  }
+}
