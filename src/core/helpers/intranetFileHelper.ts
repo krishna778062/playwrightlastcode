@@ -19,12 +19,6 @@ export class IntranetFileHelper {
     this.page = page;
   }
 
-  /**
-   * Creates a new site and uploads a file to it.
-   * @param siteName - The name for the new site.
-   * @param category - The site category object, containing name and categoryId.
-   * @returns An object containing details of the uploaded file and site.
-   */
   async createSiteAndNavigateToIt(
     homePage: NewUxHomePage,
     siteName: string,

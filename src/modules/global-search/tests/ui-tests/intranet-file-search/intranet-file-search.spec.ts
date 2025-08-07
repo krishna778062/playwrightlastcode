@@ -8,7 +8,7 @@ import { INTRANET_FILE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test
 test.describe(
   'Global Search - Intranet File Search functionality',
   {
-    tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.FILE_SEARCH, '@test'],
+    tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.FILE_SEARCH],
   },
   () => {
     const testData = INTRANET_FILE_SEARCH_TEST_DATA;
@@ -43,7 +43,7 @@ test.describe(
           });
 
           //  Get the file result item using IntranetFileListComponent
-          await globalSearchResultPage.verifyIntranetFileResultItem({
+          await globalSearchResultPage.verifyFileResultItemDataPoints({
             name: fileName,
             label: fileType.label,
             author: authorName,

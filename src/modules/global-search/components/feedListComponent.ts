@@ -1,13 +1,6 @@
+import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 import { Locator, Page, test } from '@playwright/test';
 
-import { ContentListComponent } from './contentListComponent';
-
-/**
- * @description Class for the feed list component
- * @export
- * @class FeedListComponent
- * @extends {ContentListComponent}
- */
 export class FeedListComponent extends ContentListComponent {
   public readonly feedPostText: Locator;
 
@@ -46,6 +39,27 @@ export class FeedListComponent extends ContentListComponent {
           `Verifying navigation with title link for "${feedId}" failed. Neither UTM URL nor final URL was loaded in time.\n${error}`
         );
       }
+    });
+  }
+
+  async verifyFeedResultItem(data: any) {
+    await test.step(`Verifying all data points for the feed result item "${data.name}"`, async () => {
+      // UI Verifications
+      await this.verifyNameIsDisplayed(data.text);
+      await this.verifyLabelIsDisplayed(data.label);
+      await this.verifyAuthorIsDisplayed(data.author);
+      await this.verifyDateIsDisplayed();
+
+      // Navigation Verifications
+      await this.hoverOverCardAndCopyLink();
+      await this.verifyCopiedURL(data.feedId);
+      await this.goBackToPreviousPage();
+      await this.verifyNavigationToFeedLink(data.feedId, data.name);
+      await this.goBackToPreviousPage();
+      await this.verifyNavigationWithAuthorLink(data.author);
+      await this.goBackToPreviousPage();
+      await this.verifyNavigationWithHomePageLink();
+      await this.goBackToPreviousPage();
     });
   }
 }

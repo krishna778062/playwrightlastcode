@@ -9,7 +9,6 @@ import {
   getTomorrowDateIsoString,
 } from '@/src/core/utils/dateUtil';
 import { IContentSearch } from '@/src/modules/global-search/types/content-search.type';
-import { IntranetFileListComponent } from './intranetFileListComponent';
 
 /**
  * ContentListComponent is a UI component class that extends ResultListingComponent.
@@ -40,19 +39,20 @@ export class ContentListComponent extends ResultListingComponent {
     this.monthText = this.rootLocator.locator("div[class*='DateEmblem-module__monthInner']");
     this.calendarIcon = this.rootLocator.locator("[data-testid='i-calendar']");
   }
+
   /**
-   * Verifies all data points for a content result item, including common and content-specific assertions.
+   * Verifies all data points for a content result item (Page, Album, Event).
    * @param data - The content search data to verify.
    */
   async verifyContentResultItem(data: IContentSearch) {
     await test.step(`Verifying all data points for the content result item "${data.name}"`, async () => {
-      // Common verifications
+      // Common verifications for Page, Album, Event
       await this.verifyNameIsDisplayed(data.name);
       await this.verifyLabelIsDisplayed(data.label);
       await this.verifyDescriptionIsDisplayed(data.description);
       await this.verifyAuthorIsDisplayed(data.author);
 
-      // Content-specific verifications
+      // Content-specific UI verifications
       if (data.contentType === 'Page') {
         await this.verifyThumbnailIsDisplayed();
         await this.verifyDateIsDisplayed();
@@ -67,7 +67,7 @@ export class ContentListComponent extends ResultListingComponent {
         await this.verifyCalendarIconIsDisplayed();
       }
 
-      // Navigation verifications
+      // Common navigation verifications for Page, Album, Event
       await this.verifyNavigationToTitleLink(data.contentId, data.name, data.contentType);
       await this.goBackToPreviousPage();
       await this.verifyNavigationWithSiteLink(data.siteId, data.siteName);
@@ -117,7 +117,7 @@ export class ContentListComponent extends ResultListingComponent {
    */
   async verifyNavigationWithSiteLink(siteId: string, siteName: string) {
     await test.step(`Verifying navigation to site link "${siteId}"`, async () => {
-      await this.clickOnSiteLink(siteName, { timeout: 10000 });
+      await this.clickOnSiteLink(siteName);
       await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(siteId), {
         timeout: 50000,
         stepInfo: `Verifying navigation to site link to "${siteId}"`,

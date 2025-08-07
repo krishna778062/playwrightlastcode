@@ -31,22 +31,13 @@ test.describe(
           stepInfo: `Searching with term "${feedName}" and intent is to find the content`,
         });
 
-        const resultLocator = await globalSearchResultPage.getFeedResultItemExactlyMatchingTheSearchTerm(feedName);
-        const feedResultItem = new FeedListComponent(resultLocator.page, resultLocator.rootLocator);
-
-        await feedResultItem.verifyNameIsDisplayed(testData.text);
-        await feedResultItem.verifyLabelIsDisplayed(testData.label);
-        await feedResultItem.verifyDateIsDisplayed();
-        await feedResultItem.hoverOverCardAndCopyLink();
-        await feedResultItem.verifyCopiedURL(feedId);
-        await feedResultItem.goBackToPreviousPage();
-        await feedResultItem.verifyNavigationToFeedLink(feedId, feedName);
-        await feedResultItem.goBackToPreviousPage();
-        await feedResultItem.verifyAuthorIsDisplayed(authorName);
-        await feedResultItem.verifyNavigationWithAuthorLink(authorName);
-        await feedResultItem.goBackToPreviousPage();
-        await feedResultItem.verifyNavigationWithHomePageLink();
-        await feedResultItem.goBackToPreviousPage();
+        await globalSearchResultPage.verifyFeedResultItemDataPoints({
+          name: feedName,
+          text: testData.text,
+          label: testData.label,
+          feedId: feedId,
+          author: authorName,
+        });
       }
     );
   }
