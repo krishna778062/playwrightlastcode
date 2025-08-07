@@ -1,13 +1,14 @@
-import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { tagTest } from '@core/utils/testDecorator';
+import { faker } from '@faker-js/faker';
+
+import { FeedManagerService } from '@core/api/services/FeedManagerService';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
+import { tagTest } from '@core/utils/testDecorator';
 
+import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
+import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
-import { FeedManagerService } from '@core/api/services/FeedManagerService';
-import { faker } from '@faker-js/faker';
 
 test.describe(
   '@FeedPost',
@@ -58,24 +59,20 @@ test.describe(
         // Step 1: Create a new post with multiple attachments via UI
         // Note: Post can also be created via API using:
         // const { postResult: apiPostResult, postId } = await feedManagerService.createPost({ text: initialPostText });
-        const postResult = await feedPage.actions.createAndPublishPost({
+        const postResult = await feedPage.actions.createAndPost({
           text: initialPostText,
           attachments: {
-            files: [
-              'images/' + FEED_TEST_DATA.ATTACHMENTS.IMAGE,
-              'excel/' + FEED_TEST_DATA.ATTACHMENTS.DOCUMENT
-            ]
-          }
+            files: ['images/' + FEED_TEST_DATA.ATTACHMENTS.IMAGE, 'excel/' + FEED_TEST_DATA.ATTACHMENTS.DOCUMENT],
+          },
         });
 
         // Store created post text and postId for cleanup (postId would be available if using API creation)
         createdPostText = postResult.postText;
         createdPostId = postResult.postId || '';
 
-                // Wait for post to be visible and get timestamp
+        // Wait for post to be visible and get timestamp
         await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
         await feedPage.getPostTimestamp(postResult.postText);
-      
 
         // Step 2: Verify post details and attachments
         await feedPage.assertions.verifyPostDetails(postResult.postText, postResult.attachmentCount);
@@ -91,4 +88,4 @@ test.describe(
       }
     );
   }
-); 
+);
