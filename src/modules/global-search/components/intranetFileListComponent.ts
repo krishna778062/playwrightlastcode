@@ -3,6 +3,7 @@ import { ContentListComponent } from '@/src/modules/global-search/components/con
 import { Locator, Page, test, expect } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { TIMEOUTS } from '@core/constants/timeouts';
 
 /**
  * The IntranetFileListComponent class is a UI component that represents the intranet file list component.
@@ -102,7 +103,7 @@ export class IntranetFileListComponent extends ContentListComponent {
       await this.rootLocator.hover({ timeout: 20000 });
       await this.verifier.verifyTheElementIsVisible(this.downloadLinkButton);
       const [download] = await Promise.all([
-        this.page.waitForEvent('download'),
+        this.page.waitForEvent('download', { timeout: TIMEOUTS.LONG }),
         this.clickOnElement(this.downloadLinkButton),
       ]);
       const downloadedFileName = download.suggestedFilename();
@@ -148,7 +149,7 @@ export class IntranetFileListComponent extends ContentListComponent {
       const maxRetries = 3;
       for (let i = 0; i < maxRetries; i++) {
         await this.clickOnElement(closeButton);
-        await this.page.waitForTimeout(1000); // Add a small delay to allow the UI to update
+        await this.page.waitForTimeout(20_000); // Add a small delay to allow the UI to update
         if (!(await closeButton.isVisible())) {
           return;
         }

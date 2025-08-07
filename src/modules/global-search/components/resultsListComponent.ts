@@ -44,12 +44,7 @@ export class ResultListingComponent extends BaseComponent {
         timeout: 20000,
         assertionMessage: `Verifying copy link button is visible`,
       });
-      let isVisible = await this.copyLinkButton.isVisible();
-      while (isVisible) {
-        await this.clickOnElement(this.copyLinkButton);
-        await this.page.waitForTimeout(1000); // Add a small delay to allow the UI to update
-        isVisible = await this.copyLinkButton.isVisible();
-      }
+      await this.clickOnElement(this.copyLinkButton);
       await this.verifier.verifyElementHasText(this.toolTipMsg.last(), 'Copied', {
         timeout: 8000,
         assertionMessage: `Verifying tooltip Copied text is displayed`,

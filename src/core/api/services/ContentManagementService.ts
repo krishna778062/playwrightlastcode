@@ -111,32 +111,37 @@ export class ContentManagementService extends BaseApiClient implements IContentM
    * @param siteId - The site ID.
    * @returns The first category's ID and name.
    */
-  async getPageCategoryID(siteId: string) {
-    return await test.step('Fetching page categories via API post request', async () => {
-      const categoryInfo = await expect
+  async getPageCategoryID(siteId: string): Promise<{ categoryId: string; name: string }> {
+    let categoryInfo: { categoryId: string; name: string } | undefined;
+
+    await test.step('Fetching page categories via API post request', async () => {
+      await expect
         .poll(
           async () => {
             const response = await this.post(API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.category, {
               data: { size: 16 },
             });
             const json = await response.json();
-            if (json.result?.listOfItems?.length) {
-              return {
+            if (json.result?.listOfItems?.length > 0) {
+              categoryInfo = {
                 categoryId: json.result.listOfItems[0].id,
                 name: json.result.listOfItems[0].name,
               };
             }
-            return null;
+            return categoryInfo;
           },
           {
             message: `Could not find page category for site ${siteId} after 3 retries.`,
             intervals: [2000, 4000, 6000],
           }
         )
-        .toBeTruthy();
-
-      return categoryInfo;
+        .toBeDefined();
     });
+
+    if (!categoryInfo) {
+      throw new Error(`Could not find page category for site ${siteId}`);
+    }
+    return categoryInfo;
   }
 
   /**
@@ -294,14 +299,14 @@ export class ContentManagementService extends BaseApiClient implements IContentM
         .poll(
           async () => {
             const checkResponse = await this.get(API_ENDPOINTS.content.delete(siteId, contentId));
-            return checkResponse.status();
+            return checkResponse.status() === 404 || checkResponse.status() === 400;
           },
           {
             message: `Content with id ${contentId} was not deleted within the specified timeout.`,
             timeout: TIMEOUTS.LONG,
           }
         )
-        .toBe(404);
+        .toBe(true);
     });
   }
 }

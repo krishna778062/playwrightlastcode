@@ -10,7 +10,7 @@ import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelpe
 test.describe(
   'Global Search - Intranet File Search functionality',
   {
-    tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.FILE_SEARCH, '@test'],
+    tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.FILE_SEARCH],
   },
   () => {
     const testData = INTRANET_FILE_SEARCH_TEST_DATA;
