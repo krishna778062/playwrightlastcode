@@ -20,7 +20,6 @@ export default defineConfig({
       name: 'Reward',
       use: {
         headless: !!process.env.CI,
-        video: 'on-first-retry',
         ...devices['Desktop Chrome'],
         baseURL: getEnvConfig().frontendBaseUrl,
         launchOptions: {

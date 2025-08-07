@@ -20,17 +20,16 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
         zephyrTestId: 'RC-5371',
         storyId: 'RC-5251',
       });
-      let rewardOptionsIsVisible: boolean;
+      let rewardOptionsIsVisible: string | null;
       const manageRewardsPage = new ManageRewardsPage(appManagerPage);
       const rewardOptionsPage = new RewardOptionsPage(appManagerPage);
 
       await test.step('Verify the Rewards options is visible', async () => {
         await manageRewardsPage.visit();
         await manageRewardsPage.verifyThePageIsLoaded();
-        rewardOptionsIsVisible =
-          await manageRewardsPage.getTheRewardsOptionsValueFromTheEvaluationCall('reward_options');
+        rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
         expect(rewardOptionsIsVisible).toBeTruthy();
-        await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(rewardOptionsIsVisible);
+        await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(Boolean(rewardOptionsIsVisible));
       });
     }
   );
@@ -47,17 +46,16 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
         storyId: 'RC-5251',
       });
 
-      let rewardOptionsIsVisible: boolean;
+      let rewardOptionsIsVisible: string | null;
       const manageRewardsPage = new ManageRewardsPage(recoManagerPage);
       const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
 
       await test.step('Verify the Rewards options is visible', async () => {
         await manageRewardsPage.visit();
         await manageRewardsPage.verifyThePageIsLoaded();
-        rewardOptionsIsVisible =
-          await manageRewardsPage.getTheRewardsOptionsValueFromTheEvaluationCall('reward_options');
+        rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
         expect(rewardOptionsIsVisible).toBeTruthy();
-        await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(rewardOptionsIsVisible);
+        await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(Boolean(rewardOptionsIsVisible));
       });
     }
   );

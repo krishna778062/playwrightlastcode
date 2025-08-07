@@ -1,12 +1,14 @@
-import { expect, Locator, Page } from '@playwright/test';
-import { rewardsEndpoint } from '@rewards/constants/pageEndpoint';
+import { Locator, Page, Response } from '@playwright/test';
 
+import { PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
 export class ManageRewardsPage extends BasePage {
   readonly manageRewardsPageContainer: Locator;
   readonly manageRewardsPageNotFound: Locator;
   readonly rewardsOverviewDescriptionText: Locator;
+  public harnessFlagResponse: Response | undefined;
 
   constructor(page: Page) {
     super(page);
@@ -17,7 +19,23 @@ export class ManageRewardsPage extends BasePage {
   }
 
   async visit(): Promise<void> {
-    await this.page.goto(rewardsEndpoint.manageRewardsPage);
+    const apiUrlPattern = /\/api\/1\.0\/client\/env\/.*\/target\/.*\/evaluations\?cluster=2/;
+    const [response] = await Promise.all([
+      this.page.waitForResponse(resp => apiUrlPattern.test(resp.url()) && resp.status() === 200, {
+        timeout: TIMEOUTS.SHORT,
+      }),
+      await this.page.goto(rewardsEndpoint.manageRewardsPage),
+    ]);
+    this.harnessFlagResponse = response;
+  }
+
+  async fetchKeyValueFromHarnessResponse(targetKey: string): Promise<string | null> {
+    if (this.harnessFlagResponse === undefined) {
+      await this.setTheHarnessResponseAfterPageReload();
+    }
+    const json = await this.harnessFlagResponse?.json();
+    const match = json.find((item: any) => item.flag === targetKey);
+    return match?.kind === 'boolean' ? match.value === 'true' : (match?.value ?? null);
   }
 
   async hasManageRecognitionPermission(): Promise<boolean> {
@@ -33,18 +51,18 @@ export class ManageRewardsPage extends BasePage {
   }
 
   async verifyPageIsNotFound(): Promise<void> {
-    await expect(this.manageRewardsPageNotFound).toBeVisible();
+    await this.verifier.verifyTheElementIsVisible(this.manageRewardsPageNotFound, {
+      assertionMessage: 'Verify the Manage Reward page is visible',
+    });
   }
 
-  async getTheRewardsOptionsValueFromTheEvaluationCall(targetKey: string): Promise<boolean> {
+  async setTheHarnessResponseAfterPageReload(): Promise<void> {
     const apiUrlPattern = /\/api\/1\.0\/client\/env\/.*\/target\/.*\/evaluations\?cluster=2/;
     const [response] = await Promise.all([
       this.page.waitForResponse(resp => apiUrlPattern.test(resp.url()) && resp.status() === 200),
       this.page.reload(),
       this.verifyThePageIsLoaded(),
     ]);
-    const json = await response.json();
-    const match = json.find((item: any) => item.flag === targetKey);
-    return match?.kind === 'boolean' ? match.value === 'true' : (match?.value ?? null);
+    this.harnessFlagResponse = response;
   }
 }

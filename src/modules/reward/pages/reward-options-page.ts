@@ -1,6 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { rewardsEndpoint } from '@rewards/constants/pageEndpoint';
 
+import { PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
 export class RewardOptionsPage extends BasePage {
@@ -33,7 +33,6 @@ export class RewardOptionsPage extends BasePage {
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await expect(this.searchInput).toBeVisible();
     await this.verifier.verifyTheElementIsVisible(this.searchInput, {
       assertionMessage: 'Verify the Reward options search input box is visible',
     });
@@ -43,8 +42,5 @@ export class RewardOptionsPage extends BasePage {
     expectingToBeVisible
       ? await expect(this.rewardOptionLink).toBeVisible()
       : await expect(this.rewardOptionLink).toBeHidden();
-    expectingToBeVisible
-      ? await expect(this.rewardsOptionPageNotFound).toBeHidden()
-      : await expect(this.rewardOptionLink).toBeVisible();
   }
 }
