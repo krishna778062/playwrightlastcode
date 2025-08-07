@@ -66,9 +66,11 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
    * Verifies the home page is loaded
    */
   async verifyThePageIsLoaded(options?: { timeout?: number }): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.topNavBarComponent.profileSettingsButton, {
-      timeout: options?.timeout || TIMEOUTS.MEDIUM,
-      assertionMessage: `expecting messaging button to be visible`,
+    await test.step('Verify the home page is loaded', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.topNavBarComponent.profileSettingsButton, {
+        timeout: options?.timeout || TIMEOUTS.MEDIUM,
+        assertionMessage: `expecting messaging button to be visible`,
+      });
     });
   }
 

@@ -12,6 +12,7 @@ on:
           - 'chat'
           - 'platforms'
           - 'global-search'
+          - 'reward'
           - 'content'
           - 'de'
       priority_filter:
