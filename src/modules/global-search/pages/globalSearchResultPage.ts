@@ -18,6 +18,7 @@ export class GlobalSearchResultPage extends BasePage {
   readonly pageResultItems: Locator;
   readonly eventResultItems: Locator;
   readonly albumResultItems: Locator;
+  readonly feedResultItems: Locator;
   readonly tileButton: Locator;
   readonly appResultContainer: Locator;
 
@@ -35,6 +36,9 @@ export class GlobalSearchResultPage extends BasePage {
     });
     this.albumResultItems = this.searchResultListItems.filter({
       has: this.page.getByTestId('i-albums'),
+    });
+    this.feedResultItems = this.searchResultListItems.filter({
+      has: this.page.getByTestId('i-feedMobile'),
     });
     this.tileButton = this.page.getByRole('button', { name: 'Tiles' });
 
@@ -166,6 +170,24 @@ export class GlobalSearchResultPage extends BasePage {
       await this.waitUntilSearchResultListIsDisplayed();
       const contentResultToLocate = this.pageResultItems.filter({
         has: this.page.locator('h2', { hasText: searchTerm }),
+      });
+      await this.handleExactMatchCheckboxRetry(async () => {
+        await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 40_000 });
+      });
+      return new ResultListingComponent(this.page, contentResultToLocate);
+    });
+  }
+
+  /**
+   * Get the feed result item exactly matching the search term
+   * @param searchTerm - the search term
+   * @returns the content result item
+   */
+  async getFeedResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
+    return await test.step(`Getting feed result item matching the search term "${searchTerm}"`, async () => {
+      await this.waitUntilSearchResultListIsDisplayed();
+      const contentResultToLocate = this.feedResultItems.filter({
+        has: this.page.locator('span', { hasText: searchTerm }),
       });
       await this.handleExactMatchCheckboxRetry(async () => {
         await this.verifier.verifyTheElementIsVisible(contentResultToLocate, { timeout: 40_000 });

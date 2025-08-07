@@ -3,6 +3,7 @@ import { Page, test } from '@playwright/test';
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
+import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { LoginHelper } from '../../../core/helpers/loginHelper';
@@ -15,6 +16,7 @@ export const searchTestFixtures = test.extend<{
   appManagerUserPage: Page;
   appManagerApiClient: AppManagerApiClient;
   contentManagementHelper: ContentManagementHelper;
+  feedManagementHelper: FeedManagementHelper;
 }>({
   appManagerHomePage: [
     async ({ page }, use, workerInfo) => {
@@ -52,6 +54,17 @@ export const searchTestFixtures = test.extend<{
         await use(contentManagementHelper);
       } finally {
         await contentManagementHelper.cleanup();
+      }
+    },
+    { scope: 'test' },
+  ],
+  feedManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
+      try {
+        await use(feedManagementHelper);
+      } finally {
+        await feedManagementHelper.cleanup();
       }
     },
     { scope: 'test' },

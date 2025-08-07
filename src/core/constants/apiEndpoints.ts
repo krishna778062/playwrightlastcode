@@ -58,8 +58,7 @@ export const API_ENDPOINTS = {
 
   feed: {
     create: `/v1/wfeed/feeds`,
-    update: (postId: string) => `/v1/wfeed/feeds/${postId}`,
-    delete: (postId: string) => `/v1/wfeed/feeds/${postId}`,
+    delete: (feedId: string) => `/v1/wfeed/feeds/${feedId}`,
   },
   apps: {
     settings: '/v1/account/apps-links-settings',
