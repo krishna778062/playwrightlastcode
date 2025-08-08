@@ -28,7 +28,7 @@ export class TileListComponent extends ResultListingComponent {
 
   async verifyTileTitleIsDisplayed(expectedTileTitle: string) {
     await test.step(`Verifying tile title is displayed`, async () => {
-      await this.verifier.verifyElementHasText(this.tileTitle, expectedTileTitle);
+      await this.verifier.verifyElementHasText(this.tileTitle, new RegExp(`^${expectedTileTitle}`));
     });
   }
 

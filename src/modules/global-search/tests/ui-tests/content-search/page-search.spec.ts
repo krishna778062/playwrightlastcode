@@ -40,7 +40,7 @@ test.describe(
         });
 
         // 5. Verify the page result item's data points
-        await globalSearchResultPage.verifyResultItemDataPoints('page', {
+        await globalSearchResultPage.verifyContentResultItemDataPoints('page', {
           name: pageName,
           label: testData.label,
           description: contentDescription,
