@@ -111,13 +111,15 @@ export class RewardOptionsPage extends BasePage {
   }
 
   async checkTheCopiedURLOfSearchResultInNewTab(giftCardName: string, visibility: boolean) {
-    await this.performSearchAndValidate(giftCardName, visibility);
-    const currentUrl = this.page.url();
-    const newPage = await this.page.context().newPage();
-    await newPage.goto(currentUrl);
-    await expect(newPage.locator('input[aria-label="Search…"]')).toHaveValue('Amazon');
-    await expect(this.rewardsOptionsTableRow.last()).toBeVisible();
-    await expect(this.rewardsOptionsTableRewardLogo.last()).toBeVisible();
+    await test.step('Copy the URL and open in new tab and check the result', async () => {
+      await this.performSearchAndValidate(giftCardName, visibility);
+      const currentUrl = this.page.url();
+      const newPage = await this.page.context().newPage();
+      await newPage.goto(currentUrl);
+      await expect(newPage.locator('input[aria-label="Search…"]')).toHaveValue('Amazon');
+      await expect(this.rewardsOptionsTableRow.last()).toBeVisible();
+      await expect(this.rewardsOptionsTableRewardLogo.last()).toBeVisible();
+    });
   }
 
   async validateToastMessage(expectedMessage: string) {

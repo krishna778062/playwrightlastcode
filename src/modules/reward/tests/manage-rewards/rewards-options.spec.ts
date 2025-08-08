@@ -112,10 +112,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
       await rewardOptionsPage.performSearchAndValidate('#$%^&*()_+', false);
       await rewardOptionsPage.performSearchAndValidate(' Apple ', true);
       await rewardOptionsPage.performSearchAndValidate('Amazon', true);
-
-      await test.step('Copy the URL and open in new tab and check the result', async () => {
-        await rewardOptionsPage.checkTheCopiedURLOfSearchResultInNewTab('Amazon', true);
-      });
+      await rewardOptionsPage.checkTheCopiedURLOfSearchResultInNewTab('Amazon', true);
     }
   );
 
