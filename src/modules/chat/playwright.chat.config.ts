@@ -20,7 +20,7 @@ export default defineConfig({
     {
       name: 'chat-chromium',
       use: {
-        headless: process.env.CI ? true : false,
+        headless: process.env.CI ? true : true,
         video: 'on-first-retry',
         ...devices['Desktop Chrome'],
         permissions: ['camera', 'microphone'],
