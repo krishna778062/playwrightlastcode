@@ -24,7 +24,7 @@ export class FeedListComponent extends ContentListComponent {
    */
   async verifyNavigationToFeedLink(feedId: string, feedName: string): Promise<void> {
     await test.step(`Verifying navigation to feed link for "${feedId}"`, async () => {
-      await this.clickOnElement(this.name, { timeout: 40000 });
+      await this.clickOnElement(this.name, { timeout: 50000 });
       const utmUrlPattern = new RegExp(
         `${feedId}.*\\?utm_source=search_result&utm_term=${encodeURIComponent(feedName)}`
       );

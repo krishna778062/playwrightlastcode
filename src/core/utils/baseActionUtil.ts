@@ -199,9 +199,8 @@ export class BaseActionUtil {
   ): Promise<Page> {
     const { timeout = 30000, stepInfo } = options || {};
     return await test.step(stepInfo || 'Trigger action and wait for new page to open', async () => {
-      const newPagePromise = this.page.context().waitForEvent('page', { timeout });
-      await actionToPerform();
-      return await newPagePromise;
+      const [newPage] = await Promise.all([this.page.context().waitForEvent('page', { timeout }), actionToPerform()]);
+      return newPage;
     });
   }
 
