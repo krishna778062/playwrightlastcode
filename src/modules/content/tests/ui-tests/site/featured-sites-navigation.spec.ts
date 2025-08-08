@@ -7,7 +7,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
-import { FEATURED_SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
+import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 
 test.describe(
   '@featured-sites',
@@ -27,11 +27,9 @@ test.describe(
         // Initialize API client with proper authentication and CSRF token
         const randomNum = Math.floor(Math.random() * 1000000 + 1);
         createdSiteName = `AutomateUI_Test_${randomNum}`;
-        categoryObj = await appManagerApiClient
-          .getSiteManagementService()
-          .getCategoryId(FEATURED_SITE_TEST_DATA[0].category);
+        categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(SITE_TEST_DATA[0].category);
         const result = await appManagerApiClient.getSiteManagementService().addNewSite({
-          access: FEATURED_SITE_TEST_DATA[0].siteType,
+          access: SITE_TEST_DATA[0].siteType,
           name: createdSiteName,
           category: {
             categoryId: categoryObj.categoryId,
