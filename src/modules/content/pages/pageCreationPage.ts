@@ -42,7 +42,7 @@ export interface IPageCreationActions {
     description: string;
   }) => Promise<void>;
   publishPage: () => Promise<Response>;
-  handlePromotionPageStep: (options?: { skipPromotion?: boolean }) => Promise<void>;
+  handlePromotionPageStep: () => Promise<void>;
   createAndPublishPage: (options: PageCreationOptions) => Promise<{
     title: string;
     description: string;
@@ -230,14 +230,10 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
    * Handles the promotion of the page
    * @param options - The options for handling the promotion
    */
-  async handlePromotionPageStep(options?: { skipPromotion?: boolean }) {
+  async handlePromotionPageStep() {
     await test.step(`Promoting page`, async () => {
-      const skipPromotion = options?.skipPromotion ?? true;
-      if (skipPromotion) {
+      if (await this.verifier.isTheElementVisible(this.promotePageModal.skipPromotionButton)) {
         await this.promotePageModal.clickOnSkipPromotionButton();
-      } else {
-        //hanlde the promotion actions
-        await this.promotePageModal.handlePromotion(options);
       }
     });
   }

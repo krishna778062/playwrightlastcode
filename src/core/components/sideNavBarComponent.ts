@@ -29,7 +29,7 @@ export class SideNavBarComponent extends BaseComponent {
 
   async clickOnGlobalFeed(): Promise<void> {
     await test.step('Clicking Global Feed button in side navigation', async () => {
-      if (await this.verifier.verifyTheElementIsVisible(this.feedLink)) {
+      if (await this.verifier.isTheElementVisible(this.feedLink)) {
         await this.clickOnElement(this.feedLink);
       } else {
         await this.clickOnElement(this.homeLink);
