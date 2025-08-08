@@ -12,7 +12,7 @@ export class SideNavBarComponent extends BaseComponent {
 
   constructor(page: Page) {
     super(page);
-    this.createSection = page.getByRole('button', { name: 'Create' });
+    this.createSection = page.locator('span', { hasText: 'Create' });
     this.analyticsButton = page.getByRole('menuitem', { name: 'Analytics', exact: true });
     this.feedLink = page.locator('p', { hasText: 'Feed' });
     this.homeLink = page.locator('p', { hasText: 'Home' });
