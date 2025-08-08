@@ -42,7 +42,6 @@ export interface IPageCreationActions {
     description: string;
   }) => Promise<void>;
   publishPage: () => Promise<Response>;
-  handlePromotionPageStep: () => Promise<void>;
   createAndPublishPage: (options: PageCreationOptions) => Promise<{
     title: string;
     description: string;
@@ -52,6 +51,7 @@ export interface IPageCreationActions {
     siteId: string;
     response: PageCreationResponse;
   }>;
+  handlePromotionPageStep: () => Promise<void>;
 }
 
 export interface IPageCreationAssertions {
@@ -227,18 +227,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   }
 
   /**
-   * Handles the promotion of the page
-   * @param options - The options for handling the promotion
-   */
-  async handlePromotionPageStep() {
-    await test.step(`Promoting page`, async () => {
-      if (await this.verifier.isTheElementVisible(this.promotePageModal.skipPromotionButton)) {
-        await this.promotePageModal.clickOnSkipPromotionButton();
-      }
-    });
-  }
-
-  /**
    * Creates a page with the given options and publishes it
    * @param options - The options for creating the page
    * @returns The options for the created page
@@ -292,18 +280,11 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   }
 
   /**
-   * Handles the promotion of the page
-   * @param options - The options for handling the promotion
+   * Handles the promotion page step by calling the promote page modal
    */
-  async handlePagePromotion(options?: { skipPromotion?: boolean }) {
-    await test.step(`Promoting page`, async () => {
-      const skipPromotion = options?.skipPromotion ?? true;
-      if (skipPromotion) {
-        await this.promotePageModal.clickOnSkipPromotionButton();
-      } else {
-        //hanlde the promotion actions
-        await this.promotePageModal.handlePromotion(options);
-      }
+  async handlePromotionPageStep(): Promise<void> {
+    await test.step('Handling promotion page step', async () => {
+      await this.promotePageModal.handlePromotion();
     });
   }
 

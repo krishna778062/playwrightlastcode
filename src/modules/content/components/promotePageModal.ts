@@ -64,15 +64,9 @@ export class PromotePageModal extends BaseComponent {
    * Handles the promotion
    * @param options - The options for handling the promotion
    */
-  async handlePromotion(options?: { skipPromotion?: boolean; promoteAction?: PromotePageOptions }) {
-    const skipPromotion = options?.skipPromotion ?? true;
-    const isSkipButtonVisible = await this.verifier.verifyTheElementIsVisible(this.skipPromotionButton);
-
-    if (skipPromotion && isSkipButtonVisible) {
+  async handlePromotion(options?: { promoteAction?: PromotePageOptions }) {
+    if (await this.verifier.isTheElementVisible(this.skipPromotionButton)) {
       await this.clickOnSkipPromotionButton();
-    } else {
-      await this.selectPromoteAction(options?.promoteAction ?? PromotePageOptions.ADD_TO_HOME_CAROUSEL);
-      await this.clickOnPromoteButton();
     }
   }
 }
