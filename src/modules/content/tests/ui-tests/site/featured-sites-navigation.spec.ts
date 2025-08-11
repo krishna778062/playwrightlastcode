@@ -8,6 +8,7 @@ import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
+import { SEARCH_RESULT_ITEM } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
   '@featured-sites',
@@ -44,7 +45,7 @@ test.describe(
           appManagerApiClient,
           createdSiteName,
           createdSiteName,
-          'site'
+          SEARCH_RESULT_ITEM.SITE
         );
 
         // Initialize the home page and featured site page

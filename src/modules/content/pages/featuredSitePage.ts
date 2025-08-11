@@ -20,7 +20,7 @@ export interface IFeaturedSiteAssertions {
 
 export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, IFeaturedSiteAssertions {
   private featureSiteComponent: FeatureSiteComponent;
-  readonly featuredTab = this.page.getByRole('link', { name: 'Featured' });
+  readonly featuredTab = this.page.locator('a').filter({ hasText: 'Featured' });
   readonly featuredSiteNames = this.page
     .locator('#panel-featured')
     .locator('.SiteGridItem-info')
