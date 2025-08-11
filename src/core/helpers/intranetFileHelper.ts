@@ -39,9 +39,13 @@ export class IntranetFileHelper {
    * @param category - The category of the site.
    * @returns A promise that resolves with the site ID.
    */
-  async createSite(siteName: string, category: { name: string; categoryId: string }): Promise<{ siteId: string }> {
+  async createSite(
+    siteName: string,
+    category: { name: string; categoryId: string },
+    options?: { access?: 'public' | 'private' | 'unlisted' }
+  ): Promise<{ siteId: string }> {
     const siteResult = await this.siteManagementService.addNewSite({
-      access: 'public',
+      access: options?.access ?? 'public',
       name: siteName,
       category: {
         categoryId: category.categoryId,
@@ -71,12 +75,7 @@ export class IntranetFileHelper {
    * @param siteId - The ID of the site to upload the file to.
    * @returns A promise that resolves with the name of the uploaded file.
    */
-  async uploadFile(
-    homePage: NewUxHomePage,
-    fileType: { type: string; fileName: string },
-    siteName: string,
-    siteId: string
-  ): Promise<string> {
+  async uploadFile(homePage: NewUxHomePage, siteName: string, siteId: string, filePath: string): Promise<string> {
     const globalSearchResultPage = await homePage.actions.searchForTerm(siteName, {
       stepInfo: `Searching with term "${siteName}" and intent is to find the site`,
     });
@@ -84,9 +83,7 @@ export class IntranetFileHelper {
     await siteResultComponent.verifyNavigationToTitleLink(siteId, siteName, 'site');
     const intranetFileListComponent = globalSearchResultPage.getIntranetFileListComponent();
     await intranetFileListComponent.clickFilesTab();
-    const uploadedFileName = await intranetFileListComponent.uploadFileFromComputer(
-      `src/modules/global-search/test-data/${fileType.fileName}`
-    );
+    const uploadedFileName = await intranetFileListComponent.uploadFileFromComputer(filePath);
     return uploadedFileName;
   }
 

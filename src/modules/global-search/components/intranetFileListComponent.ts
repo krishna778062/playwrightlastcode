@@ -99,7 +99,6 @@ export class IntranetFileListComponent extends ContentListComponent {
    */
   async hoverOverCardAndDownloadLink(expectedFileName: string) {
     await test.step(`Mouse over, click download link button, and verify downloaded file`, async () => {
-      await this.page.waitForLoadState('load');
       await this.rootLocator.hover({ timeout: 20000 });
       await this.verifier.verifyTheElementIsVisible(this.downloadLinkButton);
       const [download] = await Promise.all([
@@ -142,7 +141,6 @@ export class IntranetFileListComponent extends ContentListComponent {
    */
   async clickOnCloseButton() {
     await test.step(`Click on the close button`, async () => {
-      await this.page.waitForLoadState('load');
       await this.verifier.waitUntilElementIsVisible(this.closeButton.first(), { timeout: 50000 });
       await this.clickOnElement(this.closeButton.first());
       await this.verifier.verifyTheElementIsNotVisible(this.closeButton.first(), { timeout: 20000 });
@@ -155,7 +153,7 @@ export class IntranetFileListComponent extends ContentListComponent {
    */
   async verifyCopiedURLWithFileId(fileId: string) {
     await test.step(`Verifying copied URL in the clipboard, navigates to the right file and verifies the file`, async () => {
-      const copiedUrl = await this.page.evaluate(() => navigator.clipboard.readText());
+      const copiedUrl = await this.readClipboardText();
       await this.page.goto(copiedUrl);
       if (!copiedUrl.includes(fileId)) {
         throw new Error(`Copied URL does not contain id: ${fileId}. URL: ${copiedUrl}`);
@@ -197,11 +195,9 @@ export class IntranetFileListComponent extends ContentListComponent {
       fs.copyFileSync(originalFilePath, tempFilePath);
 
       try {
-        // cspell:ignore filechooser
-        const fileChooserPromise = this.page.waitForEvent('filechooser');
-        await this.clickOnElement(this.selectFromComputerButton);
-        const fileChooser = await fileChooserPromise;
-        await fileChooser.setFiles(tempFilePath);
+        await this.openFileChooserAndSetFiles(() => this.clickOnElement(this.selectFromComputerButton), tempFilePath, {
+          stepInfo: 'Open file chooser and select file to upload',
+        });
 
         await this.verifier.waitUntilElementIsVisible(this.loadingBar, {
           stepInfo: 'Verifying that the loading bar is visible after selecting the file',

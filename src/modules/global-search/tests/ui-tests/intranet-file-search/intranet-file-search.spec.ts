@@ -33,9 +33,9 @@ test.describe(
           const { siteId } = await intranetFileHelper.createSite(siteName, categoryObj);
           const uploadedFileName = await intranetFileHelper.uploadFile(
             appManagerHomePage as NewUxHomePage,
-            fileType,
             siteName,
-            siteId
+            siteId,
+            `src/modules/global-search/test-data/${fileType.fileName}`
           );
 
           const { fileId, authorName } = await appManagerApiClient

@@ -245,6 +245,31 @@ export class BaseActionUtil {
   }
 
   /**
+   * Opens a file chooser by performing the provided action and sets given file(s).
+   * Useful for generic file upload flows.
+   */
+  async openFileChooserAndSetFiles(
+    actionToTriggerFileChooser: () => Promise<any>,
+    files: string | string[],
+    options?: { timeout?: number; stepInfo?: string }
+  ) {
+    const { timeout = 60_000, stepInfo } = options || {};
+    return await test.step(stepInfo || 'Open file chooser and set files', async () => {
+      const fileChooserPromise = this.page.waitForEvent('filechooser', { timeout });
+      await actionToTriggerFileChooser();
+      const fileChooser = await fileChooserPromise;
+      await fileChooser.setFiles(files);
+    });
+  }
+
+  /**
+   * Reads text from clipboard via the browser context.
+   */
+  async readClipboardText(): Promise<string> {
+    return await this.page.evaluate(() => navigator.clipboard.readText());
+  }
+
+  /**
    * Navigates back to the previous page
    * @param options - The options to pass to the goBack method
    * @returns The previous page
