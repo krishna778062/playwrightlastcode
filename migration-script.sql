@@ -1,164 +1,105 @@
 -- ============================================================
--- DATABASE MIGRATION SCRIPT
--- Clean up old schema and create new structure
+-- FIXED DATABASE MIGRATION SCRIPT
+-- Add missing columns to existing table
 -- ============================================================
 
--- STEP 1: Drop existing tables (if they exist)
+-- STEP 1: Add missing columns to existing table
 -- ============================================================
 DO $$ 
 BEGIN
-    -- Drop views first (they depend on tables)
-    DROP VIEW IF EXISTS v_performance_trends CASCADE;
-    DROP VIEW IF EXISTS v_flaky_tests CASCADE;
-    DROP VIEW IF EXISTS v_tag_analysis CASCADE;
-    DROP VIEW IF EXISTS v_tests_without_priority CASCADE;
-    DROP VIEW IF EXISTS v_tests_with_zephyr CASCADE;
-    DROP VIEW IF EXISTS v_daily_test_summary CASCADE;
-    DROP VIEW IF EXISTS v_test_metrics CASCADE;
-    DROP VIEW IF EXISTS v_test_execution_complete CASCADE;
-    DROP VIEW IF EXISTS v_dashboard_metrics CASCADE;
-    DROP VIEW IF EXISTS v_zephyr_coverage CASCADE;
-    DROP VIEW IF EXISTS v_zephyr_coverage_report CASCADE;
+    RAISE NOTICE '🚀 Starting column addition migration...';
     
-    -- Drop old tables
-    DROP TABLE IF EXISTS test_executions CASCADE;
-    DROP TABLE IF EXISTS suite_executions CASCADE;
-    DROP TABLE IF EXISTS test_case_metrics CASCADE;
-    DROP TABLE IF EXISTS performance_metrics CASCADE;
-    DROP TABLE IF EXISTS test_tag_metrics CASCADE;
-    DROP TABLE IF EXISTS error_analysis CASCADE;
-    DROP TABLE IF EXISTS module_health CASCADE;
-    DROP TABLE IF EXISTS test_runs CASCADE;
-    DROP TABLE IF EXISTS test_definitions CASCADE;
-    DROP TABLE IF EXISTS test_zephyr_mappings CASCADE;
-    DROP TABLE IF EXISTS daily_test_summary CASCADE;
+    -- Add error_list column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'test_executions' 
+            AND column_name = 'error_list'
+            AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE test_executions ADD COLUMN error_list JSONB;
+        RAISE NOTICE '✅ Added error_list column';
+    ELSE
+        RAISE NOTICE '⚠️ error_list column already exists';
+    END IF;
+
+    -- Add step_titles column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'test_executions' 
+            AND column_name = 'step_titles'
+            AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE test_executions ADD COLUMN step_titles TEXT[];
+        RAISE NOTICE '✅ Added step_titles column';
+    ELSE
+        RAISE NOTICE '⚠️ step_titles column already exists';
+    END IF;
+
+    -- Verify report_url exists (should be there already)
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'test_executions' 
+            AND column_name = 'report_url'
+            AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE test_executions ADD COLUMN report_url TEXT;
+        RAISE NOTICE '✅ Added report_url column';
+    ELSE
+        RAISE NOTICE '✅ report_url column already exists';
+    END IF;
     
-    RAISE NOTICE 'Cleaned up existing schema';
+    RAISE NOTICE '🎉 Column addition completed!';
 END $$;
 
--- STEP 2: Create new schema
+-- STEP 2: Create missing indexes
 -- ============================================================
+DO $$
+BEGIN
+    RAISE NOTICE '📊 Creating missing indexes...';
+    
+    -- Create error_list index if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_indexes 
+        WHERE indexname = 'idx_test_executions_error_list'
+    ) THEN
+        CREATE INDEX idx_test_executions_error_list ON test_executions USING GIN (error_list) WHERE error_list IS NOT NULL;
+        RAISE NOTICE '✅ Created error_list index';
+    ELSE
+        RAISE NOTICE '⚠️ error_list index already exists';
+    END IF;
+    
+    -- Create step_titles index if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_indexes 
+        WHERE indexname = 'idx_test_executions_step_titles'
+    ) THEN
+        CREATE INDEX idx_test_executions_step_titles ON test_executions USING GIN (step_titles) WHERE step_titles IS NOT NULL;
+        RAISE NOTICE '✅ Created step_titles index';
+    ELSE
+        RAISE NOTICE '⚠️ step_titles index already exists';
+    END IF;
+    
+    RAISE NOTICE '📊 Index creation completed!';
+END $$;
 
-CREATE TABLE test_executions (
-    id BIGSERIAL PRIMARY KEY,
-    
-    -- ========================================
-    -- CORE IDENTIFICATION
-    -- ========================================
-    execution_run_id VARCHAR(100) NOT NULL,
-    playwright_test_id VARCHAR(200) NOT NULL,
-    project_name VARCHAR(100) NOT NULL, -- 'content-chromium'
-    
-    -- ========================================
-    -- TEST DETAILS
-    -- ========================================
-    test_title VARCHAR(500) NOT NULL,
-    suite_name VARCHAR(200), -- normalized: '@FeedPost' → 'feedpost'
-    spec_file_name VARCHAR(200) NOT NULL, -- 'feed-post.spec.ts'
-    tags TEXT[], -- PostgreSQL array: ['FeedPost', 'feed', 'attachments', 'P0', 'smoke']
-    
-    -- ========================================
-    -- TRACEABILITY (Optional)
-    -- ========================================
-    zephyr_id VARCHAR(50), -- 'CONT-19533' or NULL
-    zephyr_url VARCHAR(500), -- Full Atlassian URL or NULL
-    story_id VARCHAR(50), -- 'CONT-19533' or NULL  
-    story_url VARCHAR(500), -- Full story URL or NULL
-    test_description TEXT, -- From description annotation or NULL
-    
-    -- ========================================
-    -- CATEGORIZATION
-    -- ========================================
-    module_name VARCHAR(100) NOT NULL, -- From MODULE_NAME env var (required)
-    team_name VARCHAR(100) NOT NULL, -- From TEAM_NAME env var
-    priority VARCHAR(10), -- 'P0', 'P1', 'P2', 'P3', 'P4' or NULL
-    test_type VARCHAR(50), -- 'smoke', 'regression', 'sanity' or extracted from tags
-    
-    -- ========================================
-    -- EXECUTION RESULTS
-    -- ========================================
-    status VARCHAR(20) NOT NULL CHECK (status IN ('passed', 'failed', 'skipped', 'interrupted')),
-    retry_count INTEGER DEFAULT 0,
-    is_flaky BOOLEAN DEFAULT FALSE, -- true if retry_count > 0
-    duration_ms INTEGER NOT NULL,
-    
-    -- ========================================
-    -- ERROR ANALYSIS
-    -- ========================================
-    error_type VARCHAR(100), -- 'timeout', 'element_not_found', 'assertion_failed', etc.
-    error_message TEXT, -- First 1000 chars of error message
-    error_stack TEXT, -- Error stack trace (first 2000 chars)
-    
-    -- ========================================
-    -- CI/CD CONTEXT
-    -- ========================================
-    environment VARCHAR(100) NOT NULL, -- 'staging', 'prod', 'dev'
-    branch_name VARCHAR(200) NOT NULL,
-    git_commit_sha VARCHAR(40),
-    git_commit_message TEXT,
-    is_regression_run BOOLEAN DEFAULT FALSE,
-    
-    -- GitHub Actions context
-    github_action_id VARCHAR(100),
-    github_run_number INTEGER,
-    github_run_attempt INTEGER DEFAULT 1,
-    triggered_by VARCHAR(100), -- GitHub actor
-    pr_number INTEGER, -- If triggered by PR
-    
-    -- ========================================
-    -- TIMING
-    -- ========================================
-    test_start_time TIMESTAMP WITH TIME ZONE NOT NULL,
-    test_end_time TIMESTAMP WITH TIME ZONE NOT NULL,
-    suite_start_time TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    
-    -- ========================================
-    -- CONSTRAINTS
-    -- ========================================
-    -- One record per test execution per run
-    UNIQUE(execution_run_id, playwright_test_id)
-);
-
+-- STEP 3: Drop and recreate views with new columns
 -- ============================================================
--- STEP 3: Create indexes for performance
--- ============================================================
+DO $$
+BEGIN
+    RAISE NOTICE '🗂️ Recreating views with new columns...';
+    
+    -- Drop existing views
+    DROP VIEW IF EXISTS v_daily_test_summary CASCADE;
+    DROP VIEW IF EXISTS v_tests_with_zephyr CASCADE;
+    DROP VIEW IF EXISTS v_tests_without_priority CASCADE;
+    DROP VIEW IF EXISTS v_tag_analysis CASCADE;
+    DROP VIEW IF EXISTS v_flaky_tests CASCADE;
+    DROP VIEW IF EXISTS v_performance_trends CASCADE;
+    
+    RAISE NOTICE '✅ Dropped existing views';
+END $$;
 
--- Primary access patterns
-CREATE INDEX idx_test_executions_run_id ON test_executions(execution_run_id);
-CREATE INDEX idx_test_executions_playwright_id ON test_executions(playwright_test_id);
-CREATE INDEX idx_test_executions_project ON test_executions(project_name);
-
--- Filtering and analytics
-CREATE INDEX idx_test_executions_module_env ON test_executions(module_name, environment, test_start_time);
-CREATE INDEX idx_test_executions_status ON test_executions(status);
-CREATE INDEX idx_test_executions_priority ON test_executions(priority) WHERE priority IS NOT NULL;
-CREATE INDEX idx_test_executions_time ON test_executions(test_start_time);
-
--- Traceability
-CREATE INDEX idx_test_executions_zephyr_id ON test_executions(zephyr_id) WHERE zephyr_id IS NOT NULL;
-CREATE INDEX idx_test_executions_story_id ON test_executions(story_id) WHERE story_id IS NOT NULL;
-
--- Tag searching (GIN index for array operations)
-CREATE INDEX idx_test_executions_tags ON test_executions USING GIN (tags);
-
--- Error analysis
-CREATE INDEX idx_test_executions_error_type ON test_executions(error_type) WHERE error_type IS NOT NULL;
-
--- CI context
-CREATE INDEX idx_test_executions_branch ON test_executions(branch_name, test_start_time);
-CREATE INDEX idx_test_executions_github ON test_executions(github_action_id, github_run_number);
-
--- Composite index for dashboard queries
-CREATE INDEX idx_test_executions_dashboard ON test_executions(
-    module_name, environment, test_start_time DESC, status
-);
-
--- ============================================================
--- STEP 4: Create useful views for dashboards
--- ============================================================
-
--- Daily summary view
+-- Enhanced daily summary view with error and step analysis
 CREATE VIEW v_daily_test_summary AS
 SELECT 
     DATE(test_start_time) as test_date,
@@ -175,11 +116,13 @@ SELECT
     COUNT(*) FILTER (WHERE status = 'failed') as failed_tests,
     COUNT(*) FILTER (WHERE status = 'skipped') as skipped_tests,
     COUNT(*) FILTER (WHERE is_flaky = true) as flaky_tests,
+    COUNT(*) FILTER (WHERE retry_count > 0) as retry_tests,
     
     -- Rates (percentage)
     ROUND(COUNT(*) FILTER (WHERE status = 'passed')::DECIMAL / COUNT(*) * 100, 2) as pass_rate,
     ROUND(COUNT(*) FILTER (WHERE status = 'failed')::DECIMAL / COUNT(*) * 100, 2) as fail_rate,
     ROUND(COUNT(*) FILTER (WHERE is_flaky = true)::DECIMAL / COUNT(*) * 100, 2) as flaky_rate,
+    ROUND(COUNT(*) FILTER (WHERE retry_count > 0)::DECIMAL / COUNT(*) * 100, 2) as retry_rate,
     
     -- Performance metrics
     AVG(duration_ms)::INTEGER as avg_duration_ms,
@@ -196,6 +139,14 @@ SELECT
     COUNT(*) FILTER (WHERE priority IS NOT NULL) as tests_with_priority,
     ROUND(COUNT(*) FILTER (WHERE zephyr_id IS NOT NULL)::DECIMAL / COUNT(*) * 100, 2) as zephyr_coverage_rate,
     
+    -- Report coverage
+    COUNT(*) FILTER (WHERE report_url IS NOT NULL) as tests_with_reports,
+    ROUND(COUNT(*) FILTER (WHERE report_url IS NOT NULL)::DECIMAL / COUNT(*) * 100, 2) as report_coverage_rate,
+    
+    -- Enhanced error tracking
+    COUNT(*) FILTER (WHERE error_list IS NOT NULL) as tests_with_errors,
+    COUNT(*) FILTER (WHERE step_titles IS NOT NULL) as tests_with_steps,
+    
     -- Unique counts
     COUNT(DISTINCT playwright_test_id) as unique_tests
     
@@ -203,7 +154,7 @@ FROM test_executions
 GROUP BY DATE(test_start_time), module_name, environment, team_name, 
          project_name, branch_name, is_regression_run;
 
--- Tests with Zephyr mapping
+-- Tests with Zephyr mapping and reports
 CREATE VIEW v_tests_with_zephyr AS
 SELECT 
     execution_run_id,
@@ -218,7 +169,10 @@ SELECT
     status,
     duration_ms,
     test_start_time,
-    tags
+    tags,
+    report_url,  -- Include report URL for easy access
+    error_list,  -- Include all errors for analysis
+    step_titles  -- Include step titles for debugging
 FROM test_executions 
 WHERE zephyr_id IS NOT NULL;
 
@@ -234,7 +188,10 @@ SELECT
     module_name,
     team_name,
     status,
-    test_start_time
+    test_start_time,
+    report_url,  -- Include for debugging
+    error_list,  -- Include for error analysis
+    step_titles  -- Include for step analysis
 FROM test_executions 
 WHERE priority IS NULL;
 
@@ -252,7 +209,7 @@ WHERE tags IS NOT NULL
 GROUP BY tag_name
 ORDER BY usage_count DESC;
 
--- Flaky test detection
+-- Flaky test detection with report links
 CREATE VIEW v_flaky_tests AS
 SELECT 
     playwright_test_id,
@@ -265,7 +222,16 @@ SELECT
     COUNT(*) FILTER (WHERE status = 'failed') as failed_runs,
     ROUND(COUNT(*) FILTER (WHERE is_flaky = true)::DECIMAL / COUNT(*) * 100, 2) as flaky_rate,
     MAX(test_start_time) as last_run,
-    array_agg(DISTINCT status) as statuses
+    array_agg(DISTINCT status) as statuses,
+    -- Get most recent report URL for debugging
+    (SELECT report_url FROM test_executions te 
+     WHERE te.playwright_test_id = test_executions.playwright_test_id 
+     ORDER BY test_start_time DESC LIMIT 1) as latest_report_url,
+    -- Get error patterns for flaky tests
+    (SELECT error_list FROM test_executions te 
+     WHERE te.playwright_test_id = test_executions.playwright_test_id 
+       AND te.error_list IS NOT NULL
+     ORDER BY test_start_time DESC LIMIT 1) as latest_errors
 FROM test_executions 
 WHERE test_start_time >= NOW() - INTERVAL '30 days'
 GROUP BY playwright_test_id, test_title, suite_name, module_name
@@ -294,60 +260,57 @@ HAVING COUNT(*) FILTER (WHERE test_start_time >= NOW() - INTERVAL '7 days') >= 3
                                    AND test_start_time < NOW() - INTERVAL '7 days') * 1.5
 ORDER BY recent_avg_duration DESC;
 
+-- STEP 4: Final verification
 -- ============================================================
--- STEP 5: Grant permissions (adjust as needed)
--- ============================================================
-
--- Grant permissions to your application user
--- GRANT SELECT, INSERT, UPDATE, DELETE ON test_executions TO qa_user;
--- GRANT SELECT ON ALL TABLES IN SCHEMA public TO qa_user;
--- GRANT USAGE ON SEQUENCE test_executions_id_seq TO qa_user;
-
--- ============================================================
--- VERIFICATION QUERIES
--- ============================================================
-
--- Verify table structure
-SELECT 
-    column_name, 
-    data_type, 
-    is_nullable, 
-    column_default
-FROM information_schema.columns 
-WHERE table_name = 'test_executions'
-ORDER BY ordinal_position;
-
--- Verify indexes
-SELECT 
-    indexname, 
-    indexdef 
-FROM pg_indexes 
-WHERE tablename = 'test_executions';
-
--- Verify views
-SELECT 
-    viewname 
-FROM pg_views 
-WHERE schemaname = 'public' 
-    AND viewname LIKE 'v_%';
-
--- Show table size (will be 0 initially)
-SELECT 
-    schemaname,
-    tablename,
-    attname,
-    n_distinct,
-    most_common_vals
-FROM pg_stats 
-WHERE tablename = 'test_executions';
-
--- ============================================================
--- SUCCESS MESSAGE
--- ============================================================
-
-DO $$ 
+DO $$
+DECLARE 
+    column_count INTEGER;
+    error_list_exists BOOLEAN;
+    step_titles_exists BOOLEAN;
+    report_url_exists BOOLEAN;
 BEGIN
-    RAISE NOTICE '✅ Database migration completed successfully!';
-    RAISE NOTICE '📊 New schema is ready for test execution data';
-    RAISE NOTICE '🚀 You can now run the PostgreSQL reporter';
+    RAISE NOTICE '🔍 Running final verification...';
+    
+    -- Count total columns
+    SELECT COUNT(*) INTO column_count
+    FROM information_schema.columns 
+    WHERE table_name = 'test_executions' AND table_schema = 'public';
+    
+    -- Check specific new columns
+    SELECT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'test_executions' 
+            AND column_name = 'error_list' 
+            AND table_schema = 'public'
+    ) INTO error_list_exists;
+    
+    SELECT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'test_executions' 
+            AND column_name = 'step_titles' 
+            AND table_schema = 'public'
+    ) INTO step_titles_exists;
+    
+    SELECT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'test_executions' 
+            AND column_name = 'report_url' 
+            AND table_schema = 'public'
+    ) INTO report_url_exists;
+    
+    RAISE NOTICE '📊 Final Verification Results:';
+    RAISE NOTICE '   Total columns: %', column_count;
+    RAISE NOTICE '   error_list exists: %', error_list_exists;
+    RAISE NOTICE '   step_titles exists: %', step_titles_exists;
+    RAISE NOTICE '   report_url exists: %', report_url_exists;
+    
+    IF error_list_exists AND step_titles_exists AND report_url_exists THEN
+        RAISE NOTICE '🎉 ============================================';
+        RAISE NOTICE '✅ Migration completed successfully!';
+        RAISE NOTICE '🚀 All required columns are now present!';
+        RAISE NOTICE '📊 Enhanced PostgreSQL reporter is ready!';
+        RAISE NOTICE '🎉 ============================================';
+    ELSE
+        RAISE EXCEPTION '❌ Migration failed - missing required columns!';
+    END IF;
 END $$;
