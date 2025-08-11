@@ -21,17 +21,13 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
         zephyrTestId: 'RC-5371',
         storyId: 'RC-5251',
       });
-      let rewardOptionsIsVisible: string | null;
       const manageRewardsPage = new ManageRewardsPage(appManagerPage);
       const rewardOptionsPage = new RewardOptionsPage(appManagerPage);
-
-      await test.step('Verify the Rewards options is visible', async () => {
-        await manageRewardsPage.visit();
-        await manageRewardsPage.verifyThePageIsLoaded();
-        rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
-        expect(rewardOptionsIsVisible).toBeTruthy();
-        await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(Boolean(rewardOptionsIsVisible));
-      });
+      await manageRewardsPage.visit();
+      await manageRewardsPage.verifyThePageIsLoaded();
+      const rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
+      expect(rewardOptionsIsVisible).toBeTruthy();
+      await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(Boolean(rewardOptionsIsVisible));
     }
   );
 
@@ -47,17 +43,13 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
         storyId: 'RC-5251',
       });
 
-      let rewardOptionsIsVisible: string | null;
       const manageRewardsPage = new ManageRewardsPage(recoManagerPage);
       const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
-
-      await test.step('Verify the Rewards options is visible', async () => {
-        await manageRewardsPage.visit();
-        await manageRewardsPage.verifyThePageIsLoaded();
-        rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
-        expect(rewardOptionsIsVisible).toBeTruthy();
-        await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(Boolean(rewardOptionsIsVisible));
-      });
+      await manageRewardsPage.visit();
+      await manageRewardsPage.verifyThePageIsLoaded();
+      const rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
+      expect(rewardOptionsIsVisible).toBeTruthy();
+      await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(Boolean(rewardOptionsIsVisible));
     }
   );
 
@@ -73,13 +65,10 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
         storyId: 'RC-5251',
       });
       const manageRewardsPage = new ManageRewardsPage(standardUserPage);
-
-      await test.step('Verify the Rewards options is not visible', async () => {
-        const rewardIsEnabled = await manageRewardsPage.hasManageRecognitionPermission();
-        expect(rewardIsEnabled).toBeFalsy();
-        await manageRewardsPage.visit();
-        await manageRewardsPage.verifyPageIsNotFound();
-      });
+      const rewardIsEnabled = await manageRewardsPage.hasManageRecognitionPermission();
+      expect(rewardIsEnabled).toBeFalsy();
+      await manageRewardsPage.visit();
+      await manageRewardsPage.verifyPageIsNotFound();
     }
   );
 
@@ -94,18 +83,13 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
         zephyrTestId: 'RC-5386',
         storyId: 'RC-5251',
       });
-      let rewardOptionsIsVisible: string | null;
       const manageRewardsPage = new ManageRewardsPage(recoManagerPage);
       const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
-
-      await test.step('Visit to Reward options page', async () => {
-        await manageRewardsPage.visit();
-        await manageRewardsPage.verifyThePageIsLoaded();
-        rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
-        expect(rewardOptionsIsVisible).toBeTruthy();
-        await rewardOptionsPage.visit();
-      });
-
+      await manageRewardsPage.visit();
+      await manageRewardsPage.verifyThePageIsLoaded();
+      const rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
+      expect(rewardOptionsIsVisible).toBeTruthy();
+      await rewardOptionsPage.visit();
       await rewardOptionsPage.performSearchAndValidate('Amazon', true);
       await rewardOptionsPage.performSearchAndValidate('UnableToFindThisReward', false);
       await rewardOptionsPage.performSearchAndValidate('Appl', true);

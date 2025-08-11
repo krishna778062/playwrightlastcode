@@ -40,15 +40,15 @@ export class RewardOptionsPage extends BasePage {
     this.rewardsOptionPageNotFound = page.getByTestId('no-results');
     this.rewardsOptionsHeader = this.rewardsOptionsContainer.locator('h2[class*="Typography-module__heading1"]');
     this.searchElement = this.rewardsOptionsContainer.locator('form[class*="SearchField_searchWrapper"]');
-    this.searchInput = this.searchElement.locator('input[aria-label="Search…"][id="q"]');
-    this.searchInputClearButton = this.searchElement.locator('button[aria-label="Clear"]');
-    this.searchButton = this.searchElement.locator('button[aria-label="Search"]');
+    this.searchInput = this.searchElement.getByRole('textbox', { name: 'Search…' });
+    this.searchInputClearButton = this.searchElement.getByRole('button', { name: 'Clear' });
+    this.searchButton = this.searchElement.getByRole('button', { name: 'Search' });
 
     // Table locators
     this.rewardOptionsTableContainer = this.rewardsOptionsContainer.locator('table[class*="Table-module__table"]');
     this.rewardsOptionsTableHeaders = this.rewardOptionsTableContainer.locator('thead tr th');
     this.rewardsOptionsTableNoResults = this.page.locator('[class*="DataGrid-module__emptyWrapper"] h3');
-    this.rewardsOptionsTableRow = this.page.locator('[data-testid*="dataGridRow"]');
+    this.rewardsOptionsTableRow = this.page.getByTestId('dataGridRow');
     this.rewardsOptionsTableRewardLogo = this.rewardsOptionsTableRow.locator('td img');
     this.rewardsOptionsTableRewardName = this.rewardsOptionsTableRow.locator('td:nth-child(1) p');
     this.rewardsOptionsTableRewardCount = this.rewardsOptionsTableRow.locator('td:nth-child(2) p');
@@ -76,11 +76,7 @@ export class RewardOptionsPage extends BasePage {
   }
 
   async visit(): Promise<void> {
-    if (await this.rewardOptionLink.isVisible()) {
-      await this.rewardOptionLink.click();
-    } else {
-      await this.page.goto(rewardsEndpoint.rewardsOptionsPage);
-    }
+    await this.page.goto(rewardsEndpoint.rewardsOptionsPage);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -105,7 +101,9 @@ export class RewardOptionsPage extends BasePage {
           assertionMessage: 'Verify the Reward name is visible in the search results',
         });
       } else {
-        await expect(this.rewardsOptionsTableNoResults).toBeVisible();
+        await this.verifier.verifyTheElementIsVisible(this.rewardsOptionsTableNoResults, {
+          assertionMessage: 'Verify the No result for the Reward name is visible in the search results',
+        });
       }
     });
   }
