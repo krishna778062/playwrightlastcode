@@ -1,4 +1,5 @@
-import { Locator, Page, test, expect } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
+
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
@@ -72,11 +73,25 @@ export class AccessControlGroupsPage extends BasePage {
       buttonType == 'Single'
         ? await this.clickOnElement(this.acgCreateButtonSingle, {
             timeout: options?.timeout ?? 10_000,
+            stepInfo: `Click on create single ACG button`,
           })
         : await this.clickOnElement(this.acgCreateButtonMultiple, {
             timeout: options?.timeout ?? 10_000,
+            stepInfo: `Click on create multiple ACG button`,
           });
     });
+  }
+
+  async clickOnCreateButtonToInitiateControlGroupCreationFlowFor(createType: 'Single' | 'Multiple'): Promise<void> {
+    createType == 'Single'
+      ? await this.clickOnElement(this.acgCreateButtonSingle, {
+          timeout: 10_000,
+          stepInfo: `Click on create single ACG button`,
+        })
+      : await this.clickOnElement(this.acgCreateButtonMultiple, {
+          timeout: 10_000,
+          stepInfo: `Click on create multiple ACG button`,
+        });
   }
 
   /**
@@ -95,29 +110,12 @@ export class AccessControlGroupsPage extends BasePage {
    * @param featureName - The ACG feature to click (e.g., ACGFeature.ALERTS).
    * @param options - Optional parameters for clicking on the element.
    */
-  async clickFeatureButton(featureName: ACGFeature, options?: { stepInfo?: string; timeout?: number }): Promise<void> {
+  async selectFeatureToAddToControlGroup(
+    featureName: ACGFeature,
+    options?: { stepInfo?: string; timeout?: number }
+  ): Promise<void> {
     await test.step(options?.stepInfo ?? `Click on ${featureName} feature button`, async () => {
-      let loc: Locator;
-      switch (featureName) {
-        case ACGFeature.ADD_SITES:
-          loc = this.acgAddSitesFeatureButton;
-          break;
-        case ACGFeature.MANAGE_SITES:
-          loc = this.acgManageSitesFeatureButton;
-          break;
-        case ACGFeature.ALERTS:
-          loc = this.acgAlertFeatureButton;
-          break;
-        case ACGFeature.NEWSLETTERS:
-          loc = this.acgNewslettersFeatureButton;
-          break;
-        case ACGFeature.SURVEYS:
-          loc = this.acgSurveysFeatureButton;
-          break;
-        default:
-          throw new Error(`Invalid feature selected: ${featureName}`);
-      }
-      await this.checkElement(loc, {
+      await this.checkElement(this.page.getByLabel(featureName, { exact: true }), {
         timeout: options?.timeout ?? 10_000,
       });
     });
@@ -131,7 +129,7 @@ export class AccessControlGroupsPage extends BasePage {
     await test.step(`Search for ${searchValue}`, async () => {
       await this.fillInElement(this.acgSearchField, searchValue);
       await this.clickOnButtonWithName('Search');
-      await this.acgCheckBoxes.nth(0).waitFor();
+      await this.acgCheckBoxes.nth(0).waitFor({ timeout: TIMEOUTS.SHORT });
     });
   }
 
@@ -177,30 +175,12 @@ export class AccessControlGroupsPage extends BasePage {
    * @param numberOfAttempts - To define number of tries incase the toast message is not found in first try
    * @param options - Optional parameters for the toast message verification.
    */
-  async verifyAcgToastMessage(
-    toastMessage: string,
-    numberOfAttempts: number,
-    options?: { stepInfo?: string; timeout?: number }
-  ): Promise<void> {
+  async verifyAcgToastMessage(toastMessage: string, options?: { stepInfo?: string; timeout?: number }): Promise<void> {
     await test.step(options?.stepInfo ?? `Verifying ${toastMessage} toast message`, async () => {
-      var i: number;
-      let count: number = await this.toastMessages.count();
-      let flag: boolean = false;
-      for (i = 0; i < count; i++) {
-        if ((await this.toastMessages.nth(i).textContent()) == toastMessage.trim()) {
-          expect(true, 'Toast message found').toBeTruthy();
-          flag = true;
-          break;
-        }
-      }
-      if (i == count) {
-        await this.page.waitForTimeout(2000);
-        if (numberOfAttempts > 0 && !flag) {
-          await this.verifyAcgToastMessage(toastMessage, numberOfAttempts--);
-        } else {
-          expect(false, 'Toast message not found').toBeTruthy();
-        }
-      }
+      await expect(
+        this.toastMessages.filter({ hasText: toastMessage }),
+        `expecting ${toastMessage} toast message`
+      ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     });
   }
 }

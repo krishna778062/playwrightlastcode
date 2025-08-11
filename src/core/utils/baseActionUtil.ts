@@ -7,21 +7,28 @@ import { PlaywrightAction, PlaywrightErrorHandler } from '@core/utils/playwright
 export type LocatorClickOptions = Parameters<Locator['click']>[0];
 export type LocatorCheckOptions = Parameters<Locator['check']>[0];
 export type LocatorFillOptions = Parameters<Locator['fill']>[1];
-export type LocatorGetAttributeOptions = Parameters<Locator['getAttribute']>[1];
+export type LocatorGetAttributeOptions = Parameters<Locator['getAttribute']>[1] & {
+  stepInfo?: string;
+};
 
 export type CustomClickOptions = LocatorClickOptions & {
   selfHealing?: boolean;
+  stepInfo?: string;
 };
 
 export type CustomCheckOptions = LocatorCheckOptions & {
   selfHealing?: boolean;
+  stepInfo?: string;
 };
 
 export type CustomFillOptions = LocatorFillOptions & {
   selfHealing?: boolean;
+  stepInfo?: string;
 };
 
-export type CustomTypeOptions = Parameters<Locator['pressSequentially']>[1];
+export type CustomTypeOptions = Parameters<Locator['pressSequentially']>[1] & {
+  stepInfo?: string;
+};
 
 export class BaseActionUtil {
   constructor(readonly page: Page) {
@@ -66,11 +73,13 @@ export class BaseActionUtil {
     //we will use this option later in catch block
     const selfHealing = options?.selfHealing ?? false;
     const eleToClick = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
-    try {
-      await eleToClick.click(options);
-    } catch (error) {
-      throw PlaywrightErrorHandler.handle(error, PlaywrightAction.CLICK, selectorOrLocator);
-    }
+    await test.step(options?.stepInfo || `Click on ${selectorOrLocator}`, async () => {
+      try {
+        await eleToClick.click(options);
+      } catch (error) {
+        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.CLICK, selectorOrLocator);
+      }
+    });
   }
 
   /**
@@ -81,12 +90,14 @@ export class BaseActionUtil {
   async checkElement(selectorOrLocator: string | Locator, options?: CustomCheckOptions) {
     //we will use this option later in catch block
     const selfHealing = options?.selfHealing ?? false;
-    const eleToCheck = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
-    try {
-      await eleToCheck.check(options);
-    } catch (error) {
-      throw PlaywrightErrorHandler.handle(error, PlaywrightAction.CLICK, selectorOrLocator);
-    }
+    const eleToCheck = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
+    await test.step(options?.stepInfo || `Check ${selectorOrLocator}`, async () => {
+      try {
+        await eleToCheck.check(options);
+      } catch (error) {
+        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.CLICK, selectorOrLocator);
+      }
+    });
   }
 
   /**
@@ -98,11 +109,13 @@ export class BaseActionUtil {
   async fillInElement(selectorOrLocator: string | Locator, value: string, options?: CustomFillOptions) {
     const selfHealing = options?.selfHealing ?? false;
     const eleToFill = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
-    try {
-      await eleToFill.fill(value, options);
-    } catch (error) {
-      throw PlaywrightErrorHandler.handle(error, PlaywrightAction.FILL_IN, selectorOrLocator);
-    }
+    await test.step(options?.stepInfo || `Fill in ${selectorOrLocator}`, async () => {
+      try {
+        await eleToFill.fill(value, options);
+      } catch (error) {
+        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.FILL_IN, selectorOrLocator);
+      }
+    });
   }
 
   /**
@@ -114,11 +127,13 @@ export class BaseActionUtil {
    */
   async typeInElement(selectorOrLocator: string | Locator, textToType: string, options?: CustomTypeOptions) {
     const eleToType = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
-    try {
-      await eleToType.pressSequentially(textToType, options);
-    } catch (error) {
-      throw PlaywrightErrorHandler.handle(error, PlaywrightAction.TYPE_IN, selectorOrLocator);
-    }
+    await test.step(options?.stepInfo || `Type ${textToType} in ${selectorOrLocator}`, async () => {
+      try {
+        await eleToType.pressSequentially(textToType, options);
+      } catch (error) {
+        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.TYPE_IN, selectorOrLocator);
+      }
+    });
   }
 
   /**
@@ -131,13 +146,17 @@ export class BaseActionUtil {
     attributeName: string,
     options?: LocatorGetAttributeOptions
   ) {
-    try {
-      const ele = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
-      console.log(`Getting attribute ${attributeName} from element ${ele}`);
-      return await ele.getAttribute(attributeName, options);
-    } catch (error) {
-      throw PlaywrightErrorHandler.handle(error, PlaywrightAction.GET_ATTRIBUTE, selectorOrLocator);
-    }
+    const ele = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
+    return await test.step(
+      options?.stepInfo || `Get attribute ${attributeName} from ${selectorOrLocator}`,
+      async () => {
+        try {
+          return await ele.getAttribute(attributeName, options);
+        } catch (error) {
+          throw PlaywrightErrorHandler.handle(error, PlaywrightAction.GET_ATTRIBUTE, selectorOrLocator);
+        }
+      }
+    );
   }
 
   /**
@@ -296,8 +315,8 @@ export class BaseActionUtil {
    * @param exactMatch - Whether to match the button name exactly  default is true
    */
   async clickOnButtonWithName(text: string, exactMatch: boolean = true): Promise<void> {
-    await test.step(`Click on ${text} button`, async () => {
-      await this.clickOnElement(this.page.getByRole('button', { name: text, exact: exactMatch }));
+    await this.clickOnElement(this.page.getByRole('button', { name: text, exact: exactMatch }), {
+      stepInfo: `Click on ${text} button`,
     });
   }
 }
