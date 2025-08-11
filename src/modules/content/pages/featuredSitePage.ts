@@ -1,8 +1,7 @@
-import { Locator, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
+import { BasePage } from '@core/pages/basePage';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
-import { BaseActionUtil } from '@core/utils/baseActionUtil';
-import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
 
 import { FeatureSiteComponent } from '../components/featureSiteComponent';
 
@@ -19,23 +18,26 @@ export interface IFeaturedSiteAssertions {
   verifyToastMessage: (message: string) => Promise<void>;
 }
 
-export class FeaturedSitePage implements IFeaturedSiteActions, IFeaturedSiteAssertions {
+export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, IFeaturedSiteAssertions {
   private featureSiteComponent: FeatureSiteComponent;
-  protected actionUtil: BaseActionUtil;
-  protected verifier: BaseVerificationUtil;
-  readonly featuredTab = this.page.locator('a:has-text("Featured")');
-  readonly featuredSiteNames = this.page.locator('div#panel-featured div.SiteGridItem-info h2 a');
+  readonly featuredTab = this.page.getByRole('link', { name: 'Featured' });
+  readonly featuredSiteNames = this.page
+    .locator('#panel-featured')
+    .locator('.SiteGridItem-info')
+    .locator('h2')
+    .getByRole('link');
   readonly successToastMessage = (message: string) =>
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
 
-  constructor(public page: Page) {
+  constructor(page: Page) {
+    super(page);
     this.featureSiteComponent = new FeatureSiteComponent(page);
-    this.actionUtil = new BaseActionUtil(page);
-    this.verifier = new BaseVerificationUtil(page);
   }
 
-  protected async clickOnElement(element: Locator): Promise<void> {
-    await this.actionUtil.clickOnElement(element);
+  async verifyThePageIsLoaded(): Promise<void> {
+    await test.step('Verify Featured Sites page is loaded', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.featuredTab);
+    });
   }
 
   get actions(): IFeaturedSiteActions {
@@ -52,7 +54,7 @@ export class FeaturedSitePage implements IFeaturedSiteActions, IFeaturedSiteAsse
    */
   async navigateToFeaturedSitesTab(homePage: NewUxHomePage): Promise<void> {
     await test.step('Navigate to Sites > Featured tab', async () => {
-      await homePage.actions.clickOnSitesFromSideBar();
+      await homePage.clickOnSitesFromSideBar();
       await this.clickOnElement(this.featuredTab);
     });
   }
@@ -76,7 +78,7 @@ export class FeaturedSitePage implements IFeaturedSiteActions, IFeaturedSiteAsse
    */
   async navigateToHomePage(homePage: NewUxHomePage, siteNames: string[]): Promise<void> {
     await test.step('Navigate to Home and verify featured sites', async () => {
-      await homePage.actions.navigateToHomePage();
+      await homePage.navigateToHomePage();
     });
   }
 
@@ -109,30 +111,16 @@ export class FeaturedSitePage implements IFeaturedSiteActions, IFeaturedSiteAsse
   }
 
   /**
-   * Gets the list of featured site names and verifies if the specified site is included
+   * Verifies if the specified site is visible in the featured list using text filter
    * @param siteName - Name of the site to verify in the featured list
    */
   private async verifyFeaturedSiteInList(siteName: string): Promise<void> {
     await test.step(`Verify "${siteName}" is in featured sites list`, async () => {
-      // Wait for featured site elements to be present
-      await this.verifier.verifyTheElementIsVisible(this.featuredSiteNames.first());
+      // Create a locator that filters for the specific site name
+      const specificSite = this.featuredSiteNames.filter({ hasText: siteName });
 
-      // Get all featured site elements
-      const siteElements = await this.featuredSiteNames.all();
-
-      // Extract text from each element
-      const siteNameTexts: string[] = [];
-      for (const element of siteElements) {
-        const text = await element.textContent();
-        if (text) {
-          siteNameTexts.push(text.trim());
-        }
-      }
-      await this.page.pause();
-      // Assert that the site name is contained in the featured list
-      if (!siteNameTexts.includes(siteName)) {
-        throw new Error(`Expected site "${siteName}" to be in featured list, but found: ${siteNameTexts.join(', ')}`);
-      }
+      // Simply verify the filtered element is visible
+      await this.verifier.verifyTheElementIsVisible(specificSite);
     });
   }
 
@@ -157,11 +145,8 @@ export class FeaturedSitePage implements IFeaturedSiteActions, IFeaturedSiteAsse
         SITE_DASHBOARD: /\/site\/[a-f0-9-]+\/dashboard/,
       };
 
-      const currentUrl = this.page.url();
-
-      if (!URL_PATTERNS.SITE_DASHBOARD.test(currentUrl)) {
-        throw new Error(`Expected URL to match pattern 'baseURL/site/{siteId}/dashboard', but got: ${currentUrl}`);
-      }
+      // Use Playwright's built-in URL assertion
+      await expect(this.page).toHaveURL(URL_PATTERNS.SITE_DASHBOARD);
     });
   }
 
