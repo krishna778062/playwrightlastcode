@@ -47,6 +47,7 @@ export class AddContentModalComponent extends BaseComponent {
    */
   async verifyTheAddContentModalIsVisible() {
     await test.step('Verify the add content modal is visible', async () => {
+      await this.page.waitForLoadState('domcontentloaded');
       await this.verifier.verifyTheElementIsVisible(this.recentlyUsedSitesList.first());
     });
   }

@@ -13,10 +13,10 @@ export class SideNavBarComponent extends BaseComponent {
 
   constructor(page: Page) {
     super(page);
-    this.createSection = page.getByRole('button', { name: 'Create' });
+    this.createSection = page.locator('span', { hasText: 'Create' });
     this.analyticsButton = page.getByRole('menuitem', { name: 'Analytics', exact: true });
-    this.feedLink = page.locator('p').filter({ hasText: 'Feed' });
-    this.homeLink = page.locator('p').filter({ hasText: 'Home' });
+    this.feedLink = page.locator('p', { hasText: 'Feed' });
+    this.homeLink = page.locator('p', { hasText: 'Home' });
     this.sitesButton = page.getByRole('button', { name: 'Sites' });
   }
   /**
@@ -31,7 +31,7 @@ export class SideNavBarComponent extends BaseComponent {
 
   async clickOnGlobalFeed(): Promise<void> {
     await test.step('Clicking Global Feed button in side navigation', async () => {
-      if (await this.verifier.verifyTheElementIsVisible(this.feedLink)) {
+      if (await this.verifier.isTheElementVisible(this.feedLink)) {
         await this.clickOnElement(this.feedLink);
       } else {
         await this.clickOnElement(this.homeLink);
