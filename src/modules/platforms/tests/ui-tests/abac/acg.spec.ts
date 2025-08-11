@@ -2,6 +2,7 @@ import { TestPriority } from '@core/constants/testPriority';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TestSuite } from '@/src/core/constants/testSuite';
+import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { LoginPage } from '@/src/core/pages/loginPage';
 import { platformTestFixture as test } from '@/src/modules/platforms/fixtures/platformFixture';
 import { ACGFeature } from '@/src/modules/platforms/pages/abacPage/acgPage/accessControlGroupsPage';
@@ -13,7 +14,7 @@ test.describe(
     tag: [TestSuite.ABAC],
   },
   () => {
-    test.only(
+    test(
       'Verify that single ACG can be created without any issue',
       {
         tag: [TestPriority.P0, `@ABAC`],
@@ -24,7 +25,6 @@ test.describe(
         const audienceToCreate = `ABAC_Target_Audience_${Date.now()}`;
 
         const platformsBasePage: PlatformsBasePage = new PlatformsBasePage(appManagerPage);
-        const loginPage: LoginPage = new LoginPage(appManagerPage);
         await appManagerApiClient.getIdentityService().createCategory(categoryToCreate);
         const categoryId = await appManagerApiClient.getIdentityService().getCategoryId(categoryToCreate, 100);
         await appManagerApiClient
@@ -54,9 +54,7 @@ test.describe(
           'Access control group was successfully deleted',
           10
         );
-
-        await appManagerHomePage.goToUrl(PAGE_ENDPOINTS.LOGOUT);
-        await loginPage.verifyThePageIsLoaded();
+        await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
       }
     );
   }
