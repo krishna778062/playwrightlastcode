@@ -29,25 +29,6 @@ export class BaseActionUtil {
   }
 
   /**
-   * Gets a locator for a given selector
-   * @param selector - The selector to get the locator for
-   * @returns The locator
-   */
-  getLocator(selector: string) {
-    return this.page.locator(selector);
-  }
-
-  /**
-   * Gets a locator for a given role type and name
-   * @param roleType - The role type (alert, alertdialog, button and applciation e.t.c) to get the locator for
-   * @param name - The name for the role to the locator
-   * @returns The locator
-   */
-  getByRole(roleType: any, name: string) {
-    return this.page.getByRole(roleType, { name: name });
-  }
-
-  /**
    * This is wrapper around the playwright page.goto method
    * It adds a step to the test.step method
    * It also adds a default waitUntil and timeout
@@ -84,7 +65,7 @@ export class BaseActionUtil {
   async clickOnElement(selectorOrLocator: string | Locator, options?: CustomClickOptions) {
     //we will use this option later in catch block
     const selfHealing = options?.selfHealing ?? false;
-    const eleToClick = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
+    const eleToClick = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
     try {
       await eleToClick.click(options);
     } catch (error) {
@@ -116,7 +97,7 @@ export class BaseActionUtil {
    */
   async fillInElement(selectorOrLocator: string | Locator, value: string, options?: CustomFillOptions) {
     const selfHealing = options?.selfHealing ?? false;
-    const eleToFill = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
+    const eleToFill = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
     try {
       await eleToFill.fill(value, options);
     } catch (error) {
@@ -132,7 +113,7 @@ export class BaseActionUtil {
    *
    */
   async typeInElement(selectorOrLocator: string | Locator, textToType: string, options?: CustomTypeOptions) {
-    const eleToType = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
+    const eleToType = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
     try {
       await eleToType.pressSequentially(textToType, options);
     } catch (error) {
@@ -151,7 +132,7 @@ export class BaseActionUtil {
     options?: LocatorGetAttributeOptions
   ) {
     try {
-      const ele = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
+      const ele = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
       console.log(`Getting attribute ${attributeName} from element ${ele}`);
       return await ele.getAttribute(attributeName, options);
     } catch (error) {
@@ -312,10 +293,11 @@ export class BaseActionUtil {
   /**
    * Clicks on button with given name
    * @param text - Name of the button
+   * @param exactMatch - Whether to match the button name exactly  default is true
    */
-  async clickOnButtonWithName(text: string): Promise<void> {
+  async clickOnButtonWithName(text: string, exactMatch: boolean = true): Promise<void> {
     await test.step(`Click on ${text} button`, async () => {
-      await this.clickOnElement(this.getByRole('button', text));
+      await this.clickOnElement(this.page.getByRole('button', { name: text, exact: exactMatch }));
     });
   }
 }
