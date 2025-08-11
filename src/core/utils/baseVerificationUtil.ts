@@ -145,7 +145,11 @@ export class BaseVerificationUtil {
     try {
       await expect(async () => {
         const actualCount = await locator.count();
-        expect(actualCount, options?.assertionMessage ?? `expecting ${locator} to have more than ${minCount} elements, but found ${actualCount}`).toBeGreaterThan(minCount);
+        expect(
+          actualCount,
+          options?.assertionMessage ??
+            `expecting ${locator} to have more than ${minCount} elements, but found ${actualCount}`
+        ).toBeGreaterThan(minCount);
       }).toPass({
         timeout: options?.timeout || 8_000,
       });
@@ -176,7 +180,11 @@ export class BaseVerificationUtil {
     try {
       await expect(async () => {
         const actualCount = await locator.count();
-        expect(actualCount, options?.assertionMessage ?? `expecting ${locator} to have at least ${minCount} elements, but found ${actualCount}`).toBeGreaterThanOrEqual(minCount);
+        expect(
+          actualCount,
+          options?.assertionMessage ??
+            `expecting ${locator} to have at least ${minCount} elements, but found ${actualCount}`
+        ).toBeGreaterThanOrEqual(minCount);
       }).toPass({
         timeout: options?.timeout || 8_000,
       });
@@ -224,7 +232,7 @@ export class BaseVerificationUtil {
    */
   async verifyElementHasText(
     locator: Locator,
-    text: string,
+    text: string | RegExp,
     options?: {
       timeout?: number;
       assertionMessage?: string;
@@ -365,7 +373,10 @@ export class BaseVerificationUtil {
   ) {
     await expect(async () => {
       const actualCount = await locator.count();
-      expect(actualCount, options?.stepInfo ?? `expecting ${locator} to have more than ${minCount} elements, but found ${actualCount}`).toBeGreaterThan(minCount);
+      expect(
+        actualCount,
+        options?.stepInfo ?? `expecting ${locator} to have more than ${minCount} elements, but found ${actualCount}`
+      ).toBeGreaterThan(minCount);
     }).toPass({
       timeout: options?.timeout || 8_000,
     });
@@ -388,7 +399,10 @@ export class BaseVerificationUtil {
   ) {
     await expect(async () => {
       const actualCount = await locator.count();
-      expect(actualCount, options?.stepInfo ?? `expecting ${locator} to have at least ${minCount} elements, but found ${actualCount}`).toBeGreaterThanOrEqual(minCount);
+      expect(
+        actualCount,
+        options?.stepInfo ?? `expecting ${locator} to have at least ${minCount} elements, but found ${actualCount}`
+      ).toBeGreaterThanOrEqual(minCount);
     }).toPass({
       timeout: options?.timeout || 8_000,
     });

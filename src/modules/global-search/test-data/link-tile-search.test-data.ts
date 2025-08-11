@@ -12,7 +12,7 @@ export interface LinkTileSearchTestCase {
 
 export const LINK_TILE_SEARCH_TEST_DATA: LinkTileSearchTestCase = {
   dashboardId: 'site',
-  tileTitle: `${faker.company.buzzAdjective()}`,
+  tileTitle: `${faker.company.buzzAdjective()}_${Date.now()}`,
   expectedLinksCount: 3,
   hasPlaywrightLink: true,
   hasGoogleLink: true,

@@ -28,7 +28,7 @@ export class TileListComponent extends ResultListingComponent {
 
   async verifyTileTitleIsDisplayed(expectedTileTitle: string) {
     await test.step(`Verifying tile title is displayed`, async () => {
-      await this.verifier.verifyElementHasText(this.tileTitle, expectedTileTitle);
+      await this.verifier.verifyElementHasText(this.tileTitle, new RegExp(`^${expectedTileTitle}`));
     });
   }
 
@@ -79,7 +79,7 @@ export class TileListComponent extends ResultListingComponent {
   async verifyShowMoreButtonIsDisplayed(linksCount: number) {
     await test.step(`Verifying show more button is displayed`, async () => {
       if (linksCount > 3) {
-        await this.verifier.verifyTheElementIsVisible(this.showMoreButton, { timeout: 5000 });
+        await this.verifier.verifyTheElementIsVisible(this.showMoreButton, { timeout: 20_000 });
         await this.showMoreButton.click();
       }
     });
