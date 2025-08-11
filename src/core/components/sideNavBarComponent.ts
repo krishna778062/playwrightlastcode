@@ -1,4 +1,5 @@
-import { Locator, Page, test, expect } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
+
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import type { TestOptions } from '@/src/core/types/test.types';
 import { AnalyticsLandingPage } from '@/src/modules/data-engineering/pages/analyticsLandingPage';
@@ -11,10 +12,10 @@ export class SideNavBarComponent extends BaseComponent {
 
   constructor(page: Page) {
     super(page);
-    this.createSection = page.getByRole('button', { name: 'Create' });
+    this.createSection = page.locator('span', { hasText: 'Create' });
     this.analyticsButton = page.getByRole('menuitem', { name: 'Analytics', exact: true });
-    this.feedLink = page.locator("p").filter({ hasText: 'Feed' });
-    this.homeLink = page.locator("p").filter({ hasText: 'Home' });
+    this.feedLink = page.locator('p', { hasText: 'Feed' });
+    this.homeLink = page.locator('p', { hasText: 'Home' });
   }
   /**
    * Clicks on the Create button in the side navigation
@@ -28,7 +29,7 @@ export class SideNavBarComponent extends BaseComponent {
 
   async clickOnGlobalFeed(): Promise<void> {
     await test.step('Clicking Global Feed button in side navigation', async () => {
-      if (await this.verifier.verifyTheElementIsVisible(this.feedLink)) {
+      if (await this.verifier.isTheElementVisible(this.feedLink)) {
         await this.clickOnElement(this.feedLink);
       } else {
         await this.clickOnElement(this.homeLink);

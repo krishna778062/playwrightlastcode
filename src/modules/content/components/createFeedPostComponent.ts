@@ -30,7 +30,7 @@ export interface FeedPostApiResponse {
 }
 
 export interface ICreateFeedPostActions {
-  createAndPublishPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
+  createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
   clickShareThoughtsButton: () => Promise<void>;
   createPost: (text: string) => Promise<void>;
@@ -113,7 +113,7 @@ export class CreateFeedPostComponent
    * @param options - Options for creating the post including text and attachments
    * @returns Result containing post text, attachment count and timestamp
    */
-  async createAndPublishPost(options: FeedPostOptions): Promise<FeedPostResult> {
+  async createAndPost(options: FeedPostOptions): Promise<FeedPostResult> {
     return await test.step(`Creating and publishing feed post with text: ${options.text}`, async () => {
       // Open editor
       await this.clickShareThoughtsButton();
@@ -283,7 +283,7 @@ export class CreateFeedPostComponent
   async createFeedPost(): Promise<Response> {
     return await test.step(`Creating feed post and wait for api response`, async () => {
       const postResponse = await this.performActionAndWaitForResponse(
-        () => this.clickOnElement(this.postButton, { delay: 2_000 }),
+        () => this.clickOnElement(this.postButton, { delay: 3_000 }),
         response =>
           response.url().includes(API_ENDPOINTS.feed.create) &&
           response.request().method() === 'POST' &&

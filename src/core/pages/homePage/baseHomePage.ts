@@ -12,9 +12,9 @@ import { CreateComponent } from '@/src/modules/content/components/createComponen
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
+import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/globalSearchResultPage';
-import { FeedPage } from '@/src/modules/content/pages/feedPage';
 
 export interface ICommonHomePageActions {
   searchForTerm: (searchTerm: string, options?: { stepInfo?: string }) => Promise<GlobalSearchResultPage>;
