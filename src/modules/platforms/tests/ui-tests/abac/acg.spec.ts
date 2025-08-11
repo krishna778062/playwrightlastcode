@@ -5,8 +5,10 @@ import { TestSuite } from '@/src/core/constants/testSuite';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { LoginPage } from '@/src/core/pages/loginPage';
 import { platformTestFixture as test } from '@/src/modules/platforms/fixtures/platformFixture';
-import { ACGFeature } from '@/src/modules/platforms/pages/abacPage/acgPage/accessControlGroupsPage';
-import { PlatformsBasePage } from '@/src/modules/platforms/pages/platformsBasePage';
+import {
+  AccessControlGroupsPage,
+  ACGFeature,
+} from '@/src/modules/platforms/pages/abacPage/acgPage/accessControlGroupsPage';
 
 test.describe(
   'ACG Testcases',
@@ -24,7 +26,7 @@ test.describe(
         const categoryToCreate = `ABAC_Target_Category_${Date.now()}`;
         const audienceToCreate = `ABAC_Target_Audience_${Date.now()}`;
 
-        const platformsBasePage: PlatformsBasePage = new PlatformsBasePage(appManagerPage);
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
         await appManagerApiClient.getIdentityService().createCategory(categoryToCreate);
         const categoryId = await appManagerApiClient.getIdentityService().getCategoryId(categoryToCreate, 100);
         await appManagerApiClient
@@ -33,27 +35,21 @@ test.describe(
 
         await appManagerHomePage.goToUrl(PAGE_ENDPOINTS.ACCESS_CONTROL_GROUPS_PAGE);
 
-        await platformsBasePage.accessControlGroupsPage.verifyThePageIsLoaded();
-        await platformsBasePage.accessControlGroupsPage.clickOnCreateButton('Single');
-        await platformsBasePage.accessControlGroupsPage.clickFeatureButton(ACGFeature.ALERTS);
-        await platformsBasePage.accessControlGroupsPage.clickOnButtonWithName('Next');
-        await platformsBasePage.accessControlGroupsPage.clickOnButtonWithName('Browse');
-        await platformsBasePage.accessControlGroupsPage.searchForValues(audienceToCreate);
-        await platformsBasePage.accessControlGroupsPage.clickOnAudience(audienceToCreate);
-        await platformsBasePage.accessControlGroupsPage.clickOnButtonWithName('Done');
-        await platformsBasePage.accessControlGroupsPage.clickOnButtonWithName('Next');
-        await platformsBasePage.accessControlGroupsPage.clickOnButtonWithName('Skip');
-        await platformsBasePage.accessControlGroupsPage.clickOnButtonWithName('Skip');
-        await platformsBasePage.accessControlGroupsPage.clickOnButtonWithName('Save and activate');
-        await platformsBasePage.accessControlGroupsPage.verifyAcgToastMessage(
-          'Access control group was successfully updated',
-          10
-        );
-        await platformsBasePage.accessControlGroupsPage.deleteFirstACG();
-        await platformsBasePage.accessControlGroupsPage.verifyAcgToastMessage(
-          'Access control group was successfully deleted',
-          10
-        );
+        await accessControlGroupsPage.verifyThePageIsLoaded();
+        await accessControlGroupsPage.clickOnCreateButton('Single');
+        await accessControlGroupsPage.clickFeatureButton(ACGFeature.ALERTS);
+        await accessControlGroupsPage.clickOnButtonWithName('Next');
+        await accessControlGroupsPage.clickOnButtonWithName('Browse');
+        await accessControlGroupsPage.searchForValues(audienceToCreate);
+        await accessControlGroupsPage.clickOnAudience(audienceToCreate);
+        await accessControlGroupsPage.clickOnButtonWithName('Done');
+        await accessControlGroupsPage.clickOnButtonWithName('Next');
+        await accessControlGroupsPage.clickOnButtonWithName('Skip');
+        await accessControlGroupsPage.clickOnButtonWithName('Skip');
+        await accessControlGroupsPage.clickOnButtonWithName('Save and activate');
+        await accessControlGroupsPage.verifyAcgToastMessage('Access control group was successfully updated', 10);
+        await accessControlGroupsPage.deleteFirstACG();
+        await accessControlGroupsPage.verifyAcgToastMessage('Access control group was successfully deleted', 10);
         await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
       }
     );
