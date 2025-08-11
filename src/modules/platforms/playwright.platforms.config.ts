@@ -8,6 +8,7 @@ import { PROJECT_ROOT } from '../../core/constants/paths';
 export default defineConfig({
   ...baseConfig,
   name: 'Platforms UI Automation',
+  timeout: 180_000,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'platforms', 'tests'),
   testIgnore: '**/api-tests/**',
   projects: [

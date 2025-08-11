@@ -27,4 +27,27 @@ export interface IIdentityAdminOperations {
    * @param firstName - The first name of the user
    */
   getIdentityUserId(firstName: string, lastName: string): Promise<string>;
+
+  /**
+   * Create category
+   * @param name - The name of the category
+   * @param options - Optional attributes
+   */
+  createCategory(name: string, options?: { description: string }): Promise<void>;
+
+  /**
+   * Find category
+   * @param name - The name of the category
+   * @param size - The size of the category
+   * @param options - Optional attributes
+   */
+  findCategory(name: string, size: number, options?: { nextPageToken: number; term: string }): Promise<boolean>;
+
+  /**
+   * Get category id
+   * @param name - The name of the category
+   * @param size - The size of the category
+   * @param options - Optional attributes
+   */
+  getCategoryId(name: string, size: number, options?: { nextPageToken: number; term: string }): Promise<string>;
 }

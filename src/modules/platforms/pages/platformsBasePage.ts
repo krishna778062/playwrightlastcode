@@ -1,14 +1,16 @@
-import { BasePage } from '@core/pages/basePage';
 import { Page } from '@playwright/test';
-import { AccessControlGroupsPage } from './abacPage/acgPage/accessControlGroupsPage'
+
+import { BasePage } from '@core/pages/basePage';
+
+import { AccessControlGroupsPage } from './abacPage/acgPage/accessControlGroupsPage';
 
 export class PlatformsBasePage extends BasePage {
-    readonly accessControlGroupsPage: AccessControlGroupsPage;
+  readonly accessControlGroupsPage: AccessControlGroupsPage;
 
-    constructor(page: Page) {
-        super(page);
-        this.accessControlGroupsPage = new AccessControlGroupsPage(page);
-    }
+  constructor(page: Page) {
+    super(page);
+    this.accessControlGroupsPage = new AccessControlGroupsPage(page);
+  }
 
-    async verifyThePageIsLoaded(): Promise<void> {}
+  async verifyThePageIsLoaded(): Promise<void> {}
 }
