@@ -18,11 +18,6 @@ export class AccessControlGroupsPage extends BasePage {
   readonly acgCreateButtonSingle: Locator;
   readonly acgCreateButtonMultiple: Locator;
   readonly acgCreatePopupCloseButton: Locator;
-  readonly acgAlertFeatureButton: Locator;
-  readonly acgAddSitesFeatureButton: Locator;
-  readonly acgNewslettersFeatureButton: Locator;
-  readonly acgManageSitesFeatureButton: Locator;
-  readonly acgSurveysFeatureButton: Locator;
   readonly acgSearchField: Locator;
   readonly acgCheckBoxes: Locator;
   readonly acgAudiencesName: Locator;
@@ -32,11 +27,6 @@ export class AccessControlGroupsPage extends BasePage {
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.ACCESS_CONTROL_GROUPS_PAGE) {
     super(page, pageUrl);
-    this.acgAddSitesFeatureButton = page.locator('for*="ADD_SITES"');
-    this.acgAlertFeatureButton = page.locator('[for*="ALERTS"]');
-    this.acgNewslettersFeatureButton = page.locator('[for*="NEWSLETTERS"]');
-    this.acgManageSitesFeatureButton = page.locator('[for*="MANAGE_SITES"]');
-    this.acgSurveysFeatureButton = page.locator('[for*="SURVEYS"]');
     this.acgCreatePopupCloseButton = page.getByRole('button', { name: 'Close' });
     this.acgDropdownButton = page.getByRole('button', { name: 'Open menu' });
     this.acgCreateButtonSingle = page.getByRole('button', { name: 'Create' }).nth(1);

@@ -4,7 +4,6 @@ import { platformTestFixture as test } from '@platforms/fixtures/platformFixture
 import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/acgPage/accessControlGroupsPage';
 
 import { TestSuite } from '@/src/core/constants/testSuite';
-import { LoginHelper } from '@/src/core/helpers/loginHelper';
 
 test.describe(
   'ACG Testcases',
@@ -15,7 +14,7 @@ test.describe(
     test.only(
       'Verify that single ACG can be created and deleted without any issue',
       {
-        tag: [TestPriority.P0, `@ABAC`],
+        tag: [TestPriority.P0],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
