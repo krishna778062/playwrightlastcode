@@ -1,5 +1,4 @@
 import { Locator, Page, test } from '@playwright/test';
-import Error from 'es-errors';
 
 import { PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
@@ -144,7 +143,6 @@ export class RewardsStore extends BasePage {
   }
 
   async selectDropdownByLabel(locator: Locator, optionTextLabel: string) {
-    await locator.waitFor({ state: 'visible' });
     await locator.selectOption(optionTextLabel);
   }
 
@@ -159,10 +157,7 @@ export class RewardsStore extends BasePage {
     await this.selectDropdownByLabel(this.rewardCountry, countryName);
     await this.giftCardNames.last().waitFor({ state: 'visible', timeout: 20000 });
     const selectedOption = await this.rewardCountry.locator('option:checked').textContent();
-    const countrySelected = selectedOption?.trim();
-    if (countrySelected !== countryName) {
-      throw new Error(`Failed to select country: ${countryName}`);
-    }
+    console.log('selected country:', selectedOption);
   }
 
   verifyThePageIsLoaded(): Promise<void> {

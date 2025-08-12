@@ -21,7 +21,7 @@ test.describe(
       user1 = endUsersForChat[0];
       user2 = endUsersForChat[1];
       user1ChatPage = new ChatAppPage(user1Page);
-      await user1ChatPage.loadPage({ timeout: 40_000 });
+      await user1ChatPage.visitPage({ timeout: 40_000 });
     });
 
     test(

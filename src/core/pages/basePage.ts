@@ -25,11 +25,11 @@ export abstract class BasePage extends BaseActionUtil {
   /**
    * @description
    * Loads the page
-   * @param options - The options to pass to the loadPage method
+   * @param options - The options to pass to the visitPage method
    * @param options.stepInfo - The step info to pass to the test.step method
    * @param options.timeout - The timeout to pass to the page.goto method
    */
-  async loadPage(options?: { stepInfo?: string; timeout?: number }) {
+  async visitPage(options?: { stepInfo?: string; timeout?: number }) {
     await test.step(options?.stepInfo || `Loading page ${this.pageUrl}`, async () => {
       if (this.pageUrl !== '') {
         await this.goToUrl(this.pageUrl);

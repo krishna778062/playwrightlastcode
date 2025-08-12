@@ -128,17 +128,14 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
           storyId: 'RC-5251',
         });
 
-        let rewardOptionsIsVisible: string | null;
         const manageRewardsPage = new ManageRewardsPage(recoManagerPage);
         const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
 
-        await test.step('Visit to Reward options page', async () => {
-          await manageRewardsPage.visit();
-          await manageRewardsPage.verifyThePageIsLoaded();
-          rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
-          expect(rewardOptionsIsVisible).toBeTruthy();
-          await rewardOptionsPage.visit();
-        });
+        await manageRewardsPage.visit();
+        await manageRewardsPage.verifyThePageIsLoaded();
+        const rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
+        expect(rewardOptionsIsVisible).toBeTruthy();
+        await rewardOptionsPage.visit();
 
         if (toggleStates.includes('Inactive')) {
           await test.step(`Set the ${giftCardDetails.name} gift card as Inactive for ${giftCardDetails.country} country`, async () => {

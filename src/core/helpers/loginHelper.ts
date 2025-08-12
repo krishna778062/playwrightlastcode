@@ -16,7 +16,7 @@ export class LoginHelper {
    */
   public static async loginWithPassword(page: Page, user: UserCredentials): Promise<OldUxHomePage | NewUxHomePage> {
     const loginPage = new LoginPage(page);
-    await loginPage.loadPage({ stepInfo: `Loading login page for user ${user.email}` });
+    await loginPage.visitPage({ stepInfo: `Loading login page for user ${user.email}` });
     const homePage = await loginPage.actions.performLogin(user.email, user.password!);
     return homePage;
   }

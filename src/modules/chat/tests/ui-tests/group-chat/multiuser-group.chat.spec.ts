@@ -23,7 +23,7 @@ test.describe('Group Chat with multiple users', { tag: [CHAT_SUITE_TAGS.GROUP_CH
       user2 = endUsersForChat[1];
       user1ChatPage = new ChatAppPage(user1Page);
       user2ChatPage = new ChatAppPage(user2Page);
-      await Promise.all([user1ChatPage.loadPage({ timeout: 40_000 }), user2ChatPage.loadPage({ timeout: 40_000 })]);
+      await Promise.all([user1ChatPage.visitPage({ timeout: 40_000 }), user2ChatPage.visitPage({ timeout: 40_000 })]);
       multiUserChatTest = new MultiUserChatTestHelper(browser);
     }
   );
