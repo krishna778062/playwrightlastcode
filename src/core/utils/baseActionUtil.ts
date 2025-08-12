@@ -1,4 +1,4 @@
-import { Locator, Page, Request, Response, test } from '@playwright/test';
+import { expect, Locator, Page, Request, Response, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { FileUtil } from '@core/utils/fileUtil';
@@ -14,16 +14,19 @@ export type LocatorGetAttributeOptions = Parameters<Locator['getAttribute']>[1] 
 export type CustomClickOptions = LocatorClickOptions & {
   selfHealing?: boolean;
   stepInfo?: string;
+  timeout?: number;
 };
 
 export type CustomCheckOptions = LocatorCheckOptions & {
   selfHealing?: boolean;
   stepInfo?: string;
+  timeout?: number;
 };
 
 export type CustomFillOptions = LocatorFillOptions & {
   selfHealing?: boolean;
   stepInfo?: string;
+  timeout?: number;
 };
 
 export type CustomTypeOptions = Parameters<Locator['pressSequentially']>[1] & {
@@ -31,8 +34,11 @@ export type CustomTypeOptions = Parameters<Locator['pressSequentially']>[1] & {
 };
 
 export class BaseActionUtil {
+  readonly toastMessages: Locator;
+
   constructor(readonly page: Page) {
     this.page = page;
+    this.toastMessages = page.locator('[class*="Toast-module"] p');
   }
 
   /**
@@ -317,6 +323,21 @@ export class BaseActionUtil {
   async clickOnButtonWithName(text: string, exactMatch: boolean = true): Promise<void> {
     await this.clickOnElement(this.page.getByRole('button', { name: text, exact: exactMatch }), {
       stepInfo: `Click on ${text} button`,
+    });
+  }
+
+  /**
+   * Waiting for ACG sync confirmation toast message takes like 10-120 seconds to appear after the ACG creation.
+   * @param toastMessage - To verify that whether the contents of the toast message contains.
+   * @param numberOfAttempts - To define number of tries incase the toast message is not found in first try
+   * @param options - Optional parameters for the toast message verification.
+   */
+  async verifyToastMessage(toastMessage: string, options?: { stepInfo?: string; timeout?: number }): Promise<void> {
+    await test.step(options?.stepInfo ?? `Verifying ${toastMessage} toast message`, async () => {
+      await expect(
+        this.toastMessages.filter({ hasText: toastMessage }),
+        `expecting ${toastMessage} toast message`
+      ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     });
   }
 }

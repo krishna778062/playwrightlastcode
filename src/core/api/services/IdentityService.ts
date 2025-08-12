@@ -4,7 +4,11 @@ import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { IIdentityAdminOperations } from '@core/api/interfaces/IIdentityOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { Roles } from '@core/constants/roles';
-import { IdentityAudienceSearchResponse, ListAudiencesResponse } from '@core/types/audience.type';
+import {
+  audienceCreationResponse,
+  IdentityAudienceSearchResponse,
+  ListAudiencesResponse,
+} from '@core/types/audience.type';
 import { IdentityUserSearchResponse } from '@core/types/user.type';
 
 interface ListRolesResponse {
@@ -229,9 +233,10 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
     operator: string,
     value: string,
     options?: { type: string; fieldType: string }
-  ): Promise<void> {
+  ): Promise<string> {
     const isAudienceCreated = await this.isAudienceCreated(name, 10000, categoryId);
     if (!isAudienceCreated) {
+      let audienceId = '';
       await test.step(`Creating audience ${name} under category ${categoryId}`, async () => {
         const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiences, {
           data: {
@@ -259,9 +264,26 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
           },
         });
         expect(response.status(), `Audience created successfully`).toEqual(201);
+        const responseJson = await this.parseResponse<audienceCreationResponse>(response);
+        console.log(`Audience created: ${name}`);
+        audienceId = responseJson.result.audienceId;
       });
+      return audienceId;
     } else {
       console.log(`Audience ${name} already created under category ${categoryId}!!!`);
+      return '';
     }
+  }
+
+  /**
+   * Deletes audience under the given category name
+   * @param audienceId - Audience Id for the audience which will be deleted
+   */
+  async deleteAudience(audienceId: string): Promise<void> {
+    await test.step(`Deleting audience with audience Id: ${audienceId}`, async () => {
+      const response = await this.delete(API_ENDPOINTS.appManagement.identity.v2IdentityAudiences + '/' + audienceId);
+      expect(response.status(), 'Audience deleted successfully').toEqual(200);
+      console.log(`Audience with audienceId: ${audienceId} is deleted`);
+    });
   }
 }

@@ -1,4 +1,5 @@
 import { TestPriority } from '@core/constants/testPriority';
+import { tagTest } from '@core/utils/testDecorator';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/acgPage/accessControlGroupsPage';
 
@@ -11,23 +12,28 @@ test.describe(
     tag: [TestSuite.ABAC],
   },
   () => {
-    test(
-      'Verify that single ACG can be created without any issue',
+    test.only(
+      'Verify that single ACG can be created and deleted without any issue',
       {
         tag: [TestPriority.P0, `@ABAC`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-29969', 'PS-29972'],
+        });
         //TEST DATA
-        const categoryToCreate = `ABAC_Target_Category_${Date.now()}`;
+        const categoryToCreate = `ABAC_Target_Category`;
         const audienceToCreate = `ABAC_Target_Audience_${Date.now()}`;
 
+        // Prerequisite
         await appManagerApiClient.getIdentityService().createCategory(categoryToCreate);
         const categoryId = await appManagerApiClient.getIdentityService().getCategoryId(categoryToCreate, 100);
-        await appManagerApiClient
+        const audienceId: string = await appManagerApiClient
           .getIdentityService()
           .createAudience(audienceToCreate, categoryId, 'first_name', 'CONTAINS', 'something');
-
         const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+
+        // Test Scenario(s)
         await accessControlGroupsPage.loadPage();
         await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
         await accessControlGroupsPage.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
@@ -40,10 +46,12 @@ test.describe(
         await accessControlGroupsPage.clickOnButtonWithName('Skip');
         await accessControlGroupsPage.clickOnButtonWithName('Skip');
         await accessControlGroupsPage.clickOnButtonWithName('Save and activate');
-        await accessControlGroupsPage.verifyAcgToastMessage('Access control group was successfully updated');
+        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
         await accessControlGroupsPage.deleteFirstACG();
-        await accessControlGroupsPage.verifyAcgToastMessage('Access control group was successfully deleted');
-        await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
+        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully deleted');
+
+        // Cleanup
+        await appManagerApiClient.getIdentityService().deleteAudience(audienceId);
       }
     );
   }

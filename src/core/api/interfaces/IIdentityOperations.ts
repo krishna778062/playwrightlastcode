@@ -50,4 +50,10 @@ export interface IIdentityAdminOperations {
    * @param options - Optional attributes
    */
   getCategoryId(name: string, size: number, options?: { nextPageToken: number; term: string }): Promise<string>;
+
+  /**
+   * Get category id
+   * @param audienceId - Audience ID for the audience to be deleted
+   */
+  deleteAudience(audienceId: string, options?: { nextPageToken: number; term: string }): Promise<void>;
 }

@@ -28,7 +28,6 @@ export class AccessControlGroupsPage extends BasePage {
   readonly acgAudiencesName: Locator;
   readonly acgMenuOptions: Locator;
   readonly acgDeleteButton: Locator;
-  readonly toastMessages: Locator;
   readonly iUnderstand: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.ACCESS_CONTROL_GROUPS_PAGE) {
@@ -47,7 +46,6 @@ export class AccessControlGroupsPage extends BasePage {
     this.acgAudiencesName = page.locator('[class*="NameWithDescription"] p');
     this.acgMenuOptions = page.locator('[aria-haspopup="menu"]');
     this.acgDeleteButton = page.locator("text='Delete'");
-    this.toastMessages = page.locator('[class*="Toast-module"] p');
     this.iUnderstand = page.locator('#confirmDelete');
   }
 
@@ -149,21 +147,6 @@ export class AccessControlGroupsPage extends BasePage {
       await this.clickOnElement(this.acgDeleteButton, {
         timeout: options?.timeout ?? 10_000,
       });
-    });
-  }
-
-  /**
-   * Waiting for ACG sync confirmation toast message takes like 10-120 seconds to appear after the ACG creation.
-   * @param toastMessage - To verify that whether the contents of the toast message contains.
-   * @param numberOfAttempts - To define number of tries incase the toast message is not found in first try
-   * @param options - Optional parameters for the toast message verification.
-   */
-  async verifyAcgToastMessage(toastMessage: string, options?: { stepInfo?: string; timeout?: number }): Promise<void> {
-    await test.step(options?.stepInfo ?? `Verifying ${toastMessage} toast message`, async () => {
-      await expect(
-        this.toastMessages.filter({ hasText: toastMessage }),
-        `expecting ${toastMessage} toast message`
-      ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     });
   }
 }

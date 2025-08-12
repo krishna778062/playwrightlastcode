@@ -21,6 +21,9 @@ export const platformTestFixture = test.extend<{
       });
       await adminHomePage.verifyThePageIsLoaded();
       await use(adminHomePage);
+
+      // Logout after each test case using this fixture
+      await LoginHelper.logoutByNavigatingToLogoutPage(adminHomePage.page);
     },
     { scope: 'test' },
   ],
