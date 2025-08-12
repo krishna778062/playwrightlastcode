@@ -3,6 +3,8 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+
 export enum ACGFeature {
   ADD_SITES = 'Add_sites',
   MANAGE_SITES = 'Manage_sites',
@@ -29,8 +31,8 @@ export class AccessControlGroupsPage extends BasePage {
   readonly toastMessages: Locator;
   readonly iUnderstand: Locator;
 
-  constructor(page: Page) {
-    super(page);
+  constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.ACCESS_CONTROL_GROUPS_PAGE) {
+    super(page, pageUrl);
     this.acgAddSitesFeatureButton = page.locator('for*="ADD_SITES"');
     this.acgAlertFeatureButton = page.locator('[for*="ALERTS"]');
     this.acgNewslettersFeatureButton = page.locator('[for*="NEWSLETTERS"]');
@@ -63,25 +65,6 @@ export class AccessControlGroupsPage extends BasePage {
    * @param buttonType - (Single/Multiple) To decide the create of single or multiplt ACG.
    * @param options - Optional parameters for clicking on the element.
    */
-  async clickOnCreateButton(buttonType: string, options?: { stepInfo?: string; timeout?: number }): Promise<void> {
-    await test.step(options?.stepInfo ?? `Click on dropdown button for ACG button`, async () => {
-      await this.clickOnElement(this.acgDropdownButton, {
-        timeout: options?.timeout ?? 10_000,
-      });
-    });
-    await test.step(options?.stepInfo ?? `Click on create ${buttonType}ACG button`, async () => {
-      buttonType == 'Single'
-        ? await this.clickOnElement(this.acgCreateButtonSingle, {
-            timeout: options?.timeout ?? 10_000,
-            stepInfo: `Click on create single ACG button`,
-          })
-        : await this.clickOnElement(this.acgCreateButtonMultiple, {
-            timeout: options?.timeout ?? 10_000,
-            stepInfo: `Click on create multiple ACG button`,
-          });
-    });
-  }
-
   async clickOnCreateButtonToInitiateControlGroupCreationFlowFor(createType: 'Single' | 'Multiple'): Promise<void> {
     createType == 'Single'
       ? await this.clickOnElement(this.acgCreateButtonSingle, {
