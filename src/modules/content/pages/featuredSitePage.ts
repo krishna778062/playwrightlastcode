@@ -55,6 +55,8 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
   async navigateToFeaturedSitesTab(homePage: NewUxHomePage): Promise<void> {
     await test.step('Navigate to Sites > Featured tab', async () => {
       await homePage.clickOnSitesFromSideBar();
+      // Wait for DOM to load after navigation
+      await this.page.waitForLoadState('domcontentloaded');
       await this.clickOnElement(this.featuredTab);
     });
   }
