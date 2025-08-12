@@ -9,6 +9,7 @@ export class SideNavBarComponent extends BaseComponent {
   readonly feedLink: Locator;
   readonly homeLink: Locator;
   readonly analyticsButton: Locator;
+  readonly sitesButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -16,6 +17,7 @@ export class SideNavBarComponent extends BaseComponent {
     this.analyticsButton = page.getByRole('menuitem', { name: 'Analytics', exact: true });
     this.feedLink = page.locator('p', { hasText: 'Feed' });
     this.homeLink = page.locator('p', { hasText: 'Home' });
+    this.sitesButton = page.getByRole('button', { name: 'Sites' });
   }
   /**
    * Clicks on the Create button in the side navigation
@@ -54,6 +56,26 @@ export class SideNavBarComponent extends BaseComponent {
       } else {
         await expect(this.analyticsButton).not.toBeVisible();
       }
+    });
+  }
+
+  /**
+   * Clicks on the Sites button in the side navigation
+   * @param options - The options for the step
+   */
+  async clickOnSites(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `Clicking Sites button in side navigation`, async () => {
+      await this.clickOnElement(this.sitesButton);
+    });
+  }
+
+  /**
+   * Clicks on the Home button in the side navigation
+   * @param options - The options for the step
+   */
+  async clickOnHome(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `Clicking Home button in side navigation`, async () => {
+      await this.clickOnElement(this.homeLink);
     });
   }
 }

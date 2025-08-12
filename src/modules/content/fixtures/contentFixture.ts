@@ -3,6 +3,7 @@ import { Page, test } from '@playwright/test';
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { FeedManagerService } from '@core/api/services/FeedManagerService';
+import { SiteManagementService } from '@core/api/services/SiteManagementService';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
@@ -16,6 +17,7 @@ export const contentTestFixture = test.extend<{
   endUserHomePage: NewUxHomePage | OldUxHomePage;
   endUserPage: Page;
   feedManagerService: FeedManagerService;
+  siteManagementService: SiteManagementService;
 }>({
   appManagerHomePage: [
     async ({ page }, use) => {
@@ -51,8 +53,8 @@ export const contentTestFixture = test.extend<{
   endUserHomePage: [
     async ({ page }, use) => {
       const endUserHomePage = await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().endUserEmail!,
-        password: getEnvConfig().endUserPassword!,
+        email: getEnvConfig().endUserEmail,
+        password: getEnvConfig().endUserPassword,
       });
       await endUserHomePage.verifyThePageIsLoaded();
       await use(endUserHomePage);
@@ -75,6 +77,18 @@ export const contentTestFixture = test.extend<{
         baseUrl: getEnvConfig().apiBaseUrl,
       });
       await use(feedManagerService);
+    },
+    { scope: 'test' },
+  ],
+
+  siteManagementService: [
+    async ({ appManagerPage }, use) => {
+      const siteManagementService = await ApiClientFactory.createClient(SiteManagementService, {
+        type: 'cookies',
+        page: appManagerPage,
+        baseUrl: getEnvConfig().apiBaseUrl,
+      });
+      await use(siteManagementService);
     },
     { scope: 'test' },
   ],
