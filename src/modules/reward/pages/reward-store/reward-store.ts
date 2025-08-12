@@ -1,6 +1,7 @@
 import { Locator, Page, test } from '@playwright/test';
 import Error from 'es-errors';
 
+import { PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
 export class RewardsStore extends BasePage {
@@ -128,7 +129,7 @@ export class RewardsStore extends BasePage {
    */
   async visit(): Promise<void> {
     await test.step('Navigate to the rewards store page via URL', async () => {
-      await this.page.goto('/rewards-store/gift-cards');
+      await this.page.goto(rewardsEndpoint.rewardStorePage);
     });
   }
 
@@ -138,7 +139,7 @@ export class RewardsStore extends BasePage {
    */
   async visitTheOrderHistory(): Promise<void> {
     await test.step('Navigate to the Order history page in rewards store page via URL', async () => {
-      await this.page.goto('/rewards-store/order-history');
+      await this.page.goto(rewardsEndpoint.rewardStoreOrderHistoryPage);
     });
   }
 

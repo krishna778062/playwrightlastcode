@@ -105,7 +105,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
       zephyrTestId: 'RC-5565',
       description: 'Verify gifting card is invisible on reward store page when it is in inactive status',
       giftCardDetails: { country: 'Turkey', name: 'A101 Turkey' },
-      toggleStates: ['Inactive', 'Active'],
+      toggleStates: ['Inactive'],
     },
     {
       zephyrTestId: 'RC-5376',
