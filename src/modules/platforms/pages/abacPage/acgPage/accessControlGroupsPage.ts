@@ -24,6 +24,8 @@ export class AccessControlGroupsPage extends BasePage {
   readonly acgMenuOptions: Locator;
   readonly acgDeleteButton: Locator;
   readonly iUnderstand: Locator;
+  readonly acgNameInputBox: Locator;
+  readonly acgSearchBox: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.ACCESS_CONTROL_GROUPS_PAGE) {
     super(page, pageUrl);
@@ -37,6 +39,8 @@ export class AccessControlGroupsPage extends BasePage {
     this.acgMenuOptions = page.locator('[aria-haspopup="menu"]');
     this.acgDeleteButton = page.locator("text='Delete'");
     this.iUnderstand = page.locator('#confirmDelete');
+    this.acgNameInputBox = page.locator('[name="controlGroupName"]');
+    this.acgSearchBox = page.locator('#searchAcg');
   }
 
   // To verify that the ACG page is loaded
@@ -137,6 +141,28 @@ export class AccessControlGroupsPage extends BasePage {
       await this.clickOnElement(this.acgDeleteButton, {
         timeout: options?.timeout ?? 10_000,
       });
+    });
+  }
+
+  /**
+   * Gets ACG Name for input box while editing/creating an ACG.
+   * @return - ACG Name.
+   */
+  async getACGName(): Promise<string> {
+    return await test.step(`Getting ACG Name`, async () => {
+      return (await this.acgNameInputBox.inputValue()) || '';
+    });
+  }
+
+  /**
+   * Gets ACG Name for input box while editing/creating an ACG.
+   * @param acgName - Name of the ACG to be searched.
+   */
+  async searchForACG(acgName: string): Promise<void> {
+    await test.step(`Searching for ACG: ${acgName}`, async () => {
+      await this.fillInElement(this.acgSearchBox, acgName);
+      await this.acgSearchBox.press('Enter');
+      await this.sleep(5000);
     });
   }
 }
