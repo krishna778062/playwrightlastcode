@@ -24,6 +24,9 @@ export const API_ENDPOINTS = {
     },
     identity: {
       listOfAudiences: '/v1/identity/audiences/list',
+      v2IdentityAudiencesCategories: '/v2/identity/audiences/categories',
+      v2IdentityAudiencesHierarchy: '/v2/identity/audiences/hierarchy',
+      v2IdentityAudiences: '/v2/identity/audiences',
     },
   },
   identity: {
