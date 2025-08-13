@@ -18,10 +18,7 @@ test.describe(
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
-          zephyrTestId: [
-            'https://simpplr.atlassian.net/browse/PS-29969',
-            'https://simpplr.atlassian.net/browse/PS-29972',
-          ],
+          zephyrTestId: ['PS-29969', 'PS-29972'],
         });
         //TEST DATA
         const categoryToCreate = `ABAC_Target_Category`;
@@ -50,7 +47,6 @@ test.describe(
         await accessControlGroupsPage.clickOnButtonWithName('Skip');
         await accessControlGroupsPage.clickOnButtonWithName('Save and activate');
         acgName = await accessControlGroupsPage.getACGName();
-        console.log('acgName: ' + acgName);
         await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
         await accessControlGroupsPage.searchForACG(acgName);
         await accessControlGroupsPage.deleteFirstACG();

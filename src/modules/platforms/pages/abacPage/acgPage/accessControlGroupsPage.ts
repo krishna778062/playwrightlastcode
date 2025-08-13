@@ -40,7 +40,7 @@ export class AccessControlGroupsPage extends BasePage {
     this.acgDeleteButton = page.locator("text='Delete'");
     this.iUnderstand = page.locator('#confirmDelete');
     this.acgNameInputBox = page.locator('[name="controlGroupName"]');
-    this.acgSearchBox = page.locator('#searchAcg');
+    this.acgSearchBox = page.locator('#q');
   }
 
   // To verify that the ACG page is loaded
@@ -128,9 +128,19 @@ export class AccessControlGroupsPage extends BasePage {
       });
     });
     await test.step(options?.stepInfo ?? `Click on Delete option for first ACG in the list`, async () => {
-      await this.clickOnElement(this.acgDeleteButton, {
-        timeout: options?.timeout ?? 10_000,
-      });
+      try {
+        await this.clickOnElement(this.acgDeleteButton, {
+          timeout: options?.timeout ?? 10_000,
+        });
+        await expect(this.iUnderstand).toBeVisible();
+      } catch (e) {
+        console.log("couldn't click the delete button on first try");
+        await this.clickOnElement(this.acgDeleteButton, {
+          timeout: options?.timeout ?? 10_000,
+          force: true,
+          stepInfo: 'Clicking on the Delete button with force',
+        });
+      }
     });
     await test.step(options?.stepInfo ?? `Check the I understand checkbox on Delete ACG popup`, async () => {
       await this.clickOnElement(this.iUnderstand, {
@@ -162,7 +172,7 @@ export class AccessControlGroupsPage extends BasePage {
     await test.step(`Searching for ACG: ${acgName}`, async () => {
       await this.fillInElement(this.acgSearchBox, acgName);
       await this.acgSearchBox.press('Enter');
-      await this.sleep(5000);
+      await this.sleep(2000);
     });
   }
 }
