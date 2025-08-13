@@ -25,32 +25,28 @@ contentTest.describe(
 
     for (const site of SITE_TEST_DATA) {
       contentTest(
-        `Verify user is able to create a ${site.siteType} site`,
+        `Verify Access, Target audience and subscription section and its default state on create site form and is able to create a ${site.siteType} site`,
         { tag: [ContentSuiteTags.SITE_CREATION, TestPriority.P0, TestGroupType.REGRESSION] },
         async ({ appManagerHomePage }) => {
           tagTest(test.info(), {
             description: 'Verify Target Audience section displays correctly with proper labels and placeholders',
-            zephyrTestId: site.siteType === SiteType.PUBLIC ? 'CONT-37536' : 'CONT-37643',
+            zephyrTestId: site.siteType === SiteType.PUBLIC ? 'CONT-38637' : 'CONT-37643',
             storyId: 'CONT-33515',
           });
 
-          // STEP 1: Open site creation form
           const siteCreationPage = await appManagerHomePage.actions.openSiteCreationForm();
           const siteCreationModal = siteCreationPage.form;
 
-          // STEP 2: Verify sections (Access, Target Audience, Subscriptions)
           await siteCreationModal.verifyAccessSectionIsVisible();
           await siteCreationModal.verifyTargetAudienceSection();
           await siteCreationModal.verifySubscriptionsSection();
 
-          // STEP 3: Create the site
           await siteCreationModal.createSite({
             name: site.name,
             category: site.category,
             type: site.siteType,
           });
 
-          // STEP 4: Verify the site was created successfully
           await siteCreationModal.verifySiteCreatedSuccessfully(site.name);
         }
       );
