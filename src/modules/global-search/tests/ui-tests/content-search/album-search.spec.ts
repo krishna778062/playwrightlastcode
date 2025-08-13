@@ -4,6 +4,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { ALBUM_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
+import { ContentType } from '@/src/core/constants/contentTypes';
 
 test.describe(
   'Global Search- Album Search functionality',
@@ -16,20 +17,20 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage, contentManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerHomePage, contentManagementHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-12410',
           storyId: 'SEN-12297',
         });
 
-        const randomNum = Math.floor(Math.random() * 1000000 + 1);
-        const newSiteName = `AutomateUI_Test_${randomNum}`;
-        const categoryObj = await appManagerApiClient
-          .getSiteManagementService()
-          .getCategoryId(ALBUM_SEARCH_TEST_DATA.category);
-
-        const { siteId, contentId, albumName, authorName, contentDescription } =
-          await contentManagementHelper.createAlbum(newSiteName, categoryObj, 'beach.jpg');
+        const {
+          siteId,
+          siteName: newSiteName,
+          contentId,
+          albumName,
+          authorName,
+          contentDescription,
+        } = await contentManagementHelper.createSiteAndAlbum(ALBUM_SEARCH_TEST_DATA.category, 'beach.jpg');
 
         // 5. UI Search for the album
         const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(albumName, {
@@ -37,7 +38,7 @@ test.describe(
         });
 
         // 6. Verify the album result item's data points
-        await globalSearchResultPage.verifyContentResultItemDataPoints('album', {
+        await globalSearchResultPage.verifyContentResultItemDataPoints(ContentType.Album, {
           name: albumName,
           label: ALBUM_SEARCH_TEST_DATA.label,
           description: contentDescription,

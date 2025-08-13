@@ -21,16 +21,12 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE],
         },
-        async ({ appManagerHomePage, intranetFileHelper, appManagerApiClient }) => {
+        async ({ appManagerHomePage, intranetFileHelper, siteManagementHelper, appManagerApiClient }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-12433',
             storyId: 'SEN-12296',
           });
-          const randomNum = Math.floor(Math.random() * 1000000 + 1);
-          const siteName = `AutomateUI_Test_${randomNum}`;
-          const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
-
-          const { siteId } = await intranetFileHelper.createSite(siteName, categoryObj);
+          const { siteId, siteName } = await siteManagementHelper.createSiteWithCategoryName(testData.category);
           const uploadedFileName = await intranetFileHelper.uploadFile(
             appManagerHomePage as NewUxHomePage,
             siteName,

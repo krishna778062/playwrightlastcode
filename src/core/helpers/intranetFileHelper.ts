@@ -1,23 +1,20 @@
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
-import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import { NewUxHomePage } from '../pages/homePage/newUxHomePage';
-import { Page } from '@playwright/test';
-import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/globalSearchResultPage';
-
-interface FileContent {
-  siteId: string;
-  fileId?: string;
-}
+import { Page, test } from '@playwright/test';
+import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
+import { IntranetFileListComponent } from '@/src/modules/global-search/components/intranetFileListComponent';
+import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
+import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 /**
  * The IntranetFileHelper class is a helper class for intranet file related operations.
  * It provides methods for creating sites, uploading files, and cleaning up test data.
  */
 export class IntranetFileHelper {
-  private content: FileContent[] = [];
   private page: Page;
-  private siteManagementService: any;
-  private userManagementService: any;
+  private siteHelper: SiteManagementHelper;
+  private actions: BaseActionUtil;
 
   /**
    * Constructs a new instance of the IntranetFileHelper class.
@@ -29,43 +26,11 @@ export class IntranetFileHelper {
     page: Page
   ) {
     this.page = page;
-    this.siteManagementService = appManagerApiClient.getSiteManagementService();
-    this.userManagementService = appManagerApiClient.getUserManagementService();
+    this.siteHelper = new SiteManagementHelper(appManagerApiClient);
+    this.actions = new BaseActionUtil(page);
   }
 
-  /**
-   * Creates a new site with the given name and category.
-   * @param siteName - The name of the site to create.
-   * @param category - The category of the site.
-   * @returns A promise that resolves with the site ID.
-   */
-  async createSite(
-    siteName: string,
-    category: { name: string; categoryId: string },
-    options?: { access?: 'public' | 'private' | 'unlisted' }
-  ): Promise<{ siteId: string }> {
-    const siteResult = await this.siteManagementService.addNewSite({
-      access: options?.access ?? 'public',
-      name: siteName,
-      category: {
-        categoryId: category.categoryId,
-        name: category.name,
-      },
-    });
-    const siteId = siteResult.siteId;
-    this.content.push({ siteId: siteId });
-
-    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
-      this.appManagerApiClient,
-      siteName,
-      siteName,
-      'site'
-    );
-
-    return {
-      siteId,
-    };
-  }
+  // Site creation is centralized in SiteManagementHelper.
 
   /**
    * Uploads a file to the specified site.
@@ -75,26 +40,26 @@ export class IntranetFileHelper {
    * @param siteId - The ID of the site to upload the file to.
    * @returns A promise that resolves with the name of the uploaded file.
    */
-  async uploadFile(homePage: NewUxHomePage, siteName: string, siteId: string, filePath: string): Promise<string> {
-    const globalSearchResultPage = await homePage.actions.searchForTerm(siteName, {
-      stepInfo: `Searching with term "${siteName}" and intent is to find the site`,
+  async uploadFile(_homePage: NewUxHomePage, _siteName: string, siteId: string, filePath: string): Promise<string> {
+    return await test.step(`Navigate directly to site and upload file`, async () => {
+      const baseUrl = getEnvConfig().frontendBaseUrl.replace(/\/$/, '');
+      await this.actions.goToUrl(`${baseUrl}${PAGE_ENDPOINTS.SITE_PAGE(siteId)}`);
+
+      const intranetFileListComponent = new IntranetFileListComponent(this.page);
+      await test.step(`Open Files tab`, async () => {
+        await intranetFileListComponent.clickFilesTab();
+      });
+      const uploadedFileName = await test.step(`Upload file from computer`, async () => {
+        return await intranetFileListComponent.uploadFileFromComputer(filePath);
+      });
+      return uploadedFileName;
     });
-    const siteResultComponent = await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(siteName);
-    await siteResultComponent.verifyNavigationToTitleLink(siteId, siteName, 'site');
-    const intranetFileListComponent = globalSearchResultPage.getIntranetFileListComponent();
-    await intranetFileListComponent.clickFilesTab();
-    const uploadedFileName = await intranetFileListComponent.uploadFileFromComputer(filePath);
-    return uploadedFileName;
   }
 
   /**
    * Cleans up the test data by deactivating the created sites.
    */
   async cleanup() {
-    for (const { siteId } of this.content) {
-      if (siteId) {
-        await this.appManagerApiClient.getSiteManagementService().deactivateSite(siteId);
-      }
-    }
+    await this.siteHelper.cleanup();
   }
 }

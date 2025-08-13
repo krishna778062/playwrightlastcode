@@ -9,9 +9,12 @@ import { BasePage } from '@/src/core/pages/basePage';
 import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
 import { IContentSearch } from '../types/content-search.type';
+import { ContentType } from '@/src/core/constants/contentTypes';
 import { ContentListComponent } from '../components/contentListComponent';
 import { IntranetFileListComponent } from '../components/intranetFileListComponent';
+import { IFileSearch } from '../types/file-search.type';
 import { FeedListComponent } from '../components/feedListComponent';
+import { IFeedSearch } from '../types/feed-search.type';
 
 export class GlobalSearchResultPage extends BasePage {
   readonly resultListingComponent: ResultListingComponent;
@@ -72,15 +75,15 @@ export class GlobalSearchResultPage extends BasePage {
 
   /**
    * Verifies all data points for a content search result item (Page, Album, Event).
-   * @param resultItemType - The type of content to verify ('album', 'event', 'page').
+   * @param resultItemType - The content type to verify.
    * @param data - The content search data to verify.
    */
-  async verifyContentResultItemDataPoints(resultItemType: 'album' | 'event' | 'page', data: IContentSearch) {
+  async verifyContentResultItemDataPoints(resultItemType: ContentType, data: IContentSearch) {
     await test.step(`Verifying all data points for a content result item of type "${resultItemType}"`, async () => {
       let resultLocator;
-      if (resultItemType === 'album') {
+      if (resultItemType === ContentType.Album) {
         resultLocator = await this.getAlbumResultItemExactlyMatchingTheSearchTerm(data.name);
-      } else if (resultItemType === 'event') {
+      } else if (resultItemType === ContentType.Event) {
         resultLocator = await this.getEventResultItemExactlyMatchingTheSearchTerm(data.name);
       } else {
         resultLocator = await this.getPageResultItemExactlyMatchingTheSearchTerm(data.name);
@@ -94,7 +97,7 @@ export class GlobalSearchResultPage extends BasePage {
    * Verifies all data points for a feed search result item.
    * @param data - The feed search data to verify.
    */
-  async verifyFeedResultItemDataPoints(data: any) {
+  async verifyFeedResultItemDataPoints(data: IFeedSearch) {
     await test.step(`Verifying all data points for a feed result item`, async () => {
       const resultLocator = await this.getFeedResultItemExactlyMatchingTheSearchTerm(data.name);
       const feedResultItem = new FeedListComponent(resultLocator.page, resultLocator.rootLocator);
@@ -106,7 +109,7 @@ export class GlobalSearchResultPage extends BasePage {
    * Verifies all data points for a file search result item.
    * @param data - The file search data to verify.
    */
-  async verifyFileResultItemDataPoints(data: any) {
+  async verifyFileResultItemDataPoints(data: IFileSearch) {
     await test.step(`Verifying all data points for a file result item`, async () => {
       const resultLocator = await this.getFileResultItemExactlyMatchingTheSearchTerm(data.name, data.type);
       const fileResultItem = new IntranetFileListComponent(resultLocator.page, resultLocator.rootLocator);

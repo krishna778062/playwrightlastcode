@@ -4,6 +4,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { PAGE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
+import { ContentType } from '@/src/core/constants/contentTypes';
 
 test.describe(
   'Global Search - Page Search functionality',
@@ -18,18 +19,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage, contentManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerHomePage, contentManagementHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-12432',
           storyId: 'SEN-12295',
         });
 
-        const randomNum = Math.floor(Math.random() * 1000000 + 1);
-        const siteName = `AutomateUI_Test_${randomNum}`;
-        const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
-
-        const { siteId, contentId, pageName, authorName, contentDescription } =
-          await contentManagementHelper.createPage(siteName, categoryObj, {
+        const { siteId, siteName, contentId, pageName, authorName, contentDescription } =
+          await contentManagementHelper.createSiteAndPage(testData.category, {
             contentType: testData.content,
             contentSubType: testData.contentType!,
           });
@@ -40,7 +37,7 @@ test.describe(
         });
 
         // 5. Verify the page result item's data points
-        await globalSearchResultPage.verifyContentResultItemDataPoints('page', {
+        await globalSearchResultPage.verifyContentResultItemDataPoints(ContentType.Page, {
           name: pageName,
           label: testData.label,
           description: contentDescription,

@@ -3,4 +3,5 @@ export const PAGE_ENDPOINTS = {
   HOME_PAGE: '/home',
   CHATS_PAGE: '/chat/conversations',
   AUDIO_VIDEO_CALL_PAGE: '/call',
+  SITE_PAGE: (siteId: string) => `/site/${siteId}/`,
 };

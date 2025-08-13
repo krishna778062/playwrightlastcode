@@ -1,10 +1,8 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { EnterpriseSearchHelper } from '@core/helpers/enterpriseSearchHelper';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
-import { SEARCH_RESULT_ITEM } from '@/src/modules/global-search/constants/siteTypes';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { SITE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/site-search.test-data';
@@ -22,40 +20,19 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
 
       test.beforeEach(
         `Setting up the test environment for site search by creating new site`,
-        async ({ appManagerApiClient }) => {
+        async ({ appManagerApiClient, siteManagementHelper }) => {
           // Initialize API client with proper authentication and CSRF token
-          const randomNum = Math.floor(Math.random() * 1000000 + 1);
-          newSiteName = `AutomateUI_Test_${randomNum}`;
-          categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
-          const result = await appManagerApiClient.getSiteManagementService().addNewSite({
+          const created = await siteManagementHelper.createSiteWithCategoryName(testData.category, {
             access: testData.siteType,
-            name: newSiteName,
-            category: {
-              categoryId: categoryObj.categoryId,
-              name: categoryObj.name,
-            },
           });
-          newSiteId = result.siteId;
+          newSiteId = created.siteId;
+          newSiteName = created.siteName;
+          categoryObj = await siteManagementHelper.getCategoryByName(testData.category);
           console.log(`Created site: ${newSiteName} with ID: ${newSiteId}`);
-          //wait until the search api starts showing the newly created site in results
-          await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
-            appManagerApiClient,
-            newSiteName,
-            newSiteName,
-            SEARCH_RESULT_ITEM.SITE
-          );
         }
       );
-      test.afterEach(`Tearing down the test environment for site search`, async ({ appManagerApiClient }) => {
-        // Clean up site (if it was created)
-        if (newSiteId) {
-          try {
-            await appManagerApiClient.getSiteManagementService().deactivateSite(newSiteId);
-            console.log(`Successfully deactivated site: ${newSiteId}`);
-          } catch (error) {
-            console.warn(`Failed to deactivate site ${newSiteId}:`, error);
-          }
-        }
+      test.afterEach(`Tearing down the test environment for site search`, async ({ siteManagementHelper }) => {
+        await siteManagementHelper.cleanup();
       });
 
       test(

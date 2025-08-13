@@ -7,6 +7,7 @@ import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { LoginHelper } from '../../../core/helpers/loginHelper';
+import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
@@ -19,6 +20,7 @@ export const searchTestFixtures = test.extend<{
   contentManagementHelper: ContentManagementHelper;
   feedManagementHelper: FeedManagementHelper;
   intranetFileHelper: IntranetFileHelper;
+  siteManagementHelper: SiteManagementHelper;
 }>({
   appManagerHomePage: [
     async ({ page }, use, workerInfo) => {
@@ -78,6 +80,17 @@ export const searchTestFixtures = test.extend<{
         await use(intranetFileHelper);
       } finally {
         await intranetFileHelper.cleanup();
+      }
+    },
+    { scope: 'test' },
+  ],
+  siteManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
+      try {
+        await use(siteManagementHelper);
+      } finally {
+        await siteManagementHelper.cleanup();
       }
     },
     { scope: 'test' },
