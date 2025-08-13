@@ -1,0 +1,43 @@
+export const SiteCreationUI = {
+  BUTTONS: {
+    CREATE: '+',
+    SITE_OPTION: 'Site',
+    CANCEL: 'Cancel',
+    ADD_SITE: 'Add site',
+    BROWSE: 'Browse',
+    MAKE_PRIVATE: 'Make private',
+    ADD_SUBSCRIPTION: 'Add subscription',
+    DONE: 'Done',
+  },
+  HEADINGS: {
+    ADD_SITE: 'Add site',
+    ACCESS: 'Access',
+    TARGET_AUDIENCE: 'Target audience and subscriptions',
+    SUBSCRIPTIONS: 'Subscriptions',
+    MEMBERSHIP_REQUESTS: 'Membership requests',
+  },
+  LABELS: {
+    SITE_NAME: 'Site name *',
+    CATEGORY: 'Category: This is a required',
+    TARGET_AUDIENCE: 'Target audience *',
+    MAKE_PRIVATE: 'Make site private',
+  },
+  PLACEHOLDERS: {
+    CATEGORY: 'Add or select existing category',
+    NO_AUDIENCES: 'No audiences selected',
+    NO_SUBSCRIPTIONS: 'No subscriptions added',
+  },
+  DESCRIPTIONS: {
+    PRIVATE_HELP: 'Users will have to request permission to join this site',
+    TARGET_AUDIENCE_HELP: 'Defining the target audience establishes who in your organization can access this site',
+    SUBSCRIPTIONS_HELP:
+      'When a subscription is created, the users within the defined audience will automatically follow the selected sites or people.',
+    SUBSCRIPTION_WARNING: 'Target audience must be set before you can add a subscription',
+  },
+  MESSAGES: {
+    SITE_CREATED: 'Created site successfully',
+  },
+  CATEGORIES: {
+    DEFAULT: 'Uncategorized',
+  },
+} as const; 

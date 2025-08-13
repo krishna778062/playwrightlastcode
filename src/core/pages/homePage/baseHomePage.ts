@@ -9,18 +9,18 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@/src/core/pages/basePage';
 import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
 import { CreateComponent } from '@/src/modules/content/components/createComponent';
-import { SiteCreationModalComponent } from '@/src/modules/content/components/siteCreationComponent';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
+import { SiteCreationPage } from '@/src/modules/content/pages/siteCreationPage';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/globalSearchResultPage';
 
 export interface ICommonHomePageActions {
   searchForTerm: (searchTerm: string, options?: { stepInfo?: string }) => Promise<GlobalSearchResultPage>;
   clickOnGlobalFeed: (options?: { stepInfo?: string }) => Promise<void>;
-  openSiteCreationModal: (options?: { stepInfo?: string }) => Promise<SiteCreationModalComponent>;
+  openSiteCreationForm: (options?: { stepInfo?: string }) => Promise<SiteCreationPage>;
 }
 
 export interface IOldUxHomePageActions extends ICommonHomePageActions {
@@ -108,5 +108,5 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
    * @param options.stepInfo - The step info to pass to the test.step method
    * @returns The site creation modal component
    */
-  abstract openSiteCreationModal(options?: { stepInfo?: string }): Promise<SiteCreationModalComponent>;
+  abstract openSiteCreationForm(options?: { stepInfo?: string }): Promise<SiteCreationPage>;
 }

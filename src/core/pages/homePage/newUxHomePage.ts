@@ -3,7 +3,7 @@ import { Page, test } from '@playwright/test';
 import { BaseHomePage, INewUxHomePageActions } from './baseHomePage';
 
 import { CreateComponent } from '@/src/modules/content/components/createComponent';
-import { SiteCreationModalComponent } from '@/src/modules/content/components/siteCreationComponent';
+import { SiteCreationModalComponent } from '@/src/modules/content/components/SiteComponents/siteCreationComponent';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
@@ -66,11 +66,13 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
     });
   }
 
-  async openSiteCreationModal(options?: { stepInfo?: string }): Promise<SiteCreationModalComponent> {
-    return await test.step(options?.stepInfo || 'Opening site creation modal', async () => {
+  async openSiteCreationForm(options?: { stepInfo?: string }): Promise<import('@/src/modules/content/pages/siteCreationPage').SiteCreationPage> {
+    return await test.step(options?.stepInfo || 'Opening site creation form', async () => {
       const createComponent = await this.clickOnCreateButtonOnSideNavBar();
       await createComponent.verifyTheCreateComponentIsVisible();
-      return await createComponent.selectSiteOptionAndOpenModal();
+      const formComponent = await createComponent.selectSiteOptionAndOpenModal();
+      const { SiteCreationPage } = await import('@/src/modules/content/pages/siteCreationPage');
+      return new SiteCreationPage(this.page);
     });
   }
 }

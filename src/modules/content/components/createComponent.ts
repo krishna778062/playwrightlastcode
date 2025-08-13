@@ -3,7 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { ContentType } from '@content/constants/contentType';
 
 import { AddContentModalComponent } from './addContentModal';
-import { SiteCreationModalComponent } from './siteCreationComponent';
+import { SiteCreationModalComponent } from './SiteComponents/siteCreationComponent';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
 /**
