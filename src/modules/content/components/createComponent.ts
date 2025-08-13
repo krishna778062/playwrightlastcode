@@ -3,6 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { ContentType } from '@content/constants/contentType';
 
 import { AddContentModalComponent } from './addContentModal';
+import { SiteCreationModalComponent } from './siteCreationComponent';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
 /**
@@ -21,12 +22,14 @@ export class CreateComponent extends BaseComponent {
   readonly pageOption: Locator;
   readonly albumOption: Locator;
   readonly eventOption: Locator;
+  readonly siteOption: Locator;
   readonly createComponentContainer: Locator;
   constructor(page: Page) {
     super(page);
     this.pageOption = this.page.locator('p', { hasText: 'Page' });
     this.albumOption = this.page.locator('p', { hasText: 'Album' });
     this.eventOption = this.page.locator('p', { hasText: 'Event' });
+    this.siteOption = this.page.getByRole('link', { name: 'Site' });
     this.createComponentContainer = this.page.locator("[data-slot='dialog-content']");
   }
 
@@ -67,6 +70,20 @@ export class CreateComponent extends BaseComponent {
           await this.clickOnElement(this.eventOption);
           break;
       }
+    });
+  }
+
+  /**
+   * Selects Site option and returns SiteCreationModalComponent
+   * @param options - The options for the step
+   * @returns The site creation modal component
+   */
+  async selectSiteOptionAndOpenModal(options?: { stepInfo?: string }): Promise<SiteCreationModalComponent> {
+    return await test.step(options?.stepInfo || 'Selecting Site option', async () => {
+      await this.clickOnElement(this.siteOption);
+      const siteCreationModal = new SiteCreationModalComponent(this.page);
+      await siteCreationModal.verifyTheSiteCreationFormIsVisible();
+      return siteCreationModal;
     });
   }
 

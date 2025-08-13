@@ -9,6 +9,7 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@/src/core/pages/basePage';
 import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
 import { CreateComponent } from '@/src/modules/content/components/createComponent';
+import { SiteCreationModalComponent } from '@/src/modules/content/components/siteCreationComponent';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
@@ -19,6 +20,7 @@ import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/global
 export interface ICommonHomePageActions {
   searchForTerm: (searchTerm: string, options?: { stepInfo?: string }) => Promise<GlobalSearchResultPage>;
   clickOnGlobalFeed: (options?: { stepInfo?: string }) => Promise<void>;
+  openSiteCreationModal: (options?: { stepInfo?: string }) => Promise<SiteCreationModalComponent>;
 }
 
 export interface IOldUxHomePageActions extends ICommonHomePageActions {
@@ -99,4 +101,12 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
       await this.sideNavBarComponent.clickOnGlobalFeed();
     });
   }
+
+  /**
+   * Opens site creation modal - implementation varies between UX versions
+   * @param options - The options to pass to the method
+   * @param options.stepInfo - The step info to pass to the test.step method
+   * @returns The site creation modal component
+   */
+  abstract openSiteCreationModal(options?: { stepInfo?: string }): Promise<SiteCreationModalComponent>;
 }

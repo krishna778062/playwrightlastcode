@@ -3,6 +3,7 @@ import { Page, test } from '@playwright/test';
 import { BaseHomePage, INewUxHomePageActions } from './baseHomePage';
 
 import { CreateComponent } from '@/src/modules/content/components/createComponent';
+import { SiteCreationModalComponent } from '@/src/modules/content/components/siteCreationComponent';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
@@ -62,6 +63,14 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
   async navigateToHomePage(options?: { stepInfo?: string }): Promise<void> {
     return await test.step(options?.stepInfo || 'Navigate to Home', async () => {
       await this.sideNavBarComponent.clickOnHome();
+    });
+  }
+
+  async openSiteCreationModal(options?: { stepInfo?: string }): Promise<SiteCreationModalComponent> {
+    return await test.step(options?.stepInfo || 'Opening site creation modal', async () => {
+      const createComponent = await this.clickOnCreateButtonOnSideNavBar();
+      await createComponent.verifyTheCreateComponentIsVisible();
+      return await createComponent.selectSiteOptionAndOpenModal();
     });
   }
 }

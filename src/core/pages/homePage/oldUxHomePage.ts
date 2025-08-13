@@ -3,6 +3,8 @@ import { Page, test } from '@playwright/test';
 import { BaseHomePage, ICommonHomePageActions, IOldUxHomePageActions } from './baseHomePage';
 
 import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
+import { CreateComponent } from '@/src/modules/content/components/createComponent';
+import { SiteCreationModalComponent } from '@/src/modules/content/components/siteCreationComponent';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
@@ -35,6 +37,17 @@ export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions
       const addContentModal = new AddContentModalComponent(this.page);
       await addContentModal.verifyTheAddContentModalIsVisible();
       return await addContentModal.completeContentCreationForm(contentType);
+    });
+  }
+
+  async openSiteCreationModal(options?: { stepInfo?: string }): Promise<SiteCreationModalComponent> {
+    return await test.step(options?.stepInfo || 'Opening site creation modal', async () => {
+      // For old UX, we need to create a CreateComponent to handle site creation
+      // This assumes the old UX also has the same create flow
+      await this.clickOnCreateContentButtonOnTopNavBar();
+      const createComponent = new CreateComponent(this.page);
+      await createComponent.verifyTheCreateComponentIsVisible();
+      return await createComponent.selectSiteOptionAndOpenModal();
     });
   }
 }
