@@ -1,6 +1,6 @@
 import { Locator, Page, test, expect } from '@playwright/test';
 import { BaseComponent } from '@/src/core/components/baseComponent';
-import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation.ui';
+import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation.abac';
 
 export class TargetAudienceSectionComponent extends BaseComponent {
   readonly targetAudienceHeading: Locator;

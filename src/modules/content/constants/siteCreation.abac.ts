@@ -1,4 +1,5 @@
 export const SiteCreationUI = {
+  
   BUTTONS: {
     CREATE: '+',
     SITE_OPTION: 'Site',

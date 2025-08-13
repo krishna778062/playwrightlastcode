@@ -1,6 +1,6 @@
 import { Locator, Page, test } from '@playwright/test';
 import { BaseComponent } from '@/src/core/components/baseComponent';
-import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation.ui';
+import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation.abac';
 
 export class AccessSectionComponent extends BaseComponent {
   readonly accessSectionHeading: Locator;

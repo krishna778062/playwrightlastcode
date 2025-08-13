@@ -2,7 +2,7 @@ import { Locator, Page, test, expect } from '@playwright/test';
 import { BaseComponent } from '@core/components/baseComponent';
 import { SiteCreationPayload } from '@core/types/siteManagement.types';
 import { SiteType } from '../../constants/siteTypeAbac';
-import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation.ui';
+import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation.abac';
 import { AccessSectionComponent } from './accessSectionComponent';
 import { TargetAudienceSectionComponent } from './targetAudienceSectionComponent';
 import { SubscriptionsSectionComponent } from './subscriptionsSectionComponent';

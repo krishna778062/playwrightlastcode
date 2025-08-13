@@ -5,7 +5,7 @@
 
 import { faker } from '@faker-js/faker';
 import { SiteType } from '@/src/modules/content/constants/siteTypeAbac';
-import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation.ui';
+import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation.abac';
 
 // Scenario-level data structures
 export interface SiteTestData {
