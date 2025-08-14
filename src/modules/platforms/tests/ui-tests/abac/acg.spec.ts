@@ -11,7 +11,7 @@ test.describe(
     tag: [TestSuite.ABAC],
   },
   () => {
-    test.only(
+    test(
       'Verify that single ACG can be created and deleted without any issue',
       {
         tag: [TestPriority.P0],
