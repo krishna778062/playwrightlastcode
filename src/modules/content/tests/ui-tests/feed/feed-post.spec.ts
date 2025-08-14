@@ -1,6 +1,5 @@
 import { faker } from '@faker-js/faker';
 
-import { FeedManagerService } from '@core/api/services/FeedManagerService';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
@@ -92,19 +91,6 @@ test.describe(
         // Step 4: Delete the post
         await feedPage.actions.deletePost(updatedPostText);
         createdPostId = ''; // Clear post ID as post is already deleted
-      }
-    );
-    test(
-      'Verify user can create, edit and delete a feed post with multiple attachments',
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE],
-      },
-      async () => {
-        tagTest(test.info(), {
-          description: 'Test feed post creation, editing and deletion with file attachments',
-          zephyrTestId: 'CONT-19533',
-          storyId: 'CONT-19533',
-        });
       }
     );
   }
