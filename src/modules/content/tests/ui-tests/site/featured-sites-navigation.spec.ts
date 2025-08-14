@@ -1,6 +1,6 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { EnterpriseSearchHelper } from '@core/helpers/enterpriseSearchHelper';
+import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 
@@ -8,7 +8,6 @@ import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
-import { SEARCH_RESULT_ITEM } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
   '@featured-sites',
@@ -18,51 +17,37 @@ test.describe(
   () => {
     let featuredSitePage: FeaturedSitePage;
     let homePage: NewUxHomePage;
-    let createdSiteId: string = '';
-    let createdSiteName: string = '';
-    let categoryObj: { categoryId: string; name: string };
+    let siteHelper: SiteManagementHelper;
+    let createdSite: any;
 
     test.beforeEach(
       `Setting up the test environment for featured site by creating new site`,
-      async ({ appManagerHomePage, appManagerApiClient }) => {
-        // Initialize API client with proper authentication and CSRF token
-        const randomNum = Math.floor(Math.random() * 1000000 + 1);
-        createdSiteName = `AutomateUI_Test_${randomNum}`;
-        categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(SITE_TEST_DATA[0].category);
-        const result = await appManagerApiClient.getSiteManagementService().addNewSite({
-          access: SITE_TEST_DATA[0].siteType,
-          name: createdSiteName,
-          category: {
-            categoryId: categoryObj.categoryId,
-            name: categoryObj.name,
-          },
-        });
-        createdSiteId = result.siteId;
-        console.log(`Created site: ${createdSiteName} with ID: ${createdSiteId}`);
+      async ({ page, loginAs, appManagerApiClient }) => {
+        // Initialize SiteManagementHelper
+        siteHelper = new SiteManagementHelper(appManagerApiClient);
 
-        //wait until the search api starts showing the newly created site in results
-        await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
-          appManagerApiClient,
-          createdSiteName,
-          createdSiteName,
-          SEARCH_RESULT_ITEM.SITE
-        );
+        // Login as app manager using loginAs
+        await loginAs('appManager');
+
+        // Get category and create site using helper
+        const category = await appManagerApiClient.getSiteManagementService().getCategoryId(SITE_TEST_DATA[0].category);
+        createdSite = await siteHelper.createPublicSite(undefined, category, {
+          access: SITE_TEST_DATA[0].siteType,
+        });
+
+        console.log(`Created site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
 
         // Initialize the home page and featured site page
-        homePage = new NewUxHomePage(appManagerHomePage.page);
-        featuredSitePage = new FeaturedSitePage(appManagerHomePage.page);
+        homePage = new NewUxHomePage(page);
+        await homePage.verifyThePageIsLoaded();
+        featuredSitePage = new FeaturedSitePage(page);
       }
     );
 
-    test.afterEach(`Tearing down the test environment for featured site`, async ({ appManagerApiClient }) => {
-      // Clean up site (if it was created)
-      if (createdSiteId) {
-        try {
-          await appManagerApiClient.getSiteManagementService().deactivateSite(createdSiteId);
-          console.log(`Successfully deactivated site: ${createdSiteId}`);
-        } catch (error) {
-          console.warn(`Failed to deactivate site ${createdSiteId}:`, error);
-        }
+    test.afterEach(`Tearing down the test environment for featured site`, async () => {
+      // Clean up all sites created by the helper
+      if (siteHelper) {
+        await siteHelper.cleanup();
       }
     });
 
@@ -82,28 +67,28 @@ test.describe(
         await featuredSitePage.actions.navigateToFeaturedSitesTab(homePage);
 
         // Step 2: Search and add the created site to featured
-        await featuredSitePage.actions.addSiteToFeatured(createdSiteName);
+        await featuredSitePage.actions.addSiteToFeatured(createdSite.siteName);
 
         // Step 2.1: Verify success toast message appears
         await featuredSitePage.assertions.verifyToastMessage('Added featured site');
 
         // Step 3: Verify sites are visible in featured dropdown
-        await featuredSitePage.assertions.verifyFeaturedSitesVisible([createdSiteName]);
+        await featuredSitePage.assertions.verifyFeaturedSitesVisible([createdSite.siteName]);
 
         // Step 4: Navigate to Home
-        await featuredSitePage.actions.navigateToHomePage(homePage, [createdSiteName]);
+        await featuredSitePage.actions.navigateToHomePage(homePage, [createdSite.siteName]);
 
         // Step 5: Navigate to Featured tab
         await featuredSitePage.actions.navigateToFeaturedSitesTab(homePage);
 
         // Step 6: Verify sites are visible in featured dropdown
-        await featuredSitePage.assertions.verifyFeaturedSitesVisible([createdSiteName]);
+        await featuredSitePage.assertions.verifyFeaturedSitesVisible([createdSite.siteName]);
 
         // Step 7: Click on the featured site and verify navigation to site dashboard
-        await featuredSitePage.actions.navigateToSiteDashboard(createdSiteName);
+        await featuredSitePage.actions.navigateToSiteDashboard(createdSite.siteName);
 
         // Step 8: Verify user is navigated to the site dashboard
-        await featuredSitePage.assertions.verifySiteDashboardLoaded(createdSiteName);
+        await featuredSitePage.assertions.verifySiteDashboardLoaded(createdSite.siteName);
       }
     );
   }
