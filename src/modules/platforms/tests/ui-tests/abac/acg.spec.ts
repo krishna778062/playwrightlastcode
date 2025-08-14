@@ -51,7 +51,7 @@ test.describe(
         await accessControlGroupsPage.searchForACG(acgName);
         await accessControlGroupsPage.deleteFirstACG();
         await accessControlGroupsPage.verifyToastMessage('Access control group was successfully deleted');
-        await accessControlGroupsPage.sleep(1000); // Waiting for identity audience service to be in sync with ACG delete info
+        await accessControlGroupsPage.sleep(2000); // Waiting for identity audience service to be in sync with ACG delete info
 
         // Cleanup
         await appManagerApiClient.getIdentityService().deleteAudience(audienceId);
