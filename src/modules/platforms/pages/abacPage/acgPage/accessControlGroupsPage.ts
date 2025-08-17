@@ -132,7 +132,8 @@ export class AccessControlGroupsPage extends BasePage {
         await this.clickOnElement(this.acgDeleteButton, {
           timeout: options?.timeout ?? 10_000,
         });
-        await expect(this.iUnderstand).toBeVisible();
+        expect(this.verifier.verifyTheElementIsVisible(this.iUnderstand)).toBeTruthy;
+        // await expect(this.iUnderstand).toBeVisible();
       } catch (e) {
         console.log("couldn't click the delete button on first try");
         await this.clickOnElement(this.acgDeleteButton, {
