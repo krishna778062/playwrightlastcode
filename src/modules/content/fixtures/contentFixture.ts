@@ -1,11 +1,14 @@
-import { test } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { FeedManagerService } from '@core/api/services/FeedManagerService';
-import { SiteManagementService } from '@core/api/services/SiteManagementService';
 import { LoginHelper } from '@core/helpers/loginHelper';
+import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
+
+import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
+import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
 export type UserType = 'appManager' | 'endUser';
 
@@ -21,61 +24,56 @@ export const users = {
 };
 
 export const contentTestFixture = test.extend<{
+  appManagerHomePage: NewUxHomePage | OldUxHomePage;
+  appManagersPage: Page;
   appManagerApiClient: AppManagerApiClient;
+  siteManagementHelper: SiteManagementHelper;
   feedManagerService: FeedManagerService;
-  siteManagementService: SiteManagementService;
   loginAs: (userType: UserType) => Promise<void>;
 }>({
+  appManagerHomePage: [
+    async ({ page }, use, workerInfo) => {
+      const appManagerHomePage = await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
+      });
+      await appManagerHomePage.verifyThePageIsLoaded();
+      await use(appManagerHomePage);
+    },
+    { scope: 'test' },
+  ],
+  appManagersPage: [
+    async ({ appManagerHomePage }, use, workerInfo) => {
+      await use(appManagerHomePage.page);
+    },
+    { scope: 'test' },
+  ],
   appManagerApiClient: [
-    async ({ browser }, use) => {
-      // Create a separate page for API client authentication
-      const apiPage = await browser.newPage();
-      await LoginHelper.loginWithPassword(apiPage, users.appManager);
-
+    async ({ appManagersPage: appManagerUserPage }, use, workerInfo) => {
+      console.log(`INFO: Setting up app manager client for worker => `, workerInfo.workerIndex);
       const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
         type: 'cookies',
-        page: apiPage,
+        page: appManagerUserPage,
         baseUrl: getEnvConfig().apiBaseUrl,
       });
-
       await use(appManagerApiClient);
-      await apiPage.close();
     },
     { scope: 'test' },
   ],
 
   feedManagerService: [
-    async ({ browser }, use) => {
-      // Create a separate page for API client authentication
-      const apiPage = await browser.newPage();
-      await LoginHelper.loginWithPassword(apiPage, users.endUser);
-
-      const feedManagerService = await ApiClientFactory.createClient(FeedManagerService, {
-        type: 'cookies',
-        page: apiPage,
-        baseUrl: getEnvConfig().apiBaseUrl,
-      });
-
+    async ({ appManagerApiClient }, use) => {
+      const feedManagerService = new FeedManagerService(appManagerApiClient.context);
       await use(feedManagerService);
-      await apiPage.close();
     },
     { scope: 'test' },
   ],
 
-  siteManagementService: [
-    async ({ browser }, use) => {
-      // Create a separate page for API client authentication
-      const apiPage = await browser.newPage();
-      await LoginHelper.loginWithPassword(apiPage, users.appManager);
-
-      const siteManagementService = await ApiClientFactory.createClient(SiteManagementService, {
-        type: 'cookies',
-        page: apiPage,
-        baseUrl: getEnvConfig().apiBaseUrl,
-      });
-
-      await use(siteManagementService);
-      await apiPage.close();
+  siteManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
+      await use(siteManagementHelper);
+      await siteManagementHelper.cleanup();
     },
     { scope: 'test' },
   ],
