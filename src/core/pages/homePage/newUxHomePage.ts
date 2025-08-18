@@ -44,4 +44,24 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
       return await addContentModal.completeContentCreationForm(contentType);
     });
   }
+
+  /**
+   * Navigates to Sites from the home page
+   * @param options - Options for the step
+   */
+  async clickOnSitesFromSideBar(options?: { stepInfo?: string }): Promise<void> {
+    return await test.step(options?.stepInfo || 'Navigate to Sites > All sites', async () => {
+      await this.sideNavBarComponent.clickOnSites();
+    });
+  }
+
+  /**
+   * Navigates to Home page
+   * @param options - Options for the step
+   */
+  async navigateToHomePage(options?: { stepInfo?: string }): Promise<void> {
+    return await test.step(options?.stepInfo || 'Navigate to Home', async () => {
+      await this.sideNavBarComponent.clickOnHome();
+    });
+  }
 }

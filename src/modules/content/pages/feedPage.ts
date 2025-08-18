@@ -1,5 +1,7 @@
+import { expect, Page, test } from '@playwright/test';
+
 import { BasePage } from '@core/pages/basePage';
-import { Page, test, expect } from '@playwright/test';
+
 import { CreateFeedPostComponent, FeedPostOptions, FeedPostResult } from '../components/createFeedPostComponent';
 import { ListFeedComponent } from '../components/listFeedComponent';
 
@@ -8,10 +10,10 @@ export { FeedPostOptions, FeedPostResult };
 
 export interface IFeedActions {
   // High-level user flows
-  createAndPublishPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
+  createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
   deletePost: (postText: string) => Promise<void>;
-  
+
   // Content creation flow
   createPostWithAttachments: (text: string, files?: string[]) => Promise<FeedPostResult>;
 }
@@ -48,8 +50,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   }
 
   // High-level user flow methods
-  async createAndPublishPost(options: FeedPostOptions): Promise<FeedPostResult> {
-    return await this.createFeedPostComponent.createAndPublishPost(options);
+  async createAndPost(options: FeedPostOptions): Promise<FeedPostResult> {
+    return await this.createFeedPostComponent.createAndPost(options);
   }
 
   async editPost(currentText: string, newText: string): Promise<void> {
@@ -67,9 +69,9 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async createPostWithAttachments(text: string, files?: string[]): Promise<FeedPostResult> {
     const options: FeedPostOptions = {
       text,
-      ...(files && { attachments: { files } })
+      ...(files && { attachments: { files } }),
     };
-    return await this.createAndPublishPost(options);
+    return await this.createAndPost(options);
   }
 
   // High-level verification methods
@@ -77,10 +79,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await test.step(`Verify complete post details for: ${postText}`, async () => {
       // Verify timestamp is displayed
       await this.verifier.verifyTheElementIsVisible(this.listFeedComponent.getPostTimestampLocator(postText));
-      
+
       // Verify file attachments count
       await expect(this.listFeedComponent.getPostAttachmentsLocator(postText)).toHaveCount(expectedAttachmentCount);
-      
+
       // Verify inline image preview functionality
       await this.listFeedComponent.clickInlineImagePreview(postText);
       await this.listFeedComponent.verifyInlineImagePreviewVisible();
@@ -97,10 +99,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       // Verify delete confirmation dialog appears
       await this.verifier.verifyTheElementIsVisible(this.listFeedComponent.deleteConfirmDialog);
       await expect(this.listFeedComponent.deleteConfirmDialog).toContainText(expectedText);
-      
+
       // Confirm deletion
       await this.listFeedComponent.confirmDelete();
-      
+
       // Verify post is deleted (dialog disappears)
       await this.verifier.verifyTheElementIsNotVisible(this.listFeedComponent.deleteConfirmDialog);
     });
@@ -117,5 +119,4 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async getPostTimestamp(postText: string): Promise<void> {
     await this.listFeedComponent.getPostTimestamp(postText);
   }
-  
-} 
+}

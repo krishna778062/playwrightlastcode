@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 
+import { FeedManagerService } from '@core/api/services/FeedManagerService';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
@@ -58,7 +59,7 @@ test.describe(
         // Step 1: Create a new post with multiple attachments via UI
         // Note: Post can also be created via API using:
         // const { postResult: apiPostResult, postId } = await feedManagerService.createPost({ text: initialPostText });
-        const postResult = await feedPage.actions.createAndPublishPost({
+        const postResult = await feedPage.actions.createAndPost({
           text: initialPostText,
           attachments: {
             files: ['images/' + FEED_TEST_DATA.ATTACHMENTS.IMAGE, 'excel/' + FEED_TEST_DATA.ATTACHMENTS.DOCUMENT],

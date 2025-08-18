@@ -39,4 +39,5 @@ export abstract class BasePage extends BaseActionUtil {
       await this.verifyThePageIsLoaded();
     });
   }
+
 }

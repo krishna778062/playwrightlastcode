@@ -45,6 +45,8 @@ export const API_ENDPOINTS = {
     publish: '/content?action=publish',
     delete: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}`,
     signedUrl: '/v1/content/static/signedurl/upload',
+    files: '/v1/content/files',
+    listFiles: '/v1/content/files/list',
   },
 
   fileUpload: {
@@ -58,8 +60,7 @@ export const API_ENDPOINTS = {
 
   feed: {
     create: `/v1/wfeed/feeds`,
-    update: (postId: string) => `/v1/wfeed/feeds/${postId}`,
-    delete: (postId: string) => `/v1/wfeed/feeds/${postId}`,
+    delete: (feedId: string) => `/v1/wfeed/feeds/${feedId}`,
   },
   apps: {
     settings: '/v1/account/apps-links-settings',

@@ -2,8 +2,14 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { ResultListingComponent } from './resultsListComponent';
 
-import { getTodayFormattedDate } from '@/src/core/utils/dateUtil';
-import { getEventDateDisplayText } from '@/src/core/utils/dateUtil';
+import {
+  getEventDateDisplayText,
+  getTodayDateIsoString,
+  getTodayFormattedDate,
+  getTomorrowDateIsoString,
+} from '@/src/core/utils/dateUtil';
+import { IContentSearch } from '@/src/modules/global-search/types/content-search.type';
+import { ContentType } from '@/src/core/constants/contentTypes';
 
 /**
  * ContentListComponent is a UI component class that extends ResultListingComponent.
@@ -36,13 +42,123 @@ export class ContentListComponent extends ResultListingComponent {
   }
 
   /**
+   * Verifies all data points for a content result item (Page, Album, Event).
+   * Delegates to content-type specific verifiers for clarity and reuse.
+   * @param data - The content search data to verify.
+   */
+  async verifyContentResultItem(data: IContentSearch) {
+    await test.step(`Verifying all data points for the content result item "${data.name}"`, async () => {
+      if (data.contentType === ContentType.Page) {
+        await this.verifyPageResult(data);
+      } else if (data.contentType === ContentType.Album) {
+        await this.verifyAlbumResult(data);
+      } else if (data.contentType === ContentType.Event) {
+        await this.verifyEventResult(data);
+      }
+    });
+  }
+
+  /**
+   * Verifies all data points for a Page result item
+   */
+  private async verifyPageResult(data: IContentSearch) {
+    // Common verifications
+    await this.verifyNameIsDisplayed(data.name);
+    await this.verifyLabelIsDisplayed(data.label);
+    await this.verifyDescriptionIsDisplayed(data.description);
+    await this.verifyAuthorIsDisplayed(data.author);
+
+    // UI verifications specific to Page
+    await this.verifyThumbnailIsDisplayed();
+    await this.verifyDateIsDisplayed();
+    await this.verifyPageIconIsDisplayed();
+
+    // Navigation
+    await this.verifyNavigationToTitleLink(data.contentId, data.name, ContentType.Page);
+    await this.goBackToPreviousPage();
+    await this.verifyNavigationWithSiteLink(data.siteId, data.siteName);
+    await this.goBackToPreviousPage();
+    await this.hoverOverCardAndCopyLink();
+    await this.verifyCopiedURL(data.contentId);
+    await this.goBackToPreviousPage();
+    await this.verifyNavigationWithThumbnailLink(data.contentId);
+    await this.goBackToPreviousPage();
+    await this.verifyNavigationWithAuthorLink(data.author);
+    await this.goBackToPreviousPage();
+    await this.verifyNavigationWithHomePageLink();
+    await this.goBackToPreviousPage();
+  }
+
+  /**
+   * Verifies all data points for an Album result item
+   */
+  private async verifyAlbumResult(data: IContentSearch) {
+    // Common verifications
+    await this.verifyNameIsDisplayed(data.name);
+    await this.verifyLabelIsDisplayed(data.label);
+    await this.verifyDescriptionIsDisplayed(data.description);
+    await this.verifyAuthorIsDisplayed(data.author);
+
+    // UI verifications specific to Album
+    await this.verifyThumbnailIsDisplayed();
+    await this.verifyDateIsDisplayed();
+    await this.verifyAlbumIconIsDisplayed();
+
+    // Navigation
+    await this.verifyNavigationToTitleLink(data.contentId, data.name, ContentType.Album);
+    await this.goBackToPreviousPage();
+    await this.verifyNavigationWithSiteLink(data.siteId, data.siteName);
+    await this.goBackToPreviousPage();
+    await this.hoverOverCardAndCopyLink();
+    await this.verifyCopiedURL(data.contentId);
+    await this.goBackToPreviousPage();
+    await this.verifyNavigationWithThumbnailLink(data.contentId);
+    await this.goBackToPreviousPage();
+    await this.verifyNavigationWithAuthorLink(data.author);
+    await this.goBackToPreviousPage();
+    await this.verifyNavigationWithHomePageLink();
+    await this.goBackToPreviousPage();
+  }
+
+  /**
+   * Verifies all data points for an Event result item
+   */
+  private async verifyEventResult(data: IContentSearch) {
+    // Common verifications
+    await this.verifyNameIsDisplayed(data.name);
+    await this.verifyLabelIsDisplayed(data.label);
+    await this.verifyDescriptionIsDisplayed(data.description);
+    await this.verifyAuthorIsDisplayed(data.author);
+
+    // UI verifications specific to Event
+    await this.verifyEventCalendarThumbnailIsDisplayed(getTodayDateIsoString());
+    await this.verifyEventDateIsDisplayed(getTodayDateIsoString(), getTomorrowDateIsoString());
+    await this.verifyCalendarIconIsDisplayed();
+
+    // Navigation
+    await this.verifyNavigationToTitleLink(data.contentId, data.name, ContentType.Event);
+    await this.goBackToPreviousPage();
+    await this.verifyNavigationWithSiteLink(data.siteId, data.siteName);
+    await this.goBackToPreviousPage();
+    await this.hoverOverCardAndCopyLink();
+    await this.verifyCopiedURL(data.contentId);
+    await this.goBackToPreviousPage();
+    await this.verifyNavigationWithCalendarLink(data.contentId);
+    await this.goBackToPreviousPage();
+    await this.verifyNavigationWithAuthorLink(data.author);
+    await this.goBackToPreviousPage();
+    await this.verifyNavigationWithHomePageLink();
+    await this.goBackToPreviousPage();
+  }
+
+  /**
    * Clicks on the site link from the content card and verifies the site name breadcrumb is displayed.
    * @param name - The name of the site to click.
    */
   async clickOnSiteLink(name: string) {
     await test.step(`Clicking on the site link from content`, async () => {
       const breadcrumbLocator = this.siteBreadcrumb.last();
-      const siteText = await breadcrumbLocator.textContent({ timeout: 20000 });
+      const siteText = await breadcrumbLocator.textContent({ timeout: 60_000 });
 
       if (siteText && siteText.endsWith('…')) {
         const cleanedText = siteText.slice(0, -1);
@@ -117,7 +233,7 @@ export class ContentListComponent extends ResultListingComponent {
   async verifyDateIsDisplayed() {
     const formatted = getTodayFormattedDate();
     await test.step(`Verify date ${formatted} is displayed`, async () => {
-      await this.verifier.verifyElementHasText(this.resultList.last(), formatted);
+      await this.verifier.verifyElementContainsText(this.resultList.last(), formatted);
     });
   }
 

@@ -42,7 +42,6 @@ export interface IPageCreationActions {
     description: string;
   }) => Promise<void>;
   publishPage: () => Promise<Response>;
-  handlePromotionPageStep: (options?: { skipPromotion?: boolean }) => Promise<void>;
   createAndPublishPage: (options: PageCreationOptions) => Promise<{
     title: string;
     description: string;
@@ -52,6 +51,7 @@ export interface IPageCreationActions {
     siteId: string;
     response: PageCreationResponse;
   }>;
+  handlePromotionPageStep: () => Promise<void>;
 }
 
 export interface IPageCreationAssertions {
@@ -101,7 +101,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     this.publishButton = page.getByRole('button', { name: 'Publish' });
     this.skipStepButton = page.locator('button', { hasText: 'Skip this step' });
     this.titleInput = page.locator("textarea[placeholder='Page title']");
-    this.descriptionInput = page.locator("div[contenteditable='true']");
+    this.descriptionInput = page.locator("div[aria-label='Page content']");
     this.contentTitleHeading = (title: string) => page.locator('h1', { hasText: title });
     this.successMessage = (message: string) => page.locator('div[class*="Toast-module"] p', { hasText: message });
     this.contentTypeCheckbox = (type: string) => page.locator('label:has(span)', { hasText: type });
@@ -227,22 +227,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   }
 
   /**
-   * Handles the promotion of the page
-   * @param options - The options for handling the promotion
-   */
-  async handlePromotionPageStep(options?: { skipPromotion?: boolean }) {
-    await test.step(`Promoting page`, async () => {
-      const skipPromotion = options?.skipPromotion ?? true;
-      if (skipPromotion) {
-        await this.promotePageModal.clickOnSkipPromotionButton();
-      } else {
-        //hanlde the promotion actions
-        await this.promotePageModal.handlePromotion(options);
-      }
-    });
-  }
-
-  /**
    * Creates a page with the given options and publishes it
    * @param options - The options for creating the page
    * @returns The options for the created page
@@ -296,18 +280,11 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   }
 
   /**
-   * Handles the promotion of the page
-   * @param options - The options for handling the promotion
+   * Handles the promotion page step by calling the promote page modal
    */
-  async handlePagePromotion(options?: { skipPromotion?: boolean }) {
-    await test.step(`Promoting page`, async () => {
-      const skipPromotion = options?.skipPromotion ?? true;
-      if (skipPromotion) {
-        await this.promotePageModal.clickOnSkipPromotionButton();
-      } else {
-        //hanlde the promotion actions
-        await this.promotePageModal.handlePromotion(options);
-      }
+  async handlePromotionPageStep(): Promise<void> {
+    await test.step('Handling promotion page step', async () => {
+      await this.promotePageModal.handlePromotion();
     });
   }
 
