@@ -33,4 +33,4 @@ coverage/
 
 # TypeScript cache
 *.tsbuildinfo
-.idea
+.idea/
