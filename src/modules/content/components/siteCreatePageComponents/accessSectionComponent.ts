@@ -1,4 +1,5 @@
 import { Locator, Page, test } from '@playwright/test';
+
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation.abac';
 
@@ -32,13 +33,16 @@ export class AccessSectionComponent extends BaseComponent {
   }
 
   async verifyPrivateToggleState(expectedState: boolean, options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo || `Verify private toggle is ${expectedState ? 'enabled' : 'disabled'}`, async () => {
-      await this.privateToggle.waitFor();
-      const actualState = await this.privateToggle.isChecked();
-      if (actualState !== expectedState) {
-        throw new Error(`Expected private toggle to be ${expectedState}, but it was ${actualState}`);
+    await test.step(
+      options?.stepInfo || `Verify private toggle is ${expectedState ? 'enabled' : 'disabled'}`,
+      async () => {
+        await this.privateToggle.waitFor();
+        const actualState = await this.privateToggle.isChecked();
+        if (actualState !== expectedState) {
+          throw new Error(`Expected private toggle to be ${expectedState}, but it was ${actualState}`);
+        }
       }
-    });
+    );
   }
 
   async togglePrivateAccess(shouldBePrivate: boolean, options?: { stepInfo?: string }): Promise<void> {
@@ -58,4 +62,4 @@ export class AccessSectionComponent extends BaseComponent {
       }
     });
   }
-} 
+}

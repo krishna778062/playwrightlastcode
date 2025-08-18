@@ -2,8 +2,8 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { ContentType } from '@content/constants/contentType';
 
+import { SiteCeationFormComponent } from './siteCreatePageComponents/siteCreationFormComponent';
 import { AddContentModalComponent } from './addContentModal';
-import { SiteCreationModalComponent } from './SiteComponents/siteCreationComponent';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
 /**
@@ -60,15 +60,17 @@ export class CreateComponent extends BaseComponent {
   async selectContentType(contentType: ContentType, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Selecting content type: ${contentType}`, async () => {
       switch (contentType) {
-        case 'Page':
+        case ContentType.PAGE:
           await this.clickOnElement(this.pageOption);
           break;
-        case 'Album':
+        case ContentType.ALBUM:
           await this.clickOnElement(this.albumOption);
           break;
-        case 'Event':
+        case ContentType.EVENT:
           await this.clickOnElement(this.eventOption);
           break;
+        default:
+          throw new Error(`Unsupported content type: ${contentType}`);
       }
     });
   }
@@ -78,10 +80,10 @@ export class CreateComponent extends BaseComponent {
    * @param options - The options for the step
    * @returns The site creation modal component
    */
-  async selectSiteOptionAndOpenModal(options?: { stepInfo?: string }): Promise<SiteCreationModalComponent> {
+  async selectSiteOptionAndOpenModal(options?: { stepInfo?: string }): Promise<SiteCeationFormComponent> {
     return await test.step(options?.stepInfo || 'Selecting Site option', async () => {
       await this.clickOnElement(this.siteOption);
-      const siteCreationModal = new SiteCreationModalComponent(this.page);
+      const siteCreationModal = new SiteCeationFormComponent(this.page);
       await siteCreationModal.verifyTheSiteCreationFormIsVisible();
       return siteCreationModal;
     });

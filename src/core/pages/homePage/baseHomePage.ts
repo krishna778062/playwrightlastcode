@@ -12,7 +12,6 @@ import { CreateComponent } from '@/src/modules/content/components/createComponen
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
-import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 import { SiteCreationPage } from '@/src/modules/content/pages/siteCreationPage';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/globalSearchResultPage';

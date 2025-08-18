@@ -1,4 +1,5 @@
-import { Locator, Page, test, expect } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
+
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation.abac';
 
@@ -21,4 +22,4 @@ export class SubscriptionsSectionComponent extends BaseComponent {
       await expect(this.page.getByText(SiteCreationUI.DESCRIPTIONS.SUBSCRIPTION_WARNING)).toBeVisible();
     });
   }
-} 
+}

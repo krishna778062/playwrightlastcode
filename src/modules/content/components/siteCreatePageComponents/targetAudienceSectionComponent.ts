@@ -1,4 +1,5 @@
-import { Locator, Page, test, expect } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
+
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation.abac';
 
@@ -27,7 +28,10 @@ export class TargetAudienceSectionComponent extends BaseComponent {
   constructor(page: Page) {
     super(page);
     this.targetAudienceHeading = page.getByRole('heading', { name: 'Target audience and' });
-    this.targetAudienceDropdown = page.locator('div').filter({ hasText: /^Target audience\*$/ }).locator('span');
+    this.targetAudienceDropdown = page
+      .locator('div')
+      .filter({ hasText: /^Target audience\*$/ })
+      .locator('span');
     this.browseAudiencesButton = page.getByRole('button', { name: SiteCreationUI.BUTTONS.BROWSE });
 
     this.targetAudienceModalTitle = page.getByText('Audiences', { exact: true });
@@ -42,7 +46,10 @@ export class TargetAudienceSectionComponent extends BaseComponent {
     this.everyoneInOrgText = page.getByText('Everyone in organization');
     this.userCountText = page.locator('text=/\\d+ users/');
     this.basedOnAudiencesText = page.getByText('Based on the audiences');
-    this.editIconWhenTAIsAllOrg = page.locator('#page-content').getByText('Cannot edit while', { exact: false }).first();
+    this.editIconWhenTAIsAllOrg = page
+      .locator('#page-content')
+      .getByText('Cannot edit while', { exact: false })
+      .first();
 
     this.allOrgSelectionConfirmation = this.audiencePickerContainer.getByText("You've selected 'All", { exact: false });
     this.allOrgDescription = this.audiencePickerContainer.getByText('This will target everyone in', { exact: false });
@@ -51,7 +58,9 @@ export class TargetAudienceSectionComponent extends BaseComponent {
   async verifySection(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Verify Target audience section', async () => {
       await expect(this.targetAudienceHeading).toBeVisible();
-      await expect(this.page.getByText(SiteCreationUI.LABELS.TARGET_AUDIENCE.replace(' *', ''), { exact: true })).toBeVisible();
+      await expect(
+        this.page.getByText(SiteCreationUI.LABELS.TARGET_AUDIENCE.replace(' *', ''), { exact: true })
+      ).toBeVisible();
       await expect(this.page.getByText(SiteCreationUI.DESCRIPTIONS.TARGET_AUDIENCE_HELP)).toBeVisible();
       await expect(this.page.getByText(SiteCreationUI.PLACEHOLDERS.NO_AUDIENCES)).toBeVisible();
       await expect(this.browseAudiencesButton).toBeVisible();
@@ -95,7 +104,7 @@ export class TargetAudienceSectionComponent extends BaseComponent {
 
       await expect(this.audienceDoneButton).toBeEnabled();
       await this.clickOnElement(this.audienceDoneButton);
-      await this.audiencePickerContainer.waitFor({ state: 'detached', timeout: 10000 });  // Ensure modal is gone before main-form checks
+      await this.audiencePickerContainer.waitFor({ state: 'detached', timeout: 10000 }); // Ensure modal is gone before main-form checks
 
       await this.verifier.verifyTheElementIsVisible(this.selectedAudienceText);
       await this.verifier.verifyTheElementIsVisible(this.everyoneInOrgText);
@@ -104,4 +113,4 @@ export class TargetAudienceSectionComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.editIconWhenTAIsAllOrg);
     });
   }
-} 
+}

@@ -1,11 +1,12 @@
-import { Locator, Page, test, expect } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
+
 import { BaseComponent } from '@core/components/baseComponent';
-import { SiteCreationPayload } from '@core/types/siteManagement.types';
-import { SiteType } from '../../constants/siteTypeAbac';
-import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation.abac';
+
 import { AccessSectionComponent } from './accessSectionComponent';
-import { TargetAudienceSectionComponent } from './targetAudienceSectionComponent';
 import { SubscriptionsSectionComponent } from './subscriptionsSectionComponent';
+import { TargetAudienceSectionComponent } from './targetAudienceSectionComponent';
+
+import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation.abac';
 
 /**
  * SiteCreationModalComponent
@@ -13,7 +14,7 @@ import { SubscriptionsSectionComponent } from './subscriptionsSectionComponent';
  * This component represents the modal that appears when you click "Create" > "Site"
  * It handles all interactions with form fields, buttons, and validation of the site creation flow
  */
-export class SiteCreationModalComponent extends BaseComponent {
+export class SiteCeationFormComponent extends BaseComponent {
   // =============================================================================
   // LOCATORS - All the UI elements we need to interact with
   // =============================================================================
@@ -38,8 +39,7 @@ export class SiteCreationModalComponent extends BaseComponent {
     super(page);
 
     // Initialize modal structure locators
-    this.modalContainer = page
-      .locator('div[role="dialog"]').filter({ hasText: SiteCreationUI.HEADINGS.ADD_SITE });
+    this.modalContainer = page.locator('div[role="dialog"]').filter({ hasText: SiteCreationUI.HEADINGS.ADD_SITE });
     this.addSiteHeading = page.getByRole('heading', { name: SiteCreationUI.HEADINGS.ADD_SITE });
     this.cancelButton = page.locator(`text=${SiteCreationUI.BUTTONS.CANCEL}`);
     this.addSiteButton = page.getByRole('button', { name: SiteCreationUI.BUTTONS.ADD_SITE });
@@ -120,40 +120,9 @@ export class SiteCreationModalComponent extends BaseComponent {
     });
   }
 
-  async createSite(options: {
-    name: string;
-    category?: string;
-    type: SiteType;
-    stepInfo?: string;
-    apiPayload?: Partial<SiteCreationPayload>;
-  }): Promise<void> {
-    await test.step(options.stepInfo || `Create ${options.type} site: ${options.name}`, async () => {
-      await this.fillSiteDetails({
-        name: options.name,
-        category: options.category,
-        isPrivate: options.type === SiteType.PRIVATE,
-      });
-
-      await this.setupTargetAudience();
-
-      const isPrivate = options.type === SiteType.PRIVATE;
-      await this.setMembershipApproval('manual', isPrivate);
-
-      await this.clickOnElement(this.addSiteButton);
-    });
-  }
-
   async cancelSiteCreation(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Cancel site creation', async () => {
       await this.clickOnElement(this.cancelButton);
     });
   }
-
-  async verifySiteCreatedSuccessfully(siteName: string, options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo || `Verify site "${siteName}" created successfully`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.successMessage, {
-        assertionMessage: `Site creation success message should be visible for ${siteName}`,
-      });
-    });
-  }
-} 
+}
