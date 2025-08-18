@@ -21,6 +21,11 @@ export const UI_ACTIONS = {
   ADD_TO_SITE: 'Add to site dashboard',
 } as const;
 
+// Default site names used in integrations tests
+export const DEFAULT_SITES = {
+  AUTOMATION_PUBLIC: 'Automation_PublicSiteS',
+} as const;
+
 export enum ActionType {
   Add = 'Add',
   Create = 'Create',

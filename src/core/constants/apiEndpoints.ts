@@ -65,4 +65,23 @@ export const API_ENDPOINTS = {
     settings: '/v1/account/apps-links-settings',
     list: '/v1/account/launchpad/apps/list',
   },
+  integrations: {
+    tiles: '/v1/tiles',
+    tilesRootInstances: '/v1/tiles/root/instances',
+    tilesInstances: '/v1/tiles/instances',
+    contentTiles: '/v1/content/tiles',
+  },
+} as const;
+
+// Query parameters
+export const API_QUERY_PARAMS = {
+  TYPE_APP: 'type=app',
+  DASHBOARD_HOME: 'dashboard=home',
+  HIDE_TILE_FALSE: 'hideTile=false',
+} as const;
+
+// HTTP headers
+export const API_HEADERS = {
+  ACCEPT: 'application/json',
+  CONTENT_TYPE: 'application/json',
 } as const;
