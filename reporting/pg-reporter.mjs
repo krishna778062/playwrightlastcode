@@ -7,7 +7,6 @@
 
 import fs from 'fs';
 import path from 'path';
-import { Client } from 'pg';
 import dotenv from 'dotenv';
 import { Pool } from 'pg'; // Change import
 
@@ -412,11 +411,10 @@ class PostgresPlaywrightReporter {
   }
 
   generateReportUrl(testId) {
-    const reportDomain = process.env.REPORT_DOMAIN || 'http://localhost:9323';
     const reportPath = process.env.REPORT_PATH || '';
 
     // Construct full URL: http://localhost:9323/reports/2025-08-08/#?testId=abc123
-    const fullUrl = `${reportDomain}${reportPath}/#?testId=${testId}`;
+    const fullUrl = `${reportPath}/#?testId=${testId}`;
 
     return fullUrl;
   }
