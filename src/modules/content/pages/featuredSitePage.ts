@@ -1,14 +1,13 @@
-import { expect, Locator, Page, test } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/pages/basePage';
-import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 
 import { FeatureSiteComponent } from '../components/featureSiteComponent';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+
 export interface IFeaturedSiteActions {
-  navigateToFeaturedSitesTab: (homePage: NewUxHomePage) => Promise<void>;
   addSiteToFeatured: (siteName: string) => Promise<void>;
-  navigateToHomePage: (homePage: NewUxHomePage, siteNames: string[]) => Promise<void>;
   navigateToSiteDashboard: (siteName: string) => Promise<void>;
 }
 
@@ -19,7 +18,10 @@ export interface IFeaturedSiteAssertions {
 }
 
 export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, IFeaturedSiteAssertions {
+  //COMPONENTS
   private featureSiteComponent: FeatureSiteComponent;
+
+  //LOCATORS
   readonly featuredTab = this.page.locator('a').filter({ hasText: 'Featured' });
   readonly featuredSiteNames = this.page
     .locator('#panel-featured')
@@ -30,13 +32,16 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
 
   constructor(page: Page) {
-    super(page);
+    super(page, PAGE_ENDPOINTS.FEATURED_SITES_PAGE);
     this.featureSiteComponent = new FeatureSiteComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify Featured Sites page is loaded', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.featuredTab);
+      await this.verifier.verifyTheElementIsVisible(this.featuredTab, {
+        assertionMessage: 'Verify Featured Sites page is loaded',
+        timeout: 15_000,
+      });
     });
   }
 
@@ -48,16 +53,16 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
     return this;
   }
 
-  /**
-   * Complete flow to navigate to featured sites tab
-   * @param homePage - The home page instance to navigate from
-   */
-  async navigateToFeaturedSitesTab(homePage: NewUxHomePage): Promise<void> {
-    await test.step('Navigate to Sites > Featured tab', async () => {
-      await homePage.clickOnSitesFromSideBar();
-      // Wait for DOM to load after navigation
-      await this.page.waitForLoadState('domcontentloaded');
-      await this.clickOnElement(this.featuredTab);
+  private async clickOnFeaturedSite(siteName: string): Promise<void> {
+    await test.step(`Click on featured site: ${siteName}`, async () => {
+      const featuredSite = this.featuredSiteNames.getByText(siteName);
+      await this.clickOnElement(featuredSite);
+    });
+  }
+
+  async navigateToSiteDashboard(siteName: string): Promise<void> {
+    await test.step(`Navigate to ${siteName} dashboard`, async () => {
+      await this.clickOnFeaturedSite(siteName);
     });
   }
 
@@ -70,27 +75,6 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
       await this.featureSiteComponent.searchFeaturedSite(siteName);
       await this.featureSiteComponent.clickAddButton();
       await this.featureSiteComponent.clickDoneButton();
-    });
-  }
-
-  /**
-   * Complete flow to navigate to home and verify featured sites
-   * @param homePage - The home page instance to navigate with
-   * @param siteNames - Array of site names to verify in featured dropdown
-   */
-  async navigateToHomePage(homePage: NewUxHomePage, siteNames: string[]): Promise<void> {
-    await test.step('Navigate to Home and verify featured sites', async () => {
-      await homePage.navigateToHomePage();
-    });
-  }
-
-  /**
-   * Complete flow to navigate to a site dashboard
-   * @param siteName - Name of the site to navigate to
-   */
-  async navigateToSiteDashboard(siteName: string): Promise<void> {
-    await test.step(`Navigate to ${siteName} dashboard`, async () => {
-      await this.clickOnFeaturedSite(siteName);
     });
   }
 
@@ -123,17 +107,6 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
 
       // Simply verify the filtered element is visible
       await this.verifier.verifyTheElementIsVisible(specificSite);
-    });
-  }
-
-  /**
-   * Clicks on a specific featured site
-   * @param siteName - Name of the site to click
-   */
-  private async clickOnFeaturedSite(siteName: string): Promise<void> {
-    await test.step(`Click on featured site: ${siteName}`, async () => {
-      const featuredSite = this.featuredSiteNames.getByText(siteName);
-      await this.clickOnElement(featuredSite);
     });
   }
 
