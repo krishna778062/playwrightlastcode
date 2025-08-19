@@ -119,11 +119,11 @@ jobs:
           DB_ACQUIRE_TIMEOUT: 60000
           DB_IDLE_TIMEOUT: 15000
           DB_ALLOW_EXIT_ON_IDLE: true
-          DB_HOST: ${{secrets.PG_DB_HOST}}
-          DB_PORT: ${{secrets.PG_DB_PORT}}
-          DB_NAME: ${{secrets.PG_DB_NAME}}
-          DB_USER: ${{secrets.PG_DB_USER}}
-          DB_PASSWORD: ${{secrets.PG_DB_PASSWORD}}
+          PG_DB_HOST: ${{secrets.PG_DB_HOST}}
+          PG_DB_PORT: ${{secrets.PG_DB_PORT}}
+          PG_DB_NAME: ${{secrets.PG_DB_NAME}}
+          PG_DB_USER: ${{secrets.PG_DB_USER}}
+          PG_DB_PASSWORD: ${{secrets.PG_DB_PASSWORD}}
           TEAM_NAME: core
           TEST_ENV: ${{ matrix.environment }}
           MODULE_NAME: ${{ matrix.module }}
@@ -179,32 +179,32 @@ jobs:
             echo "No tests ran, skipping success notification"
           fi
 
-      - name: Send Smart Slack Notifications
-        if: always()
-        run: |
-          # Check if tests were executed
-          if [ -f "test-results/test-results.json" ]; then
-            TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped' test-results/test-results.json)
-            
-            if [ "$TOTAL_TESTS" -eq 0 ]; then
-              # No tests found
-              echo "No tests were found matching the criteria"
-              NO_TESTS_MESSAGE="⚠️ *Daily Regression: No Tests Found* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
-              echo "NO_TESTS_MESSAGE: $NO_TESTS_MESSAGE"
-              curl -X POST -H 'Content-type: application/json' \
-                --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
-                $SLACK_WEBHOOK_URL
-            else
-              # Tests were found and executed (pass or fail)
-              echo "Tests were found: $TOTAL_TESTS"
-              # Success notification already sent in previous step, no additional notification needed
-            fi
-          else
-            # No test results file - this means pipeline failed before tests could run
-            echo "No test results file found - pipeline likely failed"
-            FAILURE_MESSAGE="🚨 *Daily Regression Pipeline Failed* - \`${{ matrix.module }}\` module pipeline on \`${{ matrix.environment }}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
-            echo "FAILURE_MESSAGE: $FAILURE_MESSAGE"
-            curl -X POST -H 'Content-type: application/json' \
-              --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
-              $SLACK_WEBHOOK_URL
-          fi
+      # - name: Send Smart Slack Notifications
+      #   if: always()
+      #   run: |
+      #     # Check if tests were executed
+      #     if [ -f "test-results/test-results.json" ]; then
+      #       TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped' test-results/test-results.json)
+
+      #       if [ "$TOTAL_TESTS" -eq 0 ]; then
+      #         # No tests found
+      #         echo "No tests were found matching the criteria"
+      #         NO_TESTS_MESSAGE="⚠️ *Daily Regression: No Tests Found* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+      #         echo "NO_TESTS_MESSAGE: $NO_TESTS_MESSAGE"
+      #         curl -X POST -H 'Content-type: application/json' \
+      #           --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
+      #           $SLACK_WEBHOOK_URL
+      #       else
+      #         # Tests were found and executed (pass or fail)
+      #         echo "Tests were found: $TOTAL_TESTS"
+      #         # Success notification already sent in previous step, no additional notification needed
+      #       fi
+      #     else
+      #       # No test results file - this means pipeline failed before tests could run
+      #       echo "No test results file found - pipeline likely failed"
+      #       FAILURE_MESSAGE="🚨 *Daily Regression Pipeline Failed* - \`${{ matrix.module }}\` module pipeline on \`${{ matrix.environment }}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+      #       echo "FAILURE_MESSAGE: $FAILURE_MESSAGE"
+      #       curl -X POST -H 'Content-type: application/json' \
+      #         --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
+      #         $SLACK_WEBHOOK_URL
+      #     fi
