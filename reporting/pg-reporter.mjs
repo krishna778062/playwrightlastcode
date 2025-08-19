@@ -11,7 +11,24 @@ import dotenv from 'dotenv';
 import { Pool } from 'pg'; // Change import
 
 // Load environment variables
-dotenv.config({ path: 'pg.env' });
+if (!process.env.CI) {
+  if (fs.existsSync('pg.env')) {
+    dotenv.config({ path: 'pg.env' });
+  } else {
+    throw new Error('❌ pg.env file not found to run on local');
+  }
+} else {
+  //check if the required env variables are set
+  if (
+    !process.env.PG_DB_HOST ||
+    !process.env.PG_DB_PORT ||
+    !process.env.PG_DB_NAME ||
+    !process.env.PG_DB_USER ||
+    !process.env.PG_DB_PASSWORD
+  ) {
+    throw new Error('❌ Required environment variables are not set to run on CI');
+  }
+}
 
 /**
  * Execution ID Generator for GitHub Actions
@@ -88,11 +105,11 @@ class ExecutionIdGenerator {
 class PostgresPlaywrightReporter {
   constructor() {
     this.pool = new Pool({
-      host: process.env.DB_HOST || 'localhost',
-      port: process.env.DB_PORT || 5432,
-      database: process.env.DB_NAME || 'qa_automation',
-      user: process.env.DB_USER || 'e2e_admin',
-      password: process.env.DB_PASSWORD || 'Simpplr@2025',
+      host: process.env.PG_DB_HOST || 'localhost',
+      port: process.env.PG_DB_PORT || 5432,
+      database: process.env.PG_DB_NAME || 'qa_automation',
+      user: process.env.PG_DB_USER || 'e2e_admin',
+      password: process.env.PG_DB_PASSWORD || 'Simpplr@2025',
       // Connection pool settings for concurrency
       max: parseInt(process.env.DB_POOL_MAX) || 5, // Max 5 connections per reporter instance
       min: parseInt(process.env.DB_POOL_MIN) || 1, // Keep 1 connection alive

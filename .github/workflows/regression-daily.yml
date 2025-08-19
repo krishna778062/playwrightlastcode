@@ -112,12 +112,29 @@ jobs:
 
       - name: Upload Regression Data to Postgres
         if: always()
+        env:
+          DB_POOL_MAX: 3
+          DB_POOL_MIN: 1
+          DB_CONNECTION_TIMEOUT: 10000
+          DB_ACQUIRE_TIMEOUT: 60000
+          DB_IDLE_TIMEOUT: 15000
+          DB_ALLOW_EXIT_ON_IDLE: true
+          DB_HOST: ${{secrets.PG_DB_HOST}}
+          DB_PORT: ${{secrets.PG_DB_PORT}}
+          DB_NAME: ${{secrets.PG_DB_NAME}}
+          DB_USER: ${{secrets.PG_DB_USER}}
+          DB_PASSWORD: ${{secrets.PG_DB_PASSWORD}}
+          TEAM_NAME: core
+          TEST_ENV: ${{ matrix.environment }}
+          MODULE_NAME: ${{ matrix.module }}
+          REPORT_PATH: ${{ env.TIMESTAMPED_REPORT_URL }}
+          IS_REGRESSION: true
         run: |
           # Upload regression data to postgres
           echo "Uploading regression data to postgres..."
           # set the env variable to set the meta data for the report
-          IS_REGRESSION=true REPORT_PATH=${{ env.TIMESTAMPED_REPORT_URL }} MODULE_NAME=${{ matrix.module }} TEST_ENV=${{ matrix.environment }} npm run report:postgres
-          echo "Regression data uploaded successfully!"
+          npm run report:postgres
+          echo "Regression data uploaded successfully to postgres"
 
       - name: Parse Test Results
         if: always()
