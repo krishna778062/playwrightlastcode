@@ -103,40 +103,48 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
   const giftCards = [{ country: 'Turkey', name: 'A101 Turkey' }];
   for (const giftCard of giftCards) {
     test.describe(`Gift Card Visibility Tests for ${giftCard.name}`, () => {
-      test('RC-5565 - Gift card should NOT be visible when set to Inactive', async ({ recoManagerPage }) => {
-        const manageRewardsPage = new ManageRewardsPage(recoManagerPage);
-        const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
-        const rewardsStorePage = new RewardsStore(recoManagerPage);
+      test(
+        'RC-5565 - Gift card should NOT be visible when set to Inactive',
+        { tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE] },
+        async ({ recoManagerPage }) => {
+          const manageRewardsPage = new ManageRewardsPage(recoManagerPage);
+          const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
+          const rewardsStorePage = new RewardsStore(recoManagerPage);
 
-        await manageRewardsPage.visit();
-        await manageRewardsPage.verifyThePageIsLoaded();
-        expect(await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options')).toBeTruthy();
+          await manageRewardsPage.visit();
+          await manageRewardsPage.verifyThePageIsLoaded();
+          expect(await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options')).toBeTruthy();
 
-        await rewardOptionsPage.setGiftCardState(rewardOptionsPage, giftCard.name, 'Inactive');
+          await rewardOptionsPage.setGiftCardState(rewardOptionsPage, giftCard.name, 'Inactive');
 
-        await rewardsStorePage.visit();
-        await rewardsStorePage.selectCountry(giftCard.country);
-        await rewardsStorePage.searchForGiftCard(giftCard.name);
-        await rewardsStorePage.verifyGiftCardNotVisible();
-      });
+          await rewardsStorePage.visit();
+          await rewardsStorePage.selectCountry(giftCard.country);
+          await rewardsStorePage.searchForGiftCard(giftCard.name);
+          await rewardsStorePage.verifyGiftCardNotVisible();
+        }
+      );
 
-      test('RC-5376 - Gift card SHOULD be visible when set to Active', async ({ recoManagerPage }) => {
-        const manageRewardsPage = new ManageRewardsPage(recoManagerPage);
-        const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
-        const rewardsStorePage = new RewardsStore(recoManagerPage);
+      test(
+        'RC-5376 - Gift card SHOULD be visible when set to Active',
+        { tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE] },
+        async ({ recoManagerPage }) => {
+          const manageRewardsPage = new ManageRewardsPage(recoManagerPage);
+          const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
+          const rewardsStorePage = new RewardsStore(recoManagerPage);
 
-        await manageRewardsPage.visit();
-        await manageRewardsPage.verifyThePageIsLoaded();
-        expect(await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options')).toBeTruthy();
+          await manageRewardsPage.visit();
+          await manageRewardsPage.verifyThePageIsLoaded();
+          expect(await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options')).toBeTruthy();
 
-        await rewardOptionsPage.visit();
-        await rewardOptionsPage.setGiftCardState(rewardOptionsPage, giftCard.name, 'Active');
+          await rewardOptionsPage.visit();
+          await rewardOptionsPage.setGiftCardState(rewardOptionsPage, giftCard.name, 'Active');
 
-        await rewardsStorePage.visit();
-        await rewardsStorePage.selectCountry(giftCard.country);
-        await rewardsStorePage.searchForGiftCard(giftCard.name);
-        await rewardsStorePage.verifyGiftCardVisible(giftCard.name);
-      });
+          await rewardsStorePage.visit();
+          await rewardsStorePage.selectCountry(giftCard.country);
+          await rewardsStorePage.searchForGiftCard(giftCard.name);
+          await rewardsStorePage.verifyGiftCardVisible(giftCard.name);
+        }
+      );
     });
   }
 });
