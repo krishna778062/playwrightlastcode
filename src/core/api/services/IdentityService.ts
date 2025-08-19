@@ -276,14 +276,95 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
   }
 
   /**
-   * Deletes audience under the given category name
+   * Polls the delete API for the audience with the given audienceId until we get 200 response
    * @param audienceId - Audience Id for the audience which will be deleted
    */
   async deleteAudience(audienceId: string): Promise<void> {
     await test.step(`Deleting audience with audience Id: ${audienceId}`, async () => {
-      const response = await this.delete(API_ENDPOINTS.appManagement.identity.v2IdentityAudiences + '/' + audienceId);
-      expect(response.status(), 'Audience deleted successfully').toEqual(200);
-      console.log(`Audience with audienceId: ${audienceId} is deleted`);
+      await expect(async () => {
+        const response = await this.delete(API_ENDPOINTS.appManagement.identity.v2IdentityAudiences + '/' + audienceId);
+        expect(response.status(), 'Audience deleted successfully').toEqual(200);
+        console.log(`Audience with audienceId: ${audienceId} is deleted`);
+      }, `Polling delete API for audience with audienceId: ${audienceId} until we get 200 response`).toPass({
+        timeout: 10000,
+        intervals: [1000, 4000, 7000, 10000],
+      });
+    });
+  }
+
+  /**
+   * Deletes an ACG with the given name
+   * @param acgName - Name of the ACG to be deleted
+   */
+  async deleteACGByName(acgName: string): Promise<void> {
+    await test.step(`Deleting ACG with name: ${acgName}`, async () => {
+      //first get the acg id
+      const acgId = await this.getACGId(acgName);
+      console.log(`ACG id for ACG ${acgName} is ${acgId}`);
+      const response = await this.delete(API_ENDPOINTS.appManagement.identity.deleteAccessControlGroup(acgId));
+      expect(response.status(), 'ACG deleted successfully').toEqual(200);
+      console.log(`ACG with name: ${acgName} is deleted`);
+    });
+  }
+
+  /**
+   * Deletes an ACG with the given id
+   * @param acgId - Id of the ACG to be deleted
+   */
+  async deleteACGById(acgId: string): Promise<void> {
+    await test.step(`Deleting ACG with id: ${acgId}`, async () => {
+      const response = await this.delete(API_ENDPOINTS.appManagement.identity.deleteAccessControlGroup(acgId));
+      expect(response.status(), 'ACG deleted successfully').toEqual(200);
+      console.log(`ACG with id: ${acgId} is deleted`);
+    });
+  }
+
+  /**
+   * Gets the ACG id for a given ACG name
+   * @param acgName - Name of the ACG
+   * @returns - Returns the ACG id for the given ACG name
+   */
+  async getACGId(acgName: string): Promise<string> {
+    const listOfACGResponse = await this.getListOfACGs(acgName);
+    const listOfACGsJson = await listOfACGResponse.json();
+    expect(listOfACGsJson.status, `Expecting status to be successful`).toBe('success');
+    expect(listOfACGsJson.result.listOfItems.length, `Expecting list of ACGs to be non-empty`).toBe(1);
+    const acgId = listOfACGsJson.result.listOfItems[0].data.id;
+    expect(acgId, `Expecting ACG id to be non-empty`).not.toBe('');
+    return acgId;
+  }
+
+  async getListOfACGs(acgName: string) {
+    const payloadToGetListOfACGs = {
+      sortBy: 'modified_on',
+      sortOrder: 'DESC',
+      nextPageToken: '0',
+      size: '16',
+      term: acgName,
+    };
+    const listOfACGResponse = await this.post(API_ENDPOINTS.appManagement.identity.listOfAccessControlGroups, {
+      data: payloadToGetListOfACGs,
+    });
+    return listOfACGResponse;
+  }
+  /**
+   * Waits until the ACG is synced
+   * @param acgName - Name of the ACG
+   */
+  async waitUntilACGIsSynced(acgName: string): Promise<void> {
+    await test.step(`Waiting for ACG to be synced`, async () => {
+      await expect(async () => {
+        const listOfACGResponse = await this.getListOfACGs(acgName);
+        const listOfACGsJson = await listOfACGResponse.json();
+        expect(listOfACGsJson.status, `Expecting status to be successful`).toBe('success');
+        expect(listOfACGsJson.result.listOfItems.length, `Expecting list of ACGs to be non-empty`).toBe(1);
+        //now check if the acg is synced
+        const acgSyncStatus = listOfACGsJson.result.listOfItems[0].data.syncStatus;
+        expect(acgSyncStatus, `Expecting ACG sync status to be Synced`).toBe('Synced');
+      }, `Polling get list of ACGs API for ACG ${acgName} until we get Synced status`).toPass({
+        timeout: 40_000,
+        intervals: [1000, 4000, 7000, 10000, 20000, 30000, 40000],
+      });
     });
   }
 }

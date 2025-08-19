@@ -120,38 +120,35 @@ export class AccessControlGroupsPage extends BasePage {
     });
   }
 
-  // Deletes first ACG in the list at ACG Page
+  /**
+   * Deletes first ACG in the list at ACG Page
+   * @param options - Optional parameters for clicking on the element.
+   */
   async deleteFirstACG(options?: { stepInfo?: string; timeout?: number }): Promise<void> {
-    await test.step(options?.stepInfo ?? `Click on menu options button for first ACG in the list`, async () => {
-      await this.clickOnElement(this.acgMenuOptions.first(), {
-        timeout: options?.timeout ?? 10_000,
-      });
-    });
     await test.step(options?.stepInfo ?? `Click on Delete option for first ACG in the list`, async () => {
+      await this.clickOnElement(this.acgMenuOptions.first(), {
+        stepInfo: 'Click on menu options button for first ACG in the list',
+      });
       try {
         await this.clickOnElement(this.acgDeleteButton, {
-          timeout: options?.timeout ?? 10_000,
+          stepInfo: 'Click on Delete option for first ACG in the list',
         });
-        expect(this.verifier.verifyTheElementIsVisible(this.iUnderstand)).toBeTruthy;
-        // await expect(this.iUnderstand).toBeVisible();
+        await this.verifier.verifyTheElementIsVisible(this.iUnderstand, {
+          assertionMessage: 'Verify the I understand checkbox is visible',
+        });
       } catch (e) {
         console.log("couldn't click the delete button on first try");
-        await this.clickOnElement(this.acgDeleteButton, {
-          timeout: options?.timeout ?? 10_000,
+        await this.clickOnElementWithCoordinates(this.acgDeleteButton, {
           force: true,
-          stepInfo: 'Clicking on the Delete button with force',
+          stepInfo: 'Clicking on the Delete button with coordinates',
         });
       }
     });
-    await test.step(options?.stepInfo ?? `Check the I understand checkbox on Delete ACG popup`, async () => {
-      await this.clickOnElement(this.iUnderstand, {
-        timeout: options?.timeout ?? 10_000,
-      });
+    await this.clickOnElement(this.iUnderstand, {
+      stepInfo: 'Click on the I understand checkbox',
     });
-    await test.step(options?.stepInfo ?? `Click on Delete button on Delete ACG popup`, async () => {
-      await this.clickOnElement(this.acgDeleteButton, {
-        timeout: options?.timeout ?? 10_000,
-      });
+    await this.clickOnElement(this.acgDeleteButton, {
+      stepInfo: 'Click on Delete button on Delete ACG popup',
     });
   }
 
@@ -161,19 +158,22 @@ export class AccessControlGroupsPage extends BasePage {
    */
   async getACGName(): Promise<string> {
     return await test.step(`Getting ACG Name`, async () => {
-      return (await this.acgNameInputBox.inputValue()) || '';
+      await expect(this.acgNameInputBox, `expecting ACG name input box to not have value`).not.toHaveValue('');
+      return await this.acgNameInputBox.inputValue();
     });
   }
 
   /**
-   * Gets ACG Name for input box while editing/creating an ACG.
+   * Searches for an ACG by name.
+   * This will also wait for the url to contain the acg name as query param
    * @param acgName - Name of the ACG to be searched.
    */
   async searchForACG(acgName: string): Promise<void> {
     await test.step(`Searching for ACG: ${acgName}`, async () => {
       await this.fillInElement(this.acgSearchBox, acgName);
       await this.acgSearchBox.press('Enter');
-      await this.sleep(2000);
+      //encoded url with acg name as query param
+      await this.page.waitForURL(this.pageUrl + '?q=' + encodeURIComponent(acgName), { waitUntil: 'domcontentloaded' });
     });
   }
 }

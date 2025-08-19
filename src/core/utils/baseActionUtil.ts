@@ -89,6 +89,30 @@ export class BaseActionUtil {
   }
 
   /**
+   * Clicks on an element with coordinates
+   * @param selectorOrLocator - The selector or locator to click on
+   * @param options - The options to pass to the click method
+   */
+  async clickOnElementWithCoordinates(selectorOrLocator: string | Locator, options?: CustomClickOptions) {
+    //we will use this option later in catch block
+    const selfHealing = options?.selfHealing ?? false;
+    const eleToClick = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
+    await test.step(options?.stepInfo || `Click on ${selectorOrLocator}`, async () => {
+      try {
+        const eleCoordinates = await eleToClick.boundingBox();
+        const eleCentre = {
+          x: (eleCoordinates?.x ?? 0) + (eleCoordinates?.width ?? 0) / 2,
+          y: (eleCoordinates?.y ?? 0) + (eleCoordinates?.height ?? 0) / 2,
+        };
+        await this.page.mouse.move(eleCentre.x, eleCentre.y);
+        await this.page.mouse.click(eleCentre.x, eleCentre.y);
+      } catch (error) {
+        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.CLICK_WITH_COORDINATES, selectorOrLocator);
+      }
+    });
+  }
+
+  /**
    * Check an element
    * @param selectorOrLocator - The selector or locator to check on
    * @param options - The options to pass to the check method
@@ -273,7 +297,7 @@ export class BaseActionUtil {
    *
    */
   async addInputFiles(selectorOrLocator: string | Locator, filePath: string) {
-    const eleToAdd = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
+    const eleToAdd = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
     if (FileUtil.fileExists(filePath)) {
       await eleToAdd.setInputFiles(filePath);
     } else {
