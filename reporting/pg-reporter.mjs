@@ -429,10 +429,18 @@ class PostgresPlaywrightReporter {
 
   generateReportUrl(testId) {
     const reportPath = process.env.REPORT_PATH || '';
+    console.log('🔍 Report path:', reportPath);
 
+    // If REPORT_PATH is already a complete URL (starts with http/https), use it as-is
+    if (reportPath.startsWith('http://') || reportPath.startsWith('https://')) {
+      // For complete URLs, we can optionally add testId as a query parameter
+      // but since the current structure doesn't support it well, return the base URL
+      return reportPath;
+    }
+
+    // Fallback for local development or incomplete paths
     // Construct full URL: http://localhost:9323/reports/2025-08-08/#?testId=abc123
     const fullUrl = `${reportPath}/#?testId=${testId}`;
-
     return fullUrl;
   }
 
