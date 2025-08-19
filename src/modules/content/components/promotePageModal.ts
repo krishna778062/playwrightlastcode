@@ -65,7 +65,7 @@ export class PromotePageModal extends BaseComponent {
    * @param options - The options for handling the promotion
    */
   async handlePromotion(options?: { promoteAction?: PromotePageOptions }) {
-    if (await this.verifier.isTheElementVisible(this.skipPromotionButton)) {
+    if (await this.verifier.isTheElementVisible(this.skipPromotionButton, { timeout: 2_000 })) {
       await this.clickOnSkipPromotionButton();
     }
   }

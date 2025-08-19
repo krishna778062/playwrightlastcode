@@ -3,6 +3,7 @@ export const PAGE_ENDPOINTS = {
   HOME_PAGE: '/home',
   CHATS_PAGE: '/chat/conversations',
   AUDIO_VIDEO_CALL_PAGE: '/call',
+  FEATURED_SITES_PAGE: '/sites/featured',
 
   //rewards pages
   manageRewardsPage: '/manage/recognition/rewards/overview',
