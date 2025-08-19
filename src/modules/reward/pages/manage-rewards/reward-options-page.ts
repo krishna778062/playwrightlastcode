@@ -48,7 +48,8 @@ export class RewardOptionsPage extends BasePage {
     this.rewardOptionsTableContainer = this.rewardsOptionsContainer.locator('table[class*="Table-module__table"]');
     this.rewardsOptionsTableHeaders = this.rewardOptionsTableContainer.locator('thead tr th');
     this.rewardsOptionsTableNoResults = this.page.locator('[class*="DataGrid-module__emptyWrapper"] h3');
-    this.rewardsOptionsTableRow = this.page.getByTestId('dataGridRow');
+    // this.rewardsOptionsTableRow = this.page.getByTestId('dataGridRow');
+    this.rewardsOptionsTableRow = this.page.locator('[data-testid*="dataGridRow"]');
     this.rewardsOptionsTableRewardLogo = this.rewardsOptionsTableRow.locator('td img');
     this.rewardsOptionsTableRewardName = this.rewardsOptionsTableRow.locator('td:nth-child(1) p');
     this.rewardsOptionsTableRewardCount = this.rewardsOptionsTableRow.locator('td:nth-child(2) p');
@@ -97,7 +98,7 @@ export class RewardOptionsPage extends BasePage {
       await expect(this.searchInputClearButton).toBeVisible();
       await this.searchButton.click();
       if (shouldHaveResults) {
-        await this.verifier.verifyTheElementIsVisible(this.rewardsOptionsTableRewardName.last(), {
+        await this.verifier.verifyTheElementIsVisible(this.rewardsOptionsTableRow.last(), {
           assertionMessage: 'Verify the Reward name is visible in the search results',
         });
       } else {

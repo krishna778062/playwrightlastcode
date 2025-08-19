@@ -1,4 +1,4 @@
-import { Locator, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
@@ -26,26 +26,6 @@ export class RewardsStore extends BasePage {
   readonly giftCardCount: Locator;
   readonly resetButton: Locator;
   readonly legalTermText: Locator;
-  // order history page elements
-  readonly orderHistoryContainer: Locator;
-  readonly orderHistoryPanel: Locator;
-  readonly orderHistoryPanelRewardLogo: Locator;
-  readonly orderHistoryPanelRewardName: Locator;
-  readonly orderHistoryPanelRewardPrimaryEmail: Locator;
-  readonly orderHistoryPanelRewardResendButton: Locator;
-  readonly resentRewardDialog: Locator;
-  readonly resentRewardDialogBoxHeading: Locator;
-  readonly resentRewardDialogBoxDescription: Locator;
-  readonly resentRewardDialogBoxEmailLabel: Locator;
-  readonly resentRewardDialogBoxEmailInput: Locator;
-  readonly resentRewardInvalidEmailError: Locator;
-  readonly resentRewardDialogBoxConfirmEmailLabel: Locator;
-  readonly resentRewardDialogBoxConfirmEmailInput: Locator;
-  readonly resentRewardDoNotMatchEmailError: Locator;
-  readonly resentRewardDialogBoxCancel: Locator;
-  readonly resentRewardDialogBoxResend: Locator;
-  readonly disabledResendButton: Locator;
-  readonly resendOrderTooltip: Locator;
   readonly giftCardItems: Locator;
   readonly giftCardNames: Locator;
   readonly giftCardImages: Locator;
@@ -97,29 +77,6 @@ export class RewardsStore extends BasePage {
     this.giftCardImages = this.giftCardItems.locator('[class*="UI_image--"]');
     this.giftCardLabel = this.giftCardItems.locator('[class*="Distribute-module__apart"] p').nth(0);
     this.giftCardPointAmount = this.giftCardItems.locator('[class*="Distribute-module__apart"] p').nth(1);
-    // order history page
-    this.orderHistoryContainer = page.locator('[class*="OrderHistory_container"]');
-    this.orderHistoryPanel = this.orderHistoryContainer.locator('[class*="Panel-module__panel"]');
-    this.orderHistoryPanelRewardLogo = this.orderHistoryPanel.locator('img[class^="OrderHistory_brandImage"]');
-    this.orderHistoryPanelRewardName = this.orderHistoryPanel.locator('div h2:nth-child(1)');
-    this.orderHistoryPanelRewardPrimaryEmail = this.orderHistoryPanel.locator('div div[class*="OrderHistory_email"]');
-    this.orderHistoryPanelRewardResendButton = this.orderHistoryPanel.locator('button');
-    //resent dialog box
-    this.resentRewardDialog = page.locator('[role="dialog"]');
-    this.resentRewardDialogBoxHeading = this.resentRewardDialog.locator('h2 span');
-    this.resentRewardDialogBoxDescription = this.resentRewardDialog.locator('p[class*="Typography-module__paragraph"]');
-    this.resentRewardDialogBoxEmailLabel = this.resentRewardDialog.getByText('Email address*');
-    this.resentRewardDialogBoxEmailInput = this.resentRewardDialog.getByRole('textbox', { name: 'Email address*' });
-    this.resentRewardInvalidEmailError = this.resentRewardDialog.getByText('This is not a valid email');
-    this.resentRewardDialogBoxConfirmEmailLabel = this.resentRewardDialog.getByText('Confirm email*');
-    this.resentRewardDialogBoxConfirmEmailInput = this.resentRewardDialog.getByRole('textbox', {
-      name: 'Confirm email*',
-    });
-    this.resentRewardDoNotMatchEmailError = this.resentRewardDialog.getByText('Emails do not match');
-    this.resentRewardDialogBoxCancel = this.resentRewardDialog.getByRole('button', { name: 'Cancel' });
-    this.resentRewardDialogBoxResend = this.resentRewardDialog.locator('button[type="submit"]');
-    this.disabledResendButton = page.locator('[class*="OrderHistory_buttonContainer"] button');
-    this.resendOrderTooltip = page.locator('[role="tooltip"]');
   }
 
   /**
@@ -129,16 +86,6 @@ export class RewardsStore extends BasePage {
   async visit(): Promise<void> {
     await test.step('Navigate to the rewards store page via URL', async () => {
       await this.page.goto(rewardsEndpoint.rewardStorePage);
-    });
-  }
-
-  /**
-   * Navigates to the Order history in rewards store page.
-   * @returns {Promise<void>}
-   */
-  async visitTheOrderHistory(): Promise<void> {
-    await test.step('Navigate to the Order history page in rewards store page via URL', async () => {
-      await this.page.goto(rewardsEndpoint.rewardStoreOrderHistoryPage);
     });
   }
 
@@ -162,5 +109,18 @@ export class RewardsStore extends BasePage {
 
   verifyThePageIsLoaded(): Promise<void> {
     return Promise.resolve(undefined);
+  }
+
+  async verifyGiftCardNotVisible() {
+    await this.verifier.verifyTheElementIsVisible(this.noRewardsFoundHeading, {
+      assertionMessage: 'Verify the Gift card is not visible in the search results',
+    });
+  }
+
+  async verifyGiftCardVisible(giftCardName: string) {
+    await this.verifier.verifyTheElementIsVisible(this.giftCardNames.first(), {
+      assertionMessage: 'Verify the Reward name is visible in the search results',
+    });
+    await expect(this.giftCardNames.first()).toContainText(giftCardName);
   }
 }
