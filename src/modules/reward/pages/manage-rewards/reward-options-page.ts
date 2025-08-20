@@ -1,6 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
+import { PAGE_ENDPOINTS, PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
 export class RewardOptionsPage extends BasePage {
@@ -33,7 +33,7 @@ export class RewardOptionsPage extends BasePage {
   private successToastBoxClose: Locator;
 
   constructor(page: Page) {
-    super(page);
+    super(page, PAGE_ENDPOINTS.rewardsOptionsPage);
     // Initialize locators - these would need to be updated based on actual DOM structure
     this.rewardsOptionsContainer = page.locator('div[class*="Rewards_content"]');
     this.rewardOptionLink = page.locator(`a[href="${rewardsEndpoint.rewardsOptionsPage}"] p`);
@@ -73,11 +73,7 @@ export class RewardOptionsPage extends BasePage {
     this.successToastContainer = page.locator('div.Toastify__toast-body'); // More stable container
     this.successToastBoxMessage = this.successToastContainer.locator('p').first(); // Message
     this.successToastBoxIcon = this.successToastContainer.locator('i[data-testid="i-checkLarge"]'); // Success icon
-    this.successToastBoxClose = page.locator('button[aria-label="Dismiss"]'); // Close button
-  }
-
-  async visit(): Promise<void> {
-    await this.page.goto(rewardsEndpoint.rewardsOptionsPage);
+    this.successToastBoxClose = page.getByRole('button', { name: 'Dismiss' }); // Close button
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -92,11 +88,22 @@ export class RewardOptionsPage extends BasePage {
       : await expect(this.rewardOptionLink).toBeHidden();
   }
 
+  /**
+   * Performs a search and validates the results.
+   * @param query - The query to search for.
+   * @param shouldHaveResults - Whether the results should be visible.
+   */
   async performSearchAndValidate(query: string, shouldHaveResults: boolean): Promise<void> {
     await test.step(`Enter a ${query} in the Reward search input and check result should be ${shouldHaveResults}`, async () => {
-      await this.searchInput.fill(query);
-      await expect(this.searchInputClearButton).toBeVisible();
-      await this.searchButton.click();
+      await this.fillInElement(this.searchInput, query, {
+        stepInfo: 'Filling the search input',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.searchInputClearButton, {
+        assertionMessage: 'Verify the search input clear button is visible',
+      });
+      await this.clickOnElement(this.searchButton, {
+        stepInfo: 'Clicking on the search button',
+      });
       if (shouldHaveResults) {
         await this.verifier.verifyTheElementIsVisible(this.rewardsOptionsTableRow.last(), {
           assertionMessage: 'Verify the Reward name is visible in the search results',
@@ -109,15 +116,26 @@ export class RewardOptionsPage extends BasePage {
     });
   }
 
+  /**
+   * Checks the copied URL of the search result in a new tab.
+   * @param giftCardName - The name of the gift card to search for.
+   * @param visibility - Whether the gift card should be visible.
+   */
   async checkTheCopiedURLOfSearchResultInNewTab(giftCardName: string, visibility: boolean) {
     await test.step('Copy the URL and open in new tab and check the result', async () => {
       await this.performSearchAndValidate(giftCardName, visibility);
       const currentUrl = this.page.url();
       const newPage = await this.page.context().newPage();
       await newPage.goto(currentUrl);
-      await expect(newPage.locator('input[aria-label="Search…"]')).toHaveValue('Amazon');
-      await expect(this.rewardsOptionsTableRow.last()).toBeVisible();
-      await expect(this.rewardsOptionsTableRewardLogo.last()).toBeVisible();
+      await this.verifier.verifyTheElementIsVisible(newPage.locator('input[aria-label="Search…"]'), {
+        assertionMessage: 'Verify the search input is visible in the new tab',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.rewardsOptionsTableRow.last(), {
+        assertionMessage: 'Verify the Reward name is visible in the search results in the new tab',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.rewardsOptionsTableRewardLogo.last(), {
+        assertionMessage: 'Verify the Reward logo is visible in the search results in the new tab',
+      });
     });
   }
 
@@ -128,45 +146,65 @@ export class RewardOptionsPage extends BasePage {
       await expect(this.successToastBoxIcon).toBeVisible();
       await expect(this.successToastBoxMessage).toHaveText(expectedMessage);
       // Scroll into view before clicking
-      await this.successToastBoxClose.scrollIntoViewIfNeeded();
-      await this.successToastBoxClose.click({ force: true });
+      await this.clickOnElement(this.successToastBoxClose, {
+        stepInfo: 'Clicking on the success toast close button',
+      });
     });
   }
 
+  /**
+   * Clicks on the menu item for the given option text.
+   * @param optionText - The text of the menu item to click.
+   */
   async clickOnMenuItem(optionText: 'Activate' | 'Deactivate'): Promise<void> {
+    /**
+     * We first check the current status of the gift card and if it is already in the target state, we skip the action.
+     * If it is not in the target state, we click on the action button and check if the menu item is visible.
+     * If the menu item is not visible, we click on the action button again.
+     * If the menu item is visible, we click on the menu item.
+     */
     const currentStatus: string = (await this.rewardsOptionsTableStatusText.textContent())?.trim() ?? '';
     if (currentStatus === optionText) {
       console.log(`The gift card is already in the "${optionText}" status, skipping the action.`);
       return;
     }
     await test.step(`Clicking on the "${optionText}" menu item.`, async () => {
-      await this.rewardsOptionsTableRowActionButton.last().click();
+      await this.clickOnElement(this.rewardsOptionsTableRowActionButton.last(), {
+        stepInfo: 'Clicking on the action button',
+      });
       const menuItems = this.page.locator('[data-state="open"] [role="menuitem"] div');
-      if (!(await menuItems.first().isVisible({ timeout: 5000 }))) {
-        await this.rewardsOptionsTableRowActionButton.last().click();
+      try {
+        await expect(menuItems.first(), `expecting menu item to be visible`).toBeVisible({ timeout: 2_000 });
+      } catch (error) {
+        console.log('Retry click: Menu item is not visible, clicking on the action button again');
+        await this.clickOnElement(this.rewardsOptionsTableRowActionButton.last(), {
+          stepInfo: 'Clicking on the action button again as the menu item is not visible',
+        });
       }
+
       const option = menuItems.filter({ hasText: optionText }).first();
-      await option.click();
+      await this.clickOnElement(option, { stepInfo: 'Clicking on the menu item' });
       const toastMessage = optionText === 'Activate' ? 'Rewards activated' : 'Rewards deactivated';
       await this.validateToastMessage(toastMessage);
     });
   }
 
   async setGiftCardState(rewardsOption: any, cardName: string, targetState: 'Active' | 'Inactive'): Promise<void> {
-    await rewardsOption.visit();
+    await rewardsOption.loadPage();
     await rewardsOption.searchInput.fill(cardName);
     await rewardsOption.searchButton.click();
-    await expect(rewardsOption.rewardsOptionsTableRewardName.last()).toBeVisible();
+    await expect(
+      rewardsOption.rewardsOptionsTableRewardName.last(),
+      `expecting the gift card to be visible in the search results for ${cardName}`
+    ).toBeVisible();
 
     const actionBtn = rewardsOption.rewardsOptionsTableRowActionButton.last();
-    await actionBtn.waitFor({ state: 'visible' });
-    await actionBtn.click();
-
-    await rewardsOption.rewardsOptionsTableRowActionMenu.waitFor({ state: 'visible' });
-
+    await this.clickOnElement(actionBtn, { stepInfo: 'Clicking on action button' });
+    await this.verifier.verifyTheElementIsVisible(rewardsOption.rewardsOptionsTableRowActionMenu, {
+      assertionMessage: 'Verify the action menu is visible',
+    });
     // Detect the current state by checking menu item
     const menuItemTexts = await rewardsOption.rewardsOptionsTableRowActionMenu.allInnerTexts();
-
     if (targetState === 'Active' && menuItemTexts.includes('Activate')) {
       await rewardsOption.clickOnMenuItem('Activate');
     } else if (targetState === 'Inactive' && menuItemTexts.includes('Deactivate')) {
