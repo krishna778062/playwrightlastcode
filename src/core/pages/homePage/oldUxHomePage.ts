@@ -3,12 +3,12 @@ import { Page, test } from '@playwright/test';
 import { BaseHomePage, ICommonHomePageActions, IOldUxHomePageActions } from './baseHomePage';
 
 import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
-import { CreateComponent } from '@/src/modules/content/components/createComponent';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
-import { SiteCreationPage } from '@/src/modules/content/pages/siteCreationPage';
+import { CreateComponent } from '@/src/modules/content-abac/components/createComponent';
+import { SiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 
 export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions {
   constructor(page: Page) {

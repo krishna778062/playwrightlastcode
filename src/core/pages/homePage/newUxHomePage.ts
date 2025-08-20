@@ -3,7 +3,6 @@ import { Page, test } from '@playwright/test';
 import { BaseHomePage, INewUxHomePageActions } from './baseHomePage';
 
 import { CreateComponent } from '@/src/modules/content/components/createComponent';
-import { SiteCeationFormComponent } from '@/src/modules/content/components/siteCreatePageComponents/siteCreationFormComponent';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
@@ -68,12 +67,20 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
 
   async openSiteCreationForm(options?: {
     stepInfo?: string;
-  }): Promise<import('@/src/modules/content/pages/siteCreationPage').SiteCreationPage> {
+  }): Promise<import('@/src/modules/content-abac/pages/siteCreationPage').SiteCreationPage> {
     return await test.step(options?.stepInfo || 'Opening site creation form', async () => {
-      const createComponent = await this.clickOnCreateButtonOnSideNavBar();
-      await createComponent.verifyTheCreateComponentIsVisible();
-      const formComponent = await createComponent.selectSiteOptionAndOpenModal();
-      const { SiteCreationPage } = await import('@/src/modules/content/pages/siteCreationPage');
+      // Click the Create button (returns content CreateComponent for interface compatibility)
+      await this.clickOnCreateButtonOnSideNavBar();
+
+      // Use ABAC-specific CreateComponent to select Site option
+      const { CreateComponent: AbacCreateComponent } = await import(
+        '@/src/modules/content-abac/components/createComponent'
+      );
+      const abacCreate = new AbacCreateComponent(this.page);
+      await abacCreate.verifyTheCreateComponentIsVisible();
+      await abacCreate.selectSiteOptionAndOpenModal();
+
+      const { SiteCreationPage } = await import('@/src/modules/content-abac/pages/siteCreationPage');
       return new SiteCreationPage(this.page);
     });
   }

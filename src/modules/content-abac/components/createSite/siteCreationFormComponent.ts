@@ -1,36 +1,27 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '@core/components/baseComponent';
-
 import { AccessSectionComponent } from './accessSectionComponent';
 import { SubscriptionsSectionComponent } from './subscriptionsSectionComponent';
 import { TargetAudienceSectionComponent } from './targetAudienceSectionComponent';
 
-import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation.abac';
+import { BaseComponent } from '@/src/core/components/baseComponent';
+import { SiteCreationUI } from '@/src/modules/content-abac/constants/siteCreation';
 
-/**
- * SiteCreationModalComponent
- *
- * This component represents the modal that appears when you click "Create" > "Site"
- * It handles all interactions with form fields, buttons, and validation of the site creation flow
- */
-export class SiteCeationFormComponent extends BaseComponent {
-  // =============================================================================
-  // LOCATORS - All the UI elements we need to interact with
-  // =============================================================================
-
-  // MODAL STRUCTURE - Main modal elements
+export class SiteCreationFormComponent extends BaseComponent {
   readonly modalContainer: Locator;
   readonly addSiteHeading: Locator;
   readonly cancelButton: Locator;
   readonly addSiteButton: Locator;
   readonly successMessage: Locator;
 
-  // BASIC SITE DETAILS - Name and category section
   readonly siteNameInput: Locator;
   readonly categoryInput: Locator;
 
-  // Section components
+  readonly manageSiteLink: Locator;
+  readonly deactivateButton: Locator;
+  readonly confirmDeactivateButton: Locator;
+  readonly deactivatedToast: Locator;
+
   readonly accessSection: AccessSectionComponent;
   readonly targetAudienceSection: TargetAudienceSectionComponent;
   readonly subscriptionsSection: SubscriptionsSectionComponent;
@@ -38,18 +29,20 @@ export class SiteCeationFormComponent extends BaseComponent {
   constructor(page: Page) {
     super(page);
 
-    // Initialize modal structure locators
     this.modalContainer = page.locator('div[role="dialog"]').filter({ hasText: SiteCreationUI.HEADINGS.ADD_SITE });
     this.addSiteHeading = page.getByRole('heading', { name: SiteCreationUI.HEADINGS.ADD_SITE });
     this.cancelButton = page.locator(`text=${SiteCreationUI.BUTTONS.CANCEL}`);
     this.addSiteButton = page.getByRole('button', { name: SiteCreationUI.BUTTONS.ADD_SITE });
     this.successMessage = page.getByText(SiteCreationUI.MESSAGES.SITE_CREATED);
 
-    // Initialize basic site details locators
     this.siteNameInput = page.getByRole('textbox', { name: 'Site name' });
     this.categoryInput = page.getByRole('combobox', { name: 'Category: This is a required' });
 
-    // Compose sections
+    this.manageSiteLink = page.getByRole('link', { name: 'Manage site' });
+    this.deactivateButton = page.getByRole('button', { name: 'Deactivate' });
+    this.confirmDeactivateButton = page.getByRole('button', { name: 'Deactivate' });
+    this.deactivatedToast = page.getByText('Deactivated site successfully');
+
     this.accessSection = new AccessSectionComponent(page);
     this.targetAudienceSection = new TargetAudienceSectionComponent(page);
     this.subscriptionsSection = new SubscriptionsSectionComponent(page);
@@ -123,6 +116,25 @@ export class SiteCeationFormComponent extends BaseComponent {
   async cancelSiteCreation(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Cancel site creation', async () => {
       await this.clickOnElement(this.cancelButton);
+    });
+  }
+
+  async openManageSite(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Open Manage site', async () => {
+      await this.clickOnElement(this.manageSiteLink);
+    });
+  }
+
+  async deactivateSiteViaUI(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Deactivate site via UI', async () => {
+      await this.clickOnElement(this.deactivateButton);
+      await this.clickOnElement(this.confirmDeactivateButton);
+    });
+  }
+
+  async verifySiteDeactivated(): Promise<void> {
+    await test.step('Verify deactivated toast', async () => {
+      await expect(this.deactivatedToast).toBeVisible();
     });
   }
 }

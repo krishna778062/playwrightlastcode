@@ -1,5 +1,4 @@
 export const SiteCreationUI = {
-  
   BUTTONS: {
     CREATE: '+',
     SITE_OPTION: 'Site',
@@ -41,4 +40,4 @@ export const SiteCreationUI = {
   CATEGORIES: {
     DEFAULT: 'Uncategorized',
   },
-} as const; 
+} as const;

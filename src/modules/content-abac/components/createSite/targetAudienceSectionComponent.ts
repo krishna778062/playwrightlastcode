@@ -1,7 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
-import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation.abac';
+import { SiteCreationUI } from '@/src/modules/content-abac/constants/siteCreation';
 
 export class TargetAudienceSectionComponent extends BaseComponent {
   readonly targetAudienceHeading: Locator;
@@ -67,50 +67,92 @@ export class TargetAudienceSectionComponent extends BaseComponent {
     });
   }
 
-  async setupAllOrganization(options?: { verifyDefaults?: boolean; stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo || 'Setup All organization audience', async () => {
-      await this.clickOnElement(this.targetAudienceDropdown);
-      await this.clickOnElement(this.browseAudiencesButton);
-
-      if (options?.verifyDefaults !== false) {
-        await expect(this.targetAudienceModalTitle).toBeVisible();
-        await expect(this.allOrganizationOption).toBeVisible();
-        await expect(this.allOrganizationSwitch).toBeVisible();
-        await expect(this.allOrganizationSwitch).not.toBeChecked();
-        await expect(this.searchTextBox).toBeVisible();
-        await expect(this.cancelButton).toBeEnabled();
-        await expect(this.audienceDoneButton).toBeDisabled();
-      }
-
-      await this.clickOnElement(this.cancelButton);
-      await expect(this.targetAudienceModalTitle).toBeHidden();
-      await expect(this.browseAudiencesButton).toBeVisible();
-
+  async openAudiencePicker(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Open Audience picker', async () => {
       await this.clickOnElement(this.targetAudienceDropdown);
       await this.clickOnElement(this.browseAudiencesButton);
       await expect(this.targetAudienceModalTitle).toBeVisible();
+    });
+  }
 
+  async verifyAudiencePickerDefaults(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Verify Audience picker defaults', async () => {
+      await expect(this.allOrganizationOption).toBeVisible();
+      await expect(this.allOrganizationSwitch).toBeVisible();
+      await expect(this.allOrganizationSwitch).not.toBeChecked();
+      await expect(this.searchTextBox).toBeVisible();
+      await expect(this.cancelButton).toBeEnabled();
+      await expect(this.audienceDoneButton).toBeDisabled();
+    });
+  }
+
+  async cancelAudiencePickerAndVerifyReturn(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Cancel Audience picker and verify return', async () => {
+      await this.clickOnElement(this.cancelButton);
+      await expect(this.targetAudienceModalTitle).toBeHidden();
+      await expect(this.browseAudiencesButton).toBeVisible();
+    });
+  }
+
+  async reopenAudiencePicker(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Re-open Audience picker', async () => {
+      await this.clickOnElement(this.targetAudienceDropdown);
+      await this.clickOnElement(this.browseAudiencesButton);
+      await expect(this.targetAudienceModalTitle).toBeVisible();
+    });
+  }
+
+  async selectAllOrganizationOption(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Select All organization option', async () => {
       await this.clickOnElement(this.allOrganizationOption);
       await expect(this.allOrganizationSwitch).toBeEnabled();
-      // Verify selection helper messages in the modal
       await expect(this.allOrgSelectionConfirmation).toBeVisible();
       await expect(this.allOrgDescription).toBeVisible();
+    });
+  }
 
+  async enableAllOrganization(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Enable All organization toggle', async () => {
       await this.allOrganizationSwitch.scrollIntoViewIfNeeded();
       if (!(await this.allOrganizationSwitch.isChecked())) {
         await this.clickOnElement(this.allOrganizationSwitch);
       }
       await expect(this.allOrganizationSwitch).toBeChecked();
+    });
+  }
 
+  async submitAudienceSelection(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Submit Audience selection', async () => {
       await expect(this.audienceDoneButton).toBeEnabled();
       await this.clickOnElement(this.audienceDoneButton);
-      await this.audiencePickerContainer.waitFor({ state: 'detached', timeout: 10000 }); // Ensure modal is gone before main-form checks
+      await this.audiencePickerContainer.waitFor({ state: 'detached', timeout: 10000 });
+    });
+  }
 
+  async verifyAllOrgSelectionSummary(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Verify All organization selection summary on form', async () => {
       await this.verifier.verifyTheElementIsVisible(this.selectedAudienceText);
       await this.verifier.verifyTheElementIsVisible(this.everyoneInOrgText);
       await this.verifier.verifyTheElementIsVisible(this.userCountText);
       await this.verifier.verifyTheElementIsVisible(this.basedOnAudiencesText);
       await this.verifier.verifyTheElementIsVisible(this.editIconWhenTAIsAllOrg);
+    });
+  }
+
+  async setupAllOrganization(options?: { verifyDefaults?: boolean; stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Setup All organization audience', async () => {
+      await this.openAudiencePicker();
+
+      if (options?.verifyDefaults !== false) {
+        await this.verifyAudiencePickerDefaults();
+      }
+
+      await this.cancelAudiencePickerAndVerifyReturn();
+      await this.reopenAudiencePicker();
+      await this.selectAllOrganizationOption();
+      await this.enableAllOrganization();
+      await this.submitAudienceSelection();
+      await this.verifyAllOrgSelectionSummary();
     });
   }
 }

@@ -13,7 +13,7 @@ import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
-import { SiteCreationPage } from '@/src/modules/content/pages/siteCreationPage';
+import { SiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/globalSearchResultPage';
 
 export interface ICommonHomePageActions {

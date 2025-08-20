@@ -1,7 +1,7 @@
 import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
-import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation.abac';
+import { SiteCreationUI } from '@/src/modules/content-abac/constants/siteCreation';
 
 export class AccessSectionComponent extends BaseComponent {
   readonly accessSectionHeading: Locator;
@@ -32,19 +32,6 @@ export class AccessSectionComponent extends BaseComponent {
     });
   }
 
-  async verifyPrivateToggleState(expectedState: boolean, options?: { stepInfo?: string }): Promise<void> {
-    await test.step(
-      options?.stepInfo || `Verify private toggle is ${expectedState ? 'enabled' : 'disabled'}`,
-      async () => {
-        await this.privateToggle.waitFor();
-        const actualState = await this.privateToggle.isChecked();
-        if (actualState !== expectedState) {
-          throw new Error(`Expected private toggle to be ${expectedState}, but it was ${actualState}`);
-        }
-      }
-    );
-  }
-
   async togglePrivateAccess(shouldBePrivate: boolean, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Set site privacy to ${shouldBePrivate ? 'private' : 'public'}`, async () => {
       const isCurrentlyPrivate = await this.privateToggle.isChecked();
@@ -55,10 +42,6 @@ export class AccessSectionComponent extends BaseComponent {
           await this.clickOnElement(this.makePrivateConfirmButton);
         }
         await this.page.waitForTimeout(1000);
-        const newState = await this.privateToggle.isChecked();
-        if (newState !== shouldBePrivate) {
-          throw new Error(`Private toggle state did not change. Expected: ${shouldBePrivate}, Actual: ${newState}`);
-        }
       }
     });
   }

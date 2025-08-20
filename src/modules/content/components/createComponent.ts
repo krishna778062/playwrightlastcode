@@ -2,7 +2,6 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { ContentType } from '@content/constants/contentType';
 
-import { SiteCeationFormComponent } from './siteCreatePageComponents/siteCreationFormComponent';
 import { AddContentModalComponent } from './addContentModal';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
@@ -72,20 +71,6 @@ export class CreateComponent extends BaseComponent {
         default:
           throw new Error(`Unsupported content type: ${contentType}`);
       }
-    });
-  }
-
-  /**
-   * Selects Site option and returns SiteCreationModalComponent
-   * @param options - The options for the step
-   * @returns The site creation modal component
-   */
-  async selectSiteOptionAndOpenModal(options?: { stepInfo?: string }): Promise<SiteCeationFormComponent> {
-    return await test.step(options?.stepInfo || 'Selecting Site option', async () => {
-      await this.clickOnElement(this.siteOption);
-      const siteCreationModal = new SiteCeationFormComponent(this.page);
-      await siteCreationModal.verifyTheSiteCreationFormIsVisible();
-      return siteCreationModal;
     });
   }
 

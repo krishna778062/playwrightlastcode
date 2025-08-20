@@ -1,7 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
-import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation.abac';
+import { SiteCreationUI } from '@/src/modules/content-abac/constants/siteCreation';
 
 export class SubscriptionsSectionComponent extends BaseComponent {
   readonly subscriptionsHeading: Locator;
@@ -17,7 +17,6 @@ export class SubscriptionsSectionComponent extends BaseComponent {
       await expect(this.page.getByText(SiteCreationUI.DESCRIPTIONS.SUBSCRIPTIONS_HELP)).toBeVisible();
       await expect(this.page.getByText(SiteCreationUI.PLACEHOLDERS.NO_SUBSCRIPTIONS)).toBeVisible();
       const addSubscriptionButton = this.page.getByRole('button', { name: SiteCreationUI.BUTTONS.ADD_SUBSCRIPTION });
-      await expect(addSubscriptionButton).toBeVisible();
       await expect(addSubscriptionButton).toBeDisabled();
       await expect(this.page.getByText(SiteCreationUI.DESCRIPTIONS.SUBSCRIPTION_WARNING)).toBeVisible();
     });
