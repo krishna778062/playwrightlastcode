@@ -1,4 +1,3 @@
-import { ac } from '@faker-js/faker/dist/airline-BUL6NtOJ';
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
@@ -141,7 +140,6 @@ export class AccessControlGroupsPage extends BasePage {
       } catch (e) {
         console.log("couldn't click the delete button on first try");
         await this.clickOnElementWithCoordinates(this.acgDeleteButton, {
-          force: true,
           stepInfo: 'Clicking on the Delete button with coordinates',
         });
       }

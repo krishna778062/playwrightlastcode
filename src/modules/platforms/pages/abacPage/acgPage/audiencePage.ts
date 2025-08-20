@@ -22,6 +22,8 @@ export class AUDIENCE_PAGE extends BasePage {
   readonly addCategoryDescriptionButton: Locator;
   readonly categoryModalCancelButton: Locator;
   readonly categoryModalAddButton: Locator;
+  readonly nameRequiredError: Locator;
+  readonly deleteDescriptionButton: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.AUDIENCE_PAGE) {
     super(page, pageUrl);
@@ -46,6 +48,8 @@ export class AUDIENCE_PAGE extends BasePage {
     this.categoryModalAddButton = page
       .getByRole('dialog', { name: 'Create category' })
       .getByRole('button', { name: 'Add', exact: true });
+    this.nameRequiredError = categoryDialog.getByText('Name is a required field');
+    this.deleteDescriptionButton = categoryDialog.getByRole('button', { name: 'Delete' });
   }
 
   // To verify that the Audience page is loaded
@@ -110,7 +114,12 @@ export class AUDIENCE_PAGE extends BasePage {
   }
 
   // Category creation helpers
-  async openCreateCategoryModal(): Promise<void> {
+  async openCreateCategoryModal(options?: {
+    verifyMaxLength?: boolean;
+    verifyAddDescription?: boolean;
+    verifyRemoveDescription?: boolean;
+    closeAfter?: boolean;
+  }): Promise<void> {
     await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
     await this.verifier.verifyTheElementIsVisible(this.categoryLabel, {});
     await this.verifier.verifyTheElementIsVisible(this.categoryTitleDescription, {});
@@ -120,6 +129,16 @@ export class AUDIENCE_PAGE extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.categoryModalCancelButton, {});
     await this.verifier.verifyTheElementIsVisible(this.clickCloseButton, {});
     await expect(this.categoryModalAddButton, 'Expect Add button to be disabled by default').toBeDisabled();
+
+    // Trigger validation and verify error message for empty Name
+    await this.categoryNameInput.click();
+    await this.page.keyboard.press('Tab');
+    await this.verifier.verifyTheElementIsVisible(this.nameRequiredError);
+
+    if (options?.verifyMaxLength) await this.verifyNameFieldMaxLength();
+    if (options?.verifyAddDescription) await this.clickAddDescriptionAndVerify();
+    if (options?.verifyRemoveDescription) await this.removeDescriptionAndVerifyAbsence();
+    if (options?.closeAfter) await this.clickOnCloseButton();
   }
 
   async fillCategoryName(name: string): Promise<void> {
@@ -139,6 +158,89 @@ export class AUDIENCE_PAGE extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.clickCloseButton, {
       assertionMessage: 'Verify Close button is visible',
       timeout: TIMEOUTS.MEDIUM,
+    });
+  }
+
+  async clickAddDescriptionAndVerify(): Promise<void> {
+    // Wait for any loading/progress overlay to disappear (best-effort)
+    await this.page
+      .locator('[role="progressbar"]')
+      .first()
+      .waitFor({ state: 'detached', timeout: 5000 })
+      .catch(() => {});
+
+    const alreadyVisible = await this.verifier.isTheElementVisible(this.descriptionInput, { timeout: 1000 });
+    if (!alreadyVisible) {
+      await this.clickOnElement(this.addCategoryDescriptionButton, { stepInfo: 'Click Add description' });
+    }
+    await this.verifier.verifyTheElementIsVisible(this.descriptionInput, {});
+    await this.verifier.verifyTheElementIsVisible(this.deleteDescriptionButton, {});
+  }
+
+  async removeDescriptionAndVerifyAbsence(): Promise<void> {
+    await this.clickOnElement(this.deleteDescriptionButton, { stepInfo: 'Click Delete description' });
+    await this.verifier.verifyTheElementIsNotVisible(this.descriptionInput, {});
+  }
+
+  async verifyNameFieldMaxLength(): Promise<void> {
+    await test.step('Verify Name field max length is 100', async () => {
+      const over = 'A'.repeat(120);
+
+      await this.fillInElement(this.categoryNameInput, ''); // clear
+      await this.typeInElement(this.categoryNameInput, over); // type 120 chars
+
+      const v1 = await this.categoryNameInput.inputValue();
+      expect(v1.length).toBe(100);
+      expect(v1).toBe(over.slice(0, 100)); // truncated exactly
+
+      // Try typing more; value should not change
+      await this.typeInElement(this.categoryNameInput, 'B'.repeat(5));
+      const v2 = await this.categoryNameInput.inputValue();
+      expect(v2).toBe(v1);
+
+      const maxAttr = await this.getElementAttribute(this.categoryNameInput, 'maxlength');
+      if (maxAttr) expect(Number(maxAttr)).toBe(100);
+    });
+  }
+
+  async verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(): Promise<void> {
+    await test.step('Verify Name field accepts letters, numbers, and special characters', async () => {
+      const sample = 'Category 123 _-.,@#$()&[]{}:;!?';
+      await this.fillInElement(this.categoryNameInput, '');
+      await this.typeInElement(this.categoryNameInput, sample);
+      const value = await this.categoryNameInput.inputValue();
+      expect(value).toBe(sample);
+      await expect(this.categoryModalAddButton).toBeEnabled();
+
+      // Also verify Description field accepts same character set
+      await this.clickAddDescriptionAndVerify();
+      await this.fillInElement(this.descriptionInput, '');
+      await this.typeInElement(this.descriptionInput, sample);
+      const descValue = await this.descriptionInput.inputValue();
+      expect(descValue).toBe(sample);
+    });
+  }
+
+  async verifyDescriptionFieldMaxLength(): Promise<void> {
+    await test.step('Verify Description field max length is 124', async () => {
+      // Ensure description field is visible
+      await this.clickAddDescriptionAndVerify();
+
+      const over = 'D'.repeat(140);
+      await this.fillInElement(this.descriptionInput, ''); // clear
+      await this.typeInElement(this.descriptionInput, over); // type 140 chars
+
+      const v1 = await this.descriptionInput.inputValue();
+      expect(v1.length).toBe(124);
+      expect(v1).toBe(over.slice(0, 124)); // truncated exactly
+
+      // Try typing more; value should not change
+      await this.typeInElement(this.descriptionInput, 'E'.repeat(5));
+      const v2 = await this.descriptionInput.inputValue();
+      expect(v2).toBe(v1);
+
+      const maxAttr = await this.getElementAttribute(this.descriptionInput, 'maxlength');
+      if (maxAttr) expect(Number(maxAttr)).toBe(124);
     });
   }
 }
