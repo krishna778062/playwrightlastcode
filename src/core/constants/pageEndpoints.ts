@@ -8,7 +8,11 @@ export const PAGE_ENDPOINTS = {
   //rewards pages
   manageRewardsPage: '/manage/recognition/rewards/overview',
   rewardsOptionsPage: '/manage/recognition/rewards/reward-options',
-  ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
   LOGOUT: '/logout',
+
+  //abac pages
+  ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
+  AUDIENCE_PAGE: '/audiences/org',
+  AUDIENCE_RULE_PAGE: '/audiences/org/rules',
 };
