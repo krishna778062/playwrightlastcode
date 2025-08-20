@@ -110,6 +110,31 @@ jobs:
           echo "LATEST_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html" >> $GITHUB_ENV
           echo "TIMESTAMPED_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html" >> $GITHUB_ENV
 
+      - name: Upload Regression Data to Postgres
+        if: always()
+        env:
+          DB_POOL_MAX: 3
+          DB_POOL_MIN: 1
+          DB_CONNECTION_TIMEOUT: 10000
+          DB_ACQUIRE_TIMEOUT: 60000
+          DB_IDLE_TIMEOUT: 15000
+          DB_ALLOW_EXIT_ON_IDLE: true
+          PG_DB_HOST: ${{secrets.PG_DB_HOST}}
+          PG_DB_PORT: ${{secrets.PG_DB_PORT}}
+          PG_DB_NAME: ${{secrets.PG_DB_NAME}}
+          PG_DB_USER: ${{secrets.PG_DB_USER}}
+          PG_DB_PASSWORD: ${{secrets.PG_DB_PASSWORD}}
+          TEAM_NAME: core
+          TEST_ENV: ${{ matrix.environment }}
+          MODULE_NAME: ${{ matrix.module }}
+          IS_REGRESSION: true
+        run: |
+          # Upload regression data to postgres
+          echo "Uploading regression data to postgres..."
+          # set the env variable to set the meta data for the report
+          REPORT_PATH=${{ env.TIMESTAMPED_REPORT_URL }} npm run report:postgres
+          echo "Regression data uploaded successfully to postgres"
+
       - name: Parse Test Results
         if: always()
         run: |
@@ -159,7 +184,7 @@ jobs:
           # Check if tests were executed
           if [ -f "test-results/test-results.json" ]; then
             TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped' test-results/test-results.json)
-            
+
             if [ "$TOTAL_TESTS" -eq 0 ]; then
               # No tests found
               echo "No tests were found matching the criteria"

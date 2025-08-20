@@ -15,8 +15,8 @@
     "**/dist": true,
     "**/build": true,
     "**/coverage": true,
-    "**/test-results": true,
-    "**/playwright-report": true
+    "**/test-results": false,
+    "**/playwright-report": false
   },
   "search.exclude": {
     "**/node_modules": true,
