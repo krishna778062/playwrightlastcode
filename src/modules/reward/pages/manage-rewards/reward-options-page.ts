@@ -142,9 +142,13 @@ export class RewardOptionsPage extends BasePage {
   async validateToastMessage(expectedMessage: string) {
     await test.step(`Validating the success toast message elements and clicking close.`, async () => {
       await this.successToastContainer.waitFor({ state: 'visible', timeout: 30000 });
-      await expect(this.successToastContainer).toBeVisible();
-      await expect(this.successToastBoxIcon).toBeVisible();
-      await expect(this.successToastBoxMessage).toHaveText(expectedMessage);
+      await this.verifier.verifyTheElementIsVisible(this.successToastContainer, {
+        assertionMessage: 'Verify success toast container is visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.successToastBoxIcon, {
+        assertionMessage: 'Verify success toast icon is visible',
+      });
+      await this.verifier.verifyElementContainsText(this.successToastBoxMessage, expectedMessage);
       // Scroll into view before clicking
       await this.clickOnElement(this.successToastBoxClose, {
         stepInfo: 'Clicking on the success toast close button',
