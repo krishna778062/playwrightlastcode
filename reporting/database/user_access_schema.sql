@@ -1,0 +1,4 @@
+
+GRANT ALL ON SCHEMA public TO e2e_admin;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO e2e_admin;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO e2e_admin;
