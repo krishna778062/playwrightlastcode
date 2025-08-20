@@ -1,9 +1,11 @@
+import { ac } from '@faker-js/faker/dist/airline-BUL6NtOJ';
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 
 export enum ACGFeature {
   ADD_SITES = 'Add_sites',
@@ -173,7 +175,9 @@ export class AccessControlGroupsPage extends BasePage {
       await this.fillInElement(this.acgSearchBox, acgName);
       await this.acgSearchBox.press('Enter');
       //encoded url with acg name as query param
-      await this.page.waitForURL(this.pageUrl + '?q=' + encodeURIComponent(acgName), { waitUntil: 'domcontentloaded' });
+      const expectedEncoded = new URLSearchParams({ q: acgName }).toString();
+      const fullUrl = this.pageUrl + '?' + expectedEncoded;
+      await expect(this.page).toHaveURL(fullUrl);
     });
   }
 }

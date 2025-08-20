@@ -69,6 +69,7 @@ test.describe(
         await accessControlGroupsPage.clickOnButtonWithName('Skip');
         await accessControlGroupsPage.clickOnButtonWithName('Skip');
         acgName = await accessControlGroupsPage.getACGName();
+        console.log(`ACG name is ${acgName}`);
         await accessControlGroupsPage.clickOnButtonWithName('Save and activate');
         await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName);
         await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
