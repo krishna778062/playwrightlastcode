@@ -10,6 +10,14 @@ import { ManageRewardsPage } from '@modules/reward/pages/manage-rewards/manage-r
 import { RewardOptionsPage } from '@modules/reward/pages/manage-rewards/reward-options-page';
 
 test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () => {
+  test.beforeEach(async ({ recoManagerPage }) => {
+    const manageRewardsPage = new ManageRewardsPage(recoManagerPage);
+    await manageRewardsPage.visit();
+    await manageRewardsPage.verifyThePageIsLoaded();
+    const rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
+    expect(rewardOptionsIsVisible).toBeTruthy();
+  });
+
   test(
     'A - Verify Reward options only visible to App managers',
     {
@@ -21,13 +29,8 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
         zephyrTestId: 'RC-5371',
         storyId: 'RC-5251',
       });
-      const manageRewardsPage = new ManageRewardsPage(appManagerPage);
       const rewardOptionsPage = new RewardOptionsPage(appManagerPage);
-      await manageRewardsPage.visit();
-      await manageRewardsPage.verifyThePageIsLoaded();
-      const rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
-      expect(rewardOptionsIsVisible).toBeTruthy();
-      await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(Boolean(rewardOptionsIsVisible));
+      await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(true);
     }
   );
 
@@ -43,13 +46,8 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
         storyId: 'RC-5251',
       });
 
-      const manageRewardsPage = new ManageRewardsPage(recoManagerPage);
       const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
-      await manageRewardsPage.visit();
-      await manageRewardsPage.verifyThePageIsLoaded();
-      const rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
-      expect(rewardOptionsIsVisible).toBeTruthy();
-      await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(Boolean(rewardOptionsIsVisible));
+      await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(true);
     }
   );
 
@@ -83,12 +81,8 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
         zephyrTestId: 'RC-5386',
         storyId: 'RC-5251',
       });
-      const manageRewardsPage = new ManageRewardsPage(recoManagerPage);
       const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
-      await manageRewardsPage.visit();
-      await manageRewardsPage.verifyThePageIsLoaded();
-      const rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
-      expect(rewardOptionsIsVisible).toBeTruthy();
+
       await rewardOptionsPage.visit();
       await rewardOptionsPage.performSearchAndValidate('Amazon', true);
       await rewardOptionsPage.performSearchAndValidate('UnableToFindThisReward', false);
@@ -100,51 +94,34 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
     }
   );
 
-  const giftCards = [{ country: 'Turkey', name: 'A101 Turkey' }];
+  const giftCards = [
+    { country: 'Turkey', name: 'A101 Turkey', visibility: 'Active' },
+    { country: 'Turkey', name: 'A101 Turkey', visibility: 'Inactive' },
+  ];
   for (const giftCard of giftCards) {
-    test.describe(`Gift Card Visibility Tests for ${giftCard.name}`, () => {
-      test(
-        'RC-5565 - Gift card should NOT be visible when set to Inactive',
-        { tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE] },
-        async ({ recoManagerPage }) => {
-          const manageRewardsPage = new ManageRewardsPage(recoManagerPage);
-          const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
-          const rewardsStorePage = new RewardsStore(recoManagerPage);
+    test(
+      `RC-5565, RC-5376 - Gift card should ${giftCard.visibility === 'Active' ? 'be visible' : 'not be visible'} when set to ${giftCard.visibility}`,
+      { tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE] },
+      async ({ recoManagerPage }) => {
+        const manageRewardsPage = new ManageRewardsPage(recoManagerPage);
+        const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
+        const rewardsStorePage = new RewardsStore(recoManagerPage);
 
-          await manageRewardsPage.visit();
-          await manageRewardsPage.verifyThePageIsLoaded();
-          expect(await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options')).toBeTruthy();
+        await manageRewardsPage.visit();
+        await manageRewardsPage.verifyThePageIsLoaded();
+        expect(await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options')).toBeTruthy();
 
-          await rewardOptionsPage.setGiftCardState(rewardOptionsPage, giftCard.name, 'Inactive');
+        await rewardOptionsPage.setGiftCardState(
+          rewardOptionsPage,
+          giftCard.name,
+          giftCard.visibility as 'Active' | 'Inactive'
+        );
 
-          await rewardsStorePage.visit();
-          await rewardsStorePage.selectCountry(giftCard.country);
-          await rewardsStorePage.searchForGiftCard(giftCard.name);
-          await rewardsStorePage.verifyGiftCardNotVisible();
-        }
-      );
-
-      test(
-        'RC-5376 - Gift card SHOULD be visible when set to Active',
-        { tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE] },
-        async ({ recoManagerPage }) => {
-          const manageRewardsPage = new ManageRewardsPage(recoManagerPage);
-          const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
-          const rewardsStorePage = new RewardsStore(recoManagerPage);
-
-          await manageRewardsPage.visit();
-          await manageRewardsPage.verifyThePageIsLoaded();
-          expect(await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options')).toBeTruthy();
-
-          await rewardOptionsPage.visit();
-          await rewardOptionsPage.setGiftCardState(rewardOptionsPage, giftCard.name, 'Active');
-
-          await rewardsStorePage.visit();
-          await rewardsStorePage.selectCountry(giftCard.country);
-          await rewardsStorePage.searchForGiftCard(giftCard.name);
-          await rewardsStorePage.verifyGiftCardVisible(giftCard.name);
-        }
-      );
-    });
+        await rewardsStorePage.visit();
+        await rewardsStorePage.selectCountry(giftCard.country);
+        await rewardsStorePage.searchForGiftCard(giftCard.name);
+        await rewardsStorePage.verifyGiftCardVisibility(giftCard.name, giftCard.visibility as 'Active' | 'Inactive');
+      }
+    );
   }
 });

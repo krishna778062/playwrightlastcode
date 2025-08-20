@@ -111,6 +111,14 @@ export class RewardsStore extends BasePage {
     return Promise.resolve(undefined);
   }
 
+  async verifyGiftCardVisibility(giftCardName: string, visibility: 'Active' | 'Inactive') {
+    if (visibility === 'Active') {
+      await this.verifyGiftCardVisible(giftCardName);
+    } else {
+      await this.verifyGiftCardNotVisible();
+    }
+  }
+
   async verifyGiftCardNotVisible() {
     await this.verifier.verifyTheElementIsVisible(this.noRewardsFoundHeading, {
       assertionMessage: 'Verify the Gift card is not visible in the search results',
