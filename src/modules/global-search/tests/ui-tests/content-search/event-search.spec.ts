@@ -2,8 +2,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { getTodayDateIsoString, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
-import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { EVENT_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
@@ -39,31 +37,17 @@ test.describe(
           stepInfo: `Searching with term "${eventName}" and intent is to find the event`,
         });
 
-        // 5. Get the content result item using ContentListComponent
-        const resultLocator = await globalSearchResultPage.getEventResultItemExactlyMatchingTheSearchTerm(eventName);
-        const contentResultItem = new ContentListComponent(resultLocator.page, resultLocator.rootLocator);
-
-        //verifying event results
-        await contentResultItem.verifyNameIsDisplayed(eventName);
-        await contentResultItem.verifyLabelIsDisplayed(testData.label);
-        await contentResultItem.verifyEventCalendarThumbnailIsDisplayed(getTodayDateIsoString());
-        await contentResultItem.verifyDescriptionIsDisplayed(contentDescription);
-        await contentResultItem.verifyAuthorIsDisplayed(authorName);
-        await contentResultItem.verifyEventDateIsDisplayed(getTodayDateIsoString(), getTomorrowDateIsoString());
-        await contentResultItem.verifyCalendarIconIsDisplayed();
-        await contentResultItem.verifyNavigationToTitleLink(contentId, eventName, EVENT_SEARCH_TEST_DATA.content);
-        await contentResultItem.goBackToPreviousPage();
-        await contentResultItem.verifyNavigationWithSiteLink(siteId, newSiteName);
-        await contentResultItem.goBackToPreviousPage();
-        await contentResultItem.hoverOverCardAndCopyLink();
-        await contentResultItem.verifyCopiedURL(contentId);
-        await contentResultItem.goBackToPreviousPage();
-        await contentResultItem.verifyNavigationWithCalendarLink(contentId);
-        await contentResultItem.goBackToPreviousPage();
-        await contentResultItem.verifyNavigationWithAuthorLink(authorName);
-        await contentResultItem.goBackToPreviousPage();
-        await contentResultItem.verifyNavigationWithHomePageLink();
-        await contentResultItem.goBackToPreviousPage();
+        // 5. Verify the event result item's data points
+        await globalSearchResultPage.verifyContentResultItemDataPoints('event', {
+          name: eventName,
+          label: testData.label,
+          description: contentDescription,
+          author: authorName,
+          contentType: 'Event',
+          contentId,
+          siteId,
+          siteName: newSiteName,
+        });
       }
     );
   }

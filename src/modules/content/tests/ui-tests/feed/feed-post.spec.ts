@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
@@ -19,10 +20,16 @@ test.describe(
     let createdPostText: string;
     let createdPostId: string = '';
 
-    test.beforeEach(async ({ endUserHomePage }) => {
-      // Navigate to feed page using the logged-in enduser fixture
-      await endUserHomePage.actions.clickOnGlobalFeed();
-      feedPage = new FeedPage(endUserHomePage.page);
+    test.beforeEach(async ({ page, loginAs }) => {
+      // Login as end user using loginAs
+      await loginAs('endUser');
+
+      // Create home page instance and navigate to feed
+      const homePage = new NewUxHomePage(page);
+      await homePage.verifyThePageIsLoaded();
+      await homePage.actions.clickOnGlobalFeed();
+
+      feedPage = new FeedPage(page);
       await feedPage.verifyThePageIsLoaded();
     });
 
@@ -58,7 +65,7 @@ test.describe(
         // Step 1: Create a new post with multiple attachments via UI
         // Note: Post can also be created via API using:
         // const { postResult: apiPostResult, postId } = await feedManagerService.createPost({ text: initialPostText });
-        const postResult = await feedPage.actions.createAndPublishPost({
+        const postResult = await feedPage.actions.createAndPost({
           text: initialPostText,
           attachments: {
             files: ['images/' + FEED_TEST_DATA.ATTACHMENTS.IMAGE, 'excel/' + FEED_TEST_DATA.ATTACHMENTS.DOCUMENT],

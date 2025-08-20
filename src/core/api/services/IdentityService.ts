@@ -4,7 +4,11 @@ import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { IIdentityAdminOperations } from '@core/api/interfaces/IIdentityOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { Roles } from '@core/constants/roles';
-import { ListAudiencesResponse } from '@core/types/audience.type';
+import {
+  audienceCreationResponse,
+  IdentityAudienceSearchResponse,
+  ListAudiencesResponse,
+} from '@core/types/audience.type';
 import { IdentityUserSearchResponse } from '@core/types/user.type';
 
 interface ListRolesResponse {
@@ -79,5 +83,288 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
       userId = responseJson.result.listOfItems[0].user_id;
     });
     return userId;
+  }
+
+  /**
+   * Creates category with the given name
+   * @param name - Name of the category to be created
+   * @param options - optional attributes
+   */
+  async createCategory(name: string, options?: { description: string }): Promise<void> {
+    await test.step(`API Create category: ${name} if not created`, async () => {
+      const findCategoryStatus: boolean = await this.findCategory(name, 10000);
+      if (!findCategoryStatus) {
+        const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesCategories, {
+          data: {
+            name: `${name}`,
+            description: options?.description || ``,
+          },
+        });
+        expect(response.status(), `Category created successfully`).toEqual(201);
+      } else {
+        console.log(`Category ${name} already created!!!`);
+      }
+    });
+  }
+
+  /**
+   * Checks wether given category is already present in the tenant
+   * @param name - Name of the category
+   * @param size - Size of the list to be retrieved
+   * @param options - optional attributes
+   * @returns - Return boolean value according to the presence/absence of the category
+   */
+  async findCategory(name: string, size: number, options?: { nextPageToken: number; term: string }): Promise<boolean> {
+    const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
+      data: {
+        nextPageToken: options?.nextPageToken || 0,
+        type: 'category',
+        size: size,
+        term: options?.term || '',
+      },
+    });
+    const responseJson = await this.parseResponse<IdentityAudienceSearchResponse>(response);
+    let i: number;
+    for (i = 0; i < responseJson.result.listOfItems.length; i++) {
+      if (responseJson.result.listOfItems[i].data.name == name) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Gets the category ID for a given category name
+   * @param name - Name of the category
+   * @param size - Size of the list to be retrieved
+   * @param options - optional attributes
+   * @returns - Returns the category ID for the given category name
+   */
+  async getCategoryId(name: string, size: number, options?: { nextPageToken: number; term: string }): Promise<string> {
+    let categoryId: string = '';
+    await test.step(`Getting category id for ${name}`, async () => {
+      const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
+        data: {
+          nextPageToken: options?.nextPageToken || 0,
+          type: 'category',
+          size: size,
+          term: options?.term || '',
+        },
+      });
+      const responseJson = await this.parseResponse<IdentityAudienceSearchResponse>(response);
+      let i: number;
+      for (i = 0; i < responseJson.result.listOfItems.length; i++) {
+        if (responseJson.result.listOfItems[i].data.name == name) {
+          categoryId = responseJson.result.listOfItems[i].data.id;
+        }
+      }
+      if (!categoryId) {
+        throw new Error(`Category ${name} not found in fetched list of categories`);
+      }
+    });
+    return categoryId;
+  }
+
+  /**
+   * Gets the audience ID for a given audience name
+   * @param name - Name of the audience
+   * @param size - Size of the list to be retrieved
+   * @param categoryid - Parent category id under which audience need to found
+   * @returns - Return boolean value according to the presence/absence of the audience under the given category
+   */
+  async isAudienceCreated(name: string, size: number, categoryid: string): Promise<boolean> {
+    await test.step(`Checking if audience ${name} is created under category ${categoryid}`, async () => {
+      const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
+        data: {
+          type: 'category',
+          size: size,
+          term: name,
+          selectedFields: [
+            {
+              key: 'audienceCategory',
+              value: [categoryid],
+            },
+          ],
+        },
+      });
+      const responseJson = await this.parseResponse<IdentityAudienceSearchResponse>(response);
+      try {
+        //if the list is not empty, check if the audience is present in the list or children list
+        if (responseJson.result.listOfItems.length > 0) {
+          for (let i = 0; i < responseJson.result.listOfItems.length; i++) {
+            if (responseJson.result.listOfItems[i].data.name == name) {
+              return true;
+            }
+            //if the item has children, check if the audience is present in the children list
+            if (responseJson.result.listOfItems[i].children.length > 0) {
+              for (let j = 0; j < responseJson.result.listOfItems[i].children.length; j++) {
+                if (responseJson.result.listOfItems[i].children[j].data.name == name) {
+                  return true;
+                }
+              }
+            }
+          }
+          //if the audience is not present in the list or children list, return false
+          return false;
+        } else {
+          return false;
+        }
+      } catch (error) {
+        throw new Error(`Error in finding audience API call for ${name} under category ${categoryid}: ${error}`);
+      }
+    });
+    return false;
+  }
+
+  /**
+   * Creates audience under the given category name
+   * @param name - Name of the category
+   * @param categoryid - Parent category id under which audience need to found
+   * @param attribute - Attribute to be selected for audience creation
+   * @param operator - Operator to be selected for audience creation
+   * @param value - Value to be passed for audience creation
+   * @param options - Optional attributes
+   * @returns - Return boolean value according to the presence/absence of the audience under the given category
+   */
+  async createAudience(
+    name: string,
+    categoryId: string,
+    attribute: string,
+    operator: string,
+    value: string,
+    options?: { type: string; fieldType: string }
+  ): Promise<string> {
+    const isAudienceCreated = await this.isAudienceCreated(name, 10000, categoryId);
+    if (!isAudienceCreated) {
+      let audienceId = '';
+      await test.step(`Creating audience ${name} under category ${categoryId}`, async () => {
+        const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiences, {
+          data: {
+            name: name,
+            type: options?.type || 'mixed',
+            audienceRule: {
+              AND: [
+                {
+                  AND: [
+                    {
+                      values: [
+                        {
+                          value: value,
+                        },
+                      ],
+                      attribute: attribute,
+                      operator: operator,
+                      fieldType: options?.fieldType || 'regular',
+                    },
+                  ],
+                },
+              ],
+            },
+            categoryId: categoryId,
+          },
+        });
+        expect(response.status(), `Audience created successfully`).toEqual(201);
+        const responseJson = await this.parseResponse<audienceCreationResponse>(response);
+        console.log(`Audience created: ${name}`);
+        audienceId = responseJson.result.audienceId;
+      });
+      return audienceId;
+    } else {
+      console.log(`Audience ${name} already created under category ${categoryId}!!!`);
+      return '';
+    }
+  }
+
+  /**
+   * Polls the delete API for the audience with the given audienceId until we get 200 response
+   * @param audienceId - Audience Id for the audience which will be deleted
+   */
+  async deleteAudience(audienceId: string): Promise<void> {
+    await test.step(`Deleting audience with audience Id: ${audienceId}`, async () => {
+      await expect(async () => {
+        const response = await this.delete(API_ENDPOINTS.appManagement.identity.v2IdentityAudiences + '/' + audienceId);
+        expect(response.status(), 'Audience deleted successfully').toEqual(200);
+        console.log(`Audience with audienceId: ${audienceId} is deleted`);
+      }, `Polling delete API for audience with audienceId: ${audienceId} until we get 200 response`).toPass({
+        timeout: 10000,
+        intervals: [1000, 4000, 7000, 10000],
+      });
+    });
+  }
+
+  /**
+   * Deletes an ACG with the given name
+   * @param acgName - Name of the ACG to be deleted
+   */
+  async deleteACGByName(acgName: string): Promise<void> {
+    await test.step(`Deleting ACG with name: ${acgName}`, async () => {
+      //first get the acg id
+      const acgId = await this.getACGId(acgName);
+      console.log(`ACG id for ACG ${acgName} is ${acgId}`);
+      const response = await this.delete(API_ENDPOINTS.appManagement.identity.deleteAccessControlGroup(acgId));
+      expect(response.status(), 'ACG deleted successfully').toEqual(200);
+      console.log(`ACG with name: ${acgName} is deleted`);
+    });
+  }
+
+  /**
+   * Deletes an ACG with the given id
+   * @param acgId - Id of the ACG to be deleted
+   */
+  async deleteACGById(acgId: string): Promise<void> {
+    await test.step(`Deleting ACG with id: ${acgId}`, async () => {
+      const response = await this.delete(API_ENDPOINTS.appManagement.identity.deleteAccessControlGroup(acgId));
+      expect(response.status(), 'ACG deleted successfully').toEqual(200);
+      console.log(`ACG with id: ${acgId} is deleted`);
+    });
+  }
+
+  /**
+   * Gets the ACG id for a given ACG name
+   * @param acgName - Name of the ACG
+   * @returns - Returns the ACG id for the given ACG name
+   */
+  async getACGId(acgName: string): Promise<string> {
+    const listOfACGResponse = await this.getListOfACGs(acgName);
+    const listOfACGsJson = await listOfACGResponse.json();
+    expect(listOfACGsJson.status, `Expecting status to be successful`).toBe('success');
+    expect(listOfACGsJson.result.listOfItems.length, `Expecting list of ACGs to be non-empty`).toBe(1);
+    const acgId = listOfACGsJson.result.listOfItems[0].data.id;
+    expect(acgId, `Expecting ACG id to be non-empty`).not.toBe('');
+    return acgId;
+  }
+
+  async getListOfACGs(acgName: string) {
+    const payloadToGetListOfACGs = {
+      sortBy: 'modified_on',
+      sortOrder: 'DESC',
+      nextPageToken: '0',
+      size: '16',
+      term: acgName,
+    };
+    const listOfACGResponse = await this.post(API_ENDPOINTS.appManagement.identity.listOfAccessControlGroups, {
+      data: payloadToGetListOfACGs,
+    });
+    return listOfACGResponse;
+  }
+  /**
+   * Waits until the ACG is synced
+   * @param acgName - Name of the ACG
+   */
+  async waitUntilACGIsSynced(acgName: string): Promise<void> {
+    await test.step(`Waiting for ACG to be synced`, async () => {
+      await expect(async () => {
+        const listOfACGResponse = await this.getListOfACGs(acgName);
+        const listOfACGsJson = await listOfACGResponse.json();
+        expect(listOfACGsJson.status, `Expecting status to be successful`).toBe('success');
+        expect(listOfACGsJson.result.listOfItems.length, `Expecting list of ACGs to be non-empty`).toBe(1);
+        //now check if the acg is synced
+        const acgSyncStatus = listOfACGsJson.result.listOfItems[0].data.syncStatus;
+        expect(acgSyncStatus, `Expecting ACG sync status to be Synced`).toBe('Synced');
+      }, `Polling get list of ACGs API for ACG ${acgName} until we get Synced status`).toPass({
+        timeout: 40_000,
+        intervals: [1000, 4000, 7000, 10000, 20000, 30000, 40000],
+      });
+    });
   }
 }
