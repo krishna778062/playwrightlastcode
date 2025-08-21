@@ -12,11 +12,11 @@ export const PAGE_ENDPOINTS = {
   rewardStoreOrderHistoryPage: '/rewards-store/order-history',
 
   // access control
+  ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
   LOGOUT: '/logout',
 
   // abac pages
-  ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   AUDIENCE_PAGE: '/audiences/org',
   AUDIENCE_RULE_PAGE: '/audiences/org/rules',
 };
