@@ -5,6 +5,8 @@ import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { FileUtil } from '@core/utils/fileUtil';
 
+import { waitForAllRequestsWithKeyword } from '@/src/core/utils/baseActionUtil';
+
 export interface FeedPostOptions {
   text: string;
   attachments?: {
@@ -125,6 +127,9 @@ export class CreateFeedPostComponent
       if (options.attachments) {
         await this.uploadFiles(options.attachments.files);
       }
+
+      // Wait until all requests containing keyword are successful
+      await waitForAllRequestsWithKeyword(this.page, 'X-Amz-SignedHeaders=host');
 
       // Publish the page
       const postResponse = await this.createFeedPost();

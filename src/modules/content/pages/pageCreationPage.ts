@@ -11,6 +11,9 @@ import { PromotePageModal } from '../components/promotePageModal';
 import { PageContentType } from '../constants/pageContentType';
 import { CONTENT_TEST_DATA } from '../test-data/content.test-data';
 
+import { SiteDashboardPage } from './siteDashboardPage';
+
+import { waitForAllRequestsWithKeyword } from '@/src/core/utils/baseActionUtil';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 
 export interface PageCreationOptions {
@@ -52,6 +55,8 @@ export interface IPageCreationActions {
     response: PageCreationResponse;
   }>;
   handlePromotionPageStep: () => Promise<void>;
+  navigateToAddContentModal: () => Promise<void>;
+  completeContentCreationFromSiteDashboard: (contentType: any) => Promise<any>;
 }
 
 export interface IPageCreationAssertions {
@@ -256,7 +261,8 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
           squareCropOption: options.coverImage.cropOptions?.square,
         });
       }
-
+      // Wait until all requests containing keyword are successful
+      await waitForAllRequestsWithKeyword(this.page, 'X-Amz-SignedHeaders=host');
       // Publish the page
       const publishResponse = await this.publishPage();
 
@@ -286,6 +292,26 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     await test.step('Handling promotion page step', async () => {
       await this.promotePageModal.handlePromotion();
     });
+  }
+
+  /**
+   * Navigates to add content modal from site dashboard
+   * @param contentType - The content type to create
+   */
+  async navigateToAddContentModal(): Promise<void> {
+    await test.step(`Navigate to add content modal`, async () => {
+      const siteDashboard = new SiteDashboardPage(this.page);
+      await siteDashboard.verifyThePageIsLoaded();
+      await siteDashboard.clickOnAddContent();
+    });
+  }
+
+  /**
+   * Completes content creation from site dashboard
+   * @param contentType - The content type to create
+   */
+  async completeContentCreationFromSiteDashboard(contentType: any): Promise<any> {
+    return await this.addContentModal.completeContentCreationFromSiteDashboard(contentType);
   }
 
   //assertions
