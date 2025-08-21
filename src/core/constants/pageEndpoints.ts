@@ -5,16 +5,17 @@ export const PAGE_ENDPOINTS = {
   AUDIO_VIDEO_CALL_PAGE: '/call',
   FEATURED_SITES_PAGE: '/sites/featured',
 
-  //rewards pages
+  // rewards pages
   manageRewardsPage: '/manage/recognition/rewards/overview',
   rewardsOptionsPage: '/manage/recognition/rewards/reward-options',
   rewardStorePage: '/rewards-store/gift-cards',
   rewardStoreOrderHistoryPage: '/rewards-store/order-history',
-  //logout
+
+  // access control
+  FEATURE_OWNERS: '/manage/access-control/feature-owners',
   LOGOUT: '/logout',
 
-  //abac pages
-  FEATURE_OWNERS: '/manage/access-control/feature-owners',
+  // abac pages
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   AUDIENCE_PAGE: '/audiences/org',
   AUDIENCE_RULE_PAGE: '/audiences/org/rules',
