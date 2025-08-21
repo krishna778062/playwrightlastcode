@@ -127,9 +127,10 @@ export class CreateFeedPostComponent
       if (options.attachments) {
         await this.uploadFiles(options.attachments.files);
       }
-
       // Wait until all requests containing keyword are successful
-      await waitForAllRequestsWithKeyword(this.page, 'X-Amz-SignedHeaders=host');
+      await test.step(`Wait to upload the image`, async () => {
+        await waitForAllRequestsWithKeyword(this.page, 'X-Amz-SignedHeaders=host');
+      });
 
       // Publish the page
       const postResponse = await this.createFeedPost();
