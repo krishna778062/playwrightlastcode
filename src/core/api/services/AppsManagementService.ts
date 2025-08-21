@@ -103,7 +103,7 @@ export class AppsManagementService extends BaseApiClient implements IAppsManagem
         {
           message: `App "${appName}" to appear in launchpad apps list`,
         }
-      ).toPass({ intervals: [5000, 10000, 15000, 20000], timeout: timeout });
+      ).toPass({ intervals: [5000, 20000, 40000, 50000], timeout: timeout });
     });
   }
 }

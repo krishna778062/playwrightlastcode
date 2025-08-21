@@ -1,6 +1,7 @@
 import { APIRequestContext } from '@playwright/test';
 
 import { ChatService } from '@chat/api/services/ChatService';
+import { FeedManagementService } from '@core/api/services/FeedManagementService';
 import { IdentityService } from '@core/api/services/IdentityService';
 import { UserManagementService } from '@core/api/services/UserManagementService';
 
@@ -21,6 +22,7 @@ export class AppManagerApiClient extends BaseApiClient {
   private readonly tileManagementService: TileManagementService;
   private readonly imageUploaderService: ImageUploaderService;
   private readonly appsManagementService: AppsManagementService;
+  private readonly feedManagementService: FeedManagementService;
 
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
@@ -32,6 +34,7 @@ export class AppManagerApiClient extends BaseApiClient {
     this.contentManagementService = new ContentManagementService(context, baseUrl || '');
     this.imageUploaderService = new ImageUploaderService(this, context);
     this.appsManagementService = new AppsManagementService(context, baseUrl);
+    this.feedManagementService = new FeedManagementService(context, baseUrl);
   }
 
   getChatService(): ChatService {
@@ -64,5 +67,9 @@ export class AppManagerApiClient extends BaseApiClient {
 
   getAppsManagementService(): AppsManagementService {
     return this.appsManagementService;
+  }
+
+  getFeedManagementService(): FeedManagementService {
+    return this.feedManagementService;
   }
 }
