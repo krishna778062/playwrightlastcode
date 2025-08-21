@@ -313,7 +313,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
    * @param contentType - The content type to create
    */
   async completeContentCreationFromSiteDashboard(contentType: any): Promise<any> {
-    return await this.addContentModal.completeContentCreationFromSiteDashboard(contentType);
+    return await this.addContentModal.completeContentCreationForm(contentType);
   }
 
   //assertions

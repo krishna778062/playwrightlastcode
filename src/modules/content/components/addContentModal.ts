@@ -171,14 +171,6 @@ export class AddContentModalComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Completes content creation form from site dashboard
-   * @param contentType - The content type to create
-   */
-  async completeContentCreationFromSiteDashboard(contentType: ContentType) {
-    return await this.completeContentCreationForm(contentType);
-  }
-
   //wrapper methods for easier intrface
   /**
    * Completes the content creation form
