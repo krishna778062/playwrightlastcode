@@ -8,6 +8,8 @@ export const PAGE_ENDPOINTS = {
   //rewards pages
   manageRewardsPage: '/manage/recognition/rewards/overview',
   rewardsOptionsPage: '/manage/recognition/rewards/reward-options',
+  rewardStorePage: '/rewards-store/gift-cards',
+  rewardStoreOrderHistoryPage: '/rewards-store/order-history',
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
   LOGOUT: '/logout',

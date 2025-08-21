@@ -1,7 +1,9 @@
+import { Page } from '@playwright/test';
+
+import { NewUxHomePage } from '../pages/homePage/newUxHomePage';
+
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
-import { NewUxHomePage } from '../pages/homePage/newUxHomePage';
-import { Page } from '@playwright/test';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/globalSearchResultPage';
 
 interface FileContent {
