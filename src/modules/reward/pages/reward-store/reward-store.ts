@@ -33,15 +33,6 @@ export class RewardsStore extends BasePage {
   readonly giftCardPointAmount: Locator;
 
   /**
-   * This method returns a locator for the redeem button of a specific gift card.
-   * @returns {Locator} - The locator for the redeem button
-   * @param name
-   */
-  cards(name: string): Locator {
-    return this.page.getByRole('button', { name: `Redeem ${name}` });
-  }
-
-  /**
    * This is a rewards store class that contains locators and methods for the rewards store page.
    */
   constructor(page: Page) {

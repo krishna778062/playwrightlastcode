@@ -48,7 +48,6 @@ export class RewardOptionsPage extends BasePage {
     this.rewardOptionsTableContainer = this.rewardsOptionsContainer.locator('table[class*="Table-module__table"]');
     this.rewardsOptionsTableHeaders = this.rewardOptionsTableContainer.locator('thead tr th');
     this.rewardsOptionsTableNoResults = this.page.locator('[class*="DataGrid-module__emptyWrapper"] h3');
-    // this.rewardsOptionsTableRow = this.page.getByTestId('dataGridRow');
     this.rewardsOptionsTableRow = this.page.locator('[data-testid*="dataGridRow"]');
     this.rewardsOptionsTableRewardLogo = this.rewardsOptionsTableRow.locator('td img');
     this.rewardsOptionsTableRewardName = this.rewardsOptionsTableRow.locator('td:nth-child(1) p');
