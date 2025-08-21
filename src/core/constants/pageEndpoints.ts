@@ -5,7 +5,7 @@ export const PAGE_ENDPOINTS = {
   AUDIO_VIDEO_CALL_PAGE: '/call',
   FEATURED_SITES_PAGE: '/sites/featured',
 
-  // rewards pages
+  //rewards pages
   manageRewardsPage: '/manage/recognition/rewards/overview',
   rewardsOptionsPage: '/manage/recognition/rewards/reward-options',
 
