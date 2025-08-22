@@ -4,7 +4,9 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
+import { getSiteDashboardUrl } from '@core/utils/urlUtils';
 
+import { PreviewPage } from '../../../pages/previewPage';
 import { SITE_TEST_DATA } from '../../../test-data/sites-create.test-data';
 
 import { ContentType } from '@/src/modules/content/constants/contentType';
@@ -12,6 +14,7 @@ import { PageContentType } from '@/src/modules/content/constants/pageContentType
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
+import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
@@ -39,26 +42,23 @@ test.describe(
         // Store the site ID for page publishing
         siteIdToPublishPage = createdSite.siteId;
 
-        // Construct the site dashboard URL
-        siteDashboardUrl = `${process.env.FRONTEND_BASE_URL}/site/${createdSite.siteId}/dashboard`;
+        // Construct the site dashboard URL using utility method
+        siteDashboardUrl = getSiteDashboardUrl(createdSite.siteId);
         console.log(`Constructed site dashboard URL: ${siteDashboardUrl}`);
       }
     );
 
-    test.afterEach(async ({ appManagerApiClient }) => {
-      //delete the published page only if the page is published
+    test.afterEach(async ({ contentCleanup }) => {
+      // Delete the published page only if the page is published
       if (publishedPageId) {
-        console.log('site id to publish page', siteIdToPublishPage);
-        console.log('content id to delete', publishedPageId);
-        await appManagerApiClient.getContentManagementService().deleteContent(siteIdToPublishPage, publishedPageId);
+        await contentCleanup.cleanupContent(siteIdToPublishPage, publishedPageId);
       } else {
         console.log('No page was published, hence skipping the deletion');
       }
 
       // Clean up the created site
       if (createdSite?.siteId) {
-        console.log(`Cleaning up created site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
-        await appManagerApiClient.getSiteManagementService().deactivateSite(createdSite.siteId);
+        await contentCleanup.cleanupSite(createdSite.siteId, createdSite.siteName);
       }
     });
 
@@ -77,10 +77,12 @@ test.describe(
         // Navigate to the constructed site dashboard URL
         await appManagerHomePage.page.goto(siteDashboardUrl);
 
-        //Navigate to page creation from the site dashboard
+        // Navigate from site dashboard to page creation
+        const siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page);
+        await siteDashboardPage.actions.navigateToPageCreationFromSiteDashboard(ContentType.PAGE);
+
+        // Initialize page creation page (we're now on the actual page creation page)
         pageCreationPage = new PageCreationPage(appManagerHomePage.page);
-        await pageCreationPage.actions.navigateToAddContentModal();
-        await pageCreationPage.actions.completeContentCreationFromSiteDashboard(ContentType.PAGE);
 
         const title = `Automated Test Page ${faker.company.name()} - ${faker.commerce.productName()}`;
         const description = `This is an automated test description ${faker.lorem.paragraph()}`;
@@ -103,11 +105,12 @@ test.describe(
         //store the page id (siteIdToPublishPage is already set in beforeEach)
         publishedPageId = pageId;
 
-        //handle the promotion
-        await pageCreationPage.actions.handlePromotionPageStep();
+        // Initialize preview page and handle the promotion
+        const previewPage = new PreviewPage(appManagerHomePage.page);
+        await previewPage.actions.handlePromotionPageStep();
 
         // Verify content was published successfully via UI
-        await pageCreationPage.assertions.verifyContentPublishedSuccessfully(title);
+        await previewPage.assertions.verifyContentPublishedSuccessfully(title);
       }
     );
   }

@@ -5,6 +5,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { PreviewPage } from '../../../pages/previewPage';
+
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
@@ -35,12 +37,10 @@ test.describe(
       )) as PageCreationPage;
     });
 
-    test.afterEach(async ({ appManagerApiClient }) => {
-      //delete the published page only if the page is published
+    test.afterEach(async ({ contentCleanup }) => {
+      // Delete the published page only if the page is published
       if (publishedPageId) {
-        console.log('site id to publish page', siteIdToPublishPage);
-        console.log('content id to delete', publishedPageId);
-        await appManagerApiClient.getContentManagementService().deleteContent(siteIdToPublishPage, publishedPageId);
+        await contentCleanup.cleanupContent(siteIdToPublishPage, publishedPageId);
       } else {
         console.log('No page was published, hence skipping the deletion');
       }
@@ -80,11 +80,12 @@ test.describe(
         publishedPageId = pageId;
         siteIdToPublishPage = siteId;
 
-        //handle the promotion
-        await pageCreationPage.actions.handlePromotionPageStep();
+        // Initialize preview page and handle the promotion
+        const previewPage = new PreviewPage(pageCreationPage.page);
+        await previewPage.actions.handlePromotionPageStep();
 
         // Verify content was published successfully via UI
-        await pageCreationPage.assertions.verifyContentPublishedSuccessfully(title);
+        await previewPage.assertions.verifyContentPublishedSuccessfully(title);
       }
     );
   }

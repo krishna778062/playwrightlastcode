@@ -54,14 +54,11 @@ export interface IPageCreationActions {
     siteId: string;
     response: PageCreationResponse;
   }>;
-  handlePromotionPageStep: () => Promise<void>;
   navigateToAddContentModal: () => Promise<void>;
-  completeContentCreationFromSiteDashboard: (contentType: any) => Promise<any>;
 }
 
 export interface IPageCreationAssertions {
   verifyUploadedCoverImagePreviewIsVisible: (options?: { timeout?: number }) => Promise<void>;
-  verifyContentPublishedSuccessfully: (title: string) => Promise<void>;
 }
 
 export class PageCreationPage extends BasePage implements IPageCreationActions, IPageCreationAssertions {
@@ -288,15 +285,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   }
 
   /**
-   * Handles the promotion page step by calling the promote page modal
-   */
-  async handlePromotionPageStep(): Promise<void> {
-    await test.step('Handling promotion page step', async () => {
-      await this.promotePageModal.handlePromotion();
-    });
-  }
-
-  /**
    * Navigates to add content modal from site dashboard
    * @param contentType - The content type to create
    */
@@ -306,14 +294,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       await siteDashboard.verifyThePageIsLoaded();
       await siteDashboard.clickOnAddContent();
     });
-  }
-
-  /**
-   * Completes content creation from site dashboard
-   * @param contentType - The content type to create
-   */
-  async completeContentCreationFromSiteDashboard(contentType: any): Promise<any> {
-    return await this.addContentModal.completeContentCreationForm(contentType);
   }
 
   //assertions
@@ -327,23 +307,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       await this.verifier.verifyTheElementIsVisible(this.uploadedCoverImagePreviewImage, {
         assertionMessage: 'expected uploaded cover image preview element to be visible',
         timeout: options?.timeout || CONTENT_TEST_DATA.TIMEOUTS.UPLOAD,
-      });
-    });
-  }
-
-  /**
-   * Verifies that the content was published successfully
-   * @param title - The title of the content to verify
-   */
-  async verifyContentPublishedSuccessfully(title: string): Promise<void> {
-    await test.step(`Verifying content was published successfully`, async () => {
-      // Verify success message is visible
-      await this.verifier.verifyTheElementIsVisible(this.successMessage("Created page successfully - it's published"), {
-        assertionMessage: 'Success message should be visible after publishing',
-      });
-
-      await this.verifier.verifyTheElementIsVisible(this.contentTitleHeading(title), {
-        assertionMessage: `Content title "${title}" should be visible in heading`,
       });
     });
   }
