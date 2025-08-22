@@ -10,6 +10,7 @@ import { PageContentType } from '@/src/modules/content/constants/pageContentType
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
+import { PreviewPage } from '@/src/modules/content/pages/previewPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
@@ -19,6 +20,7 @@ test.describe(
   },
   () => {
     let pageCreationPage: PageCreationPage;
+    let previewPage: PreviewPage;
     let publishedPageId: string;
     let siteIdToPublishPage: string;
 
@@ -33,6 +35,9 @@ test.describe(
       pageCreationPage = (await homePage.actions.openCreateContentPageForContentType(
         ContentType.PAGE
       )) as PageCreationPage;
+
+      // Initialize preview page
+      previewPage = new PreviewPage(page);
     });
 
     test.afterEach(async ({ appManagerApiClient }) => {
@@ -81,10 +86,10 @@ test.describe(
         siteIdToPublishPage = siteId;
 
         //handle the promotion
-        await pageCreationPage.actions.handlePromotionPageStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Verify content was published successfully via UI
-        await pageCreationPage.assertions.verifyContentPublishedSuccessfully(title);
+        await previewPage.assertions.verifyContentPublishedSuccessfully(title);
       }
     );
   }

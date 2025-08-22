@@ -7,7 +7,6 @@ import { PageCreationResponse } from '../apis/types/pageCreationResponse';
 import { AddContentModalComponent } from '../components/addContentModal';
 import { AttachementUploaderComponent } from '../components/attachementUploader';
 import { ImageCropperComponent } from '../components/imageCropper';
-import { PromotePageModal } from '../components/promotePageModal';
 import { PageContentType } from '../constants/pageContentType';
 import { CONTENT_TEST_DATA } from '../test-data/content.test-data';
 
@@ -51,12 +50,10 @@ export interface IPageCreationActions {
     siteId: string;
     response: PageCreationResponse;
   }>;
-  handlePromotionPageStep: () => Promise<void>;
 }
 
 export interface IPageCreationAssertions {
   verifyUploadedCoverImagePreviewIsVisible: (options?: { timeout?: number }) => Promise<void>;
-  verifyContentPublishedSuccessfully: (title: string) => Promise<void>;
 }
 
 export class PageCreationPage extends BasePage implements IPageCreationActions, IPageCreationAssertions {
@@ -72,16 +69,12 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   readonly skipStepButton: Locator;
   readonly titleInput: Locator;
   readonly descriptionInput: Locator;
-  readonly contentTitleHeading: (title: string) => Locator;
-  readonly successMessage: (message: string) => Locator;
-
   // Page components
   readonly addContentModal: AddContentModalComponent;
   readonly coverImageUploader: AttachementUploaderComponent;
   readonly fileAttachmentUploader: AttachementUploaderComponent;
   readonly imageCropper: ImageCropperComponent;
   readonly sideNavBarComponent: SideNavBarComponent;
-  readonly promotePageModal: PromotePageModal;
 
   constructor(page: Page) {
     super(page);
@@ -102,8 +95,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     this.skipStepButton = page.locator('button', { hasText: 'Skip this step' });
     this.titleInput = page.locator("textarea[placeholder='Page title']");
     this.descriptionInput = page.locator("div[aria-label='Page content']");
-    this.contentTitleHeading = (title: string) => page.locator('h1', { hasText: title });
-    this.successMessage = (message: string) => page.locator('div[class*="Toast-module"] p', { hasText: message });
     this.contentTypeCheckbox = (type: string) => page.locator('label:has(span)', { hasText: type });
     // Page components
     this.addContentModal = new AddContentModalComponent(page);
@@ -111,7 +102,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     this.fileAttachmentUploader = new AttachementUploaderComponent(page, this.fileAttachmentUploaderContainer);
     this.imageCropper = new ImageCropperComponent(page);
     this.sideNavBarComponent = new SideNavBarComponent(page);
-    this.promotePageModal = new PromotePageModal(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -279,15 +269,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     });
   }
 
-  /**
-   * Handles the promotion page step by calling the promote page modal
-   */
-  async handlePromotionPageStep(): Promise<void> {
-    await test.step('Handling promotion page step', async () => {
-      await this.promotePageModal.handlePromotion();
-    });
-  }
-
   //assertions
   /**
    * Verifies that the uploaded cover image preview is visible
@@ -299,23 +280,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       await this.verifier.verifyTheElementIsVisible(this.uploadedCoverImagePreviewImage, {
         assertionMessage: 'expected uploaded cover image preview element to be visible',
         timeout: options?.timeout || CONTENT_TEST_DATA.TIMEOUTS.UPLOAD,
-      });
-    });
-  }
-
-  /**
-   * Verifies that the content was published successfully
-   * @param title - The title of the content to verify
-   */
-  async verifyContentPublishedSuccessfully(title: string): Promise<void> {
-    await test.step(`Verifying content was published successfully`, async () => {
-      // Verify success message is visible
-      await this.verifier.verifyTheElementIsVisible(this.successMessage("Created page successfully - it's published"), {
-        assertionMessage: 'Success message should be visible after publishing',
-      });
-
-      await this.verifier.verifyTheElementIsVisible(this.contentTitleHeading(title), {
-        assertionMessage: `Content title "${title}" should be visible in heading`,
       });
     });
   }
