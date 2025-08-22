@@ -1,5 +1,4 @@
 import { test, Locator, Page, expect } from '@playwright/test';
-
 import { BaseComponent } from '@core/components/baseComponent';
 
 export abstract class BaseAppTileComponent extends BaseComponent {
@@ -20,14 +19,10 @@ export abstract class BaseAppTileComponent extends BaseComponent {
 
   constructor(page: Page) {
     super(page);
-
-    // Initialize component locators
-    // Prefer stable, scoped, role-based locators
     this.pageOptionsMenu = page.locator('.PageOptionsMenu');
     this.editDashboardButton = page.getByRole('button', {
       name: 'Manage dashboard & carousel',
     });
-
     this.addTileButton = page.getByRole('button', { name: 'Add tile' });
     this.editCarouselButton = page.getByRole('button', { name: 'Edit carousel' });
     this.appTilesToggle = page.getByRole('button', { name: 'App tiles' });
@@ -124,7 +119,6 @@ export abstract class BaseAppTileComponent extends BaseComponent {
       const escaped = message.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const pattern = new RegExp(escaped, 'i');
       const candidates = this.page.locator('[role="alert"], [role="status"], [aria-live]').filter({ hasText: pattern });
-
       const deadline = Date.now() + 15_000;
       let foundVisible = false;
       let toast = candidates.first();
@@ -149,10 +143,21 @@ export abstract class BaseAppTileComponent extends BaseComponent {
   /** Verify that a tile with given title is present on the page */
   async isTilePresent(title: string): Promise<void> {
     await test.step(`Check tiles present with title '${title}'`, async () => {
-      const tiles = this.getTileContainers(title);
+      // First attempt: try without reload
+      let tiles = await this.findTilesByTitle(title);
+
+      // If no tiles found, try with reload
+      if ((await tiles.count()) <= 0) {
+        await this.page.reload({ waitUntil: 'domcontentloaded' });
+        tiles = await this.findTilesByTitle(title);
+      }
+
+      // Wait for tiles to finish loading
+      await this.waitForTilesToLoad(tiles);
+
+      // Verify tiles are visible
       const count = await tiles.count();
       if (count <= 0) {
-        // Throw a clean error without noisy expect output
         throw new Error(`No tile found with title "${title}"`);
       }
       for (let i = 0; i < count; i++) {
@@ -164,10 +169,41 @@ export abstract class BaseAppTileComponent extends BaseComponent {
     });
   }
 
+  /** Get all tile containers for a given title */
+  getTileContainers(title: string): Locator {
+    return this.page
+      .locator('//aside[contains(@class, "Tile")]')
+      .filter({ has: this.page.getByRole('heading', { name: title, exact: true }) });
+  }
+
+  /** Find tiles by title with fallback regex matching */
+  async findTilesByTitle(title: string) {
+    let tiles = this.getTileContainers(title);
+    let count = await tiles.count();
+    if (count <= 0) {
+      const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+      const nameRegex = new RegExp(escaped, 'i');
+      const container = this.page.locator('//aside[contains(@class, "Tile")]');
+      const headingRegex = this.page.getByRole('heading', { name: nameRegex });
+      tiles = container.filter({ has: headingRegex });
+    }
+
+    return tiles;
+  }
+
+  /** Wait for tiles to finish loading (progress bars disappear) */
+  async waitForTilesToLoad(tiles: any): Promise<void> {
+    const count = await tiles.count();
+    for (let i = 0; i < count; i++) {
+      const tile = tiles.nth(i);
+      await expect(tile.locator('progressbar')).not.toBeVisible({ timeout: 15_000 });
+    }
+  }
+
   /** Quiet existence check for a tile title (no assertion side-effects) */
   async tileExists(title: string): Promise<boolean> {
     try {
-      const tiles = this.getTileContainers(title);
+      const tiles = await this.findTilesByTitle(title);
       const count = await tiles.count();
       return count > 0;
     } catch {
@@ -175,11 +211,48 @@ export abstract class BaseAppTileComponent extends BaseComponent {
     }
   }
 
-  /** Get all tile containers for a given title */
-  getTileContainers(title: string): Locator {
-    return this.page
-      .locator('//aside[contains(@class, "Tile")]')
-      .filter({ has: this.page.getByRole('heading', { name: title, exact: true }) });
+  /** Wait for tile via API, refresh UI, and assert presence */
+  async ensureTileVisibleAfterApi(
+    tileTitle: string,
+    options?: { timeoutMs?: number; pollIntervalMs?: number }
+  ): Promise<void> {
+    const { waitUntilTilePresentInApi } = await import('../api/helpers/tileApiHelpers');
+
+    await test.step(`Ensure tile '${tileTitle}' appears (API → UI)`, async () => {
+      await waitUntilTilePresentInApi(this.page, tileTitle, options);
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    });
+  }
+
+  /** Wait for tile removal via API, refresh UI, and assert absence */
+  async ensureTileRemovedAfterApi(
+    tileTitle: string,
+    options?: { timeoutMs?: number; pollIntervalMs?: number }
+  ): Promise<void> {
+    const { waitUntilTileAbsentInApi } = await import('../api/helpers/tileApiHelpers');
+
+    await test.step(`Ensure tile '${tileTitle}' is removed (API → UI)`, async () => {
+      await waitUntilTileAbsentInApi(this.page, tileTitle, options);
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    });
+  }
+
+  /** Reload and verify tile presence (no API polling) */
+  async reloadAndVerifyTilePresent(tileTitle: string): Promise<void> {
+    await test.step(`Reload and verify tile '${tileTitle}' is present`, async () => {
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    });
+  }
+
+  /** Reload and verify tile absence (no API polling) */
+  async reloadAndVerifyTileAbsent(tileTitle: string): Promise<void> {
+    await test.step(`Reload and verify tile '${tileTitle}' is absent`, async () => {
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    });
   }
 
   /** Click the three-dots menu on a tile */
@@ -243,6 +316,31 @@ export abstract class BaseAppTileComponent extends BaseComponent {
     });
   }
 
-  /** Abstract method for app-specific configuration */
-  abstract configureAppTile(config: Record<string, any>): Promise<void>;
+  /** Verify the "Personalize" button is visible for a given tile */
+  async verifyPersonalizeVisible(title: string): Promise<void> {
+    await test.step(`Verify personalize visible for '${title}'`, async () => {
+      // First ensure the tile exists
+      await this.isTilePresent(title);
+      const doneButton = this.page.getByRole('button', { name: 'Done' });
+      if (await doneButton.isVisible()) {
+        await this.clickOnElement(doneButton, { timeout: 5000 });
+        await this.page.waitForTimeout(1000);
+      }
+      // Now check for the Personalize button
+      const tile = this.getTileContainers(title);
+      const btn = tile.getByRole('button', { name: 'Personalize', exact: true });
+      await expect(btn).toHaveCount(1);
+      await btn.scrollIntoViewIfNeeded();
+      await expect(btn).toBeVisible({ timeout: 10_000 });
+    });
+  }
+
+  /** Verify the "Personalize" button is not visible for a given tile */
+  async verifyPersonalizeNotVisible(title: string): Promise<void> {
+    await test.step(`Verify personalize NOT visible for '${title}'`, async () => {
+      const tile = this.getTileContainers(title);
+      const btn = tile.getByRole('button', { name: 'Personalize', exact: true });
+      await expect(btn).not.toBeVisible();
+    });
+  }
 }

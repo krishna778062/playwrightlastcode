@@ -43,7 +43,8 @@ export const multiUserTileFixture = test.extend<
 
       // Login admin user
       await test.step(`Logging in Admin User`, async () => {
-        await adminPage.goto('/', { waitUntil: 'domcontentloaded' });
+        const baseUrl = getEnvConfig().frontendBaseUrl;
+        await adminPage.goto(baseUrl, { waitUntil: 'domcontentloaded' });
 
         const usernameInput = adminPage.locator('#inputOption');
         await usernameInput.waitFor({ state: 'visible' });
@@ -60,7 +61,8 @@ export const multiUserTileFixture = test.extend<
         await signInButton.click();
 
         await adminPage.waitForURL(/\/(home|dashboard)($|\/|\?)/, { timeout: 30000 });
-        await adminPage.goto('/home', { waitUntil: 'domcontentloaded' });
+        const homeUrl = new URL('/home', baseUrl).toString();
+        await adminPage.goto(homeUrl, { waitUntil: 'domcontentloaded' });
       });
 
       await use(adminPage);
@@ -77,7 +79,8 @@ export const multiUserTileFixture = test.extend<
 
       // Login end user
       await test.step(`Logging in End User`, async () => {
-        await endUserPage.goto('/', { waitUntil: 'domcontentloaded' });
+        const baseUrl = getEnvConfig().frontendBaseUrl;
+        await endUserPage.goto(baseUrl, { waitUntil: 'domcontentloaded' });
 
         const usernameInput = endUserPage.locator('#inputOption');
         await usernameInput.waitFor({ state: 'visible' });
@@ -94,7 +97,8 @@ export const multiUserTileFixture = test.extend<
         await signInButton.click();
 
         await endUserPage.waitForURL(/\/(home|dashboard)($|\/|\?)/, { timeout: 30000 });
-        await endUserPage.goto('/home', { waitUntil: 'domcontentloaded' });
+        const homeUrl = new URL('/home', baseUrl).toString();
+        await endUserPage.goto(homeUrl, { waitUntil: 'domcontentloaded' });
       });
 
       await use(endUserPage);

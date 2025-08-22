@@ -75,7 +75,76 @@ export abstract class IntegrationsBasePage extends BasePage {
     return this.getAppTileComponent().clickRemoveTile();
   }
 
+  // One action to remove a tile end-to-end
+  async removeTile(tileTitle: string, successMessage?: string): Promise<void> {
+    await this.clickThreeDotsOnTile(tileTitle);
+    await this.clickTileOption('Remove');
+    await this.verifyRemovePopupAppears(tileTitle);
+    await this.clickRemoveTile();
+    if (successMessage) {
+      await this.verifyToastMessage(successMessage);
+    }
+  }
+
   async clickDone(): Promise<void> {
     return this.getAppTileComponent().clickDone();
+  }
+
+  /**
+   * Wait for tile via API, refresh UI, and assert presence
+   */
+  async ensureTileVisibleAfterApi(
+    tileTitle: string,
+    options?: { timeoutMs?: number; pollIntervalMs?: number }
+  ): Promise<void> {
+    await this.getAppTileComponent().ensureTileVisibleAfterApi(tileTitle, options);
+    await this.isTilePresent(tileTitle);
+  }
+
+  /**
+   * Wait for tile removal via API, refresh UI, and assert absence
+   */
+  async ensureTileRemovedAfterApi(
+    tileTitle: string,
+    options?: { timeoutMs?: number; pollIntervalMs?: number }
+  ): Promise<void> {
+    await this.getAppTileComponent().ensureTileRemovedAfterApi(tileTitle, options);
+    const exists = await this.tileExists(tileTitle);
+    const { expect } = await import('@playwright/test');
+    await expect(exists).toBeFalsy();
+  }
+
+  /** Reload and verify presence (keeps API wait at callsite) */
+  async reloadAndVerifyTilePresent(tileTitle: string): Promise<void> {
+    await this.getAppTileComponent().reloadAndVerifyTilePresent(tileTitle);
+    await this.isTilePresent(tileTitle);
+  }
+
+  /** Reload and verify absence (keeps API wait at callsite) */
+  async reloadAndVerifyTileAbsent(tileTitle: string): Promise<void> {
+    await this.getAppTileComponent().reloadAndVerifyTileAbsent(tileTitle);
+    const exists = await this.tileExists(tileTitle);
+    const { expect } = await import('@playwright/test');
+    await expect(exists).toBeFalsy();
+  }
+
+  /** Delete a tile by title via API and return whether it succeeded */
+  async removeTileThroughApi(tileTitle: string): Promise<boolean> {
+    const { deleteTileByTitleViaApi } = await import('../api/helpers/tileApiHelpers');
+    return deleteTileByTitleViaApi(this.page, { tileInstanceName: tileTitle });
+  }
+
+  async removeTileByInstanceIdThroughApi(instanceId: string): Promise<boolean> {
+    const { deleteTileByInstanceIdViaApi } = await import('../api/helpers/tileApiHelpers');
+    return deleteTileByInstanceIdViaApi(this.page, { instanceId });
+  }
+
+  // Personalize verification methods
+  async verifyPersonalizeVisible(tileTitle: string): Promise<void> {
+    return this.getAppTileComponent().verifyPersonalizeVisible(tileTitle);
+  }
+
+  async verifyPersonalizeNotVisible(tileTitle: string): Promise<void> {
+    return this.getAppTileComponent().verifyPersonalizeNotVisible(tileTitle);
   }
 }

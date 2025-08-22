@@ -1,6 +1,6 @@
 export enum IntegrationsSuiteTags {
   INTEGRATIONS = '@integrations',
-  AIRTABLE = '@airtable',
+  AIRTABLE = '@airtableAppTiles',
   ABSOLUTE = '@absolute',
 }
 
@@ -15,7 +15,6 @@ export const TEST_TAGS = {
   AIRTABLE: IntegrationsSuiteTags.AIRTABLE,
   ABSOLUTE: IntegrationsSuiteTags.ABSOLUTE,
   TILE_MANAGEMENT: IntegrationsFeatureTags.TILE_MANAGEMENT,
-  PERSONALIZATION: IntegrationsFeatureTags.PERSONALIZATION,
   MULTI_USER: IntegrationsFeatureTags.MULTI_USER,
 } as const;
 

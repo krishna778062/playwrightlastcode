@@ -1,11 +1,16 @@
 import { faker } from '@faker-js/faker';
 
-const randomSuffix = faker.string.alphanumeric(6);
+export const generateUniqueTileNames = () => {
+  const randomSuffix = faker.string.alphanumeric(6);
+  const timestamp = Date.now();
+  return {
+    AIRTABLE_TILE_TITLE: `Display content calendar tasks ${randomSuffix}_${timestamp}`,
+    AIRTABLE_UPDATED_TILE_TITLE: `Display content calendar tasks ${randomSuffix}_${timestamp}_Updated`,
+  };
+};
 
 export const AIRTABLE_TILE_DATA = {
   TILE: 'Airtable',
-  TILE_TITLE: `Display content calendar tasks ${randomSuffix}`,
-  UPDATED_TILE_TITLE: `Display content calendar tasks ${randomSuffix} Updated`,
   BASE_NAME: 'Content Calendar',
   USER_DEFINED: 'User defined',
   PERSONALIZE_SORT_BY: 'Task name',

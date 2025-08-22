@@ -68,31 +68,8 @@ export class AirtableAppTilesComponent extends BaseAppTileComponent {
   }
 
   /**
-   * Verify the “Personalize” button is visible for a given tile
-   * @param title – the tile’s heading text
-   */
-  async verifyPersonalizeVisible(title: string): Promise<void> {
-    await test.step(`Verify personalize visible for '${title}'`, async () => {
-      // First ensure the tile exists
-      await this.isTilePresent(title);
-      const doneButton = this.page.getByRole('button', { name: 'Done' });
-      if (await doneButton.isVisible()) {
-        await this.clickOnElement(doneButton, { timeout: 5000 });
-        await this.page.waitForTimeout(1000);
-      }
-
-      // Now check for the Personalize button
-      const tile = this.getTileContainers(title);
-      const btn = tile.getByRole('button', { name: 'Personalize', exact: true });
-      await expect(btn).toHaveCount(1);
-      await btn.scrollIntoViewIfNeeded();
-      await expect(btn).toBeVisible({ timeout: 10_000 });
-    });
-  }
-
-  /**
-   * Open the “Personalize” menu for a given tile
-   * @param title – the tile’s heading text
+   * Open the "Personalize" menu for a given tile
+   * @param title – the tile's heading text
    */
   async openPersonalizeOptions(title: string): Promise<void> {
     await test.step(`Open personalize for '${title}'`, async () => {
@@ -105,7 +82,7 @@ export class AirtableAppTilesComponent extends BaseAppTileComponent {
   }
 
   /**
-   * Pick a “Sort by” value under the open Personalize dialog
+   * Pick a "Sort by" value under the open Personalize dialog
    * @param value – the exact option text to choose
    */
   async selectSortBy(value: string): Promise<void> {
@@ -119,7 +96,7 @@ export class AirtableAppTilesComponent extends BaseAppTileComponent {
   }
 
   /**
-   * Pick a “Sort order” value under the open Personalize dialog
+   * Pick a "Sort order" value under the open Personalize dialog
    * @param value – the exact option text to choose
    */
   async selectSortOrder(value: string): Promise<void> {
@@ -138,101 +115,16 @@ export class AirtableAppTilesComponent extends BaseAppTileComponent {
   async verifyTilesAscending(tileTitle: string): Promise<void> {
     if (!tileTitle) throw new Error('verifyTilesAscending: tileTitle is required');
     await test.step(`Verify '${tileTitle}' Airtable tile items are ascending`, async () => {
-      // Find exactly the Airtable tile whose H2 contains the title (suffix included)
       const tile = this.page
         .locator('aside.Tile')
         .filter({ has: this.page.locator('img[src*="airtable"]') })
         .filter({ has: this.page.locator('h2.Tile-heading', { hasText: tileTitle }) });
       await expect(tile).toBeVisible({ timeout: 10_000 });
-      // Only this tile’s item titles (h3)
       const itemHeadings = tile.getByRole('heading', { level: 3 });
       await expect(itemHeadings.first()).toBeVisible({ timeout: 10_000 });
       const headings = (await itemHeadings.allTextContents()).map(t => t.trim()).filter(Boolean);
       const sorted = [...headings].sort((a, b) => a.localeCompare(b));
-      console.log('Actual order:', headings);
-      console.log('Expected order:', sorted);
       await expect(headings).toEqual(sorted);
-    });
-  }
-  /**
-   * Verify ascending order through API response data
-   */
-  async verifyAscendingOrderThroughAPI(): Promise<void> {
-    await test.step('Verify Airtable items are in ascending order via API', async () => {
-      // 1. Fetch tiles data (from cookies if possible, else API credentials)
-      const payload = await this.apiFetchRootAppTiles();
-
-      // Helper to unwrap nested `.data`
-      const unwrap = (obj: any) => obj?.data ?? obj;
-
-      // 2. Root response object/array
-      const rootData = unwrap(payload);
-
-      // 3. Locate the Airtable tile block
-      const airtableTile =
-        (Array.isArray(rootData) &&
-          rootData.find((t: any) => t?.connectorLabel === 'airtable' || t?.connectionType === 'airtable')) ||
-        rootData;
-
-      // 4. Extract records (try different possible properties)
-      const records =
-        unwrap(unwrap(airtableTile?.externalData)?.data) ?? airtableTile?.results ?? airtableTile?.records ?? [];
-
-      // 5. Ensure we have an array
-      expect(Array.isArray(records)).toBeTruthy();
-
-      // 6. Collect all record names/titles
-      const titles = records
-        .map((rec: any) => (rec?.fields?.Name ?? rec?.title ?? rec?.name ?? '').trim())
-        .filter(Boolean);
-
-      // 7. Create a sorted copy (case-insensitive, numeric-aware)
-      const sortedTitles = [...titles].sort((a, b) =>
-        a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })
-      );
-
-      // 8. Compare actual vs expected
-      console.log('API Titles:', titles);
-      console.log('Sorted Expected:', sortedTitles);
-
-      await expect(titles).toEqual(sortedTitles);
-    });
-  }
-
-  private async apiFetchRootAppTiles(): Promise<any> {
-    // Try to read through existing page session cookies
-    try {
-      const response = await this.page.request.get('/v1/tiles/root/instances?type=app');
-      if (response.ok()) {
-        return response.json();
-      }
-    } catch {}
-
-    // Fallback to authenticated API client via factory if needed
-    try {
-      const { ApiClientFactory } = await import('@/src/core/api/factories/apiClientFactory');
-      const { AppManagerApiClient } = await import('@/src/core/api/clients/appManagerApiClient');
-      const { getEnvConfig } = await import('@/src/core/utils/getEnvConfig');
-      const { frontendBaseUrl, appManagerEmail, appManagerPassword, apiBaseUrl } = getEnvConfig();
-
-      const client = await ApiClientFactory.createClient(AppManagerApiClient, {
-        type: 'credentials',
-        credentials: { username: appManagerEmail, password: appManagerPassword },
-        baseUrl: apiBaseUrl || frontendBaseUrl,
-      });
-      const res = await client.get('/v1/tiles/root/instances?type=app');
-      return res.json();
-    } catch (e) {
-      throw new Error(`Failed to fetch tiles instances via API: ${String(e)}`);
-    }
-  }
-
-  /** Verify the "Personalize" button is not visible for a given tile */
-  async verifyPersonalizeNotVisible(title: string): Promise<void> {
-    await test.step(`Verify personalize NOT visible for '${title}'`, async () => {
-      const tile = this.getTileContainers(title);
-      const btn = tile.getByRole('button', { name: 'Personalize', exact: true });
-      await expect(btn).not.toBeVisible();
     });
   }
 
