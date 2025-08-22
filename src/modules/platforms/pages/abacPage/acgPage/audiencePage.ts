@@ -5,7 +5,7 @@ import { BasePage } from '@core/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
-export class AUDIENCE_PAGE extends BasePage {
+export class AudiencePage extends BasePage {
   readonly labelAudience: Locator;
   readonly createAudienceButton: Locator;
   readonly createDropdown: Locator;
@@ -30,22 +30,23 @@ export class AUDIENCE_PAGE extends BasePage {
     super(page, pageUrl);
 
     // Page-level
-    this.labelAudience = page.locator('h1:has-text("Audiences")');
+    this.labelAudience = page.getByTestId('pageContainer-page').locator('header h1').filter({ hasText: 'Audiences' });
 
-    // If you have a stable page container, scope to it to avoid ambiguous matches
-    const pageContainer = page.locator('[data-testid="pageContainer-page"]');
+    // Container for the page
+    const pageContainer = page.getByTestId('pageContainer-page');
 
     // Top action
     this.createAudienceButton = pageContainer.locator('button:has-text("Create")');
-    this.createDropdown = pageContainer.locator('button[aria-haspopup="true"][aria-label="Open menu"]');
-
+    this.createDropdown = page.getByRole('button', { name: 'Open menu' });
     // Menu items
     this.createAudience = page.locator('[role="menuitem"]:has-text("Create audience")');
     this.createCategory = page.locator('[role="menuitem"]:has-text("Create category")');
     this.createAudienceWithCSV = page.locator('[role="menuitem"]:has-text("Create audience with CSV")');
 
     // Category dialog scope
-    this.categoryDialog = page.locator('[role="dialog"][aria-modal="true"][data-state="open"]');
+    this.categoryDialog = page
+      .locator('[role="dialog"]')
+      .filter({ has: page.locator('h1,h2,span').filter({ hasText: 'Create category' }) });
 
     this.clickCloseButton = this.categoryDialog.locator('button[aria-label="Close"]');
     this.categoryNameInput = this.categoryDialog.locator('#name');
@@ -68,6 +69,43 @@ export class AUDIENCE_PAGE extends BasePage {
     );
   }
 
+  /**
+   * To click on Create Audience Button
+   */
+
+  async clickOnCreateButtonToInitiateAudienceCreationFlowFor(
+    createType: 'Create audience' | 'Create category' | 'Create audience with CSV'
+  ): Promise<void> {
+    await test.step(`Initiate ${createType}`, async () => {
+      if (createType === 'Create audience') {
+        await this.clickOnElement(this.createAudienceButton, {
+          stepInfo: 'Click Create audience',
+        });
+        return;
+      }
+
+      await this.clickOnElement(this.createDropdown, {
+        stepInfo: 'Open Create dropdown',
+      });
+
+      const option = this.page.getByRole('menuitem', { name: createType });
+      await this.clickOnElement(option, {
+        stepInfo: `Click ${createType}`,
+      });
+    });
+  }
+
+  /**
+   * To click on Cross button at the top right corner of ACG creation popup.
+   */
+  async clickOnCloseButton(options?: { stepInfo?: string; timeout?: number }): Promise<void> {
+    await test.step(options?.stepInfo ?? `Click on close button`, async () => {
+      await this.clickOnElement(this.clickCloseButton, {
+        timeout: options?.timeout ?? 10_000,
+      });
+    });
+  }
+
   // To verify that the Audience page is loaded
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step(`Verifying the audience page is loaded`, async () => {
@@ -77,56 +115,7 @@ export class AUDIENCE_PAGE extends BasePage {
     });
   }
 
-  /**
-   * To click on Create Audience Dropdown and validate the options.
-   */
-  async clickOnCreateButtonToInitiateAudienceCreationFlowFor(
-    createType: 'Create audience' | 'Create category' | 'Create audience with CSV'
-  ): Promise<void> {
-    await test.step(`Initiate ${createType}`, async () => {
-      if (createType === 'Create audience') {
-        await this.clickOnElement(this.createAudienceButton, {
-          timeout: 10_000,
-          stepInfo: 'Click on Create audience button',
-        });
-        return;
-      }
-
-      await this.verifier.verifyTheElementIsVisible(this.createDropdown, {});
-      await this.clickOnElement(this.createDropdown, {
-        timeout: 10_000,
-        stepInfo: 'Open Create dropdown',
-      });
-
-      if (createType === 'Create category') {
-        await this.verifier.verifyTheElementIsVisible(this.createCategory, {});
-        await this.clickOnElement(this.createCategory, {
-          timeout: 10_000,
-          stepInfo: 'Click on Create category menu item',
-        });
-      } else if (createType === 'Create audience with CSV') {
-        await this.verifier.verifyTheElementIsVisible(this.createAudienceWithCSV, {});
-        await this.clickOnElement(this.createAudienceWithCSV, {
-          timeout: 10_000,
-          stepInfo: 'Click on Create audience with CSV menu item',
-        });
-      }
-    });
-  }
-
-  /**
-   * To click on Cross button at the top right corner of ACG creation popup.
-   */
-  async clickOnCloseButton(options?: { stepInfo?: string; timeout?: number }): Promise<void> {
-    await test.step(options?.stepInfo ?? `Click on close button`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.clickCloseButton, {});
-      await this.clickOnElement(this.clickCloseButton, {
-        timeout: options?.timeout ?? 10_000,
-      });
-    });
-  }
-
-  // Category creation helpers
+  // Open the Create category modal and validate the visible elements
   async openCreateCategoryModal(options?: {
     verifyMaxLength?: boolean;
     verifyAddDescription?: boolean;
@@ -134,13 +123,27 @@ export class AUDIENCE_PAGE extends BasePage {
     closeAfter?: boolean;
   }): Promise<void> {
     await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
-    await this.verifier.verifyTheElementIsVisible(this.categoryLabel, {});
-    await this.verifier.verifyTheElementIsVisible(this.categoryTitleDescription, {});
-    await this.verifier.verifyTheElementIsVisible(this.categoryName, {});
-    await this.verifier.verifyTheElementIsVisible(this.categoryNameInput, {});
-    await this.verifier.verifyTheElementIsVisible(this.addCategoryDescriptionButton, {});
-    await this.verifier.verifyTheElementIsVisible(this.categoryModalCancelButton, {});
-    await this.verifier.verifyTheElementIsVisible(this.clickCloseButton, {});
+    await this.verifier.verifyTheElementIsVisible(this.categoryLabel, {
+      assertionMessage: 'Verify Create category heading is visible',
+    });
+    await this.verifier.verifyTheElementIsVisible(this.categoryTitleDescription, {
+      assertionMessage: 'Verify category helper text is visible',
+    });
+    await this.verifier.verifyTheElementIsVisible(this.categoryName, {
+      assertionMessage: 'Verify Name label is visible',
+    });
+    await this.verifier.verifyTheElementIsVisible(this.categoryNameInput, {
+      assertionMessage: 'Verify Name input is visible',
+    });
+    await this.verifier.verifyTheElementIsVisible(this.addCategoryDescriptionButton, {
+      assertionMessage: 'Verify Add description button is visible',
+    });
+    await this.verifier.verifyTheElementIsVisible(this.categoryModalCancelButton, {
+      assertionMessage: 'Verify Cancel button is visible',
+    });
+    await this.verifier.verifyTheElementIsVisible(this.clickCloseButton, {
+      assertionMessage: 'Verify Close button is visible',
+    });
     await expect(this.categoryModalAddButton, 'Expect Add button to be disabled by default').toBeDisabled();
 
     // Trigger validation and verify error message for empty Name
@@ -180,18 +183,13 @@ export class AUDIENCE_PAGE extends BasePage {
 
   // Click the Add description button to add a description to the category
   async clickAddDescriptionAndVerify(): Promise<void> {
-    // Wait for any loading/progress overlay to disappear (best-effort)
-    await this.page
-      .locator('[role="progressbar"]')
-      .first()
-      .waitFor({ state: 'detached', timeout: 5000 })
-      .catch(() => {});
-
     const alreadyVisible = await this.verifier.isTheElementVisible(this.descriptionInput, { timeout: 1000 });
     if (!alreadyVisible) {
       await this.clickOnElement(this.addCategoryDescriptionButton, { stepInfo: 'Click Add description' });
     }
+    // Verify the Description textarea is visible
     await this.verifier.verifyTheElementIsVisible(this.descriptionInput, {});
+    // Verify the Delete description button is visible
     await this.verifier.verifyTheElementIsVisible(this.deleteDescriptionButton, {});
   }
 
