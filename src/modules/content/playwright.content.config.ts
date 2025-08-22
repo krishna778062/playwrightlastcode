@@ -21,7 +21,7 @@ export default defineConfig({
       name: 'content-chromium',
       use: {
         headless: process.env.CI ? true : false,
-        video: 'on-first-retry',
+        video: 'off',
         ...devices['Desktop Chrome'],
         baseURL: getEnvConfig().frontendBaseUrl,
         launchOptions: {

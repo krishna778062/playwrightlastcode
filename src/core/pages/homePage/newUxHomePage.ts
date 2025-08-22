@@ -6,6 +6,7 @@ import { CreateComponent } from '@/src/modules/content/components/createComponen
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
+import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 
 export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions {
@@ -43,5 +44,41 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
       const addContentModal = await createComponent.selectContentTypeAndCreateContent(contentType);
       return await addContentModal.completeContentCreationForm(contentType);
     });
+  }
+
+  /**
+   * Navigates to Sites from the home page
+   * @param options - Options for the step
+   */
+  async clickOnSitesFromSideBar(options?: { stepInfo?: string }): Promise<void> {
+    return await test.step(options?.stepInfo || 'Navigate to Sites > All sites', async () => {
+      await this.sideNavBarComponent.clickOnSites();
+    });
+  }
+
+  /**
+   * Navigates to Home page
+   * @param options - Options for the step
+   */
+  async navigateToHomePage(options?: { stepInfo?: string }): Promise<void> {
+    return await test.step(options?.stepInfo || 'Navigate to Home', async () => {
+      await this.sideNavBarComponent.clickOnHome();
+    });
+  }
+
+  /**
+   * Clicks on Featured Sites tab from the side navigation bar
+   * @param options - Options for the step
+   */
+  async clickOnFeaturedSitesTab(options?: { stepInfo?: string }): Promise<FeaturedSitePage> {
+    return await test.step(
+      options?.stepInfo || 'Click on sites tab from side nav bar should open featured sites page',
+      async () => {
+        await this.sideNavBarComponent.clickOnSites();
+        const featuredSitePage = new FeaturedSitePage(this.page);
+        await featuredSitePage.verifyThePageIsLoaded();
+        return featuredSitePage;
+      }
+    );
   }
 }

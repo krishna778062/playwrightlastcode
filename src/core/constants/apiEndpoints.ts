@@ -24,6 +24,12 @@ export const API_ENDPOINTS = {
     },
     identity: {
       listOfAudiences: '/v1/identity/audiences/list',
+      v2IdentityAudiencesCategories: '/v2/identity/audiences/categories',
+      v2IdentityAudiencesHierarchy: '/v2/identity/audiences/hierarchy',
+      v2IdentityAudiences: '/v2/identity/audiences',
+      deleteAccessControlGroup: (acgId: string) => `/v2/identity/access-control/groups/${acgId}`,
+      listOfAccessControlGroups: '/v2/identity/access-control/groups/list',
+      createAccessControlGroup: '/v2/identity/access-control/groups',
     },
   },
   identity: {
@@ -45,6 +51,8 @@ export const API_ENDPOINTS = {
     publish: '/content?action=publish',
     delete: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}`,
     signedUrl: '/v1/content/static/signedurl/upload',
+    files: '/v1/content/files',
+    listFiles: '/v1/content/files/list',
   },
 
   fileUpload: {
@@ -58,8 +66,7 @@ export const API_ENDPOINTS = {
 
   feed: {
     create: `/v1/wfeed/feeds`,
-    update: (postId: string) => `/v1/wfeed/feeds/${postId}`,
-    delete: (postId: string) => `/v1/wfeed/feeds/${postId}`,
+    delete: (feedId: string) => `/v1/wfeed/feeds/${feedId}`,
   },
   apps: {
     settings: '/v1/account/apps-links-settings',

@@ -1,4 +1,4 @@
-import { APIRequestContext, test } from '@playwright/test';
+import { APIRequestContext, expect, test } from '@playwright/test';
 
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { ISiteManagementOperations } from '@core/api/interfaces/ISiteManagemenOperations';
@@ -124,5 +124,39 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       }
       return json;
     });
+  }
+
+  async getFileIdFromSite(siteId: string, fileName: string): Promise<{ fileId: string; authorName: string }> {
+    let file: any;
+    await test.step(`Getting file id from site: ${siteId} and file name: ${fileName}`, async () => {
+      await expect(async () => {
+        const response = await this.post(API_ENDPOINTS.content.listFiles, {
+          data: {
+            size: 16,
+            siteId: siteId,
+            term: '',
+            context: 'siteFiles',
+            provider: 'intranet',
+            sortBy: 'createdNewest',
+          },
+        });
+        const json = await response.json();
+        console.log('JSON response:', JSON.stringify(json, null, 2));
+        file = json.result.listOfItems.find((item: any) => item.title === fileName);
+        expect(file).toBeDefined();
+      }).toPass({
+        intervals: [5_000, 10_000, 20_000, 30_000],
+        timeout: 40_000,
+      });
+    });
+    if (!file) {
+      throw new Error(`File with name ${fileName} not found in site ${siteId}`);
+    }
+    console.log('File found:', file.id);
+    console.log('Author name:', file.owner.name);
+    return {
+      fileId: file.id,
+      authorName: file.owner.name,
+    };
   }
 }

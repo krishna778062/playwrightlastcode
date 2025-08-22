@@ -38,7 +38,8 @@ export class ResultListingComponent extends BaseComponent {
    */
   async hoverOverCardAndCopyLink() {
     await test.step(`Mouse over and click on copy link button`, async () => {
-      await this.rootLocator.hover();
+      await this.page.waitForLoadState('load');
+      await this.rootLocator.hover({ timeout: 20000 });
       await this.verifier.verifyTheElementIsVisible(this.copyLinkButton, {
         timeout: 20000,
         assertionMessage: `Verifying copy link button is visible`,
@@ -216,6 +217,12 @@ export class ResultListingComponent extends BaseComponent {
           `Verifying navigation with title link for "${name}" failed. Neither UTM URL nor final URL was loaded in time.\n${error}`
         );
       }
+    });
+  }
+
+  async goBackToPreviousPage() {
+    await test.step('Navigating back to the previous page', async () => {
+      await this.page.goBack();
     });
   }
 }
