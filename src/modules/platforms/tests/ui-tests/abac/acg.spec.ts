@@ -224,7 +224,7 @@ test.describe(
       }
     );
 
-    test.only(
+    test(
       'Verify that user manager should be able to remove Feature onwer access of any app manager from manage users page',
       {
         tag: [TestPriority.P1, `@ABAC`],
