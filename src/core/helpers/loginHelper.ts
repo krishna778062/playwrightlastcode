@@ -1,5 +1,6 @@
-import { Page, test } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { LoginPage } from '@core/pages/loginPage';
 import { UserCredentials } from '@core/types/test.types';
 
@@ -27,8 +28,12 @@ export class LoginHelper {
    * @param page - The page instance which is logged in.
    */
   public static async logoutByNavigatingToLogoutPage(page: Page): Promise<void> {
+    const loginPage = new LoginPage(page);
     await test.step(`Logging out`, async () => {
       await page.goto(PAGE_ENDPOINTS.LOGOUT);
+      await expect(loginPage.continueButton, `expecting username input to be visible`).toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
     });
   }
 }

@@ -1,17 +1,22 @@
-import { Page, test } from '@playwright/test';
+import { BrowserContext, Page, test } from '@playwright/test';
 
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
+import { UserManagerApiClient } from '@/src/core/api/clients/userManagerApiClient';
 import { ApiClientFactory } from '@/src/core/api/factories/apiClientFactory';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
 export const platformTestFixture = test.extend<{
   appManagerHomePage: NewUxHomePage | OldUxHomePage;
+  userManagerHomePage: NewUxHomePage | OldUxHomePage;
   appManagerPage: Page;
+  userManagerPage: Page;
+  userManagerContext: BrowserContext;
   appManagerApiClient: AppManagerApiClient;
+  userManagerApiClient: UserManagerApiClient;
 }>({
   appManagerHomePage: [
     async ({ page }, use) => {
@@ -31,6 +36,31 @@ export const platformTestFixture = test.extend<{
   appManagerPage: [
     async ({ appManagerHomePage }, use) => {
       await use(appManagerHomePage.page);
+    },
+    { scope: 'test' },
+  ],
+
+  userManagerContext: [
+    async ({ browser }, use) => {
+      const userManagerContext = await browser.newContext();
+      await use(userManagerContext);
+      await userManagerContext?.close();
+    },
+    { scope: 'test' },
+  ],
+
+  userManagerPage: [
+    async ({ userManagerContext }, use) => {
+      const page = await userManagerContext.newPage();
+      const uMHomePage = await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().userManagerEmail,
+        password: getEnvConfig().appManagerPassword,
+      });
+      await uMHomePage.verifyThePageIsLoaded();
+      await use(page);
+
+      // Logout after each test case using this fixture
+      await LoginHelper.logoutByNavigatingToLogoutPage(uMHomePage.page);
     },
     { scope: 'test' },
   ],
