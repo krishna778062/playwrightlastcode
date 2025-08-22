@@ -22,7 +22,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
         storyId: 'RC-5251',
       });
       const manageRewardsPage = new ManageRewardsPage(appManagerPage);
-      await manageRewardsPage.visit();
+      await manageRewardsPage.loadPage();
       await manageRewardsPage.verifyThePageIsLoaded();
       const rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
       expect(rewardOptionsIsVisible).toBeTruthy();
@@ -43,7 +43,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
         storyId: 'RC-5251',
       });
       const manageRewardsPage = new ManageRewardsPage(recoManagerPage);
-      await manageRewardsPage.visit();
+      await manageRewardsPage.loadPage();
       await manageRewardsPage.verifyThePageIsLoaded();
       const rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
       expect(rewardOptionsIsVisible).toBeTruthy();
@@ -113,7 +113,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
         const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
         const rewardsStorePage = new RewardsStore(recoManagerPage);
 
-        await manageRewardsPage.visit();
+        await manageRewardsPage.loadPage();
         await manageRewardsPage.verifyThePageIsLoaded();
         expect(await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options')).toBeTruthy();
 
@@ -123,7 +123,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
           giftCard.visibility as 'Active' | 'Inactive'
         );
 
-        await rewardsStorePage.visit();
+        await rewardsStorePage.loadPage();
         await rewardsStorePage.selectCountry(giftCard.country);
         await rewardsStorePage.searchForGiftCard(giftCard.name);
         await rewardsStorePage.verifyGiftCardVisibility(giftCard.name, giftCard.visibility as 'Active' | 'Inactive');
