@@ -76,4 +76,16 @@ export const platformTestFixture = test.extend<{
     },
     { scope: 'test' },
   ],
+
+  userManagerApiClient: [
+    async ({ userManagerPage }, use) => {
+      const userManagerApiClient = await ApiClientFactory.createClient(UserManagerApiClient, {
+        type: 'cookies',
+        page: userManagerPage,
+        baseUrl: getEnvConfig().apiBaseUrl,
+      });
+      await use(userManagerApiClient);
+    },
+    { scope: 'test' },
+  ],
 });

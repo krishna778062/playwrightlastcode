@@ -95,8 +95,8 @@ export class FeatureOwnersPage extends BasePage {
       }
       if (optionName == 'Edit') {
         try {
-          await this.clickOnElement(this.foOptionButtons.filter({ hasText: optionName }));
-          await expect(this.plusIconOnEditFeaturePopup.nth(0)).toBeVisible();
+          await this.clickOnElementWithCoordinates(this.foOptionButtons.filter({ hasText: optionName }));
+          await expect(this.plusIconOnEditFeaturePopup.nth(0)).toBeVisible({ timeout: 5_000 });
         } catch (e) {
           console.log(`Couldn't click on ${optionName} button`);
           await this.clickOnElement(this.foOptionButtons.filter({ hasText: optionName }), {

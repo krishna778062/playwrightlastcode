@@ -208,19 +208,20 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
    * @param loginIdentifier - LoginIdentifier of the user whose primary role needs to be changed
    * @param newprimaryRole - New primary role that need to be assigned
    */
-  async updatePrimaryRole(
-    loginIdentifier: string,
-    newPrimaryRole: string,
-    options?: { name: string; order: string }
-  ): Promise<void> {
+  async updatePrimaryRole(loginIdentifier: string, newPrimaryRole: string, options?: { abac: boolean }): Promise<void> {
     await test.step(`Updating primary role for the user with login identifier ${loginIdentifier} as ${newPrimaryRole}`, async () => {
       const userId: string = await this.getUserId(loginIdentifier);
       const userInfoResponseJson: IdentityUserInfoResponse = await this.getUserInfo(userId);
       delete userInfoResponseJson.work_info.work_info_id;
+      if (options?.abac == true) {
+        delete userInfoResponseJson.additional_role_id;
+      }
       userInfoResponseJson.role_id = newPrimaryRole;
-      const response = await this.put(API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserId(userId), {
-        data: userInfoResponseJson,
-      });
+      await expect(
+        await this.put(API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserId(userId), {
+          data: userInfoResponseJson,
+        })
+      ).toBeOK();
     });
   }
 
@@ -250,6 +251,31 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
       }
     });
     return result;
+  }
+
+  /**
+   * Gets user details for the user with given login identifier from user search list
+   * @param loginIdentifier - LoginIdentifier of the user whose primary role needs to be changed
+   */
+  async getUserDetailsFromUserSearchList(
+    loginIdentifier: string,
+    options?: { name: string; order: string }
+  ): Promise<IdentityUserSearchResponse> {
+    let responseJson: any;
+    await test.step(`Getting user details from user search list for ${loginIdentifier} login identifier`, async () => {
+      const response = await this.post(API_ENDPOINTS.appManagement.users.list, {
+        data: {
+          size: 100,
+          sort_by: {
+            name: options?.name || 'full_name',
+            order: options?.order || 'ASC',
+          },
+          searchTerm: loginIdentifier,
+        },
+      });
+      responseJson = await this.parseResponse<IdentityUserSearchResponse>(response);
+    });
+    return responseJson;
   }
 
   /**

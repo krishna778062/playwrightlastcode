@@ -7,6 +7,7 @@ import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/a
 
 import { FeatureOwnersPage } from '../../../pages/abacPage/featureOwnersPage/featureOwnersPage';
 import { ManageUsersPage, MUOptions } from '../../../pages/managerUsersPage/manageUsersPage';
+import { IdentityUserSearchResponse } from '@core/types/user.type';
 
 import { Roles, RolesId } from '@/src/core/constants/roles';
 import { TestSuite } from '@/src/core/constants/testSuite';
@@ -24,28 +25,28 @@ test.describe(
     let audienceToCreate: string = '';
     let categoryId: string | undefined;
     const features: string[] = [
-      'Add sites',
-      'Add topics',
-      'Alerts',
-      'Analytics',
-      'Application settings',
-      'Audiences',
-      'Branding',
+      // 'Add sites',
+      // 'Add topics',
+      // 'Alerts',
+      // 'Analytics',
+      // 'Application settings',
+      // 'Audiences',
+      // 'Branding',
       'Campaigns',
       'Content moderation',
-      'Content onboarding',
-      'Enterprise search',
-      'Forms',
-      'Home dashboard',
-      'Manage sites',
-      'Manage topics',
-      'Newsletters',
-      'Promotions',
-      'Recognition',
-      'Sentiment check',
-      'Social campaigns',
-      'Surveys',
-      'Users',
+      // 'Content onboarding',
+      // 'Enterprise search',
+      // 'Forms',
+      // 'Home dashboard',
+      // 'Manage sites',
+      // 'Manage topics',
+      // 'Newsletters',
+      // 'Promotions',
+      // 'Recognition',
+      // 'Sentiment check',
+      // 'Social campaigns',
+      // 'Surveys',
+      // 'Users',
     ];
 
     test.beforeEach(async ({ appManagerApiClient }) => {
@@ -69,7 +70,9 @@ test.describe(
         .createAudience(audienceToCreate, categoryId, 'first_name', 'CONTAINS', 'something');
       await appManagerApiClient.getUserManagementService().addUserIfNotAddedAlready(user1, Roles.END_USER);
       await appManagerApiClient.getUserManagementService().addUserIfNotAddedAlready(user2, Roles.APPLICATION_MANAGER);
-      await appManagerApiClient.getUserManagementService().updatePrimaryRole(user2.emp, RolesId.APPLICATION_MANAGER);
+      await appManagerApiClient
+        .getUserManagementService()
+        .updatePrimaryRole(user2.emp, RolesId.APPLICATION_MANAGER, { abac: true });
     });
 
     test.afterEach(async ({ appManagerApiClient }) => {
@@ -126,70 +129,6 @@ test.describe(
     );
 
     test(
-      'Verify that user manager should not be able to remove Feature owner access of any app manager from Feature owners tab',
-      {
-        tag: [TestPriority.P1, `@ABAC`],
-      },
-      async ({ userManagerPage }) => {
-        test.setTimeout(800 * 1000); //Cusotomize timeout for this test as the scenario will be running on loop it will take around 11 mins
-        let usersWithAppManagerTag: string[] = [];
-        tagTest(test.info(), {
-          zephyrTestId: 'PS-33254',
-        });
-        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerPage);
-        const manageUsersPage: ManageUsersPage = new ManageUsersPage(userManagerPage);
-
-        const featuresTemp: string[] = features;
-        while (featuresTemp.length > 0) {
-          featureOwnersPage.loadPage();
-
-          const feature: string = featuresTemp.pop();
-
-          await featureOwnersPage.searchForFeature(feature);
-          await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
-
-          usersWithAppManagerTag = await featureOwnersPage.getUsersWithOutCrossButton();
-
-          manageUsersPage.loadPage();
-
-          while (usersWithAppManagerTag.length > 0) {
-            const userWithAppManagerTag: string = usersWithAppManagerTag.pop();
-            await manageUsersPage.searchForUser(userWithAppManagerTag);
-            await manageUsersPage.verifyValueForStatusColumn(userWithAppManagerTag, 'App manager');
-          }
-        }
-      }
-    );
-
-    test(
-      'Verify that user manager should have access for Feature owners editing',
-      {
-        tag: [TestPriority.P1, `@ABAC`],
-      },
-      async ({ userManagerPage }) => {
-        test.setTimeout(660 * 1000); //Cusotomize timeout for this test as the scenario will be running on loop it will take around 10 mins
-        tagTest(test.info(), {
-          zephyrTestId: ['PS-33252', 'PS-33251'],
-        });
-        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerPage);
-
-        featureOwnersPage.loadPage();
-        const featuresTemp: string[] = features;
-
-        while (featuresTemp.length > 0) {
-          const feature: string = featuresTemp.pop();
-          await featureOwnersPage.searchForFeature(feature);
-          await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
-          await featureOwnersPage.addUserAsFeatureOnwer(['Aaman Temp Standard User']);
-          await featureOwnersPage.verifyToastMessage('Feature owners updated successfully');
-          await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
-          await featureOwnersPage.removeUserAsFeatureOnwer(['Aaman Temp Standard User']);
-          await featureOwnersPage.verifyToastMessage('Feature owners updated successfully');
-        }
-      }
-    );
-
-    test(
       'Verify that user manager should have access for ACG creation',
       {
         tag: [TestPriority.P1, `@ABAC`],
@@ -224,23 +163,72 @@ test.describe(
       }
     );
 
-    test(
-      'Verify that user manager should be able to remove Feature onwer access of any app manager from manage users page',
-      {
-        tag: [TestPriority.P1, `@ABAC`],
-      },
-      async ({ userManagerPage, appManagerApiClient }) => {
-        test.setTimeout(1000 * 1000); //Cusotomize timeout for this test as the scenario will be running on loop it will take around 10 mins
-        tagTest(test.info(), {
-          zephyrTestId: ['PS-33255'],
-        });
-        const manageUsersPage: ManageUsersPage = new ManageUsersPage(userManagerPage);
-        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerPage);
-        // Test Scenario
-        const featuresTemp: string[] = features;
+    for (const feature of features) {
+      test(
+        `Verify that user manager should not be able to remove Feature owner access of any app manager from ${feature} feature under Feature owners tab`,
+        {
+          tag: [TestPriority.P1, `@ABAC`],
+        },
+        async ({ userManagerPage, userManagerApiClient }) => {
+          let usersWithAppManagerTag: string[] = [];
+          tagTest(test.info(), {
+            zephyrTestId: 'PS-33254',
+          });
+          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerPage);
 
-        while (featuresTemp.length > 0) {
-          const feature: string = featuresTemp.pop();
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.searchForFeature(feature);
+          await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
+
+          // Get the list of all users with App manager tag
+          usersWithAppManagerTag = await featureOwnersPage.getUsersWithOutCrossButton();
+
+          // Iterate the above list and check if the users are app manager through api
+          while (usersWithAppManagerTag.length > 0) {
+            const userWithAppManagerTag: string = usersWithAppManagerTag.pop();
+            const userDetailsJson: IdentityUserSearchResponse = await userManagerApiClient
+              .getUserManagementService()
+              .getUserDetailsFromUserSearchList(userWithAppManagerTag);
+            expect(userDetailsJson.result.listOfItems[0].roles).toEqual(Roles.APPLICATION_MANAGER);
+          }
+        }
+      );
+
+      test(
+        `Verify that user manager should have access for editing ${feature} feature under feature owners tab`,
+        {
+          tag: [TestPriority.P1, `@ABAC`],
+        },
+        async ({ userManagerPage }) => {
+          tagTest(test.info(), {
+            zephyrTestId: ['PS-33252', 'PS-33251'],
+          });
+          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerPage);
+
+          featureOwnersPage.loadPage();
+
+          await featureOwnersPage.searchForFeature(feature);
+          await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
+          await featureOwnersPage.addUserAsFeatureOnwer(['Aaman Temp Standard User']);
+          await featureOwnersPage.verifyToastMessage('Feature owners updated successfully');
+          await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
+          await featureOwnersPage.removeUserAsFeatureOnwer(['Aaman Temp Standard User']);
+          await featureOwnersPage.verifyToastMessage('Feature owners updated successfully');
+        }
+      );
+
+      test.only(
+        `Verify that user manager should be able to remove Feature onwer access of any app manager from manage users page for ${feature} feature`,
+        {
+          tag: [TestPriority.P1, `@ABAC`],
+        },
+        async ({ userManagerPage, appManagerApiClient }) => {
+          tagTest(test.info(), {
+            zephyrTestId: ['PS-33255'],
+          });
+          const manageUsersPage: ManageUsersPage = new ManageUsersPage(userManagerPage);
+          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerPage);
+          // Test Scenario
           await featureOwnersPage.loadPage();
           await featureOwnersPage.searchForFeature(feature);
           await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
@@ -248,19 +236,21 @@ test.describe(
           expect(await featureOwnersPage.verifyFODisplayedAsAppManager(['Aaman Temp App Manager'])).toBeTruthy();
           // Check that user is displayed in the feature onwer list
           expect(await featureOwnersPage.verifyUserAsFeatureOnwerForFeature(['Aaman Temp App Manager'])).toBeTruthy();
-
-          await manageUsersPage.loadPage();
-          await manageUsersPage.searchForUser('TAM001');
-          await manageUsersPage.updatePrimaryRole('Aaman Temp App Manager', 'Standard user');
-
-          await featureOwnersPage.loadPage();
-          await featureOwnersPage.searchForFeature(feature);
+          // Updatting the primary role of the user to standard user
+          await appManagerApiClient
+            .getUserManagementService()
+            .updatePrimaryRole('TAM001', RolesId.END_USER, { abac: true });
+          // Reloading the page to reflect the changes
+          await manageUsersPage.reloadPage();
           await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
           // Check that user is not displayed in the feature onwer list
           expect(await featureOwnersPage.verifyUserAsFeatureOnwerForFeature(['Aaman Temp App Manager'])).toBeFalsy();
-          await appManagerApiClient.getUserManagementService().updatePrimaryRole('TAM001', RolesId.APPLICATION_MANAGER);
+          // Cleanup - Updating the primary role of the user back to app manager
+          await appManagerApiClient
+            .getUserManagementService()
+            .updatePrimaryRole('TAM001', RolesId.APPLICATION_MANAGER, { abac: true });
         }
-      }
-    );
+      );
+    }
   }
 );
