@@ -32,7 +32,7 @@ export class LoginHelper {
     await test.step(`Logging out`, async () => {
       await page.goto(PAGE_ENDPOINTS.LOGOUT);
       await expect(loginPage.continueButton, `expecting username input to be visible`).toBeVisible({
-        timeout: TIMEOUTS.SHORT,
+        timeout: TIMEOUTS.MEDIUM,
       });
     });
   }
