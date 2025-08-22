@@ -24,32 +24,48 @@ export class AUDIENCE_PAGE extends BasePage {
   readonly categoryModalAddButton: Locator;
   readonly nameRequiredError: Locator;
   readonly deleteDescriptionButton: Locator;
+  readonly categoryDialog: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.AUDIENCE_PAGE) {
     super(page, pageUrl);
-    this.labelAudience = page.getByRole('heading', { name: 'Audiences' });
-    this.createAudienceButton = page.getByRole('button', { name: 'Create' });
-    this.createDropdown = page.getByRole('button', { name: 'Open menu' });
-    this.createAudience = page.getByRole('menuitem', { name: 'Create audience' });
-    this.createCategory = page.getByRole('menuitem', { name: 'Create category' });
-    this.createAudienceWithCSV = page.getByRole('menuitem', { name: 'Create audience with CSV' });
-    const categoryDialog = page.getByRole('dialog', { name: 'Create category' });
-    this.clickCloseButton = categoryDialog.getByRole('button', { name: 'Close' });
-    this.categoryNameInput = categoryDialog.getByRole('textbox', { name: 'Name*' });
-    this.addDescriptionButton = categoryDialog.getByRole('button', { name: 'Add description' });
-    this.descriptionInput = categoryDialog.getByRole('textbox', { name: 'Description' });
-    this.categoryLabel = categoryDialog.getByRole('heading', { name: 'Create category' });
-    this.categoryTitleDescription = categoryDialog.getByText(
-      'Keep your audiences organized by grouping related audiences within a category.'
+
+    // Page-level
+    this.labelAudience = page.locator('h1:has-text("Audiences")');
+
+    // If you have a stable page container, scope to it to avoid ambiguous matches
+    const pageContainer = page.locator('[data-testid="pageContainer-page"]');
+
+    // Top action
+    this.createAudienceButton = pageContainer.locator('button:has-text("Create")');
+    this.createDropdown = pageContainer.locator('button[aria-haspopup="true"][aria-label="Open menu"]');
+
+    // Menu items
+    this.createAudience = page.locator('[role="menuitem"]:has-text("Create audience")');
+    this.createCategory = page.locator('[role="menuitem"]:has-text("Create category")');
+    this.createAudienceWithCSV = page.locator('[role="menuitem"]:has-text("Create audience with CSV")');
+
+    // Category dialog scope
+    this.categoryDialog = page.locator('[role="dialog"][aria-modal="true"][data-state="open"]');
+
+    this.clickCloseButton = this.categoryDialog.locator('button[aria-label="Close"]');
+    this.categoryNameInput = this.categoryDialog.locator('#name');
+    this.addDescriptionButton = this.categoryDialog.locator('button:has-text("Add description")');
+    this.descriptionInput = this.categoryDialog.locator('#description');
+
+    this.categoryLabel = this.categoryDialog.locator('h2:has-text("Create category")');
+    this.categoryTitleDescription = this.categoryDialog.locator(
+      'p:has-text("Keep your audiences organized by grouping related audiences within a category.")'
     );
-    this.categoryName = categoryDialog.getByText('Name');
-    this.addCategoryDescriptionButton = categoryDialog.getByRole('button', { name: 'Add description' });
-    this.categoryModalCancelButton = categoryDialog.getByRole('button', { name: 'Cancel' });
-    this.categoryModalAddButton = page
-      .getByRole('dialog', { name: 'Create category' })
-      .getByRole('button', { name: 'Add', exact: true });
-    this.nameRequiredError = categoryDialog.getByText('Name is a required field');
-    this.deleteDescriptionButton = categoryDialog.getByRole('button', { name: 'Delete' });
+    this.categoryName = this.categoryDialog.locator('label:has-text("Name")');
+    this.addCategoryDescriptionButton = this.categoryDialog.locator('button:has-text("Add description")');
+    this.categoryModalCancelButton = this.categoryDialog.locator('button:has-text("Cancel")');
+    this.categoryModalAddButton = this.categoryDialog.locator(
+      'button[aria-haspopup="false"]:has-text("Add"):not(:has-text("Add description"))'
+    );
+    this.nameRequiredError = this.categoryDialog.locator(':text("Name is a required field")');
+    this.deleteDescriptionButton = this.categoryDialog.locator(
+      'button[aria-label*="Delete" i], button:has-text("Delete")'
+    );
   }
 
   // To verify that the Audience page is loaded
