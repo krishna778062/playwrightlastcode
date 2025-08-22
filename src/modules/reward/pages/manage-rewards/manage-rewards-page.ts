@@ -1,6 +1,6 @@
 import { Locator, Page, Response } from '@playwright/test';
 
-import { PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
+import { PAGE_ENDPOINTS, PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
@@ -11,7 +11,7 @@ export class ManageRewardsPage extends BasePage {
   public harnessFlagResponse: Response | undefined;
 
   constructor(page: Page) {
-    super(page);
+    super(page, PAGE_ENDPOINTS.MANAGE_REWARDS_PAGE);
     // Initialize locators - these would need to be updated based on actual DOM structure
     this.manageRewardsPageContainer = this.page.locator('div[class*="TypographyBody-module"]');
     this.manageRewardsPageNotFound = this.page.getByTestId('no-results');
@@ -24,7 +24,7 @@ export class ManageRewardsPage extends BasePage {
       this.page.waitForResponse(resp => apiUrlPattern.test(resp.url()) && resp.status() === 200, {
         timeout: TIMEOUTS.SHORT,
       }),
-      await this.page.goto(rewardsEndpoint.manageRewardsPage),
+      await this.page.goto(rewardsEndpoint.MANAGE_REWARDS_PAGE),
     ]);
     this.harnessFlagResponse = response;
   }
