@@ -18,7 +18,7 @@ export class ManageRewardsPage extends BasePage {
     this.rewardsOverviewDescriptionText = this.manageRewardsPageContainer.locator('p');
   }
 
-  async visit(): Promise<void> {
+  async loadPage(): Promise<void> {
     const apiUrlPattern = /\/api\/1\.0\/client\/env\/.*\/target\/.*\/evaluations\?cluster=2/;
     const [response] = await Promise.all([
       this.page.waitForResponse(resp => apiUrlPattern.test(resp.url()) && resp.status() === 200, {
