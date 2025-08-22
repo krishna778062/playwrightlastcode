@@ -78,16 +78,13 @@ export class AUDIENCE_PAGE extends BasePage {
   }
 
   /**
-   * To click on Create Audience Button
-   * @param buttonType - (Audience Creation Page).
-   * @param options - Optional parameters for clicking on the element.
+   * To click on Create Audience Dropdown and validate the options.
    */
   async clickOnCreateButtonToInitiateAudienceCreationFlowFor(
     createType: 'Create audience' | 'Create category' | 'Create audience with CSV'
   ): Promise<void> {
     await test.step(`Initiate ${createType}`, async () => {
       if (createType === 'Create audience') {
-        //await this.verifier.verifyTheElementIsVisible(this.createAudienceButton, {});
         await this.clickOnElement(this.createAudienceButton, {
           timeout: 10_000,
           stepInfo: 'Click on Create audience button',
@@ -157,19 +154,23 @@ export class AUDIENCE_PAGE extends BasePage {
     if (options?.closeAfter) await this.clickOnCloseButton();
   }
 
+  // Fill the Name field in the Create category dialog
   async fillCategoryName(name: string): Promise<void> {
     await this.fillInElement(this.categoryNameInput, name);
   }
 
+  // Add a description in the Create category dialog
   async addCategoryDescription(description: string): Promise<void> {
     await this.clickOnElement(this.addDescriptionButton, { stepInfo: 'Click on Add description' });
     await this.fillInElement(this.descriptionInput, description);
   }
 
+  // Click the Add button to submit the new category
   async submitCategoryCreation(): Promise<void> {
     await this.clickOnElement(this.categoryModalAddButton, { stepInfo: 'Click Add on Create category modal' });
   }
 
+  // Verify the Close button is visible
   async assertCloseButtonIsVisible(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.clickCloseButton, {
       assertionMessage: 'Verify Close button is visible',
@@ -177,6 +178,7 @@ export class AUDIENCE_PAGE extends BasePage {
     });
   }
 
+  // Click the Add description button to add a description to the category
   async clickAddDescriptionAndVerify(): Promise<void> {
     // Wait for any loading/progress overlay to disappear (best-effort)
     await this.page
@@ -193,11 +195,13 @@ export class AUDIENCE_PAGE extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.deleteDescriptionButton, {});
   }
 
+  // Click the Delete description button to remove the description from the category
   async removeDescriptionAndVerifyAbsence(): Promise<void> {
     await this.clickOnElement(this.deleteDescriptionButton, { stepInfo: 'Click Delete description' });
     await this.verifier.verifyTheElementIsNotVisible(this.descriptionInput, {});
   }
 
+  // Verify the Name field max length is 100
   async verifyNameFieldMaxLength(): Promise<void> {
     await test.step('Verify Name field max length is 100', async () => {
       const expectedMaxLength = 100;
@@ -220,6 +224,7 @@ export class AUDIENCE_PAGE extends BasePage {
     });
   }
 
+  // Verify the Name field accepts letters, numbers, and special characters
   async verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(): Promise<void> {
     await test.step('Verify Name field accepts letters, numbers, and special characters', async () => {
       const sampleInput = 'Category 123 _-.,@#$()&[]{}:;!?';
@@ -238,6 +243,7 @@ export class AUDIENCE_PAGE extends BasePage {
     });
   }
 
+  // Verify the Description field max length is 1024
   async verifyDescriptionFieldMaxLength(): Promise<void> {
     await test.step('Verify Description field max length', async () => {
       await this.clickAddDescriptionAndVerify();
