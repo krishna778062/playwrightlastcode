@@ -13,8 +13,6 @@ export const PAGE_ENDPOINTS = {
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
   LOGOUT: '/logout',
-};
-
   // abac pages
   AUDIENCE_PAGE: '/audiences/org',
   AUDIENCE_RULE_PAGE: '/audiences/org/rules',
