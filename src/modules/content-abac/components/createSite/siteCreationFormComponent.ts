@@ -134,7 +134,7 @@ export class SiteCreationFormComponent extends BaseComponent {
 
   async verifySiteDeactivated(): Promise<void> {
     await test.step('Verify deactivated toast', async () => {
-      await expect(this.deactivatedToast).toBeVisible();
+      await expect(this.deactivatedToast, 'Deactivated toast should be visible').toBeVisible();
     });
   }
 }

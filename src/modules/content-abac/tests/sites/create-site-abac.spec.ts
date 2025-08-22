@@ -1,15 +1,20 @@
-import { expect, test } from '@playwright/test';
-
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { SiteType } from '@/src/modules/content-abac/constants/siteType';
-import { contentAbacTestFixture as contentTest } from '@/src/modules/content-abac/fixtures/contentAbacFixture';
+import { contentAbacTestFixture as test } from '@/src/modules/content-abac/fixtures/contentAbacFixture';
 import { SiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 import { SITE_CREATION_TEST_DATA } from '@/src/modules/content-abac/test-data/create-site.test-data';
 
-contentTest.describe('Site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_CREATION] }, () => {
+/**
+ * This test suite is used to test the site creation functionality via ABAC.
+ * We will test that with UI, app manager is able to create a site with the given site type and category.
+ * Then on cleanup, we will deactivate the site using app manager api client
+ */
+
+test.describe('Site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_CREATION] }, () => {
+  let siteId: string | undefined;
   const SITE_TEST_DATA = [
     {
       name: SITE_CREATION_TEST_DATA.PUBLIC_SITE.name,
@@ -23,8 +28,14 @@ contentTest.describe('Site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags
     },
   ] as const;
 
+  test.afterEach('Site Clean up', async ({ siteManagementService }) => {
+    if (siteId) {
+      await siteManagementService.deactivateSite(siteId);
+    }
+  });
+
   for (const site of SITE_TEST_DATA) {
-    contentTest(
+    test(
       `Verify user is able to create a ${site.siteType} site (ABAC)`,
       { tag: [ContentSuiteTags.SITE_CREATION, TestPriority.P0, TestGroupType.REGRESSION] },
       async ({ appManagerHomePage, page }) => {
@@ -42,19 +53,15 @@ contentTest.describe('Site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags
         await siteCreationPage.verifySiteCreationFormStructure();
 
         // STEP 3: Create the site and capture siteId from URL
-        const siteId = await siteCreationPage.createSite({
+        siteId = await siteCreationPage.createSite({
           name: site.name,
           category: site.category,
           type: site.siteType,
         });
+        console.log('INFO: The created siteId', siteId);
 
         // STEP 4: Verify site creation success toast and that siteId is present
         await siteCreationPage.assertions.verifySiteCreatedSuccessfully(site.name);
-        await expect(siteId, 'siteId should be returned after site creation').toBeTruthy();
-
-        // STEP 5: Deactivate the site via page methods
-        await siteCreationPage.deactivateSiteViaUI();
-        await siteCreationPage.verifySiteDeactivated();
       }
     );
   }

@@ -55,62 +55,100 @@ export class TargetAudienceSectionComponent extends BaseComponent {
     this.allOrgDescription = this.audiencePickerContainer.getByText('This will target everyone in', { exact: false });
   }
 
+  /**
+   * This method is used to verify that the target audience section is visible.
+   * @param options - optional step info to be used in the test report
+   */
   async verifySection(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Verify Target audience section', async () => {
-      await expect(this.targetAudienceHeading).toBeVisible();
+      await expect(this.targetAudienceHeading, 'Target audience heading should be visible').toBeVisible();
       await expect(
-        this.page.getByText(SiteCreationUI.LABELS.TARGET_AUDIENCE.replace(' *', ''), { exact: true })
+        this.page.getByText(SiteCreationUI.LABELS.TARGET_AUDIENCE.replace(' *', ''), { exact: true }),
+        'Target audience label should be visible'
       ).toBeVisible();
-      await expect(this.page.getByText(SiteCreationUI.DESCRIPTIONS.TARGET_AUDIENCE_HELP)).toBeVisible();
-      await expect(this.page.getByText(SiteCreationUI.PLACEHOLDERS.NO_AUDIENCES)).toBeVisible();
-      await expect(this.browseAudiencesButton).toBeVisible();
+      await expect(
+        this.page.getByText(SiteCreationUI.DESCRIPTIONS.TARGET_AUDIENCE_HELP),
+        'Target audience help text should be visible'
+      ).toBeVisible();
+      await expect(
+        this.page.getByText(SiteCreationUI.PLACEHOLDERS.NO_AUDIENCES),
+        'No audiences placeholder should be visible'
+      ).toBeVisible();
+      await expect(this.browseAudiencesButton, 'Browse audiences button should be visible').toBeVisible();
     });
   }
 
+  /**
+   * This method is used to open the audience picker.
+   * @param options - optional step info to be used in the test report
+   */
   async openAudiencePicker(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Open Audience picker', async () => {
       await this.clickOnElement(this.targetAudienceDropdown);
       await this.clickOnElement(this.browseAudiencesButton);
-      await expect(this.targetAudienceModalTitle).toBeVisible();
+      await expect(this.targetAudienceModalTitle, 'Target audience modal title should be visible').toBeVisible();
     });
   }
 
+  /**
+   * This method is used to verify the default state of the audience picker.
+   * @param options - optional step info to be used in the test report
+   */
   async verifyAudiencePickerDefaults(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Verify Audience picker defaults', async () => {
-      await expect(this.allOrganizationOption).toBeVisible();
-      await expect(this.allOrganizationSwitch).toBeVisible();
-      await expect(this.allOrganizationSwitch).not.toBeChecked();
-      await expect(this.searchTextBox).toBeVisible();
-      await expect(this.cancelButton).toBeEnabled();
-      await expect(this.audienceDoneButton).toBeDisabled();
+      await expect(this.allOrganizationOption, 'All organization option should be visible').toBeVisible();
+      await expect(this.allOrganizationSwitch, 'All organization switch should be visible').toBeVisible();
+      await expect(this.allOrganizationSwitch, 'All organization switch should not be checked').not.toBeChecked();
+      await expect(this.searchTextBox, 'Search text box should be visible').toBeVisible();
+      await expect(this.cancelButton, 'Cancel button should be enabled').toBeEnabled();
+      await expect(this.audienceDoneButton, 'Audience done button should be disabled').toBeDisabled();
     });
   }
 
+  /**
+   * This method is used to cancel the audience picker and verify the return.
+   * @param options - optional step info to be used in the test report
+   */
   async cancelAudiencePickerAndVerifyReturn(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Cancel Audience picker and verify return', async () => {
       await this.clickOnElement(this.cancelButton);
-      await expect(this.targetAudienceModalTitle).toBeHidden();
-      await expect(this.browseAudiencesButton).toBeVisible();
+      await expect(this.targetAudienceModalTitle, 'Target audience modal title should be hidden').toBeHidden();
+      await expect(this.browseAudiencesButton, 'Browse audiences button should be visible').toBeVisible();
     });
   }
 
+  /**
+   * This method is used to reopen the audience picker.
+   * @param options - optional step info to be used in the test report
+   */
   async reopenAudiencePicker(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Re-open Audience picker', async () => {
       await this.clickOnElement(this.targetAudienceDropdown);
       await this.clickOnElement(this.browseAudiencesButton);
-      await expect(this.targetAudienceModalTitle).toBeVisible();
+      await expect(this.targetAudienceModalTitle, 'Target audience modal title should be visible').toBeVisible();
     });
   }
 
+  /**
+   * This method is used to select the All organization option.
+   * @param options - optional step info to be used in the test report
+   */
   async selectAllOrganizationOption(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Select All organization option', async () => {
       await this.clickOnElement(this.allOrganizationOption);
-      await expect(this.allOrganizationSwitch).toBeEnabled();
-      await expect(this.allOrgSelectionConfirmation).toBeVisible();
-      await expect(this.allOrgDescription).toBeVisible();
+      await expect(this.allOrganizationSwitch, 'All organization switch should be enabled').toBeEnabled();
+      await expect(
+        this.allOrgSelectionConfirmation,
+        'All organization selection confirmation should be visible'
+      ).toBeVisible();
+      await expect(this.allOrgDescription, 'All organization description should be visible').toBeVisible();
     });
   }
 
+  /**
+   * This method is used to enable the All organization toggle.
+   * @param options - optional step info to be used in the test report
+   */
   async enableAllOrganization(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Enable All organization toggle', async () => {
       await this.allOrganizationSwitch.scrollIntoViewIfNeeded();
@@ -121,6 +159,10 @@ export class TargetAudienceSectionComponent extends BaseComponent {
     });
   }
 
+  /**
+   * This method is used to submit the audience selection.
+   * @param options - optional step info to be used in the test report
+   */
   async submitAudienceSelection(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Submit Audience selection', async () => {
       await expect(this.audienceDoneButton).toBeEnabled();
@@ -129,6 +171,10 @@ export class TargetAudienceSectionComponent extends BaseComponent {
     });
   }
 
+  /**
+   * This method is used to verify the All organization selection summary.
+   * @param options - optional step info to be used in the test report
+   */
   async verifyAllOrgSelectionSummary(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Verify All organization selection summary on form', async () => {
       await this.verifier.verifyTheElementIsVisible(this.selectedAudienceText);
@@ -139,6 +185,10 @@ export class TargetAudienceSectionComponent extends BaseComponent {
     });
   }
 
+  /**
+   * This method is used to setup the All organization audience.
+   * @param options - optional step info to be used in the test report
+   */
   async setupAllOrganization(options?: { verifyDefaults?: boolean; stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Setup All organization audience', async () => {
       await this.openAudiencePicker();

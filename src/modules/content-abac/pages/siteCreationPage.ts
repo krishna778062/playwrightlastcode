@@ -85,18 +85,26 @@ export class SiteCreationPage extends BasePage implements ISiteCreationPageAsser
         await this.createPrivateSite({ name: options.name, category: options.category });
       }
 
-      await this.page.waitForURL(/\/sites\//, { timeout: 30000 });
-
-      const currentUrl = this.page.url();
-      const pathname = new URL(currentUrl).pathname;
-      const segments = pathname.split('/').filter(Boolean);
-      const idx = segments.indexOf('sites');
-      const siteIdFromUrl = idx >= 0 && segments[idx + 1] ? segments[idx + 1] : undefined;
-
-      expect(siteIdFromUrl, `Failed to extract siteId from URL: ${currentUrl}`).toBeTruthy();
+      //after creation , we will wait until the page navigates to site dashboard
+      await this.page.waitForURL(/dashboard/, { timeout: 30000 });
+      const siteIdFromUrl = await this.getSiteIdFromUrl(this.page.url());
+      expect(siteIdFromUrl, `Failed to extract siteId from URL: ${this.page.url()}`).toBeTruthy();
       this.lastCreatedSiteId = siteIdFromUrl as string;
       return this.lastCreatedSiteId;
     });
+  }
+
+  async getSiteIdFromUrl(url: string): Promise<string | undefined> {
+    try {
+      const parts = new URL(url).pathname.split('/');
+      const siteIndex = parts.indexOf('site');
+      if (siteIndex !== -1 && parts.length > siteIndex + 1) {
+        return parts[siteIndex + 1];
+      }
+      return undefined;
+    } catch {
+      throw new Error(`Failed to extract siteId from URL: ${url}`);
+    }
   }
 
   get createdSiteId(): string | undefined {

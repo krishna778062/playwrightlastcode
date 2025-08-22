@@ -21,6 +21,10 @@ export class AccessSectionComponent extends BaseComponent {
     this.makePrivateConfirmButton = page.getByRole('button', { name: SiteCreationUI.BUTTONS.MAKE_PRIVATE });
   }
 
+  /**
+   * This method is used to verify that the access section is visible.
+   * @param options - optional step info to be used in the test report
+   */
   async verifyAccessSectionIsVisible(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Verify Access section is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.accessSectionHeading, {
@@ -32,16 +36,26 @@ export class AccessSectionComponent extends BaseComponent {
     });
   }
 
+  /**
+   * This method is used to toggle the private access of the site.
+   * @param shouldBePrivate - boolean value to indicate if the site should be private or public
+   * @param options - optional step info to be used in the test report
+   */
   async togglePrivateAccess(shouldBePrivate: boolean, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Set site privacy to ${shouldBePrivate ? 'private' : 'public'}`, async () => {
       const isCurrentlyPrivate = await this.privateToggle.isChecked();
-      if (shouldBePrivate !== isCurrentlyPrivate) {
+
+      if (shouldBePrivate && !isCurrentlyPrivate) {
+        //if site is not already private, we need to click on the private toggle label
         await this.clickOnElement(this.privateToggleLabel);
-        if (shouldBePrivate) {
-          await this.page.waitForTimeout(500);
-          await this.clickOnElement(this.makePrivateConfirmButton);
-        }
-        await this.page.waitForTimeout(1000);
+        await this.clickOnElement(this.makePrivateConfirmButton);
+        return;
+      } else if (!shouldBePrivate && !isCurrentlyPrivate) {
+        return;
+      } else if (!shouldBePrivate && isCurrentlyPrivate) {
+        await this.clickOnElement(this.privateToggleLabel);
+        await this.clickOnElement(this.makePrivateConfirmButton);
+        return;
       }
     });
   }

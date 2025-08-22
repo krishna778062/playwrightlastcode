@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { BrowserContext, Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@/src/core/api/factories/apiClientFactory';
@@ -13,6 +13,7 @@ export const contentAbacTestFixture = test.extend<{
   appManagerHomePage: NewUxHomePage | OldUxHomePage;
   appManagerPage: Page;
   appManagerApiClient: AppManagerApiClient;
+  endUserContext: BrowserContext;
   endUserHomePage: NewUxHomePage | OldUxHomePage;
   endUserPage: Page;
   feedManagerService: FeedManagerService;
@@ -49,8 +50,34 @@ export const contentAbacTestFixture = test.extend<{
     { scope: 'test' },
   ],
 
+  siteManagementService: [
+    async ({ appManagerApiClient }, use) => {
+      const siteManagementService = new SiteManagementService(appManagerApiClient.context);
+      await use(siteManagementService);
+    },
+    { scope: 'test' },
+  ],
+
+  feedManagerService: [
+    async ({ appManagerApiClient }, use) => {
+      const feedManagerService = new FeedManagerService(appManagerApiClient.context);
+      await use(feedManagerService);
+    },
+    { scope: 'test' },
+  ],
+
+  endUserContext: [
+    async ({ browser }, use) => {
+      const context = await browser.newContext();
+      await use(context);
+      await context?.close();
+    },
+    { scope: 'test' },
+  ],
+
   endUserHomePage: [
-    async ({ page }, use) => {
+    async ({ endUserContext }, use) => {
+      const page = await endUserContext.newPage();
       const { endUserEmail, endUserPassword } = getEnvConfig();
       if (!endUserEmail || !endUserPassword) throw new Error('Missing END_USER creds in env');
       const endUserHomePage = await LoginHelper.loginWithPassword(page, {
@@ -66,30 +93,6 @@ export const contentAbacTestFixture = test.extend<{
   endUserPage: [
     async ({ endUserHomePage }, use) => {
       await use(endUserHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-
-  feedManagerService: [
-    async ({ endUserPage }, use) => {
-      const feedManagerService = await ApiClientFactory.createClient(FeedManagerService, {
-        type: 'cookies',
-        page: endUserPage,
-        baseUrl: getEnvConfig().apiBaseUrl,
-      });
-      await use(feedManagerService);
-    },
-    { scope: 'test' },
-  ],
-
-  siteManagementService: [
-    async ({ appManagerPage }, use) => {
-      const siteManagementService = await ApiClientFactory.createClient(SiteManagementService, {
-        type: 'cookies',
-        page: appManagerPage,
-        baseUrl: getEnvConfig().apiBaseUrl,
-      });
-      await use(siteManagementService);
     },
     { scope: 'test' },
   ],
