@@ -1,9 +1,11 @@
 import { faker } from '@faker-js/faker';
-import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
-import { Locator, Page, test, expect } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+
 import { TIMEOUTS } from '@core/constants/timeouts';
+
+import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 
 /**
  * The IntranetFileListComponent class is a UI component that represents the intranet file list component.

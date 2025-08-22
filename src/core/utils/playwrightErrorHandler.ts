@@ -2,6 +2,7 @@ import { Locator } from '@playwright/test';
 
 export enum PlaywrightAction {
   CLICK = 'click',
+  CLICK_WITH_COORDINATES = 'click with coordinates',
   FILL_IN = 'fill in',
   TYPE_IN = 'type in',
   GET_ATTRIBUTE = 'get attribute',

@@ -2,6 +2,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { ResultListingComponent } from './resultsListComponent';
 
+import { ContentType } from '@/src/core/constants/contentTypes';
 import {
   getEventDateDisplayText,
   getTodayDateIsoString,
@@ -9,7 +10,6 @@ import {
   getTomorrowDateIsoString,
 } from '@/src/core/utils/dateUtil';
 import { IContentSearch } from '@/src/modules/global-search/types/content-search.type';
-import { ContentType } from '@/src/core/constants/contentTypes';
 
 /**
  * ContentListComponent is a UI component class that extends ResultListingComponent.

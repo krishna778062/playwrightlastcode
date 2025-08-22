@@ -60,7 +60,7 @@ export class CreateFeedPostComponent
   readonly postButton = this.page.locator("div[class*='PostFormShareContainer']").getByRole('button', { name: 'Post' });
 
   // Post editing section
-  readonly editButton = this.page.getByText('Edit');
+  readonly editButton = this.page.getByText('Edit', { exact: true });
   readonly updateButton = this.page.getByRole('button', { name: 'Update' });
 
   // File upload section

@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentType } from '@/src/modules/content/constants/contentType';
@@ -21,8 +22,15 @@ test.describe(
     let publishedPageId: string;
     let siteIdToPublishPage: string;
 
-    test.beforeEach(async ({ appManagerHomePage }) => {
-      pageCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
+    test.beforeEach(async ({ page, loginAs }) => {
+      // Login as app manager using loginAs
+      await loginAs('appManager');
+
+      // Create home page instance and navigate to page creation
+      const homePage = new NewUxHomePage(page);
+      await homePage.verifyThePageIsLoaded();
+
+      pageCreationPage = (await homePage.actions.openCreateContentPageForContentType(
         ContentType.PAGE
       )) as PageCreationPage;
     });
@@ -30,6 +38,8 @@ test.describe(
     test.afterEach(async ({ appManagerApiClient }) => {
       //delete the published page only if the page is published
       if (publishedPageId) {
+        console.log('site id to publish page', siteIdToPublishPage);
+        console.log('content id to delete', publishedPageId);
         await appManagerApiClient.getContentManagementService().deleteContent(siteIdToPublishPage, publishedPageId);
       } else {
         console.log('No page was published, hence skipping the deletion');
@@ -71,9 +81,7 @@ test.describe(
         siteIdToPublishPage = siteId;
 
         //handle the promotion
-        await pageCreationPage.actions.handlePromotionPageStep({
-          skipPromotion: true,
-        });
+        await pageCreationPage.actions.handlePromotionPageStep();
 
         // Verify content was published successfully via UI
         await pageCreationPage.assertions.verifyContentPublishedSuccessfully(title);

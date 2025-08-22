@@ -1,5 +1,5 @@
-import { APIRequestContext, test } from '@playwright/test';
 import { faker } from '@faker-js/faker';
+import { APIRequestContext, test } from '@playwright/test';
 
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { IFeedManagementOperations } from '@core/api/interfaces/IFeedManagementOperations';

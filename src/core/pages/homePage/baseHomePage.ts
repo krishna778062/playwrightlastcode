@@ -12,6 +12,8 @@ import { CreateComponent } from '@/src/modules/content/components/createComponen
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
+import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
+import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 import { SiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/globalSearchResultPage';
@@ -36,6 +38,7 @@ export interface INewUxHomePageActions extends ICommonHomePageActions {
     contentType: ContentType,
     options?: { stepInfo?: string }
   ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
+  clickOnFeaturedSitesTab: (options?: { stepInfo?: string }) => Promise<FeaturedSitePage>;
 }
 
 export abstract class BaseHomePage extends BasePage implements ICommonHomePageActions {

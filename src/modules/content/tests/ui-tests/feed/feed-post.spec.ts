@@ -1,8 +1,8 @@
 import { faker } from '@faker-js/faker';
 
-import { FeedManagerService } from '@core/api/services/FeedManagerService';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
@@ -20,10 +20,16 @@ test.describe(
     let createdPostText: string;
     let createdPostId: string = '';
 
-    test.beforeEach(async ({ endUserHomePage }) => {
-      // Navigate to feed page using the logged-in enduser fixture
-      await endUserHomePage.actions.clickOnGlobalFeed();
-      feedPage = new FeedPage(endUserHomePage.page);
+    test.beforeEach(async ({ page, loginAs }) => {
+      // Login as end user using loginAs
+      await loginAs('endUser');
+
+      // Create home page instance and navigate to feed
+      const homePage = new NewUxHomePage(page);
+      await homePage.verifyThePageIsLoaded();
+      await homePage.actions.clickOnGlobalFeed();
+
+      feedPage = new FeedPage(page);
       await feedPage.verifyThePageIsLoaded();
     });
 

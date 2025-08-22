@@ -1,5 +1,6 @@
-import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 import { Locator, Page, test } from '@playwright/test';
+
+import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 
 export class FeedListComponent extends ContentListComponent {
   public readonly feedPostText: Locator;

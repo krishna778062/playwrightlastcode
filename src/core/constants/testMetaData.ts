@@ -7,7 +7,7 @@ export interface TestMetadata {
   type?: TestGroupType;
   priority?: TestPriority;
   description?: string;
-  zephyrTestId?: string;
+  zephyrTestId?: string | string[]; //suppports both single zephyr id or list of zephyr ids
   customTags?: string[];
   storyId?: string;
 }

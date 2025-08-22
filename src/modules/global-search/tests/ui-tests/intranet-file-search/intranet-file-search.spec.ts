@@ -1,11 +1,12 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
+
+import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
+import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { INTRANET_FILE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/intranet-file-search.test-data';
-import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 
 test.describe(
   'Global Search - Intranet File Search functionality',
