@@ -200,60 +200,61 @@ export class AUDIENCE_PAGE extends BasePage {
 
   async verifyNameFieldMaxLength(): Promise<void> {
     await test.step('Verify Name field max length is 100', async () => {
-      const over = 'A'.repeat(120);
+      const expectedMaxLength = 100;
+      const overLengthInput = 'A'.repeat(120);
 
       await this.fillInElement(this.categoryNameInput, ''); // clear
-      await this.typeInElement(this.categoryNameInput, over); // type 120 chars
+      await this.typeInElement(this.categoryNameInput, overLengthInput); // type 120 chars
 
-      const v1 = await this.categoryNameInput.inputValue();
-      expect(v1.length).toBe(100);
-      expect(v1).toBe(over.slice(0, 100)); // truncated exactly
+      const valueAfterFirstInput = await this.categoryNameInput.inputValue();
+      expect(valueAfterFirstInput.length).toBe(expectedMaxLength);
+      expect(valueAfterFirstInput).toBe(overLengthInput.slice(0, expectedMaxLength)); // truncated exactly
 
       // Try typing more; value should not change
       await this.typeInElement(this.categoryNameInput, 'B'.repeat(5));
-      const v2 = await this.categoryNameInput.inputValue();
-      expect(v2).toBe(v1);
+      const valueAfterSecondInput = await this.categoryNameInput.inputValue();
+      expect(valueAfterSecondInput).toBe(valueAfterFirstInput);
 
-      const maxAttr = await this.getElementAttribute(this.categoryNameInput, 'maxlength');
-      if (maxAttr) expect(Number(maxAttr)).toBe(100);
+      const maxLengthAttribute = await this.getElementAttribute(this.categoryNameInput, 'maxlength');
+      if (maxLengthAttribute) expect(Number(maxLengthAttribute)).toBe(expectedMaxLength);
     });
   }
 
   async verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(): Promise<void> {
     await test.step('Verify Name field accepts letters, numbers, and special characters', async () => {
-      const sample = 'Category 123 _-.,@#$()&[]{}:;!?';
+      const sampleInput = 'Category 123 _-.,@#$()&[]{}:;!?';
       await this.fillInElement(this.categoryNameInput, '');
-      await this.typeInElement(this.categoryNameInput, sample);
-      const value = await this.categoryNameInput.inputValue();
-      expect(value).toBe(sample);
+      await this.typeInElement(this.categoryNameInput, sampleInput);
+      const nameFieldValue = await this.categoryNameInput.inputValue();
+      expect(nameFieldValue).toBe(sampleInput);
       await expect(this.categoryModalAddButton).toBeEnabled();
 
       // Also verify Description field accepts same character set
       await this.clickAddDescriptionAndVerify();
       await this.fillInElement(this.descriptionInput, '');
-      await this.typeInElement(this.descriptionInput, sample);
-      const descValue = await this.descriptionInput.inputValue();
-      expect(descValue).toBe(sample);
+      await this.typeInElement(this.descriptionInput, sampleInput);
+      const descriptionFieldValue = await this.descriptionInput.inputValue();
+      expect(descriptionFieldValue).toBe(sampleInput);
     });
   }
 
   async verifyDescriptionFieldMaxLength(): Promise<void> {
     await test.step('Verify Description field max length', async () => {
       await this.clickAddDescriptionAndVerify();
-      const maxAttr = await this.getElementAttribute(this.descriptionInput, 'maxlength');
-      const max = maxAttr ? Number(maxAttr) : 1024;
+      const maxLengthAttribute = await this.getElementAttribute(this.descriptionInput, 'maxlength');
+      const maximumAllowedLength = maxLengthAttribute ? Number(maxLengthAttribute) : 1024;
 
-      const over = 'D'.repeat(max + 50);
+      const overLengthInput = 'D'.repeat(maximumAllowedLength + 50);
       await this.fillInElement(this.descriptionInput, '');
-      await this.typeInElement(this.descriptionInput, over);
+      await this.typeInElement(this.descriptionInput, overLengthInput);
 
-      const v1 = await this.descriptionInput.inputValue();
-      expect(v1.length).toBe(max);
-      expect(v1).toBe(over.slice(0, max));
+      const valueAfterFirstInput = await this.descriptionInput.inputValue();
+      expect(valueAfterFirstInput.length).toBe(maximumAllowedLength);
+      expect(valueAfterFirstInput).toBe(overLengthInput.slice(0, maximumAllowedLength));
 
       await this.typeInElement(this.descriptionInput, 'E'.repeat(10));
-      const v2 = await this.descriptionInput.inputValue();
-      expect(v2).toBe(v1);
+      const valueAfterSecondInput = await this.descriptionInput.inputValue();
+      expect(valueAfterSecondInput).toBe(valueAfterFirstInput);
     });
   }
 }
