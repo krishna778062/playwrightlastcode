@@ -5,6 +5,7 @@ import { BasePage } from '@core/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
+// Page Object Model for the Audience management page with category creation and validation functionality
 export class AudiencePage extends BasePage {
   readonly labelAudience: Locator;
   readonly createAudienceButton: Locator;
@@ -29,6 +30,7 @@ export class AudiencePage extends BasePage {
   readonly deleteCategoryOption: Locator;
   readonly deleteCategoryButton: Locator;
 
+  // Initialize AudiencePage with locators for UI interaction
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.AUDIENCE_PAGE) {
     super(page, pageUrl);
 
@@ -75,10 +77,7 @@ export class AudiencePage extends BasePage {
     this.deleteCategoryButton = page.getByRole('button', { name: 'Delete' });
   }
 
-  /**
-   * To click on Create Audience Button
-   */
-
+  // Click on Create button or dropdown menu option to initiate audience creation flow
   async clickOnCreateButtonToInitiateAudienceCreationFlowFor(
     createType: 'Create audience' | 'Create category' | 'Create audience with CSV'
   ): Promise<void> {
@@ -101,9 +100,7 @@ export class AudiencePage extends BasePage {
     });
   }
 
-  /**
-   * To click on Cross button at the top right corner of ACG creation popup.
-   */
+  // Click on close (X) button at the top right corner of category creation modal
   async clickOnCloseButton(options?: { stepInfo?: string; timeout?: number }): Promise<void> {
     await test.step(options?.stepInfo ?? `Click on close button`, async () => {
       await this.clickOnElement(this.clickCloseButton, {
@@ -112,7 +109,7 @@ export class AudiencePage extends BasePage {
     });
   }
 
-  // To verify that the Audience page is loaded
+  // Verify that the Audience page is loaded by checking if 'Audiences' heading is visible
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step(`Verifying the audience page is loaded`, async () => {
       await expect(this.labelAudience, `expecting Audience label to be visible`).toBeVisible({
@@ -121,7 +118,7 @@ export class AudiencePage extends BasePage {
     });
   }
 
-  // Open the Create category modal and validate the visible elements
+  // Open Create category modal and validate all expected elements are visible
   async openCreateCategoryModal(options?: {
     verifyMaxLength?: boolean;
     verifyAddDescription?: boolean;
@@ -163,23 +160,23 @@ export class AudiencePage extends BasePage {
     if (options?.closeAfter) await this.clickOnCloseButton();
   }
 
-  // Fill the Name field in the Create category dialog
+  // Fill the category name input field
   async fillCategoryName(name: string): Promise<void> {
     await this.fillInElement(this.categoryNameInput, name);
   }
 
-  // Add a description in the Create category dialog
+  // Add description by clicking 'Add description' button and filling the field
   async addCategoryDescription(description: string): Promise<void> {
     await this.clickOnElement(this.addDescriptionButton, { stepInfo: 'Click on Add description' });
     await this.fillInElement(this.descriptionInput, description);
   }
 
-  // Click the Add button to submit the new category
+  // Submit category creation by clicking the 'Add' button
   async submitCategoryCreation(): Promise<void> {
     await this.clickOnElement(this.categoryModalAddButton, { stepInfo: 'Click Add on Create category modal' });
   }
 
-  // Verify the Close button is visible
+  // Verify the close button is visible in category creation modal
   async assertCloseButtonIsVisible(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.clickCloseButton, {
       assertionMessage: 'Verify Close button is visible',
@@ -187,7 +184,7 @@ export class AudiencePage extends BasePage {
     });
   }
 
-  // Click the Add description button to add a description to the category
+  // Click 'Add description' button and verify description field and delete button become visible
   async clickAddDescriptionAndVerify(): Promise<void> {
     const alreadyVisible = await this.verifier.isTheElementVisible(this.descriptionInput, { timeout: 1000 });
     if (!alreadyVisible) {
@@ -199,13 +196,13 @@ export class AudiencePage extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.deleteDescriptionButton, {});
   }
 
-  // Click the Delete description button to remove the description from the category
+  // Remove description by clicking delete button and verify field is no longer visible
   async removeDescriptionAndVerifyAbsence(): Promise<void> {
     await this.clickOnElement(this.deleteDescriptionButton, { stepInfo: 'Click Delete description' });
     await this.verifier.verifyTheElementIsNotVisible(this.descriptionInput, {});
   }
 
-  // Verify the Name field max length is 100
+  // Verify category name field has maximum length of 100 characters
   async verifyNameFieldMaxLength(): Promise<void> {
     await test.step('Verify Name field max length is 100', async () => {
       const expectedMaxLength = 100;
@@ -228,7 +225,7 @@ export class AudiencePage extends BasePage {
     });
   }
 
-  // Verify the Name field accepts letters, numbers, and special characters
+  // Verify name and description fields accept alphanumeric and special characters
   async verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(): Promise<void> {
     await test.step('Verify Name field accepts letters, numbers, and special characters', async () => {
       const sampleInput = 'Category 123 _-.,@#$()&[]{}:;!?';
@@ -247,7 +244,7 @@ export class AudiencePage extends BasePage {
     });
   }
 
-  // Verify the Description field max length is 1024
+  // Verify description field maximum length (reads from maxlength attribute or defaults to 1024)
   async verifyDescriptionFieldMaxLength(): Promise<void> {
     await test.step('Verify Description field max length', async () => {
       await this.clickAddDescriptionAndVerify();
@@ -268,7 +265,7 @@ export class AudiencePage extends BasePage {
     });
   }
 
-  // Helper methods for category management
+  // Verify 'The name is already used' error message is displayed
   async verifyNameAlreadyUsedError(): Promise<void> {
     await test.step('Verify "Name is already used" error message', async () => {
       await this.verifier.verifyTheElementIsVisible(this.nameAlreadyUsedError, {
@@ -278,10 +275,12 @@ export class AudiencePage extends BasePage {
     });
   }
 
+  // Verify specific toast message is displayed
   async verifyToastMessage(toastMessage: string, options?: { stepInfo?: string; timeout?: number }): Promise<void> {
     await super.verifyToastMessage(toastMessage, options);
   }
 
+  // Verify 'Category created' success toast message is displayed
   async verifyCategoryCreationSuccessToast(): Promise<void> {
     await this.verifyToastMessage('Category created', {
       stepInfo: 'Verify category creation success toast message',
@@ -289,6 +288,7 @@ export class AudiencePage extends BasePage {
     });
   }
 
+  // Verify 'Category deleted' success toast message is displayed
   async verifyCategoryDeletionSuccessToast(): Promise<void> {
     await this.verifyToastMessage('Category deleted', {
       stepInfo: 'Verify category deletion success toast message',
@@ -296,6 +296,7 @@ export class AudiencePage extends BasePage {
     });
   }
 
+  // Create new category with specified name and optional description
   async createCategoryWithNameAndDescription(name: string, description?: string): Promise<void> {
     await test.step(`Create category with name: ${name}`, async () => {
       await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
@@ -312,6 +313,7 @@ export class AudiencePage extends BasePage {
     });
   }
 
+  // Attempt to create category with existing name to trigger duplicate validation error
   async attemptToCreateDuplicateCategory(existingCategoryName: string): Promise<void> {
     await test.step(`Attempt to create duplicate category with name: ${existingCategoryName}`, async () => {
       await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
@@ -321,6 +323,7 @@ export class AudiencePage extends BasePage {
     });
   }
 
+  // Delete category using 'Show more' dropdown menu
   async deleteCategoryByShowMore(categoryName?: string): Promise<void> {
     await test.step('Delete category using Show more menu', async () => {
       let showMoreButton: Locator;
@@ -328,7 +331,9 @@ export class AudiencePage extends BasePage {
       if (categoryName) {
         // Use the working XPath approach
         console.log(`Looking for Show more button for category: ${categoryName} using XPath`);
-        showMoreButton = this.page.locator(`//p[contains(text(),'${categoryName}')]/ancestor::div[@role='presentation']/following-sibling::div/following-sibling::div//button`);
+        showMoreButton = this.page.locator(
+          `//p[contains(text(),'${categoryName}')]/ancestor::div[@role='presentation']/following-sibling::div/following-sibling::div//button`
+        );
       } else {
         // Fallback: Use the last Show more button (most recently created category)
         console.log('Using fallback: last Show more button');
@@ -339,7 +344,7 @@ export class AudiencePage extends BasePage {
         assertionMessage: 'Verify Show more button is visible for category deletion',
         timeout: TIMEOUTS.MEDIUM,
       });
-      
+
       await this.clickOnElement(showMoreButton, {
         stepInfo: 'Click on Show more button for category',
         timeout: 10_000,
@@ -351,9 +356,9 @@ export class AudiencePage extends BasePage {
         this.page.getByText('Delete'),
         this.page.getByRole('menuitem', { name: /delete/i }),
         this.page.locator('[role="menuitem"]').filter({ hasText: /delete/i }),
-        this.page.locator('button, [role="menuitem"]').filter({ hasText: /delete.*category/i })
+        this.page.locator('button, [role="menuitem"]').filter({ hasText: /delete.*category/i }),
       ];
-      
+
       let deleteOption: Locator | null = null;
       for (const option of deleteOptions) {
         const isVisible = await option.isVisible({ timeout: 2000 }).catch(() => false);
@@ -363,11 +368,11 @@ export class AudiencePage extends BasePage {
           break;
         }
       }
-      
+
       if (!deleteOption) {
         throw new Error('Could not find any delete category option in the dropdown menu');
       }
-      
+
       await this.clickOnElement(deleteOption, {
         stepInfo: 'Click on Delete category option',
         timeout: 10_000,
@@ -377,7 +382,7 @@ export class AudiencePage extends BasePage {
         assertionMessage: 'Verify Delete confirmation button is visible',
         timeout: TIMEOUTS.MEDIUM,
       });
-      
+
       await this.clickOnElement(this.deleteCategoryButton, {
         stepInfo: 'Click on Delete button to confirm category deletion',
         timeout: 10_000,
@@ -385,14 +390,11 @@ export class AudiencePage extends BasePage {
     });
   }
 
+  // Verify all three options are present in category dropdown menu (Add Audience, Edit category, Delete category)
   async verifyAllCategoryOptionsArePresent(): Promise<void> {
     await test.step('Verify all three options are present in category dropdown menu', async () => {
       // Define the exact expected options
-      const expectedOptions = [
-        'Add Audience',
-        'Edit category', 
-        'Delete category'
-      ];
+      const expectedOptions = ['Add Audience', 'Edit category', 'Delete category'];
 
       console.log('Verifying category dropdown options...');
 
@@ -413,47 +415,50 @@ export class AudiencePage extends BasePage {
     });
   }
 
+  // Verify clicking Cancel button prevents category creation
   async verifyCategoryCancelButtonBehavior(): Promise<void> {
     await test.step('Verify Cancel button prevents category creation', async () => {
       const categoryName = `CancelTest_${Date.now()}`;
-      
+
       await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
       await this.fillCategoryName(categoryName);
       await this.clickOnElement(this.categoryModalCancelButton, { stepInfo: 'Click Cancel button' });
-      
+
       // Verify modal is closed
       await this.verifier.verifyTheElementIsNotVisible(this.categoryLabel, {});
-      
+
       // Verify category is not created in the list
       await this.verifyCategoryNotInList(categoryName);
     });
   }
 
+  // Verify clicking Close (X) button prevents category creation
   async verifyCategoryCloseButtonBehavior(): Promise<void> {
     await test.step('Verify Close button prevents category creation', async () => {
       const categoryName = `CloseTest_${Date.now()}`;
-      
+
       await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
       await this.fillCategoryName(categoryName);
       await this.clickOnElement(this.clickCloseButton, { stepInfo: 'Click Close button' });
-      
+
       // Verify modal is closed
       await this.verifier.verifyTheElementIsNotVisible(this.categoryLabel, {});
-      
+
       // Verify category is not created in the list
       await this.verifyCategoryNotInList(categoryName);
     });
   }
 
+  // Verify specific category name is not present in the categories list
   async verifyCategoryNotInList(categoryName: string): Promise<void> {
     await test.step(`Verify category "${categoryName}" is not in the list`, async () => {
       // Wait a moment for the page to update
       await this.page.waitForTimeout(1000);
-      
+
       // Check if category name appears anywhere on the page
       const categoryElement = this.page.getByText(categoryName, { exact: true });
       const isVisible = await categoryElement.isVisible({ timeout: 3000 }).catch(() => false);
-      
+
       expect(isVisible, `Category "${categoryName}" should not be created and visible in the list`).toBe(false);
     });
   }
