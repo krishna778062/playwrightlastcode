@@ -67,9 +67,9 @@ export class ManageUsersPage extends BasePage {
           userName
         ) {
           if (value == 'App manager') {
-            expect(await this.appManagerValue.isVisible());
+            await expect(this.appManagerValue).toBeVisible();
           } else {
-            expect(await this.standardUserValue.isVisible());
+            await expect(this.standardUserValue).toBeVisible();
           }
         }
       }

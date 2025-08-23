@@ -19,12 +19,13 @@ export class FeatureOwnersPage extends BasePage {
   readonly doneButtonOnAddFeatureOnwers: Locator;
   readonly editFOTiles: Locator;
   readonly showMoreButtonForEditFO: Locator;
+  readonly foCrossButton: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.FEATURE_OWNERS) {
     super(page, pageUrl);
     this.userCountButton = page.locator("[class*='Cell-module'] button p");
     this.feature = page.locator("[class*='FeatureColumn-module-featureName'] p");
-    this.searchInputBox = page.locator('#q');
+    this.searchInputBox = page.getByPlaceholder('Search…');
     this.foMenuOptionsButton = page.locator('[aria-haspopup="menu"]');
     this.foUserNamesOnUserCountPopup = page.locator("[class*='Spacing-module'] p a");
     this.foAppManagerTag = page.locator("[class*='AccessControlListItem-module-appManagerContainer'] p");
@@ -38,6 +39,7 @@ export class FeatureOwnersPage extends BasePage {
     this.showMoreButtonForEditFO = page.locator(
       '[class*="AccessControlSelectionItems-module-showMoreButtonContainer"] button'
     );
+    this.foCrossButton = page.locator('[aria-label="Remove user"]');
   }
 
   // To verify that the feature owners page is loaded
@@ -113,65 +115,36 @@ export class FeatureOwnersPage extends BasePage {
   }
 
   /**
-   * Gets list of usernames of users from user count popup of feature owners.
+   * Gets list of usernames of users having app manager tag from edit popup of feature owners.
    */
-  async getUsersWithOutCrossButton(): Promise<string[]> {
-    const userNamesWithAppManagerTag: string[] = [];
-    await test.step(`Getting the list of usernames on user count popup of feature owner`, async () => {
+  async getUsersWithAppManagerTag(): Promise<string[]> {
+    let userNamesWithAppManagerTag: string[] = [];
+    return await test.step(`Getting all visible usernames with app manager tag from user count popup`, async () => {
       for (let i = 0; i < (await this.foUserCountPopupModule.count()); i++) {
-        if (
-          await this.foUserCountPopupModule
-            .nth(i)
-            .locator("div [class*='AccessControlListItem-module-appManagerContainer'] p")
-            .isVisible()
-        ) {
-          if (
-            (await this.foUserCountPopupModule
-              .nth(i)
-              .locator("div [class*='AccessControlListItem-module-appManagerContainer'] p")
-              .textContent()) == 'App manager'
-          ) {
-            const userNameWithAppManagerTag: string = await this.foUserCountPopupModule
-              .nth(i)
-              .locator("[class*='Typography-module__paragraph'] a")
-              .textContent();
-            userNamesWithAppManagerTag.push(userNameWithAppManagerTag);
-          }
-        }
-      }
-    });
-    return userNamesWithAppManagerTag;
-  }
+        const appManagerElement = this.foUserCountPopupModule
+          .nth(i)
+          .locator("div [class*='AccessControlListItem-module-appManagerContainer'] p");
 
-  /**
-   * Gets list of usernames of users from user count popup of feature owners.
-   */
-  async getUsersWithCrossButton(): Promise<string[]> {
-    const userNamesWithoutAppManagerTag: string[] = [];
-    await test.step(`Getting the list of usernames on user count popup of feature owner`, async () => {
-      for (let i = 0; i < (await this.foUserCountPopupModule.count()); i++) {
-        if (
-          await this.foUserCountPopupModule
+        if (await appManagerElement.isVisible()) {
+          const userNameElement = this.foUserCountPopupModule
             .nth(i)
-            .locator("div [class*='AccessControlListItem-module-appManagerContainer'] p")
-            .isVisible()
-        ) {
-          if (
-            (await this.foUserCountPopupModule
-              .nth(i)
-              .locator("div [class*='AccessControlListItem-module-appManagerContainer'] p")
-              .textContent()) == 'App manager'
-          ) {
-            const userNameWithoutAppManagerTag: string = await this.foUserCountPopupModule
-              .nth(i)
-              .locator("[class*='Typography-module__paragraph'] a")
-              .textContent();
-            userNamesWithoutAppManagerTag.push(userNameWithoutAppManagerTag);
+            .locator("[class*='Typography-module__paragraph'] a");
+
+          const userName = await userNameElement.textContent();
+          if (userName) {
+            userNamesWithAppManagerTag.push(userName.trim());
           }
         }
       }
+      if (userNamesWithAppManagerTag.length > 0) {
+        return userNamesWithAppManagerTag;
+      } else if (await this.showMoreButtonForEditFO.isVisible()) {
+        await this.clickOnElement(this.showMoreButtonForEditFO);
+        return await this.getUsersWithAppManagerTag();
+      } else {
+        expect(`Couldn't find any users with app manaage tag`).toBeFalsy();
+      }
     });
-    return userNamesWithoutAppManagerTag;
   }
 
   /**
@@ -223,27 +196,25 @@ export class FeatureOwnersPage extends BasePage {
     userName: string,
     options?: { stepInfo?: string; timeout?: number }
   ): Promise<boolean> {
-    console.log('<<<<<<function called>>>>>>>>');
-    const flag: boolean = false;
-    await test.step(
+    return await test.step(
       options?.stepInfo ?? `Check the presence of user with username: ${userName} as feature owner`,
       async () => {
         for (let i = 0; i < (await this.editFOTiles.count()); i++) {
-          console.log(await this.editFOTiles.nth(i).locator('p a').textContent());
-          if ((await this.editFOTiles.nth(i).locator('p a').textContent()) == userName) {
+          const userText = await this.editFOTiles.nth(i).locator('p a').textContent();
+          if (userText === userName) {
+            console.log(`User ${userName} found as feature owner`);
             return true;
           }
         }
-        console.log('first: ' + flag);
-        if ((await this.showMoreButtonForEditFO.isVisible()) && !flag) {
-          console.log('<<<Calling recursively>>>');
+        if (await this.showMoreButtonForEditFO.isVisible()) {
+          console.log('User not found in current view, clicking Show More button');
           await this.clickOnElement(this.showMoreButtonForEditFO);
-          return await this.verifyUserAsFeatureOnwerForFeature(userName);
+          return await this.verifyUserAsFeatureOnwerForFeature(userName, options);
         }
+        console.log(`User ${userName} not found as feature owner`);
+        return false;
       }
     );
-    console.log('second: ' + flag);
-    return flag;
   }
 
   /**
@@ -257,7 +228,7 @@ export class FeatureOwnersPage extends BasePage {
     let flag: boolean = false;
     let usersWithoutCrossButton: string[];
     await test.step(options?.stepInfo ?? `Check that ${userName} are displayed with App Manager tag`, async () => {
-      usersWithoutCrossButton = await this.getUsersWithOutCrossButton();
+      usersWithoutCrossButton = await this.getUsersWithAppManagerTag();
       console.log(usersWithoutCrossButton);
       if ((usersWithoutCrossButton.filter(userWithoutCrossButton => userWithoutCrossButton === userName).length = 1)) {
         flag = true;

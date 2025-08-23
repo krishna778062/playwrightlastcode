@@ -5,10 +5,8 @@ import { IUserManagementOperations } from '@core/api/interfaces/IUserManagementO
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { Roles } from '@core/constants/roles';
 import { TIMEOUTS } from '@core/constants/timeouts';
-import { AddUserResponse, ChatGroup } from '@core/types/group.type';
-import { SearchUserResponse, User } from '@core/types/user.type';
-import { IdentityUserSearchResponse } from '@core/types/user.type';
-import { IdentityUserInfoResponse } from '@core/types/user.type';
+import { AddUserResponse } from '@core/types/group.type';
+import { SearchUserResponse, User, IdentityUserSearchResponse, IdentityUserInfoResponse } from '@core/types/user.type';
 
 import { IdentityService } from './IdentityService';
 
@@ -262,7 +260,7 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
     options?: { name: string; order: string }
   ): Promise<IdentityUserSearchResponse> {
     let responseJson: any;
-    await test.step(`Getting user details from user search list for ${loginIdentifier} login identifier`, async () => {
+    await test.step(`Getting user details from user search list for search value: ${loginIdentifier}`, async () => {
       const response = await this.post(API_ENDPOINTS.appManagement.users.list, {
         data: {
           size: 100,
@@ -289,5 +287,20 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
       responseJson = await this.parseResponse<IdentityUserInfoResponse>(response);
     });
     return responseJson;
+  }
+
+  /**
+   * Gets user info
+   * @param userId - UserId of the user whose information need to be retrieved
+   * @param newStatus - New status to te updated for the user
+   */
+  async updateUserStatus(userId: string, newStatus: string): Promise<void> {
+    await test.step(`Updating user status for the user with userId: ${userId}`, async () => {
+      await this.put(API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserIdStatus(userId), {
+        data: {
+          status: newStatus,
+        },
+      });
+    });
   }
 }
