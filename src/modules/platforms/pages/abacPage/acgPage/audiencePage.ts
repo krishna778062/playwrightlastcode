@@ -29,6 +29,10 @@ export class AudiencePage extends BasePage {
   readonly nameAlreadyUsedError: Locator;
   readonly deleteCategoryOption: Locator;
   readonly deleteCategoryButton: Locator;
+  readonly editCategoryOption: Locator;
+  readonly editCategoryDialog: Locator;
+  readonly editCategoryLabel: Locator;
+  readonly editCategoryModalSaveButton: Locator;
 
   // Initialize AudiencePage with locators for UI interaction
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.AUDIENCE_PAGE) {
@@ -75,6 +79,13 @@ export class AudiencePage extends BasePage {
     this.nameAlreadyUsedError = page.getByText('The name is already used');
     this.deleteCategoryOption = page.getByText('Delete category');
     this.deleteCategoryButton = page.getByRole('button', { name: 'Delete' });
+    this.editCategoryOption = page.getByText('Edit category');
+
+    // Edit category dialog scope - using a more flexible approach
+    this.editCategoryDialog = page.locator('[role="dialog"]');
+
+    this.editCategoryLabel = page.locator('h2:has-text("Edit category")');
+    this.editCategoryModalSaveButton = page.getByRole('button', { name: 'Save' });
   }
 
   // Click on Create button or dropdown menu option to initiate audience creation flow
@@ -100,12 +111,21 @@ export class AudiencePage extends BasePage {
     });
   }
 
-  // Click on close (X) button at the top right corner of category creation modal
-  async clickOnCloseButton(options?: { stepInfo?: string; timeout?: number }): Promise<void> {
+  // Click on close (X) button at the top right corner of category modal (works for both Create and Edit modals)
+  async clickOnCloseButton(options?: { stepInfo?: string; timeout?: number; isEditModal?: boolean }): Promise<void> {
     await test.step(options?.stepInfo ?? `Click on close button`, async () => {
-      await this.clickOnElement(this.clickCloseButton, {
-        timeout: options?.timeout ?? 10_000,
-      });
+      if (options?.isEditModal) {
+        // For Edit modal, use the scoped locator
+        const locators = this.getModalSpecificLocators(true);
+        await this.clickOnElement(locators.closeButton, {
+          timeout: options?.timeout ?? 10_000,
+        });
+      } else {
+        // For Create modal, use the existing locator
+        await this.clickOnElement(this.clickCloseButton, {
+          timeout: options?.timeout ?? 10_000,
+        });
+      }
     });
   }
 
@@ -184,83 +204,101 @@ export class AudiencePage extends BasePage {
     });
   }
 
-  // Click 'Add description' button and verify description field and delete button become visible
-  async clickAddDescriptionAndVerify(): Promise<void> {
-    const alreadyVisible = await this.verifier.isTheElementVisible(this.descriptionInput, { timeout: 1000 });
-    if (!alreadyVisible) {
-      await this.clickOnElement(this.addCategoryDescriptionButton, { stepInfo: 'Click Add description' });
-    }
-    // Verify the Description textarea is visible
-    await this.verifier.verifyTheElementIsVisible(this.descriptionInput, {});
-    // Verify the Delete description button is visible
-    await this.verifier.verifyTheElementIsVisible(this.deleteDescriptionButton, {});
+  // Click 'Add description' button and verify description field and delete button become visible (works for both Create and Edit modals)
+  async clickAddDescriptionAndVerify(isEditModal: boolean = false): Promise<void> {
+    const locators = this.getModalSpecificLocators(isEditModal);
+    const modalType = isEditModal ? 'Edit' : 'Create';
+
+    await test.step(`Click Add description and verify in ${modalType} category modal`, async () => {
+      const alreadyVisible = await this.verifier.isTheElementVisible(locators.descriptionInput, { timeout: 1000 });
+      if (!alreadyVisible) {
+        await this.clickOnElement(locators.addDescriptionButton, { stepInfo: 'Click Add description' });
+      }
+      // Verify the Description textarea is visible
+      await this.verifier.verifyTheElementIsVisible(locators.descriptionInput, {});
+      // Verify the Delete description button is visible
+      await this.verifier.verifyTheElementIsVisible(locators.deleteDescriptionButton, {});
+    });
   }
 
-  // Remove description by clicking delete button and verify field is no longer visible
-  async removeDescriptionAndVerifyAbsence(): Promise<void> {
-    await this.clickOnElement(this.deleteDescriptionButton, { stepInfo: 'Click Delete description' });
-    await this.verifier.verifyTheElementIsNotVisible(this.descriptionInput, {});
+  // Remove description by clicking delete button and verify field is no longer visible (works for both Create and Edit modals)
+  async removeDescriptionAndVerifyAbsence(isEditModal: boolean = false): Promise<void> {
+    const locators = this.getModalSpecificLocators(isEditModal);
+    const modalType = isEditModal ? 'Edit' : 'Create';
+
+    await test.step(`Remove description and verify absence in ${modalType} category modal`, async () => {
+      await this.clickOnElement(locators.deleteDescriptionButton, { stepInfo: 'Click Delete description' });
+      await this.verifier.verifyTheElementIsNotVisible(locators.descriptionInput, {});
+    });
   }
 
-  // Verify category name field has maximum length of 100 characters
-  async verifyNameFieldMaxLength(): Promise<void> {
-    await test.step('Verify Name field max length is 100', async () => {
+  // Verify category name field has maximum length of 100 characters (works for both Create and Edit modals)
+  async verifyNameFieldMaxLength(isEditModal: boolean = false): Promise<void> {
+    const modalType = isEditModal ? 'Edit' : 'Create';
+    await test.step(`Verify ${modalType} category name field max length is 100`, async () => {
+      const locators = this.getModalSpecificLocators(isEditModal);
       const expectedMaxLength = 100;
       const overLengthInput = 'A'.repeat(120);
 
-      await this.fillInElement(this.categoryNameInput, ''); // clear
-      await this.typeInElement(this.categoryNameInput, overLengthInput); // type 120 chars
+      await this.fillInElement(locators.nameInput, ''); // clear
+      await this.typeInElement(locators.nameInput, overLengthInput); // type 120 chars
 
-      const valueAfterFirstInput = await this.categoryNameInput.inputValue();
+      const valueAfterFirstInput = await locators.nameInput.inputValue();
       expect(valueAfterFirstInput.length).toBe(expectedMaxLength);
       expect(valueAfterFirstInput).toBe(overLengthInput.slice(0, expectedMaxLength)); // truncated exactly
 
       // Try typing more; value should not change
-      await this.typeInElement(this.categoryNameInput, 'B'.repeat(5));
-      const valueAfterSecondInput = await this.categoryNameInput.inputValue();
+      await this.typeInElement(locators.nameInput, 'B'.repeat(5));
+      const valueAfterSecondInput = await locators.nameInput.inputValue();
       expect(valueAfterSecondInput).toBe(valueAfterFirstInput);
 
-      const maxLengthAttribute = await this.getElementAttribute(this.categoryNameInput, 'maxlength');
+      const maxLengthAttribute = await this.getElementAttribute(locators.nameInput, 'maxlength');
       if (maxLengthAttribute) expect(Number(maxLengthAttribute)).toBe(expectedMaxLength);
     });
   }
 
-  // Verify name and description fields accept alphanumeric and special characters
-  async verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(): Promise<void> {
-    await test.step('Verify Name field accepts letters, numbers, and special characters', async () => {
+  // Verify name and description fields accept alphanumeric and special characters (works for both Create and Edit modals)
+  async verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(isEditModal: boolean = false): Promise<void> {
+    const modalType = isEditModal ? 'Edit' : 'Create';
+    await test.step(`Verify ${modalType} category fields accept letters, numbers, and special characters`, async () => {
+      const locators = this.getModalSpecificLocators(isEditModal);
       const sampleInput = 'Category 123 _-.,@#$()&[]{}:;!?';
-      await this.fillInElement(this.categoryNameInput, '');
-      await this.typeInElement(this.categoryNameInput, sampleInput);
-      const nameFieldValue = await this.categoryNameInput.inputValue();
+
+      await this.fillInElement(locators.nameInput, '');
+      await this.typeInElement(locators.nameInput, sampleInput);
+      const nameFieldValue = await locators.nameInput.inputValue();
       expect(nameFieldValue).toBe(sampleInput);
-      await expect(this.categoryModalAddButton).toBeEnabled();
+      await expect(locators.submitButton).toBeEnabled();
 
       // Also verify Description field accepts same character set
-      await this.clickAddDescriptionAndVerify();
-      await this.fillInElement(this.descriptionInput, '');
-      await this.typeInElement(this.descriptionInput, sampleInput);
-      const descriptionFieldValue = await this.descriptionInput.inputValue();
+      await this.clickAddDescriptionAndVerify(isEditModal);
+      await this.fillInElement(locators.descriptionInput, '');
+      await this.typeInElement(locators.descriptionInput, sampleInput);
+      const descriptionFieldValue = await locators.descriptionInput.inputValue();
       expect(descriptionFieldValue).toBe(sampleInput);
     });
   }
 
-  // Verify description field maximum length (reads from maxlength attribute or defaults to 1024)
-  async verifyDescriptionFieldMaxLength(): Promise<void> {
-    await test.step('Verify Description field max length', async () => {
-      await this.clickAddDescriptionAndVerify();
-      const maxLengthAttribute = await this.getElementAttribute(this.descriptionInput, 'maxlength');
+  // Verify description field maximum length (reads from maxlength attribute or defaults to 1024) - works for both Create and Edit modals
+  async verifyDescriptionFieldMaxLength(isEditModal: boolean = false): Promise<void> {
+    const modalType = isEditModal ? 'Edit' : 'Create';
+    await test.step(`Verify ${modalType} category description field max length`, async () => {
+      const locators = this.getModalSpecificLocators(isEditModal);
+
+      await this.clickAddDescriptionAndVerify(isEditModal);
+      const maxLengthAttribute = await this.getElementAttribute(locators.descriptionInput, 'maxlength');
       const maximumAllowedLength = maxLengthAttribute ? Number(maxLengthAttribute) : 1024;
 
       const overLengthInput = 'D'.repeat(maximumAllowedLength + 50);
-      await this.fillInElement(this.descriptionInput, '');
-      await this.typeInElement(this.descriptionInput, overLengthInput);
+      await this.fillInElement(locators.descriptionInput, '');
+      await this.typeInElement(locators.descriptionInput, overLengthInput);
 
-      const valueAfterFirstInput = await this.descriptionInput.inputValue();
+      const valueAfterFirstInput = await locators.descriptionInput.inputValue();
       expect(valueAfterFirstInput.length).toBe(maximumAllowedLength);
       expect(valueAfterFirstInput).toBe(overLengthInput.slice(0, maximumAllowedLength));
 
-      await this.typeInElement(this.descriptionInput, 'E'.repeat(10));
-      const valueAfterSecondInput = await this.descriptionInput.inputValue();
+      await this.typeInElement(locators.descriptionInput, 'E'.repeat(10));
+      const valueAfterSecondInput = await locators.descriptionInput.inputValue();
       expect(valueAfterSecondInput).toBe(valueAfterFirstInput);
     });
   }
@@ -282,9 +320,15 @@ export class AudiencePage extends BasePage {
 
   // Verify 'Category created' success toast message is displayed
   async verifyCategoryCreationSuccessToast(): Promise<void> {
-    await this.verifyToastMessage('Category created', {
-      stepInfo: 'Verify category creation success toast message',
-      timeout: TIMEOUTS.MEDIUM,
+    await test.step('Verify category creation success toast message', async () => {
+      // Wait a moment for any previous toasts to disappear
+      await this.page.waitForTimeout(1000);
+
+      // Use first() to handle multiple toast messages
+      const toastMessage = this.toastMessages.filter({ hasText: 'Category created' }).first();
+      await expect(toastMessage, 'expecting Category created toast message').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 
@@ -326,58 +370,33 @@ export class AudiencePage extends BasePage {
   // Delete category using 'Show more' dropdown menu
   async deleteCategoryByShowMore(categoryName?: string): Promise<void> {
     await test.step('Delete category using Show more menu', async () => {
-      let showMoreButton: Locator;
-
       if (categoryName) {
-        // Use the working XPath approach
-        console.log(`Looking for Show more button for category: ${categoryName} using XPath`);
-        showMoreButton = this.page.locator(
-          `//p[contains(text(),'${categoryName}')]/ancestor::div[@role='presentation']/following-sibling::div/following-sibling::div//button`
-        );
+        // Use the generic method to open dropdown and click Delete category
+        await this.openCategoryDropdownAndClickOption(categoryName, 'Delete category');
       } else {
         // Fallback: Use the last Show more button (most recently created category)
         console.log('Using fallback: last Show more button');
-        showMoreButton = this.page.getByRole('button', { name: 'Show more' }).last();
+        const showMoreButton = this.page.getByRole('button', { name: 'Show more' }).last();
+
+        await this.verifier.verifyTheElementIsVisible(showMoreButton, {
+          assertionMessage: 'Verify Show more button is visible for category deletion',
+          timeout: TIMEOUTS.MEDIUM,
+        });
+
+        await this.clickOnElement(showMoreButton, {
+          stepInfo: 'Click on Show more button for category',
+          timeout: 10_000,
+        });
+
+        // Wait for dropdown and click Delete category
+        await this.page.waitForTimeout(1000);
+        await this.clickOnElement(this.deleteCategoryOption, {
+          stepInfo: 'Click on Delete category option',
+          timeout: 10_000,
+        });
       }
 
-      await this.verifier.verifyTheElementIsVisible(showMoreButton, {
-        assertionMessage: 'Verify Show more button is visible for category deletion',
-        timeout: TIMEOUTS.MEDIUM,
-      });
-
-      await this.clickOnElement(showMoreButton, {
-        stepInfo: 'Click on Show more button for category',
-        timeout: 10_000,
-      });
-
-      // Try different variations of the delete option text
-      const deleteOptions = [
-        this.page.getByText('Delete category'),
-        this.page.getByText('Delete'),
-        this.page.getByRole('menuitem', { name: /delete/i }),
-        this.page.locator('[role="menuitem"]').filter({ hasText: /delete/i }),
-        this.page.locator('button, [role="menuitem"]').filter({ hasText: /delete.*category/i }),
-      ];
-
-      let deleteOption: Locator | null = null;
-      for (const option of deleteOptions) {
-        const isVisible = await option.isVisible({ timeout: 2000 }).catch(() => false);
-        if (isVisible) {
-          deleteOption = option;
-          console.log('Found delete option:', await option.textContent().catch(() => 'N/A'));
-          break;
-        }
-      }
-
-      if (!deleteOption) {
-        throw new Error('Could not find any delete category option in the dropdown menu');
-      }
-
-      await this.clickOnElement(deleteOption, {
-        stepInfo: 'Click on Delete category option',
-        timeout: 10_000,
-      });
-
+      // Confirm deletion
       await this.verifier.verifyTheElementIsVisible(this.deleteCategoryButton, {
         assertionMessage: 'Verify Delete confirmation button is visible',
         timeout: TIMEOUTS.MEDIUM,
@@ -391,15 +410,30 @@ export class AudiencePage extends BasePage {
   }
 
   // Verify all three options are present in category dropdown menu (Add Audience, Edit category, Delete category)
-  async verifyAllCategoryOptionsArePresent(): Promise<void> {
+  async verifyAllCategoryOptionsArePresent(categoryName: string): Promise<void> {
     await test.step('Verify all three options are present in category dropdown menu', async () => {
+      // Open the dropdown for the specific category
+      const showMoreButton = this.page.locator(
+        `//p[contains(text(),'${categoryName}')]/ancestor::div[@role='presentation']/following-sibling::div/following-sibling::div//button`
+      );
+
+      await this.verifier.verifyTheElementIsVisible(showMoreButton, {
+        assertionMessage: `Verify Show more button is visible for category: ${categoryName}`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      await this.clickOnElement(showMoreButton, {
+        stepInfo: `Click on Show more button for category: ${categoryName}`,
+        timeout: 10_000,
+      });
+
+      // Wait for dropdown to be visible
+      await this.page.waitForTimeout(1000);
+
       // Define the exact expected options
       const expectedOptions = ['Add Audience', 'Edit category', 'Delete category'];
 
       console.log('Verifying category dropdown options...');
-
-      // Wait for dropdown to be visible
-      await this.page.waitForTimeout(1000);
 
       // Verify each expected option is present
       for (const option of expectedOptions) {
@@ -461,5 +495,184 @@ export class AudiencePage extends BasePage {
 
       expect(isVisible, `Category "${categoryName}" should not be created and visible in the list`).toBe(false);
     });
+  }
+
+  // Generic method to open category dropdown menu and click on specific option
+  async openCategoryDropdownAndClickOption(categoryName: string, optionText: string): Promise<void> {
+    await test.step(`Open category dropdown for "${categoryName}" and click "${optionText}"`, async () => {
+      // Find and click the Show more button for the specific category
+      const showMoreButton = this.page.locator(
+        `//p[contains(text(),'${categoryName}')]/ancestor::div[@role='presentation']/following-sibling::div/following-sibling::div//button`
+      );
+
+      await this.verifier.verifyTheElementIsVisible(showMoreButton, {
+        assertionMessage: `Verify Show more button is visible for category: ${categoryName}`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      await this.clickOnElement(showMoreButton, {
+        stepInfo: `Click on Show more button for category: ${categoryName}`,
+        timeout: 10_000,
+      });
+
+      // Wait for dropdown to be visible and click the specified option
+      await this.page.waitForTimeout(1000);
+
+      const optionLocator = this.page.getByText(optionText);
+      await this.verifier.verifyTheElementIsVisible(optionLocator, {
+        assertionMessage: `Verify "${optionText}" option is visible`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      await this.clickOnElement(optionLocator, {
+        stepInfo: `Click on "${optionText}" option`,
+        timeout: 10_000,
+      });
+    });
+  }
+
+  // Open Edit category modal by clicking on 'Edit category' option from dropdown menu
+  async openEditCategoryModal(categoryName: string): Promise<void> {
+    await test.step(`Open Edit category modal for: ${categoryName}`, async () => {
+      // Use the generic method to open dropdown and click Edit category
+      await this.openCategoryDropdownAndClickOption(categoryName, 'Edit category');
+
+      // Verify Edit category modal is opened
+      await this.verifier.verifyTheElementIsVisible(this.editCategoryLabel, {
+        assertionMessage: 'Verify Edit category modal is opened',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  // Verify Edit category modal elements and validations (includes Save button enabled by default validation)
+  async verifyEditCategoryModalElements(): Promise<void> {
+    await test.step('Verify Edit category modal elements and validations', async () => {
+      // Use Edit modal specific locators
+      const locators = this.getModalSpecificLocators(true);
+
+      // Verify modal heading
+      await this.verifier.verifyTheElementIsVisible(this.editCategoryLabel, {
+        assertionMessage: 'Verify Edit category heading is visible',
+      });
+
+      // Verify helper text (use Edit modal specific locator)
+      const editModalHelperText = locators.dialog.locator(
+        'p:has-text("Keep your audiences organized by grouping related audiences within a category.")'
+      );
+      await this.verifier.verifyTheElementIsVisible(editModalHelperText, {
+        assertionMessage: 'Verify category helper text is visible in Edit modal',
+      });
+
+      // Verify Name label and input
+      const editModalNameLabel = locators.dialog.locator('label:has-text("Name")');
+      await this.verifier.verifyTheElementIsVisible(editModalNameLabel, {
+        assertionMessage: 'Verify Name label is visible in Edit modal',
+      });
+      await this.verifier.verifyTheElementIsVisible(locators.nameInput, {
+        assertionMessage: 'Verify Name input is visible in Edit modal',
+      });
+
+      // Verify Add description button in Edit modal
+      await this.verifier.verifyTheElementIsVisible(locators.addDescriptionButton, {
+        assertionMessage: 'Verify Add description button is visible in Edit modal',
+      });
+
+      // Verify Cancel and Save buttons
+      await this.verifier.verifyTheElementIsVisible(locators.cancelButton, {
+        assertionMessage: 'Verify Cancel button is visible in Edit modal',
+      });
+      await this.verifier.verifyTheElementIsVisible(locators.submitButton, {
+        assertionMessage: 'Verify Save button is visible in Edit modal',
+      });
+
+      // Verify Close button
+      await this.verifier.verifyTheElementIsVisible(locators.closeButton, {
+        assertionMessage: 'Verify Close button is visible in Edit modal',
+      });
+
+      // Verify Save button is enabled by default (unlike Create modal where Add button is disabled)
+      await expect(locators.submitButton, 'Expect Save button to be enabled by default in Edit modal').toBeEnabled();
+    });
+  }
+
+  // Verify name field validation in Edit category modal (clear name and check error message and button state)
+  async verifyEditCategoryNameFieldValidation(): Promise<void> {
+    await test.step('Verify name field validation in Edit category modal', async () => {
+      const locators = this.getModalSpecificLocators(true);
+
+      // Clear the existing name field
+      await this.fillInElement(locators.nameInput, '');
+
+      // Trigger validation by clicking outside or pressing Tab
+      await locators.nameInput.blur();
+
+      // Verify the required field error message appears
+      await this.verifier.verifyTheElementIsVisible(locators.nameRequiredError, {
+        assertionMessage: 'Verify "Name is a required field" error message is visible when name is cleared',
+        timeout: TIMEOUTS.SHORT,
+      });
+
+      // Verify Save button becomes disabled when name is empty
+      await expect(locators.submitButton, 'Expect Save button to be disabled when name field is empty').toBeDisabled();
+
+      // Restore a valid name to clean up the state
+      await this.fillInElement(locators.nameInput, 'ValidCategoryName');
+
+      // Verify error message disappears and Save button becomes enabled again
+      await this.verifier.verifyTheElementIsNotVisible(locators.nameRequiredError, {
+        assertionMessage: 'Verify error message disappears when valid name is provided',
+        timeout: TIMEOUTS.SHORT,
+      });
+      await expect(locators.submitButton, 'Expect Save button to be enabled when valid name is provided').toBeEnabled();
+    });
+  }
+
+  // Attempt to save Edit category modal with duplicate name to trigger validation error
+  async attemptToSaveEditCategoryWithDuplicateName(duplicateName: string): Promise<void> {
+    await test.step(`Attempt to save Edit category with duplicate name: ${duplicateName}`, async () => {
+      const locators = this.getModalSpecificLocators(true);
+
+      // Change the name to the duplicate name
+      await this.fillInElement(locators.nameInput, duplicateName);
+
+      // Try to save and trigger duplicate name validation
+      await this.clickOnElement(locators.submitButton, {
+        stepInfo: 'Click Save button to trigger duplicate name validation',
+        timeout: 10_000,
+      });
+
+      // Note: This will trigger the duplicate name error which should be verified separately
+    });
+  }
+
+  // Update locators to work with both Create and Edit category modals
+  private getModalSpecificLocators(isEditModal: boolean = false) {
+    if (isEditModal) {
+      // For Edit modal, we need to scope the locators to the dialog context
+      const editDialog = this.page.locator('[role="dialog"]').filter({ hasText: 'Edit category' });
+      return {
+        dialog: editDialog,
+        nameInput: editDialog.getByRole('textbox', { name: 'Name*' }),
+        descriptionInput: editDialog.getByRole('textbox', { name: 'Description' }),
+        addDescriptionButton: editDialog.getByRole('button', { name: 'Add description' }),
+        deleteDescriptionButton: editDialog.getByRole('button', { name: 'Delete' }),
+        cancelButton: editDialog.locator('button:has-text("Cancel")'),
+        submitButton: editDialog.getByRole('button', { name: 'Save' }),
+        closeButton: editDialog.locator('button[aria-label="Close"]'),
+        nameRequiredError: editDialog.locator(':text("Name is a required field")'),
+      };
+    }
+    return {
+      dialog: this.categoryDialog,
+      nameInput: this.categoryNameInput,
+      descriptionInput: this.descriptionInput,
+      addDescriptionButton: this.addDescriptionButton,
+      deleteDescriptionButton: this.deleteDescriptionButton,
+      cancelButton: this.categoryModalCancelButton,
+      submitButton: this.categoryModalAddButton,
+      closeButton: this.clickCloseButton,
+      nameRequiredError: this.nameRequiredError,
+    };
   }
 }

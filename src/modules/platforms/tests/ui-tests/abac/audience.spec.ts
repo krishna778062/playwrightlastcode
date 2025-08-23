@@ -47,7 +47,7 @@ test.describe(
       { tag: [TestPriority.P1] },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
-          zephyrTestId: ['PS-XXXXX'], // Add appropriate test ID
+          zephyrTestId: ['PS-35408', 'PS-35407'],
         });
 
         const audiencePage = new AudiencePage(appManagerPage);
@@ -69,7 +69,7 @@ test.describe(
       { tag: [TestPriority.P0] },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
-          zephyrTestId: ['PS-XXXXX'], // Add appropriate test ID
+          zephyrTestId: ['PS-35411', 'PS-35413'],
         });
 
         const audiencePage = new AudiencePage(appManagerPage);
@@ -94,20 +94,10 @@ test.describe(
         await audiencePage.clickOnCloseButton();
 
         // Step 5: Verify the presence of options in the category dropdown menu and perform cleanup
-        const showMoreButton = audiencePage.page.locator(`//p[contains(text(),'${uniqueCategoryName}')]/ancestor::div[@role='presentation']/following-sibling::div/following-sibling::div//button`);
-        await audiencePage.clickOnElement(showMoreButton, {
-          stepInfo: 'Click on Show more button to verify options menu',
-          timeout: 10_000,
-        });
+        await audiencePage.verifyAllCategoryOptionsArePresent(uniqueCategoryName);
 
-        // Verify all three options are present in the dropdown
-        await audiencePage.verifyAllCategoryOptionsArePresent();
-
-        // Step 6: Use the already open dropdown to delete the category
-        await audiencePage.clickOnElement(audiencePage.page.getByText('Delete category'), {
-          stepInfo: 'Click on Delete category option for cleanup',
-          timeout: 10_000,
-        });
+        // Step 6: Use the generic method to delete the category
+        await audiencePage.openCategoryDropdownAndClickOption(uniqueCategoryName, 'Delete category');
 
         await audiencePage.clickOnElement(audiencePage.deleteCategoryButton, {
           stepInfo: 'Click on Delete button to confirm category deletion',
@@ -123,7 +113,7 @@ test.describe(
       { tag: [TestPriority.P1] },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
-          zephyrTestId: ['PS-XXXXX'], // Add appropriate test ID
+          zephyrTestId: ['PS-35410', 'PS-35409'],
         });
 
         const audiencePage = new AudiencePage(appManagerPage);
@@ -139,7 +129,7 @@ test.describe(
         // Test Case 1: Create category WITH description and then delete it
         await audiencePage.createCategoryWithNameAndDescription(categoryWithDescription, categoryDescription);
         await audiencePage.verifyCategoryCreationSuccessToast();
-        
+
         // Delete the category with description
         await audiencePage.deleteCategoryByShowMore(categoryWithDescription);
         await audiencePage.verifyCategoryDeletionSuccessToast();
@@ -147,9 +137,99 @@ test.describe(
         // Test Case 2: Create category WITHOUT description and then delete it
         await audiencePage.createCategoryWithNameAndDescription(categoryWithoutDescription);
         await audiencePage.verifyCategoryCreationSuccessToast();
-        
+
         // Delete the category without description
         await audiencePage.deleteCategoryByShowMore(categoryWithoutDescription);
+        await audiencePage.verifyCategoryDeletionSuccessToast();
+      }
+    );
+
+    test(
+      'Verify the appearance of Edit category modal, Save button behavior, and name field validation',
+      { tag: [TestPriority.P0] },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-XXXXX'], // Add appropriate test ID
+        });
+
+        const audiencePage = new AudiencePage(appManagerPage);
+        const testCategoryName = `EditTestCategory_${Date.now()}`;
+
+        // Load the audience page
+        await audiencePage.loadPage();
+        await audiencePage.verifyThePageIsLoaded();
+
+        // First create a category to edit (without description so we can test "Add description" button)
+        await audiencePage.createCategoryWithNameAndDescription(testCategoryName);
+        await audiencePage.verifyCategoryCreationSuccessToast();
+
+        // Open Edit category modal
+        await audiencePage.openEditCategoryModal(testCategoryName);
+
+        // Verify all modal elements are present and Save button is enabled by default
+        await audiencePage.verifyEditCategoryModalElements();
+
+        // Verify name field validation (clear name and check error message and button state)
+        await audiencePage.verifyEditCategoryNameFieldValidation();
+
+        // Verify field validations similar to Create category modal
+        await audiencePage.verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(true);
+        await audiencePage.verifyNameFieldMaxLength(true);
+        await audiencePage.verifyDescriptionFieldMaxLength(true);
+        await audiencePage.clickAddDescriptionAndVerify(true);
+        await audiencePage.removeDescriptionAndVerifyAbsence(true);
+
+        // Close the Edit modal
+        await audiencePage.clickOnCloseButton({ isEditModal: true });
+
+        // Clean up: Delete the test category
+        await audiencePage.deleteCategoryByShowMore(testCategoryName);
+        await audiencePage.verifyCategoryDeletionSuccessToast();
+      }
+    );
+
+    test(
+      'Verify the presence of alert message when duplicate category name is provided in name field under Edit category popup',
+      { tag: [TestPriority.P0] },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-XXXXX'], // Add appropriate test ID
+        });
+
+        const audiencePage = new AudiencePage(appManagerPage);
+        const timestamp = Date.now();
+        const firstCategoryName = `EditDuplicateTest1_${timestamp}`;
+        const secondCategoryName = `EditDuplicateTest2_${timestamp}`;
+
+        // Load the audience page
+        await audiencePage.loadPage();
+        await audiencePage.verifyThePageIsLoaded();
+
+        // Step 1: Create first category
+        await audiencePage.createCategoryWithNameAndDescription(firstCategoryName, 'First test category');
+        await audiencePage.verifyCategoryCreationSuccessToast();
+
+        // Step 2: Create second category (this will be edited)
+        await audiencePage.createCategoryWithNameAndDescription(secondCategoryName, 'Second test category');
+        await audiencePage.verifyCategoryCreationSuccessToast();
+
+        // Step 3: Open Edit modal for the second category
+        await audiencePage.openEditCategoryModal(secondCategoryName);
+
+        // Step 4: Attempt to save with duplicate name and verify error appears
+        await audiencePage.attemptToSaveEditCategoryWithDuplicateName(firstCategoryName);
+
+        // Step 5: Verify the duplicate name error message appears
+        await audiencePage.verifyNameAlreadyUsedError();
+
+        // Step 6: Close the Edit modal without saving
+        await audiencePage.clickOnCloseButton({ isEditModal: true });
+
+        // Step 7: Clean up - Delete both test categories
+        await audiencePage.deleteCategoryByShowMore(firstCategoryName);
+        await audiencePage.verifyCategoryDeletionSuccessToast();
+
+        await audiencePage.deleteCategoryByShowMore(secondCategoryName);
         await audiencePage.verifyCategoryDeletionSuccessToast();
       }
     );
