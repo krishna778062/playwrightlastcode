@@ -68,7 +68,7 @@ export class FeatureOwnersPage extends BasePage {
   async clickOnUserCountButton(featureName: string): Promise<void> {
     await test.step(`Click on the user count button for ${featureName} feature`, async () => {
       for (let i = 0; i < (await this.feature.count()); i++) {
-        if ((await this.feature.textContent()) == featureName) {
+        if ((await this.feature.nth(i).textContent()) == featureName) {
           await this.clickOnElement(this.userCountButton.nth(i));
           break;
         }
@@ -216,66 +216,56 @@ export class FeatureOwnersPage extends BasePage {
   }
 
   /**
-   * Verifies whether the given users are added as feature owner or not.
-   * @param userNames - Users who need to be added as feature onwers.
+   * Verifies whether the given user is added as feature owner.
+   * @param userName - Username of user who need to be checked.
    */
   async verifyUserAsFeatureOnwerForFeature(
-    userNames: string[],
+    userName: string,
     options?: { stepInfo?: string; timeout?: number }
   ): Promise<boolean> {
-    let flag: boolean = false;
-    const dupUserNames: string[] = userNames;
+    console.log('<<<<<<function called>>>>>>>>');
+    const flag: boolean = false;
     await test.step(
-      options?.stepInfo ?? `Check the presence of user with username: ${userNames} as feature owner`,
+      options?.stepInfo ?? `Check the presence of user with username: ${userName} as feature owner`,
       async () => {
-        let userName: string;
-        while (userNames.length > 0) {
-          userName = userNames.pop();
-          for (let i = 0; i < (await this.editFOTiles.count()); i++) {
-            if ((await this.editFOTiles.nth(i).locator('p a').textContent()) == userName) {
-              flag = true;
-              break;
-            }
+        for (let i = 0; i < (await this.editFOTiles.count()); i++) {
+          console.log(await this.editFOTiles.nth(i).locator('p a').textContent());
+          if ((await this.editFOTiles.nth(i).locator('p a').textContent()) == userName) {
+            return true;
           }
-          if (await this.showMoreButtonForEditFO.isVisible()) {
-            await this.clickOnElement(this.showMoreButtonForEditFO);
-            await this.verifyUserAsFeatureOnwerForFeature(dupUserNames);
-          } else {
-            flag = false;
-            break;
-          }
+        }
+        console.log('first: ' + flag);
+        if ((await this.showMoreButtonForEditFO.isVisible()) && !flag) {
+          console.log('<<<Calling recursively>>>');
+          await this.clickOnElement(this.showMoreButtonForEditFO);
+          return await this.verifyUserAsFeatureOnwerForFeature(userName);
         }
       }
     );
+    console.log('second: ' + flag);
     return flag;
   }
 
   /**
-   * Verifies whether the given feature onwers are displayed with app manager tag or not.
-   * @param userNames - Users who need to be added as feature onwers.
+   * Verifies whether the given feature onwers are displayed with app manager tag.
+   * @param userName - Username of user who need to be checked for app manager tag.
    */
   async verifyFODisplayedAsAppManager(
-    userNames: string[],
+    userName: string,
     options?: { stepInfo?: string; timeout?: number }
   ): Promise<boolean> {
     let flag: boolean = false;
-    const dupUserNames: string[] = userNames;
     let usersWithoutCrossButton: string[];
-    await test.step(options?.stepInfo ?? `Check that ${userNames} are displayed with App Manager tag`, async () => {
-      let userName: string;
-      while (userNames.length > 0) {
-        userName = userNames.pop();
-        usersWithoutCrossButton = await this.getUsersWithOutCrossButton();
-        if (usersWithoutCrossButton.filter(userWithoutCrossButton => userWithoutCrossButton === userName).length > 0) {
-          flag = true;
-          break;
-        } else if (await this.showMoreButtonForEditFO.isVisible()) {
-          await this.clickOnElement(this.showMoreButtonForEditFO);
-          await this.verifyUserAsFeatureOnwerForFeature(dupUserNames);
-        } else {
-          flag = false;
-          break;
-        }
+    await test.step(options?.stepInfo ?? `Check that ${userName} are displayed with App Manager tag`, async () => {
+      usersWithoutCrossButton = await this.getUsersWithOutCrossButton();
+      console.log(usersWithoutCrossButton);
+      if ((usersWithoutCrossButton.filter(userWithoutCrossButton => userWithoutCrossButton === userName).length = 1)) {
+        flag = true;
+      } else if ((await this.showMoreButtonForEditFO.isVisible()) && !flag) {
+        await this.clickOnElement(this.showMoreButtonForEditFO);
+        await this.verifyUserAsFeatureOnwerForFeature(userName);
+      } else {
+        flag = false;
       }
     });
     return flag;

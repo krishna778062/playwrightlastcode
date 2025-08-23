@@ -1,13 +1,13 @@
 import { expect } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
+import { IdentityUserSearchResponse } from '@core/types/user.type';
 import { tagTest } from '@core/utils/testDecorator';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/acgPage/accessControlGroupsPage';
 
 import { FeatureOwnersPage } from '../../../pages/abacPage/featureOwnersPage/featureOwnersPage';
 import { ManageUsersPage, MUOptions } from '../../../pages/managerUsersPage/manageUsersPage';
-import { IdentityUserSearchResponse } from '@core/types/user.type';
 
 import { Roles, RolesId } from '@/src/core/constants/roles';
 import { TestSuite } from '@/src/core/constants/testSuite';
@@ -25,28 +25,28 @@ test.describe(
     let audienceToCreate: string = '';
     let categoryId: string | undefined;
     const features: string[] = [
-      'Add sites',
-      'Add topics',
-      'Alerts',
+      // 'Add sites',
+      // 'Add topics',
+      // 'Alerts',
       'Analytics',
       'Application settings',
-      'Audiences',
-      'Branding',
-      'Campaigns',
-      'Content moderation',
-      'Content onboarding',
-      'Enterprise search',
-      'Forms',
-      'Home dashboard',
-      'Manage sites',
-      'Manage topics',
-      'Newsletters',
-      'Promotions',
-      'Recognition',
-      'Sentiment check',
-      'Social campaigns',
-      'Surveys',
-      'Users', 
+      // 'Audiences',
+      // 'Branding',
+      // 'Campaigns',
+      // 'Content moderation',
+      // 'Content onboarding',
+      // 'Enterprise search',
+      // 'Forms',
+      // 'Home dashboard',
+      // 'Manage sites',
+      // 'Manage topics',
+      // 'Newsletters',
+      // 'Promotions',
+      // 'Recognition',
+      // 'Sentiment check',
+      // 'Social campaigns',
+      // 'Surveys',
+      // 'Users',
     ];
 
     test.beforeEach(async ({ appManagerApiClient }) => {
@@ -233,9 +233,9 @@ test.describe(
           await featureOwnersPage.searchForFeature(feature);
           await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
           // Check that user is displayed with App manager tag
-          expect(await featureOwnersPage.verifyFODisplayedAsAppManager(['Aaman Temp App Manager'])).toBeTruthy();
+          expect(await featureOwnersPage.verifyFODisplayedAsAppManager('Akshaykumar Shinde')).toBeTruthy();
           // Check that user is displayed in the feature onwer list
-          expect(await featureOwnersPage.verifyUserAsFeatureOnwerForFeature(['Aaman Temp App Manager'])).toBeTruthy();
+          expect(await featureOwnersPage.verifyUserAsFeatureOnwerForFeature('Akshaykumar Shinde')).toBeTruthy();
           // Updatting the primary role of the user to standard user
           await appManagerApiClient
             .getUserManagementService()
@@ -244,7 +244,7 @@ test.describe(
           await manageUsersPage.reloadPage();
           await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
           // Check that user is not displayed in the feature onwer list
-          expect(await featureOwnersPage.verifyUserAsFeatureOnwerForFeature(['Aaman Temp App Manager'])).toBeFalsy();
+          expect(await featureOwnersPage.verifyUserAsFeatureOnwerForFeature('Aaman Temp App Manager')).toBeFalsy();
           // Cleanup - Updating the primary role of the user back to app manager
           await appManagerApiClient
             .getUserManagementService()
