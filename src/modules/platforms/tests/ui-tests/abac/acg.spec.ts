@@ -8,6 +8,7 @@ import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/a
 
 import { FeatureOwnersPage } from '../../../pages/abacPage/featureOwnersPage/featureOwnersPage';
 import { ManageUsersPage } from '../../../pages/managerUsersPage/manageUsersPage';
+import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 
 import { Roles, RolesId } from '@/src/core/constants/roles';
 import { TestSuite } from '@/src/core/constants/testSuite';
@@ -184,6 +185,22 @@ test.describe(
         await accessControlGroupsPage.deleteFirstACG();
         await accessControlGroupsPage.verifyToastMessage('Access control group was successfully deleted');
         acgName = undefined; //reset the acg name back to undefined to avoid any future cleanup issues
+      }
+    );
+
+    test(
+      `Verify that Roles option should not be displayed under Manage section in menu option`,
+      {
+        tag: [TestPriority.P1, `@ABAC`],
+      },
+      async ({appManagerPage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-31188'],
+        });
+        const homePage = new NewUxHomePage(appManagerPage);
+        // Test Scenario
+        await homePage.actions.clickOnApplicationSettings();
+        await homePage.actions.verifyRolesButtonVisibility(false);
       }
     );
 
