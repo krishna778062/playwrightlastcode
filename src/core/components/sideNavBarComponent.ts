@@ -20,7 +20,7 @@ export class SideNavBarComponent extends BaseComponent {
     this.feedLink = page.locator('p', { hasText: 'Feed' });
     this.homeLink = page.locator('p', { hasText: 'Home' });
     this.applicationSettings = page.locator('p', { hasText: 'Application settings' });
-    this.sitesButton = page.getByRole('button', { name: 'Sites' });
+    this.sitesButton = page.getByRole('menuitem', { name: 'Sites Sites' });
     this.rolesButton = page.getByRole('menuitem', { name: 'Roles' });
   }
 
@@ -70,6 +70,11 @@ export class SideNavBarComponent extends BaseComponent {
    */
   async clickOnSites(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `Clicking Sites button in side navigation`, async () => {
+      // Wait for the menuitem to be ready
+      await this.sitesButton.waitFor({ state: 'visible', timeout: 10000 });
+      await this.sitesButton.waitFor({ state: 'attached', timeout: 5000 });
+
+      // Click on sites button using framework method
       await this.clickOnElement(this.sitesButton);
     });
   }

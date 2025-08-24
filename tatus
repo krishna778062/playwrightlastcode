@@ -1,0 +1,13 @@
+* [32mSite_Creation_UI[m
+  a[m
+  develop[m
+  feature/CONT-21670_Edit_Site_Category[m
+  feature/CONT-22517_popular_content_site_detail_page_Site[m
+  feature/CONT-26590_Site_Category_Name_Validation[m
+  feature/CONT-26590_maximum-character-limit-of-site-category-name[m
+  feature/CONT-38752_Random_Site_category[m
+  site[m
+  site_Creation_Random_Category_Name[m
+src/core/components/sideNavBarComponent.ts
+src/modules/content/pages/siteCreationPage.ts
+src/modules/content/tests/ui-tests/site/site-creation-random-category.spec.ts
