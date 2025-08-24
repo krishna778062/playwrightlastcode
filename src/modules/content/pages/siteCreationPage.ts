@@ -7,7 +7,7 @@ import { BasePage } from '@core/pages/basePage';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 
-interface SiteCreationResponse {
+interface _SiteCreationResponse {
   status: string;
   result: {
     id: string;
@@ -38,28 +38,48 @@ export interface SiteCreationOptions {
 }
 
 export interface ISiteCreationActions {
+  // API-based methods (existing)
   addSite(options: SiteCreationOptions): Promise<{
     siteDashboard: SiteDashboardPage;
     siteId: string;
   }>;
+
+  // UI-based methods (new)
+  fillSiteName: (siteName: string) => Promise<void>;
+  selectOrCreateCategory: (categoryName: string) => Promise<void>;
+  clickAddSiteButton: () => Promise<void>;
+  createSiteWithRandomCategory: (siteName: string, categoryName: string) => Promise<void>;
 }
 
 export interface ISiteCreationAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
+  verifySiteCreationPageLoaded: () => Promise<void>;
+  verifySiteCreatedSuccessfully: (siteName: string) => Promise<void>;
+  verifyCategoryCreatedSuccessfully: (categoryName: string) => Promise<void>;
 }
 
 export class SiteCreationPage extends BasePage implements ISiteCreationActions, ISiteCreationAssertions {
-  // Essential locators for site creation
+  // API-based locators (existing)
   readonly siteNameInput: Locator;
   readonly categoryDropdown: Locator;
   readonly selectCategory: (categoryName: string) => Locator;
   readonly accessType: (type: string) => Locator;
   readonly createSiteButton: Locator;
 
+  // UI-based locators (new)
+  readonly siteNameTextbox: Locator;
+  readonly categorySection: Locator;
+  readonly categoryCombobox: Locator;
+  readonly addSiteButton: Locator;
+  readonly addCategoryOption: (categoryName: string) => Locator;
+  readonly categoryLink: (categoryName: string) => Locator;
+  readonly categoryHeading: (categoryName: string) => Locator;
+  readonly siteLink: (siteName: string) => Locator;
+
   constructor(page: Page) {
     super(page);
 
-    // Essential site creation locators
+    // API-based locators (existing)
     this.siteNameInput = page.locator('input[aria-label="Site name"]');
     this.categoryDropdown = page
       .locator('div')
@@ -69,6 +89,19 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
       page.locator("div[class*='createOption']").getByText(categoryName, { exact: true });
     this.accessType = (type: string) => page.locator('label').filter({ hasText: type });
     this.createSiteButton = page.locator('button:has-text("Add site")');
+
+    // UI-based locators (new)
+    this.siteNameTextbox = page.getByRole('textbox', { name: 'Site name' });
+    this.categorySection = page
+      .locator('div')
+      .filter({ hasText: /^Add or select existing category$/ })
+      .nth(2);
+    this.categoryCombobox = page.getByRole('combobox', { name: 'Category: This is a required' });
+    this.addSiteButton = page.getByRole('button', { name: 'Add site' });
+    this.addCategoryOption = (categoryName: string) => page.getByText(`Add ${categoryName}…`);
+    this.categoryLink = (categoryName: string) => page.getByRole('link', { name: categoryName });
+    this.categoryHeading = (categoryName: string) => page.getByRole('heading', { name: categoryName });
+    this.siteLink = (siteName: string) => page.getByRole('link', { name: siteName });
   }
 
   get actions(): ISiteCreationActions {
@@ -80,18 +113,135 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
   }
 
   /**
-   * Verifies the site creation page is loaded
+   * Verifies the site creation page is loaded (UI-based approach)
    */
   async verifyThePageIsLoaded(): Promise<void> {
-    await test.step('Verify site creation page is loaded', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.siteNameInput, {
-        assertionMessage: 'Site name input should be visible on site creation page',
+    await test.step('Verify Site Creation page is loaded', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.siteNameTextbox, {
+        assertionMessage: 'Site name textbox should be visible',
+        timeout: 10000,
+      });
+      await this.verifier.verifyTheElementIsVisible(this.addSiteButton, {
+        assertionMessage: 'Add site button should be visible',
+        timeout: 5000,
+      });
+    });
+  }
+
+  async verifySiteCreationPageLoaded(): Promise<void> {
+    await this.verifyThePageIsLoaded();
+  }
+
+  /**
+   * Fills the site name in the textbox
+   * @param siteName - The site name to fill
+   */
+  async fillSiteName(siteName: string): Promise<void> {
+    await test.step(`Fill site name: ${siteName}`, async () => {
+      await this.fillInElement(this.siteNameTextbox, siteName);
+    });
+  }
+
+  /**
+   * Selects or creates a new category
+   * @param categoryName - The category name to select or create
+   */
+  async selectOrCreateCategory(categoryName: string): Promise<void> {
+    await test.step(`Select or create category: ${categoryName}`, async () => {
+      // Click on category section
+      await this.clickOnElement(this.categorySection);
+
+      // Fill the category name in combobox
+      await this.categoryCombobox.fill(categoryName);
+
+      // Click on "Add categoryName..." option to create new category
+      const addCategoryOption = this.addCategoryOption(categoryName);
+      await this.clickOnElement(addCategoryOption);
+    });
+  }
+
+  /**
+   * Clicks the Add Site button to submit the form
+   */
+  async clickAddSiteButton(): Promise<void> {
+    await test.step('Click Add Site button', async () => {
+      await this.clickOnElement(this.addSiteButton);
+    });
+  }
+
+  /**
+   * Complete flow to create a site with random category
+   * @param siteName - The site name to create
+   * @param categoryName - The category name to create/select
+   */
+  async createSiteWithRandomCategory(siteName: string, categoryName: string): Promise<void> {
+    await test.step(`Create site "${siteName}" with category "${categoryName}"`, async () => {
+      await this.fillSiteName(siteName);
+      await this.selectOrCreateCategory(categoryName);
+      await this.clickAddSiteButton();
+    });
+  }
+
+  /**
+   * Verifies that site was created successfully by checking if site link is visible
+   * @param siteName - The site name to verify
+   */
+  async verifySiteCreatedSuccessfully(siteName: string): Promise<void> {
+    await test.step(`Verify site "${siteName}" was created successfully`, async () => {
+      const siteLink = this.siteLink(siteName);
+      await this.verifier.verifyTheElementIsVisible(siteLink, {
+        assertionMessage: `Site link "${siteName}" should be visible after creation`,
+        timeout: 15000,
       });
     });
   }
 
   /**
-   * Creates and publishes a site with the given options
+   * Verifies that category was created successfully by checking if category link is visible
+   * @param categoryName - The category name to verify
+   */
+  async verifyCategoryCreatedSuccessfully(categoryName: string): Promise<void> {
+    await test.step(`Verify category "${categoryName}" was created successfully`, async () => {
+      // Wait for page to load after site creation
+      await this.page.waitForTimeout(3000);
+
+      // First verify category link is visible (means category was created)
+      const categoryLink = this.categoryLink(categoryName);
+      await this.verifier.verifyTheElementIsVisible(categoryLink, {
+        assertionMessage: `Category link "${categoryName}" should be visible`,
+        timeout: 15000,
+      });
+
+      // Click on category link to navigate to category page
+      await this.clickOnElement(categoryLink);
+
+      // Wait for navigation
+      await this.page.waitForTimeout(2000);
+
+      // Then verify the heading is visible on category page
+      const categoryHeading = this.categoryHeading(categoryName);
+      await this.verifier.verifyTheElementIsVisible(categoryHeading, {
+        assertionMessage: `Category heading "${categoryName}" should be visible`,
+        timeout: 10000,
+      });
+    });
+  }
+
+  /**
+   * Navigates to the created site by clicking on its link
+   * @param siteName - The site name to navigate to
+   */
+  async navigateToCreatedSite(siteName: string): Promise<void> {
+    await test.step(`Navigate to created site: ${siteName}`, async () => {
+      const siteLink = this.siteLink(siteName);
+      await this.clickOnElement(siteLink);
+    });
+  }
+
+  // ==================== API-BASED METHODS (EXISTING) ====================
+
+  /**
+   * Creates and publishes a site with the given options (API-based approach)
    * @param options - The options for creating the site
    * @returns Object containing site dashboard page, site name, and site ID
    */
@@ -125,7 +275,7 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
   }
 
   /**
-   * Fills in the site details
+   * Fills in the site details (API-based approach)
    * @param options - The options for filling in the site details
    */
   async fillSiteDetails(options: { name: string; category: string; access: string }) {
@@ -144,7 +294,7 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
   }
 
   /**
-   * Creates the site and waits for API response
+   * Creates the site and waits for API response (API-based approach)
    */
   async createSite(): Promise<Response> {
     return await test.step(`Creating site and wait for create api response`, async () => {
