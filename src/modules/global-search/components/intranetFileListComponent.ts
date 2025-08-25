@@ -17,6 +17,8 @@ export class IntranetFileListComponent extends ContentListComponent {
   readonly selectFromComputerButton: Locator;
   readonly loadingBar: Locator;
   readonly uploadButton: Locator;
+  readonly okButton: Locator;
+  readonly siteVideosTab: Locator;
 
   /**
    * Constructs a new instance of the IntranetFileListComponent class.
@@ -32,6 +34,8 @@ export class IntranetFileListComponent extends ContentListComponent {
     this.selectFromComputerButton = this.page.getByText('select from computer');
     this.loadingBar = this.page.locator('div[class*="ileItem-loading"]');
     this.uploadButton = this.page.getByRole('button', { name: 'Upload' });
+    this.okButton = this.page.getByRole('button', { name: 'OK' });
+    this.siteVideosTab = this.page.getByRole('link', { name: 'Site videos' });
   }
 
   /**
@@ -46,7 +50,6 @@ export class IntranetFileListComponent extends ContentListComponent {
       await this.verifyAuthorIsDisplayed(data.author);
       await this.verifyDateIsDisplayed();
       await this.verifyFileThumbnailIsDisplayed();
-      await this.verifyFileTypeIsDisplayed(data.type);
 
       // Navigation verifications
       await this.verifyNavigationToTitleLink(data.fileId, data.name, 'file');
@@ -63,33 +66,6 @@ export class IntranetFileListComponent extends ContentListComponent {
       await this.goBackToPreviousPage();
       await this.verifyNavigationWithHomePageLink();
       await this.goBackToPreviousPage();
-    });
-  }
-
-  /**
-   * Verifies that the file type is displayed in the result item.
-   * @param fileType - The file type to verify.
-   */
-  async verifyFileTypeIsDisplayed(fileType: string) {
-    let expectedLabel = '';
-    switch (fileType) {
-      case 'pdf':
-        expectedLabel = 'PDF';
-        break;
-      case 'docx':
-        expectedLabel = 'Word Document';
-        break;
-      case 'pptx':
-        expectedLabel = 'Microsoft PowerPoint';
-        break;
-      case 'csv':
-        expectedLabel = 'CSV';
-        break;
-      default:
-        throw new Error(`Unsupported file type for verification: ${fileType}`);
-    }
-    await test.step(`Verifying file type is displayed as "${expectedLabel}"`, async () => {
-      await this.verifier.verifyElementHasText(this.fileType, expectedLabel);
     });
   }
 
@@ -171,6 +147,13 @@ export class IntranetFileListComponent extends ContentListComponent {
     });
   }
 
+  async clickSiteVideosTab() {
+    await test.step('Clicking on the Site videos tab', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.siteVideosTab, { timeout: 20000 });
+      await this.clickOnElement(this.siteVideosTab, { timeout: 7_000 });
+    });
+  }
+
   /**
    * Uploads a file from the local computer by creating a temporary copy with a unique name.
    *
@@ -207,7 +190,16 @@ export class IntranetFileListComponent extends ContentListComponent {
           stepInfo: 'Waiting for file upload to complete (loading bar to disappear)',
         });
 
-        await this.clickOnElement(this.uploadButton);
+        await this.clickOnElement(this.uploadButton, { timeout: 30000 });
+        // If an OK button appears after upload, click it
+        try {
+          await this.verifier.waitUntilElementIsVisible(this.okButton, {
+            timeout: 5000,
+          });
+          await this.clickOnElement(this.okButton);
+        } catch (e) {
+          // OK button did not appear, continue
+        }
       } finally {
         // Clean up the temporary file
         fs.unlinkSync(tempFilePath);

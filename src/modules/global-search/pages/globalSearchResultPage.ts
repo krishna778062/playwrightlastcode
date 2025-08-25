@@ -68,6 +68,8 @@ export class GlobalSearchResultPage extends BasePage {
         return 'i-file';
       case 'xlsx':
         return 'i-microsoftExcel';
+      case 'mp4':
+        return 'i-video';
       default:
         return 'i-files';
     }

@@ -66,4 +66,7 @@ export const API_ENDPOINTS = {
     settings: '/v1/account/apps-links-settings',
     list: '/v1/account/launchpad/apps/list',
   },
+  search: {
+    intranetFile: '/v1/search/intranet-file',
+  },
 } as const;

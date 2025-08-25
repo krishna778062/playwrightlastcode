@@ -49,6 +49,10 @@ export class IntranetFileHelper {
       await test.step(`Open Files tab`, async () => {
         await intranetFileListComponent.clickFilesTab();
       });
+      // If the file is an mp4, click the 'Site videos' link before upload
+      if (filePath.endsWith('.mp4')) {
+        await intranetFileListComponent.clickSiteVideosTab();
+      }
       const uploadedFileName = await test.step(`Upload file from computer`, async () => {
         return await intranetFileListComponent.uploadFileFromComputer(filePath);
       });
