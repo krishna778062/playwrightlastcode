@@ -8,7 +8,7 @@ import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
 import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
-import { CreateComponent } from '@/src/modules/content-abac/components/createComponent';
+import { CreateComponent } from '@/src/modules/content-abac/components/globalCreateContainerComponent';
 import { SiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 
 export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions {

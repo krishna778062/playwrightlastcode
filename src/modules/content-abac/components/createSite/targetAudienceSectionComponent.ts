@@ -155,7 +155,7 @@ export class TargetAudienceSectionComponent extends BaseComponent {
       if (!(await this.allOrganizationSwitch.isChecked())) {
         await this.clickOnElement(this.allOrganizationSwitch);
       }
-      await expect(this.allOrganizationSwitch).toBeChecked();
+      await expect(this.allOrganizationSwitch, 'All Organization switch should be enabled').toBeChecked();
     });
   }
 
@@ -165,7 +165,7 @@ export class TargetAudienceSectionComponent extends BaseComponent {
    */
   async submitAudienceSelection(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Submit Audience selection', async () => {
-      await expect(this.audienceDoneButton).toBeEnabled();
+      await expect(this.audienceDoneButton, 'Audience done button should be enabled').toBeEnabled();
       await this.clickOnElement(this.audienceDoneButton);
       await this.audiencePickerContainer.waitFor({ state: 'detached', timeout: 10000 });
     });

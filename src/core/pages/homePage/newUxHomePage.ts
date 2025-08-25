@@ -8,6 +8,8 @@ import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
 import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
+import { CreateComponent as AbacCreateComponent } from '@/src/modules/content-abac/components/globalCreateContainerComponent';
+import { SiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 
 export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions {
   constructor(page: Page) {
@@ -66,22 +68,21 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
     });
   }
 
-  async openSiteCreationForm(options?: {
-    stepInfo?: string;
-  }): Promise<import('@/src/modules/content-abac/pages/siteCreationPage').SiteCreationPage> {
+  /**
+   * Clicks the Create button, verifies the ABAC create container,
+   * selects the Site option, and returns the Site creation page
+   * @param options - Options for the step
+   * @returns The SiteCreationPage instance
+   */
+  async openSiteCreationForm(options?: { stepInfo?: string }): Promise<SiteCreationPage> {
     return await test.step(options?.stepInfo || 'Opening site creation form', async () => {
       // Click the Create button (returns content CreateComponent for interface compatibility)
       await this.clickOnCreateButtonOnSideNavBar();
 
       // Use ABAC-specific CreateComponent to select Site option
-      const { CreateComponent: AbacCreateComponent } = await import(
-        '@/src/modules/content-abac/components/createComponent'
-      );
       const abacCreate = new AbacCreateComponent(this.page);
       await abacCreate.verifyTheCreateComponentIsVisible();
       await abacCreate.selectSiteOptionAndOpenModal();
-
-      const { SiteCreationPage } = await import('@/src/modules/content-abac/pages/siteCreationPage');
       return new SiteCreationPage(this.page);
     });
   }
