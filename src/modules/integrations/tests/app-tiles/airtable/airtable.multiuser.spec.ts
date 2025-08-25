@@ -1,28 +1,34 @@
-import { TestGroupType } from '@core/constants/testType';
-import { tagTest } from '@core/utils/testDecorator';
-import { multiUserTileFixture } from '@integrations-fixtures/multiUserTileFixture';
-import { AirtableAppTilesPage } from '@integrations-pages/airtableAppTilesPage';
+import { UI_ACTIONS } from '@integrations-constants/common';
 import { MESSAGES } from '@integrations-constants/messageRepo';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
-import { UI_ACTIONS } from '@integrations-constants/common';
-import { AIRTABLE_TILE_DATA, generateUniqueTileNames } from '@/src/modules/integrations/test-data/app-tiles.test-data';
-import {
-  waitUntilTilePresentInApi,
-  waitUntilTileAbsentInApi,
-} from '@/src/modules/integrations/api/helpers/tileApiHelpers';
+import { multiUserTileFixture } from '@integrations-fixtures/multiUserTileFixture';
+import { AirtableAppTilesPage } from '@integrations-pages/airtableAppTilesPage';
 import { test } from '@playwright/test';
+
 import { TestPriority } from '@core/constants/testPriority';
+import { TestGroupType } from '@core/constants/testType';
+import { createSiteAndWaitForSearchResults, deactivateSiteSafe } from '@core/helpers/sitehelpers';
 import { UserCredentials } from '@core/types/test.types';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
-import { createSiteAndWaitForSearchResults, deactivateSiteSafe } from '@core/helpers/sitehelpers';
+import { tagTest } from '@core/utils/testDecorator';
+
+import {
+  waitUntilTileAbsentInApi,
+  waitUntilTilePresentInApi,
+} from '@/src/modules/integrations/api/helpers/tileApiHelpers';
+import { AIRTABLE_TILE_DATA, generateUniqueTileNames } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 const adminUser: UserCredentials = {
   email: getEnvConfig().appManagerEmail,
   password: getEnvConfig().appManagerPassword,
 };
 
-test.describe('Multi User Tests', () => {
-  test.describe('Airtable App Tiles Integration', () => {
+test.describe(
+  'Airtable App Tiles Multi-user Tests',
+  {
+    tag: [IntegrationsSuiteTags.AIRTABLE, IntegrationsSuiteTags.ABSOLUTE],
+  },
+  () => {
     let createdSiteIds: string[] = [];
     let createdTileNames: string[] = [];
 
@@ -49,13 +55,7 @@ test.describe('Multi User Tests', () => {
     multiUserTileFixture(
       'Multi-user tile management for Airtable app tile - Admin creates, EndUser verifies, Admin deletes',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.SANITY,
-          TestGroupType.SMOKE,
-          IntegrationsSuiteTags.AIRTABLE,
-          IntegrationsSuiteTags.ABSOLUTE,
-        ],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -90,13 +90,7 @@ test.describe('Multi User Tests', () => {
     multiUserTileFixture(
       'Site Manager creates site with Airtable tile, End User verifies, Site Manager deletes tile and deactivates site',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.SANITY,
-          TestGroupType.SMOKE,
-          IntegrationsSuiteTags.AIRTABLE,
-          IntegrationsSuiteTags.ABSOLUTE,
-        ],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -147,5 +141,5 @@ test.describe('Multi User Tests', () => {
         // Tile and site cleanup is handled in afterEach
       }
     );
-  });
-});
+  }
+);

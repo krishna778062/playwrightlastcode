@@ -1,9 +1,19 @@
-import { test, Locator, Page, expect } from '@playwright/test';
-import { BaseComponent } from '@core/components/baseComponent';
-import { AIRTABLE_AUTH_DATA } from '../test-data/app-tiles.test-data';
-import { ACTION_LABELS, APP_LABELS } from '../constants/common';
+import { expect, Locator, Page, test } from '@playwright/test';
 
-export class IntegrationManagementComponent extends BaseComponent {
+import { BaseComponent } from '@core/components/baseComponent';
+
+import { ACTION_LABELS, APP_LABELS } from '../constants/common';
+import { MESSAGES } from '../constants/messageRepo';
+import { AIRTABLE_AUTH_DATA } from '../test-data/app-tiles.test-data';
+
+export enum AppConnectorOptions {
+  Edit = 'Edit',
+  Disable = 'Disable',
+  Delete = 'Delete',
+  Enable = 'Enable',
+}
+
+export class CustomAppsListComponent extends BaseComponent {
   // Locators defined as readonly properties
   readonly searchInput: Locator;
   readonly prebuiltAppDialog: Locator;
@@ -16,6 +26,7 @@ export class IntegrationManagementComponent extends BaseComponent {
   readonly enableConfirmButton: Locator;
   readonly disconnectModal: Locator;
   readonly disconnectConfirmButton: Locator;
+  readonly resultListItems: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -32,12 +43,13 @@ export class IntegrationManagementComponent extends BaseComponent {
     this.enableConfirmButton = page.getByRole('button', { name: APP_LABELS.ENABLE_LABEL, exact: true });
     this.disconnectModal = page.locator('form:has(p:has-text("Are you sure you want to disconnect"))');
     this.disconnectConfirmButton = page.locator('span:has-text("Disconnect")').locator('..').locator('button');
+    this.resultListItems = page.locator('div[class*="ConnectorListItem_itemContainer"]');
   }
 
   /**
    * Navigate to the Manage Integrations Custom page
    */
-  async navigateToManageIntegrationsCustom(): Promise<void> {
+  async navigateToManageIntegrationsCustomPage(): Promise<void> {
     await test.step('Navigate to Manage Integrations Custom page', async () => {
       await this.page.goto('/manage/app/integrations/custom', { waitUntil: 'domcontentloaded' });
     });
@@ -48,11 +60,18 @@ export class IntegrationManagementComponent extends BaseComponent {
    */
   async searchForApp(appName: string): Promise<void> {
     await test.step(`Search for app: ${appName}`, async () => {
-      await this.page.waitForLoadState('domcontentloaded');
-      await this.searchInput.waitFor({ state: 'visible', timeout: 20000 });
       await this.typeInElement(this.searchInput, appName, { timeout: 20000 });
       await this.searchInput.press('Enter');
-      await this.page.waitForTimeout(1000);
+    });
+  }
+
+  /**
+   * Verify count of apps in list is
+   * @param count - The count of apps in the list
+   */
+  async verifyCountOfAppsInListIs(count: number): Promise<void> {
+    await test.step('Verify count of apps in list is', async () => {
+      await expect(this.resultListItems, `expecting app list to have ${count} items`).toHaveCount(count);
     });
   }
 
@@ -70,7 +89,7 @@ export class IntegrationManagementComponent extends BaseComponent {
   /**
    * Click on an app connector by name
    */
-  async clickAppConnector(appName: string): Promise<void> {
+  async clickOnAppConnector(appName: string): Promise<void> {
     await test.step(`Click on ${appName} connector`, async () => {
       const appConnector = this.page.locator(`text=${appName}`).first();
       await appConnector.click();
@@ -78,9 +97,22 @@ export class IntegrationManagementComponent extends BaseComponent {
   }
 
   /**
+   * Delete app using three dots menu
+   * It also verifies the toast message after deleting the app
+   */
+  async deleteAppWithThreeDotsMenu(): Promise<void> {
+    await test.step('Delete app using three dots menu', async () => {
+      await this.selectConnectorOption(AppConnectorOptions.Delete);
+      await this.verifyDeleteDialogVisible(APP_LABELS.DELETE_CUSTOM_APP_LABEL);
+      await this.confirmDelete(APP_LABELS.DELETE_LABEL);
+      await this.verifyToastMessage(MESSAGES.AIRTABLE_DELETE_MESSAGE);
+    });
+  }
+
+  /**
    * Open connector options menu and select an option
    */
-  async selectConnectorOption(option: string): Promise<void> {
+  async selectConnectorOption(option: AppConnectorOptions): Promise<void> {
     await test.step(`Select connector option: ${option}`, async () => {
       const threeDotsButton = this.page.locator('button[aria-label="connector options"], button[aria-haspopup="menu"]');
       await threeDotsButton.click();
@@ -126,19 +158,7 @@ export class IntegrationManagementComponent extends BaseComponent {
     await test.step('Click Add prebuilt app option', async () => {
       await this.addCustomAppDropdownButton.click();
       const addPrebuiltAppOption = this.page.locator(`[role="menuitem"]:has-text("${option}")`);
-      let retries = 3;
-      while (retries > 0) {
-        try {
-          await addPrebuiltAppOption.waitFor({ state: 'visible', timeout: 5000 });
-          await addPrebuiltAppOption.click();
-          break;
-        } catch (error) {
-          retries--;
-          if (retries === 0) throw error;
-          await this.page.waitForTimeout(1000);
-          await this.addCustomAppDropdownButton.click();
-        }
-      }
+      await addPrebuiltAppOption.click();
     });
   }
 

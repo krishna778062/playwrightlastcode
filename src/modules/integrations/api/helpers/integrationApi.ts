@@ -1,4 +1,5 @@
-import { test, Page } from '@playwright/test';
+import { Page, test } from '@playwright/test';
+
 import { deleteTileByTitleViaApi } from './tileApiHelpers';
 import { deleteTileByInstanceIdViaApi } from './tileApiHelpers';
 
@@ -23,13 +24,10 @@ export class IntegrationApi {
   /**
    * Navigate to external apps page via API for the current user
    */
-  async navigateToExternalAppsViaApi(): Promise<void> {
+  async navigateToExternalAppsPage(): Promise<void> {
     await test.step('Navigate to external apps via API', async () => {
       const userId = await this.getCurrentUserId();
-      await this.page.goto(`/people/${userId}/edit/external-apps`, {
-        waitUntil: 'domcontentloaded',
-        timeout: 30000,
-      });
+      await this.page.goto(`/people/${userId}/edit/external-apps`, { waitUntil: 'domcontentloaded' });
     });
   }
 
