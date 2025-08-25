@@ -1,13 +1,13 @@
-import { test, Page } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 
 import { NewUxHomePage } from '../pages/homePage/newUxHomePage';
 
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
-import { IntranetFileListComponent } from '@/src/modules/global-search/components/intranetFileListComponent';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { IntranetFileListComponent } from '@/src/modules/global-search/components/intranetFileListComponent';
 
 /**
  * The IntranetFileHelper class is a helper class for intranet file related operations.
@@ -15,7 +15,6 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
  */
 export class IntranetFileHelper {
   private page: Page;
-  private siteHelper: SiteManagementHelper;
   private actions: BaseActionUtil;
 
   /**
@@ -28,7 +27,6 @@ export class IntranetFileHelper {
     page: Page
   ) {
     this.page = page;
-    this.siteHelper = new SiteManagementHelper(appManagerApiClient);
     this.actions = new BaseActionUtil(page);
   }
 
@@ -63,9 +61,9 @@ export class IntranetFileHelper {
   }
 
   /**
-   * Cleans up the test data by deactivating the created sites.
+   * TODO: Add list to store all files created during the test and delete them after the test.
    */
   async cleanup() {
-    await this.siteHelper.cleanup();
+    console.log('INFO: IntranetFileHelper cleanup method is not implemented');
   }
 }

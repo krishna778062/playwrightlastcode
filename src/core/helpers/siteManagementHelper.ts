@@ -104,6 +104,33 @@ export class SiteManagementHelper {
   }
 
   /**
+   * Wrapper method to create a site with a specific access type.
+   *
+   * @param siteName - Optional custom site name. If not provided, generates a random name.
+   * @param category - The site category object, containing name and categoryId.
+   * @param overrides - Optional overrides for site creation payload.
+   * @param accessType - The access type of the site (default: 'public').
+   * @returns An object containing details of the created site.
+   */
+  async createSite(options: {
+    siteName?: string;
+    category?: { name: string; categoryId: string };
+    overrides?: Partial<SiteCreationPayload>;
+    accessType: 'public' | 'private' | 'unlisted';
+  }) {
+    switch (options.accessType) {
+      case 'public':
+        return await this.createPublicSite(options.siteName, options.category, { ...options.overrides });
+      case 'private':
+        return await this.createPrivateSite(options.siteName, options.category, { ...options.overrides });
+      case 'unlisted':
+        return await this.createUnlistedSite(options.siteName, options.category, { ...options.overrides });
+      default:
+        throw new Error(`Invalid access type: ${options.accessType}`);
+    }
+  }
+
+  /**
    * Creates multiple sites with different access levels for testing.
    * @param count - Number of sites to create for each access type.
    * @param category - The site category object, containing name and categoryId.

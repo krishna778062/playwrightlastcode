@@ -6,7 +6,6 @@ import { SiteListComponent } from '@/src/modules/global-search/components/siteLi
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { SITE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/site-search.test-data';
-import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 for (const testData of SITE_SEARCH_TEST_DATA) {
   test.describe(
@@ -20,27 +19,19 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
       let categoryObj: { categoryId: string; name: string };
 
       test.beforeEach(
-        `Setting up the test environment for site search by creating new site`,
+        `Setting up the test environment for site search by creating new site of type ${testData.siteType}`,
         async ({ appManagerApiClient, siteManagementHelper }) => {
           // Initialize API client with proper authentication and CSRF token
           categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
-
-          let created;
-          // Create site based on type
-          if (testData.siteType === SITE_TYPES.PRIVATE) {
-            created = await siteManagementHelper.createPrivateSite(undefined, categoryObj);
-          } else {
-            created = await siteManagementHelper.createPublicSite(undefined, categoryObj);
-          }
-
-          newSiteId = created.siteId;
-          newSiteName = created.siteName;
+          const createdSiteDetails = await siteManagementHelper.createSite({
+            category: categoryObj,
+            accessType: testData.siteType,
+          });
+          newSiteId = createdSiteDetails.siteId!;
+          newSiteName = createdSiteDetails.siteName!;
           console.log(`Created site: ${newSiteName} with ID: ${newSiteId}`);
         }
       );
-      test.afterEach(`Tearing down the test environment for site search`, async ({ siteManagementHelper }) => {
-        await siteManagementHelper.cleanup();
-      });
 
       test(
         `Verify Site Search results for a new ${testData.siteType} site in category "${testData.category}"`,

@@ -5,10 +5,10 @@ import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
 import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
 import { IntranetFileHelper } from '@core/helpers/intranetFileHelper';
+import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { LoginHelper } from '../../../core/helpers/loginHelper';
-import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
@@ -54,44 +54,32 @@ export const searchTestFixtures = test.extend<{
   contentManagementHelper: [
     async ({ appManagerApiClient }, use) => {
       const contentManagementHelper = new ContentManagementHelper(appManagerApiClient);
-      try {
-        await use(contentManagementHelper);
-      } finally {
-        await contentManagementHelper.cleanup();
-      }
+      await use(contentManagementHelper);
+      await contentManagementHelper.cleanup();
     },
     { scope: 'test' },
   ],
   feedManagementHelper: [
     async ({ appManagerApiClient }, use) => {
       const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
-      try {
-        await use(feedManagementHelper);
-      } finally {
-        await feedManagementHelper.cleanup();
-      }
+      await use(feedManagementHelper);
+      await feedManagementHelper.cleanup();
     },
     { scope: 'test' },
   ],
   intranetFileHelper: [
     async ({ appManagerApiClient, appManagerUserPage }, use) => {
       const intranetFileHelper = new IntranetFileHelper(appManagerApiClient, appManagerUserPage);
-      try {
-        await use(intranetFileHelper);
-      } finally {
-        await intranetFileHelper.cleanup();
-      }
+      await use(intranetFileHelper);
+      await intranetFileHelper.cleanup();
     },
     { scope: 'test' },
   ],
   siteManagementHelper: [
     async ({ appManagerApiClient }, use) => {
       const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
-      try {
-        await use(siteManagementHelper);
-      } finally {
-        await siteManagementHelper.cleanup();
-      }
+      await use(siteManagementHelper);
+      await siteManagementHelper.cleanup();
     },
     { scope: 'test' },
   ],

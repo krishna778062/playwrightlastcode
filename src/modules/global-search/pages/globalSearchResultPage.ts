@@ -8,13 +8,13 @@ import { FeedListComponent } from '../components/feedListComponent';
 import { IntranetFileListComponent } from '../components/intranetFileListComponent';
 import { TileListComponent } from '../components/tileListComponent';
 import { IContentSearch } from '../types/content-search.type';
+import { IFeedSearch } from '../types/feed-search.type';
+import { IFileSearch } from '../types/file-search.type';
 
+import { ContentType } from '@/src/core/constants/contentTypes';
 import { BasePage } from '@/src/core/pages/basePage';
 import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
-import { ContentType } from '@/src/core/constants/contentTypes';
-import { IFileSearch } from '../types/file-search.type';
-import { IFeedSearch } from '../types/feed-search.type';
 
 export class GlobalSearchResultPage extends BasePage {
   readonly resultListingComponent: ResultListingComponent;
@@ -112,7 +112,7 @@ export class GlobalSearchResultPage extends BasePage {
    * @param data - The file search data to verify.
    */
   async verifyFileResultItemDataPoints(data: IFileSearch) {
-    await test.step(`Verifying all data points for a file result item`, async () => {
+    await test.step(`Verifying all data points for a file result item for filename ${data.name} and item type ${data.type}`, async () => {
       const resultLocator = await this.getFileResultItemExactlyMatchingTheSearchTerm(data.name, data.type);
       const fileResultItem = new IntranetFileListComponent(resultLocator.page, resultLocator.rootLocator);
       await fileResultItem.verifyIntranetFileResultItem(data);
