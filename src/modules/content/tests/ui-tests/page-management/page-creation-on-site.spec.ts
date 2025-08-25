@@ -55,11 +55,6 @@ test.describe(
       } else {
         console.log('No page was published, hence skipping the deletion');
       }
-
-      // Clean up the created site
-      if (createdSite?.siteId) {
-        await contentCleanup.cleanupSite(createdSite.siteId, createdSite.siteName);
-      }
     });
 
     test(
