@@ -13,7 +13,6 @@ import { CONTENT_TEST_DATA } from '../test-data/content.test-data';
 
 import { SiteDashboardPage } from './siteDashboardPage';
 
-import { waitForAllRequestsWithKeyword } from '@/src/core/utils/baseActionUtil';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 
 export interface PageCreationOptions {
@@ -144,24 +143,25 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     }
   ) {
     await test.step(`Upload cover image: ${fileName}`, async () => {
-      //there will be three requests for the cover image to upload different sizes
-      //we will wait until all three requests are completed
-      const reqPromises = [];
+      // Setup request promises for 3 upload requests
+      const requestPromises = [];
       for (let i = 0; i < 3; i++) {
-        reqPromises.push(
-          this.page.waitForResponse(
-            response => response.url().includes('Content-Type=image%2Fpng') && response.request().method() === 'PUT'
-          ),
-          35_000
+        const requestPromise = this.page.waitForRequest(
+          request => request.url().includes('X-Amz-SignedHeaders=host') && request.method() === 'PUT',
+          { timeout: 35000 }
         );
+        requestPromises.push(requestPromise);
       }
+
       const imagePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', 'images', fileName);
       await this.coverImageUploader.uploadAttachment(imagePath);
+
       //handle wide screen crop option
       if (options?.widescreenCropOption) {
         await this.imageCropper.selectCropOption('Widescreen');
       }
       await this.imageCropper.clickOnNextButton();
+
       //handle square crop option
       if (options?.squareCropOption) {
         await this.imageCropper.selectCropOption('Square');
@@ -170,8 +170,8 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       await this.imageCropper.clickOnNextButton();
       await this.imageCropper.clickOnAddButton();
 
-      //wait for all the requests to be completed
-      await Promise.all(reqPromises);
+      // Wait for all 3 upload requests to complete
+      await Promise.all(requestPromises);
     });
   }
 
@@ -258,10 +258,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
           squareCropOption: options.coverImage.cropOptions?.square,
         });
       }
-      // Wait until all requests containing keyword are successful
-      await test.step(`Wait to upload the image`, async () => {
-        await waitForAllRequestsWithKeyword(this.page, 'X-Amz-SignedHeaders=host');
-      });
       // Publish the page
       const publishResponse = await this.publishPage();
 

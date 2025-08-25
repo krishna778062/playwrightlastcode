@@ -5,8 +5,6 @@ import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { FileUtil } from '@core/utils/fileUtil';
 
-import { waitForAllRequestsWithKeyword } from '@/src/core/utils/baseActionUtil';
-
 export interface FeedPostOptions {
   text: string;
   attachments?: {
@@ -127,10 +125,6 @@ export class CreateFeedPostComponent
       if (options.attachments) {
         await this.uploadFiles(options.attachments.files);
       }
-      // Wait until all requests containing keyword are successful
-      await test.step(`Wait to upload the image`, async () => {
-        await waitForAllRequestsWithKeyword(this.page, 'X-Amz-SignedHeaders=host');
-      });
 
       // Publish the page
       const postResponse = await this.createFeedPost();
@@ -195,10 +189,23 @@ export class CreateFeedPostComponent
    */
   async uploadFiles(files: string[]): Promise<void> {
     await test.step('Upload files to feed post', async () => {
+      // Setup request promises for upload requests
+      const requestPromises = [];
+      for (let i = 0; i < files.length; i++) {
+        const requestPromise = this.page.waitForRequest(
+          request => request.url().includes('X-Amz-SignedHeaders=host') && request.method() === 'PUT',
+          { timeout: 35000 }
+        );
+        requestPromises.push(requestPromise);
+      }
+
       const filePaths = files.map(file => FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', file));
       await this.fileUploadInput.setInputFiles(filePaths);
       await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
       await expect(this.attachedFiles).toHaveCount(files.length);
+
+      // Wait for all upload requests to complete
+      await Promise.all(requestPromises);
     });
   }
 
