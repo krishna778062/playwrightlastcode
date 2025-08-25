@@ -44,7 +44,7 @@ test.describe(
 
     test(
       'Verify category should not get created when user clicks on Cancel or Close button',
-      { tag: [TestPriority.P1] },
+      { tag: [TestPriority.P0] },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-35408', 'PS-35407'],
@@ -93,17 +93,14 @@ test.describe(
         // Step 4: Close the modal
         await audiencePage.clickOnCloseButton();
 
-        // Step 5: Verify the presence of options in the category dropdown menu and perform cleanup
+        // Step 5: Verify the presence of options in the category dropdown menu
         await audiencePage.verifyAllCategoryOptionsArePresent(uniqueCategoryName);
 
-        // Step 6: Use the generic method to delete the category
-        await audiencePage.openCategoryDropdownAndClickOption(uniqueCategoryName, 'Delete category');
+        // Step 6: Close the dropdown by clicking elsewhere to reset state
+        await audiencePage.closeOpenDropdown();
 
-        await audiencePage.clickOnElement(audiencePage.deleteCategoryButton, {
-          stepInfo: 'Click on Delete button to confirm category deletion',
-          timeout: 10_000,
-        });
-
+        // Step 7: Delete the category using existing complete method (dropdown will be reopened)
+        await audiencePage.deleteCategoryByShowMore(uniqueCategoryName);
         await audiencePage.verifyCategoryDeletionSuccessToast();
       }
     );
@@ -149,7 +146,7 @@ test.describe(
       { tag: [TestPriority.P0] },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
-          zephyrTestId: ['PS-XXXXX'], // Add appropriate test ID
+          zephyrTestId: ['PS-35417', 'PS-35416', 'PS-35412'],
         });
 
         const audiencePage = new AudiencePage(appManagerPage);
@@ -193,7 +190,7 @@ test.describe(
       { tag: [TestPriority.P0] },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
-          zephyrTestId: ['PS-XXXXX'], // Add appropriate test ID
+          zephyrTestId: ['PS-35415'],
         });
 
         const audiencePage = new AudiencePage(appManagerPage);

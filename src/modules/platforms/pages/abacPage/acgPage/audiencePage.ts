@@ -449,6 +449,14 @@ export class AudiencePage extends BasePage {
     });
   }
 
+  // Close any open dropdown by clicking elsewhere on the page
+  async closeOpenDropdown(): Promise<void> {
+    await test.step('Close any open dropdown', async () => {
+      await this.page.click('body');
+      await this.page.waitForTimeout(1000);
+    });
+  }
+
   // Verify clicking Cancel button prevents category creation
   async verifyCategoryCancelButtonBehavior(): Promise<void> {
     await test.step('Verify Cancel button prevents category creation', async () => {
