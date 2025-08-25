@@ -19,21 +19,26 @@ test.describe(
     let contentId: string;
     let eventName: string;
     let authorName: string;
-    let contentDescription: string;
 
     test.beforeEach(
       `Setting up the test environment for event search by creating site and event content`,
       async ({ contentManagementHelper }) => {
-        const eventDetails = await contentManagementHelper.createSiteAndEvent(testData.category, {
-          contentType: testData.content,
-        });
+        const eventDetails = await contentManagementHelper.createSiteAndEvent(
+          testData.category,
+          {
+            contentType: testData.content,
+          },
+          {
+            contentDescription: testData.description,
+            accessType: testData.accessType,
+          }
+        );
 
         siteId = eventDetails.siteId;
         newSiteName = eventDetails.siteName;
         contentId = eventDetails.contentId;
         eventName = eventDetails.eventName;
         authorName = eventDetails.authorName;
-        contentDescription = eventDetails.contentDescription;
         console.log(`Created event "${eventName}" in site "${newSiteName}" with ID: ${siteId}`);
       }
     );
@@ -58,7 +63,7 @@ test.describe(
         await globalSearchResultPage.verifyContentResultItemDataPoints(ContentType.Event, {
           name: eventName,
           label: testData.label,
-          description: contentDescription,
+          description: testData.description,
           author: authorName,
           contentType: 'Event',
           contentId,

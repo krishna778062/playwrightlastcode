@@ -19,22 +19,27 @@ test.describe(
     let contentId: string;
     let pageName: string;
     let authorName: string;
-    let contentDescription: string;
 
     test.beforeEach(
       `Setting up the test environment for page search by creating site and page content`,
       async ({ contentManagementHelper }) => {
-        const siteAndPageDetails = await contentManagementHelper.createSiteAndPage(testData.category, {
-          contentType: testData.content,
-          contentSubType: testData.contentType!,
-        });
+        const siteAndPageDetails = await contentManagementHelper.createSiteAndPage(
+          testData.category,
+          {
+            contentType: testData.content,
+            contentSubType: testData.contentType!,
+          },
+          {
+            contentDescription: testData.description,
+            accessType: testData.accessType,
+          }
+        );
 
         siteId = siteAndPageDetails.siteId;
         siteName = siteAndPageDetails.siteName;
         contentId = siteAndPageDetails.contentId;
         pageName = siteAndPageDetails.pageName;
         authorName = siteAndPageDetails.authorName;
-        contentDescription = siteAndPageDetails.contentDescription;
         console.log(`Created page "${pageName}" in site "${siteName}" with ID: ${siteId}`);
       }
     );
@@ -59,7 +64,7 @@ test.describe(
         await globalSearchResultPage.verifyContentResultItemDataPoints(ContentType.Page, {
           name: pageName,
           label: testData.label,
-          description: contentDescription,
+          description: testData.description,
           author: authorName,
           contentType: 'Page',
           contentId,

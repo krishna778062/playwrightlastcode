@@ -18,14 +18,17 @@ test.describe(
     let contentId: string;
     let albumName: string;
     let authorName: string;
-    let contentDescription: string;
 
     test.beforeEach(
       `Setting up the test environment for album search by creating site and album content`,
       async ({ contentManagementHelper }) => {
         const albumDetails = await contentManagementHelper.createSiteAndAlbum(
           ALBUM_SEARCH_TEST_DATA.category,
-          'beach.jpg'
+          'beach.jpg',
+          {
+            contentDescription: ALBUM_SEARCH_TEST_DATA.description,
+            accessType: ALBUM_SEARCH_TEST_DATA.accessType,
+          }
         );
 
         siteId = albumDetails.siteId;
@@ -33,7 +36,6 @@ test.describe(
         contentId = albumDetails.contentId;
         albumName = albumDetails.albumName;
         authorName = albumDetails.authorName;
-        contentDescription = albumDetails.contentDescription;
         console.log(`Created album "${albumName}" in site "${newSiteName}" with ID: ${siteId}`);
       }
     );
@@ -58,7 +60,7 @@ test.describe(
         await globalSearchResultPage.verifyContentResultItemDataPoints(ContentType.Album, {
           name: albumName,
           label: ALBUM_SEARCH_TEST_DATA.label,
-          description: contentDescription,
+          description: ALBUM_SEARCH_TEST_DATA.description,
           author: authorName,
           contentType: 'Album',
           contentId,
