@@ -12,7 +12,7 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
   test.describe(
     `Global Search - Site Search`,
     {
-      tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.SITE_SEARCH, '@test'],
+      tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.SITE_SEARCH],
     },
     () => {
       let newSiteId: string;

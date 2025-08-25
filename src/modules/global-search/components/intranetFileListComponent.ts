@@ -142,6 +142,12 @@ export class IntranetFileListComponent extends ContentListComponent {
     });
   }
 
+  /**
+   * Clicks on the files tab in the intranet file search interface.
+   * Verifies the tab is visible before clicking to ensure element readiness.
+   *
+   * @returns Promise that resolves when the files tab has been clicked
+   */
   async clickFilesTab(): Promise<void> {
     await test.step(`Clicking on the files tab`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.filesTab, { timeout: 30000 });
@@ -149,6 +155,12 @@ export class IntranetFileListComponent extends ContentListComponent {
     });
   }
 
+  /**
+   * Clicks on the site videos tab in the intranet file search interface.
+   * Verifies the tab is visible before clicking with extended timeout for video content.
+   *
+   * @returns Promise that resolves when the site videos tab has been clicked
+   */
   async clickSiteVideosTab() {
     await test.step('Clicking on the Site videos tab', async () => {
       await this.verifier.verifyTheElementIsVisible(this.siteVideosTab, { timeout: 20000 });

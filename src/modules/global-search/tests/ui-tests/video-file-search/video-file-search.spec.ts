@@ -10,7 +10,7 @@ import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelpe
 test.describe(
   'Global Search - Video File Search functionality',
   {
-    tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.FILE_SEARCH, '@video'],
+    tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.FILE_SEARCH],
   },
   () => {
     const testData = VIDEO_FILE_SEARCH_TEST_DATA;
