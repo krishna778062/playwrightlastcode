@@ -60,6 +60,8 @@ test.describe(
           AppConnectorOptions.Delete
         );
 
+        await customIntegrationsPage.addPrebuiltApp(AIRTABLE_TILE_DATA.APP_NAME);
+
         // Configure Airtable authentication details
         await airtablePage.configureAirtableAuth();
 
@@ -73,6 +75,7 @@ test.describe(
         await airtablePage.verifyToastMessage(MESSAGES.AIRTABLE_ENABLE_MESSAGE);
 
         // Navigate to External Apps page
+
         await integrationApi.navigateToExternalAppsPage();
 
         // Click on "Airtable" "Connect account" button
