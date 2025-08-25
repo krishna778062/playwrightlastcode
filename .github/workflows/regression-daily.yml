@@ -61,7 +61,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-report-${{ matrix.module }}-${{ matrix.environment }}
-          path: playwright-report
+          path: |
+            playwright-report
+            test-results
 
       - name: Set timestamp
         id: timestamp
