@@ -24,7 +24,8 @@ export class ContentManagementHelper {
    * Returns site details along with the created album details.
    */
   async createSiteAndAlbum(categoryName: string, imageName: string) {
-    const { siteId, siteName } = await this.siteHelper.createSiteWithCategoryName(categoryName);
+    const categoryObj = await this.appManagerApiClient.getSiteManagementService().getCategoryId(categoryName);
+    const { siteId, siteName } = await this.siteHelper.createPublicSite(undefined, categoryObj);
     const fileId = await this.appManagerApiClient.getImageUploaderService().uploadImageAndGetFileId(imageName);
     const albumName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Album`;
     const contentDescription = 'AutomateAlbumDescription';
@@ -59,7 +60,8 @@ export class ContentManagementHelper {
    * Returns site details along with the created page details.
    */
   async createSiteAndPage(categoryName: string, contentInfo: { contentType: string; contentSubType: string }) {
-    const { siteId, siteName } = await this.siteHelper.createSiteWithCategoryName(categoryName);
+    const categoryObj = await this.appManagerApiClient.getSiteManagementService().getCategoryId(categoryName);
+    const { siteId, siteName } = await this.siteHelper.createPublicSite(undefined, categoryObj);
     const pageCategory = await this.appManagerApiClient.getContentManagementService().getPageCategoryID(siteId);
     const pageName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Page`;
     const contentDescription = 'AutomatePageDescription';
@@ -97,7 +99,8 @@ export class ContentManagementHelper {
    * Returns site details along with the created event details.
    */
   async createSiteAndEvent(categoryName: string, contentInfo: { contentType: string }) {
-    const { siteId, siteName } = await this.siteHelper.createSiteWithCategoryName(categoryName);
+    const categoryObj = await this.appManagerApiClient.getSiteManagementService().getCategoryId(categoryName);
+    const { siteId, siteName } = await this.siteHelper.createPublicSite(undefined, categoryObj);
     const eventName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Event`;
     const contentDescription = 'AutomateEventDescription';
     const { body, bodyHtml } = buildBodyAndBodyHtml(contentDescription, 'event');

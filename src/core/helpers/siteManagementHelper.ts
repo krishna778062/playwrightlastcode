@@ -1,99 +1,224 @@
+import { faker } from '@faker-js/faker';
+
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
-import { test } from '@playwright/test';
+import { SiteCreationPayload } from '@/src/core/types/siteManagement.types';
 
-interface CreatedSiteRecord {
+interface Site {
   siteId: string;
+  siteName: string;
 }
 
-/**
- * SiteManagementHelper centralizes common site lifecycle operations used across helpers/tests.
- * - Creates sites via API with given name/category/options
- * - Waits for site to be indexed in enterprise search
- * - Tracks created sites for reliable cleanup (deactivation)
- */
+interface SiteMember {
+  siteId: string;
+  userEmail: string;
+}
+
 export class SiteManagementHelper {
-  private createdSites: CreatedSiteRecord[] = [];
+  private sites: Site[] = [];
+  private siteMembers: SiteMember[] = [];
 
   constructor(private appManagerApiClient: AppManagerApiClient) {}
 
   /**
-   * Generates a unique site name with a consistent prefix.
-   * @param prefix - Optional prefix for the generated name
+   * Creates a new public site with default settings.
+   * @param siteName - Optional custom site name. If not provided, generates a random name.
+   * @param category - The site category object, containing name and categoryId.
+   * @param overrides - Optional overrides for site creation payload.
+   * @returns An object containing details of the created site.
    */
-  generateUniqueSiteName(prefix: string = 'AutomateUI_Test'): string {
-    const randomNum = Math.floor(Math.random() * 1_000_000 + 1);
-    return `${prefix}_${randomNum}`;
-  }
+  async createPublicSite(
+    siteName?: string,
+    category?: { name: string; categoryId: string },
+    overrides: Partial<SiteCreationPayload> = {}
+  ) {
+    const randomNum = Math.floor(Math.random() * 1000000 + 1);
+    const finalSiteName = siteName || `AutomateUI_Test_${randomNum}`;
 
-  /**
-   * Looks up a site category object by its name via API.
-   * @param categoryName - Category name to look up
-   */
-  async getCategoryByName(categoryName: string): Promise<{ name: string; categoryId: string }> {
-    return await this.appManagerApiClient.getSiteManagementService().getCategoryId(categoryName);
-  }
+    // Get category if not provided
+    let categoryObj = category;
+    if (!categoryObj) {
+      categoryObj = await this.appManagerApiClient.getSiteManagementService().getCategoryId('General');
+    }
 
-  /**
-   * Creates a site and waits until it's searchable.
-   * @param siteName - Desired site name
-   * @param category - Category object containing name and categoryId
-   * @param options - Optional access settings
-   * @returns Object containing the created siteId and siteName
-   */
-  async createSite(
-    siteName: string,
-    category: { name: string; categoryId: string },
-    options?: { access?: 'public' | 'private' | 'unlisted' }
-  ): Promise<{ siteId: string; siteName: string }> {
     const siteResult = await this.appManagerApiClient.getSiteManagementService().addNewSite({
-      access: options?.access ?? 'public',
-      name: siteName,
+      access: 'public',
+      name: finalSiteName,
       category: {
-        categoryId: category.categoryId,
-        name: category.name,
+        categoryId: categoryObj.categoryId,
+        name: categoryObj.name,
       },
+      ...overrides,
     });
-    const siteId = siteResult.siteId;
-    this.createdSites.push({ siteId });
 
+    const siteId = siteResult.siteId;
+
+    // Wait for site to appear in search results
     await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
       this.appManagerApiClient,
-      siteName,
-      siteName,
+      finalSiteName,
+      finalSiteName,
       'site'
     );
 
-    return { siteId, siteName };
+    const createdSite = {
+      siteId,
+      siteName: finalSiteName,
+      categoryId: categoryObj.categoryId,
+      categoryName: categoryObj.name,
+      access: 'public',
+    };
+
+    this.sites.push({ siteId, siteName: finalSiteName });
+    return createdSite;
   }
 
   /**
-   * Convenience method to create a site using a category name.
-   * Optionally accepts a siteName; if omitted, a unique name is generated.
+   * Creates a new private site with default settings.
+   * @param siteName - Optional custom site name. If not provided, generates a random name.
+   * @param category - The site category object, containing name and categoryId.
+   * @param overrides - Optional overrides for site creation payload.
+   * @returns An object containing details of the created site.
    */
-  async createSiteWithCategoryName(
-    categoryName: string,
-    options?: { access?: 'public' | 'private' | 'unlisted' },
-    siteName?: string
-  ): Promise<{ siteId: string; siteName: string }> {
-    return await test.step(`Create site with category "${categoryName}"`, async () => {
-      const resolvedSiteName = siteName ?? this.generateUniqueSiteName();
-      const category = await test.step(`Lookup category id for "${categoryName}"`, async () => {
-        return await this.getCategoryByName(categoryName);
-      });
-      return await this.createSite(resolvedSiteName, category, options);
-    });
+  async createPrivateSite(
+    siteName?: string,
+    category?: { name: string; categoryId: string },
+    overrides: Partial<SiteCreationPayload> = {}
+  ) {
+    return await this.createPublicSite(siteName, category, { ...overrides, access: 'private' });
   }
 
   /**
-   * Deactivates all sites created through this helper instance.
+   * Creates a new unlisted site with default settings.
+   * @param siteName - Optional custom site name. If not provided, generates a random name.
+   * @param category - The site category object, containing name and categoryId.
+   * @param overrides - Optional overrides for site creation payload.
+   * @returns An object containing details of the created site.
+   */
+  async createUnlistedSite(
+    siteName?: string,
+    category?: { name: string; categoryId: string },
+    overrides: Partial<SiteCreationPayload> = {}
+  ) {
+    return await this.createPublicSite(siteName, category, { ...overrides, access: 'unlisted' });
+  }
+
+  /**
+   * Creates multiple sites with different access levels for testing.
+   * @param count - Number of sites to create for each access type.
+   * @param category - The site category object, containing name and categoryId.
+   * @returns An object containing arrays of created sites by access type.
+   */
+  async createSitesForTesting(count: number = 1, category?: { name: string; categoryId: string }) {
+    const publicSites = [];
+    const privateSites = [];
+    const unlistedSites = [];
+
+    for (let i = 0; i < count; i++) {
+      const [publicSite, privateSite, unlistedSite] = await Promise.all([
+        this.createPublicSite(undefined, category),
+        this.createPrivateSite(undefined, category),
+        this.createUnlistedSite(undefined, category),
+      ]);
+
+      publicSites.push(publicSite);
+      privateSites.push(privateSite);
+      unlistedSites.push(unlistedSite);
+    }
+
+    return {
+      publicSites,
+      privateSites,
+      unlistedSites,
+      allSites: [...publicSites, ...privateSites, ...unlistedSites],
+    };
+  }
+
+  /**
+   * Creates a site with a specific member for testing member access scenarios.
+   * @param memberEmail - The email of the user to add as a member.
+   * @param siteName - Optional custom site name.
+   * @param category - The site category object.
+   * @param siteAccess - The access level of the site (default: 'private').
+   * @returns An object containing site details and member information.
+   */
+  async createSiteWithMember(
+    memberEmail: string,
+    siteName?: string,
+    category?: { name: string; categoryId: string },
+    siteAccess: 'public' | 'private' | 'unlisted' = 'public'
+  ) {
+    // Create the site based on access type
+    let site;
+    switch (siteAccess) {
+      case 'private':
+        site = await this.createPrivateSite(siteName, category);
+        break;
+      case 'unlisted':
+        site = await this.createUnlistedSite(siteName, category);
+        break;
+      default:
+        site = await this.createPublicSite(siteName, category);
+    }
+
+    return {
+      ...site,
+      memberEmail,
+      memberRole: 'member',
+    };
+  }
+
+  /**
+   * Gets a random site from the created sites.
+   * @returns A random site from the sites created by this helper, or null if no sites exist.
+   */
+  getRandomSite(): Site | null {
+    if (this.sites.length === 0) return null;
+    const randomIndex = Math.floor(Math.random() * this.sites.length);
+    return this.sites[randomIndex];
+  }
+
+  /**
+   * Gets all sites created by this helper.
+   * @returns An array of all sites created by this helper.
+   */
+  getAllSites(): Site[] {
+    return [...this.sites];
+  }
+
+  /**
+   * Cleans up all sites and site members created by this helper instance.
+   * This should be called in test cleanup to ensure proper resource management.
    */
   async cleanup() {
-    for (const { siteId } of this.createdSites) {
-      if (siteId) {
+    // Deactivate all sites
+    for (const { siteId, siteName } of this.sites) {
+      try {
         await this.appManagerApiClient.getSiteManagementService().deactivateSite(siteId);
+        console.log(`Deactivated site ${siteName} (${siteId})`);
+      } catch (error) {
+        console.warn(`Failed to deactivate site ${siteName} (${siteId}):`, error);
       }
     }
-    this.createdSites = [];
+
+    // Clear the tracking arrays
+    this.sites = [];
+    this.siteMembers = [];
+  }
+
+  /**
+   * Gets the count of sites created by this helper.
+   * @returns The number of sites created.
+   */
+  getSiteCount(): number {
+    return this.sites.length;
+  }
+
+  /**
+   * Gets the count of site members managed by this helper.
+   * @returns The number of site members.
+   */
+  getMemberCount(): number {
+    return this.siteMembers.length;
   }
 }

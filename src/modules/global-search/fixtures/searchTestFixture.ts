@@ -4,6 +4,7 @@ import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
 import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
+import { IntranetFileHelper } from '@core/helpers/intranetFileHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { LoginHelper } from '../../../core/helpers/loginHelper';
@@ -11,7 +12,6 @@ import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
-import { IntranetFileHelper } from '@core/helpers/intranetFileHelper';
 
 export const searchTestFixtures = test.extend<{
   appManagerHomePage: NewUxHomePage | OldUxHomePage;

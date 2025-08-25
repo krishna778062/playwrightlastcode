@@ -6,12 +6,13 @@ import { SiteListComponent } from '@/src/modules/global-search/components/siteLi
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { SITE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/site-search.test-data';
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 for (const testData of SITE_SEARCH_TEST_DATA) {
   test.describe(
     `Global Search - Site Search`,
     {
-      tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.SITE_SEARCH],
+      tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.SITE_SEARCH, '@test'],
     },
     () => {
       let newSiteId: string;
@@ -22,12 +23,18 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
         `Setting up the test environment for site search by creating new site`,
         async ({ appManagerApiClient, siteManagementHelper }) => {
           // Initialize API client with proper authentication and CSRF token
-          const created = await siteManagementHelper.createSiteWithCategoryName(testData.category, {
-            access: testData.siteType,
-          });
+          categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
+
+          let created;
+          // Create site based on type
+          if (testData.siteType === SITE_TYPES.PRIVATE) {
+            created = await siteManagementHelper.createPrivateSite(undefined, categoryObj);
+          } else {
+            created = await siteManagementHelper.createPublicSite(undefined, categoryObj);
+          }
+
           newSiteId = created.siteId;
           newSiteName = created.siteName;
-          categoryObj = await siteManagementHelper.getCategoryByName(testData.category);
           console.log(`Created site: ${newSiteName} with ID: ${newSiteId}`);
         }
       );

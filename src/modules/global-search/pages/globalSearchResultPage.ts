@@ -3,17 +3,17 @@ import { test } from '@playwright/test';
 
 import { TIMEOUTS } from '../../../core/constants/timeouts';
 import { AppContainerComponent } from '../components/appListComponent';
+import { ContentListComponent } from '../components/contentListComponent';
+import { FeedListComponent } from '../components/feedListComponent';
+import { IntranetFileListComponent } from '../components/intranetFileListComponent';
 import { TileListComponent } from '../components/tileListComponent';
+import { IContentSearch } from '../types/content-search.type';
 
 import { BasePage } from '@/src/core/pages/basePage';
 import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
-import { IContentSearch } from '../types/content-search.type';
 import { ContentType } from '@/src/core/constants/contentTypes';
-import { ContentListComponent } from '../components/contentListComponent';
-import { IntranetFileListComponent } from '../components/intranetFileListComponent';
 import { IFileSearch } from '../types/file-search.type';
-import { FeedListComponent } from '../components/feedListComponent';
 import { IFeedSearch } from '../types/feed-search.type';
 
 export class GlobalSearchResultPage extends BasePage {

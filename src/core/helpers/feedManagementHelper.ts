@@ -1,9 +1,9 @@
-import { test } from '@playwright/test';
 import { faker } from '@faker-js/faker';
+import { test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
-import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import { buildFeedTextJsonAndTextHtml } from '@/src/core/api/services/FeedManagementService';
+import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 
 interface CreatedFeed {
   feedId: string;

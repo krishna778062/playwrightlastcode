@@ -1,6 +1,8 @@
-import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
+import { Page } from '@playwright/test';
+
 import { NewUxHomePage } from '../pages/homePage/newUxHomePage';
-import { Page, test } from '@playwright/test';
+
+import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
 import { IntranetFileListComponent } from '@/src/modules/global-search/components/intranetFileListComponent';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';

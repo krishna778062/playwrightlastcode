@@ -1,35 +1,44 @@
-import { Locator, Page, Request, Response, test } from '@playwright/test';
+import { expect, Locator, Page, Request, Response, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { FileUtil } from '@core/utils/fileUtil';
 import { PlaywrightAction, PlaywrightErrorHandler } from '@core/utils/playwrightErrorHandler';
 
 export type LocatorClickOptions = Parameters<Locator['click']>[0];
+export type LocatorCheckOptions = Parameters<Locator['check']>[0];
 export type LocatorFillOptions = Parameters<Locator['fill']>[1];
-export type LocatorGetAttributeOptions = Parameters<Locator['getAttribute']>[1];
+export type LocatorGetAttributeOptions = Parameters<Locator['getAttribute']>[1] & {
+  stepInfo?: string;
+};
 
 export type CustomClickOptions = LocatorClickOptions & {
   selfHealing?: boolean;
+  stepInfo?: string;
+  timeout?: number;
+};
+
+export type CustomCheckOptions = LocatorCheckOptions & {
+  selfHealing?: boolean;
+  stepInfo?: string;
+  timeout?: number;
 };
 
 export type CustomFillOptions = LocatorFillOptions & {
   selfHealing?: boolean;
+  stepInfo?: string;
+  timeout?: number;
 };
 
-export type CustomTypeOptions = Parameters<Locator['pressSequentially']>[1];
+export type CustomTypeOptions = Parameters<Locator['pressSequentially']>[1] & {
+  stepInfo?: string;
+};
 
 export class BaseActionUtil {
+  readonly toastMessages: Locator;
+
   constructor(readonly page: Page) {
     this.page = page;
-  }
-
-  /**
-   * Gets a locator for a given selector
-   * @param selector - The selector to get the locator for
-   * @returns The locator
-   */
-  getLocator(selector: string) {
-    return this.page.locator(selector);
+    this.toastMessages = page.locator('[class*="Toast-module"] p');
   }
 
   /**
@@ -69,12 +78,56 @@ export class BaseActionUtil {
   async clickOnElement(selectorOrLocator: string | Locator, options?: CustomClickOptions) {
     //we will use this option later in catch block
     const selfHealing = options?.selfHealing ?? false;
-    const eleToClick = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
-    try {
-      await eleToClick.click(options);
-    } catch (error) {
-      throw PlaywrightErrorHandler.handle(error, PlaywrightAction.CLICK, selectorOrLocator);
-    }
+    const eleToClick = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
+    await test.step(options?.stepInfo || `Click on ${selectorOrLocator}`, async () => {
+      try {
+        await eleToClick.click(options);
+      } catch (error) {
+        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.CLICK, selectorOrLocator);
+      }
+    });
+  }
+
+  /**
+   * Clicks on an element with coordinates
+   * @param selectorOrLocator - The selector or locator to click on
+   * @param options - The options to pass to the click method
+   */
+  async clickOnElementWithCoordinates(selectorOrLocator: string | Locator, options?: CustomClickOptions) {
+    //we will use this option later in catch block
+    const selfHealing = options?.selfHealing ?? false;
+    const eleToClick = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
+    await test.step(options?.stepInfo || `Click on ${selectorOrLocator}`, async () => {
+      try {
+        const eleCoordinates = await eleToClick.boundingBox();
+        const eleCentre = {
+          x: (eleCoordinates?.x ?? 0) + (eleCoordinates?.width ?? 0) / 2,
+          y: (eleCoordinates?.y ?? 0) + (eleCoordinates?.height ?? 0) / 2,
+        };
+        await this.page.mouse.move(eleCentre.x, eleCentre.y);
+        await this.page.mouse.click(eleCentre.x, eleCentre.y);
+      } catch (error) {
+        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.CLICK_WITH_COORDINATES, selectorOrLocator);
+      }
+    });
+  }
+
+  /**
+   * Check an element
+   * @param selectorOrLocator - The selector or locator to check on
+   * @param options - The options to pass to the check method
+   */
+  async checkElement(selectorOrLocator: string | Locator, options?: CustomCheckOptions) {
+    //we will use this option later in catch block
+    const selfHealing = options?.selfHealing ?? false;
+    const eleToCheck = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
+    await test.step(options?.stepInfo || `Check ${selectorOrLocator}`, async () => {
+      try {
+        await eleToCheck.check(options);
+      } catch (error) {
+        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.CLICK, selectorOrLocator);
+      }
+    });
   }
 
   /**
@@ -85,12 +138,14 @@ export class BaseActionUtil {
    */
   async fillInElement(selectorOrLocator: string | Locator, value: string, options?: CustomFillOptions) {
     const selfHealing = options?.selfHealing ?? false;
-    const eleToFill = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
-    try {
-      await eleToFill.fill(value, options);
-    } catch (error) {
-      throw PlaywrightErrorHandler.handle(error, PlaywrightAction.FILL_IN, selectorOrLocator);
-    }
+    const eleToFill = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
+    await test.step(options?.stepInfo || `Fill in ${selectorOrLocator}`, async () => {
+      try {
+        await eleToFill.fill(value, options);
+      } catch (error) {
+        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.FILL_IN, selectorOrLocator);
+      }
+    });
   }
 
   /**
@@ -101,12 +156,14 @@ export class BaseActionUtil {
    *
    */
   async typeInElement(selectorOrLocator: string | Locator, textToType: string, options?: CustomTypeOptions) {
-    const eleToType = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
-    try {
-      await eleToType.pressSequentially(textToType, options);
-    } catch (error) {
-      throw PlaywrightErrorHandler.handle(error, PlaywrightAction.TYPE_IN, selectorOrLocator);
-    }
+    const eleToType = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
+    await test.step(options?.stepInfo || `Type ${textToType} in ${selectorOrLocator}`, async () => {
+      try {
+        await eleToType.pressSequentially(textToType, options);
+      } catch (error) {
+        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.TYPE_IN, selectorOrLocator);
+      }
+    });
   }
 
   /**
@@ -119,13 +176,17 @@ export class BaseActionUtil {
     attributeName: string,
     options?: LocatorGetAttributeOptions
   ) {
-    try {
-      const ele = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
-      console.log(`Getting attribute ${attributeName} from element ${ele}`);
-      return await ele.getAttribute(attributeName, options);
-    } catch (error) {
-      throw PlaywrightErrorHandler.handle(error, PlaywrightAction.GET_ATTRIBUTE, selectorOrLocator);
-    }
+    const ele = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
+    return await test.step(
+      options?.stepInfo || `Get attribute ${attributeName} from ${selectorOrLocator}`,
+      async () => {
+        try {
+          return await ele.getAttribute(attributeName, options);
+        } catch (error) {
+          throw PlaywrightErrorHandler.handle(error, PlaywrightAction.GET_ATTRIBUTE, selectorOrLocator);
+        }
+      }
+    );
   }
 
   /**
@@ -236,7 +297,7 @@ export class BaseActionUtil {
    *
    */
   async addInputFiles(selectorOrLocator: string | Locator, filePath: string) {
-    const eleToAdd = typeof selectorOrLocator === 'string' ? this.getLocator(selectorOrLocator) : selectorOrLocator;
+    const eleToAdd = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
     if (FileUtil.fileExists(filePath)) {
       await eleToAdd.setInputFiles(filePath);
     } else {
@@ -276,5 +337,31 @@ export class BaseActionUtil {
    */
   async goBackToPreviousPage(options?: { stepInfo?: string; timeout?: number }) {
     await this.page.goBack({ waitUntil: 'domcontentloaded', timeout: options?.timeout ?? 20_000 });
+  }
+
+  /**
+   * Clicks on button with given name
+   * @param text - Name of the button
+   * @param exactMatch - Whether to match the button name exactly  default is true
+   */
+  async clickOnButtonWithName(text: string, exactMatch: boolean = true): Promise<void> {
+    await this.clickOnElement(this.page.getByRole('button', { name: text, exact: exactMatch }), {
+      stepInfo: `Click on ${text} button`,
+    });
+  }
+
+  /**
+   * Waiting for ACG sync confirmation toast message takes like 10-120 seconds to appear after the ACG creation.
+   * @param toastMessage - To verify that whether the contents of the toast message contains.
+   * @param numberOfAttempts - To define number of tries incase the toast message is not found in first try
+   * @param options - Optional parameters for the toast message verification.
+   */
+  async verifyToastMessage(toastMessage: string, options?: { stepInfo?: string; timeout?: number }): Promise<void> {
+    await test.step(options?.stepInfo ?? `Verifying ${toastMessage} toast message`, async () => {
+      await expect(
+        this.toastMessages.filter({ hasText: toastMessage }),
+        `expecting ${toastMessage} toast message`
+      ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
   }
 }

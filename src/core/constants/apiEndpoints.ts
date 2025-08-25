@@ -24,6 +24,12 @@ export const API_ENDPOINTS = {
     },
     identity: {
       listOfAudiences: '/v1/identity/audiences/list',
+      v2IdentityAudiencesCategories: '/v2/identity/audiences/categories',
+      v2IdentityAudiencesHierarchy: '/v2/identity/audiences/hierarchy',
+      v2IdentityAudiences: '/v2/identity/audiences',
+      deleteAccessControlGroup: (acgId: string) => `/v2/identity/access-control/groups/${acgId}`,
+      listOfAccessControlGroups: '/v2/identity/access-control/groups/list',
+      createAccessControlGroup: '/v2/identity/access-control/groups',
     },
   },
   identity: {

@@ -26,7 +26,8 @@ test.describe(
             zephyrTestId: 'SEN-15731',
             storyId: 'SEN-12300',
           });
-          const { siteId, siteName } = await siteManagementHelper.createSiteWithCategoryName(testData.category);
+          const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
+          const { siteId, siteName } = await siteManagementHelper.createPublicSite(undefined, categoryObj);
           const uploadedFileName = await intranetFileHelper.uploadFile(
             appManagerHomePage as NewUxHomePage,
             siteName,

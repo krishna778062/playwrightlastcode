@@ -2,22 +2,25 @@ export type EnvConfig = {
   tenantOrgId: string;
   appManagerEmail: string;
   appManagerPassword: string;
-  endUserEmail: string;
-  endUserPassword: string;
   frontendBaseUrl: string;
   apiBaseUrl: string;
   newUxEnabled: boolean;
+  //optional env variables (might be required for few modules)
+  endUserEmail?: string;
+  endUserPassword?: string;
 };
 
 export const getEnvConfig = (): EnvConfig => ({
-  tenantOrgId: requireEnvVar('ORG_ID'),
-  appManagerEmail: requireEnvVar('APP_MANAGER_USERNAME'),
-  appManagerPassword: requireEnvVar('APP_MANAGER_PASSWORD'),
-  endUserEmail: requireEnvVar('End_USER_USERNAME'),
-  endUserPassword: requireEnvVar('End_USER_PASSWORD'),
-  frontendBaseUrl: requireEnvVar('FRONTEND_BASE_URL'),
-  apiBaseUrl: requireEnvVar('API_BASE_URL'),
-  newUxEnabled: process.env['NEW_UX_ENABLED'] === 'true' || false,
+  tenantOrgId: getEnvVar('ORG_ID', true)!,
+  appManagerEmail: getEnvVar('APP_MANAGER_USERNAME', true)!,
+  appManagerPassword: getEnvVar('APP_MANAGER_PASSWORD', true)!,
+  frontendBaseUrl: getEnvVar('FRONTEND_BASE_URL', true)!,
+  apiBaseUrl: getEnvVar('API_BASE_URL', true)!,
+  newUxEnabled: getEnvVar('NEW_UX_ENABLED', false) === 'true' || false,
+
+  //optional env variables (might be required for few modules)
+  endUserEmail: getEnvVar('END_USER_USERNAME', false)!,
+  endUserPassword: getEnvVar('END_USER_PASSWORD', false)!,
 });
 
 /**
@@ -25,9 +28,9 @@ export const getEnvConfig = (): EnvConfig => ({
  * @returns The value of the environment variable
  * @throws An error if the environment variable is not set
  */
-export function requireEnvVar(key: string): string {
+export function getEnvVar(key: string, required = true): string | undefined {
   const value = process.env[key];
-  if (!value) {
+  if (required && !value) {
     throw new Error(`❌ Missing required environment variable: ${key}`);
   }
   return value;
