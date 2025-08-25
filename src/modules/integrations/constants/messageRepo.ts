@@ -40,4 +40,7 @@ export const MESSAGES = {
   REQUESTED_TIME_OFF_LABEL: 'Requested time off',
   RESPONSE_SAVED_MESSAGE: 'Your RSVP response has been saved',
   LEAVE_REQUEST_SUCCESSFULLY_MESSAGE: 'Requested leave of absence successfully',
+  AIRTABLE_ADDED_MESSAGE: 'Airtable added',
+  AIRTABLE_DELETE_MESSAGE: 'Airtable deleted',
+  AIRTABLE_ENABLE_MESSAGE: 'Airtable enabled',
 } as const;

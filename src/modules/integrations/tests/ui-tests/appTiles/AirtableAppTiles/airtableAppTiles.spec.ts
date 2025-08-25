@@ -9,6 +9,7 @@ import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
 import { ACTION_LABELS, UI_ACTIONS } from '@integrations-constants/common';
 import { AIRTABLE_TILE_DATA, generateUniqueTileNames } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 import { test } from '@playwright/test';
+import { TestPriority } from '@core/constants/testPriority';
 import { createAirtableTileViaApi } from '@/src/modules/integrations/api/helpers/airtableTileApi';
 import {
   waitUntilTilePresentInApi,
@@ -23,16 +24,33 @@ const adminUser: UserCredentials = {
 
 test.describe('Airtable App Tiles Integration', () => {
   let airtablePage: AirtableAppTilesPage;
+  let createdSiteIds: string[] = [];
+  let createdTileNames: string[] = [];
 
   test.beforeEach(async ({ page }) => {
     airtablePage = new AirtableAppTilesPage(page);
     await LoginHelper.loginWithPassword(page, adminUser);
   });
 
+  test.afterEach(async ({ page }) => {
+    for (const tileTitle of createdTileNames) {
+      await airtablePage.removeTileThroughApi(tileTitle);
+      await waitUntilTileAbsentInApi(page, tileTitle);
+      await airtablePage.reloadAndVerifyTileAbsent(tileTitle);
+    }
+    createdTileNames = [];
+
+    // Clean up sites
+    for (const siteId of createdSiteIds) {
+      await deactivateSiteSafe(page, siteId);
+    }
+    createdSiteIds = [];
+  });
+
   test(
     'Verify Personalize button functionality for user defined view tasks in Airtable app tile',
     {
-      tag: [TestGroupType.SANITY, IntegrationsSuiteTags.AIRTABLE, IntegrationsSuiteTags.ABSOLUTE],
+      tag: [TestPriority.P1, TestGroupType.SANITY, IntegrationsSuiteTags.AIRTABLE, IntegrationsSuiteTags.ABSOLUTE],
     },
     async ({ page }) => {
       tagTest(test.info(), {
@@ -42,7 +60,7 @@ test.describe('Airtable App Tiles Integration', () => {
 
       // Generate unique tile names for this test
       const { AIRTABLE_TILE_TITLE: uniqueTileTitle } = generateUniqueTileNames();
-
+      createdTileNames.push(uniqueTileTitle);
       const config = {
         baseName: AIRTABLE_TILE_DATA.BASE_NAME,
         tableId: AIRTABLE_TILE_DATA.TABLE_ID,
@@ -71,16 +89,19 @@ test.describe('Airtable App Tiles Integration', () => {
 
       // Verify ascending order through API call
       await airtablePage.verifyAscendingOrderThroughAPI();
-      await airtablePage.clickEditDashboard();
-
-      await airtablePage.removeTileThroughApi(uniqueTileTitle);
     }
   );
 
   test(
     'Verify app manager is able to edit display content calendar tasks in Airtable apptile on Home dashboard',
     {
-      tag: [TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.AIRTABLE, IntegrationsSuiteTags.ABSOLUTE],
+      tag: [
+        TestPriority.P1,
+        TestGroupType.SANITY,
+        TestGroupType.SMOKE,
+        IntegrationsSuiteTags.AIRTABLE,
+        IntegrationsSuiteTags.ABSOLUTE,
+      ],
     },
     async ({ page }) => {
       tagTest(test.info(), {
@@ -96,6 +117,7 @@ test.describe('Airtable App Tiles Integration', () => {
       // Generate unique tile names for this test
       const { AIRTABLE_TILE_TITLE: uniqueTileTitle, AIRTABLE_UPDATED_TILE_TITLE: updatedTileTitle } =
         generateUniqueTileNames();
+      createdTileNames.push(uniqueTileTitle, updatedTileTitle);
 
       // Add Airtable tile to Home dashboard through API
       await createAirtableTileViaApi(page, { tileInstanceName: uniqueTileTitle });
@@ -117,20 +139,19 @@ test.describe('Airtable App Tiles Integration', () => {
 
       // Ensure API reflects rename before deletion
       await waitUntilTilePresentInApi(page, updatedTileTitle);
-
-      // deleting tile through API
-      await airtablePage.removeTileThroughApi(updatedTileTitle);
-
-      //Verify tile is absent in API
-      await waitUntilTileAbsentInApi(page, updatedTileTitle);
-      await airtablePage.reloadAndVerifyTileAbsent(updatedTileTitle);
     }
   );
 
   test(
     'Verify site manager is able to edit display content calendar tile on Site dashboard',
     {
-      tag: [TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.AIRTABLE, IntegrationsSuiteTags.ABSOLUTE],
+      tag: [
+        TestPriority.P1,
+        TestGroupType.SANITY,
+        TestGroupType.SMOKE,
+        IntegrationsSuiteTags.AIRTABLE,
+        IntegrationsSuiteTags.ABSOLUTE,
+      ],
     },
     async ({ page }) => {
       tagTest(test.info(), {
@@ -141,44 +162,44 @@ test.describe('Airtable App Tiles Integration', () => {
       // Generate unique tile names for this test
       const { AIRTABLE_TILE_TITLE: uniqueTileTitle, AIRTABLE_UPDATED_TILE_TITLE: updatedTileTitle } =
         generateUniqueTileNames();
+      createdTileNames.push(uniqueTileTitle, updatedTileTitle);
 
       // Create a fresh site via API
       const { siteId: createdSiteId, siteName: newSiteName } = await createSiteAndWaitForSearchResults(page, {
         access: 'public',
       });
+      createdSiteIds.push(createdSiteId);
 
-      try {
-        // Navigate directly to the newly created site
-        const siteUrl = new URL(`/site/${createdSiteId}/dashboard`, getEnvConfig().frontendBaseUrl).toString();
-        await page.goto(siteUrl, { waitUntil: 'domcontentloaded' });
+      // Print the new site name for debugging/logging
+      console.log(` Created new site: "${newSiteName}" (ID: ${createdSiteId})`);
 
-        // Add Airtable tile to Site dashboard
-        const config = {
-          baseName: AIRTABLE_TILE_DATA.BASE_NAME,
-          tableId: AIRTABLE_TILE_DATA.TABLE_ID,
-        };
-        await airtablePage.addAirtableTile(uniqueTileTitle, config, UI_ACTIONS.ADD_TO_SITE);
+      // Navigate directly to the newly created site
+      const siteUrl = new URL(`/site/${createdSiteId}/dashboard`, getEnvConfig().frontendBaseUrl).toString();
+      await page.goto(siteUrl, { waitUntil: 'domcontentloaded' });
 
-        // Assert: Toast + tile present
-        await airtablePage.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
-        await airtablePage.isTilePresent(uniqueTileTitle);
+      // Add Airtable tile to Site dashboard
+      const config = {
+        baseName: AIRTABLE_TILE_DATA.BASE_NAME,
+        tableId: AIRTABLE_TILE_DATA.TABLE_ID,
+      };
+      await airtablePage.addAirtableTile(uniqueTileTitle, config, UI_ACTIONS.ADD_TO_SITE);
 
-        // Edit the tile title
-        await airtablePage.clickThreeDotsOnTile(uniqueTileTitle);
-        await airtablePage.clickTileOption(ACTION_LABELS.EDIT);
-        await airtablePage.setTileTitle(updatedTileTitle);
-        await airtablePage.save();
+      // Assert: Toast + tile present
+      await airtablePage.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+      await airtablePage.isTilePresent(uniqueTileTitle);
 
-        // Verify the edit was successful
-        await airtablePage.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
-        await airtablePage.isTilePresent(updatedTileTitle);
+      // Edit the tile title
+      await airtablePage.clickThreeDotsOnTile(uniqueTileTitle);
+      await airtablePage.clickTileOption(ACTION_LABELS.EDIT);
+      await airtablePage.setTileTitle(updatedTileTitle);
+      await airtablePage.save();
 
-        // Remove the tile
-        await airtablePage.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
-      } finally {
-        // Deactivate the temporary site
-        await deactivateSiteSafe(page, createdSiteId);
-      }
+      // Verify the edit was successful
+      await airtablePage.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+      await airtablePage.isTilePresent(updatedTileTitle);
+
+      // Remove the tile
+      await airtablePage.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
     }
   );
 });

@@ -7,6 +7,11 @@ export const ACTION_LABELS = {
   EDIT: 'Edit',
   VIEW: 'View',
   CANCEL: 'Cancel',
+  ENABLE: 'Enable',
+  DISABLE: 'Disable',
+  ADD: 'Add',
+  CONNECT_ACCOUNT: 'Connect account',
+  DISCONNECT_ACCOUNT: 'Disconnect account',
 } as const;
 
 export const UI_ACTIONS = {
@@ -56,4 +61,17 @@ export const NAVIGATION_LABELS = {
   MANAGE_FEATURES_LABEL: 'Manage features',
   APPLICATIONS_LABEL: 'Applications',
   APPLICATION_SETTINGS_LABEL: 'Application settings',
+} as const;
+
+export const APP_LABELS = {
+  PREBUILT_APP_LABEL: 'Prebuilt app',
+  ADD_PREBUILT_APP_LABEL: 'Add prebuilt app',
+  ADD_CUSTOM_APP_LABEL: 'Add custom app',
+  DELETE_CUSTOM_APP_LABEL: 'Delete custom app',
+  ADD_LABEL: 'Add',
+  CONNECT_ACCOUNT_LABEL: 'Connect account',
+  DISCONNECT_ACCOUNT_LABEL: 'Disconnect account',
+  ENABLE_LABEL: 'Enable',
+  DISABLE_LABEL: 'Disable',
+  DELETE_LABEL: 'Delete',
 } as const;

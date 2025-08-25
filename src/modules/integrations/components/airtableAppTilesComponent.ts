@@ -1,5 +1,7 @@
 import { test, Locator, Page, expect } from '@playwright/test';
 import { BaseAppTileComponent } from './baseAppTileComponent';
+import { AIRTABLE_TILE_DATA } from '../test-data/app-tiles.test-data';
+import { UI_ACTIONS } from '../constants/common';
 
 export interface AirtableConfig {
   baseName: string;
@@ -134,12 +136,16 @@ export class AirtableAppTilesComponent extends BaseAppTileComponent {
    * @param config - Airtable-specific configuration
    * @param destination - Where to add the tile
    */
-  async addAirtableTile(tileTitle: string, config: AirtableConfig, destination: string = 'Add to home'): Promise<void> {
+  async addAirtableTile(
+    tileTitle: string,
+    config: AirtableConfig,
+    destination: string = UI_ACTIONS.ADD_TO_HOME
+  ): Promise<void> {
     await test.step(`Add Airtable tile: ${tileTitle}`, async () => {
       await this.clickEditDashboard();
       await this.clickAddTile();
       await this.clickAppTiles();
-      await this.selectAppTile('Airtable');
+      await this.selectAppTile(AIRTABLE_TILE_DATA.APP_NAME);
       await this.setTileTitle(tileTitle);
       await this.configureAppTile(config);
       await this.submitTileToHomeOrDashboard(destination);

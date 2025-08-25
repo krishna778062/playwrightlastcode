@@ -1,13 +1,16 @@
-import { Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 
 import { BasePage } from '@core/pages/basePage';
 import { BaseAppTileComponent } from '../components/baseAppTileComponent';
+import { ACTION_LABELS } from '../constants/common';
+import { deleteTileByTitleViaApi } from '../api/helpers/tileApiHelpers';
+import { deleteTileByInstanceIdViaApi } from '../api/helpers/tileApiHelpers';
 
 /**
  * Base page for all integrations pages following content/chat module patterns
  * Provides common integration functionality and component composition
  */
-export abstract class IntegrationsBasePage extends BasePage {
+export abstract class AppTilesBasePage extends BasePage {
   constructor(page: Page, endpoint?: string) {
     super(page, endpoint);
   }
@@ -63,8 +66,8 @@ export abstract class IntegrationsBasePage extends BasePage {
     return this.getAppTileComponent().clickThreeDotsOnTile(tileName);
   }
 
-  async clickTileOption(option: 'Edit' | 'Remove'): Promise<void> {
-    return this.getAppTileComponent().clickTileOption(option);
+  async clickTileOption(option: string): Promise<void> {
+    return this.getAppTileComponent().clickTileOption(option as any);
   }
 
   async verifyRemovePopupAppears(tileName: string): Promise<void> {
@@ -78,7 +81,7 @@ export abstract class IntegrationsBasePage extends BasePage {
   // One action to remove a tile end-to-end
   async removeTile(tileTitle: string, successMessage?: string): Promise<void> {
     await this.clickThreeDotsOnTile(tileTitle);
-    await this.clickTileOption('Remove');
+    await this.clickTileOption(ACTION_LABELS.REMOVE);
     await this.verifyRemovePopupAppears(tileTitle);
     await this.clickRemoveTile();
     if (successMessage) {
@@ -110,7 +113,6 @@ export abstract class IntegrationsBasePage extends BasePage {
   ): Promise<void> {
     await this.getAppTileComponent().ensureTileRemovedAfterApi(tileTitle, options);
     const exists = await this.tileExists(tileTitle);
-    const { expect } = await import('@playwright/test');
     await expect(exists).toBeFalsy();
   }
 
@@ -120,22 +122,34 @@ export abstract class IntegrationsBasePage extends BasePage {
     await this.isTilePresent(tileTitle);
   }
 
+  /** Wait for a tile to be fully loaded (useful for loading state handling) */
+  async waitForTileToBeFullyLoaded(tileTitle: string): Promise<void> {
+    await this.getAppTileComponent().waitForTileToBeFullyLoaded(tileTitle);
+  }
+
+  /** Wait for page loading to complete (useful for loading state handling) */
+  async waitForPageLoadingToComplete(): Promise<void> {
+    await this.getAppTileComponent().waitForPageLoadingToComplete();
+  }
+
+  /** Wait for page to be fully loaded after navigation */
+  async waitForPageToBeFullyLoaded(): Promise<void> {
+    await this.getAppTileComponent().waitForPageToBeFullyLoaded();
+  }
+
   /** Reload and verify absence (keeps API wait at callsite) */
   async reloadAndVerifyTileAbsent(tileTitle: string): Promise<void> {
     await this.getAppTileComponent().reloadAndVerifyTileAbsent(tileTitle);
     const exists = await this.tileExists(tileTitle);
-    const { expect } = await import('@playwright/test');
     await expect(exists).toBeFalsy();
   }
 
   /** Delete a tile by title via API and return whether it succeeded */
   async removeTileThroughApi(tileTitle: string): Promise<boolean> {
-    const { deleteTileByTitleViaApi } = await import('../api/helpers/tileApiHelpers');
     return deleteTileByTitleViaApi(this.page, { tileInstanceName: tileTitle });
   }
 
   async removeTileByInstanceIdThroughApi(instanceId: string): Promise<boolean> {
-    const { deleteTileByInstanceIdViaApi } = await import('../api/helpers/tileApiHelpers');
     return deleteTileByInstanceIdViaApi(this.page, { instanceId });
   }
 

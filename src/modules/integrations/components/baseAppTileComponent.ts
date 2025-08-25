@@ -48,7 +48,7 @@ export abstract class BaseAppTileComponent extends BaseComponent {
   }
 
   /** Get tile option button (Edit/Remove) */
-  protected getTileOptionButton(option: 'Edit' | 'Remove'): Locator {
+  protected getTileOptionButton(option: string): Locator {
     return this.page.getByRole('button', { name: option });
   }
 
@@ -143,19 +143,13 @@ export abstract class BaseAppTileComponent extends BaseComponent {
   /** Verify that a tile with given title is present on the page */
   async isTilePresent(title: string): Promise<void> {
     await test.step(`Check tiles present with title '${title}'`, async () => {
-      // First attempt: try without reload
       let tiles = await this.findTilesByTitle(title);
-
-      // If no tiles found, try with reload
       if ((await tiles.count()) <= 0) {
         await this.page.reload({ waitUntil: 'domcontentloaded' });
+        await this.waitForPageLoadingToComplete();
         tiles = await this.findTilesByTitle(title);
       }
-
-      // Wait for tiles to finish loading
-      await this.waitForTilesToLoad(tiles);
-
-      // Verify tiles are visible
+      await this.waitForTilesToBeFullyLoaded(tiles);
       const count = await tiles.count();
       if (count <= 0) {
         throw new Error(`No tile found with title "${title}"`);
@@ -200,6 +194,91 @@ export abstract class BaseAppTileComponent extends BaseComponent {
     }
   }
 
+  /** Wait for all loading indicators to disappear from the page */
+  async waitForPageLoadingToComplete(): Promise<void> {
+    await test.step('Wait for page loading to complete', async () => {
+      // Wait for any progress bars to disappear
+      const progressBars = this.page.locator('progressbar');
+      if ((await progressBars.count()) > 0) {
+        await expect(progressBars).not.toBeVisible({ timeout: 30_000 });
+      }
+
+      // Wait for any loading spinners or skeletons to disappear
+      const loadingSpinners = this.page.locator('[class*="loading"], [class*="spinner"], [class*="skeleton"]');
+      if ((await loadingSpinners.count()) > 0) {
+        await expect(loadingSpinners).not.toBeVisible({ timeout: 30_000 });
+      }
+
+      // Wait for any "Loading..." text to disappear
+      const loadingText = this.page.locator('text=Loading...');
+      if ((await loadingText.count()) > 0) {
+        await expect(loadingText).not.toBeVisible({ timeout: 30_000 });
+      }
+
+      // Wait for network to be idle
+      await this.page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
+    });
+  }
+
+  /** Wait for tiles to be fully loaded and visible */
+  async waitForTilesToBeFullyLoaded(tiles: any): Promise<void> {
+    await test.step('Wait for tiles to be fully loaded', async () => {
+      const count = await tiles.count();
+      for (let i = 0; i < count; i++) {
+        const tile = tiles.nth(i);
+
+        // Wait for progress bars to disappear
+        await expect(tile.locator('progressbar')).not.toBeVisible({ timeout: 15_000 });
+
+        // Wait for tile content to be visible (not just the container)
+        const tileContent = tile.locator('a, button, [class*="content"], [class*="data"]').first();
+        if ((await tileContent.count()) > 0) {
+          await expect(tileContent).toBeVisible({ timeout: 15_000 });
+        }
+
+        // Wait for any loading text within the tile to disappear
+        const tileLoadingText = tile.locator('text=Loading...');
+        if ((await tileLoadingText.count()) > 0) {
+          await expect(tileLoadingText).not.toBeVisible({ timeout: 15_000 });
+        }
+      }
+    });
+  }
+
+  /** Wait for a specific tile by title to be fully loaded */
+  async waitForTileToBeFullyLoaded(tileTitle: string): Promise<void> {
+    await test.step(`Wait for tile '${tileTitle}' to be fully loaded`, async () => {
+      // First wait for page loading to complete
+      await this.waitForPageLoadingToComplete();
+
+      // Find the specific tile
+      const tiles = await this.findTilesByTitle(tileTitle);
+      const count = await tiles.count();
+
+      if (count > 0) {
+        // Wait for the tile to be fully loaded
+        await this.waitForTilesToBeFullyLoaded(tiles);
+      } else {
+        // If tile not found, wait a bit more and try again
+        await this.page.waitForTimeout(2000);
+        const retryTiles = await this.findTilesByTitle(tileTitle);
+        const retryCount = await retryTiles.count();
+        if (retryCount > 0) {
+          await this.waitForTilesToBeFullyLoaded(retryTiles);
+        }
+      }
+    });
+  }
+
+  /** Wait for page to be fully loaded after navigation */
+  async waitForPageToBeFullyLoaded(): Promise<void> {
+    await test.step('Wait for page to be fully loaded after navigation', async () => {
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+      await this.waitForPageLoadingToComplete();
+    });
+  }
+
   /** Quiet existence check for a tile title (no assertion side-effects) */
   async tileExists(title: string): Promise<boolean> {
     try {
@@ -217,11 +296,10 @@ export abstract class BaseAppTileComponent extends BaseComponent {
     options?: { timeoutMs?: number; pollIntervalMs?: number }
   ): Promise<void> {
     const { waitUntilTilePresentInApi } = await import('../api/helpers/tileApiHelpers');
-
     await test.step(`Ensure tile '${tileTitle}' appears (API → UI)`, async () => {
       await waitUntilTilePresentInApi(this.page, tileTitle, options);
       await this.page.reload({ waitUntil: 'domcontentloaded' });
-      await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+      await this.waitForPageLoadingToComplete();
     });
   }
 
@@ -235,7 +313,7 @@ export abstract class BaseAppTileComponent extends BaseComponent {
     await test.step(`Ensure tile '${tileTitle}' is removed (API → UI)`, async () => {
       await waitUntilTileAbsentInApi(this.page, tileTitle, options);
       await this.page.reload({ waitUntil: 'domcontentloaded' });
-      await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+      await this.waitForPageLoadingToComplete();
     });
   }
 
@@ -243,7 +321,7 @@ export abstract class BaseAppTileComponent extends BaseComponent {
   async reloadAndVerifyTilePresent(tileTitle: string): Promise<void> {
     await test.step(`Reload and verify tile '${tileTitle}' is present`, async () => {
       await this.page.reload({ waitUntil: 'domcontentloaded' });
-      await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+      await this.waitForTileToBeFullyLoaded(tileTitle);
     });
   }
 
@@ -251,7 +329,7 @@ export abstract class BaseAppTileComponent extends BaseComponent {
   async reloadAndVerifyTileAbsent(tileTitle: string): Promise<void> {
     await test.step(`Reload and verify tile '${tileTitle}' is absent`, async () => {
       await this.page.reload({ waitUntil: 'domcontentloaded' });
-      await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+      await this.waitForPageLoadingToComplete();
     });
   }
 
@@ -265,7 +343,7 @@ export abstract class BaseAppTileComponent extends BaseComponent {
   }
 
   /** Choose "Edit" or "Remove" from a tile's menu */
-  async clickTileOption(option: 'Edit' | 'Remove'): Promise<void> {
+  async clickTileOption(option: string): Promise<void> {
     await test.step(`Click tile option '${option}'`, async () => {
       const panel = this.page.locator('.OptionsMenu-panel').last();
       await expect(panel).toBeVisible({ timeout: 5000 });
@@ -293,7 +371,6 @@ export abstract class BaseAppTileComponent extends BaseComponent {
         timeout: 30_000,
       });
 
-      // Verify popup message contains tile name
       const popupMessage = this.getRemovePopupMessage(tileName);
       await this.verifier.verifyTheElementIsVisible(popupMessage, {
         assertionMessage: `Remove popup message for "${tileName}" should be visible`,
@@ -319,14 +396,12 @@ export abstract class BaseAppTileComponent extends BaseComponent {
   /** Verify the "Personalize" button is visible for a given tile */
   async verifyPersonalizeVisible(title: string): Promise<void> {
     await test.step(`Verify personalize visible for '${title}'`, async () => {
-      // First ensure the tile exists
       await this.isTilePresent(title);
       const doneButton = this.page.getByRole('button', { name: 'Done' });
       if (await doneButton.isVisible()) {
         await this.clickOnElement(doneButton, { timeout: 5000 });
         await this.page.waitForTimeout(1000);
       }
-      // Now check for the Personalize button
       const tile = this.getTileContainers(title);
       const btn = tile.getByRole('button', { name: 'Personalize', exact: true });
       await expect(btn).toHaveCount(1);
