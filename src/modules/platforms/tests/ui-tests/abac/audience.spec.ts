@@ -82,7 +82,7 @@ test.describe(
 
         // Step 1: Create first category to establish duplicate scenario
         await audiencePage.createCategoryWithNameAndDescription(uniqueCategoryName);
-        await audiencePage.verifyCategoryCreationSuccessToast();
+        await audiencePage.verifyCategoryOperationSuccessToast('created');
 
         // Step 2: Attempt to create category with the same name and verify alert message
         await audiencePage.attemptToCreateDuplicateCategory(uniqueCategoryName);
@@ -101,7 +101,7 @@ test.describe(
 
         // Step 7: Delete the category using existing complete method (dropdown will be reopened)
         await audiencePage.deleteCategoryByShowMore(uniqueCategoryName);
-        await audiencePage.verifyCategoryDeletionSuccessToast();
+        await audiencePage.verifyCategoryOperationSuccessToast('deleted');
       }
     );
 
@@ -125,19 +125,19 @@ test.describe(
 
         // Test Case 1: Create category WITH description and then delete it
         await audiencePage.createCategoryWithNameAndDescription(categoryWithDescription, categoryDescription);
-        await audiencePage.verifyCategoryCreationSuccessToast();
+        await audiencePage.verifyCategoryOperationSuccessToast('created');
 
         // Delete the category with description
         await audiencePage.deleteCategoryByShowMore(categoryWithDescription);
-        await audiencePage.verifyCategoryDeletionSuccessToast();
+        await audiencePage.verifyCategoryOperationSuccessToast('deleted');
 
         // Test Case 2: Create category WITHOUT description and then delete it
         await audiencePage.createCategoryWithNameAndDescription(categoryWithoutDescription);
-        await audiencePage.verifyCategoryCreationSuccessToast();
+        await audiencePage.verifyCategoryOperationSuccessToast('created');
 
         // Delete the category without description
         await audiencePage.deleteCategoryByShowMore(categoryWithoutDescription);
-        await audiencePage.verifyCategoryDeletionSuccessToast();
+        await audiencePage.verifyCategoryOperationSuccessToast('deleted');
       }
     );
 
@@ -158,7 +158,7 @@ test.describe(
 
         // First create a category to edit (without description so we can test "Add description" button)
         await audiencePage.createCategoryWithNameAndDescription(testCategoryName);
-        await audiencePage.verifyCategoryCreationSuccessToast();
+        await audiencePage.verifyCategoryOperationSuccessToast('created');
 
         // Open Edit category modal
         await audiencePage.openEditCategoryModal(testCategoryName);
@@ -181,7 +181,7 @@ test.describe(
 
         // Clean up: Delete the test category
         await audiencePage.deleteCategoryByShowMore(testCategoryName);
-        await audiencePage.verifyCategoryDeletionSuccessToast();
+        await audiencePage.verifyCategoryOperationSuccessToast('deleted');
       }
     );
 
@@ -204,11 +204,11 @@ test.describe(
 
         // Step 1: Create first category
         await audiencePage.createCategoryWithNameAndDescription(firstCategoryName, 'First test category');
-        await audiencePage.verifyCategoryCreationSuccessToast();
+        await audiencePage.verifyCategoryOperationSuccessToast('created');
 
         // Step 2: Create second category (this will be edited)
         await audiencePage.createCategoryWithNameAndDescription(secondCategoryName, 'Second test category');
-        await audiencePage.verifyCategoryCreationSuccessToast();
+        await audiencePage.verifyCategoryOperationSuccessToast('created');
 
         // Step 3: Open Edit modal for the second category
         await audiencePage.openEditCategoryModal(secondCategoryName);
@@ -224,10 +224,10 @@ test.describe(
 
         // Step 7: Clean up - Delete both test categories
         await audiencePage.deleteCategoryByShowMore(firstCategoryName);
-        await audiencePage.verifyCategoryDeletionSuccessToast();
+        await audiencePage.verifyCategoryOperationSuccessToast('deleted');
 
         await audiencePage.deleteCategoryByShowMore(secondCategoryName);
-        await audiencePage.verifyCategoryDeletionSuccessToast();
+        await audiencePage.verifyCategoryOperationSuccessToast('deleted');
       }
     );
   }

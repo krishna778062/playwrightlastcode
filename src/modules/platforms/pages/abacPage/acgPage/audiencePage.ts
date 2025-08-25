@@ -318,26 +318,38 @@ export class AudiencePage extends BasePage {
     await super.verifyToastMessage(toastMessage, options);
   }
 
-  // Verify 'Category created' success toast message is displayed
-  async verifyCategoryCreationSuccessToast(): Promise<void> {
-    await test.step('Verify category creation success toast message', async () => {
+  // Verify category operation success toast message (created/deleted/updated)
+  async verifyCategoryOperationSuccessToast(operation: 'created' | 'deleted' | 'updated'): Promise<void> {
+    const toastTextMap = {
+      created: 'Category created',
+      deleted: 'Category deleted',
+      updated: 'Category updated',
+    };
+
+    const toastText = toastTextMap[operation];
+    await test.step(`Verify category ${operation} success toast message`, async () => {
       // Wait a moment for any previous toasts to disappear
       await this.page.waitForTimeout(1000);
 
       // Use first() to handle multiple toast messages
-      const toastMessage = this.toastMessages.filter({ hasText: 'Category created' }).first();
-      await expect(toastMessage, 'expecting Category created toast message').toBeVisible({
+      const toastMessage = this.toastMessages.filter({ hasText: toastText }).first();
+      await expect(toastMessage, `expecting ${toastText} toast message`).toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
       });
     });
   }
 
-  // Verify 'Category deleted' success toast message is displayed
+  // Convenience methods for backward compatibility
+  async verifyCategoryCreationSuccessToast(): Promise<void> {
+    await this.verifyCategoryOperationSuccessToast('created');
+  }
+
   async verifyCategoryDeletionSuccessToast(): Promise<void> {
-    await this.verifyToastMessage('Category deleted', {
-      stepInfo: 'Verify category deletion success toast message',
-      timeout: TIMEOUTS.MEDIUM,
-    });
+    await this.verifyCategoryOperationSuccessToast('deleted');
+  }
+
+  async verifyCategoryUpdateSuccessToast(): Promise<void> {
+    await this.verifyCategoryOperationSuccessToast('updated');
   }
 
   // Create new category with specified name and optional description
