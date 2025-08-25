@@ -32,7 +32,7 @@ export interface IAlbumCreationActions {
   }>;
   publishAlbum: () => Promise<Response>;
   deleteAlbum: () => Promise<void>;
-  uploadCoverImage: (imageName: string) => Promise<void>;
+  uploadImage: (imageName: string) => Promise<void>;
   addVideoUrl: (videoUrl: string) => Promise<void>;
   waitForVideoUpload: () => Promise<void>;
   uploadAttachment: (fileName: string) => Promise<void>;
@@ -49,11 +49,6 @@ export interface IAlbumCreationActions {
   clickUnpublishButton: () => Promise<void>;
   clickDeleteButton: () => Promise<void>;
   confirmDelete: () => Promise<void>;
-  extractAlbumId: () => Promise<string>;
-  extractSiteId: () => Promise<string>;
-  clickEnterVideoUrlButton: () => Promise<void>;
-  addYoutubeVideoUrlInPopupCoverSection: (videoUrl: string) => Promise<void>;
-  clickAddVideoButton: () => Promise<void>;
   waitForVideoToUpload: () => Promise<void>;
   fillAlbumDetails: (options: Partial<AlbumCreationOptions>) => Promise<void>;
   clickSaveButton: () => Promise<void>;
@@ -92,16 +87,20 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
   readonly skipStepButton = this.page.locator('button', { hasText: 'Skip this step' });
   readonly titleInput = this.page.locator("textarea[placeholder='Album title']");
   readonly albumDescriptionInput = this.page.locator("div[aria-label='Album description']");
-  readonly videoUrlInput = this.page.locator('[data-testid="video-url-input"]');
+  readonly videoUrlInput = this.page.locator('input[placeholder="Paste a video URL"]');
   readonly videoUrlPopupInput = this.page.locator('[data-testid="video-url-popup-input"]');
-  readonly videoUploadComplete = this.page.locator('[data-testid="video-upload-complete"]');
-  readonly openAlbumCheckbox = this.page.locator('[data-testid="open-album-checkbox"]');
-  readonly topicInput = this.page.locator('[data-testid="topic-input"]');
+  readonly videoUploadComplete = this.page.locator('div[class*="AlbumSquare-module-videoIndicator"]');
+  readonly openAlbumCheckbox = this.page.locator('label[for="isOpenToSubmissions"]');
+  readonly topicInput = this.page.locator('input[id="listOfTopics"]');
   readonly albumImageItem = this.page.locator('[data-testid="album-image-item"]');
   readonly makeCoverButton = this.page.locator('[data-testid="make-cover-button"]');
   readonly sendFeedbackTab = this.page.locator('[data-testid="send-feedback-tab"]');
   readonly closeModalButton = this.page.locator('[data-testid="close-modal-button"]');
   readonly optionMenuDropdown = this.page.locator('[data-testid="option-menu-dropdown"]');
+
+  addTopicFromList(topicText: string) {
+    return this.page.locator(`#listOfTopics-list >> text=${topicText}`);
+  }
   readonly sendHistoryPopup = this.page.locator('[data-testid="send-history-popup"]');
   readonly versionHistoryPopup = this.page.locator('[data-testid="version-history-popup"]');
   readonly fileAttachmentItem = this.page.locator('[data-testid="file-attachment-item"]');
@@ -109,10 +108,13 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
   readonly scheduleToast = this.page.locator('[data-testid="schedule-toast"]');
   readonly fileInputGeneral = this.page.locator('input[type="file"]');
   readonly fileInputAttachment = this.page.locator('input[type="file"][accept*="*"]');
+  readonly addFromContainerInput = this.page.locator('div[class="AddFromContainer"] input');
   readonly addFilesAttachmentsButton = this.page.locator('button:has-text("Add files & attachments")');
   readonly deleteButton = this.page.locator('button:has-text("Delete")');
   readonly enterVideoUrlButton = this.page.locator('button:has-text("enter a video URL")');
+  readonly enterVideoURL = this.page.locator('button', { hasText: 'enter a video URL' });
   readonly addVideoButton = this.page.locator('button:has-text("Add video")');
+  readonly addVideo = this.page.locator('button', { hasText: 'Add video' });
   readonly saveButton = this.page.locator('button:has-text("Save")');
   readonly versionHistoryButton = this.page.locator('button:has-text("Version history")');
   readonly unpublishButton = this.page.locator('button:has-text("Unpublish")');
@@ -217,6 +219,8 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
   }
 
   async publishAlbum(): Promise<Response> {
+    //add pause for debugging
+    await this.page.pause();
     return await test.step(`Publishing album and wait for publish api response`, async () => {
       const publishResponse = await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.publishButton, { delay: 2_000 }),
@@ -228,6 +232,7 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
           timeout: 20_000,
         }
       );
+      await this.page.pause();
       return publishResponse;
     });
   }
@@ -244,60 +249,27 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
     });
   }
 
-  /**
-   * Uploads a cover image to the page creation page
-   * It calls uploadAttachment from attachementUploader component
-   * and then clicks on next button twice to go to the image cropper page
-   * @param fileName - The name of the file to upload
-   */
-  async uploadCoverImage(
-    fileName: string,
-    options?: {
-      widescreenCropOption?: boolean;
-      squareCropOption?: boolean;
-    }
-  ) {
-    await test.step(`Upload cover image: ${fileName}`, async () => {
-      //there will be three requests for the cover image to upload different sizes
-      //we will wait until all three requests are completed
-      const reqPromises = [];
-      for (let i = 0; i < 3; i++) {
-        reqPromises.push(
-          this.page.waitForResponse(
-            response => response.url().includes('Content-Type=image%2Fpng') && response.request().method() === 'PUT'
-          ),
-          35_000
-        );
-      }
-      const imagePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', 'images', fileName);
-      await this.coverImageUploader.uploadAttachment(imagePath);
-      //handle wide screen crop option
-      if (options?.widescreenCropOption) {
-        await this.imageCropper.selectCropOption('Widescreen');
-      }
-      await this.imageCropper.clickOnNextButton();
-      //handle square crop option
-      if (options?.squareCropOption) {
-        await this.imageCropper.selectCropOption('Square');
-      }
-      await this.imageCropper.clickOnNextButton();
-      await this.imageCropper.clickOnNextButton();
-      await this.imageCropper.clickOnAddButton();
-
-      //wait for all the requests to be completed
-      await Promise.all(reqPromises);
-    });
-  }
-
   async uploadImage(imageName: string): Promise<void> {
+    const reqPromises = [];
+    reqPromises.push(
+      this.page.waitForResponse(
+        response => response.url().includes('X-Amz-SignedHeaders=host') && response.request().method() === 'PUT'
+      ),
+      35_000
+    );
     const fileInput = this.fileInputGeneral.first();
-    await this.addInputFiles(fileInput, `test-data/static-files/images/${imageName}`);
+    const filePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', 'images', imageName);
+    await this.addInputFiles(fileInput, filePath);
+    //wait for all the requests to be completed
+    await Promise.all(reqPromises);
   }
 
   async addVideoUrl(videoUrl: string): Promise<void> {
+    await this.clickOnElement(this.enterVideoURL);
     await this.fillInElement(this.videoUrlInput, videoUrl, {
       stepInfo: 'Fill video URL input',
     });
+    await this.clickOnElement(this.addVideo);
   }
 
   async waitForVideoUpload(): Promise<void> {
@@ -308,7 +280,22 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
   }
 
   async uploadAttachment(fileName: string): Promise<void> {
-    await this.addInputFiles(this.fileInputAttachment, `test-data/static-files/${fileName}`);
+    await test.step(`Upload attachment: ${fileName}`, async () => {
+      // Setup request promise for attachment upload
+      const reqPromises = [];
+      reqPromises.push(
+        this.page.waitForResponse(
+          response => response.url().includes('X-Amz-SignedHeaders=host') && response.request().method() === 'PUT'
+        ),
+        35_000
+      );
+
+      const filePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', 'images', fileName);
+      await this.addInputFiles(this.addFromContainerInput, filePath);
+
+      // Wait for the upload request to complete
+      await Promise.all(reqPromises);
+    });
   }
 
   async addTopics(topics: string[]): Promise<void> {
@@ -316,7 +303,7 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
       await this.fillInElement(this.topicInput, topic, {
         stepInfo: `Fill topic: ${topic}`,
       });
-      await this.topicInput.press('Enter');
+      await this.clickOnElement(this.addTopicFromList(topic));
     }
   }
 
@@ -386,38 +373,6 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
   async confirmDelete(): Promise<void> {
     await this.clickOnElement(this.deleteButton, {
       stepInfo: 'Confirm delete action',
-    });
-  }
-
-  async extractAlbumId(): Promise<string> {
-    // Extract album ID from URL or response
-    const url = this.page.url();
-    const match = url.match(/\/album\/([^\/]+)/);
-    return match ? match[1] : faker.string.uuid();
-  }
-
-  async extractSiteId(): Promise<string> {
-    // Extract site ID from URL or response
-    const url = this.page.url();
-    const match = url.match(/\/site\/([^\/]+)/);
-    return match ? match[1] : faker.string.uuid();
-  }
-
-  async clickEnterVideoUrlButton(): Promise<void> {
-    await this.clickOnElement(this.enterVideoUrlButton, {
-      stepInfo: 'Click enter video URL button',
-    });
-  }
-
-  async addYoutubeVideoUrlInPopupCoverSection(videoUrl: string): Promise<void> {
-    await this.fillInElement(this.videoUrlPopupInput, videoUrl, {
-      stepInfo: 'Fill YouTube video URL in popup',
-    });
-  }
-
-  async clickAddVideoButton(): Promise<void> {
-    await this.clickOnElement(this.addVideoButton, {
-      stepInfo: 'Click add video button',
     });
   }
 

@@ -89,7 +89,10 @@ test.describe(
         await previewPage.actions.handlePromotionPageStep();
 
         // Verify content was published successfully via UI
-        await previewPage.assertions.verifyContentPublishedSuccessfully(title);
+        await previewPage.assertions.verifyContentPublishedSuccessfully(
+          title,
+          "Created page successfully - it's published"
+        );
       }
     );
   }
