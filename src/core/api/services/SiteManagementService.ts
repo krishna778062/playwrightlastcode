@@ -160,6 +160,15 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
     };
   }
 
+  /**
+   * Searches for a video file by name within a specific site and retrieves its file ID and author information.
+   * Uses the intranet file search API with retry logic to handle potential delays.
+   *
+   * @param siteId - The ID of the site to search within
+   * @param fileName - The name of the video file to search for
+   * @returns Promise resolving to an object containing the file ID and author name
+   * @throws Will throw an error if the file is not found or API request fails
+   */
   async getVideoFileIdFromSearch(siteId: string, fileName: string): Promise<{ fileId: string; authorName: string }> {
     let file: any;
     await test.step(`Fetching video file id using search API for site: ${siteId} and file name: ${fileName}`, async () => {

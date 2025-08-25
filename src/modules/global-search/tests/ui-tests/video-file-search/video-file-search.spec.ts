@@ -23,8 +23,8 @@ test.describe(
         },
         async ({ appManagerHomePage, intranetFileHelper, siteManagementHelper, appManagerApiClient }) => {
           tagTest(test.info(), {
-            zephyrTestId: 'SEN-12433',
-            storyId: 'SEN-12296',
+            zephyrTestId: 'SEN-15731',
+            storyId: 'SEN-12300',
           });
           const { siteId, siteName } = await siteManagementHelper.createSiteWithCategoryName(testData.category);
           const uploadedFileName = await intranetFileHelper.uploadFile(
