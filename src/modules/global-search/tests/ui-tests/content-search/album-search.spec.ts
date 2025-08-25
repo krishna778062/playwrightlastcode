@@ -13,25 +13,41 @@ test.describe(
     tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.CONTENT_SEARCH],
   },
   () => {
+    let siteId: string;
+    let newSiteName: string;
+    let contentId: string;
+    let albumName: string;
+    let authorName: string;
+    let contentDescription: string;
+
+    test.beforeEach(
+      `Setting up the test environment for album search by creating site and album content`,
+      async ({ contentManagementHelper }) => {
+        const albumDetails = await contentManagementHelper.createSiteAndAlbum(
+          ALBUM_SEARCH_TEST_DATA.category,
+          'beach.jpg'
+        );
+
+        siteId = albumDetails.siteId;
+        newSiteName = albumDetails.siteName;
+        contentId = albumDetails.contentId;
+        albumName = albumDetails.albumName;
+        authorName = albumDetails.authorName;
+        contentDescription = albumDetails.contentDescription;
+        console.log(`Created album "${albumName}" in site "${newSiteName}" with ID: ${siteId}`);
+      }
+    );
+
     test(
       `Verify Content Search results for a new ${ALBUM_SEARCH_TEST_DATA.content}`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage, contentManagementHelper }) => {
+      async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-12410',
           storyId: 'SEN-12297',
         });
-
-        const {
-          siteId,
-          siteName: newSiteName,
-          contentId,
-          albumName,
-          authorName,
-          contentDescription,
-        } = await contentManagementHelper.createSiteAndAlbum(ALBUM_SEARCH_TEST_DATA.category, 'beach.jpg');
 
         // 5. UI Search for the album
         const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(albumName, {

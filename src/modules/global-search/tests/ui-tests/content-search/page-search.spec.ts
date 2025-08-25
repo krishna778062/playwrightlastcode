@@ -14,23 +14,41 @@ test.describe(
   },
   () => {
     const testData = PAGE_SEARCH_TEST_DATA;
+    let siteId: string;
+    let siteName: string;
+    let contentId: string;
+    let pageName: string;
+    let authorName: string;
+    let contentDescription: string;
+
+    test.beforeEach(
+      `Setting up the test environment for page search by creating site and page content`,
+      async ({ contentManagementHelper }) => {
+        const siteAndPageDetails = await contentManagementHelper.createSiteAndPage(testData.category, {
+          contentType: testData.content,
+          contentSubType: testData.contentType!,
+        });
+
+        siteId = siteAndPageDetails.siteId;
+        siteName = siteAndPageDetails.siteName;
+        contentId = siteAndPageDetails.contentId;
+        pageName = siteAndPageDetails.pageName;
+        authorName = siteAndPageDetails.authorName;
+        contentDescription = siteAndPageDetails.contentDescription;
+        console.log(`Created page "${pageName}" in site "${siteName}" with ID: ${siteId}`);
+      }
+    );
 
     test(
       `Verify Content Search results for a new ${testData.content}`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage, contentManagementHelper }) => {
+      async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-12432',
           storyId: 'SEN-12295',
         });
-
-        const { siteId, siteName, contentId, pageName, authorName, contentDescription } =
-          await contentManagementHelper.createSiteAndPage(testData.category, {
-            contentType: testData.content,
-            contentSubType: testData.contentType!,
-          });
 
         // 4. UI Search for the page
         const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(pageName, {

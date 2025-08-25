@@ -15,30 +15,54 @@ test.describe(
   },
   () => {
     const testData = INTRANET_FILE_SEARCH_TEST_DATA;
+    let siteId: string;
+    let siteName: string;
+    let uploadedFileName: string;
+    let fileId: string;
+    let authorName: string;
 
     for (const fileType of testData.fileTypes) {
-      test(
-        `Verify search results for a new intranet file of type ${fileType.type}`,
-        {
-          tag: [TestPriority.P0, TestGroupType.SMOKE],
-        },
+      test.beforeEach(
+        `Setting up the test environment for intranet file search by creating site and uploading ${fileType.type} file`,
         async ({ appManagerHomePage, intranetFileHelper, siteManagementHelper, appManagerApiClient }) => {
-          tagTest(test.info(), {
-            zephyrTestId: 'SEN-12433',
-            storyId: 'SEN-12296',
-          });
+          // Initialize API client with proper authentication and CSRF token
           const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
-          const { siteId, siteName } = await siteManagementHelper.createPublicSite(undefined, categoryObj);
-          const uploadedFileName = await intranetFileHelper.uploadFile(
+          const createdSiteDetails = await siteManagementHelper.createSite({
+            category: categoryObj,
+            accessType: 'public',
+          });
+          siteId = createdSiteDetails.siteId!;
+          siteName = createdSiteDetails.siteName!;
+          console.log(`Created site: ${siteName} with ID: ${siteId}`);
+
+          // Upload file
+          uploadedFileName = await intranetFileHelper.uploadFile(
             appManagerHomePage as NewUxHomePage,
             siteName,
             siteId,
             `src/modules/global-search/test-data/${fileType.fileName}`
           );
 
-          const { fileId, authorName } = await appManagerApiClient
+          // Get file details
+          const fileDetails = await appManagerApiClient
             .getSiteManagementService()
             .getFileIdFromSite(siteId, uploadedFileName);
+
+          fileId = fileDetails.fileId;
+          authorName = fileDetails.authorName;
+        }
+      );
+
+      test(
+        `Verify search results for a new intranet file of type ${fileType.type}`,
+        {
+          tag: [TestPriority.P0, TestGroupType.SMOKE],
+        },
+        async ({ appManagerHomePage, appManagerApiClient }) => {
+          tagTest(test.info(), {
+            zephyrTestId: 'SEN-12433',
+            storyId: 'SEN-12296',
+          });
 
           await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
             appManagerApiClient,

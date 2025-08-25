@@ -29,7 +29,10 @@ test.describe(
         'Site and File Setup',
         async ({ appManagerHomePage, intranetFileHelper, siteManagementHelper, appManagerApiClient }) => {
           const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
-          const siteDetails = await siteManagementHelper.createPublicSite(undefined, categoryObj);
+          const siteDetails = await siteManagementHelper.createSite({
+            category: categoryObj,
+            accessType: 'public',
+          });
 
           //extract metadata
           siteId = siteDetails.siteId!;

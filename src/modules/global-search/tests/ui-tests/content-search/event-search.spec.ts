@@ -14,26 +14,40 @@ test.describe(
   },
   () => {
     const testData = EVENT_SEARCH_TEST_DATA;
+    let siteId: string;
+    let newSiteName: string;
+    let contentId: string;
+    let eventName: string;
+    let authorName: string;
+    let contentDescription: string;
+
+    test.beforeEach(
+      `Setting up the test environment for event search by creating site and event content`,
+      async ({ contentManagementHelper }) => {
+        const eventDetails = await contentManagementHelper.createSiteAndEvent(testData.category, {
+          contentType: testData.content,
+        });
+
+        siteId = eventDetails.siteId;
+        newSiteName = eventDetails.siteName;
+        contentId = eventDetails.contentId;
+        eventName = eventDetails.eventName;
+        authorName = eventDetails.authorName;
+        contentDescription = eventDetails.contentDescription;
+        console.log(`Created event "${eventName}" in site "${newSiteName}" with ID: ${siteId}`);
+      }
+    );
 
     test(
       `Verify Content Search results for a new ${testData.content}`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage, contentManagementHelper }) => {
+      async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-12462',
           storyId: 'SEN-12298',
         });
-
-        const {
-          siteId,
-          siteName: newSiteName,
-          contentId,
-          eventName,
-          authorName,
-          contentDescription,
-        } = await contentManagementHelper.createSiteAndEvent(testData.category, { contentType: testData.content });
 
         // 4. UI Search for the event
         const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(eventName, {
