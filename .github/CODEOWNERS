@@ -16,6 +16,9 @@
 # Global Search Module
 /src/modules/global-search/ @prateek-sqa @shubhambhar 
 
+# Integrations Module
+/src/modules/integrations/ @prateek-sqa @Srikant5g
+
 # Platforms Module
 /src/modules/platforms/ @prateek-sqa 
 
