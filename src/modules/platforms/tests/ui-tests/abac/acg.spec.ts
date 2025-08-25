@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
+import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { IdentityUserSearchResponse, User } from '@core/types/user.type';
 import { tagTest } from '@core/utils/testDecorator';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
@@ -8,7 +9,6 @@ import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/a
 
 import { FeatureOwnersPage } from '../../../pages/abacPage/featureOwnersPage/featureOwnersPage';
 import { ManageUsersPage } from '../../../pages/managerUsersPage/manageUsersPage';
-import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 
 import { Roles, RolesId } from '@/src/core/constants/roles';
 import { TestSuite } from '@/src/core/constants/testSuite';
@@ -90,14 +90,14 @@ test.describe(
       console.log(`loginIdentifier1: ${loginIdentifier1}`);
       if (loginIdentifier1 != undefined) {
         // Cleanup
-        let userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier1);
+        const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier1);
         await appManagerApiClient.getUserManagementService().updateUserStatus(userId, 'Inactive');
       }
 
       console.log(`loginIdentifier2: ${loginIdentifier2}`);
       if (loginIdentifier2 != undefined) {
         // Cleanup
-        let userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier2);
+        const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier2);
         await appManagerApiClient.getUserManagementService().updateUserStatus(userId, 'Inactive');
       }
 
@@ -193,7 +193,7 @@ test.describe(
       {
         tag: [TestPriority.P1, `@ABAC`],
       },
-      async ({appManagerPage }) => {
+      async ({ appManagerPage }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-31188'],
         });
@@ -201,6 +201,22 @@ test.describe(
         // Test Scenario
         await homePage.actions.clickOnApplicationSettings();
         await homePage.actions.verifyRolesButtonVisibility(false);
+      }
+    );
+
+    test(
+      `Verify that redirecting to "manage/roles" url should display page not found screen`,
+      {
+        tag: [TestPriority.P1, `@ABAC`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-31189'],
+        });
+        const homePage = new NewUxHomePage(appManagerPage);
+        // Test Scenario
+        await homePage.goToUrl('manage/roles');
+        await homePage.verifyPageNotFoundVisibility();
       }
     );
 
