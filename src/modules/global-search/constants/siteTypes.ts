@@ -3,6 +3,6 @@ export enum SITE_TYPES {
   PRIVATE = 'private',
 }
 export enum SEARCH_RESULT_ITEM {
-  SITE = 'Site',
+  SITE = 'site',
   CATEGORY = 'Uncategorized',
 }
