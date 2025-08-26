@@ -182,6 +182,20 @@ export class ContentManagementHelper {
   }
 
   /**
+   * Deletes a specific content item
+   * @param siteId - The site ID where the content is located
+   * @param contentId - The content ID to delete
+   */
+  async deleteContent(siteId: string, contentId: string): Promise<void> {
+    if (contentId && siteId) {
+      await this.appManagerApiClient.getContentManagementService().deleteContent(siteId, contentId);
+      console.log(`Content deleted: ${contentId} from site: ${siteId}`);
+    } else {
+      console.log('No content ID or site ID provided for deletion');
+    }
+  }
+
+  /**
    * Cleans up all content (albums, pages, events) and sites created by this helper instance.
    */
   async cleanup() {

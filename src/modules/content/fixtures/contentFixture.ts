@@ -24,11 +24,6 @@ export const users = {
   },
 };
 
-export interface ContentCleanupTracker {
-  cleanupContent: (siteId: string, contentId: string) => Promise<void>;
-  cleanupSite: (siteId: string, siteName?: string) => Promise<void>;
-}
-
 export const contentTestFixture = test.extend<
   {
     appManagerContext: BrowserContext;
@@ -38,7 +33,6 @@ export const contentTestFixture = test.extend<
     contentManagementHelper: ContentManagementHelper;
     feedManagerService: FeedManagerService;
     loginAs: (userType: UserType) => Promise<void>;
-    contentCleanup: ContentCleanupTracker;
   },
   {
     appManagerApiClient: AppManagerApiClient;
@@ -118,30 +112,4 @@ export const contentTestFixture = test.extend<
       await LoginHelper.loginWithPassword(page, users[userType]);
     });
   },
-
-  contentCleanup: [
-    async ({ appManagerApiClient }, use) => {
-      const tracker: ContentCleanupTracker = {
-        cleanupContent: async (siteId: string, contentId: string) => {
-          try {
-            console.log(`Cleaning up content: ${contentId} from site: ${siteId}`);
-            await appManagerApiClient.getContentManagementService().deleteContent(siteId, contentId);
-          } catch (error) {
-            console.warn(`Failed to cleanup content ${contentId}:`, error);
-          }
-        },
-        cleanupSite: async (siteId: string, siteName?: string) => {
-          try {
-            console.log(`Cleaning up site: ${siteName || 'Unknown'} with ID: ${siteId}`);
-            await appManagerApiClient.getSiteManagementService().deactivateSite(siteId);
-          } catch (error) {
-            console.warn(`Failed to cleanup site ${siteId}:`, error);
-          }
-        },
-      };
-
-      await use(tracker);
-    },
-    { scope: 'test' },
-  ],
 });

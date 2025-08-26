@@ -2,11 +2,17 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/pages/basePage';
 
-import { AddContentModalComponent } from '../components/addContentModal';
-import { ContentType } from '../constants/contentType';
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
+import { ContentType } from '@/src/modules/content/constants/contentType';
+import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
+import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
+import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 
 export interface ISiteDashboardActions {
-  navigateToPageCreationFromSiteDashboard: (contentType: ContentType) => Promise<void>;
+  navigateToPageCreationFromSiteDashboard: (
+    contentType: ContentType
+  ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
 }
 
 export interface ISiteDashboardAssertions {
@@ -17,8 +23,8 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
   readonly addContentButton = this.page.locator("button[title='Add content']");
   readonly addContentModal: AddContentModalComponent;
 
-  constructor(page: Page) {
-    super(page);
+  constructor(page: Page, siteId?: string) {
+    super(page, PAGE_ENDPOINTS.SITE_DASHBOARD_PAGE.replace(':siteId', siteId || ''));
     this.addContentModal = new AddContentModalComponent(page);
   }
 
@@ -52,9 +58,12 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
   /**
    * Navigates from site dashboard to page creation by verifying page load, clicking add content, and selecting content type
    * @param contentType - The content type to create
+   * @returns PageCreationPage instance
    */
-  async navigateToPageCreationFromSiteDashboard(contentType: ContentType): Promise<void> {
-    await test.step('Navigate to page creation from site dashboard', async () => {
+  async navigateToPageCreationFromSiteDashboard(
+    contentType: ContentType
+  ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage> {
+    return await test.step('Navigate to page creation from site dashboard', async () => {
       // Verify site dashboard page is loaded
       await this.verifyThePageIsLoaded();
 
@@ -62,7 +71,7 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
       await this.clickOnAddContent();
 
       // Select content type and navigate to page creation
-      await this.completeContentCreationFromSiteDashboard(contentType);
+      return await this.completeContentCreationFromSiteDashboard(contentType);
     });
   }
 

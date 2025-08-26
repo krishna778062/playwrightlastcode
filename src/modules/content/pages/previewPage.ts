@@ -1,18 +1,17 @@
 import { Page, test } from '@playwright/test';
 
-import { PromotePageModal } from '../components/promotePageModal';
-
 import { BasePage } from '@/src/core/pages/basePage';
+import { PromotePageModal } from '@/src/modules/content/components/promotePageModal';
 
-export interface IPreviewPageActions {
+export interface IContentPreviewPageActions {
   handlePromotionPageStep: () => Promise<void>;
 }
 
-export interface IPreviewPageAssertions {
+export interface IContentPreviewPageAssertions {
   verifyContentPublishedSuccessfully: (title: string) => Promise<void>;
 }
 
-export class PreviewPage extends BasePage implements IPreviewPageActions, IPreviewPageAssertions {
+export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
   // Additional locators for promotion and verification
   readonly contentTitleHeading = (title: string) => this.page.locator('h1', { hasText: title });
   readonly successMessage = (message: string) =>
@@ -25,12 +24,12 @@ export class PreviewPage extends BasePage implements IPreviewPageActions, IPrevi
   }
 
   // Actions
-  get actions(): IPreviewPageActions {
+  get actions(): IContentPreviewPageActions {
     return this;
   }
 
   // Assertions
-  get assertions(): IPreviewPageAssertions {
+  get assertions(): IContentPreviewPageAssertions {
     return this;
   }
 

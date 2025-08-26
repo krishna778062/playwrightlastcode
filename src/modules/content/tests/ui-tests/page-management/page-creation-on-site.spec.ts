@@ -1,21 +1,17 @@
-import { faker } from '@faker-js/faker';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
+import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
-import { getSiteDashboardUrl } from '@core/utils/urlUtils';
-
-import { PreviewPage } from '../../../pages/previewPage';
-import { SITE_TEST_DATA } from '../../../test-data/sites-create.test-data';
 
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
+import { ContentPreviewPage } from '@/src/modules/content/pages/previewPage';
 import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 
 test.describe(
   ContentSuiteTags.PAGE_CREATION_ON_SITE,
@@ -27,7 +23,6 @@ test.describe(
     let publishedPageId: string;
     let siteIdToPublishPage: string;
     let createdSite: any;
-    let siteDashboardUrl: string;
 
     test.beforeEach(
       `Setting up the test environment for page creation by creating new site`,
@@ -41,17 +36,13 @@ test.describe(
 
         // Store the site ID for page publishing
         siteIdToPublishPage = createdSite.siteId;
-
-        // Construct the site dashboard URL using utility method
-        siteDashboardUrl = getSiteDashboardUrl(createdSite.siteId);
-        console.log(`Constructed site dashboard URL: ${siteDashboardUrl}`);
       }
     );
 
-    test.afterEach(async ({ contentCleanup }) => {
+    test.afterEach(async ({ contentManagementHelper }) => {
       // Delete the published page only if the page is published
       if (publishedPageId) {
-        await contentCleanup.cleanupContent(siteIdToPublishPage, publishedPageId);
+        await contentManagementHelper.deleteContent(siteIdToPublishPage, publishedPageId);
       } else {
         console.log('No page was published, hence skipping the deletion');
       }
@@ -63,49 +54,41 @@ test.describe(
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE],
       },
       async ({ appManagerHomePage }) => {
-        tagTest(test.info(), {
+        // Test metadata constant
+        const testMetadata = {
           description: 'Verify admin is able to publish a new page created with cover image',
           zephyrTestId: 'CONT-XXXX',
           storyId: 'CONT-XXXX',
-        });
+        };
 
-        // Navigate to the constructed site dashboard URL
-        await appManagerHomePage.page.goto(siteDashboardUrl);
+        tagTest(test.info(), testMetadata);
 
         // Navigate from site dashboard to page creation
-        const siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page);
-        await siteDashboardPage.actions.navigateToPageCreationFromSiteDashboard(ContentType.PAGE);
+        const siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteIdToPublishPage);
+        await siteDashboardPage.loadPage();
+        pageCreationPage = (await siteDashboardPage.actions.navigateToPageCreationFromSiteDashboard(
+          ContentType.PAGE
+        )) as PageCreationPage;
 
-        // Initialize page creation page (we're now on the actual page creation page)
-        pageCreationPage = new PageCreationPage(appManagerHomePage.page);
-
-        const title = `Automated Test Page ${faker.company.name()} - ${faker.commerce.productName()}`;
-        const description = `This is an automated test description ${faker.lorem.paragraph()}`;
+        // Generate page data using TestDataGenerator
+        const pageCreationOptions = TestDataGenerator.generatePage(
+          PageContentType.NEWS,
+          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
+          'uncategorized'
+        );
 
         // Use the new wrapper method to create and publish the page
-        const { pageId } = await pageCreationPage.actions.createAndPublishPage({
-          title,
-          description,
-          category: 'uncategorized',
-          contentType: PageContentType.NEWS,
-          coverImage: {
-            fileName: CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
-            cropOptions: {
-              widescreen: false,
-              square: false,
-            },
-          },
-        });
+        const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
 
         //store the page id (siteIdToPublishPage is already set in beforeEach)
         publishedPageId = pageId;
 
         // Initialize preview page and handle the promotion
-        const previewPage = new PreviewPage(appManagerHomePage.page);
-        await previewPage.actions.handlePromotionPageStep();
+        const contentPreviewPage = new ContentPreviewPage(appManagerHomePage.page);
+        await contentPreviewPage.actions.handlePromotionPageStep();
 
         // Verify content was published successfully via UI
-        await previewPage.assertions.verifyContentPublishedSuccessfully(title);
+        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(pageCreationOptions.title);
       }
     );
   }

@@ -1,17 +1,15 @@
-import { faker } from '@faker-js/faker';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
+import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
-
-import { PreviewPage } from '../../../pages/previewPage';
 
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
+import { ContentPreviewPage } from '@/src/modules/content/pages/previewPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
@@ -37,10 +35,10 @@ test.describe(
       )) as PageCreationPage;
     });
 
-    test.afterEach(async ({ contentCleanup }) => {
+    test.afterEach(async ({ contentManagementHelper }) => {
       // Delete the published page only if the page is published
       if (publishedPageId) {
-        await contentCleanup.cleanupContent(siteIdToPublishPage, publishedPageId);
+        await contentManagementHelper.deleteContent(siteIdToPublishPage, publishedPageId);
       } else {
         console.log('No page was published, hence skipping the deletion');
       }
@@ -58,34 +56,25 @@ test.describe(
           storyId: 'CONT-11635',
         });
 
-        const title = `Automated Test Page ${faker.company.name()} - ${faker.commerce.productName()}`;
-        const description = `This is an automated test description ${faker.lorem.paragraph()}`;
+        // Generate page data using TestDataGenerator
+        const pageCreationOptions = TestDataGenerator.generatePage(
+          PageContentType.NEWS,
+          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
+        );
 
         // Use the new wrapper method to create and publish the page
-        const { pageId, siteId } = await pageCreationPage.actions.createAndPublishPage({
-          title,
-          description,
-          category: 'uncategorized',
-          contentType: PageContentType.NEWS,
-          coverImage: {
-            fileName: CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
-            cropOptions: {
-              widescreen: false,
-              square: false,
-            },
-          },
-        });
+        const { pageId, siteId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
 
         //store the page id
         publishedPageId = pageId;
         siteIdToPublishPage = siteId;
 
         // Initialize preview page and handle the promotion
-        const previewPage = new PreviewPage(pageCreationPage.page);
-        await previewPage.actions.handlePromotionPageStep();
+        const contentPreviewPage = new ContentPreviewPage(pageCreationPage.page);
+        await contentPreviewPage.actions.handlePromotionPageStep();
 
         // Verify content was published successfully via UI
-        await previewPage.assertions.verifyContentPublishedSuccessfully(title);
+        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(pageCreationOptions.title);
       }
     );
   }
