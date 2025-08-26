@@ -3,7 +3,6 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ContentType } from '@/src/modules/content/constants/contentType';
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
@@ -20,7 +19,6 @@ test.describe(
   },
   () => {
     let pageCreationPage: PageCreationPage;
-    let publishedPageId: string;
     let siteIdToPublishPage: string;
     let createdSite: any;
 
@@ -54,13 +52,6 @@ test.describe(
 
         tagTest(test.info(), testMetadata);
 
-        // Navigate from site dashboard to page creation
-        const siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteIdToPublishPage);
-        await siteDashboardPage.loadPage();
-        pageCreationPage = (await siteDashboardPage.actions.navigateToPageCreationFromSiteDashboard(
-          ContentType.PAGE
-        )) as PageCreationPage;
-
         // Generate page data using TestDataGenerator
         const pageCreationOptions = TestDataGenerator.generatePage(
           PageContentType.NEWS,
@@ -68,16 +59,16 @@ test.describe(
           'uncategorized'
         );
 
+        // Navigate from site dashboard to page creation
+        const siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteIdToPublishPage);
+        await siteDashboardPage.loadPage();
+        pageCreationPage = await siteDashboardPage.actions.navigateToPageCreationFromSiteDashboard();
         // Use the new wrapper method to create and publish the page
-        const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
-
+        await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
         //store the page id (siteIdToPublishPage is already set in beforeEach)
-        publishedPageId = pageId;
-
         // Initialize preview page and handle the promotion
         const contentPreviewPage = new ContentPreviewPage(appManagerHomePage.page);
         await contentPreviewPage.actions.handlePromotionPageStep();
-
         // Verify content was published successfully via UI
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(pageCreationOptions.title);
       }

@@ -184,7 +184,7 @@ export class AddContentModalComponent extends BaseComponent {
   async completeContentCreationForm(
     contentOption: ContentType,
     options?: { siteName?: string; templateName?: string; recentlyUsedSiteIndex?: number; isFromHomePage?: boolean }
-  ) {
+  ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage> {
     /**
      * First select the content type option
      * Then select the site if provided

@@ -1,6 +1,5 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
@@ -19,33 +18,19 @@ test.describe(
   },
   () => {
     let pageCreationPage: PageCreationPage;
-    let publishedPageId: string;
-    let siteIdToPublishPage: string;
-
-    test.beforeEach(async ({ page, loginAs }) => {
-      // Login as app manager using loginAs
-      await loginAs('appManager');
-
-      // Create home page instance and navigate to page creation
-      const homePage = new NewUxHomePage(page);
-      await homePage.verifyThePageIsLoaded();
-
-      pageCreationPage = (await homePage.actions.openCreateContentPageForContentType(
-        ContentType.PAGE
-      )) as PageCreationPage;
-    });
-
-    test.afterEach(async ({ contentManagementHelper }) => {
-      // Delete the published page only if the page is published
-      if (publishedPageId) {
-        await contentManagementHelper.deleteContent(siteIdToPublishPage, publishedPageId);
-      } else {
-        console.log('No page was published, hence skipping the deletion');
+    test.beforeEach(
+      'Setting up the test environment for page creation by creating new site',
+      async ({ appManagerHomePage }) => {
+        // Create home page instance and navigate to page creation
+        await appManagerHomePage.verifyThePageIsLoaded();
+        pageCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
+          ContentType.PAGE
+        )) as PageCreationPage;
       }
-    });
+    );
 
     test(
-      'Verify admin is able to publish a new page created with cover image',
+      'Verify admin is able to publish a new page created with cover image from home page',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE],
       },
@@ -63,11 +48,7 @@ test.describe(
         );
 
         // Use the new wrapper method to create and publish the page
-        const { pageId, siteId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
-
-        //store the page id
-        publishedPageId = pageId;
-        siteIdToPublishPage = siteId;
+        await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
 
         // Initialize preview page and handle the promotion
         const contentPreviewPage = new ContentPreviewPage(pageCreationPage.page);
