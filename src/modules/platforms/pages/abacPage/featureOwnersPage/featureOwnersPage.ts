@@ -20,7 +20,7 @@ export class FeatureOwnersPage extends BasePage {
   readonly editFOTiles: Locator;
   readonly showMoreButtonForEditFO: Locator;
   readonly foCrossButton: Locator;
-  readonly showMoreButtonOnMainPage: Locator;
+
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.FEATURE_OWNERS) {
     super(page, pageUrl);
     this.userCountButton = page.locator("[class*='Cell-module'] button p");
@@ -40,24 +40,11 @@ export class FeatureOwnersPage extends BasePage {
       '[class*="AccessControlSelectionItems-module-showMoreButtonContainer"] button'
     );
     this.foCrossButton = page.locator('[aria-label="Remove user"]');
-    this.showMoreButtonOnMainPage = page.getByRole('button', { name: 'Show more' });  }
+  }
 
   // To verify that the feature owners page is loaded
   async verifyThePageIsLoaded(): Promise<void> {
     await expect(this.userCountButton.first(), 'feature Owners page to load').toBeVisible({ timeout: 15000 });
-  }
-
-  /**
-   * Clicks on the "Show more" button repeatedly until it's no longer visible on the main page.
-   * This ensures all features are loaded before performing any validations.
-   */
-  async clickShowMoreUntilNotVisible(): Promise<void> {
-    await test.step('Click "Show more" button until all features are loaded', async () => {
-      while (await this.showMoreButtonOnMainPage.isVisible({ timeout: 2000 })) {
-        await this.clickOnElement(this.showMoreButtonOnMainPage);
-        await this.sleep(1000); // Wait for new content to load
-      }
-    });
   }
 
   /**
@@ -253,29 +240,5 @@ export class FeatureOwnersPage extends BasePage {
       }
     });
     return flag;
-  }
-
-  /**
-   * Gets all feature names displayed on the Feature Owners page using CSS selector [class*='FeatureColumn-module-featureName'] p.
-   * @returns Promise<string[]> - String array of all feature names
-   */
-  async getAllFeatureNames(): Promise<string[]> {
-    const featureNames: string[] = [];
-    await test.step('Get all feature names from Feature Owners page using string array', async () => {
-      console.log('Using CSS selector: [class*="FeatureColumn-module-featureName"] p');
-      const featureCount = await this.feature.count();
-      console.log(`Found ${featureCount} feature elements on the page`);
-      
-      for (let i = 0; i < featureCount; i++) {
-        const featureName = await this.feature.nth(i).textContent();
-        if (featureName && featureName.trim()) {
-          const trimmedName = featureName.trim();
-          featureNames.push(trimmedName);
-          console.log(`Added to string array [${i}]: "${trimmedName}"`);
-        }
-      }
-      console.log(`Final string array contains ${featureNames.length} feature names`);
-    });
-    return featureNames;
   }
 }

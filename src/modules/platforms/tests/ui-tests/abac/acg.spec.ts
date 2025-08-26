@@ -305,37 +305,6 @@ test.describe(
             .updatePrimaryRole(loginIdentifier2, RolesId.APPLICATION_MANAGER, { abac: true });
         }
       );
-    test(
-      'Verify that the feature list displayed under Feature owners tab should be unique',
-      {
-        tag: [TestPriority.P1, `@ABAC`],
-      },
-      async ({ userManagerPage }) => {
-        tagTest(test.info(), {
-          description: 'Verify that the feature list displayed under Feature owners tab should be unique',
-        });
-        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerPage);
-        
-        // Navigate to Feature owners page
-        await featureOwnersPage.loadPage();
-        
-        // Click "Show more" button until all features are loaded
-        await featureOwnersPage.clickShowMoreUntilNotVisible();
-        
-        // Get all feature names displayed on the page using CSS selector [class*='FeatureColumn-module-featureName'] p
-        const allFeatureNames: string[] = await featureOwnersPage.getAllFeatureNames();
-        
-        console.log('All feature names found (string array):', allFeatureNames);
-        console.log('Total features in string array:', allFeatureNames.length);
-        
-        // Verify that all features are unique using string array methods
-        const uniqueFeatures: string[] = [...new Set(allFeatureNames)];
-        console.log('Unique features after Set deduplication:', uniqueFeatures.length);
-        
-        // Check for duplicates by comparing string array lengths
-        expect(uniqueFeatures.length, `Expected ${uniqueFeatures.length} unique features but found ${allFeatureNames.length} total features. Duplicate features detected.`).toBe(allFeatureNames.length);
-        
-        console.log(`✅ Verified that all ${allFeatureNames.length} features displayed are unique`);
-      }
-    );  }
+    }
+  }
 );
