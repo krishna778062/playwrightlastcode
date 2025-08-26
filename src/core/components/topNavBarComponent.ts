@@ -16,7 +16,7 @@ export class TopNavBarComponent extends BaseComponent {
     this.seeAllMessagesButton = this.page.getByText('See all messages');
     this.globalSearchInputBox = this.page.locator('input[aria-label*=Search]');
     this.globalSearchButton = this.page.locator('button[type="button"][aria-label="Search"]');
-    this.addContentButton = this.page.getByRole('button', { name: 'Add content' });
+    this.addContentButton = this.page.getByRole('button', { name: 'Create' });
   }
 
   /**

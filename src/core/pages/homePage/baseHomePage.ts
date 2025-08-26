@@ -15,11 +15,13 @@ import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage
 import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
+import { SiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/globalSearchResultPage';
 
 export interface ICommonHomePageActions {
   searchForTerm: (searchTerm: string, options?: { stepInfo?: string }) => Promise<GlobalSearchResultPage>;
   clickOnGlobalFeed: (options?: { stepInfo?: string }) => Promise<void>;
+  openSiteCreationForm: (options?: { stepInfo?: string }) => Promise<SiteCreationPage>;
 }
 
 export interface IOldUxHomePageActions extends ICommonHomePageActions {
@@ -101,4 +103,12 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
       await this.sideNavBarComponent.clickOnGlobalFeed();
     });
   }
+
+  /**
+   * Opens site creation modal - implementation varies between UX versions
+   * @param options - The options to pass to the method
+   * @param options.stepInfo - The step info to pass to the test.step method
+   * @returns The site creation modal component
+   */
+  abstract openSiteCreationForm(options?: { stepInfo?: string }): Promise<SiteCreationPage>;
 }

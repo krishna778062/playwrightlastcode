@@ -3,6 +3,7 @@ export enum ContentSuiteTags {
   PAGE_CREATION = '@page-creation',
   CONTENT_UPLOAD = '@content-upload',
   PAGE_CREATION_ON_SITE = '@page-creation-on-site',
+  SITE_CREATION = '@site-creation',
 }
 
 export enum ContentFeatureTags {
