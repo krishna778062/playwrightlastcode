@@ -26,7 +26,7 @@ export class SiteManagementHelper {
    * @param overrides - Optional overrides for site creation payload.
    * @returns An object containing details of the created site.
    */
-  async createSite(params: {
+  async _createSiteBaseMethod(params: {
     siteName?: string;
     category?: { name: string; categoryId: string };
     overrides?: Partial<SiteCreationPayload>;
@@ -85,7 +85,7 @@ export class SiteManagementHelper {
     overrides?: Partial<SiteCreationPayload>;
   }) {
     const { siteName, category, overrides } = params;
-    return await this.createSite({ siteName, category, overrides: { ...overrides, access: 'public' } });
+    return await this._createSiteBaseMethod({ siteName, category, overrides: { ...overrides, access: 'public' } });
   }
   /**
    * Creates a new private site with default settings.
@@ -100,7 +100,7 @@ export class SiteManagementHelper {
     overrides?: Partial<SiteCreationPayload>;
   }) {
     const { siteName, category, overrides } = params;
-    return await this.createSite({ siteName, category, overrides: { ...overrides, access: 'private' } });
+    return await this._createSiteBaseMethod({ siteName, category, overrides: { ...overrides, access: 'private' } });
   }
 
   /**
@@ -116,7 +116,7 @@ export class SiteManagementHelper {
     overrides?: Partial<SiteCreationPayload>;
   }) {
     const { siteName, category, overrides } = params;
-    return await this.createSite({ siteName, category, overrides: { ...overrides, access: 'unlisted' } });
+    return await this._createSiteBaseMethod({ siteName, category, overrides: { ...overrides, access: 'unlisted' } });
   }
 
   /**
@@ -136,11 +136,23 @@ export class SiteManagementHelper {
   }) {
     switch (options.accessType) {
       case SITE_TYPES.PUBLIC:
-        return await this.createPublicSite(options.siteName, options.category, { ...options.overrides });
+        return await this.createPublicSite({
+          siteName: options.siteName,
+          category: options.category,
+          overrides: options.overrides,
+        });
       case SITE_TYPES.PRIVATE:
-        return await this.createPrivateSite(options.siteName, options.category, { ...options.overrides });
+        return await this.createPrivateSite({
+          siteName: options.siteName,
+          category: options.category,
+          overrides: options.overrides,
+        });
       case SITE_TYPES.UNLISTED:
-        return await this.createUnlistedSite(options.siteName, options.category, { ...options.overrides });
+        return await this.createUnlistedSite({
+          siteName: options.siteName,
+          category: options.category,
+          overrides: options.overrides,
+        });
       default:
         throw new Error(`Invalid access type: ${options.accessType}`);
     }
@@ -201,7 +213,7 @@ export class SiteManagementHelper {
         site = await this.createUnlistedSite({ siteName, category });
         break;
       default:
-        site = await this.createSite({ siteName, category });
+        site = await this._createSiteBaseMethod({ siteName, category });
     }
 
     return {
