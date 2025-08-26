@@ -39,15 +39,6 @@ test.describe(
       }
     );
 
-    test.afterEach(async ({ contentManagementHelper }) => {
-      // Delete the published page only if the page is published
-      if (publishedPageId) {
-        await contentManagementHelper.deleteContent(siteIdToPublishPage, publishedPageId);
-      } else {
-        console.log('No page was published, hence skipping the deletion');
-      }
-    });
-
     test(
       'Verify admin is able to publish a new page created with cover image from site dashboard',
       {

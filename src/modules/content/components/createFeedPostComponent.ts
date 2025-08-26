@@ -190,22 +190,24 @@ export class CreateFeedPostComponent
   async uploadFiles(files: string[]): Promise<void> {
     await test.step('Upload files to feed post', async () => {
       // Setup request promises for upload requests
-      const requestPromises = [];
+      const responsePromises = [];
       for (let i = 0; i < files.length; i++) {
-        const requestPromise = this.page.waitForRequest(
-          request => request.url().includes('X-Amz-SignedHeaders=host') && request.method() === 'PUT',
+        const responsePromise = this.page.waitForResponse(
+          response =>
+            response.request().url().includes('X-Amz-SignedHeaders=host') &&
+            response.request().method() === 'PUT' &&
+            response.status() === 200,
           { timeout: 35000 }
         );
-        requestPromises.push(requestPromise);
+        responsePromises.push(responsePromise);
       }
-
       const filePaths = files.map(file => FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', file));
       await this.fileUploadInput.setInputFiles(filePaths);
       await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
       await expect(this.attachedFiles).toHaveCount(files.length);
 
       // Wait for all upload requests to complete
-      await Promise.all(requestPromises);
+      await Promise.all(responsePromises);
     });
   }
 

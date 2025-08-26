@@ -71,12 +71,7 @@ export class TestDataGenerator {
     overrides?: Partial<PageCreationOptions>
   ): PageCreationOptions {
     // Handle category special cases
-    const finalCategory =
-      category === ''
-        ? faker.word.noun().toLowerCase()
-        : category === undefined
-          ? faker.word.noun().toLowerCase()
-          : category;
+    const finalCategory = category === undefined ? faker.word.noun().toLowerCase() : category;
 
     const pageOptions: PageCreationOptions = {
       title: `Automated Test Page ${faker.company.name()} - ${faker.commerce.productName()}`,

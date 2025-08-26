@@ -143,15 +143,16 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     }
   ) {
     await test.step(`Upload cover image: ${fileName}`, async () => {
-      // Setup request promises for 3 upload requests
-      const requestPromises = [];
-      for (let i = 0; i < 3; i++) {
-        const requestPromise = this.page.waitForRequest(
-          request => request.url().includes('X-Amz-SignedHeaders=host') && request.method() === 'PUT',
-          { timeout: 35000 }
-        );
-        requestPromises.push(requestPromise);
-      }
+      // Setup response promises for 3 upload requests
+      const responsePromises = [];
+      const responsePromise = this.page.waitForResponse(
+        response =>
+          response.request().url().includes('X-Amz-SignedHeaders=host') &&
+          response.request().method() === 'PUT' &&
+          response.status() === 200,
+        { timeout: 35000 }
+      );
+      responsePromises.push(responsePromise);
 
       const imagePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', 'images', fileName);
       await this.coverImageUploader.uploadAttachment(imagePath);
@@ -170,8 +171,8 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       await this.imageCropper.clickOnNextButton();
       await this.imageCropper.clickOnAddButton();
 
-      // Wait for all 3 upload requests to complete
-      await Promise.all(requestPromises);
+      // Wait for all 3 upload responses to complete with 200 status
+      await Promise.all(responsePromises);
     });
   }
 
