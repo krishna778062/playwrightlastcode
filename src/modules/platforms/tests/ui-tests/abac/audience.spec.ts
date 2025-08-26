@@ -4,6 +4,16 @@ import { tagTest } from '@core/utils/testDecorator';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AudiencePage } from '@platforms/pages/abacPage/acgPage/audiencePage';
 
+// Helper function to generate unique category names with consistent timestamp-based naming
+function generateCategoryName(prefix: string = 'TestCategory'): string {
+  return `${prefix}_${Date.now()}`;
+}
+
+// Helper function to generate test description with timestamp
+function generateTestDescription(description: string = 'Test description for category'): string {
+  return `${description} created at ${new Date().toISOString()}`;
+}
+
 test.describe('Audience Testcases', { tag: [TestSuite.AUDIENCE] }, () => {
   test(
     'Create category modal: validations and basic actions',
@@ -37,11 +47,11 @@ test.describe('Audience Testcases', { tag: [TestSuite.AUDIENCE] }, () => {
   );
 
   test(
-    'Verify category should not get created when user clicks on Cancel or Close button',
+    'Verify category should not get created when user clicks on Cancel button',
     { tag: [TestPriority.P0] },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
-        zephyrTestId: ['PS-35408', 'PS-35407'],
+        zephyrTestId: ['PS-35407'],
       });
 
       const audiencePage = new AudiencePage(appManagerPage);
@@ -50,6 +60,20 @@ test.describe('Audience Testcases', { tag: [TestSuite.AUDIENCE] }, () => {
 
       // Verify Cancel button prevents category creation
       await audiencePage.verifyCategoryCancelButtonBehavior();
+    }
+  );
+
+  test(
+    'Verify category should not get created when user clicks on Close button',
+    { tag: [TestPriority.P0] },
+    async ({ appManagerPage }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-35408'],
+      });
+
+      const audiencePage = new AudiencePage(appManagerPage);
+      await audiencePage.loadPage();
+      await audiencePage.verifyThePageIsLoaded();
 
       // Verify Close button prevents category creation
       await audiencePage.verifyCategoryCloseButtonBehavior();
@@ -65,8 +89,7 @@ test.describe('Audience Testcases', { tag: [TestSuite.AUDIENCE] }, () => {
       });
 
       const audiencePage = new AudiencePage(appManagerPage);
-      const baseCategoryName = 'DuplicateTestCategory';
-      const uniqueCategoryName = `${baseCategoryName}_${Date.now()}`;
+      const uniqueCategoryName = generateCategoryName('DuplicateTestCategory');
 
       await audiencePage.loadPage();
       await audiencePage.verifyThePageIsLoaded();
@@ -99,10 +122,9 @@ test.describe('Audience Testcases', { tag: [TestSuite.AUDIENCE] }, () => {
       });
 
       const audiencePage = new AudiencePage(appManagerPage);
-      const timestamp = Date.now();
-      const categoryWithDescription = `TestCategoryWithDesc_${timestamp}`;
-      const categoryWithoutDescription = `TestCategoryNoDesc_${timestamp}`;
-      const categoryDescription = `Test description for category created at ${new Date().toISOString()}`;
+      const categoryWithDescription = generateCategoryName('TestCategoryWithDesc');
+      const categoryWithoutDescription = generateCategoryName('TestCategoryNoDesc');
+      const categoryDescription = generateTestDescription();
 
       await audiencePage.loadPage();
       await audiencePage.verifyThePageIsLoaded();
@@ -130,7 +152,7 @@ test.describe('Audience Testcases', { tag: [TestSuite.AUDIENCE] }, () => {
       });
 
       const audiencePage = new AudiencePage(appManagerPage);
-      const testCategoryName = `EditTestCategory_${Date.now()}`;
+      const testCategoryName = generateCategoryName('EditTestCategory');
 
       await audiencePage.loadPage();
       await audiencePage.verifyThePageIsLoaded();
@@ -167,9 +189,8 @@ test.describe('Audience Testcases', { tag: [TestSuite.AUDIENCE] }, () => {
       });
 
       const audiencePage = new AudiencePage(appManagerPage);
-      const timestamp = Date.now();
-      const firstCategoryName = `EditDuplicateTest1_${timestamp}`;
-      const secondCategoryName = `EditDuplicateTest2_${timestamp}`;
+      const firstCategoryName = generateCategoryName('EditDuplicateTest1');
+      const secondCategoryName = generateCategoryName('EditDuplicateTest2');
 
       await audiencePage.loadPage();
       await audiencePage.verifyThePageIsLoaded();
