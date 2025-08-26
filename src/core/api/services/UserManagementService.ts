@@ -6,7 +6,7 @@ import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { Roles } from '@core/constants/roles';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { AddUserResponse } from '@core/types/group.type';
-import { SearchUserResponse, User, IdentityUserSearchResponse, IdentityUserInfoResponse } from '@core/types/user.type';
+import { IdentityUserInfoResponse, IdentityUserSearchResponse, SearchUserResponse, User } from '@core/types/user.type';
 
 import { IdentityService } from './IdentityService';
 
@@ -54,13 +54,16 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
   async addUserIfNotAddedAlready(user: User, role: Roles): Promise<void> {
     let data: any;
     let loginIdentifier: any;
+    const defaultTimezoneId: number = 17;
+    const defaultLanguageId: number = 1;
+    const defaultLocaleId: number = 1;
     const roleId = await this.identityService.fetchRoleId(role);
     const personal_info: any = {
       first_name: user.first_name,
       last_name: user.last_name,
-      timezone_id: user.timezone_id || 17,
-      language_id: user.language_id || 1,
-      locale_id: user.locale_id || 1,
+      timezone_id: user.timezone_id || defaultTimezoneId,
+      language_id: user.language_id || defaultLanguageId,
+      locale_id: user.locale_id || defaultLocaleId,
     };
 
     if (user.email && !user.mobile && !user.emp) {
@@ -93,6 +96,8 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
           employee_number: user.emp,
         },
       };
+    } else if (!user.email && !user.mobile && !user.emp) {
+      throw new Error('User must have valid login identifier: email, mobile and employee number');
     }
 
     if (!(await this.checkUserPresence(loginIdentifier))) {
@@ -229,13 +234,15 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
    */
   async getUserId(loginIdentifier: string, options?: { name: string; order: string }): Promise<string> {
     let result: string = '';
+    const defaultName: string = 'full_name';
+    const defaultOrder: string = 'ASC';
     await test.step(`Getting userId for the user with login identifier ${loginIdentifier}`, async () => {
       const response = await this.post(API_ENDPOINTS.appManagement.users.list, {
         data: {
           size: 100,
           sort_by: {
-            name: options?.name || 'full_name',
-            order: options?.order || 'ASC',
+            name: options?.name || defaultName,
+            order: options?.order || defaultOrder,
           },
           searchTerm: loginIdentifier,
         },
@@ -244,8 +251,7 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
       if (responseJson.result.totalCount == 1) {
         result = responseJson.result.listOfItems[0].user_id;
       } else {
-        console.log(`Didn't get single result for searchValue ${loginIdentifier}`);
-        result = 'blank';
+        throw Error(`Didn't get single result for searchValue ${loginIdentifier}`);
       }
     });
     return result;
