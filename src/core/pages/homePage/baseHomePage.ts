@@ -109,6 +109,14 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
   }
 
   /**
+   * Opens site creation modal - implementation varies between UX versions
+   * @param options - The options to pass to the method
+   * @param options.stepInfo - The step info to pass to the test.step method
+   * @returns The site creation modal component
+   */
+  abstract openSiteCreationForm(options?: { stepInfo?: string }): Promise<SiteCreationPage>;
+
+  /**
    * Clicks on the application settings button on the side navigation panel
    * @param options - The options for the step
    */
