@@ -1,6 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
+import { PAGE_ENDPOINTS, PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
 export class RewardsStore extends BasePage {
@@ -36,7 +36,7 @@ export class RewardsStore extends BasePage {
    * This is a rewards store class that contains locators and methods for the rewards store page.
    */
   constructor(page: Page) {
-    super(page);
+    super(page, PAGE_ENDPOINTS.REWARD_STORE_PAGE);
     // Locators for the rewards store page
     this.rewardStorePageNotFound = page.locator('[data-testid="no-results"]');
     this.header = page.getByRole('heading', { name: 'Rewards store' });
@@ -76,7 +76,7 @@ export class RewardsStore extends BasePage {
    */
   async visit(): Promise<void> {
     await test.step('Navigate to the rewards store page via URL', async () => {
-      await this.page.goto(rewardsEndpoint.rewardStorePage);
+      await this.page.goto(rewardsEndpoint.REWARD_STORE_PAGE);
     });
   }
 

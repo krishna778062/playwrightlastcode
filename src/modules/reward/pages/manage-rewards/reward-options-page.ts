@@ -33,10 +33,10 @@ export class RewardOptionsPage extends BasePage {
   private successToastBoxClose: Locator;
 
   constructor(page: Page) {
-    super(page, PAGE_ENDPOINTS.rewardsOptionsPage);
+    super(page, PAGE_ENDPOINTS.REWARDS_OPTIONS_PAGE);
     // Initialize locators - these would need to be updated based on actual DOM structure
     this.rewardsOptionsContainer = page.locator('div[class*="Rewards_content"]');
-    this.rewardOptionLink = page.locator(`a[href="${rewardsEndpoint.rewardsOptionsPage}"] p`);
+    this.rewardOptionLink = page.locator(`a[href="${rewardsEndpoint.REWARDS_OPTIONS_PAGE}"] p`);
     this.rewardsOptionPageNotFound = page.getByTestId('no-results');
     this.rewardsOptionsHeader = this.rewardsOptionsContainer.locator('h2[class*="Typography-module__heading1"]');
     this.searchElement = this.rewardsOptionsContainer.locator('form[class*="SearchField_searchWrapper"]');

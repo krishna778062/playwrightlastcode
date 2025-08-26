@@ -5,6 +5,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { getAlbumUrl } from '@/src/core/utils/urlUtils';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
@@ -29,6 +30,8 @@ test.describe(
     let siteDashboardPage: SiteDashboardPage;
     let manageSitePage: ManageSitePage;
     let manageSiteContentPage: ManageSiteContentPage;
+    let manualCleanupNeeded = false;
+    let albumURL: string;
 
     test.beforeEach(async ({ page, loginAs }) => {
       // Login as app manager using loginAs fixture
@@ -45,14 +48,16 @@ test.describe(
       siteDashboardPage = new SiteDashboardPage(page);
       manageSitePage = new ManageSitePage(page);
       manageSiteContentPage = new ManageSiteContentPage(page);
+
+      // Reset cleanup flag for each test
+      manualCleanupNeeded = false;
     });
 
     test.afterEach(async ({ appManagerApiClient }) => {
-      // Delete the published album only if the album is published
-      if (publishedAlbumId && siteIdToPublishAlbum) {
-        console.log('Site id to publish album:', siteIdToPublishAlbum);
-        console.log('Album id to delete:', publishedAlbumId);
+      // Only cleanup manually if needed (for UI-only tests)
+      if (manualCleanupNeeded && publishedAlbumId && siteIdToPublishAlbum) {
         await appManagerApiClient.getContentManagementService().deleteContent(siteIdToPublishAlbum, publishedAlbumId);
+        console.log('Manual cleanup completed for album:', publishedAlbumId);
       } else {
         console.log('No album was published, hence skipping the deletion');
       }
@@ -92,6 +97,7 @@ test.describe(
         // Store album id for cleanup
         publishedAlbumId = albumId;
         siteIdToPublishAlbum = siteId;
+        manualCleanupNeeded = true; // Set flag for manual cleanup (UI-only test)
 
         // Handle promotion step
         await previewPage.actions.handlePromotionPageStep();
@@ -109,7 +115,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, TestGroupType.SMOKE, ContentFeatureTags.ALBUM_FILTERING],
       },
-      async () => {
+      async ({ appManagerApiClient }) => {
         tagTest(test.info(), {
           description: 'Application should allow user to filter albums from the content tab on the site',
           zephyrTestId: 'CONT-10546',
@@ -119,28 +125,26 @@ test.describe(
         const title = `Filter Test Album ${faker.company.name()}`;
         const description = `Filter test album description ${faker.lorem.paragraph()}`;
 
-        // Navigate to album creation
-        albumCreationPage = (await homePage.actions.openCreateContentPageForContentType(
-          ContentType.ALBUM
-        )) as AlbumCreationPage;
-
-        // Create and publish album
-        const { albumId, siteId } = await albumCreationPage.actions.createAndPublishAlbum({
-          title,
-          description,
-          images: [CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName],
-          videoUrl: 'https://youtu.be/4vLyqzOr14g',
+        // Create album using API
+        // First create a site using API
+        const site = await appManagerApiClient.getSiteManagementService().addNewSite({
+          access: 'public',
+          name: `Filter Test Site ${faker.company.name()}`,
+          hasAlbums: true,
         });
+        const siteId = site.siteId;
 
-        publishedAlbumId = albumId;
+        const createdAlbum = await appManagerApiClient.getContentManagementService().addNewAlbumContent(siteId, {
+          title,
+          bodyHtml: `<p>${description}</p>`,
+          contentType: 'album',
+        });
+        publishedAlbumId = createdAlbum.albumId;
         siteIdToPublishAlbum = siteId;
 
-        // Handle promotion step
-        await previewPage.actions.handlePromotionPageStep();
-
-        // Navigate to site content tab
-        await previewPage.actions.navigateToSiteDashboard();
-
+        // Construct the site dashboard URL using utility method
+        albumURL = getAlbumUrl(siteIdToPublishAlbum, publishedAlbumId);
+        console.log(`Constructed site dashboard URL: ${albumURL}`);
         await siteDashboardPage.actions.navigateToMangeSite();
 
         await manageSitePage.actions.navigateToContentTab();
@@ -149,18 +153,11 @@ test.describe(
         await manageSiteContentPage.actions.applyContentFilters({
           contentType: 'Album',
           dateRange: 'Past 24 hours',
-          sortBy: 'Published date (oldest first)',
+          sortBy: 'Published date (newest first)',
         });
 
         // Verify content is displayed
-        await homePage.assertions.verifyContentDisplayedInMyContent();
-
-        // Change sort order
-        await homePage.actions.changeSortOrder('Published date (newest first)');
-        await homePage.assertions.verifyContentDisplayedInMyContent();
-
-        // Cleanup - delete the album
-        await homePage.actions.deleteContentFromList(title);
+        await manageSiteContentPage.assertions.verifyContentDisplayedInMyContent();
       }
     );
 

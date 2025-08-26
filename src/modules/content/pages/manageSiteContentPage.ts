@@ -11,10 +11,11 @@ interface ContentFilters {
 
 export interface IManageSiteContentActions {
   applyContentFilters: (filters: ContentFilters) => Promise<void>;
+  changeSortOrder: (sortOrder: string) => Promise<void>;
 }
 
 export interface IManageSiteContentAssertions {
-  // Add assertions as needed
+  verifyContentDisplayedInMyContent: () => Promise<void>;
 }
 
 export class ManageSiteContentPage extends BasePage implements IManageSiteContentActions, IManageSiteContentAssertions {
@@ -24,6 +25,8 @@ export class ManageSiteContentPage extends BasePage implements IManageSiteConten
   readonly sortByFilter = this.page.locator('[data-testid="sort-by-filter"], select[name="sortBy"]');
   readonly statusFilter = this.page.locator('[data-testid="status-filter"], select[name="status"]');
   readonly applyFiltersButton = this.page.locator('button:has-text("Apply"), button:has-text("Filter")');
+  readonly contentList = this.page.locator('[data-testid="content-list"], .content-item, .album-item');
+  readonly sortOrderDropdown = this.page.locator('[data-testid="sort-order"], select[name="sortOrder"]');
 
   constructor(page: Page) {
     super(page);
@@ -67,6 +70,22 @@ export class ManageSiteContentPage extends BasePage implements IManageSiteConten
           stepInfo: 'Click apply filters button',
         });
       }
+    });
+  }
+
+  async changeSortOrder(sortOrder: string): Promise<void> {
+    await test.step(`Change sort order to: ${sortOrder}`, async () => {
+      await this.page.selectOption(this.sortOrderDropdown, sortOrder);
+      // Wait for content to reload after sort change
+      await this.page.waitForTimeout(1000);
+    });
+  }
+
+  async verifyContentDisplayedInMyContent(): Promise<void> {
+    await test.step('Verify content is displayed in my content', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.contentList, {
+        assertionMessage: 'Content list should be visible and contain items',
+      });
     });
   }
 }
