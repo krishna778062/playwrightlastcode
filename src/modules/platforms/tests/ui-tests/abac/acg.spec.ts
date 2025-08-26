@@ -220,6 +220,8 @@ test.describe(
       }
     );
 
+    // To run the followwing TCs with different features, we will be using a for loop
+    // and we will be passing the feature name as a parameter to the test case
     for (const feature of features) {
       test(
         `Verify that user manager should not be able to remove Feature owner access of any app manager from ${feature} feature under Feature owners tab`,
