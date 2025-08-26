@@ -54,7 +54,6 @@ export class ContentManagementHelper {
       apiClient: this.appManagerApiClient,
       searchTerm: finalAlbumName,
       objectType: 'content',
-      valueToFind: finalAlbumName,
     });
     const createdContent = {
       siteId,
@@ -104,7 +103,6 @@ export class ContentManagementHelper {
       apiClient: this.appManagerApiClient,
       searchTerm: finalPageName,
       objectType: 'content',
-      valueToFind: finalPageName,
     });
     const createdContent = {
       siteId,
@@ -152,7 +150,6 @@ export class ContentManagementHelper {
       apiClient: this.appManagerApiClient,
       searchTerm: finalEventName,
       objectType: 'content',
-      valueToFind: finalEventName,
     });
     const createdContent = {
       siteId,
