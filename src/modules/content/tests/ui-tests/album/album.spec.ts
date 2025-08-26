@@ -15,6 +15,7 @@ import { ManageSitePage } from '@/src/modules/content/pages/manageSitePage';
 import { PreviewPage } from '@/src/modules/content/pages/previewPage';
 import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 
 test.describe(
   ContentSuiteTags.ALBUM,
@@ -32,6 +33,7 @@ test.describe(
     let manageSiteContentPage: ManageSiteContentPage;
     let manualCleanupNeeded = false;
     let albumURL: string;
+    let createdSite: any;
 
     test.beforeEach(async ({ page, loginAs }) => {
       // Login as app manager using loginAs fixture
@@ -115,7 +117,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, TestGroupType.SMOKE, ContentFeatureTags.ALBUM_FILTERING],
       },
-      async ({ appManagerApiClient }) => {
+      async ({ appManagerApiClient, siteManagementHelper }) => {
         tagTest(test.info(), {
           description: 'Application should allow user to filter albums from the content tab on the site',
           zephyrTestId: 'CONT-10546',
@@ -125,14 +127,11 @@ test.describe(
         const title = `Filter Test Album ${faker.company.name()}`;
         const description = `Filter test album description ${faker.lorem.paragraph()}`;
 
-        // Create album using API
-        // First create a site using API
-        const site = await appManagerApiClient.getSiteManagementService().addNewSite({
-          access: 'public',
-          name: `Filter Test Site ${faker.company.name()}`,
-          hasAlbums: true,
+        const category = await appManagerApiClient.getSiteManagementService().getCategoryId(SITE_TEST_DATA[0].category);
+        createdSite = await siteManagementHelper.createPublicSite(undefined, category, {
+          access: SITE_TEST_DATA[0].siteType,
         });
-        const siteId = site.siteId;
+        const siteId = createdSite.siteId;
 
         const createdAlbum = await appManagerApiClient.getContentManagementService().addNewAlbumContent(siteId, {
           title,
