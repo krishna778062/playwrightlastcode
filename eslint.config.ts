@@ -70,7 +70,8 @@ const config: Linter.Config[] = [
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: './tsconfig.json',
+        project: ['./tsconfig.json'],
+        tsconfigRootDir: __dirname,
       },
     },
     plugins: {

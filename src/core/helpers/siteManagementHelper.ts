@@ -1,6 +1,7 @@
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import { SiteCreationPayload } from '@/src/core/types/siteManagement.types';
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 interface Site {
   siteId: string;
@@ -53,12 +54,11 @@ export class SiteManagementHelper {
     const siteId = siteResult.siteId;
 
     // Wait for site to appear in search results
-    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
-      this.appManagerApiClient,
-      finalSiteName,
-      finalSiteName,
-      'site'
-    );
+    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+      apiClient: this.appManagerApiClient,
+      searchTerm: finalSiteName,
+      objectType: 'site',
+    });
 
     const createdSite = {
       siteId,
@@ -117,6 +117,33 @@ export class SiteManagementHelper {
   }) {
     const { siteName, category, overrides } = params;
     return await this.createSite({ siteName, category, overrides: { ...overrides, access: 'unlisted' } });
+  }
+
+  /**
+   * Wrapper method to create a site with a specific access type.
+   *
+   * @param siteName - Optional custom site name. If not provided, generates a random name.
+   * @param category - The site category object, containing name and categoryId.
+   * @param overrides - Optional overrides for site creation payload.
+   * @param accessType - The access type of the site (default: 'public').
+   * @returns An object containing details of the created site.
+   */
+  async createSite(options: {
+    siteName?: string;
+    category?: { name: string; categoryId: string };
+    overrides?: Partial<SiteCreationPayload>;
+    accessType: SITE_TYPES;
+  }) {
+    switch (options.accessType) {
+      case SITE_TYPES.PUBLIC:
+        return await this.createPublicSite(options.siteName, options.category, { ...options.overrides });
+      case SITE_TYPES.PRIVATE:
+        return await this.createPrivateSite(options.siteName, options.category, { ...options.overrides });
+      case SITE_TYPES.UNLISTED:
+        return await this.createUnlistedSite(options.siteName, options.category, { ...options.overrides });
+      default:
+        throw new Error(`Invalid access type: ${options.accessType}`);
+    }
   }
 
   /**
