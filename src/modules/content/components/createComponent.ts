@@ -21,12 +21,14 @@ export class CreateComponent extends BaseComponent {
   readonly pageOption: Locator;
   readonly albumOption: Locator;
   readonly eventOption: Locator;
+  readonly siteOption: Locator;
   readonly createComponentContainer: Locator;
   constructor(page: Page) {
     super(page);
     this.pageOption = this.page.locator('p', { hasText: 'Page' });
     this.albumOption = this.page.locator('p', { hasText: 'Album' });
     this.eventOption = this.page.locator('p', { hasText: 'Event' });
+    this.siteOption = this.page.getByRole('link', { name: 'Site' });
     this.createComponentContainer = this.page.locator("[data-slot='dialog-content']");
   }
 
@@ -57,15 +59,17 @@ export class CreateComponent extends BaseComponent {
   async selectContentType(contentType: ContentType, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Selecting content type: ${contentType}`, async () => {
       switch (contentType) {
-        case 'Page':
+        case ContentType.PAGE:
           await this.clickOnElement(this.pageOption);
           break;
-        case 'Album':
+        case ContentType.ALBUM:
           await this.clickOnElement(this.albumOption);
           break;
-        case 'Event':
+        case ContentType.EVENT:
           await this.clickOnElement(this.eventOption);
           break;
+        default:
+          throw new Error(`Unsupported content type: ${contentType}`);
       }
     });
   }

@@ -53,12 +53,12 @@ for (const numberOfLinks of TILE_NUMBER_OF_LINKS) {
           tileId = tileResponse.result.id;
           console.log(`Created tile: ${LINK_TILE_SEARCH_TEST_DATA.tileTitle} with ID: ${tileId}`);
           //wait until the search api starts showing the newly created site in results
-          await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
-            appManagerApiClient,
-            LINK_TILE_SEARCH_TEST_DATA.tileTitle,
-            LINK_TILE_SEARCH_TEST_DATA.tileTitle,
-            'tiles'
-          );
+          await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+            apiClient: appManagerApiClient,
+            searchTerm: LINK_TILE_SEARCH_TEST_DATA.tileTitle,
+            objectType: 'tiles',
+            valueToFind: LINK_TILE_SEARCH_TEST_DATA.tileTitle,
+          });
         } catch (error) {
           console.error('Failed to set up test environment:', error);
           throw error;

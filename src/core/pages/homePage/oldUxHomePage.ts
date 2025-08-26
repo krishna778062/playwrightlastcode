@@ -8,6 +8,8 @@ import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
 import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
+import { CreateComponent } from '@/src/modules/content-abac/components/globalCreateContainerComponent';
+import { SiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 
 export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions {
   constructor(page: Page) {
@@ -36,6 +38,16 @@ export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions
       const addContentModal = new AddContentModalComponent(this.page);
       await addContentModal.verifyTheAddContentModalIsVisible();
       return await addContentModal.completeContentCreationForm(contentType);
+    });
+  }
+
+  async openSiteCreationForm(options?: { stepInfo?: string }): Promise<SiteCreationPage> {
+    return await test.step(options?.stepInfo || 'Opening site creation form', async () => {
+      await this.clickOnCreateContentButtonOnTopNavBar();
+      const createComponent = new CreateComponent(this.page);
+      await createComponent.verifyTheCreateComponentIsVisible();
+      await createComponent.selectSiteOptionAndOpenModal();
+      return new SiteCreationPage(this.page);
     });
   }
 
