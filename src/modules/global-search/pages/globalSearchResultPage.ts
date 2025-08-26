@@ -1,17 +1,19 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { test } from '@playwright/test';
 
-import { TIMEOUTS } from '../../../core/constants/timeouts';
-import { AppContainerComponent } from '../components/appListComponent';
-import { ContentListComponent } from '../components/contentListComponent';
-import { FeedListComponent } from '../components/feedListComponent';
-import { IntranetFileListComponent } from '../components/intranetFileListComponent';
-import { TileListComponent } from '../components/tileListComponent';
-import { IContentSearch } from '../types/content-search.type';
-
+import { ContentType } from '@/src/core/constants/contentTypes';
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/pages/basePage';
+import { AppContainerComponent } from '@/src/modules/global-search/components/appListComponent';
+import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
+import { FeedListComponent } from '@/src/modules/global-search/components/feedListComponent';
+import { IntranetFileListComponent } from '@/src/modules/global-search/components/intranetFileListComponent';
 import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
+import { TileListComponent } from '@/src/modules/global-search/components/tileListComponent';
+import { IContentSearch } from '@/src/modules/global-search/types/content-search.type';
+import { IFeedSearch } from '@/src/modules/global-search/types/feed-search.type';
+import { IFileSearch } from '@/src/modules/global-search/types/file-search.type';
 
 export class GlobalSearchResultPage extends BasePage {
   readonly resultListingComponent: ResultListingComponent;
@@ -65,6 +67,8 @@ export class GlobalSearchResultPage extends BasePage {
         return 'i-file';
       case 'xlsx':
         return 'i-microsoftExcel';
+      case 'mp4':
+        return 'i-video';
       default:
         return 'i-files';
     }
@@ -72,15 +76,15 @@ export class GlobalSearchResultPage extends BasePage {
 
   /**
    * Verifies all data points for a content search result item (Page, Album, Event).
-   * @param resultItemType - The type of content to verify ('album', 'event', 'page').
+   * @param resultItemType - The content type to verify.
    * @param data - The content search data to verify.
    */
-  async verifyContentResultItemDataPoints(resultItemType: 'album' | 'event' | 'page', data: IContentSearch) {
+  async verifyContentResultItemDataPoints(resultItemType: ContentType, data: IContentSearch) {
     await test.step(`Verifying all data points for a content result item of type "${resultItemType}"`, async () => {
       let resultLocator;
-      if (resultItemType === 'album') {
+      if (resultItemType === ContentType.Album) {
         resultLocator = await this.getAlbumResultItemExactlyMatchingTheSearchTerm(data.name);
-      } else if (resultItemType === 'event') {
+      } else if (resultItemType === ContentType.Event) {
         resultLocator = await this.getEventResultItemExactlyMatchingTheSearchTerm(data.name);
       } else {
         resultLocator = await this.getPageResultItemExactlyMatchingTheSearchTerm(data.name);
@@ -94,7 +98,7 @@ export class GlobalSearchResultPage extends BasePage {
    * Verifies all data points for a feed search result item.
    * @param data - The feed search data to verify.
    */
-  async verifyFeedResultItemDataPoints(data: any) {
+  async verifyFeedResultItemDataPoints(data: IFeedSearch) {
     await test.step(`Verifying all data points for a feed result item`, async () => {
       const resultLocator = await this.getFeedResultItemExactlyMatchingTheSearchTerm(data.name);
       const feedResultItem = new FeedListComponent(resultLocator.page, resultLocator.rootLocator);
@@ -106,8 +110,8 @@ export class GlobalSearchResultPage extends BasePage {
    * Verifies all data points for a file search result item.
    * @param data - The file search data to verify.
    */
-  async verifyFileResultItemDataPoints(data: any) {
-    await test.step(`Verifying all data points for a file result item`, async () => {
+  async verifyFileResultItemDataPoints(data: IFileSearch) {
+    await test.step(`Verifying all data points for a file result item for filename ${data.name} and item type ${data.type}`, async () => {
       const resultLocator = await this.getFileResultItemExactlyMatchingTheSearchTerm(data.name, data.type);
       const fileResultItem = new IntranetFileListComponent(resultLocator.page, resultLocator.rootLocator);
       await fileResultItem.verifyIntranetFileResultItem(data);

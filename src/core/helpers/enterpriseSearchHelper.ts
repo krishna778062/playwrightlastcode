@@ -1,27 +1,31 @@
 import { expect, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '../api/clients/appManagerApiClient';
+import { API_ENDPOINTS } from '../constants/apiEndpoints';
 
 export class EnterpriseSearchHelper {
   /**
    * Waits for a result to appear in the API response for a given search term.
-   * @param appManagerApiClient - The API client to use.
-   * @param searchTerm - The search term to use.
-   * @param valueToFind - The value to find in the specified field.
-   * @param objectType - The object type to search for (e.g., 'content', 'feed').
-   * @param fieldToCheck - The field in the result item to check for the value (defaults to 'title').
+   * @param params - Search parameters with descriptive names.
+   * @param params.apiClient - The API client to use.
+   * @param params.searchTerm - The search term to use.
+   * @param params.objectType - The object type to search for (e.g., 'content', 'feed', 'file').
+   * @param params.valueToFind - The value to find in the specified field (defaults to searchTerm if not provided).
+   * @param params.fieldToCheck - The field in the result item to check for the value (defaults to 'title').
    */
-  static async waitForResultToAppearInApiResponse(
-    appManagerApiClient: AppManagerApiClient,
-    searchTerm: string,
-    valueToFind: string,
-    objectType: string,
-    fieldToCheck = 'title'
-  ) {
+  static async waitForResultToAppearInApiResponse(params: {
+    apiClient: AppManagerApiClient;
+    searchTerm: string;
+    objectType: string;
+    valueToFind?: string;
+    fieldToCheck?: string;
+  }) {
+    const { apiClient, searchTerm, objectType, valueToFind, fieldToCheck = 'title' } = params;
+
     await test.step(`Waiting for search results to be visible for search term ${searchTerm}`, async () => {
       await expect(
         async () => {
-          const response = await appManagerApiClient.post('/search-ai/v1/enterprise/search', {
+          const response = await apiClient.post(API_ENDPOINTS.search.enterprise, {
             data: { page_size: 10, exact_match: true, search_term: searchTerm },
           });
           const responseBody = await response.json();
@@ -30,7 +34,8 @@ export class EnterpriseSearchHelper {
             (eachItem: any) => eachItem.item.object_type === objectType
           );
           // Find the specific item by checking the specified field for the value
-          const resultItem = result.find((eachItem: any) => eachItem.item[fieldToCheck] === valueToFind);
+          const valueToSearch = valueToFind || searchTerm;
+          const resultItem = result.find((eachItem: any) => eachItem.item[fieldToCheck] === valueToSearch);
           expect(resultItem).toBeDefined();
         },
         {
