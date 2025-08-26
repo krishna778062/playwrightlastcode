@@ -18,14 +18,16 @@ test.describe(
   },
   () => {
     let pageCreationPage: PageCreationPage;
+    let contentPreviewPage: ContentPreviewPage;
     test.beforeEach(
-      'Setting up the test environment for page creation by creating new site',
-      async ({ appManagerHomePage }) => {
+      'Setting up the test environment for page creation by opening page creation page from home page',
+      async ({ appManagerHomePage, appManagersPage }) => {
         // Create home page instance and navigate to page creation
         await appManagerHomePage.verifyThePageIsLoaded();
         pageCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
           ContentType.PAGE
         )) as PageCreationPage;
+        contentPreviewPage = new ContentPreviewPage(appManagersPage);
       }
     );
 
@@ -36,7 +38,7 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'Verify admin is able to publish a new page created with cover image',
+          description: 'Verify admin is able to publish a new page created with cover image from home page',
           zephyrTestId: 'CONT-11635',
           storyId: 'CONT-11635',
         });
@@ -51,7 +53,7 @@ test.describe(
         await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
 
         // Initialize preview page and handle the promotion
-        const contentPreviewPage = new ContentPreviewPage(pageCreationPage.page);
+
         await contentPreviewPage.actions.handlePromotionPageStep();
 
         // Verify content was published successfully via UI
