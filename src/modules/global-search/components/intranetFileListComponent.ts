@@ -1,9 +1,8 @@
-import { faker } from '@faker-js/faker';
 import { expect, Locator, Page, test } from '@playwright/test';
-import * as fs from 'fs';
 import * as path from 'path';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
+import { FileUtil } from '@core/utils/fileUtil';
 
 import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 
@@ -178,18 +177,19 @@ export class IntranetFileListComponent extends ContentListComponent {
    * 4. Sets the temporary file in the file chooser.
    * 5. Waits for the upload to complete by monitoring a loading bar.
    * 6. Clicks the final "Upload" button.
-   * 7. Deletes the temporary file.
+   * 7. Handles OK button for video files if needed.
+   * 8. Deletes the temporary file.
    *
    * @param originalFilePath - The path of the file to be uploaded from test data.
+   * @param options - Upload options including file type information
    * @returns The unique name of the file that was uploaded.
    */
-  async uploadFileFromComputer(originalFilePath: string): Promise<string> {
+  async uploadFileFromComputer(originalFilePath: string, options: { videoFile?: boolean } = {}): Promise<string> {
     const uniqueFileName = await test.step(`Uploading file from computer: ${originalFilePath}`, async () => {
-      const fileExtension = path.extname(originalFilePath);
-      const uniqueName = `${faker.lorem.word()}-${Date.now()}${fileExtension}`;
-      const tempFilePath = path.join(path.dirname(originalFilePath), uniqueName);
+      const tempFilePath = FileUtil.generateTemporaryFilePath(originalFilePath);
+      const uniqueName = path.basename(tempFilePath);
 
-      fs.copyFileSync(originalFilePath, tempFilePath);
+      FileUtil.createTemporaryFileCopy(originalFilePath, tempFilePath);
 
       try {
         await this.openFileChooserAndSetFiles(() => this.clickOnElement(this.selectFromComputerButton), tempFilePath, {
@@ -205,18 +205,22 @@ export class IntranetFileListComponent extends ContentListComponent {
         });
 
         await this.clickOnElement(this.uploadButton, { timeout: 30000 });
-        // If an OK button appears after upload, click it
-        try {
-          await this.verifier.waitUntilElementIsVisible(this.okButton, {
-            timeout: 5000,
-          });
-          await this.clickOnElement(this.okButton);
-        } catch (e) {
-          // OK button did not appear, continue
+
+        // Handle OK button - only video files have this confirmation dialog
+        if (options.videoFile) {
+          try {
+            await this.verifier.waitUntilElementIsVisible(this.okButton, {
+              timeout: 15000,
+              stepInfo: 'Waiting for OK button after video file upload',
+            });
+            await this.clickOnElement(this.okButton);
+          } catch {
+            console.log('OK button did not appear for video file - continuing');
+          }
         }
       } finally {
         // Clean up the temporary file
-        fs.unlinkSync(tempFilePath);
+        FileUtil.deleteTemporaryFile(tempFilePath);
       }
       return uniqueName;
     });

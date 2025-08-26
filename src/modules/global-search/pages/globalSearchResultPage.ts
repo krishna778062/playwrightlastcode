@@ -1,20 +1,19 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { test } from '@playwright/test';
 
-import { TIMEOUTS } from '../../../core/constants/timeouts';
-import { AppContainerComponent } from '../components/appListComponent';
-import { ContentListComponent } from '../components/contentListComponent';
-import { FeedListComponent } from '../components/feedListComponent';
-import { IntranetFileListComponent } from '../components/intranetFileListComponent';
-import { TileListComponent } from '../components/tileListComponent';
-import { IContentSearch } from '../types/content-search.type';
-import { IFeedSearch } from '../types/feed-search.type';
-import { IFileSearch } from '../types/file-search.type';
-
 import { ContentType } from '@/src/core/constants/contentTypes';
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/pages/basePage';
+import { AppContainerComponent } from '@/src/modules/global-search/components/appListComponent';
+import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
+import { FeedListComponent } from '@/src/modules/global-search/components/feedListComponent';
+import { IntranetFileListComponent } from '@/src/modules/global-search/components/intranetFileListComponent';
 import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
+import { TileListComponent } from '@/src/modules/global-search/components/tileListComponent';
+import { IContentSearch } from '@/src/modules/global-search/types/content-search.type';
+import { IFeedSearch } from '@/src/modules/global-search/types/feed-search.type';
+import { IFileSearch } from '@/src/modules/global-search/types/file-search.type';
 
 export class GlobalSearchResultPage extends BasePage {
   readonly resultListingComponent: ResultListingComponent;

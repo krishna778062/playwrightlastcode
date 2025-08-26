@@ -23,17 +23,17 @@ test.describe(
     test.beforeEach(
       `Setting up the test environment for page search by creating site and page content`,
       async ({ contentManagementHelper }) => {
-        const siteAndPageDetails = await contentManagementHelper.createSiteAndPage(
-          testData.category,
-          {
+        const siteAndPageDetails = await contentManagementHelper.createSiteAndPage({
+          category: testData.category,
+          contentInfo: {
             contentType: testData.content,
             contentSubType: testData.contentType!,
           },
-          {
+          options: {
             contentDescription: testData.description,
             accessType: testData.accessType,
-          }
-        );
+          },
+        });
 
         siteId = siteAndPageDetails.siteId;
         siteName = siteAndPageDetails.siteName;

@@ -74,5 +74,6 @@ export const API_ENDPOINTS = {
   },
   search: {
     intranetFile: '/v1/search/intranet-file',
+    enterprise: '/search-ai/v1/enterprise/search',
   },
 } as const;

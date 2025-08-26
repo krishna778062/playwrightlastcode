@@ -1,8 +1,7 @@
-import { faker } from '@faker-js/faker';
-
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import { SiteCreationPayload } from '@/src/core/types/siteManagement.types';
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 interface Site {
   siteId: string;
@@ -54,12 +53,11 @@ export class SiteManagementHelper {
     const siteId = siteResult.siteId;
 
     // Wait for site to appear in search results
-    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
-      this.appManagerApiClient,
-      finalSiteName,
-      finalSiteName,
-      'site'
-    );
+    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+      apiClient: this.appManagerApiClient,
+      searchTerm: finalSiteName,
+      objectType: 'site',
+    });
 
     const createdSite = {
       siteId,
@@ -116,14 +114,14 @@ export class SiteManagementHelper {
     siteName?: string;
     category?: { name: string; categoryId: string };
     overrides?: Partial<SiteCreationPayload>;
-    accessType: 'public' | 'private' | 'unlisted';
+    accessType: SITE_TYPES;
   }) {
     switch (options.accessType) {
-      case 'public':
+      case SITE_TYPES.PUBLIC:
         return await this.createPublicSite(options.siteName, options.category, { ...options.overrides });
-      case 'private':
+      case SITE_TYPES.PRIVATE:
         return await this.createPrivateSite(options.siteName, options.category, { ...options.overrides });
-      case 'unlisted':
+      case SITE_TYPES.UNLISTED:
         return await this.createUnlistedSite(options.siteName, options.category, { ...options.overrides });
       default:
         throw new Error(`Invalid access type: ${options.accessType}`);

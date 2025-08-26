@@ -27,11 +27,12 @@ export class ContentManagementHelper {
    * @param imageName - The name of the image file to upload
    * @param options - Optional configuration object with albumName, contentDescription, and/or accessType
    */
-  async createSiteAndAlbum(
-    categoryName: string,
-    imageName: string,
-    options: { albumName?: string; contentDescription?: string; accessType?: SITE_TYPES } = {}
-  ) {
+  async createSiteAndAlbum(params: {
+    category: string;
+    imagePath: string;
+    options?: { albumName?: string; contentDescription?: string; accessType?: SITE_TYPES };
+  }) {
+    const { category: categoryName, imagePath: imageName, options = {} } = params;
     const categoryObj = await this.appManagerApiClient.getSiteManagementService().getCategoryId(categoryName);
     const { siteId, siteName } = await this.siteHelper.createSite({
       category: categoryObj,
@@ -49,12 +50,12 @@ export class ContentManagementHelper {
       coverImageMediaId: fileId,
       listOfAlbumMedia: [{ id: fileId, description: '' }],
     });
-    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
-      this.appManagerApiClient,
-      finalAlbumName,
-      finalAlbumName,
-      'content'
-    );
+    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+      apiClient: this.appManagerApiClient,
+      searchTerm: finalAlbumName,
+      objectType: 'content',
+      valueToFind: finalAlbumName,
+    });
     const createdContent = {
       siteId,
       contentId: albumResult.albumId,
@@ -73,11 +74,12 @@ export class ContentManagementHelper {
    * @param contentInfo - The content type information
    * @param options - Optional configuration object with pageName, contentDescription, and/or accessType
    */
-  async createSiteAndPage(
-    categoryName: string,
-    contentInfo: { contentType: string; contentSubType: string },
-    options: { pageName?: string; contentDescription?: string; accessType?: SITE_TYPES } = {}
-  ) {
+  async createSiteAndPage(params: {
+    category: string;
+    contentInfo: { contentType: string; contentSubType: string };
+    options?: { pageName?: string; contentDescription?: string; accessType?: SITE_TYPES };
+  }) {
+    const { category: categoryName, contentInfo, options = {} } = params;
     const categoryObj = await this.appManagerApiClient.getSiteManagementService().getCategoryId(categoryName);
     const { siteId, siteName } = await this.siteHelper.createSite({
       category: categoryObj,
@@ -98,12 +100,12 @@ export class ContentManagementHelper {
       contentType: contentInfo.contentType,
       contentSubType: contentInfo.contentSubType,
     });
-    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
-      this.appManagerApiClient,
-      finalPageName,
-      finalPageName,
-      'content'
-    );
+    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+      apiClient: this.appManagerApiClient,
+      searchTerm: finalPageName,
+      objectType: 'content',
+      valueToFind: finalPageName,
+    });
     const createdContent = {
       siteId,
       contentId: pageResult.pageId,
@@ -122,11 +124,12 @@ export class ContentManagementHelper {
    * @param contentInfo - The content type information
    * @param options - Optional configuration object with eventName, contentDescription, and/or accessType
    */
-  async createSiteAndEvent(
-    categoryName: string,
-    contentInfo: { contentType: string },
-    options: { eventName?: string; contentDescription?: string; accessType?: SITE_TYPES } = {}
-  ) {
+  async createSiteAndEvent(params: {
+    category: string;
+    contentInfo: { contentType: string };
+    options?: { eventName?: string; contentDescription?: string; accessType?: SITE_TYPES };
+  }) {
+    const { category: categoryName, contentInfo, options = {} } = params;
     const categoryObj = await this.appManagerApiClient.getSiteManagementService().getCategoryId(categoryName);
     const { siteId, siteName } = await this.siteHelper.createSite({
       category: categoryObj,
@@ -145,12 +148,12 @@ export class ContentManagementHelper {
       timezoneIso: 'Asia/Kolkata',
       location: 'Gurgaon',
     });
-    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
-      this.appManagerApiClient,
-      finalEventName,
-      finalEventName,
-      'content'
-    );
+    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+      apiClient: this.appManagerApiClient,
+      searchTerm: finalEventName,
+      objectType: 'content',
+      valueToFind: finalEventName,
+    });
     const createdContent = {
       siteId,
       contentId: eventResult.eventId,

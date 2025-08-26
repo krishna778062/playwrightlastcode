@@ -23,16 +23,16 @@ test.describe(
     test.beforeEach(
       `Setting up the test environment for event search by creating site and event content`,
       async ({ contentManagementHelper }) => {
-        const eventDetails = await contentManagementHelper.createSiteAndEvent(
-          testData.category,
-          {
+        const eventDetails = await contentManagementHelper.createSiteAndEvent({
+          category: testData.category,
+          contentInfo: {
             contentType: testData.content,
           },
-          {
+          options: {
             contentDescription: testData.description,
             accessType: testData.accessType,
-          }
-        );
+          },
+        });
 
         siteId = eventDetails.siteId;
         newSiteName = eventDetails.siteName;
