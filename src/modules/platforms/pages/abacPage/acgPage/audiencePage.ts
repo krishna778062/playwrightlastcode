@@ -2,8 +2,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
-import { AddCategoryModalComponent } from '@platforms/components/addCategoryModal';
-import { EditCategoryModalComponent } from '@platforms/components/editCategoryModal';
+import { CategoryModalComponent } from '@platforms/components/categoryModal';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
@@ -19,22 +18,10 @@ export class AudiencePage extends BasePage {
   createCategory!: Locator;
   createAudienceWithCSV!: Locator;
 
-  // Category dialog elements
-  categoryDialog!: Locator;
-  clickCloseButton!: Locator;
-  categoryLabel!: Locator;
-  categoryTitleDescription!: Locator;
-  categoryName!: Locator;
-  categoryNameInput!: Locator;
-  addDescriptionButton!: Locator;
-  addCategoryDescriptionButton!: Locator;
-  descriptionInput!: Locator;
-  deleteDescriptionButton!: Locator;
-  categoryModalCancelButton!: Locator;
-  categoryModalAddButton!: Locator;
+  // Legacy category dialog elements - now handled by CategoryModalComponent
+  // These are kept for backward compatibility but should be removed eventually
 
   // Error message elements
-  nameRequiredError!: Locator;
   nameAlreadyUsedError!: Locator;
 
   // Category management elements
@@ -46,8 +33,8 @@ export class AudiencePage extends BasePage {
   editCategoryModalSaveButton!: Locator;
 
   // Modal components
-  addCategoryModal!: AddCategoryModalComponent;
-  editCategoryModal!: EditCategoryModalComponent;
+  addCategoryModal!: CategoryModalComponent;
+  editCategoryModal!: CategoryModalComponent;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.AUDIENCE_PAGE) {
     super(page, pageUrl);
@@ -59,7 +46,7 @@ export class AudiencePage extends BasePage {
   private _initializeLocators(page: Page): void {
     this._initializePageLevelLocators(page);
     this._initializeCreateButtonLocators(page);
-    this._initializeCategoryDialogLocators(page);
+    // _initializeCategoryDialogLocators removed - now handled by CategoryModalComponent
     this._initializeErrorMessageLocators(page);
     this._initializeCategoryManagementLocators(page);
   }
@@ -80,34 +67,11 @@ export class AudiencePage extends BasePage {
     this.createAudienceWithCSV = page.locator('[role="menuitem"]:has-text("Create audience with CSV")');
   }
 
-  // Initialize category dialog locators
-  private _initializeCategoryDialogLocators(page: Page): void {
-    this.categoryDialog = page
-      .locator('[role="dialog"]')
-      .filter({ has: page.locator('h1,h2,span').filter({ hasText: 'Create category' }) });
-
-    this.clickCloseButton = this.categoryDialog.locator('button[aria-label="Close"]');
-    this.categoryNameInput = this.categoryDialog.locator('#name');
-    this.addDescriptionButton = this.categoryDialog.locator('button:has-text("Add description")');
-    this.descriptionInput = this.categoryDialog.locator('#description');
-    this.categoryLabel = this.categoryDialog.locator('h2:has-text("Create category")');
-    this.categoryTitleDescription = this.categoryDialog.locator(
-      'p:has-text("Keep your audiences organized by grouping related audiences within a category.")'
-    );
-    this.categoryName = this.categoryDialog.locator('label:has-text("Name")');
-    this.addCategoryDescriptionButton = this.categoryDialog.locator('button:has-text("Add description")');
-    this.categoryModalCancelButton = this.categoryDialog.locator('button:has-text("Cancel")');
-    this.categoryModalAddButton = this.categoryDialog.locator(
-      'button[aria-haspopup="false"]:has-text("Add"):not(:has-text("Add description"))'
-    );
-    this.deleteDescriptionButton = this.categoryDialog.locator(
-      'button[aria-label*="Delete" i], button:has-text("Delete")'
-    );
-  }
+  // Category dialog locators removed - now handled by CategoryModalComponent
 
   // Initialize error message locators
   private _initializeErrorMessageLocators(page: Page): void {
-    this.nameRequiredError = this.categoryDialog.locator(':text("Name is a required field")');
+    // Error message locators now handled by CategoryModalComponent
     this.nameAlreadyUsedError = page.getByText('The name is already used');
   }
 
@@ -123,8 +87,8 @@ export class AudiencePage extends BasePage {
 
   // Initialize modal components
   private _initializeModalComponents(page: Page): void {
-    this.addCategoryModal = new AddCategoryModalComponent(page);
-    this.editCategoryModal = new EditCategoryModalComponent(page);
+    this.addCategoryModal = new CategoryModalComponent(page, 'create');
+    this.editCategoryModal = new CategoryModalComponent(page, 'edit');
   }
 
   // ========== PAGE NAVIGATION AND VERIFICATION METHODS ==========
@@ -165,7 +129,7 @@ export class AudiencePage extends BasePage {
 
   // Click on close (X) button at the top right corner of category modal (works for both Create and Edit modals)
   async clickOnCloseButton(options?: { stepInfo?: string; timeout?: number; isEditModal?: boolean }): Promise<void> {
-    await this._getModalComponent(options?.isEditModal ?? false).clickOnCloseButton(options);
+    await this._getModalComponent(options?.isEditModal ?? false).clickCloseButton();
   }
 
   // ========== CATEGORY MODAL METHODS ==========
@@ -178,8 +142,8 @@ export class AudiencePage extends BasePage {
     closeAfter?: boolean;
   }): Promise<void> {
     await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
-    await this.addCategoryModal.verifyCreateCategoryModalElements();
-    await this.addCategoryModal.triggerNameFieldValidation();
+    await this.addCategoryModal.verifyCategoryModalElements();
+    // Name field validation is now part of verifyCategoryModalElements()
 
     if (options?.verifyMaxLength) await this.verifyNameFieldMaxLength();
     if (options?.verifyAddDescription) await this.clickAddDescriptionAndVerify();
@@ -192,7 +156,7 @@ export class AudiencePage extends BasePage {
 
   // Verify the close button is visible in category creation modal
   async assertCloseButtonIsVisible(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.clickCloseButton, {
+    await this.verifier.verifyTheElementIsVisible(this.addCategoryModal.closeButton, {
       assertionMessage: 'Verify Close button is visible',
       timeout: TIMEOUTS.MEDIUM,
     });
@@ -278,50 +242,45 @@ export class AudiencePage extends BasePage {
 
   // ========== CATEGORY CRUD OPERATIONS ==========
 
-  // Create new category with specified name and optional description
-  async createCategoryWithNameAndDescription(name: string, description?: string): Promise<void> {
-    await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
-    await this.addCategoryModal.createCategoryWithNameAndDescription(name, description);
+  // Create category with name and description - high-level workflow
+  async createCategoryWithNameAndDescription(categoryName: string, description?: string): Promise<void> {
+    await test.step(`Create category: ${categoryName}`, async () => {
+      await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
+      await this.addCategoryModal.fillCategoryName(categoryName);
+
+      if (description) {
+        await this.addCategoryModal.clickAddDescriptionAndVerify();
+        await this.addCategoryModal.addCategoryDescription(description);
+      }
+
+      await this.addCategoryModal.submitCategory();
+    });
   }
 
   // Attempt to create category with existing name to trigger duplicate validation error
   async attemptToCreateDuplicateCategory(existingCategoryName: string): Promise<void> {
-    await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
-    await this.addCategoryModal.attemptToCreateDuplicateCategory(existingCategoryName);
+    await test.step(`Attempt to create duplicate category: ${existingCategoryName}`, async () => {
+      await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
+      await this.addCategoryModal.fillCategoryName(existingCategoryName);
+      await this.addCategoryModal.submitCategory();
+    });
+  }
+
+  // Attempt to save edit category with duplicate name
+  async attemptToSaveEditCategoryWithDuplicateName(originalCategoryName: string, duplicateName: string): Promise<void> {
+    await test.step(`Attempt to save category with duplicate name: ${duplicateName}`, async () => {
+      await this.openEditCategoryModal(originalCategoryName);
+      await this.editCategoryModal.fillInElement(this.editCategoryModal.categoryNameInput, '');
+      await this.editCategoryModal.fillCategoryName(duplicateName);
+      await this.editCategoryModal.submitCategory();
+    });
   }
 
   // Delete category using 'Show more' dropdown menu
-  async deleteCategoryByShowMore(categoryName?: string): Promise<void> {
-    await test.step('Delete category using Show more menu', async () => {
-      if (categoryName) {
-        await this.openCategoryDropdownAndClickOption(categoryName, 'Delete category');
-      } else {
-        await this._deleteCategoryByLastShowMoreButton();
-      }
-
+  async deleteCategoryByShowMore(categoryName: string): Promise<void> {
+    await test.step(`Delete category "${categoryName}" using Show more menu`, async () => {
+      await this.openCategoryDropdownAndClickOption(categoryName, 'Delete category');
       await this._confirmCategoryDeletion();
-    });
-  }
-
-  // Delete category using the last Show more button (fallback method)
-  private async _deleteCategoryByLastShowMoreButton(): Promise<void> {
-    console.log('Using fallback: last Show more button');
-    const showMoreButton = this.page.getByRole('button', { name: 'Show more' }).last();
-
-    await this.verifier.verifyTheElementIsVisible(showMoreButton, {
-      assertionMessage: 'Verify Show more button is visible for category deletion',
-      timeout: TIMEOUTS.MEDIUM,
-    });
-
-    await this.clickOnElement(showMoreButton, {
-      stepInfo: 'Click on Show more button for category',
-      timeout: 10_000,
-    });
-
-    await this.page.waitForTimeout(1000);
-    await this.clickOnElement(this.deleteCategoryOption, {
-      stepInfo: 'Click on Delete category option',
-      timeout: 10_000,
     });
   }
 
@@ -409,18 +368,15 @@ export class AudiencePage extends BasePage {
         timeout: 10_000,
       });
 
-      await this.page.waitForTimeout(1000);
+      // Click the parent menuitem element instead of the text element
+      const menuItemLocator = this.page.locator('[role="menuitem"]').filter({ hasText: optionText });
 
-      const optionLocator = this.page.getByText(optionText);
-      await this.verifier.verifyTheElementIsVisible(optionLocator, {
-        assertionMessage: `Verify "${optionText}" option is visible`,
+      await this.verifier.verifyTheElementIsVisible(menuItemLocator, {
+        assertionMessage: `Verify "${optionText}" menu item is visible`,
         timeout: TIMEOUTS.MEDIUM,
       });
 
-      await this.clickOnElement(optionLocator, {
-        stepInfo: `Click on "${optionText}" option`,
-        timeout: 10_000,
-      });
+      await menuItemLocator.click();
     });
   }
 
@@ -463,17 +419,10 @@ export class AudiencePage extends BasePage {
 
   // Edit category methods now delegate to modal component
   async verifyEditCategoryModalElements(): Promise<void> {
-    await this.editCategoryModal.verifyEditCategoryModalElements();
+    await this.editCategoryModal.verifyCategoryModalElements();
   }
 
   async verifyEditCategoryNameFieldValidation(): Promise<void> {
     await this.editCategoryModal.verifyEditCategoryNameFieldValidation();
   }
-
-  async attemptToSaveEditCategoryWithDuplicateName(duplicateName: string): Promise<void> {
-    await this.editCategoryModal.attemptToSaveEditCategoryWithDuplicateName(duplicateName);
-  }
-
-  // ========== UTILITY METHODS ==========
-  // Modal-specific utility methods have been moved to their respective modal components
 }

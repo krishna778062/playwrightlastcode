@@ -90,21 +90,39 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
    * @param name - Name of the category to be created
    * @param options - optional attributes
    */
-  async createCategory(name: string, options?: { description: string }): Promise<void> {
+  async createCategory(name: string, options?: { description: string }): Promise<string> {
+    let categoryId = '';
     await test.step(`API Create category: ${name} if not created`, async () => {
       const findCategoryStatus: boolean = await this.findCategory(name, 10000);
       if (!findCategoryStatus) {
+        const data: any = {
+          name: `${name}`,
+        };
+
+        // Only include description if it's provided and not empty
+        if (options?.description && options.description.trim() !== '') {
+          data.description = options.description;
+        }
+
         const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesCategories, {
-          data: {
-            name: `${name}`,
-            description: options?.description || ``,
-          },
+          data,
         });
         expect(response.status(), `Category created successfully`).toEqual(201);
+
+        // Parse response to get category ID
+        const responseJson = await response.json();
+        if (responseJson.result?.id) {
+          categoryId = responseJson.result.id;
+        } else {
+          // If ID not in response, fetch it directly
+          categoryId = await this.getCategoryId(name, 10000);
+        }
       } else {
         console.log(`Category ${name} already created!!!`);
+        categoryId = await this.getCategoryId(name, 10000);
       }
     });
+    return categoryId;
   }
 
   /**
@@ -273,6 +291,20 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
       console.log(`Audience ${name} already created under category ${categoryId}!!!`);
       return '';
     }
+  }
+
+  /**
+   * Deletes a category with the given categoryId
+   * @param categoryId - Category ID for the category to be deleted
+   */
+  async deleteCategoryById(categoryId: string): Promise<void> {
+    await test.step(`Deleting category with category ID: ${categoryId}`, async () => {
+      const response = await this.delete(
+        API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesCategories + '/' + categoryId
+      );
+      expect(response.status(), 'Category deleted successfully').toEqual(200);
+      console.log(`Category with categoryId: ${categoryId} is deleted`);
+    });
   }
 
   /**

@@ -1,5 +1,6 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestSuite } from '@core/constants/testSuite';
+import { AudienceCategoryManagementHelper } from '@core/helpers/audienceCategoryManagementHelper';
 import { tagTest } from '@core/utils/testDecorator';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AudiencePage } from '@platforms/pages/abacPage/acgPage/audiencePage';
@@ -15,9 +16,22 @@ function generateTestDescription(description: string = 'Test description for cat
 }
 
 test.describe('Audience Testcases', { tag: [TestSuite.AUDIENCE] }, () => {
+  let categoryHelper: AudienceCategoryManagementHelper;
+
+  // Initialize the category helper before each test
+  test.beforeEach(async ({ appManagerApiClient }) => {
+    categoryHelper = new AudienceCategoryManagementHelper(appManagerApiClient);
+  });
+
+  // Clean up all categories created during tests
+  test.afterEach(async () => {
+    if (categoryHelper) {
+      await categoryHelper.cleanup();
+    }
+  });
   test(
     'Create category modal: validations and basic actions',
-    { tag: [TestPriority.P0] },
+    { tag: [TestPriority.P2] },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
         zephyrTestId: [
@@ -48,7 +62,7 @@ test.describe('Audience Testcases', { tag: [TestSuite.AUDIENCE] }, () => {
 
   test(
     'Verify category should not get created when user clicks on Cancel button',
-    { tag: [TestPriority.P0] },
+    { tag: [TestPriority.P2] },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35407'],
@@ -65,7 +79,7 @@ test.describe('Audience Testcases', { tag: [TestSuite.AUDIENCE] }, () => {
 
   test(
     'Verify category should not get created when user clicks on Close button',
-    { tag: [TestPriority.P0] },
+    { tag: [TestPriority.P2] },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35408'],
@@ -89,16 +103,21 @@ test.describe('Audience Testcases', { tag: [TestSuite.AUDIENCE] }, () => {
       });
 
       const audiencePage = new AudiencePage(appManagerPage);
-      const uniqueCategoryName = generateCategoryName('DuplicateTestCategory');
+      const uniqueCategoryName = generateCategoryName('001DuplicateTestCategory');
 
       await audiencePage.loadPage();
       await audiencePage.verifyThePageIsLoaded();
 
-      // Create first category to establish duplicate scenario
-      await audiencePage.createCategoryWithNameAndDescription(uniqueCategoryName);
-      await audiencePage.verifyCategoryOperationSuccessToast('created');
+      // Create first category via API to establish duplicate scenario
+      await categoryHelper.createCategory(uniqueCategoryName, {
+        description: 'Category created via API for duplicate test',
+      });
 
-      // Attempt to create category with the same name and verify alert message
+      // Reload the page to see the API-created category
+      await audiencePage.page.reload();
+      await audiencePage.page.waitForLoadState('domcontentloaded');
+
+      // Attempt to create category with the same name via UI and verify alert message
       await audiencePage.attemptToCreateDuplicateCategory(uniqueCategoryName);
       await audiencePage.verifyNameAlreadyUsedError();
       await audiencePage.clickOnCloseButton();
@@ -107,37 +126,54 @@ test.describe('Audience Testcases', { tag: [TestSuite.AUDIENCE] }, () => {
       await audiencePage.verifyAllCategoryOptionsArePresent(uniqueCategoryName);
       await audiencePage.closeOpenDropdown();
 
-      // Clean up: Delete the category
-      await audiencePage.deleteCategoryByShowMore(uniqueCategoryName);
-      await audiencePage.verifyCategoryOperationSuccessToast('deleted');
+      // Note: Cleanup is handled automatically by the afterEach hook
     }
   );
 
   test(
-    'Verify category with and without description should get created when user clicks on Add button under Create category popup',
+    'Verify category WITH description should get created when user clicks on Add button under Create category popup',
     { tag: [TestPriority.P1] },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
-        zephyrTestId: ['PS-35410', 'PS-35409'],
+        zephyrTestId: ['PS-35410'],
       });
 
       const audiencePage = new AudiencePage(appManagerPage);
-      const categoryWithDescription = generateCategoryName('TestCategoryWithDesc');
-      const categoryWithoutDescription = generateCategoryName('TestCategoryNoDesc');
+      const categoryWithDescription = generateCategoryName('001TestCategoryWithDesc');
       const categoryDescription = generateTestDescription();
 
       await audiencePage.loadPage();
       await audiencePage.verifyThePageIsLoaded();
 
-      // Create category WITH description and then delete it
+      // Create category WITH description and verify creation
       await audiencePage.createCategoryWithNameAndDescription(categoryWithDescription, categoryDescription);
       await audiencePage.verifyCategoryOperationSuccessToast('created');
+
+      // Clean up via UI since this was created via UI (testing UI workflow)
       await audiencePage.deleteCategoryByShowMore(categoryWithDescription);
       await audiencePage.verifyCategoryOperationSuccessToast('deleted');
+    }
+  );
 
-      // Create category WITHOUT description and then delete it
+  test(
+    'Verify category WITHOUT description should get created when user clicks on Add button under Create category popup',
+    { tag: [TestPriority.P1] },
+    async ({ appManagerPage }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-35409'],
+      });
+
+      const audiencePage = new AudiencePage(appManagerPage);
+      const categoryWithoutDescription = generateCategoryName('001TestCategoryNoDesc');
+
+      await audiencePage.loadPage();
+      await audiencePage.verifyThePageIsLoaded();
+
+      // Create category WITHOUT description and verify creation
       await audiencePage.createCategoryWithNameAndDescription(categoryWithoutDescription);
       await audiencePage.verifyCategoryOperationSuccessToast('created');
+
+      // Clean up via UI since this was created via UI (testing UI workflow)
       await audiencePage.deleteCategoryByShowMore(categoryWithoutDescription);
       await audiencePage.verifyCategoryOperationSuccessToast('deleted');
     }
@@ -145,21 +181,24 @@ test.describe('Audience Testcases', { tag: [TestSuite.AUDIENCE] }, () => {
 
   test(
     'Verify the appearance of Edit category modal, Save button behavior, and name field validation',
-    { tag: [TestPriority.P0] },
+    { tag: [TestPriority.P2] },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35417', 'PS-35416', 'PS-35412'],
       });
 
       const audiencePage = new AudiencePage(appManagerPage);
-      const testCategoryName = generateCategoryName('EditTestCategory');
+      const testCategoryName = generateCategoryName('001EditTestCategory');
 
       await audiencePage.loadPage();
       await audiencePage.verifyThePageIsLoaded();
 
-      // Create a category to edit (without description so we can test "Add description" button)
-      await audiencePage.createCategoryWithNameAndDescription(testCategoryName);
-      await audiencePage.verifyCategoryOperationSuccessToast('created');
+      // Create a category via API to edit (without description so we can test "Add description" button)
+      await categoryHelper.createCategory(testCategoryName);
+
+      // Reload the page to see the API-created category
+      await audiencePage.page.reload();
+      await audiencePage.page.waitForLoadState('domcontentloaded');
 
       // Open Edit category modal and verify elements
       await audiencePage.openEditCategoryModal(testCategoryName);
@@ -173,10 +212,10 @@ test.describe('Audience Testcases', { tag: [TestSuite.AUDIENCE] }, () => {
       await audiencePage.clickAddDescriptionAndVerify(true);
       await audiencePage.removeDescriptionAndVerifyAbsence(true);
 
-      // Close the Edit modal and clean up
+      // Close the Edit modal
       await audiencePage.clickOnCloseButton({ isEditModal: true });
-      await audiencePage.deleteCategoryByShowMore(testCategoryName);
-      await audiencePage.verifyCategoryOperationSuccessToast('deleted');
+
+      // Note: Cleanup is handled automatically by the afterEach hook
     }
   );
 
@@ -189,29 +228,30 @@ test.describe('Audience Testcases', { tag: [TestSuite.AUDIENCE] }, () => {
       });
 
       const audiencePage = new AudiencePage(appManagerPage);
-      const firstCategoryName = generateCategoryName('EditDuplicateTest1');
-      const secondCategoryName = generateCategoryName('EditDuplicateTest2');
+      const firstCategoryName = generateCategoryName('001EditDuplicateTest1');
+      const secondCategoryName = generateCategoryName('002EditDuplicateTest2');
 
       await audiencePage.loadPage();
       await audiencePage.verifyThePageIsLoaded();
 
-      // Create two categories for the duplicate test
-      await audiencePage.createCategoryWithNameAndDescription(firstCategoryName, 'First test category');
-      await audiencePage.verifyCategoryOperationSuccessToast('created');
-      await audiencePage.createCategoryWithNameAndDescription(secondCategoryName, 'Second test category');
-      await audiencePage.verifyCategoryOperationSuccessToast('created');
+      // Create two categories via API for the duplicate test
+      await categoryHelper.createCategory(firstCategoryName, {
+        description: 'Categories created via API for edit duplicate test',
+      });
+      await categoryHelper.createCategory(secondCategoryName, {
+        description: 'Categories created via API for edit duplicate test',
+      });
+
+      // Reload the page to see the API-created categories
+      await audiencePage.page.reload();
+      await audiencePage.page.waitForLoadState('domcontentloaded');
 
       // Open Edit modal for the second category and attempt duplicate name
-      await audiencePage.openEditCategoryModal(secondCategoryName);
-      await audiencePage.attemptToSaveEditCategoryWithDuplicateName(firstCategoryName);
+      await audiencePage.attemptToSaveEditCategoryWithDuplicateName(secondCategoryName, firstCategoryName);
       await audiencePage.verifyNameAlreadyUsedError();
       await audiencePage.clickOnCloseButton({ isEditModal: true });
 
-      // Clean up - Delete both test categories
-      await audiencePage.deleteCategoryByShowMore(firstCategoryName);
-      await audiencePage.verifyCategoryOperationSuccessToast('deleted');
-      await audiencePage.deleteCategoryByShowMore(secondCategoryName);
-      await audiencePage.verifyCategoryOperationSuccessToast('deleted');
+      // Note: Cleanup is handled automatically by the afterEach hook
     }
   );
 });
