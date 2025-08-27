@@ -10,7 +10,7 @@ export class FeatureOwnersPage extends BasePage {
   readonly searchInputBox: Locator;
   readonly clearButtonOnSearchInputBox: Locator;
   readonly foMenuOptionsButton: Locator;
-  readonly foUserCountPopupModule: Locator;
+  readonly foUserCountPopupModal: Locator;
   readonly foUserNamesOnUserCountPopup: Locator;
   readonly foAppManagerTag: Locator;
   readonly plusIconOnEditFeaturePopup: Locator;
@@ -29,7 +29,7 @@ export class FeatureOwnersPage extends BasePage {
     this.foMenuOptionsButton = page.locator('[aria-haspopup="menu"]');
     this.foUserNamesOnUserCountPopup = page.locator("[class*='Spacing-module'] p a");
     this.foAppManagerTag = page.locator("[class*='AccessControlListItem-module-appManagerContainer'] p");
-    this.foUserCountPopupModule = page.locator("[class*='AccessControlListItem-module-listItemContainer']");
+    this.foUserCountPopupModal = page.locator("[class*='AccessControlListItem-module-listItemContainer']");
     this.plusIconOnEditFeaturePopup = page.locator("[class*='IconButton-module__iconbutton-overlay']");
     this.foOptionButtons = page.locator('[class*="DropdownMenu-module__DropdownMenuItemLabel"]');
     this.addFeatureOnwersInput = page.getByRole('combobox');
@@ -118,15 +118,15 @@ export class FeatureOwnersPage extends BasePage {
    * Gets list of usernames of users having app manager tag from edit popup of feature owners.
    */
   async getUsersWithAppManagerTag(): Promise<string[]> {
-    let userNamesWithAppManagerTag: string[] = [];
+    const userNamesWithAppManagerTag: string[] = [];
     return await test.step(`Getting all visible usernames with app manager tag from user count popup`, async () => {
-      for (let i = 0; i < (await this.foUserCountPopupModule.count()); i++) {
-        const appManagerElement = this.foUserCountPopupModule
+      for (let i = 0; i < (await this.foUserCountPopupModal.count()); i++) {
+        const appManagerElement = this.foUserCountPopupModal
           .nth(i)
           .locator("div [class*='AccessControlListItem-module-appManagerContainer'] p");
 
         if (await appManagerElement.isVisible()) {
-          const userNameElement = this.foUserCountPopupModule
+          const userNameElement = this.foUserCountPopupModal
             .nth(i)
             .locator("[class*='Typography-module__paragraph'] a");
 
@@ -166,25 +166,23 @@ export class FeatureOwnersPage extends BasePage {
   }
 
   /**
-   * Adds different users as feature owner for the feature which has it's edit popup opened.
-   * @param userNames - Users who need to be added as feature onwers.
+   * Finds user and remove the user from feature owners list.
+   * @param userName - User who need find in visible list of feature owners.
+   * @return true if user is found and removed in list of feature owners, otherwise false.
    */
-  async removeUserAsFeatureOnwer(
-    userNames: string[],
-    options?: { stepInfo?: string; timeout?: number }
-  ): Promise<void> {
-    await test.step(options?.stepInfo ?? `Add users: ${userNames} as feature owners`, async () => {
-      let userName: string;
-      while (userNames.length > 0) {
-        userName = userNames.pop();
-        for (let i = 0; i < (await this.editFOTiles.count()); i++) {
-          if ((await this.editFOTiles.nth(i).locator('p a').textContent()) == userName) {
-            await this.clickOnElement(this.editFOTiles.nth(i).locator('[aria-label="Remove user"]'));
-            break;
-          }
+  async findAndRemoveUserInEditFO(userName: string, options?: { stepInfo?: string; timeout?: number }): Promise<void> {
+    await test.step(options?.stepInfo ?? `Removing ${userName} from feature owners list`, async () => {
+      for (let i = 0; i < (await this.editFOTiles.count()); i++) {
+        if ((await this.editFOTiles.nth(i).locator('p a').textContent()) == userName) {
+          await this.clickOnElement(this.editFOTiles.nth(i).locator('[aria-label="Remove user"]'));
+          await this.clickOnButtonWithName('Update');
+          return;
         }
       }
-      await this.clickOnButtonWithName('Update');
+      if (await this.verifier.isTheElementVisible(this.showMoreButtonForEditFO, { timeout: 2000 })) {
+        await this.clickOnElement(this.showMoreButtonForEditFO);
+        await this.findAndRemoveUserInEditFO(userName, options);
+      }
     });
   }
 
@@ -192,7 +190,7 @@ export class FeatureOwnersPage extends BasePage {
    * Verifies whether the given user is added as feature owner.
    * @param userName - Username of user who need to be checked.
    */
-  async verifyUserAsFeatureOnwerForFeature(
+  async checkUserPresenceAsFeatureOwner(
     userName: string,
     options?: { stepInfo?: string; timeout?: number }
   ): Promise<boolean> {
@@ -209,7 +207,7 @@ export class FeatureOwnersPage extends BasePage {
         if (await this.showMoreButtonForEditFO.isVisible()) {
           console.log('User not found in current view, clicking Show More button');
           await this.clickOnElement(this.showMoreButtonForEditFO);
-          return await this.verifyUserAsFeatureOnwerForFeature(userName, options);
+          return await this.checkUserPresenceAsFeatureOwner(userName, options);
         }
         console.log(`User ${userName} not found as feature owner`);
         return false;
@@ -221,7 +219,7 @@ export class FeatureOwnersPage extends BasePage {
    * Verifies whether the given feature onwers are displayed with app manager tag.
    * @param userName - Username of user who need to be checked for app manager tag.
    */
-  async verifyFODisplayedAsAppManager(
+  async checkFODisplayedAsAppManager(
     userName: string,
     options?: { stepInfo?: string; timeout?: number }
   ): Promise<boolean> {
@@ -232,9 +230,9 @@ export class FeatureOwnersPage extends BasePage {
       console.log(usersWithoutCrossButton);
       if ((usersWithoutCrossButton.filter(userWithoutCrossButton => userWithoutCrossButton === userName).length = 1)) {
         flag = true;
-      } else if ((await this.showMoreButtonForEditFO.isVisible()) && !flag) {
+      } else if ((await this.verifier.isTheElementVisible(this.showMoreButtonForEditFO, { timeout: 2000 })) && !flag) {
         await this.clickOnElement(this.showMoreButtonForEditFO);
-        await this.verifyUserAsFeatureOnwerForFeature(userName);
+        await this.checkUserPresenceAsFeatureOwner(userName);
       } else {
         flag = false;
       }

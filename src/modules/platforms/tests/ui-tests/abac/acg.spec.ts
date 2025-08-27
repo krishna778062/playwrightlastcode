@@ -241,15 +241,17 @@ test.describe(
           });
           const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerPage);
 
-          featureOwnersPage.loadPage();
+          await featureOwnersPage.loadPage();
 
           await featureOwnersPage.searchForFeature(feature);
           await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
           await featureOwnersPage.addUserAsFeatureOnwer([userNameForUser1]);
           await featureOwnersPage.verifyToastMessage('Feature owners updated successfully');
+          await featureOwnersPage.dismissTheToastMessage();
           await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
-          await featureOwnersPage.removeUserAsFeatureOnwer([userNameForUser1]);
+          await featureOwnersPage.findAndRemoveUserInEditFO(userNameForUser1);
           await featureOwnersPage.verifyToastMessage('Feature owners updated successfully');
+          await featureOwnersPage.dismissTheToastMessage();
         }
       );
 
@@ -269,16 +271,16 @@ test.describe(
           await featureOwnersPage.searchForFeature(feature);
           await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
           // Check that user is displayed with App manager tag
-          expect(await featureOwnersPage.verifyFODisplayedAsAppManager(userNameForUser2)).toBeTruthy();
+          expect(await featureOwnersPage.checkFODisplayedAsAppManager(userNameForUser2)).toBeTruthy();
           // Check that user is displayed in the feature onwer list
-          expect(await featureOwnersPage.verifyUserAsFeatureOnwerForFeature(userNameForUser2)).toBeTruthy();
+          expect(await featureOwnersPage.checkUserPresenceAsFeatureOwner(userNameForUser2)).toBeTruthy();
           await appManagerApiClient
             .getUserManagementService()
             .updatePrimaryRole(loginIdentifier2, RolesId.END_USER, { abac: true });
           await manageUsersPage.reloadPage();
           await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
           // Check that user is not displayed in the feature onwer list
-          expect(await featureOwnersPage.verifyUserAsFeatureOnwerForFeature(userNameForUser2)).toBeFalsy();
+          expect(await featureOwnersPage.checkUserPresenceAsFeatureOwner(userNameForUser2)).toBeFalsy();
           await appManagerApiClient
             .getUserManagementService()
             .updatePrimaryRole(loginIdentifier2, RolesId.APPLICATION_MANAGER, { abac: true });
