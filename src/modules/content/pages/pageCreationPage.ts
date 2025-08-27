@@ -279,7 +279,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
    */
   async navigateToAddContentModal(): Promise<void> {
     await test.step(`Navigate to add content modal`, async () => {
-      const siteDashboard = new SiteDashboardPage(this.page);
+      const siteDashboard = new SiteDashboardPage(this.page, '');
       await siteDashboard.verifyThePageIsLoaded();
       await siteDashboard.clickOnAddContent();
     });

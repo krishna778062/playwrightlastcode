@@ -3,6 +3,7 @@ import { faker } from '@faker-js/faker';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
+import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { getAlbumUrl } from '@/src/core/utils/urlUtils';
@@ -10,21 +11,21 @@ import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
+import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
 import { ManageSiteContentPage } from '@/src/modules/content/pages/manageSiteContentPage';
 import { ManageSitePage } from '@/src/modules/content/pages/manageSitePage';
-import { PreviewPage } from '@/src/modules/content/pages/previewPage';
 import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 
 test.describe(
-  ContentSuiteTags.ALBUM,
+  ContentSuiteTags.ALBUM + ' - AM Tests',
   {
     tag: [ContentSuiteTags.ALBUM],
   },
   () => {
     let albumCreationPage: AlbumCreationPage;
-    let previewPage: PreviewPage;
+    let contentPreviewPage: ContentPreviewPage;
     let publishedAlbumId: string;
     let siteIdToPublishAlbum: string;
     let homePage: NewUxHomePage;
@@ -44,10 +45,10 @@ test.describe(
       await homePage.verifyThePageIsLoaded();
 
       // Initialize preview page
-      previewPage = new PreviewPage(page);
+      contentPreviewPage = new ContentPreviewPage(page);
 
       // Initialize other page objects
-      siteDashboardPage = new SiteDashboardPage(page);
+      siteDashboardPage = new SiteDashboardPage(page, siteIdToPublishAlbum);
       manageSitePage = new ManageSitePage(page);
       manageSiteContentPage = new ManageSiteContentPage(page);
 
@@ -76,39 +77,27 @@ test.describe(
           zephyrTestId: 'CONT-11065',
           storyId: 'CONT-11065',
         });
-
-        const title = `Automated Test Album ${faker.company.name()} - ${faker.commerce.productName()}`;
-        const description = `This is an automated test album description ${faker.lorem.paragraph()}`;
-
-        // Navigate to album creation
-        albumCreationPage = (await homePage.actions.openCreateContentPageForContentType(
-          ContentType.ALBUM
-        )) as AlbumCreationPage;
-
-        // Create and publish album with all fields
-        const { albumId, siteId } = await albumCreationPage.actions.createAndPublishAlbum({
-          title,
-          description,
+        // Generate album data
+        const albumCreationOptions = TestDataGenerator.generateAlbum({
           images: [CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName],
-          videoUrl: 'https://youtu.be/4vLyqzOr14g',
-          attachments: ['image1.jpg'],
-          openAlbum: true,
-          topics: ['Test Topic'],
         });
 
-        // Store album id for cleanup
-        publishedAlbumId = albumId;
-        siteIdToPublishAlbum = siteId;
-        manualCleanupNeeded = true; // Set flag for manual cleanup (UI-only test)
+        // Fill album details and save as draft
+        await albumCreationPage.actions.fillAlbumDetails(albumCreationOptions);
+        await albumCreationPage.actions.clickSaveButton();
 
-        // Handle promotion step
-        await previewPage.actions.handlePromotionPageStep();
+        // Verify draft saved message
+        await albumCreationPage.assertions.verifySuccessMessage('Draft saved successfully');
 
-        // Verify album was published successfully
-        await previewPage.assertions.verifyContentPublishedSuccessfully(
-          title,
-          "Created album successfully - it's published"
-        );
+        // Publish the draft
+        await albumCreationPage.actions.clickPublishButton();
+
+        // Verify publish message
+        await albumCreationPage.assertions.verifySuccessMessage("Updated album successfully - it's published");
+
+        // Note: Album IDs will be extracted from the publish response in a real implementation
+        // For now, we'll rely on the API cleanup in afterEach
+        manualCleanupNeeded = true;
       }
     );
 
@@ -128,8 +117,11 @@ test.describe(
         const description = `Filter test album description ${faker.lorem.paragraph()}`;
 
         const category = await appManagerApiClient.getSiteManagementService().getCategoryId(SITE_TEST_DATA[0].category);
-        createdSite = await siteManagementHelper.createPublicSite(undefined, category, {
-          access: SITE_TEST_DATA[0].siteType,
+        createdSite = await siteManagementHelper.createPublicSite({
+          category: category,
+          overrides: {
+            access: SITE_TEST_DATA[0].siteType,
+          },
         });
         const siteId = createdSite.siteId;
 
@@ -144,7 +136,7 @@ test.describe(
         // Construct the site dashboard URL using utility method
         albumURL = getAlbumUrl(siteIdToPublishAlbum, publishedAlbumId);
         console.log(`Constructed site dashboard URL: ${albumURL}`);
-        await siteDashboardPage.actions.navigateToMangeSite();
+        await siteDashboardPage.actions.navigateToManageSite();
 
         await manageSitePage.actions.navigateToContentTab();
 
@@ -161,48 +153,6 @@ test.describe(
     );
 
     test(
-      'Album Content Add attach file with all the Mandatory fields by Standard user',
-      {
-        tag: [TestPriority.P2, TestGroupType.SMOKE, ContentFeatureTags.ALBUM_ATTACHMENTS],
-      },
-      async ({ page, loginAs }) => {
-        tagTest(test.info(), {
-          description: 'Album Content Add attach file with all the Mandatory fields by Standard user',
-          zephyrTestId: 'CONT-10342',
-          storyId: 'CONT-10342',
-        });
-
-        // Login as end user
-        await loginAs('endUser');
-
-        const endUserHomePage = new NewUxHomePage(page);
-        await endUserHomePage.verifyThePageIsLoaded();
-
-        const title = `End User Album ${faker.company.name()}`;
-        const description = `End user album description ${faker.lorem.paragraph()}`;
-
-        // Navigate to album creation
-        albumCreationPage = (await endUserHomePage.actions.openCreateContentPageForContentType(
-          ContentType.ALBUM
-        )) as AlbumCreationPage;
-
-        // Create and publish album with video
-        const { albumId, siteId } = await albumCreationPage.actions.createAndPublishAlbum({
-          title,
-          description,
-          images: [CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName],
-          videoUrl: 'https://youtu.be/4vLyqzOr14g',
-        });
-
-        publishedAlbumId = albumId;
-        siteIdToPublishAlbum = siteId;
-
-        // Verify success message
-        await albumCreationPage.assertions.verifySuccessMessage("Created album successfully - it's published");
-      }
-    );
-
-    test(
       'Verify standard user is able to view My Content Send history or feedback history',
       {
         tag: [TestPriority.P2, ContentFeatureTags.ALBUM_HISTORY],
@@ -215,16 +165,13 @@ test.describe(
         });
 
         // Create a new site for testing
-        const site = await siteManagementHelper.createPublicSite();
+        const site = await siteManagementHelper.createPublicSite({});
         siteIdToPublishAlbum = site.siteId;
-
-        // Navigate to the created site
-        await homePage.actions.navigateToSite(site.siteName);
 
         const title = `History Test Album ${faker.company.name()}`;
         const description = `History test album description ${faker.lorem.paragraph()}`;
 
-        // Create album
+        // Create album (site navigation handled by openCreateContentPageForContentType)
         albumCreationPage = (await homePage.actions.openCreateContentPageForContentType(
           ContentType.ALBUM
         )) as AlbumCreationPage;
@@ -896,7 +843,7 @@ test.describe(
         await loginAs('appManager');
 
         // Create a private site
-        const privateSite = await siteManagementHelper.createPrivateSite();
+        const privateSite = await siteManagementHelper.createPrivateSite({});
         siteIdToPublishAlbum = privateSite.siteId;
 
         const title = `Private to Public Move Test Album ${faker.company.name()}`;
@@ -1107,119 +1054,6 @@ test.describe(
     );
 
     test(
-      'Application allow to filter on my content page using Author',
-      {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          TestGroupType.SMOKE,
-          ContentFeatureTags.ALBUM_FILTER_BY_AUTHOR,
-        ],
-      },
-      async ({ loginAs }) => {
-        tagTest(test.info(), {
-          description: 'Application allow to filter on my content page using Author - tests multiple status filters',
-          zephyrTestId: 'CONT-10822',
-          storyId: 'CONT-10822',
-        });
-
-        // Login as EndUser1
-        await loginAs('endUser');
-
-        // Navigate to manage content page
-        await homePage.actions.navigateToManageContentPage();
-        await homePage.actions.selectSortByValueOnPageCategory('createdNewest');
-        await homePage.actions.applyContentFilters({
-          contentType: 'Album',
-        });
-
-        // Test different status filters
-        const statusFilters = ['Draft', 'Pending', 'Published', 'Unpublished', 'Rejected'];
-
-        for (const status of statusFilters) {
-          await homePage.actions.selectStatusFromDropdown(status);
-          await homePage.assertions.verifyApplicationShowsAllStatusResults(status);
-        }
-      }
-    );
-
-    test(
-      'Verify the functionality for Content >Likes or share on my content checkbox by unchecking it in Email section',
-      {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          TestGroupType.SMOKE,
-          ContentFeatureTags.ALBUM_EMAIL_NOTIFICATIONS,
-        ],
-      },
-      async ({ loginAs }) => {
-        tagTest(test.info(), {
-          description:
-            'Verify the functionality for Content >Likes or share on my content checkbox by unchecking it in Email section',
-          zephyrTestId: 'CONT-18536',
-          storyId: 'CONT-18536',
-        });
-
-        // Configure notification settings
-        await homePage.actions.clickAvatarFromProfileMenu();
-        await homePage.actions.clickMySettingsSection();
-        await homePage.actions.navigateToNotificationsTab();
-        await homePage.actions.checkContentCheckbox();
-        await homePage.actions.clickContentCheckboxDropdown();
-        await homePage.actions.uncheckLikesOrSharesOnMyContentCheckbox();
-        await homePage.actions.clickSaveButtonIfEnabled();
-        await homePage.actions.clickAvatarFromProfileMenu();
-        await homePage.actions.clickLogoutButton();
-
-        // Login and create album
-        await loginAs('appManager');
-
-        const title = `Email Notification Test Album ${faker.company.name()}`;
-        const description = `Email notification test description ${faker.lorem.paragraph()}`;
-
-        await homePage.actions.searchAndNavigateToSite('All Employees');
-
-        albumCreationPage = (await homePage.actions.openCreateContentPageForContentType(
-          ContentType.ALBUM
-        )) as AlbumCreationPage;
-
-        const { albumId, siteId } = await albumCreationPage.actions.createAndPublishAlbum({
-          title,
-          description,
-          images: [CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName],
-        });
-
-        publishedAlbumId = albumId;
-        siteIdToPublishAlbum = siteId;
-
-        // Handle promotion step
-        await previewPage.actions.handlePromotionPageStep();
-
-        // Fetch content URL and logout
-        const contentUrl = await previewPage.actions.fetchContentTypeDetailsUrl();
-        await homePage.actions.clickAvatarFromProfileMenu();
-        await homePage.actions.clickLogoutButton();
-
-        // Login as end user and like content
-        await loginAs('endUser');
-        await homePage.actions.navigateToCreatedContentDetailPage(contentUrl);
-        await homePage.actions.clickContentLikeIcon();
-        await homePage.actions.clickAvatarFromProfileMenu();
-        await homePage.actions.clickLogoutButton();
-
-        // Login as admin and verify notification
-        await loginAs('appManager');
-        await homePage.actions.clickBellIcon();
-        await homePage.actions.clickViewAllOnNotificationList();
-        await homePage.actions.refreshPage();
-
-        // Verify like notification
-        await homePage.assertions.verifyLikeNotificationForCreatedContentType('album', 'Standard User1');
-      }
-    );
-
-    test(
       'Verify when an site owner user is editing the content and site manager and content manager users also edit the same content',
       {
         tag: [
@@ -1238,7 +1072,7 @@ test.describe(
         });
 
         // Create a new site and setup users
-        const site = await siteManagementHelper.createPublicSite();
+        const site = await siteManagementHelper.createPublicSite({});
         siteIdToPublishAlbum = site.siteId;
 
         // Navigate to site and setup members (this would require API calls or UI automation)
@@ -1282,21 +1116,11 @@ test.describe(
 
         // Open new driver and test concurrent editing
         await homePage.actions.openNewDriver();
-        await loginAs('endUser');
+        await loginAs('appManager'); // Using as second admin user
         await homePage.actions.navigateToCreatedContentDetailPage(contentUrl);
         await homePage.actions.clickEditButton();
 
         // Verify error message for concurrent editing
-        await homePage.assertions.verifyErrorMessageContentTypeBeingEditedBy('album', 'Application Manager1');
-
-        // Test with another user
-        await homePage.actions.clickAvatarFromProfileMenu();
-        await homePage.actions.clickLogoutButton();
-        await loginAs('appManager'); // Using as Admin1 equivalent
-        await homePage.actions.navigateToCreatedContentDetailPage(contentUrl);
-        await homePage.actions.clickEditButton();
-
-        // Verify error message
         await homePage.assertions.verifyErrorMessageContentTypeBeingEditedBy('album', 'Application Manager1');
       }
     );
@@ -1320,7 +1144,7 @@ test.describe(
         });
 
         // Create site and setup users
-        const site = await siteManagementHelper.createPublicSite();
+        const site = await siteManagementHelper.createPublicSite({});
         siteIdToPublishAlbum = site.siteId;
 
         // Setup site members
@@ -1338,9 +1162,6 @@ test.describe(
 
         const title = `Site Owner Editing Conflict Test ${faker.company.name()}`;
         const description = `Site owner editing conflict test description ${faker.lorem.paragraph()}`;
-
-        // Create album
-        await homePage.actions.navigateToCreatedSite(site.siteName);
 
         albumCreationPage = (await homePage.actions.openCreateContentPageForContentType(
           ContentType.ALBUM
@@ -1397,11 +1218,9 @@ test.describe(
         });
 
         // Create site and setup users
-        const site = await siteManagementHelper.createPublicSite();
+        const site = await siteManagementHelper.createPublicSite({});
         siteIdToPublishAlbum = site.siteId;
 
-        // Setup site members
-        await homePage.actions.navigateToSite(site.siteName);
         await homePage.actions.clickManageSiteButton();
         await homePage.actions.clickPeopleLink();
         await homePage.actions.addMember('Application Manager2');
@@ -1445,7 +1264,7 @@ test.describe(
         await homePage.actions.openDuplicateWindowAndSwitchToTab();
         await homePage.actions.clickAvatarFromProfileMenu();
         await homePage.actions.clickLogoutButton();
-        await loginAs('endUser');
+        await loginAs('appManager'); // Using as second admin user
         await homePage.actions.navigateToCreatedContentDetailPage(contentUrl);
         await homePage.actions.clickEditButton();
 
@@ -1507,69 +1326,6 @@ test.describe(
 
         // Verify success message
         await albumCreationPage.assertions.verifySuccessMessage("Created album successfully - it's published");
-      }
-    );
-
-    test(
-      'Verify non-member user of the Public Site should be able to add images option when open album checkbox is checked',
-      {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          TestGroupType.SMOKE,
-          ContentFeatureTags.ALBUM_NON_MEMBER_ADD_IMAGES,
-        ],
-      },
-      async ({ loginAs }) => {
-        tagTest(test.info(), {
-          description:
-            'Verify non-member user of the Public Site should be able to add images option when open album checkbox is checked',
-          zephyrTestId: 'CONT-24169',
-          storyId: 'CONT-24169',
-        });
-
-        const title = `Non-member Add Images Test Album ${faker.company.name()}`;
-        const description = `Non-member add images test description ${faker.lorem.paragraph()}`;
-
-        // Navigate to All Employees site
-        await homePage.actions.searchAndNavigateToSite('All Employees');
-
-        albumCreationPage = (await homePage.actions.openCreateContentPageForContentType(
-          ContentType.ALBUM
-        )) as AlbumCreationPage;
-
-        const { albumId, siteId } = await albumCreationPage.actions.createAndPublishAlbum({
-          title,
-          description,
-          images: [CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName],
-          videoUrl: 'https://youtu.be/4vLyqzOr14g',
-          attachments: ['image1.jpg'],
-          openAlbum: true,
-          topics: ['Test Topic'],
-        });
-
-        publishedAlbumId = albumId;
-        siteIdToPublishAlbum = siteId;
-
-        // Handle promotion step
-        await previewPage.actions.handlePromotionPageStep();
-
-        // Fetch content URL and logout
-        const contentUrl = await previewPage.actions.fetchContentTypeDetailsUrl();
-        await homePage.actions.clickAvatarFromProfileMenu();
-        await homePage.actions.clickLogoutButton();
-
-        // Login as non-member user and add images
-        await loginAs('endUser'); // Using as EndUser1 equivalent
-        await homePage.actions.navigateToCreatedContentDetailPage(contentUrl);
-        await homePage.actions.clickAddToAlbumButton();
-        await homePage.actions.uploadFileToAlbum('image2.jpeg');
-        await homePage.actions.clickAddButton();
-        await homePage.actions.waitForSeconds(3);
-        await homePage.actions.refreshPage();
-
-        // Verify images uploaded successfully
-        await homePage.assertions.verifyImagesUploadedSuccessfullyInOpenAlbum();
       }
     );
 

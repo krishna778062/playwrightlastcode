@@ -3,6 +3,8 @@ import { faker } from '@faker-js/faker';
 import { User } from '@core/types/user.type';
 
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
+import { AlbumCreationOptions } from '@/src/modules/content/pages/albumCreationPage';
+import { EventCreationOptions } from '@/src/modules/content/pages/eventCreationPage';
 import { PageCreationOptions } from '@/src/modules/content/pages/pageCreationPage';
 
 export class TestDataGenerator {
@@ -109,5 +111,72 @@ export class TestDataGenerator {
     overrides?: Partial<PageCreationOptions>
   ): PageCreationOptions[] {
     return Array.from({ length: count }, () => this.generatePage(contentType, fileName, category, overrides));
+  }
+
+  /**
+   * Generates a random album with realistic data
+   * @param overrides Optional properties to override in the generated album
+   * @returns An AlbumCreationOptions object with random realistic data
+   */
+  static generateAlbum(overrides?: Partial<AlbumCreationOptions>): AlbumCreationOptions {
+    const albumOptions: AlbumCreationOptions = {
+      title: `Automated Test Album ${faker.company.name()} - ${faker.commerce.productName()}`,
+      description: `This is an automated test album description ${faker.lorem.paragraph()}`,
+      category: faker.word.noun().toLowerCase(),
+    };
+
+    return {
+      ...albumOptions,
+      ...overrides,
+    };
+  }
+
+  /**
+   * Generates multiple random albums
+   * @param count Number of albums to generate
+   * @param overrides Optional properties to override in all generated albums
+   * @returns Array of AlbumCreationOptions objects
+   */
+  static generateAlbums(count: number, overrides?: Partial<AlbumCreationOptions>): AlbumCreationOptions[] {
+    return Array.from({ length: count }, () => this.generateAlbum(overrides));
+  }
+
+  /**
+   * Generates a random event with realistic data
+   * @param overrides Optional properties to override in the generated event
+   * @returns An EventCreationOptions object with random realistic data
+   */
+  static generateEvent(overrides?: Partial<EventCreationOptions>): EventCreationOptions {
+    const startDate = faker.date.future();
+    const endDate = faker.date.future({ refDate: startDate });
+
+    const eventOptions: EventCreationOptions = {
+      title: `Automated Test Event ${faker.company.name()} - ${faker.commerce.productName()}`,
+      description: `This is an automated test event description ${faker.lorem.paragraph()}`,
+      startDate: startDate.toISOString().split('T')[0], // YYYY-MM-DD format
+      endDate: endDate.toISOString().split('T')[0], // YYYY-MM-DD format
+      startTime: faker.date.recent().toTimeString().split(' ')[0].substring(0, 5), // HH:MM format
+      endTime: faker.date.recent().toTimeString().split(' ')[0].substring(0, 5), // HH:MM format
+      location: `${faker.location.streetAddress()}, ${faker.location.city()}, ${faker.location.state()}`,
+      category: faker.word.noun().toLowerCase(),
+      isAllDay: faker.datatype.boolean(),
+      isVirtual: faker.datatype.boolean(),
+      virtualLink: faker.internet.url(),
+    };
+
+    return {
+      ...eventOptions,
+      ...overrides,
+    };
+  }
+
+  /**
+   * Generates multiple random events
+   * @param count Number of events to generate
+   * @param overrides Optional properties to override in all generated events
+   * @returns Array of EventCreationOptions objects
+   */
+  static generateEvents(count: number, overrides?: Partial<EventCreationOptions>): EventCreationOptions[] {
+    return Array.from({ length: count }, () => this.generateEvent(overrides));
   }
 }

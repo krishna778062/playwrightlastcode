@@ -13,6 +13,7 @@ export interface ISiteDashboardActions {
   navigateToPageCreationFromSiteDashboard: () => Promise<PageCreationPage>;
   navigateToAlbumCreationFromSiteDashboard: () => Promise<AlbumCreationPage>;
   navigateToEventCreationFromSiteDashboard: () => Promise<EventCreationPage>;
+  navigateToManageSite: () => Promise<void>;
 }
 
 export interface ISiteDashboardAssertions {
@@ -21,6 +22,7 @@ export interface ISiteDashboardAssertions {
 
 export class SiteDashboardPage extends BasePage implements ISiteDashboardActions, ISiteDashboardAssertions {
   readonly addContentButton = this.page.locator("button[title='Add content']");
+  readonly manageSiteButton = this.page.locator("button[title='Manage site'], a[href*='/manage']");
   readonly addContentModal: AddContentModalComponent;
 
   constructor(page: Page, siteId: string) {
@@ -72,7 +74,7 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
     });
   }
 
-  async navigateToMangeSite(): Promise<void> {
+  async navigateToManageSite(): Promise<void> {
     await test.step('Navigate to manage site', async () => {
       await this.clickOnElement(this.manageSiteButton, {
         stepInfo: 'Click manage site button',

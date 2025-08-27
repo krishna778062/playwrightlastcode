@@ -9,7 +9,7 @@ import { BasePage } from '@/src/core/pages/basePage';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
-interface AlbumCreationOptions {
+export interface AlbumCreationOptions {
   title: string;
   description: string;
   images?: string[];

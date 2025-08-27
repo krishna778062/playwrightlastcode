@@ -17,7 +17,7 @@ export interface IContentPreviewPageActions {
 }
 
 export interface IContentPreviewPageAssertions {
-  verifyContentPublishedSuccessfully: (title: string) => Promise<void>;
+  verifyContentPublishedSuccessfully: (title: string, successMessage: string) => Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
@@ -82,14 +82,11 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
    * @param title - The title of the content to verify
    * @param successMessage - The expected success message to verify
    */
-  async verifyContentPublishedSuccessfully(
-    title: string,
-    successMessage: string = "Created page successfully - it's published"
-  ): Promise<void> {
+  async verifyContentPublishedSuccessfully(title: string, successMessage: string): Promise<void> {
     await test.step(`Verifying content was published successfully`, async () => {
       // Verify success message is visible
       await this.verifier.verifyTheElementIsVisible(this.successMessage(successMessage), {
-        assertionMessage: 'Success message should be visible after publishing',
+        assertionMessage: `Success message "${successMessage}" should be visible after publishing`,
       });
 
       await this.verifier.verifyTheElementIsVisible(this.contentTitleHeading(title), {
