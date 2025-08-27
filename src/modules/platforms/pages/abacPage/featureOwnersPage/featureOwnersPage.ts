@@ -219,24 +219,40 @@ export class FeatureOwnersPage extends BasePage {
    * Verifies whether the given feature onwers are displayed with app manager tag.
    * @param userName - Username of user who need to be checked for app manager tag.
    */
-  async checkFODisplayedAsAppManager(
+  async verifyFeatureOwnerIsDisplayedWithAppManagerTag(
     userName: string,
     options?: { stepInfo?: string; timeout?: number }
-  ): Promise<boolean> {
-    let flag: boolean = false;
-    let usersWithoutCrossButton: string[];
-    await test.step(options?.stepInfo ?? `Check that ${userName} are displayed with App Manager tag`, async () => {
-      usersWithoutCrossButton = await this.getUsersWithAppManagerTag();
-      console.log(usersWithoutCrossButton);
-      if ((usersWithoutCrossButton.filter(userWithoutCrossButton => userWithoutCrossButton === userName).length = 1)) {
-        flag = true;
-      } else if ((await this.verifier.isTheElementVisible(this.showMoreButtonForEditFO, { timeout: 2000 })) && !flag) {
-        await this.clickOnElement(this.showMoreButtonForEditFO);
-        await this.checkUserPresenceAsFeatureOwner(userName);
-      } else {
-        flag = false;
-      }
+  ): Promise<void> {
+    const featureOwnerRecordItem = await this.getFeatureOwnerRecordItem(userName);
+    //verify this record has app manager tag
+    const appManagerTag = featureOwnerRecordItem.locator(
+      "[class*='AccessControlListItem-module-appManagerContainer'] p"
+    );
+    await expect(appManagerTag).toBeVisible();
+  }
+
+  async getFeatureOwnerRecordItem(userName: string): Promise<Locator> {
+    const featureOwnerRecordItem = this.page
+      .locator("[class*='AccessControlListItem-module-listItemContainer']")
+      .filter({ hasText: userName });
+    const isShowMoreButtonVisible = await this.verifier.isTheElementVisible(this.showMoreButtonForEditFO, {
+      timeout: 1000,
     });
-    return flag;
+    let isUserVisible = await this.verifier.isTheElementVisible(featureOwnerRecordItem, {
+      timeout: 2000,
+    });
+
+    //iterate until show more button is visible and feature owner record item is not visible
+    while (isShowMoreButtonVisible && !isUserVisible) {
+      await this.clickOnElement(this.showMoreButtonForEditFO);
+      isUserVisible = await this.verifier.isTheElementVisible(featureOwnerRecordItem, {
+        timeout: 2000,
+      });
+      console.log(
+        'Since the user record is not visibel but the show moure button is visible hence clicking on show more button'
+      );
+    }
+    expect(isUserVisible, `expecting user record to be visible`).toBeTruthy();
+    return featureOwnerRecordItem;
   }
 }
