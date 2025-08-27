@@ -19,8 +19,9 @@ test.describe(
       async ({ appManagerApiClient, siteManagementHelper }) => {
         // Get category and create site using helper
         const category = await appManagerApiClient.getSiteManagementService().getCategoryId(SITE_TEST_DATA[0].category);
-        createdSite = await siteManagementHelper.createPublicSite(undefined, category, {
-          access: SITE_TEST_DATA[0].siteType,
+        createdSite = await siteManagementHelper.createPublicSite({
+          category,
+          overrides: { access: SITE_TEST_DATA[0].siteType },
         });
         console.log(`Created site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
       }
