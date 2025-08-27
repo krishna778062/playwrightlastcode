@@ -17,9 +17,9 @@ import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
-  ContentSuiteTags.ALBUM + ' - SU Tests',
+  ContentSuiteTags.ALBUM_CREATION + ' - SU Tests',
   {
-    tag: [ContentSuiteTags.ALBUM],
+    tag: [ContentSuiteTags.ALBUM_CREATION],
   },
   () => {
     let albumCreationPage: AlbumCreationPage;
@@ -67,7 +67,7 @@ test.describe(
     test(
       'Album Content Add attach file with all the Mandatory fields by Standard user',
       {
-        tag: [TestPriority.P2, TestGroupType.SMOKE, ContentFeatureTags.ALBUM_ATTACHMENTS],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION],
       },
       async ({ page, loginAs }) => {
         tagTest(test.info(), {

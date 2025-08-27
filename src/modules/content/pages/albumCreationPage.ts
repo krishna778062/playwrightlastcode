@@ -35,46 +35,24 @@ export interface IAlbumCreationActions {
 export interface IAlbumCreationAssertions {}
 
 export class AlbumCreationPage extends BasePage implements IAlbumCreationActions, IAlbumCreationAssertions {
-  // Readonly locators
-  readonly imageCaptionInputBox = this.page.getByPlaceholder('Add image caption here');
+  // Readonly locators - only used ones
   readonly uploadedCoverImagePreviewContainer = this.page.locator("[class*='Banner-imageContainer']");
-  readonly uploadedCoverImagePreviewImage = this.uploadedCoverImagePreviewContainer.locator('img');
   readonly publishButton = this.page.getByRole('button', { name: 'Publish' });
-  readonly skipStepButton = this.page.locator('button', { hasText: 'Skip this step' });
   readonly titleInput = this.page.locator("textarea[placeholder='Album title']");
   readonly albumDescriptionInput = this.page.locator("div[aria-label='Album description']");
   readonly videoUrlInput = this.page.locator('input[placeholder="Paste a video URL"]');
-  readonly videoUrlPopupInput = this.page.locator('[data-testid="video-url-popup-input"]');
   readonly videoUploadComplete = this.page.locator('div[class*="AlbumSquare-module-videoIndicator"]');
   readonly openAlbumCheckbox = this.page.locator('label[for="isOpenToSubmissions"]');
   readonly topicInput = this.page.locator('input[id="listOfTopics"]');
-  readonly albumImageItem = this.page.locator('[data-testid="album-image-item"]');
-  readonly makeCoverButton = this.page.locator('[data-testid="make-cover-button"]');
-  readonly sendFeedbackTab = this.page.locator('[data-testid="send-feedback-tab"]');
-  readonly closeModalButton = this.page.locator('[data-testid="close-modal-button"]');
-  readonly optionMenuDropdown = this.page.locator('[data-testid="option-menu-dropdown"]');
+  readonly fileInputGeneral = this.page.locator('input[type="file"]');
+  readonly addFromContainerInput = this.page.locator('div[class="AddFromContainer"] input');
+  readonly addFilesAttachmentsButton = this.page.locator('button:has-text("Add files & attachments")');
+  readonly enterVideoURL = this.page.locator('button', { hasText: 'enter a video URL' });
+  readonly addVideo = this.page.locator('button', { hasText: 'Add video' });
 
   addTopicFromList(topicText: string) {
     return this.page.locator(`#listOfTopics-list >> text=${topicText}`);
   }
-  readonly sendHistoryPopup = this.page.locator('[data-testid="send-history-popup"]');
-  readonly versionHistoryPopup = this.page.locator('[data-testid="version-history-popup"]');
-  readonly fileAttachmentItem = this.page.locator('[data-testid="file-attachment-item"]');
-  readonly coverImageChanged = this.page.locator('[data-testid="cover-image-changed"]');
-  readonly scheduleToast = this.page.locator('[data-testid="schedule-toast"]');
-  readonly fileInputGeneral = this.page.locator('input[type="file"]');
-  readonly fileInputAttachment = this.page.locator('input[type="file"][accept*="*"]');
-  readonly addFromContainerInput = this.page.locator('div[class="AddFromContainer"] input');
-  readonly addFilesAttachmentsButton = this.page.locator('button:has-text("Add files & attachments")');
-  readonly deleteButton = this.page.locator('button:has-text("Delete")');
-  readonly enterVideoUrlButton = this.page.locator('button:has-text("enter a video URL")');
-  readonly enterVideoURL = this.page.locator('button', { hasText: 'enter a video URL' });
-  readonly addVideoButton = this.page.locator('button:has-text("Add video")');
-  readonly addVideo = this.page.locator('button', { hasText: 'Add video' });
-  readonly saveButton = this.page.locator('button:has-text("Save")');
-  readonly versionHistoryButton = this.page.locator('button:has-text("Version history")');
-  readonly unpublishButton = this.page.locator('button:has-text("Unpublish")');
-  readonly scheduleButton = this.page.locator('button:has-text("Schedule")');
 
   // Page components
   readonly coverImageUploader: AttachementUploaderComponent;

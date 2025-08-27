@@ -61,7 +61,7 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
     return await test.step(`Adding new site using API`, async () => {
       const randomNum = Math.floor(Math.random() * 1000000 + 1);
       const siteName = `AutomateUI_Test_${randomNum}`;
-      const _categoryObj = await this.getCategoryId(overrides.category?.name || 'default');
+      const categoryObj = await this.getCategoryId(overrides.category?.name || 'default');
 
       const payload: SiteCreationPayload = {
         ...defaultSitePayload,
