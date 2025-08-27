@@ -61,7 +61,7 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
     return await test.step(`Adding new site using API`, async () => {
       const randomNum = Math.floor(Math.random() * 1000000 + 1);
       const siteName = `AutomateUI_Test_${randomNum}`;
-      const categoryObj = await this.getCategoryId(overrides.category?.name || 'default');
+      const _categoryObj = await this.getCategoryId(overrides.category?.name || 'default');
 
       const payload: SiteCreationPayload = {
         ...defaultSitePayload,
@@ -158,5 +158,37 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       fileId: file.id,
       authorName: file.owner.name,
     };
+  }
+
+  /**
+   * Searches for a video file by name within a specific site and retrieves its file ID and author information.
+   * Uses the intranet file search API with retry logic to handle potential delays.
+   *
+   * @param siteId - The ID of the site to search within
+   * @param fileName - The name of the video file to search for
+   * @returns Promise resolving to an object containing the file ID and author name
+   * @throws Will throw an error if the file is not found or API request fails
+   */
+  async getVideoFileIdFromSearch(siteId: string, fileName: string): Promise<{ fileId: string; authorName: string }> {
+    let file: any;
+    await test.step(`Fetching video file id using search API for site: ${siteId} and file name: ${fileName}`, async () => {
+      await expect(async () => {
+        const response = await this.post(API_ENDPOINTS.search.intranetFile, {
+          data: {
+            q: fileName,
+            site: siteId,
+            includeImages: true,
+          },
+        });
+        const json = await response.json();
+        console.log('Full search API response:', JSON.stringify(json, null, 2));
+        file = json.result.listOfItems.find((item: any) => item.title === fileName);
+        expect(file).toBeDefined();
+      }).toPass({
+        intervals: [5_000, 10_000, 20_000, 40_000],
+        timeout: 60_000,
+      });
+    });
+    return { fileId: file.fileId, authorName: file.owner.name };
   }
 }

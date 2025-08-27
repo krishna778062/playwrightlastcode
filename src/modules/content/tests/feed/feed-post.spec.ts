@@ -17,7 +17,7 @@ test.describe(
   },
   () => {
     let feedPage: FeedPage;
-    let createdPostText: string;
+    let _createdPostText: string;
     let createdPostId: string = '';
 
     test.beforeEach(async ({ page, loginAs }) => {

@@ -3,6 +3,7 @@ export enum ContentSuiteTags {
   PAGE_CREATION = '@page-creation',
   CONTENT_UPLOAD = '@content-upload',
   ALBUM = '@album',
+  SITE_DASHBOARD = '@site-dashboard',
   SITE_CREATION = '@site-creation',
 }
 

@@ -2,6 +2,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { ContentType } from '@/src/core/constants/contentTypes';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { EVENT_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
@@ -13,24 +14,45 @@ test.describe(
   },
   () => {
     const testData = EVENT_SEARCH_TEST_DATA;
+    let siteId: string;
+    let newSiteName: string;
+    let contentId: string;
+    let eventName: string;
+    let authorName: string;
+
+    test.beforeEach(
+      `Setting up the test environment for event search by creating site and event content`,
+      async ({ contentManagementHelper }) => {
+        const eventDetails = await contentManagementHelper.createSiteAndEvent({
+          category: testData.category,
+          contentInfo: {
+            contentType: testData.content,
+          },
+          options: {
+            contentDescription: testData.description,
+            accessType: testData.accessType,
+          },
+        });
+
+        siteId = eventDetails.siteId;
+        newSiteName = eventDetails.siteName;
+        contentId = eventDetails.contentId;
+        eventName = eventDetails.eventName;
+        authorName = eventDetails.authorName;
+        console.log(`Created event "${eventName}" in site "${newSiteName}" with ID: ${siteId}`);
+      }
+    );
 
     test(
       `Verify Content Search results for a new ${testData.content}`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage, contentManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-12462',
           storyId: 'SEN-12298',
         });
-
-        const randomNum = Math.floor(Math.random() * 1000000 + 1);
-        const newSiteName = `AutomateUI_Test_${randomNum}`;
-        const categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
-
-        const { siteId, contentId, eventName, authorName, contentDescription } =
-          await contentManagementHelper.createEvent(newSiteName, categoryObj, { contentType: testData.content });
 
         // 4. UI Search for the event
         const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(eventName, {
@@ -38,10 +60,10 @@ test.describe(
         });
 
         // 5. Verify the event result item's data points
-        await globalSearchResultPage.verifyContentResultItemDataPoints('event', {
+        await globalSearchResultPage.verifyContentResultItemDataPoints(ContentType.Event, {
           name: eventName,
           label: testData.label,
-          description: contentDescription,
+          description: testData.description,
           author: authorName,
           contentType: 'Event',
           contentId,

@@ -1,10 +1,9 @@
 import { Page, test } from '@playwright/test';
 
-import { PromotePageModal } from '../components/promotePageModal';
-
 import { BasePage } from '@/src/core/pages/basePage';
+import { PromotePageModal } from '@/src/modules/content/components/promotePageModal';
 
-export interface IPreviewPageActions {
+export interface IContentPreviewPageActions {
   handlePromotionPageStep: () => Promise<void>;
   openSendFeedbackTab: () => Promise<void>;
   closeFeedbackModal: () => Promise<void>;
@@ -17,15 +16,11 @@ export interface IPreviewPageActions {
   navigateToSiteContentTab: () => Promise<void>;
 }
 
-export interface IPreviewPageAssertions {
-  verifyContentPublishedSuccessfully: (title: string, successMessage: string) => Promise<void>;
-  verifySendHistoryTabPopup: () => Promise<void>;
-  verifyVersionHistoryTabPopup: () => Promise<void>;
-  verifyAlbumUnpublishFunctionality: () => Promise<void>;
-  verifyAlbumDeleteFunctionality: () => Promise<void>;
+export interface IContentPreviewPageAssertions {
+  verifyContentPublishedSuccessfully: (title: string) => Promise<void>;
 }
 
-export class PreviewPage extends BasePage implements IPreviewPageActions, IPreviewPageAssertions {
+export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
   // Additional locators for promotion and verification
   readonly contentTitleHeading = (title: string) => this.page.locator('h1', { hasText: title });
   readonly successMessage = (message: string) =>
@@ -54,16 +49,23 @@ export class PreviewPage extends BasePage implements IPreviewPageActions, IPrevi
     this.promotePageModal = new PromotePageModal(page);
   }
 
+  // Actions
+  get actions(): IContentPreviewPageActions {
+    return this;
+  }
+
+  // Assertions
+  get assertions(): IContentPreviewPageAssertions {
+    return this;
+  }
+
+  /**
+   * Verifies the preview page is loaded
+   */
   async verifyThePageIsLoaded(): Promise<void> {
-    // Empty implementation - preview page doesn't need specific loading verification
-  }
-
-  get actions(): IPreviewPageActions {
-    return this;
-  }
-
-  get assertions(): IPreviewPageAssertions {
-    return this;
+    await test.step('Verify preview page is loaded', async () => {
+      await this.page.waitForLoadState('domcontentloaded');
+    });
   }
 
   /**

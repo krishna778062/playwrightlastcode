@@ -1,14 +1,13 @@
 /**
  * ============================================================
- * FIXED Enhanced PostgreSQL Playwright Reporter
- * With proper connection handling and error recovery
+ * Using direct Client connection instead of Pool for CI scripts
  * ============================================================
  */
 
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
-import { Pool } from 'pg';
+import { Client } from 'pg';
 
 // Load environment variables
 if (!process.env.CI) {
@@ -100,51 +99,31 @@ class ExecutionIdGenerator {
 }
 
 /**
- * Enhanced PostgreSQL Reporter Class
+ * Enhanced PostgreSQL Reporter Class - Using Direct Client Connection
  */
 class PostgresPlaywrightReporter {
   constructor() {
-    this.pool = new Pool({
+    // Use direct Client connection instead of Pool
+    this.client = new Client({
       host: process.env.PG_DB_HOST || 'localhost',
       port: process.env.PG_DB_PORT || 5432,
       database: process.env.PG_DB_NAME || 'qa_automation',
       user: process.env.PG_DB_USER || 'e2e_admin',
       password: process.env.PG_DB_PASSWORD || 'Simpplr@2025',
-
-      // FIXED: Improved connection pool settings
-      max: parseInt(process.env.DB_POOL_MAX) || 3, // Reduced from 5 to 3
-      min: 0, // Changed from 1 to 0 - don't keep idle connections
-      idleTimeoutMillis: 10000, // Reduced from 30s to 10s
-      connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 15000, // Increased from 10s to 15s
-      acquireTimeoutMillis: parseInt(process.env.DB_ACQUIRE_TIMEOUT) || 30000, // Reduced from 60s to 30s
-
-      // FIXED: Add these important settings for connection stability
-      statement_timeout: 30000, // 30 second statement timeout
-      query_timeout: 30000, // 30 second query timeout
-      application_name: 'playwright-reporter',
-
-      // FIXED: Connection retry settings
-      keepAlive: true,
-      keepAliveInitialDelayMillis: 10000,
+      // Optimized settings for short-lived scripts
+      connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 50000, // 50s connection timeout
+      query_timeout: parseInt(process.env.DB_QUERY_TIMEOUT) || 100000, // 100s query timeout
+      statement_timeout: parseInt(process.env.DB_STATEMENT_TIMEOUT) || 120000, // 2min statement timeout
     });
 
     this.executionRunId = ExecutionIdGenerator.generateExecutionId();
-
-    // FIXED: Add connection pool error handlers
-    this.pool.on('error', err => {
-      console.error('❌ Unexpected error on idle client', err);
-    });
-
-    this.pool.on('connect', client => {
-      console.log('📊 New client connected to PostgreSQL');
-    });
-
-    this.pool.on('remove', client => {
-      console.log('📊 Client removed from pool');
-    });
+    this.isConnected = false;
 
     // Enhanced configuration validation
     this.validateConfig();
+
+    // Setup proper cleanup handlers
+    this.setupCleanupHandlers();
   }
 
   validateConfig() {
@@ -160,35 +139,73 @@ class PostgresPlaywrightReporter {
     }
   }
 
+  setupCleanupHandlers() {
+    // Handle process termination gracefully
+    const cleanup = async signal => {
+      console.log(`\n🛑 Received ${signal}, cleaning up database connection...`);
+      await this.disconnect();
+      process.exit(0);
+    };
+
+    process.on('SIGINT', cleanup);
+    process.on('SIGTERM', cleanup);
+    process.on('SIGUSR1', cleanup);
+    process.on('SIGUSR2', cleanup);
+
+    // Handle uncaught exceptions
+    process.on('uncaughtException', async error => {
+      console.error('🚨 Uncaught Exception:', error);
+      await this.disconnect();
+      process.exit(1);
+    });
+
+    process.on('unhandledRejection', async (reason, promise) => {
+      console.error('🚨 Unhandled Rejection at:', promise, 'reason:', reason);
+      await this.disconnect();
+      process.exit(1);
+    });
+  }
+
   async connect() {
-    // FIXED: Test the connection pool
+    if (this.isConnected) {
+      console.log('📊 Database client already connected');
+      return;
+    }
+
     try {
-      const client = await this.pool.connect();
-      await client.query('SELECT NOW()');
-      client.release();
-      console.log('📊 PostgreSQL connection pool initialized and tested');
+      console.log('📊 Connecting to PostgreSQL database...');
+      await this.client.connect();
+      this.isConnected = true;
+
+      // Test the connection
+      const result = await this.client.query('SELECT NOW() as current_time');
+      console.log(`✅ Database connected successfully at ${result.rows[0].current_time}`);
+
+      // Log connection info (without sensitive details)
+      console.log(`🔗 Connected to: ${process.env.PG_DB_HOST}:${process.env.PG_DB_PORT}/${process.env.PG_DB_NAME}`);
     } catch (error) {
-      console.error('❌ Failed to test database connection:', error.message);
+      console.error('❌ Failed to connect to database:', error.message);
+      console.error('🔍 Connection details:', {
+        host: process.env.PG_DB_HOST,
+        port: process.env.PG_DB_PORT,
+        database: process.env.PG_DB_NAME,
+        user: process.env.PG_DB_USER,
+        ssl: process.env.NODE_ENV === 'production',
+      });
       throw error;
     }
   }
 
   async disconnect() {
-    try {
-      // FIXED: Graceful shutdown with timeout
-      console.log('📊 Closing connection pool...');
-
-      // Set a timeout for pool closure
-      const closePromise = this.pool.end();
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Pool close timeout')), 10000);
-      });
-
-      await Promise.race([closePromise, timeoutPromise]);
-      console.log('📊 Connection pool closed successfully');
-    } catch (error) {
-      console.error('⚠️ Error closing connection pool:', error.message);
-      // Don't throw - we're shutting down anyway
+    if (this.isConnected && this.client) {
+      try {
+        console.log('📊 Closing database connection...');
+        await this.client.end();
+        this.isConnected = false;
+        console.log('✅ Database connection closed');
+      } catch (error) {
+        console.error('⚠️ Error closing database connection:', error.message);
+      }
     }
   }
 
@@ -261,18 +278,19 @@ class PostgresPlaywrightReporter {
       }
     }
 
+    // SQL with all columns including annotations
     const insertSQL = `
       INSERT INTO test_executions (
-        execution_run_id, playwright_test_id, project_name, test_title, suite_name, 
+        execution_run_id, playwright_test_id, project_name, test_title, suite_name,
         spec_file_name, tags, zephyr_id, zephyr_url, story_id, story_url, test_description,
-        module_name, team_name, priority, test_type, status, retry_count, is_flaky, 
-        duration_ms, error_type, error_message, error_stack, environment, branch_name, 
-        git_commit_sha, git_commit_message, is_regression_run, github_action_id, 
-        github_run_number, github_run_attempt, triggered_by, pr_number, test_start_time, 
+        module_name, team_name, priority, test_type, status, retry_count, is_flaky,
+        duration_ms, error_type, error_message, error_stack, environment, branch_name,
+        git_commit_sha, git_commit_message, is_regression_run, github_action_id,
+        github_run_number, github_run_attempt, triggered_by, pr_number, test_start_time,
         test_end_time, suite_start_time, report_url, error_list, step_titles, annotations
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40)
-      ON CONFLICT (execution_run_id, playwright_test_id, retry_count) 
-      DO UPDATE SET 
+      ON CONFLICT (execution_run_id, playwright_test_id, retry_count)
+      DO UPDATE SET
         test_end_time = EXCLUDED.test_end_time,
         duration_ms = EXCLUDED.duration_ms,
         status = EXCLUDED.status,
@@ -285,102 +303,79 @@ class PostgresPlaywrightReporter {
         annotations = EXCLUDED.annotations
     `;
 
-    // FIXED: Reduced batch size and improved error handling
-    const batchSize = 25; // Reduced from 50 to 25
+    // Process in smaller batches with transaction per batch
+    const batchSize = 25; // Reduced batch size for better error handling
     let processedCount = 0;
-    const maxRetries = 3;
 
     for (let i = 0; i < testExecutions.length; i += batchSize) {
       const batch = testExecutions.slice(i, i + batchSize);
-      let retryCount = 0;
-      let success = false;
+      const batchNumber = Math.floor(i / batchSize) + 1;
+      const totalBatches = Math.ceil(testExecutions.length / batchSize);
 
-      while (retryCount < maxRetries && !success) {
-        let client = null;
+      try {
+        console.log(`🔄 Processing batch ${batchNumber}/${totalBatches} (${batch.length} records)...`);
 
+        // Start transaction
+        await this.client.query('BEGIN');
+
+        // Process the batch
+        for (const execution of batch) {
+          await this.client.query(insertSQL, execution);
+        }
+
+        // Commit transaction
+        await this.client.query('COMMIT');
+
+        processedCount += batch.length;
+        console.log(
+          `✅ Batch ${batchNumber}/${totalBatches} completed: ${processedCount}/${testExecutions.length} records`
+        );
+
+        // Small delay between batches to reduce database load
+        if (batchNumber < totalBatches) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      } catch (error) {
+        // Rollback on error
         try {
-          // FIXED: Get client with timeout and better error handling
-          client = await Promise.race([
-            this.pool.connect(),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Client acquire timeout')), 15000)),
-          ]);
+          await this.client.query('ROLLBACK');
+        } catch (rollbackError) {
+          console.error('❌ Rollback failed:', rollbackError.message);
+        }
 
-          // FIXED: Set client-specific timeouts
-          await client.query('SET statement_timeout = 30000');
-          await client.query('SET lock_timeout = 10000');
+        console.error(`❌ Batch ${batchNumber}/${totalBatches} failed:`, error.message);
+        console.error('❌ Full error:', error);
 
-          await client.query('BEGIN');
+        // Debug: Show problematic data
+        if (batch.length > 0) {
+          console.log('🔍 Failed batch sample data:', {
+            execution_run_id: batch[0][0],
+            test_title: batch[0][3]?.substring(0, 50) + '...',
+            branch_name: batch[0][24],
+            environment: batch[0][23],
+            module_name: batch[0][12],
+            team_name: batch[0][13],
+          });
+        }
 
-          // Process the batch with individual error handling
-          for (const [execIndex, execution] of batch.entries()) {
-            try {
-              await client.query(insertSQL, execution);
-            } catch (execError) {
-              console.error(`❌ Failed to insert execution ${i + execIndex + 1}:`, {
-                error: execError.message,
-                execution_run_id: execution[0],
-                test_title: execution[3]?.substring(0, 50) + '...',
-                retry_count: execution[17],
-              });
-
-              // FIXED: Continue with other executions instead of failing entire batch
-              // Log the error but don't throw - we'll handle it in the catch block
-              throw execError;
-            }
-          }
-
-          await client.query('COMMIT');
-          processedCount += batch.length;
-          success = true;
-
-          console.log(
-            `✅ Processed batch ${Math.floor(i / batchSize) + 1}: ${processedCount}/${testExecutions.length} records`
-          );
-        } catch (error) {
-          if (client) {
-            try {
-              await client.query('ROLLBACK');
-            } catch (rollbackError) {
-              console.error('❌ Rollback failed:', rollbackError.message);
-            }
-          }
-
-          retryCount++;
-          console.error(`❌ Batch ${Math.floor(i / batchSize) + 1} attempt ${retryCount} failed:`, error.message);
-
-          if (retryCount < maxRetries) {
-            const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 5000); // Exponential backoff, max 5s
-            console.log(`⏳ Retrying in ${delay}ms...`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-          } else {
-            console.error(`❌ Batch failed after ${maxRetries} attempts`);
-
-            // FIXED: Try to process individual records
-            console.log('🔄 Attempting to process records individually...');
-            await this.processBatchIndividually(batch, insertSQL, i);
-            processedCount += batch.length; // Assume some success
-          }
-        } finally {
-          // FIXED: Always release the client
-          if (client) {
-            try {
-              client.release();
-            } catch (releaseError) {
-              console.error('⚠️ Error releasing client:', releaseError.message);
-            }
-          }
+        // For CI environments, we might want to continue with other batches
+        if (process.env.CI === 'true' && process.env.CONTINUE_ON_DB_ERROR === 'true') {
+          console.warn(`⚠️ Continuing with next batch due to CI configuration...`);
+          continue;
+        } else {
+          throw error;
         }
       }
     }
 
-    console.log(`🎉 Successfully processed ${processedCount} enhanced test execution records`);
+    console.log(`🎉 Successfully inserted ${processedCount} enhanced test execution records`);
 
     // Log statistics
-    const retryCount = testExecutions.filter(exec => exec[17] > 0).length;
-    const withSteps = testExecutions.filter(exec => exec[38] && exec[38].length > 0).length;
-    const withErrors = testExecutions.filter(exec => exec[37] !== null).length;
-    const withReports = testExecutions.filter(exec => exec[36] !== null).length;
-    const withAnnotations = testExecutions.filter(exec => exec[39] !== null).length;
+    const retryCount = testExecutions.filter(exec => exec[17] > 0).length; // retry_count > 0
+    const withSteps = testExecutions.filter(exec => exec[38] && exec[38].length > 0).length; // step_titles
+    const withErrors = testExecutions.filter(exec => exec[37] !== null).length; // error_list
+    const withReports = testExecutions.filter(exec => exec[36] !== null).length; // report_url
+    const withAnnotations = testExecutions.filter(exec => exec[39] !== null).length; // annotations
 
     console.log(`📈 Enhancement stats:`);
     console.log(`   Retry attempts: ${retryCount}`);
@@ -390,32 +385,7 @@ class PostgresPlaywrightReporter {
     console.log(`   Tests with annotations: ${withAnnotations}`);
   }
 
-  // FIXED: New method to handle individual record processing as fallback
-  async processBatchIndividually(batch, insertSQL, batchStartIndex) {
-    let successCount = 0;
-
-    for (const [execIndex, execution] of batch.entries()) {
-      let client = null;
-
-      try {
-        client = await this.pool.connect();
-        await client.query(insertSQL, execution);
-        successCount++;
-      } catch (error) {
-        console.error(`❌ Individual record ${batchStartIndex + execIndex + 1} failed:`, {
-          error: error.message,
-          test_title: execution[3]?.substring(0, 30) + '...',
-        });
-      } finally {
-        if (client) {
-          client.release();
-        }
-      }
-    }
-
-    console.log(`📊 Individual processing: ${successCount}/${batch.length} records succeeded`);
-  }
-
+  // [All the other methods remain the same as they're not connection-related]
   collectTestExecutions(suites, testExecutions, suiteStartTime) {
     for (const suite of suites || []) {
       for (const spec of suite.specs || []) {
@@ -436,7 +406,6 @@ class PostgresPlaywrightReporter {
           }
         }
       }
-
       this.collectTestExecutions(suite.suites, testExecutions, suiteStartTime);
     }
   }
@@ -445,11 +414,9 @@ class PostgresPlaywrightReporter {
     if (results.length <= 1) {
       return false;
     }
-
     const statuses = results.map(r => r.status);
     const hasPass = statuses.includes('passed');
     const hasFail = statuses.includes('failed');
-
     return hasPass && hasFail;
   }
 
@@ -514,10 +481,7 @@ class PostgresPlaywrightReporter {
     ];
   }
 
-  // ========================================
-  // DATA PROCESSING HELPERS (unchanged)
-  // ========================================
-
+  // Helper methods (keeping existing implementation)
   safeParseInt(value) {
     if (!value) return null;
     const parsed = parseInt(value);
@@ -526,11 +490,9 @@ class PostgresPlaywrightReporter {
 
   generateReportUrl(testId) {
     const reportPath = process.env.REPORT_PATH || '';
-
     if (reportPath.startsWith('http://') || reportPath.startsWith('https://')) {
       return reportPath;
     }
-
     const fullUrl = `${reportPath}/#?testId=${testId}`;
     return fullUrl;
   }
@@ -578,12 +540,10 @@ class PostgresPlaywrightReporter {
       if (step.title) {
         titles.push(step.title);
       }
-
       if (step.steps && step.steps.length > 0) {
         this.extractStepTitles(step.steps, titles);
       }
     }
-
     return titles.length > 0 ? titles : null;
   }
 
@@ -607,7 +567,6 @@ class PostgresPlaywrightReporter {
             processed.url = annotation.description;
           }
           break;
-
         case 'description':
           if (annotation.description && annotation.description.length > 500) {
             processed.truncated = true;
@@ -615,20 +574,17 @@ class PostgresPlaywrightReporter {
             processed.description = annotation.description.substring(0, 500) + '...';
           }
           break;
-
         case 'priority':
           if (annotation.description && /^P[0-4]$/i.test(annotation.description)) {
             processed.priority_level = annotation.description.toUpperCase();
           }
           break;
-
         case 'tag':
         case 'tags':
           if (annotation.description) {
             processed.tag_value = annotation.description;
           }
           break;
-
         default:
           break;
       }
@@ -655,11 +611,9 @@ class PostgresPlaywrightReporter {
     if (!tags || !Array.isArray(tags)) {
       return null;
     }
-
     const cleanTags = [...new Set(tags)]
       .filter(tag => tag && typeof tag === 'string' && tag.trim())
       .map(tag => tag.trim());
-
     return cleanTags.length > 0 ? cleanTags : null;
   }
 
@@ -702,13 +656,11 @@ class PostgresPlaywrightReporter {
           const zephyrMatch = annotation.description?.match(/browse\/([A-Z]+-\d+)/);
           result.zephyrId = zephyrMatch ? zephyrMatch[1] : null;
           break;
-
         case 'storyId':
           result.storyUrl = annotation.description;
           const storyMatch = annotation.description?.match(/browse\/([A-Z]+-\d+)/);
           result.storyId = storyMatch ? storyMatch[1] : null;
           break;
-
         case 'description':
           result.description = annotation.description?.substring(0, 1000);
           break;
@@ -747,7 +699,6 @@ class PostgresPlaywrightReporter {
 
   categorizeError(errorMessage) {
     if (!errorMessage) return null;
-
     const message = errorMessage.toLowerCase();
 
     if (message.includes('timeout') || message.includes('timed out')) return 'timeout';
@@ -778,7 +729,6 @@ class PostgresPlaywrightReporter {
         .update(`${spec.file || 'unknown'}-${spec.title || 'unknown'}`)
         .digest('hex')
         .substring(0, 8);
-
       return `fallback-${hash}`;
     } catch (error) {
       return `fallback-${Date.now().toString(36)}`;
@@ -787,12 +737,12 @@ class PostgresPlaywrightReporter {
 }
 
 // ============================================================
-// MAIN EXECUTION WITH IMPROVED ERROR HANDLING
+// MAIN EXECUTION WITH  ERROR HANDLING
 // ============================================================
 (async function () {
   const reportDir = process.env.REPORT_DIR || './test-results';
 
-  console.log('\n🚀 Starting Enhanced PostgreSQL Playwright Reporter');
+  console.log('\n🚀 Starting PostgreSQL Playwright Reporter (Client Mode)');
   console.log('='.repeat(60));
 
   // Find the JSON report file
@@ -815,50 +765,68 @@ class PostgresPlaywrightReporter {
   const reportPath = path.join(reportDir, reportFile);
   console.log(`📄 Found report file: ${reportFile}`);
 
-  // Create and run the enhanced reporter
+  // Create and run the enhanced reporter with retry logic
   const reporter = new PostgresPlaywrightReporter();
+  const maxRetries = parseInt(process.env.DB_MAX_RETRIES) || 3;
+  const retryDelayMs = parseInt(process.env.DB_RETRY_DELAY) || 5000;
 
-  // FIXED: Add graceful shutdown handlers
-  process.on('SIGINT', async () => {
-    console.log('\n⚠️ Received SIGINT, shutting down gracefully...');
-    await reporter.disconnect();
-    process.exit(0);
-  });
-
-  process.on('SIGTERM', async () => {
-    console.log('\n⚠️ Received SIGTERM, shutting down gracefully...');
-    await reporter.disconnect();
-    process.exit(0);
-  });
-
-  // FIXED: Add unhandled rejection handler
-  process.on('unhandledRejection', async (reason, promise) => {
-    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-    await reporter.disconnect();
-    process.exit(1);
-  });
-
-  try {
-    const startTime = Date.now();
-    await reporter.processReport(reportPath);
-    const endTime = Date.now();
-
-    console.log('\n🎉 Enhanced PostgreSQL reporting completed successfully!');
-    console.log(`⏱️  Processing time: ${((endTime - startTime) / 1000).toFixed(2)}s`);
-    console.log('='.repeat(60));
-  } catch (error) {
-    console.error('\n❌ Enhanced PostgreSQL reporting failed!');
-    console.error('Error details:', error.message);
-    console.error('Stack trace:', error.stack);
-    console.error('='.repeat(60));
-
-    // FIXED: Ensure cleanup even on error
+  let lastError;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      await reporter.disconnect();
-    } catch (disconnectError) {
-      console.error('⚠️ Error during cleanup:', disconnectError.message);
-    }
+      console.log(`\n🔄 Attempt ${attempt}/${maxRetries} to process report...`);
+      const startTime = Date.now();
 
-    process.exit(1);
+      await reporter.processReport(reportPath);
+
+      const endTime = Date.now();
+      console.log('\n🎉 Enhanced PostgreSQL reporting completed successfully!');
+      console.log(`⏱️  Processing time: ${((endTime - startTime) / 1000).toFixed(2)}s`);
+      console.log(`🔄 Completed on attempt: ${attempt}/${maxRetries}`);
+      console.log('='.repeat(60));
+
+      // Success - exit the retry loop
+      process.exit(0);
+    } catch (error) {
+      lastError = error;
+      console.error(`\n❌ Attempt ${attempt}/${maxRetries} failed:`, error.message);
+
+      // If this is the last attempt, don't wait
+      if (attempt === maxRetries) {
+        console.error('\n💀 All retry attempts exhausted!');
+        console.error('Final error details:', error);
+        break;
+      }
+
+      // Wait before retrying (with exponential backoff)
+      const delay = retryDelayMs * Math.pow(1.5, attempt - 1);
+      console.log(`⏳ Waiting ${delay}ms before retry attempt ${attempt + 1}...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+
+      // Create a new reporter instance for the retry
+      // This ensures we don't have stale connection state
+      reporter = new PostgresPlaywrightReporter();
+    }
   }
+
+  // If we reach here, all retries failed
+  console.error('\n❌ Enhanced PostgreSQL reporting failed after all retry attempts!');
+  console.error('='.repeat(60));
+
+  // Provide troubleshooting information
+  console.error('\n🔧 Troubleshooting Information:');
+  console.error('   Database Configuration:');
+  console.error(`   - Host: ${process.env.PG_DB_HOST}`);
+  console.error(`   - Port: ${process.env.PG_DB_PORT}`);
+  console.error(`   - Database: ${process.env.PG_DB_NAME}`);
+  console.error(`   - User: ${process.env.PG_DB_USER}`);
+  console.error(`   - Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.error(`   - CI Mode: ${process.env.CI || 'false'}`);
+  console.error('\n   Common Solutions:');
+  console.error('   1. Check database connectivity and credentials');
+  console.error('   2. Verify firewall/security group settings');
+  console.error('   3. Ensure database is accepting connections');
+  console.error('   4. Check if connection limits are exceeded');
+  console.error('   5. Verify SSL settings match database requirements');
+
+  process.exit(1);
 })();
