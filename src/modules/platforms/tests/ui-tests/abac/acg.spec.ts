@@ -249,7 +249,7 @@ test.describe(
           await featureOwnersPage.verifyToastMessage('Feature owners updated successfully');
           await featureOwnersPage.dismissTheToastMessage();
           await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
-          await featureOwnersPage.findAndRemoveUserInEditFO(userNameForUser1);
+          await featureOwnersPage.removeUserFromFeatureOwnersList(userNameForUser1);
           await featureOwnersPage.verifyToastMessage('Feature owners updated successfully');
           await featureOwnersPage.dismissTheToastMessage();
         }
@@ -270,7 +270,7 @@ test.describe(
           await featureOwnersPage.loadPage();
           await featureOwnersPage.searchForFeature(feature);
           await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
-          // Check that user is displayed with App manager tag
+          // Verify that user is displayed with App manager tag
           await featureOwnersPage.verifyFeatureOwnerIsDisplayedWithAppManagerTag(userNameForUser2);
           await appManagerApiClient
             .getUserManagementService()
@@ -278,7 +278,7 @@ test.describe(
           await manageUsersPage.reloadPage();
           await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
           // Check that user is not displayed in the feature onwer list
-          await featureOwnersPage.checkUserPresenceAsFeatureOwner(userNameForUser2);
+          await featureOwnersPage.verifyUserIsNotDisplayedAsFeatureOwner(userNameForUser2);
         }
       );
     }

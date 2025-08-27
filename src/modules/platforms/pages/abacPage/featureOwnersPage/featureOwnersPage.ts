@@ -9,7 +9,6 @@ export class FeatureOwnersPage extends BasePage {
   readonly feature: Locator;
   readonly searchInputBox: Locator;
   readonly clearButtonOnSearchInputBox: Locator;
-  readonly foMenuOptionsButton: Locator;
   readonly foUserCountPopupModal: Locator;
   readonly foUserNamesOnUserCountPopup: Locator;
   readonly foAppManagerTag: Locator;
@@ -20,13 +19,13 @@ export class FeatureOwnersPage extends BasePage {
   readonly editFOTiles: Locator;
   readonly showMoreButtonForEditFO: Locator;
   readonly foCrossButton: Locator;
+  readonly featureOwnerMenuOptionButton: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.FEATURE_OWNERS) {
     super(page, pageUrl);
     this.userCountButton = page.locator("[class*='Cell-module'] button p");
     this.feature = page.locator("[class*='FeatureColumn-module-featureName'] p");
     this.searchInputBox = page.getByPlaceholder('Search…');
-    this.foMenuOptionsButton = page.locator('[aria-haspopup="menu"]');
     this.foUserNamesOnUserCountPopup = page.locator("[class*='Spacing-module'] p a");
     this.foAppManagerTag = page.locator("[class*='AccessControlListItem-module-appManagerContainer'] p");
     this.foUserCountPopupModal = page.locator("[class*='AccessControlListItem-module-listItemContainer']");
@@ -40,6 +39,7 @@ export class FeatureOwnersPage extends BasePage {
       '[class*="AccessControlSelectionItems-module-showMoreButtonContainer"] button'
     );
     this.foCrossButton = page.locator('[aria-label="Remove user"]');
+    this.featureOwnerMenuOptionButton = page.locator('[data-testid*="dataGridRow"]');
   }
 
   // To verify that the feature owners page is loaded
@@ -58,6 +58,7 @@ export class FeatureOwnersPage extends BasePage {
       }
       await this.typeInElement(this.searchInputBox, featureName);
       await this.page.keyboard.press('Enter');
+      // TODO Remove sleep and optimize this more to reduce exeuction time
       await this.sleep(1000);
       await expect(this.userCountButton.first()).toBeVisible();
     });
@@ -89,12 +90,8 @@ export class FeatureOwnersPage extends BasePage {
     options?: { stepInfo?: string; timeout?: number }
   ): Promise<void> {
     await test.step(options?.stepInfo ?? `Click on the Edit button for ${featureName} feature`, async () => {
-      for (let i = 0; i < (await this.feature.count()); i++) {
-        if ((await this.feature.nth(i).textContent()) == featureName) {
-          await this.clickOnElement(this.foMenuOptionsButton.nth(i));
-          break;
-        }
-      }
+      const selectedFeature: Locator = this.featureOwnerMenuOptionButton.filter({ hasText: featureName });
+      await this.clickOnElement(selectedFeature.locator('[aria-label="More"]'));
       if (optionName == 'Edit') {
         try {
           await this.clickOnElementWithCoordinates(this.foOptionButtons.filter({ hasText: optionName }));
@@ -159,7 +156,6 @@ export class FeatureOwnersPage extends BasePage {
         await this.sleep(2000);
         await this.page.keyboard.press('Enter');
       }
-      // await this.clickOnElement(this.doneButtonOnAddFeatureOnwers);
       await this.clickOnButtonWithName('Done');
       await this.clickOnButtonWithName('Update');
     });
@@ -170,60 +166,23 @@ export class FeatureOwnersPage extends BasePage {
    * @param userName - User who need find in visible list of feature owners.
    * @return true if user is found and removed in list of feature owners, otherwise false.
    */
-  async findAndRemoveUserInEditFO(userName: string, options?: { stepInfo?: string; timeout?: number }): Promise<void> {
-    await test.step(options?.stepInfo ?? `Removing ${userName} from feature owners list`, async () => {
-      for (let i = 0; i < (await this.editFOTiles.count()); i++) {
-        if ((await this.editFOTiles.nth(i).locator('p a').textContent()) == userName) {
-          await this.clickOnElement(this.editFOTiles.nth(i).locator('[aria-label="Remove user"]'));
-          await this.clickOnButtonWithName('Update');
-          return;
-        }
-      }
-      if (await this.verifier.isTheElementVisible(this.showMoreButtonForEditFO, { timeout: 2000 })) {
-        await this.clickOnElement(this.showMoreButtonForEditFO);
-        await this.findAndRemoveUserInEditFO(userName, options);
-      }
-    });
-  }
-
-  /**
-   * Verifies whether the given user is added as feature owner.
-   * @param userName - Username of user who need to be checked.
-   */
-  async checkUserPresenceAsFeatureOwner(
+  async removeUserFromFeatureOwnersList(
     userName: string,
     options?: { stepInfo?: string; timeout?: number }
-  ): Promise<boolean> {
-    return await test.step(
-      options?.stepInfo ?? `Check the presence of user with username: ${userName} as feature owner`,
-      async () => {
-        for (let i = 0; i < (await this.editFOTiles.count()); i++) {
-          const userText = await this.editFOTiles.nth(i).locator('p a').textContent();
-          if (userText === userName) {
-            console.log(`User ${userName} found as feature owner`);
-            return true;
-          }
-        }
-        if (await this.showMoreButtonForEditFO.isVisible()) {
-          console.log('User not found in current view, clicking Show More button');
-          await this.clickOnElement(this.showMoreButtonForEditFO);
-          return await this.checkUserPresenceAsFeatureOwner(userName, options);
-        }
-        console.log(`User ${userName} not found as feature owner`);
-        return false;
-      }
-    );
+  ): Promise<void> {
+    await test.step(options?.stepInfo ?? `Removing ${userName} from feature owners list`, async () => {
+      const userToBeRemoved = await this.getFeatureOwnerRecordItem(userName, true);
+      await this.clickOnElement(userToBeRemoved.locator('[aria-label="Remove user"]'));
+      await this.clickOnButtonWithName('Update');
+    });
   }
 
   /**
    * Verifies whether the given feature onwers are displayed with app manager tag.
    * @param userName - Username of user who need to be checked for app manager tag.
    */
-  async verifyFeatureOwnerIsDisplayedWithAppManagerTag(
-    userName: string,
-    options?: { stepInfo?: string; timeout?: number }
-  ): Promise<void> {
-    const featureOwnerRecordItem = await this.getFeatureOwnerRecordItem(userName);
+  async verifyFeatureOwnerIsDisplayedWithAppManagerTag(userName: string): Promise<void> {
+    const featureOwnerRecordItem = await this.getFeatureOwnerRecordItem(userName, true);
     //verify this record has app manager tag
     const appManagerTag = featureOwnerRecordItem.locator(
       "[class*='AccessControlListItem-module-appManagerContainer'] p"
@@ -231,28 +190,47 @@ export class FeatureOwnersPage extends BasePage {
     await expect(appManagerTag).toBeVisible();
   }
 
-  async getFeatureOwnerRecordItem(userName: string): Promise<Locator> {
-    const featureOwnerRecordItem = this.page
+  /**
+   * Gets the locator of feature owner record item having the given username. Doesn't return anything if user is not found.
+   * @param userName - Username of user who need to be checked for feature owner.
+   * @param visiblility - Whether the user record should be visible or not.
+   * @returns The feature owner record item.
+   */
+  async getFeatureOwnerRecordItem(userName: string, visiblility: boolean): Promise<any> {
+    let featureOwnerRecordItem: any = this.page
       .locator("[class*='AccessControlListItem-module-listItemContainer']")
       .filter({ hasText: userName });
-    const isShowMoreButtonVisible = await this.verifier.isTheElementVisible(this.showMoreButtonForEditFO, {
+    let isShowMoreButtonVisible = await this.verifier.isTheElementVisible(this.showMoreButtonForEditFO, {
       timeout: 1000,
     });
-    let isUserVisible = await this.verifier.isTheElementVisible(featureOwnerRecordItem, {
-      timeout: 2000,
-    });
-
+    let isUserVisible = await this.verifier.isTheElementVisible(featureOwnerRecordItem, { timeout: 1000 });
     //iterate until show more button is visible and feature owner record item is not visible
     while (isShowMoreButtonVisible && !isUserVisible) {
       await this.clickOnElement(this.showMoreButtonForEditFO);
       isUserVisible = await this.verifier.isTheElementVisible(featureOwnerRecordItem, {
-        timeout: 2000,
+        timeout: 1000,
+      });
+      isShowMoreButtonVisible = await this.verifier.isTheElementVisible(this.showMoreButtonForEditFO, {
+        timeout: 1000,
       });
       console.log(
-        'Since the user record is not visibel but the show moure button is visible hence clicking on show more button'
+        'Since the user record is not visible but the show moure button is visible hence clicking on show more button'
       );
     }
-    expect(isUserVisible, `expecting user record to be visible`).toBeTruthy();
+    if (visiblility) {
+      expect(isUserVisible, `expecting user record to be visible`).toBeTruthy();
+    } else {
+      expect(isUserVisible, `expecting user record not to be visible`).toBeFalsy();
+      featureOwnerRecordItem = null;
+    }
     return featureOwnerRecordItem;
+  }
+
+  /**
+   * Verifies given user is not displayed as feature owner.
+   * @param userName - Username of user who need to be checked for feature owner.
+   */
+  async verifyUserIsNotDisplayedAsFeatureOwner(userName: string): Promise<void> {
+    await this.getFeatureOwnerRecordItem(userName, false);
   }
 }
