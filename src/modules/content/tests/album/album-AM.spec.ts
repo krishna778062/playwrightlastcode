@@ -68,7 +68,7 @@ test.describe(
         // Generate album data using TestDataGenerator
         const albumCreationOptions = TestDataGenerator.generateAlbum(
           CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
-          'test-attachment.pdf',
+          'sample.docx',
           'https://youtu.be/4vLyqzOr14g',
           true
         );

@@ -10,6 +10,8 @@ import { BaseComponent } from '@/src/core/components/baseComponent';
 export class AddContentModalComponent extends BaseComponent {
   readonly recentlyUsedSitesList: Locator;
   readonly siteToAddPageTo: Locator;
+  readonly siteToAddAlbumTo: Locator;
+  readonly siteToAddEventTo: Locator;
   readonly addSpan: Locator;
   readonly cancelButton: Locator;
 
@@ -34,6 +36,8 @@ export class AddContentModalComponent extends BaseComponent {
 
     this.recentlyUsedSitesList = page.locator("//div[text()='Recently used ']/button");
     this.siteToAddPageTo = page.locator("//*[@id='siteToAddpagetitle']");
+    this.siteToAddAlbumTo = page.locator("//*[@id='siteToAddalbumtitle']");
+    this.siteToAddEventTo = page.locator("//*[@id='siteToAddeventtitle']");
     this.addSpan = page.locator("//span[text()='Add']");
     this.cancelButton = page.getByRole('button', { name: 'Cancel' });
 
@@ -57,10 +61,18 @@ export class AddContentModalComponent extends BaseComponent {
    * Verifies the add content modal is visible
    * It will use the recently used sites list to verify the modal is visible
    */
-  async verifyTheAddContentModalIsVisible() {
+  async verifyTheAddContentModalIsVisible(contentType: ContentType) {
     await test.step('Verify the add content modal is visible', async () => {
       await this.page.waitForLoadState('domcontentloaded');
-      await this.verifier.verifyTheElementIsVisible(this.siteToAddPageTo.first());
+      if (contentType === 'Page') {
+        await this.verifier.verifyTheElementIsVisible(this.siteToAddPageTo.first());
+      } else if (contentType === 'Album') {
+        await this.verifier.verifyTheElementIsVisible(this.siteToAddAlbumTo.first());
+      } else if (contentType === 'Event') {
+        await this.verifier.verifyTheElementIsVisible(this.siteToAddEventTo.first());
+      } else {
+        throw new Error(`Invalid content type: ${contentType}`);
+      }
     });
   }
 
@@ -206,10 +218,10 @@ export class AddContentModalComponent extends BaseComponent {
       case 'page':
         this.clickOnElement(this.pageContentTypeLabel);
         break;
-      case 'Album':
+      case 'album':
         this.clickOnElement(this.albumContentTypeLabel);
         break;
-      case 'Event':
+      case 'event':
         this.clickOnElement(this.eventContentTypeLabel);
         break;
       default:

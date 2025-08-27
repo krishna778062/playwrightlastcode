@@ -36,7 +36,7 @@ test.describe(
     let createdSite: any;
 
     test.beforeEach(async ({ page, loginAs }) => {
-      // Login as end user using loginAs fixture
+      // Login as end user using loginAs
       await loginAs('endUser');
 
       // Create home page instance
@@ -88,7 +88,7 @@ test.describe(
         // Generate album data using TestDataGenerator
         const albumCreationOptions = TestDataGenerator.generateAlbum(
           CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
-          'test-attachment.pdf',
+          'sample.docx',
           'https://youtu.be/4vLyqzOr14g',
           true
         );
@@ -105,11 +105,11 @@ test.describe(
 
         // Verify content was published successfully
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
-          title,
+          albumCreationOptions.title,
           "Created album successfully - it's published"
         );
 
-        console.log(`Created album: ${title} with ID: ${albumId} in site: ${siteId}`);
+        console.log(`Created album: ${albumCreationOptions.title} with ID: ${albumId} in site: ${siteId}`);
       }
     );
   }

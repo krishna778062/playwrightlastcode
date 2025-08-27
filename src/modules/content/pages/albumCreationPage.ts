@@ -151,8 +151,6 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
   }
 
   async publishAlbum(): Promise<Response> {
-    //add pause for debugging
-    await this.page.pause();
     return await test.step(`Publishing album and wait for publish api response`, async () => {
       const publishResponse = await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.publishButton, { delay: 2_000 }),
@@ -164,7 +162,6 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
           timeout: 20_000,
         }
       );
-      await this.page.pause();
       return publishResponse;
     });
   }
@@ -210,7 +207,10 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
         35_000
       );
 
-      const filePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', 'images', fileName);
+      // Determine folder based on file extension
+      const fileExtension = fileName.split('.').pop()?.toLowerCase();
+      const folder = ['docx', 'xlsx', 'pdf'].includes(fileExtension || '') ? 'excel' : 'images';
+      const filePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', folder, fileName);
       await this.addInputFiles(this.addFromContainerInput, filePath);
 
       // Wait for the upload request to complete

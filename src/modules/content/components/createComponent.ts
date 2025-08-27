@@ -46,7 +46,7 @@ export class CreateComponent extends BaseComponent {
       // Select the content type
       await this.selectContentType(contentType);
       const addContentModal = new AddContentModalComponent(this.page);
-      await addContentModal.verifyTheAddContentModalIsVisible();
+      await addContentModal.verifyTheAddContentModalIsVisible(contentType);
       return addContentModal;
     });
   }
