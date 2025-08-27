@@ -9,8 +9,14 @@ import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class AddContentModalComponent extends BaseComponent {
   readonly recentlyUsedSitesList: Locator;
+  readonly siteToAddPageTo: Locator;
   readonly addSpan: Locator;
   readonly cancelButton: Locator;
+
+  //content type locators
+  readonly pageContentTypeLabel: Locator;
+  readonly albumContentTypeLabel: Locator;
+  readonly eventContentTypeLabel: Locator;
 
   //select site dropdown
   readonly selectSiteDropdown: Locator;
@@ -27,8 +33,14 @@ export class AddContentModalComponent extends BaseComponent {
     // Initialize locators - these would need to be updated based on actual DOM structure
 
     this.recentlyUsedSitesList = page.locator("//div[text()='Recently used ']/button");
+    this.siteToAddPageTo = page.locator("//*[@id='siteToAddpagetitle']");
     this.addSpan = page.locator("//span[text()='Add']");
     this.cancelButton = page.getByRole('button', { name: 'Cancel' });
+
+    //content type locators
+    this.pageContentTypeLabel = page.locator("label[for='addContentType_page']");
+    this.albumContentTypeLabel = page.locator("label[for='addContentType_album']");
+    this.eventContentTypeLabel = page.locator("label[for='addContentType_event']");
 
     //select site dropdown
     this.selectSiteDropdown = page.getByPlaceholder('Select a site', { exact: false });
@@ -48,7 +60,7 @@ export class AddContentModalComponent extends BaseComponent {
   async verifyTheAddContentModalIsVisible() {
     await test.step('Verify the add content modal is visible', async () => {
       await this.page.waitForLoadState('domcontentloaded');
-      await this.verifier.verifyTheElementIsVisible(this.recentlyUsedSitesList.first());
+      await this.verifier.verifyTheElementIsVisible(this.siteToAddPageTo.first());
     });
   }
 
@@ -171,8 +183,8 @@ export class AddContentModalComponent extends BaseComponent {
    */
   async completeContentCreationForm(
     contentOption: ContentType,
-    options?: { siteName?: string; templateName?: string; recentlyUsedSiteIndex?: number }
-  ) {
+    options?: { siteName?: string; templateName?: string; recentlyUsedSiteIndex?: number; isFromHomePage?: boolean }
+  ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage> {
     /**
      * First select the content type option
      * Then select the site if provided
@@ -185,9 +197,25 @@ export class AddContentModalComponent extends BaseComponent {
 
     if (options?.siteName) {
       await this.selectSiteToAddContentFromDropdown(options.siteName);
-    } else {
+    } else if (options?.isFromHomePage) {
+      // If from home page, select recently used site
       await this.selectRecentlyUsedSiteByIndex(options?.recentlyUsedSiteIndex || 0);
     }
+    // If from site page, do nothing (already on specific site)
+    switch (contentOption.toLowerCase()) {
+      case 'page':
+        this.clickOnElement(this.pageContentTypeLabel);
+        break;
+      case 'Album':
+        this.clickOnElement(this.albumContentTypeLabel);
+        break;
+      case 'Event':
+        this.clickOnElement(this.eventContentTypeLabel);
+        break;
+      default:
+        throw new Error(`Invalid content type: ${contentOption}`);
+    }
+
     if (options?.templateName) {
       await this.selectTemplateToAddContent(options.templateName);
     }
