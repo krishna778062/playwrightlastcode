@@ -7,6 +7,7 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentType } from '@/src/modules/content/constants/contentType';
+import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
@@ -17,9 +18,9 @@ import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
-  ContentSuiteTags.ALBUM_CREATION + ' - SU Tests',
+  ContentTestSuite.ALBUM + ' - AM Tests',
   {
-    tag: [ContentSuiteTags.ALBUM_CREATION],
+    tag: [ContentTestSuite.ALBUM],
   },
   () => {
     let albumCreationPage: AlbumCreationPage;
@@ -67,7 +68,7 @@ test.describe(
     test(
       'Album Content Add attach file with all the Mandatory fields by Standard user',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
       },
       async ({ page, loginAs }) => {
         tagTest(test.info(), {

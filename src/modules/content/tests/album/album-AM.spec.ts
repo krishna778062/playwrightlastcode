@@ -4,25 +4,23 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentType } from '@/src/modules/content/constants/contentType';
+import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
-import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
-  ContentSuiteTags.ALBUM + ' - AM Tests',
+  ContentTestSuite.ALBUM + ' - AM Tests',
   {
-    tag: [ContentSuiteTags.ALBUM],
+    tag: [ContentSuiteTags.ALBUM_CREATION],
   },
   () => {
     let albumCreationPage: AlbumCreationPage;
     let contentPreviewPage: ContentPreviewPage;
     let siteIdToPublishAlbum: string;
     let publishedAlbumId: string;
-    let createdSite: any;
-    let siteDashboardPage: SiteDashboardPage;
     let manualCleanupNeeded = false;
 
     test.beforeEach(
@@ -52,7 +50,7 @@ test.describe(
     test(
       'Create Album with all the fields populated from home page',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentFeatureTags.ALBUM_CREATION],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
       },
       async ({ appManagerHomePage, appManagersPage }) => {
         tagTest(test.info(), {
@@ -91,9 +89,6 @@ test.describe(
           albumCreationOptions.title,
           "Created album successfully - it's published"
         );
-
-        // Verify success message on album creation page
-        await albumCreationPage.assertions.verifySuccessMessage("Created album successfully - it's published");
 
         console.log(`Created album: ${albumCreationOptions.title} with ID: ${albumId} in site: ${siteId}`);
       }

@@ -5,6 +5,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
+import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
@@ -14,9 +15,9 @@ import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 
 test.describe(
-  ContentSuiteTags.PAGE_CREATION,
+  ContentTestSuite.PAGE + ' - AM Tests',
   {
-    tag: [ContentSuiteTags.PAGE_CREATION],
+    tag: [ContentTestSuite.PAGE],
   },
   () => {
     let pageCreationPage: PageCreationPage;
@@ -51,7 +52,7 @@ test.describe(
     test(
       'Verify admin is able to publish a new page created with cover image from home page',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE, ContentSuiteTags.PAGE_CREATION],
       },
       async ({ appManagerHomePage, appManagersPage }) => {
         tagTest(test.info(), {
@@ -94,7 +95,7 @@ test.describe(
     test(
       'Verify admin is able to publish a new page created with cover image from site dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE, ContentSuiteTags.PAGE_CREATION],
       },
       async ({ appManagerApiClient, siteManagementHelper, appManagersPage }) => {
         tagTest(test.info(), {
@@ -140,8 +141,6 @@ test.describe(
           pageCreationOptions.title,
           "Created page successfully - it's published"
         );
-
-        console.log(`Created page: ${pageCreationOptions.title} with ID: ${pageId} in site: ${siteIdToPublishPage}`);
       }
     );
   }
