@@ -213,7 +213,7 @@ test.describe('Audience Testcases', { tag: [TestSuite.AUDIENCE] }, () => {
       await audiencePage.removeDescriptionAndVerifyAbsence(true);
 
       // Close the Edit modal
-      await audiencePage.clickOnCloseButton({ isEditModal: true });
+      await audiencePage.editCategoryModal.clickCloseButton();
 
       // Note: Cleanup is handled automatically by the afterEach hook
     }
@@ -249,7 +249,7 @@ test.describe('Audience Testcases', { tag: [TestSuite.AUDIENCE] }, () => {
       // Open Edit modal for the second category and attempt duplicate name
       await audiencePage.attemptToSaveEditCategoryWithDuplicateName(secondCategoryName, firstCategoryName);
       await audiencePage.verifyNameAlreadyUsedError();
-      await audiencePage.clickOnCloseButton({ isEditModal: true });
+      await audiencePage.editCategoryModal.clickCloseButton();
 
       // Note: Cleanup is handled automatically by the afterEach hook
     }

@@ -127,9 +127,9 @@ export class AudiencePage extends BasePage {
     });
   }
 
-  // Click on close (X) button at the top right corner of category modal (works for both Create and Edit modals)
+  // Click on close (X) button at the top right corner of category modal (for Create category modal)
   async clickOnCloseButton(options?: { stepInfo?: string; timeout?: number; isEditModal?: boolean }): Promise<void> {
-    await this._getModalComponent(options?.isEditModal ?? false).clickCloseButton();
+    await this.addCategoryModal.clickCloseButton();
   }
 
   // ========== CATEGORY MODAL METHODS ==========
@@ -164,30 +164,30 @@ export class AudiencePage extends BasePage {
 
   // ========== FIELD VALIDATION METHODS ==========
 
-  // Helper method to get the appropriate modal component
-  private _getModalComponent(isEditModal: boolean = false) {
-    return isEditModal ? this.editCategoryModal : this.addCategoryModal;
-  }
-
   // Field validation methods now delegate to modal components using cleaner approach
   async clickAddDescriptionAndVerify(isEditModal: boolean = false): Promise<void> {
-    await this._getModalComponent(isEditModal).clickAddDescriptionAndVerify();
+    const modalComponent = isEditModal ? this.editCategoryModal : this.addCategoryModal;
+    await modalComponent.clickAddDescriptionAndVerify();
   }
 
   async removeDescriptionAndVerifyAbsence(isEditModal: boolean = false): Promise<void> {
-    await this._getModalComponent(isEditModal).removeDescriptionAndVerifyAbsence();
+    const modalComponent = isEditModal ? this.editCategoryModal : this.addCategoryModal;
+    await modalComponent.removeDescriptionAndVerifyAbsence();
   }
 
   async verifyNameFieldMaxLength(isEditModal: boolean = false): Promise<void> {
-    await this._getModalComponent(isEditModal).verifyNameFieldMaxLength();
+    const modalComponent = isEditModal ? this.editCategoryModal : this.addCategoryModal;
+    await modalComponent.verifyNameFieldMaxLength();
   }
 
   async verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(isEditModal: boolean = false): Promise<void> {
-    await this._getModalComponent(isEditModal).verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial();
+    const modalComponent = isEditModal ? this.editCategoryModal : this.addCategoryModal;
+    await modalComponent.verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial();
   }
 
   async verifyDescriptionFieldMaxLength(isEditModal: boolean = false): Promise<void> {
-    await this._getModalComponent(isEditModal).verifyDescriptionFieldMaxLength();
+    const modalComponent = isEditModal ? this.editCategoryModal : this.addCategoryModal;
+    await modalComponent.verifyDescriptionFieldMaxLength();
   }
 
   // ========== ERROR VERIFICATION METHODS ==========
