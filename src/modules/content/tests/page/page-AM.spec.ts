@@ -22,26 +22,36 @@ test.describe(
     let pageCreationPage: PageCreationPage;
     let contentPreviewPage: ContentPreviewPage;
     let siteIdToPublishPage: string;
+    let publishedPageId: string;
     let createdSite: any;
     let siteDashboardPage: SiteDashboardPage;
+    let manualCleanupNeeded = false;
 
     test.beforeEach(
       'Setting up the test environment for page creation by opening page creation page from home page',
       async ({ appManagerHomePage, appManagersPage }) => {
         // Create home page instance and navigate to page creation
         await appManagerHomePage.verifyThePageIsLoaded();
+
+        // Reset cleanup flag for each test
+        manualCleanupNeeded = false;
       }
     );
+
+    test.afterEach(async ({ contentManagementHelper }) => {
+      // Only cleanup manually if needed (for UI-only tests)
+      if (manualCleanupNeeded && publishedPageId && siteIdToPublishPage) {
+        await contentManagementHelper.deleteContent(siteIdToPublishPage, publishedPageId);
+        console.log('Manual cleanup completed for page:', publishedPageId);
+      } else {
+        console.log('No page was published, hence skipping the deletion');
+      }
+    });
 
     test(
       'Verify admin is able to publish a new page created with cover image from home page',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentFeatureTags.COVER_IMAGE,
-          ContentSuiteTags.PAGE_CREATION_HOMEPAGE,
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE],
       },
       async ({ appManagerHomePage, appManagersPage }) => {
         tagTest(test.info(), {
@@ -62,10 +72,14 @@ test.describe(
         );
 
         // Use the new wrapper method to create and publish the page
-        await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+        const { pageId, siteId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+
+        // Store IDs for cleanup
+        publishedPageId = pageId;
+        siteIdToPublishPage = siteId;
+        manualCleanupNeeded = true;
 
         // Initialize preview page and handle the promotion
-
         await contentPreviewPage.actions.handlePromotionPageStep();
 
         // Verify content was published successfully via UI
@@ -73,23 +87,20 @@ test.describe(
           pageCreationOptions.title,
           "Created page successfully - it's published"
         );
+
+        console.log(`Created page: ${pageCreationOptions.title} with ID: ${pageId} in site: ${siteId}`);
       }
     );
     test(
       'Verify admin is able to publish a new page created with cover image from site dashboard',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentFeatureTags.COVER_IMAGE,
-          ContentSuiteTags.PAGE_CREATION_SITEDASHBOARD,
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE],
       },
       async ({ appManagerApiClient, siteManagementHelper, appManagersPage }) => {
         tagTest(test.info(), {
           description: 'Verify admin is able to publish a new page created with cover image from site dashboard',
-          zephyrTestId: 'CONT-XXXX',
-          storyId: 'CONT-XXXX',
+          zephyrTestId: 'CONT-39089',
+          storyId: 'CONT-39089',
         });
         const category = await appManagerApiClient.getSiteManagementService().getCategoryId(SITE_TEST_DATA[0].category);
         createdSite = await siteManagementHelper.createPublicSite({
@@ -116,15 +127,21 @@ test.describe(
         );
 
         // Use the new wrapper method to create and publish the page
-        await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
-        //store the page id (siteIdToPublishPage is already set in beforeEach)
+        const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+
+        // Store page ID for cleanup (siteIdToPublishPage is already set above)
+        publishedPageId = pageId;
+
         // Initialize preview page and handle the promotion
         await contentPreviewPage.actions.handlePromotionPageStep();
+
         // Verify content was published successfully via UI
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           "Created page successfully - it's published"
         );
+
+        console.log(`Created page: ${pageCreationOptions.title} with ID: ${pageId} in site: ${siteIdToPublishPage}`);
       }
     );
   }

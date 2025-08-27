@@ -118,11 +118,21 @@ export class TestDataGenerator {
    * @param overrides Optional properties to override in the generated album
    * @returns An AlbumCreationOptions object with random realistic data
    */
-  static generateAlbum(overrides?: Partial<AlbumCreationOptions>): AlbumCreationOptions {
+  static generateAlbum(
+    fileName: string,
+    attachmentFileName?: string,
+    videoUrl?: string,
+    openAlbum?: boolean,
+    overrides?: Partial<AlbumCreationOptions>
+  ): AlbumCreationOptions {
     const albumOptions: AlbumCreationOptions = {
-      title: `Automated Test Album ${faker.company.name()} - ${faker.commerce.productName()}`,
-      description: `This is an automated test album description ${faker.lorem.paragraph()}`,
-      category: faker.word.noun().toLowerCase(),
+      title: `Automated Test Page ${faker.company.name()} - ${faker.commerce.productName()}`,
+      description: `This is an automated test description ${faker.lorem.paragraph()}`,
+      images: [fileName],
+      videoUrl: videoUrl,
+      attachments: attachmentFileName ? [attachmentFileName] : undefined,
+      openAlbum: openAlbum,
+      topics: [faker.company.name()],
     };
 
     return {
@@ -137,8 +147,17 @@ export class TestDataGenerator {
    * @param overrides Optional properties to override in all generated albums
    * @returns Array of AlbumCreationOptions objects
    */
-  static generateAlbums(count: number, overrides?: Partial<AlbumCreationOptions>): AlbumCreationOptions[] {
-    return Array.from({ length: count }, () => this.generateAlbum(overrides));
+  static generateAlbums(
+    count: number,
+    fileName: string,
+    attachmentFileName?: string,
+    videoUrl?: string,
+    openAlbum?: boolean,
+    overrides?: Partial<AlbumCreationOptions>
+  ): AlbumCreationOptions[] {
+    return Array.from({ length: count }, () =>
+      this.generateAlbum(fileName, attachmentFileName, videoUrl, openAlbum, overrides)
+    );
   }
 
   /**

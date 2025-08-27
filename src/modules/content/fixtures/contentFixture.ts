@@ -3,6 +3,7 @@ import { BrowserContext, Page, test } from '@playwright/test';
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { FeedManagerService } from '@core/api/services/FeedManagerService';
+import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
@@ -29,6 +30,7 @@ export const contentTestFixture = test.extend<
     appManagerHomePage: NewUxHomePage | OldUxHomePage;
     appManagersPage: Page;
     siteManagementHelper: SiteManagementHelper;
+    contentManagementHelper: ContentManagementHelper;
     feedManagerService: FeedManagerService;
     loginAs: (userType: UserType) => Promise<void>;
   },
@@ -92,6 +94,15 @@ export const contentTestFixture = test.extend<
       const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
       await use(siteManagementHelper);
       await siteManagementHelper.cleanup();
+    },
+    { scope: 'test' },
+  ],
+
+  contentManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const contentManagementHelper = new ContentManagementHelper(appManagerApiClient);
+      await use(contentManagementHelper);
+      await contentManagementHelper.cleanup();
     },
     { scope: 'test' },
   ],
