@@ -8,56 +8,33 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 // Page Object Model for the Audience management page with category creation and validation functionality
 export class AudiencePage extends BasePage {
-  // Page-level elements
-  labelAudience!: Locator;
-
-  // Create button and dropdown elements
-  createAudienceButton!: Locator;
-  createDropdown!: Locator;
-  createAudience!: Locator;
-  createCategory!: Locator;
-  createAudienceWithCSV!: Locator;
+  labelAudience: Locator;
+  createAudienceButton: Locator;
+  createDropdown: Locator;
+  createAudience: Locator;
+  createCategory: Locator;
+  createAudienceWithCSV: Locator;
 
   // Legacy category dialog elements - now handled by CategoryModalComponent
   // These are kept for backward compatibility but should be removed eventually
 
   // Error message elements
-  nameAlreadyUsedError!: Locator;
+  nameAlreadyUsedError: Locator;
 
   // Category management elements
-  deleteCategoryOption!: Locator;
-  deleteCategoryButton!: Locator;
-  editCategoryOption!: Locator;
-  editCategoryDialog!: Locator;
-  editCategoryLabel!: Locator;
-  editCategoryModalSaveButton!: Locator;
+  deleteCategoryOption: Locator;
+  deleteCategoryButton: Locator;
+  editCategoryOption: Locator;
+  editCategoryDialog: Locator;
+  editCategoryLabel: Locator;
+  editCategoryModalSaveButton: Locator;
 
   // Modal components
-  addCategoryModal!: CategoryModalComponent;
-  editCategoryModal!: CategoryModalComponent;
+  addCategoryModal: CategoryModalComponent;
+  editCategoryModal: CategoryModalComponent;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.AUDIENCE_PAGE) {
     super(page, pageUrl);
-    this._initializeLocators(page);
-    this._initializeModalComponents(page);
-  }
-
-  // Initialize all page locators
-  private _initializeLocators(page: Page): void {
-    this._initializePageLevelLocators(page);
-    this._initializeCreateButtonLocators(page);
-    // _initializeCategoryDialogLocators removed - now handled by CategoryModalComponent
-    this._initializeErrorMessageLocators(page);
-    this._initializeCategoryManagementLocators(page);
-  }
-
-  // Initialize page-level locators
-  private _initializePageLevelLocators(page: Page): void {
-    this.labelAudience = page.getByTestId('pageContainer-page').locator('header h1').filter({ hasText: 'Audiences' });
-  }
-
-  // Initialize create button and dropdown locators
-  private _initializeCreateButtonLocators(page: Page): void {
     const pageContainer = page.getByTestId('pageContainer-page');
 
     this.createAudienceButton = pageContainer.locator('button:has-text("Create")');
@@ -65,33 +42,18 @@ export class AudiencePage extends BasePage {
     this.createAudience = page.locator('[role="menuitem"]:has-text("Create audience")');
     this.createCategory = page.locator('[role="menuitem"]:has-text("Create category")');
     this.createAudienceWithCSV = page.locator('[role="menuitem"]:has-text("Create audience with CSV")');
-  }
-
-  // Category dialog locators removed - now handled by CategoryModalComponent
-
-  // Initialize error message locators
-  private _initializeErrorMessageLocators(page: Page): void {
-    // Error message locators now handled by CategoryModalComponent
+    this.labelAudience = page.getByTestId('pageContainer-page').locator('header h1').filter({ hasText: 'Audiences' });
     this.nameAlreadyUsedError = page.getByText('The name is already used');
-  }
-
-  // Initialize category management locators
-  private _initializeCategoryManagementLocators(page: Page): void {
     this.deleteCategoryOption = page.getByText('Delete category');
     this.deleteCategoryButton = page.getByRole('button', { name: 'Delete' });
     this.editCategoryOption = page.getByText('Edit category');
     this.editCategoryDialog = page.locator('[role="dialog"]');
     this.editCategoryLabel = page.locator('h2:has-text("Edit category")');
     this.editCategoryModalSaveButton = page.getByRole('button', { name: 'Save' });
-  }
 
-  // Initialize modal components
-  private _initializeModalComponents(page: Page): void {
     this.addCategoryModal = new CategoryModalComponent(page, 'create');
     this.editCategoryModal = new CategoryModalComponent(page, 'edit');
   }
-
-  // ========== PAGE NAVIGATION AND VERIFICATION METHODS ==========
 
   // Verify that the Audience page is loaded by checking if 'Audiences' heading is visible
   async verifyThePageIsLoaded(): Promise<void> {
@@ -104,7 +66,12 @@ export class AudiencePage extends BasePage {
 
   // ========== CREATE FLOW METHODS ==========
 
-  // Click on Create button or dropdown menu option to initiate audience creation flow
+  /**
+   * @description
+   * Click on Create button or dropdown menu option to initiate audience creation flow
+   * @param createType - The type of creation to initiate
+   * @returns void
+   */
   async clickOnCreateButtonToInitiateAudienceCreationFlowFor(
     createType: 'Create audience' | 'Create category' | 'Create audience with CSV'
   ): Promise<void> {

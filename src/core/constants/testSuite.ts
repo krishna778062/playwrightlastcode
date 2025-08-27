@@ -11,4 +11,5 @@ export enum TestSuite {
   APPS_SEARCH = '@apps-search',
   ABAC = '@abac',
   AUDIENCE = '@audience',
+  AUDIENCE_CATEGORY = '@audience-category',
 }

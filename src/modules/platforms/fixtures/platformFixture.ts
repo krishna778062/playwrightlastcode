@@ -5,6 +5,7 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@/src/core/api/factories/apiClientFactory';
+import { AudienceCategoryManagementHelper } from '@/src/core/helpers/audienceCategoryManagementHelper';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
@@ -12,6 +13,7 @@ export const platformTestFixture = test.extend<{
   appManagerHomePage: NewUxHomePage | OldUxHomePage;
   appManagerPage: Page;
   appManagerApiClient: AppManagerApiClient;
+  audienceCategoryManagementHelper: AudienceCategoryManagementHelper;
 }>({
   appManagerHomePage: [
     async ({ page }, use) => {
@@ -43,6 +45,15 @@ export const platformTestFixture = test.extend<{
         baseUrl: getEnvConfig().apiBaseUrl,
       });
       await use(appManagerApiClient);
+    },
+    { scope: 'test' },
+  ],
+
+  audienceCategoryManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const audienceCategoryManagementHelper = new AudienceCategoryManagementHelper(appManagerApiClient);
+      await use(audienceCategoryManagementHelper);
+      await audienceCategoryManagementHelper.cleanup();
     },
     { scope: 'test' },
   ],

@@ -30,11 +30,6 @@ export class CategoryModalComponent extends BaseComponent {
     this.dialogFilter = modalType === 'create' ? 'Create category' : 'Edit category';
     this.submitButtonText = modalType === 'create' ? 'Add' : 'Save';
     this.titleText = modalType === 'create' ? 'Create category' : 'Edit category';
-    this._initializeLocators(page);
-  }
-
-  // Initialize all locators - simple and direct
-  private _initializeLocators(page: Page): void {
     this.categoryDialog = page.locator('[role="dialog"]').filter({ hasText: this.dialogFilter });
 
     this.closeButton = this.categoryDialog.locator('button[aria-label="Close"]');
@@ -53,7 +48,11 @@ export class CategoryModalComponent extends BaseComponent {
     this.nameRequiredError = this.categoryDialog.locator(':text("Name is a required field")');
   }
 
-  // Simple modal verification - no complex logic
+  /**
+   * @description
+   * Verify the category modal elements and validations
+   * @returns void
+   */
   async verifyCategoryModalElements(): Promise<void> {
     await test.step(`Verify ${this.titleText} modal elements and validations`, async () => {
       await this._verifyCategoryModalElements();
@@ -74,7 +73,6 @@ export class CategoryModalComponent extends BaseComponent {
     });
   }
 
-  // Verify all modal elements are visible
   private async _verifyCategoryModalElements(): Promise<void> {
     const elementsToVerify = [
       { element: this.categoryLabel, message: `Verify ${this.titleText} heading is visible` },
@@ -89,15 +87,15 @@ export class CategoryModalComponent extends BaseComponent {
         message: `Verify ${this.submitButtonText} button is visible in ${this.titleText} modal`,
       },
       { element: this.closeButton, message: `Verify Close button is visible in ${this.titleText} modal` },
+      {
+        element: this.categoryTitleDescription,
+        message: `Verify category helper text is visible in ${this.titleText} modal`,
+      },
     ];
 
     for (const { element, message } of elementsToVerify) {
       await this.verifier.verifyTheElementIsVisible(element, { assertionMessage: message });
     }
-
-    await this.verifier.verifyTheElementIsVisible(this.categoryTitleDescription, {
-      assertionMessage: `Verify category helper text is visible in ${this.titleText} modal`,
-    });
   }
 
   // Basic methods - no smart logic
@@ -134,14 +132,7 @@ export class CategoryModalComponent extends BaseComponent {
   // Add description - both Create and Edit modes behave the same for categories without description
   async clickAddDescriptionAndVerify(): Promise<void> {
     await test.step(`Click Add description and verify in ${this.titleText} modal`, async () => {
-      // Check if description field is already visible (might be from previous test steps)
-      const descriptionVisible = await this.verifier.isTheElementVisible(this.descriptionInput, { timeout: 1000 });
-
-      if (!descriptionVisible) {
-        // Description field is hidden, click Add description to show it
-        await this.clickOnElement(this.addDescriptionButton, { stepInfo: 'Click Add description' });
-      }
-
+      await this.clickOnElement(this.addDescriptionButton, { stepInfo: 'Click on Add description button' });
       await this.verifier.verifyTheElementIsVisible(this.descriptionInput, {
         assertionMessage: 'Verify description input field is visible',
       });
@@ -152,35 +143,33 @@ export class CategoryModalComponent extends BaseComponent {
     });
   }
 
-  // Simple remove description - only if delete button is available
+  /**
+   * @description
+   * Remove description and verify absence
+   * @returns void
+   */
   async removeDescriptionAndVerifyAbsence(): Promise<void> {
     await test.step(`Remove description and verify absence in ${this.titleText} modal`, async () => {
-      // In Edit mode, there might not be a delete button if description field is persistent
-      const deleteButtonVisible = await this.verifier.isTheElementVisible(this.deleteDescriptionButton, {
-        timeout: 1000,
+      await this.clickOnElement(this.deleteDescriptionButton, {
+        stepInfo: 'Click Delete description button',
       });
 
-      if (deleteButtonVisible) {
-        await this.clickOnElement(this.deleteDescriptionButton, {
-          stepInfo: 'Click Delete description button',
-        });
+      await this.verifier.verifyTheElementIsNotVisible(this.descriptionInput, {
+        assertionMessage: 'Verify description input field is not visible after deletion',
+        timeout: TIMEOUTS.MEDIUM,
+      });
 
-        await this.verifier.verifyTheElementIsNotVisible(this.descriptionInput, {
-          assertionMessage: 'Verify description input field is not visible after deletion',
-          timeout: TIMEOUTS.MEDIUM,
-        });
-
-        await this.verifier.verifyTheElementIsVisible(this.addDescriptionButton, {
-          assertionMessage: 'Verify Add description button is visible again',
-        });
-      } else {
-        // In Edit mode, just clear the description field if no delete button
-        await this.fillInElement(this.descriptionInput, '');
-      }
+      await this.verifier.verifyTheElementIsVisible(this.addDescriptionButton, {
+        assertionMessage: 'Verify Add description button is visible again',
+      });
     });
   }
 
-  // Field validation methods
+  /**
+   * @description
+   * Verify name and description fields accept alphanumeric and special characters
+   * @returns void
+   */
   async verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(): Promise<void> {
     await test.step(`Verify name and description fields accept alphanumeric and special characters in ${this.titleText} modal`, async () => {
       await this._verifyNameFieldAcceptsInput();
