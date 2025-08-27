@@ -5,15 +5,6 @@ import { PromotePageModal } from '@/src/modules/content/components/promotePageMo
 
 export interface IContentPreviewPageActions {
   handlePromotionPageStep: () => Promise<void>;
-  openSendFeedbackTab: () => Promise<void>;
-  closeFeedbackModal: () => Promise<void>;
-  openVersionHistory: () => Promise<void>;
-  clickOptionMenuDropdown: () => Promise<void>;
-  clickUnpublishButton: () => Promise<void>;
-  clickDeleteButton: () => Promise<void>;
-  confirmDelete: () => Promise<void>;
-  fetchContentTypeDetailsUrl: () => Promise<string>;
-  navigateToSiteContentTab: () => Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -92,84 +83,6 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       await this.verifier.verifyTheElementIsVisible(this.contentTitleHeading(title), {
         assertionMessage: `Content title "${title}" should be visible in heading`,
       });
-    });
-  }
-
-  // Action method implementations
-  async openSendFeedbackTab(): Promise<void> {
-    await this.clickOnElement(this.sendFeedbackTab, {
-      stepInfo: 'Click send feedback tab',
-    });
-  }
-
-  async closeFeedbackModal(): Promise<void> {
-    await this.clickOnElement(this.closeModalButton, {
-      stepInfo: 'Click close modal button',
-    });
-  }
-
-  async openVersionHistory(): Promise<void> {
-    await this.clickOnElement(this.versionHistoryButton, {
-      stepInfo: 'Click version history button',
-    });
-  }
-
-  async clickOptionMenuDropdown(): Promise<void> {
-    await this.clickOnElement(this.optionMenuDropdown, {
-      stepInfo: 'Click option menu dropdown',
-    });
-  }
-
-  async clickUnpublishButton(): Promise<void> {
-    await this.clickOnElement(this.unpublishButton, {
-      stepInfo: 'Click unpublish button',
-    });
-  }
-
-  async clickDeleteButton(): Promise<void> {
-    await this.clickOnElement(this.deleteButton, {
-      stepInfo: 'Click delete button',
-    });
-  }
-
-  async confirmDelete(): Promise<void> {
-    await this.clickOnElement(this.deleteButton, {
-      stepInfo: 'Confirm delete action',
-    });
-  }
-
-  async fetchContentTypeDetailsUrl(): Promise<string> {
-    return this.page.url();
-  }
-
-  async navigateToSiteContentTab(): Promise<void> {
-    await this.clickOnElement(this.siteContentTab, {
-      stepInfo: 'Navigate to site content tab',
-    });
-  }
-
-  // Assertion method implementations
-  async verifySendHistoryTabPopup(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.sendHistoryPopup, {
-      assertionMessage: 'Send history popup should be visible',
-    });
-  }
-
-  async verifyVersionHistoryTabPopup(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.versionHistoryPopup, {
-      assertionMessage: 'Version history popup should be visible',
-    });
-  }
-
-  async verifyAlbumUnpublishFunctionality(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.page.locator('text=Album unpublished successfully'), {
-      assertionMessage: 'Album unpublished success message should be visible',
-    });
-  }
-
-  async verifyAlbumDeleteFunctionality(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.page.locator('text=Album deleted successfully'), {
-      assertionMessage: 'Album deleted success message should be visible',
     });
   }
 }

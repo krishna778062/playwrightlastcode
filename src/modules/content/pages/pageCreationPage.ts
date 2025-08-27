@@ -3,16 +3,14 @@ import { Locator, Page, Response, test } from '@playwright/test';
 import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
 import { BasePage } from '@core/pages/basePage';
 
-import { PageCreationResponse } from '../apis/types/pageCreationResponse';
-import { AddContentModalComponent } from '../components/addContentModal';
-import { AttachementUploaderComponent } from '../components/attachementUploader';
-import { ImageCropperComponent } from '../components/imageCropper';
-import { PageContentType } from '../constants/pageContentType';
-import { CONTENT_TEST_DATA } from '../test-data/content.test-data';
-
-import { SiteDashboardPage } from './siteDashboardPage';
-
 import { FileUtil } from '@/src/core/utils/fileUtil';
+import { PageCreationResponse } from '@/src/modules/content/apis/types/pageCreationResponse';
+import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
+import { AttachementUploaderComponent } from '@/src/modules/content/components/attachementUploader';
+import { ImageCropperComponent } from '@/src/modules/content/components/imageCropper';
+import { PageContentType } from '@/src/modules/content/constants/pageContentType';
+import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
+import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 export interface PageCreationOptions {
   // Required fields

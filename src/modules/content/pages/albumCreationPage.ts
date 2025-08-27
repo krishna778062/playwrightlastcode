@@ -1,12 +1,10 @@
-import { faker } from '@faker-js/faker';
-import { expect, Page, Response, test } from '@playwright/test';
-
-import { AlbumCreationResponse } from '../apis/types/albumCreationResponse';
-import { AttachementUploaderComponent } from '../components/attachementUploader';
-import { ImageCropperComponent } from '../components/imageCropper';
+import { Page, Response, test } from '@playwright/test';
 
 import { BasePage } from '@/src/core/pages/basePage';
 import { FileUtil } from '@/src/core/utils/fileUtil';
+import { AlbumCreationResponse } from '@/src/modules/content/apis/types/albumCreationResponse';
+import { AttachementUploaderComponent } from '@/src/modules/content/components/attachementUploader';
+import { ImageCropperComponent } from '@/src/modules/content/components/imageCropper';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 export interface AlbumCreationOptions {
