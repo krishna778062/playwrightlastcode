@@ -29,11 +29,12 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
       const audiencePage = new AudiencePage(appManagerPage);
       await audiencePage.loadPage();
       await audiencePage.openCreateCategoryModal();
-      await audiencePage.verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial();
-      await audiencePage.verifyNameFieldMaxLength();
-      await audiencePage.verifyDescriptionFieldMaxLength();
-      await audiencePage.clickAddDescriptionAndVerify();
-      await audiencePage.removeDescriptionAndVerifyAbsence();
+      await audiencePage.addCategoryModal.verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial();
+      await audiencePage.addCategoryModal.verifyNameFieldMaxLength();
+      await audiencePage.addCategoryModal.verifyDescriptionFieldMaxLength();
+      // Ensure description field is hidden before testing Add description functionality
+      await audiencePage.addCategoryModal.removeDescriptionAndVerifyAbsence();
+      await audiencePage.addCategoryModal.clickAddDescriptionAndVerify();
       await audiencePage.clickOnCloseButton();
     }
   );
@@ -172,15 +173,15 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
       // Open Edit category modal and verify elements
       await audiencePage.openEditCategoryModal(testCategoryName);
-      await audiencePage.verifyEditCategoryModalElements();
-      await audiencePage.verifyEditCategoryNameFieldValidation();
+      await audiencePage.editCategoryModal.verifyCategoryModalElements();
+      await audiencePage.editCategoryModal.verifyEditCategoryNameFieldValidation();
 
       // Verify field validations similar to Create category modal
-      await audiencePage.verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(true);
-      await audiencePage.verifyNameFieldMaxLength(true);
-      await audiencePage.verifyDescriptionFieldMaxLength(true);
-      await audiencePage.clickAddDescriptionAndVerify(true);
-      await audiencePage.removeDescriptionAndVerifyAbsence(true);
+      await audiencePage.editCategoryModal.verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial();
+      await audiencePage.editCategoryModal.verifyNameFieldMaxLength();
+      await audiencePage.editCategoryModal.verifyDescriptionFieldMaxLength();
+      await audiencePage.editCategoryModal.clickAddDescriptionAndVerify();
+      await audiencePage.editCategoryModal.removeDescriptionAndVerifyAbsence();
 
       // Close the Edit modal
       await audiencePage.editCategoryModal.clickCloseButton();

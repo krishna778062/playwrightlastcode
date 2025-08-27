@@ -95,7 +95,8 @@ export class AudiencePage extends BasePage {
   }
 
   // Click on close (X) button at the top right corner of category modal (for Create category modal)
-  async clickOnCloseButton(options?: { stepInfo?: string; timeout?: number; isEditModal?: boolean }): Promise<void> {
+  // Note: For better SRP, prefer using addCategoryModal.clickCloseButton() or editCategoryModal.clickCloseButton() directly
+  async clickOnCloseButton(): Promise<void> {
     await this.addCategoryModal.clickCloseButton();
   }
 
@@ -112,10 +113,10 @@ export class AudiencePage extends BasePage {
     await this.addCategoryModal.verifyCategoryModalElements();
     // Name field validation is now part of verifyCategoryModalElements()
 
-    if (options?.verifyMaxLength) await this.verifyNameFieldMaxLength();
-    if (options?.verifyAddDescription) await this.clickAddDescriptionAndVerify();
-    if (options?.verifyRemoveDescription) await this.removeDescriptionAndVerifyAbsence();
-    if (options?.closeAfter) await this.clickOnCloseButton();
+    if (options?.verifyMaxLength) await this.addCategoryModal.verifyNameFieldMaxLength();
+    if (options?.verifyAddDescription) await this.addCategoryModal.clickAddDescriptionAndVerify();
+    if (options?.verifyRemoveDescription) await this.addCategoryModal.removeDescriptionAndVerifyAbsence();
+    if (options?.closeAfter) await this.addCategoryModal.clickCloseButton();
   }
 
   // ========== CATEGORY FORM INTERACTION METHODS ==========
@@ -130,32 +131,7 @@ export class AudiencePage extends BasePage {
   }
 
   // ========== FIELD VALIDATION METHODS ==========
-
-  // Field validation methods now delegate to modal components using cleaner approach
-  async clickAddDescriptionAndVerify(isEditModal: boolean = false): Promise<void> {
-    const modalComponent = isEditModal ? this.editCategoryModal : this.addCategoryModal;
-    await modalComponent.clickAddDescriptionAndVerify();
-  }
-
-  async removeDescriptionAndVerifyAbsence(isEditModal: boolean = false): Promise<void> {
-    const modalComponent = isEditModal ? this.editCategoryModal : this.addCategoryModal;
-    await modalComponent.removeDescriptionAndVerifyAbsence();
-  }
-
-  async verifyNameFieldMaxLength(isEditModal: boolean = false): Promise<void> {
-    const modalComponent = isEditModal ? this.editCategoryModal : this.addCategoryModal;
-    await modalComponent.verifyNameFieldMaxLength();
-  }
-
-  async verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(isEditModal: boolean = false): Promise<void> {
-    const modalComponent = isEditModal ? this.editCategoryModal : this.addCategoryModal;
-    await modalComponent.verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial();
-  }
-
-  async verifyDescriptionFieldMaxLength(isEditModal: boolean = false): Promise<void> {
-    const modalComponent = isEditModal ? this.editCategoryModal : this.addCategoryModal;
-    await modalComponent.verifyDescriptionFieldMaxLength();
-  }
+  // Note: Field validation methods removed to improve SRP - use modal components directly
 
   // ========== ERROR VERIFICATION METHODS ==========
 
@@ -171,11 +147,6 @@ export class AudiencePage extends BasePage {
 
   // ========== TOAST MESSAGE METHODS ==========
 
-  // Verify specific toast message is displayed
-  async verifyToastMessage(toastMessage: string, options?: { stepInfo?: string; timeout?: number }): Promise<void> {
-    await super.verifyToastMessage(toastMessage, options);
-  }
-
   // Verify category operation success toast message (created/deleted/updated)
   async verifyCategoryOperationSuccessToast(operation: 'created' | 'deleted' | 'updated'): Promise<void> {
     const toastTextMap = {
@@ -186,7 +157,7 @@ export class AudiencePage extends BasePage {
 
     const toastText = toastTextMap[operation];
     await test.step(`Verify category ${operation} success toast message`, async () => {
-      await this.page.waitForTimeout(1000);
+      // Use Playwright's automatic waiting instead of custom timeout
       const toastMessage = this.toastMessages.filter({ hasText: toastText }).first();
       await expect(toastMessage, `expecting ${toastText} toast message`).toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
@@ -384,12 +355,5 @@ export class AudiencePage extends BasePage {
     });
   }
 
-  // Edit category methods now delegate to modal component
-  async verifyEditCategoryModalElements(): Promise<void> {
-    await this.editCategoryModal.verifyCategoryModalElements();
-  }
-
-  async verifyEditCategoryNameFieldValidation(): Promise<void> {
-    await this.editCategoryModal.verifyEditCategoryNameFieldValidation();
-  }
+  // Note: Edit category modal verification methods removed to improve SRP - use editCategoryModal directly
 }

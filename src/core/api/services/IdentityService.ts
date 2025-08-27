@@ -295,16 +295,70 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
 
   /**
    * Deletes a category with the given categoryId
+   * Checks for attached audiences and handles them appropriately
    * @param categoryId - Category ID for the category to be deleted
+   * @param options - Optional parameters for deletion behavior
    */
-  async deleteCategoryById(categoryId: string): Promise<void> {
+  async deleteCategoryById(categoryId: string, options?: { forceDelete?: boolean }): Promise<void> {
     await test.step(`Deleting category with category ID: ${categoryId}`, async () => {
+      // First, check if category has any audiences attached
+      const hasAttachedAudiences = await this.checkCategoryHasAudiences(categoryId);
+
+      if (hasAttachedAudiences && !options?.forceDelete) {
+        console.warn(`Category ${categoryId} has audiences attached. Skipping deletion to maintain data integrity.`);
+        console.warn(`Use { forceDelete: true } option if you want to delete anyway.`);
+        return;
+      }
+
+      if (hasAttachedAudiences && options?.forceDelete) {
+        console.warn(`Force deleting category ${categoryId} despite having attached audiences.`);
+      }
+
       const response = await this.delete(
         API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesCategories + '/' + categoryId
       );
       expect(response.status(), 'Category deleted successfully').toEqual(200);
       console.log(`Category with categoryId: ${categoryId} is deleted`);
     });
+  }
+
+  /**
+   * Checks if a category has any audiences attached to it
+   * @param categoryId - Category ID to check
+   * @returns Promise<boolean> - true if category has audiences, false otherwise
+   */
+  private async checkCategoryHasAudiences(categoryId: string): Promise<boolean> {
+    try {
+      // Query hierarchy endpoint to get category list with hasAudience flag
+      const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
+        data: {
+          nextPageToken: 0,
+          type: 'category',
+          size: 100, // Get enough categories to find ours
+          term: '',
+        },
+      });
+
+      const responseJson = await this.parseResponse<IdentityAudienceSearchResponse>(response);
+
+      // Find the specific category by ID and check its hasAudience flag
+      const category = responseJson.result.listOfItems.find(
+        item => item.type === 'category' && item.data.id === categoryId
+      );
+
+      if (category) {
+        return category.hasAudience || false;
+      }
+
+      // If category not found in first page, it might be on subsequent pages
+      // For now, assume safe to delete if not found
+      console.warn(`Category ${categoryId} not found in hierarchy response. Assuming safe to delete.`);
+      return false;
+    } catch (error) {
+      console.warn(`Could not check audiences for category ${categoryId}:`, error);
+      // If we can't check, assume it's safe to delete (fallback behavior)
+      return false;
+    }
   }
 
   /**

@@ -1,11 +1,12 @@
 import { expect, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '@/src/core/components/baseComponent';
+import { FIELD_VALIDATION } from '@/src/core/constants/fieldValidation';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
+import { BasePage } from '@/src/core/pages/basePage';
 
 export type CategoryModalType = 'create' | 'edit';
 
-export class CategoryModalComponent extends BaseComponent {
+export class CategoryModalComponent extends BasePage {
   private modalType: CategoryModalType;
   private dialogFilter: string;
   private submitButtonText: string;
@@ -25,7 +26,7 @@ export class CategoryModalComponent extends BaseComponent {
   nameRequiredError!: any;
 
   constructor(page: Page, modalType: CategoryModalType) {
-    super(page);
+    super(page, '');
     this.modalType = modalType;
     this.dialogFilter = modalType === 'create' ? 'Create category' : 'Edit category';
     this.submitButtonText = modalType === 'create' ? 'Add' : 'Save';
@@ -46,6 +47,11 @@ export class CategoryModalComponent extends BaseComponent {
     );
     this.deleteDescriptionButton = this.categoryDialog.getByRole('button', { name: 'Delete' });
     this.nameRequiredError = this.categoryDialog.locator(':text("Name is a required field")');
+  }
+
+  // Components don't have pages to load, so provide a no-op implementation
+  async verifyThePageIsLoaded(): Promise<void> {
+    // No-op for components - they don't have pages to verify
   }
 
   /**
@@ -106,9 +112,7 @@ export class CategoryModalComponent extends BaseComponent {
   }
 
   async addCategoryDescription(description: string): Promise<void> {
-    await this.fillInElement(this.descriptionInput, description, {
-      stepInfo: `Add category description: ${description}`,
-    });
+    await this.addDescription(this.descriptionInput, description, `Add category description: ${description}`);
   }
 
   async submitCategory(): Promise<void> {
@@ -118,21 +122,18 @@ export class CategoryModalComponent extends BaseComponent {
   }
 
   async clickCancelButton(): Promise<void> {
-    await this.clickOnElement(this.cancelButton, {
-      stepInfo: 'Click Cancel button',
-    });
+    await super.clickCancelButton(this.cancelButton, 'Click Cancel button');
   }
 
   async clickCloseButton(): Promise<void> {
-    await this.clickOnElement(this.closeButton, {
-      stepInfo: 'Click Close (X) button',
-    });
+    await super.clickCloseButton(this.closeButton, 'Click Close (X) button');
   }
 
-  // Add description - both Create and Edit modes behave the same for categories without description
+  // Add description - assumes description field is hidden initially
   async clickAddDescriptionAndVerify(): Promise<void> {
     await test.step(`Click Add description and verify in ${this.titleText} modal`, async () => {
-      await this.clickOnElement(this.addDescriptionButton, { stepInfo: 'Click on Add description button' });
+      await this.clickOnElement(this.addDescriptionButton, { stepInfo: 'Click Add description' });
+
       await this.verifier.verifyTheElementIsVisible(this.descriptionInput, {
         assertionMessage: 'Verify description input field is visible',
       });
@@ -165,28 +166,26 @@ export class CategoryModalComponent extends BaseComponent {
     });
   }
 
-  /**
-   * @description
-   * Verify name and description fields accept alphanumeric and special characters
-   * @returns void
-   */
+  // Verify name and description fields accept alphanumeric and special characters
   async verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(): Promise<void> {
     await test.step(`Verify name and description fields accept alphanumeric and special characters in ${this.titleText} modal`, async () => {
-      await this._verifyNameFieldAcceptsInput();
-      await this._verifyDescriptionFieldAcceptsInput();
-    });
-  }
-
-  private async _verifyNameFieldAcceptsInput(): Promise<void> {
-    const testInputs = ['Test123', 'Test@#$', 'Test Space', 'Test-Category_Name'];
-
-    for (const input of testInputs) {
-      await this.fillInElement(this.categoryNameInput, input);
-      const inputValue = await this.categoryNameInput.inputValue();
-      if (inputValue !== input) {
-        throw new Error(`Name field should accept input "${input}" but got "${inputValue}"`);
+      // Test name field
+      const nameTestInput = 'Test123 @#$ with Space and-Category_Name';
+      await this.fillInElement(this.categoryNameInput, nameTestInput);
+      const nameValue = await this.categoryNameInput.inputValue();
+      if (nameValue !== nameTestInput) {
+        throw new Error(`Name field should accept input "${nameTestInput}" but got "${nameValue}"`);
       }
-    }
+
+      // Test description field
+      await this._ensureDescriptionFieldVisible();
+      const descTestInput = 'Description 123 @#$% with spaces and-special_chars';
+      await this.fillInElement(this.descriptionInput, descTestInput);
+      const descValue = await this.descriptionInput.inputValue();
+      if (descValue !== descTestInput) {
+        throw new Error(`Description field should accept input "${descTestInput}" but got "${descValue}"`);
+      }
+    });
   }
 
   // Helper method to ensure description field is visible
@@ -201,27 +200,14 @@ export class CategoryModalComponent extends BaseComponent {
     // If already visible, no action needed
   }
 
-  private async _verifyDescriptionFieldAcceptsInput(): Promise<void> {
-    await this._ensureDescriptionFieldVisible();
-
-    const testInputs = ['Description 123', 'Desc@#$%', 'Description with spaces', 'Desc-with_special-chars'];
-
-    for (const input of testInputs) {
-      await this.fillInElement(this.descriptionInput, input);
-      const inputValue = await this.descriptionInput.inputValue();
-      if (inputValue !== input) {
-        throw new Error(`Description field should accept input "${input}" but got "${inputValue}"`);
-      }
-    }
-  }
-
   async verifyNameFieldMaxLength(): Promise<void> {
     await test.step(`Verify name field max length validation in ${this.titleText} modal`, async () => {
-      const testString = 'A'.repeat(101);
+      const maxLength = FIELD_VALIDATION.MAX_LENGTHS.CATEGORY_NAME;
+      const testString = 'A'.repeat(maxLength + 1); // Try to input more than allowed
       await this.fillInElement(this.categoryNameInput, testString);
 
       const actualValue = await this.categoryNameInput.inputValue();
-      expect(actualValue.length).toBeLessThanOrEqual(100);
+      expect(actualValue.length).toEqual(maxLength);
     });
   }
 
@@ -229,11 +215,12 @@ export class CategoryModalComponent extends BaseComponent {
     await test.step(`Verify description field max length validation in ${this.titleText} modal`, async () => {
       await this._ensureDescriptionFieldVisible();
 
-      const testString = 'B'.repeat(1025);
+      const maxLength = FIELD_VALIDATION.MAX_LENGTHS.CATEGORY_DESCRIPTION;
+      const testString = 'B'.repeat(maxLength + 1); // Try to input more than allowed
       await this.fillInElement(this.descriptionInput, testString);
 
       const actualValue = await this.descriptionInput.inputValue();
-      expect(actualValue.length).toBeLessThanOrEqual(1024);
+      expect(actualValue.length).toEqual(maxLength);
     });
   }
 
