@@ -12,6 +12,7 @@ export const API_ENDPOINTS = {
       delete: (userId: string) => `/v1/identity/accounts/users/${userId}`,
       v1IdentityAccountsUsersUserId: (userId: string) => `/v1/identity/accounts/users/${userId}`,
       v1IdentityAccountsUsersUserIdStatus: (userId: string) => `/v1/identity/accounts/users/${userId}/status`,
+      v1IdentityAccountsUsersList: '/v1/identity/accounts/users/list',
     },
     roles: {
       list: '/v1/identity/accounts/roles/list',

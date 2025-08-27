@@ -13,6 +13,13 @@ import { IdentityService } from './IdentityService';
 export class UserManagementService extends BaseApiClient implements IUserManagementOperations {
   private identityService: IdentityService;
 
+  private defaultSize: number = 16;
+  private defaultName: string = 'full_name';
+  private defaultOrder: string = 'ASC';
+  private defaultTimezoneId: number = 17;
+  private defaultLanguageId: number = 1;
+  private defaultLocaleId: number = 1;
+
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
     this.identityService = new IdentityService(context, baseUrl);
@@ -33,9 +40,9 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
           first_name: user.first_name,
           last_name: user.last_name,
           email: user.email,
-          timezone_id: user.timezone_id || 17,
-          language_id: user.language_id || 1,
-          locale_id: user.locale_id || 1,
+          timezone_id: user.timezone_id || this.defaultTimezoneId,
+          language_id: user.language_id || this.defaultLanguageId,
+          locale_id: user.locale_id || this.defaultLocaleId,
         },
         role_id: roleId,
         silent_upload: false,
@@ -54,16 +61,13 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
   async addUserIfNotAddedAlready(user: User, role: Roles): Promise<void> {
     let data: any;
     let loginIdentifier: any;
-    const defaultTimezoneId: number = 17;
-    const defaultLanguageId: number = 1;
-    const defaultLocaleId: number = 1;
     const roleId = await this.identityService.fetchRoleId(role);
     const personal_info: any = {
       first_name: user.first_name,
       last_name: user.last_name,
-      timezone_id: user.timezone_id || defaultTimezoneId,
-      language_id: user.language_id || defaultLanguageId,
-      locale_id: user.locale_id || defaultLocaleId,
+      timezone_id: user.timezone_id || this.defaultTimezoneId,
+      language_id: user.language_id || this.defaultLanguageId,
+      locale_id: user.locale_id || this.defaultLocaleId,
     };
 
     if (user.email && !user.mobile && !user.emp) {
@@ -147,6 +151,35 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
   }
 
   /**
+   * Waits for the user with the given first name and last name to be added to the system
+   * @param searchTerm - Search value to be used
+   */
+  async waitForUserToBeAddedInIdentity(
+    searchTerm: string,
+    options?: { size: number; name: string; order: string }
+  ): Promise<void> {
+    await test.step(`Wait for user with login identifier ${searchTerm} to be added in identity`, async () => {
+      await expect(async () => {
+        const response = await this.post(API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersList, {
+          data: {
+            size: options?.size || this.defaultSize,
+            sort_by: {
+              name: options?.name || this.defaultName,
+              order: options?.order || this.defaultOrder,
+            },
+            searchTerm: searchTerm,
+          },
+        });
+        const responseJson = await this.parseResponse<IdentityUserSearchResponse>(response);
+        expect(
+          responseJson.result.listOfItems.length,
+          `Expecting user with login identidfier ${searchTerm} to be added`
+        ).toBeGreaterThan(0);
+      }).toPass({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+
+  /**
    * Activates a user by setting their password
    * @param firstName - The first name of the user
    * @param lastName - The last name of the user
@@ -185,8 +218,8 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
         data: {
           size: 100,
           sort_by: {
-            name: options?.name || 'full_name',
-            order: options?.order || 'ASC',
+            name: options?.name || this.defaultName,
+            order: options?.order || this.defaultOrder,
           },
           searchTerm: searchValue,
         },
@@ -234,15 +267,13 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
    */
   async getUserId(loginIdentifier: string, options?: { name: string; order: string }): Promise<string> {
     let result: string = '';
-    const defaultName: string = 'full_name';
-    const defaultOrder: string = 'ASC';
     await test.step(`Getting userId for the user with login identifier ${loginIdentifier}`, async () => {
       const response = await this.post(API_ENDPOINTS.appManagement.users.list, {
         data: {
           size: 100,
           sort_by: {
-            name: options?.name || defaultName,
-            order: options?.order || defaultOrder,
+            name: options?.name || this.defaultName,
+            order: options?.order || this.defaultOrder,
           },
           searchTerm: loginIdentifier,
         },
@@ -271,8 +302,8 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
         data: {
           size: 100,
           sort_by: {
-            name: options?.name || 'full_name',
-            order: options?.order || 'ASC',
+            name: options?.name || this.defaultName,
+            order: options?.order || this.defaultOrder,
           },
           searchTerm: loginIdentifier,
         },

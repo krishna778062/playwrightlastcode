@@ -56,7 +56,9 @@ test.describe(
         .getIdentityService()
         .createAudience(audienceToCreate, categoryId, 'first_name', 'CONTAINS', 'something');
       await appManagerApiClient.getUserManagementService().addUserIfNotAddedAlready(user1, Roles.END_USER);
+      await appManagerApiClient.getUserManagementService().waitForUserToBeAddedInIdentity(loginIdentifier1);
       await appManagerApiClient.getUserManagementService().addUserIfNotAddedAlready(user2, Roles.APPLICATION_MANAGER);
+      await appManagerApiClient.getUserManagementService().waitForUserToBeAddedInIdentity(loginIdentifier2);
       await appManagerApiClient
         .getUserManagementService()
         .updatePrimaryRole(loginIdentifier2, RolesId.APPLICATION_MANAGER, { abac: true });
