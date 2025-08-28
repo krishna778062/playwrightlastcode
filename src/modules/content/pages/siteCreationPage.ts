@@ -116,7 +116,7 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
       const createResponseBody = (await createResponse.json()) as SiteCreationResponse;
 
       // Extract site ID and name from response
-      const siteId = createResponseBody.result.id;
+      const siteId = createResponseBody.result.siteId;
 
       // Return site dashboard page with site details
       return {

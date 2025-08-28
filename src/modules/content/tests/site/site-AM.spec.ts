@@ -62,18 +62,16 @@ test.describe(
 
         // Create and publish the site
         const { siteDashboard, siteId } = await siteCreationPage.actions.addSite(siteCreationOptions);
-
-        // Verify we're on the correct site dashboard page
-        await siteDashboard.assertions.verifyDashboardUrl(siteId);
-
-        await siteDashboard.assertions.verifySiteName(siteCreationOptions.title, 'Created site successfully');
-
         // Store IDs for cleanup
         createdSiteId = siteId;
         createdSiteName = siteCreationOptions.title;
         manualCleanupNeeded = true;
+        // Verify we're on the correct site dashboard page
+        await siteDashboard.assertions.verifyDashboardUrl(createdSiteId);
 
-        console.log(`Created site: ${siteCreationOptions.title} with ID: ${siteId}`);
+        await siteDashboard.assertions.verifySiteName(siteCreationOptions.title, 'Created site successfully');
+
+        console.log(`Created site: ${siteCreationOptions.title} with ID: ${createdSiteId}`);
       }
     );
   }
