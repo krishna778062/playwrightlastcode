@@ -1,6 +1,7 @@
 export enum GlobalSearchSuiteTags {
   GLOBAL_SEARCH = '@global-search',
   ENTERPRISE_SEARCH = '@enterprise-search',
+  EXTERNAL_SEARCH = '@external-search',
   SITE_SEARCH = '@site-search',
   CONTENT_SEARCH = '@content-search',
   LINK_TILE_SEARCH = '@tile-search',

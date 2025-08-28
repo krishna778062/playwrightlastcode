@@ -1,5 +1,7 @@
-import { expect, Locator, Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 import { test } from '@playwright/test';
+
+import { ExternalSearchListComponent } from '../components/externalSearchListComponent';
 
 import { ContentType } from '@/src/core/constants/contentTypes';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
@@ -27,6 +29,7 @@ export class GlobalSearchResultPage extends BasePage {
   readonly feedResultItems: Locator;
   readonly tileButton: Locator;
   readonly appResultContainer: Locator;
+  readonly externalSearchResultItems: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -46,6 +49,7 @@ export class GlobalSearchResultPage extends BasePage {
     this.feedResultItems = this.searchResultListItems.filter({
       has: this.page.getByTestId('i-feedMobile'),
     });
+
     this.tileButton = this.page.getByRole('button', { name: 'Tiles' });
 
     this.eventResultItems = this.searchResultListItems.filter({
@@ -53,6 +57,8 @@ export class GlobalSearchResultPage extends BasePage {
     });
 
     this.appResultContainer = this.page.locator("div[class*='AppItemList_appListTopWrapper']");
+
+    this.externalSearchResultItems = this.page.locator("div[class*='externalSearchBox']");
   }
 
   private getTestIdForFileType(fileType: string): string {
@@ -355,5 +361,15 @@ export class GlobalSearchResultPage extends BasePage {
       has: this.page.locator('h3', { hasText: searchTerm }),
     });
     return new AppContainerComponent(this.page, appResultToLocate);
+  }
+
+  /**
+   * Verifies external search results are displayed
+   */
+  async verifyExternalSearchLinksAreDisplayed(): Promise<ExternalSearchListComponent> {
+    return await test.step('Verifying external search results are displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.externalSearchResultItems, { timeout: 10000 });
+      return new ExternalSearchListComponent(this.page, this.externalSearchResultItems);
+    });
   }
 }

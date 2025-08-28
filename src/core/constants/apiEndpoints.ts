@@ -76,4 +76,7 @@ export const API_ENDPOINTS = {
     intranetFile: '/v1/search/intranet-file',
     enterprise: '/search-ai/v1/enterprise/search',
   },
+  externalSearch: {
+    config: '/v1/account/appConfig/app.integrations.enterprise.search',
+  },
 } as const;
