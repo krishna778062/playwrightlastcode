@@ -15,13 +15,14 @@ import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage
 import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
-import { SiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
+import { SiteCreationPage as ContentSiteCreationPage } from '@/src/modules/content/pages/siteCreationPage';
+import { SiteCreationPage as AbacSiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/globalSearchResultPage';
 
 export interface ICommonHomePageActions {
   searchForTerm: (searchTerm: string, options?: { stepInfo?: string }) => Promise<GlobalSearchResultPage>;
   clickOnGlobalFeed: (options?: { stepInfo?: string }) => Promise<void>;
-  openSiteCreationForm: (options?: { stepInfo?: string }) => Promise<SiteCreationPage>;
+  openSiteCreationForm: (options?: { stepInfo?: string }) => Promise<AbacSiteCreationPage>;
 }
 
 export interface IOldUxHomePageActions extends ICommonHomePageActions {
@@ -30,6 +31,7 @@ export interface IOldUxHomePageActions extends ICommonHomePageActions {
     contentType: ContentType,
     options?: { stepInfo?: string }
   ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
+  openSiteCreationFormForNonAbac: (options?: { stepInfo?: string }) => Promise<ContentSiteCreationPage>;
 }
 
 export interface INewUxHomePageActions extends ICommonHomePageActions {
@@ -39,6 +41,7 @@ export interface INewUxHomePageActions extends ICommonHomePageActions {
     options?: { stepInfo?: string }
   ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
   clickOnFeaturedSitesTab: (options?: { stepInfo?: string }) => Promise<FeaturedSitePage>;
+  openSiteCreationFormForNonAbac: (options?: { stepInfo?: string }) => Promise<ContentSiteCreationPage>;
 }
 
 export abstract class BaseHomePage extends BasePage implements ICommonHomePageActions {
@@ -110,5 +113,5 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
    * @param options.stepInfo - The step info to pass to the test.step method
    * @returns The site creation modal component
    */
-  abstract openSiteCreationForm(options?: { stepInfo?: string }): Promise<SiteCreationPage>;
+  abstract openSiteCreationForm(options?: { stepInfo?: string }): Promise<AbacSiteCreationPage>;
 }

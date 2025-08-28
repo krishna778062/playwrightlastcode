@@ -18,11 +18,13 @@ export interface ISiteDashboardActions {
 
 export interface ISiteDashboardAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
+  verifySiteName: (siteName: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BasePage implements ISiteDashboardActions, ISiteDashboardAssertions {
   readonly addContentButton = this.page.locator("button[title='Add content']");
   readonly manageSiteButton = this.page.locator("button[title='Manage site'], a[href*='/manage']");
+  readonly siteNameHeading = this.page.locator('h1');
   readonly addContentModal: AddContentModalComponent;
 
   constructor(page: Page, siteId: string) {
@@ -111,6 +113,18 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
     await test.step('Verify site dashboard page is loaded', async () => {
       await this.page.waitForLoadState('domcontentloaded');
       await this.verifier.verifyTheElementIsVisible(this.addContentButton);
+    });
+  }
+
+  /**
+   * Verifies the site name is displayed in the h1 heading
+   * @param siteName - The expected site name
+   */
+  async verifySiteName(siteName: string): Promise<void> {
+    await test.step(`Verify site name "${siteName}" is displayed in heading`, async () => {
+      await this.verifier.verifyElementHasText(this.siteNameHeading, siteName, {
+        assertionMessage: `Site name heading should contain "${siteName}"`,
+      });
     });
   }
 }
