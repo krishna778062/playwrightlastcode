@@ -1,27 +1,24 @@
 import { Locator, Page, test } from '@playwright/test';
 
+import { ExternalSearch } from '@/src/core/types/externalSearch.type';
 import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 
 /**
  * External Search List Component for handling external search provider links
  */
 export class ExternalSearchListComponent extends ResultListingComponent {
-  readonly externalSearchContainer: Locator;
   readonly externalSearchLinks: Locator;
-  readonly externalSearchLinkItems: Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
-    this.externalSearchContainer = this.rootLocator.locator("[data-testid='external-search-container']");
     this.externalSearchLinks = this.page.locator('li[class*=externalSearchlist] a');
-    this.externalSearchLinkItems = this.externalSearchContainer.locator('a[target="_blank"]');
   }
 
   /**
    * Verifies the order of external search providers matches expected order
    * @param expectedProviders - Array of expected provider names in order
    */
-  async verifyExternalSearchLinksOrder(expectedProviders: string[]) {
+  async verifyExternalSearchLinksOrder(expectedProviders: ExternalSearch['provider'][]) {
     await test.step(`Verifying external search links are in correct order: ${expectedProviders.join(', ')}`, async () => {
       for (let attempt = 1; attempt <= 2; attempt++) {
         try {
@@ -51,7 +48,7 @@ export class ExternalSearchListComponent extends ResultListingComponent {
    * Clicks on external search links and verifies each opens in new tab with correct provider URL
    * @param providerNames - Array of provider names to click and verify
    */
-  async verifyNavigationToExternalSearchLinks(providerNames: string[]) {
+  async verifyNavigationToExternalSearchLinks(providerNames: ExternalSearch['provider'][]) {
     await test.step('Testing external search links navigation', async () => {
       for (const providerName of providerNames) {
         await test.step(`Clicking on ${providerName} external search link and verifying new tab navigation`, async () => {

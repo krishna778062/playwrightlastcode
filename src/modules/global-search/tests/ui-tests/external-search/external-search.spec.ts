@@ -2,6 +2,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { ExternalSearch } from '@/src/core/types/externalSearch.type';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { generateUniqueExternalSearchTestData } from '@/src/modules/global-search/test-data/external-search.test-data';
@@ -12,7 +13,7 @@ test.describe(
     tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.EXTERNAL_SEARCH],
   },
   () => {
-    let expectedProviderOrder: string[];
+    let expectedProviderOrder: ExternalSearch['provider'][];
     let searchTerm: string;
 
     test.beforeEach('Setup External Search Configuration', async ({ appManagerApiClient }) => {

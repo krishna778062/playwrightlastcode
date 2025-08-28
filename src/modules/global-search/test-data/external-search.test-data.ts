@@ -50,10 +50,9 @@ export const EXPECTED_PROVIDER_ORDER: string[] = EXTERNAL_SEARCH_PROVIDERS.map(p
  */
 export function generateUniqueExternalSearchTestData(): {
   providers: ExternalSearch[];
-  expectedProviderOrder: string[];
+  expectedProviderOrder: ExternalSearch['provider'][];
   searchTerm: string;
 } {
-  // Generate unique suffix using crypto UUID (first 6 characters for readability)
   const randomNum = Math.floor(Math.random() * 1000000 + 1);
 
   const uniqueProviders: ExternalSearch[] = EXTERNAL_SEARCH_PROVIDERS.map((provider, index) => ({
