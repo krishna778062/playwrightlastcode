@@ -11,8 +11,6 @@ import { PromotePageModal } from '../components/promotePageModal';
 import { PageContentType } from '../constants/pageContentType';
 import { CONTENT_TEST_DATA } from '../test-data/content.test-data';
 
-import { SiteDashboardPage } from './siteDashboardPage';
-
 import { FileUtil } from '@/src/core/utils/fileUtil';
 
 export interface PageCreationOptions {
@@ -53,11 +51,12 @@ export interface IPageCreationActions {
     siteId: string;
     response: PageCreationResponse;
   }>;
-  navigateToAddContentModal: () => Promise<void>;
+  handlePromotionPageStep: () => Promise<void>;
 }
 
 export interface IPageCreationAssertions {
   verifyUploadedCoverImagePreviewIsVisible: (options?: { timeout?: number }) => Promise<void>;
+  verifyContentPublishedSuccessfully: (title: string) => Promise<void>;
 }
 
 export class PageCreationPage extends BasePage implements IPageCreationActions, IPageCreationAssertions {
@@ -143,26 +142,24 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     }
   ) {
     await test.step(`Upload cover image: ${fileName}`, async () => {
-      // Setup response promises for 3 upload requests
-      const responsePromises = [];
-      const responsePromise = this.page.waitForResponse(
-        response =>
-          response.request().url().includes('X-Amz-SignedHeaders=host') &&
-          response.request().method() === 'PUT' &&
-          response.status() === 200,
-        { timeout: 35000 }
-      );
-      responsePromises.push(responsePromise);
-
+      //there will be three requests for the cover image to upload different sizes
+      //we will wait until all three requests are completed
+      const reqPromises = [];
+      for (let i = 0; i < 3; i++) {
+        reqPromises.push(
+          this.page.waitForResponse(
+            response => response.url().includes('Content-Type=image%2Fpng') && response.request().method() === 'PUT'
+          ),
+          35_000
+        );
+      }
       const imagePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', 'images', fileName);
       await this.coverImageUploader.uploadAttachment(imagePath);
-
       //handle wide screen crop option
       if (options?.widescreenCropOption) {
         await this.imageCropper.selectCropOption('Widescreen');
       }
       await this.imageCropper.clickOnNextButton();
-
       //handle square crop option
       if (options?.squareCropOption) {
         await this.imageCropper.selectCropOption('Square');
@@ -171,8 +168,8 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       await this.imageCropper.clickOnNextButton();
       await this.imageCropper.clickOnAddButton();
 
-      // Wait for all 3 upload responses to complete with 200 status
-      await Promise.all(responsePromises);
+      //wait for all the requests to be completed
+      await Promise.all(reqPromises);
     });
   }
 
@@ -259,6 +256,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
           squareCropOption: options.coverImage.cropOptions?.square,
         });
       }
+
       // Publish the page
       const publishResponse = await this.publishPage();
 
@@ -282,14 +280,11 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   }
 
   /**
-   * Navigates to add content modal from site dashboard
-   * @param contentType - The content type to create
+   * Handles the promotion page step by calling the promote page modal
    */
-  async navigateToAddContentModal(): Promise<void> {
-    await test.step(`Navigate to add content modal`, async () => {
-      const siteDashboard = new SiteDashboardPage(this.page);
-      await siteDashboard.verifyThePageIsLoaded();
-      await siteDashboard.clickOnAddContent();
+  async handlePromotionPageStep(): Promise<void> {
+    await test.step('Handling promotion page step', async () => {
+      await this.promotePageModal.handlePromotion();
     });
   }
 
@@ -307,4 +302,81 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       });
     });
   }
+
+  /**
+   * Verifies that the content was published successfully
+   * @param title - The title of the content to verify
+   */
+  async verifyContentPublishedSuccessfully(title: string): Promise<void> {
+    await test.step(`Verifying content was published successfully`, async () => {
+      // Verify success message is visible
+      await this.verifier.verifyTheElementIsVisible(this.successMessage("Created page successfully - it's published"), {
+        assertionMessage: 'Success message should be visible after publishing',
+      });
+
+      await this.verifier.verifyTheElementIsVisible(this.contentTitleHeading(title), {
+        assertionMessage: `Content title "${title}" should be visible in heading`,
+      });
+    });
+  }
+
+  async clickOnGovernance(): Promise<void> {
+    await test.step('Clicking on governance', async () => {
+      await this.sideNavBarComponent.clickOnGovernance.click();
+    });
+  }
+
+  async clickOnTimeline(): Promise<void> {
+    await test.step('Clicking on timeline', async () => {
+      await this.sideNavBarComponent.clickOnTimeline.click();
+    });
+  }
+
+  async clickOnSave(): Promise<void> {
+    await test.step('Clicking on save', async () => {
+      await this.sideNavBarComponent.clickOnSave.click();
+    });
+  }
+
+  async clickOnContent(): Promise<void> {
+    await test.step('Clicking on save', async () => {
+      await this.sideNavBarComponent.clickOnContent.click();
+    });
+  }
+
+  async checkCommentOption(): Promise<void> {
+    await test.step('Clicking on save', async () => {
+      await this.sideNavBarComponent.checkCommentOption.isHidden();
+    });
+  }
+
+  async clickOnSite(): Promise<void> {
+    await test.step('Clicking on save', async () => {
+      await this.sideNavBarComponent.clickOnSite.click();
+    });
+  }
+
+  async ViewSite(): Promise<void> {
+    await test.step('Clicking on save', async () => {
+      await this.sideNavBarComponent.ViewSite.click();
+    });
+  }
+
+  async clickOnFeed(): Promise<void> {
+    await test.step('Clicking on save', async () => {
+      await this.sideNavBarComponent.clickOnFeed.click();
+    });
+  }
+
+  async verfiyFeedSection(): Promise<void> {
+    await test.step('Clicking on save', async () => {
+      await this.sideNavBarComponent.verfiyFeedSection.isHidden();
+    });
+  }
+
+  // async navigateToContent(): Promise<void> {
+  //   await test.step('Navigating to content', async () => {
+  //     await this.sideNavBarComponent.clickOnContent();
+  //   });
+  // }
 }

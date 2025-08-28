@@ -8,6 +8,7 @@ export enum ContentSuiteTags {
 
 export enum ContentFeatureTags {
   COVER_IMAGE = '@cover-image',
+  VERIFY_COMMENTS_AND_FEEDS = '@verify-comments-and-feeds',
 }
 
 export const ContentTestTags = [...Object.values(ContentSuiteTags), ...Object.values(ContentFeatureTags)] as const;

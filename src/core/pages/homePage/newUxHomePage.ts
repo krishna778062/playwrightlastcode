@@ -102,4 +102,28 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
       }
     );
   }
+
+  async navigateToApplication(): Promise<void> {
+    await test.step('Clicking on application', async () => {
+      await this.sideNavBarComponent.navigateOnApplication.click();
+    });
+  }
+
+  async clickOnManageFeature(): Promise<void> {
+    await test.step('Clicking on application', async () => {
+      await this.sideNavBarComponent.clickOnManageFeature.click();
+    });
+  }
+
+  async clickOnContQA(): Promise<void> {
+    await test.step('Clicking on application', async () => {
+      await this.sideNavBarComponent.clickOnContQA.click();
+    });
+  }
+
+  async clickOnFeedSideMenu(): Promise<void> {
+    await test.step('Clicking on application', async () => {
+      await this.sideNavBarComponent.clickOnFeedSideMenu.click();
+    });
+  }
 }
