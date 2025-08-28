@@ -106,6 +106,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
+    await this.page.waitForLoadState('domcontentloaded');
     await this.verifier.verifyTheElementIsVisible(this.titleInput, {
       assertionMessage: 'Page title input should be visible',
     });
