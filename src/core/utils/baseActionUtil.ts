@@ -35,10 +35,12 @@ export type CustomTypeOptions = Parameters<Locator['pressSequentially']>[1] & {
 
 export class BaseActionUtil {
   readonly toastMessages: Locator;
+  readonly dismissToastMessage: Locator;
 
   constructor(readonly page: Page) {
     this.page = page;
     this.toastMessages = page.locator('[class*="Toast-module"] p');
+    this.dismissToastMessage = page.locator('[aria-label="Dismiss"]');
   }
 
   /**
@@ -362,6 +364,15 @@ export class BaseActionUtil {
         this.toastMessages.filter({ hasText: toastMessage }),
         `expecting ${toastMessage} toast message`
       ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+
+  /**
+   * Dismisses the toast message.
+   */
+  async dismissTheToastMessage(): Promise<void> {
+    await test.step(`Dismissing the toast message`, async () => {
+      await this.clickOnElement(this.dismissToastMessage);
     });
   }
 }

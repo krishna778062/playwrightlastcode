@@ -44,7 +44,7 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
       const createComponent = new CreateComponent(this.page);
       await createComponent.verifyTheCreateComponentIsVisible();
       const addContentModal = await createComponent.selectContentTypeAndCreateContent(contentType);
-      return await addContentModal.completeContentCreationForm(contentType);
+      return await addContentModal.completeContentCreationForm(contentType, { isFromHomePage: true });
     });
   }
 

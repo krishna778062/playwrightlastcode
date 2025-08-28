@@ -13,5 +13,10 @@ export const PAGE_ENDPOINTS = {
   REWARD_STORE_ORDER_HISTORY_PAGE: '/rewards-store/order-history',
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
+  MANAGE_USERS_PAGE: '/manage/users',
   LOGOUT: '/logout',
+  getSiteDashboardPage: (siteId: string) => `/site/${siteId}/dashboard`,
+  PAGE_CREATION_PAGE: '/site/:siteId/page/:pageId',
+  ALBUM_CREATION_PAGE: '/site/:siteId/album/:albumId',
+  EVENT_CREATION_PAGE: '/site/:siteId/event/:eventId',
 };

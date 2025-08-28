@@ -26,13 +26,14 @@ export class SiteManagementHelper {
    * @param overrides - Optional overrides for site creation payload.
    * @returns An object containing details of the created site.
    */
-  async createPublicSite(
-    siteName?: string,
-    category?: { name: string; categoryId: string },
-    overrides: Partial<SiteCreationPayload> = {}
-  ) {
+  async _createSiteBaseMethod(params: {
+    siteName?: string;
+    category?: { name: string; categoryId: string };
+    overrides?: Partial<SiteCreationPayload>;
+  }) {
+    const { siteName, category, overrides } = params;
     const randomNum = Math.floor(Math.random() * 1000000 + 1);
-    const finalSiteName = siteName || `AutomateUI_Test_${randomNum}`;
+    const finalSiteName = siteName ?? `AutomateUI_Test_${randomNum}`;
 
     // Get category if not provided
     let categoryObj = category;
@@ -72,18 +73,34 @@ export class SiteManagementHelper {
   }
 
   /**
+   * Creates a new public site with default settings.
+   * @param siteName - Optional custom site name. If not provided, generates a random name.
+   * @param category - The site category object, containing name and categoryId.
+   * @param overrides - Optional overrides for site creation payload.
+   * @returns An object containing details of the created site.
+   */
+  async createPublicSite(params: {
+    siteName?: string;
+    category?: { name: string; categoryId: string };
+    overrides?: Partial<SiteCreationPayload>;
+  }) {
+    const { siteName, category, overrides } = params;
+    return await this._createSiteBaseMethod({ siteName, category, overrides: { ...overrides, access: 'public' } });
+  }
+  /**
    * Creates a new private site with default settings.
    * @param siteName - Optional custom site name. If not provided, generates a random name.
    * @param category - The site category object, containing name and categoryId.
    * @param overrides - Optional overrides for site creation payload.
    * @returns An object containing details of the created site.
    */
-  async createPrivateSite(
-    siteName?: string,
-    category?: { name: string; categoryId: string },
-    overrides: Partial<SiteCreationPayload> = {}
-  ) {
-    return await this.createPublicSite(siteName, category, { ...overrides, access: 'private' });
+  async createPrivateSite(params: {
+    siteName?: string;
+    category?: { name: string; categoryId: string };
+    overrides?: Partial<SiteCreationPayload>;
+  }) {
+    const { siteName, category, overrides } = params;
+    return await this._createSiteBaseMethod({ siteName, category, overrides: { ...overrides, access: 'private' } });
   }
 
   /**
@@ -93,12 +110,13 @@ export class SiteManagementHelper {
    * @param overrides - Optional overrides for site creation payload.
    * @returns An object containing details of the created site.
    */
-  async createUnlistedSite(
-    siteName?: string,
-    category?: { name: string; categoryId: string },
-    overrides: Partial<SiteCreationPayload> = {}
-  ) {
-    return await this.createPublicSite(siteName, category, { ...overrides, access: 'unlisted' });
+  async createUnlistedSite(params: {
+    siteName?: string;
+    category?: { name: string; categoryId: string };
+    overrides?: Partial<SiteCreationPayload>;
+  }) {
+    const { siteName, category, overrides } = params;
+    return await this._createSiteBaseMethod({ siteName, category, overrides: { ...overrides, access: 'unlisted' } });
   }
 
   /**
@@ -118,11 +136,23 @@ export class SiteManagementHelper {
   }) {
     switch (options.accessType) {
       case SITE_TYPES.PUBLIC:
-        return await this.createPublicSite(options.siteName, options.category, { ...options.overrides });
+        return await this.createPublicSite({
+          siteName: options.siteName,
+          category: options.category,
+          overrides: options.overrides,
+        });
       case SITE_TYPES.PRIVATE:
-        return await this.createPrivateSite(options.siteName, options.category, { ...options.overrides });
+        return await this.createPrivateSite({
+          siteName: options.siteName,
+          category: options.category,
+          overrides: options.overrides,
+        });
       case SITE_TYPES.UNLISTED:
-        return await this.createUnlistedSite(options.siteName, options.category, { ...options.overrides });
+        return await this.createUnlistedSite({
+          siteName: options.siteName,
+          category: options.category,
+          overrides: options.overrides,
+        });
       default:
         throw new Error(`Invalid access type: ${options.accessType}`);
     }
@@ -141,9 +171,9 @@ export class SiteManagementHelper {
 
     for (let i = 0; i < count; i++) {
       const [publicSite, privateSite, unlistedSite] = await Promise.all([
-        this.createPublicSite(undefined, category),
-        this.createPrivateSite(undefined, category),
-        this.createUnlistedSite(undefined, category),
+        this.createPublicSite({ category }),
+        this.createPrivateSite({ category }),
+        this.createUnlistedSite({ category }),
       ]);
 
       publicSites.push(publicSite);
@@ -177,13 +207,13 @@ export class SiteManagementHelper {
     let site;
     switch (siteAccess) {
       case 'private':
-        site = await this.createPrivateSite(siteName, category);
+        site = await this.createPrivateSite({ siteName, category });
         break;
       case 'unlisted':
-        site = await this.createUnlistedSite(siteName, category);
+        site = await this.createUnlistedSite({ siteName, category });
         break;
       default:
-        site = await this.createPublicSite(siteName, category);
+        site = await this._createSiteBaseMethod({ siteName, category });
     }
 
     return {
