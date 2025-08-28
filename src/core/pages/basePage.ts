@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
@@ -37,6 +37,30 @@ export abstract class BasePage extends BaseActionUtil {
         throw new Error('Page URL is not set for this page');
       }
       await this.verifyThePageIsLoaded();
+    });
+  }
+
+  /**
+   * @description
+   * Reloads the page
+   * @param options - The options to pass to the visitPage method
+   * @param options.stepInfo - The step info to pass to the test.step method
+   * @param options.timeout - The timeout to pass to the page.goto method
+   */
+  async reloadPage(options?: { stepInfo?: string; timeout?: number }) {
+    await test.step(options?.stepInfo || `Reloading page`, async () => {
+      await this.page.reload();
+      await this.verifyThePageIsLoaded();
+    });
+  }
+
+  /**
+   * @description
+   * Checks for Page not found error
+   */
+  async verifyPageNotFoundVisibility(options?: { stepInfo?: string; timeout?: number }) {
+    await test.step(options?.stepInfo || `Verify the page - Page not found`, async () => {
+      await expect(this.page.locator('h1', { hasText: 'Page not found' })).toBeVisible();
     });
   }
 }
