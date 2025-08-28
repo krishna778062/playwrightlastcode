@@ -27,6 +27,16 @@ export class AccessControlGroupsPage extends BasePage {
   readonly iUnderstand: Locator;
   readonly acgNameInputBox: Locator;
   readonly acgSearchBox: Locator;
+  readonly editPopupTitle: Locator;
+  readonly editWarningMessage: Locator;
+  readonly managersLoseAccessMessage: Locator;
+  readonly adminsLoseAccessMessage: Locator;
+  readonly contentMoveMessage: Locator;
+  readonly analyticsDiscrepanciesMessage: Locator;
+  readonly editPopupCrossButton: Locator;
+  readonly editPopupCancelButton: Locator;
+  readonly editPopupContinueButton: Locator;
+  readonly editOption: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.ACCESS_CONTROL_GROUPS_PAGE) {
     super(page, pageUrl);
@@ -42,6 +52,24 @@ export class AccessControlGroupsPage extends BasePage {
     this.iUnderstand = page.locator('#confirmDelete');
     this.acgNameInputBox = page.locator('[name="controlGroupName"]');
     this.acgSearchBox = page.locator('#q');
+    this.editPopupTitle = page.locator('[class*="Typography-module__heading1"]:has-text("Edit access control group")');
+    this.editWarningMessage = page.locator(
+      '[class*="Typography-module__paragraph"][class*="Typography-module__boldWeight"]:has-text("Editing this access control group may result in the following:")'
+    );
+    this.managersLoseAccessMessage = page.locator(
+      'li:has-text("Managers might lose access to this group or entire feature")'
+    );
+    this.adminsLoseAccessMessage = page.locator(
+      'li:has-text("Admins might lose access to this group or entire feature")'
+    );
+    this.contentMoveMessage = page.locator('li:has-text("Feature that loses its association")');
+    this.analyticsDiscrepanciesMessage = page.locator(
+      'li:has-text("There may be discrepancies on any analytics pages")'
+    );
+    this.editPopupCrossButton = page.locator('[aria-label="Close"]');
+    this.editPopupCancelButton = page.getByRole('button', { name: 'Cancel' });
+    this.editPopupContinueButton = page.getByRole('button', { name: 'Continue' });
+    this.editOption = page.locator("text='Edit'");
   }
 
   // To verify that the ACG page is loaded
@@ -177,6 +205,116 @@ export class AccessControlGroupsPage extends BasePage {
       const expectedEncoded = new URLSearchParams({ q: acgName }).toString();
       const fullUrl = this.pageUrl + '?' + expectedEncoded;
       await expect(this.page).toHaveURL(fullUrl);
+    });
+  }
+
+  /**
+   * Clicks on menu option for any ACG with specific status and group type
+   */
+  async clickOnMenuOptionForACG(status?: string, groupType?: string): Promise<void> {
+    await test.step('Click on menu option for any ACG', async () => {
+      await this.clickOnElement(this.acgMenuOptions.first(), {
+        stepInfo: 'Click on menu options button for first ACG in the list',
+      });
+    });
+  }
+
+  /**
+   * Clicks on Edit option from the dropdown menu
+   */
+  async clickOnEditOption(): Promise<void> {
+    await test.step('Click on Edit option from dropdown menu', async () => {
+      try {
+        await this.clickOnElement(this.editOption, {
+          stepInfo: 'Click on Edit option for ACG',
+        });
+      } catch (e) {
+        await this.clickOnElementWithCoordinates(this.editOption, {
+          force: true,
+          stepInfo: 'Clicking on the Edit button with coordinates',
+        });
+      }
+    });
+  }
+
+  /**
+   * Verifies all elements in the edit warning popup
+   */
+  async verifyEditWarningPopup(): Promise<void> {
+    await test.step('Verify all elements in edit warning popup', async () => {
+      // Verify popup title
+      await expect(this.editPopupTitle).toBeVisible();
+
+      // Verify warning message
+      await expect(this.editWarningMessage).toBeVisible();
+      await expect(this.managersLoseAccessMessage).toBeVisible();
+      await expect(this.adminsLoseAccessMessage).toBeVisible();
+      await expect(this.contentMoveMessage).toBeVisible();
+      await expect(this.analyticsDiscrepanciesMessage).toBeVisible();
+
+      await expect(this.editPopupCrossButton).toBeVisible();
+      await expect(this.editPopupCancelButton).toBeVisible();
+      await expect(this.editPopupContinueButton).toBeVisible();
+    });
+  }
+
+  /**
+   * Simple method to search and select user using Enter key
+   */
+  async searchAndSelectUserWithEnter(searchTerm: string): Promise<void> {
+    await test.step(`Search for "${searchTerm}" and select with Enter key`, async () => {
+      const searchInput = this.page.locator('[role="combobox"]').first();
+      await searchInput.fill(searchTerm);
+      await this.page.waitForTimeout(2000);
+      await searchInput.press('ArrowDown');
+      await this.page.waitForTimeout(500);
+      await searchInput.press('Enter');
+    });
+  }
+
+  /**
+   * Clicks on the Edit Manager button
+   */
+  async clickOnEditManagerButton(): Promise<void> {
+    await test.step('Click on Edit Manager button', async () => {
+      const editManagerButton = this.page.getByRole('button', { name: 'Edit manager' });
+      await this.clickOnElement(editManagerButton);
+    });
+  }
+
+  /**
+   * Clicks on the Add Users button (+ icon)
+   */
+  async clickOnAddUsersButton(): Promise<void> {
+    await test.step('Click on Add Users button', async () => {
+      const addUsersButton = this.page.getByRole('button', { name: 'Add users' });
+      await this.clickOnElement(addUsersButton);
+    });
+  }
+
+  /**
+   * Clicks on the Update button
+   */
+  async clickOnUpdateButton(): Promise<void> {
+    await test.step('Click on Update button', async () => {
+      const updateButton = this.page.getByRole('button', { name: 'Update' });
+      await this.clickOnElement(updateButton);
+    });
+  }
+
+  async verifyAdminUsersInManagerList(): Promise<void> {
+    await test.step('Verify admin users in manager list', async () => {
+      await this.page.waitForTimeout(2000);
+
+      const selectors = ['[role="dialog"] p:has-text("Admin")', 'text=/Admin.*User/i'];
+
+      let adminElements = this.page.locator(selectors[0]);
+      for (const selector of selectors) {
+        adminElements = this.page.locator(selector);
+        if ((await adminElements.count()) > 0) break;
+      }
+      const adminCount = await adminElements.count();
+      expect(adminCount).toBeGreaterThan(0);
     });
   }
 }

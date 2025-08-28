@@ -1,10 +1,12 @@
 import { expect } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
+import { User } from '@core/types/user.type';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/acgPage/accessControlGroupsPage';
+import { FeatureOwnersPage } from '@platforms/pages/abacPage/featureOwnersPage/featureOwnersPage';
 
 import { TestSuite } from '@/src/core/constants/testSuite';
 
@@ -26,12 +28,16 @@ test.describe(
       const user1: User = {
         first_name: 'Aaman Temp',
         last_name: `Standard User${Date.now()}`,
+        email: `tsu${Date.now()}@example.com`,
+        mobile: 1234567890,
         emp: `TSU00${Date.now()}`,
       };
 
       const user2: User = {
         first_name: 'Aaman Temp',
         last_name: `App Manager${Date.now()}`,
+        email: `tam${Date.now()}@example.com`,
+        mobile: 1234567891,
         emp: `TAM00${Date.now()}`,
       };
 
@@ -159,6 +165,129 @@ test.describe(
         // Test Scenario
         await homePage.goToUrl('manage/roles');
         await homePage.verifyPageNotFoundVisibility();
+      }
+    );
+
+    test(
+      'Verify that the feature list displayed under Feature owners tab should be unique and verify search functionality with invalid string',
+      {
+        tag: [TestPriority.P0, `@ABAC`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify that the feature list displayed under Feature owners tab should be unique and verify search functionality with invalid string',
+          zephyrTestId: ['PS-32997', 'PS-32965'],
+        });
+        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
+        // Navigate to Feature owners page
+        await featureOwnersPage.loadPage();
+        // Click "Show more" button until all features are loaded
+        await featureOwnersPage.clickShowMoreUntilNotVisible();
+        // Get all feature names displayed on the page
+        const allFeatureNames: string[] = await featureOwnersPage.getAllFeatureNames();
+        // Verify that all features are unique
+        const uniqueFeatures: string[] = [...new Set(allFeatureNames)];
+        // Check for duplicates by comparing string array lengths
+        expect(
+          uniqueFeatures.length,
+          `Expected ${uniqueFeatures.length} unique features but found ${allFeatureNames.length} total features. Duplicate features detected.`
+        ).toBe(allFeatureNames.length);
+
+        // Test search functionality with invalid string
+        await featureOwnersPage.performSearch('sdbkfjskdfn');
+        await featureOwnersPage.verifyNoResultsFoundMessages();
+      }
+    );
+
+    test(
+      'Verify that clicking on owners count should trigger a popup displaying user info',
+      {
+        tag: [TestPriority.P1, `@ABAC`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify that clicking on owners count should trigger a popup displaying user info',
+          zephyrTestId: 'PS-32884',
+        });
+        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
+        // Navigate to Feature owners page
+        await featureOwnersPage.loadPage();
+        // Click on any owner count button and get the count value
+        const clickedCount = await featureOwnersPage.clickOnAnyUserCountButton();
+        // Verify that popup opens with the same count
+        await featureOwnersPage.verifyUserCountPopupOpened(clickedCount);
+      }
+    );
+
+    test(
+      'Verify that a warning popup is displayed before edit Access control group popup',
+      {
+        tag: [TestPriority.P1, `@ABAC`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify that a warning popup is displayed before edit Access control group popup',
+          zephyrTestId: 'PS-31321',
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        // Navigate to Access Control Groups page
+        await accessControlGroupsPage.loadPage();
+        // Click on menu for any ACG
+        await accessControlGroupsPage.clickOnMenuOptionForACG();
+        // Click on Edit option
+        await accessControlGroupsPage.clickOnEditOption();
+        // Verify all elements in the edit warning popup
+        await accessControlGroupsPage.verifyEditWarningPopup();
+      }
+    );
+
+    test(
+      'Verify that user should be able to change managers from managers screen while editing them during ACG creation flow',
+      {
+        tag: [TestPriority.P1, `@ABAC`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify that user should be able to change managers from managers screen while editing them during ACG creation flow',
+          zephyrTestId: 'PS-30956',
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        await accessControlGroupsPage.loadPage();
+        await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
+        await accessControlGroupsPage.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
+        await accessControlGroupsPage.clickOnButtonWithName('Next');
+        await accessControlGroupsPage.clickOnButtonWithName('Browse');
+        await accessControlGroupsPage.searchForValues(audienceToCreate);
+        await accessControlGroupsPage.clickOnAudience(audienceToCreate);
+        await accessControlGroupsPage.clickOnButtonWithName('Done');
+        await accessControlGroupsPage.clickOnButtonWithName('Next');
+
+        // Browse Search Admin and select any available user from list for Managers
+        await accessControlGroupsPage.clickOnButtonWithName('Browse');
+        await accessControlGroupsPage.searchAndSelectUserWithEnter('Admin');
+        await accessControlGroupsPage.clickOnButtonWithName('Done');
+        await accessControlGroupsPage.clickOnButtonWithName('Next');
+
+        // Browse Search Admin and select any available user from list for Admins
+        await accessControlGroupsPage.clickOnButtonWithName('Browse');
+        await accessControlGroupsPage.searchAndSelectUserWithEnter('Admin');
+        await accessControlGroupsPage.clickOnButtonWithName('Done');
+        await accessControlGroupsPage.clickOnButtonWithName('Next');
+
+        // Edit Manager flow - test the new functionality
+        await accessControlGroupsPage.clickOnEditManagerButton();
+        await accessControlGroupsPage.clickOnAddUsersButton();
+        await accessControlGroupsPage.searchAndSelectUserWithEnter('Admin');
+        await accessControlGroupsPage.clickOnButtonWithName('Done');
+        await accessControlGroupsPage.clickOnUpdateButton();
+
+        // Click edit manager button again to verify the added users
+        await accessControlGroupsPage.clickOnEditManagerButton();
+
+        // Verify that admin users are displayed in the manager list (dynamic verification)
+        await accessControlGroupsPage.verifyAdminUsersInManagerList();
       }
     );
   }

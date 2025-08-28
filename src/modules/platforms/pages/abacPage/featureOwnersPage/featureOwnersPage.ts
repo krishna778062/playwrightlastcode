@@ -20,6 +20,10 @@ export class FeatureOwnersPage extends BasePage {
   readonly showMoreButtonForEditFO: Locator;
   readonly foCrossButton: Locator;
   readonly featureOwnerMenuOptionButton: Locator;
+  readonly showMoreButton: Locator;
+  readonly noResultsFoundHeading: Locator;
+  readonly noResultsFoundDescription: Locator;
+  readonly userCountPopupText: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.FEATURE_OWNERS) {
     super(page, pageUrl);
@@ -40,6 +44,10 @@ export class FeatureOwnersPage extends BasePage {
     );
     this.foCrossButton = page.locator('[aria-label="Remove user"]');
     this.featureOwnerMenuOptionButton = page.locator('[data-testid*="dataGridRow"]');
+    this.showMoreButton = page.getByRole('button', { name: 'Show more' });
+    this.noResultsFoundHeading = page.getByText('No results found');
+    this.noResultsFoundDescription = page.getByText('Try adjusting search terms or filters');
+    this.userCountPopupText = page.getByText(/\d+ users/);
   }
 
   // To verify that the feature owners page is loaded
@@ -232,5 +240,74 @@ export class FeatureOwnersPage extends BasePage {
    */
   async verifyUserIsNotDisplayedAsFeatureOwner(userName: string): Promise<void> {
     await this.getFeatureOwnerRecordItem(userName, false);
+  }
+
+  /**
+   * Clicks "Show more" button until it's no longer visible to load all features
+   */
+  async clickShowMoreUntilNotVisible(): Promise<void> {
+    await test.step('Click "Show more" button until all features are loaded', async () => {
+      while (await this.showMoreButton.isVisible()) {
+        await this.clickOnElement(this.showMoreButton);
+        await this.sleep(1000);
+      }
+    });
+  }
+
+  async getAllFeatureNames(): Promise<string[]> {
+    return await test.step('Get all feature names from Feature Owners page', async () => {
+      const featureNames: string[] = [];
+      const featureCount = await this.feature.count();
+      for (let i = 0; i < featureCount; i++) {
+        const featureName = await this.feature.nth(i).textContent();
+        if (featureName?.trim()) {
+          featureNames.push(featureName.trim());
+        }
+      }
+      return featureNames;
+    });
+  }
+
+  async performSearch(searchTerm: string): Promise<void> {
+    await test.step(`Search for: "${searchTerm}"`, async () => {
+      if (await this.clearButtonOnSearchInputBox.isVisible()) {
+        await this.clickOnElement(this.clearButtonOnSearchInputBox);
+      }
+      await this.typeInElement(this.searchInputBox, searchTerm);
+      await this.page.keyboard.press('Enter');
+      await this.sleep(1000);
+    });
+  }
+
+  async verifyNoResultsFoundMessages(): Promise<void> {
+    await test.step('Verify "No results found" messages are displayed', async () => {
+      await expect(this.noResultsFoundHeading).toBeVisible();
+      await expect(this.noResultsFoundDescription).toBeVisible();
+    });
+  }
+
+  /**
+   * Clicks on any available user count button
+   */
+  async clickOnAnyUserCountButton(): Promise<string> {
+    return await test.step('Click on any available user count button', async () => {
+      const firstUserCountButton = this.userCountButton.first();
+      await expect(firstUserCountButton).toBeVisible();
+      const countText = await firstUserCountButton.textContent();
+      await this.clickOnElement(firstUserCountButton);
+      return countText?.trim() || '';
+    });
+  }
+
+  /**
+   * Verifies that the user count popup is opened with correct count
+   *
+   */
+  async verifyUserCountPopupOpened(expectedCount: string): Promise<void> {
+    await test.step(`Verify user count popup opened with "${expectedCount} users"`, async () => {
+      // Wait for the popup to appear and verify the count text
+      await expect(this.userCountPopupText).toBeVisible();
+      await expect(this.userCountPopupText).toContainText(`${expectedCount} users`);
+    });
   }
 }
