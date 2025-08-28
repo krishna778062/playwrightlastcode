@@ -8,6 +8,22 @@ import { AttachementUploaderComponent } from '@/src/modules/content/components/a
 import { ImageCropperComponent } from '@/src/modules/content/components/imageCropper';
 import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 
+interface SiteCreationResponse {
+  status: string;
+  result: {
+    id: string;
+    siteId: string;
+    name: string;
+    title: string;
+    description: string | null;
+    access: string;
+    category: {
+      name: string;
+      id: string;
+    };
+  };
+}
+
 export interface SiteCreationOptions {
   name: string;
   description: string;
@@ -25,7 +41,6 @@ export interface SiteCreationOptions {
 export interface ISiteCreationActions {
   addSite(options: SiteCreationOptions): Promise<{
     siteDashboard: SiteDashboardPage;
-    siteName: string;
     siteId: string;
   }>;
 }
@@ -51,7 +66,8 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
       .locator('div')
       .filter({ hasText: 'Add or select existing category' })
       .locator('+ div input');
-    this.selectCategory = (categoryName: string) => page.locator(`div:has-text('${categoryName}')`);
+    this.selectCategory = (categoryName: string) =>
+      page.locator("div[class*='createOption']").locator(`:text-is("${categoryName}")`);
     this.accessType = (type: string) => page.locator('label').filter({ hasText: type });
     this.createSiteButton = page.locator('button:has-text("Add site")');
   }
@@ -83,7 +99,6 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
    */
   async addSite(options: SiteCreationOptions): Promise<{
     siteDashboard: SiteDashboardPage;
-    siteName: string;
     siteId: string;
   }> {
     return await test.step(`Creating and publishing site with name: ${options.name}`, async () => {
@@ -98,16 +113,14 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
       const createResponse = await this.createSite();
 
       // Parse response body
-      const createResponseBody = (await createResponse.json()) as PageCreationResponse;
+      const createResponseBody = (await createResponse.json()) as SiteCreationResponse;
 
       // Extract site ID and name from response
       const siteId = createResponseBody.result.id;
-      const siteName = createResponseBody.result.site.name || options.name;
 
       // Return site dashboard page with site details
       return {
         siteDashboard: new SiteDashboardPage(this.page, siteId),
-        siteName: siteName,
         siteId: siteId,
       };
     });
@@ -142,7 +155,7 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
         response =>
           response.request().url().includes(API_ENDPOINTS.site.url) &&
           response.request().method() === 'POST' &&
-          response.status() === 201,
+          response.status() === 200,
         {
           timeout: 20_000,
         }

@@ -24,7 +24,7 @@ export interface ISiteDashboardAssertions {
 export class SiteDashboardPage extends BasePage implements ISiteDashboardActions, ISiteDashboardAssertions {
   readonly addContentButton = this.page.locator("button[title='Add content']");
   readonly manageSiteButton = this.page.locator("button[title='Manage site'], a[href*='/manage']");
-  readonly siteNameHeading = this.page.locator('h1');
+  readonly siteNameHeading = (siteName: string) => this.page.locator('h1', { hasText: siteName });
   readonly successMessage = (message: string) =>
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
   readonly addContentModal: AddContentModalComponent;
@@ -124,7 +124,7 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
    */
   async verifySiteName(siteName: string, successMessage: string): Promise<void> {
     await test.step(`Verify site name "${siteName}" is displayed in heading`, async () => {
-      await this.verifier.verifyElementHasText(this.siteNameHeading, siteName, {
+      await this.verifier.verifyTheElementIsVisible(this.siteNameHeading(siteName), {
         assertionMessage: `Site name heading should contain "${siteName}"`,
       });
 

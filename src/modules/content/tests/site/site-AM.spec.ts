@@ -61,21 +61,21 @@ test.describe(
         const siteCreationOptions = TestDataGenerator.generateSite('public');
 
         // Create and publish the site
-        const { siteDashboard, siteId, siteName } = await siteCreationPage.actions.addSite(siteCreationOptions);
+        const { siteDashboard, siteId } = await siteCreationPage.actions.addSite(siteCreationOptions);
 
         // Verify we're on the correct site dashboard page
         expect(siteDashboard.page.url(), 'Should navigate to the created site dashboard page').toContain(
           PAGE_ENDPOINTS.getSiteDashboardPage(siteId)
         );
 
-        await siteDashboard.assertions.verifySiteName(siteName, 'Created site successfully');
+        await siteDashboard.assertions.verifySiteName(siteCreationOptions.title, 'Created site successfully');
 
         // Store IDs for cleanup
         createdSiteId = siteId;
-        createdSiteName = siteName;
+        createdSiteName = siteCreationOptions.title;
         manualCleanupNeeded = true;
 
-        console.log(`Created site: ${siteName} with ID: ${siteId}`);
+        console.log(`Created site: ${siteCreationOptions.title} with ID: ${siteId}`);
       }
     );
   }

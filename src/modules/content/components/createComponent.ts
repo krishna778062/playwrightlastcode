@@ -30,7 +30,7 @@ export class CreateComponent extends BaseComponent {
     this.pageOption = this.page.locator('p', { hasText: 'Page' });
     this.albumOption = this.page.locator('p', { hasText: 'Album' });
     this.eventOption = this.page.locator('p').filter({ hasText: /^Event$/ });
-    this.siteOption = this.page.locator('p', { hasText: 'Site' });
+    this.siteOption = this.page.locator('p').filter({ hasText: /^Site$/ });
     this.siteLink = this.page.getByRole('link', { name: 'Site' });
     this.createComponentContainer = this.page.locator("[data-slot='dialog-content']");
   }
