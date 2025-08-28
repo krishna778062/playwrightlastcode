@@ -48,6 +48,3 @@ export class ChatNavigationComponent extends BaseComponent {
     });
   }
 }
-
-// data-testid="dropdown-create-message"  --> for create new message
-//data-testid="dropdown-create-group"
