@@ -27,6 +27,9 @@ export class AccessControlGroupsPage extends BasePage {
   readonly iUnderstand: Locator;
   readonly acgNameInputBox: Locator;
   readonly acgSearchBox: Locator;
+  readonly acgNames: Locator;
+  readonly acgStatuses: Locator;
+  readonly acgStatusToggle: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.ACCESS_CONTROL_GROUPS_PAGE) {
     super(page, pageUrl);
@@ -42,6 +45,9 @@ export class AccessControlGroupsPage extends BasePage {
     this.iUnderstand = page.locator('#confirmDelete');
     this.acgNameInputBox = page.locator('[name="controlGroupName"]');
     this.acgSearchBox = page.locator('#q');
+    this.acgNames = page.locator('[class*="ACGName-module-acgName"] p');
+    this.acgStatuses = page.locator('[class*="Typography-module__secondary"]');
+    this.acgStatusToggle = page.locator('[aria-checked="true"]');
   }
 
   // To verify that the ACG page is loaded
@@ -177,6 +183,42 @@ export class AccessControlGroupsPage extends BasePage {
       const expectedEncoded = new URLSearchParams({ q: acgName }).toString();
       const fullUrl = this.pageUrl + '?' + expectedEncoded;
       await expect(this.page).toHaveURL(fullUrl);
+    });
+  }
+
+  /**
+   * Verifies the status if the ACG.
+   * @param acgName - Name of the ACG whose status need to be verified.
+   * @param status - Status of the ACG to be verified.
+   */
+  async verifyACGStatus(acgName: string, status: string): Promise<void> {
+    await test.step(`Verifying the status of ${acgName} ACG as ${status}`, async () => {
+      let currAcgName: string;
+      let i: number;
+      for (i = 0; i < (await this.acgNames.count()); i++) {
+        currAcgName = await this.acgNames.nth(i).textContent();
+        console.log(await this.acgStatuses.nth(i).textContent());
+        if (currAcgName === acgName) {
+          expect(await this.acgStatuses.nth(i).textContent()).toBe(status);
+          break;
+        }
+      }
+      if (i === (await this.acgNames.count())) {
+        throw new Error(`${acgName} ACG not found in the list`);
+      }
+    });
+  }
+
+  /**
+   * Change the status of the ACG.
+   * @param newStatus - New status to be changed for the given ACG.
+   */
+  async changeACGStatus(newStatus: string): Promise<void> {
+    await test.step(`Toggling the status to ${newStatus}`, async () => {
+      let currStatus: string = await this.acgStatusToggle.getAttribute('aria-checked');
+      if ((newStatus === 'Active' && currStatus === 'false') || (newStatus === 'Inactive' && currStatus === 'true')) {
+        await this.clickOnElement(this.acgStatusToggle);
+      }
     });
   }
 }

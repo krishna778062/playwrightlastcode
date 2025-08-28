@@ -221,9 +221,9 @@ export class FeatureOwnersPage extends BasePage {
       );
     }
     if (visiblility) {
-      expect(isUserVisible, `expecting user record to be visible`).toBeTruthy();
+      expect(isUserVisible, `expecting  ${userName} to be visible`).toBeTruthy();
     } else {
-      expect(isUserVisible, `expecting user record not to be visible`).toBeFalsy();
+      expect(isUserVisible, `expecting ${userName} not to be visible`).toBeFalsy();
       featureOwnerRecordItem = null;
     }
     return featureOwnerRecordItem;
