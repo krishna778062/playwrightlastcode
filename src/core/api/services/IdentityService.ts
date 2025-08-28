@@ -367,4 +367,25 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
       });
     });
   }
+
+  /**
+   * Enables loginIdentifiers in the tenant
+   * @param identifiers - All the loginIdentifiers that needs to be enabled (for ex. email, mobile, employee number)
+   * @param options - Optional parameters for account verification questions. By default department will be set.
+   */
+  async enableLoginIdentifiers(
+    identifiers: string[],
+    options?: { accountVerificationQuestion: string[] }
+  ): Promise<void> {
+    await test.step(`Enabling login identifiers ${identifiers}`, async () => {
+      await expect(
+        await this.post(API_ENDPOINTS.appManagement.identity.v1AccountSecurityIdpInternal, {
+          data: {
+            loginIdentifiers: identifiers,
+            accountVerificationFields: options?.accountVerificationQuestion || ['department'],
+          },
+        })
+      ).toBeOK();
+    });
+  }
 }
