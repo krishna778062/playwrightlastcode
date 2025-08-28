@@ -1,5 +1,3 @@
-import { expect } from '@playwright/test';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
@@ -23,17 +21,6 @@ test.describe(
     test.beforeEach(async ({ appManagerApiClient }) => {
       categoryToCreate = `ABAC_Target_Category`;
       audienceToCreate = `ABAC_Target_Audience_${Date.now()}`;
-      const user1: User = {
-        first_name: 'Aaman Temp',
-        last_name: `Standard User${Date.now()}`,
-        emp: `TSU00${Date.now()}`,
-      };
-
-      const user2: User = {
-        first_name: 'Aaman Temp',
-        last_name: `App Manager${Date.now()}`,
-        emp: `TAM00${Date.now()}`,
-      };
 
       await appManagerApiClient.getIdentityService().createCategory(categoryToCreate);
       categoryId = await appManagerApiClient.getIdentityService().getCategoryId(categoryToCreate, 100);
@@ -63,11 +50,11 @@ test.describe(
     test(
       'Verify that single ACG can be created and deleted without any issue',
       {
-        tag: [TestPriority.P0],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
-          zephyrTestId: ['PS-29969', 'PS-29972'],
+          zephyrTestId: ['PS-29969', 'PS-29972', 'PS-32216'],
         });
         const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
         // Test Scenario(s)
@@ -86,6 +73,45 @@ test.describe(
         acgName = await accessControlGroupsPage.getACGName();
         console.log(`ACG name is ${acgName}`);
         await accessControlGroupsPage.clickOnButtonWithName('Save and activate');
+        await accessControlGroupsPage.verifyToastMessage('Creating access control groups and audience relationships…');
+        await accessControlGroupsPage.verifyACGStatus(acgName, 'Active');
+        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName);
+        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
+        await accessControlGroupsPage.searchForACG(acgName);
+        await accessControlGroupsPage.deleteFirstACG();
+        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully deleted');
+        acgName = undefined; //reset the acg name back to undefined to avoid any future cleanup issues
+      }
+    );
+
+    test(
+      'Verify that status of the ACG should be displayed as Active or Inactive immediately after creation',
+      {
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
+      },
+      async ({ appManagerPage, appManagerApiClient }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'PS-32216',
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        // Test Scenario - Verify that status of the ACG should be displayed as Inactive immediately after creation
+        await accessControlGroupsPage.loadPage();
+        await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
+        await accessControlGroupsPage.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
+        await accessControlGroupsPage.clickOnButtonWithName('Next');
+        await accessControlGroupsPage.clickOnButtonWithName('Browse');
+        await accessControlGroupsPage.searchForValues(audienceToCreate);
+        await accessControlGroupsPage.clickOnAudience(audienceToCreate);
+        await accessControlGroupsPage.clickOnButtonWithName('Done');
+        await accessControlGroupsPage.clickOnButtonWithName('Next');
+        await accessControlGroupsPage.clickOnButtonWithName('Skip');
+        await accessControlGroupsPage.clickOnButtonWithName('Skip');
+        acgName = await accessControlGroupsPage.getACGName();
+        console.log(`ACG name is ${acgName}`);
+        await accessControlGroupsPage.changeACGStatus('Inactive');
+        await accessControlGroupsPage.clickOnButtonWithName('Save');
+        await accessControlGroupsPage.verifyToastMessage('Creating access control groups and audience relationships…');
+        await accessControlGroupsPage.verifyACGStatus(acgName, 'Inactive');
         await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName);
         await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
         await accessControlGroupsPage.searchForACG(acgName);
@@ -98,7 +124,7 @@ test.describe(
     test(
       'Verify that user manager should have access for ACG creation',
       {
-        tag: [TestPriority.P1, `@ABAC`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
       async ({ userManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -133,7 +159,7 @@ test.describe(
     test(
       `Verify that Roles option should not be displayed under Manage section in menu option`,
       {
-        tag: [TestPriority.P1, `@ABAC`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
@@ -149,7 +175,7 @@ test.describe(
     test(
       `Verify that redirecting to "manage/roles" url should display page not found screen`,
       {
-        tag: [TestPriority.P1, `@ABAC`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {

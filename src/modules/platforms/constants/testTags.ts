@@ -5,6 +5,8 @@ export enum PlatformSuiteTags {
   HEADER = '@header',
   NAVIGATION = '@navigation',
   PRIVACY_POLICY = '@privacy-policy',
+  ACG = '@acg',
+  FEATURE_OWNERS = '@feature-owners',
 }
 
 export enum PlatformFeatureTags {

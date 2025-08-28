@@ -19,8 +19,10 @@ test.describe(
   () => {
     let loginIdentifier1: string;
     let loginIdentifier2: string;
+    let loginIdentifier3: string;
     let userNameForUser1: string;
     let userNameForUser2: string;
+    let userNameForUser3: string;
     const features: string[] = ['Application settings', 'Audiences', 'Branding', 'Users'];
 
     test.beforeEach(async ({ appManagerApiClient }) => {
@@ -32,22 +34,29 @@ test.describe(
 
       const user2: User = {
         first_name: 'Aaman Temp',
-        last_name: `App Manager${Date.now()}`,
+        last_name: `App Manager First User${Date.now()}`,
         emp: `TAM00${Date.now()}`,
+      };
+
+      const user3: User = {
+        first_name: 'Aaman Temp',
+        last_name: `App Manager Second User${Date.now()}`,
+        emp: `TAM01${Date.now()}`,
       };
 
       loginIdentifier1 = user1.emp;
       loginIdentifier2 = user2.emp;
+      loginIdentifier3 = user3.emp;
       userNameForUser1 = `${user1.first_name} ${user1.last_name}`;
       userNameForUser2 = `${user2.first_name} ${user2.last_name}`;
+      userNameForUser3 = `${user3.first_name} ${user3.last_name}`;
 
       await appManagerApiClient.getUserManagementService().addUserIfNotAddedAlready(user1, Roles.END_USER);
       await appManagerApiClient.getUserManagementService().waitForUserToBeAddedInIdentity(loginIdentifier1);
       await appManagerApiClient.getUserManagementService().addUserIfNotAddedAlready(user2, Roles.APPLICATION_MANAGER);
       await appManagerApiClient.getUserManagementService().waitForUserToBeAddedInIdentity(loginIdentifier2);
-      await appManagerApiClient
-        .getUserManagementService()
-        .updatePrimaryRole(loginIdentifier2, RolesId.APPLICATION_MANAGER, { abac: true });
+      await appManagerApiClient.getUserManagementService().addUserIfNotAddedAlready(user3, Roles.APPLICATION_MANAGER);
+      await appManagerApiClient.getUserManagementService().waitForUserToBeAddedInIdentity(loginIdentifier3);
     });
 
     test.afterEach(async ({ appManagerApiClient }) => {
@@ -65,6 +74,13 @@ test.describe(
         const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier2);
         await appManagerApiClient.getUserManagementService().updateUserStatus(userId, 'Inactive');
       }
+
+      console.log(`loginIdentifier3: ${loginIdentifier3}`);
+      if (loginIdentifier3 != undefined) {
+        // Cleanup
+        const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier3);
+        await appManagerApiClient.getUserManagementService().updateUserStatus(userId, 'Inactive');
+      }
     });
 
     // To run the followwing TCs with different features, we will be using a for loop
@@ -73,7 +89,7 @@ test.describe(
       test(
         `Verify that user manager should not be able to remove Feature owner access of any app manager from ${feature} feature under Feature owners tab`,
         {
-          tag: [TestPriority.P1, `@ABAC`],
+          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
         },
         async ({ userManagerPage, userManagerApiClient }) => {
           let usersWithAppManagerTag: string[] = [];
@@ -103,7 +119,7 @@ test.describe(
       test(
         `Verify that user manager should have access for editing ${feature} feature under feature owners tab`,
         {
-          tag: [TestPriority.P1, `@ABAC`],
+          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
         },
         async ({ userManagerPage }) => {
           tagTest(test.info(), {
@@ -128,11 +144,11 @@ test.describe(
       test(
         `Verify that user manager should be able to remove Feature onwer access of any app manager from manage users page for ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@ABAC`],
+          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`, `@this-one`],
         },
         async ({ userManagerPage, appManagerApiClient }) => {
           tagTest(test.info(), {
-            zephyrTestId: ['PS-33255'],
+            zephyrTestId: ['PS-33255', 'PS-33090', 'PS-33089'],
           });
           const manageUsersPage: ManageUsersPage = new ManageUsersPage(userManagerPage);
           const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerPage);
@@ -140,15 +156,59 @@ test.describe(
           await featureOwnersPage.loadPage();
           await featureOwnersPage.searchForFeature(feature);
           await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
+          await featureOwnersPage.verifyUserIsNotDisplayedAsFeatureOwner(userNameForUser1);
+          await featureOwnersPage.reloadPage();
+          await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
           // Verify that user is displayed with App manager tag
           await featureOwnersPage.verifyFeatureOwnerIsDisplayedWithAppManagerTag(userNameForUser2);
           await appManagerApiClient
             .getUserManagementService()
             .updatePrimaryRole(loginIdentifier2, RolesId.END_USER, { abac: true });
-          await manageUsersPage.reloadPage();
+          await featureOwnersPage.reloadPage();
           await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
-          // Check that user is not displayed in the feature onwer list
+          // Verify that user is not displayed in the feature owner list
           await featureOwnersPage.verifyUserIsNotDisplayedAsFeatureOwner(userNameForUser2);
+        }
+      );
+
+      test(
+        `Verify that ${feature} feature owners access should be removed when the status of the user with app manager role is changed to inactive or frozen from manage users page`,
+        {
+          tag: [TestPriority.P0, `@ABAC`, `@feature-owners`, `@this-one`],
+        },
+        async ({ appManagerPage, appManagerApiClient }) => {
+          tagTest(test.info(), {
+            zephyrTestId: ['PS-33069'],
+          });
+          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
+
+          // <<<<<<<<<<<<<<<<<<Test Scenario 1 - For the case where App manager's status is changed to inactive>>>>>>>>>>>>>>
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.searchForFeature(feature);
+          await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
+          // Verify that user is displayed with App manager tag
+          await featureOwnersPage.verifyFeatureOwnerIsDisplayedWithAppManagerTag(userNameForUser2);
+          // changing status of the App manager to Inactive
+          let userId2 = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier2);
+          await appManagerApiClient.getUserManagementService().updateUserStatus(userId2, 'Inactive');
+          await featureOwnersPage.reloadPage();
+          await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
+          // Verify that user is not displayed in the feature owners list after changing the status to inactive
+          await featureOwnersPage.verifyUserIsNotDisplayedAsFeatureOwner(userNameForUser2);
+
+          // <<<<<<<<<<<<<<<<<<Test Scenario 2 - For the case where App manager's status is changed to forzen>>>>>>>>>>>>>>
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.searchForFeature(feature);
+          await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
+          // Verify that user is displayed with App manager tag
+          await featureOwnersPage.verifyFeatureOwnerIsDisplayedWithAppManagerTag(userNameForUser3);
+          // changing status of the App manager to Frozen
+          let userId3 = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier3);
+          await appManagerApiClient.getUserManagementService().updateUserStatus(userId3, 'Freezed');
+          await featureOwnersPage.reloadPage();
+          await featureOwnersPage.clickOnButtonForFeature(feature, 'Edit');
+          // Verify that user is not displayed in the feature owners list after changing the status to frozen
+          await featureOwnersPage.verifyUserIsNotDisplayedAsFeatureOwner(userNameForUser3);
         }
       );
     }
