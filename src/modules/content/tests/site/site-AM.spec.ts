@@ -14,9 +14,9 @@ import { SiteCreationPage as ContentSiteCreationPage } from '@/src/modules/conte
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
-  ContentTestSuite.FEATURED_SITES + ' - AM Tests',
+  ContentTestSuite.SITE + ' - AM Tests',
   {
-    tag: [ContentTestSuite.FEATURED_SITES],
+    tag: [ContentTestSuite.SITE],
   },
   () => {
     let siteCreationPage: ContentSiteCreationPage;

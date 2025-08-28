@@ -3,6 +3,7 @@ export enum ContentTestSuite {
   ALBUM = '@album',
   EVENT = '@event',
   FEED = '@feed',
+  SITE = '@site',
   ATTACHMENTS = '@attachments',
   FEATURED_SITES = '@featured-sites',
 }
