@@ -10,10 +10,7 @@ export enum TestSuite {
   LINK_TILE_SEARCH = '@link-tile-search',
   APPS_SEARCH = '@apps-search',
   ABAC = '@abac',
-<<<<<<< HEAD
   AUDIENCE = '@audience',
   AUDIENCE_CATEGORY = '@audience-category',
-=======
   PLATFORM = '@platform',
->>>>>>> f68120a (tests(PS-33090, PS-33089, PS-32973, PS-32972, PS-32216): Adding test cases)
 }
