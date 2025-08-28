@@ -38,13 +38,13 @@ export class ChatNavigationComponent extends BaseComponent {
 
   async verifyTheCreateNewMessageButton(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? 'verifying the create new message button', async () => {
-      await this.createNewMessageButton.isVisible();
+      await this.verifier.verifyTheElementIsVisible(this.createNewMessageButton);
     });
   }
 
   async verifyTheCreateNewGroupButton(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? 'verifying the create new group button', async () => {
-      await this.createNewGroupButton.isVisible();
+      await this.verifier.verifyTheElementIsVisible(this.createNewGroupButton);
     });
   }
 }
