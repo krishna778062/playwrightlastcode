@@ -48,7 +48,7 @@ test.describe(
      * based on selected audience , the name will be generated automatically
      * and we will be using that name to delete the acg
      */
-    test(
+    test.only(
       'Verify that single ACG can be created and deleted without any issue',
       {
         tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],

@@ -17,7 +17,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         baseURL: process.env.FRONTEND_BASE_URL,
-        headless: process.env.CI ? true : true,
+        headless: process.env.CI ? true : false,
         permissions: ['camera', 'microphone'],
         launchOptions: {
           args: [
