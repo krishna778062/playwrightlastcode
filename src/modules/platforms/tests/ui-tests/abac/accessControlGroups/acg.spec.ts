@@ -28,16 +28,12 @@ test.describe(
       const user1: User = {
         first_name: 'Aaman Temp',
         last_name: `Standard User${Date.now()}`,
-        email: `tsu${Date.now()}@example.com`,
-        mobile: 1234567890,
         emp: `TSU00${Date.now()}`,
       };
 
       const user2: User = {
         first_name: 'Aaman Temp',
         last_name: `App Manager${Date.now()}`,
-        email: `tam${Date.now()}@example.com`,
-        mobile: 1234567891,
         emp: `TAM00${Date.now()}`,
       };
 
