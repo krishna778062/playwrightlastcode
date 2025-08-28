@@ -22,7 +22,7 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
   private featureSiteComponent: FeatureSiteComponent;
 
   //LOCATORS
-  readonly featuredTab = this.page.locator('a').filter({ hasText: 'Featured' });
+  readonly featuredTab = this.page.locator('a').filter({ hasText: /^Featured$/ });
   readonly featuredSiteNames = this.page
     .locator('#panel-featured')
     .locator('.SiteGridItem-info')

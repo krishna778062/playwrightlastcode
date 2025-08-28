@@ -19,6 +19,7 @@ export interface ISiteDashboardActions {
 export interface ISiteDashboardAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
   verifySiteName: (siteName: string, successMessage: string) => Promise<void>;
+  verifyDashboardUrl: (siteId: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BasePage implements ISiteDashboardActions, ISiteDashboardAssertions {
@@ -132,6 +133,22 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
       await this.verifier.verifyTheElementIsVisible(this.successMessage(successMessage), {
         assertionMessage: `Success message "${successMessage}" should be visible after publishing`,
       });
+    });
+  }
+
+  /**
+   * Verifies the current URL matches the expected site dashboard URL
+   * @param siteId - The expected site ID in the URL
+   */
+  async verifyDashboardUrl(siteId: string): Promise<void> {
+    await test.step(`Verify dashboard URL contains site ID: ${siteId}`, async () => {
+      await this.page.waitForLoadState('domcontentloaded');
+      const expectedUrl = PAGE_ENDPOINTS.getSiteDashboardPage(siteId);
+      const currentUrl = this.page.url();
+
+      if (!currentUrl.includes(expectedUrl)) {
+        throw new Error(`Expected URL to contain "${expectedUrl}", but got "${currentUrl}"`);
+      }
     });
   }
 }

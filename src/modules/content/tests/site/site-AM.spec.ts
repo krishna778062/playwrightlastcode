@@ -64,9 +64,7 @@ test.describe(
         const { siteDashboard, siteId } = await siteCreationPage.actions.addSite(siteCreationOptions);
 
         // Verify we're on the correct site dashboard page
-        expect(siteDashboard.page.url(), 'Should navigate to the created site dashboard page').toContain(
-          PAGE_ENDPOINTS.getSiteDashboardPage(siteId)
-        );
+        await siteDashboard.assertions.verifyDashboardUrl(siteId);
 
         await siteDashboard.assertions.verifySiteName(siteCreationOptions.title, 'Created site successfully');
 
