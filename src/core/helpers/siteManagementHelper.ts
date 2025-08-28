@@ -276,4 +276,71 @@ export class SiteManagementHelper {
   getMemberCount(): number {
     return this.siteMembers.length;
   }
+
+  /**
+   * Gets a site by name from the sites list, or creates a new one if not found.
+   * @param siteName - The name of the site to find or create
+   * @param options - Optional configuration for site creation if needed
+   * @param options.category - The site category object, containing name and categoryId
+   * @param options.overrides - Optional overrides for site creation payload
+   * @param options.accessType - The access type of the site (default: 'public')
+   * @returns The siteId of the found or created site
+   */
+  async getSiteFromSiteList(
+    siteName: string,
+    options?: {
+      category?: { name: string; categoryId: string };
+      overrides?: Partial<SiteCreationPayload>;
+      accessType?: 'public' | 'private' | 'unlisted';
+    }
+  ): Promise<string> {
+    // Get the list of sites
+    const sitesResponse = await this.appManagerApiClient.getSiteManagementService().getListOfSites({
+      size: 1000, // Get a large number to ensure we find the site if it exists
+      canManage: true,
+      filter: 'active',
+    });
+
+    // Search for the site by name
+    const existingSite = sitesResponse.result.listOfItems.find(
+      site => site.name.toLowerCase() === siteName.toLowerCase()
+    );
+
+    if (existingSite) {
+      console.log(`Found existing site: ${existingSite.name} with ID: ${existingSite.siteId}`);
+      return existingSite.siteId;
+    }
+
+    // Site not found, create a new one
+    console.log(`Site "${siteName}" not found. Creating a new site...`);
+
+    const accessType = options?.accessType || 'public';
+    let createdSite;
+
+    switch (accessType) {
+      case 'private':
+        createdSite = await this.createPrivateSite({
+          siteName,
+          category: options?.category,
+          overrides: options?.overrides,
+        });
+        break;
+      case 'unlisted':
+        createdSite = await this.createUnlistedSite({
+          siteName,
+          category: options?.category,
+          overrides: options?.overrides,
+        });
+        break;
+      default:
+        createdSite = await this.createPublicSite({
+          siteName,
+          category: options?.category,
+          overrides: options?.overrides,
+        });
+    }
+
+    console.log(`Created new site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
+    return createdSite.siteId;
+  }
 }

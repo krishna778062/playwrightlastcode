@@ -3,7 +3,7 @@ import { APIRequestContext, expect, test } from '@playwright/test';
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { ISiteManagementOperations } from '@core/api/interfaces/ISiteManagemenOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-import { SiteCreationPayload } from '@core/types/siteManagement.types';
+import { SiteCreationPayload, SiteListOptions, SiteListResponse } from '@core/types/siteManagement.types';
 
 const defaultSitePayload: SiteCreationPayload = {
   access: 'public',
@@ -190,5 +190,38 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       });
     });
     return { fileId: file.fileId, authorName: file.owner.name };
+  }
+
+  /**
+   * Gets a list of sites with optional filtering
+   * @param options - The options for filtering sites
+   * @param options.size - The number of sites to return (default: 100)
+   * @param options.canManage - Filter sites that can be managed (default: true)
+   * @param options.filter - Filter by site status (default: 'active')
+   * @returns Promise resolving to the sites list response
+   */
+  async getListOfSites(options: SiteListOptions = {}): Promise<SiteListResponse> {
+    return await test.step('Getting list of sites via API', async () => {
+      const payload = {
+        size: options.size || 1000,
+        canManage: options.canManage !== undefined ? options.canManage : true,
+        filter: options.filter || 'active',
+      };
+
+      console.log('Sites list payload:', payload);
+
+      const response = await this.post(API_ENDPOINTS.site.listOfSites, {
+        data: payload,
+      });
+
+      const json = await response.json();
+      console.log('Sites list JSON Response:', JSON.stringify(json, null, 2));
+
+      if (json.status !== 'success') {
+        throw new Error(`Failed to get sites list. Response: ${JSON.stringify(json)}`);
+      }
+
+      return json;
+    });
   }
 }

@@ -1,6 +1,7 @@
 export enum ContentSuiteTags {
   PAGE_CREATION = '@page-creation',
   ALBUM_CREATION = '@album-creation',
+  EVENT_CREATION = '@event-creation',
   SITE_CREATION = '@site-creation',
 }
 

@@ -165,22 +165,17 @@ export class TestDataGenerator {
    * @param overrides Optional properties to override in the generated event
    * @returns An EventCreationOptions object with random realistic data
    */
-  static generateEvent(overrides?: Partial<EventCreationOptions>): EventCreationOptions {
-    const startDate = faker.date.future();
-    const endDate = faker.date.future({ refDate: startDate });
-
+  static generateEvent(
+    startDate?: string,
+    endDate?: string,
+    overrides?: Partial<EventCreationOptions>
+  ): EventCreationOptions {
     const eventOptions: EventCreationOptions = {
       title: `Automated Test Event ${faker.company.name()} - ${faker.commerce.productName()}`,
       description: `This is an automated test event description ${faker.lorem.paragraph()}`,
-      startDate: startDate.toISOString().split('T')[0], // YYYY-MM-DD format
-      endDate: endDate.toISOString().split('T')[0], // YYYY-MM-DD format
-      startTime: faker.date.recent().toTimeString().split(' ')[0].substring(0, 5), // HH:MM format
-      endTime: faker.date.recent().toTimeString().split(' ')[0].substring(0, 5), // HH:MM format
-      location: `${faker.location.streetAddress()}, ${faker.location.city()}, ${faker.location.state()}`,
-      category: faker.word.noun().toLowerCase(),
-      isAllDay: faker.datatype.boolean(),
-      isVirtual: faker.datatype.boolean(),
-      virtualLink: faker.internet.url(),
+      startDate: startDate || faker.date.future().toISOString().split('T')[0],
+      endDate: endDate || faker.date.future().toISOString().split('T')[0],
+      location: `${faker.location.streetAddress()}, ${faker.location.city()}`,
     };
 
     return {
@@ -196,6 +191,6 @@ export class TestDataGenerator {
    * @returns Array of EventCreationOptions objects
    */
   static generateEvents(count: number, overrides?: Partial<EventCreationOptions>): EventCreationOptions[] {
-    return Array.from({ length: count }, () => this.generateEvent(overrides));
+    return Array.from({ length: count }, () => this.generateEvent(undefined, undefined, overrides));
   }
 }
