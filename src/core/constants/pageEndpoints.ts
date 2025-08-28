@@ -13,6 +13,7 @@ export const PAGE_ENDPOINTS = {
   REWARD_STORE_ORDER_HISTORY_PAGE: '/rewards-store/order-history',
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
+  MANAGE_USERS_PAGE: '/manage/users',
   LOGOUT: '/logout',
 
   // abac pages

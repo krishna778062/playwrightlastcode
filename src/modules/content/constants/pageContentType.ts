@@ -1,4 +1,4 @@
 export enum PageContentType {
-    NEWS = "News",
-    KNOWLEDGE = "Knowledge"
-} 
+  NEWS = 'News',
+  KNOWLEDGE = 'Knowledge',
+}

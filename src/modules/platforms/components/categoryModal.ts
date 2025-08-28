@@ -1,86 +1,62 @@
-import { expect, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
+import { BaseComponent } from '@/src/core/components/baseComponent';
 import { FIELD_VALIDATION } from '@/src/core/constants/fieldValidation';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
-import { BasePage } from '@/src/core/pages/basePage';
 
-export type CategoryModalType = 'create' | 'edit';
+export type CategoryModalMode = 'create' | 'edit';
 
-export class CategoryModalComponent extends BasePage {
-  private modalType: CategoryModalType;
+export class CategoryModalComponent extends BaseComponent {
+  private categoryModalForMode: CategoryModalMode;
   private dialogFilter: string;
   private submitButtonText: string;
   private titleText: string;
 
   // Locators
-  categoryDialog!: any;
-  closeButton!: any;
-  categoryNameInput!: any;
-  addDescriptionButton!: any;
-  descriptionInput!: any;
-  categoryLabel!: any;
-  categoryTitleDescription!: any;
-  cancelButton!: any;
-  submitButton!: any;
-  deleteDescriptionButton!: any;
-  nameRequiredError!: any;
+  categoryDialog: Locator;
+  closeButton: Locator;
+  categoryNameInput: Locator;
+  addDescriptionButton: Locator;
+  descriptionInput: Locator;
+  categoryLabel: Locator;
+  categoryTitleDescription: Locator;
+  cancelButton: Locator;
+  submitButton: Locator;
+  deleteDescriptionButton: Locator;
+  nameRequiredError: Locator;
 
-  constructor(page: Page, modalType: CategoryModalType) {
-    super(page, '');
-    this.modalType = modalType;
-    this.dialogFilter = modalType === 'create' ? 'Create category' : 'Edit category';
-    this.submitButtonText = modalType === 'create' ? 'Add' : 'Save';
-    this.titleText = modalType === 'create' ? 'Create category' : 'Edit category';
+  constructor(page: Page, categoryModalForMode: CategoryModalMode) {
+    super(page);
+    this.categoryModalForMode = categoryModalForMode;
+    this.dialogFilter = categoryModalForMode === 'create' ? 'Create category' : 'Edit category';
+    this.submitButtonText = categoryModalForMode === 'create' ? 'Add' : 'Save';
+    this.titleText = categoryModalForMode === 'create' ? 'Create category' : 'Edit category';
+
+    //Locators
     this.categoryDialog = page.locator('[role="dialog"]').filter({ hasText: this.dialogFilter });
 
-    this.closeButton = this.categoryDialog.locator('button[aria-label="Close"]');
+    this.closeButton = this.categoryDialog.getByRole('button', { name: 'Close' });
     this.categoryNameInput = this.categoryDialog.locator('input[name="name"]');
-    this.addDescriptionButton = this.categoryDialog.locator('button:has-text("Add description")');
-    this.descriptionInput = this.categoryDialog.locator('textarea[name="description"]');
-    this.categoryLabel = this.categoryDialog.locator(`h2:has-text("${this.titleText}")`);
-    this.categoryTitleDescription = this.categoryDialog.locator(
-      'p:has-text("Keep your audiences organized by grouping related audiences within a category.")'
+    this.addDescriptionButton = this.categoryDialog.getByRole('button', { name: 'Add description' });
+    this.descriptionInput = this.categoryDialog.getByRole('textbox', { name: 'Description' });
+    this.categoryLabel = this.categoryDialog.getByRole('heading', { name: this.titleText });
+    this.categoryTitleDescription = this.categoryDialog.getByText(
+      'Keep your audiences organized by grouping related audiences within a category.'
     );
-    this.cancelButton = this.categoryDialog.locator('button:has-text("Cancel")');
-    this.submitButton = this.categoryDialog.locator(
-      `button:has-text("${this.submitButtonText}"):not(:has-text("Add description"))`
-    );
+    this.cancelButton = this.categoryDialog.getByRole('button', { name: 'Cancel' });
+    this.submitButton = this.categoryDialog.getByRole('button', { name: this.submitButtonText });
     this.deleteDescriptionButton = this.categoryDialog.getByRole('button', { name: 'Delete' });
-    this.nameRequiredError = this.categoryDialog.locator(':text("Name is a required field")');
-  }
-
-  // Components don't have pages to load, so provide a no-op implementation
-  async verifyThePageIsLoaded(): Promise<void> {
-    // No-op for components - they don't have pages to verify
+    this.nameRequiredError = this.categoryDialog.getByText('Name is a required field');
   }
 
   /**
    * @description
-   * Verify the category modal elements and validations
+   * Verify the category modal elements visibility
+   * @private
    * @returns void
    */
-  async verifyCategoryModalElements(): Promise<void> {
-    await test.step(`Verify ${this.titleText} modal elements and validations`, async () => {
-      await this._verifyCategoryModalElements();
-
-      // For Create modal: Add button should be disabled when name field is empty
-      // For Edit modal: Save button should be enabled when editing existing category (name field is pre-filled)
-      if (this.modalType === 'create') {
-        await expect(
-          this.submitButton,
-          `Verify ${this.submitButtonText} button is disabled when no category name is provided`
-        ).toBeDisabled();
-      } else {
-        await expect(
-          this.submitButton,
-          `Verify ${this.submitButtonText} button is enabled for existing category`
-        ).toBeEnabled();
-      }
-    });
-  }
-
-  private async _verifyCategoryModalElements(): Promise<void> {
-    const elementsToVerify = [
+  private async _verifyCategoryModalElementsVisibility(): Promise<void> {
+    const listOfCategoryModalUiElementsToVerify = [
       { element: this.categoryLabel, message: `Verify ${this.titleText} heading is visible` },
       { element: this.categoryNameInput, message: `Verify Name input is visible in ${this.titleText} modal` },
       {
@@ -99,16 +75,41 @@ export class CategoryModalComponent extends BasePage {
       },
     ];
 
-    for (const { element, message } of elementsToVerify) {
+    for (const { element, message } of listOfCategoryModalUiElementsToVerify) {
       await this.verifier.verifyTheElementIsVisible(element, { assertionMessage: message });
     }
   }
-
-  // Basic methods - no smart logic
-  async fillCategoryName(categoryName: string): Promise<void> {
-    await this.fillInElement(this.categoryNameInput, categoryName, {
-      stepInfo: `Fill category name: ${categoryName}`,
+  /**
+   * @description
+   * Verify the category modal elements and validations
+   * @returns void
+   */
+  async verifyUIElementsOfCategoryModal(): Promise<void> {
+    await test.step(`Verify ${this.titleText} modal elements and validations`, async () => {
+      await this._verifyCategoryModalElementsVisibility();
+      await this.verifySubmitButtonState();
     });
+  }
+
+  /**
+   * @description
+   * Verify the submit button state
+   * @returns void
+   */
+  async verifySubmitButtonState(): Promise<void> {
+    const isCreateMode = this.categoryModalForMode === 'create';
+
+    if (isCreateMode) {
+      await expect(
+        this.submitButton,
+        `Verify ${this.submitButtonText} button is disabled when no category name is provided`
+      ).toBeDisabled();
+    } else {
+      await expect(
+        this.submitButton,
+        `Verify ${this.submitButtonText} button is enabled for existing category`
+      ).toBeEnabled();
+    }
   }
 
   async addCategoryDescription(description: string): Promise<void> {
@@ -166,61 +167,69 @@ export class CategoryModalComponent extends BasePage {
     });
   }
 
+  async fillInCategoryDescription(description: string): Promise<void> {
+    await this.fillInElement(this.descriptionInput, description, {
+      stepInfo: `Fill category description: ${description}`,
+    });
+  }
+
+  async fillCategoryName(categoryName: string): Promise<void> {
+    await this.fillInElement(this.categoryNameInput, categoryName, {
+      stepInfo: `Fill category name: ${categoryName}`,
+    });
+  }
+
+  async verifyCategoryNameInputAcceptsInput(nameToInput: string): Promise<void> {
+    await this.fillCategoryName(nameToInput);
+    await expect(this.categoryNameInput, `Verify name field accepts input "${nameToInput}"`).toHaveValue(nameToInput);
+  }
+
+  async verifyCategoryDescriptionInputAcceptsInput(descriptionToInput: string): Promise<void> {
+    await this.fillInCategoryDescription(descriptionToInput);
+    await expect(this.descriptionInput, `Verify description field accepts input "${descriptionToInput}"`).toHaveValue(
+      descriptionToInput
+    );
+  }
+
   // Verify name and description fields accept alphanumeric and special characters
   async verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(): Promise<void> {
     await test.step(`Verify name and description fields accept alphanumeric and special characters in ${this.titleText} modal`, async () => {
       // Test name field
       const nameTestInput = 'Test123 @#$ with Space and-Category_Name';
-      await this.fillInElement(this.categoryNameInput, nameTestInput);
-      const nameValue = await this.categoryNameInput.inputValue();
-      if (nameValue !== nameTestInput) {
-        throw new Error(`Name field should accept input "${nameTestInput}" but got "${nameValue}"`);
-      }
+      await this.fillCategoryName(nameTestInput);
+      await expect(this.categoryNameInput, `Verify name field accepts input "${nameTestInput}"`).toHaveValue(
+        nameTestInput
+      );
 
       // Test description field
-      await this._ensureDescriptionFieldVisible();
       const descTestInput = 'Description 123 @#$% with spaces and-special_chars';
-      await this.fillInElement(this.descriptionInput, descTestInput);
-      const descValue = await this.descriptionInput.inputValue();
-      if (descValue !== descTestInput) {
-        throw new Error(`Description field should accept input "${descTestInput}" but got "${descValue}"`);
-      }
+      await this.fillInCategoryDescription(descTestInput);
+      await expect(this.descriptionInput, `Verify description field accepts input "${descTestInput}"`).toHaveValue(
+        descTestInput
+      );
     });
   }
 
-  // Helper method to ensure description field is visible
-  private async _ensureDescriptionFieldVisible(): Promise<void> {
-    // Check if description field is already visible (might be visible if category has description)
-    const descriptionVisible = await this.verifier.isTheElementVisible(this.descriptionInput, { timeout: 1000 });
-
-    if (!descriptionVisible) {
-      // Description field is hidden, need to click Add description to show it
-      await this.clickOnElement(this.addDescriptionButton, { stepInfo: 'Click Add description' });
-    }
-    // If already visible, no action needed
-  }
-
-  async verifyNameFieldMaxLength(): Promise<void> {
+  async verifyNameFieldMaxLength(maxAllowedLength: number = FIELD_VALIDATION.MAX_LENGTHS.CATEGORY_NAME): Promise<void> {
     await test.step(`Verify name field max length validation in ${this.titleText} modal`, async () => {
-      const maxLength = FIELD_VALIDATION.MAX_LENGTHS.CATEGORY_NAME;
-      const testString = 'A'.repeat(maxLength + 1); // Try to input more than allowed
+      const testString = 'A'.repeat(maxAllowedLength + 1); // Try to input more than allowed
       await this.fillInElement(this.categoryNameInput, testString);
-
       const actualValue = await this.categoryNameInput.inputValue();
-      expect(actualValue.length).toEqual(maxLength);
+      expect(actualValue.length, `Verify name field max length is ${maxAllowedLength}`).toEqual(maxAllowedLength);
     });
   }
 
-  async verifyDescriptionFieldMaxLength(): Promise<void> {
+  async verifyDescriptionFieldMaxLength(
+    maxAllowedLength: number = FIELD_VALIDATION.MAX_LENGTHS.CATEGORY_DESCRIPTION
+  ): Promise<void> {
     await test.step(`Verify description field max length validation in ${this.titleText} modal`, async () => {
-      await this._ensureDescriptionFieldVisible();
-
-      const maxLength = FIELD_VALIDATION.MAX_LENGTHS.CATEGORY_DESCRIPTION;
-      const testString = 'B'.repeat(maxLength + 1); // Try to input more than allowed
+      const testString = 'B'.repeat(maxAllowedLength + 1); // Try to input more than allowed
       await this.fillInElement(this.descriptionInput, testString);
 
       const actualValue = await this.descriptionInput.inputValue();
-      expect(actualValue.length).toEqual(maxLength);
+      expect(actualValue.length, `Verify description field max length is ${maxAllowedLength}`).toEqual(
+        maxAllowedLength
+      );
     });
   }
 
@@ -229,11 +238,14 @@ export class CategoryModalComponent extends BasePage {
       const testCategoryName = `CancelTest_${Date.now()}`;
       await this.fillCategoryName(testCategoryName);
       await this.clickCancelButton();
+      await this.verifyCategoryDialogueIsNotVisible();
+    });
+  }
 
-      await this.verifier.verifyTheElementIsNotVisible(this.categoryDialog, {
-        assertionMessage: `Verify ${this.titleText} modal is closed after clicking Cancel`,
-        timeout: TIMEOUTS.MEDIUM,
-      });
+  async verifyCategoryDialogueIsNotVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.categoryDialog, {
+      assertionMessage: `Verify ${this.titleText} modal is closed after clicking Cancel`,
+      timeout: TIMEOUTS.MEDIUM,
     });
   }
 
@@ -242,16 +254,12 @@ export class CategoryModalComponent extends BasePage {
       const testCategoryName = `CloseTest_${Date.now()}`;
       await this.fillCategoryName(testCategoryName);
       await this.clickCloseButton();
-
-      await this.verifier.verifyTheElementIsNotVisible(this.categoryDialog, {
-        assertionMessage: `Verify ${this.titleText} modal is closed after clicking Close`,
-        timeout: TIMEOUTS.MEDIUM,
-      });
+      await this.verifyCategoryDialogueIsNotVisible();
     });
   }
 
   async verifyEditCategoryNameFieldValidation(): Promise<void> {
-    if (this.modalType !== 'edit') {
+    if (this.categoryModalForMode !== 'edit') {
       throw new Error('verifyEditCategoryNameFieldValidation can only be called in edit mode');
     }
 

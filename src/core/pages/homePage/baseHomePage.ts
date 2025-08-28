@@ -13,7 +13,6 @@ import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
 import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
-import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 import { SiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/globalSearchResultPage';
@@ -39,6 +38,8 @@ export interface INewUxHomePageActions extends ICommonHomePageActions {
     options?: { stepInfo?: string }
   ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
   clickOnFeaturedSitesTab: (options?: { stepInfo?: string }) => Promise<FeaturedSitePage>;
+  clickOnApplicationSettings: (options?: { stepInfo?: string }) => Promise<void>;
+  verifyRolesButtonVisibility: (visible: boolean, options?: { stepInfo?: string }) => Promise<void>;
 }
 
 export abstract class BaseHomePage extends BasePage implements ICommonHomePageActions {
@@ -111,4 +112,25 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
    * @returns The site creation modal component
    */
   abstract openSiteCreationForm(options?: { stepInfo?: string }): Promise<SiteCreationPage>;
+
+  /**
+   * Clicks on the application settings button on the side navigation panel
+   * @param options - The options for the step
+   */
+  async clickOnApplicationSettings(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Clicking on Application settings', async () => {
+      await this.sideNavBarComponent.clickOnApplicationSettings();
+    });
+  }
+
+  /**
+   * Verifies the visibility of Roles button on the side navigation panel
+   * @param visible - The visibility of the Roles button
+   * @param options - The options for the step
+   */
+  async verifyRolesButtonVisibility(visible: boolean, options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Clicking on Roles button', async () => {
+      await this.sideNavBarComponent.verifyRolesButtonVisibility(visible);
+    });
+  }
 }

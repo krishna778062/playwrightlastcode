@@ -103,20 +103,8 @@ export class AudiencePage extends BasePage {
   // ========== CATEGORY MODAL METHODS ==========
 
   // Open Create category modal and validate all expected elements are visible
-  async openCreateCategoryModal(options?: {
-    verifyMaxLength?: boolean;
-    verifyAddDescription?: boolean;
-    verifyRemoveDescription?: boolean;
-    closeAfter?: boolean;
-  }): Promise<void> {
+  async openCreateCategoryModal(): Promise<void> {
     await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
-    await this.addCategoryModal.verifyCategoryModalElements();
-    // Name field validation is now part of verifyCategoryModalElements()
-
-    if (options?.verifyMaxLength) await this.addCategoryModal.verifyNameFieldMaxLength();
-    if (options?.verifyAddDescription) await this.addCategoryModal.clickAddDescriptionAndVerify();
-    if (options?.verifyRemoveDescription) await this.addCategoryModal.removeDescriptionAndVerifyAbsence();
-    if (options?.closeAfter) await this.addCategoryModal.clickCloseButton();
   }
 
   // ========== CATEGORY FORM INTERACTION METHODS ==========
@@ -148,7 +136,7 @@ export class AudiencePage extends BasePage {
   // ========== TOAST MESSAGE METHODS ==========
 
   // Verify category operation success toast message (created/deleted/updated)
-  async verifyCategoryOperationSuccessToast(operation: 'created' | 'deleted' | 'updated'): Promise<void> {
+  async verifyToastMessageForCategoryOperation(operation: 'created' | 'deleted' | 'updated'): Promise<void> {
     const toastTextMap = {
       created: 'Category created',
       deleted: 'Category deleted',
@@ -156,26 +144,13 @@ export class AudiencePage extends BasePage {
     };
 
     const toastText = toastTextMap[operation];
-    await test.step(`Verify category ${operation} success toast message`, async () => {
+    await test.step(`Verify category ${operation} success toast message shows text "${toastText}"`, async () => {
       // Use Playwright's automatic waiting instead of custom timeout
       const toastMessage = this.toastMessages.filter({ hasText: toastText }).first();
       await expect(toastMessage, `expecting ${toastText} toast message`).toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
       });
     });
-  }
-
-  // Convenience methods for backward compatibility
-  async verifyCategoryCreationSuccessToast(): Promise<void> {
-    await this.verifyCategoryOperationSuccessToast('created');
-  }
-
-  async verifyCategoryDeletionSuccessToast(): Promise<void> {
-    await this.verifyCategoryOperationSuccessToast('deleted');
-  }
-
-  async verifyCategoryUpdateSuccessToast(): Promise<void> {
-    await this.verifyCategoryOperationSuccessToast('updated');
   }
 
   // ========== CATEGORY CRUD OPERATIONS ==========

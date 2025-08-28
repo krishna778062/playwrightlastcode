@@ -8,7 +8,7 @@ import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 
 test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSuite.AUDIENCE_CATEGORY] }, () => {
   test(
-    'Create category modal: validations and basic actions',
+    'Create category modal: Verify category name and description fields accept alphanumeric and special characters',
     { tag: [TestPriority.P2] },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -29,12 +29,40 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
       const audiencePage = new AudiencePage(appManagerPage);
       await audiencePage.loadPage();
       await audiencePage.openCreateCategoryModal();
-      await audiencePage.addCategoryModal.verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial();
+      await audiencePage.addCategoryModal.verifyCategoryNameInputAcceptsInput(
+        'Test123 @#$ with Space and-Category_Name'
+      );
+      await audiencePage.addCategoryModal.verifyCategoryDescriptionInputAcceptsInput(
+        'Description 123 @#$% with spaces and-special_chars'
+      );
+      await audiencePage.clickOnCloseButton();
+    }
+  );
+
+  test(
+    'Create category modal: Verify category name and description strips out input length > max length allowed',
+    { tag: [TestPriority.P2] },
+    async ({ appManagerPage }) => {
+      tagTest(test.info(), {
+        zephyrTestId: [
+          'PS-35395',
+          'PS-35396',
+          'PS-35397',
+          'PS-35398',
+          'PS-35399',
+          'PS-35400',
+          'PS-35401',
+          'PS-35403',
+          'PS-35404',
+          'PS-35406',
+        ],
+      });
+
+      const audiencePage = new AudiencePage(appManagerPage);
+      await audiencePage.loadPage();
+      await audiencePage.openCreateCategoryModal();
       await audiencePage.addCategoryModal.verifyNameFieldMaxLength();
       await audiencePage.addCategoryModal.verifyDescriptionFieldMaxLength();
-      // Ensure description field is hidden before testing Add description functionality
-      await audiencePage.addCategoryModal.removeDescriptionAndVerifyAbsence();
-      await audiencePage.addCategoryModal.clickAddDescriptionAndVerify();
       await audiencePage.clickOnCloseButton();
     }
   );
@@ -49,6 +77,7 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
       const audiencePage = new AudiencePage(appManagerPage);
       await audiencePage.loadPage();
+      await audiencePage.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
       // Verify Cancel button prevents category creation
       await audiencePage.verifyCategoryCancelButtonBehavior();
     }
@@ -100,8 +129,6 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
       // Verify the presence of options in the category dropdown menu
       await audiencePage.verifyAllCategoryOptionsArePresent(uniqueCategoryName);
       await audiencePage.closeOpenDropdown();
-
-      // Note: Cleanup is handled automatically by the afterEach hook
     }
   );
 
@@ -121,11 +148,11 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
       // Create category WITH description and verify creation
       await audiencePage.createCategoryWithNameAndDescription(categoryWithDescription, categoryDescription);
-      await audiencePage.verifyCategoryOperationSuccessToast('created');
+      await audiencePage.verifyToastMessageForCategoryOperation('created');
 
       // Clean up via UI since this was created via UI (testing UI workflow)
       await audiencePage.deleteCategoryByShowMore(categoryWithDescription);
-      await audiencePage.verifyCategoryOperationSuccessToast('deleted');
+      await audiencePage.verifyToastMessageForCategoryOperation('deleted');
     }
   );
 
@@ -144,11 +171,11 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
       // Create category WITHOUT description and verify creation
       await audiencePage.createCategoryWithNameAndDescription(categoryWithoutDescription);
-      await audiencePage.verifyCategoryOperationSuccessToast('created');
+      await audiencePage.verifyToastMessageForCategoryOperation('created');
 
       // Clean up via UI since this was created via UI (testing UI workflow)
       await audiencePage.deleteCategoryByShowMore(categoryWithoutDescription);
-      await audiencePage.verifyCategoryOperationSuccessToast('deleted');
+      await audiencePage.verifyToastMessageForCategoryOperation('deleted');
     }
   );
 
@@ -173,7 +200,7 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
       // Open Edit category modal and verify elements
       await audiencePage.openEditCategoryModal(testCategoryName);
-      await audiencePage.editCategoryModal.verifyCategoryModalElements();
+      await audiencePage.editCategoryModal.verifyUIElementsOfCategoryModal();
       await audiencePage.editCategoryModal.verifyEditCategoryNameFieldValidation();
 
       // Verify field validations similar to Create category modal
