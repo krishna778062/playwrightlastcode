@@ -50,7 +50,7 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
     // Essential event creation locators
     this.titleInput = page.locator("textarea[placeholder='Event title']");
     this.descriptionInput = page.locator("div[aria-label='Event description']");
-    this.locationInput = page.locator('input[id="Location"]');
+    this.locationInput = page.locator('//input[@id="location"]');
     this.publishButton = page.getByRole('button', { name: 'Publish' });
 
     // Cover image components (optional)

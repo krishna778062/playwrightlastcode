@@ -166,6 +166,7 @@ export class TestDataGenerator {
    * @returns An EventCreationOptions object with random realistic data
    */
   static generateEvent(
+    fileName?: string,
     startDate?: string,
     endDate?: string,
     overrides?: Partial<EventCreationOptions>
@@ -176,6 +177,15 @@ export class TestDataGenerator {
       startDate: startDate || faker.date.future().toISOString().split('T')[0],
       endDate: endDate || faker.date.future().toISOString().split('T')[0],
       location: `${faker.location.streetAddress()}, ${faker.location.city()}`,
+      coverImage: fileName
+        ? {
+            fileName,
+            cropOptions: {
+              widescreen: false,
+              square: false,
+            },
+          }
+        : undefined,
     };
 
     return {
@@ -191,6 +201,6 @@ export class TestDataGenerator {
    * @returns Array of EventCreationOptions objects
    */
   static generateEvents(count: number, overrides?: Partial<EventCreationOptions>): EventCreationOptions[] {
-    return Array.from({ length: count }, () => this.generateEvent(undefined, undefined, overrides));
+    return Array.from({ length: count }, () => this.generateEvent(undefined, undefined, undefined, overrides));
   }
 }
