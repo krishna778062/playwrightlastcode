@@ -5,6 +5,9 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 
+# Internal documentation (not for repository)
+REVIEW_FEEDBACK_LEARNINGS.md
+
 # VS Code (keep workspace settings, ignore user-specific)
 .vscode/settings.json.bak
 .vscode/launch.json.bak

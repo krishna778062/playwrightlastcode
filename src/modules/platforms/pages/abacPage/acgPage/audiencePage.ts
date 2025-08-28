@@ -107,7 +107,6 @@ export class AudiencePage extends BasePage {
     await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
   }
 
-  // ========== CATEGORY FORM INTERACTION METHODS ==========
   // These methods now delegate to the modal components for better separation of concerns
 
   // Verify the close button is visible in category creation modal
@@ -117,9 +116,6 @@ export class AudiencePage extends BasePage {
       timeout: TIMEOUTS.MEDIUM,
     });
   }
-
-  // ========== FIELD VALIDATION METHODS ==========
-  // Note: Field validation methods removed to improve SRP - use modal components directly
 
   // ========== ERROR VERIFICATION METHODS ==========
 
@@ -329,6 +325,4 @@ export class AudiencePage extends BasePage {
       });
     });
   }
-
-  // Note: Edit category modal verification methods removed to improve SRP - use editCategoryModal directly
 }

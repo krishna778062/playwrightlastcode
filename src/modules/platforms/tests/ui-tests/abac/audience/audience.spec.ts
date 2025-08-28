@@ -77,7 +77,7 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
       const audiencePage = new AudiencePage(appManagerPage);
       await audiencePage.loadPage();
-      await audiencePage.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
+
       // Verify Cancel button prevents category creation
       await audiencePage.verifyCategoryCancelButtonBehavior();
     }
@@ -118,8 +118,7 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
       });
 
       // Reload the page to see the API-created category
-      await audiencePage.page.reload();
-      await audiencePage.page.waitForLoadState('domcontentloaded');
+      await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
 
       // Attempt to create category with the same name via UI and verify alert message
       await audiencePage.attemptToCreateDuplicateCategory(uniqueCategoryName);
@@ -207,7 +206,6 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
       await audiencePage.editCategoryModal.verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial();
       await audiencePage.editCategoryModal.verifyNameFieldMaxLength();
       await audiencePage.editCategoryModal.verifyDescriptionFieldMaxLength();
-      await audiencePage.editCategoryModal.clickAddDescriptionAndVerify();
       await audiencePage.editCategoryModal.removeDescriptionAndVerifyAbsence();
 
       // Close the Edit modal

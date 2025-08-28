@@ -36,7 +36,7 @@ export class CategoryModalComponent extends BaseComponent {
     this.categoryDialog = page.locator('[role="dialog"]').filter({ hasText: this.dialogFilter });
 
     this.closeButton = this.categoryDialog.getByRole('button', { name: 'Close' });
-    this.categoryNameInput = this.categoryDialog.locator('input[name="name"]');
+    this.categoryNameInput = this.categoryDialog.getByRole('textbox', { name: 'Name' });
     this.addDescriptionButton = this.categoryDialog.getByRole('button', { name: 'Add description' });
     this.descriptionInput = this.categoryDialog.getByRole('textbox', { name: 'Description' });
     this.categoryLabel = this.categoryDialog.getByRole('heading', { name: this.titleText });
@@ -44,7 +44,7 @@ export class CategoryModalComponent extends BaseComponent {
       'Keep your audiences organized by grouping related audiences within a category.'
     );
     this.cancelButton = this.categoryDialog.getByRole('button', { name: 'Cancel' });
-    this.submitButton = this.categoryDialog.getByRole('button', { name: this.submitButtonText });
+    this.submitButton = this.categoryDialog.getByRole('button', { name: this.submitButtonText, exact: true });
     this.deleteDescriptionButton = this.categoryDialog.getByRole('button', { name: 'Delete' });
     this.nameRequiredError = this.categoryDialog.getByText('Name is a required field');
   }
@@ -168,6 +168,12 @@ export class CategoryModalComponent extends BaseComponent {
   }
 
   async fillInCategoryDescription(description: string): Promise<void> {
+    // Ensure description field is visible first
+    const isDescriptionVisible = await this.descriptionInput.isVisible({ timeout: 1000 }).catch(() => false);
+    if (!isDescriptionVisible) {
+      await this.clickOnElement(this.addDescriptionButton, { stepInfo: 'Click Add description button' });
+    }
+
     await this.fillInElement(this.descriptionInput, description, {
       stepInfo: `Fill category description: ${description}`,
     });
@@ -224,7 +230,7 @@ export class CategoryModalComponent extends BaseComponent {
   ): Promise<void> {
     await test.step(`Verify description field max length validation in ${this.titleText} modal`, async () => {
       const testString = 'B'.repeat(maxAllowedLength + 1); // Try to input more than allowed
-      await this.fillInElement(this.descriptionInput, testString);
+      await this.fillInCategoryDescription(testString);
 
       const actualValue = await this.descriptionInput.inputValue();
       expect(actualValue.length, `Verify description field max length is ${maxAllowedLength}`).toEqual(
