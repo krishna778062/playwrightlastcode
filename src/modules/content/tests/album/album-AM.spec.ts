@@ -12,9 +12,9 @@ import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPa
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
-  ContentTestSuite.ALBUM + ' - AM Tests',
+  ContentTestSuite.ALBUM_AM,
   {
-    tag: [ContentSuiteTags.ALBUM_CREATION],
+    tag: [ContentTestSuite.ALBUM_AM],
   },
   () => {
     let albumCreationPage: AlbumCreationPage;
@@ -89,8 +89,6 @@ test.describe(
           albumCreationOptions.title,
           "Created album successfully - it's published"
         );
-
-        console.log(`Created album: ${albumCreationOptions.title} with ID: ${albumId} in site: ${siteId}`);
       }
     );
   }

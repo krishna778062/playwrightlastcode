@@ -14,9 +14,9 @@ import { SiteCreationPage as ContentSiteCreationPage } from '@/src/modules/conte
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
-  ContentTestSuite.SITE + ' - AM Tests',
+  ContentTestSuite.SITE_AM,
   {
-    tag: [ContentTestSuite.SITE],
+    tag: [ContentTestSuite.SITE_AM],
   },
   () => {
     let siteCreationPage: ContentSiteCreationPage;
@@ -50,8 +50,8 @@ test.describe(
       async ({ appManagerHomePage, appManagersPage }) => {
         tagTest(test.info(), {
           description: 'Verify admin can create a public site with cover image',
-          zephyrTestId: 'CONT-SITE-001',
-          storyId: 'CONT-SITE-001',
+          zephyrTestId: 'CCONT-10603',
+          storyId: 'CONT-10603',
         });
 
         // Navigate to site creation page
@@ -70,8 +70,6 @@ test.describe(
         await siteDashboard.assertions.verifyDashboardUrl(createdSiteId);
 
         await siteDashboard.assertions.verifySiteName(siteCreationOptions.title, 'Created site successfully');
-
-        console.log(`Created site: ${siteCreationOptions.title} with ID: ${createdSiteId}`);
       }
     );
   }

@@ -14,9 +14,9 @@ import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
-  ContentTestSuite.PAGE + ' - SU Tests',
+  ContentTestSuite.PAGE_SU,
   {
-    tag: [ContentTestSuite.PAGE],
+    tag: [ContentTestSuite.PAGE_SU],
   },
   () => {
     let pageCreationPage: PageCreationPage;
@@ -27,13 +27,16 @@ test.describe(
     let manualCleanupNeeded = false;
 
     test.beforeEach(
-      'Setting up the test environment for page creation by opening page creation page from home page',
-      async ({ page, loginAs }) => {
-        await loginAs('endUser');
+      'Setting up the test environment for event creation',
+      async ({ standardUserHomePage, standardUserPage }) => {
+        // Create home page instance and verify it's loaded
+        await standardUserHomePage.verifyThePageIsLoaded();
 
-        // Create home page instance
-        homePage = new NewUxHomePage(page);
-        await homePage.verifyThePageIsLoaded();
+        // Initialize preview page
+        contentPreviewPage = new ContentPreviewPage(standardUserPage);
+
+        // Reset cleanup flag for each test
+        manualCleanupNeeded = false;
       }
     );
 
@@ -52,17 +55,16 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE, ContentSuiteTags.PAGE_CREATION],
       },
-      async ({ page, loginAs }) => {
+      async ({ standardUserHomePage }) => {
         tagTest(test.info(), {
           description: 'Verify SU is able to publish a new page created with cover image from home page',
           zephyrTestId: 'CONT-1378',
           storyId: 'CONT-1378',
         });
 
-        pageCreationPage = (await homePage.actions.openCreateContentPageForContentType(
+        pageCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
           ContentType.PAGE
         )) as PageCreationPage;
-        contentPreviewPage = new ContentPreviewPage(page);
 
         // Generate page data using TestDataGenerator
         const pageCreationOptions = TestDataGenerator.generatePage(
@@ -86,8 +88,6 @@ test.describe(
           pageCreationOptions.title,
           "Created page successfully - it's published"
         );
-
-        console.log(`Created page: ${pageCreationOptions.title} with ID: ${pageId} in site: ${siteId}`);
       }
     );
   }

@@ -13,7 +13,7 @@ import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 test.describe(
   '@FeedPost',
   {
-    tag: [ContentTestSuite.FEED, ContentTestSuite.ATTACHMENTS],
+    tag: [ContentTestSuite.FEED_AM, ContentTestSuite.ATTACHMENTS],
   },
   () => {
     let feedPage: FeedPage;

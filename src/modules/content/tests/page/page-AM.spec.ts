@@ -15,9 +15,9 @@ import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 
 test.describe(
-  ContentTestSuite.PAGE + ' - AM Tests',
+  ContentTestSuite.PAGE_AM,
   {
-    tag: [ContentTestSuite.PAGE],
+    tag: [ContentTestSuite.PAGE_AM],
   },
   () => {
     let pageCreationPage: PageCreationPage;

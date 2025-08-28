@@ -180,7 +180,7 @@ export class GlobalSearchResultPage extends BasePage {
   private async handleExactMatchCheckboxRetry(verificationFn: () => Promise<void>) {
     try {
       await verificationFn();
-    } catch (_error) {
+    } catch (error) {
       // If the verification fails, check if the "Search for an exact match" checkbox is visible and click it
       const exactMatchCheckbox = this.page.getByRole('checkbox', { name: 'Search for an exact match' });
       await exactMatchCheckbox.waitFor({ state: 'visible', timeout: 50_000 });

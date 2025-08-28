@@ -17,9 +17,9 @@ import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage
 import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 
 test.describe(
-  ContentTestSuite.EVENT + ' - AM Tests',
+  ContentTestSuite.EVENT_AM,
   {
-    tag: [ContentTestSuite.EVENT],
+    tag: [ContentTestSuite.EVENT_AM],
   },
   () => {
     let eventCreationPage: EventCreationPage;
@@ -87,8 +87,6 @@ test.describe(
           eventCreationOptions.title,
           "Created event successfully - it's published"
         );
-
-        console.log(`Created event: ${eventCreationOptions.title} with ID: ${eventId} in site: ${siteId}`);
       }
     );
   }

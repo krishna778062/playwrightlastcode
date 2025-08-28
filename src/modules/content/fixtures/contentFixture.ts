@@ -29,6 +29,9 @@ export const contentTestFixture = test.extend<
     appManagerContext: BrowserContext;
     appManagerHomePage: NewUxHomePage | OldUxHomePage;
     appManagersPage: Page;
+    standardUserContext: BrowserContext;
+    standardUserHomePage: NewUxHomePage | OldUxHomePage;
+    standardUserPage: Page;
     siteManagementHelper: SiteManagementHelper;
     contentManagementHelper: ContentManagementHelper;
     feedManagerService: FeedManagerService;
@@ -77,6 +80,36 @@ export const contentTestFixture = test.extend<
   appManagersPage: [
     async ({ appManagerHomePage }, use, workerInfo) => {
       await use(appManagerHomePage.page);
+    },
+    { scope: 'test' },
+  ],
+
+  standardUserContext: [
+    async ({ browser }, use, workerInfo) => {
+      const context = await browser.newContext();
+      await use(context);
+      await context?.close();
+    },
+    { scope: 'test' },
+  ],
+
+  standardUserHomePage: [
+    async ({ standardUserContext }, use, workerInfo) => {
+      const page = await standardUserContext.newPage();
+      const standardUserHomePage = await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().endUserEmail || '',
+        password: getEnvConfig().endUserPassword || '',
+      });
+      await standardUserHomePage.verifyThePageIsLoaded();
+      await use(standardUserHomePage);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+
+  standardUserPage: [
+    async ({ standardUserHomePage }, use, workerInfo) => {
+      await use(standardUserHomePage.page);
     },
     { scope: 'test' },
   ],
