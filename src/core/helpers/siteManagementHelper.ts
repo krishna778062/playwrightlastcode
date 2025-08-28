@@ -343,4 +343,26 @@ export class SiteManagementHelper {
     console.log(`Created new site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
     return createdSite.siteId;
   }
+
+  /**
+   * Adds a member to an existing site
+   * @param siteId - The ID of the site to add member to
+   * @param userId - The ID of the user to add as member
+   * @param permission - The permission level for the member (default: 'member')
+   * @returns Promise resolving to the API response
+   */
+  async addMemberToSite(siteId: string, userId: string, permission: string = 'member'): Promise<any> {
+    const response = await this.appManagerApiClient
+      .getSiteManagementService()
+      .siteAddMember(siteId, userId, permission);
+
+    // Track the member for potential cleanup
+    this.siteMembers.push({
+      siteId,
+      userEmail: userId, // Using userId as userEmail for tracking purposes
+    });
+
+    console.log(`Added member ${userId} to site ${siteId} with permission: ${permission}`);
+    return response;
+  }
 }

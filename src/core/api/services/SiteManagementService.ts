@@ -224,4 +224,36 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       return json;
     });
   }
+
+  /**
+   * Adds a member to a site
+   * @param siteId - The site ID to add member to
+   * @param userId - The user ID to add as member
+   * @param permission - The permission level (default: 'member')
+   * @returns Promise resolving to the API response
+   */
+  async siteAddMember(siteId: string, userId: string, permission: string = 'member'): Promise<any> {
+    return await test.step(`Adding member ${userId} to site ${siteId}`, async () => {
+      const payload = {
+        userId,
+        action: 'addPeople',
+        permission,
+      };
+
+      console.log('Site add member payload:', payload);
+
+      const response = await this.post(API_ENDPOINTS.site.manageMembers(siteId), {
+        data: payload,
+      });
+
+      const json = await response.json();
+      console.log('Site add member JSON Response:', JSON.stringify(json, null, 2));
+
+      if (json.status !== 'success') {
+        throw new Error(`Failed to add member to site. Response: ${JSON.stringify(json)}`);
+      }
+
+      return json;
+    });
+  }
 }
