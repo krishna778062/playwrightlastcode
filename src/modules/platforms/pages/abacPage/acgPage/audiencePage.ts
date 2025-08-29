@@ -117,6 +117,30 @@ export class AudiencePage extends BasePage {
     });
   }
 
+  // Click 'Add description' button and verify description field and delete button become visible (works for both Create and Edit modals)
+  async clickAddDescriptionAndVerify(isEditModal: boolean = false): Promise<void> {
+    const modalType = isEditModal ? 'Edit' : 'Create';
+    await test.step(`Click Add description and verify in ${modalType} category modal`, async () => {
+      if (isEditModal) {
+        await this.editCategoryModal.clickAddDescriptionAndVerify();
+      } else {
+        await this.addCategoryModal.clickAddDescriptionAndVerify();
+      }
+    });
+  }
+
+  // Verify name and description fields accept alphanumeric and special characters (works for both Create and Edit modals)
+  async verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(isEditModal: boolean = false): Promise<void> {
+    const modalType = isEditModal ? 'Edit' : 'Create';
+    await test.step(`Verify ${modalType} category fields accept letters, numbers, and special characters`, async () => {
+      if (isEditModal) {
+        await this.editCategoryModal.verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial();
+      } else {
+        await this.addCategoryModal.verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial();
+      }
+    });
+  }
+
   // ========== ERROR VERIFICATION METHODS ==========
 
   // Verify 'The name is already used' error message is displayed
@@ -321,6 +345,148 @@ export class AudiencePage extends BasePage {
       await this.openCategoryDropdownAndClickOption(categoryName, 'Edit category');
       await this.verifier.verifyTheElementIsVisible(this.editCategoryLabel, {
         assertionMessage: 'Verify Edit category modal is opened',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  // Edit category name but dismiss changes via Cancel/Close and verify it doesn't update
+  async verifyEditDismissPreventsUpdate(categoryName: string, dismissType: 'Cancel' | 'Close'): Promise<void> {
+    await test.step(`Verify Edit dismiss via ${dismissType} prevents update`, async () => {
+      // Open Edit modal
+      await this.openEditCategoryModal(categoryName);
+
+      const newName = `${categoryName}_Edited_${Date.now()}`;
+
+      // Change the name
+      await this.editCategoryModal.fillInElement(this.editCategoryModal.categoryNameInput, '');
+      await this.editCategoryModal.fillCategoryName(newName);
+
+      // Dismiss without saving
+      if (dismissType === 'Cancel') {
+        await this.editCategoryModal.clickCancelButton();
+      } else {
+        await this.editCategoryModal.clickCloseButton();
+      }
+
+      // Verify modal is closed using the modal's own verification method
+      await this.editCategoryModal.verifyCategoryDialogueIsNotVisible();
+
+      // Verify the category name remains unchanged in the list
+      await this.verifyCategoryInList(categoryName);
+
+      // Verify the edited name was not applied
+      await this.verifyCategoryNotInList(newName);
+    });
+  }
+
+  // Save an edit and verify success toast and list reflects the new name
+  async updateCategoryNameAndVerify(oldName: string, newName: string): Promise<void> {
+    await test.step(`Update category name from "${oldName}" to "${newName}" and verify`, async () => {
+      await this.openEditCategoryModal(oldName);
+      await this.editCategoryModal.fillInElement(this.editCategoryModal.categoryNameInput, '');
+      await this.editCategoryModal.fillCategoryName(newName);
+      await this.editCategoryModal.submitCategory();
+      await this.verifyToastMessageForCategoryOperation('updated');
+
+      // Verify list shows new name and old name is not present
+      await this.verifyCategoryInList(newName);
+      await this.verifyCategoryNotInList(oldName);
+    });
+  }
+
+  // Add description for a category and verify description is visible in list
+  async addDescriptionForCategoryAndVerifyInList(categoryName: string, description: string): Promise<void> {
+    await test.step(`Add description for "${categoryName}" and verify in list`, async () => {
+      await this.openEditCategoryModal(categoryName);
+
+      // Ensure description field is present, then add description
+      await this.editCategoryModal.clickAddDescriptionAndVerify();
+      await this.editCategoryModal.addCategoryDescription(description);
+
+      // Save
+      await this.editCategoryModal.submitCategory();
+      await this.verifyToastMessageForCategoryOperation('updated');
+
+      // Verify description is visible in list
+      const descriptionLocator = this.page.getByText(description, { exact: true });
+      await this.verifier.verifyTheElementIsVisible(descriptionLocator, {
+        assertionMessage: 'Verify description is visible in the list',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  // Update an existing description with a new one and verify list reflects the change
+  async updateDescriptionForCategoryAndVerifyInList(
+    categoryName: string,
+    oldDescription: string,
+    newDescription: string
+  ): Promise<void> {
+    await test.step(`Update description for "${categoryName}" and verify new is visible and old is absent`, async () => {
+      await this.openEditCategoryModal(categoryName);
+
+      // Step 1: Clear old description
+      await this.editCategoryModal.fillInElement(this.editCategoryModal.descriptionInput, '');
+      // Step 2: Fill with new description
+      await this.editCategoryModal.addCategoryDescription(newDescription);
+      // Step 3: Save it
+      await this.editCategoryModal.submitCategory();
+      // Step 4: Verify update toast message
+      await this.verifyToastMessageForCategoryOperation('updated');
+
+      // Step 5: Verify new description is visible
+      const newDescLocator = this.page.getByText(newDescription, { exact: true });
+      await this.verifier.verifyTheElementIsVisible(newDescLocator, {
+        assertionMessage: 'Verify updated description is visible in the list',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      // Step 6: Old description is not visible
+      if (oldDescription && oldDescription.length > 0) {
+        const oldDescLocator = this.page.getByText(oldDescription, { exact: true });
+        await this.verifier.verifyTheElementIsNotVisible(oldDescLocator, {
+          assertionMessage: 'Verify old description is not visible in the list after update',
+          timeout: TIMEOUTS.SHORT,
+        });
+      }
+    });
+  }
+
+  // Remove description for a category and verify absence in list (optionally for specific text)
+  async removeDescriptionForCategoryAndVerifyInList(
+    categoryName: string,
+    removedDescriptionText?: string
+  ): Promise<void> {
+    await test.step(`Remove description for "${categoryName}" and verify absence in list`, async () => {
+      await this.openEditCategoryModal(categoryName);
+
+      // Remove description in Edit modal
+      await this.editCategoryModal.removeDescriptionAndVerifyAbsence();
+
+      // Save changes
+      await this.editCategoryModal.submitCategory();
+      await this.verifyToastMessageForCategoryOperation('updated');
+
+      // Verify removed description text is not visible in the list (if provided)
+      if (removedDescriptionText && removedDescriptionText.length > 0) {
+        const removedDescLocator = this.page.getByText(removedDescriptionText, { exact: true });
+        await this.verifier.verifyTheElementIsNotVisible(removedDescLocator, {
+          assertionMessage: 'Verify description text is absent in the list after removal',
+          timeout: TIMEOUTS.SHORT,
+        });
+      }
+    });
+  }
+
+  // Verify specific category name is present in the categories list
+  async verifyCategoryInList(categoryName: string): Promise<void> {
+    await test.step(`Verify category "${categoryName}" is present in the list`, async () => {
+      // Wait a moment for the page to update
+      await this.page.waitForTimeout(1000);
+
+      const categoryElement = this.page.getByText(categoryName, { exact: true });
+      await expect(categoryElement, `Category "${categoryName}" should be visible in the list`).toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
       });
     });
