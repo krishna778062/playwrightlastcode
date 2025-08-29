@@ -50,6 +50,15 @@ export interface IPageCreationActions {
     siteId: string;
     response: PageCreationResponse;
   }>;
+  createAndSubmitPage: (options: PageCreationOptions) => Promise<{
+    title: string;
+    description: string;
+    category: string;
+    contentType: PageContentType;
+    pageId: string;
+    siteId: string;
+    response: PageCreationResponse;
+  }>;
   navigateToAddContentModal: () => Promise<void>;
 }
 
@@ -70,6 +79,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   readonly skipStepButton: Locator;
   readonly titleInput: Locator;
   readonly descriptionInput: Locator;
+  readonly submitButton: Locator;
   // Page components
   readonly addContentModal: AddContentModalComponent;
   readonly coverImageUploader: AttachementUploaderComponent;
@@ -97,6 +107,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     this.titleInput = page.locator("textarea[placeholder='Page title']");
     this.descriptionInput = page.locator("div[aria-label='Page content']");
     this.contentTypeCheckbox = (type: string) => page.locator('label:has(span)', { hasText: type });
+    this.submitButton = page.locator('span').filter({ hasText: 'Submit for approval' });
     // Page components
     this.addContentModal = new AddContentModalComponent(page);
     this.coverImageUploader = new AttachementUploaderComponent(page, this.coverImageUploaderContainer);
@@ -296,6 +307,67 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
         assertionMessage: 'expected uploaded cover image preview element to be visible',
         timeout: options?.timeout || CONTENT_TEST_DATA.TIMEOUTS.UPLOAD,
       });
+    });
+  }
+
+  async createAndSubmitPage(options: PageCreationOptions): Promise<{
+    title: string;
+    description: string;
+    category: string;
+    contentType: PageContentType;
+    pageId: string;
+    siteId: string;
+    response: PageCreationResponse;
+  }> {
+    return await test.step(`Creating and submit page with title: ${options.title}`, async () => {
+      // Fill in page mandatory details
+      await this.fillPageDetails({
+        title: options.title,
+        description: options.description,
+        category: options.category,
+        contentType: options.contentType,
+      });
+
+      // Upload cover image if provided
+      if (options.coverImage) {
+        await this.uploadCoverImage(options.coverImage.fileName, {
+          widescreenCropOption: options.coverImage.cropOptions?.widescreen,
+          squareCropOption: options.coverImage.cropOptions?.square,
+        });
+      }
+
+      // Submit the page
+      const submitResponse = await this.submitPage();
+      const submitResponseBody = (await submitResponse.json()) as PageCreationResponse;
+
+      const pageId = submitResponseBody.result.id;
+      const siteId = submitResponseBody.result.site.siteId;
+
+      return {
+        title: options.title,
+        description: options.description,
+        category: options.category,
+        contentType: options.contentType,
+        pageId: pageId,
+        siteId: siteId,
+        response: submitResponseBody,
+      };
+    });
+  }
+
+  async submitPage(): Promise<Response> {
+    return await test.step(`Submitting page and wait for submit api response`, async () => {
+      const submitResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.submitButton, { delay: 2_000 }),
+        response =>
+          response.url().includes('content?action=publish') &&
+          response.request().method() === 'POST' &&
+          response.status() === 201,
+        {
+          timeout: 20_000,
+        }
+      );
+      return submitResponse;
     });
   }
 }

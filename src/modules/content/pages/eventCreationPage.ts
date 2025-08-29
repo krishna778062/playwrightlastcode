@@ -2,7 +2,7 @@ import { Locator, Page, Response, test } from '@playwright/test';
 
 import { BasePage } from '@/src/core/pages/basePage';
 import { FileUtil } from '@/src/core/utils/fileUtil';
-import { PageCreationResponse } from '@/src/modules/content/apis/types/pageCreationResponse';
+import { EventCreationResponse } from '@/src/modules/content/apis/types/eventCreationResponse';
 import { AttachementUploaderComponent } from '@/src/modules/content/components/attachementUploader';
 import { ImageCropperComponent } from '@/src/modules/content/components/imageCropper';
 
@@ -26,6 +26,10 @@ export interface IEventCreationActions {
     eventId: string;
     siteId: string;
   }>;
+  createAndSubmitEvent(options: EventCreationOptions): Promise<{
+    eventId: string;
+    siteId: string;
+  }>;
 }
 
 export interface IEventCreationAssertions {
@@ -41,6 +45,7 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
 
   // Cover image components (if needed)
   readonly coverImageUploaderContainer: Locator;
+  readonly submitButton: Locator;
   readonly coverImageUploader: AttachementUploaderComponent;
   readonly imageCropper: ImageCropperComponent;
 
@@ -52,6 +57,7 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
     this.descriptionInput = page.locator("div[aria-label='Event description']");
     this.locationInput = page.locator('//input[@id="location"]');
     this.publishButton = page.getByRole('button', { name: 'Publish' });
+    this.submitButton = page.locator('span').filter({ hasText: 'Submit for approval' });
 
     // Cover image components (optional)
     this.coverImageUploaderContainer = page
@@ -111,7 +117,7 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
       const publishResponse = await this.publishEvent();
 
       // Parse response body
-      const publishResponseBody = (await publishResponse.json()) as PageCreationResponse;
+      const publishResponseBody = (await publishResponse.json()) as EventCreationResponse;
 
       // Extract event ID and site ID from response
       const eventId = publishResponseBody.result.id;
@@ -201,6 +207,67 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
         }
       );
       return publishResponse;
+    });
+  }
+
+  /**
+   * Creates a page with the given options and publishes it
+   * @param options - The options for creating the page
+   * @returns The options for the created page
+   */
+  async createAndSubmitEvent(options: EventCreationOptions): Promise<{
+    eventId: string;
+    siteId: string;
+  }> {
+    return await test.step(`Creating and publishing event with title: ${options.title}`, async () => {
+      // Fill in event mandatory details
+      await this.fillEventDetails({
+        title: options.title,
+        description: options.description,
+        location: options.location,
+      });
+
+      // Upload cover image if provided
+      if (options.coverImage) {
+        await this.uploadCoverImage(options.coverImage.fileName, {
+          widescreenCropOption: options.coverImage.cropOptions?.widescreen,
+          squareCropOption: options.coverImage.cropOptions?.square,
+        });
+      }
+
+      // Publish the event
+      const submitResponse = await this.submitEvent();
+
+      // Parse response body
+      const submitResponseBody = (await submitResponse.json()) as EventCreationResponse;
+
+      // Extract event ID and site ID from response
+      const eventId = submitResponseBody.result.id;
+      const siteId = submitResponseBody.result.site.siteId;
+
+      return {
+        eventId: eventId,
+        siteId: siteId,
+      };
+    });
+  }
+
+  /**
+   * Publishes the event and waits for API response
+   */
+  async submitEvent(): Promise<Response> {
+    return await test.step(`Submitting event and wait for submit api response`, async () => {
+      const submitResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.submitButton, { delay: 2_000 }),
+        response =>
+          response.url().includes('content?action=publish') &&
+          response.request().method() === 'POST' &&
+          response.status() === 201,
+        {
+          timeout: 20_000,
+        }
+      );
+      return submitResponse;
     });
   }
 }

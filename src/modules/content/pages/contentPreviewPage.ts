@@ -1,14 +1,18 @@
 import { Page, test } from '@playwright/test';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
 import { PromotePageModal } from '@/src/modules/content/components/promotePageModal';
 
 export interface IContentPreviewPageActions {
   handlePromotionPageStep: () => Promise<void>;
+  clickOnApproveAndPublishButton: () => Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
   verifyContentPublishedSuccessfully: (title: string, successMessage: string) => Promise<void>;
+  verifyContentIsInPendingStatus: () => Promise<void>;
+  verifyContentIsInPublishedStatus: () => Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
@@ -24,9 +28,12 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly optionMenuDropdown = this.page.locator('[data-testid="option-menu-dropdown"]');
   readonly unpublishButton = this.page.locator('button:has-text("Unpublish")');
   readonly deleteButton = this.page.locator('button:has-text("Delete")');
+  readonly pendingStatus = this.page.locator('div.ContentAdminBar-status').filter({ hasText: 'Pending' });
+  readonly ApproveAndPublishButton = this.page.locator('button:has-text("Approve & publish")');
   readonly siteContentTab = this.page.locator(
     'a[href*="/content"], button:has-text("Content"), [data-testid="content-tab"]'
   );
+  readonly publishStatus = this.page.locator('span:has-text("Published today")');
 
   // Assertion locators
   readonly sendHistoryPopup = this.page.locator('[data-testid="send-history-popup"]');
@@ -35,8 +42,8 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   // Page components
   readonly promotePageModal: PromotePageModal;
 
-  constructor(page: Page) {
-    super(page);
+  constructor(page: Page, siteId: string, contentId: string, contentType: string) {
+    super(page, PAGE_ENDPOINTS.getContentPreviewPage(siteId, contentId, contentType));
     this.promotePageModal = new PromotePageModal(page);
   }
 
@@ -82,6 +89,39 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
       await this.verifier.verifyTheElementIsVisible(this.contentTitleHeading(title), {
         assertionMessage: `Content title "${title}" should be visible in heading`,
+      });
+    });
+  }
+
+  /**
+   * Clicks on the Approve and Publish button
+   */
+  async clickOnApproveAndPublishButton() {
+    this.page.waitForLoadState('domcontentloaded');
+    await test.step(`Clicking on the Approve and Publish button`, async () => {
+      await this.clickOnElement(this.ApproveAndPublishButton);
+    });
+  }
+
+  /**
+   * Verifies that the content is in pending status
+   */
+  async verifyContentIsInPendingStatus() {
+    await test.step(`Verifying that the content is in pending status`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.pendingStatus, {
+        assertionMessage: `Content should be in pending status`,
+      });
+    });
+  }
+
+  /**
+   * Verifies that the content is not visible
+   * @param title - The title of the content to verify is not visible
+   */
+  async verifyContentIsInPublishedStatus(): Promise<void> {
+    await test.step(`Verifying content is in published status`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.publishStatus, {
+        assertionMessage: `Content should be in published status`,
       });
     });
   }

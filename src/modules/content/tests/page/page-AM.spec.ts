@@ -64,7 +64,12 @@ test.describe(
         pageCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
           ContentType.PAGE
         )) as PageCreationPage;
-        contentPreviewPage = new ContentPreviewPage(appManagersPage);
+        contentPreviewPage = new ContentPreviewPage(
+          appManagersPage,
+          siteIdToPublishPage,
+          publishedPageId,
+          ContentType.PAGE
+        );
 
         // Generate page data using TestDataGenerator
         const pageCreationOptions = TestDataGenerator.generatePage(
@@ -115,7 +120,12 @@ test.describe(
         siteIdToPublishPage = createdSite.siteId;
         // Navigate from site dashboard to page creation
         siteDashboardPage = new SiteDashboardPage(appManagersPage, siteIdToPublishPage);
-        contentPreviewPage = new ContentPreviewPage(appManagersPage);
+        contentPreviewPage = new ContentPreviewPage(
+          appManagersPage,
+          siteIdToPublishPage,
+          publishedPageId,
+          ContentType.PAGE
+        );
 
         //flow
         await siteDashboardPage.loadPage();

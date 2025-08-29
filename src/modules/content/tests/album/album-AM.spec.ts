@@ -30,7 +30,12 @@ test.describe(
         await appManagerHomePage.verifyThePageIsLoaded();
 
         // Initialize preview page
-        contentPreviewPage = new ContentPreviewPage(appManagersPage);
+        contentPreviewPage = new ContentPreviewPage(
+          appManagersPage,
+          siteIdToPublishAlbum,
+          publishedAlbumId,
+          ContentType.ALBUM
+        );
 
         // Reset cleanup flag for each test
         manualCleanupNeeded = false;
@@ -52,7 +57,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
       },
-      async ({ appManagerHomePage, appManagersPage }) => {
+      async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
           description:
             'Verify admin is able to create and publish a new album with all fields populated from home page',
@@ -89,6 +94,8 @@ test.describe(
           albumCreationOptions.title,
           "Created album successfully - it's published"
         );
+
+        await contentPreviewPage.assertions.verifyContentIsInPublishedStatus();
       }
     );
   }

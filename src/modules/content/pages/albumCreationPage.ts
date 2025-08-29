@@ -28,6 +28,15 @@ export interface IAlbumCreationActions {
     siteId: string;
     response: AlbumCreationResponse;
   }>;
+  createAndSubmitAlbum: (options: AlbumCreationOptions) => Promise<{
+    title: string;
+    description: string;
+    albumId: string;
+    siteId: string;
+    peopleName: string;
+    peopleId: string;
+    response: AlbumCreationResponse;
+  }>;
 }
 
 export interface IAlbumCreationAssertions {}
@@ -36,6 +45,7 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
   // Readonly locators - only used ones
   readonly uploadedCoverImagePreviewContainer = this.page.locator("[class*='Banner-imageContainer']");
   readonly publishButton = this.page.getByRole('button', { name: 'Publish' });
+  readonly submitButton = this.page.locator('span').filter({ hasText: 'Submit for approval' });
   readonly titleInput = this.page.locator("textarea[placeholder='Album title']");
   readonly albumDescriptionInput = this.page.locator("div[aria-label='Album description']");
   readonly videoUrlInput = this.page.locator('input[placeholder="Paste a video URL"]');
@@ -225,5 +235,100 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
       });
       await this.clickOnElement(this.addTopicFromList(topic));
     }
+  }
+
+  async createAndSubmitAlbum(options: AlbumCreationOptions): Promise<{
+    title: string;
+    description: string;
+    albumId: string;
+    siteId: string;
+    peopleName: string;
+    peopleId: string;
+    response: AlbumCreationResponse;
+  }> {
+    return await test.step(`Creating and submit album with title: ${options.title}`, async () => {
+      // Fill album title
+      await this.fillInElement(this.titleInput, options.title, {
+        stepInfo: 'Fill album title',
+      });
+
+      // Fill description
+      await this.fillInElement(this.albumDescriptionInput, options.description, {
+        stepInfo: 'Fill album description',
+      });
+
+      // Upload images if provided
+      if (options.images && options.images.length > 0) {
+        for (const image of options.images) {
+          await this.uploadImage(image);
+        }
+      }
+
+      // Add video if provided
+      if (options.videoUrl) {
+        await this.addVideoUrl(options.videoUrl);
+        await this.waitForVideoUpload();
+      }
+
+      // Add attachments if provided
+      if (options.attachments && options.attachments.length > 0) {
+        await this.clickOnElement(this.addFilesAttachmentsButton, {
+          stepInfo: 'Click add files and attachments button',
+        });
+        for (const attachment of options.attachments) {
+          await this.uploadAttachment(attachment);
+        }
+      }
+
+      // Set open album if specified
+      if (options.openAlbum) {
+        await this.checkElement(this.openAlbumCheckbox, {
+          stepInfo: 'Check open album checkbox',
+        });
+      }
+
+      // Add topics if provided
+      if (options.topics && options.topics.length > 0) {
+        await this.addTopics(options.topics);
+      }
+
+      // Publish the album
+      const submitResponse = await this.submitAlbum();
+
+      // Get response body
+      const submitResponseBody = (await submitResponse.json()) as AlbumCreationResponse;
+
+      // Extract the album ID and site ID from the response
+      const albumId = submitResponseBody.result.id;
+      const siteId = submitResponseBody.result.site.siteId;
+      const peopleId = submitResponseBody.result.authoredBy.peopleId;
+      const peopleName = submitResponseBody.result.authoredBy.name;
+
+      return {
+        title: options.title,
+        description: options.description,
+        albumId: albumId,
+        siteId: siteId,
+        peopleId: peopleId,
+        peopleName: peopleName.trim(),
+        response: submitResponseBody,
+      };
+    });
+  }
+
+  async submitAlbum(): Promise<Response> {
+    return await test.step(`Submitting album and wait for publish api response`, async () => {
+      const submitResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.submitButton, { delay: 2_000 }),
+        response =>
+          response.url().includes('content?action=publish') &&
+          response.request().method() === 'POST' &&
+          response.status() === 201,
+        {
+          timeout: 20_000,
+        }
+      );
+      return submitResponse;
+    });
   }
 }

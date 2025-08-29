@@ -36,7 +36,12 @@ test.describe(
         await standardUserHomePage.verifyThePageIsLoaded();
 
         // Initialize preview page
-        contentPreviewPage = new ContentPreviewPage(standardUserPage);
+        contentPreviewPage = new ContentPreviewPage(
+          standardUserPage,
+          siteIdToPublishEvent,
+          publishedEventId,
+          ContentType.EVENT
+        );
 
         // Reset cleanup flag for each test
         manualCleanupNeeded = false;
@@ -61,8 +66,8 @@ test.describe(
       async ({ standardUserHomePage }) => {
         tagTest(test.info(), {
           description: 'Event Content Add attach file with all the Mandatory fields',
-          zephyrTestId: 'CONT-10344',
-          storyId: 'CONT-10344',
+          zephyrTestId: 'CONT-18537',
+          storyId: 'CONT-18537',
         });
 
         eventCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
@@ -75,20 +80,17 @@ test.describe(
         );
 
         // Create and publish the event
-        const { eventId, siteId } = await eventCreationPage.actions.createAndPublishEvent(eventCreationOptions);
+        const { eventId, siteId } = await eventCreationPage.actions.createAndSubmitEvent(eventCreationOptions);
 
         // Store IDs for cleanup
         publishedEventId = eventId;
         siteIdToPublishEvent = siteId;
         manualCleanupNeeded = true;
 
-        // Initialize preview page and handle the promotion
-        await contentPreviewPage.actions.handlePromotionPageStep();
-
         // Verify content was published successfully via UI
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
           eventCreationOptions.title,
-          "Created event successfully - it's published"
+          'Submitted page for approval'
         );
       }
     );

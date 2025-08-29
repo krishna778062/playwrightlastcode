@@ -9,6 +9,7 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@/src/core/pages/basePage';
 import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
 import { CreateComponent } from '@/src/modules/content/components/createComponent';
+import { NotificationComponent } from '@/src/modules/content/components/notificationComponent';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
@@ -31,6 +32,7 @@ export interface IOldUxHomePageActions extends ICommonHomePageActions {
     options?: { stepInfo?: string }
   ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
   openSiteCreationFormForNonAbac: (options?: { stepInfo?: string }) => Promise<ContentSiteCreationPage>;
+  clickOnBellIcon: (options?: { stepInfo?: string }) => Promise<NotificationComponent>;
 }
 
 export interface INewUxHomePageActions extends ICommonHomePageActions {
@@ -43,6 +45,7 @@ export interface INewUxHomePageActions extends ICommonHomePageActions {
   openSiteCreationFormForNonAbac: (options?: { stepInfo?: string }) => Promise<ContentSiteCreationPage>;
   clickOnApplicationSettings: (options?: { stepInfo?: string }) => Promise<void>;
   verifyRolesButtonVisibility: (visible: boolean, options?: { stepInfo?: string }) => Promise<void>;
+  clickOnBellIcon: (options?: { stepInfo?: string }) => Promise<NotificationComponent>;
 }
 
 export abstract class BaseHomePage extends BasePage implements ICommonHomePageActions {

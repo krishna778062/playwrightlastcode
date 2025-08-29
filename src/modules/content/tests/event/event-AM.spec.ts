@@ -28,16 +28,13 @@ test.describe(
     let publishedEventId: string;
     let manualCleanupNeeded = false;
 
-    test.beforeEach(
-      'Setting up the test environment for event creation',
-      async ({ appManagerHomePage, appManagersPage }) => {
-        // Create home page instance and verify it's loaded
-        await appManagerHomePage.verifyThePageIsLoaded();
+    test.beforeEach('Setting up the test environment for event creation', async ({ appManagerHomePage }) => {
+      // Create home page instance and verify it's loaded
+      await appManagerHomePage.verifyThePageIsLoaded();
 
-        // Reset cleanup flag for each test
-        manualCleanupNeeded = false;
-      }
-    );
+      // Reset cleanup flag for each test
+      manualCleanupNeeded = false;
+    });
 
     test.afterEach(async ({ contentManagementHelper }) => {
       // Only cleanup manually if needed (for UI-only tests)
@@ -64,7 +61,12 @@ test.describe(
         eventCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
           ContentType.EVENT
         )) as EventCreationPage;
-        contentPreviewPage = new ContentPreviewPage(appManagersPage);
+        contentPreviewPage = new ContentPreviewPage(
+          appManagersPage,
+          siteIdToPublishEvent,
+          publishedEventId,
+          ContentType.EVENT
+        );
 
         // Generate event data using TestDataGenerator
         const eventCreationOptions = TestDataGenerator.generateEvent(

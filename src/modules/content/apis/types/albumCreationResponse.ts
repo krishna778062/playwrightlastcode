@@ -53,7 +53,7 @@ export interface AlbumCreationResult {
   canDelete: boolean;
   canComment: boolean;
   canAddToAlbum: boolean;
-  author: AuthorInfo;
+  authoredBy: AuthorInfo;
   albumVideoUrl?: string;
   isOpenToSubmissions?: boolean;
   albumImages?: AlbumImage[];
@@ -103,4 +103,21 @@ export interface AlbumAttachment {
   url: string;
   fileSize: number;
   mimeType: string;
+}
+
+export interface AuthorInfo {
+  peopleId: string;
+  name: string;
+  mediumPhotoUrl: string | null;
+  location: string | null;
+  lastName: string;
+  isProtectedAuthor: boolean;
+  isFollowing: boolean;
+  isActive: boolean;
+  img: string | null;
+  id: string;
+  firstName: string;
+  email: string;
+  country: string | null;
+  canFollow: boolean;
 }

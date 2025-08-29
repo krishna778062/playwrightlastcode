@@ -3,6 +3,7 @@ import { Page, test } from '@playwright/test';
 import { BaseHomePage, INewUxHomePageActions } from './baseHomePage';
 
 import { CreateComponent } from '@/src/modules/content/components/createComponent';
+import { NotificationComponent } from '@/src/modules/content/components/notificationComponent';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
@@ -118,5 +119,12 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
         return featuredSitePage;
       }
     );
+  }
+
+  async clickOnBellIcon(options?: { stepInfo?: string }): Promise<NotificationComponent> {
+    return await test.step(options?.stepInfo || 'Click on bell icon', async () => {
+      await this.topNavBarComponent.clickOnBellIcon();
+      return new NotificationComponent(this.page);
+    });
   }
 }

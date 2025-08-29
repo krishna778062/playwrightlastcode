@@ -40,6 +40,12 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
 
   async verifyThePageIsLoaded(): Promise<void> {
     await this.page.waitForLoadState('domcontentloaded');
+    await test.step('Verify Featured Sites page is loaded', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.addUpdateFeaturedSiteButton, {
+        assertionMessage: 'Verify Featured Sites page is loaded',
+        timeout: 15_000,
+      });
+    });
   }
 
   get actions(): IFeaturedSiteActions {

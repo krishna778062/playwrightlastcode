@@ -4,6 +4,7 @@ import { BaseHomePage, ICommonHomePageActions, IOldUxHomePageActions } from './b
 
 import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
 import { CreateComponent as ContentCreateComponent } from '@/src/modules/content/components/createComponent';
+import { NotificationComponent } from '@/src/modules/content/components/notificationComponent';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
@@ -71,6 +72,13 @@ export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions
       const createComponent = new ContentCreateComponent(this.page);
       await createComponent.verifyTheCreateComponentIsVisible();
       return await createComponent.selectSiteOption();
+    });
+  }
+
+  async clickOnBellIcon(options?: { stepInfo?: string }): Promise<NotificationComponent> {
+    return await test.step(options?.stepInfo || 'Click on bell icon', async () => {
+      await this.topNavBarComponent.clickOnBellIcon();
+      return new NotificationComponent(this.page);
     });
   }
 }
