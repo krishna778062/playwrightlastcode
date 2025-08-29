@@ -107,6 +107,7 @@ test.describe(
         createdSite = await siteManagementHelper.createPublicSite({
           category,
           overrides: { access: SITE_TEST_DATA[0].siteType },
+          waitForSearchIndex: false,
         });
         console.log(`Created site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
 

@@ -3,6 +3,7 @@ import { Locator, Page, Response, test } from '@playwright/test';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
 import { FileUtil } from '@/src/core/utils/fileUtil';
+import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { PageCreationResponse } from '@/src/modules/content/apis/types/pageCreationResponse';
 import { AttachementUploaderComponent } from '@/src/modules/content/components/attachementUploader';
 import { ImageCropperComponent } from '@/src/modules/content/components/imageCropper';
@@ -150,11 +151,11 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
    */
   async createSite(): Promise<Response> {
     return await test.step(`Creating site and wait for create api response`, async () => {
+      console.log('expected url : ', getEnvConfig().apiBaseUrl + API_ENDPOINTS.site.url);
       const createResponse = await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.createSiteButton, { delay: 2_000 }),
         response =>
-          response.request().url().includes(API_ENDPOINTS.site.url) &&
-          !response.request().url().includes('list') &&
+          response.request().url() === getEnvConfig().apiBaseUrl + API_ENDPOINTS.site.url &&
           response.request().method() === 'POST' &&
           response.status() === 200,
         {
