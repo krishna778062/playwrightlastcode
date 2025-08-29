@@ -24,14 +24,16 @@ export class SiteManagementHelper {
    * @param siteName - Optional custom site name. If not provided, generates a random name.
    * @param category - The site category object, containing name and categoryId.
    * @param overrides - Optional overrides for site creation payload.
+   * @param waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to true.
    * @returns An object containing details of the created site.
    */
   async _createSiteBaseMethod(params: {
     siteName?: string;
     category?: { name: string; categoryId: string };
     overrides?: Partial<SiteCreationPayload>;
+    waitForSearchIndex?: boolean;
   }) {
-    const { siteName, category, overrides } = params;
+    const { siteName, category, overrides, waitForSearchIndex = true } = params;
     const randomNum = Math.floor(Math.random() * 1000000 + 1);
     const finalSiteName = siteName ?? `AutomateUI_Test_${randomNum}`;
 
@@ -53,12 +55,14 @@ export class SiteManagementHelper {
 
     const siteId = siteResult.siteId;
 
-    // Wait for site to appear in search results
-    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
-      apiClient: this.appManagerApiClient,
-      searchTerm: finalSiteName,
-      objectType: 'site',
-    });
+    // Wait for site to appear in search results (optional)
+    if (waitForSearchIndex) {
+      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+        apiClient: this.appManagerApiClient,
+        searchTerm: finalSiteName,
+        objectType: 'site',
+      });
+    }
 
     const createdSite = {
       siteId,
@@ -77,30 +81,44 @@ export class SiteManagementHelper {
    * @param siteName - Optional custom site name. If not provided, generates a random name.
    * @param category - The site category object, containing name and categoryId.
    * @param overrides - Optional overrides for site creation payload.
+   * @param waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to true.
    * @returns An object containing details of the created site.
    */
   async createPublicSite(params: {
     siteName?: string;
     category?: { name: string; categoryId: string };
     overrides?: Partial<SiteCreationPayload>;
+    waitForSearchIndex?: boolean;
   }) {
-    const { siteName, category, overrides } = params;
-    return await this._createSiteBaseMethod({ siteName, category, overrides: { ...overrides, access: 'public' } });
+    const { siteName, category, overrides, waitForSearchIndex } = params;
+    return await this._createSiteBaseMethod({
+      siteName,
+      category,
+      overrides: { ...overrides, access: 'public' },
+      waitForSearchIndex,
+    });
   }
   /**
    * Creates a new private site with default settings.
    * @param siteName - Optional custom site name. If not provided, generates a random name.
    * @param category - The site category object, containing name and categoryId.
    * @param overrides - Optional overrides for site creation payload.
+   * @param waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to true.
    * @returns An object containing details of the created site.
    */
   async createPrivateSite(params: {
     siteName?: string;
     category?: { name: string; categoryId: string };
     overrides?: Partial<SiteCreationPayload>;
+    waitForSearchIndex?: boolean;
   }) {
-    const { siteName, category, overrides } = params;
-    return await this._createSiteBaseMethod({ siteName, category, overrides: { ...overrides, access: 'private' } });
+    const { siteName, category, overrides, waitForSearchIndex } = params;
+    return await this._createSiteBaseMethod({
+      siteName,
+      category,
+      overrides: { ...overrides, access: 'private' },
+      waitForSearchIndex,
+    });
   }
 
   /**
@@ -108,15 +126,22 @@ export class SiteManagementHelper {
    * @param siteName - Optional custom site name. If not provided, generates a random name.
    * @param category - The site category object, containing name and categoryId.
    * @param overrides - Optional overrides for site creation payload.
+   * @param waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to true.
    * @returns An object containing details of the created site.
    */
   async createUnlistedSite(params: {
     siteName?: string;
     category?: { name: string; categoryId: string };
     overrides?: Partial<SiteCreationPayload>;
+    waitForSearchIndex?: boolean;
   }) {
-    const { siteName, category, overrides } = params;
-    return await this._createSiteBaseMethod({ siteName, category, overrides: { ...overrides, access: 'unlisted' } });
+    const { siteName, category, overrides, waitForSearchIndex } = params;
+    return await this._createSiteBaseMethod({
+      siteName,
+      category,
+      overrides: { ...overrides, access: 'unlisted' },
+      waitForSearchIndex,
+    });
   }
 
   /**
