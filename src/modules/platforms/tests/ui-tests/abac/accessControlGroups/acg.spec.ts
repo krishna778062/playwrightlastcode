@@ -51,7 +51,7 @@ test.describe(
     test(
       'Verify that single ACG can be created and deleted without any issue',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -88,7 +88,7 @@ test.describe(
     test(
       'Verify that status of the ACG should be displayed as Active or Inactive immediately after creation',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
