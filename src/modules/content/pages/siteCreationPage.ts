@@ -154,6 +154,7 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
         () => this.clickOnElement(this.createSiteButton, { delay: 2_000 }),
         response =>
           response.request().url().includes(API_ENDPOINTS.site.url) &&
+          !response.request().url().includes('list') &&
           response.request().method() === 'POST' &&
           response.status() === 200,
         {

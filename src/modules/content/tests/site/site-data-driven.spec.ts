@@ -14,7 +14,7 @@ import { SiteCreationPage as ContentSiteCreationPage } from '@/src/modules/conte
  * The test is data-driven to avoid code duplication between different site types.
  */
 
-test.describe('Site Creation Test Suite (Data Driven)', { tag: [ContentTestSuite.PAGE_AM] }, () => {
+test.describe('Site Creation Test Suite (Data Driven)', { tag: [ContentTestSuite.SITE_AM] }, () => {
   let siteCreationPage: ContentSiteCreationPage;
   let createdSiteId: string;
   let createdSiteName: string;
