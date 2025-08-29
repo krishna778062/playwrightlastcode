@@ -4,9 +4,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { IdentityUserSearchResponse, User } from '@core/types/user.type';
 import { tagTest } from '@core/utils/testDecorator';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
-
-import { FeatureOwnersPage } from '../../../../pages/abacPage/featureOwnersPage/featureOwnersPage';
-import { ManageUsersPage } from '../../../../pages/managerUsersPage/manageUsersPage';
+import { FeatureOwnersPage } from '@platforms/pages/abacPage/featureOwnersPage/featureOwnersPage';
+import { ManageUsersPage } from '@platforms/pages/managerUsersPage/manageUsersPage';
 
 import { Roles, RolesId } from '@/src/core/constants/roles';
 import { TestSuite } from '@/src/core/constants/testSuite';
@@ -91,7 +90,7 @@ test.describe(
 
           // Iterate the above list and check if the users are app manager through api
           while (usersWithAppManagerTag.length > 0) {
-            const userWithAppManagerTag: string = usersWithAppManagerTag.pop();
+            const userWithAppManagerTag: string = usersWithAppManagerTag.pop() as string;
             const userDetailsJson: IdentityUserSearchResponse = await userManagerApiClient
               .getUserManagementService()
               .getUserDetailsFromUserSearchList(userWithAppManagerTag);

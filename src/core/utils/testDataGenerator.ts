@@ -57,6 +57,22 @@ export class TestDataGenerator {
     return `${prefix}-group-${timestamp}`;
   }
 
+  // Helper function to generate unique category names with consistent timestamp-based naming
+  static generateCategoryName(prefix: string = 'TestCategory'): string {
+    return `${prefix}_${Date.now()}`;
+  }
+
+  // Helper function to generate test description with timestamp
+  static generateRandomString(prefix: string = 'Test description for category'): string {
+    return `${prefix} created at ${new Date().toISOString()}`;
+  }
+
+  static generateCategoryNameAndDescription(): { name: string; description: string } {
+    const name = this.generateCategoryName();
+    const description = this.generateRandomString();
+    return { name, description };
+  }
+
   /**
    * Generates a random page with realistic data
    * @param contentType Content type for the page

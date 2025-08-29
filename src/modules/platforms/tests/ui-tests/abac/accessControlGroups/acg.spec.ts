@@ -1,5 +1,3 @@
-import { expect } from '@playwright/test';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
@@ -7,6 +5,7 @@ import { platformTestFixture as test } from '@platforms/fixtures/platformFixture
 import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/acgPage/accessControlGroupsPage';
 
 import { TestSuite } from '@/src/core/constants/testSuite';
+import { User } from '@/src/core/types/user.type';
 
 test.describe(
   'ACG Testcases',
