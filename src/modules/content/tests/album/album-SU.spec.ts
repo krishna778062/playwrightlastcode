@@ -26,25 +26,25 @@ test.describe(
     let publishedAlbumId: string;
     let siteIdToPublishAlbum: string;
     let manualCleanupNeeded = false;
+    let homePage: NewUxHomePage;
 
-    test.beforeEach(
-      'Setting up the test environment for album creation',
-      async ({ standardUserHomePage, standardUserPage }) => {
-        // Create home page instance and verify it's loaded
-        await standardUserHomePage.verifyThePageIsLoaded();
+    test.beforeEach('Setting up the test environment for album creation', async ({ loginAs, page }) => {
+      await loginAs('endUser');
+      // Create home page instance and verify it's loaded
+      homePage = new NewUxHomePage(page);
+      await homePage.verifyThePageIsLoaded();
 
-        // Initialize preview page
-        contentPreviewPage = new ContentPreviewPage(
-          standardUserPage,
-          siteIdToPublishAlbum,
-          publishedAlbumId,
-          ContentType.ALBUM
-        );
+      // Initialize preview page
+      contentPreviewPage = new ContentPreviewPage(
+        homePage.page,
+        siteIdToPublishAlbum,
+        publishedAlbumId,
+        ContentType.ALBUM
+      );
 
-        // Reset cleanup flag for each test
-        manualCleanupNeeded = false;
-      }
-    );
+      // Reset cleanup flag for each test
+      manualCleanupNeeded = false;
+    });
 
     test.afterEach(async ({ appManagerApiClient }) => {
       // Only cleanup manually if needed (for UI-only tests)
@@ -61,14 +61,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
       },
-      async ({ standardUserHomePage, loginAs }) => {
+      async ({ loginAs }) => {
         tagTest(test.info(), {
           description: 'Album Content Add attach file with all the Mandatory fields by Standard user',
           zephyrTestId: 'CONT-10342',
           storyId: 'CONT-10342',
         });
         // Navigate to album creation
-        albumCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
+        albumCreationPage = (await homePage.actions.openCreateContentPageForContentType(
           ContentType.ALBUM
         )) as AlbumCreationPage;
 
@@ -97,10 +97,10 @@ test.describe(
 
         await contentPreviewPage.assertions.verifyContentIsInPendingStatus();
 
-        // Login with appManager (loginAs handles logout automatically)
+        await LoginHelper.logoutByNavigatingToLogoutPage(homePage.page);
         await loginAs('appManager');
 
-        const notificationComponent = await standardUserHomePage.actions.clickOnBellIcon();
+        const notificationComponent = await homePage.actions.clickOnBellIcon();
         const notificationMessage = peopleName + ' submitted a album for approval "' + albumCreationOptions.title + '"';
         await notificationComponent.actions.clickOnNotification(notificationMessage);
         await contentPreviewPage.actions.clickOnApproveAndPublishButton();
@@ -109,9 +109,9 @@ test.describe(
           'Album approved and published'
         );
 
-        // Login back as standard user to check approval notification
+        await LoginHelper.logoutByNavigatingToLogoutPage(homePage.page);
         await loginAs('endUser');
-        await standardUserHomePage.actions.clickOnBellIcon();
+        await homePage.actions.clickOnBellIcon();
         const approvedNotificationMessage = 'Application Manager1 approved "' + albumCreationOptions.title + '"';
         await notificationComponent.actions.clickOnNotification(approvedNotificationMessage);
         await contentPreviewPage.assertions.verifyContentIsInPublishedStatus();
