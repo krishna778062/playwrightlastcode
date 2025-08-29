@@ -40,6 +40,7 @@ test.describe(
         });
 
         const featuredSitePage = await appManagerHomePage.clickOnFeaturedSitesTab();
+        await featuredSitePage.actions.clickOnAddUpdateFeaturedSiteButton();
 
         // Step 1: Search and add the created site to featured
         await featuredSitePage.actions.addSiteToFeatured(createdSite.siteName);

@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker';
+
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import { SiteCreationPayload } from '@/src/core/types/siteManagement.types';
@@ -35,7 +37,7 @@ export class SiteManagementHelper {
   }) {
     const { siteName, category, overrides, waitForSearchIndex = true } = params;
     const randomNum = Math.floor(Math.random() * 1000000 + 1);
-    const finalSiteName = siteName ?? `AutomateUI_Test_${randomNum}`;
+    const finalSiteName = siteName ?? `Automate_Site_name_${faker.commerce.department()}`;
 
     // Get category if not provided
     let categoryObj = category;
