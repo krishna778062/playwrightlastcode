@@ -15,6 +15,12 @@ export const PAGE_ENDPOINTS = {
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
   MANAGE_USERS_PAGE: '/manage/users',
   LOGOUT: '/logout',
+
+  // abac pages
+  AUDIENCE_PAGE: '/audiences/org',
+  AUDIENCE_RULE_PAGE: '/audiences/org/rules',
+
+  // content management pages
   getSiteDashboardPage: (siteId: string) => `/site/${siteId}/dashboard`,
   PAGE_CREATION_PAGE: '/site/:siteId/page/:pageId',
   ALBUM_CREATION_PAGE: '/site/:siteId/album/:albumId',

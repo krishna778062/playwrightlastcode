@@ -10,4 +10,6 @@ export enum TestSuite {
   LINK_TILE_SEARCH = '@link-tile-search',
   APPS_SEARCH = '@apps-search',
   ABAC = '@abac',
+  AUDIENCE = '@audience',
+  AUDIENCE_CATEGORY = '@audience-category',
 }
