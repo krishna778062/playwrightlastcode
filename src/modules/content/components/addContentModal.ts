@@ -6,6 +6,7 @@ import { EventCreationPage } from '../pages/eventCreationPage';
 import { PageCreationPage } from '../pages/pageCreationPage';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
+import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
 
 export class AddContentModalComponent extends BaseComponent {
   readonly recentlyUsedSitesList: Locator;
@@ -22,7 +23,7 @@ export class AddContentModalComponent extends BaseComponent {
 
   //select site dropdown
   readonly selectSiteDropdown: Locator;
-  readonly selectSiteDropdownOption: Locator;
+  readonly selectSiteDropdownOption: (siteName: string) => Locator;
   readonly clearButtonOnSelectSiteDropdown: Locator;
 
   //select template dropdown
@@ -30,8 +31,11 @@ export class AddContentModalComponent extends BaseComponent {
   readonly selectTemplateDropdownOption: Locator;
   readonly clearButtonOnSelectTemplateDropdown: Locator;
 
-  constructor(page: Page) {
+  private siteManagementHelper?: SiteManagementHelper;
+
+  constructor(page: Page, siteManagementHelper?: SiteManagementHelper) {
     super(page);
+    this.siteManagementHelper = siteManagementHelper;
     // Initialize locators - these would need to be updated based on actual DOM structure
 
     this.recentlyUsedSitesList = page.locator("//div[text()='Recently used ']/button");
@@ -47,8 +51,9 @@ export class AddContentModalComponent extends BaseComponent {
     this.eventContentTypeLabel = page.locator("label[for='addContentType_event']");
 
     //select site dropdown
-    this.selectSiteDropdown = page.getByPlaceholder('Select a site', { exact: false });
-    this.selectSiteDropdownOption = page.locator('#site-list');
+    this.selectSiteDropdown = page.locator('input.ReactSelectInput-inputField');
+    this.selectSiteDropdownOption = (siteName: string) =>
+      page.locator(`div.u-textTruncate div:has-text("${siteName}")`);
     this.clearButtonOnSelectSiteDropdown = page.getByLabel('Clear search');
 
     //select template dropdown
@@ -105,7 +110,7 @@ export class AddContentModalComponent extends BaseComponent {
    */
   async openSelectSiteDropdown() {
     await test.step('Open select site dropdown', async () => {
-      await this.selectSiteDropdown.click();
+      await this.clickOnElement(this.selectSiteDropdown);
     });
   }
 
@@ -115,7 +120,7 @@ export class AddContentModalComponent extends BaseComponent {
    */
   async selectSiteFromDropdown(siteName: string) {
     await test.step(`Select ${siteName} site from select site dropdown`, async () => {
-      await this.clickOnElement(this.selectSiteDropdownOption.getByText(siteName));
+      await this.clickOnElement(this.selectSiteDropdownOption(siteName));
     });
   }
 
@@ -211,7 +216,18 @@ export class AddContentModalComponent extends BaseComponent {
       await this.selectSiteToAddContentFromDropdown(options.siteName);
     } else if (options?.isFromHomePage) {
       // If from home page, select recently used site
-      await this.selectRecentlyUsedSiteByIndex(options?.recentlyUsedSiteIndex || 0);
+      try {
+        await this.selectRecentlyUsedSiteByIndex(options?.recentlyUsedSiteIndex || 0);
+      } catch (error) {
+        console.info(`recently used site not found:`);
+        const sites = await this.siteManagementHelper?.getListOfSites();
+        const siteName = sites?.result.listOfItems[0]?.name;
+        if (siteName) {
+          await this.selectSiteToAddContentFromDropdown(siteName);
+        } else {
+          throw new Error('No sites available to select');
+        }
+      }
     }
     // If from site page, do nothing (already on specific site)
     switch (contentOption.toLowerCase()) {

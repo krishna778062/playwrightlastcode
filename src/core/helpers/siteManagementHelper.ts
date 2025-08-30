@@ -392,4 +392,21 @@ export class SiteManagementHelper {
     console.log(`Added member ${userId} to site ${siteId} with permission: ${permission}`);
     return response;
   }
+
+  /**
+   * Gets the list of sites
+   * @param options - Optional parameters for filtering sites
+   * @returns Promise containing the sites response
+   */
+  async getListOfSites(options?: { size?: number; canManage?: boolean; filter?: string; page?: number }) {
+    const defaultOptions = {
+      size: 1000,
+      canManage: true,
+      filter: 'active',
+      page: 0,
+      ...options,
+    };
+
+    return await this.appManagerApiClient.getSiteManagementService().getListOfSites(defaultOptions);
+  }
 }
