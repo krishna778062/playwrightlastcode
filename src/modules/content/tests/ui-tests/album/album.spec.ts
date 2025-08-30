@@ -97,7 +97,10 @@ test.describe(
         await previewPage.actions.handlePromotionPageStep();
 
         // Verify album was published successfully
-        await previewPage.assertions.verifyContentPublishedSuccessfully(title);
+        await previewPage.assertions.verifyContentPublishedSuccessfully(
+          title,
+          "Created album successfully - it's published"
+        );
       }
     );
 

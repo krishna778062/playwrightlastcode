@@ -18,7 +18,7 @@ export interface IPreviewPageActions {
 }
 
 export interface IPreviewPageAssertions {
-  verifyContentPublishedSuccessfully: (title: string) => Promise<void>;
+  verifyContentPublishedSuccessfully: (title: string, successMessage: string) => Promise<void>;
   verifySendHistoryTabPopup: () => Promise<void>;
   verifyVersionHistoryTabPopup: () => Promise<void>;
   verifyAlbumUnpublishFunctionality: () => Promise<void>;
@@ -78,11 +78,15 @@ export class PreviewPage extends BasePage implements IPreviewPageActions, IPrevi
   /**
    * Verifies that the content was published successfully
    * @param title - The title of the content to verify
+   * @param successMessage - The expected success message to verify
    */
-  async verifyContentPublishedSuccessfully(title: string): Promise<void> {
+  async verifyContentPublishedSuccessfully(
+    title: string,
+    successMessage: string = "Created page successfully - it's published"
+  ): Promise<void> {
     await test.step(`Verifying content was published successfully`, async () => {
       // Verify success message is visible
-      await this.verifier.verifyTheElementIsVisible(this.successMessage("Created page successfully - it's published"), {
+      await this.verifier.verifyTheElementIsVisible(this.successMessage(successMessage), {
         assertionMessage: 'Success message should be visible after publishing',
       });
 
