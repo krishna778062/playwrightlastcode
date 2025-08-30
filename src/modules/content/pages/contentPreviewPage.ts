@@ -6,7 +6,8 @@ import { PromotePageModal } from '@/src/modules/content/components/promotePageMo
 
 export interface IContentPreviewPageActions {
   handlePromotionPageStep: () => Promise<void>;
-  clickOnApproveAndPublishButton: () => Promise<void>;
+  clickOnApproveOrRejectButton: (action: string) => Promise<void>;
+  enterRejectReason: (reason: string) => Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -29,11 +30,13 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly unpublishButton = this.page.locator('button:has-text("Unpublish")');
   readonly deleteButton = this.page.locator('button:has-text("Delete")');
   readonly pendingStatus = this.page.locator('div.ContentAdminBar-status').filter({ hasText: 'Pending' });
-  readonly ApproveAndPublishButton = this.page.locator('button:has-text("Approve & publish")');
+  readonly approveOrRejectButton = (action: string) => this.page.locator(`button:has-text("${action}")`);
   readonly siteContentTab = this.page.locator(
     'a[href*="/content"], button:has-text("Content"), [data-testid="content-tab"]'
   );
   readonly publishStatus = this.page.locator('span:has-text("Published today")');
+  readonly rejectButton = this.page.locator('span:has-text("Reject")');
+  readonly rejectReasonTextarea = this.page.locator('div.Modal-content div textarea');
 
   // Assertion locators
   readonly sendHistoryPopup = this.page.locator('[data-testid="send-history-popup"]');
@@ -96,10 +99,10 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   /**
    * Clicks on the Approve and Publish button
    */
-  async clickOnApproveAndPublishButton() {
+  async clickOnApproveOrRejectButton(action: 'approve' | 'reject') {
     this.page.waitForLoadState('domcontentloaded');
     await test.step(`Clicking on the Approve and Publish button`, async () => {
-      await this.clickOnElement(this.ApproveAndPublishButton);
+      await this.clickOnElement(this.approveOrRejectButton(action));
     });
   }
 
@@ -123,6 +126,17 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       await this.verifier.verifyTheElementIsVisible(this.publishStatus, {
         assertionMessage: `Content should be in published status`,
       });
+    });
+  }
+
+  /**
+   * Enters the reject reason
+   * @param reason - The reason to enter
+   */
+  async enterRejectReason(reason: string) {
+    await test.step(`Entering reject reason: ${reason}`, async () => {
+      await this.fillInElement(this.rejectReasonTextarea, reason);
+      await this.clickOnElement(this.rejectButton);
     });
   }
 }
