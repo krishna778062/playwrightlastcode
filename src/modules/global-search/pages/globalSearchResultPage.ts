@@ -1,4 +1,4 @@
-import { Locator, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import { test } from '@playwright/test';
 
 import { ContentType } from '@/src/core/constants/contentTypes';
