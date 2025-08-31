@@ -1,9 +1,9 @@
-name: Daily Regression Tests (Multi-Job)
+name: Daily Regression Tests
 
 on:
   schedule:
     # Run daily at 2 AM UTC (adjust timezone as needed)
-    - cron: '0 8 * * *'
+    - cron: '0 2 * * *'
   workflow_dispatch: # allows manual triggering for testing
 
 permissions:
@@ -11,12 +11,8 @@ permissions:
   id-token: write
   pages: write
 
-env:
-  MODULES: '[chat, platforms, global-search, content, de, reward, content-abac]'
-  ENVIRONMENTS: '[qa]'
-
 jobs:
-  test-execution:
+  regression-tests:
     timeout-minutes: 120
     runs-on: [kubernetes]
     strategy:
@@ -24,13 +20,6 @@ jobs:
       matrix:
         module: [chat, platforms, global-search, content, de, reward, content-abac] # de is short for data-engineering
         environment: [qa]
-    outputs:
-      timestamp: ${{ steps.timestamp.outputs.timestamp }}
-      module: ${{ matrix.module }}
-      environment: ${{ matrix.environment }}
-      timestamped-report-url: ${{ steps.set-urls.outputs.timestamped-url }}
-      latest-report-url: ${{ steps.set-urls.outputs.latest-url }}
-      test-status: ${{ steps.test-status.outputs.status }}
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       MODULE_NAME: ${{ matrix.module }}
@@ -43,7 +32,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: install dependencies
         run: npm ci
@@ -51,87 +39,21 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: Set timestamp
-        id: timestamp
-        run: |
-          echo "TIMESTAMP=$(date +"%Y-%m-%d-%H-%M-%S")" >> $GITHUB_ENV
-          echo "Timestamp set to: $TIMESTAMP"
-
       - name: Run regression tests
-        id: run-tests
-        continue-on-error: true # Don't fail the entire step if tests fail
         env:
           TEST_ENV: ${{ matrix.environment }}
         run: |
           # Run regression tests i.e. entire suite
           npm run test:${{ matrix.module }} -- --workers=3
 
-      - name: Check test execution status
-        id: test-status
-        run: |
-          if [ -f "test-results/test-results.json" ]; then
-            echo "status=completed" >> $GITHUB_OUTPUT
-          else
-            echo "status=no-results" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Set report URLs
-        id: set-urls
-        run: |
-          echo "timestamped-url=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ steps.timestamp.outputs.timestamp }}-${{ github.run_id }}/index.html" >> $GITHUB_OUTPUT
-          echo "latest-url=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html" >> $GITHUB_OUTPUT
-
       - name: Upload test report to github artifact backup
-        if: always() # Always upload, even if tests failed
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-report-${{ matrix.module }}-${{ matrix.environment }}
           path: |
             playwright-report
             test-results
-
-  reporting:
-    needs: test-execution
-    if: always() # Force run even if test-execution has failures
-    timeout-minutes: 60
-    runs-on: [kubernetes]
-    strategy:
-      fail-fast: false
-      matrix:
-        module: [chat, platforms, global-search, content, de, reward, content-abac]
-        environment: [qa]
-    env:
-      S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
-      MODULE_NAME: ${{ matrix.module }}
-      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: install dependencies
-        run: npm ci
-
-      - name: Download test artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: test-report-${{ matrix.module }}-${{ matrix.environment }}
-          path: ./
-        continue-on-error: true # Don't fail if artifacts don't exist
-
-      - name: Check if we have test results
-        id: check-results
-        run: |
-          if [ -f "test-results/test-results.json" ]; then
-            echo "has-results=true" >> $GITHUB_OUTPUT
-          else
-            echo "has-results=false" >> $GITHUB_OUTPUT
-          fi
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4.1.0
@@ -143,17 +65,23 @@ jobs:
           role-skip-session-tagging: true
           role-duration-seconds: 1200
 
+      - name: Set timestamp
+        id: timestamp
+        run: |
+          echo "TIMESTAMP=$(date +"%Y-%m-%d-%H-%M-%S")" >> $GITHUB_ENV
+          echo "Timestamp set to: $TIMESTAMP"
+
       - name: Generate HTML Report
-        if: steps.check-results.outputs.has-results == 'true'
+        if: always()
         run: |
           npm run generate-report:custom test-results/test-results.json
 
       - name: Upload Report to S3
-        if: steps.check-results.outputs.has-results == 'true'
+        if: always()
         run: |
           # Upload to timestamped folder
           echo "Uploading report to S3..."
-          aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ needs.test-execution.outputs.timestamp }}-${{ github.run_id }} --recursive
+          aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }} --recursive
 
           # Update latest folder (overwrites existing files)
           echo "Updating latest folder..."
@@ -174,14 +102,18 @@ jobs:
 
           echo "Report uploaded successfully!"
           echo "Latest report available at: s3://${S3_BUCKET}/${MODULE_NAME}/latest"
-          echo "Timestamped report available at: s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ needs.test-execution.outputs.timestamp }}-${{ github.run_id }}"
+          echo "Timestamped report available at: s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}"
           echo ""
           echo "📊 Test Report Links:"
           echo "🔗 Latest Report: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html"
-          echo "📅 Timestamped Report: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ needs.test-execution.outputs.timestamp }}-${{ github.run_id }}/index.html"
+          echo "📅 Timestamped Report: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html"
+
+          # Store report links for Slack notification
+          echo "LATEST_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html" >> $GITHUB_ENV
+          echo "TIMESTAMPED_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html" >> $GITHUB_ENV
 
       - name: Upload Regression Data to Postgres
-        if: steps.check-results.outputs.has-results == 'true'
+        if: always()
         env:
           DB_POOL_MAX: 3
           DB_POOL_MIN: 1
@@ -199,51 +131,11 @@ jobs:
           MODULE_NAME: ${{ matrix.module }}
           IS_REGRESSION: true
         run: |
-          # Upload regression data to postgres (including failures)
-          echo "Uploading regression data to postgres (including failures)..."
-          # Use the output from test-execution job directly
-          REPORT_PATH=${{ needs.test-execution.outputs.timestamped-report-url }} npm run report:postgres
+          # Upload regression data to postgres
+          echo "Uploading regression data to postgres..."
+          # set the env variable to set the meta data for the report
+          REPORT_PATH=${{ env.TIMESTAMPED_REPORT_URL }} npm run report:postgres
           echo "Regression data uploaded successfully to postgres"
-
-      - name: Handle Missing Test Results
-        if: steps.check-results.outputs.has-results == 'false'
-        run: |
-          echo "No test results found for ${{ matrix.module }}, cannot process reports"
-          # Could create a placeholder report or send notification about missing results
-
-  notifications:
-    needs: [test-execution, reporting]
-    if: always() # Force run even if previous jobs had failures
-    timeout-minutes: 30
-    runs-on: [kubernetes]
-    strategy:
-      fail-fast: false
-      matrix:
-        module: [chat, platforms, global-search, content, de, reward, content-abac]
-        environment: [qa]
-    env:
-      S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
-      MODULE_NAME: ${{ matrix.module }}
-      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: install dependencies
-        run: npm ci
-
-      - name: Download test artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: test-report-${{ matrix.module }}-${{ matrix.environment }}
-          path: ./
-        continue-on-error: true # Don't fail if artifacts don't exist
 
       - name: Parse Test Results
         if: always()
@@ -277,8 +169,8 @@ jobs:
         run: |
           # Only send notification if tests actually ran (TOTAL_TESTS > 0)
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
-            # Prepare Slack message with hyperlinks using job outputs
-            MESSAGE="🧪 *Daily Regression* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.FAILED_TESTS }} ❌ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ needs.test-execution.outputs.timestamped-report-url }}|📊 View Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+            # Prepare Slack message with hyperlinks
+            MESSAGE="🧪 *Daily Regression* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.FAILED_TESTS }} ❌ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             echo "MESSAGE: $MESSAGE"
             # Send to Slack using curl
             curl -X POST -H 'Content-type: application/json' \
