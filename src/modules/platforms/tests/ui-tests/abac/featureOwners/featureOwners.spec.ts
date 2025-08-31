@@ -173,7 +173,7 @@ test.describe(
       test(
         `Verify that ${feature} feature owners access should be removed when the status of the user with app manager role is changed to inactive from manage users page`,
         {
-          tag: [TestPriority.P0, `@ABAC`, `@feature-owners`, `@this-one`],
+          tag: [TestPriority.P0, `@ABAC`, `@feature-owners`],
         },
         async ({ appManagerPage, appManagerApiClient }) => {
           tagTest(test.info(), {
@@ -200,7 +200,7 @@ test.describe(
       test(
         `Verify that ${feature} feature owners access should be removed when the status of the user with app manager role is changed to frozen from manage users page`,
         {
-          tag: [TestPriority.P0, `@ABAC`, `@feature-owners`, `@this-one`],
+          tag: [TestPriority.P0, `@ABAC`, `@feature-owners`],
         },
         async ({ appManagerPage, appManagerApiClient }) => {
           tagTest(test.info(), {
