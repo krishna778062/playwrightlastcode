@@ -11,6 +11,10 @@ permissions:
   id-token: write
   pages: write
 
+env:
+  MODULES: '[chat, platforms, global-search, content, de, reward, content-abac]'
+  ENVIRONMENTS: '[qa]'
+
 jobs:
   test-execution:
     timeout-minutes: 120
@@ -26,6 +30,7 @@ jobs:
       environment: ${{ matrix.environment }}
       timestamped-report-url: ${{ steps.set-urls.outputs.timestamped-url }}
       latest-report-url: ${{ steps.set-urls.outputs.latest-url }}
+      test-status: ${{ steps.test-status.outputs.status }}
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       MODULE_NAME: ${{ matrix.module }}
@@ -54,11 +59,21 @@ jobs:
 
       - name: Run regression tests
         id: run-tests
+        continue-on-error: true # Don't fail the entire step if tests fail
         env:
           TEST_ENV: ${{ matrix.environment }}
         run: |
           # Run regression tests i.e. entire suite
           npm run test:${{ matrix.module }} -- --workers=3
+
+      - name: Check test execution status
+        id: test-status
+        run: |
+          if [ -f "test-results/test-results.json" ]; then
+            echo "status=completed" >> $GITHUB_OUTPUT
+          else
+            echo "status=no-results" >> $GITHUB_OUTPUT
+          fi
 
       - name: Set report URLs
         id: set-urls
@@ -67,7 +82,7 @@ jobs:
           echo "latest-url=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html" >> $GITHUB_OUTPUT
 
       - name: Upload test report to github artifact backup
-        if: always()
+        if: always() # Always upload, even if tests failed
         uses: actions/upload-artifact@v4
         with:
           name: test-report-${{ matrix.module }}-${{ matrix.environment }}
@@ -77,6 +92,7 @@ jobs:
 
   reporting:
     needs: test-execution
+    if: always() # Force run even if test-execution has failures
     timeout-minutes: 60
     runs-on: [kubernetes]
     strategy:
@@ -106,6 +122,16 @@ jobs:
         with:
           name: test-report-${{ matrix.module }}-${{ matrix.environment }}
           path: ./
+        continue-on-error: true # Don't fail if artifacts don't exist
+
+      - name: Check if we have test results
+        id: check-results
+        run: |
+          if [ -f "test-results/test-results.json" ]; then
+            echo "has-results=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-results=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4.1.0
@@ -118,12 +144,12 @@ jobs:
           role-duration-seconds: 1200
 
       - name: Generate HTML Report
-        if: always()
+        if: steps.check-results.outputs.has-results == 'true'
         run: |
           npm run generate-report:custom test-results/test-results.json
 
       - name: Upload Report to S3
-        if: always()
+        if: steps.check-results.outputs.has-results == 'true'
         run: |
           # Upload to timestamped folder
           echo "Uploading report to S3..."
@@ -155,7 +181,7 @@ jobs:
           echo "📅 Timestamped Report: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ needs.test-execution.outputs.timestamp }}-${{ github.run_id }}/index.html"
 
       - name: Upload Regression Data to Postgres
-        if: always()
+        if: steps.check-results.outputs.has-results == 'true'
         env:
           DB_POOL_MAX: 3
           DB_POOL_MIN: 1
@@ -173,14 +199,21 @@ jobs:
           MODULE_NAME: ${{ matrix.module }}
           IS_REGRESSION: true
         run: |
-          # Upload regression data to postgres
-          echo "Uploading regression data to postgres..."
+          # Upload regression data to postgres (including failures)
+          echo "Uploading regression data to postgres (including failures)..."
           # Use the output from test-execution job directly
           REPORT_PATH=${{ needs.test-execution.outputs.timestamped-report-url }} npm run report:postgres
           echo "Regression data uploaded successfully to postgres"
 
+      - name: Handle Missing Test Results
+        if: steps.check-results.outputs.has-results == 'false'
+        run: |
+          echo "No test results found for ${{ matrix.module }}, cannot process reports"
+          # Could create a placeholder report or send notification about missing results
+
   notifications:
     needs: [test-execution, reporting]
+    if: always() # Force run even if previous jobs had failures
     timeout-minutes: 30
     runs-on: [kubernetes]
     strategy:
@@ -210,6 +243,7 @@ jobs:
         with:
           name: test-report-${{ matrix.module }}-${{ matrix.environment }}
           path: ./
+        continue-on-error: true # Don't fail if artifacts don't exist
 
       - name: Parse Test Results
         if: always()
