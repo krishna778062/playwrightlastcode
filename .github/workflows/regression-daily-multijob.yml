@@ -3,7 +3,7 @@ name: Daily Regression Tests (Multi-Job)
 on:
   schedule:
     # Run daily at 2 AM UTC (adjust timezone as needed)
-    - cron: '0 2 * * *'
+    - cron: '0 8 * * *'
   workflow_dispatch: # allows manual triggering for testing
 
 permissions:
