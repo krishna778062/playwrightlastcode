@@ -55,8 +55,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-EXPENSIFY-001',
-          storyId: 'INT-EXPENSIFY-001',
+          zephyrTestId: 'INT-24799',
+          storyId: 'INT-24430',
         });
 
         // Only track the final tile name for cleanup

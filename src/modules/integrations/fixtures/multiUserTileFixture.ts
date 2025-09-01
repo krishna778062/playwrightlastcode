@@ -4,9 +4,21 @@ import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
+export type UserType = 'appManager' | 'endUser';
+
+export const users = {
+  appManager: {
+    email: process.env.APP_MANAGER_USERNAME || process.env.APP_MANAGER_EMAIL || '',
+    password: process.env.APP_MANAGER_PASSWORD || '',
+  },
+  endUser: {
+    email: process.env.END_USER_USERNAME || process.env.End_USER_USERNAME || '',
+    password: process.env.END_USER_PASSWORD || process.env.End_USER_PASSWORD || '',
+  },
+};
+
 /**
  * Multi-user fixture for tile management tests
- * Following the chat module pattern for separate browser sessions
  * - Admin user: Creates and manages tiles
  * - End user: Verifies tile visibility
  */
@@ -37,25 +49,23 @@ export const multiUserTileFixture = test.extend<
 
   adminPage: [
     async ({ browser }, use) => {
-      // Create admin context and page
       const adminContext = await browser.newContext({ recordVideo: { dir: 'test-results/videos/' } });
       const adminPage = await adminContext.newPage();
 
-      // Login admin user
       await test.step(`Logging in Admin User`, async () => {
         const baseUrl = getEnvConfig().frontendBaseUrl;
         await adminPage.goto(baseUrl, { waitUntil: 'domcontentloaded' });
 
         const usernameInput = adminPage.locator('#inputOption');
         await usernameInput.waitFor({ state: 'visible' });
-        await usernameInput.fill(getEnvConfig().appManagerEmail);
+        await usernameInput.fill(users.appManager.email);
 
         const continueButton = adminPage.getByRole('button', { name: /continue/i });
         await continueButton.click();
 
         const passwordInput = adminPage.locator('#inputPassword');
         await passwordInput.waitFor({ state: 'visible' });
-        await passwordInput.fill(getEnvConfig().appManagerPassword);
+        await passwordInput.fill(users.appManager.password);
 
         const signInButton = adminPage.getByRole('button', { name: /sign in/i });
         await signInButton.click();
@@ -73,38 +83,23 @@ export const multiUserTileFixture = test.extend<
 
   endUserPage: [
     async ({ browser }, use) => {
-      // Create end user context and page
       const endUserContext = await browser.newContext({ recordVideo: { dir: 'test-results/videos/' } });
       const endUserPage = await endUserContext.newPage();
-      // Login end user
+
       await test.step(`Logging in End User`, async () => {
         const baseUrl = getEnvConfig().frontendBaseUrl;
         await endUserPage.goto(baseUrl, { waitUntil: 'domcontentloaded' });
 
         const usernameInput = endUserPage.locator('#inputOption');
         await usernameInput.waitFor({ state: 'visible' });
-
-        const endUserEmail = getEnvConfig().endUserEmail;
-        if (!endUserEmail) {
-          throw new Error(
-            'endUserEmail is not defined in environment configuration. Check your .env file or CI environment variables.'
-          );
-        }
-        await usernameInput.fill(endUserEmail);
+        await usernameInput.fill(users.endUser.email);
 
         const continueButton = endUserPage.getByRole('button', { name: /continue/i });
         await continueButton.click();
 
         const passwordInput = endUserPage.locator('#inputPassword');
         await passwordInput.waitFor({ state: 'visible' });
-
-        const endUserPassword = getEnvConfig().endUserPassword;
-        if (!endUserPassword) {
-          throw new Error(
-            'endUserPassword is not defined in environment configuration. Check your .env file or CI environment variables.'
-          );
-        }
-        await passwordInput.fill(endUserPassword);
+        await passwordInput.fill(users.endUser.password);
 
         const signInButton = endUserPage.getByRole('button', { name: /sign in/i });
         await signInButton.click();
