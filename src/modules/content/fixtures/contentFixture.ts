@@ -12,137 +12,228 @@ import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
 export type UserType = 'appManager' | 'endUser';
+export type HomePageType = NewUxHomePage | OldUxHomePage;
+
+// Cache environment configuration to avoid repeated calls
+const envConfig = getEnvConfig();
 
 export const users = {
   appManager: {
-    email: process.env.APP_MANAGER_USERNAME || '',
-    password: process.env.APP_MANAGER_PASSWORD || '',
+    email: envConfig.appManagerEmail,
+    password: envConfig.appManagerPassword,
   },
   endUser: {
-    email: process.env.END_USER_USERNAME || '',
-    password: process.env.END_USER_PASSWORD || '',
+    email: envConfig.endUserEmail || '',
+    password: envConfig.endUserPassword || '',
   },
-};
+} as const;
+
+// Shared login function to reduce code duplication
+async function createAuthenticatedHomePage(
+  context: BrowserContext,
+  userCredentials: { email: string; password: string }
+): Promise<HomePageType> {
+  const page = await context.newPage();
+  const homePage = await LoginHelper.loginWithPassword(page, userCredentials);
+  await homePage.verifyThePageIsLoaded();
+  return homePage;
+}
+
+// Shared logout function with error handling
+async function performLogout(homePage: HomePageType): Promise<void> {
+  try {
+    await LoginHelper.logoutByNavigatingToLogoutPage(homePage.page);
+  } catch (error) {
+    console.warn('Logout failed, continuing with test cleanup:', error);
+  }
+}
 
 export const contentTestFixture = test.extend<
   {
+    // Browser contexts
     appManagerContext: BrowserContext;
-    appManagerHomePage: NewUxHomePage | OldUxHomePage;
-    appManagersPage: Page;
     standardUserContext: BrowserContext;
-    standardUserHomePage: NewUxHomePage | OldUxHomePage;
+
+    // Authenticated pages
+    appManagerHomePage: HomePageType;
+    appManagersPage: Page;
+    standardUserHomePage: HomePageType;
     standardUserPage: Page;
+
+    // Helpers and services
     siteManagementHelper: SiteManagementHelper;
     contentManagementHelper: ContentManagementHelper;
     feedManagerService: FeedManagerService;
+
+    // Utility functions
     loginAs: (userType: UserType) => Promise<void>;
+    switchUser: (fromPage: Page, toUserType: UserType) => Promise<HomePageType>;
   },
   {
+    // Worker-scoped fixtures
     appManagerApiClient: AppManagerApiClient;
   }
 >({
+  // Worker-scoped API client - shared across all tests in worker
   appManagerApiClient: [
     async ({}, use, workerInfo) => {
-      console.log(`INFO: Setting up app manager client for worker => `, workerInfo.workerIndex);
+      console.log(`Setting up app manager API client for worker ${workerInfo.workerIndex}`);
+
       const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
         type: 'credentials',
         credentials: {
-          username: getEnvConfig().appManagerEmail,
-          password: getEnvConfig().appManagerPassword,
+          username: envConfig.appManagerEmail,
+          password: envConfig.appManagerPassword,
         },
-        baseUrl: getEnvConfig().apiBaseUrl,
+        baseUrl: envConfig.apiBaseUrl,
       });
+
       await use(appManagerApiClient);
+
+      // Cleanup worker-scoped resources
+      console.log(`Cleaning up app manager API client for worker ${workerInfo.workerIndex}`);
     },
     { scope: 'worker' },
   ],
+  // Browser contexts - isolated per test
   appManagerContext: [
-    async ({ browser }, use, workerInfo) => {
-      const context = await browser.newContext();
-      await use(context);
-      await context?.close();
-    },
-    { scope: 'test' },
-  ],
-  appManagerHomePage: [
-    async ({ appManagerContext }, use, workerInfo) => {
-      const page = await appManagerContext.newPage();
-      const appManagerHomePage = await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().appManagerEmail,
-        password: getEnvConfig().appManagerPassword,
+    async ({ browser }, use) => {
+      const context = await browser.newContext({
+        // Optimize context creation
+        ignoreHTTPSErrors: true,
+        viewport: { width: 1920, height: 1080 },
       });
-      await appManagerHomePage.verifyThePageIsLoaded();
-      await use(appManagerHomePage);
-      await page.close();
-    },
-    { scope: 'test' },
-  ],
-  appManagersPage: [
-    async ({ appManagerHomePage }, use, workerInfo) => {
-      await use(appManagerHomePage.page);
-    },
-    { scope: 'test' },
-  ],
 
-  standardUserContext: [
-    async ({ browser }, use, workerInfo) => {
-      const context = await browser.newContext();
       await use(context);
-      await context?.close();
+      await context.close();
+    },
+    { scope: 'test' },
+  ],
+  // Authenticated home pages
+  appManagerHomePage: [
+    async ({ appManagerContext }, use) => {
+      const homePage = await createAuthenticatedHomePage(appManagerContext, users.appManager);
+
+      await use(homePage);
+      await performLogout(homePage);
+    },
+    { scope: 'test' },
+  ],
+  standardUserContext: [
+    async ({ browser }, use) => {
+      const context = await browser.newContext({
+        // Optimize context creation
+        ignoreHTTPSErrors: true,
+        viewport: { width: 1920, height: 1080 },
+      });
+
+      await use(context);
+      await context.close();
     },
     { scope: 'test' },
   ],
 
   standardUserHomePage: [
-    async ({ standardUserContext }, use, workerInfo) => {
-      const page = await standardUserContext.newPage();
-      const standardUserHomePage = await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().endUserEmail || '',
-        password: getEnvConfig().endUserPassword || '',
-      });
-      await standardUserHomePage.verifyThePageIsLoaded();
-      await use(standardUserHomePage);
-      await page.close();
+    async ({ standardUserContext }, use) => {
+      const homePage = await createAuthenticatedHomePage(standardUserContext, users.endUser);
+
+      await use(homePage);
+      await performLogout(homePage);
+    },
+    { scope: 'test' },
+  ],
+
+  // Page references - lightweight wrappers
+  appManagersPage: [
+    async ({ appManagerHomePage }, use) => {
+      await use(appManagerHomePage.page);
     },
     { scope: 'test' },
   ],
 
   standardUserPage: [
-    async ({ standardUserHomePage }, use, workerInfo) => {
+    async ({ standardUserHomePage }, use) => {
       await use(standardUserHomePage.page);
     },
     { scope: 'test' },
   ],
 
+  // Services and helpers - with proper cleanup
   feedManagerService: [
     async ({ appManagerApiClient }, use) => {
-      const feedManagerService = new FeedManagerService(appManagerApiClient.context);
-      await use(feedManagerService);
+      const service = new FeedManagerService(appManagerApiClient.context);
+      await use(service);
+      // Add cleanup if needed
     },
     { scope: 'test' },
   ],
 
   siteManagementHelper: [
     async ({ appManagerApiClient }, use) => {
-      const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
-      await use(siteManagementHelper);
-      await siteManagementHelper.cleanup();
+      const helper = new SiteManagementHelper(appManagerApiClient);
+
+      await use(helper);
+
+      // Ensure cleanup happens even if test fails
+      try {
+        await helper.cleanup();
+      } catch (error) {
+        console.warn('Site management helper cleanup failed:', error);
+      }
     },
     { scope: 'test' },
   ],
 
   contentManagementHelper: [
     async ({ appManagerApiClient }, use) => {
-      const contentManagementHelper = new ContentManagementHelper(appManagerApiClient);
-      await use(contentManagementHelper);
-      await contentManagementHelper.cleanup();
+      const helper = new ContentManagementHelper(appManagerApiClient);
+
+      await use(helper);
+
+      // Ensure cleanup happens even if test fails
+      try {
+        await helper.cleanup();
+      } catch (error) {
+        console.warn('Content management helper cleanup failed:', error);
+      }
     },
     { scope: 'test' },
   ],
 
-  loginAs: async ({ page }, use) => {
-    await use(async (userType: UserType) => {
-      await LoginHelper.loginWithPassword(page, users[userType]);
-    });
-  },
+  // Utility functions for user switching
+  loginAs: [
+    async ({ page }, use) => {
+      await use(async (userType: UserType) => {
+        const credentials = users[userType];
+        if (!credentials.email || !credentials.password) {
+          throw new Error(`Missing credentials for user type: ${userType}`);
+        }
+        await LoginHelper.loginWithPassword(page, credentials);
+      });
+    },
+    { scope: 'test' },
+  ],
+
+  switchUser: [
+    async ({}, use) => {
+      await use(async (fromPage: Page, toUserType: UserType) => {
+        // Logout current user
+        await LoginHelper.logoutByNavigatingToLogoutPage(fromPage);
+
+        // Login as new user
+        const credentials = users[toUserType];
+        if (!credentials.email || !credentials.password) {
+          throw new Error(`Missing credentials for user type: ${toUserType}`);
+        }
+
+        const homePage = await LoginHelper.loginWithPassword(fromPage, credentials);
+        await homePage.verifyThePageIsLoaded();
+        return homePage;
+      });
+    },
+    { scope: 'test' },
+  ],
 });
+
+// Export commonly used types for better type safety
+export type ContentTestFixture = typeof contentTestFixture;

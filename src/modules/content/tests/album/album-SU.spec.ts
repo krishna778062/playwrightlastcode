@@ -6,7 +6,6 @@ import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';

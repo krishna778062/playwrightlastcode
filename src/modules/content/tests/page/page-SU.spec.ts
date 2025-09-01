@@ -58,8 +58,8 @@ test.describe(
     const PAGE_APPROVAL_TEST_DATA = [
       {
         action: 'Approve & publish',
-        zephyrTestId: 'CONT-20053',
-        storyId: 'CONT-20053',
+        zephyrTestId: 'CONT-1378',
+        storyId: 'CONT-1378',
         description:
           'Page Content Add attach file with all the Mandatory fields by Standard user and approved by Application Manager',
         actionSuccessMessage: 'Page approved and published',
@@ -67,8 +67,8 @@ test.describe(
       },
       {
         action: 'Reject',
-        zephyrTestId: 'CONT-39212',
-        storyId: 'CONT-39212',
+        zephyrTestId: 'CONT-20053',
+        storyId: 'CONT-20053',
         description:
           'Page Content Add attach file with all the Mandatory fields by Standard user and rejected by Application Manager',
         actionSuccessMessage: 'Page rejected',
