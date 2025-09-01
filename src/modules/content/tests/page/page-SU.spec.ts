@@ -105,7 +105,8 @@ test.describe(
           // Generate page data using TestDataGenerator
           const pageCreationOptions = TestDataGenerator.generatePage(
             PageContentType.NEWS,
-            CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
+            CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
+            'uncategorized'
           );
 
           // Create and submit the page

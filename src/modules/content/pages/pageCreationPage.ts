@@ -82,6 +82,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   readonly titleInput: Locator;
   readonly descriptionInput: Locator;
   readonly submitButton: Locator;
+  readonly addCategoryFromList: (categoryText: string) => Locator;
   // Page components
   readonly addContentModal: AddContentModalComponent;
   readonly coverImageUploader: AttachementUploaderComponent;
@@ -110,6 +111,8 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     this.descriptionInput = page.locator("div[aria-label='Page content']");
     this.contentTypeCheckbox = (type: string) => page.locator('label:has(span)', { hasText: type });
     this.submitButton = page.locator('span').filter({ hasText: 'Submit for approval' });
+    this.addCategoryFromList = (categoryText: string) => page.locator(`div[role='listbox'] >> text=${categoryText}`);
+
     // Page components
     this.addContentModal = new AddContentModalComponent(page);
     this.coverImageUploader = new AttachementUploaderComponent(page, this.coverImageUploaderContainer);
@@ -195,7 +198,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       // Handle category selection
       await this.clickOnElement(this.categoryDropdown);
       await this.fillInElement(this.categoryDropdown, options.category);
-      await this.categoryDropdown.press('Enter');
+      await this.clickOnElement(this.addCategoryFromList(options.category));
 
       await this.clickOnElement(this.contentTypeCheckbox(options.contentType));
     });
@@ -324,6 +327,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     response: PageCreationResponse;
   }> {
     return await test.step(`Creating and submit page with title: ${options.title}`, async () => {
+      // Fill in page mandatory details
       // Fill in page mandatory details
       await this.fillPageDetails({
         title: options.title,
