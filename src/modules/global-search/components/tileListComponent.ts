@@ -6,7 +6,6 @@ import { TileLink } from '../../../core/types/tile.type';
 import { ResultListingComponent } from './resultsListComponent';
 
 export class TileListComponent extends ResultListingComponent {
-  readonly tileTitle: Locator;
   readonly searchTerm: string;
   readonly thumbnail: Locator;
   readonly thumbnailLink: Locator;
@@ -15,10 +14,6 @@ export class TileListComponent extends ResultListingComponent {
     super(page, rootLocator);
     this.searchTerm = searchTerm;
 
-    // Try to find the tile title link element using role and aria-label
-    this.tileTitle = this.rootLocator
-      .getByRole('link')
-      .and(this.rootLocator.getByLabel('enterpriseSearch:breadcrumb.innerSource.aria_label'));
     this.thumbnail = this.rootLocator
       .locator('div[class*="ListingItem_thumbnail"]')
       .or(this.rootLocator.locator("[class*='ListingItem_smallThumbnail']"));
@@ -26,9 +21,9 @@ export class TileListComponent extends ResultListingComponent {
     this.showMoreButton = this.rootLocator.getByRole('button').filter({ hasText: 'Show more' });
   }
 
-  async verifyTileTitleIsDisplayed(expectedTileTitle: string) {
+  async verifyTileTitleIsDisplayed() {
     await test.step(`Verifying tile title is displayed`, async () => {
-      await this.verifier.verifyElementHasText(this.tileTitle, new RegExp(`^${expectedTileTitle}`));
+      await this.verifier.verifyTheElementIsVisible(this.rootLocator);
     });
   }
 

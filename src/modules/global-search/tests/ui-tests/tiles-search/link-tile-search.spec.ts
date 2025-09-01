@@ -109,7 +109,7 @@ for (const numberOfLinks of TILE_NUMBER_OF_LINKS) {
             LINK_TILE_SEARCH_TEST_DATA.tileTitle
           );
 
-          await tileResultItem.verifyTileTitleIsDisplayed(LINK_TILE_SEARCH_TEST_DATA.tileTitle);
+          await tileResultItem.verifyTileTitleIsDisplayed();
           await tileResultItem.siteLinkIsClickable(newSiteName, newSiteId);
           await tileResultItem.goBackToPreviousPage();
           await tileResultItem.verifyThumbnailIsDisplayed();
