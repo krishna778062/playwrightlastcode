@@ -1,6 +1,5 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
@@ -20,75 +19,139 @@ test.describe(
   },
   () => {
     let pageCreationPage: PageCreationPage;
-    let contentPreviewPage: ContentPreviewPage;
-    let siteIdToPublishPage: string;
+    let contentPreviewPageStandardUser: ContentPreviewPage;
+    let contentPreviewPageAppManager: ContentPreviewPage;
     let publishedPageId: string;
-    let homePage: NewUxHomePage;
+    let siteIdToPublishPage: string;
     let manualCleanupNeeded = false;
 
     test.beforeEach(
-      'Setting up the test environment for event creation',
+      'Setting up the test environment for page creation',
       async ({ standardUserHomePage, standardUserPage }) => {
         // Create home page instance and verify it's loaded
         await standardUserHomePage.verifyThePageIsLoaded();
 
         // Initialize preview page
-        contentPreviewPage = new ContentPreviewPage(standardUserPage);
+        contentPreviewPageStandardUser = new ContentPreviewPage(
+          standardUserPage,
+          siteIdToPublishPage,
+          publishedPageId,
+          ContentType.PAGE
+        );
 
         // Reset cleanup flag for each test
         manualCleanupNeeded = false;
       }
     );
 
-    test.afterEach(async ({ contentManagementHelper }) => {
+    test.afterEach(async ({ appManagerApiClient }) => {
       // Only cleanup manually if needed (for UI-only tests)
       if (manualCleanupNeeded && publishedPageId && siteIdToPublishPage) {
-        await contentManagementHelper.deleteContent(siteIdToPublishPage, publishedPageId);
+        await appManagerApiClient.getContentManagementService().deleteContent(siteIdToPublishPage, publishedPageId);
         console.log('Manual cleanup completed for page:', publishedPageId);
       } else {
         console.log('No page was published, hence skipping the deletion');
       }
     });
 
-    test(
-      'Verify SU is able to publish a new page created with cover image from home page',
+    // Test data for approve/reject scenarios
+    const PAGE_APPROVAL_TEST_DATA = [
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE, ContentSuiteTags.PAGE_CREATION],
+        action: 'Approve & publish',
+        zephyrTestId: 'CONT-20053',
+        storyId: 'CONT-20053',
+        description:
+          'Page Content Add attach file with all the Mandatory fields by Standard user and approved by Application Manager',
+        actionSuccessMessage: 'Page approved and published',
+        finalNotificationMessage: 'Application Manager1 approved',
       },
-      async ({ standardUserHomePage }) => {
-        tagTest(test.info(), {
-          description: 'Verify SU is able to publish a new page created with cover image from home page',
-          zephyrTestId: 'CONT-1378',
-          storyId: 'CONT-1378',
-        });
+      {
+        action: 'Reject',
+        zephyrTestId: 'CONT-39212',
+        storyId: 'CONT-39212',
+        description:
+          'Page Content Add attach file with all the Mandatory fields by Standard user and rejected by Application Manager',
+        actionSuccessMessage: 'Page rejected',
+        finalNotificationMessage: 'Application Manager1 rejected',
+      },
+    ] as const;
 
-        pageCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
-          ContentType.PAGE
-        )) as PageCreationPage;
+    for (const testData of PAGE_APPROVAL_TEST_DATA) {
+      test(
+        `${testData.description}`,
+        {
+          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.PAGE_CREATION],
+        },
+        async ({ standardUserHomePage, appManagerHomePage }) => {
+          tagTest(test.info(), {
+            description: testData.description,
+            zephyrTestId: testData.zephyrTestId,
+            storyId: testData.storyId,
+          });
 
-        // Generate page data using TestDataGenerator
-        const pageCreationOptions = TestDataGenerator.generatePage(
-          PageContentType.NEWS,
-          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
-        );
+          // Initialize preview page for app manager
+          contentPreviewPageAppManager = new ContentPreviewPage(
+            appManagerHomePage.page,
+            siteIdToPublishPage,
+            publishedPageId,
+            ContentType.PAGE
+          );
 
-        // Use the new wrapper method to create and publish the page
-        const { pageId, siteId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+          // Navigate to page creation by standard user
+          pageCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
+            ContentType.PAGE
+          )) as PageCreationPage;
 
-        // Store IDs for cleanup
-        publishedPageId = pageId;
-        siteIdToPublishPage = siteId;
-        manualCleanupNeeded = true;
+          // Generate page data using TestDataGenerator
+          const pageCreationOptions = TestDataGenerator.generatePage(
+            PageContentType.NEWS,
+            CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
+          );
 
-        // Initialize preview page and handle the promotion
-        await contentPreviewPage.actions.handlePromotionPageStep();
+          // Create and submit the page
+          const { pageId, siteId, peopleId, peopleName } =
+            await pageCreationPage.actions.createAndSubmitPage(pageCreationOptions);
 
-        // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
-          pageCreationOptions.title,
-          "Created page successfully - it's published"
-        );
-      }
-    );
+          // Store IDs for cleanup
+          publishedPageId = pageId;
+          siteIdToPublishPage = siteId;
+          manualCleanupNeeded = true;
+
+          // Verify content was submitted successfully
+          await contentPreviewPageStandardUser.assertions.verifyContentPublishedSuccessfully(
+            pageCreationOptions.title,
+            'Submitted page for approval'
+          );
+
+          await contentPreviewPageStandardUser.assertions.verifyContentStatus('Pending');
+
+          // Handle notification and perform action (approve/reject)
+          const notificationComponentAppManager = await appManagerHomePage.actions.clickOnBellIcon();
+          const notificationMessage = peopleName + ' submitted a page for approval "' + pageCreationOptions.title + '"';
+          await notificationComponentAppManager.actions.clickOnNotification(notificationMessage);
+
+          // Perform approve or reject action
+          await contentPreviewPageAppManager.actions.clickOnApproveOrRejectButton(testData.action);
+          if (testData.action === 'Reject') {
+            await contentPreviewPageAppManager.actions.enterRejectReason('Test reason');
+          }
+          await contentPreviewPageAppManager.assertions.verifyContentPublishedSuccessfully(
+            pageCreationOptions.title,
+            testData.actionSuccessMessage
+          );
+
+          const notificationMessageStandardUser = await standardUserHomePage.actions.clickOnBellIcon();
+          const finalNotificationMessage = testData.finalNotificationMessage + ' "' + pageCreationOptions.title + '"';
+          await notificationMessageStandardUser.actions.clickOnNotification(finalNotificationMessage);
+
+          if (testData.action === 'Approve & publish') {
+            await contentPreviewPageStandardUser.assertions.verifyContentIsInPublishedStatus();
+          } else {
+            await contentPreviewPageStandardUser.assertions.verifyContentStatus('Rejected');
+            await contentPreviewPageStandardUser.assertions.verifyContentHasSubmitForApprovalButton();
+          }
+        }
+      );
+    }
   }
 );

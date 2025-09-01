@@ -6,15 +6,13 @@ import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
-import { ManageSiteContentPage } from '@/src/modules/content/pages/manageSiteContentPage';
-import { ManageSitePage } from '@/src/modules/content/pages/manageSitePage';
-import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
@@ -24,17 +22,11 @@ test.describe(
   },
   () => {
     let albumCreationPage: AlbumCreationPage;
-    let contentPreviewPage: ContentPreviewPage;
+    let contentPreviewPageStandardUser: ContentPreviewPage;
+    let contentPreviewPageAppManager: ContentPreviewPage;
     let publishedAlbumId: string;
     let siteIdToPublishAlbum: string;
-    let homePage: NewUxHomePage;
-    let standardUserHomePage: NewUxHomePage;
-    let siteDashboardPage: SiteDashboardPage;
-    let manageSitePage: ManageSitePage;
-    let manageSiteContentPage: ManageSiteContentPage;
     let manualCleanupNeeded = false;
-    let albumURL: string;
-    let createdSite: any;
 
     test.beforeEach(
       'Setting up the test environment for album creation',
@@ -43,7 +35,12 @@ test.describe(
         await standardUserHomePage.verifyThePageIsLoaded();
 
         // Initialize preview page
-        contentPreviewPage = new ContentPreviewPage(standardUserPage);
+        contentPreviewPageStandardUser = new ContentPreviewPage(
+          standardUserPage,
+          siteIdToPublishAlbum,
+          publishedAlbumId,
+          ContentType.ALBUM
+        );
 
         // Reset cleanup flag for each test
         manualCleanupNeeded = false;
@@ -60,50 +57,109 @@ test.describe(
       }
     });
 
-    test(
-      'Album Content Add attach file with all the Mandatory fields by Standard user',
+    // Test data for approve/reject scenarios
+    const ALBUM_APPROVAL_TEST_DATA = [
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
+        action: 'Approve & publish',
+        displayName: 'Approved by Application Manager',
+        zephyrTestId: 'CONT-39208',
+        storyId: 'CONT-39208',
+        description:
+          'Album Content Add attach file with all the Mandatory fields by Standard user and approved by Application Manager',
+        actionSuccessMessage: 'Album approved and published',
+        finalNotificationMessage: 'Application Manager1 approved',
       },
-      async ({ standardUserHomePage }) => {
-        tagTest(test.info(), {
-          description: 'Album Content Add attach file with all the Mandatory fields by Standard user',
-          zephyrTestId: 'CONT-10342',
-          storyId: 'CONT-10342',
-        });
+      {
+        action: 'Reject',
+        displayName: 'Rejected by Application Manager',
+        zephyrTestId: 'CONT-39209',
+        storyId: 'CONT-39209',
+        description:
+          'Album Content Add attach file with all the Mandatory fields by Standard user and rejected by Application Manager',
+        actionSuccessMessage: 'Album rejected',
+        finalNotificationMessage: 'Application Manager1 rejected',
+      },
+    ] as const;
 
-        const title = `End User Album ${faker.company.name()}`;
-        const description = `End user album description ${faker.lorem.paragraph()}`;
+    for (const testData of ALBUM_APPROVAL_TEST_DATA) {
+      test(
+        `Album Content Add attach file with all the Mandatory fields by Standard user and ${testData.displayName}`,
+        {
+          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
+        },
+        async ({ standardUserHomePage, appManagerHomePage }) => {
+          tagTest(test.info(), {
+            description: testData.description,
+            zephyrTestId: testData.zephyrTestId,
+            storyId: testData.storyId,
+          });
 
-        // Navigate to album creation
-        albumCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
-          ContentType.ALBUM
-        )) as AlbumCreationPage;
+          // Initialize preview page
+          contentPreviewPageAppManager = new ContentPreviewPage(
+            appManagerHomePage.page,
+            siteIdToPublishAlbum,
+            publishedAlbumId,
+            ContentType.ALBUM
+          );
 
-        // Generate album data using TestDataGenerator
-        const albumCreationOptions = TestDataGenerator.generateAlbum(
-          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
-          'sample.docx',
-          'https://youtu.be/4vLyqzOr14g',
-          true
-        );
+          // Navigate to album creation by standard user
+          albumCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
+            ContentType.ALBUM
+          )) as AlbumCreationPage;
 
-        // Create and publish the album
-        const { albumId, siteId } = await albumCreationPage.actions.createAndPublishAlbum(albumCreationOptions);
+          // Generate album data using TestDataGenerator
+          const albumCreationOptions = TestDataGenerator.generateAlbum(
+            CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
+            'sample.docx',
+            'https://youtu.be/4vLyqzOr14g',
+            true
+          );
 
-        // Store IDs for cleanup
-        publishedAlbumId = albumId;
-        siteIdToPublishAlbum = siteId;
-        manualCleanupNeeded = true;
-        // Handle promotion step
-        await contentPreviewPage.actions.handlePromotionPageStep();
+          // Create and submit the album
+          const { albumId, siteId, peopleId, peopleName } =
+            await albumCreationPage.actions.createAndSubmitAlbum(albumCreationOptions);
 
-        // Verify content was published successfully
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
-          albumCreationOptions.title,
-          "Created album successfully - it's published"
-        );
-      }
-    );
+          // Store IDs for cleanup
+          publishedAlbumId = albumId;
+          siteIdToPublishAlbum = siteId;
+          manualCleanupNeeded = true;
+
+          // Verify content was submitted successfully
+          await contentPreviewPageStandardUser.assertions.verifyContentPublishedSuccessfully(
+            albumCreationOptions.title,
+            'Submitted album for approval'
+          );
+
+          await contentPreviewPageStandardUser.assertions.verifyContentStatus('Pending');
+
+          // Handle notification and perform action (approve/reject)
+          const notificationComponentAppManager = await appManagerHomePage.actions.clickOnBellIcon();
+          const notificationMessage =
+            peopleName + ' submitted a album for approval "' + albumCreationOptions.title + '"';
+          await notificationComponentAppManager.actions.clickOnNotification(notificationMessage);
+
+          // Perform approve or reject action
+          await contentPreviewPageAppManager.actions.clickOnApproveOrRejectButton(testData.action);
+          if (testData.action === 'Reject') {
+            await contentPreviewPageAppManager.actions.enterRejectReason('Test reason');
+          }
+          await contentPreviewPageAppManager.assertions.verifyContentPublishedSuccessfully(
+            albumCreationOptions.title,
+            testData.actionSuccessMessage
+          );
+
+          const notificationMessageStandardUser = await standardUserHomePage.actions.clickOnBellIcon();
+          const finalNotificationMessage = testData.finalNotificationMessage + ' "' + albumCreationOptions.title + '"';
+          await notificationMessageStandardUser.actions.clickOnNotification(finalNotificationMessage);
+
+          if (testData.action === 'Approve & publish') {
+            await contentPreviewPageStandardUser.assertions.verifyContentIsInPublishedStatus();
+          } else {
+            await contentPreviewPageStandardUser.assertions.verifyContentStatus('Rejected');
+            await contentPreviewPageStandardUser.assertions.verifyContentHasSubmitForApprovalButton();
+          }
+        }
+      );
+    }
   }
 );
