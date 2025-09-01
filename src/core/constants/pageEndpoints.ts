@@ -4,6 +4,7 @@ export const PAGE_ENDPOINTS = {
   CHATS_PAGE: '/chat/conversations',
   AUDIO_VIDEO_CALL_PAGE: '/call',
   FEATURED_SITES_PAGE: '/sites/featured',
+  GOVERNANCE_PAGE: '/manage/app/setup/governance',
 
   // Rewards pages
   MANAGE_REWARDS_PAGE: '/manage/recognition/rewards/overview',
@@ -16,4 +17,11 @@ export const PAGE_ENDPOINTS = {
 
   //Integrations page
   CUSTOM_APPS_INTEGRATION_PAGE: '/manage/app/integrations/custom',
+  EXTERNAL_APPS_PAGE: '/people/:userId/edit/external-apps',
+  FILE_MANAGEMENT_PAGE: '/manage/app/integrations/files',
+  PEOPLE_DATA_PAGE: '/manage/app/integrations/people',
+  API_ACTIONS_PAGE: '/manage/app/integrations/api-actions',
+  DOMAIN_NAMES_PAGE: '/manage/app/integrations/domains',
+  EVENTS_PAGE: '/people/:userId/calendar',
+  CUSTOM_APP_TILES_PAGE: '/manage/custom-app-tiles',
 };

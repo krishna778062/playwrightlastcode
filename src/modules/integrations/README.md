@@ -7,6 +7,7 @@
 [![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=flat&logo=playwright&logoColor=white)](https://playwright.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Test Priority](https://img.shields.io/badge/Test%20Priority-P0%20%7C%20Smoke%20%7C%20Sanity-orange)](#test-tags)
+[![Multi-User](https://img.shields.io/badge/Multi--User-Tests-blue)](#multi-user-testing)
 
 </div>
 
@@ -19,27 +20,30 @@
 - [🧩 Supported Integrations](#-supported-integrations)
 - [🏗️ Architecture](#️-architecture)
 - [🧪 Test Structure](#-test-structure)
+- [👥 Multi-User Testing](#multi-user-testing)
 - [📊 Test Data](#-test-data)
 - [⚡ Commands](#-commands)
 - [🔧 Configuration](#-configuration)
 - [📁 Folder Structure](#-folder-structure)
 - [🎯 Best Practices](#-best-practices)
+- [🔍 Troubleshooting](#troubleshooting)
 
 ---
 
 ## ✨ Overview
 
-This module provides comprehensive UI automation testing for **third-party app integrations**, ensuring seamless functionality of external applications within the platform.
+This module provides comprehensive UI automation testing for **third-party app integrations**, ensuring seamless functionality of external applications within the platform. Our testing covers both single-user workflows and complex multi-user scenarios.
 
 ### 🎯 What We Test
 
-| Feature                      | Description                                       |
-| ---------------------------- | ------------------------------------------------- |
-| 🔧 **Tile Management**       | Add, configure, edit, and remove app tiles        |
-| 🎨 **Personalization**       | Customize sorting, filtering, and display options |
-| 👥 **Multi-User Flows**      | Admin creation, end-user verification workflows   |
-| 📱 **Dashboard Integration** | Tile placement and dashboard interactions         |
-| ✅ **Validation**            | Toast messages, tile presence, and functionality  |
+| Feature                      | Description                                       | Test Coverage |
+| ---------------------------- | ------------------------------------------------- | ------------- |
+| 🔧 **Tile Management**       | Add, configure, edit, and remove app tiles        | ✅ Complete   |
+| 🎨 **Personalization**       | Customize sorting, filtering, and display options | ✅ Complete   |
+| 👥 **Multi-User Flows**      | Admin creation, end-user verification workflows   | ✅ Complete   |
+| 📱 **Dashboard Integration** | Tile placement and dashboard interactions         | ✅ Complete   |
+| ✅ **Validation**            | Toast messages, tile presence, and functionality  | ✅ Complete   |
+| 🧹 **Cleanup & Recovery**    | Proper test isolation and resource cleanup        | ✅ Complete   |
 
 ---
 
@@ -54,13 +58,17 @@ npm run test:integrations
 ### 2️⃣ Run Specific Integration
 
 ```bash
-npx playwright test src/modules/integrations/tests/airtableAppTiles.spec.ts
+# Airtable App Tiles
+npx playwright test src/modules/integrations/tests/ui-tests/absolute/AirtableAppTiles/airtableAppTiles.spec.ts
+
+# Multi-User Tests
+npx playwright test src/modules/integrations/tests/ui-tests/appTiles/Multi_User/AppTiles.multiuser.spec.ts
 ```
 
 ### 3️⃣ Run with Browser UI
 
 ```bash
-npx playwright test --headed src/modules/integrations/tests/airtableAppTiles.spec.ts
+npx playwright test --headed src/modules/integrations/tests/ui-tests/absolute/AirtableAppTiles/airtableAppTiles.spec.ts
 ```
 
 ---
@@ -75,6 +83,8 @@ npx playwright test --headed src/modules/integrations/tests/airtableAppTiles.spe
 <strong>Content Calendar & Database Management</strong>
 <br>
 📅 Task management • 🗂️ Data organization • 📊 Reporting tiles
+<br>
+<em>Includes single-user and multi-user testing scenarios</em>
 </td>
 </tr>
 </table>
@@ -85,28 +95,32 @@ npx playwright test --headed src/modules/integrations/tests/airtableAppTiles.spe
 
 ```mermaid
 graph TD
-    A[🧪 Test Suite] --> B[📄 Page Objects]
+    A[🧪 Test Suite] --> B[📄 Pages]
     A --> C[🧩 Components]
-    A --> D[🔧 Fixtures]
+    A --> D[👥 Multi-User Tests]
 
+    B --> I[IntegrationsBasePage]
     B --> E[AirtableAppTilesPage]
     C --> F[BaseAppTileComponent]
-    C --> G[AirtableAppTilesComponent]
-    D --> H[loginFixture]
+    C --> G[BaseAppTileComponent]
+    D --> H[Admin User Flows]
+    D --> J[End User Flows]
 
     F --> G
     G --> E
-    H --> A
+    I --> E
+    H --> E
+    J --> E
 ```
 
 ### 🔧 Core Components
 
-| Component                   | Purpose                                     |
-| --------------------------- | ------------------------------------------- |
-| `BaseAppTileComponent`      | 🏗️ Common functionality for all app tiles   |
-| `AirtableAppTilesComponent` | 🎯 Airtable-specific functionality          |
-| `AirtableAppTilesPage`      | 📄 Complete workflows and page interactions |
-| `loginFixture`              | 🔐 Enhanced authentication with retry logic |
+| Component              | Purpose                                            | Usage                |
+| ---------------------- | -------------------------------------------------- | -------------------- |
+| `BaseAppTileComponent` | 🏗️ Common functionality for all app tiles          | Extend for new tiles |
+| `BaseAppTileComponent` | 🎯 All app tile functionality (including Airtable) | All tile operations  |
+| `IntegrationsBasePage` | 🧭 Base page plumbing for integrations             | Common page methods  |
+| `AirtableAppTilesPage` | 📄 Complete workflows and page interactions        | End-to-end testing   |
 
 ---
 
@@ -114,11 +128,11 @@ graph TD
 
 ### 🏷️ Test Tags
 
-| Tag                    | Priority         | Description                   |
-| ---------------------- | ---------------- | ----------------------------- |
-| `TestPriority.P0`      | 🔴 **Critical**  | Core functionality, must pass |
-| `TestGroupType.SMOKE`  | 🟡 **Essential** | Basic feature validation      |
-| `TestGroupType.SANITY` | 🟢 **Extended**  | Comprehensive coverage        |
+| Tag                    | Priority         | Description                   | Usage                 |
+| ---------------------- | ---------------- | ----------------------------- | --------------------- |
+| `TestPriority.P0`      | 🔴 **Critical**  | Core functionality, must pass | Production validation |
+| `TestGroupType.SMOKE`  | 🟡 **Essential** | Basic feature validation      | Daily regression      |
+| `TestGroupType.SANITY` | 🟢 **Extended**  | Comprehensive coverage        | Release validation    |
 
 ### 📝 Test Cases
 
@@ -137,6 +151,53 @@ test(
   }
 );
 ```
+
+---
+
+## 👥 Multi-User Testing
+
+### 🔐 User Roles & Workflows
+
+| Role           | Responsibilities                 | Test Scenarios                 |
+| -------------- | -------------------------------- | ------------------------------ |
+| **Admin User** | Create tiles, manage sites       | Tile creation, configuration   |
+| **End User**   | View tiles, personalize settings | Tile visibility, customization |
+
+### 🧪 Multi-User Test Structure
+
+```typescript
+test.describe('Multi User Tests', () => {
+  test.describe('Airtable App Tiles Integration', () => {
+    let createdSiteIds: string[] = [];
+    let createdTileNames: string[] = [];
+
+    test.afterEach(async ({ page }) => {
+      // Cleanup created resources
+      for (const tileName of createdTileNames) {
+        const cleanupPage = new AirtableAppTilesPage(page);
+        await cleanupPage.removeTileThroughApi(tileName);
+        await waitUntilTileAbsentInApi(page, tileName);
+        await cleanupPage.reloadAndVerifyTileAbsent(tileName);
+      }
+
+      for (const siteId of createdSiteIds) {
+        await deactivateSiteSafe(page, siteId);
+      }
+
+      // Reset for next test
+      createdTileNames = [];
+      createdSiteIds = [];
+    });
+  });
+});
+```
+
+### 🔄 Test Flow
+
+1. **Admin Setup**: Create site and configure tiles
+2. **End User Verification**: Switch to end user and validate functionality
+3. **Cleanup**: Remove all created resources
+4. **Isolation**: Ensure tests don't interfere with each other
 
 ---
 
@@ -192,7 +253,7 @@ await airtablePage.personalizeTileSorting(
 npm run test:integrations
 
 # Run specific test file
-npx playwright test src/modules/integrations/tests/airtableAppTiles.spec.ts
+npx playwright test src/modules/integrations/tests/ui-tests/absolute/AirtableAppTiles/airtableAppTiles.spec.ts
 
 # Run single test by name
 npx playwright test -g "Add Airtable tile with basic configuration"
@@ -200,6 +261,9 @@ npx playwright test -g "Add Airtable tile with basic configuration"
 # Run tests by priority
 npx playwright test --grep "@P0"
 npx playwright test --grep "TestPriority.P0"
+
+# Run multi-user tests specifically
+npx playwright test src/modules/integrations/tests/ui-tests/appTiles/Multi_User/
 ```
 
 </details>
@@ -299,7 +363,7 @@ await loginToQAEnv(page, 'Admin', {
 src/modules/integrations/
 ├── components/
 │   ├── baseAppTileComponent.ts          # Base component
-│   └── airtableAppTilesComponent.ts     # Airtable component
+│   └── (airtableAppTilesComponent.ts removed - functionality moved to baseAppTileComponent.ts)
 ├── constants/
 │   ├── testTags.ts                      # Test tags
 │   ├── messageRepo.ts                   # Toast messages
@@ -312,51 +376,128 @@ src/modules/integrations/
 │   ├── app-tiles.test-data.ts           # Test data
 │   └── static-files/                    # Test assets
 ├── tests/
-│   └── airtableAppTiles.spec.ts         # Test suite
+│   ├── ui-tests/
+│   │   ├── absolute/
+│   │   │   └── AirtableAppTiles/        # Single-user tests
+│   │   └── appTiles/
+│   │       └── Multi_User/              # Multi-user tests
+│   └── airtableAppTiles.spec.ts         # Legacy test suite
 ├── env/                                 # Environment configs
 └── README.md                            # Documentation
 ```
 
-## Best Practices
+---
 
-### Component Design
+## 🎯 Best Practices
 
-- Extend `BaseAppTileComponent` for common functionality
-- Implement `configureAppTile()` for app-specific setup
-- Use TypeScript interfaces for type safety
-- Create reusable workflow methods
+### 🏗️ Component Design
 
-### Test Design
+- ✅ Extend `BaseAppTileComponent` for common functionality
+- ✅ Implement `configureAppTile()` for app-specific setup
+- ✅ Use TypeScript interfaces for type safety
+- ✅ Create reusable workflow methods
 
-- Use page objects for complex workflows
-- Include proper cleanup in `afterEach` hooks
-- Use descriptive test names with appropriate tags
-- Keep test data separate from test logic
-- Implement retry logic for flaky operations
+### 🧪 Test Design
 
-### Maintenance
+- ✅ Use page objects for complex workflows
+- ✅ Include proper cleanup in `afterEach` hooks
+- ✅ Use descriptive test names with appropriate tags
+- ✅ Keep test data separate from test logic
+- ✅ Implement retry logic for flaky operations
+- ✅ Ensure proper test isolation between runs
 
-- Keep dependencies and test data current
-- Update documentation when adding features
-- Ensure critical paths are tested
-- Optimize test execution time
+### 🧹 Maintenance & Cleanup
 
-## Troubleshooting
-
-### Common Issues
-
-- **Login failures**: Check environment variables and credentials
-- **Tile not found**: Verify tile was created successfully before operations
-- **Timeout errors**: Increase timeout values in configuration
-- **Flaky tests**: Add retry logic and better waiting strategies
-
-### Debug Tips
-
-- Use `--headed` mode to see browser interactions
-- Add `console.log()` statements for debugging
-- Use `--debug` mode for step-by-step execution
-- Check test reports for detailed failure information
+- ✅ Keep dependencies and test data current
+- ✅ Update documentation when adding features
+- ✅ Ensure critical paths are tested
+- ✅ Optimize test execution time
+- ✅ Implement comprehensive cleanup strategies
+- ✅ Use arrays to track created resources
 
 ---
 
-**Ready to test integrations!** For questions or issues, contact the QA team.
+## 🔍 Troubleshooting
+
+### 🚨 Common Issues
+
+| Issue                | Cause                        | Solution                    |
+| -------------------- | ---------------------------- | --------------------------- |
+| **Login failures**   | Invalid credentials/env vars | Check environment variables |
+| **Tile not found**   | Tile creation failed         | Verify tile was created     |
+| **Timeout errors**   | Slow operations              | Increase timeout values     |
+| **Flaky tests**      | Race conditions              | Add retry logic             |
+| **Cleanup failures** | Resource already removed     | Add existence checks        |
+
+### 🛠️ Debug Tips
+
+- 🔍 Use `--headed` mode to see browser interactions
+- 📝 Add `console.log()` statements for debugging
+- 🐛 Use `--debug` mode for step-by-step execution
+- 📊 Check test reports for detailed failure information
+- 🔄 Verify cleanup operations complete successfully
+
+### 🧹 Cleanup Best Practices
+
+```typescript
+// ✅ Good: Track resources and clean up
+let createdTileNames: string[] = [];
+let createdSiteIds: string[] = [];
+
+// Add to arrays when creating
+createdTileNames.push(tileName);
+createdSiteIds.push(siteId);
+
+// Clean up in afterEach
+test.afterEach(async ({ page }) => {
+  for (const tileName of createdTileNames) {
+    await cleanupPage.removeTileThroughApi(tileName);
+  }
+  // Reset arrays
+  createdTileNames = [];
+  createdSiteIds = [];
+});
+```
+
+---
+
+## 📈 Performance & Optimization
+
+### ⚡ Test Execution Tips
+
+- **Parallel Execution**: Run tests in parallel when possible
+- **Resource Reuse**: Share page instances when appropriate
+- **Smart Waiting**: Use proper wait strategies instead of fixed delays
+- **Cleanup Optimization**: Batch cleanup operations when possible
+
+### 🔄 Retry Strategies
+
+```typescript
+// Implement retry logic for flaky operations
+const retryOperation = async (operation: () => Promise<void>, maxRetries = 3) => {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      await operation();
+      return;
+    } catch (error) {
+      if (i === maxRetries - 1) throw error;
+      await page.waitForTimeout(1000 * (i + 1)); // Exponential backoff
+    }
+  }
+};
+```
+
+---
+
+**🚀 Ready to test integrations!**
+
+For questions, issues, or contributions, contact the QA team or create an issue in the repository.
+
+---
+
+<div align="center">
+
+_Last updated: December 2024_  
+_Built with ❤️ by the QA Automation Team_
+
+</div>

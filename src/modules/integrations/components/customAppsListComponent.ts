@@ -1,10 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
-
 import { BaseComponent } from '@core/components/baseComponent';
-
-import { ACTION_LABELS, APP_LABELS } from '../constants/common';
-import { MESSAGES } from '../constants/messageRepo';
-import { AIRTABLE_AUTH_DATA } from '../test-data/app-tiles.test-data';
+import { APP_LABELS } from '@integrations/constants/common';
+import { MESSAGES } from '@integrations/constants/messageRepo';
 
 export enum AppConnectorOptions {
   Edit = 'Edit',
@@ -83,6 +80,7 @@ export class CustomAppsListComponent extends BaseComponent {
       await this.prebuiltAppDialog.waitFor({ state: 'visible', timeout: 20000 });
       const input = this.prebuiltAppDialog.locator(this.prebuiltAppSearchInput);
       await input.fill(appName);
+      await this.page.waitForTimeout(2000); // wait 2s for search results
     });
   }
 
@@ -91,10 +89,42 @@ export class CustomAppsListComponent extends BaseComponent {
    */
   async clickOnAppConnector(appName: string): Promise<void> {
     await test.step(`Click on ${appName} connector`, async () => {
-      const appConnector = this.page.locator(`text=${appName}`).first();
-      await appConnector.click();
+      const appConnector = this.getAppConnectorButton(appName);
+      await this.clickOnElement(appConnector, { timeout: 30_000 });
     });
   }
+
+  /**
+   * Get app connector button by name - reusable method
+   */
+  private getAppConnectorButton(appName: string): Locator {
+    return this.page.getByRole('button').filter({ hasText: appName }).first();
+  }
+  /**
+   * Get menu item by text - reusable method
+   */
+  private getMenuItemByText(text: string): Locator {
+    return this.page.getByRole('menuitem', { name: text });
+  }
+
+  /**
+   * Get button by text - reusable method
+   */
+  private getButtonByText(text: string): Locator {
+    return this.page.getByRole('button', { name: text });
+  }
+
+  /**
+   * Open connector options menu and select an option
+   */
+  async selectConnectorOption(option: AppConnectorOptions): Promise<void> {
+    await test.step(`Select connector option: ${option}`, async () => {
+      await this.clickOnElement(this.getConnectorOptionsButton(), { timeout: 30_000 });
+      const optionElement = this.getMenuItemByText(option);
+      await this.clickOnElement(optionElement, { timeout: 30_000 });
+    });
+  }
+  // ... existing code ...
 
   /**
    * Delete app using three dots menu
@@ -110,15 +140,10 @@ export class CustomAppsListComponent extends BaseComponent {
   }
 
   /**
-   * Open connector options menu and select an option
+   * Get connector options button - reusable method
    */
-  async selectConnectorOption(option: AppConnectorOptions): Promise<void> {
-    await test.step(`Select connector option: ${option}`, async () => {
-      const threeDotsButton = this.page.locator('button[aria-label="connector options"], button[aria-haspopup="menu"]');
-      await threeDotsButton.click();
-      const optionElement = this.page.locator(`text=${option}`);
-      await optionElement.click();
-    });
+  private getConnectorOptionsButton(): Locator {
+    return this.page.locator('button[aria-label="connector options"], button[aria-haspopup="menu"]');
   }
 
   /**
@@ -136,30 +161,54 @@ export class CustomAppsListComponent extends BaseComponent {
    */
   async confirmDelete(option: string): Promise<void> {
     await test.step(`Click on ${option} in the confirmation dialog`, async () => {
-      const confirmDeleteButton = this.page.locator(`button:has-text("${option}")`);
-      await confirmDeleteButton.click();
+      const confirmDeleteButton = this.getButtonByText(option);
+      await this.verifyDeleteDialogVisible(option);
+      await expect(confirmDeleteButton).toBeVisible();
+      await this.clickOnElement(confirmDeleteButton, { timeout: 30_000 });
     });
   }
 
   /**
-   * Click on "Add custom app" Dropdown
+   * Open "Add custom app" dropdown and choose an option (e.g., "Add prebuilt app")
    */
-  async clickAddCustomAppDropdown(option: string): Promise<void> {
-    await test.step('Click Add custom app dropdown', async () => {
-      const addCustomAppDropdown = this.page.locator(`button:has-text("${option}")`);
-      await addCustomAppDropdown.click();
+  async clickAddCustomAppOption(option: string): Promise<void> {
+    await test.step(`Add custom app → ${option}`, async () => {
+      const trigger = this.getAddCustomAppButton();
+      await this.clickOnElement(trigger, { timeout: 30_000 });
+      await this.page.waitForTimeout(2000);
+      const menu = await this.getAddCustomAppMenu(trigger);
+      if (!(await menu.isVisible())) {
+        await trigger.press('ArrowDown');
+        await expect(menu).toBeVisible();
+      }
+      const menuItem = this.getMenuItemByExactText(menu, option);
+      await this.clickOnElement(menuItem, { timeout: 30_000 });
     });
   }
 
   /**
-   * Click on "Add prebuilt app" option
+   * Get add custom app button - reusable method
    */
-  async clickAddPrebuiltApp(option: string): Promise<void> {
-    await test.step('Click Add prebuilt app option', async () => {
-      await this.addCustomAppDropdownButton.click();
-      const addPrebuiltAppOption = this.page.locator(`[role="menuitem"]:has-text("${option}")`);
-      await addPrebuiltAppOption.click();
-    });
+  private getAddCustomAppButton(): Locator {
+    return this.page.getByRole('button', { name: APP_LABELS.ADD_CUSTOM_APP_LABEL, exact: true });
+  }
+
+  /**
+   * Get add custom app menu - reusable method
+   */
+  private async getAddCustomAppMenu(trigger: Locator): Promise<Locator> {
+    const triggerId = await trigger.getAttribute('id');
+    return this.page.locator(`[role="menu"][aria-labelledby="${triggerId}"]`);
+  }
+
+  /**
+   * Get menu item by exact text - reusable method
+   */
+  private getMenuItemByExactText(menu: Locator, text: string): Locator {
+    return menu
+      .getByRole('menuitem')
+      .filter({ has: this.page.getByText(text, { exact: true }) })
+      .first();
   }
 
   /**
@@ -168,60 +217,18 @@ export class CustomAppsListComponent extends BaseComponent {
   async clickAddPrebuilt(appName: string): Promise<void> {
     await test.step(`Add prebuilt app "${appName}"`, async () => {
       await expect(this.prebuiltAppDialog).toBeVisible();
-      const addButton = this.prebuiltAppDialog
-        .locator(`div:has(p:text-is("${appName}"))`)
-        .locator('button:has-text("Add")')
-        .first();
+      const addButton = this.getAddButtonForApp(appName);
       await expect(addButton).toBeVisible({ timeout: 15000 });
       await expect(addButton).toBeEnabled();
-      await addButton.click();
+      await this.clickOnElement(addButton, { timeout: 30_000 });
     });
   }
 
   /**
-   * Click on integration button for a specific service
-   * @param service - The service name (e.g., "Airtable")
-   * @param buttonName - The button text (e.g., "Connect account", "Disconnect account")
+   * Get add button for specific app - reusable method
    */
-  async clickOnIntegrationButton(service: string, buttonName: string): Promise<void> {
-    await test.step(`Click ${service} ${buttonName}`, async () => {
-      const card = this.page.locator(
-        `//h3[text()=${this.xp(service)}]/ancestor::li[contains(@class,'ConnectedServices-module-item')]`
-      );
-      await expect(card).toBeVisible({ timeout: 15000 });
-
-      const connect = card.locator(`xpath=.//button[@aria-label=${this.xp(`Connect your ${service} account`)}]`);
-      const disconnect = card.locator(`xpath=.//button[@aria-label=${this.xp(`Disconnect your ${service} account`)}]`);
-      const wantDisconnect = /disconnect/i.test(buttonName);
-      const target = wantDisconnect ? disconnect : connect;
-
-      const confirmIfModal = async () => {
-        await this.disconnectModal
-          .waitFor({ state: 'visible', timeout: 3000 })
-          .then(async () => {
-            await this.disconnectConfirmButton.click();
-            await this.disconnectModal.waitFor({ state: 'detached', timeout: 10000 });
-          })
-          .catch(() => {});
-      };
-
-      if (!wantDisconnect && (await disconnect.isVisible())) {
-        await disconnect.click();
-        await confirmIfModal();
-        await expect(connect)
-          .toBeVisible({ timeout: 20000 })
-          .catch(() => {});
-      }
-      if (wantDisconnect && (await connect.isVisible())) return;
-
-      await target.click();
-      if (wantDisconnect) {
-        await confirmIfModal();
-        await expect(connect)
-          .toBeVisible({ timeout: 20000 })
-          .catch(() => {});
-      }
-    });
+  private getAddButtonForApp(appName: string): Locator {
+    return this.prebuiltAppDialog.locator(`div:has(p:text-is("${appName}"))`).getByRole('button', { name: 'Add' });
   }
 
   /**
@@ -237,47 +244,6 @@ export class CustomAppsListComponent extends BaseComponent {
       await enableMenuItem.click();
       const confirm = this.enableConfirmButton;
       if (await confirm.isVisible()) await confirm.click();
-    });
-  }
-
-  /**
-   * Scroll the page by specified amount
-   */
-  async scrollBy(amount: number): Promise<void> {
-    await test.step(`Scroll page by ${amount} pixels`, async () => {
-      await this.page.evaluate(scrollAmount => window.scrollBy(0, scrollAmount), amount);
-    });
-  }
-
-  /**
-   * Verify integration button state for a specific service
-   */
-  private xp = (s: string) =>
-    s.includes("'") && s.includes('"')
-      ? `concat('${s.split("'").join(`',"'",'`)}')`
-      : s.includes("'")
-        ? `"${s}"`
-        : `'${s}'`;
-
-  async verifyIntegrationButton(service: string, buttonName: string): Promise<void> {
-    await test.step(`Verify ${service} ${buttonName} button is visible`, async () => {
-      const card = this.page.locator(
-        `//h3[text()=${this.xp(service)}]/ancestor::li[contains(@class,'ConnectedServices')]`
-      );
-      await expect(card).toBeVisible({ timeout: 15000 });
-
-      const aria = `${/disconnect/i.test(buttonName) ? APP_LABELS.DISCONNECT_ACCOUNT_LABEL : APP_LABELS.CONNECT_ACCOUNT_LABEL} your ${service} account`;
-      const btn = card.locator(`xpath=.//button[@aria-label=${this.xp(aria)}]`);
-      await expect(btn).toBeVisible({ timeout: 10000 });
-    });
-  }
-
-  /**
-   * Navigate to external apps page via API for the current user
-   */
-  async navigateToExternalAppsViaApi(): Promise<void> {
-    await test.step('Navigate to external apps via API', async () => {
-      throw new Error('Use IntegrationApi.navigateToExternalAppsViaApi() instead');
     });
   }
 }

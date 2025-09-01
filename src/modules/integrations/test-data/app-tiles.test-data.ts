@@ -1,26 +1,32 @@
-import { faker } from '@faker-js/faker';
+/**
+ * Centralized connector IDs for all app tile integrations
+ * Add new connector IDs here as they are implemented
+ */
+export const CONNECTOR_IDS = {
+  AIRTABLE: '51a2e31b-af80-4bc6-a1ff-8839f2fb6eee',
+  EXPENSIFY: 'e576282c-58b3-423b-8b9f-3d6f9f538ded',
+} as const;
 
-export const generateUniqueTileNames = () => {
-  const randomSuffix = faker.string.alphanumeric(6);
-  const timestamp = Date.now();
-  return {
-    AIRTABLE_TILE_TITLE: `Display content calendar tasks ${randomSuffix}_${timestamp}`,
-    AIRTABLE_UPDATED_TILE_TITLE: `Display content calendar tasks ${randomSuffix}_${timestamp}_Updated`,
-  };
-};
-
-export const AIRTABLE_TILE_DATA = {
+/**
+ * Airtable tile configuration data
+ * Centralized constants for consistent testing
+ */
+export const AIRTABLE_TILE = {
   TILE: 'Airtable',
   APP_NAME: 'Airtable',
   BASE_NAME: 'Content Calendar',
   USER_DEFINED: 'User defined',
-  PERSONALIZE_SORT_BY: 'Task name',
-  PERSONALIZE_SORT_ORDER: 'Ascending',
+  SORT_ORDER: 'Ascending',
+  SORT_BY: 'Task name',
   BASE_ID: 'Content Calendar',
   API_BASE_ID: 'appsnmjNzZl1ygUtg',
   TABLE_ID: 'tbl5wWrenoiBW5ZiI',
-};
+} as const;
 
+/**
+ * Airtable authentication data
+ * Centralized authentication constants for testing
+ */
 export const AIRTABLE_AUTH_DATA = {
   CODE_CHALLENGE_METHOD: 'S256',
   CLIENT_ID: '21b6baa1-399f-4d8c-aa64-b63bceee744b',
@@ -34,8 +40,4 @@ export const AIRTABLE_AUTH_DATA = {
     EMAIL: 'howard.nelson@simpplr.dev',
     PASSWORD: 'Simpplr@1220167',
   },
-};
-
-export const CONNECTOR_IDS = {
-  AIRTABLE: '51a2e31b-af80-4bc6-a1ff-8839f2fb6eee',
 } as const;

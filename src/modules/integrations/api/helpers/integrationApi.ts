@@ -1,7 +1,7 @@
 import { Page, test } from '@playwright/test';
 
-import { deleteTileByTitleViaApi } from './tileApiHelpers';
-import { deleteTileByInstanceIdViaApi } from './tileApiHelpers';
+import { deleteTileByTitleViaApi } from '@integrations/api/helpers/tileApiHelpers';
+import { deleteTileByInstanceIdViaApi } from '@integrations/api/helpers/tileApiHelpers';
 
 export class IntegrationApi {
   constructor(private page: Page) {}

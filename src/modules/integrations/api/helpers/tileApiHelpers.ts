@@ -1,8 +1,8 @@
-import { Page } from '@playwright/test';
-import { ApiClientFactory } from '../../../../core/api/factories/apiClientFactory';
-import { AppManagerApiClient } from '../../../../core/api/clients/appManagerApiClient';
-import { getEnvConfig } from '../../../../core/utils/getEnvConfig';
-import { TIMEOUTS } from '../../../../core/constants/timeouts';
+import { expect, Page } from '@playwright/test';
+import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
+import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
+import { getEnvConfig } from '@core/utils/getEnvConfig';
+import { TIMEOUTS } from '@core/constants/timeouts';
 
 type WaitOpts = { timeoutMs?: number; pollIntervalMs?: number };
 
@@ -48,12 +48,27 @@ export async function waitUntilTilePresentInApi(page: Page, title: string, opts:
   }
 }
 
-export async function waitUntilTileAbsentInApi(page: Page, title: string, opts: WaitOpts = {}): Promise<void> {
+export async function waitForTileDeletion(page: Page, title: string, opts: WaitOpts = {}): Promise<void> {
   const timeout = opts.timeoutMs ?? 10_000;
   const intervals = opts.pollIntervalMs ? [opts.pollIntervalMs] : [500, 1_000, 2_000, 3_000, 5_000];
   const target = normalize(title);
+  await expect
+    .poll(
+      async () => {
+        const list = await listHomeAppTiles(page);
+        const found = list.some(it => normalize(extractTitleFromItem(it)) === target);
+        return !found;
+      },
+      { timeout, intervals }
+    )
+    .toBe(true);
+}
 
-  const { expect } = await import('@playwright/test');
+export async function waitUntilTileAbsentInApi(page: Page, title: string, opts: WaitOpts = {}): Promise<void> {
+  const timeout = opts.timeoutMs ?? 20_000;
+  const intervals = opts.pollIntervalMs ? [opts.pollIntervalMs] : [500, 1_000, 1_500];
+  const target = normalize(title);
+
   await expect
     .poll(
       async () => {
@@ -392,9 +407,16 @@ export async function createTileViaApi(
   if (!createRes.ok()) throw new Error(`Create failed: ${createRes.status()} ${await createRes.text()}`);
 
   const body = await createRes.json().catch(() => ({}));
-  let instanceId: string | undefined = body?.result?.instanceId || body?.data?.instanceId || body?.instanceId;
-
-  // Fallback: List root instances and match by tileInstanceName
+  let instanceId: string | undefined =
+    body?.result?.instanceId ||
+    body?.data?.instanceId ||
+    body?.instanceId ||
+    body?.result?.id ||
+    body?.data?.id ||
+    body?.id ||
+    body?.result?.tileInstanceId ||
+    body?.data?.tileInstanceId ||
+    body?.tileInstanceId;
   if (!instanceId) {
     const listRes = await api.get(`/v1/tiles/root/instances?type=app`, {
       headers,
@@ -406,8 +428,89 @@ export async function createTileViaApi(
       const match = candidates.find(
         (i: any) => i?.tileInstanceName === args.tileInstanceName || i?.name === args.tileInstanceName
       );
-      instanceId = match?.instanceId || match?.id;
+      instanceId = match?.instanceId || match?.id || match?.tileInstanceId;
     }
   }
   return { tileInstanceName: args.tileInstanceName, instanceId, templateTileId: template?.tileId };
+}
+
+/**
+ * Create app tile via API for any connector type
+ * This is a simplified wrapper around createTileViaApi for basic app tiles
+ * that only need a tile name and connector ID
+ */
+export async function createAppTileViaApi(
+  page: Page,
+  args: { tileInstanceName: string; connectorId: string }
+): Promise<{ tileInstanceName: string; instanceId?: string; templateTileId?: string }> {
+  const result = await createTileViaApi(page, {
+    tileInstanceName: args.tileInstanceName,
+    connectorId: args.connectorId,
+  });
+  if (!result.instanceId) {
+    throw new Error(`Tile creation failed: No instance ID returned for tile "${args.tileInstanceName}"`);
+  }
+  return result;
+}
+
+/** Create Airtable tile via API using the generic tile creation function */
+export async function createAirtableTileViaApi(
+  page: Page,
+  args: { tileInstanceName: string; connectorId?: string }
+): Promise<{ tileInstanceName: string; instanceId?: string; templateTileId?: string }> {
+  const { AIRTABLE_TILE, CONNECTOR_IDS } = await import('@integrations/test-data/app-tiles.test-data');
+  const connectorId = args.connectorId ?? CONNECTOR_IDS.AIRTABLE;
+  const baseId = AIRTABLE_TILE.API_BASE_ID ?? process.env.AIRTABLE_BASE_ID ?? AIRTABLE_TILE.BASE_ID;
+  const tableId = process.env.AIRTABLE_TILE_ID ?? AIRTABLE_TILE.TABLE_ID;
+
+  return createTileViaApi(page, {
+    tileInstanceName: args.tileInstanceName,
+    connectorId,
+    baseId,
+    tableId,
+    baseName: AIRTABLE_TILE.BASE_NAME,
+  });
+}
+
+/** Verify ascending order through API response data for Airtable tiles */
+export async function verifyAscendingOrderThroughAPI(page: Page, tileTitle: string): Promise<void> {
+  const { test, expect } = await import('@playwright/test');
+  const { apiFetchRootAppTiles } = await import('./tileApiHelpers');
+
+  await test.step('Verify Airtable items are in ascending order via API', async () => {
+    // 1. Fetch tiles data
+    const payload = await apiFetchRootAppTiles(page);
+
+    // Helper to unwrap nested `.data`
+    const unwrap = (obj: any) => obj?.data ?? obj;
+
+    // 2. Root response object/array
+    const rootData = unwrap(payload);
+
+    // 3. Locate the Airtable tile block
+    const airtableTile =
+      (Array.isArray(rootData) &&
+        rootData.find((t: any) => t?.connectorLabel === 'airtable' || t?.connectionType === 'airtable')) ||
+      rootData;
+
+    // 4. Extract records
+    const records =
+      unwrap(unwrap(airtableTile?.externalData)?.data) ?? airtableTile?.results ?? airtableTile?.records ?? [];
+
+    // 5. Ensure we have an array
+    expect(Array.isArray(records)).toBeTruthy();
+
+    // 6. Collect all record names/titles
+    const titles = records
+      .map((rec: any) => (rec?.fields?.Name ?? rec?.title ?? rec?.name ?? '').trim())
+      .filter(Boolean);
+
+    // 7. Create a sorted copy
+    const sortedTitles = [...titles].sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })
+    );
+
+    // 8. Compare actual vs expected
+    await expect(titles).toEqual(sortedTitles);
+  });
 }

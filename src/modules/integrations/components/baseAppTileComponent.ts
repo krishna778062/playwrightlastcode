@@ -1,36 +1,37 @@
 import { test, Locator, Page, expect } from '@playwright/test';
 import { BaseComponent } from '@core/components/baseComponent';
 
-export abstract class BaseAppTileComponent extends BaseComponent {
+interface AirtableConfig {
+  baseName?: string;
+  tableId?: string;
+  sortBy?: string;
+  sortOrder?: string;
+}
+
+export class BaseAppTileComponent extends BaseComponent {
   readonly editDashboardButton: Locator;
   readonly addTileButton: Locator;
-  readonly editCarouselButton: Locator;
   readonly appTilesToggle: Locator;
   readonly tileTitleInput: Locator;
   readonly dialog: Locator;
   readonly saveButton: Locator;
   readonly toastMessage: Locator;
-  readonly tileHeadings: Locator;
   readonly removePopupTitle: Locator;
   readonly removePopupMessageLocator: Locator;
   readonly removeTileButton: Locator;
   readonly doneButton: Locator;
-  readonly pageOptionsMenu: Locator;
 
   constructor(page: Page) {
     super(page);
-    this.pageOptionsMenu = page.locator('.PageOptionsMenu');
     this.editDashboardButton = page.getByRole('button', {
       name: 'Manage dashboard & carousel',
     });
     this.addTileButton = page.getByRole('button', { name: 'Add tile' });
-    this.editCarouselButton = page.getByRole('button', { name: 'Edit carousel' });
     this.appTilesToggle = page.getByRole('button', { name: 'App tiles' });
     this.tileTitleInput = page.getByLabel('Tile title');
     this.dialog = page.locator('div[role="dialog"]');
     this.saveButton = page.getByRole('button', { name: 'Save' });
     this.toastMessage = page.locator('[class*="Toast"]');
-    this.tileHeadings = page.getByRole('heading', { level: 3 });
     this.removePopupTitle = page.getByRole('heading', { name: 'Remove tile' });
     this.removePopupMessageLocator = page.getByRole('dialog').locator('p');
     this.removeTileButton = page.getByRole('button', { name: 'Remove' });
@@ -42,12 +43,47 @@ export abstract class BaseAppTileComponent extends BaseComponent {
     return this.page.getByRole('button').filter({ hasText: name });
   }
 
+  /**
+   * Common method to select radio button by name
+   * @param fieldLocator - The field container locator
+   * @param optionName - The name of the radio button option
+   */
+  private async selectRadioButton(fieldLocator: Locator, optionName: string): Promise<void> {
+    const radioButton = fieldLocator.getByRole('radio', { name: optionName });
+    await expect(radioButton).toBeVisible({ timeout: 5000 });
+    await this.clickOnElement(radioButton, { timeout: 30_000 });
+  }
+
+  /**
+   * Common method to select menu item from dropdown
+   * @param triggerLocator - The dropdown trigger locator
+   * @param itemName - The name of the menu item to select
+   */
+  private async selectMenuItemFromDropdown(triggerLocator: Locator, itemName: string): Promise<void> {
+    await this.clickOnElement(triggerLocator, { timeout: 30_000 });
+    const menu = this.getLastListboxMenu();
+    const menuItem = this.getMenuItemInMenu(menu, itemName);
+    await this.clickOnElement(menuItem, { timeout: 30_000 });
+  }
+
+  /**
+   * Common method to interact with dialog field (click field, select menu item)
+   * @param fieldLocator - The field locator
+   * @param itemName - The menu item name to select
+   */
+  private async interactWithDialogField(fieldLocator: Locator, itemName: string): Promise<void> {
+    await this.clickOnElement(fieldLocator, { timeout: 30_000 });
+    const menu = this.getLastListboxMenu();
+    const menuItem = this.getMenuItemInMenu(menu, itemName);
+    await this.clickOnElement(menuItem, { timeout: 30_000 });
+  }
+
   /** Get three dots icon for a specific tile */
   protected getThreeDotsIcon(tileName: string): Locator {
     return this.page.locator(`//h2[text()='${tileName}']/ancestor::header//button[@aria-label='Category option']`);
   }
 
-  /** Get tile option button (Edit/Remove) */
+  /** Get tile option button (Edit/Remove) - base method */
   protected getTileOptionButton(option: string): Locator {
     return this.page.getByRole('button', { name: option });
   }
@@ -66,7 +102,7 @@ export abstract class BaseAppTileComponent extends BaseComponent {
         state: 'visible',
         timeout: 30_000,
       });
-      await this.editDashboardButton.click();
+      await this.clickOnElement(this.editDashboardButton, { timeout: 30_000 });
       await expect.poll(async () => this.isInEditMode()).toBeTruthy();
     });
   }
@@ -96,6 +132,82 @@ export abstract class BaseAppTileComponent extends BaseComponent {
   async setTileTitle(title: string): Promise<void> {
     await test.step(`Set tile title to '${title}'`, async () => {
       await this.tileTitleInput.fill(title);
+    });
+  }
+
+  /**
+   * Configure Airtable app tile with specific settings
+   * @param config - Airtable configuration object
+   */
+  async configureAppTile(config: AirtableConfig): Promise<void> {
+    await test.step('Configure Airtable tile', async () => {
+      if (config.baseName) {
+        await this.configureBaseName(config.baseName);
+      }
+      if (config.tableId) {
+        await this.configureTableId(config.tableId);
+      }
+      if (config.sortBy) {
+        await this.configureSortBy(config.sortBy);
+      }
+      if (config.sortOrder) {
+        await this.configureSortOrder(config.sortOrder);
+      }
+    });
+  }
+
+  /**
+   * Configure base name for Airtable tile
+   */
+  async configureBaseName(baseName: string): Promise<void> {
+    await test.step(`Configure base name: ${baseName}`, async () => {
+      const baseNameField = this.getFieldByTestId('field-Base ID');
+      const baseNameInput = this.getComboboxInField(baseNameField);
+      await this.selectMenuItemFromDropdown(baseNameInput, baseName);
+    });
+  }
+
+  /**
+   * Get field by test ID - generic reusable method
+   */
+  protected getFieldByTestId(testId: string): Locator {
+    return this.page.locator(`[data-testid="${testId}"]`);
+  }
+
+  /**
+   * Get combobox within a field - generic reusable method
+   */
+  private getComboboxInField(fieldLocator: Locator): Locator {
+    return fieldLocator.getByRole('combobox');
+  }
+
+  /**
+   * Configure table ID for Airtable tile
+   */
+  async configureTableId(tableId: string): Promise<void> {
+    await test.step(`Configure table ID: ${tableId}`, async () => {
+      const tableIdInput = this.getFieldByTestId('field-Table ID').locator('input');
+      await this.fillInElement(tableIdInput, tableId, { timeout: 30_000 });
+    });
+  }
+
+  /**
+   * Configure sort by field for Airtable tile
+   */
+  async configureSortBy(sortBy: string): Promise<void> {
+    await test.step(`Configure sort by: ${sortBy}`, async () => {
+      const sortByField = this.getFieldByTestId('field-Sort by');
+      await this.selectRadioButton(sortByField, sortBy);
+    });
+  }
+
+  /**
+   * Configure sort order for Airtable tile
+   */
+  async configureSortOrder(sortOrder: string): Promise<void> {
+    await test.step(`Configure sort order: ${sortOrder}`, async () => {
+      const sortOrderField = this.getFieldByTestId('field-Sort order');
+      await this.selectRadioButton(sortOrderField, sortOrder);
     });
   }
 
@@ -140,6 +252,25 @@ export abstract class BaseAppTileComponent extends BaseComponent {
     });
   }
 
+  /**
+   * Verify that Airtable tiles are sorted in ascending order by their headings
+   */
+  async verifyTilesAscending(tileTitle: string): Promise<void> {
+    if (!tileTitle) throw new Error('verifyTilesAscending: tileTitle is required');
+    await test.step(`Verify '${tileTitle}' Airtable tile items are ascending`, async () => {
+      const tile = this.page
+        .locator('aside.Tile')
+        .filter({ has: this.page.locator('img[src*="airtable"]') })
+        .filter({ has: this.page.locator('h2.Tile-heading', { hasText: tileTitle }) });
+      await expect(tile).toBeVisible({ timeout: 10_000 });
+      const itemHeadings = tile.getByRole('heading', { level: 3 });
+      await expect(itemHeadings.first()).toBeVisible({ timeout: 10_000 });
+      const headings = (await itemHeadings.allTextContents()).map(t => t.trim()).filter(Boolean);
+      const sorted = [...headings].sort((a, b) => a.localeCompare(b));
+      await expect(headings).toEqual(sorted);
+    });
+  }
+
   /** Verify that a tile with given title is present on the page */
   async isTilePresent(title: string): Promise<void> {
     await test.step(`Check tiles present with title '${title}'`, async () => {
@@ -181,41 +312,27 @@ export abstract class BaseAppTileComponent extends BaseComponent {
       const headingRegex = this.page.getByRole('heading', { name: nameRegex });
       tiles = container.filter({ has: headingRegex });
     }
-
     return tiles;
-  }
-
-  /** Wait for tiles to finish loading (progress bars disappear) */
-  async waitForTilesToLoad(tiles: any): Promise<void> {
-    const count = await tiles.count();
-    for (let i = 0; i < count; i++) {
-      const tile = tiles.nth(i);
-      await expect(tile.locator('progressbar')).not.toBeVisible({ timeout: 15_000 });
-    }
   }
 
   /** Wait for all loading indicators to disappear from the page */
   async waitForPageLoadingToComplete(): Promise<void> {
     await test.step('Wait for page loading to complete', async () => {
-      // Wait for any progress bars to disappear
       const progressBars = this.page.locator('progressbar');
       if ((await progressBars.count()) > 0) {
         await expect(progressBars).not.toBeVisible({ timeout: 30_000 });
       }
 
-      // Wait for any loading spinners or skeletons to disappear
       const loadingSpinners = this.page.locator('[class*="loading"], [class*="spinner"], [class*="skeleton"]');
       if ((await loadingSpinners.count()) > 0) {
         await expect(loadingSpinners).not.toBeVisible({ timeout: 30_000 });
       }
 
-      // Wait for any "Loading..." text to disappear
       const loadingText = this.page.locator('text=Loading...');
       if ((await loadingText.count()) > 0) {
         await expect(loadingText).not.toBeVisible({ timeout: 30_000 });
       }
 
-      // Wait for network to be idle
       await this.page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
     });
   }
@@ -226,17 +343,13 @@ export abstract class BaseAppTileComponent extends BaseComponent {
       const count = await tiles.count();
       for (let i = 0; i < count; i++) {
         const tile = tiles.nth(i);
-
-        // Wait for progress bars to disappear
         await expect(tile.locator('progressbar')).not.toBeVisible({ timeout: 15_000 });
 
-        // Wait for tile content to be visible (not just the container)
         const tileContent = tile.locator('a, button, [class*="content"], [class*="data"]').first();
         if ((await tileContent.count()) > 0) {
           await expect(tileContent).toBeVisible({ timeout: 15_000 });
         }
 
-        // Wait for any loading text within the tile to disappear
         const tileLoadingText = tile.locator('text=Loading...');
         if ((await tileLoadingText.count()) > 0) {
           await expect(tileLoadingText).not.toBeVisible({ timeout: 15_000 });
@@ -245,115 +358,47 @@ export abstract class BaseAppTileComponent extends BaseComponent {
     });
   }
 
-  /** Wait for a specific tile by title to be fully loaded */
-  async waitForTileToBeFullyLoaded(tileTitle: string): Promise<void> {
-    await test.step(`Wait for tile '${tileTitle}' to be fully loaded`, async () => {
-      // First wait for page loading to complete
-      await this.waitForPageLoadingToComplete();
-
-      // Find the specific tile
-      const tiles = await this.findTilesByTitle(tileTitle);
-      const count = await tiles.count();
-
-      if (count > 0) {
-        // Wait for the tile to be fully loaded
-        await this.waitForTilesToBeFullyLoaded(tiles);
-      } else {
-        // If tile not found, wait a bit more and try again
-        await this.page.waitForTimeout(2000);
-        const retryTiles = await this.findTilesByTitle(tileTitle);
-        const retryCount = await retryTiles.count();
-        if (retryCount > 0) {
-          await this.waitForTilesToBeFullyLoaded(retryTiles);
-        }
-      }
-    });
-  }
-
-  /** Wait for page to be fully loaded after navigation */
-  async waitForPageToBeFullyLoaded(): Promise<void> {
-    await test.step('Wait for page to be fully loaded after navigation', async () => {
-      await this.page.waitForLoadState('domcontentloaded');
-      await this.page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
-      await this.waitForPageLoadingToComplete();
-    });
-  }
-
-  /** Quiet existence check for a tile title (no assertion side-effects) */
-  async tileExists(title: string): Promise<boolean> {
-    try {
-      const tiles = await this.findTilesByTitle(title);
-      const count = await tiles.count();
-      return count > 0;
-    } catch {
-      return false;
-    }
-  }
-
-  /** Wait for tile via API, refresh UI, and assert presence */
-  async ensureTileVisibleAfterApi(
-    tileTitle: string,
-    options?: { timeoutMs?: number; pollIntervalMs?: number }
-  ): Promise<void> {
-    const { waitUntilTilePresentInApi } = await import('../api/helpers/tileApiHelpers');
-    await test.step(`Ensure tile '${tileTitle}' appears (API → UI)`, async () => {
-      await waitUntilTilePresentInApi(this.page, tileTitle, options);
-      await this.page.reload({ waitUntil: 'domcontentloaded' });
-      await this.waitForPageLoadingToComplete();
-    });
-  }
-
-  /** Wait for tile removal via API, refresh UI, and assert absence */
-  async ensureTileRemovedAfterApi(
-    tileTitle: string,
-    options?: { timeoutMs?: number; pollIntervalMs?: number }
-  ): Promise<void> {
-    const { waitUntilTileAbsentInApi } = await import('../api/helpers/tileApiHelpers');
-
-    await test.step(`Ensure tile '${tileTitle}' is removed (API → UI)`, async () => {
-      await waitUntilTileAbsentInApi(this.page, tileTitle, options);
-      await this.page.reload({ waitUntil: 'domcontentloaded' });
-      await this.waitForPageLoadingToComplete();
-    });
-  }
-
-  /** Reload and verify tile presence (no API polling) */
-  async reloadAndVerifyTilePresent(tileTitle: string): Promise<void> {
-    await test.step(`Reload and verify tile '${tileTitle}' is present`, async () => {
-      await this.page.reload({ waitUntil: 'domcontentloaded' });
-      await this.waitForTileToBeFullyLoaded(tileTitle);
-    });
-  }
-
-  /** Reload and verify tile absence (no API polling) */
-  async reloadAndVerifyTileAbsent(tileTitle: string): Promise<void> {
-    await test.step(`Reload and verify tile '${tileTitle}' is absent`, async () => {
-      await this.page.reload({ waitUntil: 'domcontentloaded' });
-      await this.waitForPageLoadingToComplete();
-    });
-  }
-
   /** Click the three-dots menu on a tile */
   async clickThreeDotsOnTile(tileName: string): Promise<void> {
     await test.step(`Click three dots on '${tileName}'`, async () => {
       const btn = this.getThreeDotsIcon(tileName);
       await btn.waitFor({ state: 'visible', timeout: 10_000 });
+      await this.page.waitForTimeout(200);
       await btn.click({ force: true });
+      await this.page.waitForTimeout(300);
     });
   }
 
   /** Choose "Edit" or "Remove" from a tile's menu */
   async clickTileOption(option: string): Promise<void> {
     await test.step(`Click tile option '${option}'`, async () => {
-      const panel = this.page.locator('.OptionsMenu-panel').last();
-      await expect(panel).toBeVisible({ timeout: 5000 });
-      const tablist = panel.getByRole('tablist');
-      const byRole = tablist.getByRole('button', { name: option, exact: true });
-      const byTitle = tablist.locator(`button[title="${option}"]`);
-      const target = (await byRole.count()) ? byRole.first() : byTitle.first();
-      await expect(target).toBeVisible({ timeout: 5000 });
+      const panel = this.getOptionsMenuPanel();
+      await expect(panel).toBeVisible({ timeout: 10_000 });
+      await this.page.waitForTimeout(500);
+      const target = await this.getTileOptionButtonWithFallback(panel, option);
+      await expect(target).toBeVisible({ timeout: 10_000 });
+      await target.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(200);
       await this.clickOnElement(target, { timeout: 30_000 });
     });
+  }
+
+  /**
+   * Get options menu panel - reusable method
+   */
+  private getOptionsMenuPanel(): Locator {
+    return this.page.locator('.OptionsMenu-panel').last();
+  }
+
+  /**
+   * Get tile option button with fallback - reusable method
+   */
+  private async getTileOptionButtonWithFallback(panel: Locator, option: string): Promise<Locator> {
+    const tablist = panel.getByRole('tablist');
+    const byRole = tablist.getByRole('button', { name: option, exact: true });
+    const byTitle = tablist.locator(`button[title="${option}"]`);
+    const roleCount = await byRole.count();
+    return roleCount ? byRole.first() : byTitle.first();
   }
 
   /** Get remove popup message for a specific tile */
@@ -416,6 +461,112 @@ export abstract class BaseAppTileComponent extends BaseComponent {
       const tile = this.getTileContainers(title);
       const btn = tile.getByRole('button', { name: 'Personalize', exact: true });
       await expect(btn).not.toBeVisible();
+    });
+  }
+
+  /**
+   * Open the "Personalize" menu for a given tile
+   */
+  async openPersonalizeOptions(title: string): Promise<void> {
+    await test.step(`Open personalize for '${title}'`, async () => {
+      await this.verifyPersonalizeVisible(title);
+      const tile = this.getTileContainers(title);
+      const personalizeBtn = tile.getByRole('button', { name: 'Personalize', exact: true });
+      await this.clickOnElement(personalizeBtn, { timeout: 30_000 });
+    });
+  }
+
+  /**
+   * Configure sort by in personalize dialog
+   */
+  async configurePersonalizeSortBy(sortBy: string): Promise<void> {
+    await test.step(`Configure personalize sort by: ${sortBy}`, async () => {
+      const dialog = this.getDialogByNamePattern(/Personalize .* tile/i);
+      const field = this.getFieldByLabel(dialog, 'Sort by');
+      await this.interactWithDialogField(field, sortBy);
+    });
+  }
+
+  /**
+   * Get dialog by name pattern - generic reusable method
+   */
+  private getDialogByNamePattern(pattern: RegExp): Locator {
+    return this.page.getByRole('dialog', { name: pattern });
+  }
+
+  /**
+   * Get field by label within dialog - generic reusable method
+   */
+  private getFieldByLabel(dialog: Locator, label: string): Locator {
+    return dialog.getByLabel(label);
+  }
+
+  /**
+   * Get last listbox menu - generic reusable method
+   */
+  private getLastListboxMenu(): Locator {
+    return this.page.locator('[id$="-listbox"]').last();
+  }
+
+  /**
+   * Get menu item by name within a specific menu - generic reusable method
+   */
+  private getMenuItemInMenu(menu: Locator, name: string): Locator {
+    return menu.getByRole('menuitem', { name, exact: true });
+  }
+
+  /**
+   * Configure sort order in personalize dialog
+   */
+  async configurePersonalizeSortOrder(sortOrder: string): Promise<void> {
+    await test.step(`Configure personalize sort order: ${sortOrder}`, async () => {
+      const dialog = this.getDialogByNamePattern(/Personalize .* tile/i);
+      const field = this.getFieldByLabel(dialog, 'Sort order');
+      await this.interactWithDialogField(field, sortOrder);
+    });
+  }
+
+  /**
+   * Save changes in dialog - generic reusable method
+   */
+  async saveDialogChanges(): Promise<void> {
+    await test.step('Save dialog changes', async () => {
+      const saveButton = this.page.getByRole('button', { name: 'Save' });
+      await this.clickOnElement(saveButton, { timeout: 30_000 });
+    });
+  }
+
+  /**
+   * Personalize tile sorting options
+   */
+  async personalizeTileSorting(tileTitle: string, sortBy: string, sortOrder: string): Promise<void> {
+    await test.step(`Personalize tile sorting for '${tileTitle}'`, async () => {
+      await this.openPersonalizeOptions(tileTitle);
+      await this.configurePersonalizeSortBy(sortBy);
+      await this.configurePersonalizeSortOrder(sortOrder);
+      await this.saveDialogChanges();
+    });
+  }
+
+  /**
+   * Get current Airtable configuration
+   * @returns Promise<AirtableConfig> - Current configuration values
+   */
+  async getCurrentConfiguration(): Promise<AirtableConfig> {
+    return await test.step('Get current Airtable configuration', async () => {
+      const baseNameField = this.getFieldByTestId('field-Base ID');
+      const baseNameCombobox = this.getComboboxInField(baseNameField);
+      const baseName = (await baseNameCombobox.textContent()) || '';
+      const tableId = (await this.getFieldByTestId('field-Table ID').locator('input').inputValue()) || '';
+      const sortBy = (await this.getFieldByTestId('field-Sort by').textContent()) || '';
+      const sortOrder = (await this.getFieldByTestId('field-Sort order').textContent()) || '';
+
+      return {
+        baseName: baseName.trim(),
+        tableId: tableId.trim(),
+        sortBy: sortBy.trim(),
+        sortOrder: sortOrder.trim(),
+      };
     });
   }
 }

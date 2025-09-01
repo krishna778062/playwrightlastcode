@@ -43,4 +43,5 @@ export const MESSAGES = {
   AIRTABLE_ADDED_MESSAGE: 'Airtable added',
   AIRTABLE_DELETE_MESSAGE: 'Airtable deleted',
   AIRTABLE_ENABLE_MESSAGE: 'Airtable enabled',
+  AIRTABLE_CONNECT_SUCCESS_MESSAGE: 'Connected to Airtable successfully',
 } as const;
