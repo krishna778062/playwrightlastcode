@@ -127,7 +127,9 @@ test.describe(
           await contentPreviewPageStandardUser.assertions.verifyContentStatus('Pending');
 
           // Handle notification and perform action (approve/reject)
-          const notificationComponentAppManager = await appManagerHomePage.actions.clickOnBellIcon();
+          const notificationComponentAppManager = await appManagerHomePage.actions.clickOnBellIcon({
+            stepInfo: 'Application Manager clicking on bell icon to view notifications',
+          });
           const notificationMessage = peopleName + ' submitted a page for approval "' + pageCreationOptions.title + '"';
           await notificationComponentAppManager.actions.clickOnNotification(notificationMessage);
 
@@ -141,7 +143,9 @@ test.describe(
             testData.actionSuccessMessage
           );
 
-          const notificationMessageStandardUser = await standardUserHomePage.actions.clickOnBellIcon();
+          const notificationMessageStandardUser = await standardUserHomePage.actions.clickOnBellIcon({
+            stepInfo: 'Standard user clicking on bell icon to view notifications',
+          });
           const finalNotificationMessage = testData.finalNotificationMessage + ' "' + pageCreationOptions.title + '"';
           await notificationMessageStandardUser.actions.clickOnNotification(finalNotificationMessage);
 
