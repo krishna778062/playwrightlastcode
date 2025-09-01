@@ -10,6 +10,8 @@ import { ImageCropperComponent } from '../components/imageCropper';
 import { PageContentType } from '../constants/pageContentType';
 import { CONTENT_TEST_DATA } from '../test-data/content.test-data';
 
+import { SiteDashboardPage } from './siteDashboardPage';
+
 import { FileUtil } from '@/src/core/utils/fileUtil';
 
 export interface PageCreationOptions {
@@ -50,6 +52,7 @@ export interface IPageCreationActions {
     siteId: string;
     response: PageCreationResponse;
   }>;
+  navigateToAddContentModal: () => Promise<void>;
 }
 
 export interface IPageCreationAssertions {
@@ -132,24 +135,26 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     }
   ) {
     await test.step(`Upload cover image: ${fileName}`, async () => {
-      //there will be three requests for the cover image to upload different sizes
-      //we will wait until all three requests are completed
-      const reqPromises = [];
-      for (let i = 0; i < 3; i++) {
-        reqPromises.push(
-          this.page.waitForResponse(
-            response => response.url().includes('Content-Type=image%2Fpng') && response.request().method() === 'PUT'
-          ),
-          35_000
-        );
-      }
+      // Setup response promises for 3 upload requests
+      const responsePromises = [];
+      const responsePromise = this.page.waitForResponse(
+        response =>
+          response.request().url().includes('X-Amz-SignedHeaders=host') &&
+          response.request().method() === 'PUT' &&
+          response.status() === 200,
+        { timeout: 35000 }
+      );
+      responsePromises.push(responsePromise);
+
       const imagePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', 'images', fileName);
       await this.coverImageUploader.uploadAttachment(imagePath);
+
       //handle wide screen crop option
       if (options?.widescreenCropOption) {
         await this.imageCropper.selectCropOption('Widescreen');
       }
       await this.imageCropper.clickOnNextButton();
+
       //handle square crop option
       if (options?.squareCropOption) {
         await this.imageCropper.selectCropOption('Square');
@@ -158,8 +163,8 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       await this.imageCropper.clickOnNextButton();
       await this.imageCropper.clickOnAddButton();
 
-      //wait for all the requests to be completed
-      await Promise.all(reqPromises);
+      // Wait for all 3 upload responses to complete with 200 status
+      await Promise.all(responsePromises);
     });
   }
 
@@ -246,7 +251,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
           squareCropOption: options.coverImage.cropOptions?.square,
         });
       }
-
       // Publish the page
       const publishResponse = await this.publishPage();
 
@@ -266,6 +270,18 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
         siteId: siteId,
         response: publishResponseBody,
       };
+    });
+  }
+
+  /**
+   * Navigates to add content modal from site dashboard
+   * @param contentType - The content type to create
+   */
+  async navigateToAddContentModal(): Promise<void> {
+    await test.step(`Navigate to add content modal`, async () => {
+      const siteDashboard = new SiteDashboardPage(this.page, '');
+      await siteDashboard.verifyThePageIsLoaded();
+      await siteDashboard.clickOnAddContent();
     });
   }
 

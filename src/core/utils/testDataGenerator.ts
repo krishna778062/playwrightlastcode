@@ -6,6 +6,7 @@ import { PageContentType } from '@/src/modules/content/constants/pageContentType
 import { AlbumCreationOptions } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationOptions } from '@/src/modules/content/pages/eventCreationPage';
 import { PageCreationOptions } from '@/src/modules/content/pages/pageCreationPage';
+import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 export class TestDataGenerator {
   /**
@@ -134,21 +135,11 @@ export class TestDataGenerator {
    * @param overrides Optional properties to override in the generated album
    * @returns An AlbumCreationOptions object with random realistic data
    */
-  static generateAlbum(
-    fileName: string,
-    attachmentFileName?: string,
-    videoUrl?: string,
-    openAlbum?: boolean,
-    overrides?: Partial<AlbumCreationOptions>
-  ): AlbumCreationOptions {
+  static generateAlbum(overrides?: Partial<AlbumCreationOptions>): AlbumCreationOptions {
     const albumOptions: AlbumCreationOptions = {
-      title: `Automated Test Page ${faker.company.name()} - ${faker.commerce.productName()}`,
-      description: `This is an automated test description ${faker.lorem.paragraph()}`,
-      images: [fileName],
-      videoUrl: videoUrl,
-      attachments: attachmentFileName ? [attachmentFileName] : undefined,
-      openAlbum: openAlbum,
-      topics: [faker.company.name()],
+      title: `Automated Test Album ${faker.company.name()} - ${faker.commerce.productName()}`,
+      description: `This is an automated test album description ${faker.lorem.paragraph()}`,
+      category: faker.word.noun().toLowerCase(),
     };
 
     return {
@@ -163,17 +154,8 @@ export class TestDataGenerator {
    * @param overrides Optional properties to override in all generated albums
    * @returns Array of AlbumCreationOptions objects
    */
-  static generateAlbums(
-    count: number,
-    fileName: string,
-    attachmentFileName?: string,
-    videoUrl?: string,
-    openAlbum?: boolean,
-    overrides?: Partial<AlbumCreationOptions>
-  ): AlbumCreationOptions[] {
-    return Array.from({ length: count }, () =>
-      this.generateAlbum(fileName, attachmentFileName, videoUrl, openAlbum, overrides)
-    );
+  static generateAlbums(count: number, overrides?: Partial<AlbumCreationOptions>): AlbumCreationOptions[] {
+    return Array.from({ length: count }, () => this.generateAlbum(overrides));
   }
 
   /**
@@ -181,27 +163,22 @@ export class TestDataGenerator {
    * @param overrides Optional properties to override in the generated event
    * @returns An EventCreationOptions object with random realistic data
    */
-  static generateEvent(
-    fileName?: string,
-    startDate?: string,
-    endDate?: string,
-    overrides?: Partial<EventCreationOptions>
-  ): EventCreationOptions {
+  static generateEvent(overrides?: Partial<EventCreationOptions>): EventCreationOptions {
+    const startDate = faker.date.future();
+    const endDate = faker.date.future({ refDate: startDate });
+
     const eventOptions: EventCreationOptions = {
       title: `Automated Test Event ${faker.company.name()} - ${faker.commerce.productName()}`,
       description: `This is an automated test event description ${faker.lorem.paragraph()}`,
-      startDate: startDate || faker.date.future().toISOString().split('T')[0],
-      endDate: endDate || faker.date.future().toISOString().split('T')[0],
-      location: `${faker.location.streetAddress()}, ${faker.location.city()}`,
-      coverImage: fileName
-        ? {
-            fileName,
-            cropOptions: {
-              widescreen: false,
-              square: false,
-            },
-          }
-        : undefined,
+      startDate: startDate.toISOString().split('T')[0], // YYYY-MM-DD format
+      endDate: endDate.toISOString().split('T')[0], // YYYY-MM-DD format
+      startTime: faker.date.recent().toTimeString().split(' ')[0].substring(0, 5), // HH:MM format
+      endTime: faker.date.recent().toTimeString().split(' ')[0].substring(0, 5), // HH:MM format
+      location: `${faker.location.streetAddress()}, ${faker.location.city()}, ${faker.location.state()}`,
+      category: faker.word.noun().toLowerCase(),
+      isAllDay: faker.datatype.boolean(),
+      isVirtual: faker.datatype.boolean(),
+      virtualLink: faker.internet.url(),
     };
 
     return {
@@ -217,37 +194,6 @@ export class TestDataGenerator {
    * @returns Array of EventCreationOptions objects
    */
   static generateEvents(count: number, overrides?: Partial<EventCreationOptions>): EventCreationOptions[] {
-    return Array.from({ length: count }, () => this.generateEvent(undefined, undefined, undefined, overrides));
-  }
-
-  /**
-   * Generates a random site with realistic data
-   * @param fileName Optional cover image file name
-   * @param overrides Optional properties to override in the generated site
-   * @returns A SiteCreationOptions object with random realistic data
-   */
-  static generateSite(access: string, overrides?: Partial<any>): any {
-    const siteOptions = {
-      name: `Automated Test Site ${faker.company.name()} - ${faker.commerce.department()}`.substring(0, 39),
-      description: `This is an automated test site description ${faker.lorem.paragraph()}`,
-      siteCategory: faker.word.noun().toLowerCase(),
-      access: access,
-    };
-
-    return {
-      ...siteOptions,
-      ...overrides,
-    };
-  }
-
-  /**
-   * Generates multiple random sites
-   * @param count Number of sites to generate
-   * @param fileName Optional cover image file name
-   * @param overrides Optional properties to override in all generated sites
-   * @returns Array of SiteCreationOptions objects
-   */
-  static generateSites(count: number, access: string, overrides?: Partial<any>): any[] {
-    return Array.from({ length: count }, () => this.generateSite(access, overrides));
+    return Array.from({ length: count }, () => this.generateEvent(overrides));
   }
 }
