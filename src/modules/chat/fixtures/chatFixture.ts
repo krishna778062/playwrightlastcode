@@ -26,8 +26,11 @@ export const users = {
 export const chatTestFixture = test.extend<
   {
     appManagerContext: BrowserContext;
+    endUserContext: BrowserContext;
     appManagerHomePage: NewUxHomePage | OldUxHomePage;
+    endUserHomePage: NewUxHomePage | OldUxHomePage;
     appManagersPage: Page;
+    endUsersPage: Page;
     siteManagementHelper: SiteManagementHelper;
     feedManagerService: FeedManagerService;
     loginAs: (userType: UserType) => Promise<void>;
@@ -75,6 +78,33 @@ export const chatTestFixture = test.extend<
   appManagersPage: [
     async ({ appManagerHomePage }, use, workerInfo) => {
       await use(appManagerHomePage.page);
+    },
+    { scope: 'test' },
+  ],
+  endUserContext: [
+    async ({ browser }, use, workerInfo) => {
+      const context = await browser.newContext();
+      await use(context);
+      await context?.close();
+    },
+    { scope: 'test' },
+  ],
+  endUserHomePage: [
+    async ({ endUserContext }, use, workerInfo) => {
+      const page = await endUserContext.newPage();
+      const endUserHomePage = await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().endUserEmail!,
+        password: getEnvConfig().endUserPassword,
+      });
+      await endUserHomePage.verifyThePageIsLoaded();
+      await use(endUserHomePage);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+  endUsersPage: [
+    async ({ endUserHomePage }, use, workerInfo) => {
+      await use(endUserHomePage.page);
     },
     { scope: 'test' },
   ],
