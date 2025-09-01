@@ -21,10 +21,10 @@ test.describe(
 
     test.beforeEach(
       `Setting up the test environment for album search by creating site and album content`,
-      async ({ contentManagementHelper }) => {
-        const albumDetails = await contentManagementHelper.createSiteAndAlbum({
-          category: ALBUM_SEARCH_TEST_DATA.category,
-          imagePath: 'beach.jpg',
+      async ({ contentManagementHelper, publicSite }) => {
+        const albumDetails = await contentManagementHelper.createAlbum({
+          siteId: publicSite.siteId,
+          imageName: 'beach.jpg',
           options: {
             contentDescription: ALBUM_SEARCH_TEST_DATA.description,
             accessType: ALBUM_SEARCH_TEST_DATA.accessType,
@@ -32,7 +32,7 @@ test.describe(
         });
 
         siteId = albumDetails.siteId;
-        newSiteName = albumDetails.siteName;
+        newSiteName = publicSite.siteName;
         contentId = albumDetails.contentId;
         albumName = albumDetails.albumName;
         authorName = albumDetails.authorName;

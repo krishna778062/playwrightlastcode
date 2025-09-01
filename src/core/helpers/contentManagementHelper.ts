@@ -67,6 +67,46 @@ export class ContentManagementHelper {
   }
 
   /**
+   * Creates a new site (by category name) and an album within that site.
+   * Returns site details along with the created album details.
+   * @param categoryName - The name of the category for the site
+   * @param imageName - The name of the image file to upload
+   * @param options - Optional configuration object with albumName, contentDescription, and/or accessType
+   */
+  async createAlbum(params: {
+    siteId: string;
+    imageName: string;
+    options?: { albumName?: string; contentDescription?: string; accessType?: SITE_TYPES };
+  }) {
+    const fileId = await this.appManagerApiClient.getImageUploaderService().uploadImageAndGetFileId(params.imageName);
+    const finalAlbumName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Album`;
+    const finalContentDescription = 'AutomateAlbumDescription';
+    const { body, bodyHtml } = buildBodyAndBodyHtml(finalContentDescription, 'album');
+    const albumResult = await this.appManagerApiClient.getContentManagementService().addNewAlbumContent(params.siteId, {
+      title: finalAlbumName,
+      body,
+      bodyHtml,
+      publishAt: getTodayDateIsoString(),
+      coverImageMediaId: fileId,
+      listOfAlbumMedia: [{ id: fileId, description: '' }],
+    });
+    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+      apiClient: this.appManagerApiClient,
+      searchTerm: finalAlbumName,
+      objectType: 'content',
+    });
+    const createdContent = {
+      siteId: params.siteId,
+      contentId: albumResult.albumId,
+      albumName: finalAlbumName,
+      authorName: albumResult.authorName,
+      contentDescription: finalContentDescription,
+    };
+    this.content.push({ siteId: params.siteId, contentId: albumResult.albumId });
+    return { ...createdContent };
+  }
+
+  /**
    * Creates a new site (by category name) and a page within that site.
    * Returns site details along with the created page details.
    * @param categoryName - The name of the category for the site
