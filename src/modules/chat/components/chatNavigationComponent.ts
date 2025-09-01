@@ -10,30 +10,23 @@ export class ChatNavigationComponent extends BaseComponent {
   readonly createNewGroupButton: Locator;
   constructor(page: Page) {
     super(page);
-    this.mainChatIcon = page.locator("[aria-label='Messaging']");
-    this.seeAllMessagesButton = page.locator("a:has-text('See all messages')");
-    this.createNewButton = page.locator("[data-testid='newMessageButton']");
-    this.createNewMessageButton = page.locator("[data-testid='dropdown-create-message']");
-    this.createNewGroupButton = page.locator("[data-testid='dropdown-create-group']");
+    this.mainChatIcon = page.getByRole('button', { name: 'Messaging' });
+    this.seeAllMessagesButton = page.getByRole('link', { name: 'See all messages' });
+    this.createNewButton = page.getByTestId('newMessageButton');
+    this.createNewMessageButton = page.getByTestId('dropdown-create-message');
+    this.createNewGroupButton = page.getByTestId('dropdown-create-group');
   }
 
   async clickOnTheChatButton(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo ?? 'Clicking on the chat button', async () => {
-      await this.mainChatIcon.click();
-    });
+    await this.clickOnElement(this.mainChatIcon, { stepInfo: 'Clicking on chat button' });
   }
   async clickOnTheSeeAllMessagesButton(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo ?? 'Clicking on the see all messages button', async () => {
-      await this.seeAllMessagesButton.click();
-      await this.page.waitForTimeout(6000);
-    });
+    await this.clickOnElement(this.seeAllMessagesButton, { stepInfo: 'Clicking on the see all messages button' });
   }
 
   async clickOnTheCreateNewButton(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo ?? 'Clicking on the create new button', async () => {
-      await this.createNewButton.click();
-      await this.page.waitForTimeout(6000);
-    });
+    await this.createNewButton.waitFor({ state: 'visible' });
+    await this.clickOnElement(this.createNewButton, { stepInfo: 'Clicking on the create new button' });
   }
 
   async verifyTheCreateNewMessageButton(options?: { stepInfo?: string }): Promise<void> {

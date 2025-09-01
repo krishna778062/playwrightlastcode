@@ -9,9 +9,8 @@ import { tagTest } from '@/src/core/utils/testDecorator';
 test.describe('Unfurling Links', { tag: [CHAT_SUITE_TAGS.UNFURL_LINK] }, () => {
   let chatNavigationPage: ChatNavigationPage;
 
-  test.beforeEach(async ({ loginAs, page }) => {
-    await loginAs('appManager');
-    chatNavigationPage = new ChatNavigationPage(page);
+  test.beforeEach(async ({ appManagerHomePage }) => {
+    chatNavigationPage = new ChatNavigationPage(appManagerHomePage.page);
   });
 
   test(
@@ -19,7 +18,7 @@ test.describe('Unfurling Links', { tag: [CHAT_SUITE_TAGS.UNFURL_LINK] }, () => {
     {
       tag: [TestPriority.P2, TestGroupType.SMOKE],
     },
-    async ({ page }) => {
+    async ({ appManagersPage }) => {
       tagTest(test.info(), {
         description: 'To verify create new message and create new group button',
         zephyrTestId: 'CHAT-2179',
