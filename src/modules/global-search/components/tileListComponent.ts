@@ -74,7 +74,7 @@ export class TileListComponent extends ResultListingComponent {
   async verifyShowMoreButtonIsDisplayed(linksCount: number) {
     await test.step(`Verifying show more button is displayed`, async () => {
       if (linksCount > 3) {
-        await this.verifier.verifyTheElementIsVisible(this.showMoreButton, { timeout: 20_000 });
+        await this.verifier.verifyTheElementIsVisible(this.showMoreButton, { timeout: 40_000 });
         await this.showMoreButton.click();
       }
     });

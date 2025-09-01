@@ -338,7 +338,7 @@ export class GlobalSearchResultPage extends BasePage {
     });
 
     await this.handleExactMatchCheckboxRetry(async () => {
-      await this.verifier.verifyTheElementIsVisible(tileResultToLocate.first(), { timeout: 40_000 });
+      await this.verifier.verifyTheElementIsVisible(tileResultToLocate, { timeout: 40_000 });
     });
 
     return new TileListComponent(this.page, tileResultToLocate, searchTerm);
