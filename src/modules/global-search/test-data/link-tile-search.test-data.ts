@@ -10,13 +10,17 @@ export interface LinkTileSearchTestCase {
   hasGoogleLink: boolean;
 }
 
-export const LINK_TILE_SEARCH_TEST_DATA: LinkTileSearchTestCase = {
+// Function to generate unique test data for each test
+export const getLinkTileSearchTestData = (): LinkTileSearchTestCase => ({
   dashboardId: 'site',
-  tileTitle: `${faker.company.buzzAdjective()}_${Date.now()}`,
+  tileTitle: `${faker.company.buzzAdjective()}_${faker.string.alphanumeric(10)}_${Date.now()}`,
   expectedLinksCount: 3,
   hasPlaywrightLink: true,
   hasGoogleLink: true,
-};
+});
+
+// Keep the original constant for backward compatibility
+export const LINK_TILE_SEARCH_TEST_DATA: LinkTileSearchTestCase = getLinkTileSearchTestData();
 
 // Predefined link templates for consistent testing
 export const PREDEFINED_LINKS = [
