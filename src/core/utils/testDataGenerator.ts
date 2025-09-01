@@ -19,6 +19,8 @@ export class TestDataGenerator {
       first_name: faker.person.firstName(),
       last_name: faker.person.lastName(),
       email: faker.internet.email({ provider: 'simpplr.com' }),
+      mobile: faker.number.int({ min: 1000000000, max: 9999999999 }),
+      emp: faker.string.alphanumeric(8),
       timezone_id: 17,
       language_id: 1,
       locale_id: 1,
@@ -135,11 +137,21 @@ export class TestDataGenerator {
    * @param overrides Optional properties to override in the generated album
    * @returns An AlbumCreationOptions object with random realistic data
    */
-  static generateAlbum(overrides?: Partial<AlbumCreationOptions>): AlbumCreationOptions {
+  static generateAlbum(
+    fileName: string,
+    attachmentFileName?: string,
+    videoUrl?: string,
+    openAlbum?: boolean,
+    overrides?: Partial<AlbumCreationOptions>
+  ): AlbumCreationOptions {
     const albumOptions: AlbumCreationOptions = {
-      title: `Automated Test Album ${faker.company.name()} - ${faker.commerce.productName()}`,
-      description: `This is an automated test album description ${faker.lorem.paragraph()}`,
-      category: faker.word.noun().toLowerCase(),
+      title: `Automated Test Page ${faker.company.name()} - ${faker.commerce.productName()}`,
+      description: `This is an automated test description ${faker.lorem.paragraph()}`,
+      images: [fileName],
+      videoUrl: videoUrl,
+      attachments: attachmentFileName ? [attachmentFileName] : undefined,
+      openAlbum: openAlbum,
+      topics: [faker.company.name()],
     };
 
     return {
@@ -154,8 +166,17 @@ export class TestDataGenerator {
    * @param overrides Optional properties to override in all generated albums
    * @returns Array of AlbumCreationOptions objects
    */
-  static generateAlbums(count: number, overrides?: Partial<AlbumCreationOptions>): AlbumCreationOptions[] {
-    return Array.from({ length: count }, () => this.generateAlbum(overrides));
+  static generateAlbums(
+    count: number,
+    fileName: string,
+    attachmentFileName?: string,
+    videoUrl?: string,
+    openAlbum?: boolean,
+    overrides?: Partial<AlbumCreationOptions>
+  ): AlbumCreationOptions[] {
+    return Array.from({ length: count }, () =>
+      this.generateAlbum(fileName, attachmentFileName, videoUrl, openAlbum, overrides)
+    );
   }
 
   /**
@@ -163,22 +184,27 @@ export class TestDataGenerator {
    * @param overrides Optional properties to override in the generated event
    * @returns An EventCreationOptions object with random realistic data
    */
-  static generateEvent(overrides?: Partial<EventCreationOptions>): EventCreationOptions {
-    const startDate = faker.date.future();
-    const endDate = faker.date.future({ refDate: startDate });
-
+  static generateEvent(
+    fileName?: string,
+    startDate?: string,
+    endDate?: string,
+    overrides?: Partial<EventCreationOptions>
+  ): EventCreationOptions {
     const eventOptions: EventCreationOptions = {
       title: `Automated Test Event ${faker.company.name()} - ${faker.commerce.productName()}`,
       description: `This is an automated test event description ${faker.lorem.paragraph()}`,
-      startDate: startDate.toISOString().split('T')[0], // YYYY-MM-DD format
-      endDate: endDate.toISOString().split('T')[0], // YYYY-MM-DD format
-      startTime: faker.date.recent().toTimeString().split(' ')[0].substring(0, 5), // HH:MM format
-      endTime: faker.date.recent().toTimeString().split(' ')[0].substring(0, 5), // HH:MM format
-      location: `${faker.location.streetAddress()}, ${faker.location.city()}, ${faker.location.state()}`,
-      category: faker.word.noun().toLowerCase(),
-      isAllDay: faker.datatype.boolean(),
-      isVirtual: faker.datatype.boolean(),
-      virtualLink: faker.internet.url(),
+      startDate: startDate || faker.date.future().toISOString().split('T')[0],
+      endDate: endDate || faker.date.future().toISOString().split('T')[0],
+      location: `${faker.location.streetAddress()}, ${faker.location.city()}`,
+      coverImage: fileName
+        ? {
+            fileName,
+            cropOptions: {
+              widescreen: false,
+              square: false,
+            },
+          }
+        : undefined,
     };
 
     return {
@@ -194,7 +220,7 @@ export class TestDataGenerator {
    * @returns Array of EventCreationOptions objects
    */
   static generateEvents(count: number, overrides?: Partial<EventCreationOptions>): EventCreationOptions[] {
-    return Array.from({ length: count }, () => this.generateEvent(overrides));
+    return Array.from({ length: count }, () => this.generateEvent(undefined, undefined, undefined, overrides));
   }
 
   /**
@@ -205,7 +231,7 @@ export class TestDataGenerator {
    */
   static generateSite(access: string, overrides?: Partial<any>): any {
     const siteOptions = {
-      name: `Automated Test Site ${faker.company.name()} - ${faker.commerce.department()}`,
+      name: `Automated Test Site ${faker.company.name()} - ${faker.commerce.department()}`.substring(0, 39),
       description: `This is an automated test site description ${faker.lorem.paragraph()}`,
       siteCategory: faker.word.noun().toLowerCase(),
       access: access,

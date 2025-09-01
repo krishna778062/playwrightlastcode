@@ -1,12 +1,10 @@
-import { faker } from '@faker-js/faker';
-import { expect, Page, Response, test } from '@playwright/test';
-
-import { PageCreationResponse } from '../apis/types/pageCreationResponse';
-import { AttachementUploaderComponent } from '../components/attachementUploader';
-import { ImageCropperComponent } from '../components/imageCropper';
+import { Page, Response, test } from '@playwright/test';
 
 import { BasePage } from '@/src/core/pages/basePage';
 import { FileUtil } from '@/src/core/utils/fileUtil';
+import { AlbumCreationResponse } from '@/src/modules/content/apis/types/albumCreationResponse';
+import { AttachementUploaderComponent } from '@/src/modules/content/components/attachementUploader';
+import { ImageCropperComponent } from '@/src/modules/content/components/imageCropper';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 export interface AlbumCreationOptions {
@@ -28,60 +26,26 @@ export interface IAlbumCreationActions {
     description: string;
     albumId: string;
     siteId: string;
-    response: PageCreationResponse;
+    response: AlbumCreationResponse;
   }>;
-  publishAlbum: () => Promise<Response>;
-  deleteAlbum: () => Promise<void>;
-  uploadImage: (imageName: string) => Promise<void>;
-  addVideoUrl: (videoUrl: string) => Promise<void>;
-  waitForVideoUpload: () => Promise<void>;
-  uploadAttachment: (fileName: string) => Promise<void>;
-  addTopics: (topics: string[]) => Promise<void>;
-  scrollScreen: (pixels: number) => Promise<void>;
-  clickAddFilesAndAttachments: () => Promise<void>;
-  uploadFileAttachment: (fileName: string) => Promise<void>;
-  uploadMultipleImages: (imageNames: string[]) => Promise<void>;
-  hoverAndClickMakeCover: () => Promise<void>;
-  openSendFeedbackTab: () => Promise<void>;
-  closeFeedbackModal: () => Promise<void>;
-  openVersionHistory: () => Promise<void>;
-  clickOptionMenuDropdown: () => Promise<void>;
-  clickUnpublishButton: () => Promise<void>;
-  clickDeleteButton: () => Promise<void>;
-  confirmDelete: () => Promise<void>;
-  waitForVideoToUpload: () => Promise<void>;
-  fillAlbumDetails: (options: Partial<AlbumCreationOptions>) => Promise<void>;
-  clickSaveButton: () => Promise<void>;
-  clickPublishButton: () => Promise<void>;
-  clearAlbumTitle: () => Promise<void>;
-  clickScheduleButton: () => Promise<void>;
-  fetchContentTypeDetailsUrl: () => Promise<string>;
-  createAlbumWithFutureDate: (options: AlbumCreationOptions) => Promise<{
+  createAndSubmitAlbum: (options: AlbumCreationOptions) => Promise<{
     title: string;
     description: string;
     albumId: string;
     siteId: string;
-    response: PageCreationResponse;
+    peopleName: string;
+    peopleId: string;
+    response: AlbumCreationResponse;
   }>;
 }
 
-export interface IAlbumCreationAssertions {
-  verifyContentPublishedSuccessfully: (title: string) => Promise<void>;
-  verifySuccessMessage: (message: string) => Promise<void>;
-  verifySendHistoryTabPopup: () => Promise<void>;
-  verifyVersionHistoryTabPopup: () => Promise<void>;
-  verifyFileAttachmentUploadAndDownload: () => Promise<void>;
-  verifyAlbumCoverImageChange: () => Promise<void>;
-  verifyAlbumUnpublishFunctionality: () => Promise<void>;
-  verifyAlbumDeleteFunctionality: () => Promise<void>;
-  verifyScheduleToastMessage: () => Promise<void>;
-  verifyAlbumTitleErrorMessage: (message: string) => Promise<void>;
-}
+export interface IAlbumCreationAssertions {}
 
 export class AlbumCreationPage extends BasePage implements IAlbumCreationActions, IAlbumCreationAssertions {
   // Readonly locators - only used ones
   readonly uploadedCoverImagePreviewContainer = this.page.locator("[class*='Banner-imageContainer']");
   readonly publishButton = this.page.getByRole('button', { name: 'Publish' });
+  readonly submitButton = this.page.locator('span').filter({ hasText: 'Submit for approval' });
   readonly titleInput = this.page.locator("textarea[placeholder='Album title']");
   readonly albumDescriptionInput = this.page.locator("div[aria-label='Album description']");
   readonly videoUrlInput = this.page.locator('input[placeholder="Paste a video URL"]');
@@ -128,7 +92,7 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
     description: string;
     albumId: string;
     siteId: string;
-    response: PageCreationResponse;
+    response: AlbumCreationResponse;
   }> {
     return await test.step(`Creating and publishing album with title: ${options.title}`, async () => {
       // Fill album title
@@ -180,7 +144,7 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
       const publishResponse = await this.publishAlbum();
 
       // Get response body
-      const publishResponseBody = (await publishResponse.json()) as PageCreationResponse;
+      const publishResponseBody = (await publishResponse.json()) as AlbumCreationResponse;
 
       // Extract the album ID and site ID from the response
       const albumId = publishResponseBody.result.id;
@@ -197,8 +161,6 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
   }
 
   async publishAlbum(): Promise<Response> {
-    //add pause for debugging
-    await this.page.pause();
     return await test.step(`Publishing album and wait for publish api response`, async () => {
       const publishResponse = await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.publishButton, { delay: 2_000 }),
@@ -210,20 +172,7 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
           timeout: 20_000,
         }
       );
-      await this.page.pause();
       return publishResponse;
-    });
-  }
-
-  async deleteAlbum(): Promise<void> {
-    await this.clickOnElement(this.optionMenuDropdown, {
-      stepInfo: 'Click option menu dropdown',
-    });
-    await this.clickOnElement(this.deleteButton, {
-      stepInfo: 'Click delete button',
-    });
-    await this.clickOnElement(this.deleteButton, {
-      stepInfo: 'Confirm delete',
     });
   }
 
@@ -268,7 +217,10 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
         35_000
       );
 
-      const filePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', 'images', fileName);
+      // Determine folder based on file extension
+      const fileExtension = fileName.split('.').pop()?.toLowerCase();
+      const folder = ['docx', 'xlsx', 'pdf'].includes(fileExtension || '') ? 'excel' : 'images';
+      const filePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', folder, fileName);
       await this.addInputFiles(this.addFromContainerInput, filePath);
 
       // Wait for the upload request to complete
@@ -285,136 +237,16 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
     }
   }
 
-  async scrollScreen(pixels: number): Promise<void> {
-    await this.page.evaluate(px => window.scrollBy(0, px), pixels);
-  }
-
-  async clickAddFilesAndAttachments(): Promise<void> {
-    await this.clickOnElement(this.addFilesAttachmentsButton, {
-      stepInfo: 'Click add files and attachments button',
-    });
-  }
-
-  async uploadFileAttachment(fileName: string): Promise<void> {
-    await this.uploadAttachment(fileName);
-  }
-
-  async uploadMultipleImages(imageNames: string[]): Promise<void> {
-    for (const imageName of imageNames) {
-      await this.uploadImage(imageName);
-    }
-  }
-
-  async hoverAndClickMakeCover(): Promise<void> {
-    await this.albumImageItem.hover();
-    await this.clickOnElement(this.makeCoverButton, {
-      stepInfo: 'Click make cover button',
-    });
-  }
-
-  async openSendFeedbackTab(): Promise<void> {
-    await this.clickOnElement(this.sendFeedbackTab, {
-      stepInfo: 'Click send feedback tab',
-    });
-  }
-
-  async closeFeedbackModal(): Promise<void> {
-    await this.clickOnElement(this.closeModalButton, {
-      stepInfo: 'Click close modal button',
-    });
-  }
-
-  async openVersionHistory(): Promise<void> {
-    await this.clickOnElement(this.versionHistoryButton, {
-      stepInfo: 'Click version history button',
-    });
-  }
-
-  async clickOptionMenuDropdown(): Promise<void> {
-    await this.clickOnElement(this.optionMenuDropdown, {
-      stepInfo: 'Click option menu dropdown',
-    });
-  }
-
-  async clickUnpublishButton(): Promise<void> {
-    await this.clickOnElement(this.unpublishButton, {
-      stepInfo: 'Click unpublish button',
-    });
-  }
-
-  async clickDeleteButton(): Promise<void> {
-    await this.clickOnElement(this.deleteButton, {
-      stepInfo: 'Click delete button',
-    });
-  }
-
-  async confirmDelete(): Promise<void> {
-    await this.clickOnElement(this.deleteButton, {
-      stepInfo: 'Confirm delete action',
-    });
-  }
-
-  async waitForVideoToUpload(): Promise<void> {
-    await this.verifier.waitUntilElementIsVisible(this.videoUploadComplete, {
-      timeout: CONTENT_TEST_DATA.TIMEOUTS.VIDEO_UPLOAD,
-      stepInfo: 'Wait for video to upload',
-    });
-  }
-
-  async fillAlbumDetails(options: Partial<AlbumCreationOptions>): Promise<void> {
-    if (options.title) {
-      await this.fillInElement(this.titleInput, options.title, {
-        stepInfo: 'Fill album title',
-      });
-    }
-    if (options.description) {
-      await this.fillInElement(this.albumDescriptionInput, options.description, {
-        stepInfo: 'Fill album description',
-      });
-    }
-    if (options.images && options.images.length > 0) {
-      for (const image of options.images) {
-        await this.uploadImage(image);
-      }
-    }
-  }
-
-  async clickSaveButton(): Promise<void> {
-    await this.clickOnElement(this.saveButton, {
-      stepInfo: 'Click save button',
-    });
-  }
-
-  async clickPublishButton(): Promise<void> {
-    await this.clickOnElement(this.publishButton, {
-      stepInfo: 'Click publish button',
-    });
-  }
-
-  async clearAlbumTitle(): Promise<void> {
-    await this.fillInElement(this.titleInput, '', {
-      stepInfo: 'Clear album title',
-    });
-  }
-
-  async clickScheduleButton(): Promise<void> {
-    await this.clickOnElement(this.scheduleButton, {
-      stepInfo: 'Click schedule button',
-    });
-  }
-
-  async fetchContentTypeDetailsUrl(): Promise<string> {
-    return this.page.url();
-  }
-
-  async createAlbumWithFutureDate(options: AlbumCreationOptions): Promise<{
+  async createAndSubmitAlbum(options: AlbumCreationOptions): Promise<{
     title: string;
     description: string;
     albumId: string;
     siteId: string;
-    response: PageCreationResponse;
+    peopleName: string;
+    peopleId: string;
+    response: AlbumCreationResponse;
   }> {
-    return await test.step(`Creating album with future date: ${options.title}`, async () => {
+    return await test.step(`Creating and submit album with title: ${options.title}`, async () => {
       // Fill album title
       await this.fillInElement(this.titleInput, options.title, {
         stepInfo: 'Fill album title',
@@ -438,92 +270,65 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
         await this.waitForVideoUpload();
       }
 
-      // Set future publish date (placeholder implementation)
-      // This would need actual date picker interaction
+      // Add attachments if provided
+      if (options.attachments && options.attachments.length > 0) {
+        await this.clickOnElement(this.addFilesAttachmentsButton, {
+          stepInfo: 'Click add files and attachments button',
+        });
+        for (const attachment of options.attachments) {
+          await this.uploadAttachment(attachment);
+        }
+      }
 
-      // For now, return placeholder data
-      const albumId = faker.string.uuid();
-      const siteId = faker.string.uuid();
-      const response: PageCreationResponse = {
-        result: {
-          id: albumId,
-          site: {
-            siteId: siteId,
-          },
-        },
-      } as PageCreationResponse;
+      // Set open album if specified
+      if (options.openAlbum) {
+        await this.checkElement(this.openAlbumCheckbox, {
+          stepInfo: 'Check open album checkbox',
+        });
+      }
+
+      // Add topics if provided
+      if (options.topics && options.topics.length > 0) {
+        await this.addTopics(options.topics);
+      }
+
+      // Publish the album
+      const submitResponse = await this.submitAlbum();
+
+      // Get response body
+      const submitResponseBody = (await submitResponse.json()) as AlbumCreationResponse;
+
+      // Extract the album ID and site ID from the response
+      const albumId = submitResponseBody.result.id;
+      const siteId = submitResponseBody.result.site.siteId;
+      const peopleId = submitResponseBody.result.authoredBy.peopleId;
+      const peopleName = submitResponseBody.result.authoredBy.name;
 
       return {
         title: options.title,
         description: options.description,
         albumId: albumId,
         siteId: siteId,
-        response: response,
+        peopleId: peopleId,
+        peopleName: peopleName.trim(),
+        response: submitResponseBody,
       };
     });
   }
 
-  // Assertion methods implementation
-  async verifyContentPublishedSuccessfully(title: string): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.page.locator(`text=${title}`), {
-      assertionMessage: `Album title '${title}' should be visible`,
-    });
-    await this.verifier.verifyTheElementIsVisible(this.page.locator('text=Created album successfully'), {
-      assertionMessage: 'Success message should be visible',
-    });
-  }
-
-  async verifySuccessMessage(message: string): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.page.locator(`text=${message}`), {
-      assertionMessage: `Success message '${message}' should be visible`,
-    });
-  }
-
-  async verifySendHistoryTabPopup(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.sendHistoryPopup, {
-      assertionMessage: 'Send history popup should be visible',
-    });
-  }
-
-  async verifyVersionHistoryTabPopup(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.versionHistoryPopup, {
-      assertionMessage: 'Version history popup should be visible',
-    });
-  }
-
-  async verifyFileAttachmentUploadAndDownload(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.fileAttachmentItem, {
-      assertionMessage: 'File attachment item should be visible',
-    });
-  }
-
-  async verifyAlbumCoverImageChange(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.coverImageChanged, {
-      assertionMessage: 'Cover image changed indicator should be visible',
-    });
-  }
-
-  async verifyAlbumUnpublishFunctionality(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.page.locator('text=Album unpublished successfully'), {
-      assertionMessage: 'Album unpublished success message should be visible',
-    });
-  }
-
-  async verifyAlbumDeleteFunctionality(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.page.locator('text=Album deleted successfully'), {
-      assertionMessage: 'Album deleted success message should be visible',
-    });
-  }
-
-  async verifyScheduleToastMessage(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.scheduleToast, {
-      assertionMessage: 'Schedule toast message should be visible',
-    });
-  }
-
-  async verifyAlbumTitleErrorMessage(message: string): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.page.locator(`text=${message}`), {
-      assertionMessage: `Album title error message '${message}' should be visible`,
+  async submitAlbum(): Promise<Response> {
+    return await test.step(`Submitting album and wait for publish api response`, async () => {
+      const submitResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.submitButton, { delay: 2_000 }),
+        response =>
+          response.url().includes('content?action=publish') &&
+          response.request().method() === 'POST' &&
+          response.status() === 201,
+        {
+          timeout: 20_000,
+        }
+      );
+      return submitResponse;
     });
   }
 }

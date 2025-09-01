@@ -2,6 +2,7 @@ export enum ContentSuiteTags {
   PAGE_CREATION = '@page-creation',
   ALBUM_CREATION = '@album-creation',
   SITE_CREATION = '@site-creation',
+  EVENT_CREATION = '@event-creation',
 }
 
 export enum ContentFeatureTags {

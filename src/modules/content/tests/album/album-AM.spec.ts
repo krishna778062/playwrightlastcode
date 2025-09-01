@@ -30,7 +30,12 @@ test.describe(
         await appManagerHomePage.verifyThePageIsLoaded();
 
         // Initialize preview page
-        contentPreviewPage = new ContentPreviewPage(appManagersPage);
+        contentPreviewPage = new ContentPreviewPage(
+          appManagersPage,
+          siteIdToPublishAlbum,
+          publishedAlbumId,
+          ContentType.ALBUM
+        );
 
         // Reset cleanup flag for each test
         manualCleanupNeeded = false;
