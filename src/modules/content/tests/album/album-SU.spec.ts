@@ -7,6 +7,7 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentType } from '@/src/modules/content/constants/contentType';
+import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
@@ -17,9 +18,9 @@ import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
-  ContentSuiteTags.ALBUM_CREATION + ' - SU Tests',
+  ContentTestSuite.ALBUM_SU,
   {
-    tag: [ContentSuiteTags.ALBUM_CREATION],
+    tag: [ContentTestSuite.ALBUM_SU],
   },
   () => {
     let albumCreationPage: AlbumCreationPage;
@@ -27,6 +28,7 @@ test.describe(
     let publishedAlbumId: string;
     let siteIdToPublishAlbum: string;
     let homePage: NewUxHomePage;
+    let standardUserHomePage: NewUxHomePage;
     let siteDashboardPage: SiteDashboardPage;
     let manageSitePage: ManageSitePage;
     let manageSiteContentPage: ManageSiteContentPage;
@@ -34,25 +36,19 @@ test.describe(
     let albumURL: string;
     let createdSite: any;
 
-    test.beforeEach(async ({ page, loginAs }) => {
-      // Login as end user using loginAs fixture
-      await loginAs('endUser');
+    test.beforeEach(
+      'Setting up the test environment for album creation',
+      async ({ standardUserHomePage, standardUserPage }) => {
+        // Create home page instance and verify it's loaded
+        await standardUserHomePage.verifyThePageIsLoaded();
 
-      // Create home page instance
-      homePage = new NewUxHomePage(page);
-      await homePage.verifyThePageIsLoaded();
+        // Initialize preview page
+        contentPreviewPage = new ContentPreviewPage(standardUserPage);
 
-      // Initialize preview page
-      contentPreviewPage = new ContentPreviewPage(page);
-
-      // Initialize other page objects
-      siteDashboardPage = new SiteDashboardPage(page, siteIdToPublishAlbum);
-      manageSitePage = new ManageSitePage(page);
-      manageSiteContentPage = new ManageSiteContentPage(page);
-
-      // Reset cleanup flag for each test
-      manualCleanupNeeded = false;
-    });
+        // Reset cleanup flag for each test
+        manualCleanupNeeded = false;
+      }
+    );
 
     test.afterEach(async ({ appManagerApiClient }) => {
       // Only cleanup manually if needed (for UI-only tests)
@@ -67,9 +63,9 @@ test.describe(
     test(
       'Album Content Add attach file with all the Mandatory fields by Standard user',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
       },
-      async ({ page, loginAs }) => {
+      async ({ standardUserHomePage }) => {
         tagTest(test.info(), {
           description: 'Album Content Add attach file with all the Mandatory fields by Standard user',
           zephyrTestId: 'CONT-10342',
@@ -80,14 +76,14 @@ test.describe(
         const description = `End user album description ${faker.lorem.paragraph()}`;
 
         // Navigate to album creation
-        albumCreationPage = (await homePage.actions.openCreateContentPageForContentType(
+        albumCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
           ContentType.ALBUM
         )) as AlbumCreationPage;
 
         // Generate album data using TestDataGenerator
         const albumCreationOptions = TestDataGenerator.generateAlbum(
           CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
-          'test-attachment.pdf',
+          'sample.docx',
           'https://youtu.be/4vLyqzOr14g',
           true
         );
@@ -104,11 +100,9 @@ test.describe(
 
         // Verify content was published successfully
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
-          title,
+          albumCreationOptions.title,
           "Created album successfully - it's published"
         );
-
-        console.log(`Created album: ${title} with ID: ${albumId} in site: ${siteId}`);
       }
     );
   }

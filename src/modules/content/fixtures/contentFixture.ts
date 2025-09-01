@@ -73,8 +73,7 @@ export const contentTestFixture = test.extend<
       });
       await appManagerHomePage.verifyThePageIsLoaded();
       await use(appManagerHomePage);
-      // Logout after each test case using this fixture
-      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerHomePage.page);
+      await page.close();
     },
     { scope: 'test' },
   ],
@@ -103,9 +102,7 @@ export const contentTestFixture = test.extend<
       });
       await standardUserHomePage.verifyThePageIsLoaded();
       await use(standardUserHomePage);
-
-      // Logout after each test case using this fixture
-      await LoginHelper.logoutByNavigatingToLogoutPage(standardUserHomePage.page);
+      await page.close();
     },
     { scope: 'test' },
   ],

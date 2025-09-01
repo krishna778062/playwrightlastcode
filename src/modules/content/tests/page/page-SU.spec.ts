@@ -33,12 +33,7 @@ test.describe(
         await standardUserHomePage.verifyThePageIsLoaded();
 
         // Initialize preview page
-        contentPreviewPage = new ContentPreviewPage(
-          standardUserPage,
-          siteIdToPublishPage,
-          publishedPageId,
-          ContentType.PAGE
-        );
+        contentPreviewPage = new ContentPreviewPage(standardUserPage);
 
         // Reset cleanup flag for each test
         manualCleanupNeeded = false;
@@ -63,8 +58,8 @@ test.describe(
       async ({ standardUserHomePage }) => {
         tagTest(test.info(), {
           description: 'Verify SU is able to publish a new page created with cover image from home page',
-          zephyrTestId: 'CONT-20053',
-          storyId: 'CONT-20053',
+          zephyrTestId: 'CONT-1378',
+          storyId: 'CONT-1378',
         });
 
         pageCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
@@ -78,17 +73,20 @@ test.describe(
         );
 
         // Use the new wrapper method to create and publish the page
-        const { pageId, siteId } = await pageCreationPage.actions.createAndSubmitPage(pageCreationOptions);
+        const { pageId, siteId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
 
         // Store IDs for cleanup
         publishedPageId = pageId;
         siteIdToPublishPage = siteId;
         manualCleanupNeeded = true;
 
+        // Initialize preview page and handle the promotion
+        await contentPreviewPage.actions.handlePromotionPageStep();
+
         // Verify content was published successfully via UI
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
-          'Submitted page for approval'
+          "Created page successfully - it's published"
         );
       }
     );

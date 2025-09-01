@@ -14,9 +14,9 @@ import { SiteCreationPage as ContentSiteCreationPage } from '@/src/modules/conte
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
-  ContentTestSuite.FEATURED_SITES + ' - AM Tests',
+  ContentTestSuite.SITE_AM,
   {
-    tag: [ContentTestSuite.FEATURED_SITES],
+    tag: [ContentTestSuite.SITE_AM],
   },
   () => {
     let siteCreationPage: ContentSiteCreationPage;
@@ -50,8 +50,8 @@ test.describe(
       async ({ appManagerHomePage, appManagersPage }) => {
         tagTest(test.info(), {
           description: 'Verify admin can create a public site with cover image',
-          zephyrTestId: 'CONT-SITE-001',
-          storyId: 'CONT-SITE-001',
+          zephyrTestId: 'CCONT-10603',
+          storyId: 'CONT-10603',
         });
 
         // Navigate to site creation page
@@ -61,21 +61,15 @@ test.describe(
         const siteCreationOptions = TestDataGenerator.generateSite('public');
 
         // Create and publish the site
-        const { siteDashboard, siteId, siteName } = await siteCreationPage.actions.addSite(siteCreationOptions);
-
-        // Verify we're on the correct site dashboard page
-        expect(siteDashboard.page.url(), 'Should navigate to the created site dashboard page').toContain(
-          PAGE_ENDPOINTS.getSiteDashboardPage(siteId)
-        );
-
-        await siteDashboard.assertions.verifySiteName(siteName, 'Created site successfully');
-
+        const { siteDashboard, siteId } = await siteCreationPage.actions.addSite(siteCreationOptions);
         // Store IDs for cleanup
         createdSiteId = siteId;
-        createdSiteName = siteName;
+        createdSiteName = siteCreationOptions.title;
         manualCleanupNeeded = true;
+        // Verify we're on the correct site dashboard page
+        await siteDashboard.assertions.verifyDashboardUrl(createdSiteId);
 
-        console.log(`Created site: ${siteName} with ID: ${siteId}`);
+        await siteDashboard.assertions.verifySiteName(siteCreationOptions.title, 'Created site successfully');
       }
     );
   }
