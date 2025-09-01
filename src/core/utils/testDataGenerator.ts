@@ -196,4 +196,35 @@ export class TestDataGenerator {
   static generateEvents(count: number, overrides?: Partial<EventCreationOptions>): EventCreationOptions[] {
     return Array.from({ length: count }, () => this.generateEvent(overrides));
   }
+
+  /**
+   * Generates a random site with realistic data
+   * @param fileName Optional cover image file name
+   * @param overrides Optional properties to override in the generated site
+   * @returns A SiteCreationOptions object with random realistic data
+   */
+  static generateSite(access: string, overrides?: Partial<any>): any {
+    const siteOptions = {
+      name: `Automated Test Site ${faker.company.name()} - ${faker.commerce.department()}`,
+      description: `This is an automated test site description ${faker.lorem.paragraph()}`,
+      siteCategory: faker.word.noun().toLowerCase(),
+      access: access,
+    };
+
+    return {
+      ...siteOptions,
+      ...overrides,
+    };
+  }
+
+  /**
+   * Generates multiple random sites
+   * @param count Number of sites to generate
+   * @param fileName Optional cover image file name
+   * @param overrides Optional properties to override in all generated sites
+   * @returns Array of SiteCreationOptions objects
+   */
+  static generateSites(count: number, access: string, overrides?: Partial<any>): any[] {
+    return Array.from({ length: count }, () => this.generateSite(access, overrides));
+  }
 }

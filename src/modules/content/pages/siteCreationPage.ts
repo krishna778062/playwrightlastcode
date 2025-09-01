@@ -42,6 +42,7 @@ export interface SiteCreationOptions {
 export interface ISiteCreationActions {
   addSite(options: SiteCreationOptions): Promise<{
     siteDashboard: SiteDashboardPage;
+    siteName: string;
     siteId: string;
   }>;
 }
@@ -100,6 +101,7 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
    */
   async addSite(options: SiteCreationOptions): Promise<{
     siteDashboard: SiteDashboardPage;
+    siteName: string;
     siteId: string;
   }> {
     return await test.step(`Creating and publishing site with name: ${options.name}`, async () => {
@@ -114,14 +116,16 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
       const createResponse = await this.createSite();
 
       // Parse response body
-      const createResponseBody = (await createResponse.json()) as SiteCreationResponse;
+      const createResponseBody = (await createResponse.json()) as PageCreationResponse;
 
       // Extract site ID and name from response
-      const siteId = createResponseBody.result.siteId;
+      const siteId = createResponseBody.result.id;
+      const siteName = createResponseBody.result.site.name || options.name;
 
       // Return site dashboard page with site details
       return {
         siteDashboard: new SiteDashboardPage(this.page, siteId),
+        siteName: siteName,
         siteId: siteId,
       };
     });
@@ -151,7 +155,6 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
    */
   async createSite(): Promise<Response> {
     return await test.step(`Creating site and wait for create api response`, async () => {
-      console.log('expected url : ', getEnvConfig().apiBaseUrl + API_ENDPOINTS.site.url);
       const createResponse = await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.createSiteButton, { delay: 2_000 }),
         response =>
