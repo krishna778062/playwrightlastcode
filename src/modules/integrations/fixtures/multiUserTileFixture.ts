@@ -76,7 +76,6 @@ export const multiUserTileFixture = test.extend<
       // Create end user context and page
       const endUserContext = await browser.newContext({ recordVideo: { dir: 'test-results/videos/' } });
       const endUserPage = await endUserContext.newPage();
-
       // Login end user
       await test.step(`Logging in End User`, async () => {
         const baseUrl = getEnvConfig().frontendBaseUrl;
@@ -84,14 +83,28 @@ export const multiUserTileFixture = test.extend<
 
         const usernameInput = endUserPage.locator('#inputOption');
         await usernameInput.waitFor({ state: 'visible' });
-        await usernameInput.fill(getEnvConfig().endUserEmail!);
+
+        const endUserEmail = getEnvConfig().endUserEmail;
+        if (!endUserEmail) {
+          throw new Error(
+            'endUserEmail is not defined in environment configuration. Check your .env file or CI environment variables.'
+          );
+        }
+        await usernameInput.fill(endUserEmail);
 
         const continueButton = endUserPage.getByRole('button', { name: /continue/i });
         await continueButton.click();
 
         const passwordInput = endUserPage.locator('#inputPassword');
         await passwordInput.waitFor({ state: 'visible' });
-        await passwordInput.fill(getEnvConfig().endUserPassword!);
+
+        const endUserPassword = getEnvConfig().endUserPassword;
+        if (!endUserPassword) {
+          throw new Error(
+            'endUserPassword is not defined in environment configuration. Check your .env file or CI environment variables.'
+          );
+        }
+        await passwordInput.fill(endUserPassword);
 
         const signInButton = endUserPage.getByRole('button', { name: /sign in/i });
         await signInButton.click();
