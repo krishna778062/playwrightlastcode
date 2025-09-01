@@ -9,21 +9,13 @@ interface ContentFilters {
   status?: string;
 }
 
-export interface IManageSiteContentActions {
-  applyContentFilters: (filters: ContentFilters) => Promise<void>;
-}
+export interface IManageSiteContentActions {}
 
-export interface IManageSiteContentAssertions {
-  // Add assertions as needed
-}
+export interface IManageSiteContentAssertions {}
 
 export class ManageSiteContentPage extends BasePage implements IManageSiteContentActions, IManageSiteContentAssertions {
   // Locators
   readonly contentTypeFilter = this.page.locator('[data-testid="content-type-filter"], select[name="contentType"]');
-  readonly dateRangeFilter = this.page.locator('[data-testid="date-range-filter"], select[name="dateRange"]');
-  readonly sortByFilter = this.page.locator('[data-testid="sort-by-filter"], select[name="sortBy"]');
-  readonly statusFilter = this.page.locator('[data-testid="status-filter"], select[name="status"]');
-  readonly applyFiltersButton = this.page.locator('button:has-text("Apply"), button:has-text("Filter")');
 
   constructor(page: Page) {
     super(page);
@@ -41,32 +33,5 @@ export class ManageSiteContentPage extends BasePage implements IManageSiteConten
 
   get assertions(): IManageSiteContentAssertions {
     return this;
-  }
-
-  async applyContentFilters(filters: ContentFilters): Promise<void> {
-    await test.step('Apply content filters', async () => {
-      if (filters.contentType) {
-        await this.page.selectOption(this.contentTypeFilter, filters.contentType);
-      }
-
-      if (filters.dateRange) {
-        await this.page.selectOption(this.dateRangeFilter, filters.dateRange);
-      }
-
-      if (filters.sortBy) {
-        await this.page.selectOption(this.sortByFilter, filters.sortBy);
-      }
-
-      if (filters.status) {
-        await this.page.selectOption(this.statusFilter, filters.status);
-      }
-
-      // Apply the filters
-      if (await this.applyFiltersButton.isVisible()) {
-        await this.clickOnElement(this.applyFiltersButton, {
-          stepInfo: 'Click apply filters button',
-        });
-      }
-    });
   }
 }

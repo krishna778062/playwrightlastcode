@@ -86,7 +86,6 @@ test.describe(
         // Step 3: Edit the post
         await feedPage.actions.editPost(postResult.postText, updatedPostText);
         await feedPage.assertions.waitForPostToBeVisible(updatedPostText);
-        createdPostText = updatedPostText;
 
         // Step 4: Delete the post
         await feedPage.actions.deletePost(updatedPostText);
