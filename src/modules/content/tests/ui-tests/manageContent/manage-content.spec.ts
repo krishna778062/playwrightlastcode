@@ -80,8 +80,8 @@ test.describe(
       async ({ loginAs }) => {
         tagTest(test.info(), {
           description: 'Login as Admin',
-          zephyrTestId: 'CONT-25055',
-          storyId: 'CONT-25055',
+          zephyrTestId: 'CONT-20952',
+          storyId: 'CONT-20952',
         });
         await loginAs('endUser');
         await manageFeaturePage.actions.navigateToContentButton();
@@ -117,8 +117,8 @@ test.describe(
       async ({ loginAs }) => {
         tagTest(test.info(), {
           description: 'Login as Admin',
-          zephyrTestId: 'CONT-25055',
-          storyId: 'CONT-25055',
+          zephyrTestId: 'CONT-20951',
+          storyId: 'CONT-20951',
         });
         await loginAs('endUser');
         await manageFeaturePage.actions.navigateToContentButton();
@@ -135,8 +135,8 @@ test.describe(
       async ({ loginAs }) => {
         tagTest(test.info(), {
           description: 'Login as Admin',
-          zephyrTestId: 'CONT-25055',
-          storyId: 'CONT-25055',
+          zephyrTestId: 'CONT-20946',
+          storyId: 'CONT-20946',
         });
         await loginAs('endUser');
         await manageFeaturePage.actions.navigateToContentButton();
@@ -146,7 +146,7 @@ test.describe(
       }
     );
 
-    test.only(
+    test(
       'Verification of various aspects of My Content screen',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
@@ -154,11 +154,57 @@ test.describe(
       async ({ loginAs }) => {
         tagTest(test.info(), {
           description: 'Login as Admin',
-          zephyrTestId: 'CONT-25055',
-          storyId: 'CONT-25055',
+          zephyrTestId: 'CONT-20945',
+          storyId: 'CONT-20945',
         });
         await loginAs('endUser');
         await manageFeaturePage.actions.navigateToContentButton();
+        await manageContentPage.assertions.verifyImageContainer();
+        await manageContentPage.assertions.authorNameShouldBeVisible();
+        await manageContentPage.assertions.clickOnTheAuthorName();
+        await manageFeaturePage.actions.navigateToContentButton();
+        await manageContentPage.assertions.verifySiteName();
+        await manageContentPage.assertions.clickOnTheSiteName();
+        await manageFeaturePage.actions.navigateToContentButton();
+        await manageContentPage.assertions.verifySiteStatusStamp();
+      }
+    );
+
+    test(
+      'Verify Site Filter in My Content screen',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
+      },
+      async ({ loginAs }) => {
+        tagTest(test.info(), {
+          description: 'Login as Admin',
+          zephyrTestId: 'CONT-20944',
+          storyId: 'CONT-20944',
+        });
+        await loginAs('appManager');
+        await manageFeaturePage.actions.navigateToContentButton();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.clickSiteSearchBar('Sales');
+        await manageContentPage.actions.selectSiteSearchBarOption();
+        await manageContentPage.assertions.verifySiteNameLink();
+      }
+    );
+
+    test(
+      'Verify created Newest Filter in My Content screen',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
+      },
+      async ({ loginAs }) => {
+        tagTest(test.info(), {
+          description: 'Login as Admin',
+          zephyrTestId: 'CONT-20943',
+          storyId: 'CONT-20943',
+        });
+        await loginAs('appManager');
+        await manageFeaturePage.actions.navigateToContentButton();
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.selectCreatedNewestOption();
       }
     );
   }

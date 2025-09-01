@@ -26,6 +26,17 @@ export class ManageContentComponent extends BaseComponent {
   readonly deleteOption: Locator;
   readonly deleteModalConfirmButton: Locator;
   readonly imageContainer: Locator;
+  readonly FilterButton: Locator;
+  readonly siteSearchBar: Locator;
+  readonly authorName: Locator;
+  readonly listContainer: Locator;
+  readonly siteHeading: Locator;
+  readonly siteSearchBarOption: Locator;
+  readonly siteStatusStamp: Locator;
+  readonly siteName: Locator;
+  siteSearchBarOptionText!: string;
+  readonly sortByButton: Locator;
+  readonly createdNewestOption = '?sortBy=publishedNewest';
   constructor(page: Page) {
     super(page);
     this.searchBar = page.locator("[aria-label='Search…']");
@@ -53,7 +64,16 @@ export class ManageContentComponent extends BaseComponent {
     this.unpublishOption = page.locator(`[title="Unpublish"]`).first();
     this.deleteOption = page.locator(`[title="Delete"]`).first();
     this.deleteModalConfirmButton = page.locator(`[type="submit"]`);
-    this.imageContainer = page.locator('[.ContentImageIcon]').first();
+    this.imageContainer = this.page.locator('[class*="ContentImageIcon"]').first();
+    this.FilterButton = page.getByRole('button', { name: 'Filters' });
+    this.siteSearchBar = page.getByRole('combobox', { name: 'Select site:' });
+    this.listContainer = page.locator('.ListingItem-inner');
+    this.authorName = this.listContainer.locator('.meta-link').first();
+    this.siteHeading = this.listContainer.locator(`[target="_self"]`).first();
+    this.siteStatusStamp = this.listContainer.locator('[class="StampList"]').first();
+    this.siteSearchBarOption = page.locator('[role="listbox"]').first();
+    this.siteName = page.locator(`[class="meta-link"]`).last();
+    this.sortByButton = page.locator(`[name="sortBy"]`);
   }
 
   async clickSearchBar(): Promise<void> {
@@ -221,9 +241,87 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
-  async clickImageContainer(): Promise<void> {
+  async verifyImageContainer(): Promise<void> {
     await test.step(`Clicking the image container`, async () => {
       await this.imageContainer.isVisible();
+    });
+  }
+  async clickFilterButton(): Promise<void> {
+    await test.step(`Clicking the filter button`, async () => {
+      await this.FilterButton.click();
+    });
+  }
+  async clickSiteSearchBar(siteName: string): Promise<void> {
+    await test.step(`Clicking the site search bar`, async () => {
+      await this.siteSearchBar.click();
+      await this.siteSearchBar.type(siteName);
+    });
+  }
+  async selectSiteSearchBar(siteName: string): Promise<void> {
+    await test.step(`Selecting the site search bar`, async () => {});
+  }
+  async authorNameShouldBeVisible(): Promise<void> {
+    await test.step(`Checking the author name should be visible`, async () => {
+      await this.authorName.isVisible();
+    });
+  }
+  async clickOnTheAuthorName(): Promise<void> {
+    await test.step(`Clicking on the author name`, async () => {
+      await this.authorName.click();
+      await this.page.waitForTimeout(5000);
+    });
+  }
+  async verifySiteName(): Promise<void> {
+    await test.step(`Verifying the site name`, async () => {
+      await this.siteHeading.isVisible();
+    });
+  }
+  async clickOnTheSiteName(): Promise<void> {
+    await test.step(`Clicking on the site name`, async () => {
+      await this.siteHeading.click();
+      await this.page.waitForTimeout(5000);
+    });
+  }
+  async verifySiteStatusStamp(): Promise<void> {
+    await test.step(`Verifying the site status stamp`, async () => {
+      await this.siteStatusStamp.isVisible();
+    });
+  }
+  async selectSiteSearchBarOption(): Promise<void> {
+    await test.step('Selecting the site search bar option', async () => {
+      this.siteSearchBarOptionText = await this.siteSearchBarOption.innerText();
+
+      // Click on the site search bar option
+      await this.siteSearchBarOption.click();
+
+      // Get the text of the selected option
+
+      // Log the selected option text (optional)
+      console.log(this.siteSearchBarOptionText);
+    });
+  }
+
+  async verifySiteNameLink(): Promise<void> {
+    await test.step('Verifying the site name', async () => {
+      // Get the text of the site name
+      const siteName = await this.siteName.innerText();
+
+      // Compare the texts
+      if (this.siteSearchBarOptionText === siteName) {
+        console.log('Site name is matching');
+      } else {
+        console.log('Site name is not matching');
+      }
+    });
+  }
+  async clickSortByButton(): Promise<void> {
+    await test.step('Clicking the sort by button', async () => {
+      await this.sortByButton.click();
+    });
+  }
+  async selectCreatedNewestOption(): Promise<void> {
+    await test.step('Selecting the created newest option', async () => {
+      await this.page.goto(`${this.page.url()}${this.createdNewestOption}`);
     });
   }
 }

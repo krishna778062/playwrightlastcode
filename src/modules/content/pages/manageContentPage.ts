@@ -13,11 +13,21 @@ export interface IFeedActions {
   clickOnUnpublishButton: () => Promise<void>;
   clickOnApplyButton: () => Promise<void>;
   clickOnPublishButton: () => Promise<void>;
+  clickFilterButton: () => Promise<void>;
+  clickSiteSearchBar: (siteName: string) => Promise<void>;
+  clickOnTheSiteName: () => Promise<void>;
+  clickSortByButton: () => Promise<void>;
+  selectCreatedNewestOption: () => Promise<void>;
 }
 
 export interface IFeedAssertions {
   nothingToShowHereText: () => Promise<void>;
   placeHolderTextShouldBeVisible: () => Promise<void>;
+  verifyImageContainer: () => Promise<void>;
+  authorNameShouldBeVisible: () => Promise<void>;
+  clickOnTheAuthorName: () => Promise<void>;
+  verifySiteName: () => Promise<void>;
+  verifySiteNameLink: () => Promise<void>;
 }
 
 export class ManageContentPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -123,5 +133,41 @@ export class ManageContentPage extends BasePage implements IFeedActions, IFeedAs
 
   async clickDeleteModalConfirmButton(): Promise<void> {
     await this.manageContentComponent.clickDeleteModalConfirmButton();
+  }
+  async verifyImageContainer(): Promise<void> {
+    await this.manageContentComponent.verifyImageContainer();
+  }
+  async clickFilterButton(): Promise<void> {
+    await this.manageContentComponent.clickFilterButton();
+  }
+  async clickSiteSearchBar(siteName: string): Promise<void> {
+    await this.manageContentComponent.clickSiteSearchBar(siteName);
+  }
+  async authorNameShouldBeVisible(): Promise<void> {
+    await this.manageContentComponent.authorNameShouldBeVisible();
+  }
+  async clickOnTheAuthorName(): Promise<void> {
+    await this.manageContentComponent.clickOnTheAuthorName();
+  }
+  async verifySiteName(): Promise<void> {
+    await this.manageContentComponent.verifySiteName();
+  }
+  async clickOnTheSiteName(): Promise<void> {
+    await this.manageContentComponent.clickOnTheSiteName();
+  }
+  async verifySiteStatusStamp(): Promise<void> {
+    await this.manageContentComponent.verifySiteStatusStamp();
+  }
+  async selectSiteSearchBarOption(): Promise<void> {
+    await this.manageContentComponent.selectSiteSearchBarOption();
+  }
+  async verifySiteNameLink(): Promise<void> {
+    await this.manageContentComponent.verifySiteNameLink();
+  }
+  async clickSortByButton(): Promise<void> {
+    await this.manageContentComponent.clickSortByButton();
+  }
+  async selectCreatedNewestOption(): Promise<void> {
+    await this.manageContentComponent.selectCreatedNewestOption();
   }
 }
