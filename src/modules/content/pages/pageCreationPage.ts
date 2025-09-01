@@ -3,14 +3,14 @@ import { Locator, Page, Response, test } from '@playwright/test';
 import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
 import { BasePage } from '@core/pages/basePage';
 
+import { PageCreationResponse } from '../apis/types/pageCreationResponse';
+import { AddContentModalComponent } from '../components/addContentModal';
+import { AttachementUploaderComponent } from '../components/attachementUploader';
+import { ImageCropperComponent } from '../components/imageCropper';
+import { PageContentType } from '../constants/pageContentType';
+import { CONTENT_TEST_DATA } from '../test-data/content.test-data';
+
 import { FileUtil } from '@/src/core/utils/fileUtil';
-import { PageCreationResponse } from '@/src/modules/content/apis/types/pageCreationResponse';
-import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
-import { AttachementUploaderComponent } from '@/src/modules/content/components/attachementUploader';
-import { ImageCropperComponent } from '@/src/modules/content/components/imageCropper';
-import { PageContentType } from '@/src/modules/content/constants/pageContentType';
-import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
-import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 export interface PageCreationOptions {
   // Required fields
@@ -50,16 +50,6 @@ export interface IPageCreationActions {
     siteId: string;
     response: PageCreationResponse;
   }>;
-  createAndSubmitPage: (options: PageCreationOptions) => Promise<{
-    title: string;
-    description: string;
-    category: string;
-    contentType: PageContentType;
-    pageId: string;
-    siteId: string;
-    response: PageCreationResponse;
-  }>;
-  navigateToAddContentModal: () => Promise<void>;
 }
 
 export interface IPageCreationAssertions {
@@ -79,7 +69,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   readonly skipStepButton: Locator;
   readonly titleInput: Locator;
   readonly descriptionInput: Locator;
-  readonly submitButton: Locator;
   // Page components
   readonly addContentModal: AddContentModalComponent;
   readonly coverImageUploader: AttachementUploaderComponent;
@@ -107,7 +96,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     this.titleInput = page.locator("textarea[placeholder='Page title']");
     this.descriptionInput = page.locator("div[aria-label='Page content']");
     this.contentTypeCheckbox = (type: string) => page.locator('label:has(span)', { hasText: type });
-    this.submitButton = page.locator('span').filter({ hasText: 'Submit for approval' });
     // Page components
     this.addContentModal = new AddContentModalComponent(page);
     this.coverImageUploader = new AttachementUploaderComponent(page, this.coverImageUploaderContainer);
@@ -117,7 +105,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.page.waitForLoadState('domcontentloaded');
     await this.verifier.verifyTheElementIsVisible(this.titleInput, {
       assertionMessage: 'Page title input should be visible',
     });
@@ -145,26 +132,24 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     }
   ) {
     await test.step(`Upload cover image: ${fileName}`, async () => {
-      // Setup response promises for 3 upload requests
-      const responsePromises = [];
-      const responsePromise = this.page.waitForResponse(
-        response =>
-          response.request().url().includes('X-Amz-SignedHeaders=host') &&
-          response.request().method() === 'PUT' &&
-          response.status() === 200,
-        { timeout: 35000 }
-      );
-      responsePromises.push(responsePromise);
-
+      //there will be three requests for the cover image to upload different sizes
+      //we will wait until all three requests are completed
+      const reqPromises = [];
+      for (let i = 0; i < 3; i++) {
+        reqPromises.push(
+          this.page.waitForResponse(
+            response => response.url().includes('Content-Type=image%2Fpng') && response.request().method() === 'PUT'
+          ),
+          35_000
+        );
+      }
       const imagePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', 'images', fileName);
       await this.coverImageUploader.uploadAttachment(imagePath);
-
       //handle wide screen crop option
       if (options?.widescreenCropOption) {
         await this.imageCropper.selectCropOption('Widescreen');
       }
       await this.imageCropper.clickOnNextButton();
-
       //handle square crop option
       if (options?.squareCropOption) {
         await this.imageCropper.selectCropOption('Square');
@@ -173,8 +158,8 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       await this.imageCropper.clickOnNextButton();
       await this.imageCropper.clickOnAddButton();
 
-      // Wait for all 3 upload responses to complete with 200 status
-      await Promise.all(responsePromises);
+      //wait for all the requests to be completed
+      await Promise.all(reqPromises);
     });
   }
 
@@ -261,6 +246,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
           squareCropOption: options.coverImage.cropOptions?.square,
         });
       }
+
       // Publish the page
       const publishResponse = await this.publishPage();
 
@@ -283,18 +269,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     });
   }
 
-  /**
-   * Navigates to add content modal from site dashboard
-   * @param contentType - The content type to create
-   */
-  async navigateToAddContentModal(): Promise<void> {
-    await test.step(`Navigate to add content modal`, async () => {
-      const siteDashboard = new SiteDashboardPage(this.page, '');
-      await siteDashboard.verifyThePageIsLoaded();
-      await siteDashboard.clickOnAddContent();
-    });
-  }
-
   //assertions
   /**
    * Verifies that the uploaded cover image preview is visible
@@ -307,67 +281,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
         assertionMessage: 'expected uploaded cover image preview element to be visible',
         timeout: options?.timeout || CONTENT_TEST_DATA.TIMEOUTS.UPLOAD,
       });
-    });
-  }
-
-  async createAndSubmitPage(options: PageCreationOptions): Promise<{
-    title: string;
-    description: string;
-    category: string;
-    contentType: PageContentType;
-    pageId: string;
-    siteId: string;
-    response: PageCreationResponse;
-  }> {
-    return await test.step(`Creating and submit page with title: ${options.title}`, async () => {
-      // Fill in page mandatory details
-      await this.fillPageDetails({
-        title: options.title,
-        description: options.description,
-        category: options.category,
-        contentType: options.contentType,
-      });
-
-      // Upload cover image if provided
-      if (options.coverImage) {
-        await this.uploadCoverImage(options.coverImage.fileName, {
-          widescreenCropOption: options.coverImage.cropOptions?.widescreen,
-          squareCropOption: options.coverImage.cropOptions?.square,
-        });
-      }
-
-      // Submit the page
-      const submitResponse = await this.submitPage();
-      const submitResponseBody = (await submitResponse.json()) as PageCreationResponse;
-
-      const pageId = submitResponseBody.result.id;
-      const siteId = submitResponseBody.result.site.siteId;
-
-      return {
-        title: options.title,
-        description: options.description,
-        category: options.category,
-        contentType: options.contentType,
-        pageId: pageId,
-        siteId: siteId,
-        response: submitResponseBody,
-      };
-    });
-  }
-
-  async submitPage(): Promise<Response> {
-    return await test.step(`Submitting page and wait for submit api response`, async () => {
-      const submitResponse = await this.performActionAndWaitForResponse(
-        () => this.clickOnElement(this.submitButton, { delay: 2_000 }),
-        response =>
-          response.url().includes('content?action=publish') &&
-          response.request().method() === 'POST' &&
-          response.status() === 201,
-        {
-          timeout: 20_000,
-        }
-      );
-      return submitResponse;
     });
   }
 }

@@ -9,6 +9,10 @@ import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
+import { ManageSiteContentPage } from '@/src/modules/content/pages/manageSiteContentPage';
+import { ManageSitePage } from '@/src/modules/content/pages/manageSitePage';
+import { PreviewPage } from '@/src/modules/content/pages/previewPage';
+import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
@@ -18,9 +22,13 @@ test.describe(
   },
   () => {
     let albumCreationPage: AlbumCreationPage;
+    let previewPage: PreviewPage;
     let publishedAlbumId: string;
     let siteIdToPublishAlbum: string;
     let homePage: NewUxHomePage;
+    let siteDashboardPage: SiteDashboardPage;
+    let manageSitePage: ManageSitePage;
+    let manageSiteContentPage: ManageSiteContentPage;
 
     test.beforeEach(async ({ page, loginAs }) => {
       // Login as app manager using loginAs fixture
@@ -29,6 +37,14 @@ test.describe(
       // Create home page instance
       homePage = new NewUxHomePage(page);
       await homePage.verifyThePageIsLoaded();
+
+      // Initialize preview page
+      previewPage = new PreviewPage(page);
+
+      // Initialize other page objects
+      siteDashboardPage = new SiteDashboardPage(page);
+      manageSitePage = new ManageSitePage(page);
+      manageSiteContentPage = new ManageSiteContentPage(page);
     });
 
     test.afterEach(async ({ appManagerApiClient }) => {
@@ -78,13 +94,10 @@ test.describe(
         siteIdToPublishAlbum = siteId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Verify album was published successfully
-        await albumCreationPage.assertions.verifyContentPublishedSuccessfully(title);
-
-        // Delete the album as part of test flow
-        await albumCreationPage.actions.deleteAlbum();
+        await previewPage.assertions.verifyContentPublishedSuccessfully(title);
       }
     );
 
@@ -120,13 +133,17 @@ test.describe(
         siteIdToPublishAlbum = siteId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Navigate to site content tab
-        await homePage.actions.navigateToSiteContentTab();
+        await previewPage.actions.navigateToSiteDashboard();
+
+        await siteDashboardPage.actions.navigateToMangeSite();
+
+        await manageSitePage.actions.navigateToContentTab();
 
         // Apply album filters
-        await homePage.actions.applyContentFilters({
+        await manageSiteContentPage.actions.applyContentFilters({
           contentType: 'Album',
           dateRange: 'Past 24 hours',
           sortBy: 'Published date (oldest first)',
@@ -149,7 +166,7 @@ test.describe(
       {
         tag: [TestPriority.P2, TestGroupType.SMOKE, ContentFeatureTags.ALBUM_ATTACHMENTS],
       },
-      async ({ loginAs }) => {
+      async ({ page, loginAs }) => {
         tagTest(test.info(), {
           description: 'Album Content Add attach file with all the Mandatory fields by Standard user',
           zephyrTestId: 'CONT-10342',
@@ -159,14 +176,14 @@ test.describe(
         // Login as end user
         await loginAs('endUser');
 
-        const homePage = new NewUxHomePage(test.info().project.use?.page);
-        await homePage.verifyThePageIsLoaded();
+        const endUserHomePage = new NewUxHomePage(page);
+        await endUserHomePage.verifyThePageIsLoaded();
 
         const title = `End User Album ${faker.company.name()}`;
         const description = `End user album description ${faker.lorem.paragraph()}`;
 
         // Navigate to album creation
-        albumCreationPage = (await homePage.actions.openCreateContentPageForContentType(
+        albumCreationPage = (await endUserHomePage.actions.openCreateContentPageForContentType(
           ContentType.ALBUM
         )) as AlbumCreationPage;
 
@@ -222,16 +239,16 @@ test.describe(
         publishedAlbumId = albumId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Verify send feedback tab
-        await albumCreationPage.actions.openSendFeedbackTab();
-        await albumCreationPage.assertions.verifySendHistoryTabPopup();
-        await albumCreationPage.actions.closeFeedbackModal();
+        await previewPage.actions.openSendFeedbackTab();
+        await previewPage.assertions.verifySendHistoryTabPopup();
+        await previewPage.actions.closeFeedbackModal();
 
         // Verify version history
-        await albumCreationPage.actions.openVersionHistory();
-        await albumCreationPage.assertions.verifyVersionHistoryTabPopup();
+        await previewPage.actions.openVersionHistory();
+        await previewPage.assertions.verifyVersionHistoryTabPopup();
       }
     );
 
@@ -253,7 +270,7 @@ test.describe(
 
         // Click on image from album and download
         await homePage.actions.clickImageFromAlbum();
-        const downloadedFile = await homePage.actions.downloadImageFromAlbum();
+        const downloadedFile = await extendedHomePage.actions.downloadImageFromAlbum();
 
         // Verify file download
         await homePage.assertions.verifyFileDownloaded(downloadedFile, 'image3', 'jpg');
@@ -306,7 +323,7 @@ test.describe(
         await homePage.actions.navigateToContentLink('2023 United States 2023 Holiday');
 
         // Get count of images and videos
-        const mediaCount = await homePage.actions.getImageAndVideoCount();
+        const mediaCount = await extendedHomePage.actions.getImageAndVideoCount();
 
         // Click on image from album
         await homePage.actions.clickImageFromAlbum();
@@ -335,7 +352,7 @@ test.describe(
         await homePage.actions.clickAlbumLink();
 
         // Get initial count
-        const initialCount = await homePage.actions.getAlbumAndVideoCount();
+        const initialCount = await extendedHomePage.actions.getAlbumAndVideoCount();
 
         // Edit album and add video
         await homePage.actions.clickEditButton();
@@ -352,7 +369,7 @@ test.describe(
         await homePage.actions.publishChanges();
 
         // Verify count is back to original
-        const finalCount = await homePage.actions.getAlbumAndVideoCount();
+        const finalCount = await extendedHomePage.actions.getAlbumAndVideoCount();
         await homePage.assertions.verifyCountMatches(initialCount, finalCount);
       }
     );
@@ -420,7 +437,7 @@ test.describe(
         siteIdToPublishAlbum = siteId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Navigate back to site content
         await homePage.actions.navigateToSite('Finance');
@@ -469,7 +486,7 @@ test.describe(
         siteIdToPublishAlbum = siteId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Navigate to content tab and verify long title display
         await homePage.actions.searchAndNavigateToSite('All Employees');
@@ -634,14 +651,14 @@ test.describe(
         siteIdToPublishAlbum = siteId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Unpublish the album
-        await albumCreationPage.actions.clickOptionMenuDropdown();
-        await albumCreationPage.actions.clickUnpublishButton();
+        await previewPage.actions.clickOptionMenuDropdown();
+        await previewPage.actions.clickUnpublishButton();
 
         // Verify unpublish functionality
-        await albumCreationPage.assertions.verifyAlbumUnpublishFunctionality();
+        await previewPage.assertions.verifyAlbumUnpublishFunctionality();
       }
     );
 
@@ -678,19 +695,19 @@ test.describe(
         siteIdToPublishAlbum = siteId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Delete the album
-        await albumCreationPage.actions.clickOptionMenuDropdown();
-        await albumCreationPage.actions.clickDeleteButton();
-        await albumCreationPage.actions.confirmDelete();
+        await previewPage.actions.clickOptionMenuDropdown();
+        await previewPage.actions.clickDeleteButton();
+        await previewPage.actions.confirmDelete();
 
         // Clear IDs as album is deleted
         publishedAlbumId = '';
         siteIdToPublishAlbum = '';
 
         // Verify delete functionality
-        await albumCreationPage.assertions.verifyAlbumDeleteFunctionality();
+        await previewPage.assertions.verifyAlbumDeleteFunctionality();
       }
     );
 
@@ -727,7 +744,7 @@ test.describe(
         siteIdToPublishAlbum = siteId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Navigate to content and test like functionality
         await homePage.actions.searchAndNavigateToSite('All Employees');
@@ -779,7 +796,7 @@ test.describe(
         siteIdToPublishAlbum = siteId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Navigate to manage topics
         await homePage.actions.clickAvatarFromProfileMenu();
@@ -829,7 +846,7 @@ test.describe(
         siteIdToPublishAlbum = siteId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Navigate to site management and move content
         await homePage.actions.searchAndNavigateToSite('Corporate Communication');
@@ -904,7 +921,7 @@ test.describe(
         publishedAlbumId = albumId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Move content from private to public site
         await homePage.actions.searchNewlyCreatedSite(privateSite.siteName);
@@ -975,10 +992,10 @@ test.describe(
         siteIdToPublishAlbum = siteId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Fetch content URL and logout
-        const contentUrl = await albumCreationPage.actions.fetchContentTypeDetailsUrl();
+        const contentUrl = await previewPage.actions.fetchContentTypeDetailsUrl();
         await homePage.actions.clickAvatarFromProfileMenu();
         await homePage.actions.clickLogoutButton();
 
@@ -1053,10 +1070,10 @@ test.describe(
         siteIdToPublishAlbum = siteId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Fetch content URL
-        const contentUrl = await albumCreationPage.actions.fetchContentTypeDetailsUrl();
+        const contentUrl = await previewPage.actions.fetchContentTypeDetailsUrl();
 
         // Navigate to site management
         await homePage.actions.navigateToSite('Finance');
@@ -1178,10 +1195,10 @@ test.describe(
         siteIdToPublishAlbum = siteId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Fetch content URL and logout
-        const contentUrl = await albumCreationPage.actions.fetchContentTypeDetailsUrl();
+        const contentUrl = await previewPage.actions.fetchContentTypeDetailsUrl();
         await homePage.actions.clickAvatarFromProfileMenu();
         await homePage.actions.clickLogoutButton();
 
@@ -1258,10 +1275,10 @@ test.describe(
         publishedAlbumId = albumId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Fetch content URL and start editing
-        const contentUrl = await albumCreationPage.actions.fetchContentTypeDetailsUrl();
+        const contentUrl = await previewPage.actions.fetchContentTypeDetailsUrl();
         await homePage.actions.clickEditButton();
 
         // Open new driver and test concurrent editing
@@ -1339,10 +1356,10 @@ test.describe(
         publishedAlbumId = albumId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Fetch content URL and logout
-        const contentUrl = await albumCreationPage.actions.fetchContentTypeDetailsUrl();
+        const contentUrl = await previewPage.actions.fetchContentTypeDetailsUrl();
         await homePage.actions.clickAvatarFromProfileMenu();
         await homePage.actions.clickLogoutButton();
 
@@ -1416,10 +1433,10 @@ test.describe(
         publishedAlbumId = albumId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Fetch content URL and start editing
-        const contentUrl = await albumCreationPage.actions.fetchContentTypeDetailsUrl();
+        const contentUrl = await previewPage.actions.fetchContentTypeDetailsUrl();
         await homePage.actions.clickEditButton();
         await homePage.actions.replaceTitleOfContent('Title_Change_For_Editing');
         await homePage.actions.clickCancelButton();
@@ -1536,10 +1553,10 @@ test.describe(
         siteIdToPublishAlbum = siteId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Fetch content URL and logout
-        const contentUrl = await albumCreationPage.actions.fetchContentTypeDetailsUrl();
+        const contentUrl = await previewPage.actions.fetchContentTypeDetailsUrl();
         await homePage.actions.clickAvatarFromProfileMenu();
         await homePage.actions.clickLogoutButton();
 
@@ -1595,13 +1612,13 @@ test.describe(
         siteIdToPublishAlbum = siteId;
 
         // Handle promotion step
-        await albumCreationPage.actions.handlePromotionStep();
+        await previewPage.actions.handlePromotionPageStep();
 
         // Fetch content URL and delete album
-        const contentUrl = await albumCreationPage.actions.fetchContentTypeDetailsUrl();
-        await albumCreationPage.actions.clickOptionMenuDropdown();
-        await albumCreationPage.actions.clickDeleteButton();
-        await albumCreationPage.actions.clickDeleteButton();
+        const contentUrl = await previewPage.actions.fetchContentTypeDetailsUrl();
+        await previewPage.actions.clickOptionMenuDropdown();
+        await previewPage.actions.clickDeleteButton();
+        await previewPage.actions.clickDeleteButton();
         await homePage.actions.waitForSeconds(4);
 
         // Clear IDs as content is deleted
