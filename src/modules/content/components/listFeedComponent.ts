@@ -173,7 +173,7 @@ export class ListFeedComponent extends BaseComponent {
    */
   async clickFavoriteUnfavoriteButton(favorite: boolean): Promise<void> {
     await test.step(`Click favorite button for post:`, async () => {
-      await this.getFavoriteButton.click({ force: true });
+      await this.getFavoriteButtonLocator(favorite).hover();
       await this.clickOnElement(this.getFavoriteButtonLocator(favorite));
     });
   }
