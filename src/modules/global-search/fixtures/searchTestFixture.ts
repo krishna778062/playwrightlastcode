@@ -13,15 +13,20 @@ import { LoginHelper } from '../../../core/helpers/loginHelper';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
-export const searchTestFixtures = test.extend<{
-  appManagerHomePage: NewUxHomePage | OldUxHomePage;
-  appManagerUserPage: Page;
-  appManagerApiClient: AppManagerApiClient;
-  contentManagementHelper: ContentManagementHelper;
-  feedManagementHelper: FeedManagementHelper;
-  intranetFileHelper: IntranetFileHelper;
-  siteManagementHelper: SiteManagementHelper;
-}>({
+export const searchTestFixtures = test.extend<
+  {
+    appManagerHomePage: NewUxHomePage | OldUxHomePage;
+    appManagerUserPage: Page;
+    contentManagementHelper: ContentManagementHelper;
+    feedManagementHelper: FeedManagementHelper;
+    intranetFileHelper: IntranetFileHelper;
+  },
+  {
+    appManagerApiClient: AppManagerApiClient;
+    publicSite: { siteName: string; siteId: string };
+    siteManagementHelper: SiteManagementHelper;
+  }
+>({
   appManagerHomePage: [
     async ({ page }, use, workerInfo) => {
       const appManagerHomePage = await LoginHelper.loginWithPassword(page, {
@@ -40,16 +45,19 @@ export const searchTestFixtures = test.extend<{
     { scope: 'test' },
   ],
   appManagerApiClient: [
-    async ({ appManagerUserPage }, use, workerInfo) => {
+    async ({}, use, workerInfo) => {
       console.log(`INFO: Setting up app manager client for worker => `, workerInfo.workerIndex);
       const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-        type: 'cookies',
-        page: appManagerUserPage,
+        type: 'credentials',
+        credentials: {
+          username: getEnvConfig().appManagerEmail,
+          password: getEnvConfig().appManagerPassword,
+        },
         baseUrl: getEnvConfig().apiBaseUrl,
       });
       await use(appManagerApiClient);
     },
-    { scope: 'test' },
+    { scope: 'worker' },
   ],
   contentManagementHelper: [
     async ({ appManagerApiClient }, use) => {
@@ -81,6 +89,16 @@ export const searchTestFixtures = test.extend<{
       await use(siteManagementHelper);
       await siteManagementHelper.cleanup();
     },
-    { scope: 'test' },
+    { scope: 'worker' },
+  ],
+  publicSite: [
+    async ({ siteManagementHelper }, use) => {
+      const siteName = `Public Site ${Date.now()}`;
+      const publicSite = await siteManagementHelper.createPublicSite({
+        siteName,
+      });
+      await use({ siteName, siteId: publicSite.siteId });
+    },
+    { scope: 'worker' },
   ],
 });
