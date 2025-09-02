@@ -50,22 +50,22 @@ test.describe(
           storyId: 'SEN-12297',
         });
 
-        // 5. UI Search for the album
-        // const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(albumName, {
-        //   stepInfo: `Searching with term "${albumName}" and intent is to find the content`,
-        // });
+        5. UI Search for the album
+        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(albumName, {
+          stepInfo: `Searching with term "${albumName}" and intent is to find the content`,
+        });
 
-        // // 6. Verify the album result item's data points
-        // await globalSearchResultPage.verifyContentResultItemDataPoints(ContentType.Album, {
-        //   name: albumName,
-        //   label: ALBUM_SEARCH_TEST_DATA.label,
-        //   description: ALBUM_SEARCH_TEST_DATA.description,
-        //   author: authorName,
-        //   contentType: 'Album',
-        //   contentId,
-        //   siteId,
-        //   siteName: newSiteName,
-        // });
+        // 6. Verify the album result item's data points
+        await globalSearchResultPage.verifyContentResultItemDataPoints(ContentType.Album, {
+          name: albumName,
+          label: ALBUM_SEARCH_TEST_DATA.label,
+          description: ALBUM_SEARCH_TEST_DATA.description,
+          author: authorName,
+          contentType: 'Album',
+          contentId,
+          siteId,
+          siteName: newSiteName,
+        });
       }
     );
   }

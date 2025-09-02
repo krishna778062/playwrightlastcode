@@ -83,25 +83,23 @@ export const searchTestFixtures = test.extend<
     },
     { scope: 'test' },
   ],
-  siteManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
-      await use(siteManagementHelper);
-      await siteManagementHelper.cleanup();
-    },
-    { scope: 'worker' },
-  ],
   publicSite: [
-    async ({ siteManagementHelper, appManagerApiClient }, use, workerInfo) => {
+    async ({ appManagerApiClient }, use, workerInfo) => {
       console.log(`🔧 Creating publicSite fixture for worker ${workerInfo.workerIndex}`);
 
       const randomNum = Math.floor(Math.random() * 1000000 + 1);
       const siteName = `Public_${randomNum}`;
       /** Get the default category for the public site */
       const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
-      const publicSite = await siteManagementHelper.createPublicSite({
-        siteName,
-        category,
+
+      // Create site directly via API without using siteManagementHelper to avoid tracking
+      const publicSite = await appManagerApiClient.getSiteManagementService().addNewSite({
+        access: 'public',
+        name: siteName,
+        category: {
+          categoryId: category.categoryId,
+          name: category.name,
+        },
       });
 
       console.log(
@@ -109,6 +107,16 @@ export const searchTestFixtures = test.extend<
       );
 
       await use({ siteName, siteId: publicSite.siteId });
+
+      // Cleanup: Deactivate the shared site when worker finishes
+      try {
+        await appManagerApiClient.getSiteManagementService().deactivateSite(publicSite.siteId);
+        console.log(
+          `🧹 Cleaned up publicSite: ${siteName} with ID: ${publicSite.siteId} for worker ${workerInfo.workerIndex}`
+        );
+      } catch (error) {
+        console.warn(`Failed to deactivate publicSite ${siteName} (${publicSite.siteId}):`, error);
+      }
     },
     { scope: 'worker' },
   ],
