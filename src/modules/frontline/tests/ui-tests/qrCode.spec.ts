@@ -1,0 +1,46 @@
+import { TestPriority } from '@core/constants/testPriority';
+import { tagTest } from '@core/utils/testDecorator';
+
+import { FrontlineFeatureTags, FrontlineSuiteTags } from '../../constants/testTags';
+import { frontlineTestFixture as test } from '../../fixtures/frontlineFixture';
+import { ManageQRPage } from '../../pages/manageQRPage';
+
+test.describe(
+  'Feature: QR Code Management',
+  {
+    tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.QR_CODE],
+  },
+  () => {
+    test.only(
+      'Scenario: Create app promotion QR and verify',
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
+      },
+      async ({ appManagerHomePage }) => {
+        const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+        tagTest(test.info(), {
+          description: 'Verify creation of app promotion QR',
+          zephyrTestId: 'FL-153',
+          storyId: 'FL-153',
+        });
+
+        await manageQRPage.clickOnManage();
+        await manageQRPage.clickOnQRCodesMenu();
+        await manageQRPage.clickOnAddQR();
+        await manageQRPage.clickOnAppPromotion();
+        await manageQRPage.verifyPromoteMobileAppPageHeading();
+        await manageQRPage.fillQRName();
+        await manageQRPage.fillDescription();
+        await manageQRPage.clickEyeIcon();
+        await manageQRPage.verifyPopupDisplayedByHeader('Promote mobile app via QR');
+        await manageQRPage.verifyQRImageDisplayOnPreview();
+        await manageQRPage.verifyQRDescriptionOnPreview();
+        await manageQRPage.clickSaveAndVisit();
+        await manageQRPage.verifyManagePage();
+        await manageQRPage.verifyQRName();
+        // Clean-up
+        await manageQRPage.deleteAppQR();
+      }
+    );
+  }
+);
