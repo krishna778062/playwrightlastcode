@@ -1,6 +1,6 @@
 import { Page, test, expect } from '@playwright/test';
 import { BaseAppTileComponent } from '@integrations/components/baseAppTileComponent';
-import { HomeDashboard } from './homeDashboard';
+import { HomeDashboard } from '@integrations/pages/homeDashboard';
 
 export class AirtableAppTilesPage {
   readonly page: Page;
@@ -13,29 +13,31 @@ export class AirtableAppTilesPage {
     this.airtableComponent = new BaseAppTileComponent(page);
   }
 
-  /**
-   * Verify that the Airtable tiles page is loaded
-   */
   async verifyThePageIsLoaded(): Promise<void> {
     await this.page.waitForLoadState('domcontentloaded');
   }
 
-  /**
-   * Login to Airtable
-   * @param email - The email to login with
-   * @param password - The password to login with
-   * @returns void
-   */
   async loginToAirtable(email: string, password: string): Promise<void> {
-    const emailInput = this.page.locator('//*[@id="emailLogin"]');
+    const emailInput = this.page.locator('#emailLogin');
     await emailInput.waitFor({ state: 'visible' });
-    await emailInput.pressSequentially(email, { delay: 50 });
-    await this.page.waitForTimeout(200);
-    await this.page.locator('//button[.//span[text()="Continue"]]').click();
-    const pwdInput = this.page.locator('//*[@id="passwordLogin"]');
-    await pwdInput.waitFor({ state: 'visible' });
-    await pwdInput.pressSequentially(password, { delay: 50 });
-    await this.page.waitForTimeout(300);
-    await this.page.locator('//button[@type="submit" and .//span[text()="Sign in"]]').click();
+    await emailInput.clear();
+    await emailInput.pressSequentially(email, { delay: 100 });
+    await this.page.waitForTimeout(500);
+
+    const continueBtn = this.page.locator('//button[.//span[text()="Continue"]]');
+    await continueBtn.click();
+
+    const passwordInput = this.page.locator('#passwordLogin');
+    await passwordInput.waitFor({ state: 'visible' });
+    await passwordInput.clear();
+    await passwordInput.pressSequentially(password, { delay: 100 });
+    await this.page.waitForTimeout(500);
+
+    const signInBtn = this.page.locator('//button[@type="submit" and .//span[text()="Sign in"]]');
+    await signInBtn.click();
+
+    await this.page.getByText('Add a base').click();
+    await this.page.locator('[title="Content Calendar"]').click();
+    await this.page.getByRole('button', { name: 'Grant access' }).click();
   }
 }

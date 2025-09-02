@@ -59,7 +59,6 @@ test.describe(
           storyId: 'INT-24430',
         });
 
-        // Only track the final tile name for cleanup
         createdTileNames.push(updatedTileTitle);
 
         await homeDashboard.createAppTileViaApi(uniqueTileTitle, CONNECTOR_IDS.EXPENSIFY);

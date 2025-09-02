@@ -80,7 +80,7 @@ export class CustomAppsListComponent extends BaseComponent {
       await this.prebuiltAppDialog.waitFor({ state: 'visible', timeout: 20000 });
       const input = this.prebuiltAppDialog.locator(this.prebuiltAppSearchInput);
       await input.fill(appName);
-      await this.page.waitForTimeout(2000); // wait 2s for search results
+      await this.page.waitForTimeout(2000);
     });
   }
 
@@ -89,27 +89,48 @@ export class CustomAppsListComponent extends BaseComponent {
    */
   async clickOnAppConnector(appName: string): Promise<void> {
     await test.step(`Click on ${appName} connector`, async () => {
-      const appConnector = this.getAppConnectorButton(appName);
-      await this.clickOnElement(appConnector, { timeout: 30_000 });
+      const appConnector = this.page.locator(`text=${appName}`).first();
+      await appConnector.click();
     });
   }
 
   /**
-   * Get app connector button by name - reusable method
+   * Generic method to click any button by text
    */
-  private getAppConnectorButton(appName: string): Locator {
-    return this.page.getByRole('button').filter({ hasText: appName }).first();
+  async clickButton(buttonText: string, stepName?: string): Promise<void> {
+    const step = stepName || `Click ${buttonText} button`;
+    await test.step(step, async () => {
+      const button = this.page.getByRole('button', { name: buttonText });
+      await this.clickOnElement(button, { timeout: 30_000 });
+    });
   }
+
   /**
-   * Get menu item by text - reusable method
+   * Generic method to click any menu item by text
    */
+  async clickMenuItem(itemText: string, stepName?: string): Promise<void> {
+    const step = stepName || `Click ${itemText} menu item`;
+    await test.step(step, async () => {
+      const menuItem = this.page.getByRole('menuitem', { name: itemText });
+      await this.clickOnElement(menuItem, { timeout: 30_000 });
+    });
+  }
+
+  /**
+   * Generic method to interact with dialogs - click button in dialog
+   */
+  async clickDialogButton(buttonText: string, stepName?: string): Promise<void> {
+    const step = stepName || `Click ${buttonText} in dialog`;
+    await test.step(step, async () => {
+      const button = this.page.getByRole('dialog').getByRole('button', { name: buttonText });
+      await this.clickOnElement(button, { timeout: 30_000 });
+    });
+  }
+
   private getMenuItemByText(text: string): Locator {
     return this.page.getByRole('menuitem', { name: text });
   }
 
-  /**
-   * Get button by text - reusable method
-   */
   private getButtonByText(text: string): Locator {
     return this.page.getByRole('button', { name: text });
   }
@@ -120,21 +141,18 @@ export class CustomAppsListComponent extends BaseComponent {
   async selectConnectorOption(option: AppConnectorOptions): Promise<void> {
     await test.step(`Select connector option: ${option}`, async () => {
       await this.clickOnElement(this.getConnectorOptionsButton(), { timeout: 30_000 });
-      const optionElement = this.getMenuItemByText(option);
-      await this.clickOnElement(optionElement, { timeout: 30_000 });
+      await this.clickMenuItem(option);
     });
   }
-  // ... existing code ...
 
   /**
    * Delete app using three dots menu
-   * It also verifies the toast message after deleting the app
    */
   async deleteAppWithThreeDotsMenu(): Promise<void> {
     await test.step('Delete app using three dots menu', async () => {
       await this.selectConnectorOption(AppConnectorOptions.Delete);
       await this.verifyDeleteDialogVisible(APP_LABELS.DELETE_CUSTOM_APP_LABEL);
-      await this.confirmDelete(APP_LABELS.DELETE_LABEL);
+      await this.clickDialogButton(APP_LABELS.DELETE_LABEL, 'Confirm delete');
       await this.verifyToastMessage(MESSAGES.AIRTABLE_DELETE_MESSAGE);
     });
   }
@@ -157,58 +175,36 @@ export class CustomAppsListComponent extends BaseComponent {
   }
 
   /**
-   * Click on delete in the confirmation dialog
+   * Generic method to open dropdown and select option
    */
-  async confirmDelete(option: string): Promise<void> {
-    await test.step(`Click on ${option} in the confirmation dialog`, async () => {
-      const confirmDeleteButton = this.getButtonByText(option);
-      await this.verifyDeleteDialogVisible(option);
-      await expect(confirmDeleteButton).toBeVisible();
-      await this.clickOnElement(confirmDeleteButton, { timeout: 30_000 });
-    });
-  }
-
-  /**
-   * Open "Add custom app" dropdown and choose an option (e.g., "Add prebuilt app")
-   */
-  async clickAddCustomAppOption(option: string): Promise<void> {
-    await test.step(`Add custom app → ${option}`, async () => {
-      const trigger = this.getAddCustomAppButton();
+  async openDropdownAndSelect(triggerText: string, optionText: string, stepName?: string): Promise<void> {
+    const step = stepName || `${triggerText} → ${optionText}`;
+    await test.step(step, async () => {
+      const trigger = this.page.getByRole('button', { name: triggerText, exact: true });
       await this.clickOnElement(trigger, { timeout: 30_000 });
       await this.page.waitForTimeout(2000);
-      const menu = await this.getAddCustomAppMenu(trigger);
+      const menu = await this.getMenuForTrigger(trigger);
       if (!(await menu.isVisible())) {
         await trigger.press('ArrowDown');
         await expect(menu).toBeVisible();
       }
-      const menuItem = this.getMenuItemByExactText(menu, option);
-      await this.clickOnElement(menuItem, { timeout: 30_000 });
+      await this.clickMenuItem(optionText);
     });
   }
 
   /**
-   * Get add custom app button - reusable method
+   * Open "Add custom app" dropdown and choose an option
    */
-  private getAddCustomAppButton(): Locator {
-    return this.page.getByRole('button', { name: APP_LABELS.ADD_CUSTOM_APP_LABEL, exact: true });
+  async clickAddCustomAppOption(option: string): Promise<void> {
+    await this.openDropdownAndSelect(APP_LABELS.ADD_CUSTOM_APP_LABEL, option, `Add custom app → ${option}`);
   }
 
   /**
-   * Get add custom app menu - reusable method
+   * Get menu for any trigger - reusable method
    */
-  private async getAddCustomAppMenu(trigger: Locator): Promise<Locator> {
+  private async getMenuForTrigger(trigger: Locator): Promise<Locator> {
     const triggerId = await trigger.getAttribute('id');
     return this.page.locator(`[role="menu"][aria-labelledby="${triggerId}"]`);
-  }
-
-  /**
-   * Get menu item by exact text - reusable method
-   */
-  private getMenuItemByExactText(menu: Locator, text: string): Locator {
-    return menu
-      .getByRole('menuitem')
-      .filter({ has: this.page.getByText(text, { exact: true }) })
-      .first();
   }
 
   /**
@@ -238,12 +234,9 @@ export class CustomAppsListComponent extends BaseComponent {
     await test.step(`Open ${service} connector options`, async () => {
       const btn = this.connectorOptionsButton.last();
       await btn.click();
-      const menu = this.connectorOptionsMenu.last();
-      const enableMenuItem = menu.locator(this.enableMenuItem);
-      await expect(enableMenuItem).toBeVisible();
-      await enableMenuItem.click();
+      await this.clickMenuItem(APP_LABELS.ENABLE_LABEL, 'Enable connector');
       const confirm = this.enableConfirmButton;
-      if (await confirm.isVisible()) await confirm.click();
+      if (await confirm.isVisible()) await this.clickButton(APP_LABELS.ENABLE_LABEL, 'Confirm enable');
     });
   }
 }

@@ -1,6 +1,6 @@
 import { Page, test } from '@playwright/test';
 import { BaseAppTileComponent } from '@integrations/components/baseAppTileComponent';
-import { ACTION_LABELS } from '@integrations/constants/common';
+import { ACTION_LABELS, DASHBOARD_BUTTONS } from '@integrations/constants/common';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { AIRTABLE_TILE } from '@integrations/test-data/app-tiles.test-data';
 
@@ -46,7 +46,7 @@ export class SiteDashboard {
     await this.airtableComponent.clickThreeDotsOnTile(tileTitle);
     await this.airtableComponent.clickTileOption(ACTION_LABELS.REMOVE);
     await this.airtableComponent.verifyRemovePopupAppears(tileTitle);
-    await this.airtableComponent.clickRemoveTile();
+    await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.REMOVE);
     if (successMessage) {
       await this.airtableComponent.verifyToastMessage(successMessage);
     }
@@ -61,7 +61,7 @@ export class SiteDashboard {
     await this.airtableComponent.clickThreeDotsOnTile(oldTileTitle);
     await this.airtableComponent.clickTileOption(ACTION_LABELS.EDIT);
     await this.airtableComponent.setTileTitle(newTileTitle);
-    await this.airtableComponent.save();
+    await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.SAVE);
   }
 
   /**
@@ -83,8 +83,8 @@ export class SiteDashboard {
   async addAirtableTile(tileTitle: string, config: any, destination: string): Promise<void> {
     await test.step(`Add Airtable tile: ${tileTitle}`, async () => {
       await this.airtableComponent.clickEditDashboard();
-      await this.airtableComponent.clickAddTile();
-      await this.airtableComponent.clickAppTiles();
+      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
       await this.airtableComponent.selectAppTile(AIRTABLE_TILE.APP_NAME);
       await this.airtableComponent.setTileTitle(tileTitle);
       await this.airtableComponent.configureAppTile(config);

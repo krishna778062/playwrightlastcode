@@ -26,7 +26,15 @@ export const UI_ACTIONS = {
   ADD_TO_SITE: 'Add to site dashboard',
 } as const;
 
-// Default site names used in integrations tests
+export const DASHBOARD_BUTTONS = {
+  ADD_TILE: 'Add tile',
+  APP_TILES: 'App tiles',
+  SAVE: 'Save',
+  REMOVE: 'Remove',
+  DONE: 'Done',
+  EDIT: 'Edit',
+} as const;
+
 export const DEFAULT_SITES = {
   AUTOMATION_PUBLIC: 'Automation_PublicSiteS',
 } as const;

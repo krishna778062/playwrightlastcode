@@ -31,26 +31,26 @@ export class CustomAppsIntegrationPage extends BasePage {
   }
 
   /**
+   * Generic method to fill form field
+   */
+  private async fillFormField(selector: string, value: string, shouldClear = false): Promise<void> {
+    const input = this.page.locator(selector);
+    if (shouldClear) await input.clear();
+    await input.fill(value);
+  }
+
+  /**
    * Configure Airtable authentication details
    */
   async configureAirtableAuth(): Promise<void> {
     await test.step('Configure Airtable authentication details', async () => {
-      const clientIdInput = this.page.locator('#authDetails_clientId');
-      await clientIdInput.fill(AIRTABLE_AUTH_DATA.CLIENT_ID);
-      const clientSecretInput = this.page.locator('#authDetails_clientSecret');
-      await clientSecretInput.fill(AIRTABLE_AUTH_DATA.CLIENT_SECRET);
-      const authUrlInput = this.page.locator('#authDetails_authUrl');
-      await authUrlInput.clear();
-      await authUrlInput.fill(AIRTABLE_AUTH_DATA.AUTH_URL);
-      const tokenUrlInput = this.page.locator('#authDetails_tokenUrl');
-      await tokenUrlInput.clear();
-      await tokenUrlInput.fill(AIRTABLE_AUTH_DATA.TOKEN_URL);
-      const tokenRequestHeadersInput = this.page.locator('#authDetails_tokenRequestHeaders');
-      await tokenRequestHeadersInput.clear();
-      await tokenRequestHeadersInput.fill(AIRTABLE_AUTH_DATA.TOKEN_HEADERS);
-      const baseUrlInput = this.page.locator('#authDetails_baseUrl');
-      await baseUrlInput.clear();
-      await baseUrlInput.fill(AIRTABLE_AUTH_DATA.BASE_URL);
+      await this.fillFormField('#authDetails_clientId', AIRTABLE_AUTH_DATA.CLIENT_ID);
+      await this.fillFormField('#authDetails_clientSecret', AIRTABLE_AUTH_DATA.CLIENT_SECRET);
+      await this.fillFormField('#authDetails_authUrl', AIRTABLE_AUTH_DATA.AUTH_URL, true);
+      await this.fillFormField('#authDetails_tokenUrl', AIRTABLE_AUTH_DATA.TOKEN_URL, true);
+      await this.fillFormField('#authDetails_tokenRequestHeaders', AIRTABLE_AUTH_DATA.TOKEN_HEADERS, true);
+      await this.fillFormField('#authDetails_baseUrl', AIRTABLE_AUTH_DATA.BASE_URL, true);
+
       const saveButton = this.page.locator('button:has-text("Save")');
       await expect(saveButton).toBeVisible({ timeout: 10000 });
       await saveButton.click();
@@ -76,7 +76,8 @@ export class CustomAppsIntegrationPage extends BasePage {
       await this.customAppsListComponent.verifyCountOfAppsInListIs(1);
       await this.customAppsListComponent.clickOnAppConnector(appName);
       await this.customAppsListComponent.selectConnectorOption(action);
-      await this.customAppsListComponent.confirmDelete(action);
+      // Use the new generic dialog button method instead of confirmDelete
+      await this.customAppsListComponent.clickDialogButton(action, `Confirm ${action}`);
     });
   }
 

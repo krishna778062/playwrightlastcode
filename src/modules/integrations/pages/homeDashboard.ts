@@ -5,7 +5,7 @@ import {
   createAppTileViaApi as createAppTileViaApiHelper,
 } from '@integrations-api/helpers/tileApiHelpers';
 import { AIRTABLE_TILE } from '@integrations-test-data/app-tiles.test-data';
-import { ACTION_LABELS } from '@integrations/constants/common';
+import { DASHBOARD_BUTTONS } from '@integrations/constants/common';
 
 class AppTileComponent extends BaseAppTileComponent {
   constructor(page: Page) {
@@ -57,17 +57,6 @@ export class HomeDashboard {
         `//h2[text()='${tileTitle}']/ancestor::header//button[contains(@aria-label, 'Personalize')]`
       );
       await expect(personalizeButton).not.toBeVisible();
-    });
-  }
-
-  /**
-   * Verify ascending order through API
-   */
-  async verifyAscendingOrderThroughAPI(tileTitle: string): Promise<void> {
-    await test.step(`Verify ascending order through API for '${tileTitle}'`, async () => {
-      await test.step('API verification logic would go here', async () => {
-        // Placeholder for actual API verification
-      });
     });
   }
 
@@ -128,8 +117,8 @@ export class HomeDashboard {
   async addAirtableTile(tileTitle: string, config: any, destination: string): Promise<void> {
     await test.step(`Add Airtable tile: ${tileTitle}`, async () => {
       await this.airtableComponent.clickEditDashboard();
-      await this.airtableComponent.clickAddTile();
-      await this.airtableComponent.clickAppTiles();
+      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
       await this.airtableComponent.selectAppTile('Airtable');
       await this.airtableComponent.setTileTitle(tileTitle);
       await this.airtableComponent.configureAppTile(config);
@@ -153,11 +142,10 @@ export class HomeDashboard {
   async editTile(oldTileTitle: string, newTileTitle: string): Promise<void> {
     await this.airtableComponent.clickEditDashboard();
     await this.airtableComponent.clickThreeDotsOnTile(oldTileTitle);
-    await this.airtableComponent.clickTileOption('Edit');
+    await this.airtableComponent.clickTileOption(DASHBOARD_BUTTONS.EDIT);
     await this.airtableComponent.setTileTitle(newTileTitle);
-    await this.airtableComponent.save();
+    await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.SAVE);
   }
-  // ... existing code ...
   /**
    * Check if tile is present (alias for verifyTilePresent)
    */

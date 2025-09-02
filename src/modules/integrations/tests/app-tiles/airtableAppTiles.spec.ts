@@ -74,7 +74,6 @@ test.describe(
         await homeDashboard.verifyPersonalizeVisible(uniqueTileTitle);
         await homeDashboard.personalizeTileSorting(uniqueTileTitle, AIRTABLE_TILE.SORT_BY, AIRTABLE_TILE.SORT_ORDER);
         await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
-        await homeDashboard.verifyAscendingOrderThroughAPI(uniqueTileTitle);
         await homeDashboard.verifyTileAscending(uniqueTileTitle);
       }
     );
@@ -105,7 +104,7 @@ test.describe(
     test(
       'Verify site manager is able to edit display content calendar tile on Site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ page }) => {
         tagTest(test.info(), {
