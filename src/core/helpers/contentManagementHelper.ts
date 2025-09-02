@@ -29,8 +29,9 @@ export class ContentManagementHelper {
     options?: { albumName?: string; contentDescription?: string; accessType?: SITE_TYPES };
   }) {
     const fileId = await this.appManagerApiClient.getImageUploaderService().uploadImageAndGetFileId(params.imageName);
-    const finalAlbumName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Album`;
-    const finalContentDescription = 'AutomateAlbumDescription';
+    const finalAlbumName =
+      params.options?.albumName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Album`;
+    const finalContentDescription = params.options?.contentDescription || 'AutomateAlbumDescription';
     const { body, bodyHtml } = buildBodyAndBodyHtml(finalContentDescription, 'album');
     const albumResult = await this.appManagerApiClient.getContentManagementService().addNewAlbumContent(params.siteId, {
       title: finalAlbumName,
