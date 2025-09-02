@@ -104,7 +104,7 @@ test.describe(
     test(
       'Verify site manager is able to edit display content calendar tile on Site dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ page }) => {
         tagTest(test.info(), {
