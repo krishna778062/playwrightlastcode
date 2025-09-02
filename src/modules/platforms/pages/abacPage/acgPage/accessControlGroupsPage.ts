@@ -5,7 +5,6 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 
 export enum ACGFeature {
   ADD_SITES = 'Add_sites',

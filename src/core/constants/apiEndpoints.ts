@@ -10,6 +10,9 @@ export const API_ENDPOINTS = {
       list: '/v1/identity/accounts/users/list',
       getUserId: (firstName: string, lastName: string) => `/v1/chat/search/users?query=${firstName} ${lastName}`,
       delete: (userId: string) => `/v1/identity/accounts/users/${userId}`,
+      v1IdentityAccountsUsersUserId: (userId: string) => `/v1/identity/accounts/users/${userId}`,
+      v1IdentityAccountsUsersUserIdStatus: (userId: string) => `/v1/identity/accounts/users/${userId}/status`,
+      v1IdentityAccountsUsersList: '/v1/identity/accounts/users/list',
     },
     roles: {
       list: '/v1/identity/accounts/roles/list',
@@ -30,6 +33,7 @@ export const API_ENDPOINTS = {
       deleteAccessControlGroup: (acgId: string) => `/v2/identity/access-control/groups/${acgId}`,
       listOfAccessControlGroups: '/v2/identity/access-control/groups/list',
       createAccessControlGroup: '/v2/identity/access-control/groups',
+      v1AccountSecurityIdpInternal: '/v1/account/security/idp/internal',
     },
   },
   identity: {
@@ -71,5 +75,9 @@ export const API_ENDPOINTS = {
   apps: {
     settings: '/v1/account/apps-links-settings',
     list: '/v1/account/launchpad/apps/list',
+  },
+  search: {
+    intranetFile: '/v1/search/intranet-file',
+    enterprise: '/search-ai/v1/enterprise/search',
   },
 } as const;

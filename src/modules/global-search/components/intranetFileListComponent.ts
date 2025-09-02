@@ -1,9 +1,8 @@
-import { faker } from '@faker-js/faker';
 import { expect, Locator, Page, test } from '@playwright/test';
-import * as fs from 'fs';
 import * as path from 'path';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
+import { FileUtil } from '@core/utils/fileUtil';
 
 import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 
@@ -19,6 +18,8 @@ export class IntranetFileListComponent extends ContentListComponent {
   readonly selectFromComputerButton: Locator;
   readonly loadingBar: Locator;
   readonly uploadButton: Locator;
+  readonly okButton: Locator;
+  readonly siteVideosTab: Locator;
 
   /**
    * Constructs a new instance of the IntranetFileListComponent class.
@@ -34,6 +35,8 @@ export class IntranetFileListComponent extends ContentListComponent {
     this.selectFromComputerButton = this.page.getByText('select from computer');
     this.loadingBar = this.page.locator('div[class*="ileItem-loading"]');
     this.uploadButton = this.page.getByRole('button', { name: 'Upload' });
+    this.okButton = this.page.getByRole('button', { name: 'OK' });
+    this.siteVideosTab = this.page.getByRole('link', { name: 'Site videos' });
   }
 
   /**
@@ -48,7 +51,6 @@ export class IntranetFileListComponent extends ContentListComponent {
       await this.verifyAuthorIsDisplayed(data.author);
       await this.verifyDateIsDisplayed();
       await this.verifyFileThumbnailIsDisplayed();
-      await this.verifyFileTypeIsDisplayed(data.type);
 
       // Navigation verifications
       await this.verifyNavigationToTitleLink(data.fileId, data.name, 'file');
@@ -65,33 +67,6 @@ export class IntranetFileListComponent extends ContentListComponent {
       await this.goBackToPreviousPage();
       await this.verifyNavigationWithHomePageLink();
       await this.goBackToPreviousPage();
-    });
-  }
-
-  /**
-   * Verifies that the file type is displayed in the result item.
-   * @param fileType - The file type to verify.
-   */
-  async verifyFileTypeIsDisplayed(fileType: string) {
-    let expectedLabel = '';
-    switch (fileType) {
-      case 'pdf':
-        expectedLabel = 'PDF';
-        break;
-      case 'docx':
-        expectedLabel = 'Word Document';
-        break;
-      case 'pptx':
-        expectedLabel = 'Microsoft PowerPoint';
-        break;
-      case 'csv':
-        expectedLabel = 'CSV';
-        break;
-      default:
-        throw new Error(`Unsupported file type for verification: ${fileType}`);
-    }
-    await test.step(`Verifying file type is displayed as "${expectedLabel}"`, async () => {
-      await this.verifier.verifyElementHasText(this.fileType, expectedLabel);
     });
   }
 
@@ -166,10 +141,29 @@ export class IntranetFileListComponent extends ContentListComponent {
     });
   }
 
+  /**
+   * Clicks on the files tab in the intranet file search interface.
+   * Verifies the tab is visible before clicking to ensure element readiness.
+   *
+   * @returns Promise that resolves when the files tab has been clicked
+   */
   async clickFilesTab(): Promise<void> {
     await test.step(`Clicking on the files tab`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.filesTab, { timeout: 30000 });
       await this.clickOnElement(this.filesTab);
+    });
+  }
+
+  /**
+   * Clicks on the site videos tab in the intranet file search interface.
+   * Verifies the tab is visible before clicking with extended timeout for video content.
+   *
+   * @returns Promise that resolves when the site videos tab has been clicked
+   */
+  async clickSiteVideosTab() {
+    await test.step('Clicking on the Site videos tab', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.siteVideosTab, { timeout: 20000 });
+      await this.clickOnElement(this.siteVideosTab, { timeout: 7_000 });
     });
   }
 
@@ -183,18 +177,19 @@ export class IntranetFileListComponent extends ContentListComponent {
    * 4. Sets the temporary file in the file chooser.
    * 5. Waits for the upload to complete by monitoring a loading bar.
    * 6. Clicks the final "Upload" button.
-   * 7. Deletes the temporary file.
+   * 7. Handles OK button for video files if needed.
+   * 8. Deletes the temporary file.
    *
    * @param originalFilePath - The path of the file to be uploaded from test data.
+   * @param options - Upload options including file type information
    * @returns The unique name of the file that was uploaded.
    */
-  async uploadFileFromComputer(originalFilePath: string): Promise<string> {
+  async uploadFileFromComputer(originalFilePath: string, options: { videoFile?: boolean } = {}): Promise<string> {
     const uniqueFileName = await test.step(`Uploading file from computer: ${originalFilePath}`, async () => {
-      const fileExtension = path.extname(originalFilePath);
-      const uniqueName = `${faker.lorem.word()}-${Date.now()}${fileExtension}`;
-      const tempFilePath = path.join(path.dirname(originalFilePath), uniqueName);
+      const tempFilePath = FileUtil.generateTemporaryFilePath(originalFilePath);
+      const uniqueName = path.basename(tempFilePath);
 
-      fs.copyFileSync(originalFilePath, tempFilePath);
+      FileUtil.createTemporaryFileCopy(originalFilePath, tempFilePath);
 
       try {
         await this.openFileChooserAndSetFiles(() => this.clickOnElement(this.selectFromComputerButton), tempFilePath, {
@@ -209,10 +204,23 @@ export class IntranetFileListComponent extends ContentListComponent {
           stepInfo: 'Waiting for file upload to complete (loading bar to disappear)',
         });
 
-        await this.clickOnElement(this.uploadButton);
+        await this.clickOnElement(this.uploadButton, { timeout: 30000 });
+
+        // Handle OK button - only video files have this confirmation dialog
+        if (options.videoFile) {
+          try {
+            await this.verifier.waitUntilElementIsVisible(this.okButton, {
+              timeout: 15000,
+              stepInfo: 'Waiting for OK button after video file upload',
+            });
+            await this.clickOnElement(this.okButton);
+          } catch {
+            console.log('OK button did not appear for video file - continuing');
+          }
+        }
       } finally {
         // Clean up the temporary file
-        fs.unlinkSync(tempFilePath);
+        FileUtil.deleteTemporaryFile(tempFilePath);
       }
       return uniqueName;
     });

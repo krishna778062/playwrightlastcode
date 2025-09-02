@@ -8,6 +8,8 @@ import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
 import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
+import { CreateComponent as AbacCreateComponent } from '@/src/modules/content-abac/components/globalCreateContainerComponent';
+import { SiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 
 export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions {
   constructor(page: Page) {
@@ -42,7 +44,7 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
       const createComponent = new CreateComponent(this.page);
       await createComponent.verifyTheCreateComponentIsVisible();
       const addContentModal = await createComponent.selectContentTypeAndCreateContent(contentType);
-      return await addContentModal.completeContentCreationForm(contentType);
+      return await addContentModal.completeContentCreationForm(contentType, { isFromHomePage: true });
     });
   }
 
@@ -63,6 +65,25 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
   async navigateToHomePage(options?: { stepInfo?: string }): Promise<void> {
     return await test.step(options?.stepInfo || 'Navigate to Home', async () => {
       await this.sideNavBarComponent.clickOnHome();
+    });
+  }
+
+  /**
+   * Clicks the Create button, verifies the ABAC create container,
+   * selects the Site option, and returns the Site creation page
+   * @param options - Options for the step
+   * @returns The SiteCreationPage instance
+   */
+  async openSiteCreationForm(options?: { stepInfo?: string }): Promise<SiteCreationPage> {
+    return await test.step(options?.stepInfo || 'Opening site creation form', async () => {
+      // Click the Create button (returns content CreateComponent for interface compatibility)
+      await this.clickOnCreateButtonOnSideNavBar();
+
+      // Use ABAC-specific CreateComponent to select Site option
+      const abacCreate = new AbacCreateComponent(this.page);
+      await abacCreate.verifyTheCreateComponentIsVisible();
+      await abacCreate.selectSiteOptionAndOpenModal();
+      return new SiteCreationPage(this.page);
     });
   }
 

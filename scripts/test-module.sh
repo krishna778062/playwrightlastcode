@@ -45,7 +45,7 @@ CMD="cross-env MODULE_NAME=$MODULE_NAME"
 if [ -n "$ENV_NAME" ]; then
     ENV_FILE="src/modules/$MODULE_NAME/env/$ENV_NAME.env"
     if [ -f "$ENV_FILE" ]; then
-        CMD="$CMD ENV_NAME=$ENV_NAME"
+        CMD="$CMD TEST_ENV=$ENV_NAME"
         echo "Using environment: $ENV_NAME ($ENV_FILE)"
     else
         echo "Warning: Environment file not found: $ENV_FILE"

@@ -11,6 +11,8 @@ export class SideNavBarComponent extends BaseComponent {
   readonly analyticsButton: Locator;
   readonly sitesButton: Locator;
   readonly manageFeatureButton: Locator;
+  readonly applicationSettings: Locator;
+  readonly rolesButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -20,8 +22,11 @@ export class SideNavBarComponent extends BaseComponent {
 
     this.feedLink = page.locator('p', { hasText: 'Feed' });
     this.homeLink = page.locator('p', { hasText: 'Home' });
+    this.applicationSettings = page.locator('p', { hasText: 'Application settings' });
     this.sitesButton = page.getByRole('button', { name: 'Sites' });
+    this.rolesButton = page.getByRole('menuitem', { name: 'Roles' });
   }
+
   /**
    * Clicks on the Create button in the side navigation
    * @param options - The options for the step
@@ -85,6 +90,34 @@ export class SideNavBarComponent extends BaseComponent {
   async clickOnHome(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `Clicking Home button in side navigation`, async () => {
       await this.clickOnElement(this.homeLink);
+    });
+  }
+
+  /**
+   * Clicks on the application settings button on the side navigation panel
+   * @param options - The options for the step
+   */
+  async clickOnApplicationSettings(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `Clicking Application settings button in side navigation`, async () => {
+      await this.clickOnElement(this.applicationSettings);
+    });
+  }
+
+  /**
+   * Verifies the visibility of Roles button on the side navigation panel
+   * @param visible - The visibility of the Roles button
+   * @param options - The options for the step
+   */
+  async verifyRolesButtonVisibility(visible: boolean, options?: TestOptions): Promise<void> {
+    const defaultStep = visible
+      ? 'Verifying Roles button is visible in side navigation'
+      : 'Verifying Roles button is not visible in side navigation';
+    await test.step(options?.stepInfo || defaultStep, async () => {
+      if (visible) {
+        await expect(this.rolesButton).toBeVisible();
+      } else {
+        await expect(this.rolesButton).not.toBeVisible();
+      }
     });
   }
 }

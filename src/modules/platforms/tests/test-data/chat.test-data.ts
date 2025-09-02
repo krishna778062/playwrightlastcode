@@ -1,7 +1,7 @@
 export const CHAT_TEST_DATA = {
   CREDENTIALS: {
     DEFAULT_PASSWORD: 'Pp@123456',
-    DEFAULT_USERNAME: 'prateek.parashar@simpplr.com'
+    DEFAULT_USERNAME: 'prateek.parashar@simpplr.com',
   },
   CONFIG: {
     DEFAULT_TIMEOUT: 180_000,

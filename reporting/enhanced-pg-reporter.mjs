@@ -1,14 +1,13 @@
 /**
  * ============================================================
- * FIXED Enhanced PostgreSQL Playwright Reporter
- * With proper NULL handling, schema alignment, and annotations support
+ * Using direct Client connection instead of Pool for CI scripts
  * ============================================================
  */
 
+import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
-import dotenv from 'dotenv';
-import { Pool } from 'pg'; // Change import
+import { Client } from 'pg';
 
 // Load environment variables
 if (!process.env.CI) {
@@ -100,22 +99,21 @@ class ExecutionIdGenerator {
 }
 
 /**
- * Enhanced PostgreSQL Reporter Class
+ * Enhanced PostgreSQL Reporter Class - Using Direct Client Connection
  */
 class PostgresPlaywrightReporter {
   constructor() {
-    this.pool = new Pool({
+    // Use direct Client connection instead of Pool
+    this.client = new Client({
       host: process.env.PG_DB_HOST || 'localhost',
       port: process.env.PG_DB_PORT || 5432,
       database: process.env.PG_DB_NAME || 'qa_automation',
       user: process.env.PG_DB_USER || 'e2e_admin',
       password: process.env.PG_DB_PASSWORD || 'Simpplr@2025',
-      // Connection pool settings for concurrency
-      max: parseInt(process.env.DB_POOL_MAX) || 5, // Max 5 connections per reporter instance
-      min: parseInt(process.env.DB_POOL_MIN) || 1, // Keep 1 connection alive
-      idleTimeoutMillis: 30000, // Close idle connections after 30s
-      connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 10000, // Wait 10s for connection
-      acquireTimeoutMillis: parseInt(process.env.DB_ACQUIRE_TIMEOUT) || 60000, // Wait 60s to acquire connection
+      // FIXED: Increased timeouts for CI environments
+      connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 60000, // 60s connection timeout
+      query_timeout: parseInt(process.env.DB_QUERY_TIMEOUT) || 120000, // 2min query timeout
+      statement_timeout: parseInt(process.env.DB_STATEMENT_TIMEOUT) || 180000, // 3min statement timeout
     });
 
     this.executionRunId = ExecutionIdGenerator.generateExecutionId();
@@ -123,6 +121,9 @@ class PostgresPlaywrightReporter {
 
     // Enhanced configuration validation
     this.validateConfig();
+
+    // Setup proper cleanup handlers
+    this.setupCleanupHandlers();
   }
 
   validateConfig() {
@@ -138,14 +139,74 @@ class PostgresPlaywrightReporter {
     }
   }
 
+  setupCleanupHandlers() {
+    // Handle process termination gracefully
+    const cleanup = async signal => {
+      console.log(`\n🛑 Received ${signal}, cleaning up database connection...`);
+      await this.disconnect();
+      process.exit(0);
+    };
+
+    process.on('SIGINT', cleanup);
+    process.on('SIGTERM', cleanup);
+    process.on('SIGUSR1', cleanup);
+    process.on('SIGUSR2', cleanup);
+
+    // Handle uncaught exceptions
+    process.on('uncaughtException', async error => {
+      console.error('🚨 Uncaught Exception:', error);
+      await this.disconnect();
+      process.exit(1);
+    });
+
+    process.on('unhandledRejection', async (reason, promise) => {
+      console.error('🚨 Unhandled Rejection at:', promise, 'reason:', reason);
+      await this.disconnect();
+      process.exit(1);
+    });
+  }
+
   async connect() {
-    // Pool handles connections automatically - no manual connection needed
-    console.log('📊 PostgreSQL connection pool initialized');
+    if (this.isConnected) {
+      console.log('📊 Database client already connected');
+      return;
+    }
+
+    try {
+      console.log('📊 Connecting to PostgreSQL database...');
+      await this.client.connect();
+      this.isConnected = true;
+
+      // Test the connection
+      const result = await this.client.query('SELECT NOW() as current_time');
+      console.log(`✅ Database connected successfully at ${result.rows[0].current_time}`);
+
+      // Log connection info (without sensitive details)
+      console.log(`🔗 Connected to: ${process.env.PG_DB_HOST}:${process.env.PG_DB_PORT}/${process.env.PG_DB_NAME}`);
+    } catch (error) {
+      console.error('❌ Failed to connect to database:', error.message);
+      console.error('🔍 Connection details:', {
+        host: process.env.PG_DB_HOST,
+        port: process.env.PG_DB_PORT,
+        database: process.env.PG_DB_NAME,
+        user: process.env.PG_DB_USER,
+        ssl: process.env.NODE_ENV === 'production',
+      });
+      throw error;
+    }
   }
 
   async disconnect() {
-    await this.pool.end();
-    console.log('📊 Connection pool closed');
+    if (this.isConnected && this.client) {
+      try {
+        console.log('📊 Closing database connection...');
+        await this.client.end();
+        this.isConnected = false;
+        console.log('✅ Database connection closed');
+      } catch (error) {
+        console.error('⚠️ Error closing database connection:', error.message);
+      }
+    }
   }
 
   async processReport(reportPath) {
@@ -217,7 +278,7 @@ class PostgresPlaywrightReporter {
       }
     }
 
-    // FIXED SQL - Include annotations column
+    // SQL with all columns including annotations
     const insertSQL = `
       INSERT INTO test_executions (
         execution_run_id, playwright_test_id, project_name, test_title, suite_name, 
@@ -242,54 +303,68 @@ class PostgresPlaywrightReporter {
         annotations = EXCLUDED.annotations
     `;
 
-    // Process in batches for better performance
-    const batchSize = 50;
+    // Process in smaller batches with transaction per batch
+    const batchSize = 25; // Reduced batch size for better error handling
     let processedCount = 0;
 
     for (let i = 0; i < testExecutions.length; i += batchSize) {
       const batch = testExecutions.slice(i, i + batchSize);
-
-      // Get a client from the pool
-      const client = await this.pool.connect();
+      const batchNumber = Math.floor(i / batchSize) + 1;
+      const totalBatches = Math.ceil(testExecutions.length / batchSize);
 
       try {
-        await client.query('BEGIN');
+        console.log(`🔄 Processing batch ${batchNumber}/${totalBatches} (${batch.length} records)...`);
+
+        // Start transaction
+        await this.client.query('BEGIN');
 
         // Process the batch
         for (const execution of batch) {
-          // Debug: Log the execution data
-          console.log(`🔍 Inserting execution ${processedCount + 1}:`, {
-            execution_run_id: execution[0],
-            test_title: execution[3]?.substring(0, 50) + '...',
-            retry_count: execution[17],
-            status: execution[16],
-            unique_key: `${execution[0]}-${execution[1]}-${execution[17]}`,
-          });
-          await client.query(insertSQL, execution);
+          await this.client.query(insertSQL, execution);
         }
-        await client.query('COMMIT');
+
+        // Commit transaction
+        await this.client.query('COMMIT');
+
         processedCount += batch.length;
         console.log(
-          `✅ Processed batch ${Math.floor(i / batchSize) + 1}: ${processedCount}/${testExecutions.length} records`
+          `✅ Batch ${batchNumber}/${totalBatches} completed: ${processedCount}/${testExecutions.length} records`
         );
+
+        // Small delay between batches to reduce database load
+        if (batchNumber < totalBatches) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
       } catch (error) {
-        await client.query('ROLLBACK');
-        console.error(`❌ Batch ${Math.floor(i / batchSize) + 1} failed:`, error.message);
+        // Rollback on error
+        try {
+          await this.client.query('ROLLBACK');
+        } catch (rollbackError) {
+          console.error('❌ Rollback failed:', rollbackError.message);
+        }
+
+        console.error(`❌ Batch ${batchNumber}/${totalBatches} failed:`, error.message);
         console.error('❌ Full error:', error);
 
         // Debug: Show problematic data
         if (batch.length > 0) {
           console.log('🔍 Failed batch sample data:', {
+            execution_run_id: batch[0][0],
+            test_title: batch[0][3]?.substring(0, 50) + '...',
             branch_name: batch[0][24],
             environment: batch[0][23],
             module_name: batch[0][12],
             team_name: batch[0][13],
           });
         }
-        throw error;
-      } finally {
-        // Release the client back to the pool
-        client.release();
+
+        // For CI environments, we might want to continue with other batches
+        if (process.env.CI === 'true' && process.env.CONTINUE_ON_DB_ERROR === 'true') {
+          console.warn(`⚠️ Continuing with next batch due to CI configuration...`);
+          continue;
+        } else {
+          throw error;
+        }
       }
     }
 
@@ -310,11 +385,11 @@ class PostgresPlaywrightReporter {
     console.log(`   Tests with annotations: ${withAnnotations}`);
   }
 
+  // [All the other methods remain the same as they're not connection-related]
   collectTestExecutions(suites, testExecutions, suiteStartTime) {
     for (const suite of suites || []) {
       for (const spec of suite.specs || []) {
         for (const test of spec.tests || []) {
-          // IMPROVED: Analyze all results for this test to determine flakiness
           const testResults = test.results || [];
           const isTestFlaky = this.isTestFlaky(testResults);
 
@@ -331,28 +406,21 @@ class PostgresPlaywrightReporter {
           }
         }
       }
-
-      // Process nested suites recursively
       this.collectTestExecutions(suite.suites, testExecutions, suiteStartTime);
     }
   }
 
-  // NEW: Determine if a test is flaky by analyzing all its results
   isTestFlaky(results) {
     if (results.length <= 1) {
-      return false; // Single attempt can't be flaky
+      return false;
     }
-
     const statuses = results.map(r => r.status);
     const hasPass = statuses.includes('passed');
     const hasFail = statuses.includes('failed');
-
-    // A test is flaky if it has both passed and failed attempts
     return hasPass && hasFail;
   }
 
   createTestExecutionRecord(spec, test, result, suite, suiteStartTime, isTestFlaky) {
-    // Extract and process data
     const tags = this.processTags(spec.tags);
     const priority = this.extractPriority(tags);
     const testType = this.extractTestType(tags);
@@ -361,7 +429,6 @@ class PostgresPlaywrightReporter {
     const specFileName = this.extractFileName(spec.file);
     const normalizedSuiteName = this.normalizeSuiteName(suite.title);
 
-    // Enhanced data extraction
     const reportUrl = this.generateReportUrl(spec.id || this.generateFallbackId(spec));
     const errorList = this.extractAllErrors(result);
     const stepTitles = this.extractStepTitles(result.steps || []);
@@ -370,57 +437,51 @@ class PostgresPlaywrightReporter {
     const testStartTime = this.safeParseDate(result.startTime);
     const testEndTime = new Date(testStartTime.getTime() + (result.duration || 0));
 
-    // FIXED: Proper NULL handling for nullable fields
     return [
-      this.executionRunId, // execution_run_id
-      spec.id || this.generateFallbackId(spec), // playwright_test_id
-      test.projectName || test.projectId || 'unknown', // project_name
-      spec.title || 'Untitled Test', // test_title
-      normalizedSuiteName, // suite_name
-      specFileName, // spec_file_name
-      tags, // tags (PostgreSQL array)
-      zephyrData.zephyrId, // zephyr_id
-      zephyrData.zephyrUrl, // zephyr_url
-      zephyrData.storyId, // story_id
-      zephyrData.storyUrl, // story_url
-      zephyrData.description, // test_description
-      process.env.MODULE_NAME, // module_name
-      process.env.TEAM_NAME, // team_name
-      priority, // priority
-      testType, // test_type
-      result.status || 'unknown', // status
-      result.retry || 0, // retry_count
-      isTestFlaky, // is_flaky (determined by analyzing all attempts)
-      Math.round(result.duration || 0), // duration_ms
-      errorData.errorType, // error_type
-      errorData.errorMessage, // error_message
-      errorData.errorStack, // error_stack
-      process.env.TEST_ENV || 'local', // environment
-      // FIXED: Proper branch name handling - can be NULL
-      process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || null, // branch_name (nullable)
-      process.env.GITHUB_SHA || null, // git_commit_sha
-      process.env.COMMIT_MESSAGE || null, // git_commit_message
-      process.env.IS_REGRESSION === 'true', // is_regression_run
-      process.env.GITHUB_RUN_ID || null, // github_action_id
-      this.safeParseInt(process.env.GITHUB_RUN_NUMBER), // github_run_number (nullable)
-      this.safeParseInt(process.env.GITHUB_RUN_ATTEMPT) || 1, // github_run_attempt
-      process.env.GITHUB_ACTOR || null, // triggered_by
-      this.safeParseInt(process.env.PR_NUMBER), // pr_number (nullable)
-      testStartTime, // test_start_time
-      testEndTime, // test_end_time
-      suiteStartTime, // suite_start_time
-      reportUrl, // report_url
-      errorList, // error_list
-      stepTitles, // step_titles
-      annotations, // annotations (NEW)
+      this.executionRunId,
+      spec.id || this.generateFallbackId(spec),
+      test.projectName || test.projectId || 'unknown',
+      spec.title || 'Untitled Test',
+      normalizedSuiteName,
+      specFileName,
+      tags,
+      zephyrData.zephyrId,
+      zephyrData.zephyrUrl,
+      zephyrData.storyId,
+      zephyrData.storyUrl,
+      zephyrData.description,
+      process.env.MODULE_NAME,
+      process.env.TEAM_NAME,
+      priority,
+      testType,
+      result.status || 'unknown',
+      result.retry || 0,
+      isTestFlaky,
+      Math.round(result.duration || 0),
+      errorData.errorType,
+      errorData.errorMessage,
+      errorData.errorStack,
+      process.env.TEST_ENV || 'local',
+      process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || null,
+      process.env.GITHUB_SHA || null,
+      process.env.COMMIT_MESSAGE || null,
+      process.env.IS_REGRESSION === 'true',
+      process.env.GITHUB_RUN_ID || null,
+      this.safeParseInt(process.env.GITHUB_RUN_NUMBER),
+      this.safeParseInt(process.env.GITHUB_RUN_ATTEMPT) || 1,
+      process.env.GITHUB_ACTOR || null,
+      this.safeParseInt(process.env.PR_NUMBER),
+      testStartTime,
+      testEndTime,
+      suiteStartTime,
+      reportUrl,
+      errorList,
+      stepTitles,
+      annotations,
     ];
   }
 
-  // ========================================
-  // ENHANCED DATA PROCESSING HELPERS
-  // ========================================
-
-  // FIXED: Safe integer parsing
+  // Helper methods (keeping existing implementation)
   safeParseInt(value) {
     if (!value) return null;
     const parsed = parseInt(value);
@@ -429,17 +490,9 @@ class PostgresPlaywrightReporter {
 
   generateReportUrl(testId) {
     const reportPath = process.env.REPORT_PATH || '';
-    console.log('🔍 Report path:', reportPath);
-
-    // If REPORT_PATH is already a complete URL (starts with http/https), use it as-is
     if (reportPath.startsWith('http://') || reportPath.startsWith('https://')) {
-      // For complete URLs, we can optionally add testId as a query parameter
-      // but since the current structure doesn't support it well, return the base URL
       return reportPath;
     }
-
-    // Fallback for local development or incomplete paths
-    // Construct full URL: http://localhost:9323/reports/2025-08-08/#?testId=abc123
     const fullUrl = `${reportPath}/#?testId=${testId}`;
     return fullUrl;
   }
@@ -447,7 +500,6 @@ class PostgresPlaywrightReporter {
   extractAllErrors(result) {
     const allErrors = [];
 
-    // Add result.error if it exists (this has the stack trace)
     if (result.error) {
       allErrors.push({
         message: result.error.message?.substring(0, 500) || 'Unknown error',
@@ -463,7 +515,6 @@ class PostgresPlaywrightReporter {
       });
     }
 
-    // Add any additional errors from result.errors[]
     if (result.errors && result.errors.length > 0) {
       for (const error of result.errors) {
         allErrors.push({
@@ -489,13 +540,10 @@ class PostgresPlaywrightReporter {
       if (step.title) {
         titles.push(step.title);
       }
-
-      // Recursively extract nested step titles
       if (step.steps && step.steps.length > 0) {
         this.extractStepTitles(step.steps, titles);
       }
     }
-
     return titles.length > 0 ? titles : null;
   }
 
@@ -504,51 +552,40 @@ class PostgresPlaywrightReporter {
       return null;
     }
 
-    // Process all annotations and store them as structured JSON
     const processedAnnotations = annotations.map(annotation => {
       const processed = {
         type: annotation.type,
         description: annotation.description,
       };
 
-      // Add special processing for known annotation types
       switch (annotation.type) {
         case 'zephyrId':
         case 'storyId':
-          // Extract ID from URL if it's a URL
           const idMatch = annotation.description?.match(/browse\/([A-Z]+-\d+)/);
           if (idMatch) {
             processed.id = idMatch[1];
             processed.url = annotation.description;
           }
           break;
-
         case 'description':
-          // Truncate long descriptions but preserve original
           if (annotation.description && annotation.description.length > 500) {
             processed.truncated = true;
             processed.full_description = annotation.description;
             processed.description = annotation.description.substring(0, 500) + '...';
           }
           break;
-
         case 'priority':
-          // Normalize priority format
           if (annotation.description && /^P[0-4]$/i.test(annotation.description)) {
             processed.priority_level = annotation.description.toUpperCase();
           }
           break;
-
         case 'tag':
         case 'tags':
-          // Handle tag annotations
           if (annotation.description) {
             processed.tag_value = annotation.description;
           }
           break;
-
         default:
-          // Keep any custom annotations as-is
           break;
       }
 
@@ -574,38 +611,28 @@ class PostgresPlaywrightReporter {
     if (!tags || !Array.isArray(tags)) {
       return null;
     }
-
-    // Remove duplicates, clean up, and filter empty values
     const cleanTags = [...new Set(tags)]
       .filter(tag => tag && typeof tag === 'string' && tag.trim())
       .map(tag => tag.trim());
-
     return cleanTags.length > 0 ? cleanTags : null;
   }
 
   extractPriority(tags) {
     if (!tags) return null;
-
     const priority = tags.find(tag => /^P[0-4]$/.test(tag));
     return priority || null;
   }
 
   extractTestType(tags) {
     if (!tags) return null;
-
     const testTypes = ['smoke', 'sanity', 'regression', 'integration'];
     const testType = tags.find(tag => testTypes.includes(tag.toLowerCase()));
-
     return testType ? testType.toLowerCase() : null;
   }
 
   normalizeSuiteName(suiteName) {
     if (!suiteName) return null;
-
-    return suiteName
-      .replace(/^@/, '') // Remove @ prefix
-      .replace(/\s+/g, '_') // Replace spaces with underscores
-      .toLowerCase(); // Convert to lowercase
+    return suiteName.replace(/^@/, '').replace(/\s+/g, '_').toLowerCase();
   }
 
   extractFileName(filePath) {
@@ -629,13 +656,11 @@ class PostgresPlaywrightReporter {
           const zephyrMatch = annotation.description?.match(/browse\/([A-Z]+-\d+)/);
           result.zephyrId = zephyrMatch ? zephyrMatch[1] : null;
           break;
-
         case 'storyId':
           result.storyUrl = annotation.description;
           const storyMatch = annotation.description?.match(/browse\/([A-Z]+-\d+)/);
           result.storyId = storyMatch ? storyMatch[1] : null;
           break;
-
         case 'description':
           result.description = annotation.description?.substring(0, 1000);
           break;
@@ -646,17 +671,13 @@ class PostgresPlaywrightReporter {
   }
 
   extractErrorData(result) {
-    // FIXED: Check both result.error and result.errors[] for comprehensive error data
     let errorMessage = '';
     let errorStack = null;
 
-    // Priority 1: result.error (has stack trace)
     if (result.error) {
       errorMessage = result.error.message || '';
       errorStack = result.error.stack?.substring(0, 2000) || null;
-    }
-    // Priority 2: result.errors[0] (fallback, usually no stack)
-    else if (result.errors && result.errors.length > 0) {
+    } else if (result.errors && result.errors.length > 0) {
       errorMessage = result.errors[0].message || '';
       errorStack = result.errors[0].stack?.substring(0, 2000) || null;
     }
@@ -678,34 +699,22 @@ class PostgresPlaywrightReporter {
 
   categorizeError(errorMessage) {
     if (!errorMessage) return null;
-
     const message = errorMessage.toLowerCase();
 
-    // Network and timeout errors
     if (message.includes('timeout') || message.includes('timed out')) return 'timeout';
     if (message.includes('network') || message.includes('net::err_')) return 'network_error';
     if (message.includes('connection') || message.includes('fetch')) return 'connection_error';
-
-    // Element interaction errors
     if (message.includes('element') && message.includes('not found')) return 'element_not_found';
     if (message.includes('element') && message.includes('not visible')) return 'element_not_visible';
     if (message.includes('element') && message.includes('not enabled')) return 'element_not_enabled';
     if (message.includes('element') && message.includes('not attached')) return 'element_detached';
-
-    // Assertion errors
     if (message.includes('assertion') || message.includes('expect')) return 'assertion_failed';
     if (message.includes('toequal') || message.includes('tobe')) return 'assertion_failed';
-
-    // Authentication errors
     if (message.includes('authentication') || message.includes('login')) return 'auth_error';
     if (message.includes('permission') || message.includes('access denied')) return 'permission_error';
     if (message.includes('unauthorized') || message.includes('403')) return 'auth_error';
-
-    // JavaScript errors
     if (message.includes('javascript') || message.includes('script error')) return 'javascript_error';
     if (message.includes('evaluation failed')) return 'javascript_error';
-
-    // Navigation errors
     if (message.includes('navigation') || message.includes('page crash')) return 'navigation_error';
     if (message.includes('protocol error')) return 'browser_protocol_error';
 
@@ -720,22 +729,20 @@ class PostgresPlaywrightReporter {
         .update(`${spec.file || 'unknown'}-${spec.title || 'unknown'}`)
         .digest('hex')
         .substring(0, 8);
-
       return `fallback-${hash}`;
     } catch (error) {
-      // Fallback if crypto is not available
       return `fallback-${Date.now().toString(36)}`;
     }
   }
 }
 
 // ============================================================
-// MAIN EXECUTION
+// MAIN EXECUTION WITH FIXED ERROR HANDLING
 // ============================================================
 (async function () {
   const reportDir = process.env.REPORT_DIR || './test-results';
 
-  console.log('\n🚀 Starting Enhanced PostgreSQL Playwright Reporter');
+  console.log('\n🚀 Starting PostgreSQL Playwright Reporter (Client Mode)');
   console.log('='.repeat(60));
 
   // Find the JSON report file
@@ -758,21 +765,75 @@ class PostgresPlaywrightReporter {
   const reportPath = path.join(reportDir, reportFile);
   console.log(`📄 Found report file: ${reportFile}`);
 
-  // Create and run the enhanced reporter
-  const reporter = new PostgresPlaywrightReporter();
+  // FIXED: Create reporter instance inside the retry loop to avoid const assignment issues
+  const maxRetries = parseInt(process.env.DB_MAX_RETRIES) || 3;
+  const retryDelayMs = parseInt(process.env.DB_RETRY_DELAY) || 5000;
 
-  try {
-    const startTime = Date.now();
-    await reporter.processReport(reportPath);
-    const endTime = Date.now();
+  let lastError;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    // FIXED: Create new reporter instance inside the loop, use let instead of const
+    let reporter = new PostgresPlaywrightReporter();
 
-    console.log('\n🎉 Enhanced PostgreSQL reporting completed successfully!');
-    console.log(`⏱️  Processing time: ${((endTime - startTime) / 1000).toFixed(2)}s`);
-    console.log('='.repeat(60));
-  } catch (error) {
-    console.error('\n❌ Enhanced PostgreSQL reporting failed!');
-    console.error('Error details:', error.message);
-    console.error('='.repeat(60));
-    process.exit(1);
+    try {
+      console.log(`\n🔄 Attempt ${attempt}/${maxRetries} to process report...`);
+      const startTime = Date.now();
+
+      await reporter.processReport(reportPath);
+
+      const endTime = Date.now();
+      console.log('\n🎉 Enhanced PostgreSQL reporting completed successfully!');
+      console.log(`⏱️  Processing time: ${((endTime - startTime) / 1000).toFixed(2)}s`);
+      console.log(`🔄 Completed on attempt: ${attempt}/${maxRetries}`);
+      console.log('='.repeat(60));
+
+      // Success - exit the retry loop
+      process.exit(0);
+    } catch (error) {
+      lastError = error;
+      console.error(`\n❌ Attempt ${attempt}/${maxRetries} failed:`, error.message);
+
+      // FIXED: Ensure cleanup of failed reporter instance
+      try {
+        await reporter.disconnect();
+      } catch (cleanupError) {
+        console.warn('⚠️ Cleanup error:', cleanupError.message);
+      }
+
+      // If this is the last attempt, don't wait
+      if (attempt === maxRetries) {
+        console.error('\n💀 All retry attempts exhausted!');
+        console.error('Final error details:', error);
+        break;
+      }
+
+      // Wait before retrying (with exponential backoff)
+      const delay = retryDelayMs * Math.pow(1.5, attempt - 1);
+      console.log(`⏳ Waiting ${delay}ms before retry attempt ${attempt + 1}...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+
+      // FIXED: No need to reassign - new instance created at start of next loop iteration
+    }
   }
+
+  // If we reach here, all retries failed
+  console.error('\n❌ Enhanced PostgreSQL reporting failed after all retry attempts!');
+  console.error('='.repeat(60));
+
+  // Provide troubleshooting information
+  console.error('\n🔧 Troubleshooting Information:');
+  console.error('   Database Configuration:');
+  console.error(`   - Host: ${process.env.PG_DB_HOST}`);
+  console.error(`   - Port: ${process.env.PG_DB_PORT}`);
+  console.error(`   - Database: ${process.env.PG_DB_NAME}`);
+  console.error(`   - User: ${process.env.PG_DB_USER}`);
+  console.error(`   - Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.error(`   - CI Mode: ${process.env.CI || 'false'}`);
+  console.error('\n   Common Solutions:');
+  console.error('   1. Check database connectivity and credentials');
+  console.error('   2. Verify firewall/security group settings');
+  console.error('   3. Ensure database is accepting connections');
+  console.error('   4. Check if connection limits are exceeded');
+  console.error('   5. Verify SSL settings match database requirements');
+
+  process.exit(1);
 })();

@@ -1,5 +1,4 @@
 export enum DataEngineeringTestSuite {
-    ADOPTION = '@adoption',
-    ANALYTICS = '@analytics'
-  }
-  
+  ADOPTION = '@adoption',
+  ANALYTICS = '@analytics',
+}

@@ -30,13 +30,12 @@ export class FeedManagementHelper {
       const feedId = response.result.feedId;
       const authorName = response.result.authoredBy?.name;
 
-      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
-        this.appManagerApiClient,
-        feedName,
-        feedName,
-        'feed',
-        'excerpt'
-      );
+      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+        apiClient: this.appManagerApiClient,
+        searchTerm: feedName,
+        objectType: 'feed',
+        fieldToCheck: 'excerpt',
+      });
 
       const createdFeed = {
         feedId,
