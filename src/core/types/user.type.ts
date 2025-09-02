@@ -1,18 +1,14 @@
-interface UserDetails {
+export interface User {
   first_name: string;
   last_name: string;
   username: string;
+  email: string; // Can be empty string
+  mobile: number; // Can be 0
+  emp: string; // Can be empty string
   timezone_id?: number;
   language_id?: number;
   locale_id?: number;
 }
-
-type UserLoginIdentifer =
-  | { email: string; mobile?: number; emp?: string }
-  | { email?: string; mobile: number; emp?: string }
-  | { email?: string; mobile?: number; emp: string };
-
-export type User = UserDetails & UserLoginIdentifer;
 
 export interface SearchUserRecord {
   id: string;

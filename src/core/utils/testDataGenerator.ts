@@ -4,7 +4,6 @@ import { User } from '@core/types/user.type';
 
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
 import { PageCreationOptions } from '@/src/modules/content/pages/pageCreationPage';
-import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 export class TestDataGenerator {
   /**
@@ -13,10 +12,16 @@ export class TestDataGenerator {
    * @returns A User object with random realistic data
    */
   static generateUser(overrides?: Partial<User>): User {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+
     return {
-      first_name: faker.person.firstName(),
-      last_name: faker.person.lastName(),
+      first_name: firstName,
+      last_name: lastName,
+      username: `${firstName} ${lastName}`,
       email: faker.internet.email({ provider: 'simpplr.com' }),
+      mobile: faker.number.int({ min: 1000000000, max: 9999999999 }),
+      emp: faker.string.alphanumeric(8).toUpperCase(),
       timezone_id: 17,
       language_id: 1,
       locale_id: 1,
