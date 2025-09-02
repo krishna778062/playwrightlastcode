@@ -12,7 +12,7 @@ test.describe(
   },
   () => {
     test(
-      'Scenario: Create app promotion QR and verify',
+      'Scenario: Verify creation of app promotion QR',
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
       },
