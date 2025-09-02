@@ -185,12 +185,14 @@ export class FeatureOwnersPage extends BasePage {
    * @param userName - Username of user who need to be checked for app manager tag.
    */
   async verifyFeatureOwnerIsDisplayedWithAppManagerTag(userName: string): Promise<void> {
-    const featureOwnerRecordItem = await this.getFeatureOwnerRecordItem(userName, true);
-    //verify this record has app manager tag
-    const appManagerTag = featureOwnerRecordItem.locator(
-      "[class*='AccessControlListItem-module-appManagerContainer'] p"
-    );
-    await expect(appManagerTag).toBeVisible();
+    await test.step(`Verifying ${userName} is displayed with app manager tag`, async () => {
+      const featureOwnerRecordItem = await this.getFeatureOwnerRecordItem(userName, true);
+      //verify this record has app manager tag
+      const appManagerTag = featureOwnerRecordItem.locator(
+        "[class*='AccessControlListItem-module-appManagerContainer'] p"
+      );
+      await expect(appManagerTag).toBeVisible();
+    });
   }
 
   /**
@@ -209,16 +211,16 @@ export class FeatureOwnersPage extends BasePage {
     let isUserVisible = await this.verifier.isTheElementVisible(featureOwnerRecordItem, { timeout: 1000 });
     //iterate until show more button is visible and feature owner record item is not visible
     while (isShowMoreButtonVisible && !isUserVisible) {
-      await this.clickOnElement(this.showMoreButtonForEditFO);
+      await this.clickOnElement(this.showMoreButtonForEditFO, {
+        stepInfo:
+          'Since the user record is not visible but the show more button is visible hence clicking on show more button',
+      });
       isUserVisible = await this.verifier.isTheElementVisible(featureOwnerRecordItem, {
         timeout: 1000,
       });
       isShowMoreButtonVisible = await this.verifier.isTheElementVisible(this.showMoreButtonForEditFO, {
         timeout: 1000,
       });
-      console.log(
-        'Since the user record is not visible but the show moure button is visible hence clicking on show more button'
-      );
     }
     if (visiblility) {
       expect(isUserVisible, `expecting  ${userName} to be visible`).toBeTruthy();
@@ -234,6 +236,8 @@ export class FeatureOwnersPage extends BasePage {
    * @param userName - Username of user who need to be checked for feature owner.
    */
   async verifyUserIsNotDisplayedAsFeatureOwner(userName: string): Promise<void> {
-    await this.getFeatureOwnerRecordItem(userName, false);
+    await test.step(`Verifying ${userName} is not displayed in the feature owners list`, async () => {
+      await this.getFeatureOwnerRecordItem(userName, false);
+    });
   }
 }

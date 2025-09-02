@@ -12,7 +12,7 @@ import { TestSuite } from '@/src/core/constants/testSuite';
 import { FeatureMenuOptions } from '@/src/modules/platforms/constants/featureMenuOptions';
 
 test.describe(
-  'ACG Testcases',
+  'Feature Owners Testcases',
   {
     tag: [TestSuite.ABAC],
   },
