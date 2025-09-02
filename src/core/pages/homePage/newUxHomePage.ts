@@ -122,9 +122,7 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
   }
 
   async clickOnBellIcon(options?: { stepInfo?: string }): Promise<NotificationComponent> {
-    return await test.step(options?.stepInfo || 'Click on bell icon', async () => {
-      await this.topNavBarComponent.clickOnBellIcon();
-      return new NotificationComponent(this.page);
-    });
+    await this.topNavBarComponent.clickOnBellIcon();
+    return new NotificationComponent(this.page);
   }
 }
