@@ -37,6 +37,10 @@ export class AccessControlGroupsPage extends BasePage {
   readonly editPopupCancelButton: Locator;
   readonly editPopupContinueButton: Locator;
   readonly editOption: Locator;
+  readonly editManagerButton: Locator;
+  readonly addUsersButton: Locator;
+  readonly updateButton: Locator;
+  readonly searchInput: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.ACCESS_CONTROL_GROUPS_PAGE) {
     super(page, pageUrl);
@@ -52,24 +56,22 @@ export class AccessControlGroupsPage extends BasePage {
     this.iUnderstand = page.locator('#confirmDelete');
     this.acgNameInputBox = page.locator('[name="controlGroupName"]');
     this.acgSearchBox = page.locator('#q');
-    this.editPopupTitle = page.locator('[class*="Typography-module__heading1"]:has-text("Edit access control group")');
-    this.editWarningMessage = page.locator(
-      '[class*="Typography-module__paragraph"][class*="Typography-module__boldWeight"]:has-text("Editing this access control group may result in the following:")'
-    );
-    this.managersLoseAccessMessage = page.locator(
-      'li:has-text("Managers might lose access to this group or entire feature")'
-    );
-    this.adminsLoseAccessMessage = page.locator(
-      'li:has-text("Admins might lose access to this group or entire feature")'
-    );
-    this.contentMoveMessage = page.locator('li:has-text("Feature that loses its association")');
-    this.analyticsDiscrepanciesMessage = page.locator(
-      'li:has-text("There may be discrepancies on any analytics pages")'
-    );
-    this.editPopupCrossButton = page.locator('[aria-label="Close"]');
+    this.editPopupTitle = page.getByText('Edit access control group');
+    this.editWarningMessage = page
+      .locator('[class*="Typography-module__paragraph"][class*="Typography-module__boldWeight"]')
+      .filter({ hasText: 'Editing this access control group may result in the following:' });
+    this.managersLoseAccessMessage = page.getByText('Managers might lose access to this group or entire feature');
+    this.adminsLoseAccessMessage = page.getByText('Admins might lose access to this group or entire feature');
+    this.contentMoveMessage = page.getByText('Feature that loses its association');
+    this.analyticsDiscrepanciesMessage = page.getByText('There may be discrepancies on any analytics pages');
+    this.editPopupCrossButton = page.getByLabel('Close');
     this.editPopupCancelButton = page.getByRole('button', { name: 'Cancel' });
     this.editPopupContinueButton = page.getByRole('button', { name: 'Continue' });
-    this.editOption = page.locator("text='Edit'");
+    this.editOption = page.getByText('Edit');
+    this.editManagerButton = page.getByRole('button', { name: 'Edit manager' });
+    this.addUsersButton = page.getByRole('button', { name: 'Add users' });
+    this.updateButton = page.getByRole('button', { name: 'Update' });
+    this.searchInput = page.getByRole('combobox').first();
   }
 
   // To verify that the ACG page is loaded
@@ -243,18 +245,36 @@ export class AccessControlGroupsPage extends BasePage {
   async verifyEditWarningPopup(): Promise<void> {
     await test.step('Verify all elements in edit warning popup', async () => {
       // Verify popup title
-      await expect(this.editPopupTitle).toBeVisible();
+      await this.verifier.verifyTheElementIsVisible(this.editPopupTitle, {
+        assertionMessage: 'Edit access control group popup title should be visible',
+      });
 
       // Verify warning message
-      await expect(this.editWarningMessage).toBeVisible();
-      await expect(this.managersLoseAccessMessage).toBeVisible();
-      await expect(this.adminsLoseAccessMessage).toBeVisible();
-      await expect(this.contentMoveMessage).toBeVisible();
-      await expect(this.analyticsDiscrepanciesMessage).toBeVisible();
+      await this.verifier.verifyTheElementIsVisible(this.editWarningMessage, {
+        assertionMessage: 'Edit warning message should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.managersLoseAccessMessage, {
+        assertionMessage: 'Managers lose access warning should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.adminsLoseAccessMessage, {
+        assertionMessage: 'Admins lose access warning should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.contentMoveMessage, {
+        assertionMessage: 'Content move warning should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.analyticsDiscrepanciesMessage, {
+        assertionMessage: 'Analytics discrepancies warning should be visible',
+      });
 
-      await expect(this.editPopupCrossButton).toBeVisible();
-      await expect(this.editPopupCancelButton).toBeVisible();
-      await expect(this.editPopupContinueButton).toBeVisible();
+      await this.verifier.verifyTheElementIsVisible(this.editPopupCrossButton, {
+        assertionMessage: 'Edit popup close button should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.editPopupCancelButton, {
+        assertionMessage: 'Edit popup cancel button should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.editPopupContinueButton, {
+        assertionMessage: 'Edit popup continue button should be visible',
+      });
     });
   }
 
@@ -263,12 +283,12 @@ export class AccessControlGroupsPage extends BasePage {
    */
   async searchAndSelectUserWithEnter(searchTerm: string): Promise<void> {
     await test.step(`Search for "${searchTerm}" and select with Enter key`, async () => {
-      const searchInput = this.page.locator('[role="combobox"]').first();
-      await searchInput.fill(searchTerm);
+      // Use the exact working logic with constructor locator
+      await this.searchInput.fill(searchTerm);
       await this.page.waitForTimeout(2000);
-      await searchInput.press('ArrowDown');
+      await this.searchInput.press('ArrowDown');
       await this.page.waitForTimeout(500);
-      await searchInput.press('Enter');
+      await this.searchInput.press('Enter');
     });
   }
 
@@ -277,8 +297,7 @@ export class AccessControlGroupsPage extends BasePage {
    */
   async clickOnEditManagerButton(): Promise<void> {
     await test.step('Click on Edit Manager button', async () => {
-      const editManagerButton = this.page.getByRole('button', { name: 'Edit manager' });
-      await this.clickOnElement(editManagerButton);
+      await this.clickOnElement(this.editManagerButton);
     });
   }
 
@@ -287,8 +306,7 @@ export class AccessControlGroupsPage extends BasePage {
    */
   async clickOnAddUsersButton(): Promise<void> {
     await test.step('Click on Add Users button', async () => {
-      const addUsersButton = this.page.getByRole('button', { name: 'Add users' });
-      await this.clickOnElement(addUsersButton);
+      await this.clickOnElement(this.addUsersButton);
     });
   }
 
@@ -297,24 +315,24 @@ export class AccessControlGroupsPage extends BasePage {
    */
   async clickOnUpdateButton(): Promise<void> {
     await test.step('Click on Update button', async () => {
-      const updateButton = this.page.getByRole('button', { name: 'Update' });
-      await this.clickOnElement(updateButton);
+      await this.clickOnElement(this.updateButton);
     });
   }
 
   async verifyAdminUsersInManagerList(): Promise<void> {
     await test.step('Verify admin users in manager list', async () => {
-      await this.page.waitForTimeout(2000);
+      // Wait for the dialog to be fully loaded instead of hardcoded timeout
+      await this.page.waitForSelector('[role="dialog"]', { state: 'visible', timeout: 10000 });
 
-      const selectors = ['[role="dialog"] p:has-text("Admin")', 'text=/Admin.*User/i'];
+      // Directly target admin elements in the dialog
+      const adminElements = this.page.locator('[role="dialog"]').getByText(/Admin/i);
 
-      let adminElements = this.page.locator(selectors[0]);
-      for (const selector of selectors) {
-        adminElements = this.page.locator(selector);
-        if ((await adminElements.count()) > 0) break;
-      }
+      // Wait for at least one admin element to be visible
+      await adminElements.first().waitFor({ state: 'visible', timeout: 10000 });
+
+      // Assert that admin count is greater than 0
       const adminCount = await adminElements.count();
-      expect(adminCount).toBeGreaterThan(0);
+      expect(adminCount, 'Should have at least one admin user in manager list').toBeGreaterThan(0);
     });
   }
 }

@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 import { TestPriority } from '@core/constants/testPriority';
 import { User } from '@core/types/user.type';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
@@ -164,21 +165,20 @@ test.describe(
     );
 
     test(
-      'Verify that the feature list displayed under Feature owners tab should be unique and verify search functionality with invalid string',
+      'Verify that the feature list displayed under Feature owners tab should be unique',
       {
         tag: [TestPriority.P0, `@ABAC`],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
-          description:
-            'Verify that the feature list displayed under Feature owners tab should be unique and verify search functionality with invalid string',
-          zephyrTestId: ['PS-32997', 'PS-32965'],
+          description: 'Verify that the feature list displayed under Feature owners tab should be unique',
+          zephyrTestId: 'PS-32997',
         });
         const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
         // Navigate to Feature owners page
         await featureOwnersPage.loadPage();
-        // Click "Show more" button until all features are loaded
-        await featureOwnersPage.clickShowMoreUntilNotVisible();
+        // Click "Show more" button to load additional features for uniqueness testing
+        await featureOwnersPage.clickShowMore();
         // Get all feature names displayed on the page
         const allFeatureNames: string[] = await featureOwnersPage.getAllFeatureNames();
         // Verify that all features are unique
@@ -188,7 +188,22 @@ test.describe(
           uniqueFeatures.length,
           `Expected ${uniqueFeatures.length} unique features but found ${allFeatureNames.length} total features. Duplicate features detected.`
         ).toBe(allFeatureNames.length);
+      }
+    );
 
+    test(
+      'Verify search functionality with invalid string shows no results found message',
+      {
+        tag: [TestPriority.P0, `@ABAC`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify search functionality with invalid string shows no results found message',
+          zephyrTestId: 'PS-32965',
+        });
+        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
+        // Navigate to Feature owners page
+        await featureOwnersPage.loadPage();
         // Test search functionality with invalid string
         await featureOwnersPage.performSearch('sdbkfjskdfn');
         await featureOwnersPage.verifyNoResultsFoundMessages();
@@ -208,8 +223,8 @@ test.describe(
         const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
         // Navigate to Feature owners page
         await featureOwnersPage.loadPage();
-        // Click on any owner count button and get the count value
-        const clickedCount = await featureOwnersPage.clickOnAnyUserCountButton();
+        // Click on first owner count button and get the count value
+        const clickedCount = await featureOwnersPage.clickOnCountButton();
         // Verify that popup opens with the same count
         await featureOwnersPage.verifyUserCountPopupOpened(clickedCount);
       }

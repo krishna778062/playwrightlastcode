@@ -246,13 +246,20 @@ export class FeatureOwnersPage extends BasePage {
   }
 
   /**
-   * Clicks "Show more" button until it's no longer visible to load all features
+   * Clicks "Show more" button to load additional features for testing purposes
    */
-  async clickShowMoreUntilNotVisible(): Promise<void> {
-    await test.step('Click "Show more" button until all features are loaded', async () => {
-      while (await this.showMoreButton.isVisible()) {
+  async clickShowMore(): Promise<void> {
+    await test.step('Click "Show more" button to load additional features for testing', async () => {
+      if (await this.showMoreButton.isVisible()) {
+        const initialFeatureCount = await this.feature.count();
         await this.clickOnElement(this.showMoreButton);
-        await this.sleep(1000);
+
+        // Wait for new features to load by checking if count has increased
+        await this.page.waitForFunction(
+          count => document.querySelectorAll("[class*='FeatureColumn-module-featureName'] p").length > count,
+          initialFeatureCount,
+          { timeout: 10000 }
+        );
       }
     });
   }
@@ -273,31 +280,43 @@ export class FeatureOwnersPage extends BasePage {
 
   async performSearch(searchTerm: string): Promise<void> {
     await test.step(`Search for: "${searchTerm}"`, async () => {
-      if (await this.clearButtonOnSearchInputBox.isVisible()) {
-        await this.clickOnElement(this.clearButtonOnSearchInputBox);
-      }
       await this.typeInElement(this.searchInputBox, searchTerm);
       await this.page.keyboard.press('Enter');
-      await this.sleep(1000);
+
+      // Wait for search results to load - either results appear or "no results" message shows
+      await Promise.race([
+        this.page.waitForSelector("[class*='FeatureColumn-module-featureName'] p", {
+          state: 'visible',
+          timeout: 10000,
+        }),
+        this.page.waitForSelector('text="No results found"', { state: 'visible', timeout: 10000 }),
+      ]);
     });
   }
 
   async verifyNoResultsFoundMessages(): Promise<void> {
     await test.step('Verify "No results found" messages are displayed', async () => {
-      await expect(this.noResultsFoundHeading).toBeVisible();
-      await expect(this.noResultsFoundDescription).toBeVisible();
+      await this.verifier.verifyTheElementIsVisible(this.noResultsFoundHeading, {
+        assertionMessage: 'No results found heading should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.noResultsFoundDescription, {
+        assertionMessage: 'No results found description should be visible',
+      });
     });
   }
 
   /**
-   * Clicks on any available user count button
+   * Clicks on user count button at specified index
+   * @param index - Index of the user count button to click (default: 0)
    */
-  async clickOnAnyUserCountButton(): Promise<string> {
-    return await test.step('Click on any available user count button', async () => {
-      const firstUserCountButton = this.userCountButton.first();
-      await expect(firstUserCountButton).toBeVisible();
-      const countText = await firstUserCountButton.textContent();
-      await this.clickOnElement(firstUserCountButton);
+  async clickOnCountButton(index: number = 0): Promise<string> {
+    return await test.step(`Click on user count button at index ${index}`, async () => {
+      const userCountButton = this.userCountButton.nth(index);
+      await this.verifier.verifyTheElementIsVisible(userCountButton, {
+        assertionMessage: `User count button at index ${index} should be visible`,
+      });
+      const countText = await userCountButton.textContent();
+      await this.clickOnElement(userCountButton);
       return countText?.trim() || '';
     });
   }
@@ -309,8 +328,12 @@ export class FeatureOwnersPage extends BasePage {
   async verifyUserCountPopupOpened(expectedCount: string): Promise<void> {
     await test.step(`Verify user count popup opened with "${expectedCount} users"`, async () => {
       // Wait for the popup to appear and verify the count text
-      await expect(this.userCountPopupText).toBeVisible();
-      await expect(this.userCountPopupText).toContainText(`${expectedCount} users`);
+      await this.verifier.verifyTheElementIsVisible(this.userCountPopupText, {
+        assertionMessage: 'User count popup should be visible',
+      });
+      await this.verifier.verifyElementContainsText(this.userCountPopupText, `${expectedCount} users`, {
+        assertionMessage: `User count popup should contain "${expectedCount} users"`,
+      });
     });
   }
 }
