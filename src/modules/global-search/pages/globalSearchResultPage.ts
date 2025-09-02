@@ -6,7 +6,7 @@ import { ExternalSearchListComponent } from '../components/externalSearchListCom
 import { ContentType } from '@/src/core/constants/contentTypes';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/pages/basePage';
-import { AppContainerComponent } from '@/src/modules/global-search/components/appListComponent';
+import { AppsAndLinkContainerComponent } from '@/src/modules/global-search/components/appsAndLinkListComponent';
 import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 import { FeedListComponent } from '@/src/modules/global-search/components/feedListComponent';
 import { IntranetFileListComponent } from '@/src/modules/global-search/components/intranetFileListComponent';
@@ -360,7 +360,7 @@ export class GlobalSearchResultPage extends BasePage {
     const appResultToLocate = this.appResultContainer.locator('a').filter({
       has: this.page.locator('h3', { hasText: searchTerm }),
     });
-    return new AppContainerComponent(this.page, appResultToLocate);
+    return new AppsAndLinkContainerComponent(this.page, appResultToLocate);
   }
 
   /**
