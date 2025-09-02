@@ -9,7 +9,7 @@ export type SnowflakeConfig = {
   schema?: string;
   role?: string;
   application?: string;
-}
+};
 
 export class SnowflakeService {
   private connection: Connection;
@@ -75,4 +75,4 @@ export class SnowflakeService {
       });
     });
   }
-} 
+}

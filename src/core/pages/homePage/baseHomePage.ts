@@ -7,13 +7,14 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 
 import { BasePage } from '@/src/core/pages/basePage';
+import { ChatNavigationComponent } from '@/src/modules/chat/components/chatNavigationComponent';
+import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
 import { CreateComponent } from '@/src/modules/content/components/createComponent';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
 import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
-import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 import { SiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/globalSearchResultPage';
@@ -22,6 +23,8 @@ export interface ICommonHomePageActions {
   searchForTerm: (searchTerm: string, options?: { stepInfo?: string }) => Promise<GlobalSearchResultPage>;
   clickOnGlobalFeed: (options?: { stepInfo?: string }) => Promise<void>;
   openSiteCreationForm: (options?: { stepInfo?: string }) => Promise<SiteCreationPage>;
+  clickOnMessageInbox: (options?: { stepInfo?: string }) => Promise<ChatNavigationComponent>;
+  navigateToChatPageViaTopNavBar: (options?: { stepInfo?: string }) => Promise<ChatAppPage>;
 }
 
 export interface IOldUxHomePageActions extends ICommonHomePageActions {
@@ -39,6 +42,8 @@ export interface INewUxHomePageActions extends ICommonHomePageActions {
     options?: { stepInfo?: string }
   ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
   clickOnFeaturedSitesTab: (options?: { stepInfo?: string }) => Promise<FeaturedSitePage>;
+  clickOnApplicationSettings: (options?: { stepInfo?: string }) => Promise<void>;
+  verifyRolesButtonVisibility: (visible: boolean, options?: { stepInfo?: string }) => Promise<void>;
 }
 
 export abstract class BaseHomePage extends BasePage implements ICommonHomePageActions {
@@ -111,4 +116,50 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
    * @returns The site creation modal component
    */
   abstract openSiteCreationForm(options?: { stepInfo?: string }): Promise<SiteCreationPage>;
+
+  /**
+   * Clicks on the application settings button on the side navigation panel
+   * @param options - The options for the step
+   */
+  async clickOnApplicationSettings(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Clicking on Application settings', async () => {
+      await this.sideNavBarComponent.clickOnApplicationSettings();
+    });
+  }
+
+  /**
+   * Verifies the visibility of Roles button on the side navigation panel
+   * @param visible - The visibility of the Roles button
+   * @param options - The options for the step
+   */
+  async verifyRolesButtonVisibility(visible: boolean, options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Clicking on Roles button', async () => {
+      await this.sideNavBarComponent.verifyRolesButtonVisibility(visible);
+    });
+  }
+
+  /**
+   * Clicks on the message inbox via the top nav bar
+   * @param options - The options for the step
+   * @returns The chat navigation component
+   */
+  async clickOnMessageInbox(options?: { stepInfo?: string }): Promise<ChatNavigationComponent> {
+    const chatNavigationComponent = new ChatNavigationComponent(this.page);
+    await this.topNavBarComponent.openMessageInbox(options);
+    await chatNavigationComponent.isCommonNavigationComponentVisible(options);
+    return chatNavigationComponent;
+  }
+
+  /**
+   * Navigates to the chat page via the top nav bar
+   * @param options - The options for the step
+   * @returns The chat app page
+   */
+  async navigateToChatPageViaTopNavBar(options?: { stepInfo?: string }): Promise<ChatAppPage> {
+    const chatAppPage = new ChatAppPage(this.page);
+    const chatNavigationComponent = await this.clickOnMessageInbox(options);
+    await chatNavigationComponent.clickOnSeeAllMessagesButton(options);
+    await chatAppPage.verifyThePageIsLoaded();
+    return chatAppPage;
+  }
 }

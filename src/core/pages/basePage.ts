@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
@@ -37,6 +37,64 @@ export abstract class BasePage extends BaseActionUtil {
         throw new Error('Page URL is not set for this page');
       }
       await this.verifyThePageIsLoaded();
+    });
+  }
+
+  /**
+   * Generic method to click Cancel button in any modal/popup
+   * @param cancelButton - The cancel button locator
+   * @param stepInfo - Optional custom step information
+   */
+  async clickCancelButton(cancelButton: any, stepInfo?: string): Promise<void> {
+    await this.clickOnElement(cancelButton, {
+      stepInfo: stepInfo || 'Click Cancel button',
+    });
+  }
+
+  /**
+   * Generic method to add description in any modal/popup
+   * @param descriptionInput - The description input locator
+   * @param description - The description text to add
+   * @param stepInfo - Optional custom step information
+   */
+  async addDescription(descriptionInput: any, description: string, stepInfo?: string): Promise<void> {
+    await this.fillInElement(descriptionInput, description, {
+      stepInfo: stepInfo || `Add description: ${description}`,
+    });
+  }
+
+  /**
+   * Generic method to click Close (X) button in any modal/popup
+   * @param closeButton - The close button locator
+   * @param stepInfo - Optional custom step information
+   */
+  async clickCloseButton(closeButton: any, stepInfo?: string): Promise<void> {
+    await this.clickOnElement(closeButton, {
+      stepInfo: stepInfo || 'Click Close (X) button',
+    });
+  }
+
+  /**
+   * @description
+   * Reloads the page
+   * @param options - The options to pass to the visitPage method
+   * @param options.stepInfo - The step info to pass to the test.step method
+   * @param options.timeout - The timeout to pass to the page.goto method
+   */
+  async reloadPage(options?: { stepInfo?: string; timeout?: number }) {
+    await test.step(options?.stepInfo || `Reloading page`, async () => {
+      await this.page.reload();
+      await this.verifyThePageIsLoaded();
+    });
+  }
+
+  /**
+   * @description
+   * Checks for Page not found error
+   */
+  async verifyPageNotFoundVisibility(options?: { stepInfo?: string; timeout?: number }) {
+    await test.step(options?.stepInfo || `Verify the page - Page not found`, async () => {
+      await expect(this.page.locator('h1', { hasText: 'Page not found' })).toBeVisible();
     });
   }
 }

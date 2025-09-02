@@ -1,4 +1,3 @@
-
 /**
  * Returns today's date formatted as 'Mon DD, YYYY' (e.g., 'Jul 31, 2024').
  * @returns {string} The formatted date string for today.
@@ -44,9 +43,7 @@ export function getEventDateDisplayText(fromDate: string, toDate: string): strin
 
   // Helper to check if a date is today
   const isToday = (date: Date) =>
-    date.getDate() === now.getDate() &&
-    date.getMonth() === now.getMonth() &&
-    date.getFullYear() === now.getFullYear();
+    date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
 
   // Helper to check if a date is tomorrow
   const tomorrow = new Date(now);
@@ -61,12 +58,12 @@ export function getEventDateDisplayText(fromDate: string, toDate: string): strin
   } else {
     // Example: Thu, Jul 31 - Aug 1
     const fromStr =
-      from.toLocaleString('en-US', { weekday: 'short' }) + ', ' +
-      from.toLocaleString('en-US', { month: 'short' }) + ' ' +
+      from.toLocaleString('en-US', { weekday: 'short' }) +
+      ', ' +
+      from.toLocaleString('en-US', { month: 'short' }) +
+      ' ' +
       from.getDate();
-    const toStr =
-      to.toLocaleString('en-US', { month: 'short' }) + ' ' +
-      to.getDate();
+    const toStr = to.toLocaleString('en-US', { month: 'short' }) + ' ' + to.getDate();
     return `${fromStr} - ${toStr}`;
   }
 }

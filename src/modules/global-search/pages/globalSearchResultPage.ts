@@ -27,6 +27,7 @@ export class GlobalSearchResultPage extends BasePage {
   readonly eventResultItems: Locator;
   readonly albumResultItems: Locator;
   readonly feedResultItems: Locator;
+  readonly tileResultItems: Locator;
   readonly tileButton: Locator;
   readonly appResultContainer: Locator;
   readonly externalSearchResultItems: Locator;
@@ -49,7 +50,9 @@ export class GlobalSearchResultPage extends BasePage {
     this.feedResultItems = this.searchResultListItems.filter({
       has: this.page.getByTestId('i-feedMobile'),
     });
-
+    this.tileResultItems = this.searchResultListItems.filter({
+      has: this.page.getByTestId('i-tile'),
+    });
     this.tileButton = this.page.getByRole('button', { name: 'Tiles' });
 
     this.eventResultItems = this.searchResultListItems.filter({
@@ -335,13 +338,9 @@ export class GlobalSearchResultPage extends BasePage {
   async getTileResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
     await this.waitUntilSearchResultListIsDisplayed();
 
-    const tileResultToLocate = this.searchResultListItems
-      .filter({
-        has: this.page.getByTestId('i-tile'),
-      })
-      .filter({
-        hasText: searchTerm,
-      });
+    const tileResultToLocate = this.tileResultItems.filter({
+      hasText: searchTerm,
+    });
 
     await this.handleExactMatchCheckboxRetry(async () => {
       await this.verifier.verifyTheElementIsVisible(tileResultToLocate, { timeout: 40_000 });
