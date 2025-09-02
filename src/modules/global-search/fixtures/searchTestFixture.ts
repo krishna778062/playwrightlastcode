@@ -24,7 +24,6 @@ export const searchTestFixtures = test.extend<
   {
     appManagerApiClient: AppManagerApiClient;
     publicSite: { siteName: string; siteId: string };
-    siteManagementHelper: SiteManagementHelper;
   }
 >({
   appManagerHomePage: [

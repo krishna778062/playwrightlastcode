@@ -50,7 +50,7 @@ test.describe(
           storyId: 'SEN-12297',
         });
 
-        5. UI Search for the album
+        // 5. UI Search for the album
         const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(albumName, {
           stepInfo: `Searching with term "${albumName}" and intent is to find the content`,
         });

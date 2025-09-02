@@ -21,7 +21,7 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
 
       test.beforeEach(
         `Setting up the test environment for site search by creating new site of type ${testData.siteType}`,
-        async ({ appManagerApiClient, siteManagementHelper, publicSite }) => {
+        async ({ appManagerApiClient, publicSite }) => {
           if (testData.siteType === SITE_TYPES.PUBLIC) {
             // Use the shared public site for PUBLIC site tests
             newSiteId = publicSite.siteId;
@@ -29,18 +29,37 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
             categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
             console.log(`Using shared site: ${newSiteName} with ID: ${newSiteId}`);
           } else {
-            // Create individual sites for PRIVATE/UNLISTED tests
+            // Create individual sites for PRIVATE/UNLISTED tests directly via API
             categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
-            const createdSiteDetails = await siteManagementHelper.createSite({
-              category: categoryObj,
-              accessType: testData.siteType,
+            const randomNum = Math.floor(Math.random() * 1000000 + 1);
+            const siteName = `Private_${testData.siteType}_${randomNum}`;
+
+            const createdSiteDetails = await appManagerApiClient.getSiteManagementService().addNewSite({
+              access: testData.siteType,
+              name: siteName,
+              category: {
+                categoryId: categoryObj.categoryId,
+                name: categoryObj.name,
+              },
             });
-            newSiteId = createdSiteDetails.siteId!;
-            newSiteName = createdSiteDetails.siteName!;
+            newSiteId = createdSiteDetails.siteId;
+            newSiteName = createdSiteDetails.siteName;
             console.log(`Created site: ${newSiteName} with ID: ${newSiteId}`);
           }
         }
       );
+
+      test.afterEach('Cleanup individual sites', async ({ appManagerApiClient }) => {
+        // Only cleanup if we created an individual site (not using shared publicSite)
+        if (testData.siteType !== SITE_TYPES.PUBLIC && newSiteId) {
+          try {
+            await appManagerApiClient.getSiteManagementService().deactivateSite(newSiteId);
+            console.log(`🧹 Cleaned up individual site: ${newSiteName} with ID: ${newSiteId}`);
+          } catch (error) {
+            console.warn(`Failed to deactivate individual site ${newSiteName} (${newSiteId}):`, error);
+          }
+        }
+      });
 
       test(
         `Verify Site Search results for a new ${testData.siteType} site in category "${testData.category}"`,

@@ -57,23 +57,19 @@ for (const numberOfLinks of TILE_NUMBER_OF_LINKS) {
         }
       );
 
-      test.afterEach(
-        'Tearing down the test environment for link tile search',
-        async ({ appManagerApiClient, siteManagementHelper }) => {
-          // Clean up tile first (if it was created)
-          if (tileId) {
-            try {
-              await appManagerApiClient.getTileManagementService().deleteTile(newSiteId, tileId);
-              console.log(`Successfully deleted tile: ${tileId}`);
-            } catch (error) {
-              console.warn(`Failed to delete tile ${tileId}:`, error);
-            }
+      test.afterEach('Tearing down the test environment for link tile search', async ({ appManagerApiClient }) => {
+        // Clean up tile first (if it was created)
+        if (tileId) {
+          try {
+            await appManagerApiClient.getTileManagementService().deleteTile(newSiteId, tileId);
+            console.log(`Successfully deleted tile: ${tileId}`);
+          } catch (error) {
+            console.warn(`Failed to delete tile ${tileId}:`, error);
           }
-
-          // Clean up site using site helper
-          await siteManagementHelper.cleanup();
         }
-      );
+
+        // Note: Site cleanup is handled by publicSite fixture at worker level
+      });
 
       test(
         `Verify Link Tile Search results for a new link tile with ${numberOfLinks} links`,
