@@ -119,7 +119,7 @@ export class BaseActionUtil {
    * @param element - The locator to click on
    */
   async clickByInjectingJavaScript(element: Locator) {
-    const elementHandle = await eleToClick.elementHandle();
+    const elementHandle = await element.elementHandle();
     if (elementHandle) {
       await this.page.evaluate((el: HTMLElement | SVGElement | null) => {
         if (el) (el as HTMLElement).click();

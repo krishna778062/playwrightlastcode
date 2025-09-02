@@ -61,12 +61,6 @@ export class TopNavBarComponent extends BaseComponent {
   }
 
   async clickOnBellIcon(options?: { stepInfo?: string }): Promise<void> {
-    await this.clickOnElement(this.notificationsButton);
-    const elementHandle = await this.notificationsButton.elementHandle();
-    if (elementHandle) {
-      await this.page.evaluate((el: HTMLElement | SVGElement | null) => {
-        if (el) (el as HTMLElement).click();
-      }, elementHandle);
-    }
+    await this.clickByInjectingJavaScript(this.notificationsButton);
   }
 }
