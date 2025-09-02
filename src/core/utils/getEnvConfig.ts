@@ -9,6 +9,8 @@ export type EnvConfig = {
   //optional env variables (might be required for few modules)
   endUserEmail?: string;
   endUserPassword?: string;
+  siteManagerEmail?: string;
+  siteManagerPassword?: string;
 };
 
 export const getEnvConfig = (): EnvConfig => ({
@@ -23,6 +25,8 @@ export const getEnvConfig = (): EnvConfig => ({
   //optional env variables (might be required for few modules)
   endUserEmail: getEnvVar('END_USER_USERNAME', false)!,
   endUserPassword: getEnvVar('END_USER_PASSWORD', false)!,
+  siteManagerEmail: getEnvVar('SITE_MANAGER_USERNAME', false)!,
+  siteManagerPassword: getEnvVar('SITE_MANAGER_PASSWORD', false)!,
 });
 
 /**

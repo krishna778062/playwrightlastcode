@@ -13,31 +13,25 @@ import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 test.describe(
   '@FeedPost',
   {
-    tag: [ContentTestSuite.FEED, ContentTestSuite.ATTACHMENTS],
+    tag: [ContentTestSuite.FEED_SU, ContentTestSuite.ATTACHMENTS],
   },
   () => {
     let feedPage: FeedPage;
     let createdPostText: string;
     let createdPostId: string = '';
 
-    test.beforeEach(async ({ page, loginAs }) => {
-      // Login as end user using loginAs
-      await loginAs('endUser');
+    test.beforeEach(async ({ standardUserHomePage }) => {
+      await standardUserHomePage.actions.clickOnGlobalFeed();
 
-      // Create home page instance and navigate to feed
-      const homePage = new NewUxHomePage(page);
-      await homePage.verifyThePageIsLoaded();
-      await homePage.actions.clickOnGlobalFeed();
-
-      feedPage = new FeedPage(page);
+      feedPage = new FeedPage(standardUserHomePage.page);
       await feedPage.verifyThePageIsLoaded();
     });
 
-    test.afterEach(async ({ feedManagerService }) => {
+    test.afterEach(async ({ feedManagementHelper }) => {
       // Cleanup: Delete post using API if test failed and post still exists
-      if (createdPostId && feedManagerService) {
+      if (createdPostId && feedManagementHelper) {
         try {
-          await feedManagerService.deletePost(createdPostId);
+          await feedManagementHelper.deleteFeed(createdPostId);
         } catch (error) {
           console.log('Failed to cleanup post via API:', error);
         }

@@ -191,4 +191,37 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
     });
     return { fileId: file.fileId, authorName: file.owner.name };
   }
+
+  /**
+   * Makes a user a site content manager
+   * @param siteId - The ID of the site
+   * @param userId - The ID of the user to make content manager
+   * @returns Promise with the response
+   */
+  async makeUserSiteMembership(siteId: any, userId: any, permission: string, action: string): Promise<any> {
+    return await test.step(`Making user ${userId} a content manager for site ${siteId}`, async () => {
+      const payload = {
+        userId: userId,
+        action: action,
+        permission: permission,
+      };
+
+      console.log('Site membership payload:', JSON.stringify(payload, null, 2));
+
+      const response = await this.post(API_ENDPOINTS.site.manageMembership(siteId), {
+        data: payload,
+      });
+
+      const json = await response.json();
+      console.log('Site membership response:', JSON.stringify(json, null, 2));
+
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to make user content manager. Status: ${response.status()}, Response: ${JSON.stringify(json)}`
+        );
+      }
+
+      return json;
+    });
+  }
 }

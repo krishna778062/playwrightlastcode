@@ -62,6 +62,31 @@ export class ListFeedComponent extends BaseComponent {
       .locator("button[class*='optionlauncher']")
       .first();
 
+  /**
+   * Gets a locator for the favorite/like button for a specific post
+   * @param postText - The text of the post to find favorite button for
+   * @returns Locator for the favorite button
+   */
+  readonly getFavoriteButtonLocator = (favorite: boolean): Locator =>
+    this.page.locator(
+      favorite ? "button[title='Favorite this post'] span i" : "button[title='Unfavorite this post'] span i"
+    );
+
+  readonly getFavoriteButton = this.page.locator("button[title='Favorite this post'] span i");
+
+  /**
+   * Gets a locator for the favorited state indicator for a specific post
+   * @param postText - The text of the post to check favorite state for
+   * @returns Locator for the favorited state indicator
+   */
+  readonly getFavoritedStateLocator = (postText: string): Locator =>
+    this.page
+      .locator('p')
+      .filter({ hasText: postText })
+      .locator('xpath=./ancestor::div[4]')
+      .locator("button[aria-label*='liked'], button[class*='liked'], svg[class*='liked'], .liked")
+      .first();
+
   constructor(page: Page) {
     super(page);
   }
@@ -139,6 +164,42 @@ export class ListFeedComponent extends BaseComponent {
   async verifyInlineImagePreviewVisible(): Promise<void> {
     await test.step('Verify inline image preview is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.inlineImagePreview.first());
+    });
+  }
+
+  /**
+   * Clicks the favorite/like button for a specific post
+   * @param postText - The text of the post to favorite/unfavorite
+   */
+  async clickFavoriteUnfavoriteButton(favorite: boolean): Promise<void> {
+    await test.step(`Click favorite button for post:`, async () => {
+      await this.getFavoriteButton.click({ force: true });
+      await this.clickOnElement(this.getFavoriteButtonLocator(favorite));
+    });
+  }
+
+  /**
+   * Verifies that a post is in favorited state
+   * @param postText - The text of the post to verify
+   */
+  async verifyPostIsFavoritedUnfavorited(favorite: boolean): Promise<void> {
+    await test.step(`Verify post is favorited: ${favorite}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getFavoriteButtonLocator(favorite), {
+        assertionMessage: `Post "${favorite}" should be in favorited state`,
+      });
+    });
+  }
+
+  /**
+   * Verifies that a post is not in favorited state
+   * @param postText - The text of the post to verify
+   */
+  async verifyPostIsNotFavorited(postText: string): Promise<void> {
+    await test.step(`Verify post is not favorited: ${postText}`, async () => {
+      const favoritedIndicator = this.getFavoritedStateLocator(postText);
+      await this.verifier.verifyTheElementIsNotVisible(favoritedIndicator, {
+        assertionMessage: `Post "${postText}" should not be in favorited state`,
+      });
     });
   }
 }

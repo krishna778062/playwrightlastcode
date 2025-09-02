@@ -53,13 +53,6 @@ export class SiteManagementHelper {
 
     const siteId = siteResult.siteId;
 
-    // Wait for site to appear in search results
-    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
-      apiClient: this.appManagerApiClient,
-      searchTerm: finalSiteName,
-      objectType: 'site',
-    });
-
     const createdSite = {
       siteId,
       siteName: finalSiteName,
@@ -275,5 +268,25 @@ export class SiteManagementHelper {
    */
   getMemberCount(): number {
     return this.siteMembers.length;
+  }
+
+  /**
+   * Makes a user a site content manager
+   * @param siteId - The ID of the site
+   * @param userId - The ID of the user to make content manager
+   * @returns Promise with the response
+   */
+  async makeUserSiteMembership(siteId: string, userId: any, permission: string, action: string): Promise<any> {
+    const result = await this.appManagerApiClient
+      .getSiteManagementService()
+      .makeUserSiteMembership(siteId, userId, permission, action);
+
+    // Track the member for potential cleanup (optional)
+    this.siteMembers.push({
+      siteId,
+      userEmail: userId, // Using userId as identifier since we don't have email here
+    });
+
+    return result;
   }
 }

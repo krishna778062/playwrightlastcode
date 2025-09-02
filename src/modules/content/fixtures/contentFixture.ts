@@ -2,11 +2,13 @@ import { BrowserContext, Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
-import { FeedManagerService } from '@core/api/services/FeedManagerService';
+import { FeedManagementService } from '@core/api/services/FeedManagementService';
+import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
+import { FeedManagementHelper } from '@/src/core/helpers/feedManagementHelper';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
@@ -21,6 +23,10 @@ export const users = {
     email: process.env.END_USER_USERNAME || '',
     password: process.env.END_USER_PASSWORD || '',
   },
+  siteManager: {
+    email: process.env.SITE_MANAGER_USERNAME || '',
+    password: process.env.SITE_MANAGER_PASSWORD || '',
+  },
 };
 
 export const contentTestFixture = test.extend<
@@ -28,8 +34,15 @@ export const contentTestFixture = test.extend<
     appManagerContext: BrowserContext;
     appManagerHomePage: NewUxHomePage | OldUxHomePage;
     appManagersPage: Page;
+    standardUserContext: BrowserContext;
+    standardUserHomePage: NewUxHomePage | OldUxHomePage;
+    standardUserPage: Page;
     siteManagementHelper: SiteManagementHelper;
-    feedManagerService: FeedManagerService;
+    contentManagementHelper: ContentManagementHelper;
+    feedManagementHelper: FeedManagementHelper;
+    siteManagerContext: BrowserContext;
+    siteManagerHomePage: NewUxHomePage | OldUxHomePage;
+    siteManagerPage: Page;
     loginAs: (userType: UserType) => Promise<void>;
   },
   {
@@ -79,10 +92,71 @@ export const contentTestFixture = test.extend<
     { scope: 'test' },
   ],
 
-  feedManagerService: [
+  standardUserContext: [
+    async ({ browser }, use, workerInfo) => {
+      const context = await browser.newContext();
+      await use(context);
+      await context?.close();
+    },
+    { scope: 'test' },
+  ],
+
+  siteManagerContext: [
+    async ({ browser }, use, workerInfo) => {
+      const context = await browser.newContext();
+      await use(context);
+      await context?.close();
+    },
+    { scope: 'test' },
+  ],
+
+  siteManagerHomePage: [
+    async ({ siteManagerContext }, use, workerInfo) => {
+      const page = await siteManagerContext.newPage();
+      const siteManagerHomePage = await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().siteManagerEmail || '',
+        password: getEnvConfig().siteManagerPassword || '',
+      });
+      await siteManagerHomePage.verifyThePageIsLoaded();
+      await use(siteManagerHomePage);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+
+  siteManagerPage: [
+    async ({ siteManagerHomePage }, use, workerInfo) => {
+      await use(siteManagerHomePage.page);
+    },
+    { scope: 'test' },
+  ],
+
+  standardUserHomePage: [
+    async ({ standardUserContext }, use, workerInfo) => {
+      const page = await standardUserContext.newPage();
+      const standardUserHomePage = await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().endUserEmail || '',
+        password: getEnvConfig().endUserPassword || '',
+      });
+      await standardUserHomePage.verifyThePageIsLoaded();
+      await use(standardUserHomePage);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+
+  standardUserPage: [
+    async ({ standardUserHomePage }, use, workerInfo) => {
+      await use(standardUserHomePage.page);
+    },
+    { scope: 'test' },
+  ],
+
+  feedManagementHelper: [
     async ({ appManagerApiClient }, use) => {
-      const feedManagerService = new FeedManagerService(appManagerApiClient.context);
-      await use(feedManagerService);
+      const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
+      await use(feedManagementHelper);
+      await feedManagementHelper.cleanup();
     },
     { scope: 'test' },
   ],
@@ -92,6 +166,15 @@ export const contentTestFixture = test.extend<
       const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
       await use(siteManagementHelper);
       await siteManagementHelper.cleanup();
+    },
+    { scope: 'test' },
+  ],
+
+  contentManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const contentManagementHelper = new ContentManagementHelper(appManagerApiClient);
+      await use(contentManagementHelper);
+      await contentManagementHelper.cleanup();
     },
     { scope: 'test' },
   ],

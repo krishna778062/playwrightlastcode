@@ -9,6 +9,7 @@ import {
   IdentityAudienceSearchResponse,
   ListAudiencesResponse,
 } from '@core/types/audience.type';
+import { PeopleListOptions, PeopleListResponse } from '@core/types/people.type';
 import { IdentityUserSearchResponse } from '@core/types/user.type';
 
 interface ListRolesResponse {
@@ -473,5 +474,39 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
         })
       ).toBeOK();
     });
+  }
+
+  /**
+   * Gets the people ID for a user by their email address
+   * @param emailId - Email address of the user
+   * @returns The people ID for the user
+   */
+  async getPeopleIdWithEmailId(emailId: string): Promise<string> {
+    let peopleId: string = '';
+    await test.step(`Getting people ID for email: ${emailId}`, async () => {
+      const response = await this.post('/v1/identity/accounts/users/list', {
+        data: {
+          size: 16,
+          searchTerm: emailId,
+        },
+      });
+      const responseJson = await this.parseResponse<PeopleListResponse>(response);
+
+      if (!responseJson.result?.listOfItems || responseJson.result.listOfItems.length === 0) {
+        throw new Error(`No user found with email: ${emailId}`);
+      }
+
+      // Find the exact email match
+      const user = responseJson.result.listOfItems.find(
+        item => item.email && item.email.toLowerCase() === emailId.toLowerCase()
+      );
+
+      if (!user) {
+        throw new Error(`Exact email match not found for: ${emailId}`);
+      }
+
+      peopleId = user.user_id;
+    });
+    return peopleId;
   }
 }
