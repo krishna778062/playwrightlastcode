@@ -7,6 +7,8 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 
 import { BasePage } from '@/src/core/pages/basePage';
+import { ChatNavigationComponent } from '@/src/modules/chat/components/chatNavigationComponent';
+import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
 import { CreateComponent } from '@/src/modules/content/components/createComponent';
 import { ContentType } from '@/src/modules/content/constants/contentType';
@@ -21,6 +23,8 @@ export interface ICommonHomePageActions {
   searchForTerm: (searchTerm: string, options?: { stepInfo?: string }) => Promise<GlobalSearchResultPage>;
   clickOnGlobalFeed: (options?: { stepInfo?: string }) => Promise<void>;
   openSiteCreationForm: (options?: { stepInfo?: string }) => Promise<SiteCreationPage>;
+  clickOnMessageInbox: (options?: { stepInfo?: string }) => Promise<ChatNavigationComponent>;
+  navigateToChatPageViaTopNavBar: (options?: { stepInfo?: string }) => Promise<ChatAppPage>;
 }
 
 export interface IOldUxHomePageActions extends ICommonHomePageActions {
@@ -132,5 +136,30 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
     await test.step(options?.stepInfo || 'Clicking on Roles button', async () => {
       await this.sideNavBarComponent.verifyRolesButtonVisibility(visible);
     });
+  }
+
+  /**
+   * Clicks on the message inbox via the top nav bar
+   * @param options - The options for the step
+   * @returns The chat navigation component
+   */
+  async clickOnMessageInbox(options?: { stepInfo?: string }): Promise<ChatNavigationComponent> {
+    const chatNavigationComponent = new ChatNavigationComponent(this.page);
+    await this.topNavBarComponent.openMessageInbox(options);
+    await chatNavigationComponent.isCommonNavigationComponentVisible(options);
+    return chatNavigationComponent;
+  }
+
+  /**
+   * Navigates to the chat page via the top nav bar
+   * @param options - The options for the step
+   * @returns The chat app page
+   */
+  async navigateToChatPageViaTopNavBar(options?: { stepInfo?: string }): Promise<ChatAppPage> {
+    const chatAppPage = new ChatAppPage(this.page);
+    const chatNavigationComponent = await this.clickOnMessageInbox(options);
+    await chatNavigationComponent.clickOnSeeAllMessagesButton(options);
+    await chatAppPage.verifyThePageIsLoaded();
+    return chatAppPage;
   }
 }
