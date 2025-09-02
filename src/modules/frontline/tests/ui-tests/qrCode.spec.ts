@@ -11,7 +11,7 @@ test.describe(
     tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.QR_CODE],
   },
   () => {
-    test.only(
+    test(
       'Scenario: Create app promotion QR and verify',
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
