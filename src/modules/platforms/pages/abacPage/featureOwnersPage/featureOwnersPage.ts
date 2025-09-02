@@ -149,6 +149,7 @@ export class FeatureOwnersPage extends BasePage {
       } else {
         expect(`Couldn't find any users with app manaage tag`).toBeFalsy();
       }
+      return userNamesWithAppManagerTag;
     });
   }
 
@@ -158,7 +159,9 @@ export class FeatureOwnersPage extends BasePage {
    */
   async addUserAsFeatureOnwer(userNames: string[], options?: { stepInfo?: string; timeout?: number }): Promise<void> {
     await test.step(options?.stepInfo ?? `Add users: ${userNames} as feature owners`, async () => {
-      await this.clickOnElement(this.plusIconOnEditFeaturePopup);
+      await this.clickOnElement(this.plusIconOnEditFeaturePopup, {
+        stepInfo: 'Click on plus icon to add feature owners',
+      });
       while (userNames.length > 0) {
         await this.typeInElement(this.addFeatureOnwersInput, userNames.pop() || '');
         await this.sleep(2000);
