@@ -28,7 +28,7 @@ export const searchTestFixtures = test.extend<
   }
 >({
   appManagerHomePage: [
-    async ({ page }, use, workerInfo) => {
+    async ({ page }, use, _workerInfo) => {
       const appManagerHomePage = await LoginHelper.loginWithPassword(page, {
         email: getEnvConfig().appManagerEmail,
         password: getEnvConfig().appManagerPassword,
@@ -39,7 +39,7 @@ export const searchTestFixtures = test.extend<
     { scope: 'test' },
   ],
   appManagerUserPage: [
-    async ({ appManagerHomePage }, use, workerInfo) => {
+    async ({ appManagerHomePage }, use, _workerInfo) => {
       await use(appManagerHomePage.page);
     },
     { scope: 'test' },
@@ -92,11 +92,22 @@ export const searchTestFixtures = test.extend<
     { scope: 'worker' },
   ],
   publicSite: [
-    async ({ siteManagementHelper }, use) => {
-      const siteName = `Public Site ${Date.now()}`;
+    async ({ siteManagementHelper, appManagerApiClient }, use, workerInfo) => {
+      console.log(`🔧 Creating publicSite fixture for worker ${workerInfo.workerIndex}`);
+
+      const randomNum = Math.floor(Math.random() * 1000000 + 1);
+      const siteName = `Public_${randomNum}`;
+      /** Get the default category for the public site */
+      const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
       const publicSite = await siteManagementHelper.createPublicSite({
         siteName,
+        category,
       });
+
+      console.log(
+        `✅ Created publicSite: ${siteName} with ID: ${publicSite.siteId} for worker ${workerInfo.workerIndex}`
+      );
+
       await use({ siteName, siteId: publicSite.siteId });
     },
     { scope: 'worker' },

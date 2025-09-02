@@ -21,25 +21,24 @@ test.describe(
     let authorName: string;
 
     test.beforeEach(
-      `Setting up the test environment for page search by creating site and page content`,
-      async ({ contentManagementHelper }) => {
-        const siteAndPageDetails = await contentManagementHelper.createSiteAndPage({
-          category: testData.category,
+      `Setting up the test environment for page search by creating page content in common public site`,
+      async ({ contentManagementHelper, publicSite }) => {
+        const pageDetails = await contentManagementHelper.createPage({
+          siteId: publicSite.siteId,
           contentInfo: {
             contentType: testData.content,
             contentSubType: testData.contentType!,
           },
           options: {
             contentDescription: testData.description,
-            accessType: testData.accessType,
           },
         });
 
-        siteId = siteAndPageDetails.siteId;
-        siteName = siteAndPageDetails.siteName;
-        contentId = siteAndPageDetails.contentId;
-        pageName = siteAndPageDetails.pageName;
-        authorName = siteAndPageDetails.authorName;
+        siteId = publicSite.siteId;
+        siteName = publicSite.siteName;
+        contentId = pageDetails.contentId;
+        pageName = pageDetails.pageName;
+        authorName = pageDetails.authorName;
         console.log(`Created page "${pageName}" in site "${siteName}" with ID: ${siteId}`);
       }
     );

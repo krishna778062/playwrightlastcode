@@ -3,7 +3,6 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
-import { SEARCH_RESULT_ITEM, SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import {
@@ -27,24 +26,15 @@ for (const numberOfLinks of TILE_NUMBER_OF_LINKS) {
 
       test.beforeEach(
         'Setting up the test environment for link tile search',
-        async ({ appManagerApiClient, siteManagementHelper }) => {
+        async ({ appManagerApiClient, publicSite }) => {
           try {
             // Generate unique test data for each test
             testData = getLinkTileSearchTestData();
 
-            // Creating a new site using site helper
-            const categoryObj = await appManagerApiClient
-              .getSiteManagementService()
-              .getCategoryId(SEARCH_RESULT_ITEM.CATEGORY);
-
-            const createdSiteDetails = await siteManagementHelper.createSite({
-              category: categoryObj,
-              accessType: SITE_TYPES.PUBLIC,
-            });
-
-            newSiteId = createdSiteDetails.siteId!;
-            newSiteName = createdSiteDetails.siteName!;
-            console.log(`Created site: ${newSiteName} with ID: ${newSiteId}`);
+            // Use the shared public site
+            newSiteId = publicSite.siteId;
+            newSiteName = publicSite.siteName;
+            console.log(`Using shared site: ${newSiteName} with ID: ${newSiteId}`);
 
             // Creating a new tile
             const tileResponse = await appManagerApiClient

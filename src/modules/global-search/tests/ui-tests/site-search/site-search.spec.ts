@@ -3,6 +3,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { SITE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/site-search.test-data';
@@ -20,16 +21,24 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
 
       test.beforeEach(
         `Setting up the test environment for site search by creating new site of type ${testData.siteType}`,
-        async ({ appManagerApiClient, siteManagementHelper }) => {
-          // Initialize API client with proper authentication and CSRF token
-          categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
-          const createdSiteDetails = await siteManagementHelper.createSite({
-            category: categoryObj,
-            accessType: testData.siteType,
-          });
-          newSiteId = createdSiteDetails.siteId!;
-          newSiteName = createdSiteDetails.siteName!;
-          console.log(`Created site: ${newSiteName} with ID: ${newSiteId}`);
+        async ({ appManagerApiClient, siteManagementHelper, publicSite }) => {
+          if (testData.siteType === SITE_TYPES.PUBLIC) {
+            // Use the shared public site for PUBLIC site tests
+            newSiteId = publicSite.siteId;
+            newSiteName = publicSite.siteName;
+            categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
+            console.log(`Using shared site: ${newSiteName} with ID: ${newSiteId}`);
+          } else {
+            // Create individual sites for PRIVATE/UNLISTED tests
+            categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
+            const createdSiteDetails = await siteManagementHelper.createSite({
+              category: categoryObj,
+              accessType: testData.siteType,
+            });
+            newSiteId = createdSiteDetails.siteId!;
+            newSiteName = createdSiteDetails.siteName!;
+            console.log(`Created site: ${newSiteName} with ID: ${newSiteId}`);
+          }
         }
       );
 

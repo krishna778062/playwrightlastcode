@@ -21,21 +21,20 @@ test.describe(
     let authorName: string;
 
     test.beforeEach(
-      `Setting up the test environment for event search by creating site and event content`,
-      async ({ contentManagementHelper }) => {
-        const eventDetails = await contentManagementHelper.createSiteAndEvent({
-          category: testData.category,
+      `Setting up the test environment for event search by creating event content in common public site`,
+      async ({ contentManagementHelper, publicSite }) => {
+        const eventDetails = await contentManagementHelper.createEvent({
+          siteId: publicSite.siteId,
           contentInfo: {
             contentType: testData.content,
           },
           options: {
             contentDescription: testData.description,
-            accessType: testData.accessType,
           },
         });
 
-        siteId = eventDetails.siteId;
-        newSiteName = eventDetails.siteName;
+        siteId = publicSite.siteId;
+        newSiteName = publicSite.siteName;
         contentId = eventDetails.contentId;
         eventName = eventDetails.eventName;
         authorName = eventDetails.authorName;
