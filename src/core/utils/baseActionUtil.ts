@@ -115,6 +115,19 @@ export class BaseActionUtil {
   }
 
   /**
+   * Clicks on an element by injecting JavaScript
+   * @param element - The locator to click on
+   */
+  async clickByInjectingJavaScript(element: Locator) {
+    const elementHandle = await eleToClick.elementHandle();
+    if (elementHandle) {
+      await this.page.evaluate((el: HTMLElement | SVGElement | null) => {
+        if (el) (el as HTMLElement).click();
+      }, elementHandle);
+    }
+  }
+
+  /**
    * Check an element
    * @param selectorOrLocator - The selector or locator to check on
    * @param options - The options to pass to the check method
