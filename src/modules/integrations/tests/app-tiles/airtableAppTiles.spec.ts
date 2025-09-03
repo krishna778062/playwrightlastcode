@@ -79,7 +79,7 @@ test.describe(
     test(
       'Verify site manager is able to edit and remove a display content calendar tile on Site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -92,7 +92,7 @@ test.describe(
 
         // Create site and navigate
         const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
-        const createdSite = await siteManagementHelper.createPublicSite(undefined, category);
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         // Add, edit, and remove tile

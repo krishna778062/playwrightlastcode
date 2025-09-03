@@ -81,7 +81,7 @@ export const API_ENDPOINTS = {
     intranetFile: '/v1/search/intranet-file',
     enterprise: '/search-ai/v1/enterprise/search',
   },
-integrations: {
+  integrations: {
     tiles: '/v1/tiles',
     tilesRootInstances: '/v1/tiles/root/instances',
     tilesInstances: '/v1/tiles/instances',
@@ -100,5 +100,4 @@ export const API_QUERY_PARAMS = {
 export const API_HEADERS = {
   ACCEPT: 'application/json',
   CONTENT_TYPE: 'application/json',
-},
 } as const;

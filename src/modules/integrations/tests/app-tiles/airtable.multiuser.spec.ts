@@ -72,7 +72,7 @@ test.describe(
 
         // Create site and navigate
         const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
-        const createdSite = await siteManagementHelper.createPublicSite(undefined, category);
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         // Add tile, verify by both users, then remove
