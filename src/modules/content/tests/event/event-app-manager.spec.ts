@@ -1,8 +1,5 @@
-import { expect } from '@playwright/test';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { getTodayDateIsoString, getTomorrowDateIsoString } from '@core/utils/dateUtil';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
@@ -10,11 +7,10 @@ import { CONTENT_TEST_DATA } from '../../test-data/content.test-data';
 
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
-import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
+import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
-import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 
 test.describe(
   ContentTestSuite.EVENT_APP_MANAGER,
