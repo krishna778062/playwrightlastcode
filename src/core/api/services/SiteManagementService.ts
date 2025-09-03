@@ -191,4 +191,29 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
     });
     return { fileId: file.fileId, authorName: file.owner.name };
   }
+
+  /**
+   * Deletes a site category by name using the API
+   * @param categoryName - The name of the category to delete
+   */
+  async deleteCategory(categoryName: string): Promise<void> {
+    return await test.step(`Deleting site category using API: ${categoryName}`, async () => {
+      try {
+        // First, get the category ID by name
+        const categoryInfo = await this.getCategoryId(categoryName);
+
+        // Delete the category using the category ID
+        const response = await this.delete(`${API_ENDPOINTS.site.category}/${categoryInfo.categoryId}`);
+
+        if (response.status() === 200) {
+          console.log(`Category "${categoryName}" deleted successfully via API`);
+        } else {
+          console.log(`Category deletion response status: ${response.status()}`);
+        }
+      } catch (error) {
+        console.log(`Failed to delete category "${categoryName}" via API: ${error}`);
+        throw error;
+      }
+    });
+  }
 }
