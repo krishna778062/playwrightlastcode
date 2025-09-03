@@ -32,16 +32,16 @@ test.describe(
       await feedPage.verifyThePageIsLoaded();
     });
 
-    test.afterEach(async ({ feedManagerService }) => {
+    test.afterEach(async ({ feedManagementHelper }) => {
       // Cleanup: Delete post using API if test failed and post still exists
-      if (createdPostId && feedManagerService) {
+      if (createdPostId && feedManagementHelper) {
         try {
-          await feedManagerService.deletePost(createdPostId);
+          await feedManagementHelper.deleteFeed(createdPostId);
         } catch (error) {
-          console.log('Failed to cleanup post via API:', error);
+          console.log('Failed to cleanup feed via API:', error);
         }
       } else {
-        console.log('No feed was published or post already deleted, hence skipping the deletion');
+        console.log('No feed was published or feed already deleted, hence skipping the deletion');
       }
     });
 

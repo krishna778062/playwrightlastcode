@@ -2,8 +2,8 @@ import { BrowserContext, Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
-import { FeedManagerService } from '@core/api/services/FeedManagerService';
 import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
+import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
@@ -63,7 +63,7 @@ export const contentTestFixture = test.extend<
     // Helpers and services
     siteManagementHelper: SiteManagementHelper;
     contentManagementHelper: ContentManagementHelper;
-    feedManagerService: FeedManagerService;
+    feedManagementHelper: FeedManagementHelper;
 
     // Utility functions
     loginAs: (userType: UserType) => Promise<void>;
@@ -159,11 +159,16 @@ export const contentTestFixture = test.extend<
   ],
 
   // Services and helpers - with proper cleanup
-  feedManagerService: [
+  feedManagementHelper: [
     async ({ appManagerApiClient }, use) => {
-      const service = new FeedManagerService(appManagerApiClient.context);
-      await use(service);
-      // Add cleanup if needed
+      const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
+      await use(feedManagementHelper);
+      // Ensure cleanup happens even if test fails
+      try {
+        await feedManagementHelper.cleanup();
+      } catch (error) {
+        console.warn('Feed management helper cleanup failed:', error);
+      }
     },
     { scope: 'test' },
   ],
