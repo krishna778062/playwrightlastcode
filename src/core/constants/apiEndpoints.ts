@@ -73,7 +73,6 @@ export const API_ENDPOINTS = {
   feed: {
     create: `/v1/wfeed/feeds`,
     delete: (feedId: string) => `/v1/wfeed/feeds/${feedId}`,
-    uploadURL: '/v1/content/static/signedurl/upload',
   },
   apps: {
     settings: '/v1/account/apps-links-settings',
