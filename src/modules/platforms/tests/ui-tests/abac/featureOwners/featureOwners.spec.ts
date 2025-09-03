@@ -6,7 +6,7 @@ import { platformTestFixture as test } from '@platforms/fixtures/platformFixture
 import { FeatureOwnersPage } from '@platforms/pages/abacPage/featureOwnersPage/featureOwnersPage';
 
 import { Roles, RolesId } from '@/src/core/constants/roles';
-import { Statuses } from '@/src/core/constants/status';
+import { USER_STATUS } from '@/src/core/constants/status';
 import { TestSuite } from '@/src/core/constants/testSuite';
 import { IdentityUserSearchResponse, User } from '@/src/core/types/user.type';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
@@ -65,21 +65,21 @@ test.describe(
       if (loginIdentifier1 != undefined) {
         // Cleanup
         const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier1);
-        await appManagerApiClient.getUserManagementService().updateUserStatus(userId, Statuses.INACTIVE);
+        await appManagerApiClient.getUserManagementService().updateUserStatus(userId, USER_STATUS.INACTIVE);
       }
 
       console.log(`loginIdentifier2: ${loginIdentifier2}`);
       if (loginIdentifier2 != undefined) {
         // Cleanup
         const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier2);
-        await appManagerApiClient.getUserManagementService().updateUserStatus(userId, Statuses.INACTIVE);
+        await appManagerApiClient.getUserManagementService().updateUserStatus(userId, USER_STATUS.INACTIVE);
       }
 
       console.log(`loginIdentifier3: ${loginIdentifier3}`);
       if (loginIdentifier3 != undefined) {
         // Cleanup
         const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier3);
-        await appManagerApiClient.getUserManagementService().updateUserStatus(userId, Statuses.INACTIVE);
+        await appManagerApiClient.getUserManagementService().updateUserStatus(userId, USER_STATUS.INACTIVE);
       }
     });
 
@@ -189,7 +189,7 @@ test.describe(
           await featureOwnersPage.verifyFeatureOwnerIsDisplayedWithAppManagerTag(user2.username);
           // changing status of the App manager to Inactive
           const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier2);
-          await appManagerApiClient.getUserManagementService().updateUserStatus(userId, Statuses.INACTIVE);
+          await appManagerApiClient.getUserManagementService().updateUserStatus(userId, USER_STATUS.INACTIVE);
           await featureOwnersPage.reloadPage();
           await featureOwnersPage.clickOnButtonForFeature(feature, FeatureMenuOptions.EDIT);
           // Verify that user is not displayed in the feature owners list after changing the status to inactive
@@ -216,7 +216,7 @@ test.describe(
           await featureOwnersPage.verifyFeatureOwnerIsDisplayedWithAppManagerTag(user3.username);
           // changing status of the App manager to Frozen
           const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier3);
-          await appManagerApiClient.getUserManagementService().updateUserStatus(userId, Statuses.FROZEN);
+          await appManagerApiClient.getUserManagementService().updateUserStatus(userId, USER_STATUS.FROZEN);
           await featureOwnersPage.reloadPage();
           await featureOwnersPage.clickOnButtonForFeature(feature, FeatureMenuOptions.EDIT);
           // Verify that user is not displayed in the feature owners list after changing the status to frozen
