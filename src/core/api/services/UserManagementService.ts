@@ -248,7 +248,12 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
     await test.step(`Updating primary role for the user with login identifier ${loginIdentifier} as ${newPrimaryRole}`, async () => {
       const userId: string = await this.getUserId(loginIdentifier);
       const userInfoResponseJson: IdentityUserInfoResponse = await this.getUserInfo(userId);
-      delete userInfoResponseJson.work_info.work_info_id;
+      // Remove all work_info_id from the work_info array
+      if (userInfoResponseJson.work_info.length > 0) {
+        userInfoResponseJson.work_info.forEach(workInfo => {
+          delete workInfo.work_info_id;
+        });
+      }
       if (options?.abac == true) {
         delete userInfoResponseJson.additional_role_id;
       }

@@ -180,7 +180,7 @@ export class AccessControlGroupsPage extends BasePage {
    */
   async verifyACGStatus(acgName: string, status: string): Promise<void> {
     await test.step(`Verifying the status of ${acgName} ACG as ${status}`, async () => {
-      let userNameElement: Locator = this.acgRecordsElement.filter({ hasText: acgName });
+      const userNameElement: Locator = this.acgRecordsElement.filter({ hasText: acgName });
       await expect(
         userNameElement.locator('[class*="Typography-module__secondary"]'),
         `Checking the status of ${acgName} as ${status}`
@@ -194,7 +194,7 @@ export class AccessControlGroupsPage extends BasePage {
    */
   async changeACGStatus(newStatus: string): Promise<void> {
     await test.step(`Toggling the status to ${newStatus}`, async () => {
-      let currStatus: string = await this.acgStatusToggle.getAttribute('aria-checked');
+      const currStatus = await this.acgStatusToggle.getAttribute('aria-checked');
       if ((newStatus === 'Active' && currStatus === 'false') || (newStatus === 'Inactive' && currStatus === 'true')) {
         await this.clickOnElement(this.acgStatusToggle);
       }

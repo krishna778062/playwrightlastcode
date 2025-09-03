@@ -5,7 +5,6 @@ import { platformTestFixture as test } from '@platforms/fixtures/platformFixture
 import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/acgPage/accessControlGroupsPage';
 
 import { TestSuite } from '@/src/core/constants/testSuite';
-import { User } from '@/src/core/types/user.type';
 
 test.describe(
   'ACG Testcases',

@@ -9,9 +9,81 @@ export class TestDataGenerator {
   /**
    * Generates a random user with realistic data
    * @param overrides Optional properties to override in the generated user
+   * @param identifiers Optional object specifying which login identifiers to include
    * @returns A User object with random realistic data
+   *
+   * @example
+   * // Generate user with all identifiers (default behavior)
+   * const user = TestDataGenerator.generateUser();
+   *
+   * // Generate user with only email
+   * const emailUser = TestDataGenerator.generateUser({}, { email: true });
+   *
+   * // Generate user with only mobile
+   * const mobileUser = TestDataGenerator.generateUser({}, { mobile: true });
+   *
+   * // Generate user with only employee number
+   * const empUser = TestDataGenerator.generateUser({}, { emp: true });
+   *
+   * // Generate user with email and mobile
+   * const emailMobileUser = TestDataGenerator.generateUser({}, { email: true, mobile: true });
+   *
+   * // Generate user with email and employee number
+   * const emailEmpUser = TestDataGenerator.generateUser({}, { email: true, emp: true });
+   *
+   * // Generate user with mobile and employee number
+   * const mobileEmpUser = TestDataGenerator.generateUser({}, { mobile: true, emp: true });
+   *
+   * // Generate user with custom overrides and specific identifiers
+   * const customUser = TestDataGenerator.generateUser(
+   *   { first_name: 'John', last_name: 'Doe' },
+   *   { email: true, emp: true }
+   * );
    */
-  static generateUser(overrides?: Partial<User>): User {
+  static generateUser(
+    overrides?: Partial<User>,
+    identifiers?: { email?: boolean; mobile?: boolean; emp?: boolean }
+  ): User {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+
+    // If identifiers object is specified, use it to determine which fields to include
+    if (identifiers) {
+      return {
+        first_name: firstName,
+        last_name: lastName,
+        username: `${firstName} ${lastName}`,
+        email: identifiers.email ? faker.internet.email({ provider: 'simpplr.com' }) : '',
+        mobile: identifiers.mobile ? faker.number.int({ min: 1000000000, max: 9999999999 }) : 0,
+        emp: identifiers.emp ? faker.string.alphanumeric(8).toUpperCase() : '',
+        timezone_id: 17,
+        language_id: 1,
+        locale_id: 1,
+        ...overrides,
+      };
+    }
+
+    // Default behavior (all identifiers) - backward compatible
+    return {
+      first_name: firstName,
+      last_name: lastName,
+      username: `${firstName} ${lastName}`,
+      email: faker.internet.email({ provider: 'simpplr.com' }),
+      mobile: faker.number.int({ min: 1000000000, max: 9999999999 }),
+      emp: faker.string.alphanumeric(8).toUpperCase(),
+      timezone_id: 17,
+      language_id: 1,
+      locale_id: 1,
+      ...overrides,
+    };
+  }
+
+  /**
+   * Generates a user with only email as login identifier
+   * @param overrides Optional properties to override in the generated user
+   * @returns A User object with only email
+   */
+  static generateUserWithEmail(overrides?: Partial<User>): User {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
 
@@ -20,6 +92,121 @@ export class TestDataGenerator {
       last_name: lastName,
       username: `${firstName} ${lastName}`,
       email: faker.internet.email({ provider: 'simpplr.com' }),
+      mobile: 0, // Default value for compatibility
+      emp: '', // Empty string for compatibility
+      timezone_id: 17,
+      language_id: 1,
+      locale_id: 1,
+      ...overrides,
+    };
+  }
+
+  /**
+   * Generates a user with only mobile as login identifier
+   * @param overrides Optional properties to override in the generated user
+   * @returns A User object with only mobile
+   */
+  static generateUserWithMobile(overrides?: Partial<User>): User {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+
+    return {
+      first_name: firstName,
+      last_name: lastName,
+      username: `${firstName} ${lastName}`,
+      email: '', // Empty string for compatibility
+      mobile: faker.number.int({ min: 1000000000, max: 9999999999 }),
+      emp: '', // Empty string for compatibility
+      timezone_id: 17,
+      language_id: 1,
+      locale_id: 1,
+      ...overrides,
+    };
+  }
+
+  /**
+   * Generates a user with only employee number as login identifier
+   * @param overrides Optional properties to override in the generated user
+   * @returns A User object with only emp
+   */
+  static generateUserWithEmp(overrides?: Partial<User>): User {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+
+    return {
+      first_name: firstName,
+      last_name: lastName,
+      username: `${firstName} ${lastName}`,
+      email: '', // Empty string for compatibility
+      mobile: 0, // Default value for compatibility
+      emp: faker.string.alphanumeric(8).toUpperCase(),
+      timezone_id: 17,
+      language_id: 1,
+      locale_id: 1,
+      ...overrides,
+    };
+  }
+
+  /**
+   * Generates a user with email and mobile as login identifiers
+   * @param overrides Optional properties to override in the generated user
+   * @returns A User object with email and mobile
+   */
+  static generateUserWithEmailAndMobile(overrides?: Partial<User>): User {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+
+    return {
+      first_name: firstName,
+      last_name: lastName,
+      username: `${firstName} ${lastName}`,
+      email: faker.internet.email({ provider: 'simpplr.com' }),
+      mobile: faker.number.int({ min: 1000000000, max: 9999999999 }),
+      emp: '', // Empty string for compatibility
+      timezone_id: 17,
+      language_id: 1,
+      locale_id: 1,
+      ...overrides,
+    };
+  }
+
+  /**
+   * Generates a user with email and employee number as login identifiers
+   * @param overrides Optional properties to override in the generated user
+   * @returns A User object with email and emp
+   */
+  static generateUserWithEmailAndEmp(overrides?: Partial<User>): User {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+
+    return {
+      first_name: firstName,
+      last_name: lastName,
+      username: `${firstName} ${lastName}`,
+      email: faker.internet.email({ provider: 'simpplr.com' }),
+      mobile: 0, // Default value for compatibility
+      emp: faker.string.alphanumeric(8).toUpperCase(),
+      timezone_id: 17,
+      language_id: 1,
+      locale_id: 1,
+      ...overrides,
+    };
+  }
+
+  /**
+   * Generates a user with mobile and employee number as login identifiers
+   * @param overrides Optional properties to override in the generated user
+   * @returns A User object with mobile and emp
+   */
+  static generateUserWithMobileAndEmp(overrides?: Partial<User>): User {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+
+    return {
+      first_name: firstName,
+      last_name: lastName,
+      username: `${firstName} ${lastName}`,
+      email: '', // Empty string for compatibility
       mobile: faker.number.int({ min: 1000000000, max: 9999999999 }),
       emp: faker.string.alphanumeric(8).toUpperCase(),
       timezone_id: 17,
