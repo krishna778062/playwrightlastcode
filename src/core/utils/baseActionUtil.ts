@@ -77,11 +77,7 @@ export class BaseActionUtil {
    * @param selectorOrLocator - The selector or locator to click on
    * @param options - The options to pass to the click method
    */
-  async clickOnElement(
-    selectorOrLocator: string | Locator,
-    options?: CustomClickOptions,
-    options2?: { stepInfo?: string }
-  ) {
+  async clickOnElement(selectorOrLocator: string | Locator, options?: CustomClickOptions) {
     //we will use this option later in catch block
     const selfHealing = options?.selfHealing ?? false;
     const eleToClick = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
