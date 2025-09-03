@@ -2,6 +2,8 @@ import { Page, test } from '@playwright/test';
 
 import { BaseHomePage, ICommonHomePageActions, IOldUxHomePageActions } from './baseHomePage';
 
+import { ChatNavigationComponent } from '@/src/modules/chat/components/chatNavigationComponent';
+import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
 import { CreateComponent as ContentCreateComponent } from '@/src/modules/content/components/createComponent';
 import { NotificationComponent } from '@/src/modules/content/components/notificationComponent';
