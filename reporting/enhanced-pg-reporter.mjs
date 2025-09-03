@@ -772,7 +772,7 @@ class PostgresPlaywrightReporter {
   let lastError;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     // FIXED: Create new reporter instance inside the loop, use let instead of const
-    let reporter = new PostgresPlaywrightReporter();
+    const reporter = new PostgresPlaywrightReporter();
 
     try {
       console.log(`\n🔄 Attempt ${attempt}/${maxRetries} to process report...`);
