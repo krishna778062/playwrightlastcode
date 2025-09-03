@@ -87,8 +87,8 @@ export interface IdentityUserSearchResponse {
 }
 
 export interface IdentityUserInfoResponse {
-  personal_info: personal_info[];
-  work_info: work_info[];
+  personal_info: personal_info;
+  work_info: work_info;
   role_id: string;
   additional_role_id?: string[];
 }
@@ -100,12 +100,13 @@ export interface personal_info {
   language_id: number;
   locale_id: number;
   license_type: string;
+  extn?: string;
 }
 
 export interface work_info {
   work_info_id?: string;
-  title: string;
-  department: string;
   employee_number: string;
-  start_date: string;
+  title?: string;
+  department?: string;
+  start_date?: string;
 }
