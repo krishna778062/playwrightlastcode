@@ -30,19 +30,6 @@ test.describe(
       feedPage = new FeedPage(appManagerHomePage.page);
     });
 
-    test.afterEach('Cleanup created posts', async ({ feedManagementHelper }) => {
-      // Cleanup: Delete post using API if test failed and post still exists
-      if (createdPostId && feedManagementHelper) {
-        try {
-          await feedManagementHelper.deleteFeed(createdPostId);
-        } catch (error) {
-          console.log('Failed to cleanup post via API:', error);
-        }
-      } else {
-        console.log('No feed was published or post already deleted, hence skipping the deletion');
-      }
-    });
-
     test.only(
       'Verify Site Owner/Manager/Content Manager can favorite and unfavorite feed post without file attachment',
       {
