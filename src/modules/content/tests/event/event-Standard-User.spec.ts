@@ -15,9 +15,9 @@ import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPa
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
 
 test.describe(
-  ContentTestSuite.EVENT_SU,
+  ContentTestSuite.EVENT_STANDARD_USER,
   {
-    tag: [ContentTestSuite.EVENT_SU],
+    tag: [ContentTestSuite.EVENT_STANDARD_USER],
   },
   () => {
     let eventCreationPage: EventCreationPage;

@@ -24,4 +24,7 @@ export const PAGE_ENDPOINTS = {
   getSiteDashboardPage: (siteId: string) => `/site/${siteId}/dashboard`,
   getContentPreviewPage: (siteId: string, contentId: string, contentType: string) =>
     `/site/${siteId}/${contentType}/${contentId}`,
+  getAlbumCreationPage: (siteId: string) => `/site/${siteId}/album/add`,
+  getEventCreationPage: (siteId: string) => `/site/${siteId}/event/add`,
+  getPageCreationPage: (siteId: string) => `/site/${siteId}/page/add`,
 };

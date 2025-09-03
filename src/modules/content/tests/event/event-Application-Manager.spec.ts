@@ -17,9 +17,9 @@ import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage
 import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 
 test.describe(
-  ContentTestSuite.EVENT_AM,
+  ContentTestSuite.EVENT_APP_MANAGER,
   {
-    tag: [ContentTestSuite.EVENT_AM],
+    tag: [ContentTestSuite.EVENT_APP_MANAGER],
   },
   () => {
     let eventCreationPage: EventCreationPage;

@@ -251,13 +251,13 @@ export class AddContentModalComponent extends BaseComponent {
     //based on the content type, it will open the relevant content creation page
     switch (contentOption) {
       case 'Page':
-        contentCreationPage = new PageCreationPage(this.page);
+        contentCreationPage = new PageCreationPage(this.page, '');
         break;
       case 'Album':
-        contentCreationPage = new AlbumCreationPage(this.page);
+        contentCreationPage = new AlbumCreationPage(this.page, '');
         break;
       case 'Event':
-        contentCreationPage = new EventCreationPage(this.page);
+        contentCreationPage = new EventCreationPage(this.page, '');
         break;
       default:
         throw new Error(`Invalid content type: ${contentOption}`);

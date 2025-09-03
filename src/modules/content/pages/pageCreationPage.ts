@@ -3,6 +3,7 @@ import { Locator, Page, Response, test } from '@playwright/test';
 import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
 import { BasePage } from '@core/pages/basePage';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { PageCreationResponse } from '@/src/modules/content/apis/types/pageCreationResponse';
 import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
@@ -90,8 +91,8 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   readonly imageCropper: ImageCropperComponent;
   readonly sideNavBarComponent: SideNavBarComponent;
 
-  constructor(page: Page) {
-    super(page);
+  constructor(page: Page, siteId: string) {
+    super(page, PAGE_ENDPOINTS.getPageCreationPage(siteId));
     //root locators of some components
     this.coverImageUploaderContainer = page
       .locator("[class*='AddFromContainer']")
@@ -122,7 +123,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.page.waitForLoadState('domcontentloaded');
     await this.verifier.verifyTheElementIsVisible(this.titleInput, {
       assertionMessage: 'Page title input should be visible',
     });

@@ -15,9 +15,9 @@ import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPa
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
-  ContentTestSuite.ALBUM_SU,
+  ContentTestSuite.ALBUM_STANDARD_USER,
   {
-    tag: [ContentTestSuite.ALBUM_SU],
+    tag: [ContentTestSuite.ALBUM_STANDARD_USER],
   },
   () => {
     let albumCreationPage: AlbumCreationPage;

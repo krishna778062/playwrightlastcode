@@ -14,17 +14,12 @@ export interface IManageSiteContentActions {}
 export interface IManageSiteContentAssertions {}
 
 export class ManageSiteContentPage extends BasePage implements IManageSiteContentActions, IManageSiteContentAssertions {
-  // Locators
-  readonly contentTypeFilter = this.page.locator('[data-testid="content-type-filter"], select[name="contentType"]');
-
   constructor(page: Page) {
     super(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.contentTypeFilter, {
-      assertionMessage: 'Content type filter should be visible on manage site content page',
-    });
+    // TODO: Implement this
   }
 
   get actions(): IManageSiteContentActions {

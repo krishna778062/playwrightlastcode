@@ -13,9 +13,9 @@ import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
-  ContentTestSuite.PAGE_SU,
+  ContentTestSuite.PAGE_STANDARD_USER,
   {
-    tag: [ContentTestSuite.PAGE_SU],
+    tag: [ContentTestSuite.PAGE_STANDARD_USER],
   },
   () => {
     let pageCreationPage: PageCreationPage;

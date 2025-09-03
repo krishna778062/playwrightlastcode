@@ -12,9 +12,9 @@ import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPa
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
-  ContentTestSuite.ALBUM_AM,
+  ContentTestSuite.ALBUM_APP_MANAGER,
   {
-    tag: [ContentTestSuite.ALBUM_AM],
+    tag: [ContentTestSuite.ALBUM_APP_MANAGER],
   },
   () => {
     let albumCreationPage: AlbumCreationPage;

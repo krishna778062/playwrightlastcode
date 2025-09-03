@@ -1,5 +1,6 @@
 import { Page, Response, test } from '@playwright/test';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { AlbumCreationResponse } from '@/src/modules/content/apis/types/albumCreationResponse';
@@ -66,8 +67,8 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
   readonly coverImageUploader: AttachementUploaderComponent;
   readonly imageCropper: ImageCropperComponent;
 
-  constructor(page: Page) {
-    super(page);
+  constructor(page: Page, siteId: string) {
+    super(page, PAGE_ENDPOINTS.getAlbumCreationPage(siteId));
     this.coverImageUploader = new AttachementUploaderComponent(page, this.uploadedCoverImagePreviewContainer);
     this.imageCropper = new ImageCropperComponent(page);
   }

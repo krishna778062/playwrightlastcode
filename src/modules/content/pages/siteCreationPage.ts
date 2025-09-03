@@ -68,7 +68,7 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
       .filter({ hasText: 'Add or select existing category' })
       .locator('+ div input');
     this.selectCategory = (categoryName: string) =>
-      page.locator("div[class*='createOption']").locator(`:text-is("${categoryName}")`);
+      page.locator("div[class*='createOption']").getByText(categoryName, { exact: true });
     this.accessType = (type: string) => page.locator('label').filter({ hasText: type });
     this.createSiteButton = page.locator('button:has-text("Add site")');
   }
