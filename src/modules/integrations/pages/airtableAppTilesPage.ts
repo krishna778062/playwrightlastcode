@@ -1,15 +1,12 @@
-import { Page, test, expect } from '@playwright/test';
+import { Page } from '@playwright/test';
 import { BaseAppTileComponent } from '@integrations/components/baseAppTileComponent';
-import { HomeDashboard } from '@integrations/pages/homeDashboard';
 
 export class AirtableAppTilesPage {
   readonly page: Page;
-  readonly homeDashboard: HomeDashboard;
   readonly airtableComponent: BaseAppTileComponent;
 
   constructor(page: Page) {
     this.page = page;
-    this.homeDashboard = new HomeDashboard(page);
     this.airtableComponent = new BaseAppTileComponent(page);
   }
 

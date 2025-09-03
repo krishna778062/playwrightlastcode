@@ -5,7 +5,6 @@ import { multiUserTileFixture } from '@integrations-fixtures/multiUserTileFixtur
 import { test } from '@playwright/test';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { createSiteAndWaitForSearchResults, deactivateSiteSafe } from '@core/helpers/sitehelpers';
 import { tagTest } from '@core/utils/testDecorator';
 import { waitUntilTilePresentInApi } from '@/src/modules/integrations/api/helpers/tileApiHelpers';
 import { HomeDashboard } from '@/src/modules/integrations/pages/homeDashboard';
@@ -18,21 +17,15 @@ test.describe(
     tag: [IntegrationsSuiteTags.AIRTABLE, IntegrationsSuiteTags.ABSOLUTE],
   },
   () => {
-    let createdSiteIds: string[] = [];
-    let createdTileNames: string[] = [];
-    const uniqueTileTitle = `Airtable content calendar ${faker.string.alphanumeric({ length: 6 })}`;
+    let createdTileTitle: string | undefined = undefined;
 
-    multiUserTileFixture.afterEach(async ({ adminPage }) => {
-      for (const tileName of createdTileNames) {
-        const cleanupPage = new HomeDashboard(adminPage);
-        await cleanupPage.removeTileThroughApi(tileName);
-        await cleanupPage.verifyTileRemoved(tileName);
+    multiUserTileFixture.afterEach(async ({ adminPage, tileManagementHelper }) => {
+      if (createdTileTitle) {
+        const homeDashboard = new HomeDashboard(adminPage, tileManagementHelper);
+        await homeDashboard.removeTileThroughApi(createdTileTitle);
+        await homeDashboard.verifyTileRemoved(createdTileTitle);
+        createdTileTitle = undefined;
       }
-      for (const siteId of createdSiteIds) {
-        await deactivateSiteSafe(adminPage, siteId);
-      }
-      createdTileNames = [];
-      createdSiteIds = [];
     });
 
     multiUserTileFixture(
@@ -40,19 +33,23 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ adminPage, endUserPage }) => {
+      async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
           zephyrTestId: 'INT-27189',
           storyId: 'INT-23049',
         });
-        createdTileNames.push(uniqueTileTitle);
-        const adminHomeDashboard = new HomeDashboard(adminPage);
-        await adminHomeDashboard.addAirtableTile(uniqueTileTitle, adminHomeDashboard.config, UI_ACTIONS.ADD_TO_HOME);
+
+        //Generate a random tile title
+        createdTileTitle = `Airtable content calendar ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Add tile, verify by both users, then remove
+        const adminHomeDashboard = new HomeDashboard(adminPage, tileManagementHelper);
+        await adminHomeDashboard.addAirtableTile(createdTileTitle, adminHomeDashboard.config, UI_ACTIONS.ADD_TO_HOME);
         await adminHomeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
-        await adminHomeDashboard.isTilePresent(uniqueTileTitle);
-        const endUserHomeDashboard = new HomeDashboard(endUserPage);
-        await waitUntilTilePresentInApi(endUserPage, uniqueTileTitle);
-        await endUserHomeDashboard.reloadAndVerifyTilePresent(uniqueTileTitle);
+        await adminHomeDashboard.isTilePresent(createdTileTitle);
+        const endUserHomeDashboard = new HomeDashboard(endUserPage, tileManagementHelper);
+        await waitUntilTilePresentInApi(endUserPage, createdTileTitle);
+        await endUserHomeDashboard.reloadAndVerifyTilePresent(createdTileTitle);
       }
     );
 
@@ -61,29 +58,31 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ adminPage, endUserPage }) => {
+      async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
           zephyrTestId: 'INT-27190',
           storyId: 'INT-23049',
         });
 
+        //Generate a random tile title
+        createdTileTitle = `Airtable content calendar ${faker.string.alphanumeric({ length: 6 })}`;
         const endUserSiteDashboard = new SiteDashboard(endUserPage);
         const siteDashboard = new SiteDashboard(adminPage);
-        const adminHomeDashboard = new HomeDashboard(adminPage);
-        createdTileNames.push(uniqueTileTitle);
-        const { siteId: createdSiteId } = await createSiteAndWaitForSearchResults(adminPage, {
-          access: 'public',
-        });
-        createdSiteIds.push(createdSiteId);
-        await siteDashboard.navigateToSite(createdSiteId);
+        const adminHomeDashboard = new HomeDashboard(adminPage, tileManagementHelper);
 
-        await siteDashboard.addAirtableTile(uniqueTileTitle, adminHomeDashboard.config, UI_ACTIONS.ADD_TO_SITE);
+        // Create site and navigate
+        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite(undefined, category);
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add tile, verify by both users, then remove
+        await siteDashboard.addAirtableTile(createdTileTitle, adminHomeDashboard.config, UI_ACTIONS.ADD_TO_SITE);
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
-        await siteDashboard.isTilePresent(uniqueTileTitle);
-        await endUserSiteDashboard.navigateToSite(createdSiteId);
-        await waitUntilTilePresentInApi(endUserPage, uniqueTileTitle);
-        await endUserSiteDashboard.isTilePresent(uniqueTileTitle);
-        await siteDashboard.removeTile(uniqueTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await endUserSiteDashboard.navigateToSite(createdSite.siteId);
+        await waitUntilTilePresentInApi(endUserPage, createdTileTitle);
+        await endUserSiteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.removeTile(createdTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
       }
     );
   }

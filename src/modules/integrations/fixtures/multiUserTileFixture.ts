@@ -2,18 +2,21 @@ import { Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
+import { LoginHelper } from '@core/helpers/loginHelper';
+import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
+import { TileManagementHelper } from '@core/helpers/tileManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 export type UserType = 'appManager' | 'endUser';
 
 export const users = {
   appManager: {
-    email: process.env.APP_MANAGER_USERNAME || process.env.APP_MANAGER_EMAIL || '',
-    password: process.env.APP_MANAGER_PASSWORD || '',
+    email: getEnvConfig().appManagerEmail,
+    password: getEnvConfig().appManagerPassword,
   },
   endUser: {
-    email: process.env.END_USER_USERNAME || process.env.End_USER_USERNAME || '',
-    password: process.env.END_USER_PASSWORD || process.env.End_USER_PASSWORD || '',
+    email: getEnvConfig().endUserEmail!,
+    password: getEnvConfig().endUserPassword!,
   },
 };
 
@@ -26,6 +29,8 @@ export const multiUserTileFixture = test.extend<
   {
     adminPage: Page;
     endUserPage: Page;
+    tileManagementHelper: TileManagementHelper;
+    siteManagementHelper: SiteManagementHelper;
   },
   {
     appManagerApiClient: AppManagerApiClient;
@@ -53,26 +58,7 @@ export const multiUserTileFixture = test.extend<
       const adminPage = await adminContext.newPage();
 
       await test.step(`Logging in Admin User`, async () => {
-        const baseUrl = getEnvConfig().frontendBaseUrl;
-        await adminPage.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-
-        const usernameInput = adminPage.locator('#inputOption');
-        await usernameInput.waitFor({ state: 'visible' });
-        await usernameInput.fill(users.appManager.email);
-
-        const continueButton = adminPage.getByRole('button', { name: /continue/i });
-        await continueButton.click();
-
-        const passwordInput = adminPage.locator('#inputPassword');
-        await passwordInput.waitFor({ state: 'visible' });
-        await passwordInput.fill(users.appManager.password);
-
-        const signInButton = adminPage.getByRole('button', { name: /sign in/i });
-        await signInButton.click();
-
-        await adminPage.waitForURL(/\/(home|dashboard)($|\/|\?)/, { timeout: 30000 });
-        const homeUrl = new URL('/home', baseUrl).toString();
-        await adminPage.goto(homeUrl, { waitUntil: 'domcontentloaded' });
+        await LoginHelper.loginWithPassword(adminPage, users.appManager);
       });
 
       await use(adminPage);
@@ -87,30 +73,32 @@ export const multiUserTileFixture = test.extend<
       const endUserPage = await endUserContext.newPage();
 
       await test.step(`Logging in End User`, async () => {
-        const baseUrl = getEnvConfig().frontendBaseUrl;
-        await endUserPage.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-
-        const usernameInput = endUserPage.locator('#inputOption');
-        await usernameInput.waitFor({ state: 'visible' });
-        await usernameInput.fill(users.endUser.email);
-
-        const continueButton = endUserPage.getByRole('button', { name: /continue/i });
-        await continueButton.click();
-
-        const passwordInput = endUserPage.locator('#inputPassword');
-        await passwordInput.waitFor({ state: 'visible' });
-        await passwordInput.fill(users.endUser.password);
-
-        const signInButton = endUserPage.getByRole('button', { name: /sign in/i });
-        await signInButton.click();
-
-        await endUserPage.waitForURL(/\/(home|dashboard)($|\/|\?)/, { timeout: 30000 });
-        const homeUrl = new URL('/home', baseUrl).toString();
-        await endUserPage.goto(homeUrl, { waitUntil: 'domcontentloaded' });
+        await LoginHelper.loginWithPassword(endUserPage, users.endUser);
       });
 
       await use(endUserPage);
       await endUserContext.close();
+    },
+    { scope: 'test' },
+  ],
+
+  tileManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const tileManagementHelper = new TileManagementHelper(appManagerApiClient);
+      try {
+        await use(tileManagementHelper);
+      } finally {
+        await tileManagementHelper.cleanup();
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  siteManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
+      await use(siteManagementHelper);
+      await siteManagementHelper.cleanup();
     },
     { scope: 'test' },
   ],

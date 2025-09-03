@@ -21,3 +21,14 @@ export interface SiteCategory {
   categoryId: string;
   name: string;
 }
+
+// Site management helper interfaces
+export interface Site {
+  siteId: string;
+  siteName: string;
+}
+
+export interface SiteMember {
+  siteId: string;
+  userEmail: string;
+}

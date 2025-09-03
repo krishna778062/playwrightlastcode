@@ -1,9 +1,7 @@
 import { expect, Page, test } from '@playwright/test';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
-import {
-  deleteTileByTitleViaApi,
-  createAppTileViaApi as createAppTileViaApiHelper,
-} from '@integrations-api/helpers/tileApiHelpers';
+import { createAppTileViaApi as createAppTileViaApiHelper } from '@integrations-api/helpers/tileApiHelpers';
+import { TileManagementHelper } from '@core/helpers/tileManagementHelper';
 import { AIRTABLE_TILE } from '@integrations-test-data/app-tiles.test-data';
 import { DASHBOARD_BUTTONS } from '@integrations/constants/common';
 
@@ -17,6 +15,7 @@ export class HomeDashboard {
   private readonly page: Page;
   private readonly airtableComponent: BaseAppTileComponent;
   private readonly appTileComponent: AppTileComponent;
+  private readonly tileManagementHelper: TileManagementHelper;
 
   private readonly defaultConfig = {
     baseName: AIRTABLE_TILE.BASE_NAME,
@@ -25,10 +24,11 @@ export class HomeDashboard {
     sortOrder: AIRTABLE_TILE.USER_DEFINED,
   };
 
-  constructor(page: Page) {
+  constructor(page: Page, tileManagementHelper: TileManagementHelper) {
     this.page = page;
     this.airtableComponent = new BaseAppTileComponent(page);
     this.appTileComponent = new AppTileComponent(page);
+    this.tileManagementHelper = tileManagementHelper;
   }
 
   /**
@@ -163,12 +163,12 @@ export class HomeDashboard {
   }
 
   /**
-   * Remove tile through API
+   * Remove tile through API using TileManagementHelper
    */
   async removeTileThroughApi(tileTitle: string): Promise<boolean> {
     return await test.step(`Remove tile through API: ${tileTitle}`, async () => {
       console.log(`Attempting to remove tile: ${tileTitle}`);
-      const result = await deleteTileByTitleViaApi(this.page, { tileInstanceName: tileTitle });
+      const result = await this.tileManagementHelper.removeTileByTitle(tileTitle);
       console.log(`Tile removal result: ${result}`);
       return result;
     });

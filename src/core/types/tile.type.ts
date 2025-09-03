@@ -79,6 +79,33 @@ export interface LinkTileResponse {
   result: TileResponseResult;
 }
 
+// App tile interface for tile management operations
+export interface AppTile {
+  tileInstanceName: string;
+  instanceId?: string;
+  contentTileId?: string;
+}
+
+// Tile API helpers interfaces
+export type WaitOpts = {
+  timeoutMs?: number;
+  pollIntervalMs?: number;
+};
+
+export interface TileCreationResult {
+  tileInstanceName: string;
+  instanceId?: string;
+  templateTileId?: string;
+}
+
+export interface TileCreationArgs {
+  tileInstanceName: string;
+  connectorId: string;
+  baseId?: string;
+  tableId?: string;
+  baseName?: string;
+}
+
 // Additional utility types
 export type TileType = 'links' | 'content' | 'feed' | 'custom';
 export type TileVariant = 'custom' | 'standard' | 'compact';

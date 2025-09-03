@@ -1,8 +1,5 @@
 import { Page, test } from '@playwright/test';
 
-import { deleteTileByTitleViaApi } from '@integrations/api/helpers/tileApiHelpers';
-import { deleteTileByInstanceIdViaApi } from '@integrations/api/helpers/tileApiHelpers';
-
 export class IntegrationApi {
   constructor(private page: Page) {}
 
@@ -46,13 +43,5 @@ export class IntegrationApi {
   async isUserAuthenticated(): Promise<boolean> {
     const user = await this.getUserProfile();
     return !!user?.uid;
-  }
-
-  async removeTileThroughApi(tileTitle: string): Promise<boolean> {
-    return deleteTileByTitleViaApi(this.page, { tileInstanceName: tileTitle });
-  }
-
-  async removeTileByInstanceIdThroughApi(instanceId: string): Promise<boolean> {
-    return deleteTileByInstanceIdViaApi(this.page, { instanceId });
   }
 }
