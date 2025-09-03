@@ -1,7 +1,8 @@
-import { devices, defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
+import path from 'path';
+
 import baseConfig from '../../../playwright.base.config';
 import { PROJECT_ROOT } from '../../core/constants/paths';
-import path from 'path';
 
 export default defineConfig({
   ...baseConfig,
@@ -12,14 +13,14 @@ export default defineConfig({
     ...baseConfig.use,
     baseURL: process.env.FRONTEND_BASE_URL,
     actionTimeout: 15_000, // 15 seconds auto-wait for actions
-    navigationTimeout: 15_000 // 15 seconds auto-wait for navigation
+    navigationTimeout: 15_000, // 15 seconds auto-wait for navigation
   },
   projects: [
     {
       name: 'data-engineering-chromium',
       use: {
-        ...devices['Desktop Chrome']
+        ...devices['Desktop Chrome'],
       },
     },
   ],
-}); 
+});

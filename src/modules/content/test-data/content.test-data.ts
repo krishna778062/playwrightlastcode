@@ -6,7 +6,7 @@ export const CONTENT_TEST_DATA = {
       cropForSquare: true,
     },
   },
-  
+
   DEFAULT_PAGE_CONTENT: {
     title: 'Test Page Content',
     contentType: 'page',
@@ -16,10 +16,10 @@ export const CONTENT_TEST_DATA = {
       square: true,
     },
   },
-  
+
   TIMEOUTS: {
     DEFAULT: 30_000,
     UPLOAD: 60_000,
     NAVIGATION: 15_000,
   },
-} as const; 
+} as const;

@@ -4,7 +4,7 @@ import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class TopNavBarComponent extends BaseComponent {
   readonly profileSettingsButton: Locator;
-  readonly messageInboxButton: Locator;
+  readonly messageButton: Locator;
   readonly seeAllMessagesButton: Locator;
   readonly globalSearchInputBox: Locator;
   readonly globalSearchButton: Locator;
@@ -12,11 +12,12 @@ export class TopNavBarComponent extends BaseComponent {
   constructor(page: Page) {
     super(page);
     this.profileSettingsButton = this.page.getByLabel('Profile settings');
-    this.messageInboxButton = this.page.getByRole('button', { name: 'Messaging' });
+
+    this.messageButton = this.page.getByRole('button', { name: 'Messaging' });
     this.seeAllMessagesButton = this.page.getByText('See all messages');
     this.globalSearchInputBox = this.page.locator('input[aria-label*=Search]');
     this.globalSearchButton = this.page.locator('button[type="button"][aria-label="Search"]');
-    this.addContentButton = this.page.getByRole('button', { name: 'Add content' });
+    this.addContentButton = this.page.getByRole('button', { name: 'Create' });
   }
 
   /**
@@ -25,7 +26,7 @@ export class TopNavBarComponent extends BaseComponent {
    */
   async openMessageInbox(options?: { stepInfo?: string; timeout?: number }): Promise<void> {
     await test.step(options?.stepInfo || `Opening message inbox`, async () => {
-      await this.clickOnElement(this.messageInboxButton);
+      await this.clickOnElement(this.messageButton);
     });
   }
 

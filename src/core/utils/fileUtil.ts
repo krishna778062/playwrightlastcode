@@ -77,4 +77,52 @@ export class FileUtil {
   public static getFileSize(filePath: string): number {
     return fs.statSync(filePath).size;
   }
+
+  /**
+   * Creates a temporary copy of a file with error handling.
+   * Used for safe file operations where the original should not be modified.
+   * @param sourceFilePath - The path to the source file to copy.
+   * @param destinationFilePath - The path where the copy should be created.
+   * @throws Will throw an error if the file cannot be copied.
+   */
+  public static createTemporaryFileCopy(sourceFilePath: string, destinationFilePath: string): void {
+    try {
+      fs.copyFileSync(sourceFilePath, destinationFilePath);
+    } catch (error) {
+      console.error(`Error creating temporary copy from ${sourceFilePath} to ${destinationFilePath}:`, error);
+      throw new Error(
+        `Failed to create temporary file copy: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  /**
+   * Generates a unique temporary file path based on the original file.
+   * Creates a unique filename using a random word and timestamp to avoid conflicts.
+   * @param originalFilePath - The path to the original file.
+   * @returns A unique temporary file path in the same directory as the original.
+   */
+  public static generateTemporaryFilePath(originalFilePath: string): string {
+    const fileExtension = path.extname(originalFilePath);
+    const { faker } = require('@faker-js/faker');
+    const uniqueName = `${faker.lorem.word()}-${Date.now()}${fileExtension}`;
+    return path.join(path.dirname(originalFilePath), uniqueName);
+  }
+
+  /**
+   * Safely deletes a temporary file with error handling.
+   * Used for cleanup operations to remove temporary files after processing.
+   * @param filePath - The path to the temporary file to delete.
+   * @throws Will throw an error if the file cannot be deleted.
+   */
+  public static deleteTemporaryFile(filePath: string): void {
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } catch (error) {
+      console.error(`Error deleting temporary file ${filePath}:`, error);
+      throw new Error(`Failed to delete temporary file: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
 }

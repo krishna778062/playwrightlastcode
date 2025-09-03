@@ -7,6 +7,7 @@ export enum GlobalSearchSuiteTags {
   APPS_SEARCH = '@apps-search',
   FEED_SEARCH = '@feed-search',
   FILE_SEARCH = '@file-search',
+  VIDEO_FILE_SEARCH = '@video-file-search',
 }
 
 export enum GlobalSearchFeatureTags {

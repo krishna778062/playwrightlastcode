@@ -13,6 +13,7 @@ export enum CHAT_SUITE_TAGS {
   CHAT_ATTACHMENT = '@chat-attachment',
   DIRECT_MESSAGE = '@direct-message',
   GROUP_CHAT = '@group-chat',
+  UNFURL_LINK = '@unfurl-link',
 }
 
 // Combined tags for the module

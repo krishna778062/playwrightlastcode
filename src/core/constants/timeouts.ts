@@ -1,4 +1,6 @@
 export const TIMEOUTS = {
+  VERY_VERY_SHORT: 2_000,
+  VERY_SHORT: 5_000,
   DEFAULT: 8_000,
   SHORT: 15_000,
   MEDIUM: 30_000,

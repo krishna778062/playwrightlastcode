@@ -1,25 +1,21 @@
-import { Page } from '@playwright/test';
-
-import { NewUxHomePage } from '../pages/homePage/newUxHomePage';
+import { Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
-import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/globalSearchResultPage';
-
-interface FileContent {
-  siteId: string;
-  fileId?: string;
-}
+import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
+import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
+import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
+import { IntranetFileListComponent } from '@/src/modules/global-search/components/intranetFileListComponent';
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 /**
  * The IntranetFileHelper class is a helper class for intranet file related operations.
  * It provides methods for creating sites, uploading files, and cleaning up test data.
  */
 export class IntranetFileHelper {
-  private content: FileContent[] = [];
   private page: Page;
-  private siteManagementService: any;
-  private userManagementService: any;
+  private actions: BaseActionUtil;
 
   /**
    * Constructs a new instance of the IntranetFileHelper class.
@@ -31,72 +27,114 @@ export class IntranetFileHelper {
     page: Page
   ) {
     this.page = page;
-    this.siteManagementService = appManagerApiClient.getSiteManagementService();
-    this.userManagementService = appManagerApiClient.getUserManagementService();
+    this.actions = new BaseActionUtil(page);
   }
 
-  /**
-   * Creates a new site with the given name and category.
-   * @param siteName - The name of the site to create.
-   * @param category - The category of the site.
-   * @returns A promise that resolves with the site ID.
-   */
-  async createSite(
-    siteName: string,
-    category: { name: string; categoryId: string },
-    options?: { access?: 'public' | 'private' | 'unlisted' }
-  ): Promise<{ siteId: string }> {
-    const siteResult = await this.siteManagementService.addNewSite({
-      access: options?.access ?? 'public',
-      name: siteName,
-      category: {
-        categoryId: category.categoryId,
-        name: category.name,
-      },
-    });
-    const siteId = siteResult.siteId;
-    this.content.push({ siteId: siteId });
-
-    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
-      this.appManagerApiClient,
-      siteName,
-      siteName,
-      'site'
-    );
-
-    return {
-      siteId,
-    };
-  }
+  // Site creation is centralized in SiteManagementHelper.
 
   /**
    * Uploads a file to the specified site.
-   * @param homePage - The home page object.
-   * @param fileType - The type of file to upload.
-   * @param siteName - The name of the site to upload the file to.
    * @param siteId - The ID of the site to upload the file to.
+   * @param filePath - The path to the file to upload.
+   * @param options - Upload options including file type information
    * @returns A promise that resolves with the name of the uploaded file.
    */
-  async uploadFile(homePage: NewUxHomePage, siteName: string, siteId: string, filePath: string): Promise<string> {
-    const globalSearchResultPage = await homePage.actions.searchForTerm(siteName, {
-      stepInfo: `Searching with term "${siteName}" and intent is to find the site`,
+  async uploadFile(siteId: string, filePath: string, options: { videoFile?: boolean } = {}): Promise<string> {
+    return await test.step(`Navigate directly to site and upload file`, async () => {
+      try {
+        const baseUrl = getEnvConfig().frontendBaseUrl.replace(/\/$/, '');
+        await this.actions.goToUrl(`${baseUrl}${PAGE_ENDPOINTS.SITE_PAGE(siteId)}`);
+
+        const intranetFileListComponent = new IntranetFileListComponent(this.page);
+        await test.step(`Open Files tab`, async () => {
+          await intranetFileListComponent.clickFilesTab();
+        });
+
+        // If it's a video file or mp4, click the 'Site videos' link before upload
+        if (options.videoFile || filePath.endsWith('.mp4')) {
+          await intranetFileListComponent.clickSiteVideosTab();
+        }
+
+        const uploadedFileName = await test.step(`Upload file from computer`, async () => {
+          return await intranetFileListComponent.uploadFileFromComputer(filePath, options);
+        });
+
+        return uploadedFileName;
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        throw new Error(
+          `File upload failed for ${filePath}: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
     });
-    const siteResultComponent = await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(siteName);
-    await siteResultComponent.verifyNavigationToTitleLink(siteId, siteName, 'site');
-    const intranetFileListComponent = globalSearchResultPage.getIntranetFileListComponent();
-    await intranetFileListComponent.clickFilesTab();
-    const uploadedFileName = await intranetFileListComponent.uploadFileFromComputer(filePath);
-    return uploadedFileName;
   }
 
   /**
-   * Cleans up the test data by deactivating the created sites.
+   * Creates site and uploads file for testing - reusable for any file type
+   * @param category - The category name for the site
+   * @param accessType - The access type for the site (e.g., 'public', 'private')
+   * @param filePath - The path to the file to upload
+   * @param options - Upload options including file type information
+   * @returns Object containing all setup metadata needed for testing
+   */
+  async createSiteAndUploadFile(params: {
+    category: string;
+    accessType: SITE_TYPES;
+    filePath: string;
+    options?: { videoFile?: boolean };
+  }) {
+    try {
+      const { category, accessType, filePath, options = {} } = params;
+
+      const categoryObject = await this.appManagerApiClient.getSiteManagementService().getCategoryId(category);
+      const siteManagementHelper = new SiteManagementHelper(this.appManagerApiClient);
+      const createdSiteDetails = await siteManagementHelper.createSite({
+        category: categoryObject,
+        accessType: accessType,
+      });
+
+      // Extract site metadata
+      const createdSiteId = createdSiteDetails.siteId!;
+      const createdSiteName = createdSiteDetails.siteName;
+
+      const uploadedFileName = await this.uploadFile(createdSiteId, filePath, options);
+
+      // Get file details - use different methods for video vs regular files
+      const fileDetails = options.videoFile
+        ? await this.appManagerApiClient
+            .getSiteManagementService()
+            .getVideoFileIdFromSearch(createdSiteId, uploadedFileName)
+        : await this.appManagerApiClient.getSiteManagementService().getFileIdFromSite(createdSiteId, uploadedFileName);
+
+      // Extract file metadata
+      const uploadedFileId = fileDetails.fileId;
+      const fileAuthorName = fileDetails.authorName;
+
+      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+        apiClient: this.appManagerApiClient,
+        searchTerm: uploadedFileName,
+        objectType: 'file',
+      });
+
+      return {
+        uploadedFileName: uploadedFileName,
+        fileId: uploadedFileId,
+        authorName: fileAuthorName,
+        siteId: createdSiteId,
+        siteName: createdSiteName,
+      };
+    } catch (error) {
+      console.error('Error in createSiteAndUploadFile:', error);
+      throw new Error(
+        `Failed to create site and upload file: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  /**
+   * TODO: Add list to store all files created during the test and delete them after the test.
    */
   async cleanup() {
-    for (const { siteId } of this.content) {
-      if (siteId) {
-        await this.appManagerApiClient.getSiteManagementService().deactivateSite(siteId);
-      }
-    }
+    console.log('INFO: IntranetFileHelper cleanup method is not implemented');
   }
 }

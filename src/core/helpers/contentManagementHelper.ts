@@ -3,7 +3,9 @@ import { faker } from '@faker-js/faker';
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { buildBodyAndBodyHtml } from '@/src/core/api/services/ContentManagementService';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
+import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
 import { getTodayDateIsoString, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 interface Content {
   siteId: string;
@@ -13,89 +15,81 @@ interface Content {
 export class ContentManagementHelper {
   private content: Content[] = [];
 
-  constructor(private appManagerApiClient: AppManagerApiClient) {}
+  constructor(
+    private appManagerApiClient: AppManagerApiClient,
+    private siteHelper: SiteManagementHelper = new SiteManagementHelper(appManagerApiClient)
+  ) {}
 
   /**
-   * Creates a new site and a new album within that site.
-   * @param siteName - The name for the new site.
-   * @param category - The site category object, containing name and categoryId.
-   * @param imageName - The name of the image file to be uploaded as the album's cover.
-   * @returns An object containing details of the created album and site.
+   * Creates a new site (by category name) and an album within that site.
+   * Returns site details along with the created album details.
+   * @param categoryName - The name of the category for the site
+   * @param imageName - The name of the image file to upload
+   * @param options - Optional configuration object with albumName, contentDescription, and/or accessType
    */
-  async createAlbum(siteName: string, category: { name: string; categoryId: string }, imageName: string) {
-    const siteResult = await this.appManagerApiClient.getSiteManagementService().addNewSite({
-      access: 'public',
-      name: siteName,
-      category: {
-        categoryId: category.categoryId,
-        name: category.name,
-      },
+  async createSiteAndAlbum(params: {
+    category: string;
+    imagePath: string;
+    options?: { albumName?: string; contentDescription?: string; accessType?: SITE_TYPES };
+  }) {
+    const { category: categoryName, imagePath: imageName, options = {} } = params;
+    const categoryObj = await this.appManagerApiClient.getSiteManagementService().getCategoryId(categoryName);
+    const { siteId, siteName } = await this.siteHelper.createSite({
+      category: categoryObj,
+      accessType: options.accessType || SITE_TYPES.PUBLIC,
     });
-    const siteId = siteResult.siteId;
-
     const fileId = await this.appManagerApiClient.getImageUploaderService().uploadImageAndGetFileId(imageName);
-
-    const albumName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Album`;
-    const contentDescription = 'AutomateAlbumDescription';
-    const { body, bodyHtml } = buildBodyAndBodyHtml(contentDescription, 'album');
-
+    const finalAlbumName = options.albumName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Album`;
+    const finalContentDescription = options.contentDescription || 'AutomateAlbumDescription';
+    const { body, bodyHtml } = buildBodyAndBodyHtml(finalContentDescription, 'album');
     const albumResult = await this.appManagerApiClient.getContentManagementService().addNewAlbumContent(siteId, {
-      title: albumName,
+      title: finalAlbumName,
       body,
       bodyHtml,
       publishAt: getTodayDateIsoString(),
       coverImageMediaId: fileId,
       listOfAlbumMedia: [{ id: fileId, description: '' }],
     });
-
-    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
-      this.appManagerApiClient,
-      albumName,
-      albumName,
-      'content'
-    );
-
+    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+      apiClient: this.appManagerApiClient,
+      searchTerm: finalAlbumName,
+      objectType: 'content',
+    });
     const createdContent = {
       siteId,
       contentId: albumResult.albumId,
-      albumName,
+      albumName: finalAlbumName,
       authorName: albumResult.authorName,
-      contentDescription,
+      contentDescription: finalContentDescription,
     };
     this.content.push({ siteId, contentId: albumResult.albumId });
-
-    return createdContent;
+    return { siteName, ...createdContent };
   }
 
   /**
-   * Creates a new site and a new page within that site.
-   * @param siteName - The name for the new site.
-   * @param category - The site category object, containing name and categoryId.
-   * @param contentInfo - An object containing contentType and contentSubType for the page.
-   * @returns An object containing details of the created page and site.
+   * Creates a new site (by category name) and a page within that site.
+   * Returns site details along with the created page details.
+   * @param categoryName - The name of the category for the site
+   * @param contentInfo - The content type information
+   * @param options - Optional configuration object with pageName, contentDescription, and/or accessType
    */
-  async createPage(
-    siteName: string,
-    category: { name: string; categoryId: string },
-    contentInfo: { contentType: string; contentSubType: string }
-  ) {
-    const siteResult = await this.appManagerApiClient.getSiteManagementService().addNewSite({
-      access: 'public',
-      name: siteName,
-      category: {
-        categoryId: category.categoryId,
-        name: category.name,
-      },
+  async createSiteAndPage(params: {
+    category: string;
+    contentInfo: { contentType: string; contentSubType: string };
+    options?: { pageName?: string; contentDescription?: string; accessType?: SITE_TYPES };
+  }) {
+    const { category: categoryName, contentInfo, options = {} } = params;
+    const categoryObj = await this.appManagerApiClient.getSiteManagementService().getCategoryId(categoryName);
+    const { siteId, siteName } = await this.siteHelper.createSite({
+      category: categoryObj,
+      accessType: options.accessType || SITE_TYPES.PUBLIC,
     });
-    const siteId = siteResult.siteId;
     const pageCategory = await this.appManagerApiClient.getContentManagementService().getPageCategoryID(siteId);
-
-    const pageName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Page`;
-    const contentDescription = 'AutomatePageDescription';
-    const { body, bodyHtml } = buildBodyAndBodyHtml(contentDescription, 'page');
-
+    const finalPageName = options.pageName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Page`;
+    const finalContentDescription = options.contentDescription || 'AutomatePageDescription';
+    const { body, bodyHtml } = buildBodyAndBodyHtml(finalContentDescription, 'page');
     const pageResult = await this.appManagerApiClient.getContentManagementService().addNewPageContent(siteId, {
-      title: pageName,
+      title: finalPageName,
       body,
       bodyHtml,
       category: {
@@ -105,54 +99,45 @@ export class ContentManagementHelper {
       contentType: contentInfo.contentType,
       contentSubType: contentInfo.contentSubType,
     });
-
-    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
-      this.appManagerApiClient,
-      pageName,
-      pageName,
-      'content'
-    );
-
+    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+      apiClient: this.appManagerApiClient,
+      searchTerm: finalPageName,
+      objectType: 'content',
+    });
     const createdContent = {
       siteId,
       contentId: pageResult.pageId,
-      pageName,
+      pageName: finalPageName,
       authorName: pageResult.authorName,
-      contentDescription,
+      contentDescription: finalContentDescription,
     };
     this.content.push({ siteId, contentId: pageResult.pageId });
-
-    return createdContent;
+    return { siteName, ...createdContent };
   }
 
   /**
-   * Creates a new site and a new event within that site.
-   * @param siteName - The name for the new site.
-   * @param category - The site category object, containing name and categoryId.
-   * @param contentInfo - An object containing the contentType for the event.
-   * @returns An object containing details of the created event and site.
+   * Creates a new site (by category name) and an event within that site.
+   * Returns site details along with the created event details.
+   * @param categoryName - The name of the category for the site
+   * @param contentInfo - The content type information
+   * @param options - Optional configuration object with eventName, contentDescription, and/or accessType
    */
-  async createEvent(
-    siteName: string,
-    category: { name: string; categoryId: string },
-    contentInfo: { contentType: string }
-  ) {
-    const siteResult = await this.appManagerApiClient.getSiteManagementService().addNewSite({
-      access: 'public',
-      name: siteName,
-      category: {
-        categoryId: category.categoryId,
-        name: category.name,
-      },
+  async createSiteAndEvent(params: {
+    category: string;
+    contentInfo: { contentType: string };
+    options?: { eventName?: string; contentDescription?: string; accessType?: SITE_TYPES };
+  }) {
+    const { category: categoryName, contentInfo, options = {} } = params;
+    const categoryObj = await this.appManagerApiClient.getSiteManagementService().getCategoryId(categoryName);
+    const { siteId, siteName } = await this.siteHelper.createSite({
+      category: categoryObj,
+      accessType: options.accessType || SITE_TYPES.PUBLIC,
     });
-    const siteId = siteResult.siteId;
-
-    const eventName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Event`;
-    const contentDescription = 'AutomateEventDescription';
-    const { body, bodyHtml } = buildBodyAndBodyHtml(contentDescription, 'event');
-
+    const finalEventName = options.eventName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Event`;
+    const finalContentDescription = options.contentDescription || 'AutomateEventDescription';
+    const { body, bodyHtml } = buildBodyAndBodyHtml(finalContentDescription, 'event');
     const eventResult = await this.appManagerApiClient.getContentManagementService().addNewEventContent(siteId, {
-      title: eventName,
+      title: finalEventName,
       body,
       bodyHtml,
       contentType: contentInfo.contentType,
@@ -161,24 +146,34 @@ export class ContentManagementHelper {
       timezoneIso: 'Asia/Kolkata',
       location: 'Gurgaon',
     });
-
-    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse(
-      this.appManagerApiClient,
-      eventName,
-      eventName,
-      'content'
-    );
-
+    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+      apiClient: this.appManagerApiClient,
+      searchTerm: finalEventName,
+      objectType: 'content',
+    });
     const createdContent = {
       siteId,
       contentId: eventResult.eventId,
-      eventName,
+      eventName: finalEventName,
       authorName: eventResult.authorName,
-      contentDescription,
+      contentDescription: finalContentDescription,
     };
     this.content.push({ siteId, contentId: eventResult.eventId });
+    return { siteName, ...createdContent };
+  }
 
-    return createdContent;
+  /**
+   * Deletes a specific content item
+   * @param siteId - The site ID where the content is located
+   * @param contentId - The content ID to delete
+   */
+  async deleteContent(siteId: string, contentId: string): Promise<void> {
+    if (contentId && siteId) {
+      await this.appManagerApiClient.getContentManagementService().deleteContent(siteId, contentId);
+      console.log(`Content deleted: ${contentId} from site: ${siteId}`);
+    } else {
+      console.log('No content ID or site ID provided for deletion');
+    }
   }
 
   /**
@@ -189,9 +184,7 @@ export class ContentManagementHelper {
       if (contentId) {
         await this.appManagerApiClient.getContentManagementService().deleteContent(siteId, contentId);
       }
-      if (siteId) {
-        await this.appManagerApiClient.getSiteManagementService().deactivateSite(siteId);
-      }
     }
+    await this.siteHelper.cleanup();
   }
 }

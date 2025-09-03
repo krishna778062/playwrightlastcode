@@ -1,5 +1,5 @@
 export enum ContentType {
-    "PAGE"="Page",
-    "ALBUM"="Album",
-    "EVENT"="Event",
+  'PAGE' = 'Page',
+  'ALBUM' = 'Album',
+  'EVENT' = 'Event',
 }
