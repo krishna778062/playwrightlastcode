@@ -31,7 +31,10 @@ export interface ICommonHomePageActions {
 }
 
 export interface IOldUxHomePageActions extends ICommonHomePageActions {
-  clickOnCreateContentButtonOnTopNavBar: (options?: { stepInfo?: string }) => Promise<AddContentModalComponent>;
+  clickOnCreateContentButtonOnTopNavBar: (
+    contentType: ContentType,
+    options?: { stepInfo?: string }
+  ) => Promise<AddContentModalComponent>;
   openCreateContentPageForContentType: (
     contentType: ContentType,
     options?: { stepInfo?: string }
@@ -144,7 +147,6 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
       await this.sideNavBarComponent.verifyRolesButtonVisibility(visible);
     });
   }
-  abstract openSiteCreationForm(options?: { stepInfo?: string }): Promise<AbacSiteCreationPage>;
 
   /**
    * Clicks on the message inbox via the top nav bar

@@ -25,11 +25,14 @@ export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions
     return this;
   }
 
-  async clickOnCreateContentButtonOnTopNavBar(options?: { stepInfo?: string }): Promise<AddContentModalComponent> {
+  async clickOnCreateContentButtonOnTopNavBar(
+    contentType: ContentType,
+    options?: { stepInfo?: string }
+  ): Promise<AddContentModalComponent> {
     return await test.step(options?.stepInfo || `Clicking on create content button on top nav bar`, async () => {
       await this.topNavBarComponent.clickOnCreateContentButton();
       const addContentModal = new AddContentModalComponent(this.page);
-      await addContentModal.verifyTheAddContentModalIsVisible();
+      await addContentModal.verifyTheAddContentModalIsVisible(contentType);
       return addContentModal;
     });
   }
@@ -39,16 +42,16 @@ export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions
     options?: { stepInfo?: string }
   ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage> {
     return await test.step(options?.stepInfo || `Opening create content page for ${contentType}`, async () => {
-      await this.clickOnCreateContentButtonOnTopNavBar();
+      await this.clickOnCreateContentButtonOnTopNavBar(contentType);
       const addContentModal = new AddContentModalComponent(this.page);
-      await addContentModal.verifyTheAddContentModalIsVisible();
+      await addContentModal.verifyTheAddContentModalIsVisible(contentType);
       return await addContentModal.completeContentCreationForm(contentType);
     });
   }
 
   async openSiteCreationForm(options?: { stepInfo?: string }): Promise<SiteCreationPage> {
     return await test.step(options?.stepInfo || 'Opening site creation form', async () => {
-      await this.clickOnCreateContentButtonOnTopNavBar();
+      await this.clickOnCreateContentButtonOnTopNavBar(ContentType.PAGE);
       const createComponent = new CreateComponent(this.page);
       await createComponent.verifyTheCreateComponentIsVisible();
       await createComponent.selectSiteOptionAndOpenModal();
@@ -70,7 +73,6 @@ export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions
 
   async openSiteCreationFormForNonAbac(options?: { stepInfo?: string }): Promise<ContentSiteCreationPage> {
     return await test.step(options?.stepInfo || 'Opening non-ABAC site creation form', async () => {
-      await this.clickOnCreateContentButtonOnTopNavBar();
       const createComponent = new ContentCreateComponent(this.page);
       await createComponent.verifyTheCreateComponentIsVisible();
       return await createComponent.selectSiteOption();

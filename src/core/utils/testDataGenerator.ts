@@ -186,8 +186,6 @@ export class TestDataGenerator {
       last_name: lastName,
       username: `${firstName} ${lastName}`,
       email: faker.internet.email({ provider: 'simpplr.com' }),
-      mobile: faker.number.int({ min: 1000000000, max: 9999999999 }),
-      emp: faker.string.alphanumeric(8),
       mobile: 0, // Default value for compatibility
       emp: faker.string.alphanumeric(8).toUpperCase(),
       timezone_id: 17,
