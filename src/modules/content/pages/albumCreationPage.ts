@@ -192,11 +192,17 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
   }
 
   async addVideoUrl(videoUrl: string): Promise<void> {
-    await this.clickOnElement(this.enterVideoURL);
-    await this.fillInElement(this.videoUrlInput, videoUrl, {
-      stepInfo: 'Fill video URL input',
+    await test.step(`Add video URL: ${videoUrl}`, async () => {
+      await this.clickOnElement(this.enterVideoURL, {
+        stepInfo: 'Click on "Enter Video URL" button',
+      });
+      await this.fillInElement(this.videoUrlInput, videoUrl, {
+        stepInfo: `Fill video URL input with: ${videoUrl}`,
+      });
+      await this.clickOnElement(this.addVideo, {
+        stepInfo: 'Click "Add Video" button to confirm',
+      });
     });
-    await this.clickOnElement(this.addVideo);
   }
 
   async waitForVideoUpload(): Promise<void> {

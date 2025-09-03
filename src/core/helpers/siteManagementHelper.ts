@@ -2,7 +2,12 @@ import { faker } from '@faker-js/faker';
 
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
-import { SiteCreationPayload } from '@/src/core/types/siteManagement.types';
+import {
+  SiteCreationPayload,
+  SiteMembershipAction,
+  SiteMembershipResponse,
+  SitePermission,
+} from '@/src/core/types/siteManagement.types';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 interface Site {
@@ -318,7 +323,7 @@ export class SiteManagementHelper {
     options?: {
       category?: { name: string; categoryId: string };
       overrides?: Partial<SiteCreationPayload>;
-      accessType?: 'public' | 'private' | 'unlisted';
+      accessType?: SITE_TYPES;
     }
   ): Promise<string> {
     // Get the list of sites
@@ -341,18 +346,18 @@ export class SiteManagementHelper {
     // Site not found, create a new one
     console.log(`Site "${siteName}" not found. Creating a new site...`);
 
-    const accessType = options?.accessType || 'public';
+    const accessType = options?.accessType || SITE_TYPES.PUBLIC;
     let createdSite;
 
     switch (accessType) {
-      case 'private':
+      case SITE_TYPES.PRIVATE:
         createdSite = await this.createPrivateSite({
           siteName,
           category: options?.category,
           overrides: options?.overrides,
         });
         break;
-      case 'unlisted':
+      case SITE_TYPES.UNLISTED:
         createdSite = await this.createUnlistedSite({
           siteName,
           category: options?.category,
@@ -372,25 +377,28 @@ export class SiteManagementHelper {
   }
 
   /**
-   * Adds a member to an existing site
-   * @param siteId - The ID of the site to add member to
-   * @param userId - The ID of the user to add as member
-   * @param permission - The permission level for the member (default: 'member')
-   * @returns Promise resolving to the API response
+   * Makes a user a site content manager
+   * @param siteId - The ID of the site
+   * @param userId - The ID of the user to make content manager
+   * @returns Promise with the response
    */
-  async addMemberToSite(siteId: string, userId: string, permission: string = 'member'): Promise<any> {
-    const response = await this.appManagerApiClient
+  async makeUserSiteMembership(
+    siteId: string,
+    userId: string,
+    permission: SitePermission,
+    action: SiteMembershipAction
+  ): Promise<SiteMembershipResponse> {
+    const result = await this.appManagerApiClient
       .getSiteManagementService()
-      .siteAddMember(siteId, userId, permission);
+      .makeUserSiteMembership(siteId, userId, permission, action);
 
-    // Track the member for potential cleanup
+    // Track the member for potential cleanup (optional)
     this.siteMembers.push({
       siteId,
-      userEmail: userId, // Using userId as userEmail for tracking purposes
+      userEmail: userId, // Using userId as identifier since we don't have email here
     });
 
-    console.log(`Added member ${userId} to site ${siteId} with permission: ${permission}`);
-    return response;
+    return result;
   }
 
   /**

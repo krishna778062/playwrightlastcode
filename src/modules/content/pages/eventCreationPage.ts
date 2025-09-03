@@ -84,7 +84,6 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
    */
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify event creation page is loaded', async () => {
-      await this.page.waitForLoadState('domcontentloaded');
       await this.verifier.verifyTheElementIsVisible(this.titleInput, {
         assertionMessage: 'Title input should be visible on event creation page',
       });

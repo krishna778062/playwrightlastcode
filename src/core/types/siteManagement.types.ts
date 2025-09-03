@@ -1,3 +1,14 @@
+export enum SitePermission {
+  MEMBER = 'member',
+  CONTENT_MANAGER = 'content_manager',
+  ADMIN = 'admin',
+  OWNER = 'owner',
+}
+
+export enum SiteMembershipAction {
+  ADD = 'addPeople',
+}
+
 export interface SiteCreationPayload {
   access: string;
   hasPages: boolean;
@@ -54,4 +65,67 @@ export interface SiteListResponse {
     totalCount: number;
     hasMore: boolean;
   };
+}
+
+export interface FileOwner {
+  name: string;
+  id?: string;
+}
+
+export interface FileItem {
+  id: string;
+  fileId: string;
+  title: string;
+  owner: FileOwner;
+  createdAt?: string;
+  updatedAt?: string;
+  size?: number;
+  type?: string;
+}
+
+export interface FileListResponse {
+  status: string;
+  message: string;
+  result: {
+    listOfItems: FileItem[];
+    totalCount: number;
+    hasMore: boolean;
+  };
+}
+
+export interface CategoryResponse {
+  categoryId: string;
+  name: string;
+}
+
+export interface SiteCreationResponse {
+  status: string;
+  message: string;
+  result: {
+    siteId: string;
+    name: string;
+  };
+}
+
+export interface SiteDeactivationResponse {
+  status: string;
+  message: string;
+  result?: any; // Can be more specific based on actual API response
+}
+
+export interface SiteMembershipResult {
+  userId: string;
+  siteId: string;
+  permission: SitePermission;
+  action: string;
+  membershipId?: string;
+  addedAt?: string;
+  updatedAt?: string;
+}
+
+export interface SiteMembershipResponse {
+  status: string;
+  message: string;
+  result: SiteMembershipResult;
+  errors?: string[];
 }

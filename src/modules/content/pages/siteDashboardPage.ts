@@ -1,4 +1,4 @@
-import { Locator, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/pages/basePage';
 
@@ -18,7 +18,8 @@ export interface ISiteDashboardActions {
 
 export interface ISiteDashboardAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
-  verifySiteName: (siteName: string) => Promise<void>;
+  verifySiteName: (siteName: string, successMessage: string) => Promise<void>;
+  verifyDashboardUrl: (siteId: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BasePage implements ISiteDashboardActions, ISiteDashboardAssertions {
@@ -26,6 +27,8 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
   readonly manageSiteButton = this.page.locator("button[title='Manage site'], a[href*='/manage']");
   readonly siteNameHeading = this.page.locator('h1');
   readonly addContentModal: AddContentModalComponent;
+  readonly successMessage = (message: string) =>
+    this.page.locator('div[class*="Toast-module"] p', { hasText: message });
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
@@ -120,11 +123,31 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
    * Verifies the site name is displayed in the h1 heading
    * @param siteName - The expected site name
    */
-  async verifySiteName(siteName: string): Promise<void> {
+  async verifySiteName(siteName: string, successMessage: string): Promise<void> {
     await test.step(`Verify site name "${siteName}" is displayed in heading`, async () => {
+      // Verify success message is visible
+      await this.verifier.verifyTheElementIsVisible(this.successMessage(successMessage), {
+        assertionMessage: `Success message "${successMessage}" should be visible after publishing`,
+      });
+
       await this.verifier.verifyElementHasText(this.siteNameHeading, siteName, {
         assertionMessage: `Site name heading should contain "${siteName}"`,
       });
+    });
+  }
+
+  /**
+   * Verifies that the current URL matches the expected site dashboard URL
+   * @param siteId - The site ID to verify in the URL
+   */
+  async verifyDashboardUrl(siteId: string): Promise<void> {
+    await test.step(`Verify dashboard URL matches expected URL for site ID: ${siteId}`, async () => {
+      const expectedUrl = PAGE_ENDPOINTS.getSiteDashboardPage(siteId);
+      const currentUrl = this.page.url();
+
+      await expect(this.page, `Current URL: ${currentUrl} should match expected URL: ${expectedUrl}`).toHaveURL(
+        expectedUrl
+      );
     });
   }
 }

@@ -42,7 +42,6 @@ export interface SiteCreationOptions {
 export interface ISiteCreationActions {
   addSite(options: SiteCreationOptions): Promise<{
     siteDashboard: SiteDashboardPage;
-    siteName: string;
     siteId: string;
   }>;
 }
@@ -87,7 +86,6 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
    */
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify site creation page is loaded', async () => {
-      await this.page.waitForLoadState('domcontentloaded');
       await this.verifier.verifyTheElementIsVisible(this.siteNameInput, {
         assertionMessage: 'Site name input should be visible on site creation page',
       });
@@ -101,7 +99,6 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
    */
   async addSite(options: SiteCreationOptions): Promise<{
     siteDashboard: SiteDashboardPage;
-    siteName: string;
     siteId: string;
   }> {
     return await test.step(`Creating and publishing site with name: ${options.name}`, async () => {
@@ -120,12 +117,10 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
 
       // Extract site ID and name from response
       const siteId = createResponseBody.result.id;
-      const siteName = createResponseBody.result.site.name || options.name;
 
       // Return site dashboard page with site details
       return {
         siteDashboard: new SiteDashboardPage(this.page, siteId),
-        siteName: siteName,
         siteId: siteId,
       };
     });

@@ -3,7 +3,14 @@ import { APIRequestContext, expect, test } from '@playwright/test';
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { ISiteManagementOperations } from '@core/api/interfaces/ISiteManagemenOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-import { SiteCreationPayload, SiteListOptions, SiteListResponse } from '@core/types/siteManagement.types';
+import {
+  SiteCreationPayload,
+  SiteListOptions,
+  SiteListResponse,
+  SiteMembershipAction,
+  SiteMembershipResponse,
+  SitePermission,
+} from '@core/types/siteManagement.types';
 
 const defaultSitePayload: SiteCreationPayload = {
   access: 'public',
@@ -226,31 +233,37 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
   }
 
   /**
-   * Adds a member to a site
-   * @param siteId - The site ID to add member to
-   * @param userId - The user ID to add as member
-   * @param permission - The permission level (default: 'member')
-   * @returns Promise resolving to the API response
+   * Makes a user a site content manager
+   * @param siteId - The ID of the site
+   * @param userId - The ID of the user to make content manager
+   * @returns Promise with the response
    */
-  async siteAddMember(siteId: string, userId: string, permission: string = 'member'): Promise<any> {
-    return await test.step(`Adding member ${userId} to site ${siteId}`, async () => {
+  async makeUserSiteMembership(
+    siteId: string,
+    userId: string,
+    permission: SitePermission = SitePermission.MEMBER,
+    action: SiteMembershipAction = SiteMembershipAction.ADD
+  ): Promise<SiteMembershipResponse> {
+    return await test.step(`Making user ${userId} a content manager for site ${siteId}`, async () => {
       const payload = {
-        userId,
-        action: 'addPeople',
-        permission,
+        userId: userId,
+        action: action,
+        permission: permission,
       };
 
-      console.log('Site add member payload:', payload);
+      console.log('Site membership payload:', JSON.stringify(payload, null, 2));
 
       const response = await this.post(API_ENDPOINTS.site.manageMembers(siteId), {
         data: payload,
       });
 
       const json = await response.json();
-      console.log('Site add member JSON Response:', JSON.stringify(json, null, 2));
+      console.log('Site membership response:', JSON.stringify(json, null, 2));
 
-      if (json.status !== 'success') {
-        throw new Error(`Failed to add member to site. Response: ${JSON.stringify(json)}`);
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to make user content manager. Status: ${response.status()}, Response: ${JSON.stringify(json)}`
+        );
       }
 
       return json;
