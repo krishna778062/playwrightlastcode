@@ -46,11 +46,6 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
         }
       );
 
-      test.afterAll('Cleanup handled by SiteManagementHelper', async () => {
-        // SiteManagementHelper automatically handles cleanup in its fixture
-        console.log(`🧹 Site cleanup handled by SiteManagementHelper for site: ${newSiteName} with ID: ${newSiteId}`);
-      });
-
       test(
         `Verify Site Search results for a new ${testData.siteType} site in category "${testData.category}"`,
         {

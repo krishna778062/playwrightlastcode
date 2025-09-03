@@ -20,10 +20,10 @@ export const searchTestFixtures = test.extend<
     contentManagementHelper: ContentManagementHelper;
     feedManagementHelper: FeedManagementHelper;
     intranetFileHelper: IntranetFileHelper;
-    siteManagementHelper: SiteManagementHelper;
   },
   {
     appManagerApiClient: AppManagerApiClient;
+    siteManagementHelper: SiteManagementHelper;
     publicSite: { siteName: string; siteId: string };
   }
 >({
@@ -83,26 +83,14 @@ export const searchTestFixtures = test.extend<
     },
     { scope: 'test' },
   ],
-  siteManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
-      await use(siteManagementHelper);
-      await siteManagementHelper.cleanup();
-    },
-    { scope: 'test' },
-  ],
   publicSite: [
-    async ({ appManagerApiClient }, use, workerInfo) => {
+    async ({ appManagerApiClient, siteManagementHelper }, use, workerInfo) => {
       console.log(`🔧 Creating publicSite fixture for worker ${workerInfo.workerIndex}`);
       const randomNum = Math.floor(Math.random() * 1000000 + 1);
       const siteName = `Public_${randomNum}`;
-      // Create a dedicated SiteManagementHelper for the public site fixture
-      const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
-
-      /** Get the default category for the public site */
       const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
 
-      // Create site using SiteManagementHelper
+      // Create site using existing SiteManagementHelper
       const publicSite = await siteManagementHelper.createPublicSite({
         siteName: siteName,
         category: {
@@ -112,10 +100,23 @@ export const searchTestFixtures = test.extend<
       });
 
       console.log(
-        `✅ Created publicSite: ${publicSite.siteName} with ID: ${publicSite.siteId} for worker ${workerInfo.workerIndex} using SiteManagementHelper`
+        `✅ Created publicSite: ${publicSite.siteName} with ID: ${publicSite.siteId} for worker ${workerInfo.workerIndex} using existing SiteManagementHelper`
       );
 
       await use({ siteName: publicSite.siteName, siteId: publicSite.siteId });
+
+      // Note: Cleanup is handled by the siteManagementHelper fixture
+      console.log(
+        `🧹 Public site cleanup will be handled by siteManagementHelper fixture for site: ${publicSite.siteName} with ID: ${publicSite.siteId}`
+      );
+    },
+    { scope: 'worker' },
+  ],
+  siteManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
+      await use(siteManagementHelper);
+      await siteManagementHelper.cleanup();
     },
     { scope: 'worker' },
   ],
