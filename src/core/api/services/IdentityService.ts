@@ -484,7 +484,7 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
   async getPeopleIdWithEmailId(emailId: string): Promise<string> {
     let peopleId: string = '';
     await test.step(`Getting people ID for email: ${emailId}`, async () => {
-      const response = await this.post('/v1/identity/accounts/users/list', {
+      const response = await this.post(API_ENDPOINTS.appManagement.users.list, {
         data: {
           size: 16,
           searchTerm: emailId,

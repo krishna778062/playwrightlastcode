@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker';
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { FeedManagementService } from '@/src/core/api/services/FeedManagementService';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
-import { Feed } from '@/src/core/types/feed.type';
+import { CreateFeedPostPayload } from '@/src/core/types/feed.type';
 
 interface FeedPost {
   feedId: string;
@@ -36,7 +36,57 @@ export class FeedManagerHelper {
     const finalText = text || `Automated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`;
     const { siteId, scope = 'public', waitForSearchIndex = true } = options || {};
 
-    const overrides: Partial<Feed> = {
+    const overrides: Partial<CreateFeedPostPayload> = {
+      scope,
+      ...(siteId && { siteId }),
+    };
+
+    const response = await this.feedManagementService.createFeed(overrides);
+
+    // Store for cleanup
+    this.feedPosts.push({
+      feedId: response.result.feedId,
+      text: finalText,
+      siteId,
+    });
+
+    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+      apiClient: this.appManagerApiClient,
+      searchTerm: finalText,
+      objectType: 'feed',
+      fieldToCheck: 'excerpt',
+    });
+
+    // Wait for enterprise search indexing if requested
+    if (waitForSearchIndex) {
+      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+        apiClient: this.appManagerApiClient,
+        searchTerm: finalText,
+        objectType: 'feed',
+      });
+    }
+
+    return response;
+  }
+
+  /**
+   * Creates a simple feed post with text content
+   * @param text - The text content for the post
+   * @param options - Optional configuration for the post
+   * @returns The created feed response
+   */
+  async createSimplePostWithOutWaitForSearchIndex(
+    text?: string,
+    options?: {
+      siteId?: string;
+      scope?: 'public' | 'private';
+      waitForSearchIndex?: boolean;
+    }
+  ): Promise<any> {
+    const finalText = text || `Automated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`;
+    const { siteId, scope = 'public', waitForSearchIndex = true } = options || {};
+
+    const overrides: Partial<CreateFeedPostPayload> = {
       scope,
       ...(siteId && { siteId }),
     };
@@ -81,7 +131,7 @@ export class FeedManagerHelper {
     const finalText = text || `Automated Test Post with Attachments ${faker.company.name()}`;
     const { siteId, scope = 'public', waitForSearchIndex = true } = options || {};
 
-    const overrides: Partial<Feed> = {
+    const overrides: Partial<CreateFeedPostPayload> = {
       scope,
       listOfAttachedFiles: attachments,
       ...(siteId && { siteId }),
@@ -206,7 +256,7 @@ export class FeedManagerHelper {
    * @param updates - The updates to apply
    * @returns The updated feed response
    */
-  async updatePost(feedId: string, updates: Partial<Feed>): Promise<any> {
+  async updatePost(feedId: string, updates: Partial<CreateFeedPostPayload>): Promise<any> {
     // Note: Update method not available in current FeedManagementService
     throw new Error('Update functionality not implemented in FeedManagementService');
   }
