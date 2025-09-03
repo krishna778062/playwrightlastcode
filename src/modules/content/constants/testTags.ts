@@ -4,6 +4,7 @@ export enum ContentSuiteTags {
   SITE_CREATION = '@site-creation',
   SITE_CATEGORIES = '@site-categories',
   EVENT_CREATION = '@event-creation',
+  SITE_CATEGORIES = '@site-categories',
 }
 
 export enum ContentFeatureTags {
