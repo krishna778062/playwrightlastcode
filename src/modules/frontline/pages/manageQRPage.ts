@@ -23,6 +23,9 @@ export class ManageQRPage extends BasePage {
   readonly deleteButton: Locator;
   readonly qrRowLocator: Locator;
   readonly threeDotsInRowLocator: Locator;
+  readonly toggleOnQRName: Locator;
+  readonly togglePopup: Locator;
+  readonly successMessage: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_QR_PAGE);
@@ -43,82 +46,117 @@ export class ManageQRPage extends BasePage {
     );
     this.appPreviewQRPopupHeader = page.getByText('Promote mobile app via QR');
     this.deleteQR = page.getByRole('menuitem', { name: 'Delete' });
-    this.qrNameHeaderLocator = page.locator('h4');
-    this.deleteButton = page.locator('[role="dialog"]').getByRole('button', { name: 'Delete' });
-    this.qrRowLocator = page.locator('tr');
-    this.threeDotsInRowLocator = page.locator('button[aria-label="More options"]');
+    this.qrNameHeaderLocator = page.getByRole('heading', { level: 4 });
+    this.deleteButton = page.getByRole('dialog').getByRole('button', { name: 'Delete' });
+    this.qrRowLocator = page.getByRole('row');
+    this.threeDotsInRowLocator = page.getByLabel('More options');
+    this.toggleOnQRName = page.getByRole('switch');
+    this.togglePopup = page.getByRole('tooltip').nth(0);
+    this.successMessage = page.getByText('Successfully deleted QR code');
   }
 
   async clickOnManage() {
-    await this.manageLink.click();
+    await this.clickOnElement(this.manageLink, {
+      stepInfo: 'Click on Manage features menu',
+    });
   }
 
   async clickOnQRCodesMenu() {
-    await this.qrCodesLink.click();
+    await this.clickOnElement(this.qrCodesLink, {
+      stepInfo: 'Click on QR codes menu',
+    });
   }
 
   async clickOnAddQR() {
-    await this.addQRButton.click();
+    await this.clickOnElement(this.addQRButton, {
+      stepInfo: 'Click on Add QR button',
+    });
   }
 
   async clickOnAppPromotion() {
-    await this.appPromotionLink.click();
+    await this.clickOnElement(this.appPromotionLink, {
+      stepInfo: 'Click on App promotion link',
+    });
   }
 
   async fillQRName(qrName: string) {
-    await this.qrNameField.fill(qrName);
+    await this.fillInElement(this.qrNameField, qrName, {
+      stepInfo: `Fill QR name: ${qrName}`,
+    });
   }
 
   async fillDescription(description: string) {
-    await this.descriptionField.fill(description);
+    await this.fillInElement(this.descriptionField, description, {
+      stepInfo: `Fill description: ${description}`,
+    });
   }
 
   async clickEyeIcon() {
-    await this.eyeIcon.click();
+    await this.clickOnElement(this.eyeIcon, {
+      stepInfo: 'Click on eye icon for preview',
+    });
   }
 
   async clickSaveAndVisit() {
-    await this.saveAndVisitDashboardBtn.click();
+    await this.clickOnElement(this.saveAndVisitDashboardBtn, {
+      stepInfo: 'Click on Save and visit dashboard button',
+    });
   }
 
   async verifyManagePage() {
-    await expect(this.manageQRPageHeading).toBeVisible();
+    await this.verifier.verifyTheElementIsVisible(this.manageQRPageHeading, {
+      assertionMessage: 'Manage QR page heading should be visible',
+    });
   }
 
   async verifyPromoteMobileAppPageHeading() {
-    await expect(this.promoteMobileAppPageHeading).toBeVisible();
+    await this.verifier.verifyTheElementIsVisible(this.promoteMobileAppPageHeading, {
+      assertionMessage: 'Promote mobile app page heading should be visible',
+    });
   }
 
   async verifyPopupDisplayedByHeader(expectedText: string) {
-    await expect(this.appPreviewQRPopupHeader).toHaveText(expectedText);
+    await this.verifier.verifyTheElementIsVisible(this.appPreviewQRPopupHeader, {
+      assertionMessage: `Popup header should display: ${expectedText}`,
+    });
   }
 
   async verifyQRImageDisplayOnPreview() {
-    await expect(this.imageQROnPreview).toBeVisible();
+    await this.verifier.verifyTheElementIsVisible(this.imageQROnPreview, {
+      assertionMessage: 'QR code image should be visible in preview',
+    });
   }
 
   async verifyQRDescriptionOnPreview(description: string) {
     const qrDescription = this.descriptionOfQROnPreview.filter({ hasText: description });
-    await expect(qrDescription).toBeVisible();
+    await this.verifier.verifyTheElementIsVisible(qrDescription, {
+      assertionMessage: `QR description should be visible: ${description}`,
+    });
   }
 
   async verifyQRName(qrName: string) {
-    const qrNameLocator = this.qrNameHeaderLocator.filter({ hasText: qrName });
-    await expect(qrNameLocator).toBeVisible();
+    await this.verifier.verifyTheElementIsVisible(this.qrNameHeaderLocator.filter({ hasText: qrName }), {
+      assertionMessage: `QR code with name "${qrName}" should be visible`,
+    });
   }
 
   async clickOnThreeDots(qrName: string) {
     const qrRow = this.qrRowLocator.filter({ hasText: qrName });
-    const threeDotsInRow = qrRow.locator('button[aria-label="More options"]');
-    await threeDotsInRow.click();
+    await this.clickOnElement(qrRow.getByLabel('More options'), {
+      stepInfo: `Click on three dots for QR: ${qrName}`,
+    });
   }
 
   async clickOnDelete() {
-    await this.deleteQR.click();
+    await this.clickOnElement(this.deleteQR, {
+      stepInfo: 'Click on Delete menu item',
+    });
   }
 
   async clickOnDeleteButton() {
-    await this.deleteButton.click();
+    await this.clickOnElement(this.deleteButton, {
+      stepInfo: 'Click on Delete confirmation button',
+    });
   }
 
   async deleteAppQR(qrName: string) {
@@ -127,7 +165,36 @@ export class ManageQRPage extends BasePage {
     await this.clickOnDeleteButton();
   }
 
+  async verifySuccessMessage() {
+    await this.verifier.verifyTheElementIsVisible(this.successMessage, {
+      assertionMessage: 'Success message should be displayed',
+    });
+  }
+
+  async deleteQRWithSuccess(qrName: string) {
+    await this.clickOnThreeDots(qrName);
+    await this.clickOnDelete();
+    await this.clickOnDeleteButton();
+    await this.verifySuccessMessage();
+  }
+
   async verifyThePageIsLoaded(): Promise<void> {
-    await expect(this.manageQRPageHeading).toBeVisible();
+    await this.verifier.verifyTheElementIsVisible(this.manageQRPageHeading, {
+      assertionMessage: 'Manage QR page should be loaded and heading visible',
+    });
+  }
+
+  async hoverOnToogle(qrName: string) {
+    const qrRow = this.qrRowLocator.filter({ hasText: qrName });
+    const toggleInRow = qrRow.getByRole('switch');
+    await toggleInRow.hover();
+  }
+
+  async validateToogleText() {
+    const expectedText =
+      'QR codes promoting the mobile app cannot be marked disabled as they are directly mapped with App/Play store links.';
+    await this.verifier.verifyTheElementIsVisible(this.togglePopup, {
+      assertionMessage: `Toggle popup should display text: ${expectedText}`,
+    });
   }
 }

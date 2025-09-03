@@ -12,24 +12,16 @@ test.describe(
     tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.QR_CODE],
   },
   () => {
-    let qrName: string;
-    let qrDescription: string;
-    let shouldCleanup = false;
-
-    test.beforeEach(async () => {
-      qrName = TestDataGenerator.generateQRName('AppPromotion');
-      qrDescription = TestDataGenerator.generateQRDescription('App Promotion QR');
-      shouldCleanup = false;
-    });
+    let qrName: string | undefined;
 
     test.afterEach(async ({ appManagerHomePage }) => {
-      if (!shouldCleanup) return;
-
-      try {
-        const manageQRPage = new ManageQRPage(appManagerHomePage.page);
-        await manageQRPage.deleteAppQR(qrName);
-      } catch (error) {
-        console.warn(`Cleanup failed for QR: ${qrName}`, error);
+      if (qrName) {
+        try {
+          const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+          await manageQRPage.deleteAppQR(qrName);
+        } catch (error) {
+          console.warn(`Cleanup failed for QR: ${qrName}`, error);
+        }
       }
     });
 
@@ -39,10 +31,14 @@ test.describe(
         tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
       },
       async ({ appManagerHomePage }) => {
+        let qrDescription: string | undefined;
+        qrName = TestDataGenerator.generateQRName('AppPromotion');
+        qrDescription = TestDataGenerator.generateQRDescription('App Promotion QR');
+
         const manageQRPage = new ManageQRPage(appManagerHomePage.page);
 
         tagTest(test.info(), {
-          description: 'Verify creation of app promotion QR',
+          description: 'Creation and validation of app promotion QR',
           zephyrTestId: 'FL-153',
           storyId: 'FL-153',
         });
@@ -61,8 +57,8 @@ test.describe(
         await manageQRPage.clickSaveAndVisit();
         await manageQRPage.verifyManagePage();
         await manageQRPage.verifyQRName(qrName);
-
-        shouldCleanup = true;
+        await manageQRPage.hoverOnToogle(qrName);
+        await manageQRPage.validateToogleText();
       }
     );
   }
