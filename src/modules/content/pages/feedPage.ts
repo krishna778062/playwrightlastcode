@@ -14,9 +14,10 @@ export interface IFeedActions {
   editPost: (currentText: string, newText: string) => Promise<void>;
   deletePost: (postText: string) => Promise<void>;
   favoriteUnfavoritePost: (favorite: boolean) => Promise<void>;
-
   // Content creation flow
   createPostWithAttachments: (text: string, files?: string[]) => Promise<FeedPostResult>;
+  markPostAsFavourite: () => Promise<void>;
+  removePostFromFavourite: (postText: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -24,6 +25,8 @@ export interface IFeedAssertions {
   verifyPostDetails: (postText: string, expectedAttachmentCount: number) => Promise<void>;
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
   verifyPostIsFavoritedUnfavorited: (favorite: boolean) => Promise<void>;
+  verifyPostIsNotFavorited: (postText: string) => Promise<void>;
+  verifyPostIsFavorited: (postText: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -132,6 +135,21 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await test.step(`Verify post is favorited: ${favorite}`, async () => {
       await this.listFeedComponent.verifyPostIsFavoritedUnfavorited(favorite);
     });
+  }
+
+  //Favourite Post Methods
+  async markPostAsFavourite(): Promise<void> {
+    await test.step(`Marking post as favourite:`, async () => {
+      await this.listFeedComponent.markPostAsFavourite();
+    });
+  }
+
+  async removePostFromFavourite(postText: string): Promise<void> {
+    await this.listFeedComponent.removePostFromFavourite(postText);
+  }
+
+  async verifyPostIsFavorited(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyPostIsFavorited(postText);
   }
 
   async verifyPostIsNotFavorited(postText: string): Promise<void> {
