@@ -53,7 +53,6 @@ export interface IPageCreationActions {
     siteId: string;
     response: PageCreationResponse;
   }>;
-  navigateToAddContentModal: () => Promise<void>;
 }
 
 export interface IPageCreationAssertions {
@@ -278,18 +277,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
         siteId: siteId,
         response: publishResponseBody,
       };
-    });
-  }
-
-  /**
-   * Navigates to add content modal from site dashboard
-   * @param contentType - The content type to create
-   */
-  async navigateToAddContentModal(): Promise<void> {
-    await test.step(`Navigate to add content modal`, async () => {
-      const siteDashboard = new SiteDashboardPage(this.page, '');
-      await siteDashboard.verifyThePageIsLoaded();
-      await siteDashboard.clickOnAddContent();
     });
   }
 
