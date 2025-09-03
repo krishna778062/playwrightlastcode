@@ -1,11 +1,11 @@
 import { Locator, Page, Response, test } from '@playwright/test';
 
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { BasePage } from '@/src/core/pages/basePage';
-import { FileUtil } from '@/src/core/utils/fileUtil';
-import { EventCreationResponse } from '@/src/modules/content/apis/types/eventCreationResponse';
-import { AttachementUploaderComponent } from '@/src/modules/content/components/attachementUploader';
-import { ImageCropperComponent } from '@/src/modules/content/components/imageCropper';
+import { EventCreationResponse } from '@content/apis/types/eventCreationResponse';
+import { AttachementUploaderComponent } from '@content/components/attachementUploader';
+import { ImageCropperComponent } from '@content/components/imageCropper';
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { BasePage } from '@core/pages/basePage';
+import { FileUtil } from '@core/utils/fileUtil';
 
 export interface EventCreationOptions {
   title: string;
@@ -53,8 +53,8 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
   readonly coverImageUploader: AttachementUploaderComponent;
   readonly imageCropper: ImageCropperComponent;
 
-  constructor(page: Page, siteId: string) {
-    super(page, PAGE_ENDPOINTS.getEventCreationPage(siteId));
+  constructor(page: Page, siteId?: string) {
+    super(page, PAGE_ENDPOINTS.getEventCreationPage(siteId ?? ''));
 
     // Essential event creation locators
     this.titleInput = page.locator("textarea[placeholder='Event title']");

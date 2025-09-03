@@ -1,23 +1,43 @@
-import { faker } from '@faker-js/faker';
-
+import { ContentType } from '@content/constants/contentType';
+import { ContentTestSuite } from '@content/constants/testSuite';
+import { ContentSuiteTags } from '@content/constants/testTags';
+import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { AlbumCreationPage } from '@content/pages/albumCreationPage';
+import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
+import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ContentType } from '@/src/modules/content/constants/contentType';
-import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
-import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
-import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
-import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+// Test data for approve/reject scenarios
+const ALBUM_APPROVAL_TEST_DATA = [
+  {
+    action: 'Approve & publish',
+    displayName: 'Approved by Application Manager',
+    zephyrTestId: 'CONT-39208',
+    storyId: 'CONT-39208',
+    description:
+      'Album Content Add attach file with all the Mandatory fields by Standard user and approved by Application Manager',
+    actionSuccessMessage: 'Album approved and published',
+    finalNotificationMessage: 'Application Manager1 approved',
+  },
+  {
+    action: 'Reject',
+    displayName: 'Rejected by Application Manager',
+    zephyrTestId: 'CONT-39209',
+    storyId: 'CONT-39209',
+    description:
+      'Album Content Add attach file with all the Mandatory fields by Standard user and rejected by Application Manager',
+    actionSuccessMessage: 'Album rejected',
+    finalNotificationMessage: 'Application Manager1 rejected',
+  },
+] as const;
 
 test.describe(
-  ContentTestSuite.ALBUM_STANDARD_USER,
+  `Album Creation by Standard user  and Approval/Rejection by Application Manager`,
   {
-    tag: [ContentTestSuite.ALBUM_STANDARD_USER],
+    tag: [ContentTestSuite.ALBUM_STANDARD_USER, ContentSuiteTags.ALBUM_CREATION],
   },
   () => {
     let albumCreationPage: AlbumCreationPage;
@@ -55,30 +75,6 @@ test.describe(
         console.log('No album was published, hence skipping the deletion');
       }
     });
-
-    // Test data for approve/reject scenarios
-    const ALBUM_APPROVAL_TEST_DATA = [
-      {
-        action: 'Approve & publish',
-        displayName: 'Approved by Application Manager',
-        zephyrTestId: 'CONT-39208',
-        storyId: 'CONT-39208',
-        description:
-          'Album Content Add attach file with all the Mandatory fields by Standard user and approved by Application Manager',
-        actionSuccessMessage: 'Album approved and published',
-        finalNotificationMessage: 'Application Manager1 approved',
-      },
-      {
-        action: 'Reject',
-        displayName: 'Rejected by Application Manager',
-        zephyrTestId: 'CONT-39209',
-        storyId: 'CONT-39209',
-        description:
-          'Album Content Add attach file with all the Mandatory fields by Standard user and rejected by Application Manager',
-        actionSuccessMessage: 'Album rejected',
-        finalNotificationMessage: 'Application Manager1 rejected',
-      },
-    ] as const;
 
     for (const testData of ALBUM_APPROVAL_TEST_DATA) {
       test(

@@ -1,6 +1,6 @@
-import { Page, test } from '@playwright/test';
+import { Page } from '@playwright/test';
 
-import { BasePage } from '@/src/core/pages/basePage';
+import { BasePage } from '@core/pages/basePage';
 
 interface ContentFilters {
   contentType?: string;

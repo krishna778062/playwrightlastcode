@@ -1,10 +1,8 @@
 import { expect, Page, test } from '@playwright/test';
 
+import { FeatureSiteComponent } from '@content/components/featureSiteComponent';
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
-
-import { FeatureSiteComponent } from '../components/featureSiteComponent';
-
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 export interface IFeaturedSiteActions {
   addSiteToFeatured: (siteName: string) => Promise<void>;

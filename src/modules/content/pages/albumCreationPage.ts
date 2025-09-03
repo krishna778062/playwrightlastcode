@@ -1,12 +1,13 @@
 import { Page, Response, test } from '@playwright/test';
 
+import { AlbumCreationResponse } from '@content/apis/types/albumCreationResponse';
+import { AttachementUploaderComponent } from '@content/components/attachementUploader';
+import { ImageCropperComponent } from '@content/components/imageCropper';
+import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
+
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
 import { FileUtil } from '@/src/core/utils/fileUtil';
-import { AlbumCreationResponse } from '@/src/modules/content/apis/types/albumCreationResponse';
-import { AttachementUploaderComponent } from '@/src/modules/content/components/attachementUploader';
-import { ImageCropperComponent } from '@/src/modules/content/components/imageCropper';
-import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 export interface AlbumCreationOptions {
   title: string;
@@ -67,8 +68,8 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
   readonly coverImageUploader: AttachementUploaderComponent;
   readonly imageCropper: ImageCropperComponent;
 
-  constructor(page: Page, siteId: string) {
-    super(page, PAGE_ENDPOINTS.getAlbumCreationPage(siteId));
+  constructor(page: Page, siteId?: string) {
+    super(page, PAGE_ENDPOINTS.getAlbumCreationPage(siteId ?? ''));
     this.coverImageUploader = new AttachementUploaderComponent(page, this.uploadedCoverImagePreviewContainer);
     this.imageCropper = new ImageCropperComponent(page);
   }

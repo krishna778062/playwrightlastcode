@@ -1,8 +1,8 @@
 import { Page, test } from '@playwright/test';
 
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { BasePage } from '@/src/core/pages/basePage';
-import { PromotePageModal } from '@/src/modules/content/components/promotePageModal';
+import { PromotePageModal } from '@content/components/promotePageModal';
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { BasePage } from '@core/pages/basePage';
 
 export interface IContentPreviewPageActions {
   handlePromotionPageStep: () => Promise<void>;

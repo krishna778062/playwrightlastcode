@@ -1,13 +1,11 @@
 import { Locator, Page, Response, test } from '@playwright/test';
 
+import { PageCreationResponse } from '@content/apis/types/pageCreationResponse';
+import { SiteDashboardPage } from '@content/pages/siteDashboardPage';
+import { BasePage } from '@core/pages/basePage';
+
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
-import { BasePage } from '@/src/core/pages/basePage';
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
-import { PageCreationResponse } from '@/src/modules/content/apis/types/pageCreationResponse';
-import { AttachementUploaderComponent } from '@/src/modules/content/components/attachementUploader';
-import { ImageCropperComponent } from '@/src/modules/content/components/imageCropper';
-import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 
 interface SiteCreationResponse {
   status: string;

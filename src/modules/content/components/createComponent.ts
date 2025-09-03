@@ -1,11 +1,10 @@
 import { Locator, Page, test } from '@playwright/test';
 
+import { AddContentModalComponent } from '@content/components/addContentModal';
 import { ContentType } from '@content/constants/contentType';
-
-import { AddContentModalComponent } from './addContentModal';
+import { SiteCreationPage } from '@content/pages/siteCreationPage';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
-import { SiteCreationPage } from '@/src/modules/content/pages/siteCreationPage';
 /**
  * This component gives user an
  * quick and easy interface to select

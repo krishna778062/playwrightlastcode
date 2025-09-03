@@ -1,19 +1,40 @@
+import { ContentType } from '@content/constants/contentType';
+import { PageContentType } from '@content/constants/pageContentType';
+import { ContentTestSuite } from '@content/constants/testSuite';
+import { ContentSuiteTags } from '@content/constants/testTags';
+import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
+import { PageCreationPage } from '@content/pages/pageCreationPage';
+import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ContentType } from '@/src/modules/content/constants/contentType';
-import { PageContentType } from '@/src/modules/content/constants/pageContentType';
-import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
-import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
-import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
-import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+// Test data for approve/reject scenarios
+const PAGE_APPROVAL_TEST_DATA = [
+  {
+    action: 'Approve & publish',
+    zephyrTestId: 'CONT-1378',
+    storyId: 'CONT-1378',
+    description:
+      'Page Content Add attach file with all the Mandatory fields by Standard user and approved by Application Manager',
+    actionSuccessMessage: 'Page approved and published',
+    finalNotificationMessage: 'Application Manager1 approved',
+  },
+  {
+    action: 'Reject',
+    zephyrTestId: 'CONT-20053',
+    storyId: 'CONT-20053',
+    description:
+      'Page Content Add attach file with all the Mandatory fields by Standard user and rejected by Application Manager',
+    actionSuccessMessage: 'Page rejected',
+    finalNotificationMessage: 'Application Manager1 rejected',
+  },
+] as const;
 
 test.describe(
-  ContentTestSuite.PAGE_STANDARD_USER,
+  `Page Creation by Standard user  and Approval/Rejection by Application Manager`,
   {
     tag: [ContentTestSuite.PAGE_STANDARD_USER],
   },
@@ -53,28 +74,6 @@ test.describe(
         console.log('No page was published, hence skipping the deletion');
       }
     });
-
-    // Test data for approve/reject scenarios
-    const PAGE_APPROVAL_TEST_DATA = [
-      {
-        action: 'Approve & publish',
-        zephyrTestId: 'CONT-1378',
-        storyId: 'CONT-1378',
-        description:
-          'Page Content Add attach file with all the Mandatory fields by Standard user and approved by Application Manager',
-        actionSuccessMessage: 'Page approved and published',
-        finalNotificationMessage: 'Application Manager1 approved',
-      },
-      {
-        action: 'Reject',
-        zephyrTestId: 'CONT-20053',
-        storyId: 'CONT-20053',
-        description:
-          'Page Content Add attach file with all the Mandatory fields by Standard user and rejected by Application Manager',
-        actionSuccessMessage: 'Page rejected',
-        finalNotificationMessage: 'Application Manager1 rejected',
-      },
-    ] as const;
 
     for (const testData of PAGE_APPROVAL_TEST_DATA) {
       test(
