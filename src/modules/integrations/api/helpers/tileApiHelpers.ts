@@ -11,11 +11,12 @@
  */
 
 import { Page } from '@playwright/test';
-import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
+
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
-import { getEnvConfig } from '@core/utils/getEnvConfig';
+import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { TIMEOUTS } from '@core/constants/timeouts';
-import { WaitOpts, TileCreationResult, TileCreationArgs } from '@core/types/tile.type';
+import { TileCreationArgs, TileCreationResult, WaitOpts } from '@core/types/tile.type';
+import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 /**
  * Normalizes text by removing extra whitespace and converting to lowercase
@@ -254,7 +255,7 @@ function sanitizeRequestSchema(schema: any): any {
  * @returns Promise resolving to tile creation result
  */
 export async function createTileViaApi(page: Page, args: TileCreationArgs): Promise<TileCreationResult> {
-  const { apiBaseUrl, frontendBaseUrl } = getEnvConfig();
+  const { frontendBaseUrl } = getEnvConfig();
   const api = await createAuthenticatedApiClient(page);
   const headers = await buildCommonHeaders(page, frontendBaseUrl);
 

@@ -1,9 +1,10 @@
-import { Locator, Page, test } from '@playwright/test';
-import { expect } from '@playwright/test';
-import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
-import { BasePage } from '@core/pages/basePage';
 import { AppConnectorOptions, CustomAppsListComponent } from '@integrations/components/customAppsListComponent';
 import { AIRTABLE_AUTH_DATA } from '@integrations/test-data/app-tiles.test-data';
+import { Locator, Page, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { BasePage } from '@core/pages/basePage';
 
 export enum CustomAppType {
   CREATE_OWN_APP = 'Create your own app',

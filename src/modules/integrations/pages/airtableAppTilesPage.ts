@@ -1,5 +1,5 @@
-import { Page } from '@playwright/test';
 import { BaseAppTileComponent } from '@integrations/components/baseAppTileComponent';
+import { Page } from '@playwright/test';
 
 export class AirtableAppTilesPage {
   readonly page: Page;

@@ -1,9 +1,10 @@
-import { expect, Page, test } from '@playwright/test';
-import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
-import { createAppTileViaApi as createAppTileViaApiHelper } from '@integrations-api/helpers/tileApiHelpers';
-import { TileManagementHelper } from '@core/helpers/tileManagementHelper';
-import { AIRTABLE_TILE } from '@integrations-test-data/app-tiles.test-data';
 import { DASHBOARD_BUTTONS } from '@integrations/constants/common';
+import { createAppTileViaApi as createAppTileViaApiHelper } from '@integrations-api/helpers/tileApiHelpers';
+import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
+import { AIRTABLE_TILE } from '@integrations-test-data/app-tiles.test-data';
+import { expect, Page, test } from '@playwright/test';
+
+import { TileManagementHelper } from '@core/helpers/tileManagementHelper';
 
 class AppTileComponent extends BaseAppTileComponent {
   constructor(page: Page) {

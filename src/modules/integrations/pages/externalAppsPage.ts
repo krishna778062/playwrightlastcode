@@ -1,7 +1,8 @@
+import { CustomAppsListComponent } from '@integrations/components/customAppsListComponent';
 import { Locator, Page, test } from '@playwright/test';
+
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
-import { CustomAppsListComponent } from '@integrations/components/customAppsListComponent';
 
 export enum ExternalAppCategory {
   CALENDAR = 'Calendar',

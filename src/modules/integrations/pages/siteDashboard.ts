@@ -1,8 +1,9 @@
-import { Page, test } from '@playwright/test';
 import { BaseAppTileComponent } from '@integrations/components/baseAppTileComponent';
 import { ACTION_LABELS, DASHBOARD_BUTTONS } from '@integrations/constants/common';
-import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { AIRTABLE_TILE } from '@integrations/test-data/app-tiles.test-data';
+import { Page, test } from '@playwright/test';
+
+import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 /**
  * Home dashboard page for integrations

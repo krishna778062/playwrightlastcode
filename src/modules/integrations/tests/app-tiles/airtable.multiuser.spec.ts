@@ -1,15 +1,17 @@
+import { faker } from '@faker-js/faker';
 import { UI_ACTIONS } from '@integrations-constants/common';
 import { MESSAGES } from '@integrations-constants/messageRepo';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
 import { multiUserTileFixture } from '@integrations-fixtures/multiUserTileFixture';
 import { test } from '@playwright/test';
+
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
+
 import { waitUntilTilePresentInApi } from '@/src/modules/integrations/api/helpers/tileApiHelpers';
 import { HomeDashboard } from '@/src/modules/integrations/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/pages/siteDashboard';
-import { faker } from '@faker-js/faker';
 
 test.describe(
   'Airtable App Tiles Multi-user Tests',

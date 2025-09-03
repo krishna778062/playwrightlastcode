@@ -1,13 +1,14 @@
+import { faker } from '@faker-js/faker';
+import { createAirtableTileViaApi } from '@integrations-api/helpers/tileApiHelpers';
 import { UI_ACTIONS } from '@integrations-constants/common';
 import { MESSAGES } from '@integrations-constants/messageRepo';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
-import { faker } from '@faker-js/faker';
+import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
+import { AIRTABLE_TILE } from '@integrations-test-data/app-tiles.test-data';
+
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-import { createAirtableTileViaApi } from '@integrations-api/helpers/tileApiHelpers';
-import { AIRTABLE_TILE } from '@integrations-test-data/app-tiles.test-data';
-import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
 
 test.describe(
   'Airtable App Tiles Integration',

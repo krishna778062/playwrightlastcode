@@ -1,7 +1,8 @@
-import { expect, Locator, Page, test } from '@playwright/test';
-import { BaseComponent } from '@core/components/baseComponent';
 import { APP_LABELS } from '@integrations/constants/common';
 import { MESSAGES } from '@integrations/constants/messageRepo';
+import { expect, Locator, Page, test } from '@playwright/test';
+
+import { BaseComponent } from '@core/components/baseComponent';
 
 export enum AppConnectorOptions {
   Edit = 'Edit',

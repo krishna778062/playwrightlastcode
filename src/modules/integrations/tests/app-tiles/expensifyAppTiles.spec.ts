@@ -1,14 +1,16 @@
+import { faker } from '@faker-js/faker';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
+import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
+
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { LoginHelper } from '@core/helpers/loginHelper';
 import { UserCredentials } from '@core/types/test.types';
 import { tagTest } from '@core/utils/testDecorator';
-import { CONNECTOR_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { HomeDashboard } from '@/src/modules/integrations/pages/homeDashboard';
-import { faker } from '@faker-js/faker';
-import { LoginHelper } from '@core/helpers/loginHelper';
-import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
+import { CONNECTOR_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 const expensifyUser: UserCredentials = {
   email: process.env.QA_SYSTEM_ADMIN_USERNAME!,
@@ -23,7 +25,7 @@ test.describe(
   () => {
     let createdTileTitle: string | undefined = undefined;
 
-    test.beforeEach(async ({ page, tileManagementHelper }) => {
+    test.beforeEach(async ({ page }) => {
       await LoginHelper.loginWithPassword(page, expensifyUser);
     });
 
