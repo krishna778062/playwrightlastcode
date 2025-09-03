@@ -1,7 +1,7 @@
 export interface IFeedManagementOperations {
   createPost(text: string, overrides?: any): Promise<any>;
   updatePost(feedId: string, updates: any): Promise<any>;
-  deletePost(postId: string): Promise<any>;
+  deletePost(feedId: string): Promise<any>;
   createFeed?(overrides?: any): Promise<any>;
   createPostWithAttachments?(text: string, attachments: any[], overrides?: any): Promise<any>;
   getFeeds?(options?: any): Promise<any>;

@@ -34,7 +34,6 @@ export class FeedManagementHelper {
         variant: 'standard',
       });
       const feedId = response.result.feedId;
-      const authorName = response.result.authoredBy?.name;
 
       if (options?.waitForSearchIndex !== false) {
         await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({

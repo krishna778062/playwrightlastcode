@@ -4,7 +4,7 @@ import { APIRequestContext, test } from '@playwright/test';
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { IFeedManagementOperations } from '@core/api/interfaces/IFeedManagementOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-import { CreateFeedPostPayload, FeedPostResponse } from '@core/types/feed.type';
+import { CreateFeedPostPayload, FeedPostResponse, UpdateFeedPostPayload } from '@core/types/feed.type';
 
 export function buildFeedTextJsonAndTextHtml(text: string) {
   const textJsonObject = {
@@ -101,25 +101,56 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       const response = await this.post(API_ENDPOINTS.feed.create, {
         data: payload,
       });
-      const json = (await response.json()) as FeedPostResponse;
-      console.log('feed JSON Response:', JSON.stringify(json, null, 2));
-      if (json.status !== 'success' || !json.result?.feedId) {
-        throw new Error(`Feed creation failed. Response: ${JSON.stringify(json)}`);
+      const responseBody = await response.json();
+      console.log('feed response JSON: ', JSON.stringify(responseBody, null, 2));
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(`Failed to create feed post. Status: ${response.status()}`);
       }
-      return json;
+
+      return responseBody;
+    });
+  }
+
+  async updatePost(postId: string, postData: UpdateFeedPostPayload): Promise<FeedPostResponse> {
+    return await test.step(`Updating feed post ${postId}`, async () => {
+      const response = await this.put(API_ENDPOINTS.feed.update(postId), {
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        data: postData,
+      });
+      const responseBody = await response.json();
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(`Failed to update feed post ${postId}. Status: ${response.status()}`);
+      }
+      return responseBody.result;
     });
   }
 
   /**
-   * @description Deletes a feed
-   * @param {string} feedId The ID of the feed to delete
-   * @returns {Promise<any>}
-   * @memberof FeedManagementService
+   * Deletes a feed post
+   * @param siteId - The site ID where the post exists
+   * @param postId - The ID of the post to delete
+   * @returns Promise that resolves when the post is deleted
    */
-  async deleteFeed(feedId: string): Promise<any> {
-    return await test.step(`Deleting a feed with ID "${feedId}" via API delete request`, async () => {
-      const response = await this.delete(API_ENDPOINTS.feed.delete(feedId));
-      return this.parseResponse<any>(response);
+  async deleteFeed(postId: string): Promise<void> {
+    return await test.step(`Deleting feed post ${postId}`, async () => {
+      console.log(`Deleting feed post ${postId}`);
+      const response = await this.delete(API_ENDPOINTS.feed.delete(postId), {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      });
+
+      const responseBody = await response.json();
+      console.log(`Delete response:`, responseBody);
+
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(
+          `Failed to delete feed post ${postId}. Status: ${response.status()}, Message: ${responseBody.message || 'Unknown error'}`
+        );
+      }
+
+      console.log(`Feed post ${postId} deleted successfully. Message: ${responseBody.message}`);
     });
   }
 }
