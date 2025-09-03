@@ -53,8 +53,8 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
   readonly coverImageUploader: AttachementUploaderComponent;
   readonly imageCropper: ImageCropperComponent;
 
-  constructor(page: Page, siteId: string) {
-    super(page, PAGE_ENDPOINTS.getEventCreationPage(siteId));
+  constructor(page: Page, siteId?: string) {
+    super(page, PAGE_ENDPOINTS.getEventCreationPage(siteId ?? ''));
 
     // Essential event creation locators
     this.titleInput = page.locator("textarea[placeholder='Event title']");

@@ -91,8 +91,8 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   readonly imageCropper: ImageCropperComponent;
   readonly sideNavBarComponent: SideNavBarComponent;
 
-  constructor(page: Page, siteId: string) {
-    super(page, PAGE_ENDPOINTS.getPageCreationPage(siteId));
+  constructor(page: Page, siteId?: string) {
+    super(page, PAGE_ENDPOINTS.getPageCreationPage(siteId ?? ''));
     //root locators of some components
     this.coverImageUploaderContainer = page
       .locator("[class*='AddFromContainer']")

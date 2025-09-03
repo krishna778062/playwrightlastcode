@@ -67,8 +67,8 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
   readonly coverImageUploader: AttachementUploaderComponent;
   readonly imageCropper: ImageCropperComponent;
 
-  constructor(page: Page, siteId: string) {
-    super(page, PAGE_ENDPOINTS.getAlbumCreationPage(siteId));
+  constructor(page: Page, siteId?: string) {
+    super(page, PAGE_ENDPOINTS.getAlbumCreationPage(siteId ?? ''));
     this.coverImageUploader = new AttachementUploaderComponent(page, this.uploadedCoverImagePreviewContainer);
     this.imageCropper = new ImageCropperComponent(page);
   }

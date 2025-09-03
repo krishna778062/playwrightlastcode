@@ -7,6 +7,7 @@ import { PageCreationPage } from '../pages/pageCreationPage';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
+import { extractSiteIdFromContentAdditionUrl } from '@/src/core/utils/urlUtils';
 
 export class AddContentModalComponent extends BaseComponent {
   readonly recentlyUsedSitesList: Locator;
@@ -230,14 +231,14 @@ export class AddContentModalComponent extends BaseComponent {
       }
     }
     // If from site page, do nothing (already on specific site)
-    switch (contentOption.toLowerCase()) {
-      case 'page':
+    switch (contentOption) {
+      case ContentType.PAGE:
         this.clickOnElement(this.pageContentTypeLabel);
         break;
-      case 'album':
+      case ContentType.ALBUM:
         this.clickOnElement(this.albumContentTypeLabel);
         break;
-      case 'event':
+      case ContentType.EVENT:
         this.clickOnElement(this.eventContentTypeLabel);
         break;
       default:
@@ -248,16 +249,32 @@ export class AddContentModalComponent extends BaseComponent {
       await this.selectTemplateToAddContent(options.templateName);
     }
     await this.clickAddButton();
+    await this.page.waitForURL(/add/, { timeout: 30000 });
+    const siteId = extractSiteIdFromContentAdditionUrl(this.page.url());
+
     //based on the content type, it will open the relevant content creation page
     switch (contentOption) {
-      case 'Page':
-        contentCreationPage = new PageCreationPage(this.page, '');
+      case ContentType.PAGE:
+        if (siteId) {
+          contentCreationPage = new PageCreationPage(this.page, siteId);
+        } else {
+          throw new Error('Site id not found in the url');
+        }
+
         break;
-      case 'Album':
-        contentCreationPage = new AlbumCreationPage(this.page, '');
+      case ContentType.ALBUM:
+        if (siteId) {
+          contentCreationPage = new AlbumCreationPage(this.page, siteId);
+        } else {
+          throw new Error('Site id not found in the url');
+        }
         break;
-      case 'Event':
-        contentCreationPage = new EventCreationPage(this.page, '');
+      case ContentType.EVENT:
+        if (siteId) {
+          contentCreationPage = new EventCreationPage(this.page, siteId);
+        } else {
+          throw new Error('Site id not found in the url');
+        }
         break;
       default:
         throw new Error(`Invalid content type: ${contentOption}`);
