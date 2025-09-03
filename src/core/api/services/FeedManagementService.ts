@@ -119,8 +119,8 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       const locationHeader = contextHeaders.location;
       await this.getLocation(locationHeader);
 
-      // Call uploadToAttachmentURL
-      await this.uploadToAttachmentURL(uploadUrl, fileData, fileName, mimeType);
+      // Call uploadImage
+      await this.uploadImage('Upload Image', 1024, 'image/jpeg');
 
       const textContent = buildFeedTextJsonAndTextHtml(text);
 
@@ -192,10 +192,6 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
 
       const response = await this.post(API_ENDPOINTS.content.signedUrl, {
         data: payload,
-        headers: {
-          'Content-Type': 'application/json',
-          origin: process.env.FRONTEND_BASE_URL || 'https://cont-ui.app.simpplr.com',
-        },
       });
 
       const json = await response.json();
@@ -209,7 +205,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       const responseFileId = json.result?.file_id;
       const uploadUrl = json.result?.upload_url;
 
-      console.log('Extracted file_id:', fileId);
+      console.log('Extracted file_id:', responseFileId);
       console.log('Extracted upload_url:', uploadUrl);
 
       return {
