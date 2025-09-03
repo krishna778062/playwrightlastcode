@@ -20,6 +20,7 @@ export const searchTestFixtures = test.extend<
     contentManagementHelper: ContentManagementHelper;
     feedManagementHelper: FeedManagementHelper;
     intranetFileHelper: IntranetFileHelper;
+    siteManagementHelper: SiteManagementHelper;
   },
   {
     appManagerApiClient: AppManagerApiClient;
@@ -82,19 +83,28 @@ export const searchTestFixtures = test.extend<
     },
     { scope: 'test' },
   ],
+  siteManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
+      await use(siteManagementHelper);
+      await siteManagementHelper.cleanup();
+    },
+    { scope: 'test' },
+  ],
   publicSite: [
     async ({ appManagerApiClient }, use, workerInfo) => {
       console.log(`🔧 Creating publicSite fixture for worker ${workerInfo.workerIndex}`);
-
       const randomNum = Math.floor(Math.random() * 1000000 + 1);
       const siteName = `Public_${randomNum}`;
+      // Create a dedicated SiteManagementHelper for the public site fixture
+      const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
+
       /** Get the default category for the public site */
       const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
 
-      // Create site directly via API without using siteManagementHelper to avoid tracking
-      const publicSite = await appManagerApiClient.getSiteManagementService().addNewSite({
-        access: 'public',
-        name: siteName,
+      // Create site using SiteManagementHelper
+      const publicSite = await siteManagementHelper.createPublicSite({
+        siteName: siteName,
         category: {
           categoryId: category.categoryId,
           name: category.name,
@@ -102,20 +112,10 @@ export const searchTestFixtures = test.extend<
       });
 
       console.log(
-        `✅ Created publicSite: ${siteName} with ID: ${publicSite.siteId} for worker ${workerInfo.workerIndex}`
+        `✅ Created publicSite: ${publicSite.siteName} with ID: ${publicSite.siteId} for worker ${workerInfo.workerIndex} using SiteManagementHelper`
       );
 
-      await use({ siteName, siteId: publicSite.siteId });
-
-      // Cleanup: Deactivate the shared site when worker finishes
-      try {
-        await appManagerApiClient.getSiteManagementService().deactivateSite(publicSite.siteId);
-        console.log(
-          `🧹 Cleaned up publicSite: ${siteName} with ID: ${publicSite.siteId} for worker ${workerInfo.workerIndex}`
-        );
-      } catch (error) {
-        console.warn(`Failed to deactivate publicSite ${siteName} (${publicSite.siteId}):`, error);
-      }
+      await use({ siteName: publicSite.siteName, siteId: publicSite.siteId });
     },
     { scope: 'worker' },
   ],

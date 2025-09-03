@@ -19,9 +19,9 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
       let newSiteName: string;
       let categoryObj: { categoryId: string; name: string };
 
-      test.beforeEach(
+      test.beforeAll(
         `Setting up the test environment for site search by creating new site of type ${testData.siteType}`,
-        async ({ appManagerApiClient, publicSite }) => {
+        async ({ appManagerApiClient, publicSite, siteManagementHelper }) => {
           if (testData.siteType === SITE_TYPES.PUBLIC) {
             // Use the shared public site for PUBLIC site tests
             newSiteId = publicSite.siteId;
@@ -29,14 +29,11 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
             categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
             console.log(`Using shared site: ${newSiteName} with ID: ${newSiteId}`);
           } else {
-            // Create individual sites for PRIVATE/UNLISTED tests directly via API
+            // Create individual sites for PRIVATE/UNLISTED tests using SiteManagementHelper
             categoryObj = await appManagerApiClient.getSiteManagementService().getCategoryId(testData.category);
-            const randomNum = Math.floor(Math.random() * 1000000 + 1);
-            const siteName = `Private_${testData.siteType}_${randomNum}`;
 
-            const createdSiteDetails = await appManagerApiClient.getSiteManagementService().addNewSite({
-              access: testData.siteType,
-              name: siteName,
+            const createdSiteDetails = await siteManagementHelper.createSite({
+              accessType: testData.siteType,
               category: {
                 categoryId: categoryObj.categoryId,
                 name: categoryObj.name,
@@ -44,21 +41,14 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
             });
             newSiteId = createdSiteDetails.siteId;
             newSiteName = createdSiteDetails.siteName;
-            console.log(`Created site: ${newSiteName} with ID: ${newSiteId}`);
+            console.log(`Created site: ${newSiteName} with ID: ${newSiteId} for both tests using SiteManagementHelper`);
           }
         }
       );
 
-      test.afterEach('Cleanup individual sites', async ({ appManagerApiClient }) => {
-        // Only cleanup if we created an individual site (not using shared publicSite)
-        if (testData.siteType !== SITE_TYPES.PUBLIC && newSiteId) {
-          try {
-            await appManagerApiClient.getSiteManagementService().deactivateSite(newSiteId);
-            console.log(`🧹 Cleaned up individual site: ${newSiteName} with ID: ${newSiteId}`);
-          } catch (error) {
-            console.warn(`Failed to deactivate individual site ${newSiteName} (${newSiteId}):`, error);
-          }
-        }
+      test.afterAll('Cleanup handled by SiteManagementHelper', async () => {
+        // SiteManagementHelper automatically handles cleanup in its fixture
+        console.log(`🧹 Site cleanup handled by SiteManagementHelper for site: ${newSiteName} with ID: ${newSiteId}`);
       });
 
       test(
@@ -97,6 +87,46 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
           await siteResultItem.goBackToPreviousPage();
         }
       );
+
+      // test(
+      //   `Verify Site Search results with sidebar filter for a ${testData.siteType} site in category "${testData.category}"`,
+      //   {
+      //     tag: [TestPriority.P1, TestGroupType.REGRESSION],
+      //   },
+      //   async ({ appManagerHomePage }) => {
+      //     tagTest(test.info(), {
+      //       zephyrTestId: 'SEN-12409',
+      //       storyId: 'SEN-12305',
+      //     });
+
+      //     // First perform the search to get to the results page
+      //     const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(newSiteName, {
+      //       stepInfo: `Searching with term "${newSiteName}" to verify site appears in search results`,
+      //     });
+
+      //     // Verify the site appears in the initial search results
+      //     const siteResult = await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(newSiteName);
+      //     const siteResultItem = new SiteListComponent(siteResult.page, siteResult.rootLocator);
+      //     await siteResultItem.verifyNameIsDisplayed(newSiteName);
+
+      //     // Click on the site filter in the sidebar to filter results by sites only
+      //     await globalSearchResultPage.clickOnSiteFilterInSidebar({
+      //       stepInfo: `Clicking on site filter in sidebar to filter results by sites only`,
+      //     });
+
+      //     // Verify the same site still appears in the filtered results
+      //     const filteredSiteResult =
+      //       await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(newSiteName);
+      //     const filteredSiteResultItem = new SiteListComponent(filteredSiteResult.page, filteredSiteResult.rootLocator);
+
+      //     // Verify all the same properties are still displayed after filtering
+      //     await filteredSiteResultItem.verifyNameIsDisplayed(newSiteName);
+      //     await filteredSiteResultItem.verifyLabelIsDisplayed(testData.label);
+      //     await filteredSiteResultItem.verifyThumbnailIsDisplayed();
+      //     await filteredSiteResultItem.verifySiteIconIsDisplayed();
+      //     await filteredSiteResultItem.verifyLockIconVisibility(testData.siteType);
+      //   }
+      // );
     }
   );
 }

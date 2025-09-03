@@ -31,6 +31,7 @@ export class GlobalSearchResultPage extends BasePage {
   readonly tileButton: Locator;
   readonly appResultContainer: Locator;
   readonly externalSearchResultItems: Locator;
+  readonly sidebarSiteFilter: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -62,6 +63,7 @@ export class GlobalSearchResultPage extends BasePage {
     this.appResultContainer = this.page.locator("div[class*='AppItemList_appListTopWrapper']");
 
     this.externalSearchResultItems = this.page.locator("div[class*='externalSearchBox']");
+    this.sidebarSiteFilter = this.page.getByTestId('i-sites').locator('..').getByRole('button');
   }
 
   private getTestIdForFileType(fileType: string): string {
@@ -369,6 +371,22 @@ export class GlobalSearchResultPage extends BasePage {
     return await test.step('Verifying external search results are displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.externalSearchResultItems, { timeout: 10000 });
       return new ExternalSearchListComponent(this.page, this.externalSearchResultItems);
+    });
+  }
+
+  /**
+   * Clicks on the site filter in the sidebar to filter results by sites only
+   * @param options - Options for the step
+   */
+  async clickOnSiteFilterInSidebar(options?: { stepInfo?: string }): Promise<void> {
+    return await test.step(options?.stepInfo || 'Click on site filter in sidebar', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.sidebarSiteFilter, {
+        timeout: 10000,
+        assertionMessage: 'Verifying site filter button is visible in sidebar',
+      });
+      await this.clickOnElement(this.sidebarSiteFilter);
+      // Wait for the filter to be applied and results to update
+      await this.page.waitForTimeout(2000);
     });
   }
 }
