@@ -18,7 +18,7 @@ import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 test.describe(
   '@FeedAM - Site Owner, Manager and Content Manager Feed Post Favorite/Unfavorite Tests',
   {
-    tag: [ContentTestSuite.FEED, ContentTestSuite.ATTACHMENTS],
+    tag: [ContentTestSuite.FEED_APP_MANAGER, ContentTestSuite.ATTACHMENTS],
   },
   () => {
     let feedPage: FeedPage;
