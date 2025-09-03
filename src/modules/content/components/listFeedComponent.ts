@@ -4,11 +4,14 @@ import { BaseComponent } from '@core/components/baseComponent';
 
 export class ListFeedComponent extends BaseComponent {
   // Post options section
-  readonly deleteButton = this.page.locator("div:text('Delete')");
-  readonly deleteConfirmDialog = this.page.locator('div[role="dialog"]');
-  readonly deleteConfirmButton = this.page.getByRole('button', { name: 'Delete' });
-  readonly closeButton = this.page.locator("button[class*='closeBtn']");
-  readonly inlineImagePreview = this.page.locator("div[class*='gallerySlide'] img");
+  readonly deleteButton: Locator;
+  readonly deleteConfirmDialog: Locator;
+  readonly deleteConfirmButton: Locator;
+  readonly closeButton: Locator;
+  readonly inlineImagePreview: Locator;
+  readonly favoriteButton: Locator;
+  readonly unfavoriteButton: Locator;
+  readonly likeButton: Locator;
 
   // Dynamic locator functions
   /**
@@ -72,8 +75,6 @@ export class ListFeedComponent extends BaseComponent {
       favorite ? "button[title='Favorite this post'] span i" : "button[title='Unfavorite this post'] span i"
     );
 
-  readonly getFavoriteButton = this.page.locator("button[title='Favorite this post'] span i");
-
   /**
    * Gets a locator for the favorited state indicator for a specific post
    * @param postText - The text of the post to check favorite state for
@@ -89,6 +90,14 @@ export class ListFeedComponent extends BaseComponent {
 
   constructor(page: Page) {
     super(page);
+    this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' });
+    this.deleteButton = this.page.locator("div:text('Delete')");
+    this.deleteConfirmDialog = this.page.locator('div[role="dialog"]');
+    this.deleteConfirmButton = this.page.getByRole('button', { name: 'Delete' });
+    this.closeButton = this.page.locator("button[class*='closeBtn']");
+    this.inlineImagePreview = this.page.locator("div[class*='gallerySlide'] img");
+    this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' });
+    this.likeButton = this.page.getByRole('button', { name: 'React to this post' });
   }
 
   /**
@@ -174,7 +183,47 @@ export class ListFeedComponent extends BaseComponent {
   async clickFavoriteUnfavoriteButton(favorite: boolean): Promise<void> {
     await test.step(`Click favorite button for post:`, async () => {
       await this.getFavoriteButtonLocator(favorite).hover();
+      //wait until the favourite button is visible
+      await this.verifier.verifyTheElementIsVisible(this.getFavoriteButtonLocator(favorite), {
+        assertionMessage: `Post "${favorite}" should be in favorited state`,
+      });
       await this.clickOnElement(this.getFavoriteButtonLocator(favorite));
+    });
+  }
+
+  async markPostAsFavourite(): Promise<void> {
+    await test.step(`Mark post as favourite: `, async () => {
+      await this.likeButton.hover();
+      //verify the favourite button is visible
+      await this.verifier.verifyTheElementIsVisible(this.favoriteButton, {
+        assertionMessage: `verify the favourite button is visible`,
+      });
+      await this.clickOnElement(this.favoriteButton, { delay: 1000 });
+    });
+  }
+
+  async removePostFromFavourite(postText: string): Promise<void> {
+    await test.step(`Remove post from favourite: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.unfavoriteButton, {
+        assertionMessage: `Post "${postText}" should be in favourited state`,
+      });
+      await this.clickOnElement(this.unfavoriteButton, { delay: 1000 });
+    });
+  }
+
+  async verifyPostIsFavorited(postText: string): Promise<void> {
+    await test.step(`Verify post is favorited: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.unfavoriteButton, {
+        assertionMessage: `Post "${postText}" should be in favourited state`,
+      });
+    });
+  }
+
+  async verifyPostIsNotFavorited(postText: string): Promise<void> {
+    await test.step(`Verify post is not favorited: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.unfavoriteButton, {
+        assertionMessage: `Post "${postText}" should be in unfavorited state`,
+      });
     });
   }
 
@@ -186,19 +235,6 @@ export class ListFeedComponent extends BaseComponent {
     await test.step(`Verify post is favorited: ${favorite}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.getFavoriteButtonLocator(favorite), {
         assertionMessage: `Post "${favorite}" should be in favorited state`,
-      });
-    });
-  }
-
-  /**
-   * Verifies that a post is not in favorited state
-   * @param postText - The text of the post to verify
-   */
-  async verifyPostIsNotFavorited(postText: string): Promise<void> {
-    await test.step(`Verify post is not favorited: ${postText}`, async () => {
-      const favoritedIndicator = this.getFavoritedStateLocator(postText);
-      await this.verifier.verifyTheElementIsNotVisible(favoritedIndicator, {
-        assertionMessage: `Post "${postText}" should not be in favorited state`,
       });
     });
   }
