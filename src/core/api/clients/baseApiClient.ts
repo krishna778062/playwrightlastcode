@@ -1,4 +1,4 @@
-import { APIRequestContext, Cookie, Page, request } from '@playwright/test';
+import { APIRequestContext, APIResponse, Cookie, Page, request } from '@playwright/test';
 import fs from 'fs';
 
 import { ApiError } from '@core/api/apiError';
@@ -56,10 +56,14 @@ export abstract class BaseApiClient extends HttpClient {
 
       const storageState = await tmpContext.storageState();
       const headers = this.fetchHeadersFromCookies(storageState.cookies);
+      const locationHeader = this.fetchLocationHeader(loginApiRes);
 
       // Create new context with auth headers
       return await request.newContext({
-        extraHTTPHeaders: headers,
+        extraHTTPHeaders: {
+          ...headers,
+          ...(locationHeader && { location: locationHeader }),
+        },
       });
     } finally {
       await tmpContext.dispose();
@@ -115,5 +119,14 @@ export abstract class BaseApiClient extends HttpClient {
       Cookie: `token=${token}; csrfid=${csrfid}`,
       'x-smtip-csrfid': csrfid,
     };
+  }
+
+  /**
+   * Fetches the location header from a response
+   * @param response - The API response object
+   * @returns The location header value or null if not found
+   */
+  static fetchLocationHeader(response: APIResponse): string | null {
+    return response.headers()['location'] || null;
   }
 }
