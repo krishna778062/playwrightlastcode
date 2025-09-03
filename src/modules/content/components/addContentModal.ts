@@ -1,9 +1,9 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { ContentType } from '../constants/contentType';
-import { AlbumCreationPage } from '../pages/albumCreationPage';
-import { EventCreationPage } from '../pages/eventCreationPage';
-import { PageCreationPage } from '../pages/pageCreationPage';
+import { ContentType } from '@content/constants/contentType';
+import { AlbumCreationPage } from '@content/pages/albumCreationPage';
+import { EventCreationPage } from '@content/pages/eventCreationPage';
+import { PageCreationPage } from '@content/pages/pageCreationPage';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';

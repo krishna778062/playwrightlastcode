@@ -1,11 +1,11 @@
 import { Locator, Page, Response, test } from '@playwright/test';
 
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { BasePage } from '@/src/core/pages/basePage';
-import { FileUtil } from '@/src/core/utils/fileUtil';
-import { EventCreationResponse } from '@/src/modules/content/apis/types/eventCreationResponse';
-import { AttachementUploaderComponent } from '@/src/modules/content/components/attachementUploader';
-import { ImageCropperComponent } from '@/src/modules/content/components/imageCropper';
+import { EventCreationResponse } from '@content/apis/types/eventCreationResponse';
+import { AttachementUploaderComponent } from '@content/components/attachementUploader';
+import { ImageCropperComponent } from '@content/components/imageCropper';
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { BasePage } from '@core/pages/basePage';
+import { FileUtil } from '@core/utils/fileUtil';
 
 export interface EventCreationOptions {
   title: string;

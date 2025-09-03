@@ -1,12 +1,11 @@
+import { ContentTestSuite } from '@content/constants/testSuite';
+import { ContentSuiteTags } from '@content/constants/testTags';
+import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { SiteCreationPage as ContentSiteCreationPage } from '@content/pages/siteCreationPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
-
-import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
-import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { SiteCreationPage as ContentSiteCreationPage } from '@/src/modules/content/pages/siteCreationPage';
 
 /**
  * This test suite is used to test the site creation functionality with different access types.

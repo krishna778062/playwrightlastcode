@@ -1,13 +1,12 @@
-import { expect, Locator, Page, test } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
+import { AddContentModalComponent } from '@content/components/addContentModal';
+import { ContentType } from '@content/constants/contentType';
+import { AlbumCreationPage } from '@content/pages/albumCreationPage';
+import { EventCreationPage } from '@content/pages/eventCreationPage';
+import { PageCreationPage } from '@content/pages/pageCreationPage';
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
-
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
-import { ContentType } from '@/src/modules/content/constants/contentType';
-import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
-import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
-import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 
 export interface ISiteDashboardActions {
   navigateToPageCreationFromSiteDashboard: () => Promise<PageCreationPage>;

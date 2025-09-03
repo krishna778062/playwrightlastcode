@@ -1,18 +1,17 @@
+import { ContentType } from '@content/constants/contentType';
+import { PageContentType } from '@content/constants/pageContentType';
+import { ContentTestSuite } from '@content/constants/testSuite';
+import { ContentFeatureTags, ContentSuiteTags } from '@content/constants/testTags';
+import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
+import { PageCreationPage } from '@content/pages/pageCreationPage';
+import { SiteDashboardPage } from '@content/pages/siteDashboardPage';
+import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
+import { SITE_TEST_DATA } from '@content/test-data/sites-create.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
-
-import { ContentType } from '@/src/modules/content/constants/contentType';
-import { PageContentType } from '@/src/modules/content/constants/pageContentType';
-import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
-import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
-import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
-import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
-import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
-import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 
 test.describe(
   `Page Creation by Application Manager`,

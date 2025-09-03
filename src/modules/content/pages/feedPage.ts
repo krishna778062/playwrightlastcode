@@ -1,9 +1,8 @@
 import { expect, Page, test } from '@playwright/test';
 
+import { CreateFeedPostComponent, FeedPostOptions, FeedPostResult } from '@content/components/createFeedPostComponent';
+import { ListFeedComponent } from '@content/components/listFeedComponent';
 import { BasePage } from '@core/pages/basePage';
-
-import { CreateFeedPostComponent, FeedPostOptions, FeedPostResult } from '../components/createFeedPostComponent';
-import { ListFeedComponent } from '../components/listFeedComponent';
 
 // Re-export the interfaces and types for backwards compatibility
 export { FeedPostOptions, FeedPostResult };

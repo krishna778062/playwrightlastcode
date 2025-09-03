@@ -1,16 +1,15 @@
+import { ContentType } from '@content/constants/contentType';
+import { ContentTestSuite } from '@content/constants/testSuite';
+import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
+import { EventCreationPage } from '@content/pages/eventCreationPage';
+import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { CONTENT_TEST_DATA } from '../../test-data/content.test-data';
-
-import { ContentType } from '@/src/modules/content/constants/contentType';
-import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
-import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
 
 test.describe(
   ContentTestSuite.EVENT_APP_MANAGER,

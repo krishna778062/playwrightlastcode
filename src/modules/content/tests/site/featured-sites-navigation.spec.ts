@@ -1,10 +1,9 @@
+import { ContentTestSuite } from '@content/constants/testSuite';
+import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { SITE_TEST_DATA } from '@content/test-data/sites-create.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-
-import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
-import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 
 test.describe(
   '@featured-sites',

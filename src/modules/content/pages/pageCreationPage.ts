@@ -1,17 +1,16 @@
 import { Locator, Page, Response, test } from '@playwright/test';
 
+import { PageCreationResponse } from '@content/apis/types/pageCreationResponse';
+import { AddContentModalComponent } from '@content/components/addContentModal';
+import { AttachementUploaderComponent } from '@content/components/attachementUploader';
+import { ImageCropperComponent } from '@content/components/imageCropper';
+import { PageContentType } from '@content/constants/pageContentType';
+import { SiteDashboardPage } from '@content/pages/siteDashboardPage';
+import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
-
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { FileUtil } from '@/src/core/utils/fileUtil';
-import { PageCreationResponse } from '@/src/modules/content/apis/types/pageCreationResponse';
-import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
-import { AttachementUploaderComponent } from '@/src/modules/content/components/attachementUploader';
-import { ImageCropperComponent } from '@/src/modules/content/components/imageCropper';
-import { PageContentType } from '@/src/modules/content/constants/pageContentType';
-import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
-import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+import { FileUtil } from '@core/utils/fileUtil';
 
 export interface PageCreationOptions {
   // Required fields
