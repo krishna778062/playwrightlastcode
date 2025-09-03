@@ -1,14 +1,15 @@
 import { expect } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
-import { IdentityUserSearchResponse, User } from '@core/types/user.type';
 import { tagTest } from '@core/utils/testDecorator';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { FeatureOwnersPage } from '@platforms/pages/abacPage/featureOwnersPage/featureOwnersPage';
-import { ManageUsersPage } from '@platforms/pages/managerUsersPage/manageUsersPage';
-import { Statuses } from '@/src/core/constants/status';
+
 import { Roles, RolesId } from '@/src/core/constants/roles';
+import { Statuses } from '@/src/core/constants/status';
 import { TestSuite } from '@/src/core/constants/testSuite';
+import { IdentityUserSearchResponse, User } from '@/src/core/types/user.type';
+import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { FeatureMenuOptions } from '@/src/modules/platforms/constants/featureMenuOptions';
 
 test.describe(
@@ -26,26 +27,26 @@ test.describe(
     let user3: User;
 
     test.beforeEach(async ({ appManagerApiClient }) => {
-      user1 = {
+      user1 = TestDataGenerator.generateUserWithEmp({
         first_name: 'Aaman Temp',
         last_name: `Standard User${Date.now()}`,
         username: 'Aaman Temp' + ' ' + `Standard User${Date.now()}`,
         emp: `TSU00${Date.now()}`,
-      };
+      });
 
-      user2 = {
+      user2 = TestDataGenerator.generateUserWithEmp({
         first_name: 'Aaman Temp',
         last_name: `App Manager First User${Date.now()}`,
         username: 'Aaman Temp' + ' ' + `App Manager First User${Date.now()}`,
         emp: `TAM00${Date.now()}`,
-      };
+      });
 
-      user3 = {
+      user3 = TestDataGenerator.generateUserWithEmp({
         first_name: 'Aaman Temp',
         last_name: `App Manager Second User${Date.now()}`,
         username: 'Aaman Temp' + ' ' + `App Manager Second User${Date.now()}`,
         emp: `TAM01${Date.now()}`,
-      };
+      });
 
       loginIdentifier1 = user1.emp;
       loginIdentifier2 = user2.emp;
@@ -149,7 +150,6 @@ test.describe(
           tagTest(test.info(), {
             zephyrTestId: ['PS-33255', 'PS-33090', 'PS-33089'],
           });
-          const manageUsersPage: ManageUsersPage = new ManageUsersPage(userManagerPage);
           const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerPage);
           // Test Scenario
           await featureOwnersPage.loadPage();
@@ -188,7 +188,7 @@ test.describe(
           // Verify that user is displayed with App manager tag
           await featureOwnersPage.verifyFeatureOwnerIsDisplayedWithAppManagerTag(user2.username);
           // changing status of the App manager to Inactive
-          let userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier2);
+          const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier2);
           await appManagerApiClient.getUserManagementService().updateUserStatus(userId, Statuses.INACTIVE);
           await featureOwnersPage.reloadPage();
           await featureOwnersPage.clickOnButtonForFeature(feature, FeatureMenuOptions.EDIT);
@@ -215,7 +215,7 @@ test.describe(
           // Verify that user is displayed with App manager tag
           await featureOwnersPage.verifyFeatureOwnerIsDisplayedWithAppManagerTag(user3.username);
           // changing status of the App manager to Frozen
-          let userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier3);
+          const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier3);
           await appManagerApiClient.getUserManagementService().updateUserStatus(userId, Statuses.FROZEN);
           await featureOwnersPage.reloadPage();
           await featureOwnersPage.clickOnButtonForFeature(feature, FeatureMenuOptions.EDIT);
