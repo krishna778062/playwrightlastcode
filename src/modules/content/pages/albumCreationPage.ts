@@ -178,18 +178,20 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
   }
 
   async uploadImage(imageName: string): Promise<void> {
-    const reqPromises = [];
-    reqPromises.push(
-      this.page.waitForResponse(
-        response => response.url().includes('X-Amz-SignedHeaders=host') && response.request().method() === 'PUT'
-      ),
-      35_000
-    );
-    const fileInput = this.fileInputGeneral.first();
-    const filePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', 'images', imageName);
-    await this.addInputFiles(fileInput, filePath);
-    //wait for all the requests to be completed
-    await Promise.all(reqPromises);
+    await test.step(`Upload image and wait for upload api response: ${imageName}`, async () => {
+      const reqPromises = [];
+      reqPromises.push(
+        this.page.waitForResponse(
+          response => response.url().includes('X-Amz-SignedHeaders=host') && response.request().method() === 'PUT'
+        ),
+        35_000
+      );
+      const fileInput = this.fileInputGeneral.first();
+      const filePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', 'images', imageName);
+      await this.addInputFiles(fileInput, filePath);
+      //wait for all the requests to be completed
+      await Promise.all(reqPromises);
+    });
   }
 
   async addVideoUrl(videoUrl: string): Promise<void> {
