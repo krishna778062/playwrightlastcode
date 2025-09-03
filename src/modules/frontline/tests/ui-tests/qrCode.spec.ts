@@ -1,10 +1,10 @@
+import { FrontlineFeatureTags, FrontlineSuiteTags } from '@frontline/constants/testTags';
+import { frontlineTestFixture as test } from '@frontline/fixtures/frontlineFixture';
+import { ManageQRPage } from '@frontline/pages/manageQRPage';
+
 import { TestPriority } from '@core/constants/testPriority';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
-
-import { FrontlineFeatureTags, FrontlineSuiteTags } from '../../constants/testTags';
-import { frontlineTestFixture as test } from '../../fixtures/frontlineFixture';
-import { ManageQRPage } from '../../pages/manageQRPage';
 
 test.describe(
   'Feature: QR Code Management',

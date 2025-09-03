@@ -15,17 +15,14 @@ export class ManageQRPage extends BasePage {
   readonly descriptionField: Locator;
   readonly promoteMobileAppPageHeading: Locator;
   readonly manageQRPageHeading: Locator;
-  readonly toggleOnQRName: Locator;
-  readonly togglePopup: Locator;
   readonly imageQROnPreview: Locator;
   readonly descriptionOfQROnPreview: Locator;
   readonly appPreviewQRPopupHeader: Locator;
   readonly deleteQR: Locator;
   readonly qrNameHeaderLocator: Locator;
   readonly deleteButton: Locator;
-  readonly threeDotsButton: Locator;
-  readonly descriptionPreviewLocator: Locator;
   readonly qrRowLocator: Locator;
+  readonly threeDotsInRowLocator: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_QR_PAGE);
@@ -40,8 +37,6 @@ export class ManageQRPage extends BasePage {
     this.descriptionField = page.getByTestId('tiptap-content').getByRole('paragraph');
     this.promoteMobileAppPageHeading = page.getByText('Promote mobile app via QR');
     this.manageQRPageHeading = page.getByText('Manage QR');
-    this.toggleOnQRName = page.getByRole('button', { name: 'Toggle' });
-    this.togglePopup = page.getByRole('tooltip');
     this.imageQROnPreview = page.getByRole('img', { name: "You're previewing the QR code" }).first();
     this.descriptionOfQROnPreview = page.locator(
       '(//button[text()="Save and visit dashboard"]/../../preceding-sibling::div[1]//p)[2]'
@@ -50,9 +45,8 @@ export class ManageQRPage extends BasePage {
     this.deleteQR = page.getByRole('menuitem', { name: 'Delete' });
     this.qrNameHeaderLocator = page.locator('h4');
     this.deleteButton = page.locator('[role="dialog"]').getByRole('button', { name: 'Delete' });
-    this.threeDotsButton = page.locator('button[aria-label="More options"]');
-    this.descriptionPreviewLocator = page.locator('.PreviewQr-module-description___GawMK p');
     this.qrRowLocator = page.locator('tr');
+    this.threeDotsInRowLocator = page.locator('button[aria-label="More options"]');
   }
 
   async clickOnManage() {
@@ -104,12 +98,12 @@ export class ManageQRPage extends BasePage {
   }
 
   async verifyQRDescriptionOnPreview(description: string) {
-    const locator = this.descriptionPreviewLocator.filter({ hasText: description }).first();
-    await expect(locator).toBeVisible();
+    const qrDescription = this.descriptionOfQROnPreview.filter({ hasText: description });
+    await expect(qrDescription).toBeVisible();
   }
 
   async verifyQRName(qrName: string) {
-    const qrNameLocator = this.qrNameHeaderLocator.filter({ hasText: qrName }).first();
+    const qrNameLocator = this.qrNameHeaderLocator.filter({ hasText: qrName });
     await expect(qrNameLocator).toBeVisible();
   }
 
