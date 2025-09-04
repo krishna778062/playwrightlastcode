@@ -31,7 +31,7 @@ test.describe(
       feedPage = new FeedPage(appManagerHomePage.page);
     });
 
-    test.only(
+    test(
       'Verify Site Owner/Manager/Content Manager can favorite and unfavorite feed post without file attachment',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorite-unfavorite'],
