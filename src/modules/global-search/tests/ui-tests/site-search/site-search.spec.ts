@@ -83,45 +83,41 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
         }
       );
 
-      // test(
-      //   `Verify Site Search results with sidebar filter for a ${testData.siteType} site in category "${testData.category}"`,
-      //   {
-      //     tag: [TestPriority.P1, TestGroupType.REGRESSION],
-      //   },
-      //   async ({ appManagerHomePage }) => {
-      //     tagTest(test.info(), {
-      //       zephyrTestId: 'SEN-12409',
-      //       storyId: 'SEN-12305',
-      //     });
+      test(
+        `Verify Site Search results with sidebar filter for a ${testData.siteType} site in category "${testData.category}"`,
+        {
+          tag: [TestPriority.P1, TestGroupType.REGRESSION],
+        },
+        async ({ appManagerHomePage }) => {
+          tagTest(test.info(), {
+            zephyrTestId: 'SEN-12409',
+            storyId: 'SEN-12305',
+          });
 
-      //     // First perform the search to get to the results page
-      //     const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(newSiteName, {
-      //       stepInfo: `Searching with term "${newSiteName}" to verify site appears in search results`,
-      //     });
+          // First perform the search to get to the results page
+          const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(newSiteName, {
+            stepInfo: `Searching with term "${newSiteName}" to verify site appears in search results`,
+          });
 
-      //     // Verify the site appears in the initial search results
-      //     const siteResult = await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(newSiteName);
-      //     const siteResultItem = new SiteListComponent(siteResult.page, siteResult.rootLocator);
-      //     await siteResultItem.verifyNameIsDisplayed(newSiteName);
+          // Verify the site appears in the initial search results
+          const siteResult = await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(newSiteName);
+          const siteResultItem = new SiteListComponent(siteResult.page, siteResult.rootLocator);
+          await siteResultItem.verifyNameIsDisplayed(newSiteName);
 
-      //     // Click on the site filter in the sidebar to filter results by sites only
-      //     await globalSearchResultPage.clickOnSiteFilterInSidebar({
-      //       stepInfo: `Clicking on site filter in sidebar to filter results by sites only`,
-      //     });
+          // Click on the site filter in the sidebar to filter results by sites only
+          await globalSearchResultPage.verifyAndClickSidebarFilter('sites');
 
-      //     // Verify the same site still appears in the filtered results
-      //     const filteredSiteResult =
-      //       await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(newSiteName);
-      //     const filteredSiteResultItem = new SiteListComponent(filteredSiteResult.page, filteredSiteResult.rootLocator);
+          // Verify all the same properties are still displayed after filtering
+          await siteResultItem.verifyNameIsDisplayed(newSiteName);
+          await siteResultItem.verifyLabelIsDisplayed(testData.label);
+          await siteResultItem.verifyThumbnailIsDisplayed();
+          await siteResultItem.verifySiteIconIsDisplayed();
+          await siteResultItem.verifyLockIconVisibility(testData.siteType);
 
-      //     // Verify all the same properties are still displayed after filtering
-      //     await filteredSiteResultItem.verifyNameIsDisplayed(newSiteName);
-      //     await filteredSiteResultItem.verifyLabelIsDisplayed(testData.label);
-      //     await filteredSiteResultItem.verifyThumbnailIsDisplayed();
-      //     await filteredSiteResultItem.verifySiteIconIsDisplayed();
-      //     await filteredSiteResultItem.verifyLockIconVisibility(testData.siteType);
-      //   }
-      // );
+          // Verify navigation to site by clicking on the title link
+          await siteResultItem.verifyNavigationToTitleLink(newSiteId, newSiteName, 'Site');
+        }
+      );
     }
   );
 }

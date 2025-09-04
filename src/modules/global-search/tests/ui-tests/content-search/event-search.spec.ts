@@ -3,6 +3,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentType } from '@/src/core/constants/contentTypes';
+import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { EVENT_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
@@ -20,7 +21,7 @@ test.describe(
     let eventName: string;
     let authorName: string;
 
-    test.beforeEach(
+    test.beforeAll(
       `Setting up the test environment for event search by creating event content in common public site`,
       async ({ contentManagementHelper, publicSite }) => {
         const eventDetails = await contentManagementHelper.createEvent({
@@ -69,6 +70,52 @@ test.describe(
           siteId,
           siteName: newSiteName,
         });
+
+        test(
+          `Verify Event Search results with sidebar filter`,
+          {
+            tag: [TestPriority.P1, TestGroupType.REGRESSION],
+          },
+          async ({ appManagerHomePage }) => {
+            tagTest(test.info(), {
+              zephyrTestId: 'SEN-12435',
+              storyId: 'SEN-12298',
+            });
+
+            // Search for the event
+            const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(eventName, {
+              stepInfo: `Searching with term "${eventName}" to verify event appears in search results`,
+            });
+
+            // Verify the event appears in the initial search results
+            const eventResult = await globalSearchResultPage.getEventResultItemExactlyMatchingTheSearchTerm(eventName);
+            const eventResultItem = new ContentListComponent(eventResult.page, eventResult.rootLocator);
+            await eventResultItem.verifyNameIsDisplayed(eventName);
+
+            // Click on the page filter in the sidebar to filter results by pages only
+            await globalSearchResultPage.verifyAndClickSidebarFilter({
+              filterText: 'Content',
+              iconType: 'page',
+            });
+
+            // Verify the same event still appears in the filtered results
+            const filteredEventResult =
+              await globalSearchResultPage.getEventResultItemExactlyMatchingTheSearchTerm(eventName);
+            const filteredEventResultItem = new ContentListComponent(
+              filteredEventResult.page,
+              filteredEventResult.rootLocator
+            );
+
+            // Verify all the same properties are still displayed after filtering
+            await filteredEventResultItem.verifyNameIsDisplayed(eventName);
+            await filteredEventResultItem.verifyLabelIsDisplayed(testData.label);
+            await filteredEventResultItem.verifyThumbnailIsDisplayed();
+            await filteredEventResultItem.verifyLockIconVisibility(testData.accessType);
+
+            // Verify navigation to event by clicking on the title link
+            await filteredEventResultItem.verifyNavigationToTitleLink(contentId, eventName, 'Event');
+          }
+        );
       }
     );
   }

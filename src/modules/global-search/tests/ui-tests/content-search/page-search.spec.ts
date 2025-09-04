@@ -3,6 +3,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentType } from '@/src/core/constants/contentTypes';
+import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { PAGE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
@@ -20,7 +21,7 @@ test.describe(
     let pageName: string;
     let authorName: string;
 
-    test.beforeEach(
+    test.beforeAll(
       `Setting up the test environment for page search by creating page content in common public site`,
       async ({ contentManagementHelper, publicSite }) => {
         const pageDetails = await contentManagementHelper.createPage({
@@ -42,6 +43,16 @@ test.describe(
         console.log(`Created page "${pageName}" in site "${siteName}" with ID: ${siteId}`);
       }
     );
+
+    // test.afterAll(
+    //   `Cleaning up the test environment by deleting the created page content`,
+    //   async ({ contentManagementHelper }) => {
+    //     if (contentId) {
+    //       await contentManagementHelper.deleteContent(contentId, siteId);
+    //       console.log(`Deleted page "${pageName}" with ID: ${contentId}`);
+    //     }
+    //   }
+    // );
 
     test(
       `Verify Content Search results for a new ${testData.content}`,
@@ -70,6 +81,54 @@ test.describe(
           siteId,
           siteName,
         });
+      }
+    );
+
+    test(
+      `Verify Page Search results with sidebar filter`,
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@pageFilter'],
+      },
+      async ({ appManagerHomePage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-12433',
+          storyId: 'SEN-12295',
+        });
+
+        // Search for the page
+        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(pageName, {
+          stepInfo: `Searching with term "${pageName}" to verify page appears in search results`,
+        });
+
+        // Verify the page appears in the initial search results
+        const pageResult = await globalSearchResultPage.getPageResultItemExactlyMatchingTheSearchTerm(pageName);
+        const pageResultItem = new ContentListComponent(pageResult.page, pageResult.rootLocator);
+        await pageResultItem.verifyNameIsDisplayed(pageName);
+
+        // Click on the page filter in the sidebar to filter results by pages only
+        await globalSearchResultPage.verifyAndClickSidebarFilter({
+          filterText: 'Content',
+          iconType: 'page',
+        });
+
+        await pageResultItem.verifyNameIsDisplayed(pageName);
+
+        await globalSearchResultPage.verifyAndClickSiteSubFilter({
+          filterText: 'Content',
+          siteName: siteName,
+        });
+
+        // Verify all the same properties are still displayed after filtering
+        await pageResultItem.verifyNameIsDisplayed(pageName);
+        await pageResultItem.verifyLabelIsDisplayed(testData.label);
+        await pageResultItem.verifyThumbnailIsDisplayed();
+        await pageResultItem.verifyLockIconVisibility(testData.accessType);
+
+        // Click on site subfilter, verify count tracking, and reset functionality
+        await globalSearchResultPage.verifySiteSubFilterWithCountTracking({
+          filterText: 'Content',
+        });
+        await pageResultItem.verifyNameIsDisplayed(pageName);
       }
     );
   }

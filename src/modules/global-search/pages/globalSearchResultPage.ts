@@ -11,6 +11,7 @@ import { ContentListComponent } from '@/src/modules/global-search/components/con
 import { FeedListComponent } from '@/src/modules/global-search/components/feedListComponent';
 import { IntranetFileListComponent } from '@/src/modules/global-search/components/intranetFileListComponent';
 import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
+import { SidebarFilterComponent } from '@/src/modules/global-search/components/sidebarFilterComponent';
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
 import { TileListComponent } from '@/src/modules/global-search/components/tileListComponent';
 import { IContentSearch } from '@/src/modules/global-search/types/content-search.type';
@@ -31,7 +32,6 @@ export class GlobalSearchResultPage extends BasePage {
   readonly tileButton: Locator;
   readonly appResultContainer: Locator;
   readonly externalSearchResultItems: Locator;
-  readonly sidebarSiteFilter: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -63,7 +63,15 @@ export class GlobalSearchResultPage extends BasePage {
     this.appResultContainer = this.page.locator("div[class*='AppItemList_appListTopWrapper']");
 
     this.externalSearchResultItems = this.page.locator("div[class*='externalSearchBox']");
-    this.sidebarSiteFilter = this.page.getByTestId('i-sites').locator('..').getByRole('button');
+  }
+
+  /**
+   * Creates a sidebar filter component for the specified filter type
+   * @param options - Filter options with text and optional icon type
+   * @returns SidebarFilterComponent - The filter component instance
+   */
+  getSidebarFilter(options: { filterText: string; iconType?: string; siteName?: string }): SidebarFilterComponent {
+    return new SidebarFilterComponent(this.page, options);
   }
 
   private getTestIdForFileType(fileType: string): string {
@@ -375,18 +383,27 @@ export class GlobalSearchResultPage extends BasePage {
   }
 
   /**
-   * Clicks on the site filter in the sidebar to filter results by sites only
-   * @param options - Options for the step
+   * Verifies and clicks on a sidebar filter with complete verification workflow
+   * @param options - Filter options with text and optional icon type
    */
-  async clickOnSiteFilterInSidebar(options?: { stepInfo?: string }): Promise<void> {
-    return await test.step(options?.stepInfo || 'Click on site filter in sidebar', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.sidebarSiteFilter, {
-        timeout: 10000,
-        assertionMessage: 'Verifying site filter button is visible in sidebar',
-      });
-      await this.clickOnElement(this.sidebarSiteFilter);
-      // Wait for the filter to be applied and results to update
-      await this.page.waitForTimeout(2000);
-    });
+  async verifyAndClickSidebarFilter(options: { filterText: string; iconType?: string }): Promise<void> {
+    return await this.getSidebarFilter(options).verifyAndClickFilter();
+  }
+
+  /**
+   * Verifies and clicks on site subfilter with site selection
+   * @param siteName - The name of the site to select
+   */
+  async verifyAndClickSiteSubFilter(options: { filterText: string; siteName: string }): Promise<void> {
+    return await this.getSidebarFilter(options).verifyAndClickSiteSubFilter();
+  }
+
+  /**
+   * Verifies site subfilter with count tracking and reset functionality
+   * @param options - Options including filter text and site name
+   */
+  async verifySiteSubFilterWithCountTracking(options: { filterText: string }): Promise<void> {
+    const siteSubFilter = this.getSidebarFilter(options);
+    await siteSubFilter.verifySiteSubFilterWithCountTracking();
   }
 }
