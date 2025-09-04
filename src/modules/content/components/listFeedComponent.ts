@@ -209,6 +209,13 @@ export class ListFeedComponent extends BaseComponent {
 
   async removePostFromFavourite(postText: string): Promise<void> {
     await test.step(`Remove post from favourite: ${postText}`, async () => {
+      await this.page.evaluate(
+        el => {
+          (el as HTMLElement).dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+        },
+        await this.likeButton.elementHandle()
+      );
+
       await this.verifier.verifyTheElementIsVisible(this.unfavoriteButton, {
         assertionMessage: `Post "${postText}" should be in favourited state`,
       });
