@@ -66,7 +66,7 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
   async getIdentityUserId(firstName: string, lastName: string): Promise<string> {
     let userId: string = '';
     await test.step(`Fetch the identity user id of the user ${firstName} ${lastName}`, async () => {
-      const response = await this.post(API_ENDPOINTS.appManagement.users.list, {
+      const response = await this.post(API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersList, {
         data: {
           size: 16,
           sort_by: {
@@ -484,7 +484,7 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
   async getPeopleIdWithEmailId(emailId: string): Promise<string> {
     let peopleId: string = '';
     await test.step(`Getting people ID for email: ${emailId}`, async () => {
-      const response = await this.post(API_ENDPOINTS.appManagement.users.list, {
+      const response = await this.post(API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersList, {
         data: {
           size: 16,
           searchTerm: emailId,

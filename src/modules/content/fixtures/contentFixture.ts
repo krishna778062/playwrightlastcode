@@ -61,16 +61,11 @@ export const contentTestFixture = test.extend<
     // Authenticated pages
     appManagerHomePage: HomePageType;
     appManagersPage: Page;
-    standardUserContext: BrowserContext;
-    standardUserHomePage: NewUxHomePage | OldUxHomePage;
-    standardUserPage: Page;
     standardUserHomePage: HomePageType;
     standardUserPage: Page;
 
     // Helpers and services
     siteManagementHelper: SiteManagementHelper;
-    contentManagementHelper: ContentManagementHelper;
-    feedManagementHelper: FeedManagementHelper;
     siteManagerContext: BrowserContext;
     siteManagerHomePage: NewUxHomePage | OldUxHomePage;
     siteManagerPage: Page;
@@ -148,9 +143,15 @@ export const contentTestFixture = test.extend<
   standardUserHomePage: [
     async ({ standardUserContext }, use) => {
       const homePage = await createAuthenticatedHomePage(standardUserContext, users.endUser);
-
       await use(homePage);
       await performLogout(homePage);
+    },
+    { scope: 'test' },
+  ],
+
+  standardUserPage: [
+    async ({ standardUserHomePage }, use) => {
+      await use(standardUserHomePage.page);
     },
     { scope: 'test' },
   ],
@@ -159,15 +160,6 @@ export const contentTestFixture = test.extend<
   appManagersPage: [
     async ({ appManagerHomePage }, use) => {
       await use(appManagerHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-
-  standardUserContext: [
-    async ({ browser }, use, workerInfo) => {
-      const context = await browser.newContext();
-      await use(context);
-      await context?.close();
     },
     { scope: 'test' },
   ],
@@ -198,27 +190,6 @@ export const contentTestFixture = test.extend<
   siteManagerPage: [
     async ({ siteManagerHomePage }, use, workerInfo) => {
       await use(siteManagerHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-
-  standardUserHomePage: [
-    async ({ standardUserContext }, use, workerInfo) => {
-      const page = await standardUserContext.newPage();
-      const standardUserHomePage = await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().endUserEmail || '',
-        password: getEnvConfig().endUserPassword || '',
-      });
-      await standardUserHomePage.verifyThePageIsLoaded();
-      await use(standardUserHomePage);
-      await page.close();
-    },
-    { scope: 'test' },
-  ],
-
-  standardUserPage: [
-    async ({ standardUserHomePage }, use, workerInfo) => {
-      await use(standardUserHomePage.page);
     },
     { scope: 'test' },
   ],

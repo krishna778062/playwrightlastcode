@@ -8,6 +8,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
+import { SiteMembershipAction, SitePermission } from '@/src/core/types/siteManagement.types';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
@@ -45,13 +46,17 @@ test.describe(
         tagTest(test.info(), {
           description:
             'Verify Site Owner, Manager and Content Manager is able to favorite and unfavorite Feed post without File Attachment on Content Feed',
-          zephyrTestId: 'ZEUS-001',
-          storyId: 'ZEUS-001',
+          zephyrTestId: 'CONT-39249',
+          storyId: 'CONT-39249',
         });
 
         const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
         const user = await identityManagementHelper.getPeopleIdByEmail(users.endUser.email);
         console.log(`Created user: ${user}`);
+
+        if (!user) {
+          throw new Error('Failed to get user ID');
+        }
 
         const category = await appManagerApiClient.getSiteManagementService().getCategoryId(SITE_TEST_DATA[0].category);
         createdSite = await siteManagementHelper.createPublicSite({
@@ -59,13 +64,18 @@ test.describe(
         });
         console.log(`Created site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
         // Make user a member of the site
-        await siteManagementHelper.makeUserSiteMembership(createdSite.siteId, user, 'member', 'addPeople');
+        await siteManagementHelper.makeUserSiteMembership(
+          createdSite.siteId,
+          user,
+          SitePermission.MEMBER,
+          SiteMembershipAction.ADD
+        );
         // Make user a content manager of the site
         await siteManagementHelper.makeUserSiteMembership(
           createdSite.siteId,
           user,
-          'contentManager',
-          'setPeoplePermission'
+          SitePermission.CONTENT_MANAGER,
+          SiteMembershipAction.SET_PERMISSION
         );
         console.log(`Made user ${user} a content manager for site ${createdSite.siteId}`);
 
