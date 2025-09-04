@@ -18,13 +18,12 @@ test.describe(
       qrCodeId: undefined,
     };
 
-    test.afterEach(async ({ appManagerHomePage }) => {
-      if (qrDetails.qrName) {
+    test.afterEach(async ({ qrManagementService }) => {
+      if (qrDetails.qrCodeId) {
         try {
-          const manageQRPage = new ManageQRPage(appManagerHomePage.page);
-          await manageQRPage.deleteAppQRByName(qrDetails.qrName);
+          await qrManagementService.deleteQRByID(qrDetails.qrCodeId);
         } catch (error) {
-          console.warn(`Cleanup failed for QR: ${qrDetails.qrName}`, error);
+          console.warn(`Cleanup failed for QR: ${qrDetails.qrCodeId}`, error);
         }
       }
     });
