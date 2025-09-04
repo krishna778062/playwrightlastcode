@@ -87,4 +87,21 @@ export const API_ENDPOINTS = {
     create: '/v1/promotions/w/qrcodes',
     delete: (qrCodeId: string) => `/v1/promotions/w/qrcodes/${qrCodeId}`,
   },
+  integrations: {
+    tiles: '/v1/tiles',
+    tilesRootInstances: '/v1/tiles/root/instances',
+    tilesInstances: '/v1/tiles/instances',
+    contentTiles: '/v1/content/tiles',
+  },
+} as const;
+
+export const API_QUERY_PARAMS = {
+  TYPE_APP: 'type=app',
+  DASHBOARD_HOME: 'dashboard=home',
+  HIDE_TILE_FALSE: 'hideTile=false',
+} as const;
+
+export const API_HEADERS = {
+  ACCEPT: 'application/json',
+  CONTENT_TYPE: 'application/json',
 } as const;
