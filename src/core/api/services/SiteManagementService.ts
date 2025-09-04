@@ -241,8 +241,8 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
   async makeUserSiteMembership(
     siteId: string,
     userId: string,
-    permission: string,
-    action: string
+    permission: SitePermission = SitePermission.MEMBER,
+    action: SiteMembershipAction = SiteMembershipAction.ADD
   ): Promise<SiteMembershipResponse> {
     return await test.step(`Making user ${userId} a content manager for site ${siteId}`, async () => {
       const payload = {
