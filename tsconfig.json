@@ -26,7 +26,8 @@
       "@integrations-pages/*": ["./src/modules/integrations/pages/*"],
       "@integrations-components/*": ["./src/modules/integrations/components/*"],
       "@integrations-api/*": ["./src/modules/integrations/api/*"],
-      "@integrations-test-data/*": ["./src/modules/integrations/test-data/*"]
+      "@integrations-test-data/*": ["./src/modules/integrations/test-data/*"],
+      "@employee-listening/*": ["./src/modules/employee-listening/*"]
     },
     "target": "ES2019",
     "module": "commonjs",
