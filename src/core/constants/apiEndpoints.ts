@@ -48,6 +48,8 @@ export const API_ENDPOINTS = {
     url: '/v1/content/sites',
     category: '/v1/content/siteCategories/list',
     deactivate: '/v1/content/sites/attributes?attribute=status',
+    listOfSites: '/v1/content/sites/list',
+    manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
   },
 
   content: {
@@ -81,4 +83,25 @@ export const API_ENDPOINTS = {
     intranetFile: '/v1/search/intranet-file',
     enterprise: '/search-ai/v1/enterprise/search',
   },
+  qr: {
+    create: '/v1/promotions/w/qrcodes',
+    delete: (qrCodeId: string) => `/v1/promotions/w/qrcodes/${qrCodeId}`,
+  },
+  integrations: {
+    tiles: '/v1/tiles',
+    tilesRootInstances: '/v1/tiles/root/instances',
+    tilesInstances: '/v1/tiles/instances',
+    contentTiles: '/v1/content/tiles',
+  },
+} as const;
+
+export const API_QUERY_PARAMS = {
+  TYPE_APP: 'type=app',
+  DASHBOARD_HOME: 'dashboard=home',
+  HIDE_TILE_FALSE: 'hideTile=false',
+} as const;
+
+export const API_HEADERS = {
+  ACCEPT: 'application/json',
+  CONTENT_TYPE: 'application/json',
 } as const;

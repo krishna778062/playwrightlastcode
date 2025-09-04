@@ -55,7 +55,7 @@ export const platformTestFixture = test.extend<{
     async ({ userManagerContext }, use) => {
       const page = await userManagerContext.newPage();
       const uMHomePage = await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().userManagerEmail,
+        email: getEnvConfig().userManagerEmail!,
         password: getEnvConfig().appManagerPassword,
       });
       await uMHomePage.verifyThePageIsLoaded();

@@ -271,7 +271,6 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       return json;
     });
   }
-
   /**
    * Deletes a site category by name using the API
    * @param categoryName - The name of the category to delete
@@ -296,4 +295,5 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       }
     });
   }
+
 }

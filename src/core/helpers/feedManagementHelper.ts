@@ -18,33 +18,37 @@ export class FeedManagementHelper {
    * Creates a new feed.
    * @returns An object containing details of the created feed.
    */
-  async createFeed() {
+  async createFeed(scope: string, siteId?: string, text?: string, options?: { waitForSearchIndex?: boolean }) {
     return await test.step('Creating a new feed', async () => {
-      const feedName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Feed`;
+      const feedName = text || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Feed`;
       const { textJson, textHtml } = buildFeedTextJsonAndTextHtml(feedName);
 
       const response = await this.appManagerApiClient.getFeedManagementService().createFeed({
         textJson,
         textHtml,
+        scope: scope,
+        siteId: siteId || null,
+        listOfAttachedFiles: [],
+        ignoreToxic: false,
+        type: 'post',
+        variant: 'standard',
       });
       const feedId = response.result.feedId;
       const authorName = response.result.authoredBy?.name;
 
-      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
-        apiClient: this.appManagerApiClient,
-        searchTerm: feedName,
-        objectType: 'feed',
-        fieldToCheck: 'excerpt',
-      });
+      if (options?.waitForSearchIndex !== false) {
+        await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+          apiClient: this.appManagerApiClient,
+          searchTerm: feedName,
+          objectType: 'feed',
+          fieldToCheck: 'excerpt',
+        });
+      }
 
-      const createdFeed = {
-        feedId,
-        feedName,
-        authorName,
-      };
       this.feeds.push({ feedId });
 
-      return createdFeed;
+      // Return the full API response for compatibility
+      return response;
     });
   }
 
@@ -59,5 +63,9 @@ export class FeedManagementHelper {
         }
       }
     });
+  }
+
+  async deleteFeed(feedId: string) {
+    await this.appManagerApiClient.getFeedManagementService().deleteFeed(feedId);
   }
 }

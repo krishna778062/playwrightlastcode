@@ -1,0 +1,32 @@
+{
+  "BangaloreSegment": [
+    {
+      "email": "akanksha.kumari+1@simpplr.com",
+      "password": "pass@1234"
+    },
+    {
+      "email": "akanksha.kumari+2@simpplr.com",
+      "password": "pass@1234"
+    }
+  ],
+  "GurgaonSegment": [
+    {
+      "email": "akanksha.kumari+3@simpplr.com",
+      "password": "pass@1234"
+    },
+    {
+      "email": "akanksha.kumari+4@simpplr.com",
+      "password": "pass@1234"
+    }
+  ],
+  "PuneSegment": [
+    {
+      "email": "akanksha.kumari+5@simpplr.com",
+      "password": "pass@1234"
+    },
+    {
+      "email": "akanksha.kumari+6@simpplr.com",
+      "password": "pass@1234"
+    }
+  ]
+}
