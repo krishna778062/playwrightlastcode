@@ -27,8 +27,8 @@ export const PAGE_ENDPOINTS = {
   getAlbumCreationPage: (siteId: string) => `/site/${siteId}/album/add`,
   getEventCreationPage: (siteId: string) => `/site/${siteId}/event/add`,
   getPageCreationPage: (siteId: string) => `/site/${siteId}/page/add`,
-  
-   // Integrations page
+
+  // Integrations page
   CUSTOM_APPS_INTEGRATION_PAGE: '/manage/app/integrations/custom',
   EXTERNAL_APPS_PAGE: '/people/:userId/edit/external-apps',
   FILE_MANAGEMENT_PAGE: '/manage/app/integrations/files',
