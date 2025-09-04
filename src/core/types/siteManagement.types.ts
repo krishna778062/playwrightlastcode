@@ -1,7 +1,7 @@
 export enum SitePermission {
   MEMBER = 'member',
-  CONTENT_MANAGER = 'content_manager',
-  ADMIN = 'admin',
+  CONTENT_MANAGER = 'contentManager',
+  MANAGER = 'manager',
   OWNER = 'owner',
 }
 
