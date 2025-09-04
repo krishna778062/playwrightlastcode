@@ -12,7 +12,7 @@ export interface ISiteManagementOperations {
   makeUserSiteMembership(
     siteId: string,
     userId: string,
-    permission?: SitePermission,
-    action?: SiteMembershipAction
+    permission: string,
+    action: string
   ): Promise<SiteMembershipResponse>;
 }

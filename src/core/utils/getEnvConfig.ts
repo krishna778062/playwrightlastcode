@@ -27,7 +27,6 @@ export const getEnvConfig = (): EnvConfig => ({
   endUserPassword: getEnvVar('END_USER_PASSWORD', false)!,
   siteManagerEmail: getEnvVar('SITE_MANAGER_USERNAME', false)!,
   siteManagerPassword: getEnvVar('SITE_MANAGER_PASSWORD', false)!,
-  userManagerEmail: getEnvVar('USER_MANAGER_USERNAME', false)!,
 });
 
 /**
