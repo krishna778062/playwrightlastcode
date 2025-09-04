@@ -1,6 +1,13 @@
+import { faker } from '@faker-js/faker';
+
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
-import { SiteCreationPayload } from '@/src/core/types/siteManagement.types';
+import {
+  SiteCreationPayload,
+  SiteMembershipAction,
+  SiteMembershipResponse,
+  SitePermission,
+} from '@/src/core/types/siteManagement.types';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 interface Site {
@@ -24,16 +31,18 @@ export class SiteManagementHelper {
    * @param siteName - Optional custom site name. If not provided, generates a random name.
    * @param category - The site category object, containing name and categoryId.
    * @param overrides - Optional overrides for site creation payload.
+   * @param waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to true.
    * @returns An object containing details of the created site.
    */
   async _createSiteBaseMethod(params: {
     siteName?: string;
     category?: { name: string; categoryId: string };
     overrides?: Partial<SiteCreationPayload>;
+    waitForSearchIndex?: boolean;
   }) {
-    const { siteName, category, overrides } = params;
+    const { siteName, category, overrides, waitForSearchIndex = true } = params;
     const randomNum = Math.floor(Math.random() * 1000000 + 1);
-    const finalSiteName = siteName ?? `AutomateUI_Test_${randomNum}`;
+    const finalSiteName = siteName ?? `Automate_Site_name_${faker.commerce.department()}`;
 
     // Get category if not provided
     let categoryObj = category;
@@ -53,6 +62,15 @@ export class SiteManagementHelper {
 
     const siteId = siteResult.siteId;
 
+    // Wait for site to appear in search results (optional)
+    if (waitForSearchIndex) {
+      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+        apiClient: this.appManagerApiClient,
+        searchTerm: finalSiteName,
+        objectType: 'site',
+      });
+    }
+
     const createdSite = {
       siteId,
       siteName: finalSiteName,
@@ -70,30 +88,44 @@ export class SiteManagementHelper {
    * @param siteName - Optional custom site name. If not provided, generates a random name.
    * @param category - The site category object, containing name and categoryId.
    * @param overrides - Optional overrides for site creation payload.
+   * @param waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to true.
    * @returns An object containing details of the created site.
    */
   async createPublicSite(params: {
     siteName?: string;
     category?: { name: string; categoryId: string };
     overrides?: Partial<SiteCreationPayload>;
+    waitForSearchIndex?: boolean;
   }) {
-    const { siteName, category, overrides } = params;
-    return await this._createSiteBaseMethod({ siteName, category, overrides: { ...overrides, access: 'public' } });
+    const { siteName, category, overrides, waitForSearchIndex } = params;
+    return await this._createSiteBaseMethod({
+      siteName,
+      category,
+      overrides: { ...overrides, access: 'public' },
+      waitForSearchIndex,
+    });
   }
   /**
    * Creates a new private site with default settings.
    * @param siteName - Optional custom site name. If not provided, generates a random name.
    * @param category - The site category object, containing name and categoryId.
    * @param overrides - Optional overrides for site creation payload.
+   * @param waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to true.
    * @returns An object containing details of the created site.
    */
   async createPrivateSite(params: {
     siteName?: string;
     category?: { name: string; categoryId: string };
     overrides?: Partial<SiteCreationPayload>;
+    waitForSearchIndex?: boolean;
   }) {
-    const { siteName, category, overrides } = params;
-    return await this._createSiteBaseMethod({ siteName, category, overrides: { ...overrides, access: 'private' } });
+    const { siteName, category, overrides, waitForSearchIndex } = params;
+    return await this._createSiteBaseMethod({
+      siteName,
+      category,
+      overrides: { ...overrides, access: 'private' },
+      waitForSearchIndex,
+    });
   }
 
   /**
@@ -101,15 +133,22 @@ export class SiteManagementHelper {
    * @param siteName - Optional custom site name. If not provided, generates a random name.
    * @param category - The site category object, containing name and categoryId.
    * @param overrides - Optional overrides for site creation payload.
+   * @param waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to true.
    * @returns An object containing details of the created site.
    */
   async createUnlistedSite(params: {
     siteName?: string;
     category?: { name: string; categoryId: string };
     overrides?: Partial<SiteCreationPayload>;
+    waitForSearchIndex?: boolean;
   }) {
-    const { siteName, category, overrides } = params;
-    return await this._createSiteBaseMethod({ siteName, category, overrides: { ...overrides, access: 'unlisted' } });
+    const { siteName, category, overrides, waitForSearchIndex } = params;
+    return await this._createSiteBaseMethod({
+      siteName,
+      category,
+      overrides: { ...overrides, access: 'unlisted' },
+      waitForSearchIndex,
+    });
   }
 
   /**
@@ -271,12 +310,84 @@ export class SiteManagementHelper {
   }
 
   /**
+   * Gets a site by name from the sites list, or creates a new one if not found.
+   * @param siteName - The name of the site to find or create
+   * @param options - Optional configuration for site creation if needed
+   * @param options.category - The site category object, containing name and categoryId
+   * @param options.overrides - Optional overrides for site creation payload
+   * @param options.accessType - The access type of the site (default: 'public')
+   * @returns The siteId of the found or created site
+   */
+  async getSiteFromSiteList(
+    siteName: string,
+    options?: {
+      category?: { name: string; categoryId: string };
+      overrides?: Partial<SiteCreationPayload>;
+      accessType?: SITE_TYPES;
+    }
+  ): Promise<string> {
+    // Get the list of sites
+    const sitesResponse = await this.appManagerApiClient.getSiteManagementService().getListOfSites({
+      size: 1000, // Get a large number to ensure we find the site if it exists
+      canManage: true,
+      filter: 'active',
+    });
+
+    // Search for the site by name
+    const existingSite = sitesResponse.result.listOfItems.find(
+      site => site.name.toLowerCase() === siteName.toLowerCase()
+    );
+
+    if (existingSite) {
+      console.log(`Found existing site: ${existingSite.name} with ID: ${existingSite.siteId}`);
+      return existingSite.siteId;
+    }
+
+    // Site not found, create a new one
+    console.log(`Site "${siteName}" not found. Creating a new site...`);
+
+    const accessType = options?.accessType || SITE_TYPES.PUBLIC;
+    let createdSite;
+
+    switch (accessType) {
+      case SITE_TYPES.PRIVATE:
+        createdSite = await this.createPrivateSite({
+          siteName,
+          category: options?.category,
+          overrides: options?.overrides,
+        });
+        break;
+      case SITE_TYPES.UNLISTED:
+        createdSite = await this.createUnlistedSite({
+          siteName,
+          category: options?.category,
+          overrides: options?.overrides,
+        });
+        break;
+      default:
+        createdSite = await this.createPublicSite({
+          siteName,
+          category: options?.category,
+          overrides: options?.overrides,
+        });
+    }
+
+    console.log(`Created new site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
+    return createdSite.siteId;
+  }
+
+  /**
    * Makes a user a site content manager
    * @param siteId - The ID of the site
    * @param userId - The ID of the user to make content manager
    * @returns Promise with the response
    */
-  async makeUserSiteMembership(siteId: string, userId: any, permission: string, action: string): Promise<any> {
+  async makeUserSiteMembership(
+    siteId: string,
+    userId: string,
+    permission: SitePermission,
+    action: SiteMembershipAction
+  ): Promise<SiteMembershipResponse> {
     const result = await this.appManagerApiClient
       .getSiteManagementService()
       .makeUserSiteMembership(siteId, userId, permission, action);
@@ -288,5 +399,22 @@ export class SiteManagementHelper {
     });
 
     return result;
+  }
+
+  /**
+   * Gets the list of sites
+   * @param options - Optional parameters for filtering sites
+   * @returns Promise containing the sites response
+   */
+  async getListOfSites(options?: { size?: number; canManage?: boolean; filter?: string; page?: number }) {
+    const defaultOptions = {
+      size: 1000,
+      canManage: true,
+      filter: 'active',
+      page: 0,
+      ...options,
+    };
+
+    return await this.appManagerApiClient.getSiteManagementService().getListOfSites(defaultOptions);
   }
 }

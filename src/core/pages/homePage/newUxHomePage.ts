@@ -3,11 +3,13 @@ import { Page, test } from '@playwright/test';
 import { BaseHomePage, INewUxHomePageActions } from './baseHomePage';
 
 import { CreateComponent } from '@/src/modules/content/components/createComponent';
+import { NotificationComponent } from '@/src/modules/content/components/notificationComponent';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
 import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
+import { SiteCreationPage as ContentSiteCreationPage } from '@/src/modules/content/pages/siteCreationPage';
 import { CreateComponent as AbacCreateComponent } from '@/src/modules/content-abac/components/globalCreateContainerComponent';
 import { SiteCreationPage as AbacSiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 
@@ -88,6 +90,22 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
   }
 
   /**
+   * Clicks the Create button, verifies the ABAC create container,
+   * selects the Site option, and returns the Site creation page
+   * @param options - Options for the step
+   * @returns The SiteCreationPage instance
+   */
+  async openSiteCreationFormForNonAbac(options?: { stepInfo?: string }): Promise<ContentSiteCreationPage> {
+    return await test.step(options?.stepInfo || 'Opening site creation form', async () => {
+      // Click the Create button (returns content CreateComponent for interface compatibility)
+      await this.clickOnCreateButtonOnSideNavBar();
+      const createComponent = new CreateComponent(this.page);
+      await createComponent.verifyTheCreateComponentIsVisible();
+      return await createComponent.selectSiteOption();
+    });
+  }
+
+  /**
    * Clicks on Featured Sites tab from the side navigation bar
    * @param options - Options for the step
    */
@@ -101,5 +119,10 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
         return featuredSitePage;
       }
     );
+  }
+
+  async clickOnBellIcon(options?: { stepInfo?: string }): Promise<NotificationComponent> {
+    await this.topNavBarComponent.clickOnBellIcon();
+    return new NotificationComponent(this.page);
   }
 }

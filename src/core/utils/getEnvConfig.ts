@@ -2,7 +2,7 @@ export type EnvConfig = {
   tenantOrgId: string;
   appManagerEmail: string;
   appManagerPassword: string;
-  userManagerEmail: string;
+  userManagerEmail?: string;
   frontendBaseUrl: string;
   apiBaseUrl: string;
   newUxEnabled: boolean;
