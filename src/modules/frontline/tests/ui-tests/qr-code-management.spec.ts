@@ -12,16 +12,19 @@ test.describe(
     tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.QR_CODE],
   },
   () => {
-    let qrName: string | undefined;
-    let qrDescription: string | undefined;
+    const qrDetails: { qrName: string | undefined; qrDescription: string | undefined; qrCodeId: string | undefined } = {
+      qrName: undefined,
+      qrDescription: undefined,
+      qrCodeId: undefined,
+    };
 
     test.afterEach(async ({ appManagerHomePage }) => {
-      if (qrName) {
+      if (qrDetails.qrName) {
         try {
           const manageQRPage = new ManageQRPage(appManagerHomePage.page);
-          await manageQRPage.deleteAppQR(qrName);
+          await manageQRPage.deleteAppQRByName(qrDetails.qrName);
         } catch (error) {
-          console.warn(`Cleanup failed for QR: ${qrName}`, error);
+          console.warn(`Cleanup failed for QR: ${qrDetails.qrName}`, error);
         }
       }
     });
@@ -32,32 +35,29 @@ test.describe(
         tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
       },
       async ({ appManagerHomePage }) => {
-        qrName = TestDataGenerator.generateQRName('AppPromotion');
-        qrDescription = TestDataGenerator.generateQRDescription('App Promotion QR');
-
-        const manageQRPage = new ManageQRPage(appManagerHomePage.page);
-
         tagTest(test.info(), {
           description: 'Creation and validation of app promotion QR',
           zephyrTestId: 'FL-153',
           storyId: 'FL-153',
         });
 
-        await manageQRPage.clickOnManage();
+        qrDetails.qrName = TestDataGenerator.generateQRName('AppPromotion');
+        qrDetails.qrDescription = TestDataGenerator.generateQRDescription('App Promotion QR');
+        const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+        await manageQRPage.loadPage();
         await manageQRPage.clickOnQRCodesMenu();
-        await manageQRPage.clickOnAddQR();
-        await manageQRPage.clickOnAppPromotion();
+        qrDetails.qrCodeId = await manageQRPage.clickOnAddQRAndGetQRId('AppPromotion');
         await manageQRPage.verifyPromoteMobileAppPageHeading();
-        await manageQRPage.fillQRName(qrName);
-        await manageQRPage.fillDescription(qrDescription);
+        await manageQRPage.fillQRName(qrDetails.qrName);
+        await manageQRPage.fillDescription(qrDetails.qrDescription);
         await manageQRPage.clickEyeIcon();
         await manageQRPage.verifyPopupDisplayedByHeader('Promote mobile app via QR');
         await manageQRPage.verifyQRImageDisplayOnPreview();
-        await manageQRPage.verifyQRDescriptionOnPreview(qrDescription);
+        await manageQRPage.verifyQRDescriptionOnPreview(qrDetails.qrDescription);
         await manageQRPage.clickSaveAndVisit();
         await manageQRPage.verifyManagePage();
-        await manageQRPage.verifyQRName(qrName);
-        await manageQRPage.hoverOnToogle(qrName);
+        await manageQRPage.verifyQRName(qrDetails.qrName);
+        await manageQRPage.hoverOnToogle(qrDetails.qrName);
         await manageQRPage.validateToogleText();
       }
     );
