@@ -42,7 +42,8 @@ export class SiteManagementHelper {
   }) {
     const { siteName, category, overrides, waitForSearchIndex = true } = params;
     const randomNum = Math.floor(Math.random() * 1000000 + 1);
-    const finalSiteName = siteName ?? `Automate_Site_name_${faker.commerce.department()}`;
+    const finalSiteName =
+      siteName ?? `Automated Test Site ${faker.company.name()} - ${faker.commerce.department()}`.substring(0, 39);
 
     // Get category if not provided
     let categoryObj = category;
@@ -98,6 +99,7 @@ export class SiteManagementHelper {
     waitForSearchIndex?: boolean;
   }) {
     const { siteName, category, overrides, waitForSearchIndex } = params;
+    console.log('Creating public site with name: ', siteName);
     return await this._createSiteBaseMethod({
       siteName,
       category,

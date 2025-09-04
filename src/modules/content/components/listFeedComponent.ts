@@ -193,7 +193,12 @@ export class ListFeedComponent extends BaseComponent {
 
   async markPostAsFavourite(): Promise<void> {
     await test.step(`Mark post as favourite: `, async () => {
-      await this.likeButton.hover();
+      await this.page.evaluate(
+        el => {
+          (el as HTMLElement).dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+        },
+        await this.likeButton.elementHandle()
+      );
       //verify the favourite button is visible
       await this.verifier.verifyTheElementIsVisible(this.favoriteButton, {
         assertionMessage: `verify the favourite button is visible`,

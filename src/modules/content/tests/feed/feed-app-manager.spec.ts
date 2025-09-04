@@ -52,7 +52,6 @@ test.describe(
 
         const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
         const user = await identityManagementHelper.getPeopleIdByEmail(users.endUser.email);
-        console.log(`Created user: ${user}`);
 
         if (!user) {
           throw new Error('Failed to get user ID');
