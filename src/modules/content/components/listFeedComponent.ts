@@ -193,12 +193,7 @@ export class ListFeedComponent extends BaseComponent {
 
   async markPostAsFavourite(): Promise<void> {
     await test.step(`Mark post as favourite: `, async () => {
-      await this.page.evaluate(
-        el => {
-          (el as HTMLElement).dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
-        },
-        await this.likeButton.elementHandle()
-      );
+      await this.likeButton.hover();
       //verify the favourite button is visible
       await this.verifier.verifyTheElementIsVisible(this.favoriteButton, {
         assertionMessage: `verify the favourite button is visible`,
@@ -209,12 +204,7 @@ export class ListFeedComponent extends BaseComponent {
 
   async removePostFromFavourite(postText: string): Promise<void> {
     await test.step(`Remove post from favourite: ${postText}`, async () => {
-      await this.page.evaluate(
-        el => {
-          (el as HTMLElement).dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
-        },
-        await this.likeButton.elementHandle()
-      );
+      await this.likeButton.hover();
 
       await this.verifier.verifyTheElementIsVisible(this.unfavoriteButton, {
         assertionMessage: `Post "${postText}" should be in favourited state`,
@@ -233,13 +223,7 @@ export class ListFeedComponent extends BaseComponent {
 
   async verifyPostIsNotFavorited(postText: string): Promise<void> {
     await test.step(`Verify post is not favorited: ${postText}`, async () => {
-      await this.page.evaluate(
-        el => {
-          (el as HTMLElement).dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
-        },
-        await this.likeButton.elementHandle()
-      );
-
+      await this.likeButton.hover();
       await this.verifier.verifyTheElementIsVisible(this.unfavoriteButton, {
         assertionMessage: `Post "${postText}" should be in unfavorited state`,
       });
