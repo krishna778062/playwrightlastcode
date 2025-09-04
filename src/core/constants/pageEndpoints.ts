@@ -22,11 +22,13 @@ export const PAGE_ENDPOINTS = {
 
   // content management pages
   getSiteDashboardPage: (siteId: string) => `/site/${siteId}/dashboard`,
-  PAGE_CREATION_PAGE: '/site/:siteId/page/:pageId',
-  ALBUM_CREATION_PAGE: '/site/:siteId/album/:albumId',
-  EVENT_CREATION_PAGE: '/site/:siteId/event/:eventId',
-
-  // Integrations page
+  getContentPreviewPage: (siteId: string, contentId: string, contentType: string) =>
+    `/site/${siteId}/${contentType}/${contentId}`,
+  getAlbumCreationPage: (siteId: string) => `/site/${siteId}/album/add`,
+  getEventCreationPage: (siteId: string) => `/site/${siteId}/event/add`,
+  getPageCreationPage: (siteId: string) => `/site/${siteId}/page/add`,
+  
+   // Integrations page
   CUSTOM_APPS_INTEGRATION_PAGE: '/manage/app/integrations/custom',
   EXTERNAL_APPS_PAGE: '/people/:userId/edit/external-apps',
   FILE_MANAGEMENT_PAGE: '/manage/app/integrations/files',
