@@ -10,4 +10,5 @@ export enum ContentTestSuite {
   SITE_APP_MANAGER = '@site-Application-Manager',
   ATTACHMENTS = '@attachments',
   FEATURED_SITES = '@featured-sites',
+  FILES_PREVIEW = '@Files-Preview',
 }
