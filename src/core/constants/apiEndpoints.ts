@@ -7,7 +7,6 @@ export const API_ENDPOINTS = {
   appManagement: {
     users: {
       add: '/v1/identity/accounts/users',
-      list: '/v1/identity/accounts/users/list',
       getUserId: (firstName: string, lastName: string) => `/v1/chat/search/users?query=${firstName} ${lastName}`,
       delete: (userId: string) => `/v1/identity/accounts/users/${userId}`,
       v1IdentityAccountsUsersUserId: (userId: string) => `/v1/identity/accounts/users/${userId}`,
@@ -39,6 +38,7 @@ export const API_ENDPOINTS = {
   identity: {
     validate: '/v2/identity/users/validate',
     login: '/v2/identity/users/login',
+    people: '/v2/identity/people',
   },
   admin: {
     login: '/v2/identity/admin/login',
@@ -74,6 +74,7 @@ export const API_ENDPOINTS = {
     create: `/v1/wfeed/feeds`,
     delete: (feedId: string) => `/v1/wfeed/feeds/${feedId}`,
     update: (feedId: string) => `/v1/wfeed/feeds/${feedId}`,
+    feedURL: (feedId: string) => `/feed/${feedId}`,
   },
   apps: {
     settings: '/v1/account/apps-links-settings',

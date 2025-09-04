@@ -4,7 +4,7 @@ import { APIRequestContext, test } from '@playwright/test';
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { IFeedManagementOperations } from '@core/api/interfaces/IFeedManagementOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-import { Feed } from '@core/types/feed.type';
+import { CreateFeedPostPayload, FeedPostResponse, UpdateFeedPostPayload } from '@core/types/feed.type';
 
 export function buildFeedTextJsonAndTextHtml(text: string) {
   const textJsonObject = {
@@ -31,35 +31,41 @@ export function buildFeedTextJsonAndTextHtml(text: string) {
   };
 }
 
-export function buildAttachmentObject(
-  fileId: string,
-  options: {
-    provider?: string;
-    size?: number;
-    name?: string;
-    type?: string;
-  } = {}
-) {
-  const { provider = 'intranet', size = 187280, name = 'boitumelo-_8gR561QtEA-unsplash', type = 'JPEG' } = options;
+/**
+ * Creates a complete feed payload with the specified parameters
+ * @param text - The text content for the feed post
+ * @param scope - Scope of the post (default: "public")
+ * @param siteId - Site ID for site-specific posts (default: null)
+ * @param listOfAttachedFiles - Array of attached files (default: [])
+ * @param ignoreToxic - Whether to ignore toxic content check (default: false)
+ * @param type - Type of the post (default: "post")
+ * @param variant - Variant of the post (default: "standard")
+ * @returns Complete CreateFeedPostPayload object
+ */
+export function buildCreateFeedPayload(
+  text: string,
+  scope: string,
+  siteId: string | null = null,
+  listOfAttachedFiles: any[] = [],
+  ignoreToxic: boolean = false,
+  type: string = 'post',
+  variant: string = 'standard'
+): CreateFeedPostPayload {
+  const { textJson, textHtml } = buildFeedTextJsonAndTextHtml(text);
 
   return {
-    fileId: fileId,
-    provider: provider,
-    size: size,
-    name: name,
-    type: type,
+    textJson,
+    textHtml,
+    scope,
+    siteId,
+    listOfAttachedFiles,
+    ignoreToxic,
+    type,
+    variant,
   };
 }
 
-const defaultFeedPayload: Feed = {
-  ...buildFeedTextJsonAndTextHtml(faker.lorem.sentence()),
-  scope: 'public',
-  siteId: null,
-  listOfAttachedFiles: [],
-  ignoreToxic: false,
-  type: 'post',
-  variant: 'standard',
-};
+const defaultFeedPayload: CreateFeedPostPayload = buildCreateFeedPayload(faker.lorem.sentence(), 'public');
 
 /**
  * @description Service for managing feeds
@@ -85,22 +91,37 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
    * @returns {Promise<any>}
    * @memberof FeedManagementService
    */
-  async createFeed(overrides: Partial<Feed> = {}): Promise<any> {
+  async createFeed(overrides: Partial<CreateFeedPostPayload> = {}): Promise<FeedPostResponse> {
     return await test.step('Creating a feed via API post request', async () => {
       const payload = {
         ...defaultFeedPayload,
         ...overrides,
       };
-      console.log('feed payload: ', payload);
+      console.log('feed payload JSON: ', JSON.stringify(payload, null, 2));
       const response = await this.post(API_ENDPOINTS.feed.create, {
         data: payload,
       });
-      const json = await response.json();
-      console.log('feed JSON Response:', JSON.stringify(json, null, 2));
-      if (json.status !== 'success' || !json.result?.feedId) {
-        throw new Error(`Feed creation failed. Response: ${JSON.stringify(json)}`);
+      const responseBody = await response.json();
+      console.log('feed response JSON: ', JSON.stringify(responseBody, null, 2));
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(`Failed to create feed post. Status: ${response.status()}`);
       }
-      return json;
+
+      return responseBody;
+    });
+  }
+
+  async updatePost(postId: string, postData: UpdateFeedPostPayload): Promise<FeedPostResponse> {
+    return await test.step(`Updating feed post ${postId}`, async () => {
+      const response = await this.put(API_ENDPOINTS.feed.update(postId), {
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        data: postData,
+      });
+      const responseBody = await response.json();
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(`Failed to update feed post ${postId}. Status: ${response.status()}`);
+      }
+      return responseBody.result;
     });
   }
 
@@ -304,15 +325,31 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
   }
 
   /**
-   * @description Deletes a feed
-   * @param {string} feedId The ID of the feed to delete
-   * @returns {Promise<any>}
-   * @memberof FeedManagementService
+   * Deletes a feed post
+   * @param siteId - The site ID where the post exists
+   * @param postId - The ID of the post to delete
+   * @returns Promise that resolves when the post is deleted
    */
-  async deleteFeed(feedId: string): Promise<any> {
-    return await test.step(`Deleting a feed with ID "${feedId}" via API delete request`, async () => {
-      const response = await this.delete(API_ENDPOINTS.feed.delete(feedId));
-      return this.parseResponse<any>(response);
+  async deleteFeed(postId: string): Promise<void> {
+    return await test.step(`Deleting feed post ${postId}`, async () => {
+      console.log(`Deleting feed post ${postId}`);
+      const response = await this.delete(API_ENDPOINTS.feed.delete(postId), {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      });
+
+      const responseBody = await response.json();
+      console.log(`Delete response:`, responseBody);
+
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(
+          `Failed to delete feed post ${postId}. Status: ${response.status()}, Message: ${responseBody.message || 'Unknown error'}`
+        );
+      }
+
+      console.log(`Feed post ${postId} deleted successfully. Message: ${responseBody.message}`);
     });
   }
 }
