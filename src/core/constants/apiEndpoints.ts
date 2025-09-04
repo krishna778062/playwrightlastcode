@@ -48,6 +48,8 @@ export const API_ENDPOINTS = {
     url: '/v1/content/sites',
     category: '/v1/content/siteCategories/list',
     deactivate: '/v1/content/sites/attributes?attribute=status',
+    listOfSites: '/v1/content/sites/list',
+    manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
   },
 
   content: {
@@ -71,6 +73,7 @@ export const API_ENDPOINTS = {
   feed: {
     create: `/v1/wfeed/feeds`,
     delete: (feedId: string) => `/v1/wfeed/feeds/${feedId}`,
+    update: (feedId: string) => `/v1/wfeed/feeds/${feedId}`,
   },
   apps: {
     settings: '/v1/account/apps-links-settings',

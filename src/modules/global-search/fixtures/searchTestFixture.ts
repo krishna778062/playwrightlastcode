@@ -23,7 +23,7 @@ export const searchTestFixtures = test.extend<{
   siteManagementHelper: SiteManagementHelper;
 }>({
   appManagerHomePage: [
-    async ({ page }, use, workerInfo) => {
+    async ({ page }, use, _workerInfo) => {
       const appManagerHomePage = await LoginHelper.loginWithPassword(page, {
         email: getEnvConfig().appManagerEmail,
         password: getEnvConfig().appManagerPassword,
@@ -34,7 +34,7 @@ export const searchTestFixtures = test.extend<{
     { scope: 'test' },
   ],
   appManagerUserPage: [
-    async ({ appManagerHomePage }, use, workerInfo) => {
+    async ({ appManagerHomePage }, use, _workerInfo) => {
       await use(appManagerHomePage.page);
     },
     { scope: 'test' },

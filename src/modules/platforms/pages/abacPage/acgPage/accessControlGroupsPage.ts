@@ -1,4 +1,3 @@
-import { ac } from '@faker-js/faker/dist/airline-BUL6NtOJ';
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
@@ -27,6 +26,8 @@ export class AccessControlGroupsPage extends BasePage {
   readonly iUnderstand: Locator;
   readonly acgNameInputBox: Locator;
   readonly acgSearchBox: Locator;
+  readonly acgStatusToggle: Locator;
+  readonly acgRecordsElement: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.ACCESS_CONTROL_GROUPS_PAGE) {
     super(page, pageUrl);
@@ -42,6 +43,8 @@ export class AccessControlGroupsPage extends BasePage {
     this.iUnderstand = page.locator('#confirmDelete');
     this.acgNameInputBox = page.locator('[name="controlGroupName"]');
     this.acgSearchBox = page.locator('#q');
+    this.acgStatusToggle = page.locator('[aria-checked="true"]');
+    this.acgRecordsElement = page.locator('[data-testid*="dataGridRow"]');
   }
 
   // To verify that the ACG page is loaded
@@ -130,20 +133,10 @@ export class AccessControlGroupsPage extends BasePage {
       await this.clickOnElement(this.acgMenuOptions.first(), {
         stepInfo: 'Click on menu options button for first ACG in the list',
       });
-      try {
-        await this.clickOnElement(this.acgDeleteButton, {
-          stepInfo: 'Click on Delete option for first ACG in the list',
-        });
-        await this.verifier.verifyTheElementIsVisible(this.iUnderstand, {
-          assertionMessage: 'Verify the I understand checkbox is visible',
-        });
-      } catch (e) {
-        console.log("couldn't click the delete button on first try");
-        await this.clickOnElementWithCoordinates(this.acgDeleteButton, {
-          force: true,
-          stepInfo: 'Clicking on the Delete button with coordinates',
-        });
-      }
+      await this.clickOnElementWithCoordinates(this.acgDeleteButton, {
+        force: true,
+        stepInfo: 'Clicking on the Delete button with coordinates',
+      });
     });
     await this.clickOnElement(this.iUnderstand, {
       stepInfo: 'Click on the I understand checkbox',
@@ -177,6 +170,34 @@ export class AccessControlGroupsPage extends BasePage {
       const expectedEncoded = new URLSearchParams({ q: acgName }).toString();
       const fullUrl = this.pageUrl + '?' + expectedEncoded;
       await expect(this.page).toHaveURL(fullUrl);
+    });
+  }
+
+  /**
+   * Verifies the status if the ACG.
+   * @param acgName - Name of the ACG whose status need to be verified.
+   * @param status - Status of the ACG to be verified.
+   */
+  async verifyACGStatus(acgName: string, status: string): Promise<void> {
+    await test.step(`Verifying the status of ${acgName} ACG as ${status}`, async () => {
+      const userNameElement: Locator = this.acgRecordsElement.filter({ hasText: acgName });
+      await expect(
+        userNameElement.locator('[class*="Typography-module__secondary"]'),
+        `Checking the status of ${acgName} as ${status}`
+      ).toHaveText(status);
+    });
+  }
+
+  /**
+   * Change the status of the ACG.
+   * @param newStatus - New status to be changed for the given ACG.
+   */
+  async changeACGStatus(newStatus: string): Promise<void> {
+    await test.step(`Toggling the status to ${newStatus}`, async () => {
+      const currStatus = await this.acgStatusToggle.getAttribute('aria-checked');
+      if ((newStatus === 'Active' && currStatus === 'false') || (newStatus === 'Inactive' && currStatus === 'true')) {
+        await this.clickOnElement(this.acgStatusToggle);
+      }
     });
   }
 }
