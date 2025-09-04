@@ -44,20 +44,20 @@ test.describe(
       }
     );
 
-    // test.afterAll(
-    //   `Cleaning up the test environment by deleting the created page content`,
-    //   async ({ contentManagementHelper }) => {
-    //     if (contentId) {
-    //       await contentManagementHelper.deleteContent(contentId, siteId);
-    //       console.log(`Deleted page "${pageName}" with ID: ${contentId}`);
-    //     }
-    //   }
-    // );
+    test.afterAll(
+      `Cleaning up the test environment by deleting the created page content`,
+      async ({ contentManagementHelper }) => {
+        if (contentId) {
+          await contentManagementHelper.deleteContent(contentId, siteId);
+          console.log(`Deleted page "${pageName}" with ID: ${contentId}`);
+        }
+      }
+    );
 
     test(
       `Verify Content Search results for a new ${testData.content}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@test'],
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {

@@ -42,9 +42,9 @@ export class SidebarFilterComponent extends BaseComponent {
     this.siteSubFilterButton = this.page.getByRole('button', { name: 'Site' });
     this.siteSubFilterDownArrow = this.siteSubFilterButton.locator('[data-testid="i-arrowDown"]');
     this.siteInput = this.page.getByRole('textbox', { name: 'Select...' });
-    this.autocompleteList = this.page.locator('[class*="SiteListItemFilter"]');
+    this.autocompleteList = this.page.locator('[class*="CustomFilter_radioListContainer"]');
     this.siteItem = this.autocompleteList.locator('h4').filter({ hasText: this.siteName });
-    this.siteThumbnail = this.siteItem.locator('[data-testid="i-sites"]');
+    this.siteThumbnail = this.autocompleteList.filter({ hasText: this.siteName }).locator('[data-testid="i-sites"]');
     this.clearButton = this.page.locator('[data-testid="i-crossThick"]');
     this.resultsCount = this.page
       .locator('h2')
@@ -240,7 +240,7 @@ export class SidebarFilterComponent extends BaseComponent {
    */
   async verifyAutocompleteListDisplayed(options?: { stepInfo?: string }): Promise<void> {
     return await test.step(options?.stepInfo || 'Verify autocomplete list is displayed', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.autocompleteList, {
+      await this.verifier.verifyTheElementIsVisible(this.autocompleteList.first(), {
         timeout: 10000,
         assertionMessage: 'Verifying autocomplete list is visible',
       });

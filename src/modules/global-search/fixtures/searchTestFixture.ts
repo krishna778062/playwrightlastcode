@@ -59,14 +59,15 @@ export const searchTestFixtures = test.extend<
     },
     { scope: 'worker' },
   ],
-  contentManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const contentManagementHelper = new ContentManagementHelper(appManagerApiClient);
-      await use(contentManagementHelper);
-      await contentManagementHelper.cleanup();
-    },
-    { scope: 'test' },
-  ],
+  // contentManagementHelper: [
+  //   async ({ appManagerApiClient }, use) => {
+  //     const contentManagementHelper = new ContentManagementHelper(appManagerApiClient);
+  //     await use(contentManagementHelper);
+
+  //     await contentManagementHelper.cleanup();
+  //   },
+  //   { scope: 'test' },
+  // ],
   feedManagementHelper: [
     async ({ appManagerApiClient }, use) => {
       const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
