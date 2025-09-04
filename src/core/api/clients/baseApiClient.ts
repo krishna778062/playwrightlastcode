@@ -9,7 +9,10 @@ import { HttpClient } from '@/src/core/api/clients/httpClient';
 export abstract class BaseApiClient extends HttpClient {
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
+    this.locationHeader = undefined;
   }
+
+  public locationHeader: any = undefined;
 
   /**
    * Creates an API context by logging in via API
@@ -56,7 +59,7 @@ export abstract class BaseApiClient extends HttpClient {
 
       const storageState = await tmpContext.storageState();
       const headers = this.fetchHeadersFromCookies(storageState.cookies);
-      const locationHeader = this.fetchLocationHeader(loginApiRes);
+      this.locationHeader = this.fetchLocationHeader(loginApiRes);
 
       // Create new context with auth headers
       return await request.newContext({

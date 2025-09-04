@@ -19,7 +19,7 @@ import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 test.describe(
   '@FeedAM - Site Owner, Manager and Content Manager Feed Post Favorite/Unfavorite Tests',
   {
-    tag: [ContentTestSuite.FEED_APP_MANAGER, ContentTestSuite.ATTACHMENTS],
+    tag: [ContentTestSuite.FEED_APP_MANAGER],
   },
   () => {
     let feedPage: FeedPage;
@@ -139,6 +139,50 @@ test.describe(
         await feedPage.assertions.verifyPostIsFavorited(createdPostText);
 
         // Step 12: Unfavorite the post as Site Manager
+        await feedPage.actions.removePostFromFavourite(createdPostText);
+        await feedPage.assertions.verifyPostIsNotFavorited(createdPostText);
+      }
+    );
+    test(
+      'Verify Site Owner/Manager/Content Manager can favorite and unfavorite feed post with file attachment',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39249'],
+      },
+      async ({ appManagerApiClient, siteManagementHelper, feedManagementHelper }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify Site Owner, Manager and Content Manager is able to favorite and unfavorite Feed post without File Attachment on Content Feed',
+          zephyrTestId: 'CONT-39249',
+          storyId: 'CONT-39249',
+        });
+        const postText = `Automated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`;
+        // Step 3: Create a new post using FeedManagementHelper
+        const feedResponse = await feedManagementHelper.createFeedWithAttachments('public', '', postText, {
+          waitForSearchIndex: false,
+        });
+
+        console.log(`Created feed via Helper: ${feedResponse.result.feedId}`);
+
+        // Store created post details for cleanup
+        const postResult = {
+          postText: postText,
+          postId: feedResponse.result.feedId,
+        };
+
+        // Store created post text and postId for cleanup
+        createdPostText = postResult.postText;
+        createdPostId = postResult.postId;
+
+        // Navigate to feed URL
+        await feedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
+        // Step 4: Wait for post to be visible
+        await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        // Step 5: Favorite the post as App Manager
+        await feedPage.actions.markPostAsFavourite();
+        await feedPage.assertions.verifyPostIsFavorited(createdPostText);
+
+        // Step 6: Unfavorite the post as App Manager
         await feedPage.actions.removePostFromFavourite(createdPostText);
         await feedPage.assertions.verifyPostIsNotFavorited(createdPostText);
       }

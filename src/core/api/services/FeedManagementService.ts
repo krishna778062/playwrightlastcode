@@ -1,10 +1,15 @@
 import { faker } from '@faker-js/faker';
 import { APIRequestContext, test } from '@playwright/test';
+import * as fs from 'fs';
 
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { IFeedManagementOperations } from '@core/api/interfaces/IFeedManagementOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { CreateFeedPostPayload, FeedPostResponse, UpdateFeedPostPayload } from '@core/types/feed.type';
+
+import { FileUtil } from '../../utils/fileUtil';
+
+import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 export function buildFeedTextJsonAndTextHtml(text: string) {
   const textJsonObject = {
@@ -62,6 +67,26 @@ export function buildCreateFeedPayload(
     ignoreToxic,
     type,
     variant,
+  };
+}
+
+export function buildAttachmentObject(
+  fileId: string,
+  options: {
+    provider?: string;
+    size?: number;
+    name?: string;
+    type?: string;
+  } = {}
+) {
+  const { provider = 'intranet', size = 187280, name = 'boitumelo-_8gR561QtEA-unsplash', type = 'JPEG' } = options;
+
+  return {
+    fileId: fileId,
+    provider: provider,
+    size: size,
+    name: name,
+    type: type,
   };
 }
 
@@ -126,53 +151,6 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
   }
 
   /**
-   * @description Creates a feed with attachments
-   * @param {string} text The text content for the feed
-   * @param {string[]} fileIds Array of file IDs to attach
-   * @param {Partial<Feed>} [overrides] Additional overrides for the feed
-   * @returns {Promise<any>}
-   * @memberof FeedManagementService
-   */
-  async createFeedWithAttachment(text: string, fileIds: string[], overrides: Partial<Feed> = {}): Promise<any> {
-    return await test.step(`Creating a feed with ${fileIds.length} attachment(s) via API post request`, async () => {
-      // Get location header from context headers and call getLocation if available
-      const contextHeaders = (this.context as any)._options.extraHTTPHeaders;
-      const locationHeader = contextHeaders.location;
-      await this.getLocation(locationHeader);
-
-      // Call uploadImage
-      await this.uploadImage('Upload Image', 1024, 'image/jpeg');
-
-      const textContent = buildFeedTextJsonAndTextHtml(text);
-
-      // Map file IDs to attachment objects
-      const listOfAttachedFiles = fileIds.map(fileId => buildAttachmentObject(fileId));
-
-      const payload = {
-        ...defaultFeedPayload,
-        ...textContent,
-        listOfAttachedFiles: listOfAttachedFiles,
-        ...overrides,
-      };
-
-      console.log('Feed with attachment payload:', JSON.stringify(payload, null, 2));
-
-      const response = await this.post(API_ENDPOINTS.feed.create, {
-        data: payload,
-      });
-
-      const json = await response.json();
-      console.log('Feed with attachment JSON Response:', JSON.stringify(json, null, 2));
-
-      if (json.status !== 'success' || !json.result?.feedId) {
-        throw new Error(`Feed with attachment creation failed. Response: ${JSON.stringify(json)}`);
-      }
-
-      return json;
-    });
-  }
-
-  /**
    * @description Uploads an image and gets signed URL for upload
    * @param {string} fileName The name of the file to upload
    * @param {number} size The size of the file in bytes
@@ -223,8 +201,8 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       }
 
       // Extract key values for easy access
-      const responseFileId = json.result?.file_id;
-      const uploadUrl = json.result?.upload_url;
+      const responseFileId = json.result.file_id;
+      const uploadUrl = json.result.upload_url;
 
       console.log('Extracted file_id:', responseFileId);
       console.log('Extracted upload_url:', uploadUrl);
@@ -246,29 +224,37 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
    * @returns {Promise<any>}
    * @memberof FeedManagementService
    */
-  async uploadToAttachmentURL(
-    uploadUrl: string,
-    fileData: Buffer | string,
-    fileName: string,
-    mimeType: string
-  ): Promise<any> {
+  async uploadToAttachmentURL(uploadUrl: string, fileName: string): Promise<any> {
     return await test.step(`Uploading file binary data to attachment URL for "${fileName}"`, async () => {
       if (!uploadUrl) {
         throw new Error('Upload URL is required but not provided');
       }
+      const fileName = CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName;
+      const filePath = FileUtil.getFilePath(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        'modules',
+        'content',
+        'test-data',
+        'static-files',
+        'images',
+        fileName
+      );
+      const fileBuffer = fs.readFileSync(filePath);
 
       console.log('Uploading to URL:', uploadUrl);
       console.log('File name:', fileName);
-      console.log('MIME type:', mimeType);
 
       // Make a PUT request to the signed URL with the file data
-      const response = await fetch(uploadUrl, {
+      const response = await this.context.fetch(uploadUrl, {
         method: 'PUT',
         headers: {
           'Content-Disposition': `attachment; filename=${fileName}`,
-          'Content-Type': mimeType,
+          'Content-Type': 'image/jpeg',
         },
-        body: fileData,
+        data: fileBuffer,
       });
 
       console.log('Upload response status:', response.status);
@@ -350,6 +336,55 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       }
 
       console.log(`Feed post ${postId} deleted successfully. Message: ${responseBody.message}`);
+    });
+  }
+
+  /**
+   * @description Creates a feed with attachments
+   * @param {Partial<CreateFeedPostPayload>} [overrides] The partial feed data to override the defaults
+   * @returns {Promise<FeedPostResponse>}
+   * @memberof FeedManagementService
+   */
+  async createFeedWithAttachment(overrides: Partial<CreateFeedPostPayload> = {}): Promise<FeedPostResponse> {
+    return await test.step('Creating a feed with attachment via API post request', async () => {
+      // Default image upload parameters
+      const fileName = 'test-image.jpg';
+      const fileSize = 187280;
+      const mimeType = 'image/jpeg';
+
+      // Upload image to get fileId
+      const uploadResponse = await this.uploadImage(fileName, fileSize, mimeType);
+      const fileId = uploadResponse.result.file_id;
+      const attachmentURL = uploadResponse.result.upload_url;
+      console.log('fileId: ', fileId);
+      console.log('attachmentURL: ', attachmentURL);
+      if (!fileId) {
+        throw new Error('Failed to get fileId from upload response');
+      }
+      await this.uploadToAttachmentURL(attachmentURL, fileName);
+      // Create attachment object with the uploaded fileId
+      const listOfAttachedFiles = [buildAttachmentObject(fileId)];
+
+      const payload = {
+        ...defaultFeedPayload,
+        listOfAttachedFiles: listOfAttachedFiles,
+        ...overrides,
+      };
+
+      console.log('Feed with attachment payload:', JSON.stringify(payload, null, 2));
+
+      const response = await this.post(API_ENDPOINTS.feed.create, {
+        data: payload,
+      });
+
+      const responseBody = await response.json();
+      console.log('Feed with attachment response:', JSON.stringify(responseBody, null, 2));
+
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(`Failed to create feed with attachment. Status: ${response.status()}`);
+      }
+
+      return responseBody;
     });
   }
 }
