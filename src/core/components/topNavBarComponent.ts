@@ -28,7 +28,8 @@ export class TopNavBarComponent extends BaseComponent {
    */
   async openMessageInbox(options?: { stepInfo?: string; timeout?: number }): Promise<void> {
     await test.step(options?.stepInfo || `Opening message inbox`, async () => {
-      await this.clickOnElement(this.messageButton);
+      // await this.clickOnElement(this.messageButton);
+      await this.clickByInjectingJavaScript(this.messageButton);
     });
   }
 
