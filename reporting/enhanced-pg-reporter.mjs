@@ -281,16 +281,16 @@ class PostgresPlaywrightReporter {
     // SQL with all columns including annotations
     const insertSQL = `
       INSERT INTO test_executions (
-        execution_run_id, playwright_test_id, project_name, test_title, suite_name, 
+        execution_run_id, playwright_test_id, project_name, test_title, suite_name,
         spec_file_name, tags, zephyr_id, zephyr_url, story_id, story_url, test_description,
-        module_name, team_name, priority, test_type, status, retry_count, is_flaky, 
-        duration_ms, error_type, error_message, error_stack, environment, branch_name, 
-        git_commit_sha, git_commit_message, is_regression_run, github_action_id, 
-        github_run_number, github_run_attempt, triggered_by, pr_number, test_start_time, 
+        module_name, team_name, priority, test_type, status, retry_count, is_flaky,
+        duration_ms, error_type, error_message, error_stack, environment, branch_name,
+        git_commit_sha, git_commit_message, is_regression_run, github_action_id,
+        github_run_number, github_run_attempt, triggered_by, pr_number, test_start_time,
         test_end_time, suite_start_time, report_url, error_list, step_titles, annotations
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40)
-      ON CONFLICT (execution_run_id, playwright_test_id, retry_count) 
-      DO UPDATE SET 
+      ON CONFLICT (execution_run_id, playwright_test_id, retry_count)
+      DO UPDATE SET
         test_end_time = EXCLUDED.test_end_time,
         duration_ms = EXCLUDED.duration_ms,
         status = EXCLUDED.status,
@@ -772,7 +772,7 @@ class PostgresPlaywrightReporter {
   let lastError;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     // FIXED: Create new reporter instance inside the loop, use let instead of const
-    let reporter = new PostgresPlaywrightReporter();
+    const reporter = new PostgresPlaywrightReporter();
 
     try {
       console.log(`\n🔄 Attempt ${attempt}/${maxRetries} to process report...`);

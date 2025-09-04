@@ -35,7 +35,7 @@ export class ManageRewardsPage extends BasePage {
     }
     const json = await this.harnessFlagResponse?.json();
     const match = json.find((item: any) => item.flag === targetKey);
-    return match?.kind === 'boolean' ? match.value === 'true' : (match?.value ?? null);
+    return match?.kind === 'boolean' ? (match.value === 'true' ? 'true' : 'false') : (match?.value ?? null);
   }
 
   async hasManageRecognitionPermission(): Promise<boolean> {
