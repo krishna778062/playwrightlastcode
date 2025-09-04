@@ -12,8 +12,8 @@ import { ContentType } from '@/src/modules/content/constants/contentType';
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { ApplicationScreen } from '@/src/modules/content/pages/applicationscreen';
-import { ApplicationScreen as ManageFeature } from '@/src/modules/content/pages/manageFeaturesPage';
+import { ApplicationScreenPage } from '@/src/modules/content/pages/applicationscreenPage';
+import { ApplicationScreenPage as ManageFeature } from '@/src/modules/content/pages/manageFeaturesPage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
@@ -28,18 +28,17 @@ test.describe(
     let siteIdToPublishPage: string;
     let pageRef: Page;
     let homePage: NewUxHomePage;
-    let applicationscreen: ApplicationScreen;
+    let applicationscreen: ApplicationScreenPage;
     let manageFeaturePage: ManageFeature;
 
-    test.beforeEach(async ({ page, loginAs }) => {
-      // Login as app manager using loginAs
-      await loginAs('appManager');
-      pageRef = page;
+    test.beforeEach(async ({ appManagerHomePage, appManagersPage }) => {
+      await appManagerHomePage.verifyThePageIsLoaded();
+      pageRef = pageRef;
 
-      homePage = new NewUxHomePage(page);
+      homePage = new NewUxHomePage(pageRef);
       await homePage.verifyThePageIsLoaded();
       pageCreationPage = new PageCreationPage(pageRef);
-      applicationscreen = new ApplicationScreen(pageRef);
+      applicationscreen = new ApplicationScreenPage(pageRef);
       manageFeaturePage = new ManageFeature(pageRef);
     });
 
@@ -122,9 +121,8 @@ test.describe(
         await manageFeaturePage.clickOnSitesCard();
         await pageCreationPage.clickOnSite();
         await pageCreationPage.ViewSite();
-        await pageCreationPage.clickOnFeed();
         await pageCreationPage.verfiyFeedSection();
-        await homePage.clickOnContQA();
+        await homePage.clickOnHome();
         await homePage.clickOnFeedSideMenu();
         await pageCreationPage.verfiyFeedSection();
       }

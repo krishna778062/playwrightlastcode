@@ -105,25 +105,31 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
 
   async navigateToApplication(): Promise<void> {
     await test.step('Clicking on application', async () => {
-      await this.sideNavBarComponent.navigateOnApplication.click();
+      await this.clickOnElement(this.sideNavBarComponent.navigateOnApplication);
     });
   }
 
   async clickOnManageFeature(): Promise<void> {
     await test.step('Clicking on application', async () => {
-      await this.sideNavBarComponent.clickOnManageFeature.click();
+      await this.clickOnElement(this.sideNavBarComponent.clickOnManageFeature);
     });
   }
 
-  async clickOnContQA(): Promise<void> {
+  async clickOnHomeButton(): Promise<void> {
     await test.step('Clicking on application', async () => {
-      await this.sideNavBarComponent.clickOnContQA.click();
+      await this.sideNavBarComponent.clickOnHome();
+    });
+  }
+
+  async clickOnHome(): Promise<void> {
+    await test.step('Clicking on application', async () => {
+      await this.sideNavBarComponent.clickOnHome();
     });
   }
 
   async clickOnFeedSideMenu(): Promise<void> {
     await test.step('Clicking on application', async () => {
-      await this.sideNavBarComponent.clickOnFeedSideMenu.click();
+      await this.clickOnElement(this.sideNavBarComponent.clickOnFeedSideMenu);
     });
   }
 }

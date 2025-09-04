@@ -340,7 +340,8 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
 
   async clickOnContent(): Promise<void> {
     await test.step('Clicking on save', async () => {
-      await this.sideNavBarComponent.clickOnContent.click();
+      await this.clickOnElement(this.sideNavBarComponent.clickOnContent);
+      await this.sideNavBarComponent.clickOnContent.press('Enter');
     });
   }
 
@@ -352,19 +353,15 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
 
   async clickOnSite(): Promise<void> {
     await test.step('Clicking on save', async () => {
-      await this.sideNavBarComponent.clickOnSite.click();
+      await this.clickOnElement(this.sideNavBarComponent.clickOnSite);
+      await this.sideNavBarComponent.clickOnSite.press('Tab');
+      await this.sideNavBarComponent.clickOnSite.press('Enter');
     });
   }
 
   async ViewSite(): Promise<void> {
     await test.step('Clicking on save', async () => {
-      await this.sideNavBarComponent.ViewSite.click();
-    });
-  }
-
-  async clickOnFeed(): Promise<void> {
-    await test.step('Clicking on save', async () => {
-      await this.sideNavBarComponent.clickOnFeed.click();
+      await this.clickOnElement(this.sideNavBarComponent.ViewSite);
     });
   }
 
@@ -373,10 +370,4 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       await this.sideNavBarComponent.verfiyFeedSection.isHidden();
     });
   }
-
-  // async navigateToContent(): Promise<void> {
-  //   await test.step('Navigating to content', async () => {
-  //     await this.sideNavBarComponent.clickOnContent();
-  //   });
-  // }
 }

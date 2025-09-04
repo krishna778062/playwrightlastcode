@@ -13,7 +13,7 @@ import { CONTENT_TEST_DATA } from '../test-data/content.test-data';
 
 import { FileUtil } from '@/src/core/utils/fileUtil';
 
-export class ApplicationScreen extends BasePage {
+export class ApplicationScreenPage extends BasePage {
   private sideNavBarComponent: SideNavBarComponent;
 
   constructor(page: Page) {
