@@ -8,6 +8,15 @@ import { LoginHelper } from '@core/helpers/loginHelper';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
+import { FilesPreviewModalComponent } from '../components/filesPreviewModalComponent';
+import { SiteAboutPage } from '../pages/sitePages/siteAboutPage';
+import { SiteContentPage } from '../pages/sitePages/siteContentPage';
+import { SiteFeedPage } from '../pages/sitePages/siteFeedPage';
+import { SiteFilesPage } from '../pages/sitePages/siteFilesPage';
+import { SiteMainPage } from '../pages/sitePages/siteMainPage';
+import { SiteManageSitePage } from '../pages/sitePages/siteManageSitePage';
+import { SiteQuestionsPage } from '../pages/sitePages/siteQuestionsPage';
+
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
@@ -68,6 +77,18 @@ export const contentTestFixture = test.extend<
     // Utility functions
     loginAs: (userType: UserType) => Promise<void>;
     switchUser: (fromPage: Page, toUserType: UserType) => Promise<HomePageType>;
+
+    // Site pages
+    siteMainPage: SiteMainPage;
+    siteFeedPage: SiteFeedPage;
+    siteContentPage: SiteContentPage;
+    siteQuestionsPage: SiteQuestionsPage;
+    siteFilesPage: SiteFilesPage;
+    siteAboutPage: SiteAboutPage;
+    siteManageSitePage: SiteManageSitePage;
+
+    // Components
+    filesPreviewModalComponent: FilesPreviewModalComponent;
   },
   {
     // Worker-scoped fixtures
@@ -235,6 +256,65 @@ export const contentTestFixture = test.extend<
         await homePage.verifyThePageIsLoaded();
         return homePage;
       });
+    },
+    { scope: 'test' },
+  ],
+
+  siteMainPage: [
+    async ({ page }, use) => {
+      const siteMainPage = new SiteMainPage(page);
+      await use(siteMainPage);
+    },
+    { scope: 'test' },
+  ],
+
+  siteFeedPage: [
+    async ({ page }, use) => {
+      const siteFeedPage = new SiteFeedPage(page);
+      await use(siteFeedPage);
+    },
+    { scope: 'test' },
+  ],
+  siteContentPage: [
+    async ({ page }, use) => {
+      const siteContentPage = new SiteContentPage(page);
+      await use(siteContentPage);
+    },
+    { scope: 'test' },
+  ],
+  siteQuestionsPage: [
+    async ({ page }, use) => {
+      const siteQuestionsPage = new SiteQuestionsPage(page);
+      await use(siteQuestionsPage);
+    },
+    { scope: 'test' },
+  ],
+  siteFilesPage: [
+    async ({ page }, use) => {
+      const siteFilesPage = new SiteFilesPage(page);
+      await use(siteFilesPage);
+    },
+    { scope: 'test' },
+  ],
+  siteAboutPage: [
+    async ({ page }, use) => {
+      const siteAboutPage = new SiteAboutPage(page);
+      await use(siteAboutPage);
+    },
+    { scope: 'test' },
+  ],
+  siteManageSitePage: [
+    async ({ page }, use) => {
+      const siteManageSitePage = new SiteManageSitePage(page);
+      await use(siteManageSitePage);
+    },
+    { scope: 'test' },
+  ],
+
+  filesPreviewModalComponent: [
+    async ({ page }, use) => {
+      const filesPreviewModalComponent = new FilesPreviewModalComponent(page);
+      await use(filesPreviewModalComponent);
     },
     { scope: 'test' },
   ],
