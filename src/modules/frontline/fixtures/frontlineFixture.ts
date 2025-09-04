@@ -5,6 +5,7 @@ import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
+import { QRManagementService } from '@/src/core/api/services/QRManagementService';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
@@ -33,6 +34,7 @@ export const frontlineTestFixture = test.extend<
   },
   {
     appManagerApiClient: AppManagerApiClient;
+    qrManagementService: QRManagementService;
   }
 >({
   appManagerApiClient: [
@@ -47,6 +49,13 @@ export const frontlineTestFixture = test.extend<
         baseUrl: getEnvConfig().apiBaseUrl,
       });
       await use(appManagerApiClient);
+    },
+    { scope: 'worker' },
+  ],
+  qrManagementService: [
+    async ({ appManagerApiClient }, use) => {
+      const qrManagementService = new QRManagementService(appManagerApiClient.context);
+      await use(qrManagementService);
     },
     { scope: 'worker' },
   ],
