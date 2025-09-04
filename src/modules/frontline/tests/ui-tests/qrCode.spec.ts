@@ -13,6 +13,7 @@ test.describe(
   },
   () => {
     let qrName: string | undefined;
+    let qrDescription: string | undefined;
 
     test.afterEach(async ({ appManagerHomePage }) => {
       if (qrName) {
@@ -31,7 +32,6 @@ test.describe(
         tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
       },
       async ({ appManagerHomePage }) => {
-        let qrDescription: string | undefined;
         qrName = TestDataGenerator.generateQRName('AppPromotion');
         qrDescription = TestDataGenerator.generateQRDescription('App Promotion QR');
 
