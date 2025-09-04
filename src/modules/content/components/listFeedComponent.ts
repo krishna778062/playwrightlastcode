@@ -233,6 +233,13 @@ export class ListFeedComponent extends BaseComponent {
 
   async verifyPostIsNotFavorited(postText: string): Promise<void> {
     await test.step(`Verify post is not favorited: ${postText}`, async () => {
+      await this.page.evaluate(
+        el => {
+          (el as HTMLElement).dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+        },
+        await this.likeButton.elementHandle()
+      );
+
       await this.verifier.verifyTheElementIsVisible(this.unfavoriteButton, {
         assertionMessage: `Post "${postText}" should be in unfavorited state`,
       });
