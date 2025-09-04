@@ -129,9 +129,3 @@ export interface SiteMembershipResponse {
   result: SiteMembershipResult;
   errors?: string[];
 }
-
-// Site management helper interfaces
-export interface Site {
-  siteId: string;
-  siteName: string;
-}
