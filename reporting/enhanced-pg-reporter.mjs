@@ -4,9 +4,9 @@
  * ============================================================
  */
 
+import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
-import dotenv from 'dotenv';
 import { Client } from 'pg';
 
 // Load environment variables
@@ -110,10 +110,10 @@ class PostgresPlaywrightReporter {
       database: process.env.PG_DB_NAME || 'qa_automation',
       user: process.env.PG_DB_USER || 'e2e_admin',
       password: process.env.PG_DB_PASSWORD || 'Simpplr@2025',
-      // Optimized settings for short-lived scripts
-      connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 50000, // 50s connection timeout
-      query_timeout: parseInt(process.env.DB_QUERY_TIMEOUT) || 100000, // 100s query timeout
-      statement_timeout: parseInt(process.env.DB_STATEMENT_TIMEOUT) || 120000, // 2min statement timeout
+      // FIXED: Increased timeouts for CI environments
+      connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 60000, // 60s connection timeout
+      query_timeout: parseInt(process.env.DB_QUERY_TIMEOUT) || 120000, // 2min query timeout
+      statement_timeout: parseInt(process.env.DB_STATEMENT_TIMEOUT) || 180000, // 3min statement timeout
     });
 
     this.executionRunId = ExecutionIdGenerator.generateExecutionId();
@@ -281,16 +281,16 @@ class PostgresPlaywrightReporter {
     // SQL with all columns including annotations
     const insertSQL = `
       INSERT INTO test_executions (
-        execution_run_id, playwright_test_id, project_name, test_title, suite_name, 
+        execution_run_id, playwright_test_id, project_name, test_title, suite_name,
         spec_file_name, tags, zephyr_id, zephyr_url, story_id, story_url, test_description,
-        module_name, team_name, priority, test_type, status, retry_count, is_flaky, 
-        duration_ms, error_type, error_message, error_stack, environment, branch_name, 
-        git_commit_sha, git_commit_message, is_regression_run, github_action_id, 
-        github_run_number, github_run_attempt, triggered_by, pr_number, test_start_time, 
+        module_name, team_name, priority, test_type, status, retry_count, is_flaky,
+        duration_ms, error_type, error_message, error_stack, environment, branch_name,
+        git_commit_sha, git_commit_message, is_regression_run, github_action_id,
+        github_run_number, github_run_attempt, triggered_by, pr_number, test_start_time,
         test_end_time, suite_start_time, report_url, error_list, step_titles, annotations
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40)
-      ON CONFLICT (execution_run_id, playwright_test_id, retry_count) 
-      DO UPDATE SET 
+      ON CONFLICT (execution_run_id, playwright_test_id, retry_count)
+      DO UPDATE SET
         test_end_time = EXCLUDED.test_end_time,
         duration_ms = EXCLUDED.duration_ms,
         status = EXCLUDED.status,
@@ -737,7 +737,7 @@ class PostgresPlaywrightReporter {
 }
 
 // ============================================================
-// MAIN EXECUTION WITH  ERROR HANDLING
+// MAIN EXECUTION WITH FIXED ERROR HANDLING
 // ============================================================
 (async function () {
   const reportDir = process.env.REPORT_DIR || './test-results';
@@ -765,13 +765,15 @@ class PostgresPlaywrightReporter {
   const reportPath = path.join(reportDir, reportFile);
   console.log(`📄 Found report file: ${reportFile}`);
 
-  // Create and run the enhanced reporter with retry logic
-  const reporter = new PostgresPlaywrightReporter();
+  // FIXED: Create reporter instance inside the retry loop to avoid const assignment issues
   const maxRetries = parseInt(process.env.DB_MAX_RETRIES) || 3;
   const retryDelayMs = parseInt(process.env.DB_RETRY_DELAY) || 5000;
 
   let lastError;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    // FIXED: Create new reporter instance inside the loop, use let instead of const
+    const reporter = new PostgresPlaywrightReporter();
+
     try {
       console.log(`\n🔄 Attempt ${attempt}/${maxRetries} to process report...`);
       const startTime = Date.now();
@@ -790,6 +792,13 @@ class PostgresPlaywrightReporter {
       lastError = error;
       console.error(`\n❌ Attempt ${attempt}/${maxRetries} failed:`, error.message);
 
+      // FIXED: Ensure cleanup of failed reporter instance
+      try {
+        await reporter.disconnect();
+      } catch (cleanupError) {
+        console.warn('⚠️ Cleanup error:', cleanupError.message);
+      }
+
       // If this is the last attempt, don't wait
       if (attempt === maxRetries) {
         console.error('\n💀 All retry attempts exhausted!');
@@ -802,9 +811,7 @@ class PostgresPlaywrightReporter {
       console.log(`⏳ Waiting ${delay}ms before retry attempt ${attempt + 1}...`);
       await new Promise(resolve => setTimeout(resolve, delay));
 
-      // Create a new reporter instance for the retry
-      // This ensures we don't have stale connection state
-      reporter = new PostgresPlaywrightReporter();
+      // FIXED: No need to reassign - new instance created at start of next loop iteration
     }
   }
 

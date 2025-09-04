@@ -35,10 +35,12 @@ export type CustomTypeOptions = Parameters<Locator['pressSequentially']>[1] & {
 
 export class BaseActionUtil {
   readonly toastMessages: Locator;
+  readonly dismissToastMessage: Locator;
 
   constructor(readonly page: Page) {
     this.page = page;
     this.toastMessages = page.locator('[class*="Toast-module"] p');
+    this.dismissToastMessage = page.locator('[aria-label="Dismiss"]');
   }
 
   /**
@@ -110,6 +112,19 @@ export class BaseActionUtil {
         throw PlaywrightErrorHandler.handle(error, PlaywrightAction.CLICK_WITH_COORDINATES, selectorOrLocator);
       }
     });
+  }
+
+  /**
+   * Clicks on an element by injecting JavaScript
+   * @param element - The locator to click on
+   */
+  async clickByInjectingJavaScript(element: Locator) {
+    const elementHandle = await element.elementHandle();
+    if (elementHandle) {
+      await this.page.evaluate((el: HTMLElement | SVGElement | null) => {
+        if (el) (el as HTMLElement).click();
+      }, elementHandle);
+    }
   }
 
   /**
@@ -362,6 +377,15 @@ export class BaseActionUtil {
         this.toastMessages.filter({ hasText: toastMessage }),
         `expecting ${toastMessage} toast message`
       ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+
+  /**
+   * Dismisses the toast message.
+   */
+  async dismissTheToastMessage(): Promise<void> {
+    await test.step(`Dismissing the toast message`, async () => {
+      await this.clickOnElement(this.dismissToastMessage);
     });
   }
 }

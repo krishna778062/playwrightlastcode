@@ -90,21 +90,39 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
    * @param name - Name of the category to be created
    * @param options - optional attributes
    */
-  async createCategory(name: string, options?: { description: string }): Promise<void> {
+  async createCategory(name: string, options?: { description: string }): Promise<string> {
+    let categoryId = '';
     await test.step(`API Create category: ${name} if not created`, async () => {
       const findCategoryStatus: boolean = await this.findCategory(name, 10000);
       if (!findCategoryStatus) {
+        const data: any = {
+          name: `${name}`,
+        };
+
+        // Only include description if it's provided and not empty
+        if (options?.description && options.description.trim() !== '') {
+          data.description = options.description;
+        }
+
         const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesCategories, {
-          data: {
-            name: `${name}`,
-            description: options?.description || ``,
-          },
+          data,
         });
         expect(response.status(), `Category created successfully`).toEqual(201);
+
+        // Parse response to get category ID
+        const responseJson = await response.json();
+        if (responseJson.result?.id) {
+          categoryId = responseJson.result.id;
+        } else {
+          // If ID not in response, fetch it directly
+          categoryId = await this.getCategoryId(name, 10000);
+        }
       } else {
         console.log(`Category ${name} already created!!!`);
+        categoryId = await this.getCategoryId(name, 10000);
       }
     });
+    return categoryId;
   }
 
   /**
@@ -276,6 +294,74 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
   }
 
   /**
+   * Deletes a category with the given categoryId
+   * Checks for attached audiences and handles them appropriately
+   * @param categoryId - Category ID for the category to be deleted
+   * @param options - Optional parameters for deletion behavior
+   */
+  async deleteCategoryById(categoryId: string, options?: { forceDelete?: boolean }): Promise<void> {
+    await test.step(`Deleting category with category ID: ${categoryId}`, async () => {
+      // First, check if category has any audiences attached
+      const hasAttachedAudiences = await this.checkCategoryHasAudiences(categoryId);
+
+      if (hasAttachedAudiences && !options?.forceDelete) {
+        console.warn(`Category ${categoryId} has audiences attached. Skipping deletion to maintain data integrity.`);
+        console.warn(`Use { forceDelete: true } option if you want to delete anyway.`);
+        return;
+      }
+
+      if (hasAttachedAudiences && options?.forceDelete) {
+        console.warn(`Force deleting category ${categoryId} despite having attached audiences.`);
+      }
+
+      const response = await this.delete(
+        API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesCategories + '/' + categoryId
+      );
+      expect(response.status(), 'Category deleted successfully').toEqual(200);
+      console.log(`Category with categoryId: ${categoryId} is deleted`);
+    });
+  }
+
+  /**
+   * Checks if a category has any audiences attached to it
+   * @param categoryId - Category ID to check
+   * @returns Promise<boolean> - true if category has audiences, false otherwise
+   */
+  private async checkCategoryHasAudiences(categoryId: string): Promise<boolean> {
+    try {
+      // Query hierarchy endpoint to get category list with hasAudience flag
+      const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
+        data: {
+          nextPageToken: 0,
+          type: 'category',
+          size: 100, // Get enough categories to find ours
+          term: '',
+        },
+      });
+
+      const responseJson = await this.parseResponse<IdentityAudienceSearchResponse>(response);
+
+      // Find the specific category by ID and check its hasAudience flag
+      const category = responseJson.result.listOfItems.find(
+        item => item.type === 'category' && item.data.id === categoryId
+      );
+
+      if (category) {
+        return category.hasAudience || false;
+      }
+
+      // If category not found in first page, it might be on subsequent pages
+      // For now, assume safe to delete if not found
+      console.warn(`Category ${categoryId} not found in hierarchy response. Assuming safe to delete.`);
+      return false;
+    } catch (error) {
+      console.warn(`Could not check audiences for category ${categoryId}:`, error);
+      // If we can't check, assume it's safe to delete (fallback behavior)
+      return false;
+    }
+  }
+
+  /**
    * Polls the delete API for the audience with the given audienceId until we get 200 response
    * @param audienceId - Audience Id for the audience which will be deleted
    */
@@ -365,6 +451,27 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
         timeout: 40_000,
         intervals: [1000, 4000, 7000, 10000, 20000, 30000, 40000],
       });
+    });
+  }
+
+  /**
+   * Enables loginIdentifiers in the tenant
+   * @param identifiers - All the loginIdentifiers that needs to be enabled (for ex. email, mobile, employee number)
+   * @param options - Optional parameters for account verification questions. By default department will be set.
+   */
+  async enableLoginIdentifiers(
+    identifiers: string[],
+    options?: { accountVerificationQuestion: string[] }
+  ): Promise<void> {
+    await test.step(`Enabling login identifiers ${identifiers}`, async () => {
+      await expect(
+        await this.post(API_ENDPOINTS.appManagement.identity.v1AccountSecurityIdpInternal, {
+          data: {
+            loginIdentifiers: identifiers,
+            accountVerificationFields: options?.accountVerificationQuestion || ['department'],
+          },
+        })
+      ).toBeOK();
     });
   }
 }

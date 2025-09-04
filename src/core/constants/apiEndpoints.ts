@@ -10,6 +10,9 @@ export const API_ENDPOINTS = {
       list: '/v1/identity/accounts/users/list',
       getUserId: (firstName: string, lastName: string) => `/v1/chat/search/users?query=${firstName} ${lastName}`,
       delete: (userId: string) => `/v1/identity/accounts/users/${userId}`,
+      v1IdentityAccountsUsersUserId: (userId: string) => `/v1/identity/accounts/users/${userId}`,
+      v1IdentityAccountsUsersUserIdStatus: (userId: string) => `/v1/identity/accounts/users/${userId}/status`,
+      v1IdentityAccountsUsersList: '/v1/identity/accounts/users/list',
     },
     roles: {
       list: '/v1/identity/accounts/roles/list',
@@ -30,6 +33,7 @@ export const API_ENDPOINTS = {
       deleteAccessControlGroup: (acgId: string) => `/v2/identity/access-control/groups/${acgId}`,
       listOfAccessControlGroups: '/v2/identity/access-control/groups/list',
       createAccessControlGroup: '/v2/identity/access-control/groups',
+      v1AccountSecurityIdpInternal: '/v1/account/security/idp/internal',
     },
   },
   identity: {
@@ -44,6 +48,8 @@ export const API_ENDPOINTS = {
     url: '/v1/content/sites',
     category: '/v1/content/siteCategories/list',
     deactivate: '/v1/content/sites/attributes?attribute=status',
+    listOfSites: '/v1/content/sites/list',
+    manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
   },
 
   content: {
@@ -67,6 +73,7 @@ export const API_ENDPOINTS = {
   feed: {
     create: `/v1/wfeed/feeds`,
     delete: (feedId: string) => `/v1/wfeed/feeds/${feedId}`,
+    update: (feedId: string) => `/v1/wfeed/feeds/${feedId}`,
   },
   apps: {
     settings: '/v1/account/apps-links-settings',
@@ -76,4 +83,25 @@ export const API_ENDPOINTS = {
     intranetFile: '/v1/search/intranet-file',
     enterprise: '/search-ai/v1/enterprise/search',
   },
+  qr: {
+    create: '/v1/promotions/w/qrcodes',
+    delete: (qrCodeId: string) => `/v1/promotions/w/qrcodes/${qrCodeId}`,
+  },
+  integrations: {
+    tiles: '/v1/tiles',
+    tilesRootInstances: '/v1/tiles/root/instances',
+    tilesInstances: '/v1/tiles/instances',
+    contentTiles: '/v1/content/tiles',
+  },
+} as const;
+
+export const API_QUERY_PARAMS = {
+  TYPE_APP: 'type=app',
+  DASHBOARD_HOME: 'dashboard=home',
+  HIDE_TILE_FALSE: 'hideTile=false',
+} as const;
+
+export const API_HEADERS = {
+  ACCEPT: 'application/json',
+  CONTENT_TYPE: 'application/json',
 } as const;

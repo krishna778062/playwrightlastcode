@@ -2,8 +2,8 @@ import { BrowserContext, Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@/src/core/api/factories/apiClientFactory';
-import { FeedManagerService } from '@/src/core/api/services/FeedManagerService';
 import { SiteManagementService } from '@/src/core/api/services/SiteManagementService';
+import { FeedManagementHelper } from '@/src/core/helpers/feedManagementHelper';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
@@ -16,7 +16,7 @@ export const contentAbacTestFixture = test.extend<{
   endUserContext: BrowserContext;
   endUserHomePage: NewUxHomePage | OldUxHomePage;
   endUserPage: Page;
-  feedManagerService: FeedManagerService;
+  feedManagementHelper: FeedManagementHelper;
   siteManagementService: SiteManagementService;
 }>({
   appManagerHomePage: [
@@ -58,10 +58,17 @@ export const contentAbacTestFixture = test.extend<{
     { scope: 'test' },
   ],
 
-  feedManagerService: [
+  // Services and helpers - with proper cleanup
+  feedManagementHelper: [
     async ({ appManagerApiClient }, use) => {
-      const feedManagerService = new FeedManagerService(appManagerApiClient.context);
-      await use(feedManagerService);
+      const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
+      await use(feedManagementHelper);
+      // Ensure cleanup happens even if test fails
+      try {
+        await feedManagementHelper.cleanup();
+      } catch (error) {
+        console.warn('Feed management helper cleanup failed:', error);
+      }
     },
     { scope: 'test' },
   ],

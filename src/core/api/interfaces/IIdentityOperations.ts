@@ -32,8 +32,9 @@ export interface IIdentityAdminOperations {
    * Create category
    * @param name - The name of the category
    * @param options - Optional attributes
+   * @returns The created category ID
    */
-  createCategory(name: string, options?: { description: string }): Promise<void>;
+  createCategory(name: string, options?: { description: string }): Promise<string>;
 
   /**
    * Find category
@@ -52,7 +53,13 @@ export interface IIdentityAdminOperations {
   getCategoryId(name: string, size: number, options?: { nextPageToken: number; term: string }): Promise<string>;
 
   /**
-   * Get category id
+   * Delete category by ID
+   * @param categoryId - Category ID for the category to be deleted
+   */
+  deleteCategoryById(categoryId: string): Promise<void>;
+
+  /**
+   * Delete audience
    * @param audienceId - Audience ID for the audience to be deleted
    */
   deleteAudience(audienceId: string, options?: { nextPageToken: number; term: string }): Promise<void>;

@@ -1,4 +1,5 @@
 import { test as base } from '@playwright/test';
+
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 
 export type UserType = 'appManager' | 'standardUser';
@@ -20,4 +21,4 @@ export const test = base.extend<{ loginAs: (userType: UserType) => Promise<void>
       await LoginHelper.loginWithPassword(page, users[userType]);
     });
   },
-}); 
+});

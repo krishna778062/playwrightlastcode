@@ -27,6 +27,8 @@ export class SideNavBarComponent extends BaseComponent {
   readonly clickingOnHome: Locator;
   readonly clickOnFeedSideMenu: Locator;
   readonly clickOnSettingButton: Locator;
+  readonly applicationSettings: Locator;
+  readonly rolesButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -34,6 +36,7 @@ export class SideNavBarComponent extends BaseComponent {
     this.analyticsButton = page.getByRole('menuitem', { name: 'Analytics', exact: true });
     this.feedLink = page.locator('p', { hasText: 'Feed' });
     this.homeLink = page.locator('p', { hasText: 'Home' });
+    this.applicationSettings = page.locator('p', { hasText: 'Application settings' });
     this.sitesButton = page.getByRole('button', { name: 'Sites' });
     this.navigateOnApplication = page.getByRole('menuitem', { name: 'Application settings', exact: true });
     this.clickOnApplication = page.getByRole('button', { name: 'Application' });
@@ -51,7 +54,9 @@ export class SideNavBarComponent extends BaseComponent {
     this.clickingOnHome = page.getByRole('menuitem', { name: 'User mode' });
     this.clickOnFeedSideMenu = page.getByRole('menuitem', { name: 'Feed Feed' });
     this.clickOnSettingButton = page.getByRole('menuitem', { name: 'Application settings', exact: true });
+    this.rolesButton = page.getByRole('menuitem', { name: 'Roles' });
   }
+
   /**
    * Clicks on the Create button in the side navigation
    * @param options - The options for the step
@@ -112,9 +117,36 @@ export class SideNavBarComponent extends BaseComponent {
     });
   }
 
-  async clickOnApplicationSettings(options?: TestOptions): Promise<void> {
+  async clickOnApplicationSetting(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `Clicking Application Settings button in side navigation`, async () => {
       await this.clickOnElement(this.clickOnSettingButton);
+    });
+  }
+  /**
+   * Clicks on the application settings button on the side navigation panel
+   * @param options - The options for the step
+   */
+  async clickOnApplicationSettings(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `Clicking Application settings button in side navigation`, async () => {
+      await this.clickOnElement(this.applicationSettings);
+    });
+  }
+
+  /**
+   * Verifies the visibility of Roles button on the side navigation panel
+   * @param visible - The visibility of the Roles button
+   * @param options - The options for the step
+   */
+  async verifyRolesButtonVisibility(visible: boolean, options?: TestOptions): Promise<void> {
+    const defaultStep = visible
+      ? 'Verifying Roles button is visible in side navigation'
+      : 'Verifying Roles button is not visible in side navigation';
+    await test.step(options?.stepInfo || defaultStep, async () => {
+      if (visible) {
+        await expect(this.rolesButton).toBeVisible();
+      } else {
+        await expect(this.rolesButton).not.toBeVisible();
+      }
     });
   }
 }

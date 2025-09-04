@@ -1,5 +1,6 @@
+import { Locator, Page, test } from '@playwright/test';
+
 import { BaseComponent } from '@core/components/baseComponent';
-import { Locator, Page, expect, test } from '@playwright/test';
 
 export class ListFeedComponent extends BaseComponent {
   // Post options section
@@ -15,7 +16,7 @@ export class ListFeedComponent extends BaseComponent {
    * @param text - The text content to find
    * @returns Locator for the post text
    */
-  readonly getFeedTextLocator = (text: string): Locator => 
+  readonly getFeedTextLocator = (text: string): Locator =>
     this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
 
   /**
@@ -23,18 +24,18 @@ export class ListFeedComponent extends BaseComponent {
    * @param postText - The text of the post to find timestamp for
    * @returns Locator for the post timestamp
    */
-  readonly getPostTimestampLocator = (postText: string): Locator => 
-    this.page.locator(`xpath=//p[text()='${postText}']/ancestor::div[4]//div[contains(@class,'nameAndStatement')]/following-sibling::p/a`);
-      
+  readonly getPostTimestampLocator = (postText: string): Locator =>
+    this.page.locator(
+      `xpath=//p[text()='${postText}']/ancestor::div[4]//div[contains(@class,'nameAndStatement')]/following-sibling::p/a`
+    );
 
   /**
    * Gets a locator for the post attachments
    * @param postText - The text of the post to find attachments for
    * @returns Locator for the post attachments
    */
-  readonly getPostAttachmentsLocator = (postText: string): Locator => 
-    this.page.locator(`div[class*='postContent']`).filter({ hasText: postText })
-      .locator('li');
+  readonly getPostAttachmentsLocator = (postText: string): Locator =>
+    this.page.locator(`div[class*='postContent']`).filter({ hasText: postText }).locator('li');
 
   /**
    * Gets a locator for the lightbox button on images
@@ -42,9 +43,10 @@ export class ListFeedComponent extends BaseComponent {
    * @returns Locator for the lightbox button
    */
   readonly getLightboxButtonLocator = (postText: string): Locator =>
-    this.page.locator("p")
+    this.page
+      .locator('p')
       .filter({ hasText: postText })
-      .locator("xpath=./ancestor::div[3]")
+      .locator('xpath=./ancestor::div[3]')
       .locator("button[aria-label='Open image in lightbox']");
 
   /**
@@ -53,9 +55,10 @@ export class ListFeedComponent extends BaseComponent {
    * @returns Locator for the options menu button
    */
   readonly getPostOptionsMenuLocator = (postText: string): Locator =>
-    this.page.locator("p")
+    this.page
+      .locator('p')
       .filter({ hasText: postText })
-      .locator("xpath=./ancestor::div[4]")
+      .locator('xpath=./ancestor::div[4]')
       .locator("button[class*='optionlauncher']")
       .first();
 
@@ -67,11 +70,9 @@ export class ListFeedComponent extends BaseComponent {
    * Gets the timestamp text for a specific post
    * @param postText - The text of the post to find timestamp for
    */
-    async getPostTimestamp(postText: string): Promise<void> {
-    await this.getPostTimestampLocator(postText).textContent() || '';
+  async getPostTimestamp(postText: string): Promise<void> {
+    (await this.getPostTimestampLocator(postText).textContent()) || '';
   }
-
-
 
   /**
    * Opens the options menu for a post
@@ -127,12 +128,10 @@ export class ListFeedComponent extends BaseComponent {
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.getFeedTextLocator(expectedText), {
         timeout: 30000,
-        assertionMessage: `Post with text "${expectedText}" should be visible`
+        assertionMessage: `Post with text "${expectedText}" should be visible`,
       });
     });
   }
-
-
 
   /**
    * Verifies that the inline image preview is visible
@@ -142,5 +141,4 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.inlineImagePreview.first());
     });
   }
-
-} 
+}

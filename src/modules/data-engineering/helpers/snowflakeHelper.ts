@@ -88,4 +88,4 @@ export class SnowflakeHelper {
     await helper.destroy();
     return result;
   }
-} 
+}

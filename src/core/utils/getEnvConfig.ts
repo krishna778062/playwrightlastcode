@@ -2,6 +2,7 @@ export type EnvConfig = {
   tenantOrgId: string;
   appManagerEmail: string;
   appManagerPassword: string;
+  userManagerEmail?: string;
   frontendBaseUrl: string;
   apiBaseUrl: string;
   newUxEnabled: boolean;
@@ -21,6 +22,7 @@ export const getEnvConfig = (): EnvConfig => ({
   //optional env variables (might be required for few modules)
   endUserEmail: getEnvVar('END_USER_USERNAME', false)!,
   endUserPassword: getEnvVar('END_USER_PASSWORD', false)!,
+  userManagerEmail: getEnvVar('USER_MANAGER_USERNAME', false)!,
 });
 
 /**

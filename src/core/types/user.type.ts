@@ -1,7 +1,10 @@
 export interface User {
   first_name: string;
   last_name: string;
+  username: string;
   email: string;
+  mobile: number;
+  emp: string;
   timezone_id?: number;
   language_id?: number;
   locale_id?: number;
@@ -81,4 +84,29 @@ export interface IdentityUserSearchResult {
 export interface IdentityUserSearchResponse {
   status: string;
   result: IdentityUserSearchResult;
+}
+
+export interface IdentityUserInfoResponse {
+  personal_info: personal_info;
+  work_info: work_info;
+  role_id: string;
+  additional_role_id?: string[];
+}
+
+export interface personal_info {
+  first_name: string;
+  last_name: string;
+  timezone_id: number;
+  language_id: number;
+  locale_id: number;
+  license_type: string;
+  extn?: string;
+}
+
+export interface work_info {
+  work_info_id?: string;
+  employee_number: string;
+  title?: string;
+  department?: string;
+  start_date?: string;
 }
