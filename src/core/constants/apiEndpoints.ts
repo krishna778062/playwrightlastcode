@@ -83,4 +83,7 @@ export const API_ENDPOINTS = {
     intranetFile: '/v1/search/intranet-file',
     enterprise: '/search-ai/v1/enterprise/search',
   },
+  qr: {
+    create: '/v1/promotions/w/qrcodes',
+  },
 } as const;

@@ -4,11 +4,14 @@ import { BasePage } from '@core/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '../../../core/constants/pageEndpoints';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
+
 export class ManageQRPage extends BasePage {
   readonly manageLink: Locator;
   readonly qrCodesLink: Locator;
   readonly addQRButton: Locator;
-  readonly appPromotionLink: Locator;
+  readonly appPromotionMenuOption: Locator;
+  readonly contentMenuOption: Locator;
   readonly eyeIcon: Locator;
   readonly saveAndVisitDashboardBtn: Locator;
   readonly qrNameField: Locator;
@@ -33,7 +36,8 @@ export class ManageQRPage extends BasePage {
     this.manageLink = page.getByRole('menuitem', { name: 'Manage features', exact: true });
     this.qrCodesLink = page.getByRole('menuitem', { name: 'QR codes' });
     this.addQRButton = page.getByText('Add QR');
-    this.appPromotionLink = page.getByText('App promotionActive');
+    this.appPromotionMenuOption = page.getByRole('menuitem', { name: 'App promotion' });
+    this.contentMenuOption = page.getByRole('menuitem', { name: 'Content' });
     this.eyeIcon = page.getByTestId('preview-button');
     this.saveAndVisitDashboardBtn = page.getByRole('button', { name: 'Save and visit dashboard' });
     this.qrNameField = page.getByRole('textbox', { name: 'QR name*' });
@@ -67,14 +71,50 @@ export class ManageQRPage extends BasePage {
     });
   }
 
-  async clickOnAddQR() {
+  /**
+   * Clicks on the Add QR button
+   * This button is used to add a new QR code
+   * We have added an api listner which intercepts the POST request and get
+   * the response and return the id of the new QR code
+   * @returns The id of the new QR code
+   */
+  async clickOnAddQRAndGetQRId(QRType: 'AppPromotion' | 'Content'): Promise<string> {
+    const qrCodeResponse = await this.performActionAndWaitForResponse(
+      () => this.clickOnAddQR(QRType),
+      response =>
+        response.url().includes(API_ENDPOINTS.qr.create) &&
+        response.request().method() === 'POST' &&
+        response.status() === 201,
+      {
+        stepInfo: 'Click on Add QR Button and intercepting the Create QR Code API to get the QR Code id',
+        timeout: 20_000,
+      }
+    );
+    //extract the qr code id from the response
+    const qrCodeResponseJson = await qrCodeResponse.json();
+    return qrCodeResponseJson.result.qrCodeId;
+  }
+
+  async clickOnAddQR(QRType: 'AppPromotion' | 'Content') {
     await this.clickOnElement(this.addQRButton, {
       stepInfo: 'Click on Add QR button',
     });
+    if (QRType === 'AppPromotion') {
+      await this.clickOnElement(this.appPromotionMenuOption, {
+        stepInfo: 'Click on App promotion menu option',
+      });
+    } else {
+      await this.clickOnElement(this.contentMenuOption, {
+        stepInfo: 'Click on Content menu option',
+      });
+    }
   }
 
+  /**
+   * Clicks on the App promotion link
+   */
   async clickOnAppPromotion() {
-    await this.clickOnElement(this.appPromotionLink, {
+    await this.clickOnElement(this.appPromotionMenuOption, {
       stepInfo: 'Click on App promotion link',
     });
   }
@@ -159,7 +199,7 @@ export class ManageQRPage extends BasePage {
     });
   }
 
-  async deleteAppQR(qrName: string) {
+  async deleteAppQRByName(qrName: string) {
     await this.clickOnThreeDots(qrName);
     await this.clickOnDelete();
     await this.clickOnDeleteButton();
