@@ -206,7 +206,7 @@ export class AccessControlGroupsPage extends BasePage {
   /**
    * Clicks on menu option for any ACG with specific status and group type
    */
-  async clickOnMenuOptionForACG(status?: string, groupType?: string): Promise<void> {
+  async clickOnMenuOptionForACG(_status?: string, _groupType?: string): Promise<void> {
     await test.step('Click on menu option for any ACG', async () => {
       await this.clickOnElement(this.acgMenuOptions.first(), {
         stepInfo: 'Click on menu options button for first ACG in the list',
@@ -238,7 +238,7 @@ export class AccessControlGroupsPage extends BasePage {
         await this.clickOnElement(this.editOption, {
           stepInfo: 'Click on Edit option for ACG',
         });
-      } catch (e) {
+      } catch (_e) {
         await this.clickOnElementWithCoordinates(this.editOption, {
           force: true,
           stepInfo: 'Clicking on the Edit button with coordinates',
