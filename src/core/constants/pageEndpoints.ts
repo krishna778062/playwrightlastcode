@@ -5,6 +5,7 @@ export const PAGE_ENDPOINTS = {
   AUDIO_VIDEO_CALL_PAGE: '/call',
   FEATURED_SITES_PAGE: '/sites/featured',
   SITE_PAGE: (siteId: string) => `/site/${siteId}/`,
+  MANAGE_QR_PAGE: '/manage/promotions',
 
   // Rewards pages
   MANAGE_REWARDS_PAGE: '/manage/recognition/rewards/overview',

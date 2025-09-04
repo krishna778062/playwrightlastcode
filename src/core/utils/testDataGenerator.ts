@@ -443,4 +443,26 @@ export class TestDataGenerator {
   static generateSites(count: number, access: string, overrides?: Partial<any>): any[] {
     return Array.from({ length: count }, () => this.generateSite(access, overrides));
   }
+
+  /**
+   * Generates a random QR code name with timestamp to ensure uniqueness
+   * @param prefix Optional prefix for the QR code name
+   * @returns A unique QR code name
+   */
+  static generateQRName(prefix: string = 'QR'): string {
+    const randomWord = faker.word.sample();
+    const timestamp = Date.now();
+    return `${prefix}-${randomWord}-${timestamp}`;
+  }
+
+  /**
+   * Generates a random QR code description
+   * @param prefix Optional prefix for the description
+   * @returns A random QR code description
+   */
+  static generateQRDescription(prefix: string = 'QR Code Description'): string {
+    const randomWords = faker.lorem.words(5);
+    const timestamp = Date.now();
+    return `${prefix}: ${randomWords} - ${timestamp}`;
+  }
 }
