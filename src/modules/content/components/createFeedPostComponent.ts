@@ -105,6 +105,7 @@ export class CreateFeedPostComponent
    * Verifies that the feed page is loaded by checking if share thoughts button is visible
    */
   async verifyThePageIsLoaded(): Promise<void> {
+    await this.page.waitForLoadState('domcontentloaded');
     await this.verifier.verifyTheElementIsVisible(this.shareThoughtsButton);
   }
 
