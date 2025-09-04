@@ -4,4 +4,5 @@ export enum Modules {
   CONTENT = 'content',
   GLOBAL_SEARCH = 'global-search',
   INTEGRATIONS = 'integrations',
+  FRONTLINE = 'frontline',
 }

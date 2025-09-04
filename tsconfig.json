@@ -18,7 +18,8 @@
       "@content/*": ["./src/modules/content/*"],
       "@content-pages/*": ["./src/modules/content/pages/*"],
       "@content-tests/*": ["./src/modules/content/tests/*"],
-      "@rewards/*": ["./src/modules/reward/*"]
+      "@rewards/*": ["./src/modules/reward/*"],
+      "@frontline/*": ["./src/modules/frontline/*"]
     },
     "target": "ES2019",
     "module": "commonjs",
