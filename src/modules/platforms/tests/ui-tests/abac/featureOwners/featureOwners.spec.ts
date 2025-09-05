@@ -132,11 +132,11 @@ test.describe(
           await featureOwnersPage.searchForFeature(feature);
           await featureOwnersPage.clickOnButtonForFeature(feature, FeatureMenuOptions.EDIT);
           await featureOwnersPage.addUserAsFeatureOnwer([user1.username]);
-          await featureOwnersPage.verifyToastMessage('Feature owners updated successfully');
+          await featureOwnersPage.verifyToastMessageIsVisibleWithText('Feature owners updated successfully');
           await featureOwnersPage.dismissTheToastMessage();
           await featureOwnersPage.clickOnButtonForFeature(feature, FeatureMenuOptions.EDIT);
           await featureOwnersPage.removeUserFromFeatureOwnersList(user1.username);
-          await featureOwnersPage.verifyToastMessage('Feature owners updated successfully');
+          await featureOwnersPage.verifyToastMessageIsVisibleWithText('Feature owners updated successfully');
           await featureOwnersPage.dismissTheToastMessage();
         }
       );

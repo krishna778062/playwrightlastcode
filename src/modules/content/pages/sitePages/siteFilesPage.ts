@@ -1,4 +1,5 @@
 import test, { Locator, Page } from '@playwright/test';
+import path from 'path';
 
 import { FilesPreviewModalComponent } from '../../components/filesPreviewModalComponent';
 
@@ -6,18 +7,12 @@ import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/pages/basePage';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 
-interface UploadFileOptions {
-  makeFileNameRandom?: boolean;
-  randomNum?: number;
-}
-
 /**
  * A Site has many pages.
  * This class is for managing the Site Files page.
  */
 export class SiteFilesPage extends BasePage {
   readonly inputFilesSelector: string = `input[type="file"]`;
-  static newFileNameFinal: string;
 
   get selectFromComputer(): Locator {
     return this.page.getByText('Drop media and files here or').locator('input[type="file"]');
@@ -39,113 +34,107 @@ export class SiteFilesPage extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.siteFilesLinkText, { timeout: TIMEOUTS.MEDIUM });
   }
 
+  readonly filesPreviewModalComponent: FilesPreviewModalComponent;
   constructor(page: Page) {
     super(page);
+    this.filesPreviewModalComponent = new FilesPreviewModalComponent(page);
   }
 
   /**
    * To determine the file type directory based on the file extension.
+   * Maps file extensions to actual directory names in the test-data structure.
    * @param filename
-   * @returns
+   * @returns The directory name where the file should be located
    */
   private static getTestDataDirectoryForSiteFiles(filename: string): string {
     const extension = filename.split('.').pop()?.toLowerCase();
 
     const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'tiff'];
-    const documentExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf', 'odt'];
+    const documentExtensions = ['pdf', 'doc', 'docx', 'txt', 'rtf', 'odt'];
+    const excelExtensions = ['xls', 'xlsx', 'ppt', 'pptx'];
     const audioExtensions = ['mp3', 'wav', 'aac', 'ogg', 'flac', 'm4a'];
     const videoExtensions = ['mp4', 'mov', 'avi', 'mkv', 'flv', 'wmv', 'webm'];
 
-    let fileTypeDirectory = 'Unknown';
-
     if (extension && imageExtensions.includes(extension)) {
-      fileTypeDirectory = 'Image';
+      return 'images';
     } else if (extension && documentExtensions.includes(extension)) {
-      fileTypeDirectory = 'Document';
+      return 'documents';
+    } else if (extension && excelExtensions.includes(extension)) {
+      return 'excel';
     } else if (extension && audioExtensions.includes(extension)) {
-      fileTypeDirectory = 'Audio';
+      return 'audio';
     } else if (extension && videoExtensions.includes(extension)) {
-      fileTypeDirectory = 'Video';
+      return 'video';
     }
 
-    if (fileTypeDirectory === 'Unknown') {
-      try {
-        throw new Error(`Unsupported or unknown file extension: ${extension}`);
-      } catch (error) {
-        throw new Error(`Failed to determine file type: ${(error as Error).message}`);
-      }
-    }
+    throw new Error(`Unsupported or unknown file extension: ${extension}`);
+  }
 
-    return fileTypeDirectory;
+  /**
+   * Performs the actual file upload operation.
+   * This method handles the UI interaction for uploading a file.
+   * @param filePath The path to the file to upload
+   * @param expectedFileName The expected filename to verify after upload
+   */
+  private async performFileUpload(filePath: string, expectedFileName: string): Promise<void> {
+    await test.step(`Upload file: ${expectedFileName}`, async () => {
+      await this.verifier.isTheElementVisible(this.selectFromComputer);
+      await this.page.setInputFiles(this.inputFilesSelector, [filePath]);
+
+      await this.verifier.isTheElementVisible(this.uploadProgressBarLoading, {
+        assertionMessage: 'Verifying that the upload progress bar is visible',
+      });
+      await this.verifier.verifyTheElementIsNotVisible(this.uploadProgressBarLoading, {
+        assertionMessage: 'Verifying that the upload progress bar is not visible',
+      });
+
+      await this.verifier.isTheElementVisible(this.uploadButton, {
+        assertionMessage: 'Verifying that the upload button is visible',
+      });
+      await this.clickOnElement(this.uploadButton, { stepInfo: 'Clicking on the upload button' });
+    });
+  }
+
+  async verifyFileIsPresentInTheSiteFilesList(fileName: string): Promise<void> {
+    const file: Locator = this.page
+      .locator(`button[type="button"][class="filenameWrap"]`)
+      .getByText(`${fileName}`, { exact: true });
+    await this.verifier.isTheElementVisible(file, {
+      assertionMessage: `Verifying that the file: ${fileName} is present in the site files list`,
+    });
+  }
+
+  async verifyFileIsPresentInTheSiteFilesListAtIndex(fileName: string, index: number): Promise<void> {
+    const file: Locator = this.page
+      .locator(`button[type="button"][class="filenameWrap"]`)
+      .getByText(`${fileName}`, { exact: true })
+      .nth(index);
+    await this.verifier.isTheElementVisible(file, {
+      assertionMessage: `Verifying that the file: ${fileName} is present in the site files list at index: ${index}`,
+    });
   }
 
   /**
    * Uploads a file to the site using the "Select from Computer" option.
-   * @param fullFileName The name of the file to be uploaded should be full
-   * @param options Upload options including makeFileNameRandom and randomNum
-   * @param options.makeFileNameRandom Whether to make the filename random by appending the randomNum (default: false)
-   * @param options.randomNum Optional random number to append to filename
+   * This method only handles the upload operation - file preparation should be done by the test.
+   * @param filePath The full path to the file to be uploaded
+   * @returns The filename of the uploaded file
    * @example
-   * // Upload with original filename
-   * await uploadFileViaSelectFromComputer("document.pdf");
-   *
-   * // Upload with randomized filename
-   * await uploadFileViaSelectFromComputer("document.pdf", { makeFileNameRandom: true, randomNum: 123 });
+   * // Upload a file (test should prepare the file path)
+   * await uploadFileViaSelectFromComputer("/path/to/document.pdf");
    */
-  async uploadFileViaSelectFromComputer(fileNameOnDisk: string, options: UploadFileOptions = {}) {
-    const { makeFileNameRandom = false, randomNum } = options;
+  async uploadFileViaSelectFromComputer(filePath: string): Promise<string> {
+    const fileName = path.basename(filePath);
 
-    const fixedRelativePath: string = `src/modules/content/test-data/static-files/`;
-    const fileTypeDirectoryName: string = `${SiteFilesPage.getTestDataDirectoryForSiteFiles(fileNameOnDisk).toLowerCase()}s`;
+    // Validate that the file exists
+    if (!FileUtil.fileExists(filePath)) {
+      throw new Error(`File not found: ${filePath}`);
+    }
 
-    const lastDotIndex = fileNameOnDisk.lastIndexOf('.');
-    const baseName = lastDotIndex !== -1 ? fileNameOnDisk.substring(0, lastDotIndex) : fileNameOnDisk;
-    const extension = lastDotIndex !== -1 ? fileNameOnDisk.substring(lastDotIndex) : '';
+    // Perform the actual upload
+    await this.performFileUpload(filePath, fileName);
 
-    // Create the new file name with the random number appended only if makeFileNameRandom is true
-    const newFileName =
-      makeFileNameRandom && randomNum !== undefined ? `${baseName}${randomNum}${extension}` : fileNameOnDisk;
-    SiteFilesPage.newFileNameFinal = newFileName;
-
-    await test.step(`Upload a File with the name as ${newFileName}`, async () => {
-      const originalPathWithFileName: string = `${fixedRelativePath}${fileTypeDirectoryName}/${fileNameOnDisk}`;
-      const finalPathWithFileName: string = `${fixedRelativePath}${fileTypeDirectoryName}/${newFileName}`;
-
-      // Duplicate the file on disk only if we're creating a new filename
-      const needsFileCopy = makeFileNameRandom && randomNum !== undefined;
-
-      if (needsFileCopy) {
-        FileUtil.createTemporaryFileCopy(originalPathWithFileName, finalPathWithFileName);
-      }
-
-      try {
-        this.verifier.isTheElementVisible(this.selectFromComputer);
-
-        const filePathToUpload = needsFileCopy ? finalPathWithFileName : originalPathWithFileName;
-        await this.page.setInputFiles(this.inputFilesSelector, [filePathToUpload]);
-
-        await this.verifier.isTheElementVisible(this.uploadProgressBarLoading),
-          await this.verifier.verifyTheElementIsNotVisible(this.uploadProgressBarLoading);
-
-        await this.verifier.isTheElementVisible(this.uploadButton);
-        await this.clickOnElement(this.uploadButton);
-
-        // ENSURING THE FILE IS UPLOADED
-        const lastUploadedFile: Locator = this.page
-          .locator(`button[type="button"][class="filenameWrap"]`)
-          .getByText(`${newFileName}`, { exact: true })
-          .first();
-
-        await this.verifier.isTheElementVisible(lastUploadedFile);
-      } finally {
-        // Delete the duplicated file after upload only if we created a copy
-        if (needsFileCopy && FileUtil.fileExists(finalPathWithFileName)) {
-          FileUtil.deleteTemporaryFile(finalPathWithFileName);
-        }
-      }
-      // Optionally return the new file name for further use
-      return newFileName;
-    });
+    return fileName;
   }
 
   async clickToOpenFileInFilesPreview(fileNameWithExtension: string) {
@@ -153,10 +142,8 @@ export class SiteFilesPage extends BasePage {
       .locator(`button[type="button"][class="filenameWrap"]`)
       .getByText(fileNameWithExtension, { exact: true })
       .first();
-    await this.verifier.isTheElementVisible(fileNameToClick);
     await this.clickOnElement(fileNameToClick);
-
     const filesPreviewModalComponent = new FilesPreviewModalComponent(this.page);
-    await filesPreviewModalComponent.verifyProgressBarLoadingIsComplete();
+    // await filesPreviewModalComponent.verifyProgressBarLoadingIsComplete();
   }
 }

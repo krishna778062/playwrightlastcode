@@ -154,7 +154,7 @@ export class CustomAppsListComponent extends BaseComponent {
       await this.selectConnectorOption(AppConnectorOptions.Delete);
       await this.verifyDeleteDialogVisible(APP_LABELS.DELETE_CUSTOM_APP_LABEL);
       await this.clickDialogButton(APP_LABELS.DELETE_LABEL, 'Confirm delete');
-      await this.verifyToastMessage(MESSAGES.AIRTABLE_DELETE_MESSAGE);
+      await this.verifyToastMessageIsVisibleWithText(MESSAGES.AIRTABLE_DELETE_MESSAGE);
     });
   }
 

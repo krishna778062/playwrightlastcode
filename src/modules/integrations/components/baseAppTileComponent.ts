@@ -127,7 +127,7 @@ export class BaseAppTileComponent extends BaseComponent {
     });
   }
 
-  async verifyToastMessage(message: string): Promise<void> {
+  async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
     await test.step(`Verify toast '${message}'`, async () => {
       const pattern = new RegExp(message.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
       const candidates = this.page.locator('[role="alert"], [role="status"], [aria-live]').filter({ hasText: pattern });

@@ -115,7 +115,7 @@ export class FileUtil {
    * @param filePath - The path to the temporary file to delete.
    * @throws Will throw an error if the file cannot be deleted.
    */
-  public static deleteTemporaryFile(filePath: string): void {
+  private static deleteFile(filePath: string): void {
     try {
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
@@ -123,6 +123,53 @@ export class FileUtil {
     } catch (error) {
       console.error(`Error deleting temporary file ${filePath}:`, error);
       throw new Error(`Failed to delete temporary file: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * Creates a copy of a file with a random name for testing purposes.
+   * This method generates a unique filename and creates a copy.
+   * @param originalFilePath - The path to the original file
+   * @returns Object containing both the file path and filename
+   */
+  public static createRandomFileCopy(originalFilePath: string): {
+    filePath: string;
+    fileName: string;
+  } {
+    if (!this.fileExists(originalFilePath)) {
+      throw new Error(`Source file not found: ${originalFilePath}`);
+    }
+
+    const fileName = path.basename(originalFilePath);
+    const lastDotIndex = fileName.lastIndexOf('.');
+    const baseName = lastDotIndex !== -1 ? fileName.substring(0, lastDotIndex) : fileName;
+    const extension = lastDotIndex !== -1 ? fileName.substring(lastDotIndex) : '';
+
+    // Generate random filename
+    const { faker } = require('@faker-js/faker');
+    const randomNum = faker.number.int({ min: 1000, max: 9000 });
+    const randomFileName = `${baseName}${randomNum}${extension}`;
+
+    const newFilePath = path.join(path.dirname(originalFilePath), randomFileName);
+    this.createTemporaryFileCopy(originalFilePath, newFilePath);
+
+    return {
+      filePath: newFilePath,
+      fileName: randomFileName,
+    };
+  }
+
+  /**
+   * Cleans up a temporary file if it exists.
+   * @param filePath - The path to the file to clean up
+   */
+  public static cleanUpFile(filePath: string): void {
+    if (this.fileExists(filePath)) {
+      try {
+        this.deleteFile(filePath);
+      } catch (error) {
+        console.warn(`Failed to cleanup temporary file ${filePath}: ${error}`);
+      }
     }
   }
 }

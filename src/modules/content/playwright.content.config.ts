@@ -27,6 +27,8 @@ export default defineConfig({
         launchOptions: {
           args: ['--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage'],
         },
+        viewport: { width: 1920, height: 1080 },
+        ignoreHTTPSErrors: true,
       },
     },
   ],

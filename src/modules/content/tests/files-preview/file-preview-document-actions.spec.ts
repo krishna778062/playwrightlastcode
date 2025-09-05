@@ -1,60 +1,103 @@
-import { faker } from '@faker-js/faker';
-
+import { FilesPreviewMenuActionButton } from '@content/components/filesPreviewModalComponent';
+import {
+  FilesPreviewDeleteModal,
+  FilesPreviewShowMoreActionsOption,
+  FilesPreviewToastMessages,
+} from '@content/constants/filesPreviewEnums';
+import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { SiteFilesPage } from '@content/pages/sitePages/siteFilesPage';
+import { SiteMainPage } from '@content/pages/sitePages/siteMainPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { FileUtil } from '@core/utils/fileUtil';
 import { tagTest } from '@core/utils/testDecorator';
 
-import {
-  FilesPreviewIcon,
-  FilesPreviewMoreActionsOption,
-  FilesPreviewToasterMessage,
-} from '../../constants/filesPreviewEnums';
-
-import { LoginHelper } from '@/src/core/helpers/loginHelper';
-import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
-import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
-import { filesPreviewTestFixture as test } from '@/src/modules/content/fixtures/filesPreviewFixture';
-
-test.describe(`Files Preview || DOCUMENT || Verify More actions ${ContentTestSuite.FILES_PREVIEW} @CONT-37467`, () => {
-  test.beforeEach(async ({ page }) => {
-    const adminHomePage = await LoginHelper.loginWithPassword(page, {
-      email: getEnvConfig().appManagerEmail,
-      password: getEnvConfig().appManagerPassword,
-    });
-    await adminHomePage.verifyThePageIsLoaded();
+test.describe(`Files Preview | Verify Document Actions `, () => {
+  let testFileDetails: {
+    filePath: string;
+    fileName: string;
+    fileSystemCleanupRequired?: boolean;
+    deleteByUI?: boolean;
+  };
+  let siteMainPage: SiteMainPage;
+  let siteFilesPage: SiteFilesPage;
+  test.beforeEach('Setup : Navigating to Site Files page', async ({ appManagersPage }) => {
+    // Create random file copy
+    const originalFilePath = `src/modules/content/test-data/static-files/documents/FilesPreview_BEHAVE_DOC_1_PDF.pdf`;
+    const fileInfo = FileUtil.createRandomFileCopy(originalFilePath);
+    testFileDetails = {
+      ...fileInfo,
+      fileSystemCleanupRequired: true,
+      deleteByUI: true,
+    };
+    // Navigate to Site Files page
+    siteMainPage = new SiteMainPage(appManagersPage);
+    await siteMainPage.landOnMainPageOfSite(`All Employees`);
+    siteFilesPage = await siteMainPage.navigateToSiteFilesTab();
   });
 
-  // Use the fixture to cleanup the file from files preview modal
-  test.afterEach(async ({ _cleanupByDeletingTheFileFromFilesPreviewModal }) => {});
+  test.afterEach(async ({}) => {
+    if (testFileDetails.fileSystemCleanupRequired) {
+      FileUtil.cleanUpFile(testFileDetails.filePath);
+    }
+    if (testFileDetails.deleteByUI) {
+      await siteFilesPage.filesPreviewModalComponent.deleteFile();
+    }
+  });
 
   test(
-    `@SCENARIO-1 Verify that for a document type of file More actions provides the option “Copy link to this file”,`,
+    `Verify user is able to copy the link to this file option under More actions`,
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION],
     },
-    async ({ siteMainPage, siteFilesPage, filesPreviewModalComponent }) => {
+    async ({}) => {
       tagTest(test.info(), {
-        description: `SCENARIO:1 Verify Document Files open with Files Preview mode when clicked on any "File” under Sites > Files`,
-        zephyrTestId: `CONT-37467`,
+        description: `Verify user is able to click on the copy link to this file option under More actions`,
+        zephyrTestId: ['CONT-37467', 'CONT-34399'],
         storyId: `CONT-34370`,
       });
+      await siteFilesPage.uploadFileViaSelectFromComputer(testFileDetails.filePath);
+      await siteFilesPage.verifyFileIsPresentInTheSiteFilesListAtIndex(testFileDetails.fileName, 0);
+      await siteFilesPage.clickToOpenFileInFilesPreview(testFileDetails.fileName);
+      await siteFilesPage.filesPreviewModalComponent.verifyFileNameTitle(testFileDetails.fileName);
+      await siteFilesPage.filesPreviewModalComponent.clickOnPreviewMenuActionButton(
+        FilesPreviewMenuActionButton.SHOWMORE
+      );
+      await siteFilesPage.filesPreviewModalComponent.clickOnShowMoreActionsOption(
+        FilesPreviewShowMoreActionsOption.CopyLinkToThisFile
+      );
+      await siteFilesPage.verifyToastMessageIsVisibleWithText(FilesPreviewToastMessages.LinkCopiedToClipboard);
+    }
+  );
 
-      // Generate test data
-      const fileNameOnDisk = `FilesPreview_BEHAVE_DOC_1_PDF.pdf`;
-      const postFixRandomNumber = faker.number.int({ min: 1000, max: 9000 });
-      const expectedFileName: string = `FilesPreview_BEHAVE_DOC_1_PDF${postFixRandomNumber}.pdf`;
-
-      await siteMainPage.landOnMainPageOfSite(`All Employees`);
-      await siteMainPage.navigateToSiteFilesTab();
-      await siteFilesPage.uploadFileViaSelectFromComputer(fileNameOnDisk, {
-        makeFileNameRandom: true,
-        randomNum: postFixRandomNumber,
+  test(
+    `Verify user is able to delete the file using the delete option under More actions`,
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION],
+    },
+    async ({}) => {
+      tagTest(test.info(), {
+        description: `Verify user is able to delete the file using the delete option under More actions`,
+        zephyrTestId: ['CONT-36338', 'CONT-34132'],
+        storyId: `CONT-34132`,
       });
-      await siteFilesPage.clickToOpenFileInFilesPreview(expectedFileName);
-      await filesPreviewModalComponent.verifyFileNameTitle(expectedFileName);
-      await filesPreviewModalComponent.clickOnIcon(FilesPreviewIcon.More_actions);
-      await filesPreviewModalComponent.clickOnShowMoreActionsOption(FilesPreviewMoreActionsOption.CopyLinkToThisFile);
-      await filesPreviewModalComponent.verifyFilesPreviewToastMessage(FilesPreviewToasterMessage.LinkCopiedToClipboard);
+      await siteFilesPage.uploadFileViaSelectFromComputer(testFileDetails.filePath);
+      await siteFilesPage.verifyFileIsPresentInTheSiteFilesListAtIndex(testFileDetails.fileName, 0);
+      await siteFilesPage.clickToOpenFileInFilesPreview(testFileDetails.fileName);
+      await siteFilesPage.filesPreviewModalComponent.verifyFileNameTitle(testFileDetails.fileName);
+      await siteFilesPage.filesPreviewModalComponent.clickOnPreviewMenuActionButton(
+        FilesPreviewMenuActionButton.SHOWMORE
+      );
+      await siteFilesPage.filesPreviewModalComponent.clickOnShowMoreActionsOption(
+        FilesPreviewShowMoreActionsOption.Delete
+      );
+      await siteFilesPage.filesPreviewModalComponent.confirmDeleteOrCancelFromDeleteFileModal(
+        FilesPreviewDeleteModal.Delete
+      );
+      await siteFilesPage.filesPreviewModalComponent.verifyToastMessageIsVisibleWithText(
+        FilesPreviewToastMessages.DeletedFileSuccessfully
+      );
+      testFileDetails.deleteByUI = false; //since the file is deleted by UI, we don't need to cleanup the file from UI
     }
   );
 });

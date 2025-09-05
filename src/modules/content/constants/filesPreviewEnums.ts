@@ -21,7 +21,7 @@ export enum FilesPreviewTooltip {
   ZoomIn = 'Zoom in',
 }
 
-export enum FilesPreviewMoreActionsOption {
+export enum FilesPreviewShowMoreActionsOption {
   CopyLinkToThisFile = 'Copy link to this file',
   OpenInNewBrowserTab = 'Open in new browser tab',
   Delete = 'Delete',
@@ -32,7 +32,7 @@ export enum FilesPreviewDeleteModal {
   Cancel = 'Cancel',
 }
 
-export enum FilesPreviewToasterMessage {
+export enum FilesPreviewToastMessages {
   LinkCopiedToClipboard = 'Link copied to clipboard',
   DeletedFileSuccessfully = 'Deleted file successfully',
 }

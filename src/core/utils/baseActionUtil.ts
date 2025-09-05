@@ -371,7 +371,10 @@ export class BaseActionUtil {
    * @param numberOfAttempts - To define number of tries incase the toast message is not found in first try
    * @param options - Optional parameters for the toast message verification.
    */
-  async verifyToastMessage(toastMessage: string, options?: { stepInfo?: string; timeout?: number }): Promise<void> {
+  async verifyToastMessageIsVisibleWithText(
+    toastMessage: string,
+    options?: { stepInfo?: string; timeout?: number }
+  ): Promise<void> {
     await test.step(options?.stepInfo ?? `Verifying ${toastMessage} toast message`, async () => {
       await expect(
         this.toastMessages.filter({ hasText: toastMessage }),

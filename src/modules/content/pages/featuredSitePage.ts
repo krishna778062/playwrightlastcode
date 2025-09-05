@@ -136,7 +136,7 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
    * Verifies that a toast message with the specified text is visible
    * @param message - The expected toast message text
    */
-  async verifyToastMessage(message: string): Promise<void> {
+  async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
     await test.step(`Verifying toast message: "${message}"`, async () => {
       const toastLocator = this.successToastMessage(message);
       await this.verifier.verifyTheElementIsVisible(toastLocator, {

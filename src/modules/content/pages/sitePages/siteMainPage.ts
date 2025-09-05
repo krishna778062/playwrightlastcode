@@ -1,5 +1,9 @@
 import test, { Locator, Page } from '@playwright/test';
 
+import { FilesPreviewModalComponent } from '../../components/filesPreviewModalComponent';
+
+import { SiteFilesPage } from './siteFilesPage';
+
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/pages/basePage';
 
@@ -26,7 +30,6 @@ export class SiteMainPage extends BasePage {
   get siteFilesLinkText(): Locator {
     return this.page.locator(`a[title="Site files"]`);
   }
-
   constructor(page: Page) {
     super(page);
   }
@@ -59,12 +62,13 @@ export class SiteMainPage extends BasePage {
   /**
    * Once on the Site Main page, navigate to the Files tab.
    */
-  async navigateToSiteFilesTab() {
-    await test.step(`Navigate to "Site > Files"`, async () => {
+  async navigateToSiteFilesTab(): Promise<SiteFilesPage> {
+    return await test.step(`Navigate to "Site > Files"`, async () => {
       await this.verifier.isTheElementVisible(this.filesTab, { timeout: TIMEOUTS.MEDIUM });
       await this.filesTab.click();
-
-      await this.verifier.verifyTheElementIsVisible(this.siteFilesLinkText, { timeout: TIMEOUTS.MEDIUM });
+      const siteFilesPage = new SiteFilesPage(this.page);
+      await siteFilesPage.verifyThePageIsLoaded();
+      return siteFilesPage;
     });
   }
 }

@@ -73,13 +73,19 @@ test.describe(
         acgName = await accessControlGroupsPage.getACGName();
         console.log(`ACG name is ${acgName}`);
         await accessControlGroupsPage.clickOnButtonWithName('Save and activate');
-        await accessControlGroupsPage.verifyToastMessage('Creating access control groups and audience relationships…');
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Creating access control groups and audience relationships…'
+        );
         await accessControlGroupsPage.verifyACGStatus(acgName, 'Active');
         await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName);
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully updated'
+        );
         await accessControlGroupsPage.searchForACG(acgName);
         await accessControlGroupsPage.deleteFirstACG();
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully deleted');
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully deleted'
+        );
         acgName = undefined; //reset the acg name back to undefined to avoid any future cleanup issues
       }
     );
@@ -110,13 +116,19 @@ test.describe(
         console.log(`ACG name is ${acgName}`);
         await accessControlGroupsPage.changeACGStatus('Inactive');
         await accessControlGroupsPage.clickOnButtonWithName('Save');
-        await accessControlGroupsPage.verifyToastMessage('Creating access control groups and audience relationships…');
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Creating access control groups and audience relationships…'
+        );
         await accessControlGroupsPage.verifyACGStatus(acgName, 'Inactive');
         await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName);
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully updated'
+        );
         await accessControlGroupsPage.searchForACG(acgName);
         await accessControlGroupsPage.deleteFirstACG();
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully deleted');
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully deleted'
+        );
         acgName = undefined; //reset the acg name back to undefined to avoid any future cleanup issues
       }
     );
@@ -148,10 +160,14 @@ test.describe(
         console.log(`ACG name is ${acgName}`);
         await accessControlGroupsPage.clickOnButtonWithName('Save and activate');
         await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName);
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully updated'
+        );
         await accessControlGroupsPage.searchForACG(acgName);
         await accessControlGroupsPage.deleteFirstACG();
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully deleted');
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully deleted'
+        );
         acgName = undefined; //reset the acg name back to undefined to avoid any future cleanup issues
       }
     );
