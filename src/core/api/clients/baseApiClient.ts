@@ -8,6 +8,7 @@ import { HttpClient } from '@/src/core/api/clients/httpClient';
 
 export abstract class BaseApiClient extends HttpClient {
   static globalLocationHeader: string | null = null;
+  static headers: Record<string, string> = {};
 
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
@@ -58,6 +59,7 @@ export abstract class BaseApiClient extends HttpClient {
 
       const storageState = await tmpContext.storageState();
       const headers = this.fetchHeadersFromCookies(storageState.cookies);
+      this.headers = headers;
 
       // Set global location header from login response
       this.globalLocationHeader = this.fetchLocationHeader(loginApiRes);
@@ -108,7 +110,7 @@ export abstract class BaseApiClient extends HttpClient {
    * @param cookies Array of cookies
    * @returns Headers object with authentication tokens
    */
-  private static fetchHeadersFromCookies(cookies: Cookie[]): Record<string, string> {
+  static fetchHeadersFromCookies(cookies: Cookie[]): Record<string, string> {
     const token = cookies.find(c => c.name === 'token')?.value;
     const csrfid = cookies.find(c => c.name === 'csrfid')?.value;
 

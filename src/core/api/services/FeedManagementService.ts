@@ -243,13 +243,40 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
         fileName
       );
       const fileBuffer = fs.readFileSync(filePath);
+
+      // Build headers for the request
+      const headers = {
+        'Content-Type': 'image/png',
+        'Content-Disposition': 'attachment; filename=300x300 RATIO_Text.png',
+        ...BaseApiClient.headers,
+      };
+
+      // Log the curl equivalent
+      const headersString = Object.entries(headers)
+        .map(([key, value]) => `--header '${key}: ${value}'`)
+        .join(' ');
+
+      console.log('--------------------------------');
+      console.log('Curl equivalent for uploadToAttachmentURL:');
+      console.log(`curl --location --request PUT '${uploadUrl}' \\`);
+      console.log(`${headersString} \\`);
+      console.log(`--data-binary '@${filePath}'`);
+      console.log('--------------------------------');
+
+      // Log complete fetch request details
+      console.log('--------------------------------');
+      console.log('Complete fetch request details:');
+      console.log('URL:', uploadUrl);
+      console.log('Method: PUT');
+      console.log('Headers:', JSON.stringify(headers, null, 2));
+      console.log('Body size:', fileBuffer.length, 'bytes');
+      console.log('File path:', filePath);
+      console.log('--------------------------------');
+
       // Make a PUT request to the signed URL with the file data
       const response = await this.context.fetch(uploadUrl, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'image/jpeg',
-          'Content-Disposition': 'attachment; filename=_115151003_smallergettyimages-1184857940.jpg',
-        },
+        headers,
         data: fileBuffer,
       });
       if (!response.ok) {
@@ -343,9 +370,9 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
   async createFeedWithAttachment(overrides: Partial<CreateFeedPostPayload> = {}): Promise<FeedPostResponse> {
     return await test.step('Creating a feed with attachment via API post request', async () => {
       // Default image upload parameters
-      const fileName = 'test-image.jpg';
-      const fileSize = 187280;
-      const mimeType = 'image/jpeg';
+      const fileName = '300x300 RATIO_Text.png';
+      const fileSize = 12125;
+      const mimeType = 'image/png';
 
       if (BaseApiClient.globalLocationHeader) {
         await this.getLocation(BaseApiClient.globalLocationHeader);
