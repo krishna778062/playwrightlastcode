@@ -97,4 +97,19 @@ export abstract class BasePage extends BaseActionUtil {
       await expect(this.page.locator('h1', { hasText: 'Page not found' })).toBeVisible();
     });
   }
+
+  /**
+   * @description
+   * Checks for Access Denied error page
+   */
+  async verifyAccessDeniedPageVisibility(options?: { stepInfo?: string; timeout?: number }) {
+    await test.step(options?.stepInfo || `Verify the page - Access Denied`, async () => {
+      await expect(this.page.locator('h1', { hasText: 'Access denied' })).toBeVisible();
+      await expect(
+        this.page
+          .locator('[class*="no-results"] div')
+          .filter({ hasText: 'You are not authorized to access this resource, please contact your administrator.' })
+      ).toBeVisible();
+    });
+  }
 }

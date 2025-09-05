@@ -4,13 +4,14 @@ import { TestPriority } from '@core/constants/testPriority';
 import { tagTest } from '@core/utils/testDecorator';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { FeatureOwnersPage } from '@platforms/pages/abacPage/featureOwnersPage/featureOwnersPage';
-
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { Roles, RolesId } from '@/src/core/constants/roles';
 import { USER_STATUS } from '@/src/core/constants/status';
 import { TestSuite } from '@/src/core/constants/testSuite';
 import { IdentityUserSearchResponse, User } from '@/src/core/types/user.type';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
-import { FeatureMenuOptions } from '@/src/modules/platforms/constants/featureMenuOptions';
+import { FEATURE_OWNERS_MENU_OPTIONS } from '@/src/modules/platforms/constants/featureOwnersMenuOptions';
+import { LoginHelper } from '@/src/core/helpers/loginHelper';
 
 test.describe(
   'Feature Owners Testcases',
@@ -89,7 +90,7 @@ test.describe(
       test(
         `Verify that user manager should not be able to remove Feature owner access of any app manager from ${feature} feature under Feature owners tab`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
+          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`, `@this-one`],
         },
         async ({ userManagerPage, userManagerApiClient }) => {
           let usersWithAppManagerTag: string[] = [];
@@ -100,7 +101,7 @@ test.describe(
 
           await featureOwnersPage.loadPage();
           await featureOwnersPage.searchForFeature(feature);
-          await featureOwnersPage.clickOnButtonForFeature(feature, FeatureMenuOptions.EDIT);
+          await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
 
           // Get the list of all users with App manager tag
           usersWithAppManagerTag = await featureOwnersPage.getUsersWithAppManagerTag();
@@ -119,22 +120,22 @@ test.describe(
       test(
         `Verify that user manager should have access for editing ${feature} feature under feature owners tab`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
+          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`, `@this-one`],
         },
         async ({ userManagerPage }) => {
           tagTest(test.info(), {
-            zephyrTestId: ['PS-33252', 'PS-33251'],
+            zephyrTestId: ['PS-33252', 'PS-33251', 'PS-33493'],
           });
           const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerPage);
 
           await featureOwnersPage.loadPage();
 
           await featureOwnersPage.searchForFeature(feature);
-          await featureOwnersPage.clickOnButtonForFeature(feature, FeatureMenuOptions.EDIT);
+          await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           await featureOwnersPage.addUserAsFeatureOnwer([user1.username]);
           await featureOwnersPage.verifyToastMessage('Feature owners updated successfully');
           await featureOwnersPage.dismissTheToastMessage();
-          await featureOwnersPage.clickOnButtonForFeature(feature, FeatureMenuOptions.EDIT);
+          await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           await featureOwnersPage.removeUserFromFeatureOwnersList(user1.username);
           await featureOwnersPage.verifyToastMessage('Feature owners updated successfully');
           await featureOwnersPage.dismissTheToastMessage();
@@ -144,7 +145,7 @@ test.describe(
       test(
         `Verify that user manager should be able to remove Feature onwer access of any app manager from manage users page for ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
+          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`, `@this-one`],
         },
         async ({ userManagerPage, appManagerApiClient }) => {
           tagTest(test.info(), {
@@ -154,17 +155,17 @@ test.describe(
           // Test Scenario
           await featureOwnersPage.loadPage();
           await featureOwnersPage.searchForFeature(feature);
-          await featureOwnersPage.clickOnButtonForFeature(feature, FeatureMenuOptions.EDIT);
+          await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           await featureOwnersPage.verifyUserIsNotDisplayedAsFeatureOwner(user1.username);
           await featureOwnersPage.reloadPage();
-          await featureOwnersPage.clickOnButtonForFeature(feature, FeatureMenuOptions.EDIT);
+          await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           // Verify that user is displayed with App manager tag
           await featureOwnersPage.verifyFeatureOwnerIsDisplayedWithAppManagerTag(user2.username);
           await appManagerApiClient
             .getUserManagementService()
             .updatePrimaryRole(loginIdentifier2, RolesId.END_USER, { abac: true });
           await featureOwnersPage.reloadPage();
-          await featureOwnersPage.clickOnButtonForFeature(feature, FeatureMenuOptions.EDIT);
+          await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           // Verify that user is not displayed in the feature owner list
           await featureOwnersPage.verifyUserIsNotDisplayedAsFeatureOwner(user2.username);
         }
@@ -173,7 +174,7 @@ test.describe(
       test(
         `Verify that ${feature} feature owners access should be removed when the status of the user with app manager role is changed to inactive from manage users page`,
         {
-          tag: [TestPriority.P0, `@ABAC`, `@feature-owners`],
+          tag: [TestPriority.P0, `@ABAC`, `@feature-owners`, `@this-one`],
         },
         async ({ appManagerPage, appManagerApiClient }) => {
           tagTest(test.info(), {
@@ -184,14 +185,14 @@ test.describe(
           // Test Scenario
           await featureOwnersPage.loadPage();
           await featureOwnersPage.searchForFeature(feature);
-          await featureOwnersPage.clickOnButtonForFeature(feature, FeatureMenuOptions.EDIT);
+          await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           // Verify that user is displayed with App manager tag
           await featureOwnersPage.verifyFeatureOwnerIsDisplayedWithAppManagerTag(user2.username);
           // changing status of the App manager to Inactive
           const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier2);
           await appManagerApiClient.getUserManagementService().updateUserStatus(userId, USER_STATUS.INACTIVE);
           await featureOwnersPage.reloadPage();
-          await featureOwnersPage.clickOnButtonForFeature(feature, FeatureMenuOptions.EDIT);
+          await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           // Verify that user is not displayed in the feature owners list after changing the status to inactive
           await featureOwnersPage.verifyUserIsNotDisplayedAsFeatureOwner(user2.username);
         }
@@ -200,7 +201,7 @@ test.describe(
       test(
         `Verify that ${feature} feature owners access should be removed when the status of the user with app manager role is changed to frozen from manage users page`,
         {
-          tag: [TestPriority.P0, `@ABAC`, `@feature-owners`],
+          tag: [TestPriority.P0, `@ABAC`, `@feature-owners`, `@this-one`],
         },
         async ({ appManagerPage, appManagerApiClient }) => {
           tagTest(test.info(), {
@@ -211,16 +212,80 @@ test.describe(
           // Test Scenario
           await featureOwnersPage.loadPage();
           await featureOwnersPage.searchForFeature(feature);
-          await featureOwnersPage.clickOnButtonForFeature(feature, FeatureMenuOptions.EDIT);
+          await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           // Verify that user is displayed with App manager tag
           await featureOwnersPage.verifyFeatureOwnerIsDisplayedWithAppManagerTag(user3.username);
           // changing status of the App manager to Frozen
           const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier3);
           await appManagerApiClient.getUserManagementService().updateUserStatus(userId, USER_STATUS.FROZEN);
           await featureOwnersPage.reloadPage();
-          await featureOwnersPage.clickOnButtonForFeature(feature, FeatureMenuOptions.EDIT);
+          await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           // Verify that user is not displayed in the feature owners list after changing the status to frozen
           await featureOwnersPage.verifyUserIsNotDisplayedAsFeatureOwner(user3.username);
+        }
+      );
+
+      test(
+        `Verify that App manager should be able to add a user without app manager or user manager role as Feature owner for ${feature} feature`,
+        {
+          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`, `@this-one`],
+        },
+        async ({ appManagerPage }) => {
+          tagTest(test.info(), {
+            zephyrTestId: ['PS-32975'],
+          });
+          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
+
+          await featureOwnersPage.loadPage();
+
+          await featureOwnersPage.searchForFeature(feature);
+          await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
+          await featureOwnersPage.addUserAsFeatureOnwer([user1.username]);
+          await featureOwnersPage.verifyToastMessage('Feature owners updated successfully');
+          await featureOwnersPage.dismissTheToastMessage();
+          await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
+          await featureOwnersPage.removeUserFromFeatureOwnersList(user1.username);
+          await featureOwnersPage.verifyToastMessage('Feature owners updated successfully');
+          await featureOwnersPage.dismissTheToastMessage();
+        }
+      );
+
+      test(
+        `Verify that when primary role of a user is changed from manage users page then the privileges should be lost or gained accordingly for ${feature} feature`,
+        {
+          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`, `@this-one`],
+        },
+        async ({ browser, appManagerApiClient }) => {
+          tagTest(test.info(), {
+            zephyrTestId: ['PS-32482'],
+          });
+          appManagerApiClient.getUserManagementService().registerUser(loginIdentifier2, {
+            verificationQuestionField: 'department',
+            verificationQuestionValue: 'Product',
+            password: 'Simp@1234',
+          });
+          const newUserContext = await browser.newContext();
+          const page = await newUserContext.newPage();
+          await LoginHelper.loginWithPassword(page, {
+            email: loginIdentifier2,
+            password: 'Simp@1234',
+          });
+
+          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(page);
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.verifyThePageIsLoaded();
+          appManagerApiClient
+            .getUserManagementService()
+            .updatePrimaryRole(loginIdentifier2, RolesId.END_USER, { abac: true });
+          appManagerApiClient.getUserManagementService().waitForUserRoleToSync(loginIdentifier2, RolesId.END_USER);
+          try {
+            await featureOwnersPage.goToUrl(PAGE_ENDPOINTS.FEATURE_OWNERS);
+            await featureOwnersPage.verifyAccessDeniedPageVisibility();
+          } catch (e) {
+            await featureOwnersPage.goToUrl(PAGE_ENDPOINTS.FEATURE_OWNERS);
+          }
+          await featureOwnersPage.verifyAccessDeniedPageVisibility();
+          await newUserContext.close();
         }
       );
     }

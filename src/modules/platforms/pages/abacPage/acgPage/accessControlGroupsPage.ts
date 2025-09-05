@@ -4,6 +4,8 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { AccessControlGroupModalComponent } from '@platforms/components/accessControlGroupModal';
+import { ConfirmEditAccessControlGroupModalComponent } from '@platforms/components/confirmEditAccessControlGroupModal';
 
 export enum ACGFeature {
   ADD_SITES = 'Add_sites',
@@ -14,6 +16,8 @@ export enum ACGFeature {
 }
 
 export class AccessControlGroupsPage extends BasePage {
+  private acgDefaultStatus: string = 'Active';
+
   readonly acgDropdownButton: Locator;
   readonly acgCreateButtonSingle: Locator;
   readonly acgCreateButtonMultiple: Locator;
@@ -28,6 +32,14 @@ export class AccessControlGroupsPage extends BasePage {
   readonly acgSearchBox: Locator;
   readonly acgStatusToggle: Locator;
   readonly acgRecordsElement: Locator;
+  readonly acgEditButton: Locator;
+  readonly acgRecords: Locator;
+  readonly clearButtonOnSearchInputBox: Locator;
+
+  createACGModal: AccessControlGroupModalComponent;
+  editACGModal: AccessControlGroupModalComponent;
+
+  confirmEditACGModal: ConfirmEditAccessControlGroupModalComponent;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.ACCESS_CONTROL_GROUPS_PAGE) {
     super(page, pageUrl);
@@ -40,11 +52,19 @@ export class AccessControlGroupsPage extends BasePage {
     this.acgAudiencesName = page.locator('[class*="NameWithDescription"] p');
     this.acgMenuOptions = page.locator('[aria-haspopup="menu"]');
     this.acgDeleteButton = page.locator("text='Delete'");
+    this.acgEditButton = page
+      .locator('[class*="DropdownMenu-module__DropdownMenuItemLabel"]')
+      .filter({ hasText: 'Edit' });
     this.iUnderstand = page.locator('#confirmDelete');
     this.acgNameInputBox = page.locator('[name="controlGroupName"]');
     this.acgSearchBox = page.locator('#q');
     this.acgStatusToggle = page.locator('[aria-checked="true"]');
     this.acgRecordsElement = page.locator('[data-testid*="dataGridRow"]');
+    this.createACGModal = new AccessControlGroupModalComponent(page, 'create');
+    this.editACGModal = new AccessControlGroupModalComponent(page, 'edit');
+    this.acgRecords = page.locator('[data-testid*="dataGridRow"]');
+    this.confirmEditACGModal = new ConfirmEditAccessControlGroupModalComponent(page);
+    this.clearButtonOnSearchInputBox = page.locator('[aria-label="Clear"]');
   }
 
   // To verify that the ACG page is loaded
@@ -199,5 +219,82 @@ export class AccessControlGroupsPage extends BasePage {
         await this.clickOnElement(this.acgStatusToggle);
       }
     });
+  }
+
+  /**
+   * Creates an ACG with target audience only.
+   * @param targetAudienceName - Name of the target audience with which the ACG is to be created.
+   * @param options - Options to be used for creation of ACG
+   */
+  async createACGWithTargetAudienceOnly(targetAudienceName: string, options?: { acgStatus?: string }): Promise<string> {
+    const currACGStatus = options?.acgStatus || this.acgDefaultStatus;
+    let saveButtonName: string;
+    if (currACGStatus === 'Active') {
+      saveButtonName = 'Save and activate';
+    } else {
+      saveButtonName = 'Save';
+    }
+    return await test.step(`Creating ACG with target audience as ${targetAudienceName}  and status as ${options?.acgStatus ?? this.acgDefaultStatus} only`, async () => {
+      let acgName: string;
+      await this.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
+      await this.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
+      await this.clickOnButtonWithName('Next');
+      await this.clickOnButtonWithName('Browse');
+      await this.searchForValues(targetAudienceName);
+      await this.clickOnAudience(targetAudienceName);
+      await this.clickOnButtonWithName('Done');
+      await this.clickOnButtonWithName('Next');
+      await this.clickOnButtonWithName('Skip');
+      await this.clickOnButtonWithName('Skip');
+      acgName = await this.getACGName();
+      console.log(`ACG name is ${acgName}`);
+      await this.changeACGStatus(currACGStatus);
+      await this.clickOnButtonWithName(saveButtonName);
+      await this.verifyToastMessage('Creating access control groups and audience relationships…');
+      await this.dismissTheToastMessage();
+      return acgName;
+    });
+  }
+
+  /**
+   * Deletes the ACG.
+   * @param acgName - Name of the ACG to be deleted.
+   */
+  async deleteACG(acgName: string): Promise<void> {
+    await this.searchForACG(acgName);
+    await this.deleteFirstACG();
+    await this.verifyToastMessage('Access control group was successfully deleted');
+    await this.dismissTheToastMessage();
+  }
+
+  /**
+   * Edits ACG - If ACG name is provided, edit the ACG with the given name, otherwise edit the first ACG in the list.
+   * @param options - acgName - Name of the ACG to be edited.
+   */
+  async editACG(options?: { acgName: string }): Promise<void> {
+    const selectedACGRecordMenuOptionButton: Locator = options?.acgName
+      ? this.acgRecords.filter({ hasText: options?.acgName })
+      : this.acgMenuOptions.first();
+
+    await this.clickOnElement(selectedACGRecordMenuOptionButton);
+    // await this.clickOnElement(this.acgEditButton);
+    await this.clickOnElementWithCoordinates(this.acgEditButton, {
+      force: true,
+      stepInfo: 'Clicking on the Edit button with coordinates',
+    });
+  }
+
+  /**
+   * Clicks on close button for create ACG modal.
+   */
+  async clickOnCloseButtonForCreateACGModal(): Promise<void> {
+    await this.createACGModal.clickCloseButton();
+  }
+
+  /**
+   * Clicks on close button for edit ACG modal.
+   */
+  async clickOnCloseButtonForEditACGModal(): Promise<void> {
+    await this.editACGModal.clickCloseButton();
   }
 }

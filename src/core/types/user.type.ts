@@ -110,3 +110,17 @@ export interface work_info {
   department?: string;
   start_date?: string;
 }
+
+export interface IdentityValidateResponse {
+  status: number;
+  message: string;
+  result: {
+    token: string;
+    firstLogin: boolean;
+    identifierType: string;
+    sso: boolean;
+    showForgotPassword: boolean;
+    isVerificationAllowed: boolean;
+    language: number;
+  };
+}
