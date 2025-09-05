@@ -15,15 +15,10 @@ export class IdentityManagementHelper {
    * @param options - Optional parameters for the people list request
    * @returns Promise<string | null> - The peopleId if found, null otherwise
    */
-  async getPeopleIdByEmail(email: string, options?: PeopleListOptions): Promise<string | null> {
-    try {
-      // Get people ID directly from API
-      const peopleId = await this.identityService.getPeopleIdWithEmailId(email);
-      console.log(`Found person with email ${email} (ID: ${peopleId})`);
-      return peopleId;
-    } catch (error) {
-      console.error(`Error searching for person with email ${email}:`, error);
-      return null;
-    }
+  async getListOfPeople(email?: string, options?: PeopleListOptions): Promise<PeopleListResponse> {
+    // Get people ID directly from API
+    const peopleListResponse = await this.identityService.getListOfPeople(email);
+    console.log(`Found person with email ${email} (ID: ${peopleListResponse.result.listOfItems[0].peopleId})`);
+    return peopleListResponse;
   }
 }

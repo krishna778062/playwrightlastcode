@@ -477,36 +477,21 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
   }
 
   /**
-   * Gets the people ID for a user by their email address
-   * @param emailId - Email address of the user
-   * @returns The people ID for the user
+   * Gets the list of people with optional email filtering
+   * @param emailId - Optional email address to filter by
+   * @returns The people list response
    */
-  async getPeopleIdWithEmailId(emailId: string): Promise<string> {
-    let peopleId: string = '';
-    await test.step(`Getting people ID for email: ${emailId}`, async () => {
+  async getListOfPeople(emailId?: string): Promise<PeopleListResponse> {
+    return await test.step(`Getting list of people${emailId ? ` for email: ${emailId}` : ''}`, async () => {
+      const requestData = {
+        size: 100,
+        ...(emailId && { searchTerm: emailId }),
+      };
+
       const response = await this.post(API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersList, {
-        data: {
-          size: 16,
-          searchTerm: emailId,
-        },
+        data: requestData,
       });
-      const responseJson = await this.parseResponse<PeopleListResponse>(response);
-
-      if (!responseJson.result?.listOfItems || responseJson.result.listOfItems.length === 0) {
-        throw new Error(`No user found with email: ${emailId}`);
-      }
-
-      // Find the exact email match
-      const user = responseJson.result.listOfItems.find(
-        item => item.email && item.email.toLowerCase() === emailId.toLowerCase()
-      );
-
-      if (!user) {
-        throw new Error(`Exact email match not found for: ${emailId}`);
-      }
-
-      peopleId = user.user_id;
+      return await this.parseResponse<PeopleListResponse>(response);
     });
-    return peopleId;
   }
 }

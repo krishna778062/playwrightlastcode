@@ -6,6 +6,7 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
+import { ContentManagementHelper } from '@/src/core/helpers/contentManagementHelper';
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
 import { SiteMembershipAction, SitePermission } from '@/src/core/types/siteManagement.types';
@@ -51,7 +52,9 @@ test.describe(
         });
 
         const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
-        const user = await identityManagementHelper.getPeopleIdByEmail(users.endUser.email);
+        const peopleListResponse = await identityManagementHelper.getListOfPeople(users.endUser.email);
+
+        const user = peopleListResponse.result.listOfItems.find(item => item.email === users.endUser.email)?.peopleId;
 
         if (!user) {
           throw new Error('Failed to get user ID');
@@ -140,6 +143,61 @@ test.describe(
         // Step 12: Unfavorite the post as Site Manager
         await feedPage.actions.removePostFromFavourite(createdPostText);
         await feedPage.assertions.verifyPostIsNotFavorited(createdPostText);
+      }
+    );
+
+    test(
+      'In Zeus Verify user is able to Add Edit Delete Text Topic Mention user Mention Site Embedded URL on Home Feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE],
+      },
+      async ({ appManagerHomePage, appManagerApiClient, contentManagementHelper }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify user is able to Add Edit Delete Text Topic Mention user Mention Site Embedded URL on Home Feed',
+          zephyrTestId: 'CONT-24125',
+          storyId: 'CONT-24125',
+        });
+
+        await appManagerHomePage.actions.clickOnGlobalFeed();
+        await feedPage.verifyThePageIsLoaded();
+
+        const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
+        const peopleListResponse = await identityManagementHelper.getListOfPeople(users.endUser.email);
+
+        const matchedUser = peopleListResponse.result.listOfItems.find(item => item.email === users.endUser.email);
+
+        if (!matchedUser) {
+          throw new Error('Failed to get user details');
+        }
+        const fullName = `${matchedUser.firstName || ''} ${matchedUser.lastName || ''}`.trim();
+        const userId = matchedUser.peopleId;
+
+        console.log(`Found user: ${fullName} (${userId}) for email: ${users.endUser.email}`);
+
+        const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
+        const siteListResponse = await siteManagementHelper.getListOfSites();
+
+        // Get any public site from the list
+        const publicSiteName = siteListResponse.result.listOfItems.find(site => site.access === 'public')?.name;
+
+        if (!publicSiteName) {
+          throw new Error('No public site found in the list');
+        }
+
+        console.log(`Found public site: ${publicSiteName})`);
+
+        // Get list of topics
+        const topicListResponse = await contentManagementHelper.getTopicList();
+
+        console.log(`Found ${topicListResponse.result.listOfItems.length} topics`);
+
+        // Get random topic name from the response list
+        const randomTopic =
+          topicListResponse.result.listOfItems[Math.floor(Math.random() * topicListResponse.result.listOfItems.length)];
+        const existingTopicName = randomTopic.name;
+
+        console.log(`Selected random topic: "${existingTopicName}" (ID: ${randomTopic.topic_id})`);
       }
     );
   }

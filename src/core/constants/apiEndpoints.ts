@@ -59,6 +59,7 @@ export const API_ENDPOINTS = {
     signedUrl: '/v1/content/static/signedurl/upload',
     files: '/v1/content/files',
     listFiles: '/v1/content/files/list',
+    topics: '/v1/content/topics/manage/list',
   },
 
   fileUpload: {
