@@ -1,6 +1,6 @@
+import { faker } from '@faker-js/faker';
 import fs from 'fs';
 import path from 'path';
-
 export class FileUtil {
   /**
    * Reads the contents of a directory.
@@ -146,7 +146,6 @@ export class FileUtil {
     const extension = lastDotIndex !== -1 ? fileName.substring(lastDotIndex) : '';
 
     // Generate random filename
-    const { faker } = require('@faker-js/faker');
     const randomNum = faker.number.int({ min: 1000, max: 9000 });
     const randomFileName = `${baseName}${randomNum}${extension}`;
 
