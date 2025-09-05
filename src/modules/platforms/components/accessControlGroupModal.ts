@@ -22,6 +22,9 @@ export class AccessControlGroupModalComponent extends BaseComponent {
     this.closeButton = this.acgDialog.getByRole('button', { name: 'Close' });
   }
 
+  /**
+   * Verifies the duplicate target audience error message is visible
+   */
   async verifyDuplicateTargetGroupsErrorMessage(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(
       this.acgDialog
@@ -35,18 +38,33 @@ export class AccessControlGroupModalComponent extends BaseComponent {
     );
   }
 
+  /**
+   * Clicks the close button on the access control group modal
+   */
   async clickCloseButton(): Promise<void> {
     await super.clickCloseButton(this.closeButton, 'Click Close (X) button');
   }
 
+  /**
+   * Clicks the edit button for a specific asset on the access control group modal
+   *@param assetName - The name of the asset to click on(e.g. 'Target audience', 'Features' etc)
+   */
   async clickOnEditButtonOnSummaryScreen(assetName: string): Promise<void> {
     await this.clickOnElement(this.acgDialog.getByRole('button', { name: assetName }));
   }
 
+  /**
+   * Clicks the add button to add new users or audiences
+   *@param buttonName - The name of the button to click
+   */
   async clickOnAddButton(buttonName: string): Promise<void> {
     await this.clickOnElement(this.acgDialog.getByRole('button', { name: buttonName }));
   }
 
+  /**
+   * Clicks the remove button for a specific audience or user on the access control group modal
+   *@param audienceName - The name of the audience for which remove button need to be clicked
+   */
   async clickOnRemoveButtonForAudience(audienceName: string): Promise<void> {
     let removeButtonElement = this.page
       .locator('[class*="Spacing-module__row"]')
