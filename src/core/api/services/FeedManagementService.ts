@@ -1,11 +1,12 @@
 import { faker } from '@faker-js/faker';
-import { APIRequestContext, test } from '@playwright/test';
+import { APIRequestContext, request, test } from '@playwright/test';
 import * as fs from 'fs';
 
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { IFeedManagementOperations } from '@core/api/interfaces/IFeedManagementOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { CreateFeedPostPayload, FeedPostResponse, UpdateFeedPostPayload } from '@core/types/feed.type';
+import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { FileUtil } from '../../utils/fileUtil';
 
@@ -194,7 +195,9 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       });
 
       const json = await response.json();
+      console.log('--------------------------------');
       console.log('Upload image response:', JSON.stringify(json, null, 2));
+      console.log('--------------------------------');
 
       if (json.status !== 'success') {
         throw new Error(`Image upload failed. Response: ${JSON.stringify(json)}`);
@@ -203,9 +206,6 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       // Extract key values for easy access
       const responseFileId = json.result.file_id;
       const uploadUrl = json.result.upload_url;
-
-      console.log('Extracted file_id:', responseFileId);
-      console.log('Extracted upload_url:', uploadUrl);
 
       return {
         ...json,
@@ -243,23 +243,15 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
         fileName
       );
       const fileBuffer = fs.readFileSync(filePath);
-
-      console.log('Uploading to URL:', uploadUrl);
-      console.log('File name:', fileName);
-
       // Make a PUT request to the signed URL with the file data
       const response = await this.context.fetch(uploadUrl, {
         method: 'PUT',
         headers: {
-          'Content-Disposition': `attachment; filename=${fileName}`,
           'Content-Type': 'image/jpeg',
+          'Content-Disposition': 'attachment; filename=_115151003_smallergettyimages-1184857940.jpg',
         },
         data: fileBuffer,
       });
-
-      console.log('Upload response status:', response.status);
-      console.log('Upload response headers:', response.headers);
-
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`File upload to attachment URL failed. Status: ${response.status}, Error: ${errorText}`);
@@ -267,7 +259,9 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
 
       // For PUT requests to S3, successful uploads typically return empty body with 200 status
       const responseText = await response.text();
-      console.log('Upload response body:', responseText);
+      console.log('--------------------------------');
+      console.log('Attachment upload response body:', responseText);
+      console.log('--------------------------------');
 
       return {
         status: response.status,
@@ -292,21 +286,22 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       }
 
       // Extract just the path and query parameters from the location header
-      const url = new URL(locationHeader);
-      const pathWithQuery = url.pathname + url.search;
+      console.log('--------------------------------');
+      console.log('Location complete URL:', locationHeader);
+      console.log('--------------------------------');
 
-      console.log('Location header request path:', pathWithQuery);
+      // Make a PUT request to the signed URL with the file data
+      const response = await this.context.fetch(locationHeader, {
+        method: 'GET',
+      });
 
-      const response = await this.get(pathWithQuery);
+      const responseText = await response.text();
+      console.log('Location response body:', responseText);
 
-      const json = await response.json();
-      console.log('Location header response:', JSON.stringify(json, null, 2));
-
-      return {
-        response,
-        json,
-        locationHeader: BaseApiClient.fetchLocationHeader(response),
-      };
+      // Validate status code 200
+      if (!response.ok() || response.status() !== 200) {
+        throw new Error(`getLocation failed. Status: ${response.status()}, URL: ${locationHeader}`);
+      }
     });
   }
 
@@ -352,6 +347,9 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       const fileSize = 187280;
       const mimeType = 'image/jpeg';
 
+      if (BaseApiClient.globalLocationHeader) {
+        await this.getLocation(BaseApiClient.globalLocationHeader);
+      }
       // Upload image to get fileId
       const uploadResponse = await this.uploadImage(fileName, fileSize, mimeType);
       const fileId = uploadResponse.result.file_id;

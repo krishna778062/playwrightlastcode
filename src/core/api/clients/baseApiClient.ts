@@ -7,12 +7,11 @@ import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 
 export abstract class BaseApiClient extends HttpClient {
+  static globalLocationHeader: string | null = null;
+
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
-    this.locationHeader = undefined;
   }
-
-  public locationHeader: any = undefined;
 
   /**
    * Creates an API context by logging in via API
@@ -59,14 +58,13 @@ export abstract class BaseApiClient extends HttpClient {
 
       const storageState = await tmpContext.storageState();
       const headers = this.fetchHeadersFromCookies(storageState.cookies);
-      this.locationHeader = this.fetchLocationHeader(loginApiRes);
+
+      // Set global location header from login response
+      this.globalLocationHeader = this.fetchLocationHeader(loginApiRes);
 
       // Create new context with auth headers
       return await request.newContext({
-        extraHTTPHeaders: {
-          ...headers,
-          ...(locationHeader && { location: locationHeader }),
-        },
+        extraHTTPHeaders: headers,
       });
     } finally {
       await tmpContext.dispose();
