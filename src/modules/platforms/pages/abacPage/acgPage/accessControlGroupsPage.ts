@@ -2,10 +2,11 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
-
+import { POPUP_BUTTONS } from '@core/constants/popupButtons';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { AccessControlGroupModalComponent } from '@platforms/components/accessControlGroupModal';
 import { ConfirmEditAccessControlGroupModalComponent } from '@platforms/components/confirmEditAccessControlGroupModal';
+import { ACG_STATUS } from '@platforms/constants/acgStatus';
 
 export enum ACGFeature {
   ADD_SITES = 'Add_sites',
@@ -229,7 +230,7 @@ export class AccessControlGroupsPage extends BasePage {
   async createACGWithTargetAudienceOnly(targetAudienceName: string, options?: { acgStatus?: string }): Promise<string> {
     const currACGStatus = options?.acgStatus || this.acgDefaultStatus;
     let saveButtonName: string;
-    if (currACGStatus === 'Active') {
+    if (currACGStatus === ACG_STATUS.ACTIVE) {
       saveButtonName = 'Save and activate';
     } else {
       saveButtonName = 'Save';
@@ -238,14 +239,14 @@ export class AccessControlGroupsPage extends BasePage {
       let acgName: string;
       await this.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
       await this.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
-      await this.clickOnButtonWithName('Next');
-      await this.clickOnButtonWithName('Browse');
+      await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
+      await this.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
       await this.searchForValues(targetAudienceName);
       await this.clickOnAudience(targetAudienceName);
-      await this.clickOnButtonWithName('Done');
-      await this.clickOnButtonWithName('Next');
-      await this.clickOnButtonWithName('Skip');
-      await this.clickOnButtonWithName('Skip');
+      await this.clickOnButtonWithName(POPUP_BUTTONS.DONE);
+      await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
+      await this.clickOnButtonWithName(POPUP_BUTTONS.SKIP);
+      await this.clickOnButtonWithName(POPUP_BUTTONS.SKIP);
       acgName = await this.getACGName();
       console.log(`ACG name is ${acgName}`);
       await this.changeACGStatus(currACGStatus);

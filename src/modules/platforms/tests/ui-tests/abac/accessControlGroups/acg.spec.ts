@@ -4,7 +4,8 @@ import { tagTest } from '@core/utils/testDecorator';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/acgPage/accessControlGroupsPage';
 import { ACG_EDIT_ASSETS } from '@platforms/constants/acgEditAssets';
-
+import { ACG_STATUS } from '@platforms/constants/acgStatus';
+import { POPUP_BUTTONS } from '@core/constants/popupButtons';
 import { TestSuite } from '@/src/core/constants/testSuite';
 
 test.describe(
@@ -76,7 +77,7 @@ test.describe(
         await accessControlGroupsPage.loadPage();
         //after these actions are done, we will wait for the api call to be completed
         acgName1 = await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate1);
-        await accessControlGroupsPage.verifyACGStatus(acgName1, 'Active');
+        await accessControlGroupsPage.verifyACGStatus(acgName1, ACG_STATUS.ACTIVE);
         await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName1);
         await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
         await accessControlGroupsPage.dismissTheToastMessage();
@@ -100,7 +101,7 @@ test.describe(
         acgName1 = await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate1, {
           acgStatus: 'Inactive',
         });
-        await accessControlGroupsPage.verifyACGStatus(acgName1, 'Inactive');
+        await accessControlGroupsPage.verifyACGStatus(acgName1, ACG_STATUS.INACTIVE);
         await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName1);
         await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
         await accessControlGroupsPage.dismissTheToastMessage();
@@ -183,11 +184,11 @@ test.describe(
         // Test Scenario
         await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
         await accessControlGroupsPage.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
-        await accessControlGroupsPage.clickOnButtonWithName('Next');
-        await accessControlGroupsPage.clickOnButtonWithName('Browse');
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
         await accessControlGroupsPage.searchForValues(audienceToCreate1);
         await accessControlGroupsPage.clickOnAudience(audienceToCreate1);
-        await accessControlGroupsPage.clickOnButtonWithName('Done');
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
         await accessControlGroupsPage.createACGModal.verifyDuplicateTargetGroupsErrorMessage();
         await accessControlGroupsPage.clickOnCloseButtonForCreateACGModal();
         // Clean up: Delete the above created ACG
@@ -223,10 +224,10 @@ test.describe(
         await accessControlGroupsPage.confirmEditACGModal.clickContinueButton();
         await accessControlGroupsPage.editACGModal.clickOnEditButtonOnSummaryScreen(ACG_EDIT_ASSETS.TARGET_AUDIENCE);
         await accessControlGroupsPage.editACGModal.clickOnRemoveButtonForAudience(audienceToCreate2);
-        await accessControlGroupsPage.clickOnButtonWithName('Browse');
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
         await accessControlGroupsPage.searchForValues(audienceToCreate1);
         await accessControlGroupsPage.clickOnAudience(audienceToCreate1);
-        await accessControlGroupsPage.clickOnButtonWithName('Done');
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
         await accessControlGroupsPage.editACGModal.verifyDuplicateTargetGroupsErrorMessage();
         await accessControlGroupsPage.clickOnCloseButtonForEditACGModal();
 
