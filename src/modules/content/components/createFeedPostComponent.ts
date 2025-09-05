@@ -311,4 +311,45 @@ export class CreateFeedPostComponent
       return postResponse;
     });
   }
+
+  /**
+   * Creates and publishes a new feed post with user and topic mentions
+   * @param title - The base text for the post
+   * @param userName - The user name to mention
+   * @param topicName - The topic name to mention
+   * @returns Result containing post text, attachment count and post ID
+   */
+  async createfeedWithMentionUserNameAndTopic(
+    title: string,
+    userName: string,
+    topicName: string,
+    siteName: string
+  ): Promise<FeedPostResult> {
+    return await test.step(`Creating feed post with user mention "${userName}" and topic mention "${topicName}"`, async () => {
+      // Open editor
+      await this.clickShareThoughtsButton();
+
+      // Format the text with mentions
+      const textWithMentions = `${title} @${userName} #${topicName}`;
+
+      // Add post content
+      await this.createPost(textWithMentions);
+
+      // Publish the page
+      const postResponse = await this.createFeedPost();
+
+      //json body
+      const feedResponseBody = (await postResponse.json()) as FeedPostApiResponse;
+
+      //fetch the page id from the response
+      const postId = feedResponseBody.result.feedId;
+      console.log('postId', postId);
+
+      return {
+        postText: textWithMentions,
+        attachmentCount: 0,
+        postId,
+      };
+    });
+  }
 }

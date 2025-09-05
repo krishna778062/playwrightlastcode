@@ -15,7 +15,12 @@ export interface IFeedActions {
   favoriteUnfavoritePost: (favorite: boolean) => Promise<void>;
   // Content creation flow
   createPostWithAttachments: (text: string, files?: string[]) => Promise<FeedPostResult>;
-  createfeedWithMentionUserNameAndTopic: (text: string, userName: string, topicName: string) => Promise<FeedPostResult>;
+  createfeedWithMentionUserNameAndTopic: (
+    text: string,
+    userName: string,
+    topicName: string,
+    siteName: string
+  ) => Promise<FeedPostResult>;
   markPostAsFavourite: () => Promise<void>;
   removePostFromFavourite: (postText: string) => Promise<void>;
 }
@@ -87,20 +92,17 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    * @returns Promise<FeedPostResult>
    */
   async createfeedWithMentionUserNameAndTopic(
-    text: string,
+    title: string,
     userName: string,
-    topicName: string
+    topicName: string,
+    siteName: string
   ): Promise<FeedPostResult> {
-    return await test.step(`Creating feed post with user mention "${userName}" and topic mention "${topicName}"`, async () => {
-      // Format the text with mentions
-      const textWithMentions = `${text} @${userName} #${topicName}`;
-
-      const options: FeedPostOptions = {
-        text: textWithMentions,
-      };
-
-      return await this.createAndPost(options);
-    });
+    return await this.createFeedPostComponent.createfeedWithMentionUserNameAndTopic(
+      title,
+      userName,
+      topicName,
+      siteName
+    );
   }
 
   async favoriteUnfavoritePost(favorite: boolean): Promise<void> {
