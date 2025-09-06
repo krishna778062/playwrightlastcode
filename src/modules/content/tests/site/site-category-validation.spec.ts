@@ -2,6 +2,7 @@ import { contentTestFixture } from '@content/fixtures/contentFixture';
 import { SiteCategoriesPage } from '@content/pages/siteCategoriesPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 const CATEGORY_NAME_LIMITS = {
@@ -18,13 +19,11 @@ test.describe('Site Category Validation', { tag: ['@content-management', '@site-
 
   test.beforeEach(async ({ appManagersPage }) => {
     siteCategoriesPage = new SiteCategoriesPage(appManagersPage);
-
-    // ✅Use loadPage method inherited from BasePage for direct navigation
     await siteCategoriesPage.loadPage({ timeout: 40000 });
   });
 
   test.afterEach(async ({ appManagerApiClient }) => {
-    // Cleanup: Delete created category using API instead of UI
+    // Cleanup: Delete created category using API
     if (createdCategoryName) {
       try {
         await appManagerApiClient.getSiteManagementService().deleteCategory(createdCategoryName);
@@ -54,7 +53,7 @@ test.describe('Site Category Validation', { tag: ['@content-management', '@site-
       await siteCategoriesPage.assertions.verifyCategoryNameFieldRejectsExcessCharacters(1);
 
       // Step 2: Generate unique category name and fill it
-      const maxLengthCategoryName = await siteCategoriesPage.actions.generateUniqueCategoryName(
+      const maxLengthCategoryName = TestDataGenerator.generateUniqueCategoryName(
         CATEGORY_NAME_LIMITS.MAX_LENGTH,
         CATEGORY_NAME_LIMITS.STARTING_ALPHABET_COUNT
       );
