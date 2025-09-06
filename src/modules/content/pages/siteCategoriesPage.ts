@@ -3,23 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
-export interface ISiteCategoriesActions {
-  clickAddCategoryButton: () => Promise<void>;
-  fillCategoryName: (categoryName: string) => Promise<void>;
-  clickAddButton: () => Promise<void>;
-  deleteCategoryByName: (categoryName: string) => Promise<void>;
-  createCategoryWithName: (categoryName: string) => Promise<void>;
-}
-
-export interface ISiteCategoriesAssertions {
-  verifyCategoryCreatedSuccessfully: (partialCategoryName: string) => Promise<void>;
-  verifyCategoryNameFieldLengthValidation: () => Promise<void>;
-  verifyCategoryNameFieldAcceptsMaxCharacters: (maxCharacters: number) => Promise<void>;
-  verifyCategoryNameFieldRejectsExcessCharacters: (excessCharacters: number) => Promise<void>;
-  verifyPartialTextVisibleInListing: (partialText: string) => Promise<void>;
-}
-
-export class SiteCategoriesPage extends BasePage implements ISiteCategoriesActions, ISiteCategoriesAssertions {
+export class SiteCategoriesPage extends BasePage {
   readonly addCategoryButton: Locator;
   readonly categoryNameTextbox: Locator;
   readonly addButton: Locator;
@@ -39,11 +23,11 @@ export class SiteCategoriesPage extends BasePage implements ISiteCategoriesActio
     this.confirmButton = page.locator('button:has-text("Confirm"), button:has-text("Delete"), button:has-text("Yes")');
   }
 
-  get actions(): ISiteCategoriesActions {
+  get actions(): SiteCategoriesPage {
     return this;
   }
 
-  get assertions(): ISiteCategoriesAssertions {
+  get assertions(): SiteCategoriesPage {
     return this;
   }
 
