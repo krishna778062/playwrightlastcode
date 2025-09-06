@@ -8,9 +8,7 @@ export interface ISiteCategoriesActions {
   fillCategoryName: (categoryName: string) => Promise<void>;
   clickAddButton: () => Promise<void>;
   deleteCategoryByName: (categoryName: string) => Promise<void>;
-  navigateToSiteCategories: () => Promise<void>;
   createCategoryWithName: (categoryName: string) => Promise<void>;
-  generateUniqueCategoryName: (maxLength: number, startingAlphabetCount: number) => Promise<string>;
 }
 
 export interface ISiteCategoriesAssertions {
@@ -26,6 +24,9 @@ export class SiteCategoriesPage extends BasePage implements ISiteCategoriesActio
   readonly categoryNameTextbox: Locator;
   readonly addButton: Locator;
   readonly optionsMenuPanel: Locator;
+  readonly categoryListingTable: Locator;
+  readonly deleteButton: Locator;
+  readonly confirmButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.SITE_CATEGORIES_PAGE);
@@ -33,6 +34,9 @@ export class SiteCategoriesPage extends BasePage implements ISiteCategoriesActio
     this.categoryNameTextbox = page.getByRole('textbox', { name: 'Category name...' });
     this.addButton = page.getByRole('button', { name: 'Add' });
     this.optionsMenuPanel = page.locator('.OptionsMenu-panel-main');
+    this.categoryListingTable = page.locator('table, .table, [role="table"], .category-list, .listing');
+    this.deleteButton = page.locator('*:has-text("Delete")');
+    this.confirmButton = page.locator('button:has-text("Confirm"), button:has-text("Delete"), button:has-text("Yes")');
   }
 
   get actions(): ISiteCategoriesActions {
@@ -49,37 +53,6 @@ export class SiteCategoriesPage extends BasePage implements ISiteCategoriesActio
       await this.verifier.verifyTheElementIsVisible(this.addCategoryButton, {
         assertionMessage: 'Add category button should be visible',
       });
-    });
-  }
-
-  /**
-   * Navigates to Site Categories page from the main navigation
-   */
-  async navigateToSiteCategories(): Promise<void> {
-    await test.step('Navigate to Site Categories page', async () => {
-      console.log('Navigating to Site Categories page...');
-
-      // Go to home page first
-      await this.page.goto('/');
-      await this.page.waitForLoadState('domcontentloaded');
-
-      // Find and click Manage features button
-      const manageFeaturesButton = this.page.getByRole('menuitem', { name: 'Manage features', exact: true });
-      await manageFeaturesButton.waitFor({ state: 'visible', timeout: 10000 });
-      await this.clickOnElement(manageFeaturesButton);
-
-      // Click on Sites card
-      const sitesCard = this.page.getByRole('menuitem', { name: 'Sites Sites' });
-      await sitesCard.waitFor({ state: 'visible', timeout: 10000 });
-      await this.clickOnElement(sitesCard);
-
-      // Click on Site categories tab
-      const siteCategoriesTab = this.page.getByRole('tab', { name: 'Site categories' });
-      await siteCategoriesTab.waitFor({ state: 'visible', timeout: 10000 });
-      await this.clickOnElement(siteCategoriesTab);
-
-      // Verify we're on the site categories page
-      await this.verifyThePageIsLoaded();
     });
   }
 
@@ -174,15 +147,12 @@ export class SiteCategoriesPage extends BasePage implements ISiteCategoriesActio
   async verifyPartialTextVisibleInListing(partialText: string): Promise<void> {
     await test.step(`Verify partial text "${partialText}" is visible in category listing`, async () => {
       // Target only the category listing table area
-      const categoryElement = this.page
-        .locator('table, .table, [role="table"], .category-list, .listing')
-        .filter({ hasText: partialText.substring(0, 30) })
-        .first();
+      const categoryElement = this.categoryListingTable.filter({ hasText: partialText.substring(0, 30) }).first();
 
       console.log(`Looking for partial text: "${partialText.substring(0, 30)}..."`);
 
       // Debug: Show what we're actually finding
-      const elementCount = await this.page.locator('table, .table, [role="table"], .category-list, .listing').count();
+      const elementCount = await this.categoryListingTable.count();
       console.log(`Found ${elementCount} potential listing elements`);
 
       await this.verifier.verifyTheElementIsVisible(categoryElement, {
@@ -201,8 +171,7 @@ export class SiteCategoriesPage extends BasePage implements ISiteCategoriesActio
   async verifyCategoryCreatedSuccessfully(partialCategoryName: string): Promise<void> {
     await test.step(`Verify category created: ${partialCategoryName.substring(0, 50)}...`, async () => {
       // Target only the category listing table area
-      const categoryElement = this.page
-        .locator('table, .table, [role="table"], .category-list, .listing')
+      const categoryElement = this.categoryListingTable
         .filter({ hasText: partialCategoryName.substring(0, 30) })
         .first();
 
@@ -215,9 +184,7 @@ export class SiteCategoriesPage extends BasePage implements ISiteCategoriesActio
         });
       } catch (error) {
         // Debug: Check what's actually visible in the listing when assertion fails
-        const allTextInListing = await this.page
-          .locator('table, .table, [role="table"], .category-list, .listing')
-          .textContent();
+        const allTextInListing = await this.categoryListingTable.textContent();
         console.log(`Current listing content: ${allTextInListing?.substring(0, 200)}...`);
         throw error;
       }
@@ -266,55 +233,18 @@ export class SiteCategoriesPage extends BasePage implements ISiteCategoriesActio
       console.log(`Starting cleanup: Attempting to delete category "${categoryName.substring(0, 30)}..."`);
 
       // Find the category row and click delete
-      const categoryRow = this.page
-        .locator('table, .table, [role="table"], .category-list, .listing')
-        .filter({ hasText: categoryName.substring(0, 30) })
-        .first();
+      const categoryRow = this.categoryListingTable.filter({ hasText: categoryName.substring(0, 30) }).first();
 
       // Click on the delete button for this category
-      const deleteButton = categoryRow.locator('*:has-text("Delete")').first();
+      const deleteButton = categoryRow.locator(this.deleteButton).first();
       await this.clickOnElement(deleteButton);
 
       // Handle confirmation dialog if it appears
-      const confirmButton = this.page
-        .locator('button:has-text("Confirm"), button:has-text("Delete"), button:has-text("Yes")')
-        .first();
-      if (await confirmButton.isVisible()) {
-        await this.clickOnElement(confirmButton);
+      if (await this.confirmButton.isVisible()) {
+        await this.clickOnElement(this.confirmButton);
       }
 
       console.log(`Category deletion completed`);
-    });
-  }
-
-  /**
-   * Generates a unique category name with specified length and starting alphabet characters
-   * @param maxLength - Maximum length of the category name
-   * @param startingAlphabetCount - Number of alphabet characters to start with
-   * @returns Promise<string> - Generated unique category name
-   */
-  async generateUniqueCategoryName(maxLength: number, startingAlphabetCount: number): Promise<string> {
-    return await test.step(`Generate unique category name with ${maxLength} characters, starting with ${startingAlphabetCount} alphabets`, async () => {
-      const timestamp = Date.now();
-      const randomSuffix = Math.random().toString(36).substring(2, 8);
-
-      // Start with alphabet characters (A-Z, a-z)
-      const alphabetChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-      let startingPart = '';
-
-      // Generate starting alphabet characters
-      for (let i = 0; i < startingAlphabetCount; i++) {
-        startingPart += alphabetChars.charAt(Math.floor(Math.random() * alphabetChars.length));
-      }
-
-      // Combine: starting alphabets + random suffix + timestamp
-      const combined = `${startingPart}${randomSuffix}${timestamp}`;
-
-      // Ensure it doesn't exceed max length
-      const result = combined.substring(0, maxLength);
-
-      console.log(`Generated unique category name: ${result.substring(0, 30)}... (${result.length} characters)`);
-      return result;
     });
   }
 }
