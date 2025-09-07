@@ -2,9 +2,9 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
+import { EditWarningPopupComponent } from '@platforms/components/editWarningPopupComponent';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { EditWarningPopupComponent } from '@platforms/components/editWarningPopupComponent';
 
 export enum ACGFeature {
   ADD_SITES = 'Add_sites',
@@ -225,7 +225,7 @@ export class AccessControlGroupsPage extends BasePage {
         await this.clickOnElement(this.editOption, {
           stepInfo: 'Click on Edit option for ACG',
         });
-      } catch (_e) {
+      } catch {
         await this.clickOnElementWithCoordinates(this.editOption, {
           force: true,
           stepInfo: 'Clicking on the Edit button with coordinates',

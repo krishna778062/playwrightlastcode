@@ -1,9 +1,9 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/pages/basePage';
+import { UserCountPopupComponent } from '@platforms/components/userCountPopupComponent';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { UserCountPopupComponent } from '@platforms/components/userCountPopupComponent';
 
 export class FeatureOwnersPage extends BasePage {
   readonly userCountButton: Locator;
@@ -115,7 +115,7 @@ export class FeatureOwnersPage extends BasePage {
         try {
           await this.clickOnElementWithCoordinates(this.foOptionButtons.filter({ hasText: optionName }));
           await expect(this.plusIconOnEditFeaturePopup.nth(0)).toBeVisible({ timeout: 5_000 });
-        } catch (_e) {
+        } catch {
           console.log(`Couldn't click on ${optionName} button`);
           await this.clickOnElement(this.foOptionButtons.filter({ hasText: optionName }), {
             timeout: options?.timeout ?? 10_000,
