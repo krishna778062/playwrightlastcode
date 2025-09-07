@@ -4,6 +4,7 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { EditWarningPopupComponent } from '@platforms/components/editWarningPopupComponent';
 
 export enum ACGFeature {
   ADD_SITES = 'Add_sites',
@@ -26,15 +27,6 @@ export class AccessControlGroupsPage extends BasePage {
   readonly iUnderstand: Locator;
   readonly acgNameInputBox: Locator;
   readonly acgSearchBox: Locator;
-  readonly editPopupTitle: Locator;
-  readonly editWarningMessage: Locator;
-  readonly managersLoseAccessMessage: Locator;
-  readonly adminsLoseAccessMessage: Locator;
-  readonly contentMoveMessage: Locator;
-  readonly analyticsDiscrepanciesMessage: Locator;
-  readonly editPopupCrossButton: Locator;
-  readonly editPopupCancelButton: Locator;
-  readonly editPopupContinueButton: Locator;
   readonly editOption: Locator;
   readonly editManagerButton: Locator;
   readonly addUsersButton: Locator;
@@ -42,6 +34,9 @@ export class AccessControlGroupsPage extends BasePage {
   readonly searchInput: Locator;
   readonly acgStatusToggle: Locator;
   readonly acgRecordsElement: Locator;
+
+  // Component
+  readonly editWarningPopup: EditWarningPopupComponent;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.ACCESS_CONTROL_GROUPS_PAGE) {
     super(page, pageUrl);
@@ -57,17 +52,6 @@ export class AccessControlGroupsPage extends BasePage {
     this.iUnderstand = page.locator('#confirmDelete');
     this.acgNameInputBox = page.locator('[name="controlGroupName"]');
     this.acgSearchBox = page.locator('#q');
-    this.editPopupTitle = page.getByText('Edit access control group');
-    this.editWarningMessage = page
-      .locator('[class*="Typography-module__paragraph"][class*="Typography-module__boldWeight"]')
-      .filter({ hasText: 'Editing this access control group may result in the following:' });
-    this.managersLoseAccessMessage = page.getByText('Managers might lose access to this group or entire feature');
-    this.adminsLoseAccessMessage = page.getByText('Admins might lose access to this group or entire feature');
-    this.contentMoveMessage = page.getByText('Feature that loses its association');
-    this.analyticsDiscrepanciesMessage = page.getByText('There may be discrepancies on any analytics pages');
-    this.editPopupCrossButton = page.getByLabel('Close');
-    this.editPopupCancelButton = page.getByRole('button', { name: 'Cancel' });
-    this.editPopupContinueButton = page.getByRole('button', { name: 'Continue' });
     this.editOption = page.getByText('Edit');
     this.editManagerButton = page.getByRole('button', { name: 'Edit manager' });
     this.addUsersButton = page.getByRole('button', { name: 'Add users' });
@@ -75,6 +59,9 @@ export class AccessControlGroupsPage extends BasePage {
     this.searchInput = page.getByRole('combobox').first();
     this.acgStatusToggle = page.locator('[aria-checked="true"]');
     this.acgRecordsElement = page.locator('[data-testid*="dataGridRow"]');
+
+    // Initialize component
+    this.editWarningPopup = new EditWarningPopupComponent(page);
   }
 
   // To verify that the ACG page is loaded
@@ -248,42 +235,10 @@ export class AccessControlGroupsPage extends BasePage {
   }
 
   /**
-   * Verifies all elements in the edit warning popup
+   * Verifies all elements in the edit warning popup using dedicated component
    */
   async verifyEditWarningPopup(): Promise<void> {
-    await test.step('Verify all elements in edit warning popup', async () => {
-      // Verify popup title
-      await this.verifier.verifyTheElementIsVisible(this.editPopupTitle, {
-        assertionMessage: 'Edit access control group popup title should be visible',
-      });
-
-      // Verify warning message
-      await this.verifier.verifyTheElementIsVisible(this.editWarningMessage, {
-        assertionMessage: 'Edit warning message should be visible',
-      });
-      await this.verifier.verifyTheElementIsVisible(this.managersLoseAccessMessage, {
-        assertionMessage: 'Managers lose access warning should be visible',
-      });
-      await this.verifier.verifyTheElementIsVisible(this.adminsLoseAccessMessage, {
-        assertionMessage: 'Admins lose access warning should be visible',
-      });
-      await this.verifier.verifyTheElementIsVisible(this.contentMoveMessage, {
-        assertionMessage: 'Content move warning should be visible',
-      });
-      await this.verifier.verifyTheElementIsVisible(this.analyticsDiscrepanciesMessage, {
-        assertionMessage: 'Analytics discrepancies warning should be visible',
-      });
-
-      await this.verifier.verifyTheElementIsVisible(this.editPopupCrossButton, {
-        assertionMessage: 'Edit popup close button should be visible',
-      });
-      await this.verifier.verifyTheElementIsVisible(this.editPopupCancelButton, {
-        assertionMessage: 'Edit popup cancel button should be visible',
-      });
-      await this.verifier.verifyTheElementIsVisible(this.editPopupContinueButton, {
-        assertionMessage: 'Edit popup continue button should be visible',
-      });
-    });
+    await this.editWarningPopup.verifyAllElements();
   }
 
   /**

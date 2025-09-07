@@ -233,7 +233,7 @@ test.describe(
         // Navigate to Feature owners page
         await featureOwnersPage.loadPage();
         // Test search functionality with invalid string
-        await featureOwnersPage.performSearch('sdbkfjskdfn');
+        await featureOwnersPage.searchForFeature('sdbkfjskdfn', false);
         await featureOwnersPage.verifyNoResultsFoundMessages();
       }
     );
@@ -251,8 +251,8 @@ test.describe(
         const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
         // Navigate to Feature owners page
         await featureOwnersPage.loadPage();
-        // Click on first owner count button and get the count value
-        const clickedCount = await featureOwnersPage.clickOnCountButton();
+        // Click on owner count button for the first available feature and get the count value
+        const clickedCount = await featureOwnersPage.clickOnCountButton(0); // Temporarily use index until we fix locator
         // Verify that popup opens with the same count
         await featureOwnersPage.verifyUserCountPopupOpened(clickedCount);
       }
