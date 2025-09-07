@@ -97,4 +97,3 @@ export class UserCountPopupComponent extends BaseComponent {
     });
   }
 }
-
