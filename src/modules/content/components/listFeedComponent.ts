@@ -31,6 +31,8 @@ export class ListFeedComponent extends BaseComponent {
     this.page.locator(
       `xpath=//p[text()='${postText}']/ancestor::div[4]//div[contains(@class,'nameAndStatement')]/following-sibling::p/a`
     );
+  readonly imageButton = this.page.locator("button[aria-label='Open image in lightbox']");
+  readonly infoIcon = this.page.locator("i[data-testid='i-info']");
 
   readonly postTextLocator = (postText: string): Locator => this.page.locator('p').filter({ hasText: postText });
 
@@ -253,6 +255,19 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.postTextLocator(postText), {
         assertionMessage: `Post "${postText}" should be visible`,
       });
+    });
+  }
+
+  async clickInfoIcon(): Promise<void> {
+    await test.step('Click info icon', async () => {
+      await this.imageButton.hover();
+      await this.clickOnElement(this.infoIcon);
+    });
+  }
+
+  async verifyImageButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify image button is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.imageButton);
     });
   }
 }

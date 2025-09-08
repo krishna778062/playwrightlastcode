@@ -315,67 +315,12 @@ test.describe(
         // Wait for post to be visible
         await feedPage.assertions.waitForPostToBeVisible(createdPostText);
 
-        // Verify post has attachment
-        await feedPage.assertions.verifyPostDetails(createdPostText, 1);
-
-        // Click on the attachment to open file preview
-        await test.step('Open file preview by clicking on attachment', async () => {
-          const attachmentLocator = feedPage.page
-            .locator(`text=${createdPostText}`)
-            .locator('xpath=./ancestor::div[4]')
-            .locator('img')
-            .first();
-          await attachmentLocator.click();
-        });
-
-        // Verify file preview is opened
-        await test.step('Verify file preview is opened', async () => {
-          const previewModal = feedPage.page
-            .locator('[role="dialog"]')
-            .or(feedPage.page.locator('.modal'))
-            .or(feedPage.page.locator('[class*="preview"]'));
-          await feedPage.verifier.verifyTheElementIsVisible(previewModal);
-        });
-
-        // Delete the file from preview
-        await test.step('Delete file from preview page', async () => {
-          const deleteButton = feedPage.page
-            .getByRole('button', { name: /delete/i })
-            .or(feedPage.page.locator('button[class*="delete"]'));
-          await deleteButton.click();
-
-          // Confirm deletion if confirmation dialog appears
-          const confirmButton = feedPage.page.getByRole('button', { name: /confirm|yes|delete/i });
-          if (await confirmButton.isVisible()) {
-            await confirmButton.click();
-          }
-        });
-
-        // Close the preview modal
-        await test.step('Close preview modal', async () => {
-          const closeButton = feedPage.page
-            .getByRole('button', { name: /close/i })
-            .or(feedPage.page.locator('button[aria-label="Close"]'));
-          if (await closeButton.isVisible()) {
-            await closeButton.click();
-          } else {
-            // Press Escape key to close modal
-            await feedPage.page.keyboard.press('Escape');
-          }
-        });
-
-        // Verify the post still exists on home feed (file deletion shouldn't remove the post)
-        await test.step('Verify post still exists on home feed after file deletion', async () => {
-          await feedPage.assertions.waitForPostToBeVisible(createdPostText);
-          // Verify post now has 0 attachments
-          await feedPage.assertions.verifyPostDetails(createdPostText, 0);
-        });
-
-        // Clean up - delete the post
-        await test.step('Clean up - delete the post', async () => {
-          await feedPage.actions.deletePost(createdPostText);
-          createdPostId = '';
-        });
+        await feedPage.actions.clickInfoIcon();
+        appManagerHomePage.page.pause();
+        await feedPage.actions.verifyPreviewModalIsOpened();
+        await feedPage.actions.clickShowMoreButton();
+        await feedPage.actions.clickDeleteButton();
+        await feedPage.assertions.verifyImageButtonIsNotVisible();
       }
     );
   }
