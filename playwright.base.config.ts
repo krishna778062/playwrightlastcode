@@ -17,13 +17,13 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   timeout: TIMEOUTS.VERY_LONG,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 2 : 4,
+  workers: process.env.CI ? 1 : 4,
   use: {
     actionTimeout: 15_000,
     navigationTimeout: 30_000,
     trace: process.env.CI ? 'retain-on-failure' : 'on',
     screenshot: process.env.CI ? 'only-on-failure' : 'on',
-    headless: process.env.CI ? true : true,
+    headless: process.env.CI ? false : false,
   },
   reporter: [
     ['html', { open: process.env.CI ? 'never' : 'on-failure' }],

@@ -11,13 +11,14 @@ export default defineConfig({
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'global-search', 'tests'),
   testIgnore: '**/api-tests/**',
   timeout: 200_000,
+  workers: 1, // Force 1 worker
   projects: [
     {
       name: 'global-search-chromium',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: process.env.FRONTEND_BASE_URL,
-        headless: process.env.CI ? true : false,
+        headless: false,
         permissions: ['camera', 'microphone', 'clipboard-read', 'clipboard-write'],
         launchOptions: {
           args: [
