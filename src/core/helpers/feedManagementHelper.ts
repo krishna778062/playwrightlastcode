@@ -7,6 +7,8 @@ import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelpe
 
 interface CreatedFeed {
   feedId: string;
+  feedName: string;
+  authorName: string;
 }
 
 export class FeedManagementHelper {
@@ -45,10 +47,15 @@ export class FeedManagementHelper {
         });
       }
 
-      this.feeds.push({ feedId });
+      this.feeds.push({ feedId, feedName, authorName });
 
-      // Return the full API response for compatibility
-      return response;
+      // Return both the specific properties and the full API response
+      return {
+        feedId,
+        feedName,
+        authorName,
+        response, // Full API response for compatibility
+      };
     });
   }
 
