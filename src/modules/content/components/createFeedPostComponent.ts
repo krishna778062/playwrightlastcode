@@ -1,4 +1,6 @@
+import { faker } from '@faker-js/faker';
 import { expect, Locator, Page, Response, test } from '@playwright/test';
+import { addListener } from 'process';
 
 import { BaseComponent } from '@core/components/baseComponent';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
@@ -66,6 +68,18 @@ export class CreateFeedPostComponent
   // File upload section
   readonly fileItemNameSelector = "div[class='FileItem-name']";
   readonly deleteButtonSelector = "button[class*='delete']";
+
+  // Dropdown selection - parameterized
+  readonly getDropdownOption = (name: string) =>
+    this.page.locator("div[class*='ListingItem-module__details'] div p").filter({ hasText: name });
+
+  // Topic dropdown selection - parameterized
+  readonly addtopicfromList = (topicName: string) =>
+    this.page.locator("div[role='menuitem'] div p").filter({ hasText: topicName });
+
+  // Dropdown selection - parameterized
+  readonly addSiteNameFromList = (name: string) =>
+    this.page.locator("div[class*='ListingItem-module__details'] p").filter({ hasText: name });
 
   // Dynamic locator functions
   /**
@@ -296,6 +310,40 @@ export class CreateFeedPostComponent
     });
   }
 
+  /**
+   * Adds a user or site mention to the post
+   * @param userName - The user or site name to mention
+   */
+  async addUserNameMention(userName: string): Promise<void> {
+    await test.step(`Adding user mention: @${userName}`, async () => {
+      await this.typeInElement(this.feedEditor, ` @${userName}`);
+      await this.getDropdownOption(userName).waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.getDropdownOption(userName));
+    });
+  }
+
+  /**
+   * Adds a user or site mention to the post
+   * @param userName - The user or site name to mention
+   */
+  async addSiteName(userName: string): Promise<void> {
+    await test.step(`Adding user mention: @${userName}`, async () => {
+      await this.typeInElement(this.feedEditor, ` @${userName}`);
+      await this.addSiteNameFromList(userName).waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.addSiteNameFromList(userName));
+    });
+  }
+
+  /**
+   * Adds a topic mention to the post
+   * @param topicName - The topic name to mention
+   */
+  async addTopicMention(topicName: string): Promise<void> {
+    await test.step(`Adding topic mention: #${topicName}`, async () => {
+      await this.typeInElement(this.feedEditor, ` #${topicName}`);
+      await this.clickOnElement(this.addtopicfromList(topicName));
+    });
+  }
   async createFeedPost(): Promise<Response> {
     return await test.step(`Creating feed post and wait for api response`, async () => {
       const postResponse = await this.performActionAndWaitForResponse(
@@ -329,11 +377,13 @@ export class CreateFeedPostComponent
       // Open editor
       await this.clickShareThoughtsButton();
 
-      // Format the text with mentions
-      const textWithMentions = `${title} @${userName} #${topicName}`;
-
+      const topicName2 = faker.company.name();
       // Add post content
-      await this.createPost(textWithMentions);
+      await this.createPost(title);
+      await this.addTopicMention(topicName);
+      await this.addTopicMention(topicName2);
+      await this.addUserNameMention(userName);
+      await this.addSiteName(siteName);
 
       // Publish the page
       const postResponse = await this.createFeedPost();
@@ -343,10 +393,11 @@ export class CreateFeedPostComponent
 
       //fetch the page id from the response
       const postId = feedResponseBody.result.feedId;
-      console.log('postId', postId);
+      const postText = `${title} #${topicName} #${topicName2} @${userName} @${siteName}`;
+      console.log('postText :   ', postText);
 
       return {
-        postText: textWithMentions,
+        postText: postText,
         attachmentCount: 0,
         postId,
       };

@@ -51,9 +51,9 @@ export interface ManagerDetails {
 
 export interface Person {
   user_id: string;
-  firstName: string;
+  first_name: string;
   peopleId: string;
-  lastName: string;
+  last_name: string;
   relevancyScore: number;
   hireDate: string;
   email: string;

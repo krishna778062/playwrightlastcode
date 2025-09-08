@@ -15,6 +15,7 @@ import { contentTestFixture as test, users } from '@/src/modules/content/fixture
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
+import { SiteType } from '@/src/modules/content-abac/constants/siteType';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
@@ -149,7 +150,7 @@ test.describe(
     test(
       'In Zeus Verify user is able to Add Edit Delete Text Topic Mention user Mention Site Embedded URL on Home Feed',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24125'],
       },
       async ({ appManagerHomePage, appManagerApiClient, contentManagementHelper }) => {
         tagTest(test.info(), {
@@ -165,28 +166,32 @@ test.describe(
         const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
         const peopleListResponse = await identityManagementHelper.getListOfPeople(users.endUser.email);
 
+        console.log('peopleListResponse', peopleListResponse);
         const matchedUser = peopleListResponse.result.listOfItems.find(item => item.email === users.endUser.email);
+        console.log('matchedUser', matchedUser);
 
         if (!matchedUser) {
           throw new Error('Failed to get user details');
         }
-        const fullName = `${matchedUser.firstName || ''} ${matchedUser.lastName || ''}`.trim();
-        const userId = matchedUser.peopleId;
 
-        console.log(`Found user: ${fullName} (${userId}) for email: ${users.endUser.email}`);
+        const fullName = `${matchedUser.first_name || ''} ${matchedUser.last_name || ''}`.trim();
+        const userId = matchedUser.peopleId;
+        console.log('fullName', fullName);
+        console.log('userId', userId);
 
         const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
         const siteListResponse = await siteManagementHelper.getListOfSites();
-
         // Get any public site from the list
-        const publicSiteName = siteListResponse.result.listOfItems.find(site => site.access === 'public')?.name;
+        const publicSiteName = siteListResponse.result.listOfItems.find(
+          site => site.access.toLowerCase() === SiteType.PUBLIC
+        )?.name;
 
         if (!publicSiteName) {
+          console.log('No public site found. Available access types:', [
+            ...new Set(siteListResponse.result.listOfItems.map(site => site.access)),
+          ]);
           throw new Error('No public site found in the list');
         }
-
-        console.log(`Found public site: ${publicSiteName})`);
-
         // Get list of topics
         const topicListResponse = await contentManagementHelper.getTopicList();
 
@@ -196,8 +201,15 @@ test.describe(
         const randomTopic =
           topicListResponse.result.listOfItems[Math.floor(Math.random() * topicListResponse.result.listOfItems.length)];
         const existingTopicName = randomTopic.name;
+        const initialPostText = `Automated Test Post ${faker.company.name()}`;
+        const postResult = await feedPage.actions.createfeedWithMentionUserNameAndTopic(
+          initialPostText,
+          fullName,
+          existingTopicName,
+          publicSiteName
+        );
 
-        console.log(`Selected random topic: "${existingTopicName}" (ID: ${randomTopic.topic_id})`);
+        await feedPage.assertions.validatePostText(postResult.postText);
       }
     );
   }

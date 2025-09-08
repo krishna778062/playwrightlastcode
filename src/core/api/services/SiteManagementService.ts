@@ -222,7 +222,6 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       });
 
       const json = await response.json();
-      console.log('Sites list JSON Response:', JSON.stringify(json, null, 2));
 
       if (json.status !== 'success') {
         throw new Error(`Failed to get sites list. Response: ${JSON.stringify(json)}`);

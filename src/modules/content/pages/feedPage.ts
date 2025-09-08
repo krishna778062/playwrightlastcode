@@ -32,6 +32,7 @@ export interface IFeedAssertions {
   verifyPostIsFavoritedUnfavorited: (favorite: boolean) => Promise<void>;
   verifyPostIsNotFavorited: (postText: string) => Promise<void>;
   verifyPostIsFavorited: (postText: string) => Promise<void>;
+  validatePostText: (postText: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -182,5 +183,9 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await test.step(`Verify post is not favorited: ${postText}`, async () => {
       await this.listFeedComponent.verifyPostIsNotFavorited(postText);
     });
+  }
+
+  async validatePostText(postText: string): Promise<void> {
+    await this.listFeedComponent.validatePostText(postText);
   }
 }

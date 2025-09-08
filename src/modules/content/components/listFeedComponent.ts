@@ -32,6 +32,8 @@ export class ListFeedComponent extends BaseComponent {
       `xpath=//p[text()='${postText}']/ancestor::div[4]//div[contains(@class,'nameAndStatement')]/following-sibling::p/a`
     );
 
+  readonly postTextLocator = (postText: string): Locator => this.page.locator('p').filter({ hasText: postText });
+
   /**
    * Gets a locator for the post attachments
    * @param postText - The text of the post to find attachments for
@@ -238,6 +240,18 @@ export class ListFeedComponent extends BaseComponent {
     await test.step(`Verify post is favorited: ${favorite}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.getFavoriteButtonLocator(favorite), {
         assertionMessage: `Post "${favorite}" should be in favorited state`,
+      });
+    });
+  }
+
+  /**
+   * Validates that a post contains the expected text
+   * @param postText - The expected text content to validate
+   */
+  async validatePostText(postText: string): Promise<void> {
+    await test.step(`Validating post contains text: "${postText}"`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.postTextLocator(postText), {
+        assertionMessage: `Post "${postText}" should be visible`,
       });
     });
   }

@@ -322,7 +322,7 @@ export class ContentManagementService extends BaseApiClient implements IContentM
    * @param nextPageToken - Token for pagination (default: 0)
    * @returns The topic list response
    */
-  async getTopicList(): Promise<TopicListResponse> {
+  async getTopicList(size: number = 16, term: string = '', nextPageToken: number = 0): Promise<TopicListResponse> {
     return await test.step(`Getting list of topics with size: ${size}, term: "${term}", nextPageToken: ${nextPageToken}`, async () => {
       const requestData = {
         size: 16,

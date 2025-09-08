@@ -184,7 +184,7 @@ export class ContentManagementHelper {
    * @returns The topic list response
    */
   async getTopicList(size: number = 16, term: string = '', nextPageToken: number = 0) {
-    return await this.appManagerApiClient.getContentManagementService().getTopicList(size, term, nextPageToken);
+    return await this.appManagerApiClient.getContentManagementService().getTopicList();
   }
 
   /**
