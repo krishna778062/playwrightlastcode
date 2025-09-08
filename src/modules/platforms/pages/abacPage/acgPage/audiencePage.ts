@@ -409,14 +409,8 @@ export class AudiencePage extends BasePage {
       await this.editCategoryModal.submitCategory();
       await this.verifyToastMessageForCategoryOperation('updated');
 
-      // Verify description is visible in list - find description within the specific category container
-      const descriptionLocator = this.page.locator(
-        `//p[contains(text(),'${categoryName}')]/ancestor::div[contains(@class,'NameWithDescription')]/following-sibling::div//p[contains(text(),'${description}')]`
-      );
-      await this.verifier.verifyTheElementIsVisible(descriptionLocator, {
-        assertionMessage: 'Verify description is visible in the list',
-        timeout: TIMEOUTS.MEDIUM,
-      });
+      // Verify description is visible in list using contextual approach
+      await this.verifyCategoryDescription(categoryName, description, true);
     });
   }
 
@@ -438,24 +432,12 @@ export class AudiencePage extends BasePage {
       // Step 4: Verify update toast message
       await this.verifyToastMessageForCategoryOperation('updated');
 
-      // Step 5: Verify new description is visible
-      const newDescLocator = this.page.locator(
-        `//p[contains(text(),'${categoryName}')]/ancestor::div[contains(@class,'NameWithDescription')]/following-sibling::div//p[contains(text(),'${newDescription}')]`
-      );
-      await this.verifier.verifyTheElementIsVisible(newDescLocator, {
-        assertionMessage: 'Verify updated description is visible in the list',
-        timeout: TIMEOUTS.MEDIUM,
-      });
+      // Step 5: Verify new description is visible using contextual approach
+      await this.verifyCategoryDescription(categoryName, newDescription, true);
 
-      // Step 6: Old description is not visible
+      // Step 6: Verify old description is not visible
       if (oldDescription && oldDescription.length > 0) {
-        const oldDescLocator = this.page.locator(
-          `//p[contains(text(),'${categoryName}')]/ancestor::div[contains(@class,'NameWithDescription')]/following-sibling::div//p[contains(text(),'${oldDescription}')]`
-        );
-        await this.verifier.verifyTheElementIsNotVisible(oldDescLocator, {
-          assertionMessage: 'Verify old description is not visible in the list after update',
-          timeout: TIMEOUTS.SHORT,
-        });
+        await this.verifyCategoryDescription(categoryName, oldDescription, false);
       }
     });
   }
@@ -475,15 +457,9 @@ export class AudiencePage extends BasePage {
       await this.editCategoryModal.submitCategory();
       await this.verifyToastMessageForCategoryOperation('updated');
 
-      // Verify removed description text is not visible in the list (if provided)
+      // Verify removed description text is not visible in the list using contextual approach
       if (removedDescriptionText && removedDescriptionText.length > 0) {
-        const removedDescLocator = this.page.locator(
-          `//p[contains(text(),'${categoryName}')]/ancestor::div[contains(@class,'NameWithDescription')]/following-sibling::div//p[contains(text(),'${removedDescriptionText}')]`
-        );
-        await this.verifier.verifyTheElementIsNotVisible(removedDescLocator, {
-          assertionMessage: 'Verify description text is absent in the list after removal',
-          timeout: TIMEOUTS.SHORT,
-        });
+        await this.verifyCategoryDescription(categoryName, removedDescriptionText, false);
       }
     });
   }
@@ -495,6 +471,55 @@ export class AudiencePage extends BasePage {
       await expect(categoryElement, `Category "${categoryName}" should be visible in the list`).toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
       });
+    });
+  }
+
+  // ========== CONTEXTUAL LOCATOR METHODS ==========
+
+  /**
+   * Get the category container element by finding the category name and returning its parent container
+   * @param categoryName - The name of the category to find
+   * @returns Locator for the category container
+   */
+  public getCategoryContainer(categoryName: string): Locator {
+    // Find the category name text and navigate to its container
+    return this.page
+      .getByText(categoryName, { exact: true })
+      .locator('xpath=ancestor::div[contains(@class, "NameWithDescription")]')
+      .first();
+  }
+
+  /**
+   * Verify if a category has a specific description using contextual locator approach
+   * @param categoryName - The name of the category
+   * @param description - The description text to verify
+   * @param shouldBeVisible - Whether the description should be visible or not
+   */
+  async verifyCategoryDescription(
+    categoryName: string,
+    description: string,
+    shouldBeVisible: boolean = true
+  ): Promise<void> {
+    await test.step(`Verify category "${categoryName}" ${shouldBeVisible ? 'has' : 'does not have'} description: "${description}"`, async () => {
+      // First, get the category container
+      const categoryContainer = this.getCategoryContainer(categoryName);
+
+      // Then find the description within that container
+      const descriptionLocator = categoryContainer.locator('p').filter({ hasText: description }).first();
+
+      console.log('descriptionLocator', descriptionLocator);
+
+      if (shouldBeVisible) {
+        await this.verifier.verifyTheElementIsVisible(descriptionLocator, {
+          assertionMessage: `Verify description "${description}" is visible for category "${categoryName}"`,
+          timeout: TIMEOUTS.MEDIUM,
+        });
+      } else {
+        await this.verifier.verifyTheElementIsNotVisible(descriptionLocator, {
+          assertionMessage: `Verify description "${description}" is not visible for category "${categoryName}"`,
+          timeout: TIMEOUTS.SHORT,
+        });
+      }
     });
   }
 }
