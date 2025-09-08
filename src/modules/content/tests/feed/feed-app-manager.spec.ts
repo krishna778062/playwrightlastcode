@@ -45,7 +45,7 @@ test.describe(
       }) => {
         tagTest(test.info(), {
           description:
-            'Verify Site Owner, Manager and Content Manager is able to favorite and unfavorite Feed post without File Attachment on Content Feed',
+            'Verify Site Owner, Manager and Content Manager is able to favorite and unfavorite Feed post without File Attachment ',
           zephyrTestId: 'CONT-39249',
           storyId: 'CONT-39249',
         });
@@ -143,17 +143,17 @@ test.describe(
         await feedPage.assertions.verifyPostIsNotFavorited(createdPostText);
       }
     );
-    test.only(
+    test(
       'Verify Site Owner/Manager/Content Manager can favorite and unfavorite feed post with file attachment',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39249'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorite-unfavorite'],
       },
       async ({ appManagerApiClient, siteManagementHelper, feedManagementHelper }) => {
         tagTest(test.info(), {
           description:
-            'Verify Site Owner, Manager and Content Manager is able to favorite and unfavorite Feed post without File Attachment on Content Feed',
-          zephyrTestId: 'CONT-39249',
-          storyId: 'CONT-39249',
+            'Verify Site Owner, Manager and Content Manager is able to favorite and unfavorite Feed post with file attachment',
+          zephyrTestId: 'CONT-24919',
+          storyId: 'CONT-24919',
         });
         const postText = `Automated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`;
         // Step 3: Create a new post using FeedManagementHelper
