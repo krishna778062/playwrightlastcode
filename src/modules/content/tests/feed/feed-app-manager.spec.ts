@@ -151,7 +151,13 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39249'],
       },
-      async ({ appManagerApiClient, siteManagementHelper, feedManagementHelper }) => {
+      async ({
+        appManagerApiClient,
+        siteManagementHelper,
+        feedManagementHelper,
+        standardUserHomePage,
+        siteManagerHomePage,
+      }) => {
         tagTest(test.info(), {
           description:
             'Verify Site Owner, Manager and Content Manager is able to favorite and unfavorite Feed post without File Attachment on Content Feed',
@@ -186,6 +192,36 @@ test.describe(
         await feedPage.assertions.verifyPostIsFavorited(createdPostText);
 
         // Step 6: Unfavorite the post as App Manager
+        await feedPage.actions.removePostFromFavourite(createdPostText);
+        await feedPage.assertions.verifyPostIsNotFavorited(createdPostText);
+
+        feedPage = new FeedPage(standardUserHomePage.page);
+
+        // Navigate to feed URL
+        await feedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
+        // Step 7: Wait for post to be visible as Standard User
+        await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        // Step 8: Favorite the post as Standard User
+        await feedPage.actions.markPostAsFavourite();
+        await feedPage.assertions.verifyPostIsFavorited(createdPostText);
+
+        // Step 9: Unfavorite the post as Standard User
+        await feedPage.actions.removePostFromFavourite(createdPostText);
+        await feedPage.assertions.verifyPostIsNotFavorited(createdPostText);
+
+        feedPage = new FeedPage(siteManagerHomePage.page);
+
+        // Navigate to feed URL
+        await feedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
+        // Step 10: Wait for post to be visible as Site Manager
+        await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        // Step 11: Favorite the post as Site Manager
+        await feedPage.actions.markPostAsFavourite();
+        await feedPage.assertions.verifyPostIsFavorited(createdPostText);
+
+        // Step 12: Unfavorite the post as Site Manager
         await feedPage.actions.removePostFromFavourite(createdPostText);
         await feedPage.assertions.verifyPostIsNotFavorited(createdPostText);
       }
