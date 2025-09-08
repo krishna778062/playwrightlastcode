@@ -465,4 +465,33 @@ export class TestDataGenerator {
     const timestamp = Date.now();
     return `${prefix}: ${randomWords} - ${timestamp}`;
   }
+
+  /**
+   * Generates a unique category name with specified length and starting alphabet characters
+   * @param maxLength - Maximum length of the category name
+   * @param startingAlphabetCount - Number of alphabet characters to start with
+   * @returns Generated unique category name
+   */
+  static generateUniqueCategoryName(maxLength: number, startingAlphabetCount: number): string {
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+
+    // Start with alphabet characters (A-Z, a-z)
+    const alphabetChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    let startingPart = '';
+
+    // Generate starting alphabet characters
+    for (let i = 0; i < startingAlphabetCount; i++) {
+      startingPart += alphabetChars.charAt(Math.floor(Math.random() * alphabetChars.length));
+    }
+
+    // Combine: starting alphabets + random suffix + timestamp
+    const combined = `${startingPart}${randomSuffix}${timestamp}`;
+
+    // Ensure it doesn't exceed max length
+    const result = combined.substring(0, maxLength);
+
+    console.log(`Generated unique category name: ${result.substring(0, 30)}... (${result.length} characters)`);
+    return result;
+  }
 }
