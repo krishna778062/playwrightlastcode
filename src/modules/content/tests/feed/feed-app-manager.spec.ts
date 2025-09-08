@@ -75,31 +75,29 @@ test.describe(
             storyId: testData.storyId,
           });
 
-          // Setup user and site (only for site-based tests)
-          if (!testData.hasAttachment) {
-            const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
-            const endUser = await identityManagementHelper.getUserByEmail(users.endUser.email);
-            if (!endUser) {
-              throw new Error('Failed to get user ID');
-            }
-            const endUserPeopleId = endUser.user_id;
-            console.log(`End user people ID: ${endUserPeopleId}`);
-            const category = await appManagerApiClient
-              .getSiteManagementService()
-              .getCategoryId(SITE_TEST_DATA[0].category);
-            createdSite = await siteManagementHelper.createPublicSite({
-              category,
-              waitForSearchIndex: false,
-            });
-            console.log(`Created site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
-
-            // Ensure user is a content manager of the site
-            await siteManagementHelper.ensureUserSiteMembershipWithRole({
-              siteId: createdSite.siteId,
-              userId: endUserPeopleId,
-              role: SitePermission.CONTENT_MANAGER,
-            });
+          // Setup user and site for both test cases
+          const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
+          const endUser = await identityManagementHelper.getUserByEmail(users.endUser.email);
+          if (!endUser) {
+            throw new Error('Failed to get user ID');
           }
+          const endUserPeopleId = endUser.user_id;
+          console.log(`End user people ID: ${endUserPeopleId}`);
+          const category = await appManagerApiClient
+            .getSiteManagementService()
+            .getCategoryId(SITE_TEST_DATA[0].category);
+          createdSite = await siteManagementHelper.createPublicSite({
+            category,
+            waitForSearchIndex: false,
+          });
+          console.log(`Created site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
+
+          // Ensure user is a content manager of the site
+          await siteManagementHelper.ensureUserSiteMembershipWithRole({
+            siteId: createdSite.siteId,
+            userId: endUserPeopleId,
+            role: SitePermission.CONTENT_MANAGER,
+          });
 
           // Generate test data for post
           const postText = `Automated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`;

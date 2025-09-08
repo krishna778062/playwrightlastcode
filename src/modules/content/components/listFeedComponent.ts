@@ -68,16 +68,6 @@ export class ListFeedComponent extends BaseComponent {
       .first();
 
   /**
-   * Gets a locator for the favorite/like button for a specific post
-   * @param postText - The text of the post to find favorite button for
-   * @returns Locator for the favorite button
-   */
-  readonly getFavoriteButtonLocator = (favorite: boolean): Locator =>
-    this.page.locator(
-      favorite ? "button[title='Favorite this post'] span i" : "button[title='Unfavorite this post'] span i"
-    );
-
-  /**
    * Gets a locator for the favorited state indicator for a specific post
    * @param postText - The text of the post to check favorite state for
    * @returns Locator for the favorited state indicator
@@ -178,24 +168,9 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Clicks the favorite/like button for a specific post
-   * @param postText - The text of the post to favorite/unfavorite
-   */
-  async clickFavoriteUnfavoriteButton(favorite: boolean): Promise<void> {
-    await test.step(`Click favorite button for post:`, async () => {
-      await this.getFavoriteButtonLocator(favorite).hover();
-      //wait until the favourite button is visible
-      await this.verifier.verifyTheElementIsVisible(this.getFavoriteButtonLocator(favorite), {
-        assertionMessage: `Post "${favorite}" should be in favorited state`,
-      });
-      await this.clickOnElement(this.getFavoriteButtonLocator(favorite));
-    });
-  }
-
   async markPostAsFavourite(): Promise<void> {
     await test.step(`Mark post as favourite: `, async () => {
-      await this.likeButton.hover();
+      await this.hoverOverElementInJavaScript(this.likeButton);
       //verify the favourite button is visible
       await this.verifier.verifyTheElementIsVisible(this.favoriteButton, {
         assertionMessage: `verify the favourite button is visible`,
@@ -206,7 +181,7 @@ export class ListFeedComponent extends BaseComponent {
 
   async removePostFromFavourite(postText: string): Promise<void> {
     await test.step(`Remove post from favourite: ${postText}`, async () => {
-      await this.likeButton.hover();
+      await this.hoverOverElementInJavaScript(this.likeButton);
 
       await this.verifier.verifyTheElementIsVisible(this.unfavoriteButton, {
         assertionMessage: `Post "${postText}" should be in favourited state`,
@@ -225,21 +200,9 @@ export class ListFeedComponent extends BaseComponent {
 
   async verifyPostIsNotFavorited(postText: string): Promise<void> {
     await test.step(`Verify post is not favorited: ${postText}`, async () => {
-      await this.likeButton.hover();
+      await this.hoverOverElementInJavaScript(this.likeButton);
       await this.verifier.verifyTheElementIsVisible(this.unfavoriteButton, {
         assertionMessage: `Post "${postText}" should be in unfavorited state`,
-      });
-    });
-  }
-
-  /**
-   * Verifies that a post is in favorited state
-   * @param postText - The text of the post to verify
-   */
-  async verifyPostIsFavoritedUnfavorited(favorite: boolean): Promise<void> {
-    await test.step(`Verify post is favorited: ${favorite}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.getFavoriteButtonLocator(favorite), {
-        assertionMessage: `Post "${favorite}" should be in favorited state`,
       });
     });
   }

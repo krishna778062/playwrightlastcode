@@ -12,7 +12,6 @@ export interface IFeedActions {
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
   deletePost: (postText: string) => Promise<void>;
-  favoriteUnfavoritePost: (favorite: boolean) => Promise<void>;
   // Content creation flow
   createPostWithAttachments: (text: string, files?: string[]) => Promise<FeedPostResult>;
   createfeedWithMentionUserNameAndTopic: (params: {
@@ -35,7 +34,6 @@ export interface IFeedAssertions {
   // High-level verification flows
   verifyPostDetails: (postText: string, expectedAttachmentCount: number) => Promise<void>;
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
-  verifyPostIsFavoritedUnfavorited: (favorite: boolean) => Promise<void>;
   verifyPostIsNotFavorited: (postText: string) => Promise<void>;
   verifyPostIsFavorited: (postText: string) => Promise<void>;
   validatePostText: (postText: string) => Promise<void>;
@@ -116,12 +114,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     return await this.createFeedPostComponent.editPostWithTopicAndUserName(params);
   }
 
-  async favoriteUnfavoritePost(favorite: boolean): Promise<void> {
-    await test.step(`Favoriting post with text ${favorite}`, async () => {
-      await this.listFeedComponent.clickFavoriteUnfavoriteButton(favorite);
-    });
-  }
-
   // High-level verification methods
   async verifyPostDetails(postText: string, expectedAttachmentCount: number): Promise<void> {
     await test.step(`Verify complete post details for: ${postText}`, async () => {
@@ -166,12 +158,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    */
   async getPostTimestamp(postText: string): Promise<void> {
     await this.listFeedComponent.getPostTimestamp(postText);
-  }
-
-  async verifyPostIsFavoritedUnfavorited(favorite: boolean): Promise<void> {
-    await test.step(`Verify post is favorited: ${favorite}`, async () => {
-      await this.listFeedComponent.verifyPostIsFavoritedUnfavorited(favorite);
-    });
   }
 
   //Favourite Post Methods
