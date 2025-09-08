@@ -5,6 +5,7 @@ import { BasePage } from '@core/pages/basePage';
 import { CategoryModalComponent } from '@platforms/components/categoryModal';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 
 // Page Object Model for the Audience management page with category creation and validation functionality
 export class AudiencePage extends BasePage {
@@ -356,7 +357,7 @@ export class AudiencePage extends BasePage {
       // Open Edit modal
       await this.openEditCategoryModal(categoryName);
 
-      const newName = `${categoryName}_Edited_${Date.now()}`;
+      const newName = TestDataGenerator.generateCategoryName('001EditTestCategory');
 
       // Change the name
       await this.editCategoryModal.fillInElement(this.editCategoryModal.categoryNameInput, '');
