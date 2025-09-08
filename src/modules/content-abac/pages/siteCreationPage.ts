@@ -75,17 +75,32 @@ export class SiteCreationPage extends BasePage implements ISiteCreationPageAsser
     name: string;
     category: string;
     type: SiteType;
+    audienceName?: string; // if provided, select specific audience; else All organization
     stepInfo?: string;
     apiPayload?: Partial<SiteCreationPayload>;
   }): Promise<string> {
     return await test.step(options.stepInfo || `Create ${options.type} site: ${options.name}`, async () => {
-      if (options.type === SiteType.PUBLIC) {
-        await this.createPublicSite({ name: options.name, category: options.category });
+      // Fill basic details without submitting yet
+      await this.form.fillSiteDetails({
+        name: options.name,
+        category: options.category,
+        isPrivate: options.type === SiteType.PRIVATE,
+      });
+
+      // Target Audience selection prior to submission
+      if (options.audienceName) {
+        await this.form.setupSpecificAudience(options.audienceName);
       } else {
-        await this.createPrivateSite({ name: options.name, category: options.category });
+        await this.form.setupTargetAudience();
       }
 
-      //after creation , we will wait until the page navigates to site dashboard
+      // Membership approval (public: manual by default; private: manual path retains existing behavior)
+      await this.form.setMembershipApproval('manual', options.type === SiteType.PRIVATE);
+
+      // Submit the form
+      await this.form.clickOnElement(this.form.addSiteButton);
+
+      // Wait for navigation to site dashboard and capture siteId
       await this.page.waitForURL(/dashboard/, { timeout: 30000 });
       const siteIdFromUrl = await this.getSiteIdFromUrl(this.page.url());
       expect(siteIdFromUrl, `Failed to extract siteId from URL: ${this.page.url()}`).toBeTruthy();

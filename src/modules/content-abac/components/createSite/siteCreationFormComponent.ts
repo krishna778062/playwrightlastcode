@@ -79,7 +79,8 @@ export class SiteCreationFormComponent extends BaseComponent {
 
       if (options.category) {
         await this.clickOnElement(this.categoryInput);
-        await this.clickOnElement(this.page.getByText(options.category, { exact: true }));
+        // Use more specific locator to avoid multiple matches
+        await this.clickOnElement(this.page.locator('#category-list').getByText(options.category, { exact: true }));
       }
 
       if (options.isPrivate !== undefined) {
@@ -94,6 +95,10 @@ export class SiteCreationFormComponent extends BaseComponent {
 
   async setupTargetAudience(options?: { stepInfo?: string }): Promise<void> {
     await this.targetAudienceSection.setupAllOrganization(options);
+  }
+
+  async setupSpecificAudience(audienceName: string, options?: { stepInfo?: string }): Promise<void> {
+    await this.targetAudienceSection.setupSpecificAudienceViaPicker(audienceName, options);
   }
 
   async setMembershipApproval(
