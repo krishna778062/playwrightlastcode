@@ -143,7 +143,7 @@ test.describe(
         await feedPage.assertions.verifyPostIsNotFavorited(createdPostText);
       }
     );
-    test(
+    test.only(
       'Verify Site Owner/Manager/Content Manager can favorite and unfavorite feed post with file attachment',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39249'],

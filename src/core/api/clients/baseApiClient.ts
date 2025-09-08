@@ -67,6 +67,7 @@ export abstract class BaseApiClient extends HttpClient {
       // Create new context with auth headers
       return await request.newContext({
         extraHTTPHeaders: headers,
+        storageState: storageState,
       });
     } finally {
       await tmpContext.dispose();
@@ -79,10 +80,12 @@ export abstract class BaseApiClient extends HttpClient {
    * @returns Promise resolving to APIRequestContext
    */
   static async createFromCookies(page: Page): Promise<APIRequestContext> {
+    const storageState = await page.context().storageState();
     const cookies = await page.context().cookies();
     const headers = this.fetchHeadersFromCookies(cookies);
     return await request.newContext({
       extraHTTPHeaders: headers,
+      storageState: storageState,
     });
   }
 
@@ -113,13 +116,14 @@ export abstract class BaseApiClient extends HttpClient {
   static fetchHeadersFromCookies(cookies: Cookie[]): Record<string, string> {
     const token = cookies.find(c => c.name === 'token')?.value;
     const csrfid = cookies.find(c => c.name === 'csrfid')?.value;
+    const ftokenValue = token?.replace(/%2B/g, '+');
 
     if (!token || !csrfid) {
       throw new Error('No token or csrfid found in the cookies');
     }
 
     return {
-      Cookie: `token=${token}; csrfid=${csrfid}`,
+      Cookie: `token=${token}; csrfid=${csrfid};ftoken=${ftokenValue}`,
       'x-smtip-csrfid': csrfid,
     };
   }
