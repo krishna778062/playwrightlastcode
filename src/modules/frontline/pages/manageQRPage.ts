@@ -1,4 +1,5 @@
 import { Locator, Page } from '@playwright/test';
+import { addDays, format } from 'date-fns';
 
 import { BasePage } from '@core/pages/basePage';
 
@@ -29,6 +30,13 @@ export class ManageQRPage extends BasePage {
   readonly toggleOnQRName: Locator;
   readonly togglePopup: Locator;
   readonly successMessage: Locator;
+  readonly enterContent: Locator;
+  readonly selectFirstContent: Locator;
+  readonly listOfPagesSelected: Locator;
+  readonly generateContentQRPageHeading: Locator;
+  readonly promoteContentQRModalHeading: Locator;
+  readonly contentPreviewQRPopupHeader: Locator;
+  readonly nextButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_QR_PAGE);
@@ -37,7 +45,7 @@ export class ManageQRPage extends BasePage {
     this.qrCodesLink = page.getByRole('menuitem', { name: 'QR codes' });
     this.addQRButton = page.getByText('Add QR');
     this.appPromotionMenuOption = page.getByRole('menuitem', { name: 'App promotion' });
-    this.contentMenuOption = page.getByRole('menuitem', { name: 'Content' });
+    this.contentMenuOption = page.getByRole('menuitem', { name: 'Content', exact: true });
     this.eyeIcon = page.getByTestId('preview-button');
     this.saveAndVisitDashboardBtn = page.getByRole('button', { name: 'Save and visit dashboard' });
     this.qrNameField = page.getByRole('textbox', { name: 'QR name*' });
@@ -57,6 +65,13 @@ export class ManageQRPage extends BasePage {
     this.toggleOnQRName = page.getByRole('switch');
     this.togglePopup = page.getByRole('tooltip').nth(0);
     this.successMessage = page.getByText('Successfully deleted QR code');
+    this.enterContent = page.getByRole('combobox', { name: 'Select content...' });
+    this.selectFirstContent = page.locator("//p[text()='Content']/..//div[@role='menuitem']").first();
+    this.listOfPagesSelected = page.getByRole('button', { name: /Remove/ });
+    this.generateContentQRPageHeading = page.getByText('Generate content QR');
+    this.promoteContentQRModalHeading = page.getByText('Promote content via QR');
+    this.contentPreviewQRPopupHeader = page.getByText('Preview QR code');
+    this.nextButton = page.getByRole('button', { name: 'Next' });
   }
 
   async clickOnManage() {
@@ -107,6 +122,9 @@ export class ManageQRPage extends BasePage {
       await this.clickOnElement(this.contentMenuOption, {
         stepInfo: 'Click on Content menu option',
       });
+      await this.verifyContentQRPageHeading();
+      await this.enterAndSelectContent();
+      await this.clickOnNextButton();
     }
   }
 
@@ -155,10 +173,18 @@ export class ManageQRPage extends BasePage {
     });
   }
 
-  async verifyPopupDisplayedByHeader(expectedText: string) {
-    await this.verifier.verifyTheElementIsVisible(this.appPreviewQRPopupHeader, {
-      assertionMessage: `Popup header should display: ${expectedText}`,
-    });
+  async verifyPopupDisplayedByHeader(popupTitle: string) {
+    if (popupTitle.includes('Promote')) {
+      await this.appPreviewQRPopupHeader.waitFor();
+      await this.verifier.verifyTheElementIsVisible(this.appPreviewQRPopupHeader, {
+        assertionMessage: `App preview popup header should be visible: ${popupTitle}`,
+      });
+    } else if (popupTitle.includes('Preview')) {
+      await this.contentPreviewQRPopupHeader.waitFor();
+      await this.verifier.verifyTheElementIsVisible(this.contentPreviewQRPopupHeader, {
+        assertionMessage: `Content preview popup header should be visible: ${popupTitle}`,
+      });
+    }
   }
 
   async verifyQRImageDisplayOnPreview() {
@@ -237,6 +263,47 @@ export class ManageQRPage extends BasePage {
       'QR codes promoting the mobile app cannot be marked disabled as they are directly mapped with App/Play store links.';
     await this.verifier.verifyTheElementIsVisible(this.togglePopup, {
       assertionMessage: `Toggle popup should display text: ${expectedText}`,
+    });
+  }
+  async clickOnContent() {
+    await this.clickOnElement(this.contentMenuOption, {
+      stepInfo: 'Click on Content menu option',
+    });
+  }
+  async enterAndSelectContent() {
+    await this.enterContent.fill('page');
+    await this.selectFirstContent.click();
+    const selectedPages = this.listOfPagesSelected;
+    const selectedPageText = await selectedPages.allTextContents();
+    console.log('Pages selected after entry:', selectedPageText);
+  }
+
+  async verifyContentQRPageHeading() {
+    await this.verifier.verifyTheElementIsVisible(this.generateContentQRPageHeading, {
+      assertionMessage: 'Generate content QR page heading should be visible',
+    });
+  }
+
+  async verifyContentQRModalHeading() {
+    await this.verifier.verifyTheElementIsVisible(this.promoteContentQRModalHeading, {
+      assertionMessage: 'GPromote content via QR Modal heading should be visible',
+    });
+  }
+  async selectDate(number: number) {
+    await this.clickOnElement(this.page.getByLabel('Valid till'), {
+      stepInfo: 'Click on Valid till date picker',
+    });
+    const twoDaysFromToday = addDays(new Date(), number);
+    console.log(twoDaysFromToday);
+    const day = format(twoDaysFromToday, 'd');
+    console.log(day);
+    await this.clickOnElement(this.page.getByText(day), {
+      stepInfo: `Select date: ${day}`,
+    });
+  }
+  async clickOnNextButton() {
+    await this.clickOnElement(this.nextButton, {
+      stepInfo: 'Click on Next button',
     });
   }
 }
