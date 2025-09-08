@@ -408,8 +408,10 @@ export class AudiencePage extends BasePage {
       await this.editCategoryModal.submitCategory();
       await this.verifyToastMessageForCategoryOperation('updated');
 
-      // Verify description is visible in list
-      const descriptionLocator = this.page.getByText(description, { exact: true });
+      // Verify description is visible in list - find description within the specific category container
+      const descriptionLocator = this.page.locator(
+        `//p[contains(text(),'${categoryName}')]/ancestor::div[contains(@class,'NameWithDescription')]/following-sibling::div//p[contains(text(),'${description}')]`
+      );
       await this.verifier.verifyTheElementIsVisible(descriptionLocator, {
         assertionMessage: 'Verify description is visible in the list',
         timeout: TIMEOUTS.MEDIUM,
@@ -436,7 +438,9 @@ export class AudiencePage extends BasePage {
       await this.verifyToastMessageForCategoryOperation('updated');
 
       // Step 5: Verify new description is visible
-      const newDescLocator = this.page.getByText(newDescription, { exact: true });
+      const newDescLocator = this.page.locator(
+        `//p[contains(text(),'${categoryName}')]/ancestor::div[contains(@class,'NameWithDescription')]/following-sibling::div//p[contains(text(),'${newDescription}')]`
+      );
       await this.verifier.verifyTheElementIsVisible(newDescLocator, {
         assertionMessage: 'Verify updated description is visible in the list',
         timeout: TIMEOUTS.MEDIUM,
@@ -444,7 +448,9 @@ export class AudiencePage extends BasePage {
 
       // Step 6: Old description is not visible
       if (oldDescription && oldDescription.length > 0) {
-        const oldDescLocator = this.page.getByText(oldDescription, { exact: true });
+        const oldDescLocator = this.page.locator(
+          `//p[contains(text(),'${categoryName}')]/ancestor::div[contains(@class,'NameWithDescription')]/following-sibling::div//p[contains(text(),'${oldDescription}')]`
+        );
         await this.verifier.verifyTheElementIsNotVisible(oldDescLocator, {
           assertionMessage: 'Verify old description is not visible in the list after update',
           timeout: TIMEOUTS.SHORT,
@@ -470,7 +476,9 @@ export class AudiencePage extends BasePage {
 
       // Verify removed description text is not visible in the list (if provided)
       if (removedDescriptionText && removedDescriptionText.length > 0) {
-        const removedDescLocator = this.page.getByText(removedDescriptionText, { exact: true });
+        const removedDescLocator = this.page.locator(
+          `//p[contains(text(),'${categoryName}')]/ancestor::div[contains(@class,'NameWithDescription')]/following-sibling::div//p[contains(text(),'${removedDescriptionText}')]`
+        );
         await this.verifier.verifyTheElementIsNotVisible(removedDescLocator, {
           assertionMessage: 'Verify description text is absent in the list after removal',
           timeout: TIMEOUTS.SHORT,

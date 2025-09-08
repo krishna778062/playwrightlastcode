@@ -248,7 +248,7 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
   test(
     'Edit category modal: validations and basic actions',
-    { tag: [TestPriority.P2] },
+    { tag: [TestPriority.P1] },
     async ({ appManagerPage, audienceCategoryManagementHelper }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35418', 'PS-35419', 'PS-35420', 'PS-35421', 'PS-35422'],
@@ -261,6 +261,9 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
       // Step 1: Create category with no description
       await audienceCategoryManagementHelper.createCategory(testCategoryName);
+
+      // Reload the page to see the API-created category
+      await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
 
       // Step 2: Click on Edit for that category from options menu dropdown
       await audiencePage.openEditCategoryModal(testCategoryName);
@@ -294,6 +297,9 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
       await audiencePage.loadPage();
       await audienceCategoryManagementHelper.createCategory(testCategoryName);
 
+      // Reload the page to see the API-created category
+      await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
+
       // Verify dismiss via Cancel and Close both prevent update using reusable helper
       await audiencePage.verifyEditDismissPreventsUpdate(testCategoryName, 'Cancel');
       await audiencePage.verifyEditDismissPreventsUpdate(testCategoryName, 'Close');
@@ -318,6 +324,9 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
       // Setup: create a category to edit
       await audiencePage.loadPage();
       await audienceCategoryManagementHelper.createCategory(baseName);
+
+      // Reload the page to see the API-created category
+      await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
 
       // Step 1: Update name and verify
       await audiencePage.updateCategoryNameAndVerify(baseName, updatedName);
