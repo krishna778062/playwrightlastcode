@@ -21,6 +21,12 @@ export interface IFeedActions {
     topicName: string,
     siteName: string
   ) => Promise<FeedPostResult>;
+  editPostWithTopicAndUserName: (
+    currentText: string,
+    newText: string,
+    topicName: string,
+    userName: string
+  ) => Promise<void>;
   markPostAsFavourite: () => Promise<void>;
   removePostFromFavourite: (postText: string) => Promise<void>;
 }
@@ -104,6 +110,15 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       topicName,
       siteName
     );
+  }
+
+  async editPostWithTopicAndUserName(
+    currentText: string,
+    newText: string,
+    topicName: string,
+    userName: string
+  ): Promise<void> {
+    await this.createFeedPostComponent.editPostWithTopicAndUserName(currentText, newText, topicName, userName);
   }
 
   async favoriteUnfavoritePost(favorite: boolean): Promise<void> {

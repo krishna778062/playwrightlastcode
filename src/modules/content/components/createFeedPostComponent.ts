@@ -34,6 +34,12 @@ export interface FeedPostApiResponse {
 export interface ICreateFeedPostActions {
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
+  editPostWithTopicAndUserName: (
+    currentText: string,
+    newText: string,
+    topicName: string,
+    userName: string
+  ) => Promise<void>;
   clickShareThoughtsButton: () => Promise<void>;
   createPost: (text: string) => Promise<void>;
   uploadFiles: (files: string[]) => Promise<void>;
@@ -191,11 +197,13 @@ export class CreateFeedPostComponent
     userName: string
   ): Promise<void> {
     await test.step(`Editing post from "${currentText}" to "${newText}"`, async () => {
+      const topicName2 = faker.company.name();
       await this.openPostOptionsMenu(currentText);
       await this.clickEditOption();
       await this.verifyEditorVisible();
       await this.updatePostText(newText);
       await this.addTopicMention(topicName);
+      await this.addTopicMention(topicName2);
       await this.addUserNameMention(userName);
       await this.clickUpdateButton();
       // Note: Post verification should be done at test/page level to avoid duplication

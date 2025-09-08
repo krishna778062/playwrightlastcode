@@ -221,8 +221,8 @@ test.describe(
           throw new Error('Failed to get user details');
         }
 
-        const siteManagerFullName = `${siteManagerUser.first_name || ''} ${siteManagerUser.last_name || ''}`.trim();
-        console.log('fullName', siteManagerFullName);
+        const siteManagerFullName = `${siteManagerUser.first_name} ${siteManagerUser.last_name}`.trim();
+        console.log('siteManagerFullName:  ', siteManagerFullName);
         // Step 3: Edit the post
         await feedPage.actions.editPostWithTopicAndUserName(
           postResult.postText,
