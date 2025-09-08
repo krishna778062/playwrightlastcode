@@ -102,5 +102,35 @@ test.describe(
         await manageQRPage.deleteAppQRByName('Content', qrDetails.qrName);
       }
     );
+
+    test(
+      'Scenario: Verify creation of content QR',
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
+      },
+      async ({ appManagerHomePage, qrManagementService }) => {
+        tagTest(test.info(), {
+          description: 'Verify creation of content QR',
+          zephyrTestId: 'FL-427',
+          storyId: 'FL-427',
+        });
+        qrDetails.qrName = TestDataGenerator.generateQRName('Content QR');
+        qrDetails.qrDescription = TestDataGenerator.generateQRDescription('Content QR');
+        const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+        await manageQRPage.loadPage();
+        qrDetails.qrCodeId = await manageQRPage.clickOnAddQRAndGetQRId('Content');
+        await manageQRPage.verifyContentQRModalHeading();
+        await manageQRPage.fillQRName(qrDetails.qrName);
+        await manageQRPage.selectDate(2);
+        await manageQRPage.fillDescription(qrDetails.qrDescription);
+        await manageQRPage.clickEyeIcon();
+        await manageQRPage.verifyPopupDisplayedByHeader('Preview QR code');
+        await manageQRPage.verifyQRImageDisplayOnPreview();
+        await manageQRPage.verifyQRDescriptionOnPreview(qrDetails.qrDescription);
+        await manageQRPage.clickSaveAndVisit();
+        await manageQRPage.verifyManagePage();
+        await manageQRPage.verifyQRName(qrDetails.qrName);
+      }
+    );
   }
 );
