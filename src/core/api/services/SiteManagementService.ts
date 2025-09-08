@@ -295,4 +295,26 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       }
     });
   }
+
+  /**
+   * Gets the membership list for a site
+   * @param siteId - The site ID
+   * @param options - Optional parameters for the membership list request
+   * @returns Promise containing the membership list response
+   */
+  async getSiteMembershipList(siteId: string, options?: { size?: number; type?: string }): Promise<any> {
+    return await test.step(`Getting membership list for site ${siteId}`, async () => {
+      const defaultOptions = {
+        size: 16,
+        type: 'members',
+        ...options,
+      };
+
+      const response = await this.post(API_ENDPOINTS.site.membershipList(siteId), {
+        data: defaultOptions,
+      });
+
+      return await this.parseResponse(response);
+    });
+  }
 }

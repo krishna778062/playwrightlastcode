@@ -18,7 +18,13 @@ export class FeedManagementHelper {
    * Creates a new feed.
    * @returns An object containing details of the created feed.
    */
-  async createFeed(scope: string, siteId?: string, text?: string, options?: { waitForSearchIndex?: boolean }) {
+  async createFeed(params: {
+    scope: string;
+    siteId?: string;
+    text?: string;
+    options?: { waitForSearchIndex?: boolean };
+  }) {
+    const { scope, siteId, text, options } = params;
     return await test.step('Creating a new feed', async () => {
       const feedName = text || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Feed`;
       const { textJson, textHtml } = buildFeedTextJsonAndTextHtml(feedName);
@@ -68,12 +74,13 @@ export class FeedManagementHelper {
     await this.appManagerApiClient.getFeedManagementService().deleteFeed(feedId);
   }
 
-  async createFeedWithAttachments(
-    scope: string,
-    siteId?: string,
-    text?: string,
-    options?: { waitForSearchIndex?: boolean }
-  ) {
+  async createFeedWithAttachments(params: {
+    scope: string;
+    siteId?: string;
+    text?: string;
+    options?: { waitForSearchIndex?: boolean };
+  }) {
+    const { scope, siteId, text, options } = params;
     return await test.step('Creating a new feed with attachments', async () => {
       const feedName = text || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Feed`;
       const { textJson, textHtml } = buildFeedTextJsonAndTextHtml(feedName);

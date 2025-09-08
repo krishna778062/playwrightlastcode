@@ -10,15 +10,15 @@ export class IdentityManagementHelper {
   }
 
   /**
-   * Gets list of people and finds peopleId by email address
+   * Gets a specific user by email address
    * @param email - The email address to search for
-   * @param options - Optional parameters for the people list request
-   * @returns Promise<string | null> - The peopleId if found, null otherwise
+   * @returns Promise<Person | null> - The user object if found, null otherwise
    */
-  async getListOfPeople(email?: string, options?: PeopleListOptions): Promise<PeopleListResponse> {
-    // Get people ID directly from API
+  async getUserByEmail(email: string): Promise<Person | null> {
     const peopleListResponse = await this.identityService.getListOfPeople(email);
-    console.log(`Found person with email ${email} (ID: ${peopleListResponse.result.listOfItems[0].peopleId})`);
-    return peopleListResponse;
+    console.log(`People list response: ${JSON.stringify(peopleListResponse)}`);
+    const user = peopleListResponse.result.listOfItems.find(item => item.email === email);
+    console.log(`User: ${JSON.stringify(user)}`);
+    return user || null;
   }
 }

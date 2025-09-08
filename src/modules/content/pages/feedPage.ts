@@ -15,18 +15,18 @@ export interface IFeedActions {
   favoriteUnfavoritePost: (favorite: boolean) => Promise<void>;
   // Content creation flow
   createPostWithAttachments: (text: string, files?: string[]) => Promise<FeedPostResult>;
-  createfeedWithMentionUserNameAndTopic: (
-    text: string,
-    userName: string,
-    topicName: string,
-    siteName: string
-  ) => Promise<FeedPostResult>;
-  editPostWithTopicAndUserName: (
-    currentText: string,
-    newText: string,
-    topicName: string,
-    userName: string
-  ) => Promise<void>;
+  createfeedWithMentionUserNameAndTopic: (params: {
+    text: string;
+    userName: string;
+    topicName: string;
+    siteName: string;
+  }) => Promise<FeedPostResult>;
+  editPostWithTopicAndUserName: (params: {
+    currentText: string;
+    newText: string;
+    topicName: string;
+    userName: string;
+  }) => Promise<void>;
   markPostAsFavourite: () => Promise<void>;
   removePostFromFavourite: (postText: string) => Promise<void>;
 }
@@ -98,27 +98,22 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    * @param topicName - The topic name to mention (e.g., "Technology")
    * @returns Promise<FeedPostResult>
    */
-  async createfeedWithMentionUserNameAndTopic(
-    title: string,
-    userName: string,
-    topicName: string,
-    siteName: string
-  ): Promise<FeedPostResult> {
-    return await this.createFeedPostComponent.createfeedWithMentionUserNameAndTopic(
-      title,
-      userName,
-      topicName,
-      siteName
-    );
+  async createfeedWithMentionUserNameAndTopic(params: {
+    text: string;
+    userName: string;
+    topicName: string;
+    siteName: string;
+  }): Promise<FeedPostResult> {
+    return await this.createFeedPostComponent.createfeedWithMentionUserNameAndTopic(params);
   }
 
-  async editPostWithTopicAndUserName(
-    currentText: string,
-    newText: string,
-    topicName: string,
-    userName: string
-  ): Promise<void> {
-    await this.createFeedPostComponent.editPostWithTopicAndUserName(currentText, newText, topicName, userName);
+  async editPostWithTopicAndUserName(params: {
+    currentText: string;
+    newText: string;
+    topicName: string;
+    userName: string;
+  }): Promise<void> {
+    return await this.createFeedPostComponent.editPostWithTopicAndUserName(params);
   }
 
   async favoriteUnfavoritePost(favorite: boolean): Promise<void> {
