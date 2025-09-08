@@ -246,93 +246,93 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
     }
   );
 
-  test('Edit category modal: validations and basic actions', { tag: [TestPriority.P0] }, async ({ appManagerPage }) => {
-    tagTest(test.info(), {
-      zephyrTestId: ['PS-35418', 'PS-35419', 'PS-35420', 'PS-35421', 'PS-35422'],
-    });
-    const audiencePage = new AudiencePage(appManagerPage);
-    const categoryName = `NoDesc_${Date.now()}`;
-
-    // Load the audience page
-    await audiencePage.loadPage();
-    await audiencePage.verifyThePageIsLoaded();
-
-    // Step 1: Create category with no description
-    await audiencePage.createCategoryWithNameAndDescription(categoryName);
-    await audiencePage.verifyToastMessageForCategoryOperation('created');
-
-    // Step 2: Click on Edit for that category from options menu dropdown
-    await audiencePage.openEditCategoryModal(categoryName);
-
-    // Step 3: Click on Add description and verify description field and delete (dustbin) icon presence
-    await audiencePage.clickAddDescriptionAndVerify(true);
-
-    // Step 4: Verify name field accepts alphabets, numbers, and special characters (and description as well)
-    await audiencePage.verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(true);
-
-    // Step 5: Verify the updated name length limit is <= 100 chars using existing reusable method
-    await audiencePage.editCategoryModal.verifyNameFieldMaxLength();
-
-    // Step 6: Verify the updated description length limit is <= 1024 chars
-    await audiencePage.editCategoryModal.verifyDescriptionFieldMaxLength();
-
-    // Close Edit modal and clean up category
-    await audiencePage.editCategoryModal.clickCloseButton();
-    await audiencePage.deleteCategoryByShowMore(categoryName);
-    await audiencePage.verifyToastMessageForCategoryOperation('deleted');
-  });
-
   test(
-    'Verify category should not get updated when user clicks on Cancel or Close button under Edit category popup',
-    { tag: [TestPriority.P0] },
-    async ({ appManagerPage }) => {
-      tagTest(test.info(), { zephyrTestId: ['PS-35423', 'PS-35424'] });
+    'Edit category modal: validations and basic actions',
+    { tag: [TestPriority.P2] },
+    async ({ appManagerPage, audienceCategoryManagementHelper }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-35418', 'PS-35419', 'PS-35420', 'PS-35421', 'PS-35422'],
+      });
       const audiencePage = new AudiencePage(appManagerPage);
-      const categoryName = `EditDismiss_${Date.now()}`;
+      const testCategoryName = TestDataGenerator.generateCategoryName('001EditTestCategory');
 
-      // Setup: create a category
+      // Load the audience page
       await audiencePage.loadPage();
-      await audiencePage.verifyThePageIsLoaded();
-      await audiencePage.createCategoryWithNameAndDescription(categoryName);
-      await audiencePage.verifyToastMessageForCategoryOperation('created');
 
-      // Verify dismiss via Cancel and Close both prevent update using reusable helper
-      await audiencePage.verifyEditDismissPreventsUpdate(categoryName, 'Cancel');
-      await audiencePage.verifyEditDismissPreventsUpdate(categoryName, 'Close');
+      // Step 1: Create category with no description
+      await audienceCategoryManagementHelper.createCategory(testCategoryName);
 
-      // Cleanup
-      await audiencePage.deleteCategoryByShowMore(categoryName);
-      await audiencePage.verifyToastMessageForCategoryOperation('deleted');
+      // Step 2: Click on Edit for that category from options menu dropdown
+      await audiencePage.openEditCategoryModal(testCategoryName);
+
+      // Step 3: Click on Add description and verify description field and delete (dustbin) icon presence
+      await audiencePage.clickAddDescriptionAndVerify(true);
+
+      // Step 4: Verify name field accepts alphabets, numbers, and special characters (and description as well)
+      await audiencePage.verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(true);
+
+      // Step 5: Verify the updated name length limit is <= 100 chars using existing reusable method
+      await audiencePage.editCategoryModal.verifyNameFieldMaxLength();
+
+      // Step 6: Verify the updated description length limit is <= 1024 chars
+      await audiencePage.editCategoryModal.verifyDescriptionFieldMaxLength();
+
+      // Close Edit modal and clean up category
+      await audiencePage.editCategoryModal.clickCloseButton();
     }
   );
 
-  test('Edit category modal: Update actions', { tag: [TestPriority.P0] }, async ({ appManagerPage }) => {
-    tagTest(test.info(), { zephyrTestId: ['PS-35425', 'PS-35426', 'PS-35428', 'PS-35427'] });
-    const audiencePage = new AudiencePage(appManagerPage);
-    const baseName = `EditUpdate_${Date.now()}`;
-    const updatedName = `${baseName}_Renamed`;
-    const oldDescriptionText = `Old description at ${new Date().toISOString()}`;
-    const newDescriptionText = `Updated description at ${new Date().toISOString()}`;
+  test(
+    'Verify category should not get updated when user clicks on Cancel or Close button under Edit category popup',
+    { tag: [TestPriority.P2] },
+    async ({ appManagerPage, audienceCategoryManagementHelper }) => {
+      tagTest(test.info(), { zephyrTestId: ['PS-35423', 'PS-35424'] });
+      const audiencePage = new AudiencePage(appManagerPage);
+      const testCategoryName = TestDataGenerator.generateCategoryName('001EditTestCategory');
 
-    // Setup: create a category to edit
-    await audiencePage.loadPage();
-    await audiencePage.verifyThePageIsLoaded();
-    await audiencePage.createCategoryWithNameAndDescription(baseName);
-    await audiencePage.verifyToastMessageForCategoryOperation('created');
+      // Setup: create a category
+      await audiencePage.loadPage();
+      await audienceCategoryManagementHelper.createCategory(testCategoryName);
 
-    // Step 1: Update name and verify
-    await audiencePage.updateCategoryNameAndVerify(baseName, updatedName);
+      // Verify dismiss via Cancel and Close both prevent update using reusable helper
+      await audiencePage.verifyEditDismissPreventsUpdate(testCategoryName, 'Cancel');
+      await audiencePage.verifyEditDismissPreventsUpdate(testCategoryName, 'Close');
+    }
+  );
 
-    // Step 2: Add description and verify
-    await audiencePage.addDescriptionForCategoryAndVerifyInList(updatedName, oldDescriptionText);
+  test(
+    'Edit category modal: Update actions',
+    { tag: [TestPriority.P1] },
+    async ({ appManagerPage, audienceCategoryManagementHelper }) => {
+      tagTest(test.info(), { zephyrTestId: ['PS-35425', 'PS-35426', 'PS-35428', 'PS-35427'] });
 
-    // Step 3: Update description and verify
-    await audiencePage.updateDescriptionForCategoryAndVerifyInList(updatedName, oldDescriptionText, newDescriptionText);
+      const audiencePage = new AudiencePage(appManagerPage);
+      const baseName = TestDataGenerator.generateCategoryName('001EditTestCategory');
+      const updatedName = TestDataGenerator.generateCategoryName('002EditTestCategory');
 
-    await audiencePage.removeDescriptionForCategoryAndVerifyInList(updatedName, newDescriptionText);
+      const oldDescriptionText = TestDataGenerator.generateRandomString('Category Test description for category');
+      const newDescriptionText = TestDataGenerator.generateRandomString(
+        'Category updated Test description for category'
+      );
 
-    // Cleanup
-    await audiencePage.deleteCategoryByShowMore(updatedName);
-    await audiencePage.verifyToastMessageForCategoryOperation('deleted');
-  });
+      // Setup: create a category to edit
+      await audiencePage.loadPage();
+      await audienceCategoryManagementHelper.createCategory(baseName);
+
+      // Step 1: Update name and verify
+      await audiencePage.updateCategoryNameAndVerify(baseName, updatedName);
+
+      // Step 2: Add description and verify
+      await audiencePage.addDescriptionForCategoryAndVerifyInList(updatedName, oldDescriptionText);
+
+      // Step 3: Update description and verify
+      await audiencePage.updateDescriptionForCategoryAndVerifyInList(
+        updatedName,
+        oldDescriptionText,
+        newDescriptionText
+      );
+
+      await audiencePage.removeDescriptionForCategoryAndVerifyInList(updatedName, newDescriptionText);
+    }
+  );
 });

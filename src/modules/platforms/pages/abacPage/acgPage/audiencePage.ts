@@ -456,7 +456,7 @@ export class AudiencePage extends BasePage {
   // Remove description for a category and verify absence in list (optionally for specific text)
   async removeDescriptionForCategoryAndVerifyInList(
     categoryName: string,
-    removedDescriptionText?: string
+    removedDescriptionText: string
   ): Promise<void> {
     await test.step(`Remove description for "${categoryName}" and verify absence in list`, async () => {
       await this.openEditCategoryModal(categoryName);
@@ -482,9 +482,6 @@ export class AudiencePage extends BasePage {
   // Verify specific category name is present in the categories list
   async verifyCategoryInList(categoryName: string): Promise<void> {
     await test.step(`Verify category "${categoryName}" is present in the list`, async () => {
-      // Wait a moment for the page to update
-      await this.page.waitForTimeout(1000);
-
       const categoryElement = this.page.getByText(categoryName, { exact: true });
       await expect(categoryElement, `Category "${categoryName}" should be visible in the list`).toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
