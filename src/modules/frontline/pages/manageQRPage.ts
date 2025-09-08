@@ -199,10 +199,12 @@ export class ManageQRPage extends BasePage {
     });
   }
 
-  async deleteAppQRByName(qrName: string) {
+  async deleteAppQRByName(QRType: 'AppPromotion' | 'Content', qrName: string) {
     await this.clickOnThreeDots(qrName);
     await this.clickOnDelete();
-    await this.clickOnDeleteButton();
+    if (QRType === 'AppPromotion') {
+      await this.clickOnDeleteButton();
+    }
   }
 
   async verifySuccessMessage() {
