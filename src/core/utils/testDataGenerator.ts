@@ -443,4 +443,55 @@ export class TestDataGenerator {
   static generateSites(count: number, access: string, overrides?: Partial<any>): any[] {
     return Array.from({ length: count }, () => this.generateSite(access, overrides));
   }
+
+  /**
+   * Generates a random QR code name with timestamp to ensure uniqueness
+   * @param prefix Optional prefix for the QR code name
+   * @returns A unique QR code name
+   */
+  static generateQRName(prefix: string = 'QR'): string {
+    const randomWord = faker.word.sample();
+    const timestamp = Date.now();
+    return `${prefix}-${randomWord}-${timestamp}`;
+  }
+
+  /**
+   * Generates a random QR code description
+   * @param prefix Optional prefix for the description
+   * @returns A random QR code description
+   */
+  static generateQRDescription(prefix: string = 'QR Code Description'): string {
+    const randomWords = faker.lorem.words(5);
+    const timestamp = Date.now();
+    return `${prefix}: ${randomWords} - ${timestamp}`;
+  }
+
+  /**
+   * Generates a unique category name with specified length and starting alphabet characters
+   * @param maxLength - Maximum length of the category name
+   * @param startingAlphabetCount - Number of alphabet characters to start with
+   * @returns Generated unique category name
+   */
+  static generateUniqueCategoryName(maxLength: number, startingAlphabetCount: number): string {
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+
+    // Start with alphabet characters (A-Z, a-z)
+    const alphabetChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    let startingPart = '';
+
+    // Generate starting alphabet characters
+    for (let i = 0; i < startingAlphabetCount; i++) {
+      startingPart += alphabetChars.charAt(Math.floor(Math.random() * alphabetChars.length));
+    }
+
+    // Combine: starting alphabets + random suffix + timestamp
+    const combined = `${startingPart}${randomSuffix}${timestamp}`;
+
+    // Ensure it doesn't exceed max length
+    const result = combined.substring(0, maxLength);
+
+    console.log(`Generated unique category name: ${result.substring(0, 30)}... (${result.length} characters)`);
+    return result;
+  }
 }

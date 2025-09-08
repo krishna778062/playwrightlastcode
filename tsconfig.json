@@ -18,7 +18,15 @@
       "@content/*": ["./src/modules/content/*"],
       "@content-pages/*": ["./src/modules/content/pages/*"],
       "@content-tests/*": ["./src/modules/content/tests/*"],
-      "@rewards/*": ["./src/modules/reward/*"]
+      "@rewards/*": ["./src/modules/reward/*"],
+      "@frontline/*": ["./src/modules/frontline/*"],
+      "@integrations/*": ["./src/modules/integrations/*"],
+      "@integrations-constants/*": ["./src/modules/integrations/constants/*"],
+      "@integrations-fixtures/*": ["./src/modules/integrations/fixtures/*"],
+      "@integrations-pages/*": ["./src/modules/integrations/pages/*"],
+      "@integrations-components/*": ["./src/modules/integrations/components/*"],
+      "@integrations-api/*": ["./src/modules/integrations/api/*"],
+      "@integrations-test-data/*": ["./src/modules/integrations/test-data/*"]
     },
     "target": "ES2019",
     "module": "commonjs",
