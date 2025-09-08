@@ -167,17 +167,15 @@ test.describe(
         const peopleListResponse = await identityManagementHelper.getListOfPeople(users.endUser.email);
 
         console.log('peopleListResponse', peopleListResponse);
-        const matchedUser = peopleListResponse.result.listOfItems.find(item => item.email === users.endUser.email);
-        console.log('matchedUser', matchedUser);
+        const endUser = peopleListResponse.result.listOfItems.find(item => item.email === users.endUser.email);
 
-        if (!matchedUser) {
+        if (!endUser) {
           throw new Error('Failed to get user details');
         }
 
-        const fullName = `${matchedUser.first_name || ''} ${matchedUser.last_name || ''}`.trim();
-        const userId = matchedUser.peopleId;
+        const fullName = `${endUser.first_name || ''} ${endUser.last_name || ''}`.trim();
+        const userId = endUser.peopleId;
         console.log('fullName', fullName);
-        console.log('userId', userId);
 
         const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
         const siteListResponse = await siteManagementHelper.getListOfSites();
@@ -210,6 +208,33 @@ test.describe(
         );
 
         await feedPage.assertions.validatePostText(postResult.postText);
+
+        const updatedPostText = `Updated Test Post ${faker.company.buzzPhrase()}`;
+        const peopleListResponseUpdated = await identityManagementHelper.getListOfPeople(users.siteManager.email);
+
+        console.log('peopleListResponse', peopleListResponseUpdated);
+        const siteManagerUser = peopleListResponseUpdated.result.listOfItems.find(
+          item => item.email === users.siteManager.email
+        );
+
+        if (!siteManagerUser) {
+          throw new Error('Failed to get user details');
+        }
+
+        const siteManagerFullName = `${siteManagerUser.first_name || ''} ${siteManagerUser.last_name || ''}`.trim();
+        console.log('fullName', siteManagerFullName);
+        // Step 3: Edit the post
+        await feedPage.actions.editPostWithTopicAndUserName(
+          postResult.postText,
+          updatedPostText,
+          existingTopicName,
+          siteManagerFullName
+        );
+        await feedPage.assertions.validatePostText(updatedPostText);
+
+        // Step 4: Delete the post
+        await feedPage.actions.deletePost(updatedPostText);
+        createdPostId = '';
       }
     );
   }

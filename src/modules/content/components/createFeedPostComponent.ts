@@ -180,6 +180,29 @@ export class CreateFeedPostComponent
   }
 
   /**
+   * Edits an existing post with new text
+   * @param currentText - Current text of the post to edit
+   * @param newText - New text to update the post with
+   */
+  async editPostWithTopicAndUserName(
+    currentText: string,
+    newText: string,
+    topicName: string,
+    userName: string
+  ): Promise<void> {
+    await test.step(`Editing post from "${currentText}" to "${newText}"`, async () => {
+      await this.openPostOptionsMenu(currentText);
+      await this.clickEditOption();
+      await this.verifyEditorVisible();
+      await this.updatePostText(newText);
+      await this.addTopicMention(topicName);
+      await this.addUserNameMention(userName);
+      await this.clickUpdateButton();
+      // Note: Post verification should be done at test/page level to avoid duplication
+    });
+  }
+
+  /**
    * Clicks the share thoughts button to open post editor
    */
   async clickShareThoughtsButton(): Promise<void> {
