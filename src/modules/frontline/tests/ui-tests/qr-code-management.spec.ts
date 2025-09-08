@@ -82,7 +82,7 @@ test.describe(
       }
     );
 
-    test.only(
+    test(
       'Scenario: Verify delete content QR code',
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
