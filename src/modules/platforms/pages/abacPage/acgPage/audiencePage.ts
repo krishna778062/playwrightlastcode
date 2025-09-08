@@ -507,8 +507,6 @@ export class AudiencePage extends BasePage {
       // Then find the description within that container
       const descriptionLocator = categoryContainer.locator('p').filter({ hasText: description }).first();
 
-      console.log('descriptionLocator', descriptionLocator);
-
       if (shouldBeVisible) {
         await this.verifier.verifyTheElementIsVisible(descriptionLocator, {
           assertionMessage: `Verify description "${description}" is visible for category "${categoryName}"`,
