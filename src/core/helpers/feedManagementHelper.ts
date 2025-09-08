@@ -67,4 +67,27 @@ export class FeedManagementHelper {
   async deleteFeed(feedId: string) {
     await this.appManagerApiClient.getFeedManagementService().deleteFeed(feedId);
   }
+
+  async createFeedWithAttachments(
+    scope: string,
+    siteId?: string,
+    text?: string,
+    options?: { waitForSearchIndex?: boolean }
+  ) {
+    return await test.step('Creating a new feed with attachments', async () => {
+      const feedName = text || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Feed`;
+      const { textJson, textHtml } = buildFeedTextJsonAndTextHtml(feedName);
+
+      const response = await this.appManagerApiClient.getFeedManagementService().createFeedWithAttachment({
+        textJson,
+        textHtml,
+        scope: scope,
+        siteId: siteId || null,
+        ignoreToxic: false,
+        type: 'post',
+        variant: 'standard',
+      });
+      return response;
+    });
+  }
 }
