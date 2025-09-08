@@ -60,5 +60,47 @@ test.describe(
         await manageQRPage.validateToogleText();
       }
     );
+
+    test(
+      'Scenario: Verify delete app promotion QR code',
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
+      },
+      async ({ appManagerHomePage, qrManagementService }) => {
+        tagTest(test.info(), {
+          description: 'Verify delete app promotion QR code',
+          zephyrTestId: 'FL-432',
+          storyId: 'FL-432',
+        });
+
+        qrDetails.qrName = TestDataGenerator.generateQRName('AppPromotion');
+        qrDetails.qrDescription = TestDataGenerator.generateQRDescription('App Promotion QR');
+        const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+        await qrManagementService.createQR('AppPromotion', qrDetails.qrName, qrDetails.qrDescription);
+        await manageQRPage.loadPage();
+        await manageQRPage.deleteAppQRByName('AppPromotion', qrDetails.qrName);
+      }
+    );
+
+    test.only(
+      'Scenario: Verify delete content QR code',
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
+      },
+      async ({ appManagerHomePage, qrManagementService }) => {
+        tagTest(test.info(), {
+          description: 'Verify delete content QR code',
+          zephyrTestId: 'FL-431',
+          storyId: 'FL-431',
+        });
+
+        qrDetails.qrName = TestDataGenerator.generateQRName('Content');
+        qrDetails.qrDescription = TestDataGenerator.generateQRDescription('Content QR');
+        const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+        await qrManagementService.createQR('Content', qrDetails.qrName, qrDetails.qrDescription);
+        await manageQRPage.loadPage();
+        await manageQRPage.deleteAppQRByName('Content', qrDetails.qrName);
+      }
+    );
   }
 );
