@@ -246,11 +246,41 @@ export class AccessControlGroupsPage extends BasePage {
    */
   async searchAndSelectUserWithEnter(searchTerm: string): Promise<void> {
     await test.step(`Search for "${searchTerm}" and select with Enter key`, async () => {
-      // Use the exact working logic with constructor locator
+      // Fill search term
       await this.searchInput.fill(searchTerm);
-      await this.page.waitForTimeout(2000);
+
+      // Wait for dropdown options to appear (state-based wait)
+      try {
+        await this.page.waitForSelector('[role="option"]', {
+          state: 'visible',
+          timeout: 5000,
+        });
+      } catch {
+        // Fallback: wait for any dropdown/listbox to appear
+        await this.page.waitForSelector('[role="listbox"], [class*="dropdown"], [class*="menu"]', {
+          state: 'visible',
+          timeout: 5000,
+        });
+      }
+
+      // Navigate to first option
       await this.searchInput.press('ArrowDown');
-      await this.page.waitForTimeout(500);
+
+      // Wait for option to be highlighted/active (state-based wait)
+      try {
+        await this.page.waitForSelector(
+          '[role="option"][aria-selected="true"], [role="option"].selected, [role="option"]:focus',
+          {
+            state: 'visible',
+            timeout: 2000,
+          }
+        );
+      } catch {
+        // Fallback: short wait for dropdown navigation
+        await this.page.waitForTimeout(500);
+      }
+
+      // Select the highlighted option
       await this.searchInput.press('Enter');
     });
   }
@@ -284,18 +314,17 @@ export class AccessControlGroupsPage extends BasePage {
 
   async verifyAdminUsersInManagerList(): Promise<void> {
     await test.step('Verify admin users in manager list', async () => {
-      // Wait for the dialog to be fully loaded instead of hardcoded timeout
+      // Wait for the dialog to be fully loaded
       await this.page.waitForSelector('[role="dialog"]', { state: 'visible', timeout: 10000 });
 
       // Directly target admin elements in the dialog
       const adminElements = this.page.locator('[role="dialog"]').getByText(/Admin/i);
 
-      // Wait for at least one admin element to be visible
-      await adminElements.first().waitFor({ state: 'visible', timeout: 10000 });
-
-      // Assert that admin count is greater than 0
-      const adminCount = await adminElements.count();
-      expect(adminCount, 'Should have at least one admin user in manager list').toBeGreaterThan(0);
+      // Use base verification method with auto-retry and polling mechanism
+      await this.verifier.verifyCountOfElementsIsGreaterThan(adminElements, 0, {
+        timeout: 10000,
+        assertionMessage: 'Should have at least one admin user in manager list',
+      });
     });
   }
 

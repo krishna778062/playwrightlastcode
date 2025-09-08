@@ -47,31 +47,6 @@ export class UserCountPopupComponent extends BaseComponent {
   }
 
   /**
-   * Gets all visible usernames with app manager tag from user count popup
-   * @returns Array of usernames that have app manager tags
-   */
-  async getAllVisibleUsernamesWithAppManagerTag(): Promise<string[]> {
-    return await test.step(`Getting all visible usernames with app manager tag from user count popup`, async () => {
-      const usernamesWithAppManagerTag: string[] = [];
-
-      for (let i = 0; i < (await this.foUserCountPopupModal.count()); i++) {
-        const appManagerElement = this.foUserCountPopupModal
-          .nth(i)
-          .locator("[class*='AccessControlListItem-module-appManagerContainer'] p");
-
-        if (await appManagerElement.isVisible()) {
-          const userNameElement = this.foUserCountPopupModal.nth(i).locator("[class*='Spacing-module'] p a");
-          const userName = await userNameElement.textContent();
-          if (userName?.trim()) {
-            usernamesWithAppManagerTag.push(userName.trim());
-          }
-        }
-      }
-      return usernamesWithAppManagerTag;
-    });
-  }
-
-  /**
    * Gets the count text displayed in the popup
    * @returns The count text (e.g., "5 users")
    */
@@ -83,10 +58,10 @@ export class UserCountPopupComponent extends BaseComponent {
   }
 
   /**
-   * Verifies the popup contains specific users
+   * Verifies the user count popup contains specific users
    * @param expectedUsers - Array of expected usernames
    */
-  async verifyContainsUsers(expectedUsers: string[]): Promise<void> {
+  async verifyUserCountPopupContainsUsers(expectedUsers: string[]): Promise<void> {
     await test.step(`Verify the User count popup contains users: ${expectedUsers.join(', ')}`, async () => {
       for (const expectedUser of expectedUsers) {
         const userLocator = this.foUserNamesOnUserCountPopup.filter({ hasText: expectedUser });
