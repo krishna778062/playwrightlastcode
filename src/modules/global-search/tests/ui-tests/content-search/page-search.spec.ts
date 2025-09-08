@@ -48,7 +48,7 @@ test.describe(
       `Cleaning up the test environment by deleting the created page content`,
       async ({ contentManagementHelper }) => {
         if (contentId) {
-          await contentManagementHelper.deleteContent(contentId, siteId);
+          await contentManagementHelper.deleteContent(siteId, contentId);
           console.log(`Deleted page "${pageName}" with ID: ${contentId}`);
         }
       }
@@ -57,7 +57,7 @@ test.describe(
     test(
       `Verify Content Search results for a new ${testData.content}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@test'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
@@ -87,12 +87,11 @@ test.describe(
     test(
       `Verify Page Search results with sidebar filter`,
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@pageFilter'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'SEN-12433',
-          storyId: 'SEN-12295',
+          zephyrTestId: 'SEN-19194',
         });
 
         // Search for the page
@@ -113,20 +112,19 @@ test.describe(
 
         await pageResultItem.verifyNameIsDisplayed(pageName);
 
-        await globalSearchResultPage.verifyAndClickSiteSubFilter({
+        const originalCount = await globalSearchResultPage.verifyAndClickSiteSubFilter({
           filterText: 'Content',
           siteName: siteName,
         });
 
-        // Verify all the same properties are still displayed after filtering
         await pageResultItem.verifyNameIsDisplayed(pageName);
-        await pageResultItem.verifyLabelIsDisplayed(testData.label);
-        await pageResultItem.verifyThumbnailIsDisplayed();
-        await pageResultItem.verifyLockIconVisibility(testData.accessType);
 
         // Click on site subfilter, verify count tracking, and reset functionality
         await globalSearchResultPage.verifySiteSubFilterWithCountTracking({
           filterText: 'Content',
+          siteName: siteName,
+          originalCount: originalCount,
+          expectedCountAfterFilter: 1,
         });
         await pageResultItem.verifyNameIsDisplayed(pageName);
       }

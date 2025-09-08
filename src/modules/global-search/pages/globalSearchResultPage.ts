@@ -394,7 +394,7 @@ export class GlobalSearchResultPage extends BasePage {
    * Verifies and clicks on site subfilter with site selection
    * @param siteName - The name of the site to select
    */
-  async verifyAndClickSiteSubFilter(options: { filterText: string; siteName: string }): Promise<void> {
+  async verifyAndClickSiteSubFilter(options: { filterText: string; siteName: string }): Promise<number> {
     return await this.getSidebarFilter(options).verifyAndClickSiteSubFilter();
   }
 
@@ -402,8 +402,16 @@ export class GlobalSearchResultPage extends BasePage {
    * Verifies site subfilter with count tracking and reset functionality
    * @param options - Options including filter text and site name
    */
-  async verifySiteSubFilterWithCountTracking(options: { filterText: string }): Promise<void> {
+  async verifySiteSubFilterWithCountTracking(options: {
+    filterText: string;
+    siteName: string;
+    originalCount: number;
+    expectedCountAfterFilter: number;
+  }): Promise<void> {
     const siteSubFilter = this.getSidebarFilter(options);
-    await siteSubFilter.verifySiteSubFilterWithCountTracking();
+    await siteSubFilter.verifySiteSubFilterWithCountTracking({
+      expectedCountAfterFilter: options.expectedCountAfterFilter,
+      originalCount: options.originalCount,
+    });
   }
 }

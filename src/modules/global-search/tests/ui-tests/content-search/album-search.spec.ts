@@ -40,6 +40,16 @@ test.describe(
       }
     );
 
+    test.afterAll(
+      `Cleaning up the test environment by deleting the created album content`,
+      async ({ contentManagementHelper }) => {
+        if (contentId) {
+          await contentManagementHelper.deleteContent(siteId, contentId);
+          console.log(`Deleted album "${albumName}" with ID: ${contentId}`);
+        }
+      }
+    );
+
     test(
       `Verify Content Search results for a new ${ALBUM_SEARCH_TEST_DATA.content}`,
       {
@@ -67,52 +77,53 @@ test.describe(
           siteId,
           siteName: newSiteName,
         });
+      }
+    );
 
-        test(
-          `Verify Album Search results with sidebar filter`,
-          {
-            tag: [TestPriority.P1, TestGroupType.REGRESSION],
-          },
-          async ({ appManagerHomePage }) => {
-            tagTest(test.info(), {
-              zephyrTestId: 'SEN-12434',
-              storyId: 'SEN-12297',
-            });
+    test(
+      `Verify Album Search results with sidebar filter`,
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerHomePage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-19196',
+        });
 
-            // Search for the album
-            const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(albumName, {
-              stepInfo: `Searching with term "${albumName}" to verify album appears in search results`,
-            });
+        // Search for the album
+        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(albumName, {
+          stepInfo: `Searching with term "${albumName}" to verify album appears in search results`,
+        });
 
-            // Verify the album appears in the initial search results
-            const albumResult = await globalSearchResultPage.getAlbumResultItemExactlyMatchingTheSearchTerm(albumName);
-            const albumResultItem = new ContentListComponent(albumResult.page, albumResult.rootLocator);
-            await albumResultItem.verifyNameIsDisplayed(albumName);
+        // Verify the album appears in the initial search results
+        const albumResult = await globalSearchResultPage.getAlbumResultItemExactlyMatchingTheSearchTerm(albumName);
+        const albumResultItem = new ContentListComponent(albumResult.page, albumResult.rootLocator);
+        await albumResultItem.verifyNameIsDisplayed(albumName);
 
-            // Click on the page filter in the sidebar to filter results by pages only
-            await globalSearchResultPage.verifyAndClickSidebarFilter({
-              filterText: 'Content',
-              iconType: 'page ',
-            });
+        // Click on the page filter in the sidebar to filter results by pages only
+        await globalSearchResultPage.verifyAndClickSidebarFilter({
+          filterText: 'Content',
+          iconType: 'page',
+        });
 
-            // Verify the same album still appears in the filtered results
-            const filteredAlbumResult =
-              await globalSearchResultPage.getAlbumResultItemExactlyMatchingTheSearchTerm(albumName);
-            const filteredAlbumResultItem = new ContentListComponent(
-              filteredAlbumResult.page,
-              filteredAlbumResult.rootLocator
-            );
+        await albumResultItem.verifyNameIsDisplayed(albumName);
 
-            // Verify all the same properties are still displayed after filtering
-            await filteredAlbumResultItem.verifyNameIsDisplayed(albumName);
-            await filteredAlbumResultItem.verifyLabelIsDisplayed(ALBUM_SEARCH_TEST_DATA.label);
-            await filteredAlbumResultItem.verifyThumbnailIsDisplayed();
-            await filteredAlbumResultItem.verifyLockIconVisibility(ALBUM_SEARCH_TEST_DATA.accessType);
+        const originalCount = await globalSearchResultPage.verifyAndClickSiteSubFilter({
+          filterText: 'Content',
+          siteName: newSiteName,
+        });
 
-            // Verify navigation to album by clicking on the title link
-            await filteredAlbumResultItem.verifyNavigationToTitleLink(contentId, albumName, 'Album');
-          }
-        );
+        // Verify all the same properties are still displayed after filtering
+        await albumResultItem.verifyNameIsDisplayed(albumName);
+
+        // Click on site subfilter, verify count tracking, and reset functionality
+        await globalSearchResultPage.verifySiteSubFilterWithCountTracking({
+          filterText: 'Content',
+          siteName: newSiteName,
+          originalCount: originalCount,
+          expectedCountAfterFilter: 1, // Should show only 1 result (the album we created)
+        });
+        await albumResultItem.verifyNameIsDisplayed(albumName);
       }
     );
   }

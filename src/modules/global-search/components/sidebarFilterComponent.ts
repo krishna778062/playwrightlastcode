@@ -44,7 +44,9 @@ export class SidebarFilterComponent extends BaseComponent {
     this.siteInput = this.page.getByRole('textbox', { name: 'Select...' });
     this.autocompleteList = this.page.locator('[class*="CustomFilter_radioListContainer"]');
     this.siteItem = this.autocompleteList.locator('h4').filter({ hasText: this.siteName });
-    this.siteThumbnail = this.autocompleteList.filter({ hasText: this.siteName }).locator('[data-testid="i-sites"]');
+    this.siteThumbnail = this.page.locator(
+      `//div[contains(@class,'CustomFilter_radioListContainer')]/descendant::h4[text()='${this.siteName}']/../../descendant::i[@data-testid='i-sites']`
+    );
     this.clearButton = this.page.locator('[data-testid="i-crossThick"]');
     this.resultsCount = this.page
       .locator('h2')
@@ -227,6 +229,8 @@ export class SidebarFilterComponent extends BaseComponent {
 
       const countText = await this.resultsCount.textContent();
       const actualCount = parseInt(countText?.replace(/[()]/g, '') || '0', 10);
+      console.log('actualCount', actualCount);
+      console.log('expectedCount', expectedCount);
 
       if (actualCount !== expectedCount) {
         throw new Error(`Expected results count to be ${expectedCount}, but found: ${actualCount} (${countText})`);
@@ -287,11 +291,24 @@ export class SidebarFilterComponent extends BaseComponent {
   }
 
   /**
+   * Verifies reset button is displayed
+   * @param options - Options for the step
+   */
+  async verifyResetButtonDisplayed(options?: { stepInfo?: string }): Promise<void> {
+    return await test.step(options?.stepInfo || 'Verify reset button is displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.resetButton, {
+        timeout: 10000,
+        assertionMessage: 'Verifying reset button is visible',
+      });
+    });
+  }
+
+  /**
    * Complete site subfilter workflow with all verifications
    * @param siteName - The name of the site to select
    * @param expectedResultsCount - Expected number of results after filtering
    */
-  async verifyAndClickSiteSubFilter(): Promise<void> {
+  async verifyAndClickSiteSubFilter(): Promise<number> {
     return await test.step(`Complete site subfilter workflow for "${this.siteName}"`, async () => {
       // Store original count before filtering
       this.originalCount = await this.getCurrentResultsCount();
@@ -305,6 +322,8 @@ export class SidebarFilterComponent extends BaseComponent {
       await this.verifySiteInAutocompleteList(this.siteName!);
       await this.verifySiteThumbnailInAutocompleteList(this.siteName!);
       await this.clickSiteInAutocompleteList(this.siteName!);
+      await this.verifyResetButtonDisplayed();
+      return this.originalCount;
     });
   }
 
@@ -313,11 +332,18 @@ export class SidebarFilterComponent extends BaseComponent {
    * @param siteName - The name of the site to select
    * @returns Promise<number> - The original count before filtering
    */
-  async verifySiteSubFilterWithCountTracking(options?: { stepInfo?: string }): Promise<void> {
+  async verifySiteSubFilterWithCountTracking(options: {
+    stepInfo?: string;
+    expectedCountAfterFilter: number;
+    originalCount: number;
+  }): Promise<void> {
     return await test.step(`verify count matching with expected count before and after resetting`, async () => {
+      // Verify the current count matches the expected count after filtering
+      await this.verifyResultsCount(options.expectedCountAfterFilter);
+
       await this.clickResetButton();
       // Verify count is back to original
-      await this.verifyResultsCount(this.originalCount);
+      await this.verifyResultsCount(options.originalCount);
     });
   }
 

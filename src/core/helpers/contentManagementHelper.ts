@@ -147,11 +147,17 @@ export class ContentManagementHelper {
    * @param contentId - The content ID to delete
    */
   async deleteContent(siteId: string, contentId: string): Promise<void> {
-    if (contentId && siteId) {
-      await this.appManagerApiClient.getContentManagementService().deleteContent(siteId, contentId);
-      console.log(`Content deleted: ${contentId} from site: ${siteId}`);
-    } else {
+    if (!contentId || !siteId) {
       console.log('No content ID or site ID provided for deletion');
+      return;
+    }
+
+    try {
+      await this.appManagerApiClient.getContentManagementService().deleteContent(siteId, contentId);
+      console.log(`Content successfully deleted: ${contentId} from site: ${siteId}`);
+    } catch (error) {
+      console.error(`Failed to delete content ${contentId} from site ${siteId}:`, error);
+      throw error;
     }
   }
 

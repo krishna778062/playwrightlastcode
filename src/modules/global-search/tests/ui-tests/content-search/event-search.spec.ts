@@ -43,6 +43,16 @@ test.describe(
       }
     );
 
+    test.afterAll(
+      `Cleaning up the test environment by deleting the created event content`,
+      async ({ contentManagementHelper }) => {
+        if (contentId) {
+          await contentManagementHelper.deleteContent(siteId, contentId);
+          console.log(`Deleted event "${eventName}" with ID: ${contentId}`);
+        }
+      }
+    );
+
     test(
       `Verify Content Search results for a new ${testData.content}`,
       {
@@ -70,52 +80,53 @@ test.describe(
           siteId,
           siteName: newSiteName,
         });
+      }
+    );
 
-        test(
-          `Verify Event Search results with sidebar filter`,
-          {
-            tag: [TestPriority.P1, TestGroupType.REGRESSION],
-          },
-          async ({ appManagerHomePage }) => {
-            tagTest(test.info(), {
-              zephyrTestId: 'SEN-12435',
-              storyId: 'SEN-12298',
-            });
+    test(
+      `Verify Event Search results with sidebar filter`,
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerHomePage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-19195',
+        });
 
-            // Search for the event
-            const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(eventName, {
-              stepInfo: `Searching with term "${eventName}" to verify event appears in search results`,
-            });
+        // Search for the event
+        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(eventName, {
+          stepInfo: `Searching with term "${eventName}" to verify event appears in search results`,
+        });
 
-            // Verify the event appears in the initial search results
-            const eventResult = await globalSearchResultPage.getEventResultItemExactlyMatchingTheSearchTerm(eventName);
-            const eventResultItem = new ContentListComponent(eventResult.page, eventResult.rootLocator);
-            await eventResultItem.verifyNameIsDisplayed(eventName);
+        // Verify the event appears in the initial search results
+        const eventResult = await globalSearchResultPage.getEventResultItemExactlyMatchingTheSearchTerm(eventName);
+        const eventResultItem = new ContentListComponent(eventResult.page, eventResult.rootLocator);
+        await eventResultItem.verifyNameIsDisplayed(eventName);
 
-            // Click on the page filter in the sidebar to filter results by pages only
-            await globalSearchResultPage.verifyAndClickSidebarFilter({
-              filterText: 'Content',
-              iconType: 'page',
-            });
+        // Click on the page filter in the sidebar to filter results by pages only
+        await globalSearchResultPage.verifyAndClickSidebarFilter({
+          filterText: 'Content',
+          iconType: 'page',
+        });
 
-            // Verify the same event still appears in the filtered results
-            const filteredEventResult =
-              await globalSearchResultPage.getEventResultItemExactlyMatchingTheSearchTerm(eventName);
-            const filteredEventResultItem = new ContentListComponent(
-              filteredEventResult.page,
-              filteredEventResult.rootLocator
-            );
+        await eventResultItem.verifyNameIsDisplayed(eventName);
 
-            // Verify all the same properties are still displayed after filtering
-            await filteredEventResultItem.verifyNameIsDisplayed(eventName);
-            await filteredEventResultItem.verifyLabelIsDisplayed(testData.label);
-            await filteredEventResultItem.verifyThumbnailIsDisplayed();
-            await filteredEventResultItem.verifyLockIconVisibility(testData.accessType);
+        const originalCount = await globalSearchResultPage.verifyAndClickSiteSubFilter({
+          filterText: 'Content',
+          siteName: newSiteName,
+        });
 
-            // Verify navigation to event by clicking on the title link
-            await filteredEventResultItem.verifyNavigationToTitleLink(contentId, eventName, 'Event');
-          }
-        );
+        // Verify all the same properties are still displayed after filtering
+        await eventResultItem.verifyNameIsDisplayed(eventName);
+
+        // Click on site subfilter, verify count tracking, and reset functionality
+        await globalSearchResultPage.verifySiteSubFilterWithCountTracking({
+          filterText: 'Content',
+          siteName: newSiteName,
+          originalCount: originalCount,
+          expectedCountAfterFilter: 1, // Should show only 1 result (the event we created)
+        });
+        await eventResultItem.verifyNameIsDisplayed(eventName);
       }
     );
   }

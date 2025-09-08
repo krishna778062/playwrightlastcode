@@ -90,8 +90,7 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
         },
         async ({ appManagerHomePage }) => {
           tagTest(test.info(), {
-            zephyrTestId: 'SEN-12409',
-            storyId: 'SEN-12305',
+            zephyrTestId: 'SEN-19193',
           });
 
           // First perform the search to get to the results page
@@ -105,7 +104,7 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
           await siteResultItem.verifyNameIsDisplayed(newSiteName);
 
           // Click on the site filter in the sidebar to filter results by sites only
-          await globalSearchResultPage.verifyAndClickSidebarFilter('sites');
+          await globalSearchResultPage.verifyAndClickSidebarFilter({ filterText: 'sites' });
 
           // Verify all the same properties are still displayed after filtering
           await siteResultItem.verifyNameIsDisplayed(newSiteName);
