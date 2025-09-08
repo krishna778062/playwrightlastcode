@@ -2,7 +2,7 @@ import { BrowserContext, Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
-import { FeedManagerService } from '@core/api/services/FeedManagerService';
+import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
@@ -32,7 +32,7 @@ export const chatTestFixture = test.extend<
     appManagersPage: Page;
     endUsersPage: Page;
     siteManagementHelper: SiteManagementHelper;
-    feedManagerService: FeedManagerService;
+    feedManagementHelper: FeedManagementHelper;
     loginAs: (userType: UserType) => Promise<void>;
   },
   {
@@ -109,10 +109,16 @@ export const chatTestFixture = test.extend<
     { scope: 'test' },
   ],
 
-  feedManagerService: [
+  feedManagementHelper: [
     async ({ appManagerApiClient }, use) => {
-      const feedManagerService = new FeedManagerService(appManagerApiClient.context);
-      await use(feedManagerService);
+      const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
+      await use(feedManagementHelper);
+      // Ensure cleanup happens even if test fails
+      try {
+        await feedManagementHelper.cleanup();
+      } catch (error) {
+        console.warn('Feed management helper cleanup failed:', error);
+      }
     },
     { scope: 'test' },
   ],
