@@ -5,6 +5,8 @@ import { AlbumCreationPage } from '@content/pages/albumCreationPage';
 import { EventCreationPage } from '@content/pages/eventCreationPage';
 import { PageCreationPage } from '@content/pages/pageCreationPage';
 
+import { SiteType } from '../../content-abac/constants/siteType';
+
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
 import { extractSiteIdFromContentAdditionUrl } from '@/src/core/utils/urlUtils';
@@ -32,9 +34,9 @@ export class AddContentModalComponent extends BaseComponent {
   readonly selectTemplateDropdownOption: Locator;
   readonly clearButtonOnSelectTemplateDropdown: Locator;
 
-  private siteManagementHelper?: SiteManagementHelper;
+  private siteManagementHelper: SiteManagementHelper;
 
-  constructor(page: Page, siteManagementHelper?: SiteManagementHelper) {
+  constructor(page: Page, siteManagementHelper: SiteManagementHelper) {
     super(page);
     this.siteManagementHelper = siteManagementHelper;
     // Initialize locators - these would need to be updated based on actual DOM structure
@@ -221,8 +223,8 @@ export class AddContentModalComponent extends BaseComponent {
         await this.selectRecentlyUsedSiteByIndex(options?.recentlyUsedSiteIndex || 0);
       } catch (error) {
         console.info(`recently used site not found:`);
-        const sites = await this.siteManagementHelper?.getListOfSites();
-        const siteName = sites?.result.listOfItems[0]?.name;
+        const publicSite = await this.siteManagementHelper.getSiteByAccessType(SiteType.PUBLIC);
+        const siteName = publicSite?.name;
         if (siteName) {
           await this.selectSiteToAddContentFromDropdown(siteName);
         } else {
@@ -256,7 +258,7 @@ export class AddContentModalComponent extends BaseComponent {
     switch (contentOption) {
       case ContentType.PAGE:
         if (siteId) {
-          contentCreationPage = new PageCreationPage(this.page, siteId);
+          contentCreationPage = new PageCreationPage(this.page, siteId, this.siteManagementHelper);
         } else {
           throw new Error('Site id not found in the url');
         }

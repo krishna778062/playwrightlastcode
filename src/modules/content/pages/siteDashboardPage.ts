@@ -8,6 +8,8 @@ import { PageCreationPage } from '@content/pages/pageCreationPage';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
+import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
+
 export interface ISiteDashboardActions {
   navigateToPageCreationFromSiteDashboard: () => Promise<PageCreationPage>;
   navigateToAlbumCreationFromSiteDashboard: () => Promise<AlbumCreationPage>;
@@ -29,9 +31,9 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
   readonly successMessage = (message: string) =>
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
 
-  constructor(page: Page, siteId: string) {
+  constructor(page: Page, siteId: string, siteManagementHelper: SiteManagementHelper) {
     super(page, PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
-    this.addContentModal = new AddContentModalComponent(page);
+    this.addContentModal = new AddContentModalComponent(page, siteManagementHelper);
   }
 
   // Actions

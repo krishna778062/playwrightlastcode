@@ -82,7 +82,7 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
         },
-        async ({ standardUserHomePage, appManagerHomePage }) => {
+        async ({ standardUserHomePage, appManagerHomePage, siteManagementHelper }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
@@ -99,7 +99,8 @@ test.describe(
 
           // Navigate to album creation by standard user
           albumCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
-            ContentType.ALBUM
+            ContentType.ALBUM,
+            siteManagementHelper
           )) as AlbumCreationPage;
 
           // Generate album data using TestDataGenerator
