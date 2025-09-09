@@ -92,7 +92,7 @@ export class FeedManagementHelper {
 
       this.feeds.push({ feedId });
 
-      // Return the full API response for compatibility
+      // Return the API response with feedName added for convenience
       return { ...response, feedName };
     });
   }
