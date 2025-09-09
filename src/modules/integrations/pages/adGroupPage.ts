@@ -1,5 +1,5 @@
 import { BasePage } from '@/src/core/pages/basePage';
-import { adGroupComponent } from '../components/adGroupComponent';
+import { AdGroupComponent } from '../components/adGroupComponent';
 import { Page } from '@playwright/test';
 
 export class adGroupPage extends BasePage {
@@ -7,14 +7,14 @@ export class adGroupPage extends BasePage {
         await this.page.waitForLoadState('domcontentloaded');
     }
 
-    readonly adGroupComponent: adGroupComponent;
+    readonly adGroupComponent: AdGroupComponent;
     constructor(page: Page) {
         super(page);
-        this.adGroupComponent = new adGroupComponent(page);
+        this.adGroupComponent = new AdGroupComponent(page);
     }
 
     
-    async clickOnSpanContainText(text: string): Promise<void> {
+    async clickOnSpanContainButtonText(text: string): Promise<void> {
         return this.adGroupComponent.clickOnSpanContainButtonText(text);
     }
 
@@ -27,8 +27,8 @@ export class adGroupPage extends BasePage {
     }
 
 
-    async ADGroupsModalIsDisplayed(text: string): Promise<void> {
-        return this.adGroupComponent.ADGroupsModalIsDisplayed(text);
+    async adGroupsModalIsDisplayed(text: string): Promise<void> {
+        return this.adGroupComponent.adGroupsModalIsDisplayed(text);
     }
 
     async selectADGroups(text: string): Promise<void> {
@@ -39,8 +39,8 @@ export class adGroupPage extends BasePage {
         return this.adGroupComponent.validateMessage(text, number);
     }
 
-    async SpanTextDisplayed(text: string): Promise<void> {
-        return this.adGroupComponent.SpanTextDisplayed(text);
+    async divTextDisplayed(text: string): Promise<void> {
+        return this.adGroupComponent.divTextDisplayed(text);
     }
 
 
@@ -52,16 +52,12 @@ export class adGroupPage extends BasePage {
         return this.adGroupComponent.verifyParagraphText(text);
     }
 
-    async ClickOnDisconnectButton(text: string): Promise<void> {
-        return this.adGroupComponent.ClickOnDisconnectButton(text);
+    async clickOnDisconnectButton(text: string): Promise<void> {
+        return this.adGroupComponent.clickOnDisconnectButton(text);
     }
 
-    async headingisPresent(text: string): Promise<void> {
-        return this.adGroupComponent.headingisPresent(text);
+    async headingIsPresent(text: string): Promise<void> {
+        return this.adGroupComponent.headingIsPresent(text);
     }
-
-    async clickOnSaveButton(text: string): Promise<void> {
-        return this.adGroupComponent.clickOnSaveButton(text);
-      }
     
 }

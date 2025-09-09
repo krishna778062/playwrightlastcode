@@ -9,7 +9,7 @@ export class AdGroupComponent extends BaseComponent {
   readonly buttonContainText: (text: string) => Locator;
   readonly messageParagraph: (text: string) => Locator;
   readonly selectedCount: (count: string) => Locator;
-  readonly spanText: (className: string) => Locator;
+  readonly divText: (className: string) => Locator;
   readonly groupTypeDropdown: (id: string) => Locator;
   readonly disconnectButton: (ariaLabel: string) => Locator;
   readonly headingText: (text: string) => Locator;
@@ -25,7 +25,7 @@ export class AdGroupComponent extends BaseComponent {
     this.buttonContainText = (text: string) => this.rootLocator.locator(`//button[contains(text(),'${text}')]`);
     this.messageParagraph = (text: string) => this.rootLocator.locator(`//p[contains(text(),'${text}')]`);
     this.selectedCount = (count: string) => this.rootLocator.locator(`//strong[text()='${count}']`);
-    this.spanText = (className: string) => this.rootLocator.locator(`//div[contains(@class,'${className}')]`);
+    this.divText = (className: string) => this.rootLocator.locator(`//div[contains(@class,'${className}')]`);
     this.groupTypeDropdown = (id: string) => this.rootLocator.locator(`//select[@id='${id}']`);
     this.disconnectButton = (ariaLabel: string) =>
       this.rootLocator.locator(`//button[@aria-label='${ariaLabel}']`);
@@ -63,8 +63,8 @@ export class AdGroupComponent extends BaseComponent {
     await expect(this.selectedCount(number), 'expecting count to be visible').toBeVisible();
   }
 
-  async spanTextDisplayed(className: string): Promise<void> {
-    await expect(this.spanText(className), 'expecting span text to be visible').toBeVisible();
+  async divTextDisplayed(className: string): Promise<void> {
+    await expect(this.divText(className), 'expecting span text to be visible').toBeVisible();
   }
 
   async verifyGroupType(id: string): Promise<void> {
@@ -99,6 +99,7 @@ export class AdGroupComponent extends BaseComponent {
   async headingIsPresent(linkText: string): Promise<void> {
     await expect(this.headingText(linkText), 'expecting heading to be visible').toBeVisible();
   }
+
 }
 
 

@@ -28,10 +28,10 @@ test('Verify that Select Active Directory groups option is visible in Zeus', {
 
     await page.goto(integration_people_page);
 
-    await adGroup.clickOnSpanContainText('Use Microsoft Entra ID groups');
+    await adGroup.clickOnSpanContainButtonText('Use Microsoft Entra ID groups');
     await adGroup.verifyMicrosoftEntraIDGroupsVisibility('Select Microsoft Entra ID groups');
     await adGroup.clickOnButtonContainText('Select Microsoft Entra ID groups');
-    await adGroup.ADGroupsModalIsDisplayed('SelectActiveDirectoryGroup-module-title');
+    await adGroup.adGroupsModalIsDisplayed('SelectActiveDirectoryGroup-module-title');
     await adGroup.selectADGroups('All Company Updated');
     await adGroup.clickOnButtonContainText('Done');
     await adGroup.validateMessage('Added','1')
@@ -45,13 +45,13 @@ async ({page}) => {
 
 await page.goto(integration_people_page);
 
-await adGroup.clickOnSpanContainText('Use Microsoft Entra ID groups');
+await adGroup.clickOnSpanContainButtonText('Use Microsoft Entra ID groups');
 await adGroup.verifyMicrosoftEntraIDGroupsVisibility('Select Microsoft Entra ID groups');
 await adGroup.clickOnButtonContainText('Select Microsoft Entra ID groups');
 await adGroup.selectADGroups('new security grp');
 await adGroup.clickOnButtonContainText('Done');
-await adGroup.SpanTextDisplayed('Do not create audiences');
-await adGroup.SpanTextDisplayed('Create audiences');
+await adGroup.divTextDisplayed('Do not create audiences');
+await adGroup.divTextDisplayed('Create audiences');
 });
 
 
@@ -62,7 +62,7 @@ async ({page}) => {
 
 await page.goto(integration_people_page);
 
-await adGroup.clickOnSpanContainText('Use Microsoft Entra ID groups');
+await adGroup.clickOnSpanContainButtonText('Use Microsoft Entra ID groups');
 await adGroup.verifyMicrosoftEntraIDGroupsVisibility('Select Microsoft Entra ID groups');
 await adGroup.clickOnButtonContainText('Select Microsoft Entra ID groups');
 await adGroup.verifyGroupType('type');
@@ -75,10 +75,10 @@ async ({page}) => {
 
 await page.goto(integration_people_page);
 
-await adGroup.clickOnSpanContainText('Use Microsoft Entra ID groups');
+await adGroup.clickOnSpanContainButtonText('Use Microsoft Entra ID groups');
 await adGroup.verifyMicrosoftEntraIDGroupsVisibility('Select Microsoft Entra ID groups');
 await adGroup.clickOnButtonContainText('Select Microsoft Entra ID groups');
-await adGroup.clickOnSaveButton('Save');
+await adGroup.clickOnSpanContainButtonText('Save');
 await adGroup.verifyParagraphText('Please select at least one Microsoft Entra ID group');
 });
 
@@ -89,7 +89,7 @@ async ({page}) => {
 
 await page.goto(integration_people_page);
 
-await adGroup.ClickOnDisconnectButton('Disconnect your Microsoft Entra ID account');
-await adGroup.headingisPresent('Disconnect Microsoft Entra ID account');
+await adGroup.clickOnDisconnectButton('Disconnect your Microsoft Entra ID account');
+await adGroup.headingIsPresent('Disconnect Microsoft Entra ID account');
 
 });
