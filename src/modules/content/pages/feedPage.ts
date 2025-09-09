@@ -13,21 +13,21 @@ export interface IFeedActions {
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
   deletePost: (postText: string) => Promise<void>;
-  favoriteUnfavoritePost: (favorite: boolean) => Promise<void>;
   // Content creation flow
   createPostWithAttachments: (text: string, files?: string[]) => Promise<FeedPostResult>;
-  createfeedWithMentionUserNameAndTopic: (
-    text: string,
-    userName: string,
-    topicName: string,
-    siteName: string
-  ) => Promise<FeedPostResult>;
-  editPostWithTopicAndUserName: (
-    currentText: string,
-    newText: string,
-    topicName: string,
-    userName: string
-  ) => Promise<void>;
+  createfeedWithMentionUserNameAndTopic: (params: {
+    text: string;
+    userName: string;
+    topicName: string;
+    siteName: string[];
+    embedUrl: string;
+  }) => Promise<FeedPostResult>;
+  editPostWithTopicAndUserName: (params: {
+    currentText: string;
+    newText: string;
+    topicName: string;
+    userName: string;
+  }) => Promise<void>;
   markPostAsFavourite: () => Promise<void>;
   removePostFromFavourite: (postText: string) => Promise<void>;
   clickInfoIcon: () => Promise<void>;
@@ -40,7 +40,6 @@ export interface IFeedAssertions {
   // High-level verification flows
   verifyPostDetails: (postText: string, expectedAttachmentCount: number) => Promise<void>;
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
-  verifyPostIsFavoritedUnfavorited: (favorite: boolean) => Promise<void>;
   verifyPostIsNotFavorited: (postText: string) => Promise<void>;
   verifyPostIsFavorited: (postText: string) => Promise<void>;
   validatePostText: (postText: string) => Promise<void>;
@@ -106,33 +105,23 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    * @param topicName - The topic name to mention (e.g., "Technology")
    * @returns Promise<FeedPostResult>
    */
-  async createfeedWithMentionUserNameAndTopic(
-    title: string,
-    userName: string,
-    topicName: string,
-    siteName: string
-  ): Promise<FeedPostResult> {
-    return await this.createFeedPostComponent.createfeedWithMentionUserNameAndTopic(
-      title,
-      userName,
-      topicName,
-      siteName
-    );
+  async createfeedWithMentionUserNameAndTopic(params: {
+    text: string;
+    userName: string;
+    topicName: string;
+    siteName: string[];
+    embedUrl: string;
+  }): Promise<FeedPostResult> {
+    return await this.createFeedPostComponent.createfeedWithMentionUserNameAndTopic(params);
   }
 
-  async editPostWithTopicAndUserName(
-    currentText: string,
-    newText: string,
-    topicName: string,
-    userName: string
-  ): Promise<void> {
-    await this.createFeedPostComponent.editPostWithTopicAndUserName(currentText, newText, topicName, userName);
-  }
-
-  async favoriteUnfavoritePost(favorite: boolean): Promise<void> {
-    await test.step(`Favoriting post with text ${favorite}`, async () => {
-      await this.listFeedComponent.clickFavoriteUnfavoriteButton(favorite);
-    });
+  async editPostWithTopicAndUserName(params: {
+    currentText: string;
+    newText: string;
+    topicName: string;
+    userName: string;
+  }): Promise<void> {
+    return await this.createFeedPostComponent.editPostWithTopicAndUserName(params);
   }
 
   // High-level verification methods
@@ -179,12 +168,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    */
   async getPostTimestamp(postText: string): Promise<void> {
     await this.listFeedComponent.getPostTimestamp(postText);
-  }
-
-  async verifyPostIsFavoritedUnfavorited(favorite: boolean): Promise<void> {
-    await test.step(`Verify post is favorited: ${favorite}`, async () => {
-      await this.listFeedComponent.verifyPostIsFavoritedUnfavorited(favorite);
-    });
   }
 
   //Favourite Post Methods

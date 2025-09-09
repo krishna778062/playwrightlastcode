@@ -50,6 +50,7 @@ export const API_ENDPOINTS = {
     deactivate: '/v1/content/sites/attributes?attribute=status',
     listOfSites: '/v1/content/sites/list',
     manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
+    membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,
   },
 
   content: {

@@ -34,12 +34,12 @@ export interface FeedPostApiResponse {
 export interface ICreateFeedPostActions {
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
-  editPostWithTopicAndUserName: (
-    currentText: string,
-    newText: string,
-    topicName: string,
-    userName: string
-  ) => Promise<void>;
+  editPostWithTopicAndUserName: (params: {
+    currentText: string;
+    newText: string;
+    topicName: string;
+    userName: string;
+  }) => Promise<void>;
   clickShareThoughtsButton: () => Promise<void>;
   createPost: (text: string) => Promise<void>;
   uploadFiles: (files: string[]) => Promise<void>;
@@ -190,12 +190,13 @@ export class CreateFeedPostComponent
    * @param currentText - Current text of the post to edit
    * @param newText - New text to update the post with
    */
-  async editPostWithTopicAndUserName(
-    currentText: string,
-    newText: string,
-    topicName: string,
-    userName: string
-  ): Promise<void> {
+  async editPostWithTopicAndUserName(params: {
+    currentText: string;
+    newText: string;
+    topicName: string;
+    userName: string;
+  }): Promise<void> {
+    const { currentText, newText, topicName, userName } = params;
     await test.step(`Editing post from "${currentText}" to "${newText}"`, async () => {
       const topicName2 = faker.company.name();
       await this.openPostOptionsMenu(currentText);
@@ -398,12 +399,13 @@ export class CreateFeedPostComponent
    * @param topicName - The topic name to mention
    * @returns Result containing post text, attachment count and post ID
    */
-  async createfeedWithMentionUserNameAndTopic(
-    title: string,
-    userName: string,
-    topicName: string,
-    siteName: string
-  ): Promise<FeedPostResult> {
+  async createfeedWithMentionUserNameAndTopic(params: {
+    text: string;
+    userName: string;
+    topicName: string;
+    siteName: string;
+  }): Promise<FeedPostResult> {
+    const { text: title, userName, topicName, siteName } = params;
     return await test.step(`Creating feed post with user mention "${userName}" and topic mention "${topicName}"`, async () => {
       // Open editor
       await this.clickShareThoughtsButton();

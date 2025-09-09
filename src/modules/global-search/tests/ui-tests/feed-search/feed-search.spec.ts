@@ -25,7 +25,9 @@ test.describe(
           storyId: 'SEN-12843',
         });
 
-        const feedResponse = await feedManagementHelper.createFeed('public');
+        const feedResponse = await feedManagementHelper.createFeed({
+          scope: 'public',
+        });
         const feedId = feedResponse.result.feedId;
         const feedName = feedResponse.result.title || testData.content;
         const authorName = feedResponse.result.authoredBy?.name || 'Unknown';
