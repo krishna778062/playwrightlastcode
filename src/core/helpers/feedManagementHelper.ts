@@ -76,7 +76,6 @@ export class FeedManagementHelper {
       }
 
       const feedId = response.result.feedId;
-      const authorName = response.result.authoredBy?.name;
 
       if (params.options?.waitForSearchIndex !== false) {
         await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
@@ -89,8 +88,8 @@ export class FeedManagementHelper {
 
       this.feeds.push({ feedId });
 
-      // Return the API response structure for compatibility with existing tests
-      return { ...response, feedId, feedName, authorName };
+      // Return the API response with feedName added for convenience
+      return { ...response, feedName };
     });
   }
 
