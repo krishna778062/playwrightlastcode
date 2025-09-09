@@ -79,6 +79,7 @@ test.describe(
         await qrManagementService.createQR('AppPromotion', qrDetails.qrName, qrDetails.qrDescription);
         await manageQRPage.loadPage();
         await manageQRPage.deleteAppQRByName('AppPromotion', qrDetails.qrName);
+        qrDetails.qrCodeId = undefined;
       }
     );
 
@@ -100,6 +101,7 @@ test.describe(
         await qrManagementService.createQR('Content', qrDetails.qrName, qrDetails.qrDescription);
         await manageQRPage.loadPage();
         await manageQRPage.deleteAppQRByName('Content', qrDetails.qrName);
+        qrDetails.qrCodeId = undefined;
       }
     );
 

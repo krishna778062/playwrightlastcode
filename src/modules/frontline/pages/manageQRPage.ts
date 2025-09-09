@@ -93,9 +93,9 @@ export class ManageQRPage extends BasePage {
    * the response and return the id of the new QR code
    * @returns The id of the new QR code
    */
-  async clickOnAddQRAndGetQRId(QRType: 'AppPromotion' | 'Content'): Promise<string> {
+  async clickOnAddQRAndGetQRId(qrType: 'AppPromotion' | 'Content'): Promise<string> {
     const qrCodeResponse = await this.performActionAndWaitForResponse(
-      () => this.clickOnAddQR(QRType),
+      () => this.clickOnAddQR(qrType),
       response =>
         response.url().includes(API_ENDPOINTS.qr.create) &&
         response.request().method() === 'POST' &&
@@ -110,11 +110,11 @@ export class ManageQRPage extends BasePage {
     return qrCodeResponseJson.result.qrCodeId;
   }
 
-  async clickOnAddQR(QRType: 'AppPromotion' | 'Content') {
+  async clickOnAddQR(qrType: 'AppPromotion' | 'Content') {
     await this.clickOnElement(this.addQRButton, {
       stepInfo: 'Click on Add QR button',
     });
-    if (QRType === 'AppPromotion') {
+    if (qrType === 'AppPromotion') {
       await this.clickOnElement(this.appPromotionMenuOption, {
         stepInfo: 'Click on App promotion menu option',
       });
@@ -225,10 +225,10 @@ export class ManageQRPage extends BasePage {
     });
   }
 
-  async deleteAppQRByName(QRType: 'AppPromotion' | 'Content', qrName: string) {
+  async deleteAppQRByName(qrType: 'AppPromotion' | 'Content', qrName: string) {
     await this.clickOnThreeDots(qrName);
     await this.clickOnDelete();
-    if (QRType === 'AppPromotion') {
+    if (qrType === 'AppPromotion') {
       await this.clickOnDeleteButton();
     }
   }
