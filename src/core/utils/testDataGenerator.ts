@@ -3,6 +3,8 @@ import { faker } from '@faker-js/faker';
 import { User } from '@core/types/user.type';
 
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
+import { AlbumCreationOptions } from '@/src/modules/content/pages/albumCreationPage';
+import { EventCreationOptions } from '@/src/modules/content/pages/eventCreationPage';
 import { PageCreationOptions } from '@/src/modules/content/pages/pageCreationPage';
 
 export class TestDataGenerator {
@@ -318,5 +320,178 @@ export class TestDataGenerator {
     overrides?: Partial<PageCreationOptions>
   ): PageCreationOptions[] {
     return Array.from({ length: count }, () => this.generatePage(contentType, fileName, category, overrides));
+  }
+
+  /**
+   * Generates a random album with realistic data
+   * @param overrides Optional properties to override in the generated album
+   * @returns An AlbumCreationOptions object with random realistic data
+   */
+  static generateAlbum(
+    fileName: string,
+    attachmentFileName?: string,
+    videoUrl?: string,
+    openAlbum?: boolean,
+    overrides?: Partial<AlbumCreationOptions>
+  ): AlbumCreationOptions {
+    const albumOptions: AlbumCreationOptions = {
+      title: `Automated Test Page ${faker.company.name()} - ${faker.commerce.productName()}`,
+      description: `This is an automated test description ${faker.lorem.paragraph()}`,
+      images: [fileName],
+      videoUrl: videoUrl,
+      attachments: attachmentFileName ? [attachmentFileName] : undefined,
+      openAlbum: openAlbum,
+      topics: [faker.company.name()],
+    };
+
+    return {
+      ...albumOptions,
+      ...overrides,
+    };
+  }
+
+  /**
+   * Generates multiple random albums
+   * @param count Number of albums to generate
+   * @param overrides Optional properties to override in all generated albums
+   * @returns Array of AlbumCreationOptions objects
+   */
+  static generateAlbums(
+    count: number,
+    fileName: string,
+    attachmentFileName?: string,
+    videoUrl?: string,
+    openAlbum?: boolean,
+    overrides?: Partial<AlbumCreationOptions>
+  ): AlbumCreationOptions[] {
+    return Array.from({ length: count }, () =>
+      this.generateAlbum(fileName, attachmentFileName, videoUrl, openAlbum, overrides)
+    );
+  }
+
+  /**
+   * Generates a random event with realistic data
+   * @param overrides Optional properties to override in the generated event
+   * @returns An EventCreationOptions object with random realistic data
+   */
+  static generateEvent(
+    fileName?: string,
+    startDate?: string,
+    endDate?: string,
+    overrides?: Partial<EventCreationOptions>
+  ): EventCreationOptions {
+    const eventOptions: EventCreationOptions = {
+      title: `Automated Test Event ${faker.company.name()} - ${faker.commerce.productName()}`,
+      description: `This is an automated test event description ${faker.lorem.paragraph()}`,
+      startDate: startDate || faker.date.future().toISOString().split('T')[0],
+      endDate: endDate || faker.date.future().toISOString().split('T')[0],
+      location: `${faker.location.streetAddress()}, ${faker.location.city()}`,
+      coverImage: fileName
+        ? {
+            fileName,
+            cropOptions: {
+              widescreen: false,
+              square: false,
+            },
+          }
+        : undefined,
+    };
+
+    return {
+      ...eventOptions,
+      ...overrides,
+    };
+  }
+
+  /**
+   * Generates multiple random events
+   * @param count Number of events to generate
+   * @param overrides Optional properties to override in all generated events
+   * @returns Array of EventCreationOptions objects
+   */
+  static generateEvents(count: number, overrides?: Partial<EventCreationOptions>): EventCreationOptions[] {
+    return Array.from({ length: count }, () => this.generateEvent(undefined, undefined, undefined, overrides));
+  }
+
+  /**
+   * Generates a random site with realistic data
+   * @param fileName Optional cover image file name
+   * @param overrides Optional properties to override in the generated site
+   * @returns A SiteCreationOptions object with random realistic data
+   */
+  static generateSite(access: string, overrides?: Partial<any>): any {
+    const siteOptions = {
+      name: `Automated Test Site ${faker.company.name()} - ${faker.commerce.department()}`.substring(0, 39),
+      description: `This is an automated test site description ${faker.lorem.paragraph()}`,
+      siteCategory: faker.word.noun().toLowerCase(),
+      access: access,
+    };
+
+    return {
+      ...siteOptions,
+      ...overrides,
+    };
+  }
+
+  /**
+   * Generates multiple random sites
+   * @param count Number of sites to generate
+   * @param fileName Optional cover image file name
+   * @param overrides Optional properties to override in all generated sites
+   * @returns Array of SiteCreationOptions objects
+   */
+  static generateSites(count: number, access: string, overrides?: Partial<any>): any[] {
+    return Array.from({ length: count }, () => this.generateSite(access, overrides));
+  }
+
+  /**
+   * Generates a random QR code name with timestamp to ensure uniqueness
+   * @param prefix Optional prefix for the QR code name
+   * @returns A unique QR code name
+   */
+  static generateQRName(prefix: string = 'QR'): string {
+    const randomWord = faker.word.sample();
+    const timestamp = Date.now();
+    return `${prefix}-${randomWord}-${timestamp}`;
+  }
+
+  /**
+   * Generates a random QR code description
+   * @param prefix Optional prefix for the description
+   * @returns A random QR code description
+   */
+  static generateQRDescription(prefix: string = 'QR Code Description'): string {
+    const randomWords = faker.lorem.words(5);
+    const timestamp = Date.now();
+    return `${prefix}: ${randomWords} - ${timestamp}`;
+  }
+
+  /**
+   * Generates a unique category name with specified length and starting alphabet characters
+   * @param maxLength - Maximum length of the category name
+   * @param startingAlphabetCount - Number of alphabet characters to start with
+   * @returns Generated unique category name
+   */
+  static generateUniqueCategoryName(maxLength: number, startingAlphabetCount: number): string {
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+
+    // Start with alphabet characters (A-Z, a-z)
+    const alphabetChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    let startingPart = '';
+
+    // Generate starting alphabet characters
+    for (let i = 0; i < startingAlphabetCount; i++) {
+      startingPart += alphabetChars.charAt(Math.floor(Math.random() * alphabetChars.length));
+    }
+
+    // Combine: starting alphabets + random suffix + timestamp
+    const combined = `${startingPart}${randomSuffix}${timestamp}`;
+
+    // Ensure it doesn't exceed max length
+    const result = combined.substring(0, maxLength);
+
+    console.log(`Generated unique category name: ${result.substring(0, 30)}... (${result.length} characters)`);
+    return result;
   }
 }

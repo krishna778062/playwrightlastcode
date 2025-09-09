@@ -19,6 +19,7 @@
     "test:global-search": "cross-env MODULE_NAME=global-search npx playwright test --config=src/modules/global-search/playwright.global-search.config.ts",
     "test:global-search:P0": "cross-env MODULE_NAME=global-search npx playwright test --config=src/modules/global-search/playwright.global-search.config.ts --grep=@P0",
     "test:global-search:smoke": "cross-env MODULE_NAME=global-search npx playwright test --config=src/modules/global-search/playwright.global-search.config.ts --grep=@smoke",
+    "test:frontline": "cross-env MODULE_NAME=frontline npx playwright test --config=src/modules/frontline/playwright.frontline.config.ts",
     "test:content": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts",
     "test:content:P0": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts --grep=@P0",
     "test:content:smoke": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts --grep=@smoke",
@@ -37,7 +38,10 @@
     "serve-report:custom": "npm run generate-report:custom && concurrently \"npm run start-report-server\" \"sleep 1 && OPEN_REPORT=true npm run generate-report:custom\"",
     "test:de:dev": "MODULE_NAME=data-engineering TEST_ENV=dev npx playwright test src/modules/data-engineering/tests/ui-tests/analytics.spec.ts --config=src/modules/data-engineering/playwright.data-engineering.config.ts --project=data-engineering-chromium",
     "test:de": "MODULE_NAME=data-engineering npx playwright test src/modules/data-engineering/tests/ui-tests/analytics.spec.ts --config=src/modules/data-engineering/playwright.data-engineering.config.ts --project=data-engineering-chromium",
-    "report:postgres": "node reporting/enhanced-pg-reporter.mjs"
+    "report:postgres": "node reporting/enhanced-pg-reporter.mjs",
+    "test:integrations": "playwright test --config=src/modules/integrations/playwright.integrations.config.ts",
+    "test:integrations:p0": "playwright test --config=src/modules/integrations/playwright.integrations.config.ts --grep=@P0",
+    "test:integrations:smoke": "playwright test --config=src/modules/integrations/playwright.integrations.config.ts --grep=@smoke"
   },
   "keywords": [],
   "author": "",
@@ -48,7 +52,7 @@
     "@commitlint/config-conventional": "^19.5.0",
     "@eslint/js": "^9.28.0",
     "@faker-js/faker": "^9.8.0",
-    "@playwright/test": "^1.53.1",
+    "@playwright/test": "^1.54.2",
     "@types/eslint": "^9.6.1",
     "@types/fs-extra": "^11.0.4",
     "@types/inquirer": "^9.0.7",
