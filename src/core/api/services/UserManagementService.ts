@@ -384,8 +384,8 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
         if (identifierType === 'alternate') {
           // Answer the verification question
           const profileQuestionsVerifyResponse = await this.answerProfileQuestionsDuringRegistration(token, {
-            verificationQuestionField: options?.verificationQuestionField,
-            verificationQuestionValue: options?.verificationQuestionValue,
+            verificationQuestionField: options?.verificationQuestionField || '',
+            verificationQuestionValue: options?.verificationQuestionValue || '',
           });
           const profileQuestionsVerifyResponseJson = await this.parseResponse<any>(profileQuestionsVerifyResponse);
           console.log('profileQuestionsVerifyResponse: ' + JSON.stringify(profileQuestionsVerifyResponseJson, null, 2));

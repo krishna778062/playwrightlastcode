@@ -66,7 +66,7 @@ test.describe(
     test(
       'Verify that single ACG can be created and deleted without any issue',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -89,7 +89,7 @@ test.describe(
     test(
       'Verify that status of the ACG should be displayed as Active or Inactive immediately after creation',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -113,7 +113,7 @@ test.describe(
     test(
       'Verify that user manager should have access for ACG creation',
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
       async ({ userManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -167,7 +167,7 @@ test.describe(
     test(
       'Verify that duplicate acg error is displayed on attempting to create ACG with same features and target audiences',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -200,7 +200,7 @@ test.describe(
     test(
       'Verify that duplicate acg error is displayed on editing ACG to match anothers features and target audiences',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
