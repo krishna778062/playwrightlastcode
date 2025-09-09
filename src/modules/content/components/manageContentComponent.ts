@@ -290,7 +290,7 @@ export class ManageContentComponent extends BaseComponent {
       if (this.siteSearchBarOptionText === siteName) {
         console.log('Site name is matching');
       } else {
-        console.log('Site name is not matching');
+        throw new Error('Site name is not matching');
       }
     });
   }
@@ -299,7 +299,7 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.sortByButton);
     });
   }
-  async selectCreatedNewestOption(): Promise<void> {
+  async selectCreatedNewestOptionThroughUrl(): Promise<void> {
     await test.step('Selecting the created newest option', async () => {
       await this.page.goto(`${this.page.url()}${this.createdNewestOption}`);
     });

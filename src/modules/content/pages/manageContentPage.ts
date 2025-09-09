@@ -17,7 +17,7 @@ export interface IActions {
   clickSiteSearchBar: (siteName: string) => Promise<void>;
   clickOnTheSiteName: () => Promise<void>;
   clickSortByButton: () => Promise<void>;
-  selectCreatedNewestOption: () => Promise<void>;
+  selectCreatedNewestOptionThroughUrl: () => Promise<void>;
 }
 
 export interface IAssertions {
@@ -167,7 +167,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickSortByButton(): Promise<void> {
     await this.manageContentComponent.clickSortByButton();
   }
-  async selectCreatedNewestOption(): Promise<void> {
-    await this.manageContentComponent.selectCreatedNewestOption();
+  async selectCreatedNewestOptionThroughUrl(): Promise<void> {
+    await this.manageContentComponent.selectCreatedNewestOptionThroughUrl();
   }
 }

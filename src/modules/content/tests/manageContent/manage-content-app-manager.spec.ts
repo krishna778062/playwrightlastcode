@@ -196,7 +196,7 @@ test.describe(
         });
         await manageFeaturePage.actions.navigateToContentButton();
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreatedNewestOption();
+        await manageContentPage.actions.selectCreatedNewestOptionThroughUrl();
       }
     );
   }
