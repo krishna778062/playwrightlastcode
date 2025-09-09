@@ -258,7 +258,7 @@ export class AddContentModalComponent extends BaseComponent {
     switch (contentOption) {
       case ContentType.PAGE:
         if (siteId) {
-          contentCreationPage = new PageCreationPage(this.page, siteId, this.siteManagementHelper);
+          contentCreationPage = new PageCreationPage(this.page, siteId);
         } else {
           throw new Error('Site id not found in the url');
         }
