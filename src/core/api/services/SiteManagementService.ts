@@ -3,7 +3,14 @@ import { APIRequestContext, expect, test } from '@playwright/test';
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { ISiteManagementOperations } from '@core/api/interfaces/ISiteManagemenOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-import { SiteCreationPayload } from '@core/types/siteManagement.types';
+import {
+  SiteCreationPayload,
+  SiteListOptions,
+  SiteListResponse,
+  SiteMembershipAction,
+  SiteMembershipResponse,
+  SitePermission,
+} from '@core/types/siteManagement.types';
 
 const defaultSitePayload: SiteCreationPayload = {
   access: 'public',
@@ -69,6 +76,8 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
         category: {
           ...defaultSitePayload.category,
           ...overrides.category,
+          categoryId: categoryObj.categoryId,
+          name: categoryObj.name,
         },
       };
 
@@ -190,5 +199,122 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       });
     });
     return { fileId: file.fileId, authorName: file.owner.name };
+  }
+
+  /**
+   * Gets a list of sites with optional filtering
+   * @param options - The options for filtering sites
+   * @param options.size - The number of sites to return (default: 100)
+   * @param options.canManage - Filter sites that can be managed (default: true)
+   * @param options.filter - Filter by site status (default: 'active')
+   * @returns Promise resolving to the sites list response
+   */
+  async getListOfSites(options: SiteListOptions = {}): Promise<SiteListResponse> {
+    return await test.step('Getting list of sites via API', async () => {
+      const payload = {
+        size: options.size || 1000,
+        canManage: options.canManage !== undefined ? options.canManage : true,
+        filter: options.filter || 'active',
+      };
+
+      console.log('Sites list payload:', payload);
+
+      const response = await this.post(API_ENDPOINTS.site.listOfSites, {
+        data: payload,
+      });
+
+      const json = await response.json();
+
+      if (json.status !== 'success') {
+        throw new Error(`Failed to get sites list. Response: ${JSON.stringify(json)}`);
+      }
+
+      return json;
+    });
+  }
+
+  /**
+   * Makes a user a site content manager
+   * @param siteId - The ID of the site
+   * @param userId - The ID of the user to make content manager
+   * @returns Promise with the response
+   */
+  async makeUserSiteMembership(
+    siteId: string,
+    userId: string,
+    permission: SitePermission = SitePermission.MEMBER,
+    action: SiteMembershipAction = SiteMembershipAction.ADD
+  ): Promise<SiteMembershipResponse> {
+    return await test.step(`Making user ${userId} a content manager for site ${siteId}`, async () => {
+      const payload = {
+        userId: userId,
+        action: action,
+        permission: permission,
+      };
+
+      console.log('Site membership payload:', JSON.stringify(payload, null, 2));
+
+      const response = await this.post(API_ENDPOINTS.site.manageMembers(siteId), {
+        data: payload,
+      });
+
+      const json = await response.json();
+      console.log('Site membership response:', JSON.stringify(json, null, 2));
+
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to make user content manager. Status: ${response.status()}, Response: ${JSON.stringify(json)}`
+        );
+      }
+
+      return json;
+    });
+  }
+
+  /**
+   * Deletes a site category by name using the API
+   * @param categoryName - The name of the category to delete
+   */
+  async deleteCategory(categoryName: string): Promise<void> {
+    return await test.step(`Deleting site category using API: ${categoryName}`, async () => {
+      try {
+        // First, get the category ID by name
+        const categoryInfo = await this.getCategoryId(categoryName);
+
+        // Delete the category using the category ID
+        const response = await this.delete(`${API_ENDPOINTS.site.category}/${categoryInfo.categoryId}`);
+
+        if (response.status() === 200) {
+          console.log(`Category "${categoryName}" deleted successfully via API`);
+        } else {
+          console.log(`Category deletion response status: ${response.status()}`);
+        }
+      } catch (error) {
+        console.log(`Failed to delete category "${categoryName}" via API: ${error}`);
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * Gets the membership list for a site
+   * @param siteId - The site ID
+   * @param options - Optional parameters for the membership list request
+   * @returns Promise containing the membership list response
+   */
+  async getSiteMembershipList(siteId: string, options?: { size?: number; type?: string }): Promise<any> {
+    return await test.step(`Getting membership list for site ${siteId}`, async () => {
+      const defaultOptions = {
+        size: 16,
+        type: 'members',
+        ...options,
+      };
+
+      const response = await this.post(API_ENDPOINTS.site.membershipList(siteId), {
+        data: defaultOptions,
+      });
+
+      return await this.parseResponse(response);
+    });
   }
 }

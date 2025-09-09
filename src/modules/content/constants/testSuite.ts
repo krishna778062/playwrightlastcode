@@ -1,7 +1,14 @@
 export enum ContentTestSuite {
-  PAGE_CREATION = '@page-creation',
-  COVER_IMAGE = '@cover-image',
-  FEED = '@feed',
+  PAGE_APP_MANAGER = '@page-app-manager',
+  PAGE_STANDARD_USER = '@page-standard-user',
+  ALBUM_APP_MANAGER = '@album-app-manager',
+  ALBUM_STANDARD_USER = '@album-standard-user',
+  EVENT_APP_MANAGER = '@event-app-manager',
+  EVENT_STANDARD_USER = '@event-standard-user',
+  FEED_APP_MANAGER = '@feed-app-manager',
+  FEED_MULTI_USER = '@feed-multi-user',
+  FEED_STANDARD_USER = '@feed-standard-user',
+  SITE_APP_MANAGER = '@site-app-manager',
   ATTACHMENTS = '@attachments',
   FEATURED_SITES = '@featured-sites',
 }

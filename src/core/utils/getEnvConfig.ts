@@ -2,18 +2,21 @@ export type EnvConfig = {
   tenantOrgId: string;
   appManagerEmail: string;
   appManagerPassword: string;
-  userManagerEmail: string;
+  userManagerEmail?: string;
   frontendBaseUrl: string;
   apiBaseUrl: string;
   newUxEnabled: boolean;
   //optional env variables (might be required for few modules)
   endUserEmail?: string;
   endUserPassword?: string;
+  siteManagerEmail?: string;
+  siteManagerPassword?: string;
 };
 
 export const getEnvConfig = (): EnvConfig => ({
   tenantOrgId: getEnvVar('ORG_ID', true)!,
   appManagerEmail: getEnvVar('APP_MANAGER_USERNAME', true)!,
+  userManagerEmail: getEnvVar('USER_MANAGER_USERNAME', false)!,
   appManagerPassword: getEnvVar('APP_MANAGER_PASSWORD', true)!,
   frontendBaseUrl: getEnvVar('FRONTEND_BASE_URL', true)!,
   apiBaseUrl: getEnvVar('API_BASE_URL', true)!,
@@ -22,7 +25,8 @@ export const getEnvConfig = (): EnvConfig => ({
   //optional env variables (might be required for few modules)
   endUserEmail: getEnvVar('END_USER_USERNAME', false)!,
   endUserPassword: getEnvVar('END_USER_PASSWORD', false)!,
-  userManagerEmail: getEnvVar('USER_MANAGER_USERNAME', false)!,
+  siteManagerEmail: getEnvVar('SITE_MANAGER_USERNAME', false)!,
+  siteManagerPassword: getEnvVar('SITE_MANAGER_PASSWORD', false)!,
 });
 
 /**

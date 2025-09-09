@@ -6,6 +6,7 @@ import { CategoryModalComponent } from '@platforms/components/categoryModal';
 import { CsvAudienceModule } from '@platforms/components/csvAudienceModule';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 
 // Page Object Model for the Audience management page with category creation and validation functionality
 export class AudiencePage extends BasePage {
@@ -117,6 +118,30 @@ export class AudiencePage extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.addCategoryModal.closeButton, {
       assertionMessage: 'Verify Close button is visible',
       timeout: TIMEOUTS.MEDIUM,
+    });
+  }
+
+  // Click 'Add description' button and verify description field and delete button become visible (works for both Create and Edit modals)
+  async clickAddDescriptionAndVerify(isEditModal: boolean = false): Promise<void> {
+    const modalType = isEditModal ? 'Edit' : 'Create';
+    await test.step(`Click Add description and verify in ${modalType} category modal`, async () => {
+      if (isEditModal) {
+        await this.editCategoryModal.clickAddDescriptionAndVerify();
+      } else {
+        await this.addCategoryModal.clickAddDescriptionAndVerify();
+      }
+    });
+  }
+
+  // Verify name and description fields accept alphanumeric and special characters (works for both Create and Edit modals)
+  async verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(isEditModal: boolean = false): Promise<void> {
+    const modalType = isEditModal ? 'Edit' : 'Create';
+    await test.step(`Verify ${modalType} category fields accept letters, numbers, and special characters`, async () => {
+      if (isEditModal) {
+        await this.editCategoryModal.verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial();
+      } else {
+        await this.addCategoryModal.verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial();
+      }
     });
   }
 
@@ -329,10 +354,130 @@ export class AudiencePage extends BasePage {
     });
   }
 
+  // Save an edit and verify success toast and list reflects the new name
+  async updateCategoryName(oldName: string, newName: string): Promise<void> {
+    await test.step(`Update category name from "${oldName}" to "${newName}" and verify`, async () => {
+      await this.openEditCategoryModal(oldName);
+      await this.editCategoryModal.fillInElement(this.editCategoryModal.categoryNameInput, '');
+      await this.editCategoryModal.fillCategoryName(newName);
+      await this.editCategoryModal.submitCategory();
+      await this.verifyToastMessageForCategoryOperation('updated');
+    });
+  }
+
+  // Add description for a category
+  async addDescriptionForAudienceCategory(categoryName: string, description: string): Promise<void> {
+    await test.step(`Add description for "${categoryName}" and verify in list`, async () => {
+      await this.openEditCategoryModal(categoryName);
+
+      // Ensure description field is present, then add description
+      await this.editCategoryModal.clickAddDescriptionAndVerify();
+      await this.editCategoryModal.addCategoryDescription(description);
+
+      // Save
+      await this.editCategoryModal.submitCategory();
+      await this.verifyToastMessageForCategoryOperation('updated');
+    });
+  }
+
+  // Update an existing description with a new one
+  async updateDescriptionForAudienceCategory(categoryName: string, newDescription: string): Promise<void> {
+    await test.step(`Update description for "${categoryName}" and verify new is visible and old is absent`, async () => {
+      await this.openEditCategoryModal(categoryName);
+
+      // Step 1: Clear old description
+      await this.editCategoryModal.fillInElement(this.editCategoryModal.descriptionInput, '');
+      // Step 2: Fill with new description
+      await this.editCategoryModal.addCategoryDescription(newDescription);
+      // Step 3: Save it
+      await this.editCategoryModal.submitCategory();
+      // Step 4: Verify update toast message
+      await this.verifyToastMessageForCategoryOperation('updated');
+    });
+  }
+
+  // Remove description for a category
+  async removeDescriptionForAudienceCategory(categoryName: string, removedDescriptionText: string): Promise<void> {
+    await test.step(`Remove description for "${categoryName}" and verify absence in list`, async () => {
+      await this.openEditCategoryModal(categoryName);
+
+      // Remove description in Edit modal
+      await this.editCategoryModal.removeDescriptionAndVerifyAbsence();
+
+      // Save changes
+      await this.editCategoryModal.submitCategory();
+      await this.verifyToastMessageForCategoryOperation('updated');
+    });
+  }
+
+  // Verify specific category name is present in the categories list
+  async verifyAudienceCategoryVisibilityInList(categoryName: string): Promise<void> {
+    await test.step(`Verify category "${categoryName}" is present in the list`, async () => {
+      const categoryElement = this.page.getByText(categoryName, { exact: true });
+      await expect(categoryElement, `Category "${categoryName}" should be visible in the list`).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
   // ========== CSV UPLOAD METHODS ==========
 
   // Open CSV upload modal for creating audience with CSV
   async openCreateAudienceWithCsvModal(): Promise<void> {
     await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create audience with CSV');
+  }
+
+  // ========== CONTEXTUAL LOCATOR METHODS ==========
+
+  /**
+   * Get the category container element by finding the category name and returning its parent container
+   * @param categoryName - The name of the category to find
+   * @returns Locator for the category container
+   */
+
+  public getAudienceCategoryByCategoryName(categoryName: string): Locator {
+    return this.page.locator("[class*='Grid-module-gridRow_']", {
+      has: this.page.locator('[class*=NameWithDescription-module-nameInnerContainer]', {
+        hasText: categoryName,
+      }),
+    });
+  }
+
+  /**
+   * Verify if a category has a specific description using contextual locator approach
+   * @param options - Configuration options for description verification
+   * @param options.categoryName - The name of the category
+   * @param options.description - The description text to verify
+   * @param options.shouldBeVisible - Whether the description should be visible or not (default: true)
+   */
+  async verifyTheVisibilityOfCategoryDescription(options: {
+    categoryName: string;
+    description: string;
+    shouldBeVisible?: boolean;
+  }): Promise<void> {
+    const { categoryName, description, shouldBeVisible = true } = options;
+
+    await test.step(`Verify category "${categoryName}" ${shouldBeVisible ? 'has' : 'does not have'} description: "${description}"`, async () => {
+      // First, get the category container
+      const audienceCategoryLocator = this.getAudienceCategoryByCategoryName(categoryName);
+
+      // Then find the description within that container
+      const descriptionLocator = audienceCategoryLocator.locator(
+        "[class*='NameWithDescription-module-descriptionContainer']",
+        { hasText: description }
+      );
+
+      if (shouldBeVisible) {
+        await this.verifier.verifyTheElementIsVisible(descriptionLocator, {
+          assertionMessage: `Verify description "${description}" is visible for category "${categoryName}"`,
+          timeout: TIMEOUTS.MEDIUM,
+        });
+      } else {
+        await this.verifier.verifyTheElementIsNotVisible(descriptionLocator, {
+          assertionMessage: `Verify description "${description}" is not visible for category "${categoryName}"`,
+          timeout: TIMEOUTS.SHORT,
+        });
+      }
+    });
   }
 }

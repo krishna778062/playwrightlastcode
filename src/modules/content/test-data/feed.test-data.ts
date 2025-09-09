@@ -15,4 +15,10 @@ export const FEED_TEST_DATA = {
     UPLOAD: 60_000,
     NAVIGATION: 15_000,
   },
+
+  DEFAULT_FEED_CONTENT: {
+    fileName: '300x300 RATIO_Text.png',
+    fileSize: 12125,
+    mimeType: 'image/png',
+  },
 } as const;

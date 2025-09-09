@@ -1,48 +1,41 @@
 import { faker } from '@faker-js/faker';
 
+import { ContentTestSuite } from '@content/constants/testSuite';
+import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { FeedPage } from '@content/pages/feedPage';
+import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
-import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { FeedPage } from '@/src/modules/content/pages/feedPage';
-import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
-
 test.describe(
   '@FeedPost',
   {
-    tag: [ContentTestSuite.FEED, ContentTestSuite.ATTACHMENTS],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.ATTACHMENTS],
   },
   () => {
     let feedPage: FeedPage;
     let createdPostText: string;
     let createdPostId: string = '';
 
-    test.beforeEach(async ({ page, loginAs }) => {
-      // Login as end user using loginAs
-      await loginAs('endUser');
+    test.beforeEach(async ({ standardUserHomePage }) => {
+      await standardUserHomePage.actions.clickOnGlobalFeed();
 
-      // Create home page instance and navigate to feed
-      const homePage = new NewUxHomePage(page);
-      await homePage.verifyThePageIsLoaded();
-      await homePage.actions.clickOnGlobalFeed();
-
-      feedPage = new FeedPage(page);
+      feedPage = new FeedPage(standardUserHomePage.page);
       await feedPage.verifyThePageIsLoaded();
     });
 
-    test.afterEach(async ({ feedManagerService }) => {
+    test.afterEach(async ({ feedManagementHelper }) => {
       // Cleanup: Delete post using API if test failed and post still exists
-      if (createdPostId && feedManagerService) {
+      if (createdPostId && feedManagementHelper) {
         try {
-          await feedManagerService.deletePost(createdPostId);
+          await feedManagementHelper.deleteFeed(createdPostId);
         } catch (error) {
-          console.log('Failed to cleanup post via API:', error);
+          console.log('Failed to cleanup feed via API:', error);
         }
       } else {
-        console.log('No feed was published or post already deleted, hence skipping the deletion');
+        console.log('No feed was published or feed already deleted, hence skipping the deletion');
       }
     });
 
@@ -86,7 +79,6 @@ test.describe(
         // Step 3: Edit the post
         await feedPage.actions.editPost(postResult.postText, updatedPostText);
         await feedPage.assertions.waitForPostToBeVisible(updatedPostText);
-        createdPostText = updatedPostText;
 
         // Step 4: Delete the post
         await feedPage.actions.deletePost(updatedPostText);

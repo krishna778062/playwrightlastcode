@@ -1,9 +1,9 @@
 export enum ContentSuiteTags {
-  CONTENT_MANAGEMENT = '@content-management',
   PAGE_CREATION = '@page-creation',
-  CONTENT_UPLOAD = '@content-upload',
-  SITE_DASHBOARD = '@site-dashboard',
+  ALBUM_CREATION = '@album-creation',
   SITE_CREATION = '@site-creation',
+  SITE_CATEGORIES = '@site-categories',
+  EVENT_CREATION = '@event-creation',
 }
 
 export enum ContentFeatureTags {

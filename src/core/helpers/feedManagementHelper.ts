@@ -15,36 +15,81 @@ export class FeedManagementHelper {
   constructor(private appManagerApiClient: AppManagerApiClient) {}
 
   /**
-   * Creates a new feed.
+   * Creates a new feed with optional attachment.
    * @returns An object containing details of the created feed.
    */
-  async createFeed() {
-    return await test.step('Creating a new feed', async () => {
-      const feedName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Feed`;
+  async createFeed(
+    params:
+      | {
+          scope: string;
+          siteId?: string;
+          text?: string;
+          withAttachment?: false;
+          fileName?: undefined;
+          fileSize?: undefined;
+          mimeType?: undefined;
+          filePath?: undefined;
+          options?: { waitForSearchIndex?: boolean };
+        }
+      | {
+          scope: string;
+          siteId?: string;
+          text?: string;
+          withAttachment: true;
+          fileName: string;
+          fileSize: number;
+          mimeType: string;
+          filePath: string; // Required when withAttachment is true
+          options?: { waitForSearchIndex?: boolean };
+        }
+  ) {
+    const stepMessage = params.withAttachment ? 'Creating a new feed with attachments' : 'Creating a new feed';
+
+    return await test.step(stepMessage, async () => {
+      const feedName = params.text || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Feed`;
       const { textJson, textHtml } = buildFeedTextJsonAndTextHtml(feedName);
 
-      const response = await this.appManagerApiClient.getFeedManagementService().createFeed({
-        textJson,
-        textHtml,
-      });
+      let response;
+      if (params.withAttachment) {
+        response = await this.appManagerApiClient
+          .getFeedManagementService()
+          .createFeedWithAttachment(params.fileName, params.fileSize, params.mimeType, params.filePath, {
+            textJson,
+            textHtml,
+            scope: params.scope,
+            siteId: params.siteId || null,
+            ignoreToxic: false,
+            type: 'post',
+            variant: 'standard',
+          });
+      } else {
+        response = await this.appManagerApiClient.getFeedManagementService().createFeed({
+          textJson,
+          textHtml,
+          scope: params.scope,
+          siteId: params.siteId || null,
+          listOfAttachedFiles: [],
+          ignoreToxic: false,
+          type: 'post',
+          variant: 'standard',
+        });
+      }
+
       const feedId = response.result.feedId;
-      const authorName = response.result.authoredBy?.name;
 
-      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
-        apiClient: this.appManagerApiClient,
-        searchTerm: feedName,
-        objectType: 'feed',
-        fieldToCheck: 'excerpt',
-      });
+      if (params.options?.waitForSearchIndex !== false) {
+        await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+          apiClient: this.appManagerApiClient,
+          searchTerm: feedName,
+          objectType: 'feed',
+          fieldToCheck: 'excerpt',
+        });
+      }
 
-      const createdFeed = {
-        feedId,
-        feedName,
-        authorName,
-      };
       this.feeds.push({ feedId });
 
-      return createdFeed;
+      // Return the API response with feedName added for convenience
+      return { ...response, feedName };
     });
   }
 
@@ -59,5 +104,9 @@ export class FeedManagementHelper {
         }
       }
     });
+  }
+
+  async deleteFeed(feedId: string) {
+    await this.appManagerApiClient.getFeedManagementService().deleteFeed(feedId);
   }
 }
