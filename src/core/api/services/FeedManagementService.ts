@@ -1,12 +1,11 @@
 import { faker } from '@faker-js/faker';
-import { APIRequestContext, request, test } from '@playwright/test';
+import { APIRequestContext, test } from '@playwright/test';
 import * as fs from 'fs';
 
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { IFeedManagementOperations } from '@core/api/interfaces/IFeedManagementOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { CreateFeedPostPayload, FeedPostResponse, UpdateFeedPostPayload } from '@core/types/feed.type';
-import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { FileUtil } from '../../utils/fileUtil';
 
@@ -301,38 +300,6 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
   }
 
   /**
-   * @description Makes a GET request to the location header URL (authorization endpoint)
-   * @param {string} locationHeader The location header URL from previous API response
-   * @returns {Promise<any>}
-   * @memberof FeedManagementService
-   */
-  async getLocation(locationHeader: string): Promise<any> {
-    return await test.step(`Making GET request to location header URL: ${locationHeader}`, async () => {
-      if (!locationHeader) {
-        throw new Error('Location header is required but not provided');
-      }
-
-      // Extract just the path and query parameters from the location header
-      console.log('--------------------------------');
-      console.log('Location complete URL:', locationHeader);
-      console.log('--------------------------------');
-
-      // Make a PUT request to the signed URL with the file data
-      const response = await this.context.fetch(locationHeader, {
-        method: 'GET',
-      });
-
-      const responseText = await response.text();
-      console.log('Location response body:', responseText);
-
-      // Validate status code 200
-      if (!response.ok() || response.status() !== 200) {
-        throw new Error(`getLocation failed. Status: ${response.status()}, URL: ${locationHeader}`);
-      }
-    });
-  }
-
-  /**
    * Deletes a feed post
    * @param siteId - The site ID where the post exists
    * @param postId - The ID of the post to delete
@@ -374,9 +341,6 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       const fileSize = 12125;
       const mimeType = 'image/png';
 
-      if (BaseApiClient.globalLocationHeader) {
-        await this.getLocation(BaseApiClient.globalLocationHeader);
-      }
       // Upload image to get fileId
       const uploadResponse = await this.uploadImage(fileName, fileSize, mimeType);
       const fileId = uploadResponse.result.file_id;
