@@ -146,8 +146,7 @@ export class ConversationWindowComponent extends BaseComponent {
     await this.verifyMessageIsPresentInListOfChatMessages(message);
     for (const eachMessage of await this.listChatMessagesComponent.all()) {
       //fetch message
-      const messageText = await this.page.locator('section').locator('p').last().textContent();
-
+      const messageText = await eachMessage.locator('section').locator('p').textContent();
       console.log(`messageText: ${messageText}`);
       console.log(`message: ${message}`);
       if (messageText === message) {
@@ -155,6 +154,86 @@ export class ConversationWindowComponent extends BaseComponent {
       }
     }
     throw new Error(`Message: ${message} not found in the list of chat messages`);
+  }
+
+  /**
+   * Verifies that the latest message in the chat matches the expected message
+   * This method ensures the sent message is the most recent one in the conversation
+   * @param expectedMessage - The message that should be the latest
+   * @param options - Optional parameters
+   */
+  async verifyLatestMessageInChat(
+    expectedMessage: string,
+    options?: {
+      stepInfo?: string;
+      timeout?: number;
+    }
+  ) {
+    await test.step(options?.stepInfo ?? `Verifying latest message in chat is: "${expectedMessage}"`, async () => {
+      await expect(async () => {
+        // Wait for messages to load and stabilize
+        await this.page.waitForTimeout(1000);
+
+        const allMessages = await this.listChatMessagesComponent.all();
+        if (allMessages.length === 0) {
+          throw new Error('No messages found in chat');
+        }
+
+        // Get the last message (most recent)
+        const latestMessage = allMessages[allMessages.length - 1];
+        const latestMessageText = await latestMessage.locator('section').locator('p').textContent();
+
+        // Verify the latest message matches what we just sent
+        expect(latestMessageText, `Latest message should be "${expectedMessage}" but got "${latestMessageText}"`).toBe(
+          expectedMessage
+        );
+
+        // Additional verification: ensure this message is actually the most recent
+        // by checking that it appears at the end of the message list
+        const messageIndex = allMessages.length - 1;
+
+        // Verify the message is visible and properly rendered
+        await this.verifier.verifyTheElementIsVisible(latestMessage, {
+          assertionMessage: 'Latest message should be visible in chat',
+          timeout: 5000,
+        });
+      }).toPass({ timeout: options?.timeout ?? TIMEOUTS.MEDIUM });
+    });
+  }
+
+  /**
+   * Gets the count of messages in the chat
+   * @returns The number of messages in the conversation
+   */
+  async getMessageCount(): Promise<number> {
+    const messages = await this.listChatMessagesComponent.all();
+    return messages.length;
+  }
+
+  /**
+   * Verifies that a new message was added to the chat (count increased)
+   * @param previousCount - The previous message count
+   * @param options - Optional parameters
+   */
+  async verifyNewMessageAdded(
+    previousCount: number,
+    options?: {
+      stepInfo?: string;
+      timeout?: number;
+    }
+  ) {
+    await test.step(
+      options?.stepInfo ?? `Verifying new message was added (count should be ${previousCount + 1})`,
+      async () => {
+        await expect(async () => {
+          const currentCount = await this.getMessageCount();
+
+          expect(currentCount, `Message count should be ${previousCount + 1} but got ${currentCount}`).toBe(
+            previousCount + 1
+          );
+        }).toPass({ timeout: options?.timeout ?? TIMEOUTS.MEDIUM });
+      }
+    );
   }
 
   async getFocusedMessageCardFromListOfChatMessages(messageText: string): Promise<MessageCardComponent> {

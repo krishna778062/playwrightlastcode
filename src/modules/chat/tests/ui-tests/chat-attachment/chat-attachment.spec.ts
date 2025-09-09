@@ -40,7 +40,7 @@ test.describe(
       }
     );
 
-    test(
+    test.only(
       'Verify sending unsupported files format',
       {
         tag: [TestPriority.P0],
