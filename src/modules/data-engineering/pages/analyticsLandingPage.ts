@@ -8,9 +8,9 @@ export class AnalyticsLandingPage {
   readonly campaignAnalyticsButton: Locator;
 
   constructor(page: Page) {
-    this.appAnalyticsButton = page.getByRole('menuitem', { name: 'App' });
-    this.recognitionAnalyticsButton = page.getByRole('menuitem', { name: 'Recognition' });
-    this.campaignAnalyticsButton = page.getByRole('menuitem', { name: 'Campaigns' });
+    this.appAnalyticsButton = page.getByRole('button', { name: 'App', exact: true });
+    this.recognitionAnalyticsButton = page.getByRole('button', { name: 'Recognition' });
+    this.campaignAnalyticsButton = page.getByRole('button', { name: 'Campaigns' });
   }
 
   async clickOnAppAnalyticsButton(options?: TestOptions) {
