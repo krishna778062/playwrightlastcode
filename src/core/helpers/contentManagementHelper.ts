@@ -104,16 +104,17 @@ export class ContentManagementHelper {
    * Creates a new event in an existing site
    * @param siteId - The ID of the existing site
    * @param contentInfo - The content type information
-   * @param options - Optional configuration object with eventName and contentDescription
+   * @param options - Optional configuration object with eventName, contentDescription, and location
    */
   async createEvent(params: {
     siteId: string;
     contentInfo: { contentType: string };
-    options?: { eventName?: string; contentDescription?: string };
+    options?: { eventName?: string; contentDescription?: string; location?: string };
   }) {
     const { siteId, contentInfo, options = {} } = params;
     const finalEventName = options.eventName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Event`;
     const finalContentDescription = options.contentDescription || 'AutomateEventDescription';
+    const finalLocation = options.location || 'Gurgaon';
     const { body, bodyHtml } = buildBodyAndBodyHtml(finalContentDescription, 'event');
     const eventResult = await this.appManagerApiClient.getContentManagementService().addNewEventContent(siteId, {
       title: finalEventName,
@@ -123,7 +124,7 @@ export class ContentManagementHelper {
       startsAt: getTodayDateIsoString(),
       endsAt: getTomorrowDateIsoString(),
       timezoneIso: 'Asia/Kolkata',
-      location: 'Gurgaon',
+      location: finalLocation,
     });
     await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
       apiClient: this.appManagerApiClient,
@@ -147,17 +148,16 @@ export class ContentManagementHelper {
    * @param contentId - The content ID to delete
    */
   async deleteContent(siteId: string, contentId: string): Promise<void> {
-    if (!contentId || !siteId) {
+    if (contentId && siteId) {
+      try {
+        await this.appManagerApiClient.getContentManagementService().deleteContent(siteId, contentId);
+        console.log(`Content successfully deleted: ${contentId} from site: ${siteId}`);
+      } catch (error) {
+        console.error(`Failed to delete content ${contentId} from site ${siteId}:`, error);
+        throw error;
+      }
+    } else {
       console.log('No content ID or site ID provided for deletion');
-      return;
-    }
-
-    try {
-      await this.appManagerApiClient.getContentManagementService().deleteContent(siteId, contentId);
-      console.log(`Content successfully deleted: ${contentId} from site: ${siteId}`);
-    } catch (error) {
-      console.error(`Failed to delete content ${contentId} from site ${siteId}:`, error);
-      throw error;
     }
   }
 

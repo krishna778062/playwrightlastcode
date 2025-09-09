@@ -7,8 +7,6 @@ import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelpe
 
 interface CreatedFeed {
   feedId: string;
-  feedName: string;
-  authorName: string;
 }
 
 export class FeedManagementHelper {
@@ -47,7 +45,7 @@ export class FeedManagementHelper {
         });
       }
 
-      this.feeds.push({ feedId, feedName, authorName });
+      this.feeds.push({ feedId });
 
       // Return both the specific properties and the full API response
       return {
