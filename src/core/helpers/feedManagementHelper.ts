@@ -15,30 +15,57 @@ export class FeedManagementHelper {
   constructor(private appManagerApiClient: AppManagerApiClient) {}
 
   /**
-   * Creates a new feed.
+   * Creates a new feed with optional attachment.
    * @returns An object containing details of the created feed.
    */
   async createFeed(params: {
     scope: string;
     siteId?: string;
     text?: string;
+    withAttachment?: boolean;
+    fileName?: string;
+    fileSize?: number;
+    mimeType?: string;
     options?: { waitForSearchIndex?: boolean };
   }) {
-    const { scope, siteId, text, options } = params;
-    return await test.step('Creating a new feed', async () => {
+    const { scope, siteId, text, withAttachment = false, fileName, fileSize, mimeType, options } = params;
+    const stepMessage = withAttachment ? 'Creating a new feed with attachments' : 'Creating a new feed';
+
+    return await test.step(stepMessage, async () => {
       const feedName = text || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Feed`;
       const { textJson, textHtml } = buildFeedTextJsonAndTextHtml(feedName);
 
-      const response = await this.appManagerApiClient.getFeedManagementService().createFeed({
-        textJson,
-        textHtml,
-        scope: scope,
-        siteId: siteId || null,
-        listOfAttachedFiles: [],
-        ignoreToxic: false,
-        type: 'post',
-        variant: 'standard',
-      });
+      let response;
+      if (withAttachment) {
+        // Use default values if not provided
+        const defaultFileName = fileName || '300x300 RATIO_Text.png';
+        const defaultFileSize = fileSize || 12125;
+        const defaultMimeType = mimeType || 'image/png';
+
+        response = await this.appManagerApiClient
+          .getFeedManagementService()
+          .createFeedWithAttachment(defaultFileName, defaultFileSize, defaultMimeType, {
+            textJson,
+            textHtml,
+            scope: scope,
+            siteId: siteId || null,
+            ignoreToxic: false,
+            type: 'post',
+            variant: 'standard',
+          });
+      } else {
+        response = await this.appManagerApiClient.getFeedManagementService().createFeed({
+          textJson,
+          textHtml,
+          scope: scope,
+          siteId: siteId || null,
+          listOfAttachedFiles: [],
+          ignoreToxic: false,
+          type: 'post',
+          variant: 'standard',
+        });
+      }
+
       const feedId = response.result.feedId;
 
       if (options?.waitForSearchIndex !== false) {
@@ -72,29 +99,5 @@ export class FeedManagementHelper {
 
   async deleteFeed(feedId: string) {
     await this.appManagerApiClient.getFeedManagementService().deleteFeed(feedId);
-  }
-
-  async createFeedWithAttachments(params: {
-    scope: string;
-    siteId?: string;
-    text?: string;
-    options?: { waitForSearchIndex?: boolean };
-  }) {
-    const { scope, siteId, text, options } = params;
-    return await test.step('Creating a new feed with attachments', async () => {
-      const feedName = text || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Feed`;
-      const { textJson, textHtml } = buildFeedTextJsonAndTextHtml(feedName);
-
-      const response = await this.appManagerApiClient.getFeedManagementService().createFeedWithAttachment({
-        textJson,
-        textHtml,
-        scope: scope,
-        siteId: siteId || null,
-        ignoreToxic: false,
-        type: 'post',
-        variant: 'standard',
-      });
-      return response;
-    });
   }
 }

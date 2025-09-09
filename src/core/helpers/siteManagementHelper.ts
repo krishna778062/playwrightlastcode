@@ -6,6 +6,7 @@ import {
   SiteMembershipResponse,
   SitePermission,
 } from '@/src/core/types/siteManagement.types';
+import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 interface Site {
@@ -46,7 +47,7 @@ export class SiteManagementHelper {
     // Get category if not provided
     let categoryObj = category;
     if (!categoryObj) {
-      categoryObj = await this.appManagerApiClient.getSiteManagementService().getCategoryId('General');
+      categoryObj = await this.appManagerApiClient.getSiteManagementService().getCategoryId(SITE_TEST_DATA[0].category);
     }
 
     const siteResult = await this.appManagerApiClient.getSiteManagementService().addNewSite({
@@ -97,6 +98,7 @@ export class SiteManagementHelper {
     waitForSearchIndex?: boolean;
   }) {
     const { siteName, category, overrides, waitForSearchIndex } = params;
+    console.log(`Creating public site: ${siteName}`);
     return await this._createSiteBaseMethod({
       siteName,
       category,
@@ -436,7 +438,7 @@ export class SiteManagementHelper {
    * @param params - Object containing siteId, userId, and role
    * @returns Promise<SiteMembershipResponse> - The membership response
    */
-  async ensureUserSiteMembershipWithRole(params: {
+  async updateUserSiteMembershipWithRole(params: {
     siteId: string;
     userId: string;
     role: SitePermission;

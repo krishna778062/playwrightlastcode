@@ -228,7 +228,6 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       if (!uploadUrl) {
         throw new Error('Upload URL is required but not provided');
       }
-      const fileName = CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName;
       const filePath = FileUtil.getFilePath(
         __dirname,
         '..',
@@ -246,7 +245,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       // Build headers for the request
       const headers = {
         'Content-Type': 'image/png',
-        'Content-Disposition': 'attachment; filename=300x300 RATIO_Text.png',
+        'Content-Disposition': `attachment; filename=${fileName}`,
         ...BaseApiClient.headers,
       };
 
@@ -254,23 +253,6 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       const headersString = Object.entries(headers)
         .map(([key, value]) => `--header '${key}: ${value}'`)
         .join(' ');
-
-      console.log('--------------------------------');
-      console.log('Curl equivalent for uploadToAttachmentURL:');
-      console.log(`curl --location --request PUT '${uploadUrl}' \\`);
-      console.log(`${headersString} \\`);
-      console.log(`--data-binary '@${filePath}'`);
-      console.log('--------------------------------');
-
-      // Log complete fetch request details
-      console.log('--------------------------------');
-      console.log('Complete fetch request details:');
-      console.log('URL:', uploadUrl);
-      console.log('Method: PUT');
-      console.log('Headers:', JSON.stringify(headers, null, 2));
-      console.log('Body size:', fileBuffer.length, 'bytes');
-      console.log('File path:', filePath);
-      console.log('--------------------------------');
 
       // Make a PUT request to the signed URL with the file data
       const response = await this.context.fetch(uploadUrl, {
@@ -334,12 +316,14 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
    * @returns {Promise<FeedPostResponse>}
    * @memberof FeedManagementService
    */
-  async createFeedWithAttachment(overrides: Partial<CreateFeedPostPayload> = {}): Promise<FeedPostResponse> {
+  async createFeedWithAttachment(
+    fileName: string,
+    fileSize: number,
+    mimeType: string,
+    overrides: Partial<CreateFeedPostPayload> = {}
+  ): Promise<FeedPostResponse> {
     return await test.step('Creating a feed with attachment via API post request', async () => {
       // Default image upload parameters
-      const fileName = '300x300 RATIO_Text.png';
-      const fileSize = 12125;
-      const mimeType = 'image/png';
 
       // Upload image to get fileId
       const uploadResponse = await this.uploadImage(fileName, fileSize, mimeType);
