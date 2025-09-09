@@ -186,7 +186,6 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
         alt_text: altText,
         mime_type: mimeType,
         file_id: fileId,
-        uploadContext: uploadContext,
         siteId: siteId,
       };
 

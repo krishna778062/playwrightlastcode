@@ -79,8 +79,7 @@ test.describe(
           // Setup navigation based on feed type
           if (testData.feedType === 'Home Feed') {
             await appManagerHomePage.actions.clickOnGlobalFeed();
-            await appManagerFeedPage.verifyThePageIsLoaded();
-          } else if (testData.feedType === 'Site Feed' || testData.feedType === 'Content Feed') {
+          } else if (testData.feedType === 'Site Feed') {
             siteDetails = await siteManagementHelper.createPublicSite({
               waitForSearchIndex: false,
             });
@@ -91,15 +90,22 @@ test.describe(
             );
             await siteDashboardPage.loadPage();
           } else if (testData.feedType === 'Content Feed') {
-            const pageDetails = await contentManagementHelper.createSiteAndPage({
+            siteDetails = await siteManagementHelper.createPublicSite({
+              waitForSearchIndex: false,
+            });
+            siteDashboardPage = new SiteDashboardPage(
+              appManagerHomePage.page,
+              siteDetails.siteId,
+              siteManagementHelper
+            );
+            const pageDetails = await contentManagementHelper.createPage({
               siteId: siteDetails.siteId,
               contentInfo: {
                 contentType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.content,
                 contentSubType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.contentType,
               },
               options: {
-                contentDescription: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.description,
-                accessType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.accessType,
+                contentDescription: testData.description,
               },
             });
             contentPreviewPage = new ContentPreviewPage(
