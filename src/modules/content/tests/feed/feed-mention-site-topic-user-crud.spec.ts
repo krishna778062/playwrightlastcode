@@ -106,6 +106,7 @@ test.describe(
               },
               options: {
                 contentDescription: testData.description,
+                waitForSearchIndex: false,
               },
             });
             contentPreviewPage = new ContentPreviewPage(
