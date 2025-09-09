@@ -376,6 +376,18 @@ export class CreateFeedPostComponent
       await this.clickOnElement(this.addtopicfromList(topicName));
     });
   }
+
+  /**
+   * Adds an embedded URL to the post
+   * @param embedUrl - The URL to embed
+   */
+  async addEmbedUrl(embedUrl?: string): Promise<void> {
+    if (embedUrl) {
+      await test.step(`Adding embedded URL: ${embedUrl}`, async () => {
+        await this.typeInElement(this.feedEditor, ` ${embedUrl}`);
+      });
+    }
+  }
   async createFeedPost(): Promise<Response> {
     return await test.step(`Creating feed post and wait for api response`, async () => {
       const postResponse = await this.performActionAndWaitForResponse(
@@ -403,9 +415,10 @@ export class CreateFeedPostComponent
     text: string;
     userName: string;
     topicName: string;
-    siteName: string;
+    siteName: string | string[];
+    embedUrl: string;
   }): Promise<FeedPostResult> {
-    const { text: title, userName, topicName, siteName } = params;
+    const { text: title, userName, topicName, siteName, embedUrl } = params;
     return await test.step(`Creating feed post with user mention "${userName}" and topic mention "${topicName}"`, async () => {
       // Open editor
       await this.clickShareThoughtsButton();
@@ -416,8 +429,10 @@ export class CreateFeedPostComponent
       await this.addTopicMention(topicName);
       await this.addTopicMention(topicName2);
       await this.addUserNameMention(userName);
-      await this.addSiteName(siteName);
-
+      for (const site of siteName) {
+        await this.addSiteName(site);
+      }
+      await this.addEmbedUrl(embedUrl);
       // Publish the page
       const postResponse = await this.createFeedPost();
 
@@ -426,7 +441,8 @@ export class CreateFeedPostComponent
 
       //fetch the page id from the response
       const postId = feedResponseBody.result.feedId;
-      const postText = `${title} #${topicName} #${topicName2} @${userName} @${siteName}`;
+      const siteNamesText = Array.isArray(siteName) ? siteName.map(site => `@${site}`).join(' ') : `@${siteName}`;
+      const postText = `${title} #${topicName} #${topicName2} @${userName} ${siteNamesText}`;
       console.log('postText :   ', postText);
 
       return {

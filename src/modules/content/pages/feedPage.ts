@@ -18,7 +18,8 @@ export interface IFeedActions {
     text: string;
     userName: string;
     topicName: string;
-    siteName: string;
+    siteName: string | string[];
+    embedUrl: string;
   }) => Promise<FeedPostResult>;
   editPostWithTopicAndUserName: (params: {
     currentText: string;
@@ -100,7 +101,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     text: string;
     userName: string;
     topicName: string;
-    siteName: string;
+    siteName: string | string[];
+    embedUrl: string;
   }): Promise<FeedPostResult> {
     return await this.createFeedPostComponent.createfeedWithMentionUserNameAndTopic(params);
   }

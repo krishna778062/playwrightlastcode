@@ -5,6 +5,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { SiteDashboardPage } from '../../pages/siteDashboardPage';
+
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
@@ -28,6 +30,7 @@ test.describe(
     let createdPostText: string;
     let createdPostId: string = '';
     let createdSite: any;
+    let siteDashboardPage: SiteDashboardPage;
 
     // Test data for data-driven testing
     const favoriteTestData = [
@@ -183,7 +186,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24125'],
       },
-      async ({ appManagerHomePage, appManagerApiClient, contentManagementHelper }) => {
+      async ({ appManagerHomePage, appManagerApiClient, contentManagementHelper, siteManagementHelper }) => {
         tagTest(test.info(), {
           description:
             'Verify user is able to Add Edit Delete Text Topic Mention user Mention Site Embedded URL on Home Feed',
@@ -201,14 +204,16 @@ test.describe(
         const fullName = `${endUser.first_name || ''} ${endUser.last_name || ''}`.trim();
         console.log('fullName', fullName);
 
-        const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
         const publicSite = await siteManagementHelper.getSiteByAccessType(SiteType.PUBLIC);
+        const privateSite = await siteManagementHelper.getSiteByAccessType(SiteType.PRIVATE);
 
         if (!publicSite) {
           throw new Error('No public site found in the list');
         }
 
         const publicSiteName = publicSite.name;
+        const privateSiteName = privateSite?.name || '';
+
         // Get list of topics
         const topicListResponse = await contentManagementHelper.getTopicList();
 
@@ -219,12 +224,106 @@ test.describe(
           topicListResponse.result.listOfItems[Math.floor(Math.random() * topicListResponse.result.listOfItems.length)];
 
         const initialPostText = `Automated Test Post ${faker.company.name()}`;
+        const embeedUrl = `https://www.youtube.com/watch?v=F_77M3ZZ1z8`;
 
         const postResult = await appManagerFeedPage.actions.createfeedWithMentionUserNameAndTopic({
           text: initialPostText,
           userName: fullName,
           topicName: randomTopic.name,
-          siteName: publicSiteName,
+          siteName: [publicSiteName, privateSiteName],
+          embedUrl: embeedUrl,
+        });
+
+        await appManagerFeedPage.assertions.validatePostText(postResult.postText);
+
+        const updatedPostText = `Updated Test Post ${faker.company.buzzPhrase()}`;
+        const siteManagerUser = await identityManagementHelper.getUserByEmail(users.siteManager.email);
+
+        if (!siteManagerUser) {
+          throw new Error('Failed to get user details');
+        }
+
+        const siteManagerFullName = `${siteManagerUser.first_name} ${siteManagerUser.last_name}`.trim();
+        console.log('siteManagerFullName:  ', siteManagerFullName);
+        // Step 3: Edit the post
+        await appManagerFeedPage.actions.editPostWithTopicAndUserName({
+          currentText: postResult.postText,
+          newText: updatedPostText,
+          topicName: randomTopic.name,
+          userName: siteManagerFullName,
+        });
+        await appManagerFeedPage.assertions.validatePostText(updatedPostText);
+
+        // Step 4: Delete the post
+        await appManagerFeedPage.actions.deletePost(updatedPostText);
+        createdPostId = '';
+      }
+    );
+
+    test(
+      'Verify user is able to Add Edit Delete Text Topic Mention user Mention Site Embedded URL on Site Feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39353'],
+      },
+      async ({ appManagerHomePage, appManagerApiClient, contentManagementHelper, siteManagementHelper }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify user is able to Add Edit Delete Text Topic Mention user Mention Site Embedded URL on Site Feed',
+          zephyrTestId: 'CONT-39353',
+          storyId: 'CONT-39353',
+        });
+
+        const category = await appManagerApiClient.getSiteManagementService().getCategoryId(SITE_TEST_DATA[0].category);
+        createdSite = await siteManagementHelper.createPublicSite({
+          category,
+          waitForSearchIndex: false,
+        });
+
+        // Store the site ID for page publishing
+        const siteIdToPublishPage = createdSite.siteId;
+        // Navigate from site dashboard to page creation
+        siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteIdToPublishPage);
+        console.log(`Created site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
+        //flow
+        await siteDashboardPage.loadPage();
+
+        const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
+        const endUser = await identityManagementHelper.getUserByEmail(users.endUser.email);
+
+        if (!endUser) {
+          throw new Error('Failed to get user details');
+        }
+
+        const fullName = `${endUser.first_name || ''} ${endUser.last_name || ''}`.trim();
+        console.log('fullName', fullName);
+        const publicSite = await siteManagementHelper.getSiteByAccessType(SiteType.PUBLIC);
+        const privateSite = await siteManagementHelper.getSiteByAccessType(SiteType.PRIVATE);
+
+        if (!publicSite) {
+          throw new Error('No public site found in the list');
+        }
+
+        const publicSiteName = publicSite.name;
+        const privateSiteName = privateSite?.name || '';
+
+        // Get list of topics
+        const topicListResponse = await contentManagementHelper.getTopicList();
+
+        console.log(`Found ${topicListResponse.result.listOfItems.length} topics`);
+
+        // Get random topic name from the response list
+        const randomTopic =
+          topicListResponse.result.listOfItems[Math.floor(Math.random() * topicListResponse.result.listOfItems.length)];
+
+        const initialPostText = `Automated Test Post ${faker.company.name()}`;
+        const embeedUrl = `https://www.youtube.com/watch?v=F_77M3ZZ1z8`;
+
+        const postResult = await appManagerFeedPage.actions.createfeedWithMentionUserNameAndTopic({
+          text: initialPostText,
+          userName: fullName,
+          topicName: randomTopic.name,
+          siteName: [publicSiteName, privateSiteName],
+          embedUrl: embeedUrl,
         });
 
         await appManagerFeedPage.assertions.validatePostText(postResult.postText);
