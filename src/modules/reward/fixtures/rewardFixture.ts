@@ -1,6 +1,6 @@
 import { Page, test } from '@playwright/test';
-import { ManageRewardsPage } from '@rewards/pages/manage-rewards-page';
-import { RewardOptionsPage } from '@rewards/pages/reward-options-page';
+import { ManageRewardsPage } from '@rewards/pages/manage-rewards/manage-rewards-page';
+import { RewardOptionsPage } from '@rewards/pages/manage-rewards/reward-options-page';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { LoginHelper } from '@core/helpers/loginHelper';

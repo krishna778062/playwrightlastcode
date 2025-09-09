@@ -9,7 +9,6 @@ export class FeatureSiteComponent extends BaseComponent {
     .locator("xpath=following-sibling::div/input[not(@type='hidden')]");
   readonly addButton = this.page.getByRole('button', { name: 'Add' });
   readonly doneButton = this.page.getByRole('button', { name: 'Done' });
-  readonly addUpdateFeaturedSiteButton = this.page.getByRole('button', { name: 'Add/update' });
   readonly getSiteFromDropdown = (siteName: string) => this.page.locator(`div[id*="listbox"] :text("${siteName}")`);
 
   constructor(page: Page) {
@@ -22,8 +21,6 @@ export class FeatureSiteComponent extends BaseComponent {
    */
   async searchFeaturedSite(siteName: string): Promise<void> {
     await test.step(`Search and add "${siteName}" to featured sites`, async () => {
-      await this.clickOnElement(this.addUpdateFeaturedSiteButton);
-
       // Click on "Select site" to open the search dropdown
       await this.clickOnElement(this.searchSitesInput);
 
