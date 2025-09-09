@@ -35,10 +35,12 @@ export interface ICommonHomePageActions {
 export interface IOldUxHomePageActions extends ICommonHomePageActions {
   clickOnCreateContentButtonOnTopNavBar: (
     contentType: ContentType,
+    siteManagementHelper: SiteManagementHelper,
     options?: { stepInfo?: string }
   ) => Promise<AddContentModalComponent>;
   openCreateContentPageForContentType: (
     contentType: ContentType,
+    siteManagementHelper: SiteManagementHelper,
     options?: { stepInfo?: string }
   ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
   openSiteCreationFormForNonAbac: (options?: { stepInfo?: string }) => Promise<ContentSiteCreationPage>;

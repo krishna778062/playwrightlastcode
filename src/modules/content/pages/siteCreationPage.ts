@@ -5,6 +5,7 @@ import { SiteDashboardPage } from '@content/pages/siteDashboardPage';
 import { BasePage } from '@core/pages/basePage';
 
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
+import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 
 interface SiteCreationResponse {
@@ -38,7 +39,10 @@ export interface SiteCreationOptions {
 }
 
 export interface ISiteCreationActions {
-  addSite(options: SiteCreationOptions): Promise<{
+  addSite(
+    options: SiteCreationOptions,
+    siteManagementHelper: SiteManagementHelper
+  ): Promise<{
     siteDashboard: SiteDashboardPage;
     siteId: string;
   }>;
@@ -95,7 +99,10 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
    * @param options - The options for creating the site
    * @returns Object containing site dashboard page, site name, and site ID
    */
-  async addSite(options: SiteCreationOptions): Promise<{
+  async addSite(
+    options: SiteCreationOptions,
+    siteManagementHelper: SiteManagementHelper
+  ): Promise<{
     siteDashboard: SiteDashboardPage;
     siteId: string;
   }> {
@@ -118,7 +125,7 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
 
       // Return site dashboard page with site details
       return {
-        siteDashboard: new SiteDashboardPage(this.page, siteId),
+        siteDashboard: new SiteDashboardPage(this.page, siteId, siteManagementHelper),
         siteId: siteId,
       };
     });

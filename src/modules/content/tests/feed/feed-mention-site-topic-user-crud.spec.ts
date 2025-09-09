@@ -18,7 +18,7 @@ import { SiteType } from '@/src/modules/content-abac/constants/siteType';
 test.describe(
   '@FeedCRUD - Feed Post Mention Site Topic User CRUD Operations',
   {
-    tag: [ContentTestSuite.FEED_APP_MANAGER],
+    tag: [ContentTestSuite.FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER],
   },
   () => {
     let appManagerFeedPage: FeedPage;
