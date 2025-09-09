@@ -259,7 +259,7 @@ test.describe(
           tagTest(test.info(), {
             zephyrTestId: ['PS-32482'],
           });
-          appManagerApiClient.getUserManagementService().registerUser(loginIdentifier2, {
+          await appManagerApiClient.getUserManagementService().registerUser(loginIdentifier2, {
             verificationQuestionField: 'department',
             verificationQuestionValue: 'Product',
             password: 'Simp@1234',
@@ -274,10 +274,12 @@ test.describe(
           const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(page);
           await featureOwnersPage.loadPage();
           await featureOwnersPage.verifyThePageIsLoaded();
-          appManagerApiClient
+          await appManagerApiClient
             .getUserManagementService()
             .updatePrimaryRole(loginIdentifier2, RolesId.END_USER, { abac: true });
-          appManagerApiClient.getUserManagementService().waitForUserRoleToSync(loginIdentifier2, RolesId.END_USER);
+          await appManagerApiClient
+            .getUserManagementService()
+            .waitForUserRoleToSync(loginIdentifier2, RolesId.END_USER);
           try {
             await featureOwnersPage.goToUrl(PAGE_ENDPOINTS.FEATURE_OWNERS);
             await featureOwnersPage.verifyAccessDeniedPageVisibility();
