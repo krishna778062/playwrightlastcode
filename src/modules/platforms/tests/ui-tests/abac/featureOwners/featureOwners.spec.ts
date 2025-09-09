@@ -228,7 +228,7 @@ test.describe(
       test(
         `Verify that App manager should be able to add a user without app manager or user manager role as Feature owner for ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`],
+          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`, `@this-one`],
         },
         async ({ appManagerPage }) => {
           tagTest(test.info(), {
@@ -253,7 +253,7 @@ test.describe(
       test(
         `Verify that when primary role of a user is changed from manage users page then the privileges should be lost or gained accordingly for ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`],
+          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`, `@this-one`],
         },
         async ({ browser, appManagerApiClient }) => {
           tagTest(test.info(), {
