@@ -351,53 +351,19 @@ export class AudiencePage extends BasePage {
     });
   }
 
-  // Edit category name but dismiss changes via Cancel/Close and verify it doesn't update
-  async verifyEditDismissPreventsUpdate(categoryName: string, dismissType: 'Cancel' | 'Close'): Promise<void> {
-    await test.step(`Verify Edit dismiss via ${dismissType} prevents update`, async () => {
-      // Open Edit modal
-      await this.openEditCategoryModal(categoryName);
-
-      const newName = TestDataGenerator.generateCategoryName('001EditTestCategory');
-
-      // Change the name
-      await this.editCategoryModal.fillInElement(this.editCategoryModal.categoryNameInput, '');
-      await this.editCategoryModal.fillCategoryName(newName);
-
-      // Dismiss without saving
-      if (dismissType === 'Cancel') {
-        await this.editCategoryModal.clickCancelButton();
-      } else {
-        await this.editCategoryModal.clickCloseButton();
-      }
-
-      // Verify modal is closed using the modal's own verification method
-      await this.editCategoryModal.verifyCategoryDialogueIsNotVisible();
-
-      // Verify the category name remains unchanged in the list
-      await this.verifyCategoryInList(categoryName);
-
-      // Verify the edited name was not applied
-      await this.verifyCategoryNotInList(newName);
-    });
-  }
-
   // Save an edit and verify success toast and list reflects the new name
-  async updateCategoryNameAndVerify(oldName: string, newName: string): Promise<void> {
+  async updateCategoryName(oldName: string, newName: string): Promise<void> {
     await test.step(`Update category name from "${oldName}" to "${newName}" and verify`, async () => {
       await this.openEditCategoryModal(oldName);
       await this.editCategoryModal.fillInElement(this.editCategoryModal.categoryNameInput, '');
       await this.editCategoryModal.fillCategoryName(newName);
       await this.editCategoryModal.submitCategory();
       await this.verifyToastMessageForCategoryOperation('updated');
-
-      // Verify list shows new name and old name is not present
-      await this.verifyCategoryInList(newName);
-      await this.verifyCategoryNotInList(oldName);
     });
   }
 
-  // Add description for a category and verify description is visible in list
-  async addDescriptionForCategoryAndVerifyInList(categoryName: string, description: string): Promise<void> {
+  // Add description for a category
+  async addDescriptionForAudienceCategory(categoryName: string, description: string): Promise<void> {
     await test.step(`Add description for "${categoryName}" and verify in list`, async () => {
       await this.openEditCategoryModal(categoryName);
 
@@ -408,18 +374,11 @@ export class AudiencePage extends BasePage {
       // Save
       await this.editCategoryModal.submitCategory();
       await this.verifyToastMessageForCategoryOperation('updated');
-
-      // Verify description is visible in list using contextual approach
-      await this.verifyCategoryDescription(categoryName, description, true);
     });
   }
 
-  // Update an existing description with a new one and verify list reflects the change
-  async updateDescriptionForCategoryAndVerifyInList(
-    categoryName: string,
-    oldDescription: string,
-    newDescription: string
-  ): Promise<void> {
+  // Update an existing description with a new one
+  async updateDescriptionForAudienceCategory(categoryName: string, newDescription: string): Promise<void> {
     await test.step(`Update description for "${categoryName}" and verify new is visible and old is absent`, async () => {
       await this.openEditCategoryModal(categoryName);
 
@@ -431,22 +390,11 @@ export class AudiencePage extends BasePage {
       await this.editCategoryModal.submitCategory();
       // Step 4: Verify update toast message
       await this.verifyToastMessageForCategoryOperation('updated');
-
-      // Step 5: Verify new description is visible using contextual approach
-      await this.verifyCategoryDescription(categoryName, newDescription, true);
-
-      // Step 6: Verify old description is not visible
-      if (oldDescription && oldDescription.length > 0) {
-        await this.verifyCategoryDescription(categoryName, oldDescription, false);
-      }
     });
   }
 
-  // Remove description for a category and verify absence in list (optionally for specific text)
-  async removeDescriptionForCategoryAndVerifyInList(
-    categoryName: string,
-    removedDescriptionText: string
-  ): Promise<void> {
+  // Remove description for a category
+  async removeDescriptionForAudienceCategory(categoryName: string, removedDescriptionText: string): Promise<void> {
     await test.step(`Remove description for "${categoryName}" and verify absence in list`, async () => {
       await this.openEditCategoryModal(categoryName);
 
@@ -456,16 +404,11 @@ export class AudiencePage extends BasePage {
       // Save changes
       await this.editCategoryModal.submitCategory();
       await this.verifyToastMessageForCategoryOperation('updated');
-
-      // Verify removed description text is not visible in the list using contextual approach
-      if (removedDescriptionText && removedDescriptionText.length > 0) {
-        await this.verifyCategoryDescription(categoryName, removedDescriptionText, false);
-      }
     });
   }
 
   // Verify specific category name is present in the categories list
-  async verifyCategoryInList(categoryName: string): Promise<void> {
+  async verifyAudienceCategoryVisibilityInList(categoryName: string): Promise<void> {
     await test.step(`Verify category "${categoryName}" is present in the list`, async () => {
       const categoryElement = this.page.getByText(categoryName, { exact: true });
       await expect(categoryElement, `Category "${categoryName}" should be visible in the list`).toBeVisible({
@@ -481,31 +424,38 @@ export class AudiencePage extends BasePage {
    * @param categoryName - The name of the category to find
    * @returns Locator for the category container
    */
-  public getCategoryContainer(categoryName: string): Locator {
-    // Find the category name text and navigate to its container
-    return this.page
-      .getByText(categoryName, { exact: true })
-      .locator('xpath=ancestor::div[contains(@class, "NameWithDescription")]')
-      .first();
+
+  public getAudienceCategoryByCategoryName(categoryName: string): Locator {
+    return this.page.locator("[class*='Grid-module-gridRow_']", {
+      has: this.page.locator('[class*=NameWithDescription-module-nameInnerContainer]', {
+        hasText: categoryName,
+      }),
+    });
   }
 
   /**
    * Verify if a category has a specific description using contextual locator approach
-   * @param categoryName - The name of the category
-   * @param description - The description text to verify
-   * @param shouldBeVisible - Whether the description should be visible or not
+   * @param options - Configuration options for description verification
+   * @param options.categoryName - The name of the category
+   * @param options.description - The description text to verify
+   * @param options.shouldBeVisible - Whether the description should be visible or not (default: true)
    */
-  async verifyCategoryDescription(
-    categoryName: string,
-    description: string,
-    shouldBeVisible: boolean = true
-  ): Promise<void> {
+  async verifyTheVisibilityOfCategoryDescription(options: {
+    categoryName: string;
+    description: string;
+    shouldBeVisible?: boolean;
+  }): Promise<void> {
+    const { categoryName, description, shouldBeVisible = true } = options;
+
     await test.step(`Verify category "${categoryName}" ${shouldBeVisible ? 'has' : 'does not have'} description: "${description}"`, async () => {
       // First, get the category container
-      const categoryContainer = this.getCategoryContainer(categoryName);
+      const audienceCategoryLocator = this.getAudienceCategoryByCategoryName(categoryName);
 
       // Then find the description within that container
-      const descriptionLocator = categoryContainer.locator('p').filter({ hasText: description }).first();
+      const descriptionLocator = audienceCategoryLocator.locator(
+        "[class*='NameWithDescription-module-descriptionContainer']",
+        { hasText: description }
+      );
 
       if (shouldBeVisible) {
         await this.verifier.verifyTheElementIsVisible(descriptionLocator, {

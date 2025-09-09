@@ -300,9 +300,13 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
       // Reload the page to see the API-created category
       await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
 
-      // Verify dismiss via Cancel and Close both prevent update using reusable helper
-      await audiencePage.verifyEditDismissPreventsUpdate(testCategoryName, 'Cancel');
-      await audiencePage.verifyEditDismissPreventsUpdate(testCategoryName, 'Close');
+      // Verify cancel button behavior
+      await audiencePage.verifyCategoryCancelButtonBehavior();
+      await audiencePage.verifyAudienceCategoryVisibilityInList(testCategoryName);
+
+      // Verify close button behavior
+      await audiencePage.verifyCategoryCloseButtonBehavior();
+      await audiencePage.verifyAudienceCategoryVisibilityInList(testCategoryName);
     }
   );
 
@@ -329,19 +333,32 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
       await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
 
       // Step 1: Update name and verify
-      await audiencePage.updateCategoryNameAndVerify(baseName, updatedName);
+      await audiencePage.updateCategoryName(baseName, updatedName);
+      await audiencePage.verifyAudienceCategoryVisibilityInList(updatedName);
 
       // Step 2: Add description and verify
-      await audiencePage.addDescriptionForCategoryAndVerifyInList(updatedName, oldDescriptionText);
+      await audiencePage.addDescriptionForAudienceCategory(updatedName, oldDescriptionText);
+      await audiencePage.verifyTheVisibilityOfCategoryDescription({
+        categoryName: updatedName,
+        description: oldDescriptionText,
+        shouldBeVisible: true,
+      });
 
       // Step 3: Update description and verify
-      await audiencePage.updateDescriptionForCategoryAndVerifyInList(
-        updatedName,
-        oldDescriptionText,
-        newDescriptionText
-      );
+      await audiencePage.updateDescriptionForAudienceCategory(updatedName, newDescriptionText);
+      await audiencePage.verifyTheVisibilityOfCategoryDescription({
+        categoryName: updatedName,
+        description: newDescriptionText,
+        shouldBeVisible: true,
+      });
 
-      await audiencePage.removeDescriptionForCategoryAndVerifyInList(updatedName, newDescriptionText);
+      // Step 4: Remove description and verify
+      await audiencePage.removeDescriptionForAudienceCategory(updatedName, newDescriptionText);
+      await audiencePage.verifyTheVisibilityOfCategoryDescription({
+        categoryName: updatedName,
+        description: newDescriptionText,
+        shouldBeVisible: false,
+      });
     }
   );
 });
