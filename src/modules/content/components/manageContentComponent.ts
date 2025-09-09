@@ -78,7 +78,7 @@ export class ManageContentComponent extends BaseComponent {
 
   async clickSearchBar(): Promise<void> {
     await test.step(`Clicking on the search bar`, async () => {
-      await this.searchBar.click();
+      await this.clickOnElement(this.searchBar);
     });
   }
 
@@ -86,20 +86,18 @@ export class ManageContentComponent extends BaseComponent {
     await test.step(`Writing random text in the search bar`, async () => {
       await this.clickSearchBar();
       await this.searchBar.type(inputText);
-      await this.page.waitForTimeout(10000);
     });
   }
 
   async searchIcon(): Promise<void> {
     await test.step(`Searching for content`, async () => {
-      await this.searchIconButton.click({ force: true });
-      await this.page.waitForTimeout(5000);
+      await this.clickOnElement(this.searchIconButton, { force: true });
     });
   }
 
   async nothingToShowHere(): Promise<void> {
     await test.step(`Checking if nothing to show here`, async () => {
-      await this.nothingToShowHereText.isVisible();
+      await this.verifier.verifyTheElementIsVisible(this.nothingToShowHereText);
     });
   }
 
@@ -111,149 +109,133 @@ export class ManageContentComponent extends BaseComponent {
 
   async clickXButton(): Promise<void> {
     await test.step(`Clicking the x button`, async () => {
-      await this.xButton.click();
+      await this.clickOnElement(this.xButton);
     });
   }
 
   async placeHolderShouldBeVisible(): Promise<void> {
     await test.step(`Checking if the place holder text is visible`, async () => {
-      await this.placeHolderText.isVisible();
+      await this.verifier.verifyTheElementIsVisible(this.placeHolderText);
     });
   }
 
   async selectFirstContent(): Promise<void> {
     await test.step(`Selecting the first content`, async () => {
-      await this.firstContentCheckbox.click({ force: true });
-      await this.page.waitForTimeout(2000);
+      await this.clickOnElement(this.firstContentCheckbox, { force: true });
     });
   }
 
   async selectActionDropdown(): Promise<void> {
     await test.step(`Selecting the action dropdown`, async () => {
-      await this.actionDropdown.click();
-      await this.page.waitForTimeout(1000);
+      await this.clickOnElement(this.actionDropdown);
     });
   }
 
   async selectUnpublishButton(): Promise<void> {
     await test.step(`Selecting the unpublish button`, async () => {
-      await this.unpublishButton.click();
-      await this.page.waitForTimeout(1000);
+      await this.clickOnElement(this.unpublishButton);
     });
   }
 
   async selectApplyButton(): Promise<void> {
     await test.step(`Selecting the confirm unpublish button`, async () => {
-      await this.applyButton.click();
-      await this.page.waitForTimeout(5000);
+      await this.clickOnElement(this.applyButton);
     });
   }
 
   async selectPublishButton(): Promise<void> {
     await test.step(`Selecting the publish button`, async () => {
-      await this.publishButton.click();
-      await this.page.waitForTimeout(1000);
+      await this.clickOnElement(this.publishButton);
     });
   }
 
   async selectMoveButton(): Promise<void> {
     await test.step(`Selecting the move button`, async () => {
-      await this.moveButton.click();
-      await this.page.waitForTimeout(1000);
+      await this.clickOnElement(this.moveButton);
     });
   }
 
   async moveContentSearchBar(siteName: string): Promise<void> {
     await test.step(`Moving the content search bar`, async () => {
-      await this.moveContentSearchBarField.click();
+      await this.clickOnElement(this.moveContentSearchBarField);
       await this.moveContentSearchBarField.type(siteName);
-      await this.page.waitForTimeout(1000);
     });
   }
 
   async selectMoveConfirmButton(): Promise<void> {
     await test.step(`Selecting the move confirm button`, async () => {
-      await this.moveConfirmButton.click();
-      await this.page.waitForTimeout(2000);
+      await this.clickOnElement(this.moveConfirmButton);
     });
   }
 
   async siteListSelecting(): Promise<void> {
     await test.step(`Selecting the site list`, async () => {
-      await this.siteListSelect.click();
-      await this.page.waitForTimeout(1000);
+      await this.clickOnElement(this.siteListSelect);
     });
   }
 
   async selectDeleteButton(): Promise<void> {
     await test.step(`Selecting the delete button`, async () => {
-      await this.deleteButton.click();
-      await this.page.waitForTimeout(1000);
+      await this.clickOnElement(this.deleteButton);
     });
   }
 
   async selectSelectAllButton(): Promise<void> {
     await test.step(`Selecting the select all button`, async () => {
-      await this.selectAllButton.click();
-      await this.page.waitForTimeout(1000);
+      await this.clickOnElement(this.selectAllButton);
     });
   }
 
   async selectValidateButton(): Promise<void> {
     await test.step(`Selecting the validate button`, async () => {
-      await this.validateButton.click();
-      await this.page.waitForTimeout(1000);
+      await this.clickOnElement(this.validateButton);
     });
   }
 
   async selectFirstDropDownOption(): Promise<void> {
     await test.step(`Selecting the first drop down option`, async () => {
-      await this.firstDropDownOption.click();
-      await this.page.waitForTimeout(1000);
+      await this.clickOnElement(this.firstDropDownOption);
     });
   }
 
   async checkPublishOption(): Promise<void> {
     await test.step(`Checking the publish option`, async () => {
-      if (await this.publishOption.isVisible()) {
-        await this.publishOption.click();
+      if (await this.verifier.verifyTheElementIsVisible(this.publishOption)) {
+        await this.clickOnElement(this.publishOption);
       } else {
-        await this.page.waitForTimeout(1000);
-        await this.unpublishOption.isVisible();
-        await this.unpublishOption.click();
-        await this.page.waitForTimeout(1000);
-        await this.publishOption.isVisible();
-        await this.publishOption.click();
-        await this.page.waitForTimeout(1000);
+        await this.verifier.verifyTheElementIsVisible(this.unpublishOption);
+        await this.clickOnElement(this.unpublishOption);
+        await this.verifier.verifyTheElementIsVisible(this.publishOption);
+        await this.clickOnElement(this.publishOption);
       }
     });
   }
 
   async clickDeleteOption(): Promise<void> {
     await test.step(`Checking the delete option`, async () => {
-      await this.deleteOption.click();
+      await this.clickOnElement(this.deleteOption);
     });
   }
 
   async clickDeleteModalConfirmButton(): Promise<void> {
     await test.step(`Clicking the delete modal confirm button`, async () => {
-      await this.deleteModalConfirmButton.click();
+      await this.clickOnElement(this.deleteModalConfirmButton);
     });
   }
 
   async verifyImageContainer(): Promise<void> {
     await test.step(`Clicking the image container`, async () => {
-      await this.imageContainer.isVisible();
+      await this.verifier.verifyTheElementIsVisible(this.imageContainer);
     });
   }
   async clickFilterButton(): Promise<void> {
     await test.step(`Clicking the filter button`, async () => {
-      await this.FilterButton.click();
+      await this.clickOnElement(this.FilterButton);
     });
   }
   async clickSiteSearchBar(siteName: string): Promise<void> {
     await test.step(`Clicking the site search bar`, async () => {
-      await this.siteSearchBar.click();
+      await this.clickOnElement(this.siteSearchBar);
       await this.siteSearchBar.type(siteName);
     });
   }
@@ -262,29 +244,27 @@ export class ManageContentComponent extends BaseComponent {
   }
   async authorNameShouldBeVisible(): Promise<void> {
     await test.step(`Checking the author name should be visible`, async () => {
-      await this.authorName.isVisible();
+      await this.verifier.verifyTheElementIsVisible(this.authorName);
     });
   }
   async clickOnTheAuthorName(): Promise<void> {
     await test.step(`Clicking on the author name`, async () => {
-      await this.authorName.click();
-      await this.page.waitForTimeout(5000);
+      await this.clickOnElement(this.authorName);
     });
   }
   async verifySiteName(): Promise<void> {
     await test.step(`Verifying the site name`, async () => {
-      await this.siteHeading.isVisible();
+      await this.verifier.verifyTheElementIsVisible(this.siteHeading);
     });
   }
   async clickOnTheSiteName(): Promise<void> {
     await test.step(`Clicking on the site name`, async () => {
-      await this.siteHeading.click();
-      await this.page.waitForTimeout(5000);
+      await this.clickOnElement(this.siteHeading);
     });
   }
   async verifySiteStatusStamp(): Promise<void> {
     await test.step(`Verifying the site status stamp`, async () => {
-      await this.siteStatusStamp.isVisible();
+      await this.verifier.verifyTheElementIsVisible(this.siteStatusStamp);
     });
   }
   async selectSiteSearchBarOption(): Promise<void> {
@@ -292,7 +272,7 @@ export class ManageContentComponent extends BaseComponent {
       this.siteSearchBarOptionText = await this.siteSearchBarOption.innerText();
 
       // Click on the site search bar option
-      await this.siteSearchBarOption.click();
+      await this.clickOnElement(this.siteSearchBarOption);
 
       // Get the text of the selected option
 
@@ -316,7 +296,7 @@ export class ManageContentComponent extends BaseComponent {
   }
   async clickSortByButton(): Promise<void> {
     await test.step('Clicking the sort by button', async () => {
-      await this.sortByButton.click();
+      await this.clickOnElement(this.sortByButton);
     });
   }
   async selectCreatedNewestOption(): Promise<void> {

@@ -4,8 +4,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ManageContentPage } from '../../../pages/manageContentPage';
-import { ManageFeaturePage } from '../../../pages/manageFeaturePage';
+import { ManageContentPage } from '../../pages/manageContentPage';
+import { ManageFeaturePage } from '../../pages/manageFeaturePage';
 
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
@@ -18,11 +18,11 @@ test.describe(
   () => {
     let manageFeaturePage: ManageFeaturePage;
     let manageContentPage: ManageContentPage;
-    test.beforeEach(async ({ loginAs, page }) => {
-      // Login as app manager using loginAs
-
-      manageFeaturePage = new ManageFeaturePage(page);
-      manageContentPage = new ManageContentPage(page);
+    test.beforeEach(async ({ appManagerHomePage }) => {
+      await appManagerHomePage.verifyThePageIsLoaded();
+      manageContentPage = await appManagerHomePage.actions.manageContent();
+      manageFeaturePage = new ManageFeaturePage(manageContentPage.page);
+      manageContentPage = new ManageContentPage(manageContentPage.page);
     });
 
     test.afterEach(async ({ page }) => {
@@ -33,13 +33,12 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ loginAs }) => {
+      async ({}) => {
         tagTest(test.info(), {
           description: 'Login as Admin',
           zephyrTestId: 'CONT-25055',
           storyId: 'CONT-25055',
         });
-        await loginAs('appManager');
 
         const title = faker.lorem.words(10);
         await manageFeaturePage.actions.navigateToContentButton();
@@ -55,13 +54,12 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ loginAs }) => {
+      async ({}) => {
         tagTest(test.info(), {
           description: 'Login as End User who is Site Owner/Manager of any site',
           zephyrTestId: 'CONT-25055',
           storyId: 'CONT-25055',
         });
-        await loginAs('endUser');
         const title = faker.lorem.words(10);
         await manageFeaturePage.actions.navigateToContentButton();
         await manageContentPage.actions.writeRandomTextInSearchBar(title);
@@ -77,13 +75,12 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ loginAs }) => {
+      async ({}) => {
         tagTest(test.info(), {
           description: 'Login as Admin',
           zephyrTestId: 'CONT-20952',
           storyId: 'CONT-20952',
         });
-        await loginAs('endUser');
         await manageFeaturePage.actions.navigateToContentButton();
         await manageContentPage.actions.clickOnFirstContentButton();
         await manageContentPage.actions.clickOnSelectActionDropdown();
@@ -114,13 +111,12 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ loginAs }) => {
+      async ({}) => {
         tagTest(test.info(), {
           description: 'Login as Admin',
           zephyrTestId: 'CONT-20951',
           storyId: 'CONT-20951',
         });
-        await loginAs('endUser');
         await manageFeaturePage.actions.navigateToContentButton();
         await manageContentPage.actions.clickOnFirstDropDownOption();
         await manageContentPage.actions.checkPublishOption();
@@ -132,13 +128,12 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ loginAs }) => {
+      async ({}) => {
         tagTest(test.info(), {
           description: 'Login as Admin',
           zephyrTestId: 'CONT-20946',
           storyId: 'CONT-20946',
         });
-        await loginAs('endUser');
         await manageFeaturePage.actions.navigateToContentButton();
         await manageContentPage.actions.clickOnFirstDropDownOption();
         await manageContentPage.actions.clickDeleteOption();
@@ -151,13 +146,12 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ loginAs }) => {
+      async ({}) => {
         tagTest(test.info(), {
           description: 'Login as Admin',
           zephyrTestId: 'CONT-20945',
           storyId: 'CONT-20945',
         });
-        await loginAs('endUser');
         await manageFeaturePage.actions.navigateToContentButton();
         await manageContentPage.assertions.verifyImageContainer();
         await manageContentPage.assertions.authorNameShouldBeVisible();
@@ -175,13 +169,12 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ loginAs }) => {
+      async ({}) => {
         tagTest(test.info(), {
           description: 'Login as Admin',
           zephyrTestId: 'CONT-20944',
           storyId: 'CONT-20944',
         });
-        await loginAs('appManager');
         await manageFeaturePage.actions.navigateToContentButton();
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.clickSiteSearchBar('Sales');
@@ -195,13 +188,12 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ loginAs }) => {
+      async ({}) => {
         tagTest(test.info(), {
           description: 'Login as Admin',
           zephyrTestId: 'CONT-20943',
           storyId: 'CONT-20943',
         });
-        await loginAs('appManager');
         await manageFeaturePage.actions.navigateToContentButton();
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectCreatedNewestOption();

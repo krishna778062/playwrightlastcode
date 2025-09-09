@@ -18,6 +18,7 @@ import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 import { SiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/globalSearchResultPage';
+import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
 
 export interface ICommonHomePageActions {
   searchForTerm: (searchTerm: string, options?: { stepInfo?: string }) => Promise<GlobalSearchResultPage>;
@@ -25,6 +26,7 @@ export interface ICommonHomePageActions {
   openSiteCreationForm: (options?: { stepInfo?: string }) => Promise<SiteCreationPage>;
   clickOnMessageInbox: (options?: { stepInfo?: string }) => Promise<ChatNavigationComponent>;
   navigateToChatPageViaTopNavBar: (options?: { stepInfo?: string }) => Promise<ChatAppPage>;
+  manageContent: (options?: { stepInfo?: string }) => Promise<ManageContentPage>;
 }
 
 export interface IOldUxHomePageActions extends ICommonHomePageActions {
@@ -148,6 +150,10 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
     await this.topNavBarComponent.openMessageInbox(options);
     await chatNavigationComponent.isCommonNavigationComponentVisible(options);
     return chatNavigationComponent;
+  }
+
+  async manageContent(): Promise<ManageContentPage> {
+    return new ManageContentPage(this.page);
   }
 
   /**

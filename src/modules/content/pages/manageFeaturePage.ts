@@ -6,13 +6,13 @@ import { ManageFeatureButtonComponent } from '../components/manageFeatureButtonC
 import { SideNavBarComponent } from '@/src/core/components/sideNavBarComponent';
 import { BasePage } from '@/src/core/pages/basePage';
 
-export interface IFeedActions {
+export interface IActions {
   navigateToContentButton: () => Promise<void>;
 }
 
-export interface IFeedAssertions {}
+export interface IAssertions {}
 
-export class ManageFeaturePage extends BasePage implements IFeedActions, IFeedAssertions {
+export class ManageFeaturePage extends BasePage implements IActions, IAssertions {
   private manageFeatureButtonComponent: ManageFeatureButtonComponent;
   private sideNavBarComponent: SideNavBarComponent;
   static actions: any;
@@ -36,6 +36,5 @@ export class ManageFeaturePage extends BasePage implements IFeedActions, IFeedAs
   async navigateToContentButton(): Promise<void> {
     await this.sideNavBarComponent.clickOnManageFeatureButton();
     await this.manageFeatureButtonComponent.clickContentButton();
-    await this.page.waitForTimeout(10000);
   }
 }

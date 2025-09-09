@@ -4,7 +4,7 @@ import { ManageContentComponent } from '../components/manageContentComponent';
 
 import { BasePage } from '@/src/core/pages/basePage';
 
-export interface IFeedActions {
+export interface IActions {
   writeRandomTextInSearchBar: (inputText: string) => Promise<void>;
   clickSearchIcon: () => Promise<void>;
   clickXButton: () => Promise<void>;
@@ -20,7 +20,7 @@ export interface IFeedActions {
   selectCreatedNewestOption: () => Promise<void>;
 }
 
-export interface IFeedAssertions {
+export interface IAssertions {
   nothingToShowHereText: () => Promise<void>;
   placeHolderTextShouldBeVisible: () => Promise<void>;
   verifyImageContainer: () => Promise<void>;
@@ -30,7 +30,7 @@ export interface IFeedAssertions {
   verifySiteNameLink: () => Promise<void>;
 }
 
-export class ManageContentPage extends BasePage implements IFeedActions, IFeedAssertions {
+export class ManageContentPage extends BasePage implements IActions, IAssertions {
   private manageContentComponent: ManageContentComponent;
 
   static actions: any;

@@ -12,7 +12,7 @@ export class ManageFeatureButtonComponent extends BaseComponent {
 
   async clickContentButton(): Promise<void> {
     await test.step(`Clicking on the content button`, async () => {
-      await this.contentButton.click();
+      await this.clickOnElement(this.contentButton);
     });
   }
 }

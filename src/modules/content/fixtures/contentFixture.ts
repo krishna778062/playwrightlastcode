@@ -1,8 +1,9 @@
-import { BrowserContext, Page, test } from '@playwright/test';
+import { BrowserContext, Page, test, WorkerInfo } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { FeedManagerService } from '@core/api/services/FeedManagerService';
+import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
@@ -28,12 +29,18 @@ export const contentTestFixture = test.extend<
     appManagerContext: BrowserContext;
     appManagerHomePage: NewUxHomePage | OldUxHomePage;
     appManagersPage: Page;
+    endUserContext: BrowserContext;
+    endUserHomePage: NewUxHomePage | OldUxHomePage;
+    endUsersPage: Page;
     siteManagementHelper: SiteManagementHelper;
     feedManagerService: FeedManagerService;
+    manageContentHelper: ContentManagementHelper;
+    manageContentEndUserHelper: ContentManagementHelper;
     loginAs: (userType: UserType) => Promise<void>;
   },
   {
     appManagerApiClient: AppManagerApiClient;
+    endUserApiClient: AppManagerApiClient;
   }
 >({
   appManagerApiClient: [
@@ -48,6 +55,21 @@ export const contentTestFixture = test.extend<
         baseUrl: getEnvConfig().apiBaseUrl,
       });
       await use(appManagerApiClient);
+    },
+    { scope: 'worker' },
+  ],
+  endUserApiClient: [
+    async ({}, use, workerInfo: WorkerInfo) => {
+      console.log(`INFO: Setting up end user client for worker => `, workerInfo.workerIndex);
+      const endUserApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
+        type: 'credentials',
+        credentials: {
+          username: getEnvConfig().endUserEmail!,
+          password: getEnvConfig().endUserPassword!,
+        },
+        baseUrl: getEnvConfig().apiBaseUrl,
+      });
+      await use(endUserApiClient);
     },
     { scope: 'worker' },
   ],
@@ -79,10 +101,53 @@ export const contentTestFixture = test.extend<
     { scope: 'test' },
   ],
 
+  endUserContext: [
+    async ({ browser }, use, workerInfo) => {
+      const context = await browser.newContext();
+      await use(context);
+      await context?.close();
+    },
+    { scope: 'test' },
+  ],
+  endUserHomePage: [
+    async ({ endUserContext }, use, workerInfo) => {
+      const page = await endUserContext.newPage();
+      const endUserHomePage = await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().endUserEmail!,
+        password: getEnvConfig().endUserPassword!,
+      });
+      await endUserHomePage.verifyThePageIsLoaded();
+      await use(endUserHomePage);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+  endUsersPage: [
+    async ({ endUserHomePage }, use, workerInfo) => {
+      await use(endUserHomePage.page);
+    },
+    { scope: 'test' },
+  ],
+
   feedManagerService: [
     async ({ appManagerApiClient }, use) => {
       const feedManagerService = new FeedManagerService(appManagerApiClient.context);
       await use(feedManagerService);
+    },
+    { scope: 'test' },
+  ],
+
+  manageContentHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const manageContentHelper = new ContentManagementHelper(appManagerApiClient);
+      await use(manageContentHelper);
+    },
+    { scope: 'test' },
+  ],
+  manageContentEndUserHelper: [
+    async ({ endUserApiClient }, use) => {
+      const manageContentEndUserHelper = new ContentManagementHelper(endUserApiClient);
+      await use(manageContentEndUserHelper);
     },
     { scope: 'test' },
   ],
