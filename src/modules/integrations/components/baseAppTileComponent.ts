@@ -124,7 +124,9 @@ export class BaseAppTileComponent extends BaseComponent {
 
   async submitTileToHomeOrDashboard(choice: string): Promise<void> {
     await test.step(`Submit tile to '${choice}'`, async () => {
+      const dialog = this.page.getByRole('dialog');
       await this.clickOnElement(this.page.getByRole('button', { name: choice }), { timeout: 30_000 });
+      await dialog.waitFor({ state: 'detached', timeout: 30_000 });
     });
   }
 
