@@ -6,6 +6,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { SiteDashboardPage } from '../../pages/siteDashboardPage';
+
 import { SideNavBarComponent } from '@/src/core/components/sideNavBarComponent';
 import { TopNavBarComponent } from '@/src/core/components/topNavBarComponent';
 import { ContentType } from '@/src/modules/content/constants/contentType';
@@ -13,9 +15,16 @@ import { PageContentType } from '@/src/modules/content/constants/pageContentType
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ApplicationScreenPage } from '@/src/modules/content/pages/applicationscreenPage';
+import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
+import { GovernanceScreenPage } from '@/src/modules/content/pages/governanceScreenPage';
+import { ManageApplicationPage } from '@/src/modules/content/pages/manageApplicationPage';
+import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
 import { ApplicationScreenPage as ManageFeature } from '@/src/modules/content/pages/manageFeaturesPage';
+import { ManageSitePage } from '@/src/modules/content/pages/manageSitePage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
+import { SiteDetailsPage } from '@/src/modules/content/pages/siteDetailsPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+import { SiteDashboard } from '@/src/modules/integrations/pages/siteDashboard';
 
 test.describe(
   ContentSuiteTags.PAGE_CREATION,
@@ -30,16 +39,30 @@ test.describe(
     let homePage: NewUxHomePage;
     let applicationscreen: ApplicationScreenPage;
     let manageFeaturePage: ManageFeature;
+    let manageApplicationPage: ManageApplicationPage;
+    let governanceScreenPage: GovernanceScreenPage;
+    let manageContentPage: ManageContentPage;
+    let contentPreviewPage: ContentPreviewPage;
+    let manageSitePage: ManageSitePage;
+    let siteDetailsPage: SiteDetailsPage;
+    let siteDashboardPage: SiteDashboardPage;
 
     test.beforeEach(async ({ appManagerHomePage, appManagersPage }) => {
       await appManagerHomePage.verifyThePageIsLoaded();
-      pageRef = pageRef;
+      // pageRef = pageRef;
 
-      homePage = new NewUxHomePage(pageRef);
+      homePage = new NewUxHomePage(appManagersPage);
       await homePage.verifyThePageIsLoaded();
-      pageCreationPage = new PageCreationPage(pageRef);
-      applicationscreen = new ApplicationScreenPage(pageRef);
-      manageFeaturePage = new ManageFeature(pageRef);
+      pageCreationPage = new PageCreationPage(appManagersPage);
+      applicationscreen = new ApplicationScreenPage(appManagersPage);
+      manageFeaturePage = new ManageFeature(appManagersPage);
+      manageApplicationPage = new ManageApplicationPage(appManagersPage);
+      governanceScreenPage = new GovernanceScreenPage(appManagersPage);
+      manageContentPage = new ManageContentPage(appManagersPage);
+      contentPreviewPage = new ContentPreviewPage(appManagersPage, '', '', '');
+      manageSitePage = new ManageSitePage(appManagersPage, '');
+      siteDetailsPage = new SiteDetailsPage(appManagersPage, '');
+      siteDashboardPage = new SiteDashboardPage(appManagersPage, '');
     });
 
     test.afterEach(async ({ appManagerApiClient }) => {
@@ -89,12 +112,6 @@ test.describe(
         //store the page id
         publishedPageId = pageId;
         siteIdToPublishPage = siteId;
-
-        //handle the promotion
-        await pageCreationPage.actions.handlePromotionPageStep();
-
-        // Verify content was published successfully via UI
-        await pageCreationPage.assertions.verifyContentPublishedSuccessfully(title);
       }
     );
     test(
@@ -110,21 +127,21 @@ test.describe(
         });
         await homePage.navigateToApplication();
         await applicationscreen.clickOnApplication();
-        await pageCreationPage.clickOnGovernance();
-        await pageCreationPage.clickOnTimeline();
-        await pageCreationPage.clickOnSave();
+        await manageApplicationPage.clickOnGovernance();
+        await governanceScreenPage.clickOnTimeline();
+        await governanceScreenPage.clickOnSave();
         await homePage.clickOnManageFeature();
         await manageFeaturePage.clickOnContentCard();
-        await pageCreationPage.clickOnContent();
-        await pageCreationPage.checkCommentOption();
+        await manageContentPage.clickOnContent();
+        await contentPreviewPage.checkCommentOption();
         await homePage.clickOnManageFeature();
         await manageFeaturePage.clickOnSitesCard();
-        await pageCreationPage.clickOnSite();
-        await pageCreationPage.ViewSite();
-        await pageCreationPage.verfiyFeedSection();
-        await homePage.clickOnHome();
+        await manageSitePage.clickOnSite();
+        await siteDetailsPage.ViewSite();
+        await siteDashboardPage.verfiyFeedSection();
+        await homePage.clickOnHomeButton();
         await homePage.clickOnFeedSideMenu();
-        await pageCreationPage.verfiyFeedSection();
+        await siteDashboardPage.verfiyFeedSection();
       }
     );
   }

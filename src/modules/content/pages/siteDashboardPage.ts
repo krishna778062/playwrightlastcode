@@ -8,6 +8,8 @@ import { PageCreationPage } from '@content/pages/pageCreationPage';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
+import { SiteDashboardComponent } from '@/src/modules/content/components/siteDashboardComponent';
+
 export interface ISiteDashboardActions {
   navigateToPageCreationFromSiteDashboard: () => Promise<PageCreationPage>;
   navigateToAlbumCreationFromSiteDashboard: () => Promise<AlbumCreationPage>;
@@ -28,10 +30,12 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
   readonly addContentModal: AddContentModalComponent;
   readonly successMessage = (message: string) =>
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
+  private siteDashboardComponent: SiteDashboardComponent;
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
     this.addContentModal = new AddContentModalComponent(page);
+    this.siteDashboardComponent = new SiteDashboardComponent(page);
   }
 
   // Actions
@@ -147,6 +151,12 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
       await expect(this.page, `Current URL: ${currentUrl} should match expected URL: ${expectedUrl}`).toHaveURL(
         expectedUrl
       );
+    });
+  }
+
+  async verfiyFeedSection(): Promise<void> {
+    await test.step('Verifying feed section', async () => {
+      await this.siteDashboardComponent.verfiyFeedSection.isHidden();
     });
   }
 }

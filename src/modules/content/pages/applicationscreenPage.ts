@@ -11,13 +11,14 @@ import { PromotePageModal } from '../components/promotePageModal';
 import { PageContentType } from '../constants/pageContentType';
 import { CONTENT_TEST_DATA } from '../test-data/content.test-data';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 
 export class ApplicationScreenPage extends BasePage {
   private sideNavBarComponent: SideNavBarComponent;
 
   constructor(page: Page) {
-    super(page);
+    super(page, PAGE_ENDPOINTS.APPLICATION_SETTINGS);
     this.sideNavBarComponent = new SideNavBarComponent(page);
   }
 

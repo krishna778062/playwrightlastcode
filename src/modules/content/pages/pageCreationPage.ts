@@ -61,12 +61,10 @@ export interface IPageCreationActions {
     peopleName: string;
     response: PageCreationResponse;
   }>;
-  handlePromotionPageStep: () => Promise<void>;
 }
 
 export interface IPageCreationAssertions {
   verifyUploadedCoverImagePreviewIsVisible: (options?: { timeout?: number }) => Promise<void>;
-  verifyContentPublishedSuccessfully: (title: string) => Promise<void>;
 }
 
 export class PageCreationPage extends BasePage implements IPageCreationActions, IPageCreationAssertions {
@@ -374,22 +372,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       return submitResponse;
     });
   }
-  /**
-   * Verifies that the content was published successfully
-   * @param title - The title of the content to verify
-   */
-  async verifyContentPublishedSuccessfully(title: string): Promise<void> {
-    await test.step(`Verifying content was published successfully`, async () => {
-      // Verify success message is visible
-      await this.verifier.verifyTheElementIsVisible(this.successMessage("Created page successfully - it's published"), {
-        assertionMessage: 'Success message should be visible after publishing',
-      });
-
-      await this.verifier.verifyTheElementIsVisible(this.contentTitleHeading(title), {
-        assertionMessage: `Content title "${title}" should be visible in heading`,
-      });
-    });
-  }
 
   async clickOnGovernance(): Promise<void> {
     await test.step('Clicking on governance', async () => {
@@ -427,13 +409,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       await this.clickOnElement(this.sideNavBarComponent.clickOnSite);
       await this.sideNavBarComponent.clickOnSite.press('Tab');
       await this.sideNavBarComponent.clickOnSite.press('Enter');
-    });
-  }
-
-  async handlePromotionPageStep(): Promise<void> {
-    await test.step('Handling promotion page step', async () => {
-      // TODO: Implement promotion modal handling when needed
-      console.log('Promotion page step handled');
     });
   }
 

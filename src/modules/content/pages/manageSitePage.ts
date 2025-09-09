@@ -1,9 +1,11 @@
 import { Page, test } from '@playwright/test';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
+import { ManageSitesComponent } from '@/src/modules/content/components/manageSitesComponent';
 
 export interface IManageSiteActions {
-  navigateToContentTab: () => Promise<void>;
+  clickOnSite: () => Promise<void>;
 }
 
 export interface IManageSiteAssertions {
@@ -15,9 +17,11 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly contentTab = this.page.locator(
     'a[href*="/content"], button:has-text("Content"), [data-testid="content-tab"]'
   );
+  private manageSitesComponent: ManageSitesComponent;
 
-  constructor(page: Page) {
-    super(page);
+  constructor(page: Page, siteId: string) {
+    super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId));
+    this.manageSitesComponent = new ManageSitesComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -34,11 +38,11 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     return this;
   }
 
-  async navigateToContentTab(): Promise<void> {
-    await test.step('Navigate to content tab', async () => {
-      await this.clickOnElement(this.contentTab, {
-        stepInfo: 'Click content tab',
-      });
+  async clickOnSite(): Promise<void> {
+    await test.step('Clicking on save', async () => {
+      await this.clickOnElement(this.manageSitesComponent.clickOnSite);
+      await this.manageSitesComponent.clickOnSite.press('Tab');
+      await this.manageSitesComponent.clickOnSite.press('Enter');
     });
   }
 }

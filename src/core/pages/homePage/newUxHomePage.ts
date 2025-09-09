@@ -135,7 +135,7 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
 
   async clickOnHomeButton(): Promise<void> {
     await test.step('Clicking on application', async () => {
-      await this.sideNavBarComponent.clickOnHome();
+      await this.clickOnElement(this.sideNavBarComponent.clickingOnHome);
     });
   }
 
