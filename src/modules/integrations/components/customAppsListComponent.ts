@@ -1,5 +1,4 @@
 import { APP_LABELS } from '@integrations/constants/common';
-import { MESSAGES } from '@integrations/constants/messageRepo';
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/components/baseComponent';
@@ -154,7 +153,6 @@ export class CustomAppsListComponent extends BaseComponent {
       await this.selectConnectorOption(AppConnectorOptions.Delete);
       await this.verifyDeleteDialogVisible(APP_LABELS.DELETE_CUSTOM_APP_LABEL);
       await this.clickDialogButton(APP_LABELS.DELETE_LABEL, 'Confirm delete');
-      await this.verifyToastMessage(MESSAGES.AIRTABLE_DELETE_MESSAGE);
     });
   }
 

@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/components/baseComponent';
+import { TIMEOUTS } from '@core/constants/timeouts';
 
 interface AirtableConfig {
   baseName?: string;
@@ -346,6 +347,15 @@ export class BaseAppTileComponent extends BaseComponent {
       await this.configurePersonalizeSortBy(sortBy);
       await this.configurePersonalizeSortOrder(sortOrder);
       await this.clickButton('Save');
+    });
+  }
+
+  async selectTile(tileType: string): Promise<void> {
+    await test.step(`Select tile type: ${tileType}`, async () => {
+      await this.clickOnElement(this.page.getByRole('combobox', { name: 'Tile type' }), { timeout: 30_000 });
+      await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+      const tileOption = this.page.getByRole('menuitem').filter({ hasText: tileType });
+      await this.clickOnElement(tileOption, { timeout: 30_000 });
     });
   }
 

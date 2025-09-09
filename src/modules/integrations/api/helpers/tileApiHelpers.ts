@@ -119,7 +119,7 @@ async function listHomeAppTiles(page: Page): Promise<any[]> {
 
   if (!res.ok()) return [];
 
-  const json: any = await res.json().catch(() => ({}));
+  const json = await safeJsonParse(res);
   return Array.isArray(json?.result?.listOfItems) ? json.result.listOfItems : [];
 }
 
@@ -173,7 +173,7 @@ async function getFirstTemplate(
   });
 
   if (!res.ok()) {
-    throw new Error(`Failed to get templates: ${res.status()}`);
+    await handleApiError(res, 'Failed to get templates');
   }
 
   const templates = (await res.json()).data ?? [];
@@ -247,6 +247,83 @@ function sanitizeRequestSchema(schema: any): any {
 }
 
 /**
+ * Extracts instance ID from API response body
+ * Handles various response formats and property names
+ *
+ * @param body - The response body object
+ * @returns The extracted instance ID or undefined
+ */
+function extractInstanceId(body: any): string | undefined {
+  return (
+    body?.result?.instanceId ||
+    body?.data?.instanceId ||
+    body?.instanceId ||
+    body?.result?.id ||
+    body?.data?.id ||
+    body?.id ||
+    body?.result?.tileInstanceId ||
+    body?.data?.tileInstanceId ||
+    body?.tileInstanceId
+  );
+}
+
+/**
+ * Creates a standard tile creation payload
+ * Centralizes the common payload structure used across different tile creation functions
+ *
+ * @param tileInstanceName - The name for the tile instance
+ * @param connectorId - The connector ID
+ * @param requestSchema - The request schema
+ * @param parameters - The parameters object
+ * @returns Standard tile creation payload
+ */
+function createTilePayload(
+  tileInstanceName: string,
+  connectorId: string,
+  requestSchema: any,
+  parameters: Record<string, any>
+): any {
+  return {
+    dashboard: 'home',
+    tileInstanceName,
+    type: 'app',
+    connectorId,
+    connectionType: 'user',
+    inputConfig: {
+      requestSchema,
+      parameters,
+      personalization: { enabled: false },
+    },
+  };
+}
+
+/**
+ * Safely parses JSON response with fallback to empty object
+ * Centralizes the common pattern of parsing API responses
+ *
+ * @param response - The response object with json() method
+ * @returns Parsed JSON object or empty object on error
+ */
+async function safeJsonParse(response: any): Promise<any> {
+  return await response.json().catch(() => ({}));
+}
+
+/**
+ * Handles API response errors with consistent error messages
+ * Centralizes error handling for failed API requests
+ *
+ * @param response - The response object
+ * @param operation - Description of the operation that failed
+ * @param context - Additional context for the error message
+ * @throws Error with descriptive message
+ */
+async function handleApiError(response: any, operation: string, context?: string): Promise<never> {
+  const errorText = await response.text();
+  const contextStr = context ? ` ${context}` : '';
+  throw new Error(`${operation}${contextStr}: ${response.status()} - ${errorText}`);
+}
+
+/**
  * Generic tile creation via API for any connector
  * Supports all connector types with flexible parameter mapping
  *
@@ -300,23 +377,9 @@ export async function createTileViaApi(page: Page, args: TileCreationArgs): Prom
       }) ?? [],
   };
 
-  // Build the tile creation payload
-  const buildData = (requestSchema: any) => ({
-    dashboard: 'home',
-    tileInstanceName: args.tileInstanceName,
-    type: 'app',
-    connectorId: template.connectorId,
-    connectionType: 'user',
-    inputConfig: {
-      requestSchema,
-      parameters,
-      personalization: { enabled: false },
-    },
-  });
-
   // Try creating with enriched schema first
   let createRes = await api.post(`/v1/tiles/${template.tileId}/instances`, {
-    data: buildData(enrichedRequestSchema),
+    data: createTilePayload(args.tileInstanceName, template.connectorId, enrichedRequestSchema, parameters),
     headers,
     timeout: TIMEOUTS.VERY_LONG,
   });
@@ -324,29 +387,19 @@ export async function createTileViaApi(page: Page, args: TileCreationArgs): Prom
   // Fallback to raw schema if enriched version fails
   if (!createRes.ok()) {
     createRes = await api.post(`/v1/tiles/${template.tileId}/instances`, {
-      data: buildData(rawRequestSchema),
+      data: createTilePayload(args.tileInstanceName, template.connectorId, rawRequestSchema, parameters),
       headers,
       timeout: TIMEOUTS.VERY_LONG,
     });
   }
 
   if (!createRes.ok()) {
-    const errorText = await createRes.text();
-    throw new Error(`Tile creation failed: ${createRes.status()} ${errorText}`);
+    await handleApiError(createRes, 'Tile creation failed');
   }
 
   // Extract instance ID from response
-  const body = await createRes.json().catch(() => ({}));
-  let instanceId: string | undefined =
-    body?.result?.instanceId ||
-    body?.data?.instanceId ||
-    body?.instanceId ||
-    body?.result?.id ||
-    body?.data?.id ||
-    body?.id ||
-    body?.result?.tileInstanceId ||
-    body?.data?.tileInstanceId ||
-    body?.tileInstanceId;
+  const body = await safeJsonParse(createRes);
+  let instanceId = extractInstanceId(body);
 
   // If no instance ID in response, try to find it by listing tiles
   if (!instanceId) {
@@ -356,7 +409,7 @@ export async function createTileViaApi(page: Page, args: TileCreationArgs): Prom
     });
 
     if (listRes.ok()) {
-      const json = await listRes.json().catch(() => ({}));
+      const json = await safeJsonParse(listRes);
       const candidates = json?.data || json?.result?.listOfItems || json?.items || [];
       const match = candidates.find(
         (i: any) => i?.tileInstanceName === args.tileInstanceName || i?.name === args.tileInstanceName
@@ -395,6 +448,37 @@ export async function createAppTileViaApi(
   }
 
   return result;
+}
+
+/**
+ * Create app tile via API using authenticated client
+ */
+export async function createAppTileViaClient(
+  apiClient: any,
+  args: { tileInstanceName: string; tileId: string; connectorId: string }
+): Promise<TileCreationResult> {
+  const response = await apiClient.post(`/v1/tiles/${args.tileId}/instances`, {
+    data: createTilePayload(
+      args.tileInstanceName,
+      args.connectorId,
+      { parameters: [], body: [], body_template: null },
+      {}
+    ),
+  });
+
+  if (!response.ok()) {
+    await handleApiError(response, `Failed to create tile "${args.tileInstanceName}"`);
+  }
+
+  const body = await safeJsonParse(response);
+  const instanceId = extractInstanceId(body);
+
+  if (!instanceId) {
+    console.error(`Full response body:`, JSON.stringify(body, null, 2));
+    throw new Error(`No instance ID returned for tile "${args.tileInstanceName}". Response: ${JSON.stringify(body)}`);
+  }
+
+  return { instanceId, templateTileId: args.tileId, tileInstanceName: args.tileInstanceName };
 }
 
 /**
