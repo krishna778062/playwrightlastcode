@@ -88,13 +88,8 @@ export class FeedManagementHelper {
 
       this.feeds.push({ feedId });
 
-      // Return both the specific properties and the full API response
-      return {
-        feedId,
-        feedName,
-        authorName,
-        response, // Full API response for compatibility
-      };
+      // Return the API response structure for compatibility with existing tests
+      return response;
     });
   }
 
