@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { APIRequestContext, test } from '@playwright/test';
+import { APIRequestContext, APIResponse, expect, test } from '@playwright/test';
 import * as fs from 'fs';
 
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
@@ -187,27 +187,20 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
         siteId: siteId,
       };
 
-      console.log('Upload image payload:', JSON.stringify(payload, null, 2));
-
       const response = await this.post(API_ENDPOINTS.content.signedUrl, {
         data: payload,
       });
 
-      const json = await response.json();
-      console.log('--------------------------------');
-      console.log('Upload image response:', JSON.stringify(json, null, 2));
-      console.log('--------------------------------');
+      expect(response.ok(), 'Expecting image uplaod api to pass').toBe(true);
 
-      if (json.status !== 'success') {
-        throw new Error(`Image upload failed. Response: ${JSON.stringify(json)}`);
-      }
+      const imageUploadResponseJson = await response.json();
 
       // Extract key values for easy access
-      const responseFileId = json.result.file_id;
-      const uploadUrl = json.result.upload_url;
+      const responseFileId = imageUploadResponseJson.result.file_id;
+      const uploadUrl = imageUploadResponseJson.result.upload_url;
 
       return {
-        ...json,
+        ...imageUploadResponseJson,
         responseFileId,
         uploadUrl,
       };
@@ -223,7 +216,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
    * @returns {Promise<any>}
    * @memberof FeedManagementService
    */
-  async uploadToAttachmentURL(uploadUrl: string, fileName: string): Promise<any> {
+  async uploadToAttachmentURL(uploadUrl: string, fileName: string): Promise<APIResponse> {
     return await test.step(`Uploading file binary data to attachment URL for "${fileName}"`, async () => {
       if (!uploadUrl) {
         throw new Error('Upload URL is required but not provided');
@@ -246,7 +239,6 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       const headers = {
         'Content-Type': 'image/png',
         'Content-Disposition': `attachment; filename=${fileName}`,
-        // ...BaseApiClient.headers,
       };
 
       // Make a PUT request to the signed URL with the file data
@@ -258,20 +250,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
         const errorText = await response.text();
         throw new Error(`File upload to attachment URL failed. Status: ${response.status}, Error: ${errorText}`);
       }
-
-      // For PUT requests to S3, successful uploads typically return empty body with 200 status
-      const responseText = await response.text();
-      console.log('--------------------------------');
-      console.log('Attachment upload response body:', responseText);
-      console.log('--------------------------------');
-
-      return {
-        status: response.status(),
-        statusText: response.statusText(),
-        headers: response.headers(),
-        body: responseText,
-        success: response.ok,
-      };
+      return response;
     });
   }
 
