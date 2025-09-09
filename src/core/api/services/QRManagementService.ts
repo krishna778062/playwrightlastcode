@@ -17,15 +17,27 @@ export class QRManagementService extends BaseApiClient implements IQRManagementO
   isQRCodeExists(qrName: string): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
-  async createQR(QRType: 'AppPromotion' | 'Content', qrName: string, qrDescription: string): Promise<void> {
-    let QRTypeID: string = '';
-    if (QRType === 'AppPromotion') {
-      QRTypeID = await this.getAppPromotionQRId();
+  async createQR(qrType: 'AppPromotion' | 'Content', qrName: string, qrDescription: string): Promise<void> {
+    let qrTypeID: string = '';
+    if (qrType === 'AppPromotion') {
+      qrTypeID = await this.getAppPromotionQRId();
     } else {
       const contentID = await this.getContentID();
-      QRTypeID = await this.getContentQRId(contentID);
+
+      // Validate that contentID is not empty before using it
+      if (!(!contentID || contentID.trim() === '')) {
+        qrTypeID = await this.getContentQRId(contentID);
+      } else {
+        throw new Error('Failed to get Content ID. Content ID cannot be empty.');
+      }
     }
-    await this.createQRUsingAPI(QRTypeID, qrName, qrDescription);
+
+    // Validate that qrTypeID is not empty before proceeding
+    if (!(!qrTypeID || qrTypeID.trim() === '')) {
+      await this.createQRUsingAPI(qrTypeID, qrName, qrDescription);
+    } else {
+      throw new Error(`Failed to get QR Type ID for QR type: ${qrType}. QR Type ID cannot be empty.`);
+    }
   }
 
   async getContentID(): Promise<string> {
