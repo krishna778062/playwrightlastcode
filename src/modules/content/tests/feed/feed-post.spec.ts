@@ -19,16 +19,10 @@ test.describe(
     let createdPostText: string;
     let createdPostId: string = '';
 
-    test.beforeEach(async ({ page, loginAs }) => {
-      // Login as end user using loginAs
-      await loginAs('endUser');
+    test.beforeEach(async ({ standardUserHomePage }) => {
+      await standardUserHomePage.actions.clickOnGlobalFeed();
 
-      // Create home page instance and navigate to feed
-      const homePage = new NewUxHomePage(page);
-      await homePage.verifyThePageIsLoaded();
-      await homePage.actions.clickOnGlobalFeed();
-
-      feedPage = new FeedPage(page);
+      feedPage = new FeedPage(standardUserHomePage.page);
       await feedPage.verifyThePageIsLoaded();
     });
 

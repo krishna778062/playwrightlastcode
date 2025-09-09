@@ -25,7 +25,12 @@ test.describe(
           storyId: 'SEN-12843',
         });
 
-        const { feedId, feedName, authorName } = await feedManagementHelper.createFeed('public');
+        const feedResponse = await feedManagementHelper.createFeed({
+          scope: 'public',
+        });
+        const feedId = feedResponse.result.feedId;
+        const feedName = feedResponse.result.title || testData.content;
+        const authorName = feedResponse.result.authoredBy?.name || 'Unknown';
 
         const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(feedName, {
           stepInfo: `Searching with term "${feedName}" and intent is to find the content`,
