@@ -13,4 +13,5 @@ export enum TestSuite {
   AUDIENCE = '@audience',
   AUDIENCE_CATEGORY = '@audience-category',
   PLATFORM = '@platform',
+  AD_GROUP = '@zeus-AD-Group',
 }
