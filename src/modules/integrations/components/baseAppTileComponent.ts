@@ -235,12 +235,10 @@ export class BaseAppTileComponent extends BaseComponent {
   }
 
   async clickThreeDotsOnTile(tileName: string): Promise<void> {
-    await test.step(`Click three dots on '${tileName}'`, async () => {
-      const btn = this.getThreeDotsIcon(tileName);
-      await btn.waitFor({ state: 'visible', timeout: 10_000 });
-      await this.page.waitForTimeout(200);
-      await btn.click({ force: true });
-      await this.page.waitForTimeout(300);
+    await test.step(`Click three dots menu on '${tileName}' tile`, async () => {
+      const threeDotsButton = this.getThreeDotsIcon(tileName);
+      await threeDotsButton.waitFor({ state: 'visible', timeout: 15_000 });
+      await threeDotsButton.click({ force: true });
     });
   }
 
