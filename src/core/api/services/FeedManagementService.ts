@@ -216,23 +216,11 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
    * @returns {Promise<any>}
    * @memberof FeedManagementService
    */
-  async uploadToAttachmentURL(uploadUrl: string, fileName: string): Promise<APIResponse> {
+  async uploadToAttachmentURL(uploadUrl: string, fileName: string, filePath: string): Promise<APIResponse> {
     return await test.step(`Uploading file binary data to attachment URL for "${fileName}"`, async () => {
       if (!uploadUrl) {
         throw new Error('Upload URL is required but not provided');
       }
-      const filePath = FileUtil.getFilePath(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        'modules',
-        'content',
-        'test-data',
-        'static-files',
-        'images',
-        fileName
-      );
       const fileBuffer = fs.readFileSync(filePath);
 
       // Build headers for the request
@@ -285,6 +273,10 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
 
   /**
    * @description Creates a feed with attachments
+   * @param {string} fileName The name of the file to attach
+   * @param {number} fileSize The size of the file
+   * @param {string} mimeType The MIME type of the file
+   * @param {string} filePath The full path to the file
    * @param {Partial<CreateFeedPostPayload>} [overrides] The partial feed data to override the defaults
    * @returns {Promise<FeedPostResponse>}
    * @memberof FeedManagementService
@@ -293,6 +285,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
     fileName: string,
     fileSize: number,
     mimeType: string,
+    filePath: string,
     overrides: Partial<CreateFeedPostPayload> = {}
   ): Promise<FeedPostResponse> {
     return await test.step('Creating a feed with attachment via API post request', async () => {
@@ -307,7 +300,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       if (!fileId) {
         throw new Error('Failed to get fileId from upload response');
       }
-      await this.uploadToAttachmentURL(attachmentURL, fileName);
+      await this.uploadToAttachmentURL(attachmentURL, fileName, filePath);
       // Create attachment object with the uploaded fileId
       const listOfAttachedFiles = [buildAttachmentObject(fileId)];
 

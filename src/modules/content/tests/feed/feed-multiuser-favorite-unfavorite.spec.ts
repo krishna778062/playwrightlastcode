@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import path from 'path';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { tagTest } from '@core/utils/testDecorator';
@@ -9,6 +10,7 @@ import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { SiteMembershipAction, SitePermission } from '@/src/core/types/siteManagement.types';
+import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
@@ -33,20 +35,26 @@ test.describe(
         testName: 'without file attachment',
         description:
           'Verify Site Owner, Manager and Content Manager is able to favorite and unfavorite Feed post without File Attachment on Content Feed',
-        hasAttachment: false,
-        fileName: undefined,
-        fileSize: undefined,
-        mimeType: undefined,
+        hasAttachment: false as const,
         storyId: 'CONT-39249',
       },
       {
         testName: 'with file attachment',
         description:
           'Verify Site Owner, Manager and Content Manager is able to favorite and unfavorite Feed post with File Attachment',
-        hasAttachment: true,
+        hasAttachment: true as const,
         fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName,
         fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileSize,
         mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.mimeType,
+        filePath: FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
+          FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName
+        ),
         storyId: 'CONT-24919',
       },
     ];
@@ -98,15 +106,23 @@ test.describe(
           });
 
           // Generate feed test data using the test data generator
-          const feedTestData = TestDataGenerator.generateFeed({
-            scope: 'site',
-            siteId: createdSite.siteId,
-            withAttachment: testData.hasAttachment,
-            fileName: testData.fileName,
-            fileSize: testData.fileSize,
-            mimeType: testData.mimeType,
-            waitForSearchIndex: false,
-          });
+          const feedTestData = testData.hasAttachment
+            ? TestDataGenerator.generateFeed({
+                scope: 'site',
+                siteId: createdSite.siteId,
+                withAttachment: true as const,
+                fileName: testData.fileName,
+                fileSize: testData.fileSize,
+                mimeType: testData.mimeType,
+                filePath: testData.filePath,
+                waitForSearchIndex: false,
+              })
+            : TestDataGenerator.generateFeed({
+                scope: 'site',
+                siteId: createdSite.siteId,
+                withAttachment: false as const,
+                waitForSearchIndex: false,
+              });
           createdPostText = feedTestData.text;
 
           // Create feed based on test data

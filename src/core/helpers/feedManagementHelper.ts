@@ -18,37 +18,46 @@ export class FeedManagementHelper {
    * Creates a new feed with optional attachment.
    * @returns An object containing details of the created feed.
    */
-  async createFeed(params: {
-    scope: string;
-    siteId?: string;
-    text?: string;
-    withAttachment?: boolean;
-    fileName?: string;
-    fileSize?: number;
-    mimeType?: string;
-    options?: { waitForSearchIndex?: boolean };
-  }) {
-    const { scope, siteId, text, withAttachment = false, fileName, fileSize, mimeType, options } = params;
-    const stepMessage = withAttachment ? 'Creating a new feed with attachments' : 'Creating a new feed';
+  async createFeed(
+    params:
+      | {
+          scope: string;
+          siteId?: string;
+          text?: string;
+          withAttachment?: false;
+          fileName?: undefined;
+          fileSize?: undefined;
+          mimeType?: undefined;
+          filePath?: undefined;
+          options?: { waitForSearchIndex?: boolean };
+        }
+      | {
+          scope: string;
+          siteId?: string;
+          text?: string;
+          withAttachment: true;
+          fileName: string;
+          fileSize: number;
+          mimeType: string;
+          filePath: string; // Required when withAttachment is true
+          options?: { waitForSearchIndex?: boolean };
+        }
+  ) {
+    const stepMessage = params.withAttachment ? 'Creating a new feed with attachments' : 'Creating a new feed';
 
     return await test.step(stepMessage, async () => {
-      const feedName = text || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Feed`;
+      const feedName = params.text || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Feed`;
       const { textJson, textHtml } = buildFeedTextJsonAndTextHtml(feedName);
 
       let response;
-      if (withAttachment) {
-        // Use default values if not provided
-        const defaultFileName = fileName || '300x300 RATIO_Text.png';
-        const defaultFileSize = fileSize || 12125;
-        const defaultMimeType = mimeType || 'image/png';
-
+      if (params.withAttachment) {
         response = await this.appManagerApiClient
           .getFeedManagementService()
-          .createFeedWithAttachment(defaultFileName, defaultFileSize, defaultMimeType, {
+          .createFeedWithAttachment(params.fileName, params.fileSize, params.mimeType, params.filePath, {
             textJson,
             textHtml,
-            scope: scope,
-            siteId: siteId || null,
+            scope: params.scope,
+            siteId: params.siteId || null,
             ignoreToxic: false,
             type: 'post',
             variant: 'standard',
@@ -57,8 +66,8 @@ export class FeedManagementHelper {
         response = await this.appManagerApiClient.getFeedManagementService().createFeed({
           textJson,
           textHtml,
-          scope: scope,
-          siteId: siteId || null,
+          scope: params.scope,
+          siteId: params.siteId || null,
           listOfAttachedFiles: [],
           ignoreToxic: false,
           type: 'post',
@@ -68,7 +77,7 @@ export class FeedManagementHelper {
 
       const feedId = response.result.feedId;
 
-      if (options?.waitForSearchIndex !== false) {
+      if (params.options?.waitForSearchIndex !== false) {
         await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
           apiClient: this.appManagerApiClient,
           searchTerm: feedName,
