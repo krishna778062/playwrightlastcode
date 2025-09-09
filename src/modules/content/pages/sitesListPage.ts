@@ -79,8 +79,7 @@ export class SitesListPage extends BasePage implements ISitesListActions, ISites
       try {
         // Wait for button and click
         await addSiteBtn.waitFor({ state: 'visible', timeout: 15000 });
-        await addSiteBtn.scrollIntoViewIfNeeded();
-        await addSiteBtn.click({ force: true });
+        await addSiteBtn.click();
         console.log(`✅ Successfully clicked Add site button`);
       } catch (error) {
         console.log(`❌ Failed to click Add site button: ${error}`);

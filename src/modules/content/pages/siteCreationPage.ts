@@ -7,22 +7,6 @@ import { BasePage } from '@core/pages/basePage';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 
-interface _SiteCreationResponse {
-  status: string;
-  result: {
-    id: string;
-    siteId: string;
-    name: string;
-    title: string;
-    description: string | null;
-    access: string;
-    category: {
-      name: string;
-      id: string;
-    };
-  };
-}
-
 export interface SiteCreationOptions {
   name: string;
   description: string;
@@ -54,8 +38,6 @@ export interface ISiteCreationActions {
 export interface ISiteCreationAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
   verifySiteCreationPageLoaded: () => Promise<void>;
-  verifySiteCreatedSuccessfully: (siteName: string) => Promise<void>;
-  verifyCategoryCreatedSuccessfully: (categoryName: string) => Promise<void>;
 }
 
 export class SiteCreationPage extends BasePage implements ISiteCreationActions, ISiteCreationAssertions {
@@ -72,9 +54,6 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
   readonly categoryCombobox: Locator;
   readonly addSiteButton: Locator;
   readonly addCategoryOption: (categoryName: string) => Locator;
-  readonly categoryLink: (categoryName: string) => Locator;
-  readonly categoryHeading: (categoryName: string) => Locator;
-  readonly siteLink: (siteName: string) => Locator;
 
   constructor(page: Page) {
     super(page);
@@ -99,9 +78,6 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
     this.categoryCombobox = page.getByRole('combobox', { name: 'Category: This is a required' });
     this.addSiteButton = page.getByRole('button', { name: 'Add site' });
     this.addCategoryOption = (categoryName: string) => page.getByText(`Add ${categoryName}…`);
-    this.categoryLink = (categoryName: string) => page.getByRole('link', { name: categoryName });
-    this.categoryHeading = (categoryName: string) => page.getByRole('heading', { name: categoryName });
-    this.siteLink = (siteName: string) => page.getByRole('link', { name: siteName });
   }
 
   get actions(): ISiteCreationActions {
@@ -179,62 +155,6 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
       await this.fillSiteName(siteName);
       await this.selectOrCreateCategory(categoryName);
       await this.clickAddSiteButton();
-    });
-  }
-
-  /**
-   * Verifies that site was created successfully by checking if site link is visible
-   * @param siteName - The site name to verify
-   */
-  async verifySiteCreatedSuccessfully(siteName: string): Promise<void> {
-    await test.step(`Verify site "${siteName}" was created successfully`, async () => {
-      const siteLink = this.siteLink(siteName);
-      await this.verifier.verifyTheElementIsVisible(siteLink, {
-        assertionMessage: `Site link "${siteName}" should be visible after creation`,
-        timeout: 15000,
-      });
-    });
-  }
-
-  /**
-   * Verifies that category was created successfully by checking if category link is visible
-   * @param categoryName - The category name to verify
-   */
-  async verifyCategoryCreatedSuccessfully(categoryName: string): Promise<void> {
-    await test.step(`Verify category "${categoryName}" was created successfully`, async () => {
-      // Wait for page to load after site creation
-      await this.page.waitForTimeout(3000);
-
-      // First verify category link is visible (means category was created)
-      const categoryLink = this.categoryLink(categoryName);
-      await this.verifier.verifyTheElementIsVisible(categoryLink, {
-        assertionMessage: `Category link "${categoryName}" should be visible`,
-        timeout: 15000,
-      });
-
-      // Click on category link to navigate to category page
-      await this.clickOnElement(categoryLink);
-
-      // Wait for navigation
-      await this.page.waitForTimeout(2000);
-
-      // Then verify the heading is visible on category page
-      const categoryHeading = this.categoryHeading(categoryName);
-      await this.verifier.verifyTheElementIsVisible(categoryHeading, {
-        assertionMessage: `Category heading "${categoryName}" should be visible`,
-        timeout: 10000,
-      });
-    });
-  }
-
-  /**
-   * Navigates to the created site by clicking on its link
-   * @param siteName - The site name to navigate to
-   */
-  async navigateToCreatedSite(siteName: string): Promise<void> {
-    await test.step(`Navigate to created site: ${siteName}`, async () => {
-      const siteLink = this.siteLink(siteName);
-      await this.clickOnElement(siteLink);
     });
   }
 

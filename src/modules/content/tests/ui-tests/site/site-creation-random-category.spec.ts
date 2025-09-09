@@ -4,11 +4,13 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { SiteCreationPage } from '@/src/modules/content/pages/siteCreationPage';
+import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 import { SitesListPage } from '@/src/modules/content/pages/sitesListPage';
 
 test.describe('Site Creation', { tag: ['@content', '@site-creation'] }, () => {
   let sitesListPage: SitesListPage;
   let siteCreationPage: SiteCreationPage;
+  let siteDashboardPage: SiteDashboardPage;
   let createdSiteName: string;
   let createdCategoryName: string;
 
@@ -63,13 +65,23 @@ test.describe('Site Creation', { tag: ['@content', '@site-creation'] }, () => {
       console.log(`INFO: Creating site "${createdSiteName}" with category "${createdCategoryName}"`);
       await siteCreationPage.actions.createSiteWithRandomCategory(createdSiteName, createdCategoryName);
 
-      // Step 5: Verify category was created successfully (click on category link in header)
-      await siteCreationPage.assertions.verifyCategoryCreatedSuccessfully(createdCategoryName);
+      // Step 5: Wait for navigation to site dashboard and initialize SiteDashboardPage
+      await appManagerHomePage.page.waitForTimeout(3000);
+      // Note: We need to extract site ID from URL or response to properly initialize SiteDashboardPage
+      // For now, we'll use a placeholder approach - this should be improved to get actual site ID
+      const currentUrl = appManagerHomePage.page.url();
+      const siteIdMatch = currentUrl.match(/\/sites\/([^\/]+)/);
+      const siteId = siteIdMatch ? siteIdMatch[1] : 'placeholder';
 
-      // Step 6: Verify site was created successfully (should be on site dashboard)
-      await siteCreationPage.assertions.verifySiteCreatedSuccessfully(createdSiteName);
+      siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteId);
 
-      // Step 7: Site creation completed successfully
+      // Step 6: Verify category was created successfully (click on category link in header)
+      await siteDashboardPage.assertions.verifyCategoryCreatedSuccessfully(createdCategoryName);
+
+      // Step 7: Verify site was created successfully (should be on site dashboard)
+      await siteDashboardPage.assertions.verifySiteCreatedSuccessfully(createdSiteName);
+
+      // Step 8: Site creation completed successfully
       console.log(`INFO: Site "${createdSiteName}" created successfully with category "${createdCategoryName}"`);
     }
   );
