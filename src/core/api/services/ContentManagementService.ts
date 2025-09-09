@@ -3,7 +3,13 @@ import { IContentManagementServices } from '@api/interfaces/IContentManagementSe
 import { APIRequestContext, expect, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-import { AlbumCreationPayload, EventCreationPayload, PageCreationPayload } from '@core/types/contentManagement.types';
+import { TIMEOUTS } from '@core/constants/timeouts';
+import {
+  AlbumCreationPayload,
+  EventCreationPayload,
+  PageCreationPayload,
+  TopicListResponse,
+} from '@core/types/contentManagement.types';
 
 const defaultBaseContentPayload = {
   listOfFiles: [],
@@ -303,6 +309,26 @@ export class ContentManagementService extends BaseApiClient implements IContentM
           }
         )
         .toBe(true);
+    });
+  }
+
+  /**
+   * Gets the list of topics
+   * @param size - Number of topics to return (default: 16)
+   * @param term - Search term to filter topics (default: empty string)
+   * @param nextPageToken - Token for pagination (default: 0)
+   * @returns The topic list response
+   */
+  async getTopicList(size: number = 16, term: string = '', nextPageToken: number = 0): Promise<TopicListResponse> {
+    return await test.step(`Getting list of topics with size: ${size}, term: "${term}", nextPageToken: ${nextPageToken}`, async () => {
+      const requestData = {
+        size: 16,
+      };
+
+      const response = await this.post(API_ENDPOINTS.content.topics, {
+        data: requestData,
+      });
+      return await this.parseResponse<TopicListResponse>(response);
     });
   }
 }

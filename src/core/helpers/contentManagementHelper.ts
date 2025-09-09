@@ -162,6 +162,17 @@ export class ContentManagementHelper {
   }
 
   /**
+   * Gets the list of topics
+   * @param size - Number of topics to return (default: 16)
+   * @param term - Search term to filter topics (default: empty string)
+   * @param nextPageToken - Token for pagination (default: 0)
+   * @returns The topic list response
+   */
+  async getTopicList(size: number = 16, term: string = '', nextPageToken: number = 0) {
+    return await this.appManagerApiClient.getContentManagementService().getTopicList();
+  }
+
+  /**
    * Cleans up all content (albums, pages, events) created by this helper instance.
    * Note: Site cleanup is handled by the siteManagementHelper fixture at worker level.
    */
