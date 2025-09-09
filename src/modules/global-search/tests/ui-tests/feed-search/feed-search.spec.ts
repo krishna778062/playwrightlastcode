@@ -28,9 +28,9 @@ test.describe(
         const feedResponse = await feedManagementHelper.createFeed({
           scope: 'public',
         });
-        const feedId = feedResponse.result.feedId;
-        const feedName = feedResponse.result.title || testData.content;
-        const authorName = feedResponse.result.authoredBy?.name || 'Unknown';
+        const feedId = feedResponse.feedId;
+        const feedName = feedResponse.feedName;
+        const authorName = feedResponse.authorName;
 
         const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(feedName, {
           stepInfo: `Searching with term "${feedName}" and intent is to find the content`,
