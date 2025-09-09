@@ -393,6 +393,18 @@ export class CreateFeedPostComponent
   }
 
   /**
+   * Adds an embedded URL to the post
+   * @param embedUrl - The URL to embed
+   */
+  async addEmbedUrl(embedUrl?: string): Promise<void> {
+    if (embedUrl) {
+      await test.step(`Adding embedded URL: ${embedUrl}`, async () => {
+        await this.typeInElement(this.feedEditor, ` ${embedUrl}`);
+      });
+    }
+  }
+
+  /**
    * Creates and publishes a new feed post with user and topic mentions
    * @param title - The base text for the post
    * @param userName - The user name to mention
@@ -403,9 +415,10 @@ export class CreateFeedPostComponent
     text: string;
     userName: string;
     topicName: string;
-    siteName: string;
+    siteName: string | string[];
+    embedUrl: string;
   }): Promise<FeedPostResult> {
-    const { text: title, userName, topicName, siteName } = params;
+    const { text: title, userName, topicName, siteName, embedUrl } = params;
     return await test.step(`Creating feed post with user mention "${userName}" and topic mention "${topicName}"`, async () => {
       // Open editor
       await this.clickShareThoughtsButton();
@@ -416,17 +429,20 @@ export class CreateFeedPostComponent
       await this.addTopicMention(topicName);
       await this.addTopicMention(topicName2);
       await this.addUserNameMention(userName);
-      await this.addSiteName(siteName);
+      for (const site of siteName) {
+        await this.addSiteName(site);
+      }
+      await this.addEmbedUrl(embedUrl);
 
       // Publish the page
       const postResponse = await this.createFeedPost();
 
       //json body
       const feedResponseBody = (await postResponse.json()) as FeedPostApiResponse;
-
+      const siteNamesText = Array.isArray(siteName) ? siteName.map(site => `@${site}`).join(' ') : `@${siteName}`;
+      const postText = `${title} #${topicName} #${topicName2} @${userName} ${siteNamesText}`;
       //fetch the page id from the response
       const postId = feedResponseBody.result.feedId;
-      const postText = `${title} #${topicName} #${topicName2} @${userName} @${siteName}`;
       console.log('postText :   ', postText);
 
       return {

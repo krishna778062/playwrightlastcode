@@ -1,12 +1,11 @@
 import { faker } from '@faker-js/faker';
-import { APIRequestContext, request, test } from '@playwright/test';
+import { APIRequestContext, APIResponse, expect, test } from '@playwright/test';
 import * as fs from 'fs';
 
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { IFeedManagementOperations } from '@core/api/interfaces/IFeedManagementOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { CreateFeedPostPayload, FeedPostResponse, UpdateFeedPostPayload } from '@core/types/feed.type';
-import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { FileUtil } from '../../utils/fileUtil';
 
@@ -188,27 +187,20 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
         siteId: siteId,
       };
 
-      console.log('Upload image payload:', JSON.stringify(payload, null, 2));
-
       const response = await this.post(API_ENDPOINTS.content.signedUrl, {
         data: payload,
       });
 
-      const json = await response.json();
-      console.log('--------------------------------');
-      console.log('Upload image response:', JSON.stringify(json, null, 2));
-      console.log('--------------------------------');
+      expect(response.ok(), 'Expecting image uplaod api to pass').toBe(true);
 
-      if (json.status !== 'success') {
-        throw new Error(`Image upload failed. Response: ${JSON.stringify(json)}`);
-      }
+      const imageUploadResponseJson = await response.json();
 
       // Extract key values for easy access
-      const responseFileId = json.result.file_id;
-      const uploadUrl = json.result.upload_url;
+      const responseFileId = imageUploadResponseJson.result.file_id;
+      const uploadUrl = imageUploadResponseJson.result.upload_url;
 
       return {
-        ...json,
+        ...imageUploadResponseJson,
         responseFileId,
         uploadUrl,
       };
@@ -224,111 +216,29 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
    * @returns {Promise<any>}
    * @memberof FeedManagementService
    */
-  async uploadToAttachmentURL(uploadUrl: string, fileName: string): Promise<any> {
+  async uploadToAttachmentURL(uploadUrl: string, fileName: string, filePath: string): Promise<APIResponse> {
     return await test.step(`Uploading file binary data to attachment URL for "${fileName}"`, async () => {
       if (!uploadUrl) {
         throw new Error('Upload URL is required but not provided');
       }
-      const fileName = CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName;
-      const filePath = FileUtil.getFilePath(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        'modules',
-        'content',
-        'test-data',
-        'static-files',
-        'images',
-        fileName
-      );
       const fileBuffer = fs.readFileSync(filePath);
 
       // Build headers for the request
       const headers = {
         'Content-Type': 'image/png',
-        'Content-Disposition': 'attachment; filename=300x300 RATIO_Text.png',
-        ...BaseApiClient.headers,
+        'Content-Disposition': `attachment; filename=${fileName}`,
       };
 
-      // Log the curl equivalent
-      const headersString = Object.entries(headers)
-        .map(([key, value]) => `--header '${key}: ${value}'`)
-        .join(' ');
-
-      console.log('--------------------------------');
-      console.log('Curl equivalent for uploadToAttachmentURL:');
-      console.log(`curl --location --request PUT '${uploadUrl}' \\`);
-      console.log(`${headersString} \\`);
-      console.log(`--data-binary '@${filePath}'`);
-      console.log('--------------------------------');
-
-      // Log complete fetch request details
-      console.log('--------------------------------');
-      console.log('Complete fetch request details:');
-      console.log('URL:', uploadUrl);
-      console.log('Method: PUT');
-      console.log('Headers:', JSON.stringify(headers, null, 2));
-      console.log('Body size:', fileBuffer.length, 'bytes');
-      console.log('File path:', filePath);
-      console.log('--------------------------------');
-
       // Make a PUT request to the signed URL with the file data
-      const response = await this.context.fetch(uploadUrl, {
-        method: 'PUT',
+      const response = await this.context.put(uploadUrl, {
         headers,
         data: fileBuffer,
       });
-      if (!response.ok) {
+      if (!response.ok()) {
         const errorText = await response.text();
         throw new Error(`File upload to attachment URL failed. Status: ${response.status}, Error: ${errorText}`);
       }
-
-      // For PUT requests to S3, successful uploads typically return empty body with 200 status
-      const responseText = await response.text();
-      console.log('--------------------------------');
-      console.log('Attachment upload response body:', responseText);
-      console.log('--------------------------------');
-
-      return {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-        body: responseText,
-        success: response.ok,
-      };
-    });
-  }
-
-  /**
-   * @description Makes a GET request to the location header URL (authorization endpoint)
-   * @param {string} locationHeader The location header URL from previous API response
-   * @returns {Promise<any>}
-   * @memberof FeedManagementService
-   */
-  async getLocation(locationHeader: string): Promise<any> {
-    return await test.step(`Making GET request to location header URL: ${locationHeader}`, async () => {
-      if (!locationHeader) {
-        throw new Error('Location header is required but not provided');
-      }
-
-      // Extract just the path and query parameters from the location header
-      console.log('--------------------------------');
-      console.log('Location complete URL:', locationHeader);
-      console.log('--------------------------------');
-
-      // Make a PUT request to the signed URL with the file data
-      const response = await this.context.fetch(locationHeader, {
-        method: 'GET',
-      });
-
-      const responseText = await response.text();
-      console.log('Location response body:', responseText);
-
-      // Validate status code 200
-      if (!response.ok() || response.status() !== 200) {
-        throw new Error(`getLocation failed. Status: ${response.status()}, URL: ${locationHeader}`);
-      }
+      return response;
     });
   }
 
@@ -363,20 +273,24 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
 
   /**
    * @description Creates a feed with attachments
+   * @param {string} fileName The name of the file to attach
+   * @param {number} fileSize The size of the file
+   * @param {string} mimeType The MIME type of the file
+   * @param {string} filePath The full path to the file
    * @param {Partial<CreateFeedPostPayload>} [overrides] The partial feed data to override the defaults
    * @returns {Promise<FeedPostResponse>}
    * @memberof FeedManagementService
    */
-  async createFeedWithAttachment(overrides: Partial<CreateFeedPostPayload> = {}): Promise<FeedPostResponse> {
+  async createFeedWithAttachment(
+    fileName: string,
+    fileSize: number,
+    mimeType: string,
+    filePath: string,
+    overrides: Partial<CreateFeedPostPayload> = {}
+  ): Promise<FeedPostResponse> {
     return await test.step('Creating a feed with attachment via API post request', async () => {
       // Default image upload parameters
-      const fileName = '300x300 RATIO_Text.png';
-      const fileSize = 12125;
-      const mimeType = 'image/png';
 
-      if (BaseApiClient.globalLocationHeader) {
-        await this.getLocation(BaseApiClient.globalLocationHeader);
-      }
       // Upload image to get fileId
       const uploadResponse = await this.uploadImage(fileName, fileSize, mimeType);
       const fileId = uploadResponse.result.file_id;
@@ -386,7 +300,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       if (!fileId) {
         throw new Error('Failed to get fileId from upload response');
       }
-      await this.uploadToAttachmentURL(attachmentURL, fileName);
+      await this.uploadToAttachmentURL(attachmentURL, fileName, filePath);
       // Create attachment object with the uploaded fileId
       const listOfAttachedFiles = [buildAttachmentObject(fileId)];
 
