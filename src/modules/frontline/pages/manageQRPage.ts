@@ -37,7 +37,7 @@ export class ManageQRPage extends BasePage {
   readonly promoteContentQRModalHeading: Locator;
   readonly contentPreviewQRPopupHeader: Locator;
   readonly nextButton: Locator;
-
+  readonly validTillDatePicker: Locator;
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_QR_PAGE);
 
@@ -72,6 +72,7 @@ export class ManageQRPage extends BasePage {
     this.promoteContentQRModalHeading = page.getByText('Promote content via QR');
     this.contentPreviewQRPopupHeader = page.getByText('Preview QR code');
     this.nextButton = page.getByRole('button', { name: 'Next' });
+    this.validTillDatePicker = page.getByLabel('Valid till');
   }
 
   async clickOnManage() {
@@ -273,9 +274,6 @@ export class ManageQRPage extends BasePage {
   async enterAndSelectContent() {
     await this.enterContent.fill('page');
     await this.selectFirstContent.click();
-    const selectedPages = this.listOfPagesSelected;
-    const selectedPageText = await selectedPages.allTextContents();
-    console.log('Pages selected after entry:', selectedPageText);
   }
 
   async verifyContentQRPageHeading() {
@@ -289,18 +287,22 @@ export class ManageQRPage extends BasePage {
       assertionMessage: 'GPromote content via QR Modal heading should be visible',
     });
   }
+
   async selectDate(number: number) {
-    await this.clickOnElement(this.page.getByLabel('Valid till'), {
+    await this.clickOnElement(this.validTillDatePicker, {
       stepInfo: 'Click on Valid till date picker',
     });
-    const twoDaysFromToday = addDays(new Date(), number);
-    console.log(twoDaysFromToday);
-    const day = format(twoDaysFromToday, 'd');
-    console.log(day);
-    await this.clickOnElement(this.page.getByText(day), {
-      stepInfo: `Select date: ${day}`,
+
+    const targetDate = addDays(new Date(), number);
+    const ariaLabel = format(targetDate, 'EEE MMM dd yyyy');
+
+    const targetDay = this.page.getByRole('gridcell', { name: ariaLabel });
+
+    await this.clickOnElement(targetDay, {
+      stepInfo: `Click on date: ${ariaLabel}`,
     });
   }
+
   async clickOnNextButton() {
     await this.clickOnElement(this.nextButton, {
       stepInfo: 'Click on Next button',
