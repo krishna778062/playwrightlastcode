@@ -376,18 +376,6 @@ export class CreateFeedPostComponent
       await this.clickOnElement(this.addtopicfromList(topicName));
     });
   }
-
-  /**
-   * Adds an embedded URL to the post
-   * @param embedUrl - The URL to embed
-   */
-  async addEmbedUrl(embedUrl?: string): Promise<void> {
-    if (embedUrl) {
-      await test.step(`Adding embedded URL: ${embedUrl}`, async () => {
-        await this.typeInElement(this.feedEditor, ` ${embedUrl}`);
-      });
-    }
-  }
   async createFeedPost(): Promise<Response> {
     return await test.step(`Creating feed post and wait for api response`, async () => {
       const postResponse = await this.performActionAndWaitForResponse(
@@ -402,6 +390,18 @@ export class CreateFeedPostComponent
       );
       return postResponse;
     });
+  }
+
+  /**
+   * Adds an embedded URL to the post
+   * @param embedUrl - The URL to embed
+   */
+  async addEmbedUrl(embedUrl?: string): Promise<void> {
+    if (embedUrl) {
+      await test.step(`Adding embedded URL: ${embedUrl}`, async () => {
+        await this.typeInElement(this.feedEditor, ` ${embedUrl}`);
+      });
+    }
   }
 
   /**
@@ -433,16 +433,16 @@ export class CreateFeedPostComponent
         await this.addSiteName(site);
       }
       await this.addEmbedUrl(embedUrl);
+
       // Publish the page
       const postResponse = await this.createFeedPost();
 
       //json body
       const feedResponseBody = (await postResponse.json()) as FeedPostApiResponse;
-
-      //fetch the page id from the response
-      const postId = feedResponseBody.result.feedId;
       const siteNamesText = Array.isArray(siteName) ? siteName.map(site => `@${site}`).join(' ') : `@${siteName}`;
       const postText = `${title} #${topicName} #${topicName2} @${userName} ${siteNamesText}`;
+      //fetch the page id from the response
+      const postId = feedResponseBody.result.feedId;
       console.log('postText :   ', postText);
 
       return {
