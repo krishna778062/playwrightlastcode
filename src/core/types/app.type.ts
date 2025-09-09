@@ -4,6 +4,14 @@ export interface App {
   img: string;
 }
 
+export interface ExternalLink {
+  url: string;
+  name: string;
+  onOff: boolean;
+  itemOrder: number;
+  faviconUrl?: string | null;
+}
+
 export interface AppsSettingsPayload {
   externalApps: {
     appsIntegrationProvider: string;
@@ -17,13 +25,7 @@ export interface AppsSettingsPayload {
       oneLoginClientSecret: string | null;
     };
   };
-  externalLinks: Array<{
-    url: string;
-    name: string;
-    onOff: boolean;
-    itemOrder: number;
-    faviconUrl: string | null;
-  }>;
+  externalLinks: ExternalLink[];
   myLinksEnabled: boolean;
 }
 

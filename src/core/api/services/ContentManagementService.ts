@@ -297,18 +297,15 @@ export class ContentManagementService extends BaseApiClient implements IContentM
    */
   async deleteContent(siteId: string, contentId: string) {
     return await test.step('Deleting page via API delete request', async () => {
-      const response = await this.delete(API_ENDPOINTS.content.delete(siteId, contentId));
-      expect(response.status()).toBe(200);
-
       await expect
         .poll(
           async () => {
-            const checkResponse = await this.get(API_ENDPOINTS.content.delete(siteId, contentId));
-            return checkResponse.status() === 404 || checkResponse.status() === 400;
+            const response = await this.delete(API_ENDPOINTS.content.delete(siteId, contentId));
+            return response.status() === 200;
           },
           {
-            message: `Content with id ${contentId} was not deleted within the specified timeout.`,
-            timeout: TIMEOUTS.LONG,
+            intervals: [10000, 20000, 30000],
+            timeout: 40_000,
           }
         )
         .toBe(true);

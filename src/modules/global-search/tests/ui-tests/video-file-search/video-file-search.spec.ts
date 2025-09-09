@@ -2,7 +2,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { VIDEO_FILE_SEARCH_TEST_DATA as testData } from '@/src/modules/global-search/test-data/video-file-search.test-data';
@@ -24,13 +23,15 @@ for (const fileType of testData.fileTypes) {
       let siteId: string;
       let siteName: string;
 
-      test.beforeEach('Site and File Setup', async ({ intranetFileHelper }) => {
-        const videoResult = await intranetFileHelper.createSiteAndUploadFile({
-          category: testData.category,
-          accessType: SITE_TYPES.PUBLIC,
+      test.beforeEach('Site and File Setup', async ({ intranetFileHelper, publicSite }) => {
+        // Use the shared public site and upload video file using the new method
+        const videoResult = await intranetFileHelper.uploadFileToExistingSite({
+          siteId: publicSite.siteId,
+          siteName: publicSite.siteName,
           filePath: `src/modules/global-search/test-data/${fileType.fileName}`,
           options: { videoFile: true },
         });
+
         uploadedFileName = videoResult.uploadedFileName;
         fileId = videoResult.fileId;
         authorName = videoResult.authorName;
