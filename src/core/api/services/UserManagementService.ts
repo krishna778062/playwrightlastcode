@@ -9,9 +9,9 @@ import { AddUserResponse } from '@core/types/group.type';
 import {
   IdentityUserInfoResponse,
   IdentityUserSearchResponse,
+  IdentityValidateResponse,
   SearchUserResponse,
   User,
-  IdentityValidateResponse,
 } from '@core/types/user.type';
 
 import { IdentityService } from './IdentityService';
@@ -469,7 +469,7 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
    * @returns Response of the API
    */
   async setPasswordDuringRegistration(token: string, options?: { password: string }): Promise<any> {
-    let defaultPassword: string = 'Simp@1234';
+    const defaultPassword: string = 'Simp@1234';
     return await test.step(`Setting password for the user with token: ${token} and password: ${options?.password || defaultPassword}`, async () => {
       const response = await this.post(API_ENDPOINTS.identity.v2IdentityUsersSetPassword, {
         headers: {
@@ -497,8 +497,8 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
       verificationQuestionValue: string;
     }
   ): Promise<any> {
-    let defaultVerificationQuestionField: string = 'department';
-    let defaultVerificationQuestionValue: string = 'Product';
+    const defaultVerificationQuestionField: string = 'department';
+    const defaultVerificationQuestionValue: string = 'Product';
     return await test.step(`Answering user's profile question for ${options?.verificationQuestionField || defaultVerificationQuestionField} as ${options?.verificationQuestionValue || defaultVerificationQuestionValue}`, async () => {
       const response = await this.post(API_ENDPOINTS.identity.v2IdentityProfileQuestionsVerify, {
         headers: {

@@ -1,4 +1,5 @@
-import { Page, Locator } from '@playwright/test';
+import { Locator,Page } from '@playwright/test';
+
 import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export type AccessControlGroupModalMode = 'create' | 'edit';
@@ -66,7 +67,7 @@ export class AccessControlGroupModalComponent extends BaseComponent {
    *@param audienceName - The name of the audience for which remove button need to be clicked
    */
   async clickOnRemoveButtonForAudience(audienceName: string): Promise<void> {
-    let removeButtonElement = this.page
+    const removeButtonElement = this.page
       .locator('[class*="Spacing-module__row"]')
       .filter({ hasText: audienceName })
       .getByRole('button', { name: 'Remove audience' });

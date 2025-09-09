@@ -4,14 +4,15 @@ import { TestPriority } from '@core/constants/testPriority';
 import { tagTest } from '@core/utils/testDecorator';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { FeatureOwnersPage } from '@platforms/pages/abacPage/featureOwnersPage/featureOwnersPage';
+
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { Roles, RolesId } from '@/src/core/constants/roles';
 import { USER_STATUS } from '@/src/core/constants/status';
 import { TestSuite } from '@/src/core/constants/testSuite';
+import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { IdentityUserSearchResponse, User } from '@/src/core/types/user.type';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { FEATURE_OWNERS_MENU_OPTIONS } from '@/src/modules/platforms/constants/featureOwnersMenuOptions';
-import { LoginHelper } from '@/src/core/helpers/loginHelper';
 
 test.describe(
   'Feature Owners Testcases',

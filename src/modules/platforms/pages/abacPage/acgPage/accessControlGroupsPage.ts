@@ -1,12 +1,13 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { POPUP_BUTTONS } from '@core/constants/popupButtons';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
-import { POPUP_BUTTONS } from '@core/constants/popupButtons';
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { AccessControlGroupModalComponent } from '@platforms/components/accessControlGroupModal';
 import { ConfirmEditAccessControlGroupModalComponent } from '@platforms/components/confirmEditAccessControlGroupModal';
 import { ACG_STATUS } from '@platforms/constants/acgStatus';
+
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 export enum ACGFeature {
   ADD_SITES = 'Add_sites',
