@@ -246,21 +246,15 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       const headers = {
         'Content-Type': 'image/png',
         'Content-Disposition': `attachment; filename=${fileName}`,
-        ...BaseApiClient.headers,
+        // ...BaseApiClient.headers,
       };
 
-      // Log the curl equivalent
-      const headersString = Object.entries(headers)
-        .map(([key, value]) => `--header '${key}: ${value}'`)
-        .join(' ');
-
       // Make a PUT request to the signed URL with the file data
-      const response = await this.context.fetch(uploadUrl, {
-        method: 'PUT',
+      const response = await this.context.put(uploadUrl, {
         headers,
         data: fileBuffer,
       });
-      if (!response.ok) {
+      if (!response.ok()) {
         const errorText = await response.text();
         throw new Error(`File upload to attachment URL failed. Status: ${response.status}, Error: ${errorText}`);
       }
@@ -272,9 +266,9 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       console.log('--------------------------------');
 
       return {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
+        status: response.status(),
+        statusText: response.statusText(),
+        headers: response.headers(),
         body: responseText,
         success: response.ok,
       };
