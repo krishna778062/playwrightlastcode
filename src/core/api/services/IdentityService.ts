@@ -9,6 +9,7 @@ import {
   IdentityAudienceSearchResponse,
   ListAudiencesResponse,
 } from '@core/types/audience.type';
+import { PeopleListOptions, PeopleListResponse } from '@core/types/people.type';
 import { IdentityUserSearchResponse } from '@core/types/user.type';
 
 interface ListRolesResponse {
@@ -65,7 +66,7 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
   async getIdentityUserId(firstName: string, lastName: string): Promise<string> {
     let userId: string = '';
     await test.step(`Fetch the identity user id of the user ${firstName} ${lastName}`, async () => {
-      const response = await this.post(API_ENDPOINTS.appManagement.users.list, {
+      const response = await this.post(API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersList, {
         data: {
           size: 16,
           sort_by: {
@@ -476,6 +477,7 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
   }
 
   /**
+
    * Get all categories using hierarchy API
    */
   async getCategories(): Promise<any[]> {
@@ -538,5 +540,23 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
     } catch (error) {
       return null;
     }
+
+   * Gets the list of people with optional email filtering
+   * @param emailId - Optional email address to filter by
+   * @returns The people list response
+   */
+  async getListOfPeople(emailId?: string): Promise<PeopleListResponse> {
+    return await test.step(`Getting list of people${emailId ? ` for email: ${emailId}` : ''}`, async () => {
+      const requestData = {
+        size: 100,
+        ...(emailId && { searchTerm: emailId }),
+      };
+
+      const response = await this.post(API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersList, {
+        data: requestData,
+      });
+      return await this.parseResponse<PeopleListResponse>(response);
+    });
+
   }
 }

@@ -12,15 +12,32 @@ export interface IFeedActions {
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
   deletePost: (postText: string) => Promise<void>;
-
   // Content creation flow
   createPostWithAttachments: (text: string, files?: string[]) => Promise<FeedPostResult>;
+  createfeedWithMentionUserNameAndTopic: (params: {
+    text: string;
+    userName: string;
+    topicName: string;
+    siteName: string | string[];
+    embedUrl: string;
+  }) => Promise<FeedPostResult>;
+  editPostWithTopicAndUserName: (params: {
+    currentText: string;
+    newText: string;
+    topicName: string;
+    userName: string;
+  }) => Promise<void>;
+  markPostAsFavourite: () => Promise<void>;
+  removePostFromFavourite: (postText: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
   // High-level verification flows
   verifyPostDetails: (postText: string, expectedAttachmentCount: number) => Promise<void>;
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
+  verifyPostIsNotFavorited: (postText: string) => Promise<void>;
+  verifyPostIsFavorited: (postText: string) => Promise<void>;
+  validatePostText: (postText: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -73,6 +90,32 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     return await this.createAndPost(options);
   }
 
+  /**
+   * Creates a feed post with user mention and topic mention
+   * @param text - The base text for the post
+   * @param userName - The user name to mention (e.g., "John Doe")
+   * @param topicName - The topic name to mention (e.g., "Technology")
+   * @returns Promise<FeedPostResult>
+   */
+  async createfeedWithMentionUserNameAndTopic(params: {
+    text: string;
+    userName: string;
+    topicName: string;
+    siteName: string | string[];
+    embedUrl: string;
+  }): Promise<FeedPostResult> {
+    return await this.createFeedPostComponent.createfeedWithMentionUserNameAndTopic(params);
+  }
+
+  async editPostWithTopicAndUserName(params: {
+    currentText: string;
+    newText: string;
+    topicName: string;
+    userName: string;
+  }): Promise<void> {
+    return await this.createFeedPostComponent.editPostWithTopicAndUserName(params);
+  }
+
   // High-level verification methods
   async verifyPostDetails(postText: string, expectedAttachmentCount: number): Promise<void> {
     await test.step(`Verify complete post details for: ${postText}`, async () => {
@@ -117,5 +160,30 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    */
   async getPostTimestamp(postText: string): Promise<void> {
     await this.listFeedComponent.getPostTimestamp(postText);
+  }
+
+  //Favourite Post Methods
+  async markPostAsFavourite(): Promise<void> {
+    await test.step(`Marking post as favourite:`, async () => {
+      await this.listFeedComponent.markPostAsFavourite();
+    });
+  }
+
+  async removePostFromFavourite(postText: string): Promise<void> {
+    await this.listFeedComponent.removePostFromFavourite(postText);
+  }
+
+  async verifyPostIsFavorited(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyPostIsFavorited(postText);
+  }
+
+  async verifyPostIsNotFavorited(postText: string): Promise<void> {
+    await test.step(`Verify post is not favorited: ${postText}`, async () => {
+      await this.listFeedComponent.verifyPostIsNotFavorited(postText);
+    });
+  }
+
+  async validatePostText(postText: string): Promise<void> {
+    await this.listFeedComponent.validatePostText(postText);
   }
 }
