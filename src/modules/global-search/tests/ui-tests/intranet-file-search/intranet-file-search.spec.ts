@@ -2,7 +2,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { INTRANET_FILE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/intranet-file-search.test-data';
@@ -14,19 +13,21 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
       tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.FILE_SEARCH],
     },
     () => {
-      const testData = INTRANET_FILE_SEARCH_TEST_DATA;
+      const _testData = INTRANET_FILE_SEARCH_TEST_DATA;
       let siteId: string;
       let siteName: string;
       let uploadedFileName: string;
       let fileId: string;
       let authorName: string;
 
-      test.beforeEach('Site and File Setup', async ({ intranetFileHelper }) => {
-        const intranetResult = await intranetFileHelper.createSiteAndUploadFile({
-          category: testData.category,
-          accessType: SITE_TYPES.PUBLIC,
+      test.beforeEach('Site and File Setup', async ({ intranetFileHelper, publicSite }) => {
+        // Use the shared public site and upload file using the new method
+        const intranetResult = await intranetFileHelper.uploadFileToExistingSite({
+          siteId: publicSite.siteId,
+          siteName: publicSite.siteName,
           filePath: `src/modules/global-search/test-data/${fileType.fileName}`,
         });
+
         uploadedFileName = intranetResult.uploadedFileName;
         fileId = intranetResult.fileId;
         authorName = intranetResult.authorName;
