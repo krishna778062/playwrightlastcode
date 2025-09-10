@@ -158,7 +158,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     });
   }
   async checkCommentOption(): Promise<void> {
-    await test.step('Clicking on save', async () => {
+    await test.step('Checking comment option', async () => {
       await this.contentDetailsComponent.checkCommentOption.isHidden();
     });
   }

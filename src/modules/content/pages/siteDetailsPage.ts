@@ -19,7 +19,7 @@ export class SiteDetailsPage extends BasePage {
   }
 
   async ViewSite(): Promise<void> {
-    await test.step('Clicking on save', async () => {
+    await test.step('Viewing site', async () => {
       await this.clickOnElement(this.siteDetailsComponent.ViewSite);
     });
   }
