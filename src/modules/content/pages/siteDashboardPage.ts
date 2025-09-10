@@ -176,27 +176,21 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
    */
   async verifyCategoryCreatedSuccessfully(categoryName: string): Promise<void> {
     await test.step(`Verify category "${categoryName}" was created successfully`, async () => {
-      // Wait for page to load after site creation
-      await this.page.waitForTimeout(3000);
-
       // First verify category link is visible (means category was created)
       const categoryLink = this.categoryLink(categoryName);
       await this.verifier.verifyTheElementIsVisible(categoryLink, {
         assertionMessage: `Category link "${categoryName}" should be visible`,
-        timeout: 15000,
+        timeout: 18000,
       });
 
       // Click on category link to navigate to category page
       await this.clickOnElement(categoryLink);
 
-      // Wait for navigation
-      await this.page.waitForTimeout(2000);
-
       // Then verify the heading is visible on category page
       const categoryHeading = this.categoryHeading(categoryName);
       await this.verifier.verifyTheElementIsVisible(categoryHeading, {
         assertionMessage: `Category heading "${categoryName}" should be visible`,
-        timeout: 10000,
+        timeout: 15000,
       });
     });
   }
