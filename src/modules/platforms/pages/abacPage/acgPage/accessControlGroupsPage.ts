@@ -273,30 +273,14 @@ export class AccessControlGroupsPage extends BasePage {
    * Edits ACG - If ACG name is provided, edit the ACG with the given name, otherwise edit the first ACG in the list.
    * @param options - acgName - Name of the ACG to be edited.
    */
-  async editACG(options?: { acgName: string }): Promise<void> {
-    const selectedACGRecordMenuOptionButton: Locator = options?.acgName
-      ? this.acgRecords.filter({ hasText: options?.acgName })
-      : this.acgMenuOptions.first();
-
+  async editACG(acgName: string): Promise<void> {
+    const selectedACGRecordMenuOptionButton: Locator = this.acgRecords
+      .filter({ hasText: acgName })
+      .locator('[aria-haspopup="menu"]');
     await this.clickOnElement(selectedACGRecordMenuOptionButton);
-    // await this.clickOnElement(this.acgEditButton);
     await this.clickOnElementWithCoordinates(this.acgEditButton, {
       force: true,
       stepInfo: 'Clicking on the Edit button with coordinates',
     });
-  }
-
-  /**
-   * Clicks on close button for create ACG modal.
-   */
-  async clickOnCloseButtonForCreateACGModal(): Promise<void> {
-    await this.createACGModal.clickCloseButton();
-  }
-
-  /**
-   * Clicks on close button for edit ACG modal.
-   */
-  async clickOnCloseButtonForEditACGModal(): Promise<void> {
-    await this.editACGModal.clickCloseButton();
   }
 }

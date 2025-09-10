@@ -43,7 +43,7 @@ export class AccessControlGroupModalComponent extends BaseComponent {
    * Clicks the close button on the access control group modal
    */
   async clickCloseButton(): Promise<void> {
-    await super.clickCloseButton(this.closeButton, 'Click Close (X) button');
+    await this.clickOnElement(this.closeButton);
   }
 
   /**

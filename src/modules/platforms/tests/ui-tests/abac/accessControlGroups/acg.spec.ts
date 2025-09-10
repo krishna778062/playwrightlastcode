@@ -6,8 +6,10 @@ import { ACG_EDIT_ASSETS } from '@platforms/constants/acgEditAssets';
 import { ACG_STATUS } from '@platforms/constants/acgStatus';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/acgPage/accessControlGroupsPage';
-
+import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { AUDIENCE_API_ATTRIBUTES, AUDIENCE_API_OPERATORS } from '@/src/core/constants/createAudienceAPI';
 import { TestSuite } from '@/src/core/constants/testSuite';
+import { audienceCreationParams } from '@/src/core/types/audience.type';
 
 test.describe(
   'ACG Testcases',
@@ -15,47 +17,39 @@ test.describe(
     tag: [TestSuite.ABAC],
   },
   () => {
-    let audienceId1: string | undefined;
-    let audienceId2: string | undefined;
-    let acgName1: string | undefined;
-    let acgName2: string | undefined;
+    let audienceId: string[] = [];
+    let acgName: string[] = [];
     let categoryToCreate: string | undefined;
-    let audienceToCreate1: string = '';
-    let audienceToCreate2: string = '';
+    let audienceToCreate: string[] = [];
     let categoryId: string | undefined;
+    let createAudienceParams: audienceCreationParams;
 
     test.beforeEach(async ({ appManagerApiClient }) => {
-      categoryToCreate = `ABAC_Target_Category`;
-      audienceToCreate1 = `ABAC_Target_Audience_${Date.now()}`;
-      audienceToCreate2 = `ABAC_Target_Audience_Secondary_${Date.now()}`;
+      categoryToCreate = TestDataGenerator.generateCategoryName('ABAC_Target_Category');
+      audienceToCreate.push(TestDataGenerator.generateCategoryName('ABAC_Target_Audience'));
+      audienceToCreate.push(TestDataGenerator.generateCategoryName('ABAC_Target_Audience_Secondary'));
 
-      await appManagerApiClient.getIdentityService().createCategory(categoryToCreate);
-      categoryId = await appManagerApiClient.getIdentityService().getCategoryId(categoryToCreate, 100);
-      audienceId1 = await appManagerApiClient
-        .getIdentityService()
-        .createAudience(audienceToCreate1, categoryId, 'first_name', 'CONTAINS', 'something');
-      audienceId2 = await appManagerApiClient
-        .getIdentityService()
-        .createAudience(audienceToCreate2, categoryId, 'first_name', 'CONTAINS', 'something');
+      categoryId = await appManagerApiClient.getIdentityService().createCategory(categoryToCreate);
+      createAudienceParams = {
+        audienceName: audienceToCreate[0],
+        categoryId: categoryId,
+        attribute: AUDIENCE_API_ATTRIBUTES.FIRST_NAME,
+        operator: AUDIENCE_API_OPERATORS.CONTAINS,
+        value: 'something',
+      };
+      audienceId.push(await appManagerApiClient.getIdentityService().createAudience(createAudienceParams));
+      createAudienceParams.audienceName = audienceToCreate[1];
+      audienceId.push(await appManagerApiClient.getIdentityService().createAudience(createAudienceParams));
     });
 
     test.afterEach(async ({ appManagerApiClient }) => {
-      //delete the audiences if it exists
-      if (audienceId1 != undefined) {
-        // Cleanup
-        await appManagerApiClient.getIdentityService().deleteAudience(audienceId1);
-      }
-      if (audienceId2 != undefined) {
-        // Cleanup
-        await appManagerApiClient.getIdentityService().deleteAudience(audienceId2);
-      }
-
       //delete the acg if it exists
-      if (acgName1 != undefined) {
-        await appManagerApiClient.getIdentityService().deleteACGByName(acgName1);
+      while (acgName.length > 0) {
+        await appManagerApiClient.getIdentityService().deleteACGByName(acgName.pop() as string);
       }
-      if (acgName2 != undefined) {
-        await appManagerApiClient.getIdentityService().deleteACGByName(acgName2);
+      //delete the audiences if it exists
+      while (audienceId.length > 0) {
+        await appManagerApiClient.getIdentityService().deleteAudience(audienceId.pop() as string);
       }
     });
 
@@ -67,7 +61,7 @@ test.describe(
     test(
       'Verify that single ACG can be created and deleted without any issue',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -77,20 +71,19 @@ test.describe(
         // Test Scenario(s)
         await accessControlGroupsPage.loadPage();
         //after these actions are done, we will wait for the api call to be completed
-        acgName1 = await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate1);
-        await accessControlGroupsPage.verifyACGStatus(acgName1, ACG_STATUS.ACTIVE);
-        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName1);
+        acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
+        await accessControlGroupsPage.verifyACGStatus(acgName[0], ACG_STATUS.ACTIVE);
+        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
         await accessControlGroupsPage.dismissTheToastMessage();
-        await accessControlGroupsPage.deleteACG(acgName1);
-        acgName1 = undefined; //reset the acg name back to undefined to avoid any future cleanup issues
+        await accessControlGroupsPage.deleteACG(acgName.pop() as string);
       }
     );
 
     test(
       'Verify that status of the ACG should be displayed as Active or Inactive immediately after creation',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -99,22 +92,23 @@ test.describe(
         const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
         // Test Scenario - Verify that status of the ACG should be displayed as Inactive immediately after creation
         await accessControlGroupsPage.loadPage();
-        acgName1 = await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate1, {
-          acgStatus: 'Inactive',
-        });
-        await accessControlGroupsPage.verifyACGStatus(acgName1, ACG_STATUS.INACTIVE);
-        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName1);
+        acgName.push(
+          await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0], {
+            acgStatus: 'Inactive',
+          })
+        );
+        await accessControlGroupsPage.verifyACGStatus(acgName[0], ACG_STATUS.INACTIVE);
+        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
         await accessControlGroupsPage.dismissTheToastMessage();
-        await accessControlGroupsPage.deleteACG(acgName1);
-        acgName1 = undefined; //reset the acg name back to undefined to avoid any future cleanup issues
+        await accessControlGroupsPage.deleteACG(acgName.pop() as string);
       }
     );
 
     test(
       'Verify that user manager should have access for ACG creation',
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ userManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -124,19 +118,18 @@ test.describe(
         // Test Scenario
         await accessControlGroupsPage.loadPage();
         //after these actions are done, we will wait for the api call to be completed
-        acgName1 = await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate1);
-        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName1);
+        acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
+        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
         await accessControlGroupsPage.dismissTheToastMessage();
-        await accessControlGroupsPage.deleteACG(acgName1);
-        acgName1 = undefined; //reset the acg name back to undefined to avoid any future cleanup issues
+        await accessControlGroupsPage.deleteACG(acgName.pop() as string);
       }
     );
 
     test(
       `Verify that Roles option should not be displayed under Manage section in menu option`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
@@ -152,7 +145,7 @@ test.describe(
     test(
       `Verify that redirecting to "manage/roles" url should display page not found screen`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
@@ -168,7 +161,7 @@ test.describe(
     test(
       'Verify that duplicate acg error is displayed on attempting to create ACG with same features and target audiences',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -178,8 +171,8 @@ test.describe(
         // Pre-requisite
         await accessControlGroupsPage.loadPage();
         // Create an ACG with target audiecne only
-        acgName1 = await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate1);
-        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName1);
+        acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
+        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
         await accessControlGroupsPage.dismissTheToastMessage();
         // Test Scenario
@@ -187,21 +180,20 @@ test.describe(
         await accessControlGroupsPage.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
-        await accessControlGroupsPage.searchForValues(audienceToCreate1);
-        await accessControlGroupsPage.clickOnAudience(audienceToCreate1);
+        await accessControlGroupsPage.searchForValues(audienceToCreate[0]);
+        await accessControlGroupsPage.clickOnAudience(audienceToCreate[0]);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
         await accessControlGroupsPage.createACGModal.verifyDuplicateTargetGroupsErrorMessage();
-        await accessControlGroupsPage.clickOnCloseButtonForCreateACGModal();
+        await accessControlGroupsPage.createACGModal.clickCloseButton();
         // Clean up: Delete the above created ACG
-        await accessControlGroupsPage.deleteACG(acgName1);
-        acgName1 = undefined; //reset the acg name back to undefined to avoid any future cleanup issues
+        await accessControlGroupsPage.deleteACG(acgName.pop() as string);
       }
     );
 
     test(
       'Verify that duplicate acg error is displayed on editing ACG to match anothers features and target audiences',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -211,32 +203,29 @@ test.describe(
         await accessControlGroupsPage.loadPage();
         // Prerequisite
         // Create an ACG with target audiecne only
-        acgName1 = await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate1);
-        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName1);
+        acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
+        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
         await accessControlGroupsPage.dismissTheToastMessage();
-        acgName2 = await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate2);
-        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName2);
+        acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[1]));
+        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[1]);
         await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
         await accessControlGroupsPage.dismissTheToastMessage();
         // Test Scenario
-        await accessControlGroupsPage.searchForACG(acgName2);
-        await accessControlGroupsPage.editACG();
+        await accessControlGroupsPage.searchForACG(acgName[1]);
+        await accessControlGroupsPage.editACG(acgName[1]);
         await accessControlGroupsPage.confirmEditACGModal.clickContinueButton();
         await accessControlGroupsPage.editACGModal.clickOnEditButtonOnSummaryScreen(ACG_EDIT_ASSETS.TARGET_AUDIENCE);
-        await accessControlGroupsPage.editACGModal.clickOnRemoveButtonForAudience(audienceToCreate2);
+        await accessControlGroupsPage.editACGModal.clickOnRemoveButtonForAudience(audienceToCreate[1]);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
-        await accessControlGroupsPage.searchForValues(audienceToCreate1);
-        await accessControlGroupsPage.clickOnAudience(audienceToCreate1);
+        await accessControlGroupsPage.searchForValues(audienceToCreate[0]);
+        await accessControlGroupsPage.clickOnAudience(audienceToCreate[0]);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
         await accessControlGroupsPage.editACGModal.verifyDuplicateTargetGroupsErrorMessage();
-        await accessControlGroupsPage.clickOnCloseButtonForEditACGModal();
-
+        await accessControlGroupsPage.editACGModal.clickCloseButton();
         // Clean up: Delete the above created ACG
-        await accessControlGroupsPage.deleteACG(acgName2);
-        acgName2 = undefined; //reset the acg name back to undefined to avoid any future cleanup issues
-        await accessControlGroupsPage.deleteACG(acgName1);
-        acgName1 = undefined; //reset the acg name back to undefined to avoid any future cleanup issues
+        await accessControlGroupsPage.deleteACG(acgName.pop() as string);
+        await accessControlGroupsPage.deleteACG(acgName.pop() as string);
       }
     );
   }
