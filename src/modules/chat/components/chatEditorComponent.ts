@@ -59,10 +59,6 @@ export class ChatEditorComponent extends BaseComponent {
     await test.step(options?.stepInfo ?? `Sending message: ${message}`, async () => {
       await this.fillInElement(this.inputTextBox, message);
       await this.sendMessageButton.click();
-      // await this.clickOnSendMessageButton();
-
-      // Try pressing Enter instead of clicking the send button
-      // await this.inputTextBox.press('Enter');
     });
   }
 

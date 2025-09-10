@@ -147,8 +147,7 @@ export class ConversationWindowComponent extends BaseComponent {
     for (const eachMessage of await this.listChatMessagesComponent.all()) {
       //fetch message
       const messageText = await eachMessage.locator('section').locator('p').textContent();
-      console.log(`messageText: ${messageText}`);
-      console.log(`message: ${message}`);
+
       if (messageText === message) {
         return eachMessage;
       }

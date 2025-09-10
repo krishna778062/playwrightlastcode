@@ -16,8 +16,8 @@ test.describe('Send Message', { tag: [CHAT_SUITE_TAGS.USER_CHAT] }, () => {
     async ({ appManagerHomePage }) => {
       tagTest(test.info(), {
         description: 'To verify normal message can be sent to user',
-        // zephyrTestId: 'CHAT-2179',
-        // storyId: 'CHAT-2179',
+        zephyrTestId: 'CHAT-2179',
+        storyId: 'CHAT-2179',
       });
       const chatAppPage = await appManagerHomePage.navigateToChatPageViaTopNavBar();
       await chatAppPage.getInboxSideBarComponent().clickOnCreateNewMessageIcon();
@@ -47,6 +47,8 @@ test.describe('Send Message', { tag: [CHAT_SUITE_TAGS.USER_CHAT] }, () => {
     async ({ appManagerHomePage }) => {
       tagTest(test.info(), {
         description: 'To verify long message can be sent to user',
+        zephyrTestId: 'CHAT-2208',
+        storyId: 'CHAT-2208',
       });
       const chatAppPage = await appManagerHomePage.navigateToChatPageViaTopNavBar();
       await chatAppPage.getInboxSideBarComponent().clickOnCreateNewMessageIcon();
