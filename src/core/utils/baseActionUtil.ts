@@ -388,4 +388,18 @@ export class BaseActionUtil {
       await this.clickOnElement(this.dismissToastMessage);
     });
   }
+
+  /**
+   * Waits for the element to be visible
+   * @param locator - The locator to wait for
+   * @param options - The options to pass to the verification
+   */
+  async hoverOverElementInJavaScript(locator: Locator) {
+    await this.page.evaluate(
+      el => {
+        (el as HTMLElement).dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+      },
+      await locator.elementHandle()
+    );
+  }
 }

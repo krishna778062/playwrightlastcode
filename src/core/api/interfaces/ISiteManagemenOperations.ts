@@ -15,4 +15,5 @@ export interface ISiteManagementOperations {
     permission?: SitePermission,
     action?: SiteMembershipAction
   ): Promise<SiteMembershipResponse>;
+  getSiteMembershipList(siteId: string, options?: { size?: number; type?: string }): Promise<any>;
 }
