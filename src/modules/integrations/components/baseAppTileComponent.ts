@@ -15,6 +15,8 @@ export class BaseAppTileComponent extends BaseComponent {
   readonly tileTitleInput: Locator;
   readonly removePopupTitle: Locator;
   readonly removePopupMessageLocator: Locator;
+  readonly dialog: Locator;
+  readonly tileTypeCombobox: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -24,6 +26,8 @@ export class BaseAppTileComponent extends BaseComponent {
     this.tileTitleInput = page.getByLabel('Tile title');
     this.removePopupTitle = page.getByRole('heading', { name: 'Remove tile' });
     this.removePopupMessageLocator = page.getByRole('dialog').locator('p');
+    this.dialog = page.getByRole('dialog');
+    this.tileTypeCombobox = page.getByRole('combobox', { name: 'Tile type' });
   }
   protected getAppTileButton(name: string): Locator {
     return this.page.getByRole('button').filter({ hasText: name });
@@ -124,9 +128,8 @@ export class BaseAppTileComponent extends BaseComponent {
 
   async submitTileToHomeOrDashboard(choice: string): Promise<void> {
     await test.step(`Submit tile to '${choice}'`, async () => {
-      const dialog = this.page.getByRole('dialog');
       await this.clickOnElement(this.page.getByRole('button', { name: choice }), { timeout: 30_000 });
-      await dialog.waitFor({ state: 'detached', timeout: 30_000 });
+      await this.dialog.waitFor({ state: 'detached', timeout: 30_000 });
     });
   }
 
@@ -237,8 +240,8 @@ export class BaseAppTileComponent extends BaseComponent {
   async clickThreeDotsOnTile(tileName: string): Promise<void> {
     await test.step(`Click three dots menu on '${tileName}' tile`, async () => {
       const threeDotsButton = this.getThreeDotsIcon(tileName);
-      await threeDotsButton.waitFor({ state: 'visible', timeout: 15_000 });
-      await threeDotsButton.click({ force: true });
+      await this.verifier.waitUntilElementIsVisible(threeDotsButton, { timeout: 15_000 });
+      await this.clickOnElement(threeDotsButton, { force: true });
     });
   }
 
@@ -352,7 +355,7 @@ export class BaseAppTileComponent extends BaseComponent {
 
   async selectTile(tileType: string): Promise<void> {
     await test.step(`Select tile type: ${tileType}`, async () => {
-      await this.clickOnElement(this.page.getByRole('combobox', { name: 'Tile type' }), { timeout: 30_000 });
+      await this.clickOnElement(this.tileTypeCombobox, { timeout: 30_000 });
       await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
       const tileOption = this.page.getByRole('menuitem').filter({ hasText: tileType });
       await this.clickOnElement(tileOption, { timeout: 30_000 });

@@ -11,6 +11,24 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly menuitem: (name: string) => Locator;
   readonly group: (name: string) => Locator;
   readonly radio: (name: string) => Locator;
+  readonly airtableTile: Locator;
+  readonly airtableImage: Locator;
+  readonly tileHeading: Locator;
+  readonly container: Locator;
+  readonly divider: Locator;
+  readonly noResultsText: Locator;
+  readonly tryAdjustingText: Locator;
+  readonly settingsButton: Locator;
+  readonly personalizeText: Locator;
+  readonly organizationLabel: Locator;
+  readonly linkWithH3: Locator;
+  readonly menuitemFilter: Locator;
+  readonly prNumberPattern: RegExp;
+  readonly createdAgoPattern: RegExp;
+  readonly reportIdPattern: RegExp;
+  readonly amountPattern: RegExp;
+  readonly lastUpdatedPattern: RegExp;
+  readonly duePattern: RegExp;
 
   constructor(page: Page) {
     super(page);
@@ -22,6 +40,25 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.menuitem = (name: string) => page.getByRole('menuitem', { name });
     this.group = (name: string) => page.getByRole('group', { name });
     this.radio = (name: string) => page.getByRole('radio', { name });
+    this.airtableTile = page.locator('aside.Tile');
+    this.airtableImage = page.locator('img[src*="airtable"]');
+    this.tileHeading = page.locator('h2.Tile-heading');
+    this.container = page.locator('[data-testid="container"]');
+    this.divider = page.locator('[data-testid="divider"]');
+    this.noResultsText = page.getByText('No results');
+    this.tryAdjustingText = page.getByText('Try adjusting your');
+    this.settingsButton = page.getByRole('button', { name: 'settings' });
+    this.personalizeText = page.getByText(/Personalize.*tile/);
+    this.organizationLabel = page.getByLabel('Organization');
+    this.linkWithH3 = page.locator('a:has(h3)');
+    this.menuitemFilter = page.getByRole('menuitem');
+    // Regex patterns for text matching
+    this.prNumberPattern = /^#\d+/;
+    this.createdAgoPattern = /^Created\s+.*\s+ago$/;
+    this.reportIdPattern = /^R[A-Za-z0-9]+$/;
+    this.amountPattern = /^\$\d+\.\d{2}$/;
+    this.lastUpdatedPattern = /Last updated \d+ days? ago/;
+    this.duePattern = /Due/;
   }
 
   /**
@@ -42,10 +79,10 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     await test.step(`Verify GitHub tile data for '${tileTitle}'`, async () => {
       const tile = this.getTileContainers(tileTitle).first();
 
-      await expect(tile.getByText(/^#\d+/).first()).toBeVisible();
+      await expect(tile.getByText(this.prNumberPattern).first()).toBeVisible();
       await expect(tile.locator(this.heading(3)).first()).toBeVisible();
       await expect(tile.getByText(statusPattern).first()).toBeVisible();
-      await expect(tile.getByText(/^Created\s+.*\s+ago$/).first()).toBeVisible();
+      await expect(tile.getByText(this.createdAgoPattern).first()).toBeVisible();
     });
   }
 
@@ -69,9 +106,9 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   async selectFromDropdown(fieldName: string, option: string): Promise<void> {
     await test.step(`Select ${option} from ${fieldName}`, async () => {
       const dropdown = this.combobox(fieldName);
-      await dropdown.click();
-      const menuItem = this.page.getByRole('menuitem').filter({ hasText: option });
-      await menuItem.click();
+      await this.clickOnElement(dropdown);
+      const menuItem = this.menuitemFilter.filter({ hasText: option });
+      await this.clickOnElement(menuItem);
     });
   }
 
@@ -82,7 +119,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     await test.step(`Select ${option} for ${fieldName}`, async () => {
       const field = this.group(fieldName);
       const radio = field.getByLabel(option);
-      await radio.click();
+      await this.clickOnElement(radio);
     });
   }
 
@@ -92,7 +129,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   async selectRadioOptionByLabel(option: string): Promise<void> {
     await test.step(`Select radio option: ${option}`, async () => {
       const radio = this.page.getByLabel(option);
-      await radio.click();
+      await this.clickOnElement(radio);
     });
   }
 
@@ -127,9 +164,9 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   async verifyNoResultsWithSettings(tileTitle: string): Promise<void> {
     await test.step(`Verify no results state for tile: ${tileTitle}`, async () => {
       const tile = this.getTile(tileTitle);
-      await expect(tile.getByText('No results')).toBeVisible();
-      await expect(tile.getByText('Try adjusting your')).toBeVisible();
-      await expect(tile.locator(this.button('settings'))).toBeVisible();
+      await expect(tile.locator(this.noResultsText)).toBeVisible();
+      await expect(tile.locator(this.tryAdjustingText)).toBeVisible();
+      await expect(tile.locator(this.settingsButton)).toBeVisible();
     });
   }
 
@@ -141,12 +178,12 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       const tile = this.getTile(tileTitle);
 
       // Click the settings button
-      await tile.locator(this.button('settings')).click();
+      await this.clickOnElement(tile.locator(this.settingsButton));
 
       // Verify personalize modal opens
       await expect(this.dialog).toBeVisible();
-      await expect(this.dialog.getByText(/Personalize.*tile/)).toBeVisible();
-      await expect(this.page.getByLabel('Organization')).toBeVisible();
+      await expect(this.dialog.locator(this.personalizeText)).toBeVisible();
+      await expect(this.organizationLabel).toBeVisible();
     });
   }
 
@@ -159,8 +196,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   async verifyTileRedirects(tileTitle: string, expectedUrl: string, linkSelector?: string): Promise<void> {
     await test.step(`Verify tile '${tileTitle}' redirects to '${expectedUrl}'`, async () => {
       const tile = this.getTileContainers(tileTitle).first();
-      const link = linkSelector ? tile.locator(linkSelector) : tile.locator('a:has(h3)');
-      await link.first().click();
+      const link = linkSelector ? tile.locator(linkSelector) : tile.locator(this.linkWithH3);
+      await this.clickOnElement(link.first());
       const urlRegex = new RegExp(`^${expectedUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*`);
       const popup = await this.page.waitForEvent('popup').catch(() => null);
       if (popup) {
@@ -181,13 +218,13 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       const tile = this.getTileContainers(tileTitle).first();
 
       // Verify report ID is visible (format: R followed by alphanumeric characters)
-      await expect(tile.getByText(/^R[A-Za-z0-9]+$/).first()).toBeVisible();
+      await expect(tile.getByText(this.reportIdPattern).first()).toBeVisible();
 
       // Verify report title is visible (should be a heading3)
       await expect(tile.locator(this.heading(3)).first()).toBeVisible();
 
       // Verify amount is visible (format: $ followed by numbers and decimal)
-      await expect(tile.getByText(/^\$\d+\.\d{2}$/).first()).toBeVisible();
+      await expect(tile.getByText(this.amountPattern).first()).toBeVisible();
 
       // Verify status is visible (should be in a tag with status indicator)
       await expect(this.getTagElement(tile).first()).toBeVisible();
@@ -195,10 +232,10 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await expect(tile.locator('div:has-text("$")').locator('+ div').locator('p').first()).toBeVisible();
 
       // Verify last updated text is visible
-      await expect(tile.getByText(/Last updated \d+ days? ago/).first()).toBeVisible();
+      await expect(tile.getByText(this.lastUpdatedPattern).first()).toBeVisible();
 
       // Verify divider is present
-      await expect(tile.locator('[data-testid="divider"]').first()).toBeVisible();
+      await expect(tile.locator(this.divider).first()).toBeVisible();
     });
   }
 
@@ -208,18 +245,17 @@ export class TileOperationsComponent extends BaseAppTileComponent {
    */
   async verifyAirtableTileContentStructure(tileTitle: string): Promise<void> {
     await test.step(`Verify Airtable tile content structure for '${tileTitle}'`, async () => {
-      const tile = this.page
-        .locator('aside.Tile')
-        .filter({ has: this.page.locator('img[src*="airtable"]') })
-        .filter({ has: this.page.locator('h2.Tile-heading', { hasText: tileTitle }) });
+      const tile = this.airtableTile
+        .filter({ has: this.airtableImage })
+        .filter({ has: this.tileHeading.filter({ hasText: tileTitle }) });
 
       await expect(tile).toBeVisible({ timeout: 10_000 });
 
       // Verify main containers using data-testid
-      await expect(tile.locator('[data-testid="container"]').first()).toBeVisible();
+      await expect(tile.locator(this.container).first()).toBeVisible();
 
       // Get task records and verify at least one exists
-      const containers = tile.locator('[data-testid="container"]');
+      const containers = tile.locator(this.container);
       const count = await containers.count();
       await expect(count).toBeGreaterThan(0);
 
@@ -228,7 +264,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await expect(firstRecord.locator('img').first()).toBeVisible();
       await expect(firstRecord.locator('h3').first()).toBeVisible();
       await expect(firstRecord.locator('p').first()).toBeVisible();
-      await expect(firstRecord.getByText(/Due/).first()).toBeVisible();
+      await expect(firstRecord.getByText(this.duePattern).first()).toBeVisible();
       await expect(this.getTagElement(firstRecord).first()).toBeVisible();
     });
   }
