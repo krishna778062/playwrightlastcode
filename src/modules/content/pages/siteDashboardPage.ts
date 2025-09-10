@@ -24,7 +24,7 @@ export interface ISiteDashboardAssertions {
 export class SiteDashboardPage extends BasePage implements ISiteDashboardActions, ISiteDashboardAssertions {
   readonly addContentButton = this.page.locator("button[title='Add content']");
   readonly manageSiteButton = this.page.locator("button[title='Manage site'], a[href*='/manage']");
-  readonly siteNameHeading = this.page.locator('h1');
+  readonly siteNameHeading = (siteName: string) => this.page.locator('h1').filter({ hasText: siteName });
   readonly addContentModal: AddContentModalComponent;
   readonly successMessage = (message: string) =>
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
@@ -129,7 +129,7 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
         assertionMessage: `Success message "${successMessage}" should be visible after publishing`,
       });
 
-      await this.verifier.verifyElementHasText(this.siteNameHeading, siteName, {
+      await this.verifier.verifyTheElementIsVisible(this.siteNameHeading(siteName), {
         assertionMessage: `Site name heading should contain "${siteName}"`,
       });
     });
