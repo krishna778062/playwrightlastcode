@@ -135,8 +135,6 @@ test.describe(
           };
 
           await setupNavigation();
-          await appManagerHomePage.page.pause();
-          await appManagerFeedPage.verifyThePageIsLoaded();
 
           // Parallel data fetching for better performance
           const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);

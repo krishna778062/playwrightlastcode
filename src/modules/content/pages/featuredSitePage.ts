@@ -29,7 +29,7 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
     .getByRole('link');
   readonly successToastMessage = (message: string) =>
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
-  readonly addUpdateFeaturedSiteButton = this.page.getByRole('button', { name: 'Add/update' });
+  readonly addUpdateFeaturedSiteButton = this.page.locator('button', { hasText: 'Add/update' });
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FEATURED_SITES_PAGE);
@@ -37,7 +37,6 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.page.waitForLoadState('domcontentloaded');
     await test.step('Verify Featured Sites page is loaded', async () => {
       await this.verifier.verifyTheElementIsVisible(this.addUpdateFeaturedSiteButton, {
         assertionMessage: 'Verify Featured Sites page is loaded',
