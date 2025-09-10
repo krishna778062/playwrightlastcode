@@ -1,5 +1,6 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
@@ -16,24 +17,9 @@ test.describe('Site Creation', { tag: ['@content', '@site-creation'] }, () => {
 
   test.beforeEach(async () => {
     // Generate test data using framework pattern
-    const timestamp = Date.now();
-    const randomSuffix = Math.random().toString(36).substring(2, 8);
-    createdSiteName = `TestSite${randomSuffix}${timestamp}`.substring(0, 50);
-    createdCategoryName = `Category${randomSuffix}${timestamp}`.substring(0, 30);
-  });
-
-  test.afterEach('Site Clean up', async ({ siteManagementHelper: _siteManagementHelper }) => {
-    if (createdSiteName) {
-      try {
-        // For now, we'll rely on the siteManagementHelper cleanup
-        console.log('API cleanup handled by siteManagementHelper for site:', createdSiteName.substring(0, 30) + '...');
-      } catch {
-        console.log('API cleanup failed for site:', createdSiteName.substring(0, 30) + '...');
-      }
-      createdSiteName = '';
-    } else {
-      console.log('No site was created, hence skipping the deletion');
-    }
+    const siteData = TestDataGenerator.generateSite('public');
+    createdSiteName = siteData.name;
+    createdCategoryName = TestDataGenerator.generateCategoryName();
   });
 
   test(
@@ -62,7 +48,6 @@ test.describe('Site Creation', { tag: ['@content', '@site-creation'] }, () => {
       siteCreationPage = await sitesListPage.actions.clickAddSiteButton();
 
       // Step 4: Create site with random category using UI
-      console.log(`INFO: Creating site "${createdSiteName}" with category "${createdCategoryName}"`);
       await siteCreationPage.actions.createSiteWithRandomCategory(createdSiteName, createdCategoryName);
 
       // Step 5: Wait for navigation to site dashboard and initialize SiteDashboardPage
@@ -80,9 +65,6 @@ test.describe('Site Creation', { tag: ['@content', '@site-creation'] }, () => {
 
       // Step 7: Verify site was created successfully (should be on site dashboard)
       await siteDashboardPage.assertions.verifySiteCreatedSuccessfully(createdSiteName);
-
-      // Step 8: Site creation completed successfully
-      console.log(`INFO: Site "${createdSiteName}" created successfully with category "${createdCategoryName}"`);
     }
   );
 });

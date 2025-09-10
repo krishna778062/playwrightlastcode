@@ -163,8 +163,7 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
    */
   async verifySiteCreatedSuccessfully(siteName: string): Promise<void> {
     await test.step(`Verify site "${siteName}" was created successfully`, async () => {
-      const siteLink = this.siteLink(siteName);
-      await this.verifier.verifyTheElementIsVisible(siteLink, {
+      await this.verifier.verifyTheElementIsVisible(this.siteLink(siteName), {
         assertionMessage: `Site link "${siteName}" should be visible after creation`,
         timeout: 15000,
       });

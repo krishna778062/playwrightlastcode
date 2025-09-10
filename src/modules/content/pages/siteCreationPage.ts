@@ -128,7 +128,7 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
       await this.clickOnElement(this.categorySection);
 
       // Fill the category name in combobox
-      await this.categoryCombobox.fill(categoryName);
+      await this.fillInElement(this.categoryCombobox, categoryName);
 
       // Click on "Add categoryName..." option to create new category
       const addCategoryOption = this.addCategoryOption(categoryName);

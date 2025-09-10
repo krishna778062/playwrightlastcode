@@ -70,9 +70,6 @@ export class SideNavBarComponent extends BaseComponent {
    */
   async clickOnSites(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `Clicking Sites button in side navigation`, async () => {
-      // Wait for the menuitem to be ready
-      await this.sitesButton.waitFor({ state: 'visible', timeout: 10000 });
-
       // Click on sites button using framework method
       await this.clickOnElement(this.sitesButton);
     });
