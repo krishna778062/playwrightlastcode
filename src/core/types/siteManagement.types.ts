@@ -1,12 +1,13 @@
 export enum SitePermission {
   MEMBER = 'member',
-  CONTENT_MANAGER = 'content_manager',
-  ADMIN = 'admin',
+  CONTENT_MANAGER = 'contentManager',
+  MANAGER = 'manager',
   OWNER = 'owner',
 }
 
 export enum SiteMembershipAction {
   ADD = 'addPeople',
+  SET_PERMISSION = 'setPeoplePermission',
 }
 
 export interface SiteCreationPayload {
