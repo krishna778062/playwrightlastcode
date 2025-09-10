@@ -9,7 +9,7 @@ import {
   IdentityAudienceSearchResponse,
   ListAudiencesResponse,
 } from '@core/types/audience.type';
-import { PeopleListOptions, PeopleListResponse } from '@core/types/people.type';
+import { PeopleListResponse } from '@core/types/people.type';
 import { IdentityUserSearchResponse } from '@core/types/user.type';
 
 interface ListRolesResponse {
