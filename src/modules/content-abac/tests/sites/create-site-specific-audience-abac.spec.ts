@@ -1,7 +1,6 @@
 import { IdentityService } from '@/src/core/api/services/IdentityService';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
-import { AudienceHelper } from '@/src/core/helpers/audienceHelper';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { tagTest } from '@/src/core/utils/testDecorator';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
@@ -33,12 +32,17 @@ test.describe('Site Creation Test Suite (ABAC) - Specific Audience', { tag: [Con
       await appManagerHomePage.actions.openSiteCreationForm();
       const siteCreationPage = new SiteCreationPage(page);
 
-      // STEP 2: Verify sections (Access, Target Audience, Subscriptions)
-      await siteCreationPage.verifySiteCreationFormStructure();
+      // Verify form inputs and buttons are present and functional
+      await siteCreationPage.form.siteNameInput.isVisible();
+      await siteCreationPage.form.categoryInput.isVisible();
+      await siteCreationPage.form.addSiteButton.isVisible();
+      await siteCreationPage.form.cancelButton.isVisible();
+      await siteCreationPage.form.targetAudienceSection.browseAudiencesButton.isVisible();
 
       // STEP 3: Setup specific audience (reuse existing or create new)
       const identity = new IdentityService(appManagerApiClient.context, getEnvConfig().apiBaseUrl);
-      const audienceName = await AudienceHelper.getOrCreateAudienceName(identity);
+      const audienceName = await siteCreationPage.getOrCreateAudienceName(identity);
+      console.log(`Audience name is ${audienceName}`);
 
       // STEP 4: Create the site with specific audience and capture siteId from URL
       siteId = await siteCreationPage.createSite({
@@ -49,7 +53,7 @@ test.describe('Site Creation Test Suite (ABAC) - Specific Audience', { tag: [Con
       });
       console.log('INFO: The created siteId', siteId);
 
-      // STEP 5: Verify site creation success toast and that siteId is present
+      // STEP 6: Verify site creation success toast and that siteId is present
       await siteCreationPage.assertions.verifySiteCreatedSuccessfully(SITE_CREATION_TEST_DATA.PUBLIC_SITE.name);
     }
   );

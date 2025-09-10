@@ -16,6 +16,13 @@ export class TargetAudienceSectionComponent extends BaseComponent {
   readonly cancelButton: Locator;
   readonly searchTextBox: Locator;
 
+  // Audience selection verification locators for comprehensive UI testing
+  readonly selectedAudienceText: Locator;
+  readonly everyoneInOrgText: Locator;
+  readonly userCountText: Locator;
+  readonly basedOnAudiencesText: Locator;
+  readonly editIconWhenTAIsAllOrg: Locator;
+
   constructor(page: Page) {
     super(page);
     this.targetAudienceHeading = page.getByRole('heading', { name: 'Target audience and' });
@@ -32,6 +39,16 @@ export class TargetAudienceSectionComponent extends BaseComponent {
     this.audienceDoneButton = this.audiencePickerContainer.getByRole('button', { name: SiteCreationUI.BUTTONS.DONE });
     this.cancelButton = this.audiencePickerContainer.getByRole('button', { name: 'Cancel' });
     this.searchTextBox = this.audiencePickerContainer.getByRole('textbox', { name: 'Search…' });
+
+    // Audience selection verification locators for comprehensive UI testing
+    this.selectedAudienceText = page.locator('#page-content').getByText('All organization', { exact: true }).first();
+    this.everyoneInOrgText = page.getByText('Everyone in the organization');
+    this.userCountText = page.locator('text=/\\d+ users/');
+    this.basedOnAudiencesText = page.getByText('Based on the audiences');
+    this.editIconWhenTAIsAllOrg = page
+      .locator('#page-content')
+      .getByText('Cannot edit while', { exact: false })
+      .first();
   }
 
   /**
@@ -70,15 +87,45 @@ export class TargetAudienceSectionComponent extends BaseComponent {
   }
 
   /**
+   * This method is used to verify the audience picker defaults.
+   * @param options - optional step info to be used in the test report
+   */
+  async verifyAudiencePickerDefaults(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Verify Audience picker defaults', async () => {
+      await expect(this.allOrganizationOption, 'All organization option should be visible').toBeVisible();
+      await expect(this.allOrganizationSwitch, 'All organization switch should be visible').toBeVisible();
+      await expect(this.allOrganizationSwitch, 'All organization switch should not be checked').not.toBeChecked();
+      await expect(this.searchTextBox, 'Search text box should be visible').toBeVisible();
+      await expect(this.cancelButton, 'Cancel button should be enabled').toBeEnabled();
+      await expect(this.audienceDoneButton, 'Audience done button should be disabled').toBeDisabled();
+    });
+  }
+
+  /**
    * Setup All organization audience selection
    */
   async setupAllOrganization(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Setup All organization audience', async () => {
-      await this.openAudiencePicker();
-      await this.clickOnElement(this.allOrganizationOption);
-      await this.allOrganizationSwitch.check();
-      await this.clickOnElement(this.audienceDoneButton);
+      await this.openAudiencePickerAndVerifyDefaults();
+      await this.selectAllOrganizationAndConfirm();
     });
+  }
+
+  /**
+   * Open audience picker and verify defaults
+   */
+  private async openAudiencePickerAndVerifyDefaults(): Promise<void> {
+    await this.openAudiencePicker();
+    await this.verifyAudiencePickerDefaults();
+  }
+
+  /**
+   * Select all organization option and confirm selection
+   */
+  private async selectAllOrganizationAndConfirm(): Promise<void> {
+    await this.clickOnElement(this.allOrganizationOption);
+    await this.allOrganizationSwitch.check();
+    await this.clickOnElement(this.audienceDoneButton);
   }
 
   /**
@@ -107,6 +154,52 @@ export class TargetAudienceSectionComponent extends BaseComponent {
         throw new Error(`Audience ${audienceName} not found in any expanded category`);
       }
     });
+  }
+
+  /**
+   * Verify specific audience selection with comprehensive UI checks
+   */
+  async verifySpecificAudienceSelectionSummary(audienceName: string, options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || `Verify specific audience selection: ${audienceName}`, async () => {
+      await expect(this.page.getByText(audienceName), `Audience ${audienceName} should be selected`).toBeVisible();
+      await expect(this.basedOnAudiencesText, 'Based on audiences text should be visible').toBeVisible();
+    });
+  }
+
+  /**
+   * Verify audience selection count in UI
+   */
+  async verifyAudienceCount(expectedCount: string, options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || `Verify audience count: ${expectedCount}`, async () => {
+      await expect(this.userCountText, `User count should show ${expectedCount}`).toContainText(expectedCount);
+    });
+  }
+
+  /**
+   * Verify selected audience text in UI
+   */
+  async verifySelectedAudienceText(audienceName: string, options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || `Verify selected audience text: ${audienceName}`, async () => {
+      await expect(this.selectedAudienceText, `Selected audience should show ${audienceName}`).toContainText(
+        audienceName
+      );
+    });
+  }
+
+  /**
+   * Verify edit icon state when All organization is selected
+   */
+  async verifyEditIconState(isEditable: boolean, options?: { stepInfo?: string }): Promise<void> {
+    await test.step(
+      options?.stepInfo || `Verify edit icon state: ${isEditable ? 'editable' : 'not editable'}`,
+      async () => {
+        if (isEditable) {
+          await expect(this.editIconWhenTAIsAllOrg, 'Edit icon should be available').toBeVisible();
+        } else {
+          await expect(this.editIconWhenTAIsAllOrg, 'Edit should be disabled message should be visible').toBeVisible();
+        }
+      }
+    );
   }
 
   /**

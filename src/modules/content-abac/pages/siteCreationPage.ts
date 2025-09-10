@@ -1,7 +1,9 @@
 import { expect, Page, test } from '@playwright/test';
 
+import { IdentityService } from '@/src/core/api/services/IdentityService';
 import { BasePage } from '@/src/core/pages/basePage';
 import { SiteCreationPayload } from '@/src/core/types/siteManagement.types';
+import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { SiteCreationFormComponent } from '@/src/modules/content-abac/components/createSite/siteCreationFormComponent';
 import { SiteType } from '@/src/modules/content-abac/constants/siteType';
 
@@ -145,5 +147,30 @@ export class SiteCreationPage extends BasePage implements ISiteCreationPageAsser
     await test.step('Verify site deactivated toast', async () => {
       await this.form.verifySiteDeactivated();
     });
+  }
+
+  /**
+   * Get or create an audience name for site creation.
+   * Business logic: Create audience when there are no audience, else use existing.
+   */
+  async getOrCreateAudienceName(identity: IdentityService): Promise<string> {
+    try {
+      // Try to find existing audience using service methods
+      const existingAudience = await identity.findFirstAvailableAudience();
+      if (existingAudience) {
+        return existingAudience;
+      }
+
+      // Create new audience if none exist
+      const categoryName = `Category_${Date.now()}`;
+      const audienceName = `Audience_${Date.now()}`;
+
+      const categoryId = await identity.createCategory(categoryName);
+      await identity.createAudience(audienceName, categoryId, 'first_name', 'CONTAINS', 'e');
+
+      return audienceName;
+    } catch (error) {
+      throw new Error(`Failed to get or create audience: ${error}`);
+    }
   }
 }
