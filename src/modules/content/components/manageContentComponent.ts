@@ -269,28 +269,27 @@ export class ManageContentComponent extends BaseComponent {
   }
   async selectSiteSearchBarOption(): Promise<void> {
     await test.step('Selecting the site search bar option', async () => {
-      this.siteSearchBarOptionText = await this.siteSearchBarOption.innerText();
+      const fullText = (await this.siteSearchBarOption.textContent()) || '';
+      // Extract site name by removing "Site" prefix
+      this.siteSearchBarOptionText = fullText.replace(/^Site/, '').trim();
 
       // Click on the site search bar option
       await this.clickOnElement(this.siteSearchBarOption);
-
-      // Get the text of the selected option
-
-      // Log the selected option text (optional)
-      console.log(this.siteSearchBarOptionText);
     });
   }
 
   async verifySiteNameLink(): Promise<void> {
     await test.step('Verifying the site name', async () => {
-      // Get the text of the site name
+      // Get the site name
       const siteName = await this.siteName.innerText();
+      console.log(siteName);
+      console.log(this.siteSearchBarOptionText);
 
-      // Compare the texts
-      if (this.siteSearchBarOptionText === siteName) {
+      // Check if site name matches the selected option
+      if (this.siteSearchBarOptionText.trim() === siteName.trim()) {
         console.log('Site name is matching');
       } else {
-        throw new Error('Site name is not matching');
+        throw new Error(`Site name is not matching. Expected: ${this.siteSearchBarOptionText}, Found: ${siteName}`);
       }
     });
   }
