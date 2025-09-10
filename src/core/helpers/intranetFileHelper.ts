@@ -7,7 +7,6 @@ import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { IntranetFileListComponent } from '@/src/modules/global-search/components/intranetFileListComponent';
-import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 /**
  * The IntranetFileHelper class is a helper class for intranet file related operations.
@@ -70,41 +69,25 @@ export class IntranetFileHelper {
   }
 
   /**
-   * Creates site and uploads file for testing - reusable for any file type
-   * @param category - The category name for the site
-   * @param accessType - The access type for the site (e.g., 'public', 'private')
-   * @param filePath - The path to the file to upload
-   * @param options - Upload options including file type information
-   * @returns Object containing all setup metadata needed for testing
+   * Uploads a file to an existing site and returns file details
+   * @param params - Parameters for uploading file to existing site
+   * @returns Object containing uploaded file details
    */
-  async createSiteAndUploadFile(params: {
-    category: string;
-    accessType: SITE_TYPES;
+  async uploadFileToExistingSite(params: {
+    siteId: string;
+    siteName: string;
     filePath: string;
     options?: { videoFile?: boolean };
   }) {
     try {
-      const { category, accessType, filePath, options = {} } = params;
+      const { siteId, siteName, filePath, options = {} } = params;
 
-      const categoryObject = await this.appManagerApiClient.getSiteManagementService().getCategoryId(category);
-      const siteManagementHelper = new SiteManagementHelper(this.appManagerApiClient);
-      const createdSiteDetails = await siteManagementHelper.createSite({
-        category: categoryObject,
-        accessType: accessType,
-      });
-
-      // Extract site metadata
-      const createdSiteId = createdSiteDetails.siteId!;
-      const createdSiteName = createdSiteDetails.siteName;
-
-      const uploadedFileName = await this.uploadFile(createdSiteId, filePath, options);
+      const uploadedFileName = await this.uploadFile(siteId, filePath, options);
 
       // Get file details - use different methods for video vs regular files
       const fileDetails = options.videoFile
-        ? await this.appManagerApiClient
-            .getSiteManagementService()
-            .getVideoFileIdFromSearch(createdSiteId, uploadedFileName)
-        : await this.appManagerApiClient.getSiteManagementService().getFileIdFromSite(createdSiteId, uploadedFileName);
+        ? await this.appManagerApiClient.getSiteManagementService().getVideoFileIdFromSearch(siteId, uploadedFileName)
+        : await this.appManagerApiClient.getSiteManagementService().getFileIdFromSite(siteId, uploadedFileName);
 
       // Extract file metadata
       const uploadedFileId = fileDetails.fileId;
@@ -120,13 +103,13 @@ export class IntranetFileHelper {
         uploadedFileName: uploadedFileName,
         fileId: uploadedFileId,
         authorName: fileAuthorName,
-        siteId: createdSiteId,
-        siteName: createdSiteName,
+        siteId: siteId,
+        siteName: siteName,
       };
     } catch (error) {
-      console.error('Error in createSiteAndUploadFile:', error);
+      console.error('Error in uploadFileToExistingSite:', error);
       throw new Error(
-        `Failed to create site and upload file: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to upload file to existing site: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }

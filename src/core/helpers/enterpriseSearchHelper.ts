@@ -29,6 +29,7 @@ export class EnterpriseSearchHelper {
             data: { page_size: 10, exact_match: true, search_term: searchTerm },
           });
           const responseBody = await response.json();
+          console.log('responseBody', responseBody);
           // Filter the list items which have the correct object_type
           const result = responseBody.data.list_items.filter(
             (eachItem: any) => eachItem.item.object_type === objectType

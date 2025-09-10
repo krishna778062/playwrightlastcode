@@ -245,4 +245,120 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
       await audiencePage.editCategoryModal.clickCloseButton();
     }
   );
+
+  test(
+    'Edit category modal: validations and basic actions',
+    { tag: [TestPriority.P1] },
+    async ({ appManagerPage, audienceCategoryManagementHelper }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-35418', 'PS-35419', 'PS-35420', 'PS-35421', 'PS-35422'],
+      });
+      const audiencePage = new AudiencePage(appManagerPage);
+      const testCategoryName = TestDataGenerator.generateCategoryName('001EditTestCategory');
+
+      // Load the audience page
+      await audiencePage.loadPage();
+
+      // Step 1: Create category with no description
+      await audienceCategoryManagementHelper.createCategory(testCategoryName);
+
+      // Reload the page to see the API-created category
+      await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
+
+      // Step 2: Click on Edit for that category from options menu dropdown
+      await audiencePage.openEditCategoryModal(testCategoryName);
+
+      // Step 3: Click on Add description and verify description field and delete (dustbin) icon presence
+      await audiencePage.clickAddDescriptionAndVerify(true);
+
+      // Step 4: Verify name field accepts alphabets, numbers, and special characters (and description as well)
+      await audiencePage.verifyNameAndDescriptionFieldsAcceptAlphaNumericAndSpecial(true);
+
+      // Step 5: Verify the updated name length limit is <= 100 chars using existing reusable method
+      await audiencePage.editCategoryModal.verifyNameFieldMaxLength();
+
+      // Step 6: Verify the updated description length limit is <= 1024 chars
+      await audiencePage.editCategoryModal.verifyDescriptionFieldMaxLength();
+
+      // Close Edit modal and clean up category
+      await audiencePage.editCategoryModal.clickCloseButton();
+    }
+  );
+
+  test(
+    'Verify category should not get updated when user clicks on Cancel or Close button under Edit category popup',
+    { tag: [TestPriority.P2] },
+    async ({ appManagerPage, audienceCategoryManagementHelper }) => {
+      tagTest(test.info(), { zephyrTestId: ['PS-35423', 'PS-35424'] });
+      const audiencePage = new AudiencePage(appManagerPage);
+      const testCategoryName = TestDataGenerator.generateCategoryName('001EditTestCategory');
+
+      // Setup: create a category
+      await audiencePage.loadPage();
+      await audienceCategoryManagementHelper.createCategory(testCategoryName);
+
+      // Reload the page to see the API-created category
+      await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
+
+      // Verify cancel button behavior
+      await audiencePage.verifyCategoryCancelButtonBehavior();
+      await audiencePage.verifyAudienceCategoryVisibilityInList(testCategoryName);
+
+      // Verify close button behavior
+      await audiencePage.verifyCategoryCloseButtonBehavior();
+      await audiencePage.verifyAudienceCategoryVisibilityInList(testCategoryName);
+    }
+  );
+
+  test(
+    'Edit category modal: Update actions',
+    { tag: [TestPriority.P1] },
+    async ({ appManagerPage, audienceCategoryManagementHelper }) => {
+      tagTest(test.info(), { zephyrTestId: ['PS-35425', 'PS-35426', 'PS-35428', 'PS-35427'] });
+
+      const audiencePage = new AudiencePage(appManagerPage);
+      const baseName = TestDataGenerator.generateCategoryName('001EditTestCategory');
+      const updatedName = TestDataGenerator.generateCategoryName('002EditTestCategory');
+
+      const oldDescriptionText = TestDataGenerator.generateRandomString('Category Test description for category');
+      const newDescriptionText = TestDataGenerator.generateRandomString(
+        'Category updated Test description for category'
+      );
+
+      // Setup: create a category to edit
+      await audiencePage.loadPage();
+      await audienceCategoryManagementHelper.createCategory(baseName);
+
+      // Reload the page to see the API-created category
+      await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
+
+      // Step 1: Update name and verify
+      await audiencePage.updateCategoryName(baseName, updatedName);
+      await audiencePage.verifyAudienceCategoryVisibilityInList(updatedName);
+
+      // Step 2: Add description and verify
+      await audiencePage.addDescriptionForAudienceCategory(updatedName, oldDescriptionText);
+      await audiencePage.verifyTheVisibilityOfCategoryDescription({
+        categoryName: updatedName,
+        description: oldDescriptionText,
+        shouldBeVisible: true,
+      });
+
+      // Step 3: Update description and verify
+      await audiencePage.updateDescriptionForAudienceCategory(updatedName, newDescriptionText);
+      await audiencePage.verifyTheVisibilityOfCategoryDescription({
+        categoryName: updatedName,
+        description: newDescriptionText,
+        shouldBeVisible: true,
+      });
+
+      // Step 4: Remove description and verify
+      await audiencePage.removeDescriptionForAudienceCategory(updatedName, newDescriptionText);
+      await audiencePage.verifyTheVisibilityOfCategoryDescription({
+        categoryName: updatedName,
+        description: newDescriptionText,
+        shouldBeVisible: false,
+      });
+    }
+  );
 });
