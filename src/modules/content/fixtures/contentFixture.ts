@@ -23,9 +23,15 @@ export const users = {
     email: envConfig.appManagerEmail,
     password: envConfig.appManagerPassword,
   },
+
   endUser: {
     email: envConfig.endUserEmail || '',
     password: envConfig.endUserPassword || '',
+  },
+
+  siteManager: {
+    email: envConfig.siteManagerEmail || '',
+    password: envConfig.siteManagerPassword || '',
   },
 } as const;
 
@@ -54,6 +60,7 @@ export const contentTestFixture = test.extend<
     // Browser contexts
     appManagerContext: BrowserContext;
     standardUserContext: BrowserContext;
+    siteManagerContext: BrowserContext;
 
     // Authenticated pages
     appManagerHomePage: HomePageType;
@@ -61,6 +68,8 @@ export const contentTestFixture = test.extend<
     endUserContext: BrowserContext;
     endUserHomePage: NewUxHomePage | OldUxHomePage;
     endUsersPage: Page;
+    siteManagerHomePage: HomePageType;
+    siteManagerPage: Page;
     feedManagerService: FeedManagementService;
     manageContentHelper: ContentManagementHelper;
     manageContentEndUserHelper: ContentManagementHelper;
@@ -153,6 +162,35 @@ export const contentTestFixture = test.extend<
 
       await use(context);
       await context.close();
+    },
+    { scope: 'test' },
+  ],
+  siteManagerContext: [
+    async ({ browser }, use, workerInfo) => {
+      const context = await browser.newContext();
+      await use(context);
+      await context?.close();
+    },
+    { scope: 'test' },
+  ],
+
+  siteManagerHomePage: [
+    async ({ siteManagerContext }, use, workerInfo) => {
+      const page = await siteManagerContext.newPage();
+      const siteManagerHomePage = await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().siteManagerEmail || '',
+        password: getEnvConfig().siteManagerPassword || '',
+      });
+      await siteManagerHomePage.verifyThePageIsLoaded();
+      await use(siteManagerHomePage);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+
+  siteManagerPage: [
+    async ({ siteManagerHomePage }, use, workerInfo) => {
+      await use(siteManagerHomePage.page);
     },
     { scope: 'test' },
   ],
