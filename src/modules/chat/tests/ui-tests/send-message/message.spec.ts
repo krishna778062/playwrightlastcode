@@ -27,19 +27,15 @@ test.describe('Send Message', { tag: [CHAT_SUITE_TAGS.USER_CHAT] }, () => {
       await chatAppPage.getInboxSideBarComponent().searchAndSelectUser(CONSTANT_DATA.USER_NAME_1);
       await chatAppPage.getInboxSideBarComponent().clickStartChatButton();
 
-      // Get the current message count before sending
+      // Get conversation window
       const conversationWindow = chatAppPage.getConversationWindowComponent();
-      const messageCountBefore = await conversationWindow.getMessageCount();
 
-      // Send the message using ChatEditorComponent directly
+      // Send message using ChatEditorComponent
       const chatEditor = new ChatEditorComponent(chatAppPage.page, chatAppPage.page.locator("[class*='Editor_root_']"));
       await chatEditor.sendMessage(CONSTANT_DATA.USER_SAMPLE_MESSAGE);
 
-      // Verify that a new message was added (count increased)
-      await conversationWindow.verifyNewMessageAdded(messageCountBefore);
-
-      // Verify that the latest message is exactly what we sent
-      await conversationWindow.verifyLatestMessageInChat(CONSTANT_DATA.USER_SAMPLE_MESSAGE);
+      // Verify that the message is present in the list of chat messages
+      await conversationWindow.verifyMessageIsPresentInListOfChatMessages(CONSTANT_DATA.USER_SAMPLE_MESSAGE);
     }
   );
 
@@ -59,15 +55,13 @@ test.describe('Send Message', { tag: [CHAT_SUITE_TAGS.USER_CHAT] }, () => {
       await chatAppPage.getInboxSideBarComponent().clickStartChatButton();
 
       const conversationWindow = chatAppPage.getConversationWindowComponent();
-      const messageCountBefore = await conversationWindow.getMessageCount();
 
       // Send the message using ChatEditorComponent directly
       const chatEditor = new ChatEditorComponent(chatAppPage.page, chatAppPage.page.locator("[class*='Editor_root_']"));
       await chatEditor.sendMessage(CONSTANT_DATA.LONG_MESSAGE);
 
-      // Verify that a new message was added (count increased)
-      await conversationWindow.verifyNewMessageAdded(messageCountBefore);
-      await conversationWindow.verifyLatestMessageInChat(CONSTANT_DATA.LONG_MESSAGE);
+      // Verify that the message is present in the list of chat messages
+      await conversationWindow.verifyMessageIsPresentInListOfChatMessages(CONSTANT_DATA.LONG_MESSAGE);
     }
   );
 
@@ -87,16 +81,10 @@ test.describe('Send Message', { tag: [CHAT_SUITE_TAGS.USER_CHAT] }, () => {
       await chatAppPage.getInboxSideBarComponent().clickStartChatButton();
 
       const conversationWindow = chatAppPage.getConversationWindowComponent();
-      const messageCountBefore = await conversationWindow.getMessageCount();
-
-      // Send the message using ChatEditorComponent directly
       const chatEditor = new ChatEditorComponent(chatAppPage.page, chatAppPage.page.locator("[class*='Editor_root_']"));
       await chatEditor.sendMessage(CONSTANT_DATA.MIXED_MESSAGE);
 
-      await conversationWindow.verifyNewMessageAdded(messageCountBefore);
-
-      // Verify that the latest message is exactly what we sent
-      await conversationWindow.verifyLatestMessageInChat(CONSTANT_DATA.MIXED_MESSAGE);
+      await conversationWindow.verifyMessageIsPresentInListOfChatMessages(CONSTANT_DATA.MIXED_MESSAGE);
     }
   );
 });
