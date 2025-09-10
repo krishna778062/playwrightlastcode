@@ -38,6 +38,8 @@ export class ManageQRPage extends BasePage {
   readonly contentPreviewQRPopupHeader: Locator;
   readonly nextButton: Locator;
   readonly validTillDatePicker: Locator;
+  readonly targetDay: (ariaLabel: string) => Locator;
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_QR_PAGE);
 
@@ -73,6 +75,7 @@ export class ManageQRPage extends BasePage {
     this.contentPreviewQRPopupHeader = page.getByText('Preview QR code');
     this.nextButton = page.getByRole('button', { name: 'Next' });
     this.validTillDatePicker = page.getByLabel('Valid till');
+    this.targetDay = (ariaLabel: string) => page.getByRole('gridcell', { name: ariaLabel });
   }
 
   async clickOnManage() {
@@ -296,7 +299,7 @@ export class ManageQRPage extends BasePage {
     const targetDate = addDays(new Date(), number);
     const ariaLabel = format(targetDate, 'EEE MMM dd yyyy');
 
-    const targetDay = this.page.getByRole('gridcell', { name: ariaLabel });
+    const targetDay = this.targetDay(ariaLabel);
 
     await this.clickOnElement(targetDay, {
       stepInfo: `Click on date: ${ariaLabel}`,
