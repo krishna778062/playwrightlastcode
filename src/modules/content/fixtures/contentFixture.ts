@@ -2,7 +2,7 @@ import { BrowserContext, Page, test, WorkerInfo } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
-import { FeedManagerService } from '@core/api/services/FeedManagerService';
+import { FeedManagementService } from '@core/api/services/FeedManagementService';
 import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
 import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
 import { LoginHelper } from '@core/helpers/loginHelper';
@@ -61,8 +61,7 @@ export const contentTestFixture = test.extend<
     endUserContext: BrowserContext;
     endUserHomePage: NewUxHomePage | OldUxHomePage;
     endUsersPage: Page;
-    siteManagementHelper: SiteManagementHelper;
-    feedManagerService: FeedManagerService;
+    feedManagerService: FeedManagementService;
     manageContentHelper: ContentManagementHelper;
     manageContentEndUserHelper: ContentManagementHelper;
 
@@ -86,8 +85,8 @@ export const contentTestFixture = test.extend<
 >({
   // Worker-scoped API client - shared across all tests in worker
   appManagerApiClient: [
-    async ({}, use, workerInfo) => {
-      console.log(`Setting up app manager API client for worker ${workerInfo.workerIndex}`);
+    async (_fixtures, use, _workerInfo) => {
+      console.log(`Setting up app manager API client for worker ${_workerInfo.workerIndex}`);
 
       const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
         type: 'credentials',
@@ -101,13 +100,13 @@ export const contentTestFixture = test.extend<
       await use(appManagerApiClient);
 
       // Cleanup worker-scoped resources
-      console.log(`Cleaning up app manager API client for worker ${workerInfo.workerIndex}`);
+      console.log(`Cleaning up app manager API client for worker ${_workerInfo.workerIndex}`);
     },
     { scope: 'worker' },
   ],
   endUserApiClient: [
-    async ({}, use, workerInfo: WorkerInfo) => {
-      console.log(`INFO: Setting up end user client for worker => `, workerInfo.workerIndex);
+    async (_fixtures, use, _workerInfo: WorkerInfo) => {
+      console.log(`INFO: Setting up end user client for worker => `, _workerInfo.workerIndex);
       const endUserApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
         type: 'credentials',
         credentials: {
@@ -177,7 +176,7 @@ export const contentTestFixture = test.extend<
   ],
 
   endUserContext: [
-    async ({ browser }, use, workerInfo) => {
+    async ({ browser }, use, _workerInfo) => {
       const context = await browser.newContext();
       await use(context);
       await context?.close();
@@ -185,7 +184,7 @@ export const contentTestFixture = test.extend<
     { scope: 'test' },
   ],
   endUserHomePage: [
-    async ({ endUserContext }, use, workerInfo) => {
+    async ({ endUserContext }, use, _workerInfo) => {
       const page = await endUserContext.newPage();
       const endUserHomePage = await LoginHelper.loginWithPassword(page, {
         email: getEnvConfig().endUserEmail!,
@@ -198,8 +197,11 @@ export const contentTestFixture = test.extend<
     { scope: 'test' },
   ],
   endUsersPage: [
-    async ({ endUserHomePage }, use, workerInfo) => {
+    async ({ endUserHomePage }, use, _workerInfo) => {
       await use(endUserHomePage.page);
+    },
+    { scope: 'test' },
+  ],
   standardUserPage: [
     async ({ standardUserHomePage }, use) => {
       await use(standardUserHomePage.page);
@@ -208,6 +210,16 @@ export const contentTestFixture = test.extend<
   ],
 
   feedManagerService: [
+    async (
+      { appManagerApiClient }: { appManagerApiClient: AppManagerApiClient },
+      use: (r: FeedManagementService) => Promise<void>
+    ) => {
+      const feedManagerService = new FeedManagementService(appManagerApiClient.context);
+      await use(feedManagerService);
+    },
+    { scope: 'test' },
+  ],
+
   // Services and helpers - with proper cleanup
   feedManagementHelper: [
     async ({ appManagerApiClient }, use) => {
@@ -285,7 +297,7 @@ export const contentTestFixture = test.extend<
   ],
 
   switchUser: [
-    async ({}, use) => {
+    async (_fixtures, use) => {
       await use(async (fromPage: Page, toUserType: UserType) => {
         // Logout current user
         await LoginHelper.logoutByNavigatingToLogoutPage(fromPage);
