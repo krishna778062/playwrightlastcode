@@ -253,7 +253,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
   async deleteFeed(postId: string): Promise<void> {
     return await test.step(`Deleting feed post ${postId}`, async () => {
       console.log(`Deleting feed post ${postId}`);
-      const response = await this.context.delete(API_ENDPOINTS.feed.delete(postId), {
+      const response = await this.delete(API_ENDPOINTS.feed.delete(postId), {
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
