@@ -1,6 +1,7 @@
 import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/components/baseComponent';
+import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 
 export class FilePreviewComponent extends BaseComponent {
   readonly previewModal: Locator;
@@ -11,9 +12,9 @@ export class FilePreviewComponent extends BaseComponent {
   constructor(page: Page) {
     super(page);
     this.previewModal = this.page.locator('div[class*="imagePreviewContainer"]');
-    this.showMoreButton = this.page.locator('i[data-testid="i-more"]');
-    this.deleteButton = this.page.locator('div').filter({ hasText: 'Delete' });
-    this.confirmDeleteButton = this.page.locator('button').filter({ hasText: 'Delete' });
+    this.showMoreButton = this.page.locator('div[class*="PreviewModal"] button[aria-label="Show more"]').nth(1);
+    this.deleteButton = this.page.locator('div[role="menuitem"] > div').filter({ hasText: /^Delete$/ });
+    this.confirmDeleteButton = this.page.locator('div[class*="BaseModal"] > button').filter({ hasText: /^Delete$/ });
   }
 
   /**

@@ -69,6 +69,7 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
 
   async clickOnAddUpdateFeaturedSiteButton(): Promise<void> {
     await test.step('Click on Add/update featured site button', async () => {
+      await this.page.waitForLoadState('domcontentloaded');
       await this.clickOnElement(this.addUpdateFeaturedSiteButton);
     });
   }

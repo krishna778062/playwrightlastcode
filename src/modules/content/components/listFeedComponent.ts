@@ -2,6 +2,8 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/components/baseComponent';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
+
 export class ListFeedComponent extends BaseComponent {
   // Post options section
   readonly deleteButton: Locator;
@@ -21,6 +23,9 @@ export class ListFeedComponent extends BaseComponent {
    */
   readonly getFeedTextLocator = (text: string): Locator =>
     this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
+
+  readonly successMessage = (message: string) =>
+    this.page.locator('div[class*="Toast-module"] p', { hasText: message });
 
   /**
    * Gets a locator for the post timestamp
@@ -221,15 +226,25 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  async clickInfoIcon(): Promise<void> {
+  async clickInfoIcon(fileId: string): Promise<void> {
     await test.step('Click info icon', async () => {
       await this.imageButton.hover();
+      console.log('Waiting for API: ', `${API_ENDPOINTS.content.files}/${fileId}`);
+      const fileApiPromise = this.page.waitForResponse(
+        response =>
+          response.url().includes(`${API_ENDPOINTS.content.files}/${fileId}`) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200
+      );
       await this.clickOnElement(this.infoIcon);
+
+      await fileApiPromise;
     });
   }
 
   async verifyImageButtonIsNotVisible(): Promise<void> {
     await test.step('Verify image button is not visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.successMessage('Deleted file successfully'));
       await this.verifier.verifyTheElementIsNotVisible(this.imageButton);
     });
   }

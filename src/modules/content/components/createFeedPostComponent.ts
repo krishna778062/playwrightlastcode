@@ -81,7 +81,7 @@ export class CreateFeedPostComponent
 
   // Topic dropdown selection - parameterized
   readonly addtopicfromList = (topicName: string) =>
-    this.page.locator("div[role='menuitem'] div p").filter({ hasText: topicName });
+    this.page.locator("div[role='menuitem'] div p").filter({ hasText: new RegExp(`^${topicName}$`) });
 
   // Dropdown selection - parameterized
   readonly addSiteNameFromList = (name: string) =>

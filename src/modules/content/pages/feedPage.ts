@@ -30,7 +30,7 @@ export interface IFeedActions {
   }) => Promise<void>;
   markPostAsFavourite: () => Promise<void>;
   removePostFromFavourite: (postText: string) => Promise<void>;
-  clickInfoIcon: () => Promise<void>;
+  clickInfoIcon: (fileId: string) => Promise<void>;
   verifyPreviewModalIsOpened: () => Promise<void>;
   clickDeleteButton: () => Promise<void>;
   clickShowMoreButton: () => Promise<void>;
@@ -196,8 +196,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   }
 
   // File preview methods
-  async clickInfoIcon(): Promise<void> {
-    await this.listFeedComponent.clickInfoIcon();
+  async clickInfoIcon(fileId: string): Promise<void> {
+    await this.listFeedComponent.clickInfoIcon(fileId);
   }
 
   async verifyPreviewModalIsOpened(): Promise<void> {

@@ -522,6 +522,7 @@ export class TestDataGenerator {
       | {
           scope: string;
           siteId?: string;
+          contentId?: string;
           withAttachment?: false;
           fileName?: undefined;
           fileSize?: undefined;
@@ -532,6 +533,7 @@ export class TestDataGenerator {
       | {
           scope: string;
           siteId?: string;
+          contentId?: string;
           withAttachment: true;
           fileName: string;
           fileSize: number;

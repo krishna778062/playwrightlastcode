@@ -57,6 +57,7 @@ export const API_ENDPOINTS = {
     category: '/pageCategories/list',
     publish: '/content?action=publish',
     delete: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}`,
+    file: (fileId: string) => `/v1/content/files/${fileId}`,
     signedUrl: '/v1/content/static/signedurl/upload',
     files: '/v1/content/files',
     listFiles: '/v1/content/files/list',
@@ -85,9 +86,6 @@ export const API_ENDPOINTS = {
   search: {
     intranetFile: '/v1/search/intranet-file',
     enterprise: '/search-ai/v1/enterprise/search',
-  },
-  externalSearch: {
-    config: '/v1/account/appConfig/app.integrations.enterprise.search',
   },
   qr: {
     create: '/v1/promotions/w/qrcodes',

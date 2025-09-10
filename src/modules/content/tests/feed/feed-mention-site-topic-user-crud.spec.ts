@@ -77,54 +77,76 @@ test.describe(
           });
 
           // Setup navigation based on feed type
-          if (testData.feedType === 'Home Feed') {
-            await appManagerHomePage.actions.clickOnGlobalFeed();
-          } else if (testData.feedType === 'Site Feed') {
-            siteDetails = await siteManagementHelper.createPublicSite({
-              waitForSearchIndex: false,
-            });
-            siteDashboardPage = new SiteDashboardPage(
-              appManagerHomePage.page,
-              siteDetails.siteId,
-              siteManagementHelper
-            );
-            await siteDashboardPage.loadPage();
-          } else if (testData.feedType === 'Content Feed') {
-            siteDetails = await siteManagementHelper.createPublicSite({
-              waitForSearchIndex: false,
-            });
-            siteDashboardPage = new SiteDashboardPage(
-              appManagerHomePage.page,
-              siteDetails.siteId,
-              siteManagementHelper
-            );
-            const pageDetails = await contentManagementHelper.createPage({
-              siteId: siteDetails.siteId,
-              contentInfo: {
-                contentType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.content,
-                contentSubType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.contentType,
-              },
-              options: {
-                contentDescription: testData.description,
-                waitForSearchIndex: false,
-              },
-            });
-            contentPreviewPage = new ContentPreviewPage(
-              appManagerHomePage.page,
-              siteDetails.siteId,
-              pageDetails.contentId,
-              'page'
-            );
-            await contentPreviewPage.loadPage();
-          }
+          const setupNavigation = async () => {
+            switch (testData.feedType) {
+              case 'Home Feed': {
+                await appManagerHomePage.actions.clickOnGlobalFeed();
+                return {};
+              }
+
+              case 'Site Feed': {
+                const siteResult = await siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
+
+                const siteDashboard = new SiteDashboardPage(
+                  appManagerHomePage.page,
+                  siteResult.siteId,
+                  siteManagementHelper
+                );
+                await siteDashboard.loadPage();
+
+                siteDetails = siteResult;
+                siteDashboardPage = siteDashboard;
+
+                return { siteResult };
+              }
+
+              case 'Content Feed': {
+                const siteResult = await siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
+
+                const pageResult = await contentManagementHelper.createPage({
+                  siteId: siteResult.siteId,
+                  contentInfo: {
+                    contentType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.content,
+                    contentSubType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.contentType,
+                  },
+                  options: {
+                    contentDescription: testData.description,
+                    waitForSearchIndex: false,
+                  },
+                });
+
+                const contentPreview = new ContentPreviewPage(
+                  appManagerHomePage.page,
+                  siteResult.siteId,
+                  pageResult.contentId,
+                  'page'
+                );
+                await contentPreview.loadPage();
+
+                siteDetails = siteResult;
+                contentPreviewPage = contentPreview;
+
+                return { siteResult, pageResult };
+              }
+
+              default:
+                throw new Error(`Unknown feed type: ${testData.feedType}`);
+            }
+          };
+
+          await setupNavigation();
           await appManagerHomePage.page.pause();
           await appManagerFeedPage.verifyThePageIsLoaded();
 
+          // Parallel data fetching for better performance
           const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
-          const fullName = await identityManagementHelper.getUserNameByEmail(users.endUser.email);
 
-          const publicSite = await siteManagementHelper.getSiteByAccessType(SiteType.PUBLIC);
-          const privateSite = await siteManagementHelper.getSiteByAccessType(SiteType.PRIVATE);
+          const [fullName, publicSite, privateSite, topicListResponse] = await Promise.all([
+            identityManagementHelper.getUserNameByEmail(users.endUser.email),
+            siteManagementHelper.getSiteByAccessType(SiteType.PUBLIC),
+            siteManagementHelper.getSiteByAccessType(SiteType.PRIVATE),
+            contentManagementHelper.getTopicList(),
+          ]);
 
           if (!publicSite) {
             throw new Error('No public site found in the list');
@@ -132,9 +154,6 @@ test.describe(
 
           const publicSiteName = publicSite.name;
           const privateSiteName = privateSite?.name || '';
-
-          // Get list of topics
-          const topicListResponse = await contentManagementHelper.getTopicList();
 
           console.log(`Found ${topicListResponse.result.listOfItems.length} topics`);
 
@@ -144,34 +163,48 @@ test.describe(
               Math.floor(Math.random() * topicListResponse.result.listOfItems.length)
             ];
 
-          const initialPostText = `Automated Test Post ${faker.company.name()}`;
-          const embeedUrl = `https://www.youtube.com/watch?v=F_77M3ZZ1z8`;
+          // Execute CRUD operations on feed post
+          const executeFeedCrudOperations = async () => {
+            const initialPostText = `Automated Test Post ${faker.company.name()}`;
+            const embeedUrl = `https://www.youtube.com/watch?v=F_77M3ZZ1z8`;
 
-          const postResult = await appManagerFeedPage.actions.createfeedWithMentionUserNameAndTopic({
-            text: initialPostText,
-            userName: fullName,
-            topicName: randomTopic.name,
-            siteName: [publicSiteName, privateSiteName],
-            embedUrl: embeedUrl,
-          });
-          createdPostId = postResult.postId;
+            // Step 1: Create post with mentions
+            const postResult = await appManagerFeedPage.actions.createfeedWithMentionUserNameAndTopic({
+              text: initialPostText,
+              userName: fullName,
+              topicName: randomTopic.name,
+              siteName: [publicSiteName, privateSiteName],
+              embedUrl: embeedUrl,
+            });
+            createdPostId = postResult.postId;
 
-          await appManagerFeedPage.assertions.validatePostText(postResult.postText);
+            // Step 2: Validate post creation
+            await appManagerFeedPage.assertions.validatePostText(postResult.postText);
 
-          const updatedPostText = `Updated Test Post ${faker.company.buzzPhrase()}`;
-          const siteManagerFullName = await identityManagementHelper.getUserNameByEmail(users.siteManager.email);
-          // Step 3: Edit the post
-          await appManagerFeedPage.actions.editPostWithTopicAndUserName({
-            currentText: postResult.postText,
-            newText: updatedPostText,
-            topicName: randomTopic.name,
-            userName: siteManagerFullName,
-          });
-          await appManagerFeedPage.assertions.validatePostText(updatedPostText);
+            // Step 3: Prepare for edit - get another user's name
+            const [siteManagerFullName] = await Promise.all([
+              identityManagementHelper.getUserNameByEmail(users.siteManager.email),
+            ]);
 
-          // Step 4: Delete the post
-          await appManagerFeedPage.actions.deletePost(updatedPostText);
-          createdPostId = '';
+            const updatedPostText = `Updated Test Post ${faker.company.buzzPhrase()}`;
+
+            // Step 4: Edit the post
+            await appManagerFeedPage.actions.editPostWithTopicAndUserName({
+              currentText: postResult.postText,
+              newText: updatedPostText,
+              topicName: randomTopic.name,
+              userName: siteManagerFullName,
+            });
+
+            // Step 5: Validate post edit
+            await appManagerFeedPage.assertions.validatePostText(updatedPostText);
+
+            // Step 6: Delete the post
+            await appManagerFeedPage.actions.deletePost(updatedPostText);
+            createdPostId = '';
+          };
+
+          await executeFeedCrudOperations();
         }
       );
     }
