@@ -1,4 +1,4 @@
-import { Locator,Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
 
@@ -8,11 +8,13 @@ export class AccessControlGroupModalComponent extends BaseComponent {
   private accessControlGroupModalMode: AccessControlGroupModalMode;
   private dialogFilter: string;
   private acgDialog: Locator;
-  private duplicateTargetAudienceErrorMessageHeading: string =
+  private duplicateTargetAudienceErrorMessageHeadingText: string =
     'An access control group with the same target audience already exists for this feature.';
-  private duplicateTargetAudienceErrorMessageDescription: string =
+  private duplicateTargetAudienceErrorMessageDescriptionText: string =
     'You cannot have duplicate access control groups. Edit the target audience to proceed or abandon creating this access control group.';
   private closeButton: Locator;
+  private duplicateTargetAudienceErrorMessageHeading: Locator;
+  private duplicateTargetAudienceErrorMessageDescription: Locator;
 
   constructor(page: Page, accessControlGroupModalMode: AccessControlGroupModalMode) {
     super(page);
@@ -21,22 +23,20 @@ export class AccessControlGroupModalComponent extends BaseComponent {
       accessControlGroupModalMode === 'create' ? 'Create access control group' : 'Edit access control group';
     this.acgDialog = page.locator('[class*="athena"]').filter({ hasText: this.dialogFilter });
     this.closeButton = this.acgDialog.getByRole('button', { name: 'Close' });
+    this.duplicateTargetAudienceErrorMessageHeading = this.acgDialog
+      .locator('[class*="Panel-module__panel"] span')
+      .filter({ hasText: this.duplicateTargetAudienceErrorMessageHeadingText });
+    this.duplicateTargetAudienceErrorMessageDescription = this.acgDialog
+      .locator('[class*="Panel-module__panel"] p')
+      .filter({ hasText: this.duplicateTargetAudienceErrorMessageDescriptionText });
   }
 
   /**
    * Verifies the duplicate target audience error message is visible
    */
   async verifyDuplicateTargetGroupsErrorMessage(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(
-      this.acgDialog
-        .locator('[class*="Panel-module__panel"] span')
-        .filter({ hasText: this.duplicateTargetAudienceErrorMessageHeading })
-    );
-    await this.verifier.verifyTheElementIsVisible(
-      this.acgDialog
-        .locator('[class*="Panel-module__panel"] p')
-        .filter({ hasText: this.duplicateTargetAudienceErrorMessageDescription })
-    );
+    await this.verifier.verifyTheElementIsVisible(this.duplicateTargetAudienceErrorMessageHeading);
+    await this.verifier.verifyTheElementIsVisible(this.duplicateTargetAudienceErrorMessageDescription);
   }
 
   /**
