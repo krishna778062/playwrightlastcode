@@ -10,10 +10,10 @@ import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export enum FilesPreviewMenuActionButton {
   DOWNLOAD = 'Download',
-  FILEINFO = 'File info',
+  FILE_INFO = 'File info',
   EDIT = 'Edit',
   ANALYTICS = 'Analytics',
-  SHOWMORE = 'Show more',
+  SHOW_MORE_ACTIONS = 'Show more',
 }
 
 export class FilesPreviewModalComponent extends BaseComponent {
@@ -50,7 +50,7 @@ export class FilesPreviewModalComponent extends BaseComponent {
 
   async clickOnPreviewMenuActionButton(menuActionButtons: FilesPreviewMenuActionButton) {
     await test.step(`Click on ${menuActionButtons} menu action`, async () => {
-      if (menuActionButtons === FilesPreviewMenuActionButton.SHOWMORE) {
+      if (menuActionButtons === FilesPreviewMenuActionButton.SHOW_MORE_ACTIONS) {
         const actionLocator = this.filesPreviewModalContainer.getByRole('button', { name: 'Show more' });
         await this.clickOnElement(actionLocator);
       } else {
@@ -70,7 +70,7 @@ export class FilesPreviewModalComponent extends BaseComponent {
   }
 
   async deleteFile() {
-    await this.clickOnPreviewMenuActionButton(FilesPreviewMenuActionButton.SHOWMORE);
+    await this.clickOnPreviewMenuActionButton(FilesPreviewMenuActionButton.SHOW_MORE_ACTIONS);
     await this.clickOnShowMoreActionsOption(FilesPreviewShowMoreActionsOption.Delete);
     await this.confirmDeleteOrCancelFromDeleteFileModal(FilesPreviewDeleteModal.Delete);
     await this.verifyToastMessageIsVisibleWithText(FilesPreviewToastMessages.DeletedFileSuccessfully);

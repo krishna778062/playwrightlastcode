@@ -6,20 +6,24 @@ import {
 } from '@content/constants/filesPreviewEnums';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
 import { SiteFilesPage } from '@content/pages/sitePages/siteFilesPage';
-import { SiteMainPage } from '@content/pages/sitePages/siteMainPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { FileUtil } from '@core/utils/fileUtil';
 import { tagTest } from '@core/utils/testDecorator';
 
-test.describe(`Files Preview | Verify Document Actions `, () => {
+import { SitePageTab } from '../../constants/sitePageEnums';
+import { ContentTestSuite } from '../../constants/testSuite';
+
+import { SitePage } from '@/src/modules/content/pages/sitePages/sitePage';
+
+test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES_PREVIEW}`, () => {
   let testFileDetails: {
     filePath: string;
     fileName: string;
     fileSystemCleanupRequired?: boolean;
     deleteByUI?: boolean;
   };
-  let siteMainPage: SiteMainPage;
+  let sitePage: SitePage;
   let siteFilesPage: SiteFilesPage;
   test.beforeEach('Setup : Navigating to Site Files page', async ({ appManagersPage }) => {
     // Create random file copy
@@ -31,9 +35,7 @@ test.describe(`Files Preview | Verify Document Actions `, () => {
       deleteByUI: true,
     };
     // Navigate to Site Files page
-    siteMainPage = new SiteMainPage(appManagersPage);
-    await siteMainPage.landOnMainPageOfSite(`All Employees`);
-    siteFilesPage = await siteMainPage.navigateToSiteFilesTab();
+    sitePage = new SitePage(appManagersPage);
   });
 
   test.afterEach(async ({}) => {
@@ -45,6 +47,7 @@ test.describe(`Files Preview | Verify Document Actions `, () => {
     }
   });
 
+  // Procedure 1: Search Site and Click on the Site Files link
   test(
     `Verify user is able to copy the link to this file option under More actions`,
     {
@@ -56,12 +59,15 @@ test.describe(`Files Preview | Verify Document Actions `, () => {
         zephyrTestId: ['CONT-37467', 'CONT-34399'],
         storyId: `CONT-34370`,
       });
+
+      await sitePage.landOnMainPageOfSite(`All Employees`);
+      siteFilesPage = await sitePage.navigateToSiteTab(SitePageTab.FilesTab);
       await siteFilesPage.uploadFileViaSelectFromComputer(testFileDetails.filePath);
       await siteFilesPage.verifyFileIsPresentInTheSiteFilesListAtIndex(testFileDetails.fileName, 0);
       await siteFilesPage.clickToOpenFileInFilesPreview(testFileDetails.fileName);
       await siteFilesPage.filesPreviewModalComponent.verifyFileNameTitle(testFileDetails.fileName);
       await siteFilesPage.filesPreviewModalComponent.clickOnPreviewMenuActionButton(
-        FilesPreviewMenuActionButton.SHOWMORE
+        FilesPreviewMenuActionButton.SHOW_MORE_ACTIONS
       );
       await siteFilesPage.filesPreviewModalComponent.clickOnShowMoreActionsOption(
         FilesPreviewShowMoreActionsOption.CopyLinkToThisFile
@@ -70,6 +76,7 @@ test.describe(`Files Preview | Verify Document Actions `, () => {
     }
   );
 
+  // Procedure 2: Directly navigate to the Site and Site Files tab
   test(
     `Verify user is able to delete the file using the delete option under More actions`,
     {
@@ -81,12 +88,13 @@ test.describe(`Files Preview | Verify Document Actions `, () => {
         zephyrTestId: ['CONT-36338', 'CONT-34132'],
         storyId: `CONT-34132`,
       });
+      siteFilesPage = await sitePage.navigateDirectlyToTheSiteTabOfSite(`All Employees`, `files`);
       await siteFilesPage.uploadFileViaSelectFromComputer(testFileDetails.filePath);
       await siteFilesPage.verifyFileIsPresentInTheSiteFilesListAtIndex(testFileDetails.fileName, 0);
       await siteFilesPage.clickToOpenFileInFilesPreview(testFileDetails.fileName);
       await siteFilesPage.filesPreviewModalComponent.verifyFileNameTitle(testFileDetails.fileName);
       await siteFilesPage.filesPreviewModalComponent.clickOnPreviewMenuActionButton(
-        FilesPreviewMenuActionButton.SHOWMORE
+        FilesPreviewMenuActionButton.SHOW_MORE_ACTIONS
       );
       await siteFilesPage.filesPreviewModalComponent.clickOnShowMoreActionsOption(
         FilesPreviewShowMoreActionsOption.Delete
