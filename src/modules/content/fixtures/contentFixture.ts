@@ -94,7 +94,7 @@ export const contentTestFixture = test.extend<
 >({
   // Worker-scoped API client - shared across all tests in worker
   appManagerApiClient: [
-    async (_fixtures, use, _workerInfo) => {
+    async ({}, use, _workerInfo) => {
       console.log(`Setting up app manager API client for worker ${_workerInfo.workerIndex}`);
 
       const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
@@ -114,7 +114,7 @@ export const contentTestFixture = test.extend<
     { scope: 'worker' },
   ],
   endUserApiClient: [
-    async (_fixtures, use, _workerInfo: WorkerInfo) => {
+    async ({}, use, _workerInfo: WorkerInfo) => {
       console.log(`INFO: Setting up end user client for worker => `, _workerInfo.workerIndex);
       const endUserApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
         type: 'credentials',
@@ -335,7 +335,7 @@ export const contentTestFixture = test.extend<
   ],
 
   switchUser: [
-    async (_fixtures, use) => {
+    async ({}, use) => {
       await use(async (fromPage: Page, toUserType: UserType) => {
         // Logout current user
         await LoginHelper.logoutByNavigatingToLogoutPage(fromPage);
