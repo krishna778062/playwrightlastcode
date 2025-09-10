@@ -113,10 +113,11 @@ test.describe(
               appManagerHomePage.page,
               siteDetails.siteId,
               pageDetails.contentId,
-              ContentType.PAGE
+              'page'
             );
             await contentPreviewPage.loadPage();
           }
+          await appManagerHomePage.page.pause();
           await appManagerFeedPage.verifyThePageIsLoaded();
 
           const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
