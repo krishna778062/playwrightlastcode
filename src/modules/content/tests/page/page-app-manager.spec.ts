@@ -56,7 +56,13 @@ test.describe(
     test(
       'Verify admin is able to publish a new page created with cover image from home page',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE, ContentSuiteTags.PAGE_CREATION],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          ContentFeatureTags.COVER_IMAGE,
+          ContentSuiteTags.PAGE_CREATION,
+          '@CONT-11635',
+        ],
       },
       async ({ appManagerHomePage, appManagersPage, siteManagementHelper }) => {
         tagTest(test.info(), {
