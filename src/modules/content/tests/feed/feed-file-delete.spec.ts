@@ -97,73 +97,24 @@ test.describe(
       },
     ];
 
-    test.beforeEach('Setup test environment', async ({ appManagerHomePage }) => {});
-
-    test.afterEach('Cleanup created posts', async ({ feedManagementHelper }) => {
-      if (createdPostId) {
-        await feedManagementHelper.deleteFeed(createdPostId);
-        createdPostId = '';
-      }
-    });
-
     // Data-driven test for different feed types
     for (const testData of feedTestData) {
-      test(
-        `Verify Delete File from File Preview Page doesn't appears on ${testData.feedType}`,
-        {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, `@${testData.storyId}`],
-        },
-        async ({
-          appManagerHomePage,
-          appManagerApiClient,
-          contentManagementHelper,
-          siteManagementHelper,
-          feedManagementHelper,
-        }) => {
-          tagTest(test.info(), {
-            description: testData.description,
-            zephyrTestId: testData.storyId,
-            storyId: testData.storyId,
-          });
+      test.describe(`${testData.feedType} Tests`, () => {
+        let feedTestDataGenerated: any;
+        let fileId: string;
 
-          // Setup and feed creation based on feed type
-          const setupAndCreateFeed = async () => {
+        test.beforeEach(
+          'Setup test environment and data creation',
+          async ({ appManagerHomePage, contentManagementHelper, siteManagementHelper, feedManagementHelper }) => {
+            // Initialize feed page
+            appManagerFeedPage = new FeedPage(appManagerHomePage.page);
+
+            // Create required data based on feed type
             switch (testData.feedType) {
-              case 'Home Feed': {
-                const feedTestData = TestDataGenerator.generateFeed({
-                  scope: 'public',
-                  siteId: undefined,
-                  withAttachment: testData.hasAttachment,
-                  fileName: testData.fileName,
-                  fileSize: testData.fileSize,
-                  mimeType: testData.mimeType,
-                  filePath: testData.filePath,
-                  waitForSearchIndex: false,
-                });
-
-                const feedResult = await feedManagementHelper.createFeed(feedTestData);
-
-                return { feedTestData, feedResult };
-              }
-
               case 'Site Feed': {
                 const siteResult = await siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
-
-                const feedTestData = TestDataGenerator.generateFeed({
-                  scope: 'site',
-                  siteId: siteResult.siteId,
-                  withAttachment: testData.hasAttachment,
-                  fileName: testData.fileName,
-                  fileSize: testData.fileSize,
-                  mimeType: testData.mimeType,
-                  filePath: testData.filePath,
-                  waitForSearchIndex: false,
-                });
-
-                const feedResult = await feedManagementHelper.createFeed(feedTestData);
                 siteDetails = siteResult;
-
-                return { feedTestData, feedResult };
+                break;
               }
 
               case 'Content Feed': {
@@ -181,10 +132,18 @@ test.describe(
                   },
                 });
 
-                const feedTestData = TestDataGenerator.generateFeed({
-                  scope: 'site',
-                  siteId: siteResult.siteId,
-                  contentId: pageResult.contentId,
+                siteDetails = siteResult;
+                pageDetails = pageResult;
+                break;
+              }
+            }
+
+            // Generate feed data and create feed based on feed type
+            switch (testData.feedType) {
+              case 'Home Feed': {
+                feedTestDataGenerated = TestDataGenerator.generateFeed({
+                  scope: 'public',
+                  siteId: undefined,
                   withAttachment: testData.hasAttachment,
                   fileName: testData.fileName,
                   fileSize: testData.fileSize,
@@ -192,44 +151,84 @@ test.describe(
                   filePath: testData.filePath,
                   waitForSearchIndex: false,
                 });
+                break;
+              }
 
-                const feedResult = await feedManagementHelper.createFeed(feedTestData);
-                siteDetails = siteResult;
-                pageDetails = pageResult;
+              case 'Site Feed': {
+                feedTestDataGenerated = TestDataGenerator.generateFeed({
+                  scope: 'site',
+                  siteId: siteDetails.siteId,
+                  withAttachment: testData.hasAttachment,
+                  fileName: testData.fileName,
+                  fileSize: testData.fileSize,
+                  mimeType: testData.mimeType,
+                  filePath: testData.filePath,
+                  waitForSearchIndex: false,
+                });
+                break;
+              }
 
-                return { feedTestData, feedResult };
+              case 'Content Feed': {
+                feedTestDataGenerated = TestDataGenerator.generateFeed({
+                  scope: 'site',
+                  siteId: siteDetails.siteId,
+                  contentId: pageDetails.contentId,
+                  withAttachment: testData.hasAttachment,
+                  fileName: testData.fileName,
+                  fileSize: testData.fileSize,
+                  mimeType: testData.mimeType,
+                  filePath: testData.filePath,
+                  waitForSearchIndex: false,
+                });
+                break;
               }
 
               default:
                 throw new Error(`Unknown feed type: ${testData.feedType}`);
             }
-          };
 
-          const { feedTestData, feedResult } = await setupAndCreateFeed();
-          createdPostText = feedTestData.text;
-          feedResponse = feedResult;
-          createdPostId = feedResponse.result.feedId;
+            // Create feed via API
+            feedResponse = await feedManagementHelper.createFeed(feedTestDataGenerated);
+            createdPostText = feedTestDataGenerated.text;
+            createdPostId = feedResponse.result.feedId;
+            fileId = feedResponse.result.listOfFiles[0].fileId;
 
-          const fileId = feedResponse.result.listOfFiles[0].fileId;
+            console.log(`Created feed with attachment via API: ${feedResponse.result.feedId}`);
 
-          console.log(`Created feed with attachment via API: ${feedResponse.result.feedId}`);
+            // Navigate to feed URL
+            await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
+            await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+          }
+        );
 
-          // Initialize page object and navigate
-          appManagerFeedPage = new FeedPage(appManagerHomePage.page);
+        test.afterEach('Cleanup created posts', async ({ feedManagementHelper }) => {
+          if (createdPostId) {
+            await feedManagementHelper.deleteFeed(createdPostId);
+            createdPostId = '';
+          }
+        });
 
-          // Navigate to feed URL
-          await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
+        test(
+          `Verify Delete File from File Preview Page doesn't appears on ${testData.feedType}`,
+          {
+            tag: [TestPriority.P0, TestGroupType.SMOKE, `@${testData.storyId}`],
+          },
+          async () => {
+            tagTest(test.info(), {
+              description: testData.description,
+              zephyrTestId: testData.storyId,
+              storyId: testData.storyId,
+            });
 
-          await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
-
-          // Execute file deletion flow
-          await appManagerFeedPage.actions.clickInfoIcon(fileId);
-          await appManagerFeedPage.actions.verifyPreviewModalIsOpened();
-          await appManagerFeedPage.actions.clickShowMoreButton();
-          await appManagerFeedPage.actions.clickDeleteButton();
-          await appManagerFeedPage.assertions.verifyImageButtonIsNotVisible();
-        }
-      );
+            // Execute file deletion flow
+            await appManagerFeedPage.actions.clickInfoIcon(fileId);
+            await appManagerFeedPage.actions.verifyPreviewModalIsOpened();
+            await appManagerFeedPage.actions.clickShowMoreButton();
+            await appManagerFeedPage.actions.clickDeleteButton();
+            await appManagerFeedPage.assertions.verifyImageButtonIsNotVisible();
+          }
+        );
+      });
     }
   }
 );
