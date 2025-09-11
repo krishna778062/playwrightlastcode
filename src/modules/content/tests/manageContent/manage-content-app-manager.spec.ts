@@ -204,7 +204,7 @@ test.describe(
       },
       async ({}) => {
         tagTest(test.info(), {
-          description: 'Verify created Newest sorting filter functionality in My Content screen',
+          description: 'Verify created Newest sorting filter functionality in My Contents screen',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20943',
           storyId: 'CONT-20943',
