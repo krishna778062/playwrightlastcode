@@ -214,7 +214,7 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
   async checkUserPresence(searchValue: string, options?: { name: string; order: string }): Promise<boolean> {
     let flag: boolean = false;
     await test.step(`Search for user having ${searchValue} as one of the login identifiers`, async () => {
-      const response = await this.post(API_ENDPOINTS.appManagement.users.list, {
+      const response = await this.post(API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersList, {
         data: {
           size: 100,
           sort_by: {
@@ -272,7 +272,7 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
   async getUserId(loginIdentifier: string, options?: { name: string; order: string }): Promise<string> {
     let result: string = '';
     await test.step(`Getting userId for the user with login identifier ${loginIdentifier}`, async () => {
-      const response = await this.post(API_ENDPOINTS.appManagement.users.list, {
+      const response = await this.post(API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersList, {
         data: {
           size: 100,
           sort_by: {
@@ -302,7 +302,7 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
   ): Promise<IdentityUserSearchResponse> {
     let responseJson: any;
     await test.step(`Getting user details from user search list for search value: ${loginIdentifier}`, async () => {
-      const response = await this.post(API_ENDPOINTS.appManagement.users.list, {
+      const response = await this.post(API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersList, {
         data: {
           size: 100,
           sort_by: {
