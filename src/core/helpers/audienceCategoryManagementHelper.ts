@@ -72,6 +72,17 @@ export class AudienceCategoryManagementHelper {
   }
 
   /**
+   * Registers an existing category for cleanup without creating it.
+   * Use this when a category was created through UI interactions rather than API.
+   * @param categoryId - ID of the existing category
+   * @param categoryName - Name of the existing category
+   */
+  registerCategoryForCleanup(categoryId: string, categoryName: string): void {
+    this.categories.push({ categoryId, categoryName });
+    console.log(`Category registered for cleanup: ${categoryName} (ID: ${categoryId})`);
+  }
+
+  /**
    * Cleans up all categories created by this helper instance.
    * This should be called in test cleanup to ensure proper resource management.
    */
