@@ -9,6 +9,7 @@ import { ManageFeaturePage } from '../../pages/manageFeaturePage';
 
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { MANAGE_CONTENT_TEST_DATA } from '../../test-data/manage-content.test-data';
 
 test.describe(
   ContentSuiteTags.MANAGE_CONTENT,
@@ -37,10 +38,11 @@ test.describe(
       async ({}) => {
         tagTest(test.info(), {
           description: 'Login as End User who is Site Owner/Manager of any site',
+          customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-25055',
           storyId: 'CONT-25055',
         });
-        const title = faker.lorem.words(10);
+        const title = MANAGE_CONTENT_TEST_DATA.TITLE;
         await manageFeaturePage.actions.navigateToContentButton();
         await manageContentPage.actions.writeRandomTextInSearchBar(title);
         await manageContentPage.actions.clickSearchIcon();

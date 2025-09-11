@@ -9,6 +9,7 @@ import { ManageFeaturePage } from '../../pages/manageFeaturePage';
 
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { MANAGE_CONTENT_TEST_DATA } from '../../test-data/manage-content.test-data';
 
 test.describe(
   ContentSuiteTags.MANAGE_CONTENT,
@@ -35,12 +36,14 @@ test.describe(
       },
       async ({}) => {
         tagTest(test.info(), {
-          description: 'Login as Admin',
+          description:
+            'Verify "Nothing to show here" message appears when searching non-existing content and clicking X restores filtered results',
+          customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-25055',
           storyId: 'CONT-25055',
         });
 
-        const title = faker.string.alphanumeric(20) + faker.string.numeric(10);
+        const title = MANAGE_CONTENT_TEST_DATA.TITLE;
         await manageFeaturePage.actions.navigateToContentButton();
         await manageContentPage.actions.writeRandomTextInSearchBar(title);
         await manageContentPage.actions.clickSearchIcon();
@@ -56,7 +59,9 @@ test.describe(
       },
       async ({}) => {
         tagTest(test.info(), {
-          description: 'Login as End User who is Site Owner/Manager of any site',
+          description:
+            'Verify "Nothing to show here" message and search functionality for End User with Site Owner/Manager privileges',
+          customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-25055',
           storyId: 'CONT-25055',
         });
@@ -77,7 +82,9 @@ test.describe(
       },
       async ({}) => {
         tagTest(test.info(), {
-          description: 'Login as Admin',
+          description:
+            'Verify bulk actions functionality including publish, unpublish, move, delete, and validate operations in My Content Screen',
+          customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20952',
           storyId: 'CONT-20952',
         });
@@ -115,7 +122,8 @@ test.describe(
       },
       async ({}) => {
         tagTest(test.info(), {
-          description: 'Login as Admin',
+          description: 'Verify content publish and unpublish options are available and functional in My Content Screen',
+          customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20951',
           storyId: 'CONT-20951',
         });
@@ -132,7 +140,8 @@ test.describe(
       },
       async ({}) => {
         tagTest(test.info(), {
-          description: 'Login as Admin',
+          description: 'Verify delete modal functionality with cancel and delete button operations for content removal',
+          customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20946',
           storyId: 'CONT-20946',
         });
@@ -150,7 +159,9 @@ test.describe(
       },
       async ({}) => {
         tagTest(test.info(), {
-          description: 'Login as Admin',
+          description:
+            'Verify various UI elements including image container, author name, site name, and status stamps in My Content screen',
+          customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20945',
           storyId: 'CONT-20945',
         });
@@ -173,7 +184,8 @@ test.describe(
       },
       async ({}) => {
         tagTest(test.info(), {
-          description: 'Login as Admin',
+          description: 'Verify site filter functionality and search capabilities in My Content screen',
+          customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20944',
           storyId: 'CONT-20944',
         });
@@ -192,7 +204,8 @@ test.describe(
       },
       async ({}) => {
         tagTest(test.info(), {
-          description: 'Login as Admin',
+          description: 'Verify created Newest sorting filter functionality in My Content screen',
+          customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20943',
           storyId: 'CONT-20943',
         });
