@@ -1,5 +1,7 @@
+// external imports
 import { APIRequestContext, expect, test } from '@playwright/test';
 
+// @core imports
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { IIdentityAdminOperations } from '@core/api/interfaces/IIdentityOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
@@ -11,6 +13,8 @@ import {
 } from '@core/types/audience.type';
 import { PeopleListResponse } from '@core/types/people.type';
 import { IdentityUserSearchResponse } from '@core/types/user.type';
+
+// @/src imports
 import { audienceCreationParams } from '@/src/core/types/audience.type';
 
 interface ListRolesResponse {

@@ -370,14 +370,11 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
         `Validate api with login identifier ${loginIdentifier} successfully executed`
       ).toBe(200);
       const validateResponseJson = await this.parseResponse<IdentityValidateResponse>(validateResponse);
-      // console.log('validateResponseJson: ' + JSON.stringify(validateResponseJson, null, 2));
       let token = validateResponseJson.result.token;
       const isFirstLogin = validateResponseJson.result.firstLogin;
       const isSSO = validateResponseJson.result.sso;
       const identifierType = validateResponseJson.result.identifierType;
 
-      // console.log('isFirstLogin: ' + isFirstLogin);
-      // console.log('isSSO: ' + isSSO);
       // If the user is non sso user and logging in for the first time then only we need to register the user and set the password
       if (isFirstLogin && !isSSO) {
         // If the identifier type is alternate then we need to verify the profile questions
