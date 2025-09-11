@@ -79,14 +79,10 @@ test.describe(
               contentManagementHelper.getTopicList(),
             ]);
 
-            if (!publicSite) {
-              throw new Error('No public site found in the list');
-            }
-
             // Set data for test use
             fullName = userFullName;
             publicSiteName = publicSite.name;
-            privateSiteName = privateSite?.name || '';
+            privateSiteName = privateSite.name;
 
             console.log(`Found ${topicListResponse.result.listOfItems.length} topics`);
 
