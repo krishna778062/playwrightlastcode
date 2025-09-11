@@ -13,9 +13,20 @@ import { SiteCreationPage as ContentSiteCreationPage } from '@/src/modules/conte
 import { CreateComponent as AbacCreateComponent } from '@/src/modules/content-abac/components/globalCreateContainerComponent';
 import { SiteCreationPage as AbacSiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 
+export interface IFeaturedSiteActions {
+  navigateToApplication: () => Promise<void>;
+  clickOnManageFeature: () => Promise<void>;
+  clickOnHomeButton: () => Promise<void>;
+  clickOnFeedSideMenu: () => Promise<void>;
+}
 export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions {
+  // actions: any;
   constructor(page: Page) {
     super(page);
+    this.navigateToApplication = this.navigateToApplication.bind(this);
+    this.clickOnManageFeature = this.clickOnManageFeature.bind(this);
+    this.clickOnHomeButton = this.clickOnHomeButton.bind(this);
+    this.clickOnFeedSideMenu = this.clickOnFeedSideMenu.bind(this);
   }
 
   get actions(): INewUxHomePageActions {

@@ -4,8 +4,10 @@ import { BaseComponent } from '@core/components/baseComponent';
 
 export class ManageApplicationComponent extends BaseComponent {
   readonly clickingOnGovernance: Locator;
+  readonly manageApplicationHeading: Locator;
   constructor(readonly page: Page) {
     super(page);
     this.clickingOnGovernance = page.getByRole('tab', { name: 'Governance' });
+    this.manageApplicationHeading = page.getByRole('heading', { name: 'Manage application' });
   }
 }

@@ -125,23 +125,23 @@ test.describe(
           zephyrTestId: 'CONT-26613',
           storyId: 'CONT-26613',
         });
-        await homePage.navigateToApplication();
-        await applicationscreen.clickOnApplication();
-        await manageApplicationPage.clickOnGovernance();
-        await governanceScreenPage.clickOnTimeline();
-        await governanceScreenPage.clickOnSave();
-        await homePage.clickOnManageFeature();
-        await manageFeaturePage.clickOnContentCard();
-        await manageContentPage.clickOnContent();
-        await contentPreviewPage.checkCommentOption();
-        await homePage.clickOnManageFeature();
-        await manageFeaturePage.clickOnSitesCard();
-        await manageSitePage.clickOnSite();
-        await siteDetailsPage.ViewSite();
-        await siteDashboardPage.verfiyFeedSection();
-        await homePage.clickOnHomeButton();
-        await homePage.clickOnFeedSideMenu();
-        await siteDashboardPage.verfiyFeedSection();
+        await homePage.actions.navigateToApplication();
+        await applicationscreen.actions.clickOnApplication();
+        await manageApplicationPage.actions.clickOnGovernance();
+        await governanceScreenPage.actions.clickOnTimeline();
+        await governanceScreenPage.actions.clickOnSave();
+        await homePage.actions.clickOnManageFeature();
+        await manageFeaturePage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickOnContent();
+        await contentPreviewPage.actions.checkCommentOption();
+        await homePage.actions.clickOnManageFeature();
+        await manageFeaturePage.actions.clickOnSitesCard();
+        await manageSitePage.actions.clickOnSite();
+        await siteDetailsPage.actions.ViewSite();
+        await siteDashboardPage.actions.verfiyFeedSection();
+        await homePage.actions.clickOnHomeButton();
+        await homePage.actions.clickOnFeedSideMenu();
+        await siteDashboardPage.actions.verfiyFeedSection();
       }
     );
   }

@@ -22,6 +22,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId));
     this.manageSitesComponent = new ManageSitesComponent(page);
+    this.clickOnSite = this.clickOnSite.bind(this);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {

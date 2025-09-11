@@ -15,12 +15,15 @@ export interface ISiteDashboardActions {
   navigateToAlbumCreationFromSiteDashboard: () => Promise<AlbumCreationPage>;
   navigateToEventCreationFromSiteDashboard: () => Promise<EventCreationPage>;
   navigateToManageSite: () => Promise<void>;
+  verfiyFeedSection: () => Promise<void>;
 }
 
 export interface ISiteDashboardAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
   verifySiteName: (siteName: string, successMessage: string) => Promise<void>;
   verifyDashboardUrl: (siteId: string) => Promise<void>;
+  verifySiteCreatedSuccessfully: (siteName: string) => Promise<void>;
+  verifyCategoryCreatedSuccessfully: (categoryName: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BasePage implements ISiteDashboardActions, ISiteDashboardAssertions {
@@ -32,10 +35,16 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
   private siteDashboardComponent: SiteDashboardComponent;
 
+  // Locators for site and category verification
+  readonly categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
+  readonly categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
+  readonly siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
+
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
     this.addContentModal = new AddContentModalComponent(page);
     this.siteDashboardComponent = new SiteDashboardComponent(page);
+    this.verfiyFeedSection = this.verfiyFeedSection.bind(this);
   }
 
   // Actions
@@ -157,6 +166,43 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
   async verfiyFeedSection(): Promise<void> {
     await test.step('Verifying feed section', async () => {
       await this.siteDashboardComponent.verfiyFeedSection.isHidden();
+    });
+  }
+  /**
+   * Verifies that site was created successfully by checking if site link is visible
+   * @param siteName - The site name to verify
+   */
+  async verifySiteCreatedSuccessfully(siteName: string): Promise<void> {
+    await test.step(`Verify site "${siteName}" was created successfully`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.siteLink(siteName), {
+        assertionMessage: `Site link "${siteName}" should be visible after creation`,
+        timeout: 15000,
+      });
+    });
+  }
+
+  /**
+   * Verifies that category was created successfully by checking if category link is visible
+   * @param categoryName - The category name to verify
+   */
+  async verifyCategoryCreatedSuccessfully(categoryName: string): Promise<void> {
+    await test.step(`Verify category "${categoryName}" was created successfully`, async () => {
+      // First verify category link is visible (means category was created)
+      const categoryLink = this.categoryLink(categoryName);
+      await this.verifier.verifyTheElementIsVisible(categoryLink, {
+        assertionMessage: `Category link "${categoryName}" should be visible`,
+        timeout: 18000,
+      });
+
+      // Click on category link to navigate to category page
+      await this.clickOnElement(categoryLink);
+
+      // Then verify the heading is visible on category page
+      const categoryHeading = this.categoryHeading(categoryName);
+      await this.verifier.verifyTheElementIsVisible(categoryHeading, {
+        assertionMessage: `Category heading "${categoryName}" should be visible`,
+        timeout: 15000,
+      });
     });
   }
 }

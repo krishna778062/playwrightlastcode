@@ -10,6 +10,7 @@ export interface IContentPreviewPageActions {
   handlePromotionPageStep: () => Promise<void>;
   clickOnApproveOrRejectButton: (action: string) => Promise<void>;
   enterRejectReason: (reason: string) => Promise<void>;
+  checkCommentOption: () => Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {

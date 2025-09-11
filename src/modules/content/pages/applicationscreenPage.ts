@@ -13,23 +13,38 @@ import { CONTENT_TEST_DATA } from '../test-data/content.test-data';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { FileUtil } from '@/src/core/utils/fileUtil';
+import { ApplicationSettingsComponent } from '@/src/modules/content/components/applicationSettingsComponent';
 
-export class ApplicationScreenPage extends BasePage {
+export interface IApplicationScreenPageActions {
+  clickOnApplication: () => Promise<void>;
+}
+
+export interface IFeaturedSiteAssertions {}
+
+export class ApplicationScreenPage extends BasePage implements IApplicationScreenPageActions {
   private sideNavBarComponent: SideNavBarComponent;
-
+  private applicationSettingsComponent: ApplicationSettingsComponent;
+  actions: any;
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.APPLICATION_SETTINGS);
     this.sideNavBarComponent = new SideNavBarComponent(page);
+    this.applicationSettingsComponent = new ApplicationSettingsComponent(page);
+    this.actions = {
+      clickOnApplication: this.clickOnApplication.bind(this),
+    };
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    // Implement the required abstract method
-    // You can add page verification logic here if needed
+    await test.step('Verify application settings page is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.applicationSettingsComponent.pageHeading, {
+        assertionMessage: 'Application settings page should be visible',
+      });
+    });
   }
 
   async clickOnApplication(): Promise<void> {
     await test.step('Clicking on application', async () => {
-      await this.sideNavBarComponent.clickOnApplication.click();
+      await this.clickOnElement(this.applicationSettingsComponent.clickOnApplication);
     });
   }
 }

@@ -14,19 +14,34 @@ import { PromotePageModal } from '@/src/modules/content/components/promotePageMo
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
+export interface IManageFeaturesPageActions {
+  clickOnContentCard: () => Promise<void>;
+  clickOnSitesCard: () => Promise<void>;
+}
+
+export interface IFeaturedSiteAssertions {}
+
 export class ApplicationScreenPage extends BasePage {
   private sideNavBarComponent: SideNavBarComponent;
   private manageFeatureComponent: ManageFeatureComponent;
+  actions: any;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_FEATURE);
     this.sideNavBarComponent = new SideNavBarComponent(page);
     this.manageFeatureComponent = new ManageFeatureComponent(page);
+    this.actions = {
+      clickOnContentCard: this.clickOnContentCard.bind(this),
+      clickOnSitesCard: this.clickOnSitesCard.bind(this),
+    };
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    // Implement the required abstract method
-    // You can add page verification logic here if needed
+    await test.step('Verify manage feature page is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.manageFeatureComponent.manageFeatureHeading, {
+        assertionMessage: 'Manage feature page should be visible',
+      });
+    });
   }
 
   async clickOnContentCard(): Promise<void> {

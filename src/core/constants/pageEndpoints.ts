@@ -4,6 +4,7 @@ export const PAGE_ENDPOINTS = {
   CHATS_PAGE: '/chat/conversations',
   AUDIO_VIDEO_CALL_PAGE: '/call',
   FEATURED_SITES_PAGE: '/sites/featured',
+  SITES_LIST_PAGE: '/sites',
   SITE_PAGE: (siteId: string) => `/site/${siteId}/`,
   MANAGE_QR_PAGE: '/manage/promotions',
 
