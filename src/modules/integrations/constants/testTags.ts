@@ -24,6 +24,7 @@ export enum IntegrationsSuiteTags {
   CONFLUENCE = '@confluence',
   GREENHOUSE = '@greenhouseAppTiles',
   RECONNECT_AND_CHANGE_USER = '@reconnectAndChangeUser',
+  UKG_SYNCING = '@ukgSync',
 }
 
 export enum IntegrationsFeatureTags {
@@ -68,6 +69,7 @@ export const TEST_TAGS = {
   GREENHOUSE: IntegrationsSuiteTags.GREENHOUSE,
   CONFLUENCE: IntegrationsSuiteTags.CONFLUENCE,
   RECONNECT_AND_CHANGE_USER: IntegrationsFeatureTags.RECONNECT_AND_CHANGE_USER,
+  UKG_SYNCING: IntegrationsSuiteTags.UKG_SYNCING,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {
