@@ -6,7 +6,8 @@ import { AlbumCreationPage } from '@content/pages/albumCreationPage';
 import { EventCreationPage } from '@content/pages/eventCreationPage';
 import { PageCreationPage } from '@content/pages/pageCreationPage';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
-import { BasePage } from '@core/pages/basePage';
+
+import { SitePage } from './sitePages/sitePage';
 
 export interface ISiteDashboardActions {
   navigateToPageCreationFromSiteDashboard: () => Promise<PageCreationPage>;
@@ -21,7 +22,7 @@ export interface ISiteDashboardAssertions {
   verifyDashboardUrl: (siteId: string) => Promise<void>;
 }
 
-export class SiteDashboardPage extends BasePage implements ISiteDashboardActions, ISiteDashboardAssertions {
+export class SiteDashboardPage extends SitePage implements ISiteDashboardActions, ISiteDashboardAssertions {
   readonly addContentButton = this.page.locator("button[title='Add content']");
   readonly manageSiteButton = this.page.locator("button[title='Manage site'], a[href*='/manage']");
   readonly siteNameHeading = this.page.locator('h1');
@@ -57,7 +58,7 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
    * Completes content creation from site dashboard
    * @param contentType - The content type to create
    */
-  async completeContentCreationFromSiteDashboard(
+  async completeContentCreationFromSitePage(
     contentType: ContentType
   ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage> {
     return await this.addContentModal.completeContentCreationForm(contentType);
@@ -72,7 +73,7 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
       // Click on add content button
       await this.clickOnAddContent();
       // Select content type and navigate to page creation
-      const pageCreationPage = await this.completeContentCreationFromSiteDashboard(ContentType.PAGE);
+      const pageCreationPage = await this.completeContentCreationFromSitePage(ContentType.PAGE);
       await pageCreationPage.verifyThePageIsLoaded();
       return pageCreationPage as PageCreationPage;
     });
@@ -91,7 +92,7 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
       // Click on add content button
       await this.clickOnAddContent();
       // Select content type and navigate to album creation
-      const albumCreationPage = await this.completeContentCreationFromSiteDashboard(ContentType.ALBUM);
+      const albumCreationPage = await this.completeContentCreationFromSitePage(ContentType.ALBUM);
       await albumCreationPage.verifyThePageIsLoaded();
       return albumCreationPage as AlbumCreationPage;
     });
@@ -102,7 +103,7 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
       // Click on add content button
       await this.clickOnAddContent();
       // Select content type and navigate to event creation
-      const eventCreationPage = await this.completeContentCreationFromSiteDashboard(ContentType.EVENT);
+      const eventCreationPage = await this.completeContentCreationFromSitePage(ContentType.EVENT);
       await eventCreationPage.verifyThePageIsLoaded();
       return eventCreationPage as EventCreationPage;
     });

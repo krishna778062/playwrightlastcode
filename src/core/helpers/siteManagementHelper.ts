@@ -318,7 +318,7 @@ export class SiteManagementHelper {
    * @param options.accessType - The access type of the site (default: 'public')
    * @returns The siteId of the found or created site
    */
-  async getSiteFromSiteList(
+  async getSiteId(
     siteName: string,
     options?: {
       category?: { name: string; categoryId: string };

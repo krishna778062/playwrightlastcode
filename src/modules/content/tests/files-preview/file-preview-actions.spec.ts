@@ -25,7 +25,8 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
   };
   let sitePage: SitePage;
   let siteFilesPage: SiteFilesPage;
-  test.beforeEach('Setup : Navigating to Site Files page', async ({ appManagersPage }) => {
+  const testSiteName = `All Employees`;
+  test.beforeEach('Setup : Navigating to Site Files page', async ({ appManagersPage, siteManagementHelper }) => {
     // Create random file copy
     const originalFilePath = `src/modules/content/test-data/static-files/documents/FilesPreview_BEHAVE_DOC_1_PDF.pdf`;
     const fileInfo = FileUtil.createRandomFileCopy(originalFilePath);
@@ -35,6 +36,7 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
       deleteByUI: true,
     };
     // Navigate to Site Files page
+    const siteId = await siteManagementHelper.getSiteId(testSiteName);
     sitePage = new SitePage(appManagersPage);
   });
 
@@ -59,7 +61,6 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
         zephyrTestId: ['CONT-37467', 'CONT-34399'],
         storyId: `CONT-34370`,
       });
-
       await sitePage.landOnMainPageOfSite(`All Employees`);
       siteFilesPage = await sitePage.navigateToSiteTab(SitePageTab.FilesTab);
       await siteFilesPage.uploadFileViaSelectFromComputer(testFileDetails.filePath);

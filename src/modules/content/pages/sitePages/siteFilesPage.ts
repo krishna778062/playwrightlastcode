@@ -35,9 +35,13 @@ export class SiteFilesPage extends BasePage {
   }
 
   readonly filesPreviewModalComponent: FilesPreviewModalComponent;
-  constructor(page: Page) {
+  constructor(
+    page: Page,
+    readonly siteId: string
+  ) {
     super(page);
     this.filesPreviewModalComponent = new FilesPreviewModalComponent(page);
+    this.siteId = siteId;
   }
 
   /**
