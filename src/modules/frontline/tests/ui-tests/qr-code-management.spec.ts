@@ -1,3 +1,4 @@
+import { PopupType } from '@frontline/constants/popupType';
 import { FrontlineFeatureTags, FrontlineSuiteTags } from '@frontline/constants/testTags';
 import { frontlineTestFixture as test } from '@frontline/fixtures/frontlineFixture';
 import { ManageQRPage } from '@frontline/pages/manageQRPage';
@@ -50,7 +51,7 @@ test.describe(
         await manageQRPage.fillQRName(qrDetails.qrName);
         await manageQRPage.fillDescription(qrDetails.qrDescription);
         await manageQRPage.clickEyeIcon();
-        await manageQRPage.verifyPopupDisplayedByHeader('Promote mobile app via QR');
+        await manageQRPage.verifyPopupDisplayedByHeader(PopupType.PromotionPopup);
         await manageQRPage.verifyQRImageDisplayOnPreview();
         await manageQRPage.verifyQRDescriptionOnPreview(qrDetails.qrDescription);
         await manageQRPage.clickSaveAndVisit();
@@ -123,10 +124,10 @@ test.describe(
         qrDetails.qrCodeId = await manageQRPage.clickOnAddQRAndGetQRId('Content');
         await manageQRPage.verifyContentQRModalHeading();
         await manageQRPage.fillQRName(qrDetails.qrName);
-        await manageQRPage.selectDate(2);
+        await manageQRPage.selectDateFromToday(2);
         await manageQRPage.fillDescription(qrDetails.qrDescription);
         await manageQRPage.clickEyeIcon();
-        await manageQRPage.verifyPopupDisplayedByHeader('Preview QR code');
+        await manageQRPage.verifyPopupDisplayedByHeader(PopupType.PreviewPopup);
         await manageQRPage.verifyQRImageDisplayOnPreview();
         await manageQRPage.verifyQRDescriptionOnPreview(qrDetails.qrDescription);
         await manageQRPage.clickSaveAndVisit();

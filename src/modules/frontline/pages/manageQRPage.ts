@@ -1,3 +1,4 @@
+import { PopupType } from '@frontline/constants/popupType';
 import { Locator, Page } from '@playwright/test';
 import { addDays, format } from 'date-fns';
 
@@ -6,6 +7,7 @@ import { BasePage } from '@core/pages/basePage';
 import { PAGE_ENDPOINTS } from '../../../core/constants/pageEndpoints';
 
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
+import { ContentType } from '@/src/core/constants/contentTypes';
 
 export class ManageQRPage extends BasePage {
   readonly manageLink: Locator;
@@ -177,17 +179,25 @@ export class ManageQRPage extends BasePage {
     });
   }
 
-  async verifyPopupDisplayedByHeader(popupTitle: string) {
-    if (popupTitle.includes('Promote')) {
-      await this.appPreviewQRPopupHeader.waitFor();
-      await this.verifier.verifyTheElementIsVisible(this.appPreviewQRPopupHeader, {
-        assertionMessage: `App preview popup header should be visible: ${popupTitle}`,
-      });
-    } else if (popupTitle.includes('Preview')) {
-      await this.contentPreviewQRPopupHeader.waitFor();
-      await this.verifier.verifyTheElementIsVisible(this.contentPreviewQRPopupHeader, {
-        assertionMessage: `Content preview popup header should be visible: ${popupTitle}`,
-      });
+  async verifyPromotionPopup() {
+    await this.appPreviewQRPopupHeader.waitFor();
+    await this.verifier.verifyTheElementIsVisible(this.appPreviewQRPopupHeader, {
+      assertionMessage: 'App preview popup header should be visible',
+    });
+  }
+
+  async verifyPreviewPopup() {
+    await this.contentPreviewQRPopupHeader.waitFor();
+    await this.verifier.verifyTheElementIsVisible(this.contentPreviewQRPopupHeader, {
+      assertionMessage: 'Content preview popup header should be visible',
+    });
+  }
+
+  async verifyPopupDisplayedByHeader(popupType: PopupType) {
+    if (popupType === PopupType.PromotionPopup) {
+      await this.verifyPromotionPopup();
+    } else if (popupType === PopupType.PreviewPopup) {
+      await this.verifyPreviewPopup();
     }
   }
 
@@ -269,13 +279,17 @@ export class ManageQRPage extends BasePage {
       assertionMessage: `Toggle popup should display text: ${expectedText}`,
     });
   }
-  async clickOnContent() {
+  /**
+   * Clicks on the Content menu option
+   */
+  async clickOnContentMenu() {
     await this.clickOnElement(this.contentMenuOption, {
       stepInfo: 'Click on Content menu option',
     });
   }
+
   async enterAndSelectContent() {
-    await this.enterContent.fill('page');
+    await this.enterContent.fill(ContentType.Page);
     await this.selectFirstContent.click();
   }
 
@@ -291,12 +305,25 @@ export class ManageQRPage extends BasePage {
     });
   }
 
-  async selectDate(number: number) {
+  /**
+   * Selects a date from the date picker using a relative approach
+   *
+   * Approach:
+   * 1. Click on the date picker to open the calendar
+   * 2. Calculate the target date by adding/subtracting days from today
+   * 3. Format the date to match the aria-label format used by the calendar component
+   * 4. Locate the specific date cell using the formatted aria-label
+   * 5. Click on the target date to select it
+   *
+   * @param daysFromToday - Number of days from today to select (positive for future dates, negative for past dates)
+   *                        Examples: 1 = tomorrow, 7 = next week, -1 = yesterday
+   */
+  async selectDateFromToday(daysFromToday: number) {
     await this.clickOnElement(this.validTillDatePicker, {
       stepInfo: 'Click on Valid till date picker',
     });
 
-    const targetDate = addDays(new Date(), number);
+    const targetDate = addDays(new Date(), daysFromToday);
     const ariaLabel = format(targetDate, 'EEE MMM dd yyyy');
 
     const targetDay = this.targetDay(ariaLabel);
