@@ -40,8 +40,9 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
       // Step 4: Fill audience name
       await audiencePage.csvUploadModal.fillAudienceName(uniqueAudienceName);
 
-      // Step 5: Add description (using generic description filling method)
-      await audiencePage.csvUploadModal.fillInDescription(audienceDescription);
+      // Step 5: Add description
+      await audiencePage.csvUploadModal.clickAddDescription();
+      await audiencePage.csvUploadModal.addAudienceDescription(audienceDescription);
 
       // Step 6: Select category from dropdown
       await audiencePage.csvUploadModal.selectCategory(uniqueCategoryName);
@@ -86,7 +87,10 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
       await audiencePage.csvUploadModal.clickDownloadExampleCsv();
 
       // Step 8: Cancel the modal to clean up
-      await audiencePage.csvUploadModal.clickCancel();
+      await audiencePage.csvUploadModal.clickCancelButton(
+        audiencePage.csvUploadModal.cancelButton,
+        'Click Cancel button to close CSV upload modal'
+      );
     }
   );
 
@@ -105,7 +109,10 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
     await audiencePage.csvUploadModal.verifyErrorMessage('CSV file cannot be empty');
 
     // Step 2: Cancel the modal to clean up
-    await audiencePage.csvUploadModal.clickCancel();
+    await audiencePage.csvUploadModal.clickCancelButton(
+      audiencePage.csvUploadModal.cancelButton,
+      'Click Cancel button to close CSV upload modal'
+    );
   });
 
   test(
@@ -130,7 +137,8 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
       await audiencePage.csvUploadModal.fillAudienceName(uniqueAudienceName);
 
       // Step 3: Add description
-      await audiencePage.csvUploadModal.fillInDescription(audienceDescription);
+      await audiencePage.csvUploadModal.clickAddDescription();
+      await audiencePage.csvUploadModal.addAudienceDescription(audienceDescription);
 
       // Step 4: Create new category on-the-fly using existing selectCategory method
       await audiencePage.csvUploadModal.selectCategory(newCategoryName);

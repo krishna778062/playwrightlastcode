@@ -2,6 +2,7 @@ import { expect, Page, test } from '@playwright/test';
 
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
+import { FileUtil } from '@core/utils/fileUtil';
 
 export abstract class BasePage extends BaseActionUtil {
   readonly verifier: BaseVerificationUtil;
@@ -126,10 +127,7 @@ export abstract class BasePage extends BaseActionUtil {
 
       // Automatic cleanup if enabled (default: true)
       if (options?.cleanup !== false && downloadPath) {
-        const fs = await import('fs');
-        if (fs.existsSync(downloadPath)) {
-          fs.unlinkSync(downloadPath);
-        }
+        FileUtil.deleteTemporaryFile(downloadPath);
       }
 
       return { download, downloadPath, filename };

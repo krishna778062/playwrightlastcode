@@ -23,7 +23,6 @@ export class CsvAudienceModule extends BaseComponent {
   constructor(page: Page) {
     super(page);
 
-    // Initialize locators in constructor (following categoryModal pattern)
     this.csvUploadDialog = page.locator('[role="dialog"]').filter({ hasText: 'Create audience with CSV' });
 
     // Based on actual codegen output:
@@ -49,16 +48,14 @@ export class CsvAudienceModule extends BaseComponent {
     });
   }
 
-  // Fill description field using BasePage method for consistency
-  async fillInDescription(description: string): Promise<void> {
-    // Ensure description field is visible first
-    const isDescriptionVisible = await this.audienceDescriptionInput.isVisible({ timeout: 1000 }).catch(() => false);
-    if (!isDescriptionVisible) {
-      await this.clickOnElement(this.addDescriptionButton, { stepInfo: 'Click Add description button' });
-    }
+  // Click Add description button to reveal the description input field
+  async clickAddDescription(): Promise<void> {
+    await this.clickOnElement(this.addDescriptionButton, { stepInfo: 'Click Add description button' });
+  }
 
-    // Use the existing addDescription method from BasePage
-    await this.addDescription(this.audienceDescriptionInput, description, `Fill description: ${description}`);
+  // Add audience description using BasePage method for consistency (following CategoryModal pattern)
+  async addAudienceDescription(description: string): Promise<void> {
+    await this.addDescription(this.audienceDescriptionInput, description, `Add audience description: ${description}`);
   }
 
   // Select category from dropdown with typing and selection
@@ -115,10 +112,6 @@ export class CsvAudienceModule extends BaseComponent {
         cleanup: true,
       }
     );
-  }
-
-  async clickCancel(): Promise<void> {
-    await super.clickCancelButton(this.cancelButton, 'Click Cancel button to close CSV upload modal');
   }
 
   // Remove/delete uploaded CSV file
