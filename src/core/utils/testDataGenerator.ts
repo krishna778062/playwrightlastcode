@@ -572,4 +572,61 @@ export class TestDataGenerator {
       };
     }
   }
+
+  /**
+   * Generates test data for feed comment/reply with user mention
+   * @param params Configuration for the reply
+   * @returns Object with reply creation parameters including textHtml, textJson, and other payload data
+   *
+   * @example
+   * // Generate reply with user mention
+   * const reply = TestDataGenerator.generateReply({
+   *   userId: 'ad3c871b-2444-4cbc-8438-c9b40852002a',
+   *   userName: 'Sonali Gupta',
+   *   replyText: 'This is a test reply'
+   * });
+   */
+  static generateReply(params: { userId: string; userName: string; replyText?: string }) {
+    const { userId, userName, replyText } = params;
+    const text = replyText || `Reply from - ${faker.lorem.sentence()}`;
+
+    // Generate textHtml with user mention
+    const textHtml = `<p><span data-type="user" data-id="${userId}" data-label="${userName}"><a href="/people/${userId}" target="_blank">@${userName}</a></span> ${text}</p>`;
+
+    // Generate textJson with user mention
+    const textJson = JSON.stringify({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          attrs: {
+            className: '',
+            'data-sw-sid': null,
+          },
+          content: [
+            {
+              type: 'UserAndSiteMention',
+              attrs: {
+                id: userId,
+                label: userName,
+                type: 'user',
+              },
+            },
+            {
+              type: 'text',
+              text: ` ${text}`,
+            },
+          ],
+        },
+      ],
+    });
+
+    return {
+      textHtml,
+      textJson,
+      listOfAttachedFiles: [],
+      ignoreToxic: false,
+      replyText: `@${userName} ${text}`, // For UI verification
+    };
+  }
 }
