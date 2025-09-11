@@ -5,6 +5,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { FeedManagementService } from '@/src/core/api/services/FeedManagementService';
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { NotificationComponent } from '@/src/modules/content/components/notificationComponent';
@@ -18,32 +19,26 @@ test.describe(
     tag: [ContentTestSuite.FEED_COMMENT_MENTION_NOTIFICATION],
   },
   () => {
-    let user3FeedPage: FeedPage;
     let createdPostText: string;
     let createdPostId: string;
     let commentText: string;
     let siteManagerFullName: string;
     let siteManagerId: string;
-    let appManagerFullName: string;
+    let standardUserFullName: string;
 
-    test.beforeEach(
-      'Setup test environment',
-      async ({ appManagerApiClient, standardUserApiClient, siteManagerHomePage }) => {
-        user3FeedPage = new FeedPage(siteManagerHomePage.page); // User3 (Site Manager)
+    test.beforeEach('Setup test environment', async ({ appManagerApiClient }) => {
+      // Get user full names for mentions
+      const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
 
-        // Get user full names for mentions
-        const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
-
-        const [user1Name, user3Name, user3UserId] = await Promise.all([
-          identityManagementHelper.getUserNameByEmail(users.appManager.email),
-          identityManagementHelper.getUserNameByEmail(users.siteManager.email),
-          identityManagementHelper.getUserIdByEmail(users.siteManager.email),
-        ]);
-        appManagerFullName = user1Name;
-        siteManagerFullName = user3Name;
-        siteManagerId = user3UserId;
-      }
-    );
+      const [user2, user3, userId3] = await Promise.all([
+        identityManagementHelper.getUserNameByEmail(users.endUser.email),
+        identityManagementHelper.getUserNameByEmail(users.siteManager.email),
+        identityManagementHelper.getUserIdByEmail(users.siteManager.email),
+      ]);
+      standardUserFullName = user2;
+      siteManagerFullName = user3;
+      siteManagerId = userId3;
+    });
 
     test.afterEach('Cleanup created posts', async ({ feedManagementHelper }) => {
       if (createdPostId) {
@@ -57,7 +52,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-30438'],
       },
-      async ({ appManagerApiClient, siteManagerHomePage, feedManagementHelper }) => {
+      async ({ appManagerApiClient, standardUserApiClient, siteManagerHomePage, feedManagementHelper }) => {
         tagTest(test.info(), {
           description:
             'Verify that User gets notified when it is getting mentioned in the reply of the comment of any post',
@@ -87,17 +82,24 @@ test.describe(
         });
 
         // Add reply via API
-        await feedManagementHelper.addComment(createdPostId, replyData);
+        const feedManagementService = new FeedManagementService(standardUserApiClient.context);
+        await feedManagementService.addComment(createdPostId, replyData);
         console.log(`Added reply via API with mention: "${replyData.replyText}"`);
 
-        const notificationComponent: NotificationComponent = await siteManagerHomePage.actions.clickOnBellIcon({
-          stepInfo: 'User3 clicking on bell icon to check notifications for mention',
+        await siteManagerHomePage.page.reload();
+
+        //SiteManager clicking on bell icon to view notifications
+        const notificationComponentSiteManager = await siteManagerHomePage.actions.clickOnBellIcon({
+          stepInfo: 'Application Manager clicking on bell icon to view notifications',
         });
 
-        // Verify notification message for mention in reply
-        const expectedNotificationMessage = `${siteManagerFullName} mentioned you in a reply`;
+        const activityNotificationPage = await notificationComponentSiteManager.actions.clickOnViewAllNotifications();
 
-        await notificationComponent.actions.clickOnNotification(expectedNotificationMessage);
+        // Verify notification message for mention in reply
+        const expectedNotificationMessage = `${standardUserFullName} mentioned you "${replyData.replyText}"`;
+
+        siteManagerHomePage.page.pause();
+        await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
       }
     );
   }
