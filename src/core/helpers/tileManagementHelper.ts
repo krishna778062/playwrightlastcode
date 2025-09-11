@@ -7,13 +7,79 @@
  * @version 2.0
  */
 
+import { test } from '@playwright/test';
+
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
+import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import { AppTile } from '@/src/core/types/tile.type';
+import {
+  getLinkTileSearchTestData,
+  PREDEFINED_LINKS,
+} from '@/src/modules/global-search/test-data/link-tile-search.test-data';
+
+export interface TileTestData {
+  tileResponse: any;
+  tileTitle: string;
+}
 
 export class TileManagementHelper {
   private tiles: AppTile[] = [];
 
   constructor(private appManagerApiClient: AppManagerApiClient) {}
+
+  /**
+   * Creates a link tile with the specified number of links
+   * @param params - Object containing tile creation parameters
+   * @param params.siteId - The site ID where the tile will be created
+   * @param params.numberOfLinks - Number of links for the tile
+   * @param params.tileTitle - Optional custom tile title (uses generated title if not provided)
+   * @returns Promise<TileTestData> - The created tile data
+   */
+  async createLinkTile({
+    siteId,
+    numberOfLinks,
+    tileTitle,
+  }: {
+    siteId: string;
+    numberOfLinks: number;
+    tileTitle?: string;
+  }): Promise<TileTestData> {
+    // Generate unique tile title for each execution
+    const finalTileTitle = tileTitle || getLinkTileSearchTestData().tileTitle;
+
+    const tileResponse = await test.step(`Creating tile "${finalTileTitle}" with ${numberOfLinks} links`, async () => {
+      return await this.appManagerApiClient.getTileManagementService().createTile({
+        siteId,
+        tileTitle: finalTileTitle,
+        numberOfLinks,
+        predefinedLinks: PREDEFINED_LINKS,
+      });
+    });
+
+    const tileId = tileResponse.result.id;
+    console.log(`Created tile: ${finalTileTitle} with ID: ${tileId} and ${numberOfLinks} links`);
+
+    // Wait for search index
+    await test.step(`Waiting for tile "${finalTileTitle}" to appear in search index`, async () => {
+      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+        apiClient: this.appManagerApiClient,
+        searchTerm: finalTileTitle,
+        objectType: 'tiles',
+        valueToFind: finalTileTitle,
+      });
+    });
+
+    // Track for cleanup - add to the existing tiles array
+    this.tiles.push({
+      tileInstanceName: finalTileTitle,
+      instanceId: tileId,
+    } as AppTile);
+
+    return {
+      tileResponse,
+      tileTitle: finalTileTitle,
+    };
+  }
 
   /**
    * Remove an app tile by its title using a multi-step approach with fallbacks
@@ -218,7 +284,7 @@ export class TileManagementHelper {
   private async getContentTilesList(): Promise<any[]> {
     try {
       // Build headers similar to the original tileApiHelpers approach
-      const { frontendBaseUrl } = await import('@core/utils/getEnvConfig').then(m => m.getEnvConfig());
+      const { frontendBaseUrl } = await import('@/src/core/utils/getEnvConfig').then(m => m.getEnvConfig());
 
       // Get role ID from environment variables with fallback
       const roleId =

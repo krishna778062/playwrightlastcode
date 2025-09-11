@@ -14,18 +14,24 @@ export interface ITileManagementOperations {
   fetchInstanceMetadata(instanceId: string): Promise<any>;
   /**
    * Create link tile
-   * @param siteId - The site ID
-   * @param tileTitle - The tile title
-   * @param numberOfLinks - The number of links
-   * @param predefinedLinks - The predefined links
+   * @param params - Object containing tile creation parameters
+   * @param params.siteId - The site ID
+   * @param params.tileTitle - The tile title
+   * @param params.numberOfLinks - The number of links
+   * @param params.predefinedLinks - The predefined links
    * @returns Promise<LinkTileResponse>
    */
-  createTile(
-    siteId: string,
-    tileTitle: string,
-    numberOfLinks: number,
-    predefinedLinks: TileLink[]
-  ): Promise<LinkTileResponse>;
+  createTile({
+    siteId,
+    tileTitle,
+    numberOfLinks,
+    predefinedLinks,
+  }: {
+    siteId: string;
+    tileTitle: string;
+    numberOfLinks: number;
+    predefinedLinks: TileLink[];
+  }): Promise<LinkTileResponse>;
   /**
    * Delete link tile
    * @param siteId - The site ID

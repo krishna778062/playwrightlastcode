@@ -58,12 +58,17 @@ export class TileManagementService extends BaseApiClient implements ITileManagem
     });
     return res.json();
   }
-  async createTile(
-    siteId: string,
-    tileTitle: string,
-    numberOfLinks: number,
-    predefinedLinks: TileLink[]
-  ): Promise<LinkTileResponse> {
+  async createTile({
+    siteId,
+    tileTitle,
+    numberOfLinks,
+    predefinedLinks,
+  }: {
+    siteId: string;
+    tileTitle: string;
+    numberOfLinks: number;
+    predefinedLinks: TileLink[];
+  }): Promise<LinkTileResponse> {
     const tile = {
       ...defaultTilePayload,
       siteId,

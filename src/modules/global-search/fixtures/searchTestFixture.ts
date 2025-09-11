@@ -10,6 +10,7 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { LoginHelper } from '../../../core/helpers/loginHelper';
 
+import { TileManagementHelper } from '@/src/core/helpers/tileManagementHelper';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
@@ -20,6 +21,7 @@ export const searchTestFixtures = test.extend<
     contentManagementHelper: ContentManagementHelper;
     feedManagementHelper: FeedManagementHelper;
     intranetFileHelper: IntranetFileHelper;
+    tileManagementHelper: TileManagementHelper;
   },
   {
     appManagerApiClient: AppManagerApiClient;
@@ -71,7 +73,7 @@ export const searchTestFixtures = test.extend<
     async ({ appManagerApiClient }, use) => {
       const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
       await use(feedManagementHelper);
-      await feedManagementHelper.cleanup();
+      // Note: Cleanup is handled manually in test afterAll hooks
     },
     { scope: 'test' },
   ],
@@ -119,5 +121,13 @@ export const searchTestFixtures = test.extend<
       await siteManagementHelper.cleanup();
     },
     { scope: 'worker' },
+  ],
+  tileManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const tileManagementHelper = new TileManagementHelper(appManagerApiClient);
+      await use(tileManagementHelper);
+      await tileManagementHelper.cleanup();
+    },
+    { scope: 'test' },
   ],
 });
