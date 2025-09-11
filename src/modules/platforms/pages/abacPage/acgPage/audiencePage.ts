@@ -3,6 +3,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 import { CategoryModalComponent } from '@platforms/components/categoryModal';
+import { CsvAudienceModule } from '@platforms/components/csvAudienceModule';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
@@ -33,6 +34,7 @@ export class AudiencePage extends BasePage {
   // Modal components
   addCategoryModal: CategoryModalComponent;
   editCategoryModal: CategoryModalComponent;
+  csvUploadModal: CsvAudienceModule;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.AUDIENCE_PAGE) {
     super(page, pageUrl);
@@ -54,6 +56,7 @@ export class AudiencePage extends BasePage {
 
     this.addCategoryModal = new CategoryModalComponent(page, 'create');
     this.editCategoryModal = new CategoryModalComponent(page, 'edit');
+    this.csvUploadModal = new CsvAudienceModule(page);
   }
 
   // Verify that the Audience page is loaded by checking if 'Audiences' heading is visible
@@ -415,6 +418,13 @@ export class AudiencePage extends BasePage {
         timeout: TIMEOUTS.MEDIUM,
       });
     });
+  }
+
+  // ========== CSV UPLOAD METHODS ==========
+
+  // Open CSV upload modal for creating audience with CSV
+  async openCreateAudienceWithCsvModal(): Promise<void> {
+    await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create audience with CSV');
   }
 
   // ========== CONTEXTUAL LOCATOR METHODS ==========
