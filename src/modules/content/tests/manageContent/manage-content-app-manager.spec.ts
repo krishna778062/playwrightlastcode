@@ -40,7 +40,7 @@ test.describe(
           storyId: 'CONT-25055',
         });
 
-        const title = faker.lorem.words(10);
+        const title = faker.string.alphanumeric(20) + faker.string.numeric(10);
         await manageFeaturePage.actions.navigateToContentButton();
         await manageContentPage.actions.writeRandomTextInSearchBar(title);
         await manageContentPage.actions.clickSearchIcon();
@@ -92,9 +92,11 @@ test.describe(
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnMoveButton();
         await manageContentPage.actions.clickOnApplyButton();
-        const siteName = 'Testing';
+        const siteName = 'Page';
         await manageContentPage.actions.moveContentSearchBar(siteName);
         await manageContentPage.actions.siteListSelecting();
+        await manageContentPage.actions.selectPageCategoryIfVisible();
+        await manageContentPage.actions.selectPageCategory();
         await manageContentPage.actions.clickOnMoveConfirmButton();
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnDeleteButton();

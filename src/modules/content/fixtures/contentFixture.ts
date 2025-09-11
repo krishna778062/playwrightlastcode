@@ -134,7 +134,7 @@ export const contentTestFixture = test.extend<
       const context = await browser.newContext({
         // Optimize context creation
         ignoreHTTPSErrors: true,
-        viewport: { width: 1920, height: 1080 },
+        // viewport: { width: 1920, height: 1238 },
       });
 
       await use(context);

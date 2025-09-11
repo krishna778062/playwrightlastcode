@@ -33,7 +33,10 @@ export class ManageContentComponent extends BaseComponent {
   readonly siteHeading: Locator;
   readonly siteSearchBarOption: Locator;
   readonly siteStatusStamp: Locator;
+  readonly pageCategorySelectorDropdown: Locator;
   readonly siteName: Locator;
+  readonly actionDropdownContainer: Locator;
+  readonly pageCategorySelectorDropdownOptions: Locator;
   siteSearchBarOptionText!: string;
   readonly sortByButton: Locator;
   readonly createdNewestOption = '?sortBy=publishedNewest';
@@ -45,7 +48,8 @@ export class ManageContentComponent extends BaseComponent {
     this.xButton = page.locator('[aria-label="Clear"]');
     this.placeHolderText = page.locator(`[placeholder="Search…"]`);
     this.firstContentCheckbox = page.locator('[type="checkbox"]').nth(1);
-    this.actionDropdown = page.locator(`[role="combobox"]`);
+    this.actionDropdownContainer = page.locator(`[class="Bulk Bulk--footer"]`);
+    this.actionDropdown = page.locator('#action');
     this.unpublishButton = page.getByText('Unpublish', { exact: true });
     this.applyButton = page.getByRole('button', { name: 'Apply' });
     this.publishButton = page.getByText('Publish', { exact: true });
@@ -74,6 +78,11 @@ export class ManageContentComponent extends BaseComponent {
     this.siteSearchBarOption = page.locator('[role="listbox"]').first();
     this.siteName = page.locator(`[class="meta-link"]`).last();
     this.sortByButton = page.locator(`[name="sortBy"]`);
+    this.pageCategorySelectorDropdown = page
+      .locator('div')
+      .filter({ hasText: /^Select a page category…$/ })
+      .first();
+    this.pageCategorySelectorDropdownOptions = page.locator('[id="undefined-list"]').first();
   }
 
   async clickSearchBar(): Promise<void> {
@@ -86,6 +95,7 @@ export class ManageContentComponent extends BaseComponent {
     await test.step(`Writing random text in the search bar`, async () => {
       await this.clickSearchBar();
       await this.searchBar.type(inputText);
+      await this.page.waitForTimeout(5000);
     });
   }
 
@@ -128,6 +138,7 @@ export class ManageContentComponent extends BaseComponent {
   async selectActionDropdown(): Promise<void> {
     await test.step(`Selecting the action dropdown`, async () => {
       await this.clickOnElement(this.actionDropdown);
+      await this.page.waitForTimeout(1000);
     });
   }
 
@@ -140,6 +151,7 @@ export class ManageContentComponent extends BaseComponent {
   async selectApplyButton(): Promise<void> {
     await test.step(`Selecting the confirm unpublish button`, async () => {
       await this.clickOnElement(this.applyButton);
+      await this.page.waitForTimeout(1000);
     });
   }
 
@@ -200,7 +212,7 @@ export class ManageContentComponent extends BaseComponent {
 
   async checkPublishOption(): Promise<void> {
     await test.step(`Checking the publish option`, async () => {
-      if (await this.verifier.verifyTheElementIsVisible(this.publishOption)) {
+      if (await this.verifier.isTheElementVisible(this.publishOption)) {
         await this.clickOnElement(this.publishOption);
       } else {
         await this.verifier.verifyTheElementIsVisible(this.unpublishOption);
@@ -301,6 +313,17 @@ export class ManageContentComponent extends BaseComponent {
   async selectCreatedNewestOptionThroughUrl(): Promise<void> {
     await test.step('Selecting the created newest option', async () => {
       await this.page.goto(`${this.page.url()}${this.createdNewestOption}`);
+    });
+  }
+  async selectPageCategoryIfVisible(): Promise<void> {
+    await test.step('Selecting the page category if visible', async () => {
+      await this.clickOnElement(this.pageCategorySelectorDropdown);
+      await this.page.waitForTimeout(2000);
+    });
+  }
+  async selectPageCategory(): Promise<void> {
+    await test.step('Selecting the page category', async () => {
+      await this.clickOnElement(this.pageCategorySelectorDropdownOptions);
     });
   }
 }

@@ -18,6 +18,8 @@ export interface IActions {
   clickOnTheSiteName: () => Promise<void>;
   clickSortByButton: () => Promise<void>;
   selectCreatedNewestOptionThroughUrl: () => Promise<void>;
+  selectPageCategoryIfVisible: () => Promise<void>;
+  selectPageCategory: () => Promise<void>;
 }
 
 export interface IAssertions {
@@ -107,6 +109,10 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
     await this.manageContentComponent.siteListSelecting();
   }
 
+  async selectPageCategoryIfVisible(): Promise<void> {
+    await this.manageContentComponent.selectPageCategoryIfVisible();
+  }
+
   async clickOnDeleteButton(): Promise<void> {
     await this.manageContentComponent.selectDeleteButton();
   }
@@ -169,5 +175,9 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async selectCreatedNewestOptionThroughUrl(): Promise<void> {
     await this.manageContentComponent.selectCreatedNewestOptionThroughUrl();
+  }
+
+  async selectPageCategory(): Promise<void> {
+    await this.manageContentComponent.selectPageCategory();
   }
 }
