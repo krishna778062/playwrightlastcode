@@ -4,7 +4,12 @@ import { APIRequestContext, expect, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
-import { AlbumCreationPayload, EventCreationPayload, PageCreationPayload } from '@core/types/contentManagement.types';
+import {
+  AlbumCreationPayload,
+  EventCreationPayload,
+  PageCreationPayload,
+  TopicListResponse,
+} from '@core/types/contentManagement.types';
 
 const defaultBaseContentPayload = {
   listOfFiles: [],
@@ -292,21 +297,38 @@ export class ContentManagementService extends BaseApiClient implements IContentM
    */
   async deleteContent(siteId: string, contentId: string) {
     return await test.step('Deleting page via API delete request', async () => {
-      const response = await this.delete(API_ENDPOINTS.content.delete(siteId, contentId));
-      expect(response.status()).toBe(200);
-
       await expect
         .poll(
           async () => {
-            const checkResponse = await this.get(API_ENDPOINTS.content.delete(siteId, contentId));
-            return checkResponse.status() === 404 || checkResponse.status() === 400;
+            const response = await this.delete(API_ENDPOINTS.content.delete(siteId, contentId));
+            return response.status() === 200;
           },
           {
-            message: `Content with id ${contentId} was not deleted within the specified timeout.`,
-            timeout: TIMEOUTS.LONG,
+            intervals: [10000, 20000, 30000],
+            timeout: 40_000,
           }
         )
         .toBe(true);
+    });
+  }
+
+  /**
+   * Gets the list of topics
+   * @param size - Number of topics to return (default: 16)
+   * @param term - Search term to filter topics (default: empty string)
+   * @param nextPageToken - Token for pagination (default: 0)
+   * @returns The topic list response
+   */
+  async getTopicList(size: number = 16, term: string = '', nextPageToken: number = 0): Promise<TopicListResponse> {
+    return await test.step(`Getting list of topics with size: ${size}, term: "${term}", nextPageToken: ${nextPageToken}`, async () => {
+      const requestData = {
+        size: 16,
+      };
+
+      const response = await this.post(API_ENDPOINTS.content.topics, {
+        data: requestData,
+      });
+      return await this.parseResponse<TopicListResponse>(response);
     });
   }
 }

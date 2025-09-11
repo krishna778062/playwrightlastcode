@@ -494,4 +494,82 @@ export class TestDataGenerator {
     console.log(`Generated unique category name: ${result.substring(0, 30)}... (${result.length} characters)`);
     return result;
   }
+
+  /**
+   * Generates feed test data with customizable options
+   * @param options Configuration options for the feed
+   * @returns Object with feed creation parameters
+   *
+   * @example
+   * // Generate public feed without attachment
+   * const publicFeed = TestDataGenerator.generateFeed({ scope: 'public' });
+   *
+   * // Generate site feed with attachment
+   * const siteFeed = TestDataGenerator.generateFeed({
+   *   scope: 'site',
+   *   siteId: 'site123',
+   *   withAttachment: true
+   * });
+   *
+   * // Generate feed with custom text
+   * const customFeed = TestDataGenerator.generateFeed({
+   *   scope: 'public',
+   *   text: 'Custom post text'
+   * });
+   */
+  static generateFeed(
+    options:
+      | {
+          scope: string;
+          siteId?: string;
+          withAttachment?: false;
+          fileName?: undefined;
+          fileSize?: undefined;
+          mimeType?: undefined;
+          filePath?: undefined;
+          waitForSearchIndex?: boolean;
+        }
+      | {
+          scope: string;
+          siteId?: string;
+          withAttachment: true;
+          fileName: string;
+          fileSize: number;
+          mimeType: string;
+          filePath: string; // Required when withAttachment is true
+          waitForSearchIndex?: boolean;
+        }
+  ) {
+    if ('withAttachment' in options && options.withAttachment) {
+      const { scope, siteId, fileName, fileSize, mimeType, filePath, waitForSearchIndex = false } = options;
+      return {
+        text: `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Post - ${faker.commerce.productName()}`,
+        scope,
+        siteId: siteId || undefined,
+        withAttachment: true as const,
+        fileName,
+        fileSize,
+        mimeType,
+        filePath,
+        options: {
+          waitForSearchIndex,
+        },
+      };
+    } else {
+      const { scope, siteId, waitForSearchIndex = false } = options;
+      return {
+        text: `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Post - ${faker.commerce.productName()}`,
+        scope,
+        siteId: siteId || undefined,
+        withAttachment: false as const,
+        fileName: undefined,
+        fileSize: undefined,
+        mimeType: undefined,
+        filePath: undefined,
+        options: {
+          waitForSearchIndex,
+        },
+      };
+    }
+  }
 }
