@@ -16,7 +16,7 @@ import { ContentTestSuite } from '../../constants/testSuite';
 
 import { SiteManager } from '@/src/modules/content/managers/SiteManager';
 
-test.describe.only(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES_PREVIEW}`, () => {
+test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES_PREVIEW}`, () => {
   let testFileDetails: {
     filePath: string;
     fileName: string;
