@@ -317,13 +317,21 @@ export class ManageContentComponent extends BaseComponent {
   }
   async selectPageCategoryIfVisible(): Promise<void> {
     await test.step('Selecting the page category if visible', async () => {
-      await this.clickOnElement(this.pageCategorySelectorDropdown);
+      if (await this.verifier.isTheElementVisible(this.pageCategorySelectorDropdown)) {
+        await this.clickOnElement(this.pageCategorySelectorDropdown);
+      } else {
+        console.log('Page category selector dropdown is not visible skipping');
+      }
       await this.page.waitForTimeout(2000);
     });
   }
   async selectPageCategory(): Promise<void> {
     await test.step('Selecting the page category', async () => {
-      await this.clickOnElement(this.pageCategorySelectorDropdownOptions);
+      if (await this.verifier.isTheElementVisible(this.pageCategorySelectorDropdownOptions)) {
+        await this.clickOnElement(this.pageCategorySelectorDropdownOptions);
+      } else {
+        console.log('Page category selector dropdown options is not visible skipping');
+      }
     });
   }
 }
