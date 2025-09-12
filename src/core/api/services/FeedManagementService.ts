@@ -328,4 +328,35 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       return { ...responseBody };
     });
   }
+
+  /**
+   * Adds a comment/reply to a feed post
+   * @param feedId - The ID of the feed post to comment on
+   * @param commentData - The comment data including textHtml, textJson, etc.
+   * @returns Promise<APIResponse> - The API response
+   */
+  async addComment(
+    feedId: string,
+    commentData: {
+      textHtml: string;
+      textJson: string;
+      listOfAttachedFiles: any[];
+      ignoreToxic: boolean;
+    }
+  ): Promise<APIResponse> {
+    return await test.step(`Adding comment to feed ${feedId}`, async () => {
+      const response = await this.post(API_ENDPOINTS.feed.comment(feedId), {
+        data: commentData,
+      });
+
+      const responseBody = await response.json();
+      console.log('Add comment response:', JSON.stringify(responseBody, null, 2));
+
+      if (!response.ok()) {
+        throw new Error(`Failed to add comment to feed ${feedId}. Status: ${response.status()}`);
+      }
+
+      return response;
+    });
+  }
 }

@@ -16,6 +16,7 @@ export const PAGE_ENDPOINTS = {
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
   MANAGE_USERS_PAGE: '/manage/users',
+  ACTIVITY_NOTIFICATION_PAGE: '/notifications/activity',
   LOGOUT: '/logout',
 
   // abac pages
