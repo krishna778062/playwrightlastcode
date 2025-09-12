@@ -109,4 +109,26 @@ export class FeedManagementHelper {
   async deleteFeed(feedId: string) {
     await this.appManagerApiClient.getFeedManagementService().deleteFeed(feedId);
   }
+
+  /**
+   * Adds a comment/reply to a feed post
+   * @param feedId - The ID of the feed post to comment on
+   * @param commentData - The comment data including textHtml, textJson, etc.
+   * @returns Promise with the API response
+   */
+  async addComment(
+    feedId: string,
+    commentData: {
+      textHtml: string;
+      textJson: string;
+      listOfAttachedFiles: any[];
+      ignoreToxic: boolean;
+    }
+  ) {
+    return await test.step(`Adding comment to feed ${feedId}`, async () => {
+      const response = await this.appManagerApiClient.getFeedManagementService().addComment(feedId, commentData);
+      const responseBody = await response.json();
+      return responseBody;
+    });
+  }
 }

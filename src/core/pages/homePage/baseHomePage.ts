@@ -147,7 +147,7 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
    * @param options - The options for the step
    */
   async verifyRolesButtonVisibility(visible: boolean, options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo || 'Clicking on Roles button', async () => {
+    await test.step(options?.stepInfo || 'Verify the visibility of Roles button', async () => {
       await this.sideNavBarComponent.verifyRolesButtonVisibility(visible);
     });
   }
