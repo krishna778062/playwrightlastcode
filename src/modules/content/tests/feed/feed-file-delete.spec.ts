@@ -42,6 +42,51 @@ interface FeedResponse {
   feedName: string;
 }
 
+// ==================== HELPER FUNCTIONS ====================
+
+/**
+ * Creates required resources based on feed type (API only - no page objects needed)
+ * @param helpers - Required helper instances
+ * @param options - Configuration for what to create
+ * @returns Promise with created resources
+ */
+async function createSiteAndContentByOptions(
+  helpers: {
+    siteManagementHelper: any;
+    contentManagementHelper: any;
+  },
+  options: {
+    createSite?: boolean;
+    createPage?: boolean;
+  }
+) {
+  const resources: any = {};
+
+  if (options.createSite) {
+    const siteResult = await helpers.siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
+    resources.siteDetails = siteResult;
+  }
+
+  if (options.createPage) {
+    const siteResult = await helpers.siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
+    const pageResult = await helpers.contentManagementHelper.createPage({
+      siteId: siteResult.siteId,
+      contentInfo: {
+        contentType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.content,
+        contentSubType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.contentType,
+      },
+      options: {
+        contentDescription: 'Auto-generated content for feed test',
+        waitForSearchIndex: false,
+      },
+    });
+    resources.siteDetails = siteResult;
+    resources.pageDetails = pageResult;
+  }
+
+  return resources;
+}
+
 test.describe(
   '@FeedFileDelete - Feed File Deletion Tests',
   {
@@ -109,36 +154,27 @@ test.describe(
             // Initialize feed page
             appManagerFeedPage = new FeedPage(appManagerHomePage.page);
 
-            // Create required data based on feed type
-            switch (testData.feedType) {
-              case 'Site Feed': {
-                const siteResult = await siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
-                siteDetails = siteResult;
-                break;
+            // Create site and content resources based on feed type
+            const needsSite = testData.feedType === 'Site Feed' || testData.feedType === 'Content Feed';
+            const needsPage = testData.feedType === 'Content Feed';
+
+            const resources = await createSiteAndContentByOptions(
+              { siteManagementHelper, contentManagementHelper },
+              {
+                createSite: needsSite,
+                createPage: needsPage,
               }
+            );
 
-              case 'Content Feed': {
-                const siteResult = await siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
-
-                const pageResult = await contentManagementHelper.createPage({
-                  siteId: siteResult.siteId,
-                  contentInfo: {
-                    contentType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.content,
-                    contentSubType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.contentType,
-                  },
-                  options: {
-                    contentDescription: testData.description,
-                    waitForSearchIndex: false,
-                  },
-                });
-
-                siteDetails = siteResult;
-                pageDetails = pageResult;
-                break;
-              }
+            // Assign created resources
+            if (resources.siteDetails) {
+              siteDetails = resources.siteDetails;
+            }
+            if (resources.pageDetails) {
+              pageDetails = resources.pageDetails;
             }
 
-            // Generate feed data and create feed based on feed type
+            // Generate feed data based on feed type
             switch (testData.feedType) {
               case 'Home Feed': {
                 feedTestDataGenerated = TestDataGenerator.generateFeed({
