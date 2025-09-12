@@ -1,9 +1,12 @@
 import { Locator, Page, test } from '@playwright/test';
 
+import { ActivityNotificationPage } from '../pages/activityNotificationPage';
+
 import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export interface INotificationComponentActions {
   clickOnNotification: (notificationText: string) => Promise<void>;
+  clickOnViewAllNotifications: (options?: { stepInfo?: string }) => Promise<ActivityNotificationPage>;
 }
 
 export interface INotificationComponentAssertions {}
@@ -14,6 +17,7 @@ export class NotificationComponent
 {
   readonly markAllAsReadButton: Locator;
   readonly getNotificationListItems: Locator;
+  readonly viewAllNotificationsButton: Locator;
 
   /**
    * Constructor for the NotificationComponent
@@ -23,6 +27,7 @@ export class NotificationComponent
     super(page);
     this.markAllAsReadButton = this.page.getByRole('button', { name: 'Mark all as read' });
     this.getNotificationListItems = this.page.locator('[class*="Notification-body"]');
+    this.viewAllNotificationsButton = this.page.getByRole('link', { name: 'View all' });
   }
 
   get actions(): INotificationComponentActions {
@@ -48,6 +53,13 @@ export class NotificationComponent
   async markAllAsRead(): Promise<void> {
     await test.step('Marking all notifications as read', async () => {
       await this.clickOnElement(this.markAllAsReadButton);
+    });
+  }
+
+  async clickOnViewAllNotifications(options?: { stepInfo?: string }): Promise<ActivityNotificationPage> {
+    return await test.step('Clicking on view all notifications', async () => {
+      await this.clickOnElement(this.viewAllNotificationsButton);
+      return new ActivityNotificationPage(this.page);
     });
   }
 }
