@@ -47,7 +47,7 @@ test.describe(
         });
 
         const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
-        const fullName = await identityManagementHelper.getUserNameByEmail(users.endUser.email);
+        const userInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
 
         const publicSite = await siteManagementHelper.getSiteByAccessType(SiteType.PUBLIC);
         const privateSite = await siteManagementHelper.getSiteByAccessType(SiteType.PRIVATE);
@@ -73,7 +73,7 @@ test.describe(
 
         const postResult = await appManagerFeedPage.actions.createfeedWithMentionUserNameAndTopic({
           text: initialPostText,
-          userName: fullName,
+          userName: userInfo.fullName,
           topicName: randomTopic.name,
           siteName: [publicSiteName, privateSiteName],
           embedUrl: embeedUrl,
@@ -82,13 +82,13 @@ test.describe(
         await appManagerFeedPage.assertions.validatePostText(postResult.postText);
 
         const updatedPostText = `Updated Test Post ${faker.company.buzzPhrase()}`;
-        const siteManagerFullName = await identityManagementHelper.getUserNameByEmail(users.siteManager.email);
+        const siteManagerInfo = await identityManagementHelper.getUserInfoByEmail(users.siteManager.email);
         // Step 3: Edit the post
         await appManagerFeedPage.actions.editPostWithTopicAndUserName({
           currentText: postResult.postText,
           newText: updatedPostText,
           topicName: randomTopic.name,
-          userName: siteManagerFullName,
+          userName: siteManagerInfo.fullName,
         });
         await appManagerFeedPage.assertions.validatePostText(updatedPostText);
 
@@ -126,7 +126,7 @@ test.describe(
         await siteDashboardPage.loadPage();
 
         const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
-        const fullName = await identityManagementHelper.getUserNameByEmail(users.endUser.email);
+        const userInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
 
         const publicSite = await siteManagementHelper.getSiteByAccessType(SiteType.PUBLIC);
         const privateSite = await siteManagementHelper.getSiteByAccessType(SiteType.PRIVATE);
@@ -152,7 +152,7 @@ test.describe(
 
         const postResult = await appManagerFeedPage.actions.createfeedWithMentionUserNameAndTopic({
           text: initialPostText,
-          userName: fullName,
+          userName: userInfo.fullName,
           topicName: randomTopic.name,
           siteName: [publicSiteName, privateSiteName],
           embedUrl: embeedUrl,
@@ -161,13 +161,13 @@ test.describe(
         await appManagerFeedPage.assertions.validatePostText(postResult.postText);
 
         const updatedPostText = `Updated Test Post ${faker.company.buzzPhrase()}`;
-        const siteManagerFullName = await identityManagementHelper.getUserNameByEmail(users.siteManager.email);
+        const siteManagerInfo = await identityManagementHelper.getUserInfoByEmail(users.siteManager.email);
         // Step 3: Edit the post
         await appManagerFeedPage.actions.editPostWithTopicAndUserName({
           currentText: postResult.postText,
           newText: updatedPostText,
           topicName: randomTopic.name,
-          userName: siteManagerFullName,
+          userName: siteManagerInfo.fullName,
         });
         await appManagerFeedPage.assertions.validatePostText(updatedPostText);
 
