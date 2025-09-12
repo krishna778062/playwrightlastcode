@@ -10,7 +10,6 @@ import { LoginHelper } from '@core/helpers/loginHelper';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
-import { UserManagerApiClient } from '@/src/core/api/clients/userManagerApiClient';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
@@ -94,12 +93,11 @@ export const contentTestFixture = test.extend<
     appManagerApiClient: AppManagerApiClient;
     endUserApiClient: AppManagerApiClient;
     standardUserApiClient: StandardUserApiClient;
-
   }
 >({
   // Worker-scoped API client - shared across all tests in worker
   appManagerApiClient: [
-    async ({}, use, _workerInfo) => {
+    async (_fixtures, use, _workerInfo) => {
       console.log(`Setting up app manager API client for worker ${_workerInfo.workerIndex}`);
 
       const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
@@ -119,7 +117,7 @@ export const contentTestFixture = test.extend<
     { scope: 'worker' },
   ],
   endUserApiClient: [
-    async ({}, use, _workerInfo: WorkerInfo) => {
+    async (_fixtures, use, _workerInfo: WorkerInfo) => {
       console.log(`INFO: Setting up end user client for worker => `, _workerInfo.workerIndex);
       const endUserApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
         type: 'credentials',
@@ -134,7 +132,7 @@ export const contentTestFixture = test.extend<
     { scope: 'worker' },
   ],
   standardUserApiClient: [
-    async ({}, use, workerInfo) => {
+    async (_fixtures, use, _workerInfo) => {
       const standardUserApiClient = await ApiClientFactory.createClient(StandardUserApiClient, {
         type: 'credentials',
         credentials: {
@@ -354,7 +352,7 @@ export const contentTestFixture = test.extend<
   ],
 
   switchUser: [
-    async ({}, use) => {
+    async (_fixtures, use) => {
       await use(async (fromPage: Page, toUserType: UserType) => {
         // Logout current user
         await LoginHelper.logoutByNavigatingToLogoutPage(fromPage);
