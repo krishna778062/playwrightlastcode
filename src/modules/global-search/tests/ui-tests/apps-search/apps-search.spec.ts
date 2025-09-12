@@ -79,11 +79,11 @@ test.describe(
         );
 
         // Comprehensive verification of all app attributes
-        await appResultItem.verifyAllAppAttributes(
-          uniqueTestData.appName,
-          uniqueTestData.appUrl,
-          uniqueTestData.appIcon
-        );
+        await appResultItem.verifyAllAppAttributes({
+          expectedName: uniqueTestData.appName,
+          expectedUrl: uniqueTestData.appUrl,
+          expectedIconSrc: uniqueTestData.appIcon,
+        });
 
         // Verify app link opens in new tab (URL doesn't need to be valid for our test case)
         await appResultItem.verifyAppLinkOpensInNewTab(uniqueTestData.appUrl);

@@ -1,4 +1,4 @@
-import { Feed } from '@core/types/feed.type';
+import { CreateFeedPostPayload } from '@core/types/feed.type';
 
 /**
  * @description Interface for feed management operations
@@ -8,11 +8,11 @@ import { Feed } from '@core/types/feed.type';
 export interface IFeedManagementOperations {
   /**
    * @description Creates a feed
-   * @param {Partial<Feed>} [overrides] The partial feed data to override the defaults
+   * @param {Partial<CreateFeedPostPayload>} [overrides] The partial feed data to override the defaults
    * @returns {Promise<any>}
    * @memberof IFeedManagementOperations
    */
-  createFeed(overrides?: Partial<Feed>): Promise<any>;
+  createFeed(overrides?: Partial<CreateFeedPostPayload>): Promise<any>;
 
   /**
    * @description Deletes a feed
