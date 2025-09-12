@@ -19,31 +19,32 @@ export interface IContentPreviewPageAssertions {
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
   // Additional locators for promotion and verification
-  readonly contentTitleHeading = (title: string) => this.page.locator('h1', { hasText: title });
-  readonly successMessage = (message: string) =>
-    this.page.locator('div[class*="Toast-module"] p', { hasText: message });
+  readonly contentTitleHeading = (title: string) => this.page.getByRole('heading', { name: title, level: 1 });
+  readonly successMessage = (message: string) => this.page.locator('div[class*="Toast-module"]').getByText(message);
 
   // Action locators
-  readonly sendFeedbackTab = this.page.locator('[data-testid="send-feedback-tab"]');
-  readonly closeModalButton = this.page.locator('[data-testid="close-modal-button"]');
-  readonly versionHistoryButton = this.page.locator('button:has-text("Version history")');
-  readonly optionMenuDropdown = this.page.locator('[data-testid="option-menu-dropdown"]');
-  readonly unpublishButton = this.page.locator('button:has-text("Unpublish")');
-  readonly deleteButton = this.page.locator('button:has-text("Delete")');
+  readonly sendFeedbackTab = this.page.getByTestId('send-feedback-tab');
+  readonly closeModalButton = this.page.getByTestId('close-modal-button');
+  readonly versionHistoryButton = this.page.getByRole('button', { name: 'Version history' });
+  readonly optionMenuDropdown = this.page.getByTestId('option-menu-dropdown');
+  readonly unpublishButton = this.page.getByRole('button', { name: 'Unpublish' });
+  readonly deleteButton = this.page.getByRole('button', { name: 'Delete' });
   readonly contentStatus = (status: string) =>
     this.page.locator('div.ContentAdminBar-status').filter({ hasText: status });
-  readonly approveOrRejectButton = (action: string) => this.page.locator(`button:has-text("${action}")`);
-  readonly siteContentTab = this.page.locator(
-    'a[href*="/content"], button:has-text("Content"), [data-testid="content-tab"]'
-  );
-  readonly publishStatus = this.page.locator('span:has-text("Published today")');
-  readonly rejectButton = this.page.locator('span:has-text("Reject")');
+  readonly approveOrRejectButton = (action: string) => this.page.getByRole('button', { name: action });
+  readonly siteContentTab = this.page
+    .getByTestId('content-tab')
+    .or(
+      this.page.getByRole('button', { name: 'Content' }).or(this.page.getByRole('link').filter({ hasText: 'content' }))
+    );
+  readonly publishStatus = this.page.getByText('Published today');
+  readonly rejectButton = this.page.getByText('Reject');
   readonly rejectReasonTextarea = this.page.locator('div.Modal-content div textarea');
-  readonly submitForApprovalButton = this.page.locator('button:has-text("Submit for approval")');
+  readonly submitForApprovalButton = this.page.getByRole('button', { name: 'Submit for approval' });
 
   // Assertion locators
-  readonly sendHistoryPopup = this.page.locator('[data-testid="send-history-popup"]');
-  readonly versionHistoryPopup = this.page.locator('[data-testid="version-history-popup"]');
+  readonly sendHistoryPopup = this.page.getByTestId('send-history-popup');
+  readonly versionHistoryPopup = this.page.getByTestId('version-history-popup');
 
   // Page components
   readonly promotePageModal: PromotePageModal;

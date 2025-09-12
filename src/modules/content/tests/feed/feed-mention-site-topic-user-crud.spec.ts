@@ -90,12 +90,14 @@ async function createSiteAndContentByOptions(
     contentManagementHelper: any;
     appManagerHomePage: any;
   },
-  createSite?: boolean,
-  createPage?: boolean
+  options: {
+    createSite?: boolean;
+    createPage?: boolean;
+  }
 ) {
   const resources: any = {};
 
-  if (createSite) {
+  if (options.createSite) {
     const siteResult = await helpers.siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
     resources.siteDashboardPage = new SiteDashboardPage(
       helpers.appManagerHomePage.page,
@@ -104,7 +106,7 @@ async function createSiteAndContentByOptions(
     );
   }
 
-  if (createPage) {
+  if (options.createPage) {
     const siteResult = await helpers.siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
     const pageResult = await helpers.contentManagementHelper.createPage({
       siteId: siteResult.siteId,
@@ -231,8 +233,10 @@ test.describe(
             // Create site and content resources based on feed type via API calls
             const resources = await createSiteAndContentByOptions(
               { siteManagementHelper, contentManagementHelper, appManagerHomePage },
-              testData.feedType === 'Site Feed' || testData.feedType === 'Content Feed',
-              testData.feedType === 'Content Feed'
+              {
+                createSite: testData.feedType === 'Site Feed' || testData.feedType === 'Content Feed',
+                createPage: testData.feedType === 'Content Feed',
+              }
             );
 
             // Navigate to appropriate feed type
