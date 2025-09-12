@@ -3,8 +3,8 @@ import { Page, test } from '@playwright/test';
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
-import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
+import { FileUtil } from '@/src/core/utils/fileUtil';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { IntranetFileListComponent } from '@/src/modules/global-search/components/intranetFileListComponent';
 
@@ -15,6 +15,7 @@ import { IntranetFileListComponent } from '@/src/modules/global-search/component
 export class IntranetFileHelper {
   private page: Page;
   private actions: BaseActionUtil;
+  private uploadedFiles: Array<{ fileId: string; siteId: string }> = [];
 
   /**
    * Constructs a new instance of the IntranetFileHelper class.
@@ -115,9 +116,148 @@ export class IntranetFileHelper {
   }
 
   /**
-   * TODO: Add list to store all files created during the test and delete them after the test.
+   * Copies and renames a file for upload with unique name using FileUtil
+   * @param originalFilePath - Path to the original file
+   * @param newFileName - New name for the file
+   * @returns Path to the copied file
    */
-  async cleanup() {
-    console.log('INFO: IntranetFileHelper cleanup method is not implemented');
+  private copyAndRenameFile(originalFilePath: string, newFileName: string): string {
+    // Get the directory of the original file
+    const originalDir = originalFilePath.substring(0, originalFilePath.lastIndexOf('/'));
+    const newFilePath = FileUtil.getFilePath(originalDir, newFileName);
+
+    // Use FileUtil to create temporary file copy
+    FileUtil.createTemporaryFileCopy(originalFilePath, newFilePath);
+
+    return newFilePath;
+  }
+
+  /**
+   * Uploads a file to intranet via API using createIntranetFileWithAttachment (recommended approach)
+   * @param params - Parameters for uploading file via API
+   * @returns Object containing uploaded file details
+   */
+  async uploadFileViaApi(params: { siteId: string; siteName: string; filePath: string; fileName: string }) {
+    return await test.step(`Uploading file "${params.fileName}" via API to site "${params.siteName}"`, async () => {
+      try {
+        const { siteId, siteName, filePath, fileName } = params;
+
+        // Copy and rename the file to avoid conflicts
+        const copiedFilePath = this.copyAndRenameFile(filePath, fileName);
+
+        // Use createIntranetFileWithAttachment for complete workflow (like feed attachments)
+        const fileDetails = await this.appManagerApiClient
+          .getImageUploaderService()
+          .UploadIntranetFile(siteId, fileName, copiedFilePath, this.getMimeTypeFromFileName(fileName));
+
+        // Wait for the file to appear in search results
+        await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+          apiClient: this.appManagerApiClient,
+          searchTerm: fileName,
+          objectType: 'file',
+        });
+
+        // Clean up the copied file using FileUtil
+        try {
+          FileUtil.deleteTemporaryFile(copiedFilePath);
+        } catch (cleanupError) {
+          console.warn(`Failed to clean up temporary file: ${cleanupError}`);
+        }
+
+        const result = {
+          uploadedFileName: fileName,
+          fileId: fileDetails.fileInfo.id,
+          authorName: fileDetails.fileInfo?.owner?.name,
+          siteId: siteId,
+          siteName: siteName,
+        };
+
+        // Track uploaded file for cleanup
+        this.uploadedFiles.push({
+          fileId: fileDetails.fileInfo.id,
+          siteId: siteId,
+        });
+
+        console.log(`📁 File tracked for cleanup: ${fileDetails.fileInfo.id} (Total: ${this.uploadedFiles.length})`);
+
+        return result;
+      } catch (error) {
+        console.error('Error in uploadFileViaApi:', error);
+        throw new Error(`Failed to upload file via API: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    });
+  }
+
+  /**
+   * Helper method to determine MIME type from file extension
+   * @param fileName - The name of the file
+   * @returns The MIME type string
+   */
+  private getMimeTypeFromFileName(fileName: string): string {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+
+    const mimeTypes: { [key: string]: string } = {
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      png: 'image/png',
+      gif: 'image/gif',
+      pdf: 'application/pdf',
+      doc: 'application/msword',
+      docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      xls: 'application/vnd.ms-excel',
+      xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      ppt: 'application/vnd.ms-powerpoint',
+      pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      txt: 'text/plain',
+      mp4: 'video/mp4',
+      avi: 'video/x-msvideo',
+      mov: 'video/quicktime',
+      csv: 'text/csv',
+    };
+
+    return mimeTypes[extension || ''] || 'application/octet-stream';
+  }
+
+  /**
+   * Deletes an intranet file via API
+   * @param fileId - The file ID to delete
+   * @param siteId - The site ID
+   */
+  async deleteFileViaApi(fileId: string, siteId: string): Promise<void> {
+    await test.step(`Deleting intranet file with ID: ${fileId}`, async () => {
+      try {
+        await this.appManagerApiClient.getImageUploaderService().deleteIntranetFile(fileId, siteId);
+      } catch (error) {
+        console.error('Error in deleteFileViaApi:', error);
+        throw new Error(`Failed to delete file via API: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    });
+  }
+
+  /**
+   * Cleans up all uploaded files created during the test
+   */
+  async cleanup(): Promise<void> {
+    return await test.step('IntranetFileHelper Cleanup', async () => {
+      console.log(`🧹🧹🧹 IntranetFileHelper cleanup called - ${this.uploadedFiles.length} files tracked 🧹🧹🧹`);
+
+      if (this.uploadedFiles.length === 0) {
+        console.log('ℹ️ No files to clean up - upload may have failed');
+        return;
+      }
+
+      console.log(`🗑️ Starting cleanup of ${this.uploadedFiles.length} files...`);
+      for (const file of this.uploadedFiles) {
+        try {
+          console.log(`🗑️ Deleting file ${file.fileId} from site ${file.siteId}`);
+          await this.deleteFileViaApi(file.fileId, file.siteId);
+          console.log(`✅ Successfully deleted file ${file.fileId}`);
+        } catch (error) {
+          console.warn(`❌ Failed to delete file ${file.fileId}: ${error}`);
+        }
+      }
+      this.uploadedFiles = [];
+      console.log('🧹🧹🧹 IntranetFileHelper cleanup completed 🧹🧹🧹');
+    });
   }
 }
