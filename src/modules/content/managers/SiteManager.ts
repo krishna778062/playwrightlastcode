@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 import { AddContentModalComponent } from '../components/addContentModal';
 import { SiteNavigationComponent } from '../components/site/SiteNavigationComponent';
@@ -130,7 +130,7 @@ export class SiteManager {
    */
   async clickAddContent(): Promise<void> {
     await test.step('Click on add content button', async () => {
-      const addContentButton = this.navigation.siteHeaderElements.addContentButton;
+      const addContentButton = this.navigation.addContentButton;
       await addContentButton.click();
     });
   }
@@ -140,7 +140,7 @@ export class SiteManager {
    */
   async navigateToManageSite(): Promise<void> {
     await test.step('Navigate to manage site', async () => {
-      const manageSiteButton = this.navigation.siteHeaderElements.manageSiteButton;
+      const manageSiteButton = this.navigation.manageSiteButton;
       await manageSiteButton.click();
     });
   }
@@ -167,14 +167,10 @@ export class SiteManager {
   /**
    * Verifies the site name is displayed in the heading
    */
-  async verifySiteName(siteName: string): Promise<void> {
+  async verifySiteNameIs(siteName: string): Promise<void> {
     await test.step(`Verify site name "${siteName}" is displayed in heading`, async () => {
-      const siteNameHeading = this.navigation.siteHeaderElements.siteNameHeading;
-      await siteNameHeading.waitFor({ state: 'visible' });
-      const headingText = await siteNameHeading.textContent();
-      if (!headingText?.includes(siteName)) {
-        throw new Error(`Site name heading should contain "${siteName}", but found: ${headingText}`);
-      }
+      const siteNameHeading = this.navigation.siteNameHeading;
+      await expect(siteNameHeading, `should contain "${siteName}"`).toHaveText(siteName);
     });
   }
 }

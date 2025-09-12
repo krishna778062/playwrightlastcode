@@ -1,6 +1,6 @@
 import { expect, Page, test } from '@playwright/test';
 
-import { SiteManager } from '../managers/SiteManager';
+import { SiteManager } from '../managers/siteManager';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
@@ -37,8 +37,7 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardAsserti
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify site dashboard page is loaded', async () => {
       await this.page.waitForLoadState('domcontentloaded');
-      const addContentButton = this.siteManager.getNavigation().siteHeaderElements.addContentButton;
-      await this.verifier.verifyTheElementIsVisible(addContentButton);
+      await this.verifier.verifyTheElementIsVisible(this.siteManager.getNavigation().addContentButton);
     });
   }
 
@@ -47,7 +46,7 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardAsserti
    * @param siteName - The expected site name
    */
   async verifySiteNameIs(siteName: string): Promise<void> {
-    await this.siteManager.verifySiteName(siteName);
+    await this.siteManager.verifySiteNameIs(siteName);
   }
 
   /**
@@ -57,11 +56,7 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardAsserti
   async verifyDashboardUrl(siteId: string): Promise<void> {
     await test.step(`Verify dashboard URL matches expected URL for site ID: ${siteId}`, async () => {
       const expectedUrl = PAGE_ENDPOINTS.getSiteDashboardPage(siteId);
-      const currentUrl = this.page.url();
-
-      await expect(this.page, `Current URL: ${currentUrl} should match expected URL: ${expectedUrl}`).toHaveURL(
-        expectedUrl
-      );
+      await expect(this.page, `should match expected URL: ${expectedUrl}`).toHaveURL(expectedUrl);
     });
   }
 }

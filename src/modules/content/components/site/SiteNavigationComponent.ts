@@ -7,12 +7,18 @@ import { SitePageTab } from '../../constants/sitePageEnums';
  * Separated from page objects to avoid circular dependencies
  */
 export class SiteNavigationComponent {
-  private readonly page: Page;
-  private readonly siteId: string;
+  readonly page: Page;
+  readonly siteId: string;
+  readonly addContentButton: Locator;
+  readonly manageSiteButton: Locator;
+  readonly siteNameHeading: Locator;
 
   constructor(page: Page, siteId: string) {
     this.page = page;
     this.siteId = siteId;
+    this.addContentButton = this.page.locator("button[title='Add content']");
+    this.manageSiteButton = this.page.locator("button[title='Manage site'], a[href*='/manage']");
+    this.siteNameHeading = this.page.locator('[class*="SiteHeader-title-heading"]');
   }
 
   /**
@@ -42,17 +48,6 @@ export class SiteNavigationComponent {
    */
   getTabLocator(tabName: SitePageTab): Locator {
     return this.page.getByRole('tab', { name: tabName });
-  }
-
-  /**
-   * Gets the site header elements
-   */
-  get siteHeaderElements() {
-    return {
-      addContentButton: this.page.locator("button[title='Add content']"),
-      manageSiteButton: this.page.locator("button[title='Manage site'], a[href*='/manage']"),
-      siteNameHeading: this.page.locator('[class*="SiteHeader-title-heading"]'),
-    };
   }
 
   /**

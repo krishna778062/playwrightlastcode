@@ -13,8 +13,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { SitePageTab } from '../../constants/sitePageEnums';
 import { ContentTestSuite } from '../../constants/testSuite';
-
-import { SiteManager } from '@/src/modules/content/managers/SiteManager';
+import { SiteManager } from '../../managers/siteManager';
 
 test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES_PREVIEW}`, () => {
   let testFileDetails: {

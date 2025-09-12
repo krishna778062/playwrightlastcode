@@ -2,7 +2,7 @@ import { Locator, Page, test } from '@playwright/test';
 import path from 'path';
 
 import { FilesPreviewModalComponent } from '../../components/filesPreviewModalComponent';
-import { SiteManager } from '../../managers/SiteManager';
+import { SiteManager } from '../../managers/siteManager';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
