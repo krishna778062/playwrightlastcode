@@ -20,7 +20,7 @@ const adminUser: UserCredentials = {
 };
 
 test.describe(
-  'Airtable App Tiles Setup',
+  'expensify Integration Setup',
   {
     tag: [IntegrationsSuiteTags.EXPENSIFY, IntegrationsSuiteTags.ABSOLUTE],
   },
@@ -30,7 +30,7 @@ test.describe(
     });
 
     test(
-      'Verify that App Manager is able to connect Expensify from Manage->Integrations',
+      'verify that App Manager is able to connect Expensify from Manage->Integrations',
       {
         tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },

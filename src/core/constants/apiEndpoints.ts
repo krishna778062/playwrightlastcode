@@ -99,6 +99,9 @@ export const API_ENDPOINTS = {
     tilesRootInstances: '/v1/tiles/root/instances',
     tilesInstances: '/v1/tiles/instances',
     contentTiles: '/v1/content/tiles',
+    contentTilesList: '/v1/content/tiles/list',
+    tilesByConnector: (connectorId: string) => `/v1/tiles?type=app&connectorId=${connectorId}`,
+    createTileInstance: (tileId: string) => `/v1/tiles/${tileId}/instances`,
   },
 } as const;
 

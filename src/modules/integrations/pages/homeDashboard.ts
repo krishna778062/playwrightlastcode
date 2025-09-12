@@ -1,8 +1,4 @@
 import { DASHBOARD_BUTTONS, FIELD_NAMES, ORGANIZATION_SETTINGS } from '@integrations/constants/common';
-import {
-  createAppTileViaApi as createAppTileViaApiHelper,
-  createAppTileViaClient,
-} from '@integrations-api/helpers/tileApiHelpers';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { TileOperationsComponent } from '@integrations-components/tileOperationsComponent';
 import { AIRTABLE_TILE } from '@integrations-test-data/app-tiles.test-data';
@@ -158,38 +154,6 @@ export class HomeDashboard {
    */
   async isTilePresent(tileTitle: string): Promise<void> {
     await this.verifyTilePresent(tileTitle);
-  }
-
-  /**
-   * Create app tile via API
-   */
-  async createAppTileViaApi(tileTitle: string, connectorId: string): Promise<void> {
-    await test.step(`Create app tile via API: ${tileTitle}`, async () => {
-      await createAppTileViaApiHelper(this.page, { tileInstanceName: tileTitle, connectorId });
-    });
-  }
-
-  async createAppTileByTileIdViaHelper(tileTitle: string, tileId: string, connectorId: string): Promise<void> {
-    await test.step(`Create app tile: ${tileTitle}`, async () => {
-      const apiClient = (this.tileManagementHelper as any).appManagerApiClient;
-      await createAppTileViaClient(apiClient, {
-        tileInstanceName: tileTitle,
-        tileId,
-        connectorId,
-      });
-    });
-  }
-
-  /**
-   * Remove tile through API using TileManagementHelper
-   */
-  async removeTileThroughApi(tileTitle: string): Promise<boolean> {
-    return await test.step(`Remove tile through API: ${tileTitle}`, async () => {
-      console.log(`Attempting to remove tile: ${tileTitle}`);
-      const result = await this.tileManagementHelper.removeTileByTitle(tileTitle);
-      console.log(`Tile removal result: ${result}`);
-      return result;
-    });
   }
 
   /**

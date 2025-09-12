@@ -14,6 +14,7 @@ export const CONNECTOR_IDS = {
 export const TILE_IDS = {
   GITHUB_MY_OPEN_PRS: '8f82cbb1-56a6-4455-80cb-85fcb778fe27',
   GITHUB_PENDING_PR_REVIEWS: '210775b7-9745-455e-9cc4-5653e40211ff',
+  EXPENSIFY_REPORT: '82ca87cd-d155-46b5-92db-fcec1caf5f85',
 } as const;
 
 /**

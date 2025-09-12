@@ -12,22 +12,26 @@ import { FIELD_NAMES, UI_ACTIONS } from '@/src/modules/integrations/constants/co
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { HomeDashboard } from '@/src/modules/integrations/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/pages/siteDashboard';
-import { CONNECTOR_IDS, REDIRECT_URLS, STATUS_VALUES } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import {
+  CONNECTOR_IDS,
+  REDIRECT_URLS,
+  STATUS_VALUES,
+  TILE_IDS,
+} from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 const expensifyUser: UserCredentials = {
   email: process.env.QA_SYSTEM_ADMIN_USERNAME!,
   password: process.env.QA_SYSTEM_ADMIN_PASSWORD!,
 };
 
-const AppName = 'Expensify';
-const tileName = 'Display expense reports';
-
 test.describe(
-  'Expensify App Tiles Integration',
+  'expensify App Tiles Integration',
   {
     tag: [IntegrationsSuiteTags.EXPENSIFY, IntegrationsSuiteTags.ABSOLUTE],
   },
   () => {
+    const AppName = 'Expensify';
+    const tileName = 'Display expense reports';
     let createdTileTitle: string | undefined = undefined;
 
     test.beforeEach(async ({ page }) => {
@@ -37,14 +41,14 @@ test.describe(
     test.afterEach(async ({ page, tileManagementHelper }) => {
       if (createdTileTitle) {
         const homeDashboard = new HomeDashboard(page, tileManagementHelper);
-        await homeDashboard.removeTileThroughApi(createdTileTitle);
+        await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
         createdTileTitle = undefined;
       }
     });
 
     test(
-      'Create and edit Expensify tile on home dashboard',
+      'create and edit Expensify tile on home dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -58,7 +62,11 @@ test.describe(
         const homeDashboard = new HomeDashboard(page, tileManagementHelper);
         createdTileTitle = `Expensify report ${faker.string.alphanumeric({ length: 6 })}`;
 
-        await homeDashboard.createAppTileViaApi(createdTileTitle, CONNECTOR_IDS.EXPENSIFY);
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.EXPENSIFY_REPORT,
+          CONNECTOR_IDS.EXPENSIFY
+        );
         await homeDashboard.isTilePresent(createdTileTitle);
         await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
@@ -70,7 +78,7 @@ test.describe(
     );
 
     test(
-      'Verify Expensify report tile data structure',
+      'verify Expensify report tile data structure',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -84,7 +92,11 @@ test.describe(
         const homeDashboard = new HomeDashboard(page, tileManagementHelper);
         createdTileTitle = `Expensify report ${faker.string.alphanumeric({ length: 6 })}`;
 
-        await homeDashboard.createAppTileViaApi(createdTileTitle, CONNECTOR_IDS.EXPENSIFY);
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.EXPENSIFY_REPORT,
+          CONNECTOR_IDS.EXPENSIFY
+        );
         await homeDashboard.isTilePresent(createdTileTitle);
 
         // Verify the Expensify report data structure
@@ -94,7 +106,7 @@ test.describe(
     );
 
     test(
-      'Verify personlize button functionality for Expensify report tile on home dashboard',
+      'verify personlize button functionality for Expensify report tile on home dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
@@ -122,7 +134,7 @@ test.describe(
     );
 
     test(
-      'Verify site manager is able to edit and remove an Expensify tile on Site dashboard',
+      'verify site manager is able to edit and remove an Expensify tile on Site dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -155,6 +167,7 @@ test.describe(
         createdTileTitle = updatedTileTitle;
         await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
       }
     );
   }

@@ -1,104 +1,108 @@
-import { APIRequestContext } from '@playwright/test';
+import { APIRequestContext, APIResponse } from '@playwright/test';
 
-import { API_ENDPOINTS } from '../../constants/apiEndpoints';
-import { LinkTilePayload, LinkTileResponse, TileLink } from '../../types/tile.type';
+import { API_ENDPOINTS, API_QUERY_PARAMS } from '../../constants/apiEndpoints';
+import { TileCreationResult } from '../../types/tile.type';
 import { getEnvConfig } from '../../utils/getEnvConfig';
 
 import { BaseApiClient } from '@/src/core/api/clients/baseApiClient';
 import { ITileManagementOperations } from '@/src/core/api/interfaces/ITileManagementOperations';
-
-const defaultTilePayload: LinkTilePayload = {
-  siteId: '',
-  dashboardId: 'site',
-  tile: {
-    title: '',
-    options: {
-      layout: 'standard',
-      links: [],
-    },
-    pushToAllHomeDashboards: false,
-    items: [],
-    type: 'links',
-    variant: 'custom',
-  },
-  isNewTiptap: false,
-};
 
 export class TileManagementService extends BaseApiClient implements ITileManagementOperations {
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
   }
 
-  /**
-   * Fetch root tiles instances for app tiles
-   */
+  // Get root tiles instances
   async getRootAppTilesInstances(): Promise<any> {
     const { frontendBaseUrl } = getEnvConfig();
-    const response = await this.get('/v1/tiles/root/instances?type=app', {
-      headers: {
-        Origin: frontendBaseUrl,
-        Referer: frontendBaseUrl,
-        Accept: 'application/json',
-      },
+    const response = await this.get(`${API_ENDPOINTS.integrations.tilesRootInstances}?${API_QUERY_PARAMS.TYPE_APP}`, {
+      headers: { Origin: frontendBaseUrl, Referer: frontendBaseUrl, Accept: 'application/json' },
     });
     return response.json();
   }
 
-  /**
-   * Fetch metadata for a specific root instance (type=app)
-   */
+  // Get instance metadata
   async fetchInstanceMetadata(instanceId: string): Promise<any> {
     const { frontendBaseUrl } = getEnvConfig();
-    const res = await this.get(`/v1/tiles/root/instances/${instanceId}/metadata?type=app`, {
-      headers: {
-        Origin: frontendBaseUrl,
-        Referer: frontendBaseUrl,
-        Accept: 'application/json',
-      },
+    const res = await this.get(`${API_ENDPOINTS.integrations.tilesRootInstances}/${instanceId}/metadata?type=app`, {
+      headers: { Origin: frontendBaseUrl, Referer: frontendBaseUrl, Accept: 'application/json' },
     });
     return res.json();
   }
-  async createTile(
-    siteId: string,
-    tileTitle: string,
-    numberOfLinks: number,
-    predefinedLinks: TileLink[]
-  ): Promise<LinkTileResponse> {
-    const tile = {
-      ...defaultTilePayload,
-      siteId,
-      tile: {
-        ...defaultTilePayload.tile,
-        title: tileTitle,
-        options: { ...defaultTilePayload.tile.options, links: predefinedLinks.slice(0, numberOfLinks) },
-      },
-    };
-    console.log(`Creating tile with payload: ${JSON.stringify(tile)}`);
-    const response = await this.post(API_ENDPOINTS.linkTile.create(tile.siteId), {
-      data: tile,
-    });
-    return response.json();
-  }
-  async deleteTile(siteId: string, tileId: string): Promise<void> {
-    console.log(`Deleting tile ${tileId} from site ${siteId}`);
-    const response = await this.delete(API_ENDPOINTS.linkTile.delete(siteId, tileId));
-    console.log(`Tile deleted response: ${response.status()}`);
-    return response.json();
+
+  /**
+   * Delete a integration app tile id (preferred for this tenant)
+   */
+  async deleteIntegrationAppTile(integrationAppTileId: string): Promise<APIResponse> {
+    const { frontendBaseUrl } = getEnvConfig();
+    return await this.delete(
+      `${API_ENDPOINTS.integrations.contentTiles}/${integrationAppTileId}?${API_QUERY_PARAMS.HIDE_TILE_FALSE}`,
+      {
+        headers: {
+          Origin: frontendBaseUrl,
+          Referer: frontendBaseUrl,
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      }
+    );
   }
 
   /**
-   * Delete a content tile id (preferred for this tenant)
+   * Create app tile via API using authenticated client
    */
-  async deleteContentTile(contentTileId: string): Promise<number> {
-    const { frontendBaseUrl } = getEnvConfig();
-    const res = await this.delete(`/v1/content/tiles/${contentTileId}?hideTile=false`, {
-      headers: {
-        Origin: frontendBaseUrl,
-        Referer: frontendBaseUrl,
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
+  async createIntegrationAppTile(args: {
+    tileInstanceName: string;
+    tileId: string;
+    connectorId: string;
+  }): Promise<TileCreationResult> {
+    // Get the template to get proper request schema
+    const templateRes = await this.get(API_ENDPOINTS.integrations.tilesByConnector(args.connectorId));
+    const templates = (await templateRes.json()).data || [];
+    const template = templates.find((t: any) => t.tileId === args.tileId) || templates[0];
+    const rawSchema = template?.inputConfig?.requestSchema || { parameters: [] };
+
+    // Sanitize schema by removing UI-specific fields that cause validation errors
+    const requestSchema = {
+      ...rawSchema,
+      parameters: Array.isArray(rawSchema.parameters)
+        ? rawSchema.parameters.map((p: any) => {
+            const clean = { ...p };
+            delete clean.definedBy;
+            return clean;
+          })
+        : [],
+    };
+
+    const response = await this.post(API_ENDPOINTS.integrations.createTileInstance(args.tileId), {
+      data: {
+        dashboard: 'home',
+        tileInstanceName: args.tileInstanceName,
+        type: 'app',
+        connectorId: args.connectorId,
+        connectionType: 'user',
+        inputConfig: {
+          requestSchema,
+          parameters: {},
+          personalization: { enabled: false },
+        },
       },
     });
-    return res.status();
+
+    if (!response.ok()) {
+      const errorText = await response.text();
+      throw new Error(`Failed to create tile "${args.tileInstanceName}": ${response.status()} - ${errorText}`);
+    }
+
+    const body = await response.json();
+
+    const instanceId =
+      body?.result?.instanceId || body?.data?.instanceId || body?.data?.tileInstanceId || body?.instanceId;
+
+    if (!instanceId) {
+      throw new Error(`No instance ID returned for tile "${args.tileInstanceName}". Response: ${JSON.stringify(body)}`);
+    }
+
+    return { instanceId, templateTileId: args.tileId, tileInstanceName: args.tileInstanceName };
   }
 }

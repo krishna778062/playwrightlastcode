@@ -11,23 +11,23 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 test.describe(
-  'Airtable App Tiles Integration',
+  'airtable App Tiles Integration',
   {
     tag: [IntegrationsSuiteTags.AIRTABLE, IntegrationsSuiteTags.ABSOLUTE],
   },
   () => {
     let createdTileTitle: string | undefined = undefined;
 
-    test.afterEach(async ({ homeDashboard }) => {
+    test.afterEach(async ({ homeDashboard, tileManagementHelper }) => {
       if (createdTileTitle) {
-        await homeDashboard.removeTileThroughApi(createdTileTitle);
+        await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
         createdTileTitle = undefined;
       }
     });
 
     test(
-      'Verify Personalize button functionality for user defined view tasks in Airtable app tile',
+      'verify Personalize button functionality for user defined view tasks in Airtable app tile',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -52,7 +52,7 @@ test.describe(
     );
 
     test(
-      'Verify app manager is able to edit display content calendar tasks in Airtable apptile on Home dashboard',
+      'verify app manager is able to edit display content calendar tasks in Airtable apptile on Home dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -78,7 +78,7 @@ test.describe(
     );
 
     test(
-      'Verify site manager is able to edit and remove a display content calendar tile on Site dashboard',
+      'verify site manager is able to edit and remove a display content calendar tile on Site dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -109,11 +109,12 @@ test.describe(
         await siteDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.AIRTABLE);
         await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
       }
     );
 
     test(
-      'Verify Airtable tile displays task records with proper content structure',
+      'verify Airtable tile displays task records with proper content structure',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },

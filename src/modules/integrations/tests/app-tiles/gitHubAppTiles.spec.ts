@@ -15,32 +15,32 @@ import {
   TILE_IDS,
 } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
-const AppName = 'GitHub';
-const PendingPRs = 'Display pending PR reviews';
-const MyOpenPRs = 'Display my open PRs';
-
 test.describe(
-  'GitHub App Tiles Integration',
+  'gitHub App Tiles Integration',
   {
     tag: [IntegrationsSuiteTags.GITHUB, IntegrationsSuiteTags.ABSOLUTE],
   },
   () => {
+    const AppName = 'GitHub';
+    const PendingPRs = 'Display pending PR reviews';
+    const MyOpenPRs = 'Display my open PRs';
+
     let createdTileTitle: string | undefined = undefined;
 
-    test.afterEach(async ({ homeDashboard }) => {
+    test.afterEach(async ({ tileManagementHelper, homeDashboard }) => {
       if (createdTileTitle) {
-        await homeDashboard.removeTileThroughApi(createdTileTitle);
+        await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
         createdTileTitle = undefined;
       }
     });
 
     test(
-      'Create and edit GitHub My Open PRs tile on home dashboard',
+      'create and edit GitHub My Open PRs tile on home dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard }) => {
+      async ({ homeDashboard, tileManagementHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-24073',
           storyId: 'INT-23629',
@@ -48,7 +48,7 @@ test.describe(
 
         createdTileTitle = `GitHub My Open PRs ${faker.string.alphanumeric({ length: 6 })}`;
 
-        await homeDashboard.createAppTileByTileIdViaHelper(
+        await tileManagementHelper.createIntegrationAppTile(
           createdTileTitle,
           TILE_IDS.GITHUB_MY_OPEN_PRS,
           CONNECTOR_IDS.GITHUB
@@ -63,11 +63,11 @@ test.describe(
     );
 
     test(
-      'Create and verify metadata for GitHub My Open PRs tile on home dashboard',
+      'create and verify metadata for GitHub My Open PRs tile on home dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard }) => {
+      async ({ homeDashboard, tileManagementHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-24049',
           storyId: 'INT-23629',
@@ -75,7 +75,7 @@ test.describe(
         createdTileTitle = `Display my open PRs ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Using tileId instead of connectorId to create specific GitHub tile
-        await homeDashboard.createAppTileByTileIdViaHelper(
+        await tileManagementHelper.createIntegrationAppTile(
           createdTileTitle,
           TILE_IDS.GITHUB_MY_OPEN_PRS,
           CONNECTOR_IDS.GITHUB
@@ -88,11 +88,11 @@ test.describe(
     );
 
     test(
-      'Create and edit GitHub Pending PR Reviews tile on home dashboard',
+      'create and edit GitHub Pending PR Reviews tile on home dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard }) => {
+      async ({ homeDashboard, tileManagementHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-24069',
           storyId: 'INT-23629',
@@ -101,7 +101,7 @@ test.describe(
         createdTileTitle = `GitHub Pending PR Reviews ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Using tileId instead of connectorId to create specific GitHub tile
-        await homeDashboard.createAppTileByTileIdViaHelper(
+        await tileManagementHelper.createIntegrationAppTile(
           createdTileTitle,
           TILE_IDS.GITHUB_PENDING_PR_REVIEWS,
           CONNECTOR_IDS.GITHUB
@@ -116,11 +116,11 @@ test.describe(
     );
 
     test(
-      'Create and verfiy metadata for GitHub Pending PR Reviews tile on home dashboard',
+      'create and verfiy metadata for GitHub Pending PR Reviews tile on home dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard }) => {
+      async ({ homeDashboard, tileManagementHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-24071',
           storyId: 'INT-23629',
@@ -131,7 +131,7 @@ test.describe(
         createdTileTitle = `GitHub Pending PR Reviews ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Using tileId instead of connectorId to create specific GitHub tile
-        await homeDashboard.createAppTileByTileIdViaHelper(
+        await tileManagementHelper.createIntegrationAppTile(
           createdTileTitle,
           TILE_IDS.GITHUB_PENDING_PR_REVIEWS,
           CONNECTOR_IDS.GITHUB
@@ -144,7 +144,7 @@ test.describe(
     );
 
     test(
-      'Create and verfiy personlize button functionality for GitHub Pending PR Reviews tile on home dashboard',
+      'create and verfiy personlize button functionality for GitHub Pending PR Reviews tile on home dashboard',
       {
         tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -170,7 +170,7 @@ test.describe(
     );
 
     test(
-      'Create and verfiy personlize button functionality for GitHub My Open PRs tile on home dashboard',
+      'create and verfiy personlize button functionality for GitHub My Open PRs tile on home dashboard',
       {
         tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -196,9 +196,9 @@ test.describe(
     );
 
     test(
-      'Verify site manager is able to edit and remove a GitHub Pending PR Reviews tile on Site dashboard',
+      'verify site manager is able to edit and remove a GitHub Pending PR Reviews tile on Site dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
         void homeDashboard;
@@ -227,11 +227,12 @@ test.describe(
         createdTileTitle = updatedTileTitle;
         await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
       }
     );
 
     test(
-      'Verify site manager is able to edit and remove a GitHub My Open PRs tile on Site dashboard',
+      'verify site manager is able to edit and remove a GitHub My Open PRs tile on Site dashboard',
       {
         tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -262,6 +263,7 @@ test.describe(
         createdTileTitle = updatedTileTitle;
         await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
       }
     );
   }
