@@ -16,6 +16,142 @@ import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { SiteType } from '@/src/modules/content-abac/constants/siteType';
 
+// ==================== HELPER FUNCTIONS ====================
+
+/**
+ * Fetches common test data based on flags
+ * @param options - Configuration for which data to fetch
+ * @param helpers - Required helper instances
+ * @returns Promise with requested data
+ */
+async function fetchUserSiteAndTopicByOptions(
+  options: {
+    fetchUsers?: boolean;
+    fetchTopics?: boolean;
+    fetchPublicSite?: boolean;
+    fetchPrivateSite?: boolean;
+  },
+  helpers: {
+    identityManagementHelper: IdentityManagementHelper;
+    siteManagementHelper: any;
+    contentManagementHelper: any;
+  }
+) {
+  const requests: Promise<any>[] = [];
+  const dataKeys: string[] = [];
+
+  if (options.fetchUsers) {
+    requests.push(helpers.identityManagementHelper.getUserInfoByEmail(users.endUser.email));
+    dataKeys.push('endUserInfo');
+  }
+
+  if (options.fetchTopics) {
+    requests.push(helpers.contentManagementHelper.getTopicList());
+    dataKeys.push('topicList');
+  }
+
+  if (options.fetchPublicSite) {
+    requests.push(helpers.siteManagementHelper.getSiteByAccessType(SiteType.PUBLIC));
+    dataKeys.push('publicSite');
+  }
+
+  if (options.fetchPrivateSite) {
+    requests.push(helpers.siteManagementHelper.getSiteByAccessType(SiteType.PRIVATE));
+    dataKeys.push('privateSite');
+  }
+
+  const results = await Promise.all(requests);
+  const data: any = {};
+
+  results.forEach((result, index) => {
+    data[dataKeys[index]] = result;
+  });
+
+  // Handle private site creation if none exists
+  if (options.fetchPrivateSite && !data.privateSite) {
+    console.log('No private site found, creating one for test...');
+    const privateTestSite = await helpers.siteManagementHelper.createPrivateSite({ waitForSearchIndex: false });
+    data.privateSite = { name: privateTestSite.siteName, siteId: privateTestSite.siteId };
+  }
+
+  return data;
+}
+
+/**
+ * Creates required resources based on feed type
+ * @param feedType - Type of feed (Home Feed, Site Feed, Content Feed)
+ * @param helpers - Required helper instances
+ * @param testDescription - Test description for content creation
+ * @returns Promise with created resources
+ */
+async function createSiteAndContentByOptions(
+  helpers: {
+    siteManagementHelper: any;
+    contentManagementHelper: any;
+    appManagerHomePage: any;
+  },
+  createSite?: boolean,
+  createPage?: boolean
+) {
+  const resources: any = {};
+
+  if (createSite) {
+    const siteResult = await helpers.siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
+    resources.siteDashboardPage = new SiteDashboardPage(
+      helpers.appManagerHomePage.page,
+      siteResult.siteId,
+      helpers.siteManagementHelper
+    );
+  }
+
+  if (createPage) {
+    const siteResult = await helpers.siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
+    const pageResult = await helpers.contentManagementHelper.createPage({
+      siteId: siteResult.siteId,
+      contentInfo: {
+        contentType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.content,
+        contentSubType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.contentType,
+      },
+    });
+    resources.contentPreviewPage = new ContentPreviewPage(
+      helpers.appManagerHomePage.page,
+      siteResult.siteId,
+      pageResult.contentId,
+      'page'
+    );
+  }
+
+  return resources;
+}
+
+/**
+ * Handles navigation based on feed type
+ * @param feedType - Type of feed (Home Feed, Site Feed, Content Feed)
+ * @param resources - Created resources from createFeedResources
+ * @param appManagerHomePage - Home page instance for navigation
+ */
+async function navigateToFeedType(feedType: string, resources: any, appManagerHomePage: any) {
+  switch (feedType) {
+    case 'Home Feed': {
+      await appManagerHomePage.actions.clickOnGlobalFeed();
+      break;
+    }
+
+    case 'Site Feed': {
+      await resources.siteDashboardPage.loadPage();
+      break;
+    }
+
+    case 'Content Feed': {
+      await resources.contentPreviewPage.loadPage();
+      break;
+    }
+
+    default:
+      throw new Error(`Unknown feed type: ${feedType}`);
+  }
+}
+
 test.describe(
   '@FeedCRUD - Feed Post Mention Site Topic User CRUD Operations',
   {
@@ -23,9 +159,7 @@ test.describe(
   },
   () => {
     let appManagerFeedPage: FeedPage;
-    let createdSite: any;
     let siteDashboardPage: SiteDashboardPage;
-    let siteDetails: any;
     let contentPreviewPage: ContentPreviewPage;
     let createdPostId: any;
 
@@ -68,89 +202,41 @@ test.describe(
           async ({ appManagerHomePage, appManagerApiClient, contentManagementHelper, siteManagementHelper }) => {
             // Initialize feed page
             appManagerFeedPage = new FeedPage(appManagerHomePage.page);
-
-            // Parallel data fetching for better performance
             identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
 
-            const [userFullName, publicSite, privateSite, topicListResponse] = await Promise.all([
-              identityManagementHelper.getUserNameByEmail(users.endUser.email),
-              siteManagementHelper.getSiteByAccessType(SiteType.PUBLIC),
-              siteManagementHelper.getSiteByAccessType(SiteType.PRIVATE),
-              contentManagementHelper.getTopicList(),
-            ]);
+            // Fetch common test data via API calls
+            const testDataResults = await fetchUserSiteAndTopicByOptions(
+              {
+                fetchUsers: true,
+                fetchTopics: true,
+                fetchPublicSite: true,
+                fetchPrivateSite: true,
+              },
+              { identityManagementHelper, siteManagementHelper, contentManagementHelper }
+            );
 
-            // Set data for test use
-            fullName = userFullName;
-            publicSiteName = publicSite.name;
-            privateSiteName = privateSite.name;
+            // Set data for test use via API calls
+            fullName = testDataResults.endUserInfo.fullName;
+            publicSiteName = testDataResults.publicSite.name;
+            privateSiteName = testDataResults.privateSite.name;
 
-            console.log(`Found ${topicListResponse.result.listOfItems.length} topics`);
+            console.log(`Found ${testDataResults.topicList.result.listOfItems.length} topics`);
 
             // Get random topic name from the response list
             randomTopic =
-              topicListResponse.result.listOfItems[
-                Math.floor(Math.random() * topicListResponse.result.listOfItems.length)
+              testDataResults.topicList.result.listOfItems[
+                Math.floor(Math.random() * testDataResults.topicList.result.listOfItems.length)
               ];
 
-            // Create required data based on feed type
-            switch (testData.feedType) {
-              case 'Site Feed': {
-                const siteResult = await siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
-                siteDetails = siteResult;
-                siteDashboardPage = new SiteDashboardPage(
-                  appManagerHomePage.page,
-                  siteResult.siteId,
-                  siteManagementHelper
-                );
-                break;
-              }
+            // Create site and content resources based on feed type via API calls
+            const resources = await createSiteAndContentByOptions(
+              { siteManagementHelper, contentManagementHelper, appManagerHomePage },
+              testData.feedType === 'Site Feed' || testData.feedType === 'Content Feed',
+              testData.feedType === 'Content Feed'
+            );
 
-              case 'Content Feed': {
-                const siteResult = await siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
-
-                const pageResult = await contentManagementHelper.createPage({
-                  siteId: siteResult.siteId,
-                  contentInfo: {
-                    contentType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.content,
-                    contentSubType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.contentType,
-                  },
-                  options: {
-                    contentDescription: testData.description,
-                    waitForSearchIndex: false,
-                  },
-                });
-
-                siteDetails = siteResult;
-                contentPreviewPage = new ContentPreviewPage(
-                  appManagerHomePage.page,
-                  siteResult.siteId,
-                  pageResult.contentId,
-                  'page'
-                );
-                break;
-              }
-            }
-
-            // Setup navigation based on feed type
-            switch (testData.feedType) {
-              case 'Home Feed': {
-                await appManagerHomePage.actions.clickOnGlobalFeed();
-                break;
-              }
-
-              case 'Site Feed': {
-                await siteDashboardPage.loadPage();
-                break;
-              }
-
-              case 'Content Feed': {
-                await contentPreviewPage.loadPage();
-                break;
-              }
-
-              default:
-                throw new Error(`Unknown feed type: ${testData.feedType}`);
-            }
+            // Navigate to appropriate feed type
+            await navigateToFeedType(testData.feedType, resources, appManagerHomePage);
           }
         );
 
@@ -183,7 +269,7 @@ test.describe(
             await appManagerFeedPage.assertions.validatePostText(postResult.postText);
 
             // Step 3: Prepare for edit - get another user's name
-            const siteManagerFullName = await identityManagementHelper.getUserNameByEmail(users.siteManager.email);
+            const siteManagerInfo = await identityManagementHelper.getUserInfoByEmail(users.siteManager.email);
 
             const updatedPostText = TestDataGenerator.generateRandomText('Updated Test Post');
 
@@ -192,7 +278,7 @@ test.describe(
               currentText: postResult.postText,
               newText: updatedPostText,
               topicName: randomTopic.name,
-              userName: siteManagerFullName,
+              userName: siteManagerInfo.fullName,
             });
 
             // Step 5: Validate post edit
