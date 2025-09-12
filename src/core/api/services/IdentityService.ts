@@ -517,34 +517,6 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
   }
 
   /**
-   * Find first available audience from any category (excluding 'Site' category)
-   */
-  async findFirstAvailableAudience(): Promise<string | null> {
-    try {
-      const categories = await this.getCategories();
-
-      for (const category of categories) {
-        if (category?.type === 'category' && category?.data?.id) {
-          const categoryId = category.data.id;
-          const categoryName = category.data.name;
-
-          // Skip system category 'Site'
-          if (categoryName.toLowerCase() === 'site') continue;
-
-          const audiences = await this.getAudiencesInCategory(categoryId);
-          if (audiences.length > 0) {
-            return audiences[0].data.name;
-          }
-        }
-      }
-
-      return null;
-    } catch (error) {
-      return null;
-    }
-  }
-
-  /**
    * Gets the list of people with optional email filtering
    * @param emailId - Optional email address to filter by
    * @returns The people list response

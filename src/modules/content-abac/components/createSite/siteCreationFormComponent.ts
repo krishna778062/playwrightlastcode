@@ -16,6 +16,7 @@ export class SiteCreationFormComponent extends BaseComponent {
 
   readonly siteNameInput: Locator;
   readonly categoryInput: Locator;
+  readonly categoryList: Locator;
 
   readonly manageSiteLink: Locator;
   readonly deactivateButton: Locator;
@@ -37,6 +38,7 @@ export class SiteCreationFormComponent extends BaseComponent {
 
     this.siteNameInput = page.getByRole('textbox', { name: 'Site name' });
     this.categoryInput = page.getByRole('combobox', { name: 'Category: This is a required' });
+    this.categoryList = page.locator('#category-list');
 
     this.manageSiteLink = page.getByRole('link', { name: 'Manage site' });
     this.deactivateButton = page.getByRole('button', { name: 'Deactivate' });
@@ -80,7 +82,7 @@ export class SiteCreationFormComponent extends BaseComponent {
       if (options.category) {
         await this.clickOnElement(this.categoryInput);
         // Use more specific locator to avoid multiple matches
-        await this.clickOnElement(this.page.locator('#category-list').getByText(options.category, { exact: true }));
+        await this.clickOnElement(this.categoryList.getByText(options.category, { exact: true }));
       }
 
       if (options.isPrivate !== undefined) {

@@ -57,20 +57,27 @@ export class TargetAudienceSectionComponent extends BaseComponent {
    */
   async verifySection(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Verify Target audience section', async () => {
-      await expect(this.targetAudienceHeading, 'Target audience heading should be visible').toBeVisible();
-      await expect(
+      await this.verifier.verifyTheElementIsVisible(this.targetAudienceHeading, {
+        assertionMessage: 'Target audience heading should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(
         this.page.getByText(SiteCreationUI.LABELS.TARGET_AUDIENCE.replace(' *', ''), { exact: true }),
-        'Target audience label should be visible'
-      ).toBeVisible();
-      await expect(
+        {
+          assertionMessage: 'Target audience label should be visible',
+        }
+      );
+      await this.verifier.verifyTheElementIsVisible(
         this.page.getByText(SiteCreationUI.DESCRIPTIONS.TARGET_AUDIENCE_HELP),
-        'Target audience help text should be visible'
-      ).toBeVisible();
-      await expect(
-        this.page.getByText(SiteCreationUI.PLACEHOLDERS.NO_AUDIENCES),
-        'No audiences placeholder should be visible'
-      ).toBeVisible();
-      await expect(this.browseAudiencesButton, 'Browse audiences button should be visible').toBeVisible();
+        {
+          assertionMessage: 'Target audience help text should be visible',
+        }
+      );
+      await this.verifier.verifyTheElementIsVisible(this.page.getByText(SiteCreationUI.PLACEHOLDERS.NO_AUDIENCES), {
+        assertionMessage: 'No audiences placeholder should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.browseAudiencesButton, {
+        assertionMessage: 'Browse audiences button should be visible',
+      });
     });
   }
 
@@ -82,7 +89,9 @@ export class TargetAudienceSectionComponent extends BaseComponent {
     await test.step(options?.stepInfo || 'Open Audience picker', async () => {
       await this.clickOnElement(this.targetAudienceDropdown);
       await this.clickOnElement(this.browseAudiencesButton);
-      await expect(this.targetAudienceModalTitle, 'Target audience modal title should be visible').toBeVisible();
+      await this.verifier.verifyTheElementIsVisible(this.targetAudienceModalTitle, {
+        assertionMessage: 'Target audience modal title should be visible',
+      });
     });
   }
 
@@ -92,11 +101,19 @@ export class TargetAudienceSectionComponent extends BaseComponent {
    */
   async verifyAudiencePickerDefaults(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Verify Audience picker defaults', async () => {
-      await expect(this.allOrganizationOption, 'All organization option should be visible').toBeVisible();
-      await expect(this.allOrganizationSwitch, 'All organization switch should be visible').toBeVisible();
+      await this.verifier.verifyTheElementIsVisible(this.allOrganizationOption, {
+        assertionMessage: 'All organization option should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.allOrganizationSwitch, {
+        assertionMessage: 'All organization switch should be visible',
+      });
       await expect(this.allOrganizationSwitch, 'All organization switch should not be checked').not.toBeChecked();
-      await expect(this.searchTextBox, 'Search text box should be visible').toBeVisible();
-      await expect(this.cancelButton, 'Cancel button should be enabled').toBeEnabled();
+      await this.verifier.verifyTheElementIsVisible(this.searchTextBox, {
+        assertionMessage: 'Search text box should be visible',
+      });
+      await this.verifier.verifyTheElementIsEnabled(this.cancelButton, {
+        assertionMessage: 'Cancel button should be enabled',
+      });
       await expect(this.audienceDoneButton, 'Audience done button should be disabled').toBeDisabled();
     });
   }
@@ -134,10 +151,17 @@ export class TargetAudienceSectionComponent extends BaseComponent {
    */
   async setupSpecificAudienceViaPicker(audienceName: string, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Setup Specific audience: ${audienceName}`, async () => {
-      await this.openAudiencePicker();
-
-      // Wait for picker to load
-      await this.page.waitForTimeout(2000);
+      // Wait for audience hierarchy API response when opening picker (POST call)
+      await this.performActionAndWaitForResponse(
+        () => this.openAudiencePicker(),
+        response =>
+          response.url().includes('/v2/identity/audiences/hierarchy') &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 10_000,
+        }
+      );
 
       let audienceFound = false;
 
@@ -161,8 +185,12 @@ export class TargetAudienceSectionComponent extends BaseComponent {
    */
   async verifySpecificAudienceSelectionSummary(audienceName: string, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Verify specific audience selection: ${audienceName}`, async () => {
-      await expect(this.page.getByText(audienceName), `Audience ${audienceName} should be selected`).toBeVisible();
-      await expect(this.basedOnAudiencesText, 'Based on audiences text should be visible').toBeVisible();
+      await this.verifier.verifyTheElementIsVisible(this.page.getByText(audienceName), {
+        assertionMessage: `Audience ${audienceName} should be selected`,
+      });
+      await this.verifier.verifyTheElementIsVisible(this.basedOnAudiencesText, {
+        assertionMessage: 'Based on audiences text should be visible',
+      });
     });
   }
 
@@ -171,7 +199,9 @@ export class TargetAudienceSectionComponent extends BaseComponent {
    */
   async verifyAudienceCount(expectedCount: string, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Verify audience count: ${expectedCount}`, async () => {
-      await expect(this.userCountText, `User count should show ${expectedCount}`).toContainText(expectedCount);
+      await this.verifier.verifyElementContainsText(this.userCountText, expectedCount, {
+        assertionMessage: `User count should show ${expectedCount}`,
+      });
     });
   }
 
@@ -180,9 +210,9 @@ export class TargetAudienceSectionComponent extends BaseComponent {
    */
   async verifySelectedAudienceText(audienceName: string, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Verify selected audience text: ${audienceName}`, async () => {
-      await expect(this.selectedAudienceText, `Selected audience should show ${audienceName}`).toContainText(
-        audienceName
-      );
+      await this.verifier.verifyElementContainsText(this.selectedAudienceText, audienceName, {
+        assertionMessage: `Selected audience should show ${audienceName}`,
+      });
     });
   }
 
@@ -194,9 +224,13 @@ export class TargetAudienceSectionComponent extends BaseComponent {
       options?.stepInfo || `Verify edit icon state: ${isEditable ? 'editable' : 'not editable'}`,
       async () => {
         if (isEditable) {
-          await expect(this.editIconWhenTAIsAllOrg, 'Edit icon should be available').toBeVisible();
+          await this.verifier.verifyTheElementIsVisible(this.editIconWhenTAIsAllOrg, {
+            assertionMessage: 'Edit icon should be available',
+          });
         } else {
-          await expect(this.editIconWhenTAIsAllOrg, 'Edit should be disabled message should be visible').toBeVisible();
+          await this.verifier.verifyTheElementIsVisible(this.editIconWhenTAIsAllOrg, {
+            assertionMessage: 'Edit should be disabled message should be visible',
+          });
         }
       }
     );
@@ -218,7 +252,9 @@ export class TargetAudienceSectionComponent extends BaseComponent {
       try {
         const checkbox = pattern();
         if (await checkbox.isVisible().catch(() => false)) {
-          await expect(checkbox, `Audience ${audienceName} should be visible and selectable`).toBeVisible();
+          await this.verifier.verifyTheElementIsVisible(checkbox, {
+            assertionMessage: `Audience ${audienceName} should be visible and selectable`,
+          });
           await checkbox.check();
           await this.page.getByRole('button', { name: 'Done' }).click();
           return true;

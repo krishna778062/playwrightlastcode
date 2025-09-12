@@ -1,6 +1,7 @@
 import { expect, Page, test } from '@playwright/test';
 
 import { IdentityService } from '@/src/core/api/services/IdentityService';
+import { SiteAudienceHelper } from '@/src/core/helpers/siteAudienceHelper';
 import { BasePage } from '@/src/core/pages/basePage';
 import { SiteCreationPayload } from '@/src/core/types/siteManagement.types';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
@@ -155,8 +156,10 @@ export class SiteCreationPage extends BasePage implements ISiteCreationPageAsser
    */
   async getOrCreateAudienceName(identity: IdentityService): Promise<string> {
     try {
-      // Try to find existing audience using service methods
-      const existingAudience = await identity.findFirstAvailableAudience();
+      // Use SiteAudienceHelper to find existing audience
+      const audienceHelper = new SiteAudienceHelper(identity);
+
+      const existingAudience = await audienceHelper.findFirstAvailableAudience();
       if (existingAudience) {
         return existingAudience;
       }
@@ -166,7 +169,13 @@ export class SiteCreationPage extends BasePage implements ISiteCreationPageAsser
       const audienceName = `Audience_${Date.now()}`;
 
       const categoryId = await identity.createCategory(categoryName);
-      await identity.createAudience(audienceName, categoryId, 'first_name', 'CONTAINS', 'e');
+      await identity.createAudience({
+        audienceName,
+        categoryId,
+        attribute: 'first_name',
+        operator: 'CONTAINS',
+        value: 'e',
+      });
 
       return audienceName;
     } catch (error) {
