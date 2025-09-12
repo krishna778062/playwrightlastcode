@@ -22,22 +22,20 @@ test.describe(
     let createdPostText: string;
     let createdPostId: string;
     let commentText: string;
-    let siteManagerFullName: string;
-    let siteManagerId: string;
-    let standardUserFullName: string;
+    let siteManagerInfo: { userId: string; fullName: string };
+    let endUserInfo: { userId: string; fullName: string };
 
     test.beforeEach('Setup test environment', async ({ appManagerApiClient }) => {
-      // Get user full names for mentions
+      // Get user information for mentions (optimized single API calls)
       const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
 
-      const [user2, user3, userId3] = await Promise.all([
-        identityManagementHelper.getUserNameByEmail(users.endUser.email),
-        identityManagementHelper.getUserNameByEmail(users.siteManager.email),
-        identityManagementHelper.getUserIdByEmail(users.siteManager.email),
+      const [endUserData, siteManagerData] = await Promise.all([
+        identityManagementHelper.getUserInfoByEmail(users.endUser.email),
+        identityManagementHelper.getUserInfoByEmail(users.siteManager.email),
       ]);
-      standardUserFullName = user2;
-      siteManagerFullName = user3;
-      siteManagerId = userId3;
+
+      endUserInfo = { userId: endUserData.userId, fullName: endUserData.fullName };
+      siteManagerInfo = { userId: siteManagerData.userId, fullName: siteManagerData.fullName };
     });
 
     test.afterEach('Cleanup created posts', async ({ feedManagementHelper }) => {
@@ -77,8 +75,8 @@ test.describe(
         console.log(`Created feed post via API: ${createdPostId} with text: "${createdPostText}"`);
 
         const replyData = TestDataGenerator.generateReply({
-          userId: siteManagerId,
-          userName: siteManagerFullName,
+          userId: siteManagerInfo.userId,
+          userName: siteManagerInfo.fullName,
         });
 
         // Add reply via API
@@ -96,9 +94,8 @@ test.describe(
         const activityNotificationPage = await notificationComponentSiteManager.actions.clickOnViewAllNotifications();
 
         // Verify notification message for mention in reply
-        const expectedNotificationMessage = `${standardUserFullName} mentioned you "${replyData.replyText}"`;
+        const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${replyData.replyText}"`;
 
-        siteManagerHomePage.page.pause();
         await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
       }
     );
