@@ -16,6 +16,7 @@ import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/cons
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ApplicationScreenPage } from '@/src/modules/content/pages/applicationscreenPage';
 import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
+import { EditPagePage } from '@/src/modules/content/pages/editPagePage';
 import { GovernanceScreenPage } from '@/src/modules/content/pages/governanceScreenPage';
 import { ManageApplicationPage } from '@/src/modules/content/pages/manageApplicationPage';
 import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
@@ -46,6 +47,7 @@ test.describe(
     let manageSitePage: ManageSitePage;
     let siteDetailsPage: SiteDetailsPage;
     let siteDashboardPage: SiteDashboardPage;
+    let editPagePage: EditPagePage;
 
     test.beforeEach(async ({ appManagerHomePage, appManagersPage }) => {
       await appManagerHomePage.verifyThePageIsLoaded();
@@ -63,6 +65,7 @@ test.describe(
       manageSitePage = new ManageSitePage(appManagersPage, '');
       siteDetailsPage = new SiteDetailsPage(appManagersPage, '');
       siteDashboardPage = new SiteDashboardPage(appManagersPage, '');
+      editPagePage = new EditPagePage(appManagersPage);
     });
 
     test.afterEach(async ({ appManagerApiClient }) => {
@@ -142,6 +145,27 @@ test.describe(
         await homePage.actions.clickOnHomeButton();
         await homePage.actions.clickOnFeedSideMenu();
         await siteDashboardPage.actions.verfiyFeedSection();
+      }
+    );
+
+    test(
+      'Zeus: Edit the validation Expired Content and Cancel',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VALIDATION_REQUIRED_BAR_STATE],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'Zeus: Edit the validation Expired Content and Cancel',
+          zephyrTestId: 'CONT-36069',
+          storyId: 'CONT-36069',
+        });
+        await homePage.actions.clickOnManageFeature();
+        await manageFeaturePage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickOnViewAllButton();
+        await manageContentPage.actions.verifyingValidationRequiredBarState();
+        await manageContentPage.actions.clickOnEditButton();
+        await editPagePage.actions.clickOnCancel();
+        await manageContentPage.actions.verifyingValidationRequiredBarState();
       }
     );
   }

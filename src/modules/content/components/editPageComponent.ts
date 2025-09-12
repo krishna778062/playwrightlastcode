@@ -1,6 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '@core/components/baseComponent';
+import { BaseComponent } from '@/src/core/components/baseComponent';
 export class EditPageComponent extends BaseComponent {
   readonly clickOnCancel: Locator;
   readonly pageHeading: Locator;

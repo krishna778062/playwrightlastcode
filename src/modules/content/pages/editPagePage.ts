@@ -1,9 +1,8 @@
 import { Locator, Page, Response, test } from '@playwright/test';
 
-import { EditPageComponent } from '@content/components/editPageComponent';
-import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
-
+import { SideNavBarComponent } from '@/src/core/components/sideNavBarComponent';
 import { BasePage } from '@/src/core/pages/basePage';
+import { EditPageComponent } from '@/src/modules/content/components/editPageComponent';
 
 export interface IFeaturedSiteActions {
   clickOnPublishChanges: () => Promise<void>;

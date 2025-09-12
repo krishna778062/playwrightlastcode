@@ -7,6 +7,9 @@ import { ManageContentComponent } from '@/src/modules/content/components/manageC
 
 export interface IManageContentPageActions {
   clickOnContent: () => Promise<void>;
+  clickOnViewAllButton: () => Promise<void>;
+  verifyingValidationRequiredBarState: () => Promise<void>;
+  clickOnEditButton: () => Promise<void>;
 }
 
 export interface IFeaturedSiteAssertions {}
@@ -19,6 +22,9 @@ export class ManageContentPage extends BasePage {
     this.manageContentComponent = new ManageContentComponent(page);
     this.actions = {
       clickOnContent: this.clickOnContent.bind(this),
+      clickOnViewAllButton: this.clickOnViewAllButton.bind(this),
+      verifyingValidationRequiredBarState: this.verifyingValidationRequiredBarState.bind(this),
+      clickOnEditButton: this.clickOnEditButton.bind(this),
     };
   }
 
@@ -31,9 +37,30 @@ export class ManageContentPage extends BasePage {
   }
 
   async clickOnContent(): Promise<void> {
-    await test.step('Clicking on save', async () => {
+    await test.step('Clicking on content', async () => {
       await this.clickOnElement(this.manageContentComponent.clickOnContent);
       await this.manageContentComponent.clickOnContent.press('Enter');
+    });
+  }
+
+  async clickOnViewAllButton(): Promise<void> {
+    await test.step('Clicking on view all option', async () => {
+      await this.clickOnElement(this.manageContentComponent.clickOnViewAll);
+    });
+  }
+
+  async verifyingValidationRequiredBarState(): Promise<void> {
+    await test.step('Verifying validation required bar state', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.manageContentComponent.validationRequiredBarState, {
+        assertionMessage: 'Validation required bar state should be visible',
+      });
+    });
+  }
+
+  async clickOnEditButton(): Promise<void> {
+    await test.step('Clicking on edit button', async () => {
+      await this.clickOnElement(this.manageContentComponent.openingPanelMenu);
+      await this.clickOnElement(this.manageContentComponent.clickOnEditButton);
     });
   }
 }
