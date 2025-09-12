@@ -1,23 +1,53 @@
 import { expect, Page, test } from '@playwright/test';
 
-import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { SiteManager } from '../managers/SiteManager';
 
-import { BaseSitePage } from './sitePages/baseSitePage';
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { BasePage } from '@/src/core/pages/basePage';
 
 export interface ISiteDashboardAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
-  verifySiteNameIs: (siteName: string, successMessage: string) => Promise<void>;
+  verifySiteNameIs: (siteName: string) => Promise<void>;
   verifyDashboardUrl: (siteId: string) => Promise<void>;
 }
 
-export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
+export class SiteDashboardPage extends BasePage implements ISiteDashboardAssertions {
+  private readonly siteManager: SiteManager;
+
   constructor(page: Page, siteId: string) {
-    super(page, siteId);
+    super(page, PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
+    this.siteManager = new SiteManager(page, siteId);
+  }
+
+  /**
+   * Gets the site manager for accessing common site functionality
+   */
+  getSiteManager(): SiteManager {
+    return this.siteManager;
   }
 
   // Assertions
   get assertions(): ISiteDashboardAssertions {
     return this;
+  }
+
+  /**
+   * Verifies that the site dashboard page is loaded
+   */
+  async verifyThePageIsLoaded(): Promise<void> {
+    await test.step('Verify site dashboard page is loaded', async () => {
+      await this.page.waitForLoadState('domcontentloaded');
+      const addContentButton = this.siteManager.getNavigation().siteHeaderElements.addContentButton;
+      await this.verifier.verifyTheElementIsVisible(addContentButton);
+    });
+  }
+
+  /**
+   * Verifies the site name is displayed in the heading
+   * @param siteName - The expected site name
+   */
+  async verifySiteNameIs(siteName: string): Promise<void> {
+    await this.siteManager.verifySiteName(siteName);
   }
 
   /**

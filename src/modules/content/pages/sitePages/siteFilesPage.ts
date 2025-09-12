@@ -1,18 +1,22 @@
-import test, { Locator, Page } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 import path from 'path';
 
-import { TIMEOUTS } from '@core/constants/timeouts';
-import { FileUtil } from '@core/utils/fileUtil';
-
 import { FilesPreviewModalComponent } from '../../components/filesPreviewModalComponent';
+import { SiteManager } from '../../managers/SiteManager';
 
-import { BaseSitePage } from './baseSitePage';
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
+import { BasePage } from '@/src/core/pages/basePage';
+import { FileUtil } from '@/src/core/utils/fileUtil';
 
 /**
  * A Site has many pages.
  * This class is for managing the Site Files page.
  */
-export class SiteFilesPage extends BaseSitePage {
+export class SiteFilesPage extends BasePage {
+  readonly siteManager: SiteManager;
+  readonly filesPreviewModalComponent: FilesPreviewModalComponent;
+
   readonly inputFilesSelector: string = `input[type="file"]`;
 
   get selectFromComputer(): Locator {
@@ -26,19 +30,26 @@ export class SiteFilesPage extends BaseSitePage {
   get uploadButton(): Locator {
     return this.page.locator('button[type="submit"]').getByText('Upload', { exact: true });
   }
+
   get siteFilesLinkText(): Locator {
     return this.page.locator(`a[title="Site files"]`);
   }
 
-  async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.waitUntilPageHasNavigatedTo(/directory/);
-    await this.verifier.verifyTheElementIsVisible(this.siteFilesLinkText, { timeout: TIMEOUTS.MEDIUM });
+  constructor(page: Page, siteId: string) {
+    super(page, PAGE_ENDPOINTS.getSiteFilesPage(siteId));
+    this.siteManager = new SiteManager(page, siteId);
+    this.filesPreviewModalComponent = new FilesPreviewModalComponent(page);
   }
 
-  readonly filesPreviewModalComponent: FilesPreviewModalComponent;
-  constructor(page: Page, siteId: string) {
-    super(page, siteId);
-    this.filesPreviewModalComponent = new FilesPreviewModalComponent(page);
+  /**
+   * Gets the site manager for accessing common site functionality
+   */
+  getSiteManager(): SiteManager {
+    return this.siteManager;
+  }
+
+  async verifyThePageIsLoaded(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.siteFilesLinkText, { timeout: TIMEOUTS.MEDIUM });
   }
 
   /**

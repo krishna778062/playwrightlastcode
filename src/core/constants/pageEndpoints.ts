@@ -23,6 +23,11 @@ export const PAGE_ENDPOINTS = {
 
   // content management pages
   getSiteDashboardPage: (siteId: string) => `/site/${siteId}/dashboard`,
+  getSiteFeedPage: (siteId: string) => `/site/${siteId}/feed`,
+  getSiteContentPage: (siteId: string) => `/site/${siteId}/content`,
+  getSiteQuestionsPage: (siteId: string) => `/site/${siteId}/questions`,
+  getSiteFilesPage: (siteId: string) => `/site/${siteId}/files`,
+  getSiteAboutPage: (siteId: string) => `/site/${siteId}/about/managers`,
   getContentPreviewPage: (siteId: string, contentId: string, contentType: string) =>
     `/site/${siteId}/${contentType}/${contentId}`,
   getAlbumCreationPage: (siteId: string) => `/site/${siteId}/album/add`,

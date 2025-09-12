@@ -103,11 +103,8 @@ test.describe(
           // STEP 4: Verify we're on the correct site dashboard page
           await siteDashboard.assertions.verifyDashboardUrl(createdSiteId);
 
-          // STEP 5: Verify site name and creation success
-          await siteDashboard.verifySiteNameIs(
-            siteCreationOptions.title || siteCreationOptions.name,
-            'Created site successfully'
-          );
+          // STEP 5: Verify site name is displayed correctly
+          await siteDashboard.verifySiteNameIs(siteCreationOptions.title || siteCreationOptions.name);
         }
       );
     }

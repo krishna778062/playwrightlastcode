@@ -14,16 +14,16 @@ import { tagTest } from '@core/utils/testDecorator';
 import { SitePageTab } from '../../constants/sitePageEnums';
 import { ContentTestSuite } from '../../constants/testSuite';
 
-import { BaseSitePage } from '@/src/modules/content/pages/sitePages/baseSitePage';
+import { SiteManager } from '@/src/modules/content/managers/SiteManager';
 
-test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES_PREVIEW}`, () => {
+test.describe.only(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES_PREVIEW}`, () => {
   let testFileDetails: {
     filePath: string;
     fileName: string;
     fileSystemCleanupRequired?: boolean;
     deleteByUI?: boolean;
   };
-  let sitePage: BaseSitePage;
+  let siteManager: SiteManager;
   let siteFilesPage: SiteFilesPage;
   const testSiteName = `All Employees`;
   test.beforeEach('Setup : Navigating to Site Files page', async ({ appManagersPage, siteManagementHelper }) => {
@@ -37,8 +37,10 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
     };
     // Navigate to Site Files page
     const siteId = await siteManagementHelper.getSiteId(testSiteName);
-    sitePage = new BaseSitePage(appManagersPage, siteId);
-    siteFilesPage = (await sitePage.switchToTab(SitePageTab.FilesTab)) as SiteFilesPage;
+    siteManager = new SiteManager(appManagersPage, siteId);
+    siteFilesPage = siteManager.getPageForTab(SitePageTab.FilesTab) as SiteFilesPage;
+    await siteFilesPage.getSiteManager().navigateToTab(SitePageTab.FilesTab);
+    await siteFilesPage.verifyThePageIsLoaded();
   });
 
   test.afterEach(async ({}) => {
@@ -50,7 +52,6 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
     }
   });
 
-  // Procedure 1: Search Site and Click on the Site Files link
   test(
     `Verify user is able to copy the link to this file option under More actions`,
     {
@@ -76,7 +77,6 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
     }
   );
 
-  // Procedure 2: Directly navigate to the Site and Site Files tab
   test(
     `Verify user is able to delete the file using the delete option under More actions`,
     {

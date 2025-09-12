@@ -120,7 +120,7 @@ test.describe(
 
         //flow
         await siteDashboardPage.loadPage();
-        pageCreationPage = await siteDashboardPage.navigateToPageCreationFromSiteDashboard();
+        pageCreationPage = await siteDashboardPage.getSiteManager().navigateToPageCreation();
 
         // Generate page data using TestDataGenerator
         const pageCreationOptions = TestDataGenerator.generatePage(
