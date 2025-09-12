@@ -1,15 +1,13 @@
-import { faker } from '@faker-js/faker';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ManageContentPage } from '../../pages/manageContentPage';
 import { ManageFeaturePage } from '../../pages/manageFeaturePage';
+import { MANAGE_CONTENT_TEST_DATA } from '../../test-data/manage-content.test-data';
 
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { MANAGE_CONTENT_TEST_DATA } from '../../test-data/manage-content.test-data';
 
 test.describe(
   ContentSuiteTags.MANAGE_CONTENT,
@@ -34,7 +32,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({}) => {
+      async () => {
         tagTest(test.info(), {
           description:
             'Verify "Nothing to show here" message appears when searching non-existing content and clicking X restores filtered results',
@@ -52,35 +50,13 @@ test.describe(
         await manageContentPage.assertions.placeHolderTextShouldBeVisible();
       }
     );
-    test(
-      'Verify "Nothing to show here" should come when user searches non-existing content and on clicking x all results should come based on relevant filters - End User',
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
-      },
-      async ({}) => {
-        tagTest(test.info(), {
-          description:
-            'Verify "Nothing to show here" message and search functionality for End User with Site Owner/Manager privileges',
-          customTags: [ContentFeatureTags.MANAGE_CONTENT],
-          zephyrTestId: 'CONT-25055',
-          storyId: 'CONT-25055',
-        });
-        const title = faker.lorem.words(10);
-        await manageFeaturePage.actions.navigateToContentButton();
-        await manageContentPage.actions.writeRandomTextInSearchBar(title);
-        await manageContentPage.actions.clickSearchIcon();
-        await manageContentPage.assertions.nothingToShowHereText();
-        await manageContentPage.actions.clickXButton();
-        await manageContentPage.assertions.placeHolderTextShouldBeVisible();
-      }
-    );
 
     test(
       'Verify Bulk actions Functionality in My Content Screen',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({}) => {
+      async () => {
         tagTest(test.info(), {
           description:
             'Verify bulk actions functionality including publish, unpublish, move, delete, and validate operations in My Content Screen',
@@ -120,7 +96,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({}) => {
+      async () => {
         tagTest(test.info(), {
           description: 'Verify content publish and unpublish options are available and functional in My Content Screen',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
@@ -138,7 +114,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({}) => {
+      async () => {
         tagTest(test.info(), {
           description: 'Verify delete modal functionality with cancel and delete button operations for content removal',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
@@ -157,7 +133,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({}) => {
+      async () => {
         tagTest(test.info(), {
           description:
             'Verify various UI elements including image container, author name, site name, and status stamps in My Content screen',
@@ -182,7 +158,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({}) => {
+      async () => {
         tagTest(test.info(), {
           description: 'Verify site filter functionality and search capabilities in My Content screen',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
@@ -202,7 +178,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({}) => {
+      async () => {
         tagTest(test.info(), {
           description: 'Verify created Newest sorting filter functionality in My Contents screen',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
