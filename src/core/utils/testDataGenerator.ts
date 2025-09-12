@@ -255,6 +255,11 @@ export class TestDataGenerator {
     return `${prefix}_${Date.now()}`;
   }
 
+  // Helper function to generate unique audience names with consistent timestamp-based naming
+  static generateAudienceName(prefix: string = 'TestAudience'): string {
+    return `${prefix}_${Date.now()}`;
+  }
+
   // Helper function to generate test description with timestamp
   static generateRandomString(prefix: string = 'Test description for category'): string {
     return `${prefix} created at ${new Date().toISOString()}`;
