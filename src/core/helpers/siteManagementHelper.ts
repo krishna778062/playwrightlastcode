@@ -42,7 +42,7 @@ export class SiteManagementHelper {
   }) {
     const { siteName, category, overrides, waitForSearchIndex = true } = params;
     const randomNum = Math.floor(Math.random() * 1000000 + 1);
-    const finalSiteName = siteName ?? `Automate_Site_name_${faker.commerce.department()}`;
+    const finalSiteName = siteName ?? `Automate_Site_name_${faker.commerce.department()}_${randomNum}`;
 
     // Get category if not provided
     let categoryObj = category;
