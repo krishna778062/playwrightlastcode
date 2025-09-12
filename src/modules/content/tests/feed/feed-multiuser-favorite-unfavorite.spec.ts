@@ -76,7 +76,7 @@ test.describe(
 
         // Setup user and site
         const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
-        const endUserPeopleId = await identityManagementHelper.getUserIdByEmail(users.endUser.email);
+        const endUserInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
 
         createdSite = await siteManagementHelper.createPublicSite({
           waitForSearchIndex: false,
@@ -85,7 +85,7 @@ test.describe(
         // update user as a content manager of the site
         await siteManagementHelper.updateUserSiteMembershipWithRole({
           siteId: createdSite.siteId,
-          userId: endUserPeopleId,
+          userId: endUserInfo.userId,
           role: SitePermission.CONTENT_MANAGER,
         });
       }
