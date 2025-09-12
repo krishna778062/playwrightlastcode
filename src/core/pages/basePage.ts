@@ -2,6 +2,7 @@ import { expect, Page, test } from '@playwright/test';
 
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
+import { FileUtil } from '@core/utils/fileUtil';
 
 export abstract class BasePage extends BaseActionUtil {
   readonly verifier: BaseVerificationUtil;
@@ -95,6 +96,56 @@ export abstract class BasePage extends BaseActionUtil {
   async verifyPageNotFoundVisibility(options?: { stepInfo?: string; timeout?: number }) {
     await test.step(options?.stepInfo || `Verify the page - Page not found`, async () => {
       await expect(this.page.locator('h1', { hasText: 'Page not found' })).toBeVisible();
+    });
+  }
+
+  /**
+   * @description
+   * Checks for Access Denied error page
+   */
+  async verifyAccessDeniedPageVisibility(options?: { stepInfo?: string; timeout?: number }) {
+    await test.step(options?.stepInfo || `Verify the page - Access Denied`, async () => {
+      await expect(this.page.locator('h1', { hasText: 'Access denied' })).toBeVisible();
+      await expect(
+        this.page
+          .locator('[class*="no-results"] div')
+          .filter({ hasText: 'You are not authorized to access this resource, please contact your administrator.' })
+      ).toBeVisible();
+    });
+  }
+
+  /**
+   * Generic method to handle file downloads with automatic cleanup
+   * @param downloadTrigger - Function that triggers the download (e.g., () => this.clickOnElement(downloadButton))
+   * @param stepInfo - Optional custom step information
+   * @param cleanup - Whether to automatically delete the downloaded file (default: true)
+   * @param timeout - Download timeout (default: TIMEOUTS.MEDIUM)
+   * @returns Promise with download object for additional verification if needed
+   */
+  async downloadFileWithCleanup(
+    downloadTrigger: () => Promise<void>,
+    options?: {
+      stepInfo?: string;
+      cleanup?: boolean;
+      timeout?: number;
+    }
+  ) {
+    return await test.step(options?.stepInfo || 'Download file with cleanup', async () => {
+      const [download] = await Promise.all([
+        this.page.waitForEvent('download', { timeout: options?.timeout || 30000 }),
+        downloadTrigger(),
+      ]);
+
+      // Get download info
+      const downloadPath = await download.path();
+      const filename = download.suggestedFilename();
+
+      // Automatic cleanup if enabled (default: true)
+      if (options?.cleanup !== false && downloadPath) {
+        FileUtil.deleteTemporaryFile(downloadPath);
+      }
+
+      return { download, downloadPath, filename };
     });
   }
 }

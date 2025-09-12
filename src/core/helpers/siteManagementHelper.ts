@@ -1,5 +1,3 @@
-import { faker } from '@faker-js/faker';
-
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import {
@@ -8,6 +6,7 @@ import {
   SiteMembershipResponse,
   SitePermission,
 } from '@/src/core/types/siteManagement.types';
+import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 interface Site {
@@ -41,13 +40,14 @@ export class SiteManagementHelper {
     waitForSearchIndex?: boolean;
   }) {
     const { siteName, category, overrides, waitForSearchIndex = true } = params;
-    const randomNum = Math.floor(Math.random() * 1000000 + 1);
-    const finalSiteName = siteName ?? `Automate_Site_name_${faker.commerce.department()}_${randomNum}`;
+    const timestamp = Date.now().toString().slice(-4);
+    const randomId = Math.random().toString(36).substring(2, 6);
+    const finalSiteName = siteName ?? `Automate_Site_${timestamp}_${randomId}`;
 
     // Get category if not provided
     let categoryObj = category;
     if (!categoryObj) {
-      categoryObj = await this.appManagerApiClient.getSiteManagementService().getCategoryId('General');
+      categoryObj = await this.appManagerApiClient.getSiteManagementService().getCategoryId(SITE_TEST_DATA[0].category);
     }
 
     const siteResult = await this.appManagerApiClient.getSiteManagementService().addNewSite({
@@ -98,6 +98,7 @@ export class SiteManagementHelper {
     waitForSearchIndex?: boolean;
   }) {
     const { siteName, category, overrides, waitForSearchIndex } = params;
+    console.log(`Creating public site: ${siteName}`);
     return await this._createSiteBaseMethod({
       siteName,
       category,
@@ -416,5 +417,60 @@ export class SiteManagementHelper {
     };
 
     return await this.appManagerApiClient.getSiteManagementService().getListOfSites(defaultOptions);
+  }
+
+  /**
+   * Gets a site by access type (e.g., 'public', 'private')
+   * @param accessType - The access type to search for
+   * @returns Promise<Site | null> - The site object if found, null otherwise
+   */
+  async getSiteByAccessType(accessType: string): Promise<{ siteId: string; name: string; access: string } | null> {
+    const siteListResponse = await this.getListOfSites();
+    const site = siteListResponse.result.listOfItems.find(
+      site => site.access.toLowerCase() === accessType.toLowerCase()
+    );
+    return site || null;
+  }
+
+  /**
+   * Ensures user is a member of the site with the specified role
+   * First checks if user is already a member, if not adds them, then assigns the role
+   * @param params - Object containing siteId, userId, and role
+   * @returns Promise<SiteMembershipResponse> - The membership response
+   */
+  async updateUserSiteMembershipWithRole(params: {
+    siteId: string;
+    userId: string;
+    role: SitePermission;
+  }): Promise<SiteMembershipResponse> {
+    const { siteId, userId, role } = params;
+    // First, check if user is already a member of the site
+    const membershipList = await this.getSiteMembershipList(siteId);
+    const userMembership = membershipList.result?.listOfItems?.find((member: any) => member.peopleId === userId);
+    const isUserMember = !!userMembership;
+    const isContentManager = userMembership?.permission === 'contentManager';
+
+    // If user is not a member, add them as a member first
+    if (!isUserMember) {
+      console.log(`User ${userId} is not a member of site ${siteId}, adding as member first`);
+      await this.makeUserSiteMembership(siteId, userId, SitePermission.MEMBER, SiteMembershipAction.ADD);
+      await this.makeUserSiteMembership(siteId, userId, role, SiteMembershipAction.SET_PERMISSION);
+    } else if (!isContentManager) {
+      console.log(`User ${userId} is a member but not a content manager, setting role to ${role}`);
+      await this.makeUserSiteMembership(siteId, userId, role, SiteMembershipAction.SET_PERMISSION);
+    } else {
+      console.log(`User ${userId} is already a content manager of site ${siteId}`);
+    }
+    return userMembership;
+  }
+
+  /**
+   * Gets the membership list for a site
+   * @param siteId - The site ID
+   * @param options - Optional parameters for the membership list request
+   * @returns Promise containing the membership list response
+   */
+  async getSiteMembershipList(siteId: string, options?: { size?: number; type?: string }): Promise<any> {
+    return await this.appManagerApiClient.getSiteManagementService().getSiteMembershipList(siteId, options);
   }
 }

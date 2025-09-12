@@ -35,3 +35,28 @@ export interface AlbumCreationPayload extends BaseContentPayload {
   coverImageMediaId: string;
   listOfAlbumMedia: { id: string; description: string }[];
 }
+
+export interface TopicAuthor {
+  name: string;
+  peopleId: string;
+  id: string;
+}
+
+export interface Topic {
+  name: string;
+  topic_id: string;
+  created_by: string;
+  canEdit: boolean;
+  canDelete: boolean;
+  isFollowing: boolean;
+  authoredBy: TopicAuthor;
+}
+
+export interface TopicListResponse {
+  status: string;
+  result: {
+    listOfItems: Topic[];
+    nextPageToken: number;
+  };
+  message: string;
+}

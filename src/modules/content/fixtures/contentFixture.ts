@@ -1,6 +1,7 @@
 import { BrowserContext, Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
+import { StandardUserApiClient } from '@core/api/clients/standardUserApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
 import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
@@ -25,6 +26,10 @@ export const users = {
   endUser: {
     email: envConfig.endUserEmail || '',
     password: envConfig.endUserPassword || '',
+  },
+  siteManager: {
+    email: process.env.SITE_MANAGER_USERNAME || '',
+    password: process.env.SITE_MANAGER_PASSWORD || '',
   },
 } as const;
 
@@ -62,8 +67,12 @@ export const contentTestFixture = test.extend<
 
     // Helpers and services
     siteManagementHelper: SiteManagementHelper;
+    siteManagerContext: BrowserContext;
+    siteManagerHomePage: NewUxHomePage | OldUxHomePage;
+    siteManagerPage: Page;
     contentManagementHelper: ContentManagementHelper;
     feedManagementHelper: FeedManagementHelper;
+    standardUserFeedManagementHelper: FeedManagementHelper;
 
     // Utility functions
     loginAs: (userType: UserType) => Promise<void>;
@@ -71,6 +80,7 @@ export const contentTestFixture = test.extend<
   {
     // Worker-scoped fixtures
     appManagerApiClient: AppManagerApiClient;
+    standardUserApiClient: StandardUserApiClient;
   }
 >({
   // Worker-scoped API client - shared across all tests in worker
@@ -94,6 +104,21 @@ export const contentTestFixture = test.extend<
     },
     { scope: 'worker' },
   ],
+  standardUserApiClient: [
+    async ({}, use, workerInfo) => {
+      const standardUserApiClient = await ApiClientFactory.createClient(StandardUserApiClient, {
+        type: 'credentials',
+        credentials: {
+          username: envConfig.endUserEmail || '',
+          password: envConfig.endUserPassword || '',
+        },
+        baseUrl: envConfig.apiBaseUrl,
+      });
+      await use(standardUserApiClient);
+    },
+    { scope: 'worker' },
+  ],
+  // Browser contexts - isolated per test
   appManagerContext: [
     async ({ browser }, use) => {
       const context = await browser.newContext();
@@ -130,9 +155,15 @@ export const contentTestFixture = test.extend<
   standardUserHomePage: [
     async ({ standardUserContext }, use) => {
       const homePage = await createAuthenticatedHomePage(standardUserContext, users.endUser);
-
       await use(homePage);
       await performLogout(homePage);
+    },
+    { scope: 'test' },
+  ],
+
+  standardUserPage: [
+    async ({ standardUserHomePage }, use) => {
+      await use(standardUserHomePage.page);
     },
     { scope: 'test' },
   ],
@@ -145,14 +176,36 @@ export const contentTestFixture = test.extend<
     { scope: 'test' },
   ],
 
-  standardUserPage: [
-    async ({ standardUserHomePage }, use) => {
-      await use(standardUserHomePage.page);
+  siteManagerContext: [
+    async ({ browser }, use, workerInfo) => {
+      const context = await browser.newContext();
+      await use(context);
+      await context?.close();
     },
     { scope: 'test' },
   ],
 
-  // Services and helpers - with proper cleanup
+  siteManagerHomePage: [
+    async ({ siteManagerContext }, use, workerInfo) => {
+      const page = await siteManagerContext.newPage();
+      const siteManagerHomePage = await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().siteManagerEmail || '',
+        password: getEnvConfig().siteManagerPassword || '',
+      });
+      await siteManagerHomePage.verifyThePageIsLoaded();
+      await use(siteManagerHomePage);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+
+  siteManagerPage: [
+    async ({ siteManagerHomePage }, use, workerInfo) => {
+      await use(siteManagerHomePage.page);
+    },
+    { scope: 'test' },
+  ],
+
   feedManagementHelper: [
     async ({ appManagerApiClient }, use) => {
       const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
