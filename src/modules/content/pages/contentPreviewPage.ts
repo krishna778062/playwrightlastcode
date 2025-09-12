@@ -38,7 +38,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       this.page.getByRole('button', { name: 'Content' }).or(this.page.getByRole('link').filter({ hasText: 'content' }))
     );
   readonly publishStatus = this.page.getByText('Published today');
-  readonly rejectButton = this.page.getByText('Reject');
+  readonly rejectButton = this.page.locator('span:has-text("Reject")');
   readonly rejectReasonTextarea = this.page.locator('div.Modal-content div textarea');
   readonly submitForApprovalButton = this.page.getByRole('button', { name: 'Submit for approval' });
 

@@ -114,6 +114,7 @@ async function createSiteAndContentByOptions(
         contentType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.content,
         contentSubType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.contentType,
       },
+      waitForSearchIndex: false,
     });
     resources.contentPreviewPage = new ContentPreviewPage(
       helpers.appManagerHomePage.page,

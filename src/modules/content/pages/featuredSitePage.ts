@@ -4,6 +4,8 @@ import { FeatureSiteComponent } from '@content/components/featureSiteComponent';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
+
 export interface IFeaturedSiteActions {
   addSiteToFeatured: (siteName: string) => Promise<void>;
   navigateToSiteDashboard: (siteName: string) => Promise<void>;
@@ -38,10 +40,9 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify Featured Sites page is loaded', async () => {
-      await this.hoverOverElementInJavaScript(this.addUpdateFeaturedSiteButton);
       await this.verifier.verifyTheElementIsVisible(this.addUpdateFeaturedSiteButton, {
         assertionMessage: 'Verify Featured Sites page is loaded',
-        timeout: 15_000,
+        timeout: TIMEOUTS.LONG,
       });
     });
   }

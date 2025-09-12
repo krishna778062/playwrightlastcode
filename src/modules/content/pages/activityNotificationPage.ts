@@ -37,7 +37,7 @@ export class ActivityNotificationPage extends BasePage implements IActivityNotif
   async verifyNotificationExists(notificationText: string): Promise<void> {
     await test.step(`Verify notification exists: ${notificationText}`, async () => {
       // Get all notification elements
-      const notification = this.notificationItems(notificationText);
+      const notification = this.notificationItems(notificationText).nth(0);
       await this.verifier.verifyTheElementIsVisible(notification, {
         assertionMessage: `Notification with text "${notificationText}" should be visible`,
       });
