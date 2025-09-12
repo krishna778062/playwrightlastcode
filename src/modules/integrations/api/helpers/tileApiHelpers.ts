@@ -4,7 +4,7 @@
  */
 
 import { AIRTABLE_TILE, CONNECTOR_IDS } from '@integrations/test-data/app-tiles.test-data';
-import { expect, Page } from '@playwright/test';
+import { Page } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
@@ -222,33 +222,34 @@ export async function createTileViaApi(page: Page, args: TileCreationArgs): Prom
 // Wait for tile to appear in API
 export async function waitUntilTilePresentInApi(page: Page, title: string, opts: WaitOpts = {}): Promise<boolean> {
   const timeout = opts.timeoutMs ?? 20_000;
-  const intervals = opts.pollIntervalMs ? [opts.pollIntervalMs] : [500, 1_000, 1_500];
+  const pollInterval = opts.pollIntervalMs ?? 1000;
   const target = title.replace(/\s+/g, ' ').trim().toLowerCase();
+  const startTime = Date.now();
 
-  try {
-    await expect
-      .poll(
-        async () => {
-          const response = await page.request.post(API_ENDPOINTS.integrations.contentTilesList, {
-            data: { siteId: null, dashboardId: 'home' },
-            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          });
+  while (Date.now() - startTime < timeout) {
+    try {
+      const response = await page.request.post(API_ENDPOINTS.integrations.contentTilesList, {
+        data: { siteId: null, dashboardId: 'home' },
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      });
 
-          if (!response.ok()) return false;
+      if (response.ok()) {
+        const payload = await response.json().catch(() => ({}));
+        const tiles = payload?.result?.listOfItems || [];
 
-          const payload = await response.json().catch(() => ({}));
-          const tiles = payload?.result?.listOfItems || [];
+        const tileFound = tiles.some((tile: any) => {
+          const tileTitle = (tile?.tileInstanceName || tile?.name || tile?.title || '').toString();
+          return tileTitle.replace(/\s+/g, ' ').trim().toLowerCase() === target;
+        });
 
-          return tiles.some((tile: any) => {
-            const tileTitle = (tile?.tileInstanceName || tile?.name || tile?.title || '').toString();
-            return tileTitle.replace(/\s+/g, ' ').trim().toLowerCase() === target;
-          });
-        },
-        { timeout, intervals }
-      )
-      .toBe(true);
-    return true;
-  } catch {
-    return false;
+        if (tileFound) return true;
+      }
+    } catch {
+      // Continue polling on error
+    }
+
+    await new Promise(resolve => setTimeout(resolve, pollInterval));
   }
+
+  return false;
 }

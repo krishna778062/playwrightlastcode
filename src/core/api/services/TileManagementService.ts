@@ -1,7 +1,7 @@
 import { APIRequestContext, APIResponse } from '@playwright/test';
 
 import { API_ENDPOINTS, API_QUERY_PARAMS } from '../../constants/apiEndpoints';
-import { TileCreationResult } from '../../types/tile.type';
+import { LinkTilePayload, LinkTileResponse, TileCreationResult, TileLink } from '../../types/tile.type';
 import { getEnvConfig } from '../../utils/getEnvConfig';
 
 import { BaseApiClient } from '@/src/core/api/clients/baseApiClient';
@@ -104,5 +104,66 @@ export class TileManagementService extends BaseApiClient implements ITileManagem
     }
 
     return { instanceId, templateTileId: args.tileId, tileInstanceName: args.tileInstanceName };
+  }
+
+  /**
+   * Create a link tile via API
+   */
+  async createTile(siteId: string, title: string, numberOfLinks: number, links: TileLink[]): Promise<LinkTileResponse> {
+    const { frontendBaseUrl } = getEnvConfig();
+
+    // Ensure we don't exceed the provided links count
+    const actualLinksCount = Math.min(numberOfLinks, links.length);
+    const selectedLinks = links.slice(0, actualLinksCount);
+
+    const payload: LinkTilePayload = {
+      siteId: siteId,
+      dashboardId: 'site',
+      tile: {
+        title: title,
+        options: {
+          layout: 'standard',
+          links: selectedLinks,
+        },
+        pushToAllHomeDashboards: false,
+        items: [],
+        type: 'links',
+        variant: 'custom',
+      },
+      isNewTiptap: false,
+    };
+
+    const response = await this.post(API_ENDPOINTS.linkTile.create(siteId), {
+      data: payload,
+      headers: {
+        Origin: frontendBaseUrl,
+        Referer: frontendBaseUrl,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok()) {
+      const errorText = await response.text();
+      throw new Error(`Failed to create link tile "${title}": ${response.status()} - ${errorText}`);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Delete a link tile via API
+   */
+  async deleteTile(siteId: string, tileId: string): Promise<APIResponse> {
+    const { frontendBaseUrl } = getEnvConfig();
+
+    return await this.delete(API_ENDPOINTS.linkTile.delete(siteId, tileId), {
+      headers: {
+        Origin: frontendBaseUrl,
+        Referer: frontendBaseUrl,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
   }
 }

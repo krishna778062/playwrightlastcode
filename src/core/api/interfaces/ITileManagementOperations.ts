@@ -1,6 +1,6 @@
 ﻿import { APIResponse } from '@playwright/test';
 
-import { TileCreationResult } from '@core/types/tile.type';
+import { LinkTileResponse, TileCreationResult, TileLink } from '@core/types/tile.type';
 
 // Operations for all Tile Management (used by TileManagementService)
 export interface ITileManagementOperations {
@@ -12,4 +12,6 @@ export interface ITileManagementOperations {
     tileId: string;
     connectorId: string;
   }): Promise<TileCreationResult>;
+  createTile(siteId: string, title: string, numberOfLinks: number, links: TileLink[]): Promise<LinkTileResponse>;
+  deleteTile(siteId: string, tileId: string): Promise<APIResponse>;
 }
