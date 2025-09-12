@@ -11,11 +11,13 @@ export interface IActivityNotificationAssertions {
 
 export class ActivityNotificationPage extends BasePage implements IActivityNotificationAssertions {
   readonly notificationItems: (notificationText: string) => Locator;
+  readonly notificationItemsList: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.ACTIVITY_NOTIFICATION_PAGE);
     this.notificationItems = (notificationText: string) =>
       page.locator('div.Notification-body').getByText(notificationText, { exact: true });
+    this.notificationItemsList = page.locator('div.Notification-body');
   }
 
   get assertions(): IActivityNotificationAssertions {
@@ -23,7 +25,9 @@ export class ActivityNotificationPage extends BasePage implements IActivityNotif
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    // Implementation required by BasePage
+    await this.verifier.verifyTheElementIsVisible(this.notificationItemsList.first(), {
+      assertionMessage: 'Notification container should be visible',
+    });
   }
 
   /**
