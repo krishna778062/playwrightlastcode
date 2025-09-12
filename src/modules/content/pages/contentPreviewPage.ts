@@ -49,8 +49,11 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   // Page components
   readonly promotePageModal: PromotePageModal;
 
-  constructor(page: Page, siteId: string, contentId: string, contentType: string) {
-    super(page, PAGE_ENDPOINTS.getContentPreviewPage(siteId, contentId, contentType));
+  constructor(page: Page, siteId?: string, contentId?: string, contentType?: string) {
+    super(
+      page,
+      siteId && contentId && contentType ? PAGE_ENDPOINTS.getContentPreviewPage(siteId, contentId, contentType) : ''
+    );
     this.promotePageModal = new PromotePageModal(page);
   }
 
