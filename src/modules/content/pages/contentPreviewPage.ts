@@ -19,7 +19,7 @@ export interface IContentPreviewPageAssertions {
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
   // Additional locators for promotion and verification
-  readonly contentTitleHeading = (title: string) => this.page.getByRole('heading', { name: title, level: 1 });
+  readonly contentTitleHeading = (title: string) => this.page.locator('h1', { hasText: title });
   readonly successMessage = (message: string) => this.page.locator('div[class*="Toast-module"]').getByText(message);
 
   // Action locators
