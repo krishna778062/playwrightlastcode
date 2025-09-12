@@ -14,7 +14,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { SitePageTab } from '../../constants/sitePageEnums';
 import { ContentTestSuite } from '../../constants/testSuite';
 
-import { SitePage } from '@/src/modules/content/pages/sitePages/sitePage';
+import { BaseSitePage } from '@/src/modules/content/pages/sitePages/baseSitePage';
 
 test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES_PREVIEW}`, () => {
   let testFileDetails: {
@@ -23,7 +23,7 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
     fileSystemCleanupRequired?: boolean;
     deleteByUI?: boolean;
   };
-  let sitePage: SitePage;
+  let sitePage: BaseSitePage;
   let siteFilesPage: SiteFilesPage;
   const testSiteName = `All Employees`;
   test.beforeEach('Setup : Navigating to Site Files page', async ({ appManagersPage, siteManagementHelper }) => {
@@ -37,7 +37,8 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
     };
     // Navigate to Site Files page
     const siteId = await siteManagementHelper.getSiteId(testSiteName);
-    sitePage = new SitePage(appManagersPage);
+    sitePage = new BaseSitePage(appManagersPage, siteId);
+    siteFilesPage = (await sitePage.switchToTab(SitePageTab.FilesTab)) as SiteFilesPage;
   });
 
   test.afterEach(async ({}) => {
@@ -61,8 +62,6 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
         zephyrTestId: ['CONT-37467', 'CONT-34399'],
         storyId: `CONT-34370`,
       });
-      await sitePage.landOnMainPageOfSite(`All Employees`);
-      siteFilesPage = await sitePage.navigateToSiteTab(SitePageTab.FilesTab);
       await siteFilesPage.uploadFileViaSelectFromComputer(testFileDetails.filePath);
       await siteFilesPage.verifyFileIsPresentInTheSiteFilesListAtIndex(testFileDetails.fileName, 0);
       await siteFilesPage.clickToOpenFileInFilesPreview(testFileDetails.fileName);
@@ -89,7 +88,6 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
         zephyrTestId: ['CONT-36338', 'CONT-34132'],
         storyId: `CONT-34132`,
       });
-      siteFilesPage = await sitePage.navigateDirectlyToTheSiteTabOfSite(`All Employees`, `files`);
       await siteFilesPage.uploadFileViaSelectFromComputer(testFileDetails.filePath);
       await siteFilesPage.verifyFileIsPresentInTheSiteFilesListAtIndex(testFileDetails.fileName, 0);
       await siteFilesPage.clickToOpenFileInFilesPreview(testFileDetails.fileName);

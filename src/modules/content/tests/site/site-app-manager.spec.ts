@@ -104,7 +104,7 @@ test.describe(
           await siteDashboard.assertions.verifyDashboardUrl(createdSiteId);
 
           // STEP 5: Verify site name and creation success
-          await siteDashboard.assertions.verifySiteName(
+          await siteDashboard.verifySiteNameIs(
             siteCreationOptions.title || siteCreationOptions.name,
             'Created site successfully'
           );

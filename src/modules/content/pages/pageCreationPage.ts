@@ -5,7 +5,6 @@ import { AddContentModalComponent } from '@content/components/addContentModal';
 import { AttachementUploaderComponent } from '@content/components/attachementUploader';
 import { ImageCropperComponent } from '@content/components/imageCropper';
 import { PageContentType } from '@content/constants/pageContentType';
-import { SiteDashboardPage } from '@content/pages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';

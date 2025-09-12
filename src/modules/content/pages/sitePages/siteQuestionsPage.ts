@@ -1,14 +1,9 @@
-import { Page } from '@playwright/test';
+import { BaseSitePage } from './baseSitePage';
 
 /**
  * A Site has many pages.
  * This class is for managing the Site Questions page.
  */
-export class SiteQuestionsPage {
-  readonly page: Page;
-
-  constructor(page: Page) {
-    this.page = page;
-  }
+export class SiteQuestionsPage extends BaseSitePage {
   // Additional methods related to the Site Questions can be added here
 }

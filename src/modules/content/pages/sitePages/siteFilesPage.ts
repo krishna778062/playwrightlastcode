@@ -1,17 +1,18 @@
 import test, { Locator, Page } from '@playwright/test';
 import path from 'path';
 
+import { TIMEOUTS } from '@core/constants/timeouts';
+import { FileUtil } from '@core/utils/fileUtil';
+
 import { FilesPreviewModalComponent } from '../../components/filesPreviewModalComponent';
 
-import { TIMEOUTS } from '@/src/core/constants/timeouts';
-import { BasePage } from '@/src/core/pages/basePage';
-import { FileUtil } from '@/src/core/utils/fileUtil';
+import { BaseSitePage } from './baseSitePage';
 
 /**
  * A Site has many pages.
  * This class is for managing the Site Files page.
  */
-export class SiteFilesPage extends BasePage {
+export class SiteFilesPage extends BaseSitePage {
   readonly inputFilesSelector: string = `input[type="file"]`;
 
   get selectFromComputer(): Locator {
@@ -35,13 +36,9 @@ export class SiteFilesPage extends BasePage {
   }
 
   readonly filesPreviewModalComponent: FilesPreviewModalComponent;
-  constructor(
-    page: Page,
-    readonly siteId: string
-  ) {
-    super(page);
+  constructor(page: Page, siteId: string) {
+    super(page, siteId);
     this.filesPreviewModalComponent = new FilesPreviewModalComponent(page);
-    this.siteId = siteId;
   }
 
   /**
@@ -147,7 +144,6 @@ export class SiteFilesPage extends BasePage {
       .getByText(fileNameWithExtension, { exact: true })
       .first();
     await this.clickOnElement(fileNameToClick);
-    const filesPreviewModalComponent = new FilesPreviewModalComponent(this.page);
     // await filesPreviewModalComponent.verifyProgressBarLoadingIsComplete();
   }
 }
