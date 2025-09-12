@@ -1,20 +1,19 @@
 // @/src imports
-import { AUDIENCE_API_ATTRIBUTES, AUDIENCE_API_OPERATORS } from '@/src/core/constants/createAudienceAPI';
-import { TestSuite } from '@/src/core/constants/testSuite';
-import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
-import { audienceCreationParams } from '@/src/core/types/audience.type';
-
 // @core imports
 import { POPUP_BUTTONS } from '@core/constants/popupButtons';
 import { TestPriority } from '@core/constants/testPriority';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
-
 // @platforms imports
 import { ACG_EDIT_ASSETS } from '@platforms/constants/acgEditAssets';
 import { ACG_STATUS } from '@platforms/constants/acgStatus';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/acgPage/accessControlGroupsPage';
+
+import { AUDIENCE_API_ATTRIBUTES, AUDIENCE_API_OPERATORS } from '@/src/core/constants/createAudienceAPI';
+import { TestSuite } from '@/src/core/constants/testSuite';
+import { audienceCreationParams } from '@/src/core/types/audience.type';
+import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 
 test.describe(
   'ACG Testcases',
@@ -22,10 +21,10 @@ test.describe(
     tag: [TestSuite.ABAC],
   },
   () => {
-    let audienceId: string[] = [];
-    let acgName: string[] = [];
+    const audienceId: string[] = [];
+    const acgName: string[] = [];
     let categoryToCreate: string | undefined;
-    let audienceToCreate: string[] = [];
+    const audienceToCreate: string[] = [];
     let categoryId: string | undefined;
     let createAudienceParams: audienceCreationParams;
 
