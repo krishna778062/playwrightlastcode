@@ -1,6 +1,6 @@
 import { Page, test } from '@playwright/test';
 
-import { SiteManager } from '../../managers/siteManager';
+import { SiteManager } from '@content/managers/siteManager';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';

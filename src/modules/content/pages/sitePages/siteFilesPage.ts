@@ -1,8 +1,9 @@
 import { Locator, Page, test } from '@playwright/test';
 import path from 'path';
 
+import { SiteManager } from '@content/managers/siteManager';
+
 import { FilesPreviewModalComponent } from '../../components/filesPreviewModalComponent';
-import { SiteManager } from '../../managers/siteManager';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
