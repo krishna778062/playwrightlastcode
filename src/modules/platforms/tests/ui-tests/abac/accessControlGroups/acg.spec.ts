@@ -25,7 +25,7 @@ test.describe(
     const acgName: string[] = [];
     let categoryToCreate: string | undefined;
     const audienceToCreate: string[] = [];
-    let categoryId: string | undefined;
+    const categoryId: string[] = [];
     let createAudienceParams: audienceCreationParams;
 
     test.beforeEach(async ({ appManagerApiClient }) => {
@@ -33,10 +33,10 @@ test.describe(
       audienceToCreate.push(TestDataGenerator.generateCategoryName('ABAC_Target_Audience'));
       audienceToCreate.push(TestDataGenerator.generateCategoryName('ABAC_Target_Audience_Secondary'));
 
-      categoryId = await appManagerApiClient.getIdentityService().createCategory(categoryToCreate);
+      categoryId.push(await appManagerApiClient.getIdentityService().createCategory(categoryToCreate));
       createAudienceParams = {
         audienceName: audienceToCreate[0],
-        categoryId: categoryId,
+        categoryId: categoryId[0],
         attribute: AUDIENCE_API_ATTRIBUTES.FIRST_NAME,
         operator: AUDIENCE_API_OPERATORS.CONTAINS,
         value: 'something',
@@ -54,6 +54,10 @@ test.describe(
       //delete the audiences if it exists
       while (audienceId.length > 0) {
         await appManagerApiClient.getIdentityService().deleteAudience(audienceId.pop() as string);
+      }
+      //delete the category if it exists
+      while (categoryId.length > 0) {
+        await appManagerApiClient.getIdentityService().deleteCategoryById(categoryId.pop() as string);
       }
     });
 
@@ -165,7 +169,7 @@ test.describe(
     test(
       'Verify that duplicate acg error is displayed on attempting to create ACG with same features and target audiences',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
