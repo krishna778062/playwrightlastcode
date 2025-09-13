@@ -1,15 +1,18 @@
 import { expect, Page, test } from '@playwright/test';
 
+import { StringArrayVerifier } from '@core/utils/stringArrayUtils';
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
 import { FileUtil } from '@core/utils/fileUtil';
 
 export abstract class BasePage extends BaseActionUtil {
   readonly verifier: BaseVerificationUtil;
+  readonly stringArrayVerifier: StringArrayVerifier;
   readonly pageUrl: string;
   constructor(page: Page, pageUrl?: string) {
     super(page);
     this.verifier = new BaseVerificationUtil(page);
+    this.stringArrayVerifier = new StringArrayVerifier(page);
     this.pageUrl = pageUrl || '';
   }
 
