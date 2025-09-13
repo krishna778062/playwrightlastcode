@@ -5,7 +5,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 // @platforms imports
-import { ACG_COLUMNS, ACG_STATUS, ACG_EDIT_ASSETS } from '@platforms/constants/acg';
+import { ACG_COLUMNS, ACG_EDIT_ASSETS,ACG_STATUS } from '@platforms/constants/acg';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/acgPage/accessControlGroupsPage';
 

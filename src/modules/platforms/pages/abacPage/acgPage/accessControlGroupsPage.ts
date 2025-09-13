@@ -348,7 +348,7 @@ export class AccessControlGroupsPage extends BasePage {
    */
   async veryfySorting(selector: Locator, columnName: string, sortingOrder: string): Promise<boolean> {
     let columnIndex = -1;
-    let allTextContents: string[] = [];
+    const allTextContents: string[] = [];
     let sortedTextContents: string[] = [];
     for (let i = 0; i < (await selector.count()); i++) {
       if ((await selector.nth(i).textContent()) == columnName) {
@@ -360,7 +360,7 @@ export class AccessControlGroupsPage extends BasePage {
     console.log(columnIndex);
     console.log(await this.acgRecordsElement.count());
     for (let j = 0; j < (await this.acgRecordsElement.count()); j++) {
-      let textContent = await this.acgRecordsElement.nth(j).locator('td').nth(columnIndex).textContent();
+      const textContent = await this.acgRecordsElement.nth(j).locator('td').nth(columnIndex).textContent();
       if (!textContent?.includes('Syncing...')) {
         if (columnName === 'Modified') {
           allTextContents.push(changeDateFormatToYYYYMMDD(textContent ?? ''));
