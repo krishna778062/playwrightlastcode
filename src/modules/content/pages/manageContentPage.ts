@@ -174,7 +174,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
     await this.manageContentComponent.clickSortByButton();
   }
   async selectCreatedNewestOptionThroughUrl(): Promise<void> {
-    await this.manageContentComponent.selectCreatedNewestOptionThroughUrl();
+    await this.manageContentComponent.selectCreatedNewestOptionByText();
   }
 
   async selectPageCategory(): Promise<void> {

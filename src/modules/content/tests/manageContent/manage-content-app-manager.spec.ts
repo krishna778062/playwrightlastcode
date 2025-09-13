@@ -2,6 +2,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { PageContentType } from '../../constants/pageContentType';
+import { SITE_TYPES } from '../../constants/siteTypes';
 import { ManageContentPage } from '../../pages/manageContentPage';
 import { ManageFeaturePage } from '../../pages/manageFeaturePage';
 import { MANAGE_CONTENT_TEST_DATA } from '../../test-data/manage-content.test-data';
@@ -56,7 +58,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async () => {
+      async ({ siteManagementHelper }) => {
         tagTest(test.info(), {
           description:
             'Verify bulk actions functionality including publish, unpublish, move, delete, and validate operations in My Content Screen',
@@ -75,8 +77,8 @@ test.describe(
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnMoveButton();
         await manageContentPage.actions.clickOnApplyButton();
-        const siteName = 'Page';
-        await manageContentPage.actions.moveContentSearchBar(siteName);
+        const publicSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
+        await manageContentPage.actions.moveContentSearchBar(publicSite?.name || '');
         await manageContentPage.actions.siteListSelecting();
         await manageContentPage.actions.selectPageCategoryIfVisible();
         await manageContentPage.actions.selectPageCategory();
@@ -158,7 +160,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async () => {
+      async ({ siteManagementHelper }) => {
         tagTest(test.info(), {
           description: 'Verify site filter functionality and search capabilities in My Content screen',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
@@ -167,7 +169,8 @@ test.describe(
         });
         await manageFeaturePage.actions.navigateToContentButton();
         await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.clickSiteSearchBar('Sales');
+        const publicSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        await manageContentPage.actions.clickSiteSearchBar(publicSite?.name || '');
         await manageContentPage.actions.selectSiteSearchBarOption();
         await manageContentPage.assertions.verifySiteNameLink();
       }

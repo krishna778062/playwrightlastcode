@@ -2,6 +2,8 @@ import test, { Locator, Page } from '@playwright/test';
 
 import { BaseComponent } from '@core/components/baseComponent';
 
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
+
 export class ManageContentComponent extends BaseComponent {
   readonly searchBar: Locator;
   readonly searchIconButton: Locator;
@@ -39,7 +41,8 @@ export class ManageContentComponent extends BaseComponent {
   readonly pageCategorySelectorDropdownOptions: Locator;
   siteSearchBarOptionText!: string;
   readonly sortByButton: Locator;
-  readonly createdNewestOption = '?sortBy=publishedNewest';
+  readonly createdNewestOption: Locator;
+  readonly createdNewestOptionOuterDiv: Locator;
   constructor(page: Page) {
     super(page);
     this.searchBar = page.locator("[aria-label='Search…']");
@@ -83,6 +86,8 @@ export class ManageContentComponent extends BaseComponent {
       .filter({ hasText: /^Select a page category…$/ })
       .first();
     this.pageCategorySelectorDropdownOptions = page.locator('[id="undefined-list"]').first();
+    this.createdNewestOption = page.locator('option').filter({ hasText: 'Created date (newest first)' }).first();
+    this.createdNewestOptionOuterDiv = page.locator('[class="NativeSelect"]');
   }
 
   async clickSearchBar(): Promise<void> {
@@ -95,7 +100,6 @@ export class ManageContentComponent extends BaseComponent {
     await test.step(`Writing random text in the search bar`, async () => {
       await this.clickSearchBar();
       await this.searchBar.type(inputText);
-      await this.page.waitForTimeout(5000);
     });
   }
 
@@ -310,9 +314,15 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.sortByButton);
     });
   }
-  async selectCreatedNewestOptionThroughUrl(): Promise<void> {
+  async selectCreatedNewestOption(): Promise<void> {
     await test.step('Selecting the created newest option', async () => {
-      await this.page.goto(`${this.page.url()}${this.createdNewestOption}`);
+      await this.sortByButton.selectOption('createdNewest');
+    });
+  }
+
+  async selectCreatedNewestOptionByText(): Promise<void> {
+    await test.step('Selecting the created newest option by text', async () => {
+      await this.sortByButton.selectOption({ label: 'Created date (newest first)' });
     });
   }
   async selectPageCategoryIfVisible(): Promise<void> {
@@ -322,7 +332,6 @@ export class ManageContentComponent extends BaseComponent {
       } else {
         console.log('Page category selector dropdown is not visible skipping');
       }
-      await this.page.waitForTimeout(2000);
     });
   }
   async selectPageCategory(): Promise<void> {

@@ -17,11 +17,11 @@ test.describe(
   () => {
     let manageFeaturePage: ManageFeaturePage;
     let manageContentPage: ManageContentPage;
-    test.beforeEach(async ({ endUserHomePage, endUsersPage }) => {
-      await endUserHomePage.verifyThePageIsLoaded();
-      manageContentPage = await endUserHomePage.actions.manageContent();
-      manageFeaturePage = new ManageFeaturePage(endUsersPage);
-      manageContentPage = new ManageContentPage(endUsersPage);
+    test.beforeEach(async ({ standardUserApiClient, standardUserHomePage }) => {
+      await standardUserHomePage.verifyThePageIsLoaded();
+      manageContentPage = await standardUserHomePage.actions.manageContent();
+      manageFeaturePage = new ManageFeaturePage(standardUserHomePage.page);
+      manageContentPage = new ManageContentPage(standardUserHomePage.page);
     });
 
     test.afterEach(async ({ page }) => {
