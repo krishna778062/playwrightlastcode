@@ -15,12 +15,12 @@ export class UkgSyncPage extends BasePage {
     this.ukgSyncComponents = new UkgSyncComponents(page);
   }
 
-  async verifyCheckBox(name: string, status: string): Promise<void> {
-    await this.ukgSyncComponents.verifyCheckBox(name, status);
+  async verifyCheckBox(name: string): Promise<void> {
+    await this.ukgSyncComponents.verifyCheckBox(name);
   }
 
-  async clearInputField(name: string, field: string): Promise<void> {
-    await this.ukgSyncComponents.clearInputField(name, status);
+  async clearInputField(source: string, username: string, password: string, url: string, key: string): Promise<void> {
+    await this.ukgSyncComponents.clearInputField(source, username, password, url, key);
   }
 
   async clickOnButton(name: string): Promise<void> {
@@ -39,11 +39,29 @@ export class UkgSyncPage extends BasePage {
     await this.ukgSyncComponents.selectDropdown(option);
   }
 
-  async verifyVisibility(name: string, status: string): Promise<void> {
+  async verifyVisibility(name: string): Promise<void> {
     await this.ukgSyncComponents.verifyVisibility(name);
   }
 
-  async addConnectionDetails(username: string, password: string, url: string, key: string): Promise<void> {
-    await this.ukgSyncComponents.addConnectionDetails(username, password, url, key);
+  async addUkgConnectionDetails(
+    source: string,
+    username: string,
+    password: string,
+    url: string,
+    key: string
+  ): Promise<void> {
+    await this.ukgSyncComponents.addUkgConnectionDetails(source, username, password, url, key);
+  }
+
+  async selectSyncOptions(name: string): Promise<void> {
+    await this.ukgSyncComponents.selectSyncOptions(name);
+  }
+
+  async verifyDetailsCheckBoxVisibility(name: string): Promise<void> {
+    await this.ukgSyncComponents.verifyDetailsCheckBoxVisibility(name);
+  }
+
+  async selectDetailsSyncCheckBox(source: string, name: string): Promise<void> {
+    await this.ukgSyncComponents.selectDetailsSyncCheckBox(source, name);
   }
 }
