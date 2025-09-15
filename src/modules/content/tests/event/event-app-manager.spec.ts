@@ -46,7 +46,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.EVENT_CREATION],
       },
-      async ({ appManagerHomePage, appManagersPage }) => {
+      async ({ appManagerHomePage, appManagersPage, siteManagementHelper }) => {
         tagTest(test.info(), {
           description: 'Event Content Add attach file with all the Mandatory fields',
           zephyrTestId: 'CONT-10824',
@@ -54,7 +54,8 @@ test.describe(
         });
 
         eventCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
-          ContentType.EVENT
+          ContentType.EVENT,
+          siteManagementHelper
         )) as EventCreationPage;
         contentPreviewPage = new ContentPreviewPage(
           appManagersPage,

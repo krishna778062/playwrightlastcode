@@ -500,6 +500,15 @@ export class TestDataGenerator {
     return result;
   }
 
+  static generateRandomText(
+    prefix: string = 'Automated Test Post',
+    wordCount: number = 2,
+    includeCompanyName: boolean = true
+  ): string {
+    const text = faker.lorem.words(wordCount);
+    return `${prefix} ${text} ${includeCompanyName ? faker.company.name() : ''}`;
+  }
+
   /**
    * Generates feed test data with customizable options
    * @param options Configuration options for the feed
@@ -527,6 +536,7 @@ export class TestDataGenerator {
       | {
           scope: string;
           siteId?: string;
+          contentId?: string;
           withAttachment?: false;
           fileName?: undefined;
           fileSize?: undefined;
@@ -537,6 +547,7 @@ export class TestDataGenerator {
       | {
           scope: string;
           siteId?: string;
+          contentId?: string;
           withAttachment: true;
           fileName: string;
           fileSize: number;

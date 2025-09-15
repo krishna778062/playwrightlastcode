@@ -1,11 +1,9 @@
 import { Locator, Page, Response, test } from '@playwright/test';
 
 import { PageCreationResponse } from '@content/apis/types/pageCreationResponse';
-import { AddContentModalComponent } from '@content/components/addContentModal';
 import { AttachementUploaderComponent } from '@content/components/attachementUploader';
 import { ImageCropperComponent } from '@content/components/imageCropper';
 import { PageContentType } from '@content/constants/pageContentType';
-import { SiteDashboardPage } from '@content/pages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
@@ -82,8 +80,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   readonly descriptionInput: Locator;
   readonly submitButton: Locator;
   readonly addCategoryFromList: (categoryText: string) => Locator;
-  // Page components
-  readonly addContentModal: AddContentModalComponent;
   readonly coverImageUploader: AttachementUploaderComponent;
   readonly fileAttachmentUploader: AttachementUploaderComponent;
   readonly imageCropper: ImageCropperComponent;
@@ -112,8 +108,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     this.submitButton = page.locator('span').filter({ hasText: 'Submit for approval' });
     this.addCategoryFromList = (categoryText: string) => page.locator(`div[role='listbox'] >> text=${categoryText}`);
 
-    // Page components
-    this.addContentModal = new AddContentModalComponent(page);
     this.coverImageUploader = new AttachementUploaderComponent(page, this.coverImageUploaderContainer);
     this.fileAttachmentUploader = new AttachementUploaderComponent(page, this.fileAttachmentUploaderContainer);
     this.imageCropper = new ImageCropperComponent(page);

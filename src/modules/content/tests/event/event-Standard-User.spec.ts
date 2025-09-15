@@ -82,7 +82,7 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.EVENT_CREATION],
         },
-        async ({ standardUserHomePage, appManagerHomePage }) => {
+        async ({ standardUserHomePage, appManagerHomePage, siteManagementHelper }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
@@ -99,7 +99,8 @@ test.describe(
 
           // Navigate to event creation by standard user
           eventCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
-            ContentType.EVENT
+            ContentType.EVENT,
+            siteManagementHelper
           )) as EventCreationPage;
 
           // Generate event data using TestDataGenerator

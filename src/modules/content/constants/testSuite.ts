@@ -6,6 +6,8 @@ export enum ContentTestSuite {
   EVENT_APP_MANAGER = '@event-app-manager',
   EVENT_STANDARD_USER = '@event-standard-user',
   FEED_APP_MANAGER = '@feed-app-manager',
+  FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER = '@feed-mention-site-topic-user-app-manager',
+  FEED_FILE_DELETE_APP_MANAGER = '@feed-file-delete-app-manager',
   FEED_MULTI_USER = '@feed-multi-user',
   FEED_STANDARD_USER = '@feed-standard-user',
   SITE_APP_MANAGER = '@site-app-manager',
