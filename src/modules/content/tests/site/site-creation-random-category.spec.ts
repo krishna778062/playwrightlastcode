@@ -27,7 +27,7 @@ test.describe('Site Creation', { tag: ['@content', '@site-creation'] }, () => {
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE, '@random-category'],
     },
-    async ({ appManagerHomePage }) => {
+    async ({ appManagerHomePage, siteManagementHelper }) => {
       tagTest(test.info(), {
         zephyrTestId: 'CONT-20912',
         storyId: 'CONT-20912',
@@ -58,7 +58,7 @@ test.describe('Site Creation', { tag: ['@content', '@site-creation'] }, () => {
       const siteIdMatch = currentUrl.match(/\/sites\/([^\/]+)/);
       const siteId = siteIdMatch ? siteIdMatch[1] : 'placeholder';
 
-      siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteId);
+      siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteId, siteManagementHelper);
 
       // Step 6: Verify category was created successfully (click on category link in header)
       await siteDashboardPage.assertions.verifyCategoryCreatedSuccessfully(createdCategoryName);

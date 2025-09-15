@@ -66,7 +66,7 @@ export class ContentManagementHelper {
   async createPage(params: {
     siteId: string;
     contentInfo: { contentType: string; contentSubType: string };
-    options?: { pageName?: string; contentDescription?: string };
+    options?: { pageName?: string; contentDescription?: string; waitForSearchIndex?: boolean };
   }) {
     const { siteId, contentInfo, options = {} } = params;
     const pageCategory = await this.appManagerApiClient.getContentManagementService().getPageCategoryID(siteId);
@@ -84,11 +84,14 @@ export class ContentManagementHelper {
       contentType: contentInfo.contentType,
       contentSubType: contentInfo.contentSubType,
     });
-    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
-      apiClient: this.appManagerApiClient,
-      searchTerm: finalPageName,
-      objectType: 'content',
-    });
+
+    if (params.options?.waitForSearchIndex !== false) {
+      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+        apiClient: this.appManagerApiClient,
+        searchTerm: finalPageName,
+        objectType: 'content',
+      });
+    }
     const createdContent = {
       siteId,
       contentId: pageResult.pageId,

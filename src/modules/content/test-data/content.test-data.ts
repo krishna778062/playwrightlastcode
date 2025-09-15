@@ -1,3 +1,5 @@
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
+
 export const CONTENT_TEST_DATA = {
   COVER_IMAGES: {
     RATIO_300x300: {
@@ -8,8 +10,12 @@ export const CONTENT_TEST_DATA = {
   },
 
   DEFAULT_PAGE_CONTENT: {
-    title: 'Test Page Content',
-    contentType: 'page',
+    content: 'page',
+    category: 'Uncategorized',
+    label: 'Page',
+    contentType: 'news',
+    description: 'Test page content for global search verification and validation',
+    accessType: SITE_TYPES.PUBLIC,
     coverImage: '300x300 RATIO_Text.png',
     cropSettings: {
       widescreen: true,
