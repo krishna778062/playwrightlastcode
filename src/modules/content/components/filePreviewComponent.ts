@@ -113,8 +113,8 @@ export class FilePreviewComponent extends BaseComponent {
 
       // Wait for all 3 upload responses to complete with 200 status
       await Promise.all(responsePromises);
-      const id = requestURL.split('/u/o/')[1].split('?')[0];
-      return id;
+      console.log('requestURL: ', requestURL);
+      return requestURL;
     });
   }
 

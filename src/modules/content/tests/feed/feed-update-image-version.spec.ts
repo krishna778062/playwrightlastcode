@@ -103,9 +103,9 @@ test.describe(
     // Common attachment configuration for all test cases
     const commonAttachmentConfig = {
       hasAttachment: true as const,
-      fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName,
-      fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileSize,
-      mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.mimeType,
+      fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
+      fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
+      mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
       filePath: FileUtil.getFilePath(
         __dirname,
         '..',
@@ -275,13 +275,22 @@ test.describe(
             await appManagerFeedPage.actions.verifyPreviewModalIsOpened();
             await appManagerFeedPage.actions.clickOnInfoIconOnImage();
             await appManagerFeedPage.actions.clickOnEditVersionButton();
-            const newFileId = await appManagerFeedPage.actions.uploadImage(updatedImageConfig.filePath);
-            await appManagerFeedPage.actions.clickOnUploadButton(newFileId);
+            await appManagerFeedPage.assertions.verifyVersionNumber('1');
+            const responseURL = await appManagerFeedPage.actions.uploadImage(updatedImageConfig.filePath);
+            if (testData.feedType === 'Home Feed') {
+              updatedFileId = responseURL.split('/u/o/')[1].split('?')[0];
+            } else {
+              updatedFileId = responseURL.split('/u/r/')[1].split('?')[0];
+            }
+
+            await appManagerFeedPage.actions.clickOnUploadButton(updatedFileId);
+            await appManagerFeedPage.assertions.verifyToastMessage('Added new version successfully');
+            await appManagerFeedPage.assertions.verifyVersionNumber('2');
             await appManagerFeedPage.actions.clickOnCloseButton();
             //referesh the page
             await appManagerFeedPage.page.reload();
             await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
-            await appManagerFeedPage.actions.verifyVersionImageIsDisplayed(newFileId);
+            await appManagerFeedPage.actions.verifyVersionImageIsDisplayed(updatedFileId);
           }
         );
       });

@@ -218,7 +218,12 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
    * @returns {Promise<any>}
    * @memberof FeedManagementService
    */
-  async uploadToAttachmentURL(uploadUrl: string, fileName: string, filePath: string): Promise<APIResponse> {
+  async uploadToAttachmentURL(
+    uploadUrl: string,
+    fileName: string,
+    filePath: string,
+    mimeType: string
+  ): Promise<APIResponse> {
     return await test.step(`Uploading file binary data to attachment URL for "${fileName}"`, async () => {
       if (!uploadUrl) {
         throw new Error('Upload URL is required but not provided');
@@ -227,7 +232,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
 
       // Build headers for the request
       const headers = {
-        'Content-Type': 'image/png',
+        'Content-Type': mimeType,
         'Content-Disposition': `attachment; filename=${fileName}`,
       };
 
@@ -302,7 +307,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       if (!fileId) {
         throw new Error('Failed to get fileId from upload response');
       }
-      await this.uploadToAttachmentURL(attachmentURL, fileName, filePath);
+      await this.uploadToAttachmentURL(attachmentURL, fileName, filePath, mimeType);
       // Create attachment object with the uploaded fileId
       const listOfAttachedFiles = [buildAttachmentObject(fileId)];
 
