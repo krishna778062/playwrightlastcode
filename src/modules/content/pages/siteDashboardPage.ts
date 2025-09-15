@@ -8,7 +8,6 @@ import { PageCreationPage } from '@content/pages/pageCreationPage';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
-import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
 import { SiteDashboardComponent } from '@/src/modules/content/components/siteDashboardComponent';
 
 export interface ISiteDashboardActions {
@@ -41,11 +40,11 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
   readonly categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
   readonly siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
 
-  constructor(page: Page, siteId: string, siteManagementHelper: SiteManagementHelper) {
+  constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
     this.siteDashboardComponent = new SiteDashboardComponent(page);
     this.verfiyFeedSection = this.verfiyFeedSection.bind(this);
-    this.addContentModal = new AddContentModalComponent(page, siteManagementHelper);
+    this.addContentModal = new AddContentModalComponent(page);
   }
 
   // Actions

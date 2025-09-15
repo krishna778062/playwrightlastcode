@@ -67,7 +67,7 @@ test.describe(
         manageSitePage = new ManageSitePage(appManagersPage, '');
         siteDetailsPage = new SiteDetailsPage(appManagersPage, '');
         editPagePage = new EditPagePage(appManagersPage);
-        siteDashboardPage = new SiteDashboardPage(appManagersPage, '', siteManagementHelper);
+        siteDashboardPage = new SiteDashboardPage(appManagersPage, '');
 
         // Reset cleanup flag for each test
         manualCleanupNeeded = false;
@@ -103,8 +103,7 @@ test.describe(
         });
 
         pageCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
-          ContentType.PAGE,
-          siteManagementHelper
+          ContentType.PAGE
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator
@@ -154,7 +153,7 @@ test.describe(
         // Store the site ID for page publishing
         siteIdToPublishPage = createdSite.siteId;
         // Navigate from site dashboard to page creation
-        siteDashboardPage = new SiteDashboardPage(appManagersPage, siteIdToPublishPage, siteManagementHelper);
+        siteDashboardPage = new SiteDashboardPage(appManagersPage, siteIdToPublishPage);
 
         //flow
         await siteDashboardPage.loadPage();

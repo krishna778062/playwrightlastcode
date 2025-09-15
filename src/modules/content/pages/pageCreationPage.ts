@@ -121,7 +121,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     this.fileAttachmentUploader = new AttachementUploaderComponent(page, this.fileAttachmentUploaderContainer);
     this.imageCropper = new ImageCropperComponent(page);
     this.sideNavBarComponent = new SideNavBarComponent(page);
-    this.addContentModal = new AddContentModalComponent(page, siteManagementHelper!);
+    this.addContentModal = new AddContentModalComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {

@@ -52,17 +52,13 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
 
   async openCreateContentPageForContentType(
     contentType: ContentType,
-    siteManagementHelper: SiteManagementHelper,
     options?: { stepInfo?: string }
   ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage> {
     return await test.step(options?.stepInfo || `Opening create content page for ${contentType}`, async () => {
       await this.clickOnCreateButtonOnSideNavBar();
       const createComponent = new CreateComponent(this.page);
       await createComponent.verifyTheCreateComponentIsVisible();
-      const addContentModal = await createComponent.selectContentTypeAndCreateContent(
-        contentType,
-        siteManagementHelper
-      );
+      const addContentModal = await createComponent.selectContentTypeAndCreateContent(contentType);
       return await addContentModal.completeContentCreationForm(contentType, { isFromHomePage: true });
     });
   }
