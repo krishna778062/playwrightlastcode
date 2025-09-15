@@ -1,7 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { AddContentModalComponent } from '../../components/addContentModal';
-import { SiteNavigationComponent } from '../../components/site/siteNavigationComponent';
+import { SiteNavigationComponent } from '../../components/siteNavigationComponent';
 import { ContentType } from '../../constants/contentType';
 import { SitePageTab } from '../../constants/sitePageEnums';
 import { AlbumCreationPage } from '../albumCreationPage';

@@ -1,6 +1,6 @@
 import { Page, test } from '@playwright/test';
 
-import { SitePageTab } from '../../constants/sitePageEnums';
+import { SitePageTab } from '../constants/sitePageEnums';
 
 /**
  * Handles site navigation functionality
