@@ -424,12 +424,15 @@ export class SiteManagementHelper {
    * @param accessType - The access type to search for
    * @returns Promise<Site | null> - The site object if found, null otherwise
    */
-  async getSiteByAccessType(accessType: string): Promise<{ siteId: string; name: string; access: string } | null> {
+  async getSiteByAccessType(accessType: string): Promise<{ siteId: string; name: string; access: string }> {
     const siteListResponse = await this.getListOfSites();
     const site = siteListResponse.result.listOfItems.find(
       site => site.access.toLowerCase() === accessType.toLowerCase()
     );
-    return site || null;
+    if (!site) {
+      throw new Error(`No site found with access type ${accessType}`);
+    }
+    return site;
   }
 
   /**

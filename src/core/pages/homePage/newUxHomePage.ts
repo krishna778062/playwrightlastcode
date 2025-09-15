@@ -1,5 +1,7 @@
 import { Page, test } from '@playwright/test';
 
+import { SiteManagementHelper } from '../../helpers/siteManagementHelper';
+
 import { BaseHomePage, INewUxHomePageActions } from './baseHomePage';
 
 import { CreateComponent } from '@/src/modules/content/components/createComponent';
@@ -39,13 +41,17 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
 
   async openCreateContentPageForContentType(
     contentType: ContentType,
+    siteManagementHelper: SiteManagementHelper,
     options?: { stepInfo?: string }
   ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage> {
     return await test.step(options?.stepInfo || `Opening create content page for ${contentType}`, async () => {
       await this.clickOnCreateButtonOnSideNavBar();
       const createComponent = new CreateComponent(this.page);
       await createComponent.verifyTheCreateComponentIsVisible();
-      const addContentModal = await createComponent.selectContentTypeAndCreateContent(contentType);
+      const addContentModal = await createComponent.selectContentTypeAndCreateContent(
+        contentType,
+        siteManagementHelper
+      );
       return await addContentModal.completeContentCreationForm(contentType, { isFromHomePage: true });
     });
   }

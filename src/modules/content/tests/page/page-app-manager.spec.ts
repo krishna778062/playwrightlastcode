@@ -56,9 +56,15 @@ test.describe(
     test(
       'Verify admin is able to publish a new page created with cover image from home page',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE, ContentSuiteTags.PAGE_CREATION],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          ContentFeatureTags.COVER_IMAGE,
+          ContentSuiteTags.PAGE_CREATION,
+          '@CONT-11635',
+        ],
       },
-      async ({ appManagerHomePage, appManagersPage }) => {
+      async ({ appManagerHomePage, appManagersPage, siteManagementHelper }) => {
         tagTest(test.info(), {
           description: 'Verify admin is able to publish a new page created with cover image from home page',
           zephyrTestId: 'CONT-11635',
@@ -66,7 +72,8 @@ test.describe(
         });
 
         pageCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
-          ContentType.PAGE
+          ContentType.PAGE,
+          siteManagementHelper
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator
@@ -116,7 +123,7 @@ test.describe(
         // Store the site ID for page publishing
         siteIdToPublishPage = createdSite.siteId;
         // Navigate from site dashboard to page creation
-        siteDashboardPage = new SiteDashboardPage(appManagersPage, siteIdToPublishPage);
+        siteDashboardPage = new SiteDashboardPage(appManagersPage, siteIdToPublishPage, siteManagementHelper);
 
         //flow
         await siteDashboardPage.loadPage();

@@ -4,6 +4,8 @@ import { FeatureSiteComponent } from '@content/components/featureSiteComponent';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
+
 export interface IFeaturedSiteActions {
   addSiteToFeatured: (siteName: string) => Promise<void>;
   navigateToSiteDashboard: (siteName: string) => Promise<void>;
@@ -29,7 +31,7 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
     .getByRole('link');
   readonly successToastMessage = (message: string) =>
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
-  readonly addUpdateFeaturedSiteButton = this.page.getByRole('button', { name: 'Add/update' });
+  readonly addUpdateFeaturedSiteButton = this.page.locator('button').filter({ hasText: 'Add/update' });
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FEATURED_SITES_PAGE);
@@ -41,11 +43,10 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.page.waitForLoadState('domcontentloaded');
     await test.step('Verify Featured Sites page is loaded', async () => {
       await this.verifier.verifyTheElementIsVisible(this.addUpdateFeaturedSiteButton, {
         assertionMessage: 'Verify Featured Sites page is loaded',
-        timeout: 15_000,
+        timeout: TIMEOUTS.LONG,
       });
     });
   }
@@ -73,7 +74,7 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
 
   async clickOnAddUpdateFeaturedSiteButton(): Promise<void> {
     await test.step('Click on Add/update featured site button', async () => {
-      await this.clickOnElement(this.addUpdateFeaturedSiteButton);
+      await this.clickByInjectingJavaScript(this.addUpdateFeaturedSiteButton);
     });
   }
 

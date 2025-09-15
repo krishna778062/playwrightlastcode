@@ -1,5 +1,7 @@
 import { Page, test } from '@playwright/test';
 
+import { SiteManagementHelper } from '../../helpers/siteManagementHelper';
+
 import { BaseHomePage, ICommonHomePageActions, IOldUxHomePageActions } from './baseHomePage';
 
 import { ChatNavigationComponent } from '@/src/modules/chat/components/chatNavigationComponent';
@@ -27,11 +29,12 @@ export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions
 
   async clickOnCreateContentButtonOnTopNavBar(
     contentType: ContentType,
+    siteManagementHelper: SiteManagementHelper,
     options?: { stepInfo?: string }
   ): Promise<AddContentModalComponent> {
     return await test.step(options?.stepInfo || `Clicking on create content button on top nav bar`, async () => {
       await this.topNavBarComponent.clickOnCreateContentButton();
-      const addContentModal = new AddContentModalComponent(this.page);
+      const addContentModal = new AddContentModalComponent(this.page, siteManagementHelper);
       await addContentModal.verifyTheAddContentModalIsVisible(contentType);
       return addContentModal;
     });
@@ -39,11 +42,12 @@ export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions
 
   async openCreateContentPageForContentType(
     contentType: ContentType,
+    siteManagementHelper: SiteManagementHelper,
     options?: { stepInfo?: string }
   ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage> {
     return await test.step(options?.stepInfo || `Opening create content page for ${contentType}`, async () => {
-      await this.clickOnCreateContentButtonOnTopNavBar(contentType);
-      const addContentModal = new AddContentModalComponent(this.page);
+      await this.clickOnCreateContentButtonOnTopNavBar(contentType, siteManagementHelper);
+      const addContentModal = new AddContentModalComponent(this.page, siteManagementHelper);
       await addContentModal.verifyTheAddContentModalIsVisible(contentType);
       return await addContentModal.completeContentCreationForm(contentType);
     });
@@ -51,7 +55,6 @@ export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions
 
   async openSiteCreationForm(options?: { stepInfo?: string }): Promise<SiteCreationPage> {
     return await test.step(options?.stepInfo || 'Opening site creation form', async () => {
-      await this.clickOnCreateContentButtonOnTopNavBar(ContentType.PAGE);
       const createComponent = new CreateComponent(this.page);
       await createComponent.verifyTheCreateComponentIsVisible();
       await createComponent.selectSiteOptionAndOpenModal();

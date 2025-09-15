@@ -22,8 +22,10 @@ export interface SiteCreationOptions {
 }
 
 export interface ISiteCreationActions {
-  // API-based methods (existing)
-  addSite(options: SiteCreationOptions): Promise<{
+  addSite(
+    options: SiteCreationOptions,
+    siteManagementHelper: SiteManagementHelper
+  ): Promise<{
     siteDashboard: SiteDashboardPage;
     siteId: string;
   }>;
@@ -47,6 +49,7 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
   readonly selectCategory: (categoryName: string) => Locator;
   readonly accessType: (type: string) => Locator;
   readonly createSiteButton: Locator;
+  readonly categoryListItem: (categoryName: string) => Locator;
 
   // UI-based locators (new)
   readonly siteNameTextbox: Locator;
@@ -66,6 +69,13 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
       .locator('+ div input');
     this.selectCategory = (categoryName: string) =>
       page.locator("div[class*='createOption']").getByText(categoryName, { exact: true });
+
+    this.categoryListItem = (categoryName: string) =>
+      page
+        .locator('#category-list')
+        .locator('div')
+        .filter({ hasText: new RegExp(`^${categoryName}$`) });
+
     this.accessType = (type: string) => page.locator('label').filter({ hasText: type });
     this.createSiteButton = page.locator('button:has-text("Add site")');
 
@@ -165,7 +175,10 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
    * @param options - The options for creating the site
    * @returns Object containing site dashboard page, site name, and site ID
    */
-  async addSite(options: SiteCreationOptions): Promise<{
+  async addSite(
+    options: SiteCreationOptions,
+    siteManagementHelper: SiteManagementHelper
+  ): Promise<{
     siteDashboard: SiteDashboardPage;
     siteId: string;
   }> {
@@ -206,8 +219,11 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
       // Handle category selection
       await this.clickOnElement(this.categoryDropdown);
       await this.fillInElement(this.categoryDropdown, options.category);
-      await this.clickOnElement(this.selectCategory(options.category));
-
+      if (await this.verifier.isTheElementVisible(this.categoryListItem(options.category))) {
+        await this.clickOnElement(this.categoryListItem(options.category));
+      } else {
+        await this.clickOnElement(this.selectCategory(options.category));
+      }
       // Handle access type selection
       await this.clickOnElement(this.accessType(options.access));
     });

@@ -84,8 +84,6 @@ test.describe(
         await feedManagementService.addComment(createdPostId, replyData);
         console.log(`Added reply via API with mention: "${replyData.replyText}"`);
 
-        await siteManagerHomePage.page.reload();
-
         //SiteManager clicking on bell icon to view notifications
         const notificationComponentSiteManager = await siteManagerHomePage.actions.clickOnBellIcon({
           stepInfo: 'Application Manager clicking on bell icon to view notifications',
