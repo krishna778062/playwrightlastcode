@@ -21,4 +21,9 @@ export const FEED_TEST_DATA = {
     fileSize: 12125,
     mimeType: 'image/png',
   },
+  UPDATED_FEED_CONTENT: {
+    fileName: 'image3.jpg',
+    fileSize: 13116,
+    mimeType: 'image/jpeg',
+  },
 } as const;
