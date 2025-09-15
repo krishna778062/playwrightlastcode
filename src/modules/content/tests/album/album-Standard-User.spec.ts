@@ -11,7 +11,6 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
-import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 
 // Test data for approve/reject scenarios
 const ALBUM_APPROVAL_TEST_DATA = [

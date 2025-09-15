@@ -40,7 +40,7 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
 
   constructor(page: Page, siteId: string, siteManagementHelper: SiteManagementHelper) {
     super(page, PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
-    this.addContentModal = new AddContentModalComponent(page, siteManagementHelper);
+    this.addContentModal = new AddContentModalComponent(page);
   }
 
   // Actions
