@@ -1,6 +1,3 @@
-import { faker } from '@faker-js/faker';
-
-import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
@@ -8,10 +5,8 @@ import { tagTest } from '@core/utils/testDecorator';
 import { FeedManagementService } from '@/src/core/api/services/FeedManagementService';
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
-import { NotificationComponent } from '@/src/modules/content/components/notificationComponent';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
-import { FeedPage } from '@/src/modules/content/pages/feedPage';
 
 test.describe(
   '@FeedCommentMentionNotification - Feed Comment Mention Notification Tests',

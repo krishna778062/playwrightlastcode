@@ -1,11 +1,8 @@
-import { faker } from '@faker-js/faker';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ContentType } from '../../constants/contentType';
-import { SiteDashboardPage } from '../../pages/siteDashboardPage';
+import { SiteDashboardPage } from '../../pages/sitePages/siteDashboardPage';
 
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
@@ -99,11 +96,7 @@ async function createSiteAndContentByOptions(
 
   if (options.createSite) {
     const siteResult = await helpers.siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
-    resources.siteDashboardPage = new SiteDashboardPage(
-      helpers.appManagerHomePage.page,
-      siteResult.siteId,
-      helpers.siteManagementHelper
-    );
+    resources.siteDashboardPage = new SiteDashboardPage(helpers.appManagerHomePage.page, siteResult.siteId);
   }
 
   if (options.createPage) {

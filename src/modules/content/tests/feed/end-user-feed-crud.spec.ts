@@ -6,7 +6,6 @@ import { FeedPage } from '@content/pages/feedPage';
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 
 test.describe(

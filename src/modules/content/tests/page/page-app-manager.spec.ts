@@ -123,7 +123,7 @@ test.describe(
         // Store the site ID for page publishing
         siteIdToPublishPage = createdSite.siteId;
         // Navigate from site dashboard to page creation
-        siteDashboardPage = new SiteDashboardPage(appManagersPage, siteIdToPublishPage, siteManagementHelper);
+        siteDashboardPage = new SiteDashboardPage(appManagersPage, siteIdToPublishPage);
 
         //flow
         await siteDashboardPage.loadPage();
