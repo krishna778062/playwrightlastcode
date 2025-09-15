@@ -68,7 +68,7 @@ test.describe(
     test(
       'Verify that single ACG can be created and deleted without any issue',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -200,7 +200,7 @@ test.describe(
     test(
       'Verify that duplicate acg error is displayed on editing ACG to match anothers features and target audiences',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -239,7 +239,7 @@ test.describe(
     test(
       `Verify that Name column is displayed and is sortable at Access control groups page`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
@@ -279,7 +279,7 @@ test.describe(
     test(
       `Verify the sorting functionality of Name column in access control groups page`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
@@ -295,7 +295,7 @@ test.describe(
     test(
       `Verify the sorting functionality of Feature column in access control groups page`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
