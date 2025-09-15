@@ -22,7 +22,6 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
     fileSystemCleanupRequired?: boolean;
     deleteByUI?: boolean;
   };
-  let siteManager: SiteManager;
   let siteFilesPage: SiteFilesPage;
   const testSiteName = `All Employees`;
   test.beforeEach('Setup : Navigating to Site Files page', async ({ appManagersPage, siteManagementHelper }) => {
@@ -36,9 +35,9 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
     };
     // Navigate to Site Files page
     const siteId = await siteManagementHelper.getSiteId(testSiteName);
-    siteManager = new SiteManager(appManagersPage, siteId);
-    siteFilesPage = siteManager.getPageForTab(SitePageTab.FilesTab) as SiteFilesPage;
-    await siteFilesPage.getSiteManager().navigateToTab(SitePageTab.FilesTab);
+    const siteManager = new SiteManager(appManagersPage, siteId);
+    await siteManager.loadSite();
+    siteFilesPage = (await siteManager.goToTab(SitePageTab.FilesTab)) as SiteFilesPage;
     await siteFilesPage.verifyThePageIsLoaded();
   });
 

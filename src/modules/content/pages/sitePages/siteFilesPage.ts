@@ -1,21 +1,17 @@
 import { Locator, Page, test } from '@playwright/test';
 import path from 'path';
 
-import { SiteManager } from '@content/managers/siteManager';
-
 import { FilesPreviewModalComponent } from '../../components/filesPreviewModalComponent';
 
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
-import { BasePage } from '@/src/core/pages/basePage';
 import { FileUtil } from '@/src/core/utils/fileUtil';
+import { BaseSitePage } from '@/src/modules/content/pages/sitePages/baseSite';
 
 /**
  * A Site has many pages.
  * This class is for managing the Site Files page.
  */
-export class SiteFilesPage extends BasePage {
-  readonly siteManager: SiteManager;
+export class SiteFilesPage extends BaseSitePage {
   readonly filesPreviewModalComponent: FilesPreviewModalComponent;
 
   readonly inputFilesSelector: string = `input[type="file"]`;
@@ -37,16 +33,8 @@ export class SiteFilesPage extends BasePage {
   }
 
   constructor(page: Page, siteId: string) {
-    super(page, PAGE_ENDPOINTS.getSiteFilesPage(siteId));
-    this.siteManager = new SiteManager(page, siteId);
+    super(page, siteId);
     this.filesPreviewModalComponent = new FilesPreviewModalComponent(page);
-  }
-
-  /**
-   * Gets the site manager for accessing common site functionality
-   */
-  getSiteManager(): SiteManager {
-    return this.siteManager;
   }
 
   async verifyThePageIsLoaded(): Promise<void> {

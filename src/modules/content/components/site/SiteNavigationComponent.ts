@@ -1,4 +1,4 @@
-import { Locator, Page } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 
 import { SitePageTab } from '../../constants/sitePageEnums';
 
@@ -9,16 +9,10 @@ import { SitePageTab } from '../../constants/sitePageEnums';
 export class SiteNavigationComponent {
   readonly page: Page;
   readonly siteId: string;
-  readonly addContentButton: Locator;
-  readonly manageSiteButton: Locator;
-  readonly siteNameHeading: Locator;
 
   constructor(page: Page, siteId: string) {
     this.page = page;
     this.siteId = siteId;
-    this.addContentButton = this.page.locator("button[title='Add content']");
-    this.manageSiteButton = this.page.locator("button[title='Manage site'], a[href*='/manage']");
-    this.siteNameHeading = this.page.locator('[class*="SiteHeader-title-heading"]');
   }
 
   /**
@@ -43,17 +37,9 @@ export class SiteNavigationComponent {
     }
   }
 
-  /**
-   * Gets the tab locator for a given tab name
-   */
-  getTabLocator(tabName: SitePageTab): Locator {
-    return this.page.getByRole('tab', { name: tabName });
-  }
-
-  /**
-   * Gets success message locator
-   */
-  getSuccessMessageLocator(message: string): Locator {
-    return this.page.locator('div[class*="Toast-module"] p', { hasText: message });
+  async switchToTab(tabName: SitePageTab): Promise<void> {
+    await test.step(`Switch to ${tabName} tab`, async () => {
+      await this.page.getByRole('tab', { name: tabName }).click();
+    });
   }
 }

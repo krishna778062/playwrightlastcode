@@ -1,29 +1,24 @@
 import { expect, Page, test } from '@playwright/test';
 
-import { SiteManager } from '@content/managers/siteManager';
+import { BaseSitePage } from './baseSite';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { BasePage } from '@/src/core/pages/basePage';
 
 export interface ISiteDashboardAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
-  verifySiteNameIs: (siteName: string) => Promise<void>;
   verifyDashboardUrl: (siteId: string) => Promise<void>;
   verifySiteCreatedSuccessfully: (siteName: string) => Promise<void>;
   verifyCategoryCreatedSuccessfully: (categoryName: string) => Promise<void>;
 }
 
-export class SiteDashboardPage extends BasePage implements ISiteDashboardAssertions {
-  private readonly siteManager: SiteManager;
-
+export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
   // Locators for site and category verification
   readonly categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
   readonly categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
   readonly siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
 
   constructor(page: Page, siteId: string) {
-    super(page, PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
-    this.siteManager = new SiteManager(page, siteId);
+    super(page, siteId);
   }
   /**
    * Verifies that site was created successfully by checking if site link is visible
@@ -61,12 +56,6 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardAsserti
       });
     });
   }
-  /**
-   * Gets the site manager for accessing common site functionality
-   */
-  getSiteManager(): SiteManager {
-    return this.siteManager;
-  }
 
   // Assertions
   get assertions(): ISiteDashboardAssertions {
@@ -79,16 +68,7 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardAsserti
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify site dashboard page is loaded', async () => {
       await this.page.waitForLoadState('domcontentloaded');
-      await this.verifier.verifyTheElementIsVisible(this.siteManager.getNavigation().addContentButton);
     });
-  }
-
-  /**
-   * Verifies the site name is displayed in the heading
-   * @param siteName - The expected site name
-   */
-  async verifySiteNameIs(siteName: string): Promise<void> {
-    await this.siteManager.verifySiteNameIs(siteName);
   }
 
   /**
