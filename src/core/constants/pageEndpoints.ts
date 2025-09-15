@@ -34,6 +34,7 @@ export const PAGE_ENDPOINTS = {
   getAlbumCreationPage: (siteId: string) => `/site/${siteId}/album/add`,
   getEventCreationPage: (siteId: string) => `/site/${siteId}/event/add`,
   getPageCreationPage: (siteId: string) => `/site/${siteId}/page/add`,
+  getFeedPage: (feedId: string) => `/feed/${feedId}`,
 
   // Integrations page
   CUSTOM_APPS_INTEGRATION_PAGE: '/manage/app/integrations/custom',

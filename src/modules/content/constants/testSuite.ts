@@ -14,4 +14,5 @@ export enum ContentTestSuite {
   ATTACHMENTS = '@attachments',
   FEATURED_SITES = '@featured-sites',
   FEED_COMMENT_MENTION_NOTIFICATION = '@feed-comment-mention-notification',
+  FEED_REPLY_APP_MANAGER = '@feed-reply-app-manager',
 }

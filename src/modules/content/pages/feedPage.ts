@@ -5,6 +5,8 @@ import { FilePreviewComponent } from '@content/components/filePreviewComponent';
 import { ListFeedComponent } from '@content/components/listFeedComponent';
 import { BasePage } from '@core/pages/basePage';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+
 // Re-export the interfaces and types for backwards compatibility
 export { FeedPostOptions, FeedPostResult };
 
@@ -34,6 +36,7 @@ export interface IFeedActions {
   verifyPreviewModalIsOpened: () => Promise<void>;
   clickDeleteButton: () => Promise<void>;
   clickShowMoreButton: () => Promise<void>;
+  addReplyToPost: (postText: string, replyText: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -44,6 +47,7 @@ export interface IFeedAssertions {
   verifyPostIsFavorited: (postText: string) => Promise<void>;
   validatePostText: (postText: string) => Promise<void>;
   verifyImageButtonIsNotVisible: () => Promise<void>;
+  verifyReplyIsVisible: (postText: string, replyText: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -51,8 +55,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   private listFeedComponent: ListFeedComponent;
   private filePreviewComponent: FilePreviewComponent;
 
-  constructor(page: Page) {
-    super(page);
+  constructor(page: Page, feedId?: string) {
+    super(page, feedId ? PAGE_ENDPOINTS.getFeedPage(feedId) : '');
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
     this.filePreviewComponent = new FilePreviewComponent(page);
@@ -214,5 +218,13 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async clickShowMoreButton(): Promise<void> {
     await this.filePreviewComponent.clickShowMoreButton();
+  }
+
+  async addReplyToPost(postText: string, replyText: string): Promise<void> {
+    await this.listFeedComponent.addReplyToPost(postText, replyText);
+  }
+
+  async verifyReplyIsVisible(postText: string, replyText: string): Promise<void> {
+    await this.listFeedComponent.verifyReplyIsVisible(postText, replyText);
   }
 }

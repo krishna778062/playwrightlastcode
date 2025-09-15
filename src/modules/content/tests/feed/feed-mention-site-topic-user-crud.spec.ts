@@ -4,15 +4,14 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ContentType } from '../../constants/contentType';
-import { SiteDashboardPage } from '../../pages/siteDashboardPage';
-
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
+import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { SiteType } from '@/src/modules/content-abac/constants/siteType';
 
@@ -120,7 +119,7 @@ async function createSiteAndContentByOptions(
       helpers.appManagerHomePage.page,
       siteResult.siteId,
       pageResult.contentId,
-      'page'
+      ContentType.PAGE.toLowerCase()
     );
   }
 

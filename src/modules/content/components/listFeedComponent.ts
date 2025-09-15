@@ -41,6 +41,40 @@ export class ListFeedComponent extends BaseComponent {
 
   readonly postTextLocator = (postText: string): Locator => this.page.locator('p').filter({ hasText: postText });
 
+  // Reply-related locators
+  readonly replyButton = (postText: string): Locator =>
+    this.page
+      .locator('p')
+      .filter({ hasText: postText })
+      .locator('xpath=./ancestor::div[4]')
+      .locator("button[aria-label*='Reply'], button[class*='reply']")
+      .first();
+
+  readonly replyInput = (postText: string): Locator =>
+    this.page
+      .locator('p')
+      .filter({ hasText: postText })
+      .locator('xpath=./ancestor::div[4]')
+      .locator('textarea[placeholder*="Reply"], input[placeholder*="Reply"]')
+      .first();
+
+  readonly submitReplyButton = (postText: string): Locator =>
+    this.page
+      .locator('p')
+      .filter({ hasText: postText })
+      .locator('xpath=./ancestor::div[4]')
+      .locator("button[type='submit'], button:has-text('Post'), button:has-text('Reply')")
+      .first();
+
+  readonly replyLocator = (postText: string, replyText: string): Locator =>
+    this.page
+      .locator('p')
+      .filter({ hasText: postText })
+      .locator('xpath=./ancestor::div[4]')
+      .locator('div[class*="reply"], div[class*="comment"]')
+      .filter({ hasText: replyText })
+      .first();
+
   /**
    * Gets a locator for the post attachments
    * @param postText - The text of the post to find attachments for
@@ -246,6 +280,37 @@ export class ListFeedComponent extends BaseComponent {
     await test.step('Verify image button is not visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.successMessage('Deleted file successfully'));
       await this.verifier.verifyTheElementIsNotVisible(this.imageButton);
+    });
+  }
+
+  /**
+   * Adds a reply to a specific post
+   * @param postText - The text of the post to reply to
+   * @param replyText - The reply text to add
+   */
+  async addReplyToPost(postText: string, replyText: string): Promise<void> {
+    await test.step(`Add reply to post: ${postText}`, async () => {
+      // Click reply button
+      await this.clickOnElement(this.replyButton(postText));
+
+      // Fill the reply input
+      await this.typeInElement(this.replyInput(postText), replyText);
+
+      // Click submit reply button
+      await this.clickOnElement(this.submitReplyButton(postText));
+    });
+  }
+
+  /**
+   * Verifies that a reply is visible under a specific post
+   * @param postText - The text of the original post
+   * @param replyText - The text of the reply to verify
+   */
+  async verifyReplyIsVisible(postText: string, replyText: string): Promise<void> {
+    await test.step(`Verify reply is visible under post: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.replyLocator(postText, replyText), {
+        assertionMessage: `Reply "${replyText}" should be visible under post "${postText}"`,
+      });
     });
   }
 }
