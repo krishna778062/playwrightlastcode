@@ -1,8 +1,7 @@
 import { Locator, Page, Response, test } from '@playwright/test';
 
 import { PageCreationResponse } from '@content/apis/types/pageCreationResponse';
-
-import { SiteDashboardPage } from './sitePages/siteDashboardPage';
+import { SiteDashboardPage } from '@content/pages/sitePages/siteDashboardPage';
 
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
