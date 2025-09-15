@@ -79,39 +79,4 @@ export abstract class BasePage extends BaseActionUtil {
       ).toBeVisible();
     });
   }
-
-  /**
-   * Generic method to handle file downloads with automatic cleanup
-   * @param downloadTrigger - Function that triggers the download (e.g., () => this.clickOnElement(downloadButton))
-   * @param stepInfo - Optional custom step information
-   * @param cleanup - Whether to automatically delete the downloaded file (default: true)
-   * @param timeout - Download timeout (default: TIMEOUTS.MEDIUM)
-   * @returns Promise with download object for additional verification if needed
-   */
-  async downloadFileWithCleanup(
-    downloadTrigger: () => Promise<void>,
-    options?: {
-      stepInfo?: string;
-      cleanup?: boolean;
-      timeout?: number;
-    }
-  ) {
-    return await test.step(options?.stepInfo || 'Download file with cleanup', async () => {
-      const [download] = await Promise.all([
-        this.page.waitForEvent('download', { timeout: options?.timeout || 30000 }),
-        downloadTrigger(),
-      ]);
-
-      // Get download info
-      const downloadPath = await download.path();
-      const filename = download.suggestedFilename();
-
-      // Automatic cleanup if enabled (default: true)
-      if (options?.cleanup !== false && downloadPath) {
-        FileUtil.deleteTemporaryFile(downloadPath);
-      }
-
-      return { download, downloadPath, filename };
-    });
-  }
 }
