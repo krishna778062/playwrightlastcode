@@ -12,6 +12,7 @@ export interface CreateFeedPostPayload {
   textHtml: string;
   scope: string;
   siteId: string | null;
+  contentId: string | null;
   listOfAttachedFiles: any[];
   ignoreToxic: boolean;
   type: string;

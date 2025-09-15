@@ -1,16 +1,17 @@
 import { Locator, Page, Response, test } from '@playwright/test';
 
 import { PageCreationResponse } from '@content/apis/types/pageCreationResponse';
-import { AddContentModalComponent } from '@content/components/addContentModal';
 import { AttachementUploaderComponent } from '@content/components/attachementUploader';
 import { ImageCropperComponent } from '@content/components/imageCropper';
 import { PageContentType } from '@content/constants/pageContentType';
-import { SiteDashboardPage } from '@content/pages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 import { FileUtil } from '@core/utils/fileUtil';
+
+import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
+import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
 
 export interface PageCreationOptions {
   // Required fields
@@ -91,7 +92,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   readonly imageCropper: ImageCropperComponent;
   readonly sideNavBarComponent: SideNavBarComponent;
 
-  constructor(page: Page, siteId?: string) {
+  constructor(page: Page, siteId?: string, siteManagementHelper?: SiteManagementHelper) {
     super(page, PAGE_ENDPOINTS.getPageCreationPage(siteId ?? ''));
     //root locators of some components
     this.coverImageUploaderContainer = page
@@ -116,12 +117,11 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     this.successMessage = (message: string) => page.locator(`text=${message}`);
     this.contentTitleHeading = (title: string) => page.locator(`h1:has-text("${title}")`);
 
-    // Page components
-    this.addContentModal = new AddContentModalComponent(page);
     this.coverImageUploader = new AttachementUploaderComponent(page, this.coverImageUploaderContainer);
     this.fileAttachmentUploader = new AttachementUploaderComponent(page, this.fileAttachmentUploaderContainer);
     this.imageCropper = new ImageCropperComponent(page);
     this.sideNavBarComponent = new SideNavBarComponent(page);
+    this.addContentModal = new AddContentModalComponent(page, siteManagementHelper!);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {

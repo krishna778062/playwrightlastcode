@@ -49,13 +49,13 @@ test.describe(
     let siteDashboardPage: SiteDashboardPage;
     let editPagePage: EditPagePage;
 
-    test.beforeEach(async ({ appManagerHomePage, appManagersPage }) => {
+    test.beforeEach(async ({ appManagerHomePage, appManagersPage, siteManagementHelper }) => {
       await appManagerHomePage.verifyThePageIsLoaded();
       // pageRef = pageRef;
 
       homePage = new NewUxHomePage(appManagersPage);
       await homePage.verifyThePageIsLoaded();
-      pageCreationPage = new PageCreationPage(appManagersPage);
+      pageCreationPage = new PageCreationPage(appManagersPage, '', siteManagementHelper);
       applicationscreen = new ApplicationScreenPage(appManagersPage);
       manageFeaturePage = new ManageFeature(appManagersPage);
       manageApplicationPage = new ManageApplicationPage(appManagersPage);
@@ -64,7 +64,7 @@ test.describe(
       contentPreviewPage = new ContentPreviewPage(appManagersPage, '', '', '');
       manageSitePage = new ManageSitePage(appManagersPage, '');
       siteDetailsPage = new SiteDetailsPage(appManagersPage, '');
-      siteDashboardPage = new SiteDashboardPage(appManagersPage, '');
+      siteDashboardPage = new SiteDashboardPage(appManagersPage, '', siteManagementHelper);
       editPagePage = new EditPagePage(appManagersPage);
     });
 
@@ -84,7 +84,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE],
       },
-      async () => {
+      async ({ siteManagementHelper }) => {
         tagTest(test.info(), {
           description: 'Verify admin is able to publish a new page created with cover image',
           zephyrTestId: 'CONT-11635',
@@ -92,7 +92,8 @@ test.describe(
         });
         await homePage.verifyThePageIsLoaded();
         pageCreationPage = (await homePage.actions.openCreateContentPageForContentType(
-          ContentType.PAGE
+          ContentType.PAGE,
+          siteManagementHelper
         )) as PageCreationPage;
         const title = `Automated Test Page ${faker.company.name()} - ${faker.commerce.productName()}`;
         const description = `This is an automated test description ${faker.lorem.paragraph()}`;

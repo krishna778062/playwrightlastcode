@@ -8,6 +8,7 @@ import { PageCreationPage } from '@content/pages/pageCreationPage';
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
 import { extractSiteIdFromContentAdditionUrl } from '@/src/core/utils/urlUtils';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 
 export class AddContentModalComponent extends BaseComponent {
   readonly recentlyUsedSitesList: Locator;
@@ -32,9 +33,9 @@ export class AddContentModalComponent extends BaseComponent {
   readonly selectTemplateDropdownOption: Locator;
   readonly clearButtonOnSelectTemplateDropdown: Locator;
 
-  private siteManagementHelper?: SiteManagementHelper;
+  private siteManagementHelper: SiteManagementHelper;
 
-  constructor(page: Page, siteManagementHelper?: SiteManagementHelper) {
+  constructor(page: Page, siteManagementHelper: SiteManagementHelper) {
     super(page);
     this.siteManagementHelper = siteManagementHelper;
     // Initialize locators - these would need to be updated based on actual DOM structure
@@ -221,8 +222,8 @@ export class AddContentModalComponent extends BaseComponent {
         await this.selectRecentlyUsedSiteByIndex(options?.recentlyUsedSiteIndex || 0);
       } catch (error) {
         console.info(`recently used site not found:`);
-        const sites = await this.siteManagementHelper?.getListOfSites();
-        const siteName = sites?.result.listOfItems[0]?.name;
+        const publicSite = await this.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const siteName = publicSite?.name;
         if (siteName) {
           await this.selectSiteToAddContentFromDropdown(siteName);
         } else {

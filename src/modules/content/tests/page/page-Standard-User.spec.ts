@@ -81,7 +81,7 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.PAGE_CREATION],
         },
-        async ({ standardUserHomePage, appManagerHomePage }) => {
+        async ({ standardUserHomePage, appManagerHomePage, siteManagementHelper }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
@@ -98,7 +98,8 @@ test.describe(
 
           // Navigate to page creation by standard user
           pageCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
-            ContentType.PAGE
+            ContentType.PAGE,
+            siteManagementHelper
           )) as PageCreationPage;
 
           // Generate page data using TestDataGenerator

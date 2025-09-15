@@ -23,6 +23,7 @@ export class FeedManagementHelper {
       | {
           scope: string;
           siteId?: string;
+          contentId?: string;
           text?: string;
           withAttachment?: false;
           fileName?: undefined;
@@ -34,6 +35,7 @@ export class FeedManagementHelper {
       | {
           scope: string;
           siteId?: string;
+          contentId?: string;
           text?: string;
           withAttachment: true;
           fileName: string;
@@ -58,6 +60,7 @@ export class FeedManagementHelper {
             textHtml,
             scope: params.scope,
             siteId: params.siteId || null,
+            contentId: params.contentId || null,
             ignoreToxic: false,
             type: 'post',
             variant: 'standard',
@@ -68,6 +71,7 @@ export class FeedManagementHelper {
           textHtml,
           scope: params.scope,
           siteId: params.siteId || null,
+          contentId: params.contentId || null,
           listOfAttachedFiles: [],
           ignoreToxic: false,
           type: 'post',

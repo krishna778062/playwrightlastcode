@@ -39,7 +39,7 @@ export const PAGE_ENDPOINTS = {
   MANAGE_FEATURE: 'manage-features',
   MANAGE_CONTENT: 'manage/content',
   MANAGE_SITE_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
-  SITE_DETAILS_PAGE: (siteId: string) => `site/${siteId}/dashboard`,
+  SITE_DETAILS_PAGE: (siteId: string) => PAGE_ENDPOINTS.getSiteDashboardPage(siteId),
 
   // Integrations page
   CUSTOM_APPS_INTEGRATION_PAGE: '/manage/app/integrations/custom',

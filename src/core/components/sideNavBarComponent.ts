@@ -28,7 +28,8 @@ export class SideNavBarComponent extends BaseComponent {
     this.sitesButton = page.getByRole('button', { name: 'Sites' });
     this.navigateOnApplication = page.getByRole('menuitem', { name: 'Application settings', exact: true });
     this.clickOnManageFeature = page.locator('[aria-label="Manage features"]').first();
-    this.clickOnFeedSideMenu = page.locator('[data-testid="icon-test"]').nth(1);
+    this.clickOnFeedSideMenu = this.page.getByTestId('icon-test').nth(1);
+    // this.clickOnFeedSideMenu = page.locator('[data-testid="icon-test"]').nth(1);
     this.rolesButton = page.getByRole('menuitem', { name: 'Roles' });
     this.clickingOnHome = page.getByRole('menuitem', { name: 'User mode' });
   }
