@@ -1,12 +1,12 @@
 import { Page } from '@playwright/test';
 
-import { SitePageTab } from '../constants/sitePageEnums';
-import { SiteAboutPage } from '../pages/sitePages/siteAboutPage';
-import { SiteContentPage } from '../pages/sitePages/siteContentPage';
-import { SiteDashboardPage } from '../pages/sitePages/siteDashboardPage';
-import { SiteFeedPage } from '../pages/sitePages/siteFeedPage';
-import { SiteFilesPage } from '../pages/sitePages/siteFilesPage';
-import { SiteQuestionsPage } from '../pages/sitePages/siteQuestionsPage';
+import { SitePageTab } from '@content/constants/sitePageEnums';
+import { SiteAboutPage } from '@content/pages/sitePages/siteAboutPage';
+import { SiteContentPage } from '@content/pages/sitePages/siteContentPage';
+import { SiteDashboardPage } from '@content/pages/sitePages/siteDashboardPage';
+import { SiteFeedPage } from '@content/pages/sitePages/siteFeedPage';
+import { SiteFilesPage } from '@content/pages/sitePages/siteFilesPage';
+import { SiteQuestionsPage } from '@content/pages/sitePages/siteQuestionsPage';
 
 export type SitePages =
   | SiteDashboardPage

@@ -1,6 +1,6 @@
 import { expect, Page, test } from '@playwright/test';
 
-import { BaseSitePage } from './baseSite';
+import { BaseSitePage } from '@content/pages/sitePages/baseSite';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 

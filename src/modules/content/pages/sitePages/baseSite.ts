@@ -1,12 +1,12 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { AddContentModalComponent } from '../../components/addContentModal';
-import { SiteNavigationComponent } from '../../components/siteNavigationComponent';
-import { ContentType } from '../../constants/contentType';
-import { SitePageTab } from '../../constants/sitePageEnums';
-import { AlbumCreationPage } from '../albumCreationPage';
-import { EventCreationPage } from '../eventCreationPage';
-import { PageCreationPage } from '../pageCreationPage';
+import { AddContentModalComponent } from '@content/components/addContentModal';
+import { SiteNavigationComponent } from '@content/components/siteNavigationComponent';
+import { ContentType } from '@content/constants/contentType';
+import { SitePageTab } from '@content/constants/sitePageEnums';
+import { AlbumCreationPage } from '@content/pages/albumCreationPage';
+import { EventCreationPage } from '@content/pages/eventCreationPage';
+import { PageCreationPage } from '@content/pages/pageCreationPage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';

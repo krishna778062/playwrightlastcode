@@ -1,7 +1,7 @@
 import { Locator, Page, test } from '@playwright/test';
 import path from 'path';
 
-import { FilesPreviewModalComponent } from '../../components/filesPreviewModalComponent';
+import { FilesPreviewModalComponent } from '@content/components/filesPreviewModalComponent';
 
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { FileUtil } from '@/src/core/utils/fileUtil';

@@ -5,14 +5,13 @@ import { ContentFeatureTags, ContentSuiteTags } from '@content/constants/testTag
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
 import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
 import { PageCreationPage } from '@content/pages/pageCreationPage';
+import { SiteDashboardPage } from '@content/pages/sitePages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { SITE_TEST_DATA } from '@content/test-data/sites-create.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
-
-import { SiteDashboardPage } from '../../pages/sitePages/siteDashboardPage';
 
 test.describe(
   `Page Creation by Application Manager`,
