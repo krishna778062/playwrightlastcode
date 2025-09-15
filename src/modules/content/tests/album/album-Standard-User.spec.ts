@@ -11,6 +11,7 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
+import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 
 // Test data for approve/reject scenarios
 const ALBUM_APPROVAL_TEST_DATA = [
@@ -101,8 +102,7 @@ test.describe(
 
           // Navigate to album creation by standard user
           albumCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
-            ContentType.ALBUM,
-            siteManagementHelper
+            ContentType.ALBUM
           )) as AlbumCreationPage;
 
           // Generate album data using TestDataGenerator

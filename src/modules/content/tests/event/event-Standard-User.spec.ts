@@ -101,8 +101,7 @@ test.describe(
 
           // Navigate to event creation by standard user
           eventCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
-            ContentType.EVENT,
-            siteManagementHelper
+            ContentType.EVENT
           )) as EventCreationPage;
 
           // Generate event data using TestDataGenerator

@@ -100,8 +100,7 @@ test.describe(
 
           // Navigate to page creation by standard user
           pageCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
-            ContentType.PAGE,
-            siteManagementHelper
+            ContentType.PAGE
           )) as PageCreationPage;
 
           // Generate page data using TestDataGenerator

@@ -72,8 +72,7 @@ test.describe(
         });
 
         pageCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
-          ContentType.PAGE,
-          siteManagementHelper
+          ContentType.PAGE
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator
