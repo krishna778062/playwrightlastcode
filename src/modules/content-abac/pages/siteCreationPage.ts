@@ -1,7 +1,10 @@
 import { expect, Page, test } from '@playwright/test';
 
+import { IdentityService } from '@/src/core/api/services/IdentityService';
+import { SiteAudienceHelper } from '@/src/core/helpers/siteAudienceHelper';
 import { BasePage } from '@/src/core/pages/basePage';
 import { SiteCreationPayload } from '@/src/core/types/siteManagement.types';
+import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { SiteCreationFormComponent } from '@/src/modules/content-abac/components/createSite/siteCreationFormComponent';
 import { SiteType } from '@/src/modules/content-abac/constants/siteType';
 
@@ -75,17 +78,32 @@ export class SiteCreationPage extends BasePage implements ISiteCreationPageAsser
     name: string;
     category: string;
     type: SiteType;
+    audienceName?: string; // if provided, select specific audience; else All organization
     stepInfo?: string;
     apiPayload?: Partial<SiteCreationPayload>;
   }): Promise<string> {
     return await test.step(options.stepInfo || `Create ${options.type} site: ${options.name}`, async () => {
-      if (options.type === SiteType.PUBLIC) {
-        await this.createPublicSite({ name: options.name, category: options.category });
+      // Fill basic details without submitting yet
+      await this.form.fillSiteDetails({
+        name: options.name,
+        category: options.category,
+        isPrivate: options.type === SiteType.PRIVATE,
+      });
+
+      // Target Audience selection prior to submission
+      if (options.audienceName) {
+        await this.form.setupSpecificAudience(options.audienceName);
       } else {
-        await this.createPrivateSite({ name: options.name, category: options.category });
+        await this.form.setupTargetAudience();
       }
 
-      //after creation , we will wait until the page navigates to site dashboard
+      // Membership approval (public: manual by default; private: manual path retains existing behavior)
+      await this.form.setMembershipApproval('manual', options.type === SiteType.PRIVATE);
+
+      // Submit the form
+      await this.form.clickOnElement(this.form.addSiteButton);
+
+      // Wait for navigation to site dashboard and capture siteId
       await this.page.waitForURL(/dashboard/, { timeout: 30000 });
       const siteIdFromUrl = await this.getSiteIdFromUrl(this.page.url());
       expect(siteIdFromUrl, `Failed to extract siteId from URL: ${this.page.url()}`).toBeTruthy();
@@ -130,5 +148,38 @@ export class SiteCreationPage extends BasePage implements ISiteCreationPageAsser
     await test.step('Verify site deactivated toast', async () => {
       await this.form.verifySiteDeactivated();
     });
+  }
+
+  /**
+   * Get or create an audience name for site creation.
+   * Business logic: Create audience when there are no audience, else use existing.
+   */
+  async getOrCreateAudienceName(identity: IdentityService): Promise<string> {
+    try {
+      // Use SiteAudienceHelper to find existing audience
+      const audienceHelper = new SiteAudienceHelper(identity);
+
+      const existingAudience = await audienceHelper.findFirstAvailableAudience();
+      if (existingAudience) {
+        return existingAudience;
+      }
+
+      // Create new audience if none exist
+      const categoryName = `Category_${Date.now()}`;
+      const audienceName = `Audience_${Date.now()}`;
+
+      const categoryId = await identity.createCategory(categoryName);
+      await identity.createAudience({
+        audienceName,
+        categoryId,
+        attribute: 'first_name',
+        operator: 'CONTAINS',
+        value: 'e',
+      });
+
+      return audienceName;
+    } catch (error) {
+      throw new Error(`Failed to get or create audience: ${error}`);
+    }
   }
 }

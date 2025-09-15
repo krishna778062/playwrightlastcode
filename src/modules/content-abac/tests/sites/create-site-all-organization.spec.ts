@@ -49,8 +49,18 @@ test.describe('Site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
         await appManagerHomePage.actions.openSiteCreationForm();
         const siteCreationPage = new SiteCreationPage(page);
 
-        // STEP 2: Verify sections (Access, Target Audience, Subscriptions)
+        // STEP 2: Verify site creation form structure and elements
         await siteCreationPage.verifySiteCreationFormStructure();
+        await siteCreationPage.form.verifyTheSiteCreationFormIsVisible();
+        await siteCreationPage.form.verifyTargetAudienceSection();
+        await siteCreationPage.form.verifySubscriptionsSection();
+
+        // Verify form inputs and buttons are present and functional
+        await siteCreationPage.form.siteNameInput.isVisible();
+        await siteCreationPage.form.categoryInput.isVisible();
+        await siteCreationPage.form.addSiteButton.isVisible();
+        await siteCreationPage.form.cancelButton.isVisible();
+        await siteCreationPage.form.targetAudienceSection.browseAudiencesButton.isVisible();
 
         // STEP 3: Create the site and capture siteId from URL
         siteId = await siteCreationPage.createSite({

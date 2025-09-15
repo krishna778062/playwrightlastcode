@@ -1,4 +1,4 @@
-import { BrowserContext, Page, test } from '@playwright/test';
+import { BrowserContext, expect, Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@/src/core/api/factories/apiClientFactory';
@@ -40,12 +40,27 @@ export const contentAbacTestFixture = test.extend<{
 
   appManagerApiClient: [
     async ({ appManagerPage }, use) => {
-      const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-        type: 'cookies',
-        page: appManagerPage,
-        baseUrl: getEnvConfig().apiBaseUrl,
-      });
-      await use(appManagerApiClient);
+      // Try credentials-based authentication first (more reliable across environments)
+      try {
+        const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
+          type: 'credentials',
+          credentials: {
+            username: getEnvConfig().appManagerEmail,
+            password: getEnvConfig().appManagerPassword,
+          },
+          baseUrl: getEnvConfig().apiBaseUrl,
+        });
+        await use(appManagerApiClient);
+      } catch (error) {
+        // Fallback to cookies if credentials fail
+        console.log('Credentials authentication failed, trying cookies fallback');
+        const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
+          type: 'cookies',
+          page: appManagerPage,
+          baseUrl: getEnvConfig().apiBaseUrl,
+        });
+        await use(appManagerApiClient);
+      }
     },
     { scope: 'test' },
   ],
@@ -63,12 +78,6 @@ export const contentAbacTestFixture = test.extend<{
     async ({ appManagerApiClient }, use) => {
       const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
       await use(feedManagementHelper);
-      // Ensure cleanup happens even if test fails
-      try {
-        await feedManagementHelper.cleanup();
-      } catch (error) {
-        console.warn('Feed management helper cleanup failed:', error);
-      }
     },
     { scope: 'test' },
   ],
@@ -77,7 +86,6 @@ export const contentAbacTestFixture = test.extend<{
     async ({ browser }, use) => {
       const context = await browser.newContext();
       await use(context);
-      await context?.close();
     },
     { scope: 'test' },
   ],
