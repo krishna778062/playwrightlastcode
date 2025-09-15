@@ -121,7 +121,9 @@ export const contentTestFixture = test.extend<
   // Browser contexts - isolated per test
   appManagerContext: [
     async ({ browser }, use) => {
-      const context = await browser.newContext();
+      const context = await browser.newContext({
+        permissions: ['camera', 'microphone', 'notifications'],
+      });
 
       await use(context);
       await context.close();
@@ -141,6 +143,7 @@ export const contentTestFixture = test.extend<
   standardUserContext: [
     async ({ browser }, use) => {
       const context = await browser.newContext({
+        permissions: ['camera', 'microphone', 'notifications'],
         // Optimize context creation
         ignoreHTTPSErrors: true,
         viewport: { width: 1920, height: 1080 },
@@ -178,7 +181,9 @@ export const contentTestFixture = test.extend<
 
   siteManagerContext: [
     async ({ browser }, use, workerInfo) => {
-      const context = await browser.newContext();
+      const context = await browser.newContext({
+        permissions: ['camera', 'microphone', 'notifications'],
+      });
       await use(context);
       await context?.close();
     },
