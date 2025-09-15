@@ -2,7 +2,7 @@ import { ContentType } from '@content/constants/contentType';
 import { PageContentType } from '@content/constants/pageContentType';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentSuiteTags } from '@content/constants/testTags';
-import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
 import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
 import { PageCreationPage } from '@content/pages/pageCreationPage';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
@@ -10,6 +10,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
+
+import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 
 // Test data for approve/reject scenarios
 const PAGE_APPROVAL_TEST_DATA = [
@@ -20,7 +22,7 @@ const PAGE_APPROVAL_TEST_DATA = [
     description:
       'Page Content Add attach file with all the Mandatory fields by Standard user and approved by Application Manager',
     actionSuccessMessage: 'Page approved and published',
-    finalNotificationMessage: 'Application Manager1 approved',
+    notificationMessage: ' approved',
   },
   {
     action: 'Reject',
@@ -29,7 +31,7 @@ const PAGE_APPROVAL_TEST_DATA = [
     description:
       'Page Content Add attach file with all the Mandatory fields by Standard user and rejected by Application Manager',
     actionSuccessMessage: 'Page rejected',
-    finalNotificationMessage: 'Application Manager1 rejected',
+    notificationMessage: ' rejected',
   },
 ] as const;
 
@@ -81,7 +83,7 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.PAGE_CREATION],
         },
-        async ({ standardUserHomePage, appManagerHomePage, siteManagementHelper }) => {
+        async ({ standardUserHomePage, appManagerHomePage, siteManagementHelper, appManagerApiClient }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
@@ -146,7 +148,10 @@ test.describe(
           const notificationMessageStandardUser = await standardUserHomePage.actions.clickOnBellIcon({
             stepInfo: 'Standard user clicking on bell icon to view notifications',
           });
-          const finalNotificationMessage = testData.finalNotificationMessage + ' "' + pageCreationOptions.title + '"';
+          const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
+          const appManagerInfo = await identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+          const finalNotificationMessage =
+            appManagerInfo.fullName + testData.notificationMessage + ' "' + pageCreationOptions.title + '"';
           await notificationMessageStandardUser.actions.clickOnNotification(finalNotificationMessage);
 
           if (testData.action === 'Approve & publish') {
