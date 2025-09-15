@@ -14,7 +14,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { FileUtil } from '@core/utils/fileUtil';
 import { tagTest } from '@core/utils/testDecorator';
 
-test.describe.only(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES_PREVIEW}`, () => {
+test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES_PREVIEW}`, () => {
   let testFileDetails: {
     filePath: string;
     fileName: string;
