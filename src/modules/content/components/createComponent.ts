@@ -5,6 +5,7 @@ import { ContentType } from '@content/constants/contentType';
 import { SiteCreationPage } from '@content/pages/siteCreationPage';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
+import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
 /**
  * This component gives user an
  * quick and easy interface to select
@@ -42,12 +43,13 @@ export class CreateComponent extends BaseComponent {
    */
   async selectContentTypeAndCreateContent(
     contentType: ContentType,
+    siteManagementHelper: SiteManagementHelper,
     options?: { stepInfo?: string }
   ): Promise<AddContentModalComponent> {
     return await test.step(options?.stepInfo || `Selecting content type: ${contentType}`, async () => {
       // Select the content type
       await this.selectContentType(contentType);
-      const addContentModal = new AddContentModalComponent(this.page);
+      const addContentModal = new AddContentModalComponent(this.page, siteManagementHelper);
       await addContentModal.verifyTheAddContentModalIsVisible(contentType);
       return addContentModal;
     });

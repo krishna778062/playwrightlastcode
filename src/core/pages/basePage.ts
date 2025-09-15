@@ -100,6 +100,21 @@ export abstract class BasePage extends BaseActionUtil {
   }
 
   /**
+   * @description
+   * Checks for Access Denied error page
+   */
+  async verifyAccessDeniedPageVisibility(options?: { stepInfo?: string; timeout?: number }) {
+    await test.step(options?.stepInfo || `Verify the page - Access Denied`, async () => {
+      await expect(this.page.locator('h1', { hasText: 'Access denied' })).toBeVisible();
+      await expect(
+        this.page
+          .locator('[class*="no-results"] div')
+          .filter({ hasText: 'You are not authorized to access this resource, please contact your administrator.' })
+      ).toBeVisible();
+    });
+  }
+
+  /**
    * Generic method to handle file downloads with automatic cleanup
    * @param downloadTrigger - Function that triggers the download (e.g., () => this.clickOnElement(downloadButton))
    * @param stepInfo - Optional custom step information
