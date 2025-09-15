@@ -2,14 +2,12 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { PageContentType } from '../../constants/pageContentType';
-import { SITE_TYPES } from '../../constants/siteTypes';
-import { ManageContentPage } from '../../pages/manageContentPage';
-import { ManageFeaturePage } from '../../pages/manageFeaturePage';
-import { MANAGE_CONTENT_TEST_DATA } from '../../test-data/manage-content.test-data';
-
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
+import { ManageFeaturePage } from '@/src/modules/content/pages/manageFeaturePage';
+import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 
 test.describe(
   ContentSuiteTags.MANAGE_CONTENT,
@@ -138,7 +136,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description:
-            'Verify various UI elements including image container, author name, site name, and status stamps in My Content screen',
+            'Verify various UI elements including image container, author name, site name, and status stamps in My Content screen ',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20945',
           storyId: 'CONT-20945',

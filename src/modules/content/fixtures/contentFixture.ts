@@ -91,7 +91,6 @@ export const contentTestFixture = test.extend<
   {
     // Worker-scoped fixtures
     appManagerApiClient: AppManagerApiClient;
-    endUserApiClient: AppManagerApiClient;
     standardUserApiClient: StandardUserApiClient;
   }
 >({
@@ -114,22 +113,6 @@ export const contentTestFixture = test.extend<
 
       // Cleanup worker-scoped resources
       console.log(`Cleaning up app manager API client for worker ${_workerInfo.workerIndex}`);
-    },
-    { scope: 'worker' },
-  ],
-  endUserApiClient: [
-    // eslint-disable-next-line no-empty-pattern
-    async ({}, use, _workerInfo: WorkerInfo) => {
-      console.log(`INFO: Setting up end user client for worker => `, _workerInfo.workerIndex);
-      const endUserApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-        type: 'credentials',
-        credentials: {
-          username: getEnvConfig().endUserEmail!,
-          password: getEnvConfig().endUserPassword!,
-        },
-        baseUrl: getEnvConfig().apiBaseUrl,
-      });
-      await use(endUserApiClient);
     },
     { scope: 'worker' },
   ],
@@ -297,13 +280,6 @@ export const contentTestFixture = test.extend<
     async ({ appManagerApiClient }, use) => {
       const manageContentHelper = new ContentManagementHelper(appManagerApiClient);
       await use(manageContentHelper);
-    },
-    { scope: 'test' },
-  ],
-  manageContentEndUserHelper: [
-    async ({ endUserApiClient }, use) => {
-      const manageContentEndUserHelper = new ContentManagementHelper(endUserApiClient);
-      await use(manageContentEndUserHelper);
     },
     { scope: 'test' },
   ],

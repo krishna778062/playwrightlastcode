@@ -2,12 +2,11 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ManageContentPage } from '../../pages/manageContentPage';
-import { ManageFeaturePage } from '../../pages/manageFeaturePage';
-import { MANAGE_CONTENT_TEST_DATA } from '../../test-data/manage-content.test-data';
-
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
+import { ManageFeaturePage } from '@/src/modules/content/pages/manageFeaturePage';
+import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 
 test.describe(
   ContentSuiteTags.MANAGE_CONTENT,
