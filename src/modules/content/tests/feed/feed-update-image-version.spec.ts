@@ -113,7 +113,7 @@ test.describe(
         'test-data',
         'static-files',
         'images',
-        FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName
+        FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName
       ),
     };
 
