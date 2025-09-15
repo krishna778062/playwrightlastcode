@@ -1,7 +1,7 @@
 import { ContentType } from '@content/constants/contentType';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentSuiteTags } from '@content/constants/testTags';
-import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
 import { AlbumCreationPage } from '@content/pages/albumCreationPage';
 import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
@@ -9,6 +9,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
+
+import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 
 // Test data for approve/reject scenarios
 const ALBUM_APPROVAL_TEST_DATA = [
@@ -20,7 +22,7 @@ const ALBUM_APPROVAL_TEST_DATA = [
     description:
       'Album Content Add attach file with all the Mandatory fields by Standard user and approved by Application Manager',
     actionSuccessMessage: 'Album approved and published',
-    finalNotificationMessage: 'Application Manager1 approved',
+    notificationMessage: ' approved',
   },
   {
     action: 'Reject',
@@ -30,7 +32,7 @@ const ALBUM_APPROVAL_TEST_DATA = [
     description:
       'Album Content Add attach file with all the Mandatory fields by Standard user and rejected by Application Manager',
     actionSuccessMessage: 'Album rejected',
-    finalNotificationMessage: 'Application Manager1 rejected',
+    notificationMessage: ' rejected',
   },
 ] as const;
 
@@ -82,7 +84,7 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
         },
-        async ({ standardUserHomePage, appManagerHomePage, siteManagementHelper }) => {
+        async ({ standardUserHomePage, appManagerHomePage, siteManagementHelper, appManagerApiClient }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
@@ -99,8 +101,7 @@ test.describe(
 
           // Navigate to album creation by standard user
           albumCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
-            ContentType.ALBUM,
-            siteManagementHelper
+            ContentType.ALBUM
           )) as AlbumCreationPage;
 
           // Generate album data using TestDataGenerator
@@ -112,7 +113,7 @@ test.describe(
           );
 
           // Create and submit the album
-          const { albumId, siteId, peopleId, peopleName } =
+          const { albumId, siteId, peopleName } =
             await albumCreationPage.actions.createAndSubmitAlbum(albumCreationOptions);
 
           // Store IDs for cleanup
@@ -128,6 +129,7 @@ test.describe(
 
           await contentPreviewPageStandardUser.assertions.verifyContentStatus('Pending');
 
+          await appManagerHomePage.page.reload();
           // Handle notification and perform action (approve/reject)
           const notificationComponentAppManager = await appManagerHomePage.actions.clickOnBellIcon({
             stepInfo: 'Application Manager clicking on bell icon to view notifications',
@@ -146,10 +148,14 @@ test.describe(
             testData.actionSuccessMessage
           );
 
+          await standardUserHomePage.page.reload();
           const notificationMessageStandardUser = await standardUserHomePage.actions.clickOnBellIcon({
             stepInfo: 'Standard user clicking on bell icon to view notifications',
           });
-          const finalNotificationMessage = testData.finalNotificationMessage + ' "' + albumCreationOptions.title + '"';
+          const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
+          const appManagerInfo = await identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+          const finalNotificationMessage =
+            appManagerInfo.fullName + testData.notificationMessage + ' "' + albumCreationOptions.title + '"';
           await notificationMessageStandardUser.actions.clickOnNotification(finalNotificationMessage);
 
           if (testData.action === 'Approve & publish') {

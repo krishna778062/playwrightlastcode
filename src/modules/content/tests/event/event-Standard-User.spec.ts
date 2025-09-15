@@ -1,7 +1,7 @@
 import { ContentType } from '@content/constants/contentType';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentSuiteTags } from '@content/constants/testTags';
-import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
 import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
 import { EventCreationPage } from '@content/pages/eventCreationPage';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
@@ -9,6 +9,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
+
+import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 
 test.describe(
   `Event Creation by Standard user  and Approval/Rejection by Application Manager`,
@@ -62,7 +64,7 @@ test.describe(
         description:
           'Event Content Add attach file with all the Mandatory fields by Standard user and approved by Application Manager',
         actionSuccessMessage: 'Event approved and published',
-        finalNotificationMessage: 'Application Manager1 approved',
+        notificationMessage: ' approved',
       },
       {
         action: 'Reject',
@@ -72,7 +74,7 @@ test.describe(
         description:
           'Event Content Add attach file with all the Mandatory fields by Standard user and rejected by Application Manager',
         actionSuccessMessage: 'Event rejected',
-        finalNotificationMessage: 'Application Manager1 rejected',
+        notificationMessage: ' rejected',
       },
     ] as const;
 
@@ -82,7 +84,7 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.EVENT_CREATION],
         },
-        async ({ standardUserHomePage, appManagerHomePage, siteManagementHelper }) => {
+        async ({ standardUserHomePage, appManagerHomePage, siteManagementHelper, appManagerApiClient }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
@@ -99,8 +101,7 @@ test.describe(
 
           // Navigate to event creation by standard user
           eventCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
-            ContentType.EVENT,
-            siteManagementHelper
+            ContentType.EVENT
           )) as EventCreationPage;
 
           // Generate event data using TestDataGenerator
@@ -125,6 +126,7 @@ test.describe(
 
           await contentPreviewPageStandardUser.assertions.verifyContentStatus('Pending');
 
+          await appManagerHomePage.page.reload();
           // Handle notification and perform action (approve/reject)
           const notificationComponentAppManager = await appManagerHomePage.actions.clickOnBellIcon({
             stepInfo: 'Application Manager clicking on bell icon to view notifications',
@@ -143,10 +145,14 @@ test.describe(
             testData.actionSuccessMessage
           );
 
+          await standardUserHomePage.page.reload();
           const notificationMessageStandardUser = await standardUserHomePage.actions.clickOnBellIcon({
             stepInfo: 'Standard user clicking on bell icon to view notifications',
           });
-          const finalNotificationMessage = testData.finalNotificationMessage + ' "' + eventCreationOptions.title + '"';
+          const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
+          const appManagerInfo = await identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+          const finalNotificationMessage =
+            appManagerInfo.fullName + testData.notificationMessage + ' "' + eventCreationOptions.title + '"';
           await notificationMessageStandardUser.actions.clickOnNotification(finalNotificationMessage);
 
           if (testData.action === 'Approve & publish') {
