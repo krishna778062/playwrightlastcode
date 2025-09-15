@@ -4,10 +4,13 @@ import { PromotePageModal } from '@content/components/promotePageModal';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
+import { ContentDetailsComponent } from '@/src/modules/content/components/contentDetailsComponent';
+
 export interface IContentPreviewPageActions {
   handlePromotionPageStep: () => Promise<void>;
   clickOnApproveOrRejectButton: (action: string) => Promise<void>;
   enterRejectReason: (reason: string) => Promise<void>;
+  checkCommentOption: () => Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -48,6 +51,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   // Page components
   readonly promotePageModal: PromotePageModal;
+  private contentDetailsComponent: ContentDetailsComponent;
 
   constructor(page: Page, siteId?: string, contentId?: string, contentType?: string) {
     super(
@@ -55,6 +59,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       siteId && contentId && contentType ? PAGE_ENDPOINTS.getContentPreviewPage(siteId, contentId, contentType) : ''
     );
     this.promotePageModal = new PromotePageModal(page);
+    this.contentDetailsComponent = new ContentDetailsComponent(page);
   }
 
   // Actions
@@ -155,6 +160,11 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       await this.verifier.verifyTheElementIsVisible(this.submitForApprovalButton, {
         assertionMessage: `Content should have submit for approval button`,
       });
+    });
+  }
+  async checkCommentOption(): Promise<void> {
+    await test.step('Checking comment option', async () => {
+      await this.contentDetailsComponent.checkCommentOption.isHidden();
     });
   }
 }

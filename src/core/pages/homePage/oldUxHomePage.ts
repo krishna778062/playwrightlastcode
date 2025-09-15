@@ -29,12 +29,11 @@ export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions
 
   async clickOnCreateContentButtonOnTopNavBar(
     contentType: ContentType,
-    siteManagementHelper: SiteManagementHelper,
     options?: { stepInfo?: string }
   ): Promise<AddContentModalComponent> {
     return await test.step(options?.stepInfo || `Clicking on create content button on top nav bar`, async () => {
       await this.topNavBarComponent.clickOnCreateContentButton();
-      const addContentModal = new AddContentModalComponent(this.page, siteManagementHelper);
+      const addContentModal = new AddContentModalComponent(this.page);
       await addContentModal.verifyTheAddContentModalIsVisible(contentType);
       return addContentModal;
     });
@@ -42,14 +41,13 @@ export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions
 
   async openCreateContentPageForContentType(
     contentType: ContentType,
-    siteManagementHelper: SiteManagementHelper,
     options?: { stepInfo?: string }
   ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage> {
     return await test.step(options?.stepInfo || `Opening create content page for ${contentType}`, async () => {
-      await this.clickOnCreateContentButtonOnTopNavBar(contentType, siteManagementHelper);
-      const addContentModal = new AddContentModalComponent(this.page, siteManagementHelper);
+      await this.clickOnCreateContentButtonOnTopNavBar(contentType);
+      const addContentModal = new AddContentModalComponent(this.page);
       await addContentModal.verifyTheAddContentModalIsVisible(contentType);
-      return await addContentModal.completeContentCreationForm(contentType);
+      return await addContentModal.completeContentCreationForm(contentType, { isFromHomePage: true });
     });
   }
 

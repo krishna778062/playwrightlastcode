@@ -3,13 +3,22 @@ import { PageContentType } from '@content/constants/pageContentType';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentFeatureTags, ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { ApplicationScreenPage } from '@content/pages/applicationscreenPage';
 import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
+import { EditPagePage } from '@content/pages/editPagePage';
+import { GovernanceScreenPage } from '@content/pages/governanceScreenPage';
+import { ManageApplicationPage } from '@content/pages/manageApplicationPage';
+import { ManageContentPage } from '@content/pages/manageContentPage';
+import { ApplicationScreenPage as ManageFeature } from '@content/pages/manageFeaturesPage';
+import { ManageSitePage } from '@content/pages/manageSitePage';
 import { PageCreationPage } from '@content/pages/pageCreationPage';
+import { SiteDetailsPage } from '@content/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@content/pages/sitePages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { SITE_TEST_DATA } from '@content/test-data/sites-create.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
@@ -26,10 +35,19 @@ test.describe(
     let createdSite: any;
     let siteDashboardPage: SiteDashboardPage;
     let manualCleanupNeeded = false;
+    let homePage: NewUxHomePage;
+    let applicationscreen: ApplicationScreenPage;
+    let manageFeaturePage: ManageFeature;
+    let manageApplicationPage: ManageApplicationPage;
+    let governanceScreenPage: GovernanceScreenPage;
+    let manageContentPage: ManageContentPage;
+    let manageSitePage: ManageSitePage;
+    let siteDetailsPage: SiteDetailsPage;
+    let editPagePage: EditPagePage;
 
     test.beforeEach(
       'Setting up the test environment for page creation by opening page creation page from home page',
-      async ({ appManagerHomePage, appManagersPage }) => {
+      async ({ appManagerHomePage, appManagersPage, siteManagementHelper }) => {
         // Create home page instance and navigate to page creation
         await appManagerHomePage.verifyThePageIsLoaded();
         contentPreviewPage = new ContentPreviewPage(
@@ -38,6 +56,19 @@ test.describe(
           publishedPageId,
           ContentType.PAGE
         );
+
+        // Initialize additional page objects for the moved test cases
+        homePage = new NewUxHomePage(appManagersPage);
+        applicationscreen = new ApplicationScreenPage(appManagersPage);
+        manageFeaturePage = new ManageFeature(appManagersPage);
+        manageApplicationPage = new ManageApplicationPage(appManagersPage);
+        governanceScreenPage = new GovernanceScreenPage(appManagersPage);
+        manageContentPage = new ManageContentPage(appManagersPage);
+        manageSitePage = new ManageSitePage(appManagersPage, '');
+        siteDetailsPage = new SiteDetailsPage(appManagersPage, '');
+        editPagePage = new EditPagePage(appManagersPage);
+        siteDashboardPage = new SiteDashboardPage(appManagersPage, '');
+
         // Reset cleanup flag for each test
         manualCleanupNeeded = false;
       }
@@ -72,8 +103,7 @@ test.describe(
         });
 
         pageCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
-          ContentType.PAGE,
-          siteManagementHelper
+          ContentType.PAGE
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator
@@ -150,6 +180,58 @@ test.describe(
           pageCreationOptions.title,
           "Created page successfully - it's published"
         );
+      }
+    );
+
+    test(
+      'Verify feed and comment should not be displayed when feed and comments are disabled app level',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VERIFY_COMMENTS_AND_FEEDS],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'Verify feed and comment should not be displayed when feed and comments are disabled app level',
+          zephyrTestId: 'CONT-26613',
+          storyId: 'CONT-26613',
+        });
+        await homePage.actions.navigateToApplication();
+        await applicationscreen.actions.clickOnApplication();
+        await manageApplicationPage.actions.clickOnGovernance();
+        await governanceScreenPage.actions.clickOnTimeline();
+        await governanceScreenPage.actions.clickOnSave();
+        await homePage.actions.clickOnManageFeature();
+        await manageFeaturePage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickOnContent();
+        await contentPreviewPage.actions.checkCommentOption();
+        await homePage.actions.clickOnManageFeature();
+        await manageFeaturePage.actions.clickOnSitesCard();
+        await manageSitePage.actions.clickOnSite();
+        await siteDetailsPage.actions.ViewSite();
+        await siteDashboardPage.actions.verfiyFeedSection();
+        await homePage.actions.clickOnHomeButton();
+        await homePage.actions.clickOnFeedSideMenu();
+        await siteDashboardPage.actions.verfiyFeedSection();
+      }
+    );
+
+    test(
+      'Zeus: Edit the validation Expired Content and Cancel',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VALIDATION_REQUIRED_BAR_STATE],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'Zeus: Edit the validation Expired Content and Cancel',
+          zephyrTestId: 'CONT-36069',
+          storyId: 'CONT-36069',
+        });
+        await homePage.actions.clickOnManageFeature();
+        await manageFeaturePage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickOnViewAllButton();
+        await manageContentPage.actions.verifyingValidationRequiredBarState();
+        await manageContentPage.actions.clickOnEditButton();
+        await editPagePage.actions.clickOnCancel();
+        await manageContentPage.actions.verifyingValidationRequiredBarState();
       }
     );
   }

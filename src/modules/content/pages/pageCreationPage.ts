@@ -10,6 +10,9 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 import { FileUtil } from '@core/utils/fileUtil';
 
+import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
+import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
+
 export interface PageCreationOptions {
   // Required fields
   title: string;
@@ -80,12 +83,16 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   readonly descriptionInput: Locator;
   readonly submitButton: Locator;
   readonly addCategoryFromList: (categoryText: string) => Locator;
+  readonly successMessage: (message: string) => Locator;
+  readonly contentTitleHeading: (title: string) => Locator;
+  // Page components
+  readonly addContentModal: AddContentModalComponent;
   readonly coverImageUploader: AttachementUploaderComponent;
   readonly fileAttachmentUploader: AttachementUploaderComponent;
   readonly imageCropper: ImageCropperComponent;
   readonly sideNavBarComponent: SideNavBarComponent;
 
-  constructor(page: Page, siteId?: string) {
+  constructor(page: Page, siteId?: string, siteManagementHelper?: SiteManagementHelper) {
     super(page, PAGE_ENDPOINTS.getPageCreationPage(siteId ?? ''));
     //root locators of some components
     this.coverImageUploaderContainer = page
@@ -107,11 +114,14 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     this.contentTypeCheckbox = (type: string) => page.locator('label:has(span)', { hasText: type });
     this.submitButton = page.locator('span').filter({ hasText: 'Submit for approval' });
     this.addCategoryFromList = (categoryText: string) => page.locator(`div[role='listbox'] >> text=${categoryText}`);
+    this.successMessage = (message: string) => page.locator(`text=${message}`);
+    this.contentTitleHeading = (title: string) => page.locator(`h1:has-text("${title}")`);
 
     this.coverImageUploader = new AttachementUploaderComponent(page, this.coverImageUploaderContainer);
     this.fileAttachmentUploader = new AttachementUploaderComponent(page, this.fileAttachmentUploaderContainer);
     this.imageCropper = new ImageCropperComponent(page);
     this.sideNavBarComponent = new SideNavBarComponent(page);
+    this.addContentModal = new AddContentModalComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {

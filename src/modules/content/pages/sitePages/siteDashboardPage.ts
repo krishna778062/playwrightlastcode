@@ -2,8 +2,13 @@ import { expect, Page, test } from '@playwright/test';
 
 import { BaseSitePage } from '@content/pages/sitePages/baseSite';
 
+import { SiteDashboardComponent } from '../../components/siteDashboardComponent';
+
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
+export interface ISiteDashboardActions {
+  verfiyFeedSection: () => Promise<void>;
+}
 export interface ISiteDashboardAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
   verifyDashboardUrl: (siteId: string) => Promise<void>;
@@ -16,9 +21,16 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   readonly categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
   readonly categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
   readonly siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
+  readonly siteDashboardComponent: SiteDashboardComponent;
+
+  // Actions
+  get actions(): ISiteDashboardActions {
+    return this;
+  }
 
   constructor(page: Page, siteId: string) {
     super(page, siteId);
+    this.siteDashboardComponent = new SiteDashboardComponent(page);
   }
   /**
    * Verifies that site was created successfully by checking if site link is visible
@@ -79,6 +91,12 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     await test.step(`Verify dashboard URL matches expected URL for site ID: ${siteId}`, async () => {
       const expectedUrl = PAGE_ENDPOINTS.getSiteDashboardPage(siteId);
       await expect(this.page, `should match expected URL: ${expectedUrl}`).toHaveURL(expectedUrl);
+    });
+  }
+
+  async verfiyFeedSection(): Promise<void> {
+    await test.step('Verifying feed section', async () => {
+      await expect(this.siteDashboardComponent.verfiyFeedSection, 'expecting feed section to be hidden').toBeHidden();
     });
   }
 }
