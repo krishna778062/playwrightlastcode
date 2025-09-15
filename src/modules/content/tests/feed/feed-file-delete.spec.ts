@@ -151,6 +151,9 @@ test.describe(
         test.beforeEach(
           'Setup test environment and data creation',
           async ({ appManagerHomePage, contentManagementHelper, siteManagementHelper, feedManagementHelper }) => {
+            // Configure app governance settings
+            await feedManagementHelper.configureAppGovernance();
+
             // Initialize feed page
             appManagerFeedPage = new FeedPage(appManagerHomePage.page);
 

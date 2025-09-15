@@ -25,7 +25,10 @@ test.describe(
     let siteManagerInfo: { userId: string; fullName: string };
     let endUserInfo: { userId: string; fullName: string };
 
-    test.beforeEach('Setup test environment', async ({ appManagerApiClient }) => {
+    test.beforeEach('Setup test environment', async ({ appManagerApiClient, feedManagementHelper }) => {
+      // Configure app governance settings
+      await feedManagementHelper.configureAppGovernance();
+
       // Get user information for mentions (optimized single API calls)
       const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
 

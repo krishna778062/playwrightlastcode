@@ -360,4 +360,111 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       return response;
     });
   }
+
+  /**
+   * Configures app governance settings
+   * @param settings - The governance settings to configure (optional, uses defaults from curl)
+   * @returns Promise<APIResponse> - The API response
+   */
+  async configureAppGovernance(
+    settings: Partial<{
+      isExpertiseAppManagerControlled: boolean;
+      isHomeAppManagerControlled: boolean;
+      isSiteAppManagerControlled: boolean;
+      isExpertiseCreateAppManagerControlled: boolean;
+      feedMode: string;
+      autoGovValidationPeriod: number;
+      autoGovernanceEnabled: boolean;
+      contentSubmissionsEnabled: boolean;
+      feedOnContentEnabled: boolean;
+      isExpertiseEnabled: boolean;
+      isHomeCarouselEnabled: boolean;
+      isSiteCarouselEnabled: boolean;
+      allowFileUpload: string;
+      siteFilePermission: string;
+      htmlTileEnabled: boolean;
+      isNativeVideoAutoPlayEnabled: boolean;
+      allowFileShareWithPublicLink: boolean;
+      enablePersonalizedContentEmails: boolean;
+      feedPlaceholder: string;
+      isFeedPlaceholderDefault: boolean;
+      sitesToUploadFiles: string[];
+      privacyPolicy: {
+        isPPEnabled: boolean;
+        isPPLinkCustom: boolean;
+        ppLink: string;
+        isPPLabelCustom: boolean;
+        ppLabel: string;
+      };
+      termsOfService: {
+        isTOSEnabled: boolean;
+        isTOSLinkCustom: boolean;
+        tosLink: string;
+        isTOSLabelCustom: boolean;
+        tosLabel: string;
+      };
+      takeLegalAcknowledgement: boolean;
+    }> = {}
+  ): Promise<APIResponse> {
+    return await test.step('Configuring app governance settings', async () => {
+      // Default values from the curl command
+      const defaultSettings = {
+        isExpertiseAppManagerControlled: true,
+        isHomeAppManagerControlled: true,
+        isSiteAppManagerControlled: false,
+        isExpertiseCreateAppManagerControlled: true,
+        feedMode: 'timeline_comment_post',
+        autoGovValidationPeriod: 12,
+        autoGovernanceEnabled: true,
+        contentSubmissionsEnabled: true,
+        feedOnContentEnabled: true,
+        isExpertiseEnabled: true,
+        isHomeCarouselEnabled: true,
+        isSiteCarouselEnabled: true,
+        allowFileUpload: 'all',
+        siteFilePermission: 'sameAsAllUsers',
+        htmlTileEnabled: false,
+        isNativeVideoAutoPlayEnabled: true,
+        allowFileShareWithPublicLink: false,
+        enablePersonalizedContentEmails: false,
+        feedPlaceholder: '',
+        isFeedPlaceholderDefault: true,
+        sitesToUploadFiles: [],
+        privacyPolicy: {
+          isPPEnabled: true,
+          isPPLinkCustom: false,
+          ppLink: 'https://www.simpplr.com/privacy/',
+          isPPLabelCustom: false,
+          ppLabel: 'Privacy Policy',
+        },
+        termsOfService: {
+          isTOSEnabled: true,
+          isTOSLinkCustom: false,
+          tosLink: 'https://www.simpplr.com/tos/',
+          isTOSLabelCustom: false,
+          tosLabel: 'Terms of Service',
+        },
+        takeLegalAcknowledgement: true,
+      };
+
+      // Merge provided settings with defaults
+      const finalSettings = { ...defaultSettings, ...settings };
+
+      const response = await this.post(API_ENDPOINTS.appConfig.governance, {
+        data: finalSettings,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const responseBody = await response.json();
+      console.log('App governance configuration response:', JSON.stringify(responseBody, null, 2));
+
+      if (!response.ok()) {
+        throw new Error(`Failed to configure app governance. Status: ${response.status()}`);
+      }
+
+      return response;
+    });
+  }
 }

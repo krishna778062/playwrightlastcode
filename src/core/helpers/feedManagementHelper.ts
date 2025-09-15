@@ -135,4 +135,57 @@ export class FeedManagementHelper {
       return responseBody;
     });
   }
+
+  /**
+   * Configures app governance settings for feeds and content
+   * @param settings - Optional governance settings to override defaults
+   * @returns Promise with the API response
+   */
+  async configureAppGovernance(
+    settings?: Partial<{
+      isExpertiseAppManagerControlled: boolean;
+      isHomeAppManagerControlled: boolean;
+      isSiteAppManagerControlled: boolean;
+      isExpertiseCreateAppManagerControlled: boolean;
+      feedMode: string;
+      autoGovValidationPeriod: number;
+      autoGovernanceEnabled: boolean;
+      contentSubmissionsEnabled: boolean;
+      feedOnContentEnabled: boolean;
+      isExpertiseEnabled: boolean;
+      isHomeCarouselEnabled: boolean;
+      isSiteCarouselEnabled: boolean;
+      allowFileUpload: string;
+      siteFilePermission: string;
+      htmlTileEnabled: boolean;
+      isNativeVideoAutoPlayEnabled: boolean;
+      allowFileShareWithPublicLink: boolean;
+      enablePersonalizedContentEmails: boolean;
+      feedPlaceholder: string;
+      isFeedPlaceholderDefault: boolean;
+      sitesToUploadFiles: string[];
+      privacyPolicy: {
+        isPPEnabled: boolean;
+        isPPLinkCustom: boolean;
+        ppLink: string;
+        isPPLabelCustom: boolean;
+        ppLabel: string;
+      };
+      termsOfService: {
+        isTOSEnabled: boolean;
+        isTOSLinkCustom: boolean;
+        tosLink: string;
+        isTOSLabelCustom: boolean;
+        tosLabel: string;
+      };
+      takeLegalAcknowledgement: boolean;
+    }>
+  ) {
+    return await test.step('Configuring app governance settings', async () => {
+      const response = await this.appManagerApiClient.getFeedManagementService().configureAppGovernance(settings);
+      const responseBody = await response.json();
+      console.log('App governance configuration completed:', responseBody);
+      return responseBody;
+    });
+  }
 }

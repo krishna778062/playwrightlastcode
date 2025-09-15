@@ -69,6 +69,9 @@ test.describe(
         siteManagementHelper,
         feedManagementHelper,
       }) => {
+        // Configure app governance settings
+        await feedManagementHelper.configureAppGovernance();
+
         // Initialize feed pages for different user roles
         appManagerFeedPage = new FeedPage(appManagerHomePage.page);
         standardUserFeedPage = new FeedPage(standardUserHomePage.page);

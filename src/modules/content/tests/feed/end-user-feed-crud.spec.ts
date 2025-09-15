@@ -19,7 +19,10 @@ test.describe(
     let createdPostText: string;
     let createdPostId: string = '';
 
-    test.beforeEach(async ({ standardUserHomePage }) => {
+    test.beforeEach(async ({ standardUserHomePage, feedManagementHelper }) => {
+      // Configure app governance settings
+      await feedManagementHelper.configureAppGovernance();
+
       await standardUserHomePage.actions.clickOnGlobalFeed();
 
       feedPage = new FeedPage(standardUserHomePage.page);
