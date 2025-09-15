@@ -405,4 +405,38 @@ export class BaseActionUtil {
       await locator.elementHandle()
     );
   }
+
+  /**
+   * Generic method to click Cancel button in any modal/popup
+   * @param cancelButton - The cancel button locator
+   * @param stepInfo - Optional custom step information
+   */
+  async clickCancelButton(cancelButton: any, stepInfo?: string): Promise<void> {
+    await this.clickOnElement(cancelButton, {
+      stepInfo: stepInfo || 'Click Cancel button',
+    });
+  }
+
+  /**
+   * Generic method to add description in any modal/popup
+   * @param descriptionInput - The description input locator
+   * @param description - The description text to add
+   * @param stepInfo - Optional custom step information
+   */
+  async addDescription(descriptionInput: any, description: string, stepInfo?: string): Promise<void> {
+    await this.fillInElement(descriptionInput, description, {
+      stepInfo: stepInfo || `Add description: ${description}`,
+    });
+  }
+
+  /**
+   * Generic method to click Close (X) button in any modal/popup
+   * @param closeButton - The close button locator
+   * @param stepInfo - Optional custom step information
+   */
+  async clickCloseButton(closeButton: any, stepInfo?: string): Promise<void> {
+    await this.clickOnElement(closeButton, {
+      stepInfo: stepInfo || 'Click Close (X) button',
+    });
+  }
 }

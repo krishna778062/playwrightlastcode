@@ -1,6 +1,5 @@
 import { Locator, Page } from '@playwright/test';
 
-import { BasePage } from '../pages/basePage';
 import { BaseActionUtil } from '../utils/baseActionUtil';
 import { BaseVerificationUtil } from '../utils/baseVerificationUtil';
 
