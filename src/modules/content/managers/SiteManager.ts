@@ -40,6 +40,9 @@ export class SiteManager {
   }
 
   async goToTab(tabName: SitePageTab): Promise<SitePages> {
+    if (!this.currentPage) {
+      await this.loadSite();
+    }
     await this.currentPage?.navigateToTab(tabName);
     switch (tabName) {
       case SitePageTab.DashboardTab:

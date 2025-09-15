@@ -5,6 +5,7 @@ import {
   FilesPreviewToastMessages,
 } from '@content/constants/filesPreviewEnums';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { SiteManager } from '@content/managers/siteManager';
 import { SiteFilesPage } from '@content/pages/sitePages/siteFilesPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -13,7 +14,6 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { SitePageTab } from '../../constants/sitePageEnums';
 import { ContentTestSuite } from '../../constants/testSuite';
-import { SiteManager } from '../../managers/siteManager';
 
 test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES_PREVIEW}`, () => {
   let testFileDetails: {
