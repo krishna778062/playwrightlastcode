@@ -51,6 +51,7 @@ export interface IFeedAssertions {
   validatePostText: (postText: string) => Promise<void>;
   verifyImageButtonIsNotVisible: () => Promise<void>;
   verifyVersionImageIsDisplayed: (fileId: string) => Promise<void>;
+  verifyVersionNumber: (expectedVersionNumber: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -225,6 +226,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyVersionImageIsDisplayed(fileId: string): Promise<void> {
     await this.listFeedComponent.verifyVersionImageIsDisplayed(fileId);
+  }
+
+  async verifyVersionNumber(expectedVersionNumber: string): Promise<void> {
+    await this.filePreviewComponent.verifyVersionNumber(expectedVersionNumber);
   }
 
   async uploadImage(fileName: string): Promise<string> {

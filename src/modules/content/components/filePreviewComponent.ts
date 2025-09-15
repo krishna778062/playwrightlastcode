@@ -16,6 +16,7 @@ export class FilePreviewComponent extends BaseComponent {
   readonly imageUploader: AttachementUploaderComponent;
   readonly uploadButton: Locator;
   readonly closeButton: Locator;
+  readonly versionNumber: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -33,6 +34,7 @@ export class FilePreviewComponent extends BaseComponent {
 
     this.imageUploader = new AttachementUploaderComponent(page, this.imageUploaderContainer);
     this.closeButton = this.page.locator('button[aria-label="Close"]').nth(1);
+    this.versionNumber = this.page.locator('span:has-text("Versions")').locator('+ h4 button');
   }
 
   /**
@@ -125,6 +127,18 @@ export class FilePreviewComponent extends BaseComponent {
   async clickOnCloseButton(): Promise<void> {
     await test.step(`Click on close button`, async () => {
       await this.clickOnElement(this.closeButton);
+    });
+  }
+
+  async verifyVersionNumber(expectedVersionNumber: string): Promise<void> {
+    await test.step(`Click on version number`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.versionNumber, {
+        assertionMessage: 'Version number should be visible',
+      });
+      const versionNumberText = await this.versionNumber.textContent();
+      if (versionNumberText !== expectedVersionNumber) {
+        throw new Error(`Expected version number to be ${expectedVersionNumber}, but found: ${versionNumberText}`);
+      }
     });
   }
 }
