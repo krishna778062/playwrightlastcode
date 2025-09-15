@@ -171,4 +171,21 @@ export class FileUtil {
       }
     }
   }
+
+  /**
+   * Safely deletes a temporary file with error handling.
+   * Used for cleanup operations to remove temporary files after processing.
+   * @param filePath - The path to the temporary file to delete.
+   * @throws Will throw an error if the file cannot be deleted.
+   */
+  public static deleteTemporaryFile(filePath: string): void {
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } catch (error) {
+      console.error(`Error deleting temporary file ${filePath}:`, error);
+      throw new Error(`Failed to delete temporary file: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
 }
