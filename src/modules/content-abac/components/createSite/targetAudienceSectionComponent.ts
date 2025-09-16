@@ -1,8 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { IdentityService } from '@/src/core/api/services/IdentityService';
 import { BaseComponent } from '@/src/core/components/baseComponent';
-import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { SiteCreationUI } from '@/src/modules/content-abac/constants/siteCreation';
 export class TargetAudienceSectionComponent extends BaseComponent {
   readonly targetAudienceHeading: Locator;
@@ -152,9 +151,17 @@ export class TargetAudienceSectionComponent extends BaseComponent {
    */
   async setupSpecificAudienceViaPicker(audienceName: string, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Setup Specific audience: ${audienceName}`, async () => {
-      // Wait for audience hierarchy API response when opening picker
-      const identity = new IdentityService(this.page.context().request, getEnvConfig().apiBaseUrl);
-      await identity.waitForAudienceHierarchyResponse(this.page, () => this.openAudiencePicker());
+      // Wait for audience hierarchy API response when opening picker (POST call)
+      await this.performActionAndWaitForResponse(
+        () => this.openAudiencePicker(),
+        response =>
+          response.url().includes(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 10_000,
+        }
+      );
 
       let audienceFound = false;
 
