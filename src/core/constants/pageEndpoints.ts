@@ -31,6 +31,12 @@ export const PAGE_ENDPOINTS = {
   getAlbumCreationPage: (siteId: string) => `/site/${siteId}/album/add`,
   getEventCreationPage: (siteId: string) => `/site/${siteId}/event/add`,
   getPageCreationPage: (siteId: string) => `/site/${siteId}/page/add`,
+  APPLICATION_SETTINGS: 'manage/app/setup/general',
+  GOVERNANCE_SCREEN: 'manage/app/setup/governance',
+  MANAGE_FEATURE: 'manage-features',
+  MANAGE_CONTENT: 'manage/content',
+  MANAGE_SITE_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
+  SITE_DETAILS_PAGE: (siteId: string) => PAGE_ENDPOINTS.getSiteDashboardPage(siteId),
 
   // Integrations page
   CUSTOM_APPS_INTEGRATION_PAGE: '/manage/app/integrations/custom',

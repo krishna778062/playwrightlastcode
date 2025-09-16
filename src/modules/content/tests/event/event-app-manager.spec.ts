@@ -54,8 +54,7 @@ test.describe(
         });
 
         eventCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
-          ContentType.EVENT,
-          siteManagementHelper
+          ContentType.EVENT
         )) as EventCreationPage;
         contentPreviewPage = new ContentPreviewPage(
           appManagersPage,
