@@ -3,6 +3,7 @@ export enum IntegrationsSuiteTags {
   AIRTABLE = '@airtableAppTiles',
   FRESHSERVICE = '@freshserviceAppTiles',
   EXPENSIFY = '@expensifyAppTiles',
+  GITHUB = '@gitHubAppTiles',
   ABSOLUTE = '@absolute',
 }
 
@@ -17,6 +18,7 @@ export const TEST_TAGS = {
   AIRTABLE: IntegrationsSuiteTags.AIRTABLE,
   FRESHSERVICE: IntegrationsSuiteTags.FRESHSERVICE,
   EXPENSIFY: IntegrationsSuiteTags.EXPENSIFY,
+  GITHUB: IntegrationsSuiteTags.GITHUB,
   ABSOLUTE: IntegrationsSuiteTags.ABSOLUTE,
   TILE_MANAGEMENT: IntegrationsFeatureTags.TILE_MANAGEMENT,
   MULTI_USER: IntegrationsFeatureTags.MULTI_USER,

@@ -127,6 +127,29 @@ export class BaseVerificationUtil {
   }
 
   /**
+   * Verifies that the element is disabled
+   * @param locator - The locator to verify
+   * @param options - The options to pass to the verification
+   */
+  async verifyTheElementIsDisabled(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be disabled`).toBeDisabled();
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element not disabled.\n${error}`
+      );
+    }
+  }
+
+  /**
    * Verifies that the count of elements is equal to the expected count
    * @param locator - The locator to verify
    * @param expectedCount - The expected count of elements
