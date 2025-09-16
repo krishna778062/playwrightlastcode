@@ -5,6 +5,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { UserCredentials } from '@core/types/test.types';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
+import { IntegrationsSuiteTags } from '../../../constants/testTags';
 import { adGroupPage } from '../../../pages/adGroupPage';
 
 import { TestSuite } from '@/src/core/constants/testSuite';
@@ -20,7 +21,7 @@ let adGroup: adGroupPage;
 test.describe(
   'AD Group Integration',
   {
-    tag: ['@gamma'],
+    tag: [IntegrationsSuiteTags.GAMMA],
   },
   () => {
     test.beforeEach(async ({ page }) => {
