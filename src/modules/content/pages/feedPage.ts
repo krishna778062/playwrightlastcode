@@ -246,7 +246,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   }
 
   async verifyToastMessage(message: string): Promise<void> {
-    await this.listFeedComponent.verifyToastMessage(message);
+    await this.listFeedComponent.verifyToastMessageIsVisibleWithText(message);
   }
 
   async uploadImage(fileName: string): Promise<string> {
