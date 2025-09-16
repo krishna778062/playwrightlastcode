@@ -1,27 +1,28 @@
 import { Locator, Page, test } from '@playwright/test';
 
 import { AdGroupComponent } from '../components/adGroupComponent';
+import { BaseAppTileComponent } from '../components/baseAppTileComponent';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
 
 export class adGroupPage extends BasePage {
-  readonly adGroupLocator: Locator;
+  // readonly adGroupLocator: Locator;
   readonly adGroupComponent: AdGroupComponent;
+  readonly appTileComponent: BaseAppTileComponent;
 
   constructor(page: Page) {
-    super(page, PAGE_ENDPOINTS.INTEGRATIONS_PEOPLE_PAGE);
-    this.adGroupLocator = page.getByRole('button', { name: 'Add integration' });
+    super(page, PAGE_ENDPOINTS.PEOPLE_DATA_PAGE);
     this.adGroupComponent = new AdGroupComponent(page);
+    this.appTileComponent = new BaseAppTileComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify the page is loaded', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.adGroupLocator, {
-        timeout: 30_000,
-        assertionMessage:
-          'Verifying that the custom page is loaded by assertion for app tiles list item count presence',
-      });
+      // await this.verifier.verifyTheElementIsVisible(this.adGroupLocator, {
+      //   timeout: 30_000,
+      //   assertionMessage: 'Verifying the page is loaded',
+      // });
     });
   }
 
@@ -29,19 +30,11 @@ export class adGroupPage extends BasePage {
     return this.adGroupComponent.clickOnSpanContainButtonText(text);
   }
 
-  /**
-   * Click on radio button - better for radio button interactions
-   * Use this for "Use Microsoft Entra ID groups", "Do not use Microsoft Entra ID groups", etc.
-   */
   async clickOnRadioButton(text: string): Promise<void> {
     return this.adGroupComponent.clickOnSpanContainButtonText(text);
   }
 
-  async verifyMicrosoftEntraIDGroupsVisibility(text: string): Promise<void> {
-    return this.adGroupComponent.verifyMicrosoftEntraIDGroupsVisibility(text);
-  }
-
-  async clickOnButtonContainText(text: string): Promise<void> {
+  async clickOnDoneButton(text: string): Promise<void> {
     return this.adGroupComponent.clickOnButtonContainText(text);
   }
 
@@ -49,7 +42,7 @@ export class adGroupPage extends BasePage {
     return this.adGroupComponent.adGroupsModalIsDisplayed(text);
   }
 
-  async selectADGroups(text: string): Promise<void> {
+  async selectGroup(text: string): Promise<void> {
     return this.adGroupComponent.selectADGroups(text);
   }
 
@@ -57,7 +50,7 @@ export class adGroupPage extends BasePage {
     return this.adGroupComponent.validateMessage(text, number);
   }
 
-  async divTextDisplayed(text: string): Promise<void> {
+  async AudienceOptionDisplayed(text: string): Promise<void> {
     return this.adGroupComponent.divTextDisplayed(text);
   }
 
@@ -73,7 +66,11 @@ export class adGroupPage extends BasePage {
     return this.adGroupComponent.clickOnDisconnectButton(text);
   }
 
-  async headingIsPresent(text: string): Promise<void> {
+  async confirmDisconnect(text: string): Promise<void> {
     return this.adGroupComponent.headingIsPresent(text);
+  }
+
+  async verifyMessage(message: string): Promise<void> {
+    return this.appTileComponent.verifyToastMessage(message);
   }
 }

@@ -3,7 +3,6 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class AdGroupComponent extends BaseComponent {
-  readonly microsoftEntraButton: Locator;
   readonly adGroupsModal: (className: string) => Locator;
   readonly adGroupsOption: (text: string) => Locator;
   readonly spanContainText: (text: string) => Locator;
@@ -18,7 +17,6 @@ export class AdGroupComponent extends BaseComponent {
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
 
-    this.microsoftEntraButton = this.rootLocator.locator(`//button[contains(text(),'Microsoft Entra ID')]`);
     this.adGroupsModal = (className: string) => this.rootLocator.locator(`//div[contains(@class,'${className}')]`);
     this.adGroupsOption = (text: string) =>
       this.rootLocator.locator(`//ul[contains(@class,'results')]//li//div[text()='${text}']`);
@@ -30,10 +28,6 @@ export class AdGroupComponent extends BaseComponent {
     this.groupTypeDropdown = (id: string) => this.rootLocator.locator(`//select[@id='${id}']`);
     this.disconnectButton = (ariaLabel: string) => this.rootLocator.locator(`//button[@aria-label='${ariaLabel}']`);
     this.headingText = (text: string) => this.rootLocator.locator(`//h2[text()='${text}']`);
-  }
-
-  async verifyMicrosoftEntraIDGroupsVisibility(text: string): Promise<void> {
-    await expect(this.buttonContainText(text), 'expecting this button to be visible').toBeVisible();
   }
 
   async adGroupsModalIsDisplayed(className: string): Promise<void> {
@@ -49,13 +43,13 @@ export class AdGroupComponent extends BaseComponent {
   async clickOnSpanContainButtonText(text: string): Promise<void> {
     const span = this.spanContainText(text);
     await expect(span, 'expecting span text to be visible').toBeVisible({ timeout: 30000 });
-    await this.clickOnElement(span);
+    await span.click();
   }
 
   async clickOnButtonContainText(text: string): Promise<void> {
     const button = this.buttonContainText(text);
     await expect(button, 'expecting button text to be visible').toBeVisible({ timeout: 30000 });
-    await this.clickOnElement(button);
+    await button.click();
   }
 
   async validateMessage(text: string, number: string): Promise<void> {
