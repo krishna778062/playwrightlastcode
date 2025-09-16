@@ -92,7 +92,7 @@ export class HomeDashboard {
    * Verify toast message appears
    */
   async verifyToastMessage(message: string): Promise<void> {
-    return this.appTileComponent.verifyToastMessage(message);
+    return this.appTileComponent.verifyToastMessageIsVisibleWithText(message);
   }
 
   /**

@@ -70,8 +70,8 @@ export class CustomAppsIntegrationPage extends BasePage {
    * @param message - The message to verify
    * @returns void
    */
-  async verifyToastMessage(message: string): Promise<void> {
-    return this.customAppsListComponent.verifyToastMessage(message);
+  async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
+    return this.customAppsListComponent.verifyToastMessageIsVisibleWithText(message);
   }
 
   async openConnectorOptions(service: string): Promise<void> {

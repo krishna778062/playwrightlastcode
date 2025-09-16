@@ -130,7 +130,7 @@ export class ManageUsersPage extends BasePage {
       await this.clickOnButtonForUser(userName, MUOptions.UPDATE_PRIMARY_ROLE);
       await this.primaryRoleInputBox.selectOption(newRoleName);
       await this.clickOnButtonWithName('Update');
-      await this.verifyToastMessage('Role updated');
+      await this.verifyToastMessageIsVisibleWithText('Role updated');
     });
   }
 }
