@@ -6,6 +6,8 @@ import { TopNavBarComponent } from '@core/components/topNavBarComponent';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 
+import { SiteManagementHelper } from '../../helpers/siteManagementHelper';
+
 import { BasePage } from '@/src/core/pages/basePage';
 import { ChatNavigationComponent } from '@/src/modules/chat/components/chatNavigationComponent';
 import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
@@ -54,6 +56,10 @@ export interface INewUxHomePageActions extends ICommonHomePageActions {
   clickOnApplicationSettings: (options?: { stepInfo?: string }) => Promise<void>;
   verifyRolesButtonVisibility: (visible: boolean, options?: { stepInfo?: string }) => Promise<void>;
   clickOnBellIcon: (options?: { stepInfo?: string }) => Promise<NotificationComponent>;
+  navigateToApplication: () => Promise<void>;
+  clickOnManageFeature: () => Promise<void>;
+  clickOnHomeButton: () => Promise<void>;
+  clickOnFeedSideMenu: () => Promise<void>;
 }
 
 export abstract class BaseHomePage extends BasePage implements ICommonHomePageActions {
@@ -143,7 +149,7 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
    * @param options - The options for the step
    */
   async verifyRolesButtonVisibility(visible: boolean, options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo || 'Clicking on Roles button', async () => {
+    await test.step(options?.stepInfo || 'Verify the visibility of Roles button', async () => {
       await this.sideNavBarComponent.verifyRolesButtonVisibility(visible);
     });
   }

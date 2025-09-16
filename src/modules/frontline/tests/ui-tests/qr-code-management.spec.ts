@@ -1,3 +1,4 @@
+import { PopupType } from '@frontline/constants/popupType';
 import { FrontlineFeatureTags, FrontlineSuiteTags } from '@frontline/constants/testTags';
 import { frontlineTestFixture as test } from '@frontline/fixtures/frontlineFixture';
 import { ManageQRPage } from '@frontline/pages/manageQRPage';
@@ -50,7 +51,7 @@ test.describe(
         await manageQRPage.fillQRName(qrDetails.qrName);
         await manageQRPage.fillDescription(qrDetails.qrDescription);
         await manageQRPage.clickEyeIcon();
-        await manageQRPage.verifyPopupDisplayedByHeader('Promote mobile app via QR');
+        await manageQRPage.verifyPopupDisplayedByHeader(PopupType.PromotionPopup);
         await manageQRPage.verifyQRImageDisplayOnPreview();
         await manageQRPage.verifyQRDescriptionOnPreview(qrDetails.qrDescription);
         await manageQRPage.clickSaveAndVisit();
@@ -102,6 +103,36 @@ test.describe(
         await manageQRPage.loadPage();
         await manageQRPage.deleteAppQRByName('Content', qrDetails.qrName);
         qrDetails.qrCodeId = undefined;
+      }
+    );
+
+    test(
+      'Scenario: Verify creation of content QR',
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
+      },
+      async ({ appManagerHomePage, qrManagementService }) => {
+        tagTest(test.info(), {
+          description: 'Verify creation of content QR',
+          zephyrTestId: 'FL-427',
+          storyId: 'FL-427',
+        });
+        qrDetails.qrName = TestDataGenerator.generateQRName('Content QR');
+        qrDetails.qrDescription = TestDataGenerator.generateQRDescription('Content QR');
+        const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+        await manageQRPage.loadPage();
+        qrDetails.qrCodeId = await manageQRPage.clickOnAddQRAndGetQRId('Content');
+        await manageQRPage.verifyContentQRModalHeading();
+        await manageQRPage.fillQRName(qrDetails.qrName);
+        await manageQRPage.selectDateFromToday(2);
+        await manageQRPage.fillDescription(qrDetails.qrDescription);
+        await manageQRPage.clickEyeIcon();
+        await manageQRPage.verifyPopupDisplayedByHeader(PopupType.PreviewPopup);
+        await manageQRPage.verifyQRImageDisplayOnPreview();
+        await manageQRPage.verifyQRDescriptionOnPreview(qrDetails.qrDescription);
+        await manageQRPage.clickSaveAndVisit();
+        await manageQRPage.verifyManagePage();
+        await manageQRPage.verifyQRName(qrDetails.qrName);
       }
     );
   }

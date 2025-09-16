@@ -27,7 +27,7 @@ test.describe('Site Creation', { tag: ['@content', '@site-creation'] }, () => {
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE, '@random-category'],
     },
-    async ({ appManagerHomePage }) => {
+    async ({ appManagerHomePage, siteManagementHelper }) => {
       tagTest(test.info(), {
         zephyrTestId: 'CONT-20912',
         storyId: 'CONT-20912',

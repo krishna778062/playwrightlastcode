@@ -106,3 +106,11 @@ export interface audienceCreationResponse {
     };
   };
 }
+
+export interface audienceCreationParams {
+  audienceName: string;
+  categoryId: string;
+  attribute: string;
+  operator: string;
+  value: string;
+}

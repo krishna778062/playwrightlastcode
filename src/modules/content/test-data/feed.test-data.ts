@@ -1,5 +1,7 @@
 import { faker } from '@faker-js/faker';
 
+import { FeedMode } from '@core/types/feedManagement.types';
+
 export const FEED_TEST_DATA = {
   ATTACHMENTS: {
     IMAGE: 'image1.jpg',
@@ -21,4 +23,6 @@ export const FEED_TEST_DATA = {
     fileSize: 12125,
     mimeType: 'image/png',
   },
+
+  DEFAULT_FEED_MODE: FeedMode.TIMELINE_COMMENT_POST,
 } as const;
