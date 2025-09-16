@@ -77,7 +77,6 @@ async function createSiteAndContentByOptions(
         contentSubType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.contentType,
       },
       options: {
-        contentDescription: 'Auto-generated content for feed test',
         waitForSearchIndex: false,
       },
     });
@@ -167,6 +166,8 @@ test.describe(
             if (resources.pageDetails) {
               pageDetails = resources.pageDetails;
             }
+
+            await appManagerHomePage.page.waitForTimeout(50000);
 
             // Generate feed data based on feed type
             switch (testData.feedType) {
@@ -262,7 +263,16 @@ test.describe(
             await appManagerFeedPage.assertions.waitForPostToBeVisible(replyText);
 
             // Verify reply is associated with the correct post
-            await appManagerFeedPage.assertions.verifyReplyIsVisible(createdPostText, replyText);
+            await appManagerFeedPage.assertions.verifyReplyIsVisible(replyText);
+
+            // Click reply show more button
+            await appManagerFeedPage.actions.clickReplyShowMoreButton(createdPostText);
+
+            // Click delete button
+            await appManagerFeedPage.actions.clickDeleteButton();
+
+            // Verify delete button is visible
+            await appManagerFeedPage.assertions.verifyReplyIsNotVisible(replyText);
           }
         );
       });

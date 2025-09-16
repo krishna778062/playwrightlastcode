@@ -36,7 +36,8 @@ export interface IFeedActions {
   verifyPreviewModalIsOpened: () => Promise<void>;
   clickDeleteButton: () => Promise<void>;
   clickShowMoreButton: () => Promise<void>;
-  addReplyToPost: (postText: string, replyText: string) => Promise<void>;
+  addReplyToPost: (replyText: string) => Promise<void>;
+  clickReplyShowMoreButton: (postText: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -47,7 +48,8 @@ export interface IFeedAssertions {
   verifyPostIsFavorited: (postText: string) => Promise<void>;
   validatePostText: (postText: string) => Promise<void>;
   verifyImageButtonIsNotVisible: () => Promise<void>;
-  verifyReplyIsVisible: (postText: string, replyText: string) => Promise<void>;
+  verifyReplyIsVisible: (replyText: string) => Promise<void>;
+  verifyReplyIsNotVisible: (replyText: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -220,11 +222,19 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.filePreviewComponent.clickShowMoreButton();
   }
 
-  async addReplyToPost(postText: string, replyText: string): Promise<void> {
-    await this.listFeedComponent.addReplyToPost(postText, replyText);
+  async addReplyToPost(replyText: string): Promise<void> {
+    await this.listFeedComponent.addReplyToPost(replyText);
   }
 
-  async verifyReplyIsVisible(postText: string, replyText: string): Promise<void> {
-    await this.listFeedComponent.verifyReplyIsVisible(postText, replyText);
+  async verifyReplyIsVisible(replyText: string): Promise<void> {
+    await this.listFeedComponent.verifyReplyIsVisible(replyText);
+  }
+
+  async clickReplyShowMoreButton(postText: string): Promise<void> {
+    await this.listFeedComponent.clickReplyShowMoreButton(postText);
+  }
+
+  async verifyReplyIsNotVisible(replyText: string): Promise<void> {
+    await this.listFeedComponent.verifyReplyIsNotVisible(replyText);
   }
 }

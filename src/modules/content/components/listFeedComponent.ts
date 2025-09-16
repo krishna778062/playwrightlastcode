@@ -14,6 +14,10 @@ export class ListFeedComponent extends BaseComponent {
   readonly favoriteButton: Locator;
   readonly unfavoriteButton: Locator;
   readonly likeButton: Locator;
+  readonly editButton: Locator;
+  readonly replyButton: Locator;
+  readonly replyInput: Locator;
+  readonly submitReplyButton: Locator;
 
   // Dynamic locator functions
   /**
@@ -41,39 +45,12 @@ export class ListFeedComponent extends BaseComponent {
 
   readonly postTextLocator = (postText: string): Locator => this.page.locator('p').filter({ hasText: postText });
 
-  // Reply-related locators
-  readonly replyButton = (postText: string): Locator =>
-    this.page
-      .locator('p')
-      .filter({ hasText: postText })
-      .locator('xpath=./ancestor::div[4]')
-      .locator("button[aria-label*='Reply'], button[class*='reply']")
-      .first();
+  readonly replyShowMoreButton = (text: string) => {
+    return this.page.locator(`div:has(p:has-text("${text}")) + div`).locator('button');
+  };
 
-  readonly replyInput = (postText: string): Locator =>
-    this.page
-      .locator('p')
-      .filter({ hasText: postText })
-      .locator('xpath=./ancestor::div[4]')
-      .locator('textarea[placeholder*="Reply"], input[placeholder*="Reply"]')
-      .first();
-
-  readonly submitReplyButton = (postText: string): Locator =>
-    this.page
-      .locator('p')
-      .filter({ hasText: postText })
-      .locator('xpath=./ancestor::div[4]')
-      .locator("button[type='submit'], button:has-text('Post'), button:has-text('Reply')")
-      .first();
-
-  readonly replyLocator = (postText: string, replyText: string): Locator =>
-    this.page
-      .locator('p')
-      .filter({ hasText: postText })
-      .locator('xpath=./ancestor::div[4]')
-      .locator('div[class*="reply"], div[class*="comment"]')
-      .filter({ hasText: replyText })
-      .first();
+  readonly replyLocator = (replyText: string): Locator =>
+    this.page.locator('div[class*="replyContent"] p').filter({ hasText: replyText }).first();
 
   /**
    * Gets a locator for the post attachments
@@ -125,12 +102,17 @@ export class ListFeedComponent extends BaseComponent {
     super(page);
     this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' });
     this.deleteButton = this.page.locator("div:text('Delete')");
+    this.editButton = this.page.locator("div:text('Edit')");
     this.deleteConfirmDialog = this.page.locator('div[role="dialog"]');
     this.deleteConfirmButton = this.page.getByRole('button', { name: 'Delete' });
     this.closeButton = this.page.locator("button[class*='closeBtn']");
     this.inlineImagePreview = this.page.locator("div[class*='gallerySlide'] img");
     this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' });
     this.likeButton = this.page.getByRole('button', { name: 'React to this post' });
+    this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
+    this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' }).first();
+    this.replyInput = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
+    this.submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
   }
 
   /**
@@ -288,16 +270,16 @@ export class ListFeedComponent extends BaseComponent {
    * @param postText - The text of the post to reply to
    * @param replyText - The reply text to add
    */
-  async addReplyToPost(postText: string, replyText: string): Promise<void> {
-    await test.step(`Add reply to post: ${postText}`, async () => {
+  async addReplyToPost(replyText: string): Promise<void> {
+    await test.step(`Add reply to post`, async () => {
       // Click reply button
-      await this.clickOnElement(this.replyButton(postText));
+      await this.clickOnElement(this.replyButton);
 
       // Fill the reply input
-      await this.typeInElement(this.replyInput(postText), replyText);
+      await this.forceTypeInLocator(this.replyInput, replyText);
 
       // Click submit reply button
-      await this.clickOnElement(this.submitReplyButton(postText));
+      await this.clickOnElement(this.submitReplyButton);
     });
   }
 
@@ -306,11 +288,36 @@ export class ListFeedComponent extends BaseComponent {
    * @param postText - The text of the original post
    * @param replyText - The text of the reply to verify
    */
-  async verifyReplyIsVisible(postText: string, replyText: string): Promise<void> {
-    await test.step(`Verify reply is visible under post: ${postText}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.replyLocator(postText, replyText), {
-        assertionMessage: `Reply "${replyText}" should be visible under post "${postText}"`,
+  async verifyReplyIsVisible(replyText: string): Promise<void> {
+    await test.step(`Verify reply is visible under post`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.replyLocator(replyText), {
+        assertionMessage: `Reply "${replyText}" should be visible under post`,
       });
+    });
+  }
+
+  async verifyReplyIsNotVisible(replyText: string): Promise<void> {
+    await test.step(`Verify reply is not visible under post`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.replyLocator(replyText), {
+        assertionMessage: `Reply "${replyText}" should not be visible under post`,
+      });
+    });
+  }
+
+  /**
+   *
+   * @param postText Click reply show more button
+   */
+
+  async clickReplyShowMoreButton(postText: string): Promise<void> {
+    await test.step(`Click reply show more button`, async () => {
+      await this.clickOnElement(this.replyShowMoreButton(postText));
+    });
+  }
+
+  async clickEditButton(): Promise<void> {
+    await test.step(`Click edit button`, async () => {
+      await this.clickOnElement(this.editButton);
     });
   }
 }

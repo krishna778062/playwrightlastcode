@@ -181,6 +181,18 @@ export class BaseActionUtil {
     });
   }
 
+  /** force type in an element */
+
+  async forceTypeInLocator(locator: Locator, text: string) {
+    await locator.evaluate((element: HTMLElement, value: string) => {
+      if (element instanceof HTMLElement) {
+        (element as HTMLInputElement).value = value;
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }, text);
+  }
+
   /**
    * Gets an element attribute
    * @param selectorOrLocator - The selector or locator to get the attribute from
