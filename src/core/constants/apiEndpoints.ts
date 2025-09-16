@@ -82,6 +82,8 @@ export const API_ENDPOINTS = {
     update: (feedId: string) => `/v1/wfeed/feeds/${feedId}`,
     feedURL: (feedId: string) => `/feed/${feedId}`,
     comment: (feedId: string) => `/v1/wfeed/feeds/${feedId}/comments`,
+    appGovernance: '/v1/account/appConfig/app.setup.governance',
+    rudderstack: 'https://rudderstack-data-plane.qa.simpplr.xyz/v1/track',
   },
   apps: {
     settings: '/v1/account/apps-links-settings',
@@ -116,4 +118,13 @@ export const API_QUERY_PARAMS = {
 export const API_HEADERS = {
   ACCEPT: 'application/json',
   CONTENT_TYPE: 'application/json',
+} as const;
+
+export const FEED_CONFIG = {
+  DEFAULT_FEED_MODE: 'timeline_comment_post',
+  FEED_MODES: {
+    TIMELINE_COMMENT_POST: 'timeline_comment_post',
+    TIMELINE_POST: 'timeline_post',
+    TIMELINE_COMMENT: 'timeline_comment',
+  },
 } as const;

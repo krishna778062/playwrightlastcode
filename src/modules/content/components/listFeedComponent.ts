@@ -273,10 +273,25 @@ export class ListFeedComponent extends BaseComponent {
   async addReplyToPost(replyText: string): Promise<void> {
     await test.step(`Add reply to post`, async () => {
       // Click reply button
+      //add API wait for response
+      const replyApiPromise = this.page.waitForResponse(
+        response =>
+          response.url().includes(API_ENDPOINTS.feed.rudderstack) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200
+      );
       await this.clickOnElement(this.replyButton);
 
+      await replyApiPromise;
+      await this.verifier.verifyTheElementIsVisible(this.replyInput, {
+        assertionMessage: `Reply input should be visible`,
+      });
+      await this.clickOnElement(this.replyInput);
+
+      console.log('replyText: ', replyText);
       // Fill the reply input
-      await this.forceTypeInLocator(this.replyInput, replyText);
+      await this.typeInElement(this.replyInput, replyText);
+      console.log('reply added: ', replyText);
 
       // Click submit reply button
       await this.clickOnElement(this.submitReplyButton);

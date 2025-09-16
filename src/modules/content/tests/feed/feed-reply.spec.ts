@@ -167,7 +167,7 @@ test.describe(
               pageDetails = resources.pageDetails;
             }
 
-            await appManagerHomePage.page.waitForTimeout(50000);
+            await appManagerHomePage.page.waitForTimeout(30000);
 
             // Generate feed data based on feed type
             switch (testData.feedType) {
@@ -257,7 +257,7 @@ test.describe(
             });
 
             // Add reply to the feed post
-            await appManagerFeedPage.actions.addReplyToPost(createdPostText, replyText);
+            await appManagerFeedPage.actions.addReplyToPost(replyText);
 
             // Verify reply is visible
             await appManagerFeedPage.assertions.waitForPostToBeVisible(replyText);
