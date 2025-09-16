@@ -51,6 +51,7 @@ export function buildCreateFeedPayload(
   text: string,
   scope: string,
   siteId: string | null = null,
+  contentId: string | null = null,
   listOfAttachedFiles: any[] = [],
   ignoreToxic: boolean = false,
   type: string = 'post',
@@ -63,6 +64,7 @@ export function buildCreateFeedPayload(
     textHtml,
     scope,
     siteId,
+    contentId,
     listOfAttachedFiles,
     ignoreToxic,
     type,
@@ -123,6 +125,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
         ...overrides,
       };
       console.log('feed payload JSON: ', JSON.stringify(payload, null, 2));
+
       const response = await this.post(API_ENDPOINTS.feed.create, {
         data: payload,
       });
@@ -160,6 +163,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
    * @param {string} [options.fileId] Existing file ID if updating
    * @param {string} [options.uploadContext='home-feed'] Upload context
    * @param {string} [options.siteId] Site ID if uploading to specific site
+   * @param {string} [options.contentId] Content ID if uploading to specific content
    * @returns {Promise<any>}
    * @memberof FeedManagementService
    */
@@ -170,12 +174,12 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
     options: {
       altText?: string | null;
       fileId?: string;
-      uploadContext?: string;
       siteId?: string | null;
+      contentId?: string | null;
     } = {}
   ): Promise<any> {
     return await test.step(`Uploading image "${fileName}" to get signed URL`, async () => {
-      const { altText = null, fileId = '', uploadContext = 'home-feed', siteId = null } = options;
+      const { altText = null, fileId = '', siteId = null, contentId = null } = options;
 
       const payload = {
         file_name: fileName,
@@ -183,7 +187,6 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
         alt_text: altText,
         mime_type: mimeType,
         file_id: fileId,
-        uploadContext: uploadContext,
         siteId: siteId,
       };
 
@@ -323,7 +326,38 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
         throw new Error(`Failed to create feed with attachment. Status: ${response.status()}`);
       }
 
-      return responseBody;
+      return { ...responseBody };
+    });
+  }
+
+  /**
+   * Adds a comment/reply to a feed post
+   * @param feedId - The ID of the feed post to comment on
+   * @param commentData - The comment data including textHtml, textJson, etc.
+   * @returns Promise<APIResponse> - The API response
+   */
+  async addComment(
+    feedId: string,
+    commentData: {
+      textHtml: string;
+      textJson: string;
+      listOfAttachedFiles: any[];
+      ignoreToxic: boolean;
+    }
+  ): Promise<APIResponse> {
+    return await test.step(`Adding comment to feed ${feedId}`, async () => {
+      const response = await this.post(API_ENDPOINTS.feed.comment(feedId), {
+        data: commentData,
+      });
+
+      const responseBody = await response.json();
+      console.log('Add comment response:', JSON.stringify(responseBody, null, 2));
+
+      if (!response.ok()) {
+        throw new Error(`Failed to add comment to feed ${feedId}. Status: ${response.status()}`);
+      }
+
+      return response;
     });
   }
 }

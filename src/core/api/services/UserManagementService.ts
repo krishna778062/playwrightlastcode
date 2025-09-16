@@ -6,7 +6,13 @@ import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { Roles } from '@core/constants/roles';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { AddUserResponse } from '@core/types/group.type';
-import { IdentityUserInfoResponse, IdentityUserSearchResponse, SearchUserResponse, User } from '@core/types/user.type';
+import {
+  IdentityUserInfoResponse,
+  IdentityUserSearchResponse,
+  IdentityValidateResponse,
+  SearchUserResponse,
+  User,
+} from '@core/types/user.type';
 
 import { IdentityService } from './IdentityService';
 
@@ -19,6 +25,7 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
   private defaultTimezoneId: number = 17;
   private defaultLanguageId: number = 1;
   private defaultLocaleId: number = 1;
+  private defaultDepartment: string = 'Product';
 
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
@@ -56,9 +63,9 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
    * Adds a user to the system
    * @param user - The user to add
    * @param role - The role of the user
-   * @returns The response from the API
+   * @param options - department - The department of the user
    */
-  async addUserIfNotAddedAlready(user: User, role: Roles): Promise<void> {
+  async addUserIfNotAddedAlready(user: User, role: Roles, options?: { department: string }): Promise<void> {
     let data: any;
     let loginIdentifier: any;
     const roleId = await this.identityService.fetchRoleId(role);
@@ -98,6 +105,7 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
         silent_upload: false,
         work_info: {
           employee_number: user.emp,
+          department: options?.department || this.defaultDepartment,
         },
       };
     } else if (!user.email && !user.mobile && !user.emp) {
@@ -342,6 +350,199 @@ export class UserManagementService extends BaseApiClient implements IUserManagem
           status: newStatus,
         },
       });
+    });
+  }
+
+  /**
+   * Registers the user in the system with taking default verification question field as department and value as Product.
+   * @param loginIdentifier - LoginIdentifier of the user to be registered
+   * @param password - password to be set for the user
+   * @param options - options to be used for the registration
+   */
+  async registerUser(
+    loginIdentifier: string,
+    options?: { verificationQuestionField: string; verificationQuestionValue: string; password: string }
+  ): Promise<void> {
+    await test.step(`Registering the user with login identifier: ${loginIdentifier}`, async () => {
+      const validateResponse = await this.validateUser(loginIdentifier);
+      expect(
+        validateResponse.status(),
+        `Validate api with login identifier ${loginIdentifier} successfully executed`
+      ).toBe(200);
+      const validateResponseJson = await this.parseResponse<IdentityValidateResponse>(validateResponse);
+      let token = validateResponseJson.result.token;
+      const isFirstLogin = validateResponseJson.result.firstLogin;
+      const isSSO = validateResponseJson.result.sso;
+      const identifierType = validateResponseJson.result.identifierType;
+
+      // If the user is non sso user and logging in for the first time then only we need to register the user and set the password
+      if (isFirstLogin && !isSSO) {
+        // If the identifier type is alternate then we need to verify the profile questions
+        if (identifierType === 'alternate') {
+          // Answer the verification question
+          const profileQuestionsVerifyResponse = await this.answerProfileQuestionsDuringRegistration(token, {
+            verificationQuestionField: options?.verificationQuestionField || '',
+            verificationQuestionValue: options?.verificationQuestionValue || '',
+          });
+          const profileQuestionsVerifyResponseJson = await this.parseResponse<any>(profileQuestionsVerifyResponse);
+          console.log('profileQuestionsVerifyResponse: ' + JSON.stringify(profileQuestionsVerifyResponseJson, null, 2));
+          expect(
+            profileQuestionsVerifyResponse.status(),
+            `Verification questions for user with login identifier ${loginIdentifier} has been set`
+          ).toBe(200);
+        }
+        const setPasswordResponse = await this.setPasswordDuringRegistration(token);
+        const setPasswordResponseJson = await this.parseResponse<any>(setPasswordResponse);
+        console.log('setPasswordResponse: ' + JSON.stringify(setPasswordResponseJson, null, 2));
+        expect(setPasswordResponse.status(), `Password has been set for the user`).toBe(201);
+        token = await this.getToken(setPasswordResponse);
+        const csrfid = await this.getCsrfid(setPasswordResponse);
+
+        const securityQuestionsResponse = await this.setSecurityQuestionsAfterRegistration(
+          `token=${token}; csrfid=${csrfid}`,
+          csrfid
+        );
+        const securityQuestionsResponseJson = await this.parseResponse<any>(securityQuestionsResponse);
+        console.log('securityQuestionsResponse: ' + JSON.stringify(securityQuestionsResponseJson, null, 2));
+        expect(securityQuestionsResponse.status(), `Security questions have been set for the user`).toBe(201);
+      }
+    });
+  }
+
+  /**
+   * Validates the user with given login identifier
+   * @param loginIdentifier - Given login identifiet for the user to be validated
+   * @returns Response of the API
+   */
+  async validateUser(loginIdentifier: string): Promise<any> {
+    return await test.step(`Validating the user with login identifier: ${loginIdentifier}`, async () => {
+      const response = await this.post(API_ENDPOINTS.identity.validate, {
+        data: {
+          loginIdentifier: loginIdentifier,
+        },
+      });
+      return response;
+    });
+  }
+
+  /**
+   * Sets security questions for the user after registration
+   * @param cookie - Cookie of the user
+   * @param csrfid - Csrfid of the user
+   * @returns Response of the API
+   */
+  async setSecurityQuestionsAfterRegistration(cookie: string, csrfid: string): Promise<any> {
+    return await test.step(`Setting security questions for the user`, async () => {
+      const response = await this.post(API_ENDPOINTS.identity.v2IdentityUsersRegisterProfile, {
+        headers: {
+          Cookie: cookie,
+          'x-smtip-csrfid': csrfid,
+        },
+        data: {
+          answers: [
+            {
+              questionId: 24409,
+              answer: 'monty',
+            },
+            {
+              questionId: 24410,
+              answer: 'monty',
+            },
+            {
+              questionId: 24411,
+              answer: 'monty',
+            },
+          ],
+        },
+      });
+      return response;
+    });
+  }
+
+  /**
+   * Sets password for the user during registration
+   * @param token - Token of the user
+   * @param options - password - Password to be set for the user. Default password is Simp@1234.
+   * @returns Response of the API
+   */
+  async setPasswordDuringRegistration(token: string, options?: { password: string }): Promise<any> {
+    const defaultPassword: string = 'Simp@1234';
+    return await test.step(`Setting password for the user with token: ${token} and password: ${options?.password || defaultPassword}`, async () => {
+      const response = await this.post(API_ENDPOINTS.identity.v2IdentityUsersSetPassword, {
+        headers: {
+          'x-smtip-tsid': token,
+        },
+        data: {
+          password: options?.password || defaultPassword,
+        },
+      });
+      return response;
+    });
+  }
+
+  /**
+   * Answers the user's profile questions during registration
+   * @param token - Token of the user
+   * @param options - verificationQuestionField - Verification question field which the user needs to answer
+   * @param options - verificationQuestionValue - Value of the verification question field which the user needs to answer
+   * @returns Response of the API
+   */
+  async answerProfileQuestionsDuringRegistration(
+    token: string,
+    options?: {
+      verificationQuestionField: string;
+      verificationQuestionValue: string;
+    }
+  ): Promise<any> {
+    const defaultVerificationQuestionField: string = 'department';
+    const defaultVerificationQuestionValue: string = 'Product';
+    return await test.step(`Answering user's profile question for ${options?.verificationQuestionField || defaultVerificationQuestionField} as ${options?.verificationQuestionValue || defaultVerificationQuestionValue}`, async () => {
+      const response = await this.post(API_ENDPOINTS.identity.v2IdentityProfileQuestionsVerify, {
+        headers: {
+          'x-smtip-tsid': token,
+        },
+        data: {
+          fields: [
+            {
+              fieldName: options?.verificationQuestionField || defaultVerificationQuestionField,
+              answer: options?.verificationQuestionValue || defaultVerificationQuestionValue,
+            },
+          ],
+        },
+      });
+      return response;
+    });
+  }
+
+  /**
+   * Gets Token from the response.
+   * @param response - Response of API from which token needs to be extracted
+   */
+  async getToken(response: any): Promise<string> {
+    return response.headers()['set-cookie'].split(';')[0].replace('token=', '');
+  }
+
+  /**
+   * Gets Csrfid from the response.
+   * @param response - Response of API from which csrfid needs to be extracted
+   */
+  async getCsrfid(response: any): Promise<string> {
+    return response.headers()['set-cookie'].split('csrfid=')[1].split(';')[0];
+  }
+
+  /**
+   * Waits for the user with the given first name and last name to be added to the system
+   * @param searchTerm - Search value to be used
+   */
+  async waitForUserRoleToSync(loginIdentifier: string, roleId: string): Promise<void> {
+    await test.step(`Wait for user with login identifier ${loginIdentifier} to have role ${roleId} synced`, async () => {
+      await expect(async () => {
+        const responseJson = await this.getUserInfo(await this.getUserId(loginIdentifier));
+        expect(
+          responseJson.role_id,
+          `Expecting user with login identidfier ${loginIdentifier} to have role ${roleId}`
+        ).toEqual(roleId);
+      }).toPass({ timeout: TIMEOUTS.MEDIUM });
     });
   }
 }

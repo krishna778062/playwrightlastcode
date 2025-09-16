@@ -1,6 +1,7 @@
 import { expect, Page, test } from '@playwright/test';
 
 import { CreateFeedPostComponent, FeedPostOptions, FeedPostResult } from '@content/components/createFeedPostComponent';
+import { FilePreviewComponent } from '@content/components/filePreviewComponent';
 import { ListFeedComponent } from '@content/components/listFeedComponent';
 import { BasePage } from '@core/pages/basePage';
 
@@ -29,6 +30,10 @@ export interface IFeedActions {
   }) => Promise<void>;
   markPostAsFavourite: () => Promise<void>;
   removePostFromFavourite: (postText: string) => Promise<void>;
+  clickInfoIcon: (fileId: string) => Promise<void>;
+  verifyPreviewModalIsOpened: () => Promise<void>;
+  clickDeleteButton: () => Promise<void>;
+  clickShowMoreButton: () => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -38,16 +43,19 @@ export interface IFeedAssertions {
   verifyPostIsNotFavorited: (postText: string) => Promise<void>;
   verifyPostIsFavorited: (postText: string) => Promise<void>;
   validatePostText: (postText: string) => Promise<void>;
+  verifyImageButtonIsNotVisible: () => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
   private createFeedPostComponent: CreateFeedPostComponent;
   private listFeedComponent: ListFeedComponent;
+  private filePreviewComponent: FilePreviewComponent;
 
   constructor(page: Page) {
     super(page);
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
+    this.filePreviewComponent = new FilePreviewComponent(page);
   }
 
   get actions(): IFeedActions {
@@ -185,5 +193,26 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async validatePostText(postText: string): Promise<void> {
     await this.listFeedComponent.validatePostText(postText);
+  }
+
+  // File preview methods
+  async clickInfoIcon(fileId: string): Promise<void> {
+    await this.listFeedComponent.clickInfoIcon(fileId);
+  }
+
+  async verifyPreviewModalIsOpened(): Promise<void> {
+    await this.filePreviewComponent.verifyPreviewModalIsOpened();
+  }
+
+  async clickDeleteButton(): Promise<void> {
+    await this.filePreviewComponent.clickDeleteButton();
+  }
+
+  async verifyImageButtonIsNotVisible(): Promise<void> {
+    await this.listFeedComponent.verifyImageButtonIsNotVisible();
+  }
+
+  async clickShowMoreButton(): Promise<void> {
+    await this.filePreviewComponent.clickShowMoreButton();
   }
 }

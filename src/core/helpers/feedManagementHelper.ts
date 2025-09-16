@@ -23,6 +23,7 @@ export class FeedManagementHelper {
       | {
           scope: string;
           siteId?: string;
+          contentId?: string;
           text?: string;
           withAttachment?: false;
           fileName?: undefined;
@@ -34,6 +35,7 @@ export class FeedManagementHelper {
       | {
           scope: string;
           siteId?: string;
+          contentId?: string;
           text?: string;
           withAttachment: true;
           fileName: string;
@@ -58,6 +60,7 @@ export class FeedManagementHelper {
             textHtml,
             scope: params.scope,
             siteId: params.siteId || null,
+            contentId: params.contentId || null,
             ignoreToxic: false,
             type: 'post',
             variant: 'standard',
@@ -68,6 +71,7 @@ export class FeedManagementHelper {
           textHtml,
           scope: params.scope,
           siteId: params.siteId || null,
+          contentId: params.contentId || null,
           listOfAttachedFiles: [],
           ignoreToxic: false,
           type: 'post',
@@ -108,5 +112,27 @@ export class FeedManagementHelper {
 
   async deleteFeed(feedId: string) {
     await this.appManagerApiClient.getFeedManagementService().deleteFeed(feedId);
+  }
+
+  /**
+   * Adds a comment/reply to a feed post
+   * @param feedId - The ID of the feed post to comment on
+   * @param commentData - The comment data including textHtml, textJson, etc.
+   * @returns Promise with the API response
+   */
+  async addComment(
+    feedId: string,
+    commentData: {
+      textHtml: string;
+      textJson: string;
+      listOfAttachedFiles: any[];
+      ignoreToxic: boolean;
+    }
+  ) {
+    return await test.step(`Adding comment to feed ${feedId}`, async () => {
+      const response = await this.appManagerApiClient.getFeedManagementService().addComment(feedId, commentData);
+      const responseBody = await response.json();
+      return responseBody;
+    });
   }
 }
