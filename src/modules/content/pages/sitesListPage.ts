@@ -3,7 +3,8 @@ import { Locator, Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
-import { SiteCreationPage } from './siteCreationPage';
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
+import { SiteCreationPage } from '@/src/modules/content/pages/siteCreationPage';
 
 export interface ISitesListActions {
   clickAddSiteButton: () => Promise<SiteCreationPage>;
@@ -34,7 +35,7 @@ export class SitesListPage extends BasePage implements ISitesListActions, ISites
     await test.step('Verify Sites List page is loaded', async () => {
       await this.verifier.verifyTheElementIsVisible(this.addSiteButton, {
         assertionMessage: 'Add site button should be visible',
-        timeout: 10000,
+        timeout: TIMEOUTS.LONG,
       });
     });
   }

@@ -69,6 +69,9 @@ test.describe(
         siteManagementHelper,
         feedManagementHelper,
       }) => {
+        // Configure app governance settings and enable timeline comment post(feed)
+        await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
+
         // Initialize feed pages for different user roles
         appManagerFeedPage = new FeedPage(appManagerHomePage.page);
         standardUserFeedPage = new FeedPage(standardUserHomePage.page);

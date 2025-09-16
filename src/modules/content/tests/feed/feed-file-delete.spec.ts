@@ -151,6 +151,9 @@ test.describe(
         test.beforeEach(
           'Setup test environment and data creation',
           async ({ appManagerHomePage, contentManagementHelper, siteManagementHelper, feedManagementHelper }) => {
+            // Configure app governance settings and enable timeline comment post(feed)
+            await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
+
             // Initialize feed page
             appManagerFeedPage = new FeedPage(appManagerHomePage.page);
 
