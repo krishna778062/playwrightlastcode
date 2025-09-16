@@ -153,6 +153,8 @@ for (const testData of feedTestData) {
       test.beforeEach(
         'Setup test environment and data creation',
         async ({ appManagerHomePage, contentManagementHelper, siteManagementHelper, feedManagementHelper }) => {
+          // Configure app governance settings and enable timeline comment post(feed)
+          await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
           // Initialize feed page
           appManagerFeedPage = new FeedPage(appManagerHomePage.page);
 
@@ -243,11 +245,7 @@ for (const testData of feedTestData) {
             );
             await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
           } else if (testData.feedType === 'Site Feed') {
-            siteDashboardPage = new SiteDashboardPage(
-              appManagerHomePage.page,
-              siteDetails.siteId,
-              siteManagementHelper
-            );
+            siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteDetails.siteId);
             await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
           } else if (testData.feedType === 'Home Feed') {
             await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));

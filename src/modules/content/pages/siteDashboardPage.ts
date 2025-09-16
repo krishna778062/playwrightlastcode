@@ -8,13 +8,14 @@ import { PageCreationPage } from '@content/pages/pageCreationPage';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
-import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
+import { SiteDashboardComponent } from '@/src/modules/content/components/siteDashboardComponent';
 
 export interface ISiteDashboardActions {
   navigateToPageCreationFromSiteDashboard: () => Promise<PageCreationPage>;
   navigateToAlbumCreationFromSiteDashboard: () => Promise<AlbumCreationPage>;
   navigateToEventCreationFromSiteDashboard: () => Promise<EventCreationPage>;
   navigateToManageSite: () => Promise<void>;
+  verfiyFeedSection: () => Promise<void>;
 }
 
 export interface ISiteDashboardAssertions {
@@ -32,15 +33,18 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
   readonly addContentModal: AddContentModalComponent;
   readonly successMessage = (message: string) =>
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
+  private siteDashboardComponent: SiteDashboardComponent;
 
   // Locators for site and category verification
   readonly categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
   readonly categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
   readonly siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
 
-  constructor(page: Page, siteId: string, siteManagementHelper: SiteManagementHelper) {
+  constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
-    this.addContentModal = new AddContentModalComponent(page, siteManagementHelper);
+    this.siteDashboardComponent = new SiteDashboardComponent(page);
+    this.verfiyFeedSection = this.verfiyFeedSection.bind(this);
+    this.addContentModal = new AddContentModalComponent(page);
   }
 
   // Actions
@@ -159,6 +163,11 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
     });
   }
 
+  async verfiyFeedSection(): Promise<void> {
+    await test.step('Verifying feed section', async () => {
+      await this.siteDashboardComponent.verfiyFeedSection.isHidden();
+    });
+  }
   /**
    * Verifies that site was created successfully by checking if site link is visible
    * @param siteName - The site name to verify

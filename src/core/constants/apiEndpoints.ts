@@ -85,6 +85,9 @@ export const API_ENDPOINTS = {
     appGovernance: '/v1/account/appConfig/app.setup.governance',
     rudderstack: 'https://rudderstack-data-plane.qa.simpplr.xyz/v1/track',
   },
+  appConfig: {
+    governance: '/v1/account/appConfig/app.setup.governance',
+  },
   apps: {
     settings: '/v1/account/apps-links-settings',
     list: '/v1/account/launchpad/apps/list',

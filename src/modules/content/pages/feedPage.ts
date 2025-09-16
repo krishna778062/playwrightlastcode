@@ -36,6 +36,12 @@ export interface IFeedActions {
   verifyPreviewModalIsOpened: () => Promise<void>;
   clickDeleteButton: () => Promise<void>;
   clickShowMoreButton: () => Promise<void>;
+  verifyVersionImageIsDisplayed: (fileId: string) => Promise<void>;
+  uploadImage: (fileName: string) => Promise<string>;
+  clickOnUploadButton: (fileId: string) => Promise<void>;
+  clickOnCloseButton: () => Promise<void>;
+  clickOnInfoIconOnImage: () => Promise<void>;
+  clickOnEditVersionButton: () => Promise<void>;
   addReplyToPost: (replyText: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
   clickOnDeleteReplyButton: () => Promise<void>;
@@ -51,6 +57,9 @@ export interface IFeedAssertions {
   verifyImageButtonIsNotVisible: () => Promise<void>;
   verifyReplyIsVisible: (replyText: string) => Promise<void>;
   verifyReplyIsNotVisible: (replyText: string) => Promise<void>;
+  verifyVersionImageIsDisplayed: (fileId: string) => Promise<void>;
+  verifyVersionNumber: (expectedVersionNumber: string) => Promise<void>;
+  verifyToastMessage: (message: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -226,6 +235,38 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async clickShowMoreButton(): Promise<void> {
     await this.filePreviewComponent.clickShowMoreButton();
+  }
+
+  async verifyVersionImageIsDisplayed(fileId: string): Promise<void> {
+    await this.listFeedComponent.verifyVersionImageIsDisplayed(fileId);
+  }
+
+  async verifyVersionNumber(expectedVersionNumber: string): Promise<void> {
+    await this.filePreviewComponent.verifyVersionNumber(expectedVersionNumber);
+  }
+
+  async verifyToastMessage(message: string): Promise<void> {
+    await this.listFeedComponent.verifyToastMessage(message);
+  }
+
+  async uploadImage(fileName: string): Promise<string> {
+    return await this.filePreviewComponent.uploadImage(fileName);
+  }
+
+  async clickOnUploadButton(fileId: string): Promise<void> {
+    await this.filePreviewComponent.clickOnUploadButton(fileId);
+  }
+
+  async clickOnCloseButton(): Promise<void> {
+    await this.filePreviewComponent.clickOnCloseButton();
+  }
+
+  async clickOnInfoIconOnImage(): Promise<void> {
+    await this.filePreviewComponent.clickOnInfoIconOnImage();
+  }
+
+  async clickOnEditVersionButton(): Promise<void> {
+    await this.filePreviewComponent.clickOnEditVersionButton();
   }
 
   async addReplyToPost(replyText: string): Promise<void> {

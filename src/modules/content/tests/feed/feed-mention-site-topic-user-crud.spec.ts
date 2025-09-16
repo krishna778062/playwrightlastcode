@@ -4,14 +4,16 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { ContentType } from '../../constants/contentType';
+import { SiteDashboardPage } from '../../pages/siteDashboardPage';
+import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
+
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
-import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
-import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { SiteType } from '@/src/modules/content-abac/constants/siteType';
 
@@ -98,11 +100,7 @@ async function createSiteAndContentByOptions(
 
   if (options.createSite) {
     const siteResult = await helpers.siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
-    resources.siteDashboardPage = new SiteDashboardPage(
-      helpers.appManagerHomePage.page,
-      siteResult.siteId,
-      helpers.siteManagementHelper
-    );
+    resources.siteDashboardPage = new SiteDashboardPage(helpers.appManagerHomePage.page, siteResult.siteId);
   }
 
   if (options.createPage) {
@@ -201,7 +199,16 @@ test.describe(
 
         test.beforeEach(
           'Setup test environment and data creation',
-          async ({ appManagerHomePage, appManagerApiClient, contentManagementHelper, siteManagementHelper }) => {
+          async ({
+            appManagerHomePage,
+            appManagerApiClient,
+            contentManagementHelper,
+            siteManagementHelper,
+            feedManagementHelper,
+          }) => {
+            // Configure app governance settings and enable timeline comment post(feed)
+            await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
+
             // Initialize feed page
             appManagerFeedPage = new FeedPage(appManagerHomePage.page);
             identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
