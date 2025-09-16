@@ -1,4 +1,4 @@
-import { APIRequestContext, APIResponse, Cookie, Page, request } from '@playwright/test';
+import { APIRequestContext, Cookie, Page, request } from '@playwright/test';
 import fs from 'fs';
 
 import { ApiError } from '@core/api/apiError';

@@ -69,6 +69,9 @@ test.describe(
         siteManagementHelper,
         feedManagementHelper,
       }) => {
+        // Configure app governance settings and enable timeline comment post(feed)
+        await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
+
         // Initialize feed pages for different user roles
         appManagerFeedPage = new FeedPage(appManagerHomePage.page);
         standardUserFeedPage = new FeedPage(standardUserHomePage.page);
@@ -76,7 +79,7 @@ test.describe(
 
         // Setup user and site
         const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
-        const endUserPeopleId = await identityManagementHelper.getUserIdByEmail(users.endUser.email);
+        const endUserInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
 
         createdSite = await siteManagementHelper.createPublicSite({
           waitForSearchIndex: false,
@@ -85,7 +88,7 @@ test.describe(
         // update user as a content manager of the site
         await siteManagementHelper.updateUserSiteMembershipWithRole({
           siteId: createdSite.siteId,
-          userId: endUserPeopleId,
+          userId: endUserInfo.userId,
           role: SitePermission.CONTENT_MANAGER,
         });
       }

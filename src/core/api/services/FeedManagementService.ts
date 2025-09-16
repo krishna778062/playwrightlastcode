@@ -6,10 +6,7 @@ import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { IFeedManagementOperations } from '@core/api/interfaces/IFeedManagementOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { CreateFeedPostPayload, FeedPostResponse, UpdateFeedPostPayload } from '@core/types/feed.type';
-
-import { FileUtil } from '../../utils/fileUtil';
-
-import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+import { FeedMode } from '@core/types/feedManagement.types';
 
 export function buildFeedTextJsonAndTextHtml(text: string) {
   const textJsonObject = {
@@ -51,6 +48,7 @@ export function buildCreateFeedPayload(
   text: string,
   scope: string,
   siteId: string | null = null,
+  contentId: string | null = null,
   listOfAttachedFiles: any[] = [],
   ignoreToxic: boolean = false,
   type: string = 'post',
@@ -63,6 +61,7 @@ export function buildCreateFeedPayload(
     textHtml,
     scope,
     siteId,
+    contentId,
     listOfAttachedFiles,
     ignoreToxic,
     type,
@@ -123,6 +122,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
         ...overrides,
       };
       console.log('feed payload JSON: ', JSON.stringify(payload, null, 2));
+
       const response = await this.post(API_ENDPOINTS.feed.create, {
         data: payload,
       });
@@ -160,6 +160,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
    * @param {string} [options.fileId] Existing file ID if updating
    * @param {string} [options.uploadContext='home-feed'] Upload context
    * @param {string} [options.siteId] Site ID if uploading to specific site
+   * @param {string} [options.contentId] Content ID if uploading to specific content
    * @returns {Promise<any>}
    * @memberof FeedManagementService
    */
@@ -170,12 +171,12 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
     options: {
       altText?: string | null;
       fileId?: string;
-      uploadContext?: string;
       siteId?: string | null;
+      contentId?: string | null;
     } = {}
   ): Promise<any> {
     return await test.step(`Uploading image "${fileName}" to get signed URL`, async () => {
-      const { altText = null, fileId = '', uploadContext = 'home-feed', siteId = null } = options;
+      const { altText = null, fileId = '', siteId = null, contentId = null } = options;
 
       const payload = {
         file_name: fileName,
@@ -183,7 +184,6 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
         alt_text: altText,
         mime_type: mimeType,
         file_id: fileId,
-        uploadContext: uploadContext,
         siteId: siteId,
       };
 
@@ -216,7 +216,12 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
    * @returns {Promise<any>}
    * @memberof FeedManagementService
    */
-  async uploadToAttachmentURL(uploadUrl: string, fileName: string, filePath: string): Promise<APIResponse> {
+  async uploadToAttachmentURL(
+    uploadUrl: string,
+    fileName: string,
+    filePath: string,
+    mimeType: string
+  ): Promise<APIResponse> {
     return await test.step(`Uploading file binary data to attachment URL for "${fileName}"`, async () => {
       if (!uploadUrl) {
         throw new Error('Upload URL is required but not provided');
@@ -225,7 +230,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
 
       // Build headers for the request
       const headers = {
-        'Content-Type': 'image/png',
+        'Content-Type': mimeType,
         'Content-Disposition': `attachment; filename=${fileName}`,
       };
 
@@ -300,7 +305,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       if (!fileId) {
         throw new Error('Failed to get fileId from upload response');
       }
-      await this.uploadToAttachmentURL(attachmentURL, fileName, filePath);
+      await this.uploadToAttachmentURL(attachmentURL, fileName, filePath, mimeType);
       // Create attachment object with the uploaded fileId
       const listOfAttachedFiles = [buildAttachmentObject(fileId)];
 
@@ -323,7 +328,146 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
         throw new Error(`Failed to create feed with attachment. Status: ${response.status()}`);
       }
 
-      return responseBody;
+      return { ...responseBody };
+    });
+  }
+
+  /**
+   * Adds a comment/reply to a feed post
+   * @param feedId - The ID of the feed post to comment on
+   * @param commentData - The comment data including textHtml, textJson, etc.
+   * @returns Promise<APIResponse> - The API response
+   */
+  async addComment(
+    feedId: string,
+    commentData: {
+      textHtml: string;
+      textJson: string;
+      listOfAttachedFiles: any[];
+      ignoreToxic: boolean;
+    }
+  ): Promise<APIResponse> {
+    return await test.step(`Adding comment to feed ${feedId}`, async () => {
+      const response = await this.post(API_ENDPOINTS.feed.comment(feedId), {
+        data: commentData,
+      });
+
+      const responseBody = await response.json();
+      console.log('Add comment response:', JSON.stringify(responseBody, null, 2));
+
+      if (!response.ok()) {
+        throw new Error(`Failed to add comment to feed ${feedId}. Status: ${response.status()}`);
+      }
+
+      return response;
+    });
+  }
+
+  /**
+   * Configures app governance settings
+   * @param settings - The governance settings to configure (optional, uses defaults from curl)
+   * @returns Promise<APIResponse> - The API response
+   */
+  async configureAppGovernance(
+    settings: Partial<{
+      isExpertiseAppManagerControlled: boolean;
+      isHomeAppManagerControlled: boolean;
+      isSiteAppManagerControlled: boolean;
+      isExpertiseCreateAppManagerControlled: boolean;
+      feedMode: FeedMode;
+      autoGovValidationPeriod: number;
+      autoGovernanceEnabled: boolean;
+      contentSubmissionsEnabled: boolean;
+      feedOnContentEnabled: boolean;
+      isExpertiseEnabled: boolean;
+      isHomeCarouselEnabled: boolean;
+      isSiteCarouselEnabled: boolean;
+      allowFileUpload: string;
+      siteFilePermission: string;
+      htmlTileEnabled: boolean;
+      isNativeVideoAutoPlayEnabled: boolean;
+      allowFileShareWithPublicLink: boolean;
+      enablePersonalizedContentEmails: boolean;
+      feedPlaceholder: string;
+      isFeedPlaceholderDefault: boolean;
+      sitesToUploadFiles: string[];
+      privacyPolicy: {
+        isPPEnabled: boolean;
+        isPPLinkCustom: boolean;
+        ppLink: string;
+        isPPLabelCustom: boolean;
+        ppLabel: string;
+      };
+      termsOfService: {
+        isTOSEnabled: boolean;
+        isTOSLinkCustom: boolean;
+        tosLink: string;
+        isTOSLabelCustom: boolean;
+        tosLabel: string;
+      };
+      takeLegalAcknowledgement: boolean;
+    }> = {},
+    feedMode: FeedMode = FeedMode.TIMELINE_COMMENT_POST
+  ): Promise<APIResponse> {
+    return await test.step('Configuring app governance settings', async () => {
+      // Default values from the curl command
+      const defaultSettings = {
+        isExpertiseAppManagerControlled: true,
+        isHomeAppManagerControlled: true,
+        isSiteAppManagerControlled: false,
+        isExpertiseCreateAppManagerControlled: true,
+        feedMode: feedMode,
+        autoGovValidationPeriod: 12,
+        autoGovernanceEnabled: true,
+        contentSubmissionsEnabled: true,
+        feedOnContentEnabled: true,
+        isExpertiseEnabled: true,
+        isHomeCarouselEnabled: true,
+        isSiteCarouselEnabled: true,
+        allowFileUpload: 'all',
+        siteFilePermission: 'sameAsAllUsers',
+        htmlTileEnabled: false,
+        isNativeVideoAutoPlayEnabled: true,
+        allowFileShareWithPublicLink: false,
+        enablePersonalizedContentEmails: false,
+        feedPlaceholder: '',
+        isFeedPlaceholderDefault: true,
+        sitesToUploadFiles: [],
+        privacyPolicy: {
+          isPPEnabled: true,
+          isPPLinkCustom: false,
+          ppLink: 'https://www.simpplr.com/privacy/',
+          isPPLabelCustom: false,
+          ppLabel: 'Privacy Policy',
+        },
+        termsOfService: {
+          isTOSEnabled: true,
+          isTOSLinkCustom: false,
+          tosLink: 'https://www.simpplr.com/tos/',
+          isTOSLabelCustom: false,
+          tosLabel: 'Terms of Service',
+        },
+        takeLegalAcknowledgement: true,
+      };
+
+      // Merge provided settings with defaults
+      const finalSettings = { ...defaultSettings, ...settings };
+
+      const response = await this.post(API_ENDPOINTS.appConfig.governance, {
+        data: finalSettings,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const responseBody = await response.json();
+      console.log('App governance configuration response:', JSON.stringify(responseBody, null, 2));
+
+      if (!response.ok()) {
+        throw new Error(`Failed to configure app governance. Status: ${response.status()}`);
+      }
+
+      return response;
     });
   }
 }

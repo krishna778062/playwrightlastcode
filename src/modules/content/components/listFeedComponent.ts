@@ -2,6 +2,8 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/components/baseComponent';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
+
 export class ListFeedComponent extends BaseComponent {
   // Post options section
   readonly deleteButton: Locator;
@@ -22,6 +24,10 @@ export class ListFeedComponent extends BaseComponent {
   readonly getFeedTextLocator = (text: string): Locator =>
     this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
 
+  readonly successMessage = (message: string) =>
+    this.page.locator('div[class*="Toast-module"] p', { hasText: message });
+  readonly versionImageLocator = (fileId: string): Locator => this.page.locator(`img[src*="${fileId}"]`);
+
   /**
    * Gets a locator for the post timestamp
    * @param postText - The text of the post to find timestamp for
@@ -31,6 +37,8 @@ export class ListFeedComponent extends BaseComponent {
     this.page.locator(
       `xpath=//p[text()='${postText}']/ancestor::div[4]//div[contains(@class,'nameAndStatement')]/following-sibling::p/a`
     );
+  readonly imageButton = this.page.locator("button[aria-label='Open image in lightbox']");
+  readonly infoIcon = this.page.getByTestId('i-info');
 
   readonly postTextLocator = (postText: string): Locator => this.page.locator('p').filter({ hasText: postText });
 
@@ -216,6 +224,43 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.postTextLocator(postText), {
         assertionMessage: `Post "${postText}" should be visible`,
       });
+    });
+  }
+
+  async clickInfoIcon(fileId: string): Promise<void> {
+    await test.step('Click info icon', async () => {
+      await this.imageButton.hover();
+      console.log('Waiting for API: ', `${API_ENDPOINTS.content.files}/${fileId}`);
+      const fileApiPromise = this.page.waitForResponse(
+        response =>
+          response.url().includes(`${API_ENDPOINTS.content.files}/${fileId}`) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200
+      );
+      await this.clickOnElement(this.infoIcon);
+
+      await fileApiPromise;
+    });
+  }
+
+  async verifyImageButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify image button is not visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.successMessage('Deleted file successfully'));
+      await this.verifier.verifyTheElementIsNotVisible(this.imageButton);
+    });
+  }
+
+  async verifyVersionImageIsDisplayed(fileId: string): Promise<void> {
+    await test.step(`Verify version image is displayed for fileId: ${fileId}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.versionImageLocator(fileId), {
+        assertionMessage: `Version image with fileId ${fileId} should be visible`,
+      });
+    });
+  }
+
+  async clickOnInfoIcon(fileId: string): Promise<void> {
+    await test.step(`Click on info icon for fileId: ${fileId}`, async () => {
+      await this.clickOnElement(this.infoIcon);
     });
   }
 }
