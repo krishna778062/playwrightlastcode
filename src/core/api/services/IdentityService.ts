@@ -534,4 +534,22 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
       return await this.parseResponse<PeopleListResponse>(response);
     });
   }
+
+  /**
+   * Wait for audience hierarchy API response when performing an action
+   */
+  async waitForAudienceHierarchyResponse(page: any, action: () => Promise<void>): Promise<void> {
+    await test.step('Wait for audience hierarchy API response', async () => {
+      const responsePromise = page.waitForResponse(
+        (response: any) =>
+          response.url().includes(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        { timeout: 10_000 }
+      );
+
+      await action();
+      await responsePromise;
+    });
+  }
 }
