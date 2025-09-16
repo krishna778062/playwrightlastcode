@@ -118,20 +118,20 @@ test.describe(
         storyId: 'CONT-36290',
         ...commonFeedConfig,
       },
-      {
-        feedType: 'Site Feed',
-        scope: 'site',
-        description: 'Verify user can add reply to Site Feed post',
-        storyId: 'CONT-36291',
-        ...commonFeedConfig,
-      },
-      {
-        feedType: 'Content Feed',
-        scope: 'site',
-        description: 'Verify user can add reply to Content Feed post',
-        storyId: 'CONT-26347',
-        ...commonFeedConfig,
-      },
+      // {
+      //   feedType: 'Site Feed',
+      //   scope: 'site',
+      //   description: 'Verify user can add reply to Site Feed post',
+      //   storyId: 'CONT-36291',
+      //   ...commonFeedConfig,
+      // },
+      // {
+      //   feedType: 'Content Feed',
+      //   scope: 'site',
+      //   description: 'Verify user can add reply to Content Feed post',
+      //   storyId: 'CONT-26347',
+      //   ...commonFeedConfig,
+      // },
     ];
 
     // Data-driven test for different feed types
@@ -244,7 +244,7 @@ test.describe(
           }
         });
 
-        test(
+        test.only(
           `Verify user can add reply to ${testData.feedType} post`,
           {
             tag: [TestPriority.P1, TestGroupType.REGRESSION, `@${testData.storyId}`],

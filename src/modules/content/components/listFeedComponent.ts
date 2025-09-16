@@ -280,21 +280,20 @@ export class ListFeedComponent extends BaseComponent {
           response.request().method() === 'POST' &&
           response.status() === 200
       );
-      await this.clickOnElement(this.replyButton);
-
+      await this.clickOnElement(this.replyButton, { stepInfo: 'Clicking on reply button' });
       await replyApiPromise;
       await this.verifier.verifyTheElementIsVisible(this.replyInput, {
         assertionMessage: `Reply input should be visible`,
       });
-      await this.clickOnElement(this.replyInput);
-
-      console.log('replyText: ', replyText);
-      // Fill the reply input
-      await this.typeInElement(this.replyInput, replyText);
-      console.log('reply added: ', replyText);
-
+      // await this.clickOnElement(this.replyInput, { stepInfo: 'Clicking on reply input button' });
+      // // Fill the reply input
+      // await this.typeInElement(this.replyInput, replyText);
+      const replyEditor = this.page.getByRole('textbox', { name: 'You are in the content editor' });
+      // await replyEditor.click();
+      // await replyEditor.pressSequentially(replyText);
+      await this.fillInElement(replyEditor, replyText);
       // Click submit reply button
-      await this.clickOnElement(this.submitReplyButton);
+      await this.clickOnElement(this.submitReplyButton, { stepInfo: 'Clicking on submit reply button' });
     });
   }
 
