@@ -66,7 +66,7 @@ export class ManageContentComponent extends BaseComponent {
     this.deleteButton = page.getByText('Delete', { exact: true });
     this.selectAllButton = page.locator('[type="checkbox"]').first();
     this.validateButton = page.getByText('Validate', { exact: true });
-    this.firstDropDownOption = page.locator(`[aria-label="Category option"]`).first();
+    this.firstDropDownOption = page.locator(`[aria-label="Category option"]`).nth(1);
     this.publishOption = page.locator(`[title="Publish"]`);
     this.unpublishOption = page.locator(`[title="Unpublish"]`).first();
     this.deleteOption = page.locator(`[title="Delete"]`).first();

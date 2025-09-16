@@ -1,5 +1,7 @@
 import { Page } from '@playwright/test';
 
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+
 import { ManageContentComponent } from '../components/manageContentComponent';
 
 import { BasePage } from '@/src/core/pages/basePage';
@@ -38,12 +40,16 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   static actions: any;
 
   constructor(page: Page) {
-    super(page);
+    super(page, PAGE_ENDPOINTS.MANAGE_CONTENT_PAGE);
     this.manageContentComponent = new ManageContentComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
     await this.page.waitForLoadState('networkidle');
+  }
+
+  async load(): Promise<void> {
+    await this.page.goto(PAGE_ENDPOINTS.MANAGE_CONTENT_PAGE);
   }
 
   get actions() {

@@ -1,3 +1,4 @@
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
@@ -145,10 +146,10 @@ test.describe(
         await manageContentPage.assertions.verifyImageContainer();
         await manageContentPage.assertions.authorNameShouldBeVisible();
         await manageContentPage.assertions.clickOnTheAuthorName();
-        await manageFeaturePage.actions.navigateToContentButton();
+        await manageContentPage.load();
         await manageContentPage.assertions.verifySiteName();
         await manageContentPage.assertions.clickOnTheSiteName();
-        await manageFeaturePage.actions.navigateToContentButton();
+        await manageContentPage.load();
         await manageContentPage.assertions.verifySiteStatusStamp();
       }
     );
