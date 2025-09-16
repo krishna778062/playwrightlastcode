@@ -1,6 +1,8 @@
 import { faker } from '@faker-js/faker';
 import { test } from '@playwright/test';
 
+import { FeedMode } from '@core/types/feedManagement.types';
+
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { buildFeedTextJsonAndTextHtml } from '@/src/core/api/services/FeedManagementService';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
@@ -132,6 +134,62 @@ export class FeedManagementHelper {
     return await test.step(`Adding comment to feed ${feedId}`, async () => {
       const response = await this.appManagerApiClient.getFeedManagementService().addComment(feedId, commentData);
       const responseBody = await response.json();
+      return responseBody;
+    });
+  }
+
+  /**
+   * Configures app governance settings for feeds and content
+   * @param settings - Optional governance settings to override defaults
+   * @returns Promise with the API response
+   */
+  async configureAppGovernance(
+    settings?: Partial<{
+      isExpertiseAppManagerControlled: boolean;
+      isHomeAppManagerControlled: boolean;
+      isSiteAppManagerControlled: boolean;
+      isExpertiseCreateAppManagerControlled: boolean;
+      feedMode: FeedMode;
+      autoGovValidationPeriod: number;
+      autoGovernanceEnabled: boolean;
+      contentSubmissionsEnabled: boolean;
+      feedOnContentEnabled: boolean;
+      isExpertiseEnabled: boolean;
+      isHomeCarouselEnabled: boolean;
+      isSiteCarouselEnabled: boolean;
+      allowFileUpload: string;
+      siteFilePermission: string;
+      htmlTileEnabled: boolean;
+      isNativeVideoAutoPlayEnabled: boolean;
+      allowFileShareWithPublicLink: boolean;
+      enablePersonalizedContentEmails: boolean;
+      feedPlaceholder: string;
+      isFeedPlaceholderDefault: boolean;
+      sitesToUploadFiles: string[];
+      privacyPolicy: {
+        isPPEnabled: boolean;
+        isPPLinkCustom: boolean;
+        ppLink: string;
+        isPPLabelCustom: boolean;
+        ppLabel: string;
+      };
+      termsOfService: {
+        isTOSEnabled: boolean;
+        isTOSLinkCustom: boolean;
+        tosLink: string;
+        isTOSLabelCustom: boolean;
+        tosLabel: string;
+      };
+      takeLegalAcknowledgement: boolean;
+    }>,
+    feedMode?: FeedMode
+  ) {
+    return await test.step('Configuring app governance settings', async () => {
+      const response = await this.appManagerApiClient
+        .getFeedManagementService()
+        .configureAppGovernance(settings, feedMode);
+      const responseBody = await response.json();
+      console.log('App governance configuration completed:', responseBody);
       return responseBody;
     });
   }
