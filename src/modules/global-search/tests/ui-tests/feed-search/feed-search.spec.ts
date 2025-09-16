@@ -1,6 +1,7 @@
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
+import { FeedListComponent } from '@/src/modules/global-search/components/feedListComponent';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { FEED_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/feed-search.test-data';
@@ -12,24 +13,31 @@ test.describe(
   },
   () => {
     const testData = FEED_SEARCH_TEST_DATA;
-    let feedId: string;
-    let feedName: string;
-    let authorName: string;
+    let currentFeedId: string;
+    let currentFeedName: string;
+    let currentAuthorName: string;
 
-    test.beforeAll(async ({ feedManagementHelper }) => {
-      // Create a feed for testing
-      const feedResponse = await feedManagementHelper.createFeed({
-        scope: 'public',
-      });
-      feedId = feedResponse.result.feedId;
-      feedName = feedResponse.feedName;
-      authorName = feedResponse.result.authoredBy?.name;
-    });
+    test.beforeEach(async ({ feedManagementHelper, publicSite }, testInfo) => {
+      // Determine if this is a site feed test based on test title
+      const isSiteFeedTest = testInfo.title.includes('Site Feed');
 
-    test.afterAll(async ({ feedManagementHelper }) => {
-      // Clean up the created feed
-      if (feedId) {
-        await feedManagementHelper.deleteFeed(feedId);
+      if (isSiteFeedTest) {
+        // Create a site feed for site feed tests
+        const feedResponse = await feedManagementHelper.createFeed({
+          scope: 'site',
+          siteId: publicSite.siteId,
+        });
+        currentFeedId = feedResponse.result.feedId;
+        currentFeedName = feedResponse.feedName;
+        currentAuthorName = feedResponse.result.authoredBy?.name;
+      } else {
+        // Create a home feed for home feed tests
+        const feedResponse = await feedManagementHelper.createFeed({
+          scope: 'public',
+        });
+        currentFeedId = feedResponse.result.feedId;
+        currentFeedName = feedResponse.feedName;
+        currentAuthorName = feedResponse.result.authoredBy?.name;
       }
     });
 
@@ -44,16 +52,16 @@ test.describe(
           storyId: 'SEN-12843',
         });
 
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(feedName, {
-          stepInfo: `Searching with term "${feedName}" and intent is to find the content`,
+        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(currentFeedName, {
+          stepInfo: `Searching with term "${currentFeedName}" and intent is to find the content`,
         });
 
         await globalSearchResultPage.verifyFeedResultItemDataPoints({
-          name: feedName,
+          name: currentFeedName,
           text: testData.text,
           label: testData.label,
-          feedId: feedId,
-          author: authorName,
+          feedId: currentFeedId,
+          author: currentAuthorName,
         });
       }
     );
@@ -69,12 +77,12 @@ test.describe(
         });
 
         // Search for the feed
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(feedName, {
-          stepInfo: `Searching with term "${feedName}" to verify feed appears in search results`,
+        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(currentFeedName, {
+          stepInfo: `Searching with term "${currentFeedName}" to verify feed appears in search results`,
         });
 
         // Verify the feed appears in the initial search results
-        await globalSearchResultPage.getFeedResultItemExactlyMatchingTheSearchTerm(feedName);
+        await globalSearchResultPage.getFeedResultItemExactlyMatchingTheSearchTerm(currentFeedName);
 
         // Click on the feed filter in the sidebar to filter results by feeds only
         await globalSearchResultPage.verifyAndClickSidebarFilter({
@@ -82,12 +90,43 @@ test.describe(
           iconType: 'feedMobile',
         });
         await globalSearchResultPage.verifyFeedResultItemDataPoints({
-          name: feedName,
+          name: currentFeedName,
           text: testData.text,
           label: testData.label,
-          feedId: feedId,
-          author: authorName,
+          feedId: currentFeedId,
+          author: currentAuthorName,
         });
+      }
+    );
+
+    test(
+      `Verify Site Feed Search results for a new site feed ${testData.content}`,
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE],
+      },
+      async ({ appManagerHomePage, publicSite }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-13080',
+          storyId: 'SEN-12844',
+        });
+
+        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(currentFeedName, {
+          stepInfo: `Searching with term "${currentFeedName}" and intent is to find the site feed content`,
+        });
+
+        await globalSearchResultPage.verifyFeedResultItemDataPoints({
+          name: currentFeedName,
+          text: testData.text,
+          label: testData.label,
+          feedId: currentFeedId,
+          author: currentAuthorName,
+        });
+
+        // Verify site navigation for site feed
+        const feedResultItem =
+          await globalSearchResultPage.getFeedResultItemExactlyMatchingTheSearchTerm(currentFeedName);
+        const feedListComponent = new FeedListComponent(feedResultItem.page, feedResultItem.rootLocator);
+        await feedListComponent.verifyNavigationWithSiteLink(publicSite.siteId, publicSite.siteName);
       }
     );
   }

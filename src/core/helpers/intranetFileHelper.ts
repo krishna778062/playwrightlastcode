@@ -242,22 +242,17 @@ export class IntranetFileHelper {
       console.log(`🧹🧹🧹 IntranetFileHelper cleanup called - ${this.uploadedFiles.length} files tracked 🧹🧹🧹`);
 
       if (this.uploadedFiles.length === 0) {
-        console.log('ℹ️ No files to clean up - upload may have failed');
         return;
       }
 
-      console.log(`🗑️ Starting cleanup of ${this.uploadedFiles.length} files...`);
       for (const file of this.uploadedFiles) {
         try {
-          console.log(`🗑️ Deleting file ${file.fileId} from site ${file.siteId}`);
           await this.deleteFileViaApi(file.fileId, file.siteId);
-          console.log(`✅ Successfully deleted file ${file.fileId}`);
         } catch (error) {
-          console.warn(`❌ Failed to delete file ${file.fileId}: ${error}`);
+          console.warn(`Failed to delete file ${file.fileId}: ${error}`);
         }
       }
       this.uploadedFiles = [];
-      console.log('🧹🧹🧹 IntranetFileHelper cleanup completed 🧹🧹🧹');
     });
   }
 }

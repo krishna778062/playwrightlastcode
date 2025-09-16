@@ -73,7 +73,7 @@ export const searchTestFixtures = test.extend<
     async ({ appManagerApiClient }, use) => {
       const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
       await use(feedManagementHelper);
-      // Note: Cleanup is handled manually in test afterAll hooks
+      await feedManagementHelper.cleanup();
     },
     { scope: 'test' },
   ],

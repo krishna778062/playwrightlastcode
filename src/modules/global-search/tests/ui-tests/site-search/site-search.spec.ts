@@ -2,6 +2,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
@@ -115,6 +116,32 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
 
           // Verify navigation to site by clicking on the title link
           await siteResultItem.verifyNavigationToTitleLink(newSiteId, newSiteName, 'Site');
+        }
+      );
+
+      test(
+        `Verify Site Autocomplete functionality for a ${testData.siteType} site"`,
+        {
+          tag: [TestPriority.P0, TestGroupType.SMOKE, '@test'],
+        },
+        async ({ appManagerHomePage }) => {
+          tagTest(test.info(), {
+            zephyrTestId: 'SEN-19194',
+          });
+
+          // Type in search input
+          await appManagerHomePage.topNavBarComponent.typeInSearchBarInput(newSiteName, {
+            stepInfo: `Typing "${newSiteName}" in search input`,
+          });
+
+          // Wait for autocomplete to appear and get specific autocomplete item
+          const resultList = new ResultListingComponent(appManagerHomePage.page);
+          const siteResult = resultList.getAutocompleteItemByName(newSiteName);
+          await siteResult.waitForAndVerifyAutocompleteListIsDisplayed();
+          await siteResult.verifyAutocompleteItemData(newSiteName, testData.label, testData.siteType);
+
+          // Click on the autocomplete item and verify navigation
+          await siteResult.verifyAutocompleteNavigationToTitleLink(newSiteId, newSiteName, testData.siteType);
         }
       );
     }
