@@ -191,9 +191,6 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async selectPageCategory(): Promise<void> {
     await this.manageContentComponent.selectPageCategory();
   }
-  async clickOnContent(): Promise<void> {
-    await this.manageContentComponent.clickOnContent();
-  }
   async clickOnViewAllButton(): Promise<void> {
     await this.manageContentComponent.clickOnViewAllButton();
   }
