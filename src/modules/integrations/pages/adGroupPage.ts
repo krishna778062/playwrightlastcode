@@ -7,7 +7,6 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
 
 export class adGroupPage extends BasePage {
-  // readonly adGroupLocator: Locator;
   readonly adGroupComponent: AdGroupComponent;
   readonly appTileComponent: BaseAppTileComponent;
 
@@ -27,19 +26,11 @@ export class adGroupPage extends BasePage {
   }
 
   async clickOnButton(text: string): Promise<void> {
-    return this.adGroupComponent.clickOnSpanContainButtonText(text);
+    return this.adGroupComponent.clickOnButton(text);
   }
 
   async clickOnRadioButton(text: string): Promise<void> {
     return this.adGroupComponent.clickOnSpanContainButtonText(text);
-  }
-
-  async clickOnDoneButton(text: string): Promise<void> {
-    return this.adGroupComponent.clickOnButtonContainText(text);
-  }
-
-  async adGroupsModalIsDisplayed(text: string): Promise<void> {
-    return this.adGroupComponent.adGroupsModalIsDisplayed(text);
   }
 
   async selectGroup(text: string): Promise<void> {
@@ -51,15 +42,11 @@ export class adGroupPage extends BasePage {
   }
 
   async AudienceOptionDisplayed(text: string): Promise<void> {
-    return this.adGroupComponent.divTextDisplayed(text);
+    return this.adGroupComponent.VerifyRadioButtonText(text);
   }
 
   async verifyGroupType(text: string): Promise<void> {
     return this.adGroupComponent.verifyGroupType(text);
-  }
-
-  async verifyParagraphText(text: string): Promise<void> {
-    return this.adGroupComponent.verifyParagraphText(text);
   }
 
   async clickOnDisconnectButton(text: string): Promise<void> {

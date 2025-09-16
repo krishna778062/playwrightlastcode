@@ -27,16 +27,15 @@ test.describe('AD Group Integration', () => {
   test(
     'Verify that Select Active Directory groups option is visible in Zeus',
     {
-      tag: [TestPriority.P4, TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.AD_GROUP],
+      tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.AD_GROUP],
     },
     async ({ page }) => {
       adGroup = new adGroupPage(page);
       await adGroup.loadPage();
-      // await page.goto(PAGE_ENDPOINTS.PEOPLE_DATA_PAGE);
       await adGroup.clickOnRadioButton(AD_GROUP.AD_GROUP_OPTION);
       await adGroup.clickOnButton(AD_GROUP.GROUP_BUTTON);
       await adGroup.selectGroup(AD_GROUP.GROUP_NAME1);
-      await adGroup.clickOnDoneButton(AD_GROUP.DONE_BUTTON);
+      await adGroup.clickOnButton(AD_GROUP.DONE_BUTTON);
       await adGroup.validateMessage(AD_GROUP.ADDED_MESSAGE, AD_GROUP.COUNT);
     }
   );
@@ -44,7 +43,7 @@ test.describe('AD Group Integration', () => {
   test(
     'Verify that create and do not create audience option is visible in Zeus',
     {
-      tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.AD_GROUP],
+      tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.AD_GROUP],
     },
     async ({ page }) => {
       adGroup = new adGroupPage(page);
@@ -52,7 +51,7 @@ test.describe('AD Group Integration', () => {
       await adGroup.clickOnRadioButton(AD_GROUP.AD_GROUP_OPTION);
       await adGroup.clickOnButton(AD_GROUP.GROUP_BUTTON);
       await adGroup.selectGroup(AD_GROUP.GROUP_NAME2);
-      await adGroup.clickOnDoneButton(AD_GROUP.DONE_BUTTON);
+      await adGroup.clickOnButton(AD_GROUP.DONE_BUTTON);
       await adGroup.AudienceOptionDisplayed(AD_GROUP.DO_NOT_CREATE_AUDIENCES);
       await adGroup.AudienceOptionDisplayed(AD_GROUP.CREATE_AUDIENCES);
     }
@@ -61,7 +60,7 @@ test.describe('AD Group Integration', () => {
   test(
     'All group types should be available in the ‘Select Active directory groups’ dropdown',
     {
-      tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.AD_GROUP],
+      tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.AD_GROUP],
     },
     async ({ page }) => {
       adGroup = new adGroupPage(page);
@@ -76,14 +75,15 @@ test.describe('AD Group Integration', () => {
   test(
     'Verify that standard error message should be displayed when no group will be selected while selecting "use Active Directory groups"  through radio button',
     {
-      tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.AD_GROUP],
+      tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.AD_GROUP],
     },
     async ({ page }) => {
       adGroup = new adGroupPage(page);
       await adGroup.loadPage();
       await adGroup.clickOnRadioButton(AD_GROUP.AD_GROUP_OPTION);
       await adGroup.clickOnButton(AD_GROUP.GROUP_BUTTON);
-      await adGroup.clickOnButton(AD_GROUP.SAVE_BUTTON);
+      await adGroup.clickOnButton(AD_GROUP.DONE_BUTTON);
+      await adGroup.clickOnRadioButton(AD_GROUP.SAVE_BUTTON);
       await adGroup.verifyMessage(MESSAGES.NO_GROUP_SELECTED_MESSAGE);
     }
   );
@@ -91,7 +91,7 @@ test.describe('AD Group Integration', () => {
   test(
     'Verify the alert message should be displayed while clicking on Disconnect Active directory.',
     {
-      tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.AD_GROUP],
+      tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.AD_GROUP],
     },
     async ({ page }) => {
       adGroup = new adGroupPage(page);
