@@ -7,6 +7,7 @@ import { ManageApplicationComponent } from '@/src/modules/content/components/man
 
 export interface IManageApplicationPageActions {
   manageApplicationComponent: () => Promise<void>;
+  clickOnPrivileges: () => Promise<void>;
 }
 
 export interface IFeaturedSiteAssertions {}
@@ -19,6 +20,7 @@ export class ManageApplicationPage extends BasePage {
     this.manageApplicationComponent = new ManageApplicationComponent(page);
     this.actions = {
       clickOnGovernance: this.clickOnGovernance.bind(this),
+      clickOnPrivileges: this.clickOnPrivileges.bind(this),
     };
   }
 
@@ -33,6 +35,12 @@ export class ManageApplicationPage extends BasePage {
   async clickOnGovernance(): Promise<void> {
     await test.step('Clicking on governance', async () => {
       await this.clickOnElement(this.manageApplicationComponent.clickingOnGovernance);
+    });
+  }
+
+  async clickOnPrivileges(): Promise<void> {
+    await test.step('Clicking on privileges', async () => {
+      await this.clickOnElement(this.manageApplicationComponent.clickingOnPrivileges);
     });
   }
 }

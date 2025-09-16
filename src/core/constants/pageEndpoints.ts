@@ -37,6 +37,7 @@ export const PAGE_ENDPOINTS = {
   getPageCreationPage: (siteId: string) => `/site/${siteId}/page/add`,
   APPLICATION_SETTINGS: 'manage/app/setup/general',
   GOVERNANCE_SCREEN: 'manage/app/setup/governance',
+  PRIVILEGES_SCREEN: 'manage/app/setup/privileges',
   MANAGE_FEATURE: 'manage-features',
   MANAGE_CONTENT: 'manage/content',
   MANAGE_SITE_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
