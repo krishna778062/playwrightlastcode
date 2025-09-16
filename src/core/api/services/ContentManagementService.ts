@@ -235,6 +235,8 @@ export class ContentManagementService extends BaseApiClient implements IContentM
           listOfTopics: payload.listOfTopics,
           contentType: payload.contentType,
           isNewTiptap: payload.isNewTiptap,
+          ...(payload.eventSync && { eventSync: payload.eventSync }),
+          ...(payload.rsvp && { rsvp: payload.rsvp }),
         },
       });
       const json = await response.json();
@@ -245,6 +247,9 @@ export class ContentManagementService extends BaseApiClient implements IContentM
       return {
         eventId: json.result.id,
         authorName: json.result.authoredBy?.name,
+        ...(json.result.eventSyncDetails && { eventSyncDetails: json.result.eventSyncDetails }),
+        ...(json.result.hasRsvp !== undefined && { hasRsvp: json.result.hasRsvp }),
+        ...(json.result.rsvp && { rsvpDetails: json.result.rsvp }),
       };
     });
   }

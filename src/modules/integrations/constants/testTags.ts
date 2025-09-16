@@ -6,12 +6,28 @@ export enum IntegrationsSuiteTags {
   GITHUB = '@gitHubAppTiles',
   ABSOLUTE = '@absolute',
   GAMMA = '@gamma',
+  PHOENIX = '@phoenix',
 }
 
 export enum IntegrationsFeatureTags {
   TILE_MANAGEMENT = '@tile-management',
   PERSONALIZATION = '@personalization',
   MULTI_USER = '@multi-user',
+  EVENT_SYNC = '@EventSync',
+  GOOGLE_CALENDAR = '@google-calendar',
+  OUTLOOK_CALENDAR = '@outlook-calendar',
+  EVENT_CREATION = '@event-creation',
+  EVENT_DELETION = '@event-deletion',
+  EVENT_UNPUBLISH = '@event-unpublish',
+  EVENT_REPUBLISH = '@event-republish',
+  EVENT_EDIT = '@event-edit',
+  SITE_DEACTIVATION = '@site-deactivation',
+  SITE_REACTIVATION = '@site-reactivation',
+  EVENT_SYNC_OFF = '@event-sync-off',
+  SITE_MEMBER_SYNC = '@site-member-sync',
+  SITE_MEMBER_REMOVAL = '@site-member-removal',
+  NON_MEMBER_RSVP = '@non-member-rsvp',
+  SITE_ACCESS_CHANGE = '@site-access-change',
 }
 
 export const TEST_TAGS = {
@@ -21,8 +37,24 @@ export const TEST_TAGS = {
   EXPENSIFY: IntegrationsSuiteTags.EXPENSIFY,
   GITHUB: IntegrationsSuiteTags.GITHUB,
   ABSOLUTE: IntegrationsSuiteTags.ABSOLUTE,
+  GAMMA: IntegrationsSuiteTags.GAMMA,
+  PHOENIX: IntegrationsSuiteTags.PHOENIX,
   TILE_MANAGEMENT: IntegrationsFeatureTags.TILE_MANAGEMENT,
   MULTI_USER: IntegrationsFeatureTags.MULTI_USER,
+  EVENT_SYNC: IntegrationsFeatureTags.EVENT_SYNC,
+  GOOGLE_CALENDAR: IntegrationsFeatureTags.GOOGLE_CALENDAR,
+  EVENT_CREATION: IntegrationsFeatureTags.EVENT_CREATION,
+  EVENT_DELETION: IntegrationsFeatureTags.EVENT_DELETION,
+  EVENT_UNPUBLISH: IntegrationsFeatureTags.EVENT_UNPUBLISH,
+  EVENT_REPUBLISH: IntegrationsFeatureTags.EVENT_REPUBLISH,
+  EVENT_EDIT: IntegrationsFeatureTags.EVENT_EDIT,
+  SITE_DEACTIVATION: IntegrationsFeatureTags.SITE_DEACTIVATION,
+  SITE_REACTIVATION: IntegrationsFeatureTags.SITE_REACTIVATION,
+  EVENT_SYNC_OFF: IntegrationsFeatureTags.EVENT_SYNC_OFF,
+  SITE_MEMBER_SYNC: IntegrationsFeatureTags.SITE_MEMBER_SYNC,
+  SITE_MEMBER_REMOVAL: IntegrationsFeatureTags.SITE_MEMBER_REMOVAL,
+  NON_MEMBER_RSVP: IntegrationsFeatureTags.NON_MEMBER_RSVP,
+  SITE_ACCESS_CHANGE: IntegrationsFeatureTags.SITE_ACCESS_CHANGE,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {
