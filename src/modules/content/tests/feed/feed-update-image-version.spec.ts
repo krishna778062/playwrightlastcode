@@ -88,9 +88,9 @@ async function createSiteAndContentByOptions(
 }
 
 test.describe(
-  '@FeedFileDelete - Feed File Deletion Tests',
+  '@FeedImageUpdate - Feed Image Version Update Tests',
   {
-    tag: [ContentTestSuite.FEED_FILE_DELETE_APP_MANAGER],
+    tag: [ContentTestSuite.FEED_IMAGE_UPDATE_APP_MANAGER],
   },
   () => {
     let appManagerFeedPage: FeedPage;
@@ -103,9 +103,9 @@ test.describe(
     // Common attachment configuration for all test cases
     const commonAttachmentConfig = {
       hasAttachment: true as const,
-      fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName,
-      fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileSize,
-      mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.mimeType,
+      fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
+      fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
+      mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
       filePath: FileUtil.getFilePath(
         __dirname,
         '..',
@@ -113,7 +113,20 @@ test.describe(
         'test-data',
         'static-files',
         'images',
-        FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName
+        FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName
+      ),
+    };
+
+    // Updated image configuration for version update
+    const updatedImageConfig = {
+      filePath: FileUtil.getFilePath(
+        __dirname,
+        '..',
+        '..',
+        'test-data',
+        'static-files',
+        'images',
+        FEED_TEST_DATA.UPDATED_FEED_CONTENT.fileName
       ),
     };
 
@@ -122,22 +135,22 @@ test.describe(
       {
         feedType: 'Home Feed',
         scope: 'public',
-        description: "Verify Delete File from File Preview Page doesn't appears on Home Feed",
-        storyId: 'CONT-36287',
+        description: 'Verify user can update image version in Home Feed',
+        storyId: 'CONT-36286',
         ...commonAttachmentConfig,
       },
       {
         feedType: 'Site Feed',
         scope: 'site',
-        description: "Verify Delete File from File Preview Page doesn't appears on Site Feed",
-        storyId: 'CONT-39351',
+        description: 'Verify user can update image version in Site Feed',
+        storyId: 'CONT-39628',
         ...commonAttachmentConfig,
       },
       {
         feedType: 'Content Feed',
         scope: 'site',
-        description: "Verify Delete File from File Preview Page doesn't appears on Content Feed",
-        storyId: 'CONT-39352',
+        description: 'Verify user can update image version in Content Feed',
+        storyId: 'CONT-39629',
         ...commonAttachmentConfig,
       },
     ];
@@ -146,14 +159,12 @@ test.describe(
     for (const testData of feedTestData) {
       test.describe(`${testData.feedType} Tests`, () => {
         let feedTestDataGenerated: any;
-        let fileId: string;
+        let originalFileId: string;
+        let updatedFileId: string;
 
         test.beforeEach(
           'Setup test environment and data creation',
           async ({ appManagerHomePage, contentManagementHelper, siteManagementHelper, feedManagementHelper }) => {
-            // Configure app governance settings and enable timeline comment post(feed)
-            await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
-
             // Initialize feed page
             appManagerFeedPage = new FeedPage(appManagerHomePage.page);
 
@@ -230,9 +241,9 @@ test.describe(
             feedResponse = await feedManagementHelper.createFeed(feedTestDataGenerated);
             createdPostText = feedTestDataGenerated.text;
             createdPostId = feedResponse.result.feedId;
-            fileId = feedResponse.result.listOfFiles[0].fileId;
+            originalFileId = feedResponse.result.listOfFiles[0].fileId;
 
-            console.log(`Created feed with attachment via API: ${feedResponse.result.feedId}`);
+            console.log(`Created feed with image via API: ${feedResponse.result.feedId}`);
 
             // Navigate to feed URL
             await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
@@ -248,23 +259,38 @@ test.describe(
         });
 
         test(
-          `Verify Delete File from File Preview Page doesn't appears on ${testData.feedType}`,
+          `Verify user can update image version on ${testData.feedType}`,
           {
-            tag: [TestPriority.P0, TestGroupType.SMOKE, `@${testData.storyId}`],
+            tag: [TestPriority.P1, TestGroupType.REGRESSION, `@${testData.storyId}`],
           },
-          async () => {
+          async ({ feedManagementHelper }) => {
             tagTest(test.info(), {
               description: testData.description,
               zephyrTestId: testData.storyId,
               storyId: testData.storyId,
             });
 
-            // Execute file deletion flow
-            await appManagerFeedPage.actions.clickInfoIcon(fileId);
+            await appManagerFeedPage.assertions.verifyVersionImageIsDisplayed(originalFileId);
+            await appManagerFeedPage.actions.clickInfoIcon(originalFileId);
             await appManagerFeedPage.actions.verifyPreviewModalIsOpened();
-            await appManagerFeedPage.actions.clickShowMoreButton();
-            await appManagerFeedPage.actions.clickDeleteButton();
-            await appManagerFeedPage.assertions.verifyImageButtonIsNotVisible();
+            await appManagerFeedPage.actions.clickOnInfoIconOnImage();
+            await appManagerFeedPage.actions.clickOnEditVersionButton();
+            await appManagerFeedPage.assertions.verifyVersionNumber('1');
+            const responseURL = await appManagerFeedPage.actions.uploadImage(updatedImageConfig.filePath);
+            if (testData.feedType === 'Home Feed') {
+              updatedFileId = responseURL.split('/u/o/')[1].split('?')[0];
+            } else {
+              updatedFileId = responseURL.split('/u/r/')[1].split('?')[0];
+            }
+
+            await appManagerFeedPage.actions.clickOnUploadButton(updatedFileId);
+            await appManagerFeedPage.assertions.verifyToastMessage('Added new version successfully');
+            await appManagerFeedPage.assertions.verifyVersionNumber('2');
+            await appManagerFeedPage.actions.clickOnCloseButton();
+            //referesh the page
+            await appManagerFeedPage.page.reload();
+            await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+            await appManagerFeedPage.actions.verifyVersionImageIsDisplayed(updatedFileId);
           }
         );
       });
