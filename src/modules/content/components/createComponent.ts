@@ -43,13 +43,12 @@ export class CreateComponent extends BaseComponent {
    */
   async selectContentTypeAndCreateContent(
     contentType: ContentType,
-    siteManagementHelper: SiteManagementHelper,
     options?: { stepInfo?: string }
   ): Promise<AddContentModalComponent> {
     return await test.step(options?.stepInfo || `Selecting content type: ${contentType}`, async () => {
       // Select the content type
       await this.selectContentType(contentType);
-      const addContentModal = new AddContentModalComponent(this.page, siteManagementHelper);
+      const addContentModal = new AddContentModalComponent(this.page);
       await addContentModal.verifyTheAddContentModalIsVisible(contentType);
       return addContentModal;
     });

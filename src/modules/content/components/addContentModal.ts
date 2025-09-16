@@ -1,4 +1,4 @@
-import { Locator, Page, test } from '@playwright/test';
+import { Locator, LocatorScreenshotOptions, Page, test } from '@playwright/test';
 
 import { ContentType } from '@content/constants/contentType';
 import { AlbumCreationPage } from '@content/pages/albumCreationPage';
@@ -27,17 +27,16 @@ export class AddContentModalComponent extends BaseComponent {
   readonly selectSiteDropdown: Locator;
   readonly selectSiteDropdownOption: (siteName: string) => Locator;
   readonly clearButtonOnSelectSiteDropdown: Locator;
+  readonly selectSiteDropdownOptionByIndex: (index: number) => Locator;
 
   //select template dropdown
   readonly selectTemplateDropdown: Locator;
   readonly selectTemplateDropdownOption: Locator;
   readonly clearButtonOnSelectTemplateDropdown: Locator;
+  readonly selectTemplateDropdownOptionByIndex: (index: number) => Locator;
 
-  private siteManagementHelper: SiteManagementHelper;
-
-  constructor(page: Page, siteManagementHelper: SiteManagementHelper) {
+  constructor(page: Page) {
     super(page);
-    this.siteManagementHelper = siteManagementHelper;
     // Initialize locators - these would need to be updated based on actual DOM structure
 
     this.recentlyUsedSitesList = page.locator("//div[text()='Recently used ']/button");
@@ -58,10 +57,14 @@ export class AddContentModalComponent extends BaseComponent {
       page.locator(`div.u-textTruncate div:has-text("${siteName}")`);
     this.clearButtonOnSelectSiteDropdown = page.getByLabel('Clear search');
 
+    this.selectSiteDropdownOptionByIndex = (index: number) => page.locator(`span.u-textTruncate`).nth(index);
+
     //select template dropdown
     this.selectTemplateDropdown = page.getByPlaceholder('Select a template', { exact: false });
     this.selectTemplateDropdownOption = page.locator("div[class*='Menu-module'] div[role='menuitem']");
     this.clearButtonOnSelectTemplateDropdown = page.getByLabel("button[aria-label*='Clear']");
+    this.selectTemplateDropdownOptionByIndex = (index: number) =>
+      page.locator("div[class*='Menu-module'] div[role='menuitem']").nth(index);
   }
 
   /**
@@ -100,10 +103,14 @@ export class AddContentModalComponent extends BaseComponent {
    * Selects the site to add content from the select site dropdown
    * @param siteName - The site name to select
    */
-  public async selectSiteToAddContentFromDropdown(siteName: string) {
+  public async selectSiteToAddContentFromDropdown(siteName?: string) {
     await test.step(`Select ${siteName} site to add content in add content modal`, async () => {
       await this.openSelectSiteDropdown();
-      await this.selectSiteFromDropdown(siteName);
+      if (siteName) {
+        await this.selectSiteFromDropdown(siteName);
+      } else {
+        await this.selectSiteFromDropdownByIndex(0);
+      }
     });
   }
 
@@ -123,6 +130,12 @@ export class AddContentModalComponent extends BaseComponent {
   async selectSiteFromDropdown(siteName: string) {
     await test.step(`Select ${siteName} site from select site dropdown`, async () => {
       await this.clickOnElement(this.selectSiteDropdownOption(siteName));
+    });
+  }
+
+  async selectSiteFromDropdownByIndex(index: number) {
+    await test.step(`Select site from select site dropdown by index ${index}`, async () => {
+      await this.clickOnElement(this.selectSiteDropdownOptionByIndex(index));
     });
   }
 
@@ -222,13 +235,7 @@ export class AddContentModalComponent extends BaseComponent {
         await this.selectRecentlyUsedSiteByIndex(options?.recentlyUsedSiteIndex || 0);
       } catch (error) {
         console.info(`recently used site not found:`);
-        const publicSite = await this.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        const siteName = publicSite?.name;
-        if (siteName) {
-          await this.selectSiteToAddContentFromDropdown(siteName);
-        } else {
-          throw new Error('No sites available to select');
-        }
+        await this.selectSiteToAddContentFromDropdown();
       }
     }
     // If from site page, do nothing (already on specific site)

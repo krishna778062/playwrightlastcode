@@ -176,10 +176,7 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
    * @param options - The options for creating the site
    * @returns Object containing site dashboard page, site name, and site ID
    */
-  async addSite(
-    options: SiteCreationOptions,
-    siteManagementHelper: SiteManagementHelper
-  ): Promise<{
+  async addSite(options: SiteCreationOptions): Promise<{
     siteDashboard: SiteDashboardPage;
     siteId: string;
   }> {
@@ -202,7 +199,7 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
 
       // Return site dashboard page with site details
       return {
-        siteDashboard: new SiteDashboardPage(this.page, siteId, siteManagementHelper),
+        siteDashboard: new SiteDashboardPage(this.page, siteId),
         siteId: siteId,
       };
     });

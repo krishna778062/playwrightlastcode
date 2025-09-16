@@ -66,8 +66,7 @@ test.describe(
 
         // Navigate to album creation page
         albumCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
-          ContentType.ALBUM,
-          siteManagementHelper
+          ContentType.ALBUM
         )) as AlbumCreationPage;
 
         // Generate album data using TestDataGenerator
