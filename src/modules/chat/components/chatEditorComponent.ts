@@ -59,7 +59,6 @@ export class ChatEditorComponent extends BaseComponent {
     await test.step(options?.stepInfo ?? `Sending message: ${message}`, async () => {
       await this.fillInElement(this.inputTextBox, message);
       await this.clickOnSendMessageButton();
-      await this.page.waitForTimeout(500);
     });
   }
 
