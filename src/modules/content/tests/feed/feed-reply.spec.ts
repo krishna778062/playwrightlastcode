@@ -168,8 +168,6 @@ for (const testData of feedTestData) {
             pageDetails = resources.pageDetails;
           }
 
-          await appManagerHomePage.page.waitForTimeout(30000);
-
           // Generate feed data based on feed type
           switch (testData.feedType) {
             case 'Home Feed': {

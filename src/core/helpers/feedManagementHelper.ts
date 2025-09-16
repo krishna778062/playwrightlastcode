@@ -13,11 +13,45 @@ interface CreatedFeed {
 
 export class FeedManagementHelper {
   private feeds: CreatedFeed[] = [];
+  private readonly MAX_RETRIES = 2;
 
   constructor(private appManagerApiClient: AppManagerApiClient) {}
 
   /**
+   * Retry mechanism for feed creation with exponential backoff
+   * @param operation - The operation to retry
+   * @param maxRetries - Maximum number of retries (default: 2)
+   * @returns Promise with the result of the operation
+   */
+  private async retryOperation<T>(operation: () => Promise<T>, maxRetries: number = this.MAX_RETRIES): Promise<T> {
+    let lastError: Error;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error as Error;
+
+        if (attempt === maxRetries) {
+          console.error(`Feed creation failed after ${maxRetries + 1} attempts. Last error:`, lastError.message);
+          throw lastError;
+        }
+
+        const delay = Math.pow(2, attempt) * 1000; // Exponential backoff: 1s, 2s, 4s
+        console.warn(
+          `Feed creation attempt ${attempt + 1} failed. Retrying in ${delay}ms... Error:`,
+          lastError.message
+        );
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    throw lastError!;
+  }
+
+  /**
    * Creates a new feed with optional attachment.
+   * Includes retry mechanism with max 2 retries for failed feed creation.
    * @returns An object containing details of the created feed.
    */
   async createFeed(
@@ -53,33 +87,35 @@ export class FeedManagementHelper {
       const feedName = params.text || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Feed`;
       const { textJson, textHtml } = buildFeedTextJsonAndTextHtml(feedName);
 
-      let response;
-      if (params.withAttachment) {
-        response = await this.appManagerApiClient
-          .getFeedManagementService()
-          .createFeedWithAttachment(params.fileName, params.fileSize, params.mimeType, params.filePath, {
+      // Use retry mechanism for feed creation
+      const response = await this.retryOperation(async () => {
+        if (params.withAttachment) {
+          return await this.appManagerApiClient
+            .getFeedManagementService()
+            .createFeedWithAttachment(params.fileName, params.fileSize, params.mimeType, params.filePath, {
+              textJson,
+              textHtml,
+              scope: params.scope,
+              siteId: params.siteId || null,
+              contentId: params.contentId || null,
+              ignoreToxic: false,
+              type: 'post',
+              variant: 'standard',
+            });
+        } else {
+          return await this.appManagerApiClient.getFeedManagementService().createFeed({
             textJson,
             textHtml,
             scope: params.scope,
             siteId: params.siteId || null,
             contentId: params.contentId || null,
+            listOfAttachedFiles: [],
             ignoreToxic: false,
             type: 'post',
             variant: 'standard',
           });
-      } else {
-        response = await this.appManagerApiClient.getFeedManagementService().createFeed({
-          textJson,
-          textHtml,
-          scope: params.scope,
-          siteId: params.siteId || null,
-          contentId: params.contentId || null,
-          listOfAttachedFiles: [],
-          ignoreToxic: false,
-          type: 'post',
-          variant: 'standard',
-        });
-      }
+        }
+      });
 
       const feedId = response.result.feedId;
 

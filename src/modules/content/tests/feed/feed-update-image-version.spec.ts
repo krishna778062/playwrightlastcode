@@ -1,10 +1,12 @@
+import { ContentType } from '@content/constants/contentType';
+import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
+import { SiteDashboardPage } from '@content/pages/siteDashboardPage';
+import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
+import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-
-import { CONTENT_TEST_DATA } from '../../test-data/content.test-data';
-import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
 
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
@@ -76,7 +78,6 @@ async function createSiteAndContentByOptions(
         contentSubType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.contentType,
       },
       options: {
-        contentDescription: 'Auto-generated content for feed test',
         waitForSearchIndex: false,
       },
     });
@@ -159,6 +160,8 @@ for (const testData of feedTestData) {
       let feedTestDataGenerated: any;
       let originalFileId: string;
       let updatedFileId: string;
+      let contentPreviewPage: ContentPreviewPage;
+      let siteDashboardPage: SiteDashboardPage;
 
       test.beforeEach(
         'Setup test environment and data creation',
@@ -246,7 +249,20 @@ for (const testData of feedTestData) {
           console.log(`Created feed with image via API: ${feedResponse.result.feedId}`);
 
           // Navigate to feed URL
-          await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
+          if (testData.feedType === 'Content Feed') {
+            contentPreviewPage = new ContentPreviewPage(
+              appManagerHomePage.page,
+              siteDetails.siteId,
+              pageDetails.contentId,
+              ContentType.PAGE.toLowerCase()
+            );
+            await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+          } else if (testData.feedType === 'Site Feed') {
+            siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteDetails.siteId);
+            await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          } else if (testData.feedType === 'Home Feed') {
+            await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
+          }
           await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
         }
       );
