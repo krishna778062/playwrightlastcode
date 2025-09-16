@@ -39,6 +39,9 @@ export const API_ENDPOINTS = {
     validate: '/v2/identity/users/validate',
     login: '/v2/identity/users/login',
     people: '/v2/identity/people',
+    v2IdentityProfileQuestionsVerify: '/v2/identity/profile-questions/verify',
+    v2IdentityUsersSetPassword: '/v2/identity/users/set-password',
+    v2IdentityUsersRegisterProfile: '/v2/identity/users/register-profile',
   },
   admin: {
     login: '/v2/identity/admin/login',
@@ -57,6 +60,7 @@ export const API_ENDPOINTS = {
     category: '/pageCategories/list',
     publish: '/content?action=publish',
     delete: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}`,
+    file: (fileId: string) => `/v1/content/files/${fileId}`,
     signedUrl: '/v1/content/static/signedurl/upload',
     files: '/v1/content/files',
     listFiles: '/v1/content/files/list',
