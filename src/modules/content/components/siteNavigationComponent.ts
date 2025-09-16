@@ -1,5 +1,7 @@
 import { Page, test } from '@playwright/test';
 
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+
 import { SitePageTab } from '../constants/sitePageEnums';
 
 /**
@@ -21,17 +23,17 @@ export class SiteNavigationComponent {
   getSiteTabUrl(tabName: SitePageTab): string {
     switch (tabName) {
       case SitePageTab.DashboardTab:
-        return `/site/${this.siteId}/dashboard`;
+        return PAGE_ENDPOINTS.getSiteDashboardPage(this.siteId);
       case SitePageTab.FeedTab:
-        return `/site/${this.siteId}/feed`;
+        return PAGE_ENDPOINTS.getSiteFeedPage(this.siteId);
       case SitePageTab.ContentTab:
-        return `/site/${this.siteId}/content`;
+        return PAGE_ENDPOINTS.getSiteContentPage(this.siteId);
       case SitePageTab.QuestionsTab:
-        return `/site/${this.siteId}/questions`;
+        return PAGE_ENDPOINTS.getSiteQuestionsPage(this.siteId);
       case SitePageTab.FilesTab:
-        return `/site/${this.siteId}/files`;
+        return PAGE_ENDPOINTS.getSiteFilesPage(this.siteId);
       case SitePageTab.AboutTab:
-        return `/site/${this.siteId}/about/managers`;
+        return PAGE_ENDPOINTS.getSiteAboutPage(this.siteId);
       default:
         throw new Error(`Unknown tab: ${tabName}`);
     }
