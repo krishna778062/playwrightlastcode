@@ -1,6 +1,8 @@
 import { faker } from '@faker-js/faker';
 import { test } from '@playwright/test';
 
+import { FeedMode } from '@core/types/feedManagement.types';
+
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { buildFeedTextJsonAndTextHtml } from '@/src/core/api/services/FeedManagementService';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
@@ -147,7 +149,7 @@ export class FeedManagementHelper {
       isHomeAppManagerControlled: boolean;
       isSiteAppManagerControlled: boolean;
       isExpertiseCreateAppManagerControlled: boolean;
-      feedMode: string;
+      feedMode: FeedMode;
       autoGovValidationPeriod: number;
       autoGovernanceEnabled: boolean;
       contentSubmissionsEnabled: boolean;
@@ -179,10 +181,13 @@ export class FeedManagementHelper {
         tosLabel: string;
       };
       takeLegalAcknowledgement: boolean;
-    }>
+    }>,
+    feedMode?: FeedMode
   ) {
     return await test.step('Configuring app governance settings', async () => {
-      const response = await this.appManagerApiClient.getFeedManagementService().configureAppGovernance(settings);
+      const response = await this.appManagerApiClient
+        .getFeedManagementService()
+        .configureAppGovernance(settings, feedMode);
       const responseBody = await response.json();
       console.log('App governance configuration completed:', responseBody);
       return responseBody;

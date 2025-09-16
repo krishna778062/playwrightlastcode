@@ -6,10 +6,7 @@ import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { IFeedManagementOperations } from '@core/api/interfaces/IFeedManagementOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { CreateFeedPostPayload, FeedPostResponse, UpdateFeedPostPayload } from '@core/types/feed.type';
-
-import { FileUtil } from '../../utils/fileUtil';
-
-import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+import { FeedMode } from '@core/types/feedManagement.types';
 
 export function buildFeedTextJsonAndTextHtml(text: string) {
   const textJsonObject = {
@@ -372,7 +369,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       isHomeAppManagerControlled: boolean;
       isSiteAppManagerControlled: boolean;
       isExpertiseCreateAppManagerControlled: boolean;
-      feedMode: string;
+      feedMode: FeedMode;
       autoGovValidationPeriod: number;
       autoGovernanceEnabled: boolean;
       contentSubmissionsEnabled: boolean;
@@ -404,7 +401,8 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
         tosLabel: string;
       };
       takeLegalAcknowledgement: boolean;
-    }> = {}
+    }> = {},
+    feedMode: FeedMode = FeedMode.TIMELINE_COMMENT_POST
   ): Promise<APIResponse> {
     return await test.step('Configuring app governance settings', async () => {
       // Default values from the curl command
@@ -413,7 +411,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
         isHomeAppManagerControlled: true,
         isSiteAppManagerControlled: false,
         isExpertiseCreateAppManagerControlled: true,
-        feedMode: 'timeline_comment_post',
+        feedMode: feedMode,
         autoGovValidationPeriod: 12,
         autoGovernanceEnabled: true,
         contentSubmissionsEnabled: true,

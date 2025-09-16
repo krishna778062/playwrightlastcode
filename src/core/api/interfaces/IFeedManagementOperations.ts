@@ -1,6 +1,7 @@
 import { APIResponse } from '@playwright/test';
 
 import { CreateFeedPostPayload } from '@core/types/feed.type';
+import { FeedMode } from '@core/types/feedManagement.types';
 
 /**
  * @description Interface for feed management operations
@@ -36,7 +37,7 @@ export interface IFeedManagementOperations {
       isHomeAppManagerControlled: boolean;
       isSiteAppManagerControlled: boolean;
       isExpertiseCreateAppManagerControlled: boolean;
-      feedMode: string;
+      feedMode: FeedMode;
       autoGovValidationPeriod: number;
       autoGovernanceEnabled: boolean;
       contentSubmissionsEnabled: boolean;
@@ -68,6 +69,7 @@ export interface IFeedManagementOperations {
         tosLabel: string;
       };
       takeLegalAcknowledgement: boolean;
-    }>
+    }>,
+    feedMode?: FeedMode
   ): Promise<APIResponse>;
 }

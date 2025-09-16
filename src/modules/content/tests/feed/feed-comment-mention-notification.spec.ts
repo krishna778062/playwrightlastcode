@@ -5,6 +5,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
+
 import { FeedManagementService } from '@/src/core/api/services/FeedManagementService';
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
@@ -26,8 +28,8 @@ test.describe(
     let endUserInfo: { userId: string; fullName: string };
 
     test.beforeEach('Setup test environment', async ({ appManagerApiClient, feedManagementHelper }) => {
-      // Configure app governance settings
-      await feedManagementHelper.configureAppGovernance();
+      // Configure app governance settings and enable timeline comment post(feed)
+      await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
 
       // Get user information for mentions (optimized single API calls)
       const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
