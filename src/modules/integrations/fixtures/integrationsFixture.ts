@@ -10,6 +10,7 @@ import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteMan
 import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileManagementHelper';
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
+import { UkgSyncPage } from '@/src/modules/integrations/ui/pages/ukgSyncPage';
 
 // API-only fixture type for API helpers and services
 export interface IntegrationsApiFixture {
@@ -26,6 +27,7 @@ export interface IntegrationsUiFixture {
   navigationHelper: NavigationHelper;
   homeDashboard: HomeDashboard;
   siteDashboard: SiteDashboard;
+  ukgSyncPage: UkgSyncPage;
 }
 
 // Combined user fixture type that extends both API and UI fixtures
@@ -68,6 +70,7 @@ async function createIntegrationsUiFixture(
   await homeDashboard.verifyThePageIsLoaded();
 
   const siteDashboard = new SiteDashboard(page);
+  const ukgSyncPage = new UkgSyncPage(page);
 
   return {
     browserContext: context,
@@ -76,6 +79,7 @@ async function createIntegrationsUiFixture(
     navigationHelper,
     homeDashboard,
     siteDashboard,
+    ukgSyncPage,
   };
 }
 
