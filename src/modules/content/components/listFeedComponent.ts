@@ -18,6 +18,8 @@ export class ListFeedComponent extends BaseComponent {
   readonly replyButton: Locator;
   readonly replyInput: Locator;
   readonly submitReplyButton: Locator;
+  readonly replyEditor: Locator;
+  readonly replyShowMoreButton: Locator;
 
   // Dynamic locator functions
   /**
@@ -44,10 +46,6 @@ export class ListFeedComponent extends BaseComponent {
   readonly infoIcon = this.page.locator("i[data-testid='i-info']");
 
   readonly postTextLocator = (postText: string): Locator => this.page.locator('p').filter({ hasText: postText });
-
-  readonly replyShowMoreButton = (text: string) => {
-    return this.page.locator(`div:has(p:has-text("${text}")) + div`).locator('button');
-  };
 
   readonly replyLocator = (replyText: string): Locator =>
     this.page.locator('div[class*="replyContent"] p').filter({ hasText: replyText }).first();
@@ -113,6 +111,8 @@ export class ListFeedComponent extends BaseComponent {
     this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' }).first();
     this.replyInput = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
     this.submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
+    this.replyEditor = this.page.getByRole('textbox', { name: 'You are in the content editor' });
+    this.replyShowMoreButton = this.page.getByTestId('replyContent').getByRole('button', { name: 'Show more' });
   }
 
   /**
@@ -281,18 +281,14 @@ export class ListFeedComponent extends BaseComponent {
           response.status() === 200
       );
 
-      await this.clickOnElement(this.replyButton);
+      await this.clickOnElement(this.replyButton, { stepInfo: 'Clicking on reply button' });
 
       await replyApiPromise;
-
-      await this.verifier.waitUntilElementIsClickable(this.replyInput, {
+      await this.verifier.verifyTheElementIsVisible(this.replyInput, {
         assertionMessage: `Reply input should be visible`,
       });
-      await this.clickOnElement(this.replyInput);
-      console.log('replyText: ', replyText);
-      // Fill the reply input
-      await this.typeInElement(this.replyInput, replyText);
-      console.log('reply added: ', replyText);
+
+      await this.fillInElement(this.replyEditor, replyText);
 
       // Click submit reply button
       await this.clickOnElement(this.submitReplyButton);
@@ -325,9 +321,10 @@ export class ListFeedComponent extends BaseComponent {
    * @param postText Click reply show more button
    */
 
-  async clickReplyShowMoreButton(postText: string): Promise<void> {
+  async clickReplyShowMoreButton(): Promise<void> {
     await test.step(`Click reply show more button`, async () => {
-      await this.clickOnElement(this.replyShowMoreButton(postText));
+      await this.hoverOverElementInJavaScript(this.replyShowMoreButton);
+      await this.clickOnElement(this.replyShowMoreButton);
     });
   }
 

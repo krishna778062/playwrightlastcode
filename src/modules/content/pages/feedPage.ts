@@ -37,7 +37,8 @@ export interface IFeedActions {
   clickDeleteButton: () => Promise<void>;
   clickShowMoreButton: () => Promise<void>;
   addReplyToPost: (replyText: string) => Promise<void>;
-  clickReplyShowMoreButton: (postText: string) => Promise<void>;
+  clickReplyShowMoreButton: () => Promise<void>;
+  clickOnDeleteReplyButton: () => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -214,6 +215,11 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.filePreviewComponent.clickDeleteButton();
   }
 
+  async clickOnDeleteReplyButton(): Promise<void> {
+    await this.listFeedComponent.clickDeleteOption();
+    await this.listFeedComponent.confirmDelete();
+  }
+
   async verifyImageButtonIsNotVisible(): Promise<void> {
     await this.listFeedComponent.verifyImageButtonIsNotVisible();
   }
@@ -230,8 +236,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifyReplyIsVisible(replyText);
   }
 
-  async clickReplyShowMoreButton(postText: string): Promise<void> {
-    await this.listFeedComponent.clickReplyShowMoreButton(postText);
+  async clickReplyShowMoreButton(): Promise<void> {
+    await this.listFeedComponent.clickReplyShowMoreButton();
   }
 
   async verifyReplyIsNotVisible(replyText: string): Promise<void> {

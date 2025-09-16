@@ -259,17 +259,14 @@ test.describe(
             // Add reply to the feed post
             await appManagerFeedPage.actions.addReplyToPost(replyText);
 
-            // Verify reply is visible
-            await appManagerFeedPage.assertions.waitForPostToBeVisible(replyText);
-
             // Verify reply is associated with the correct post
             await appManagerFeedPage.assertions.verifyReplyIsVisible(replyText);
 
             // Click reply show more button
-            await appManagerFeedPage.actions.clickReplyShowMoreButton(createdPostText);
+            await appManagerFeedPage.actions.clickReplyShowMoreButton();
 
             // Click delete button
-            await appManagerFeedPage.actions.clickDeleteButton();
+            await appManagerFeedPage.actions.clickOnDeleteReplyButton();
 
             // Verify delete button is visible
             await appManagerFeedPage.assertions.verifyReplyIsNotVisible(replyText);
