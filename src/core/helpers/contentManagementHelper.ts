@@ -85,7 +85,7 @@ export class ContentManagementHelper {
       contentSubType: contentInfo.contentSubType,
     });
 
-    if (params.options?.waitForSearchIndex !== false) {
+    if (options.waitForSearchIndex) {
       await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
         apiClient: this.appManagerApiClient,
         searchTerm: finalPageName,

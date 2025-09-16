@@ -83,6 +83,9 @@ export const API_ENDPOINTS = {
     feedURL: (feedId: string) => `/feed/${feedId}`,
     comment: (feedId: string) => `/v1/wfeed/feeds/${feedId}/comments`,
   },
+  appConfig: {
+    governance: '/v1/account/appConfig/app.setup.governance',
+  },
   apps: {
     settings: '/v1/account/apps-links-settings',
     list: '/v1/account/launchpad/apps/list',
