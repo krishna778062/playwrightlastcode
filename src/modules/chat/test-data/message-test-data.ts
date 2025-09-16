@@ -41,16 +41,7 @@ export const messageTestData: MessageTestData[] = [
     priority: 'P2',
     groupType: 'SMOKE',
   },
-  // {
-  //   testName: 'emoji message',
-  //   message: '😀🎉🚀💻🔥',
-  //   expectedResult: '😀🎉🚀💻🔥',
-  //   testId: 'CHAT-2210',
-  //   storyId: 'CHAT-2210',
-  //   description: 'To verify emoji message can be sent to user',
-  //   priority: 'P3',
-  //   groupType: 'REGRESSION',
-  // },
+
   {
     testName: 'special characters message',
     message: '!@#$%^&*()_+-=[]{}|;:,.<>?',
