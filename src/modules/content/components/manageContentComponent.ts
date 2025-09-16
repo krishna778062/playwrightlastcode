@@ -43,6 +43,10 @@ export class ManageContentComponent extends BaseComponent {
   readonly sortByButton: Locator;
   readonly createdNewestOption: Locator;
   readonly createdNewestOptionOuterDiv: Locator;
+  readonly viewAllButton: Locator;
+  readonly editButton: Locator;
+  readonly validationRequiredBar: Locator;
+  readonly clickOnCancelButton: Locator;
   constructor(page: Page) {
     super(page);
     this.searchBar = page.locator("[aria-label='Search…']");
@@ -88,6 +92,16 @@ export class ManageContentComponent extends BaseComponent {
     this.pageCategorySelectorDropdownOptions = page.locator('[id="undefined-list"]').first();
     this.createdNewestOption = page.locator('option').filter({ hasText: 'Created date (newest first)' }).first();
     this.createdNewestOptionOuterDiv = page.locator('[class="NativeSelect"]');
+    this.viewAllButton = page
+      .getByRole('button', { name: 'View all' })
+      .or(page.getByRole('link', { name: 'View all' }));
+    this.editButton = page
+      .getByRole('button', { name: 'Edit' })
+      .or(page.locator("div[role='menuitem'] > div").filter({ hasText: /^Edit$/ }));
+    this.validationRequiredBar = page.locator(
+      '[class*="ValidationRequired"], [data-testid*="validation"], .validation-bar, [class*="validation-required"]'
+    );
+    this.clickOnCancelButton = page.getByRole('button', { name: 'Cancel' });
   }
 
   async clickSearchBar(): Promise<void> {
@@ -341,6 +355,31 @@ export class ManageContentComponent extends BaseComponent {
       } else {
         console.log('Page category selector dropdown options is not visible skipping');
       }
+    });
+  }
+  async clickOnViewAllButton(): Promise<void> {
+    await test.step('Clicking on view all button', async () => {
+      await this.clickOnElement(this.viewAllButton);
+    });
+  }
+  async clickOnEditButton(): Promise<void> {
+    await test.step('Clicking on edit button', async () => {
+      await this.clickOnElement(this.editButton);
+    });
+  }
+  async verifyingValidationRequiredBarState(): Promise<void> {
+    await test.step('Verifying validation required bar state', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.validationRequiredBar);
+    });
+  }
+  async clickOnContent(): Promise<void> {
+    await test.step('Clicking on content', async () => {
+      await this.clickOnElement(this.firstContentCheckbox);
+    });
+  }
+  async clickOnCancel(): Promise<void> {
+    await test.step('Clicking on cancel', async () => {
+      await this.clickOnElement(this.clickOnCancelButton);
     });
   }
 }

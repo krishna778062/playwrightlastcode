@@ -22,6 +22,11 @@ export interface IActions {
   selectCreatedNewestOptionThroughUrl: () => Promise<void>;
   selectPageCategoryIfVisible: () => Promise<void>;
   selectPageCategory: () => Promise<void>;
+  clickOnContent: () => Promise<void>;
+  clickOnViewAllButton: () => Promise<void>;
+  clickOnEditButton: () => Promise<void>;
+  verifyingValidationRequiredBarState: () => Promise<void>;
+  clickOnCancel: () => Promise<void>;
 }
 
 export interface IAssertions {
@@ -185,5 +190,23 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
 
   async selectPageCategory(): Promise<void> {
     await this.manageContentComponent.selectPageCategory();
+  }
+  async clickOnContent(): Promise<void> {
+    await this.manageContentComponent.clickOnContent();
+  }
+  async clickOnViewAllButton(): Promise<void> {
+    await this.manageContentComponent.clickOnViewAllButton();
+  }
+  async clickOnEditButton(): Promise<void> {
+    await this.manageContentComponent.clickOnEditButton();
+  }
+  async verifyingValidationRequiredBarState(): Promise<void> {
+    await this.manageContentComponent.verifyingValidationRequiredBarState();
+  }
+  async clickOnCancel(): Promise<void> {
+    await this.manageContentComponent.clickOnCancel();
+  }
+  async clickOnContent(): Promise<void> {
+    await this.manageContentComponent.clickOnContent();
   }
 }
