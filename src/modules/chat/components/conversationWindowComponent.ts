@@ -155,41 +155,6 @@ export class ConversationWindowComponent extends BaseComponent {
     throw new Error(`Message: ${message} not found in the list of chat messages`);
   }
 
-  /**
-   * Gets the count of messages in the chat
-   * @returns The number of messages in the conversation
-   */
-  async getMessageCount(): Promise<number> {
-    const messages = await this.listChatMessagesComponent.all();
-    return messages.length;
-  }
-
-  /**
-   * Verifies that a new message was added to the chat (count increased)
-   * @param previousCount - The previous message count
-   * @param options - Optional parameters
-   */
-  async verifyNewMessageAdded(
-    previousCount: number,
-    options?: {
-      stepInfo?: string;
-      timeout?: number;
-    }
-  ) {
-    await test.step(
-      options?.stepInfo ?? `Verifying new message was added (count should be ${previousCount + 1})`,
-      async () => {
-        await expect(async () => {
-          const currentCount = await this.getMessageCount();
-
-          expect(currentCount, `Message count should be ${previousCount + 1} but got ${currentCount}`).toBe(
-            previousCount + 1
-          );
-        }).toPass({ timeout: options?.timeout ?? TIMEOUTS.MEDIUM });
-      }
-    );
-  }
-
   async getFocusedMessageCardFromListOfChatMessages(messageText: string): Promise<MessageCardComponent> {
     let messageComponent: MessageCardComponent | undefined;
     await test.step(`Getting focused message object from list of chat messages`, async () => {
