@@ -102,14 +102,14 @@ const feedTestData = [
     feedType: 'Home Feed',
     scope: 'public',
     description: 'Verify user can add reply to Home Feed post',
-    storyId: 'CONT-36290',
+    storyId: 'CONT-39688',
     ...commonFeedConfig,
   },
   {
     feedType: 'Site Feed',
     scope: 'site',
     description: 'Verify user can add reply to Site Feed post',
-    storyId: 'CONT-36291',
+    storyId: 'CONT-39687',
     ...commonFeedConfig,
   },
   {
