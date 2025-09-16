@@ -14,7 +14,7 @@ import { HomeDashboard } from '@/src/modules/integrations/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/pages/siteDashboard';
 
 test.describe(
-  'Airtable App Tiles Multi-user Tests',
+  'airtable App Tiles Multi-user Tests',
   {
     tag: [IntegrationsSuiteTags.AIRTABLE, IntegrationsSuiteTags.ABSOLUTE],
   },
@@ -24,14 +24,14 @@ test.describe(
     multiUserTileFixture.afterEach(async ({ adminPage, tileManagementHelper }) => {
       if (createdTileTitle) {
         const homeDashboard = new HomeDashboard(adminPage, tileManagementHelper);
-        await homeDashboard.removeTileThroughApi(createdTileTitle);
+        await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
         createdTileTitle = undefined;
       }
     });
 
     multiUserTileFixture(
-      'Multi-user tile management for Airtable app tile - Admin creates, EndUser verifies, Admin deletes',
+      'multi-user tile management for Airtable app tile - Admin creates, EndUser verifies, Admin deletes',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -56,13 +56,13 @@ test.describe(
     );
 
     multiUserTileFixture(
-      'Site Manager creates site with Airtable tile, End User verifies, Site Manager deletes tile and deactivates site',
+      'site Manager creates site with Airtable tile, End User verifies, Site Manager deletes tile and deactivates site',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-27190',
+          zephyrTestId: 'INT-24195',
           storyId: 'INT-23049',
         });
 
@@ -85,6 +85,7 @@ test.describe(
         await waitUntilTilePresentInApi(endUserPage, createdTileTitle);
         await endUserSiteDashboard.isTilePresent(createdTileTitle);
         await siteDashboard.removeTile(createdTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
       }
     );
   }
