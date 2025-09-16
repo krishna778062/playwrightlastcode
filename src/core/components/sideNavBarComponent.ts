@@ -1,4 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { text } from 'stream/consumers';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import type { TestOptions } from '@/src/core/types/test.types';
@@ -11,8 +12,12 @@ export class SideNavBarComponent extends BaseComponent {
   readonly analyticsButton: Locator;
   readonly sitesButton: Locator;
   readonly manageFeatureButton: Locator;
+  readonly navigateOnApplication: Locator;
   readonly applicationSettings: Locator;
   readonly rolesButton: Locator;
+  readonly clickOnManageFeature: Locator;
+  readonly clickOnFeedSideMenu: Locator;
+  readonly clickingOnHome: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -24,7 +29,11 @@ export class SideNavBarComponent extends BaseComponent {
     this.homeLink = page.locator('p', { hasText: 'Home' });
     this.applicationSettings = page.locator('p', { hasText: 'Application settings' });
     this.sitesButton = page.getByRole('button', { name: 'Sites' });
+    this.navigateOnApplication = page.getByRole('menuitem', { name: 'Application settings', exact: true });
+    this.clickOnManageFeature = page.locator('[aria-label="Manage features"]').first();
+    this.clickOnFeedSideMenu = this.page.getByTestId('icon-test').nth(1);
     this.rolesButton = page.getByRole('menuitem', { name: 'Roles' });
+    this.clickingOnHome = page.getByRole('menuitem', { name: 'User mode' });
   }
 
   /**
@@ -94,10 +103,6 @@ export class SideNavBarComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Clicks on the application settings button on the side navigation panel
-   * @param options - The options for the step
-   */
   async clickOnApplicationSettings(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `Clicking Application settings button in side navigation`, async () => {
       await this.clickOnElement(this.applicationSettings);

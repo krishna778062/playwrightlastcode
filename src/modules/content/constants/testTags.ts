@@ -13,6 +13,8 @@ export enum ContentFeatureTags {
   COVER_IMAGE = '@cover-image',
   NOTHING_TO_SHOW_HERE = '@nothing-to-show-here',
   MANAGE_CONTENT = '@manage-content',
+  VERIFY_COMMENTS_AND_FEEDS = '@verify-comments-and-feeds',
+  VALIDATION_REQUIRED_BAR_STATE = '@validation-required-bar-state',
 }
 
 export const ContentTestTags = [...Object.values(ContentSuiteTags), ...Object.values(ContentFeatureTags)] as const;

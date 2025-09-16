@@ -15,9 +15,20 @@ import { SiteCreationPage as ContentSiteCreationPage } from '@/src/modules/conte
 import { CreateComponent as AbacCreateComponent } from '@/src/modules/content-abac/components/globalCreateContainerComponent';
 import { SiteCreationPage as AbacSiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 
+export interface IFeaturedSiteActions {
+  navigateToApplication: () => Promise<void>;
+  clickOnManageFeature: () => Promise<void>;
+  clickOnHomeButton: () => Promise<void>;
+  clickOnFeedSideMenu: () => Promise<void>;
+}
 export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions {
+  // actions: any;
   constructor(page: Page) {
     super(page);
+    this.navigateToApplication = this.navigateToApplication.bind(this);
+    this.clickOnManageFeature = this.clickOnManageFeature.bind(this);
+    this.clickOnHomeButton = this.clickOnHomeButton.bind(this);
+    this.clickOnFeedSideMenu = this.clickOnFeedSideMenu.bind(this);
   }
 
   get actions(): INewUxHomePageActions {
@@ -41,17 +52,13 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
 
   async openCreateContentPageForContentType(
     contentType: ContentType,
-    siteManagementHelper: SiteManagementHelper,
     options?: { stepInfo?: string }
   ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage> {
     return await test.step(options?.stepInfo || `Opening create content page for ${contentType}`, async () => {
       await this.clickOnCreateButtonOnSideNavBar();
       const createComponent = new CreateComponent(this.page);
       await createComponent.verifyTheCreateComponentIsVisible();
-      const addContentModal = await createComponent.selectContentTypeAndCreateContent(
-        contentType,
-        siteManagementHelper
-      );
+      const addContentModal = await createComponent.selectContentTypeAndCreateContent(contentType);
       return await addContentModal.completeContentCreationForm(contentType, { isFromHomePage: true });
     });
   }
@@ -127,6 +134,35 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
     );
   }
 
+  async navigateToApplication(): Promise<void> {
+    await test.step('Clicking on application', async () => {
+      await this.clickOnElement(this.sideNavBarComponent.navigateOnApplication);
+    });
+  }
+
+  async clickOnManageFeature(): Promise<void> {
+    await test.step('Clicking on application', async () => {
+      await this.clickOnElement(this.sideNavBarComponent.clickOnManageFeature);
+    });
+  }
+
+  async clickOnHomeButton(): Promise<void> {
+    await test.step('Clicking on application', async () => {
+      await this.clickOnElement(this.sideNavBarComponent.clickingOnHome);
+    });
+  }
+
+  async clickOnHome(): Promise<void> {
+    await test.step('Clicking on application', async () => {
+      await this.sideNavBarComponent.clickOnHome();
+    });
+  }
+
+  async clickOnFeedSideMenu(): Promise<void> {
+    await test.step('Clicking on application', async () => {
+      await this.clickOnElement(this.sideNavBarComponent.clickOnFeedSideMenu);
+    });
+  }
   async clickOnBellIcon(options?: { stepInfo?: string }): Promise<NotificationComponent> {
     await this.topNavBarComponent.clickOnBellIcon();
     return new NotificationComponent(this.page);

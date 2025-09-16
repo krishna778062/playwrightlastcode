@@ -36,12 +36,10 @@ export interface ICommonHomePageActions {
 export interface IOldUxHomePageActions extends ICommonHomePageActions {
   clickOnCreateContentButtonOnTopNavBar: (
     contentType: ContentType,
-    siteManagementHelper: SiteManagementHelper,
     options?: { stepInfo?: string }
   ) => Promise<AddContentModalComponent>;
   openCreateContentPageForContentType: (
     contentType: ContentType,
-    siteManagementHelper: SiteManagementHelper,
     options?: { stepInfo?: string }
   ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
   openSiteCreationFormForNonAbac: (options?: { stepInfo?: string }) => Promise<ContentSiteCreationPage>;
@@ -52,7 +50,6 @@ export interface INewUxHomePageActions extends ICommonHomePageActions {
   clickOnCreateButtonOnSideNavBar: (options?: { stepInfo?: string }) => Promise<CreateComponent>;
   openCreateContentPageForContentType: (
     contentType: ContentType,
-    siteManagementHelper: SiteManagementHelper,
     options?: { stepInfo?: string }
   ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
   clickOnFeaturedSitesTab: (options?: { stepInfo?: string }) => Promise<FeaturedSitePage>;
@@ -60,6 +57,10 @@ export interface INewUxHomePageActions extends ICommonHomePageActions {
   clickOnApplicationSettings: (options?: { stepInfo?: string }) => Promise<void>;
   verifyRolesButtonVisibility: (visible: boolean, options?: { stepInfo?: string }) => Promise<void>;
   clickOnBellIcon: (options?: { stepInfo?: string }) => Promise<NotificationComponent>;
+  navigateToApplication: () => Promise<void>;
+  clickOnManageFeature: () => Promise<void>;
+  clickOnHomeButton: () => Promise<void>;
+  clickOnFeedSideMenu: () => Promise<void>;
 }
 
 export abstract class BaseHomePage extends BasePage implements ICommonHomePageActions {
