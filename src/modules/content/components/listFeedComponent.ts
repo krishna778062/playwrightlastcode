@@ -280,14 +280,15 @@ export class ListFeedComponent extends BaseComponent {
           response.request().method() === 'POST' &&
           response.status() === 200
       );
+
       await this.clickOnElement(this.replyButton);
 
       await replyApiPromise;
-      await this.verifier.verifyTheElementIsVisible(this.replyInput, {
+
+      await this.verifier.waitUntilElementIsClickable(this.replyInput, {
         assertionMessage: `Reply input should be visible`,
       });
       await this.clickOnElement(this.replyInput);
-
       console.log('replyText: ', replyText);
       // Fill the reply input
       await this.typeInElement(this.replyInput, replyText);

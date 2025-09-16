@@ -52,6 +52,33 @@ export class BaseVerificationUtil {
   }
 
   /**
+   * Waits until an element is clickable
+   * @param locator - The locator to wait for
+   * @param options - The options to pass to the verification
+   * @returns True if the element becomes clickable, false otherwise
+   */
+  async waitUntilElementIsClickable(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ): Promise<boolean> {
+    try {
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be clickable`).toBeEnabled({
+        timeout: options?.timeout || 8_000,
+      });
+      return true;
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element not clickable.\n${error}`
+      );
+    }
+  }
+
+  /**
    * Verifies that the element is not visible
    * @param locator - The locator to verify
    * @param options - The options to pass to the verification
