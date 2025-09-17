@@ -98,22 +98,6 @@ export const APP_LABELS = {
   DELETE_LABEL: 'Delete',
 } as const;
 
-export const AD_GROUP = {
-  AD_GROUP_OPTION: 'Use Microsoft Entra ID groups',
-  GROUP_BUTTON: 'Select Microsoft Entra ID groups',
-  GROUP_NAME1: 'Analytics-Insights',
-  GROUP_NAME2: 'App-Access-Salesforce',
-  ADDED_MESSAGE: 'Added',
-  COUNT: '1',
-  DONE_BUTTON: 'Done',
-  SAVE_BUTTON: 'Save',
-  DO_NOT_CREATE_AUDIENCES: 'Do not create audiences',
-  CREATE_AUDIENCES: 'Create audiences',
-  TYPE: 'type',
-  DISCONNECT_BUTTON: 'Disconnect your Microsoft Entra ID account',
-  CONFIRM_MESSAGE: 'Disconnect Microsoft Entra ID account',
-} as const;
-
 export const OKTA_GROUP = {
   OKTA_LINK: 'https://dev-7599447-admin.okta.com/',
   TOKEN: '00KMwNNDz1XwHwEep76bVu5AsGvLI5I3gobHJxbCje',
