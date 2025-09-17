@@ -218,8 +218,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       const tile = this.getTileContainers(tileTitle).first();
 
       // Verify report ID is visible (format: R followed by alphanumeric characters)
-      // Make this optional as report IDs might not always be present
       await expect(tile.getByText(this.reportIdPattern).first()).toBeVisible();
+
       // Verify report title is visible (should be a heading3)
       await expect(tile.locator(this.heading(3)).first()).toBeVisible();
 
