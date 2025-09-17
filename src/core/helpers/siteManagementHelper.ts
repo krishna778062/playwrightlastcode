@@ -22,14 +22,8 @@ interface SiteMember {
 export class SiteManagementHelper {
   private sites: Site[] = [];
   private siteMembers: SiteMember[] = [];
-  private defaultWaitForSearchIndex: boolean;
 
-  constructor(
-    private appManagerApiClient: AppManagerApiClient,
-    options?: { defaultWaitForSearchIndex?: boolean }
-  ) {
-    this.defaultWaitForSearchIndex = options?.defaultWaitForSearchIndex ?? false;
-  }
+  constructor(private appManagerApiClient: AppManagerApiClient) {}
 
   /**
    * Creates a new public site with default settings.
@@ -45,7 +39,8 @@ export class SiteManagementHelper {
     overrides?: Partial<SiteCreationPayload>;
     waitForSearchIndex?: boolean;
   }) {
-    const { siteName, category, overrides, waitForSearchIndex = this.defaultWaitForSearchIndex } = params;
+    const { siteName, category, overrides, waitForSearchIndex } = params;
+    const shouldWaitForSearchIndex = waitForSearchIndex !== undefined ? waitForSearchIndex : false;
     const timestamp = Date.now().toString().slice(-4);
     const randomId = Math.random().toString(36).substring(2, 6);
     const finalSiteName = siteName ?? `Automate_Site_${timestamp}_${randomId}`;
@@ -69,7 +64,7 @@ export class SiteManagementHelper {
     const siteId = siteResult.siteId;
 
     // Wait for site to appear in search results (optional)
-    if (waitForSearchIndex) {
+    if (shouldWaitForSearchIndex) {
       await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
         apiClient: this.appManagerApiClient,
         searchTerm: finalSiteName,
