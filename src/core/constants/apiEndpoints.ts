@@ -42,6 +42,9 @@ export const API_ENDPOINTS = {
     v2IdentityProfileQuestionsVerify: '/v2/identity/profile-questions/verify',
     v2IdentityUsersSetPassword: '/v2/identity/users/set-password',
     v2IdentityUsersRegisterProfile: '/v2/identity/users/register-profile',
+    roles: '/v1/identity/accounts/roles/list',
+    updateUser: (userId: string) => `/v1/identity/accounts/users/${userId}`,
+    getUserById: (userId: string) => `/v1/identity/accounts/users/${userId}`,
   },
   admin: {
     login: '/v2/identity/admin/login',
