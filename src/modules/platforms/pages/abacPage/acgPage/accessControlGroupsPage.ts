@@ -252,7 +252,7 @@ export class AccessControlGroupsPage extends BasePage {
       console.log(`ACG name is ${acgName}`);
       await this.changeACGStatus(currACGStatus);
       await this.clickOnButtonWithName(saveButtonName);
-      await this.verifyToastMessage('Creating access control groups and audience relationships…');
+      await this.verifyToastMessageIsVisibleWithText('Creating access control groups and audience relationships…');
       await this.dismissTheToastMessage();
       return acgName;
     });
@@ -265,7 +265,7 @@ export class AccessControlGroupsPage extends BasePage {
   async deleteACG(acgName: string): Promise<void> {
     await this.searchForACG(acgName);
     await this.deleteFirstACG();
-    await this.verifyToastMessage('Access control group was successfully deleted');
+    await this.verifyToastMessageIsVisibleWithText('Access control group was successfully deleted');
     await this.dismissTheToastMessage();
   }
 

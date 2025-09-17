@@ -4,30 +4,30 @@ import { UI_ACTIONS } from '@integrations-constants/common';
 import { MESSAGES } from '@integrations-constants/messageRepo';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
 import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
-import { AIRTABLE_TILE } from '@integrations-test-data/app-tiles.test-data';
+import { AIRTABLE_TILE, REDIRECT_URLS } from '@integrations-test-data/app-tiles.test-data';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 test.describe(
-  'Airtable App Tiles Integration',
+  'airtable App Tiles Integration',
   {
     tag: [IntegrationsSuiteTags.AIRTABLE, IntegrationsSuiteTags.ABSOLUTE],
   },
   () => {
     let createdTileTitle: string | undefined = undefined;
 
-    test.afterEach(async ({ homeDashboard }) => {
+    test.afterEach(async ({ homeDashboard, tileManagementHelper }) => {
       if (createdTileTitle) {
-        await homeDashboard.removeTileThroughApi(createdTileTitle);
+        await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
         createdTileTitle = undefined;
       }
     });
 
     test(
-      'Verify Personalize button functionality for user defined view tasks in Airtable app tile',
+      'verify Personalize button functionality for user defined view tasks in Airtable app tile',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -52,7 +52,7 @@ test.describe(
     );
 
     test(
-      'Verify app manager is able to edit display content calendar tasks in Airtable apptile on Home dashboard',
+      'verify app manager is able to edit display content calendar tasks in Airtable apptile on Home dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -78,7 +78,7 @@ test.describe(
     );
 
     test(
-      'Verify site manager is able to edit and remove a display content calendar tile on Site dashboard',
+      'verify site manager is able to edit and remove a display content calendar tile on Site dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -104,8 +104,36 @@ test.describe(
         await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
         await siteDashboard.isTilePresent(updatedTileTitle);
         createdTileTitle = updatedTileTitle;
+        // Verify tile content structure
+        await siteDashboard.verifyAirtableTileContentStructure(createdTileTitle);
+        await siteDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.AIRTABLE);
         await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify Airtable tile displays task records with proper content structure',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ homeDashboard, page }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-24189',
+          storyId: 'INT-23049',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Airtable task records ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Add tile and verify content structure
+        await createAirtableTileViaApi(page, { tileInstanceName: createdTileTitle });
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // Verify tile content structure
+        await homeDashboard.verifyAirtableTileContentStructure(createdTileTitle);
+        await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.AIRTABLE);
       }
     );
   }
