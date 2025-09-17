@@ -3,8 +3,6 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class oktaGroupComponent extends BaseComponent {
-  // readonly vendorName: (text: string) => Locator;
-  // readonly checkbox: (text: string) => Locator;
   readonly oktaLink: () => Locator;
   readonly saveButton: () => Locator;
   readonly oktaApiToken: () => Locator;
@@ -22,8 +20,6 @@ export class oktaGroupComponent extends BaseComponent {
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
 
-    // this.vendorName = (vendor: string) => this.rootLocator.locator(`//input[@value='${vendor}']`);
-    // this.checkbox = (vendor: string) => this.rootLocator.locator(`/input[@type='checkbox' and @value='${vendor}']`);
     this.oktaLink = () => this.rootLocator.getByRole('textbox', { name: 'Okta link' });
     this.saveButton = () => this.rootLocator.getByRole('button', { name: 'Save' });
     this.oktaApiToken = () => this.rootLocator.getByRole('textbox', { name: 'Okta API token' });
@@ -45,8 +41,6 @@ export class oktaGroupComponent extends BaseComponent {
 
   async clickOnCheckbox(): Promise<void> {
     const oktaCheckbox = this.rootLocator.locator('#Okta_selected');
-
-    // Check if checkbox is already checked
     const isChecked = await oktaCheckbox.isChecked();
 
     if (!isChecked) {
