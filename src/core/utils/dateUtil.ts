@@ -99,11 +99,12 @@ export function isWeekend(date: Date): boolean {
  * @returns {Date} The next working day
  */
 export function getNextWorkingDay(startDate: Date): Date {
-  const result = new Date(startDate);
-  result.setDate(result.getDate() + 1);
+  // Create a new date object to avoid mutating the original
+  const result = new Date(startDate.getTime());
+  result.setUTCDate(result.getUTCDate() + 1);
 
   while (isWeekend(result)) {
-    result.setDate(result.getDate() + 1);
+    result.setUTCDate(result.getUTCDate() + 1);
   }
 
   return result;
@@ -116,11 +117,12 @@ export function getNextWorkingDay(startDate: Date): Date {
  * @returns {Date} The resulting date after adding working days
  */
 export function addWorkingDays(startDate: Date, workingDaysToAdd: number): Date {
-  const result = new Date(startDate);
+  // Create a new date object to avoid mutating the original
+  const result = new Date(startDate.getTime());
   let addedDays = 0;
 
   while (addedDays < workingDaysToAdd) {
-    result.setDate(result.getDate() + 1);
+    result.setUTCDate(result.getUTCDate() + 1);
     if (!isWeekend(result)) {
       addedDays++;
     }
@@ -149,9 +151,15 @@ export function formatDateForAriaLabel(date: Date): string {
  * @returns {string} Formatted date string for display
  */
 export function formatDateForDisplay(date: Date): string {
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  // Validate the date object
+  if (!date || isNaN(date.getTime())) {
+    throw new Error(`Invalid date object: ${date}`);
+  }
+
+  // Use UTC methods to avoid timezone issues in CI
+  const month = date.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
+  const day = date.getUTCDate();
+  const year = date.getUTCFullYear();
+
+  return `${month} ${day}, ${year}`;
 }

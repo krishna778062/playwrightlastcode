@@ -41,9 +41,13 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    * @param workingDays - Number of working days for the leave
    */
   async selectLeaveDates(workingDays: number): Promise<void> {
+    // Create a date at midnight UTC to avoid timezone issues
     const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
     const startDate = getNextWorkingDay(today);
     const endDate = addWorkingDays(startDate, workingDays - 1);
+
     await this.selectDate('start', startDate);
     await this.selectDate('end', endDate);
   }
@@ -59,10 +63,17 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
       throw new Error(`Cannot select weekend date: ${targetDate.toDateString()}`);
     }
     await dateButton.click();
-    const dayNumber = targetDate.getDate().toString();
+
+    // Use UTC date to avoid timezone issues
+    const dayNumber = targetDate.getUTCDate().toString();
     const dayCell = this.page.getByRole('gridcell', { name: dayNumber }).first();
     await dayCell.click();
-    await expect(dateButton).toContainText(formatDateForDisplay(targetDate));
+
+    // Wait a bit for the date to be updated in the UI
+    await this.page.waitForTimeout(500);
+
+    const expectedText = formatDateForDisplay(targetDate);
+    await expect(dateButton).toContainText(expectedText);
   }
 
   /**
