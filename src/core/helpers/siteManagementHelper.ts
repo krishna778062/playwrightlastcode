@@ -22,15 +22,21 @@ interface SiteMember {
 export class SiteManagementHelper {
   private sites: Site[] = [];
   private siteMembers: SiteMember[] = [];
+  private defaultWaitForSearchIndex: boolean;
 
-  constructor(private appManagerApiClient: AppManagerApiClient) {}
+  constructor(
+    private appManagerApiClient: AppManagerApiClient,
+    options?: { defaultWaitForSearchIndex?: boolean }
+  ) {
+    this.defaultWaitForSearchIndex = options?.defaultWaitForSearchIndex ?? false;
+  }
 
   /**
    * Creates a new public site with default settings.
    * @param siteName - Optional custom site name. If not provided, generates a random name.
    * @param category - The site category object, containing name and categoryId.
    * @param overrides - Optional overrides for site creation payload.
-   * @param waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to true.
+   * @param waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to the helper's default setting.
    * @returns An object containing details of the created site.
    */
   async _createSiteBaseMethod(params: {
@@ -39,7 +45,7 @@ export class SiteManagementHelper {
     overrides?: Partial<SiteCreationPayload>;
     waitForSearchIndex?: boolean;
   }) {
-    const { siteName, category, overrides, waitForSearchIndex = true } = params;
+    const { siteName, category, overrides, waitForSearchIndex = this.defaultWaitForSearchIndex } = params;
     const timestamp = Date.now().toString().slice(-4);
     const randomId = Math.random().toString(36).substring(2, 6);
     const finalSiteName = siteName ?? `Automate_Site_${timestamp}_${randomId}`;
@@ -88,7 +94,7 @@ export class SiteManagementHelper {
    * @param siteName - Optional custom site name. If not provided, generates a random name.
    * @param category - The site category object, containing name and categoryId.
    * @param overrides - Optional overrides for site creation payload.
-   * @param waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to true.
+   * @param waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to the helper's default setting.
    * @returns An object containing details of the created site.
    */
   async createPublicSite(params: {
@@ -111,7 +117,7 @@ export class SiteManagementHelper {
    * @param siteName - Optional custom site name. If not provided, generates a random name.
    * @param category - The site category object, containing name and categoryId.
    * @param overrides - Optional overrides for site creation payload.
-   * @param waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to true.
+   * @param waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to the helper's default setting.
    * @returns An object containing details of the created site.
    */
   async createPrivateSite(params: {
@@ -134,7 +140,7 @@ export class SiteManagementHelper {
    * @param siteName - Optional custom site name. If not provided, generates a random name.
    * @param category - The site category object, containing name and categoryId.
    * @param overrides - Optional overrides for site creation payload.
-   * @param waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to true.
+   * @param waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to the helper's default setting.
    * @returns An object containing details of the created site.
    */
   async createUnlistedSite(params: {
