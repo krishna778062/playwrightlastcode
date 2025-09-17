@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 
 import { FeedMode } from '@core/types/feedManagement.types';
 
@@ -16,34 +16,40 @@ export class FeedManagementHelper {
   constructor(private appManagerApiClient: AppManagerApiClient) {}
 
   /**
-   * Creates a feed with retry mechanism using Playwright's polling
-   * @param feedCreationFn - Function that creates the feed
+   * Creates a feed with retry mechanism (max 2 retries)
+   * @param createFeed - Function that creates the feed
    * @returns Promise with the created feed response
    */
-  private async createFeedWithRetry<T>(feedCreationFn: () => Promise<T>): Promise<T> {
-    const result = await expect.poll(
-      async () => {
-        try {
-          return await feedCreationFn();
-        } catch (error) {
-          // Throw error to indicate failure, polling will retry
-          console.warn('Feed creation attempt failed, retrying...', (error as Error).message);
-          throw error;
-        }
-      },
-      {
-        message: 'Feed creation should succeed',
-        timeout: 10000, // 10 seconds total timeout
-        intervals: [1000, 2000], // Retry after 1s, then 2s (max 2 retries)
-      }
-    );
+  private async createFeedWithRetry<T>(createFeed: () => Promise<T>): Promise<T> {
+    const maxRetries = 2;
+    let lastError: Error;
 
-    return result as T;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await createFeed();
+      } catch (error) {
+        lastError = error as Error;
+
+        if (attempt === maxRetries) {
+          console.error(`Feed creation failed after ${maxRetries + 1} attempts. Last error:`, lastError.message);
+          throw lastError;
+        }
+
+        const delay = (attempt + 1) * 1000; // 1s, 2s delays
+        console.warn(
+          `Feed creation attempt ${attempt + 1} failed. Retrying in ${delay}ms... Error:`,
+          lastError.message
+        );
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    throw lastError!;
   }
 
   /**
    * Creates a new feed with optional attachment.
-   * Uses Playwright's polling mechanism for retry with max 2 retries.
+   * Includes retry mechanism with max 2 retries for failed feed creation.
    * @returns An object containing details of the created feed.
    */
   async createFeed(

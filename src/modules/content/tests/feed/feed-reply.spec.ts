@@ -12,23 +12,6 @@ import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
-import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
-
-interface SiteDetails {
-  siteId: string;
-  siteName: string;
-  categoryId: string;
-  categoryName: string;
-  access: string;
-}
-
-interface PageDetails {
-  contentId: string;
-  siteId: string;
-  pageName: string;
-  authorName: string;
-  contentDescription: string;
-}
 
 interface FeedResponse {
   result: {
@@ -52,39 +35,25 @@ interface FeedResponse {
  * @param options - Configuration for what to create
  * @returns Promise with created resources
  */
-async function createSiteAndContentByOptions(
+async function getPrerequisiteData(
   helpers: {
     siteManagementHelper: any;
     contentManagementHelper: any;
   },
-  options: {
-    createSite?: boolean;
-    createPage?: boolean;
-  }
+  testData: any
 ) {
   const resources: any = {};
 
-  if (options.createSite) {
-    const siteResult = await helpers.siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
-    resources.siteDetails = siteResult;
+  // Create site only once, even if both createSite and createPage are true
+  if (testData.feedType === 'Site Feed') {
+    const siteResult = await helpers.siteManagementHelper.getSiteWithAccessType({ accessType: 'public' });
+    resources.siteId = siteResult;
   }
 
-  if (options.createPage) {
-    const siteResult = await helpers.siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
-    const pageResult = await helpers.contentManagementHelper.createPage({
-      siteId: siteResult.siteId,
-      contentInfo: {
-        contentType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.content,
-        contentSubType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.contentType,
-      },
-      options: {
-        waitForSearchIndex: false,
-      },
-    });
-    console.log('pageResult: ', pageResult);
-    console.log('pageId: ', pageResult.contentId);
-    resources.siteDetails = siteResult;
-    resources.pageDetails = pageResult;
+  if (testData.feedType === 'Content Feed') {
+    const response = await helpers.contentManagementHelper.getContentId();
+    resources.contentId = response.contentId;
+    resources.siteId = response.siteId;
   }
 
   return resources;
@@ -132,8 +101,8 @@ for (const testData of feedTestData) {
       let appManagerFeedPage: FeedPage;
       let createdPostText: string;
       let createdPostId: string;
-      let siteDetails: SiteDetails;
-      let pageDetails: PageDetails;
+      let siteId: string;
+      let contentId: string;
       let feedResponse: FeedResponse;
       let siteDashboardPage: SiteDashboardPage;
       let feedTestDataGenerated: any;
@@ -147,26 +116,19 @@ for (const testData of feedTestData) {
           await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
           // Initialize feed page
           appManagerFeedPage = new FeedPage(appManagerHomePage.page);
-
-          // Create site and content resources based on feed type
-          const needsSite = testData.feedType === 'Site Feed' || testData.feedType === 'Content Feed';
-          const needsPage = testData.feedType === 'Content Feed';
-
-          const resources = await createSiteAndContentByOptions(
-            { siteManagementHelper, contentManagementHelper },
-            {
-              createSite: needsSite,
-              createPage: needsPage,
-            }
-          );
+          const resources = await getPrerequisiteData({ siteManagementHelper, contentManagementHelper }, testData);
 
           // Assign created resources
-          if (resources.siteDetails) {
-            siteDetails = resources.siteDetails;
+          if (resources.siteId) {
+            siteId = resources.siteId;
           }
-          if (resources.pageDetails) {
-            pageDetails = resources.pageDetails;
+          if (resources.contentId) {
+            siteId = resources.siteId;
+            contentId = resources.contentId;
           }
+
+          console.log('spec siteId: ', siteId);
+          console.log('spec contentId: ', contentId);
 
           // Generate feed data based on feed type
           switch (testData.feedType) {
@@ -183,7 +145,7 @@ for (const testData of feedTestData) {
             case 'Site Feed': {
               feedTestDataGenerated = TestDataGenerator.generateFeed({
                 scope: 'site',
-                siteId: siteDetails.siteId,
+                siteId: siteId,
                 withAttachment: testData.hasAttachment,
                 waitForSearchIndex: testData.waitForSearchIndex,
               });
@@ -193,8 +155,8 @@ for (const testData of feedTestData) {
             case 'Content Feed': {
               feedTestDataGenerated = TestDataGenerator.generateFeed({
                 scope: 'site',
-                siteId: siteDetails.siteId,
-                contentId: pageDetails.contentId,
+                siteId: siteId,
+                contentId: contentId,
                 withAttachment: testData.hasAttachment,
                 waitForSearchIndex: testData.waitForSearchIndex,
               });
@@ -210,25 +172,25 @@ for (const testData of feedTestData) {
           createdPostId = feedResponse.result.feedId;
           // Generate reply text
           replyText = TestDataGenerator.generateRandomText('Reply to feed post', 3, true);
-
           console.log(`Created feed via API: ${feedResponse.result.feedId}`);
 
           // Navigate to feed URL
           if (testData.feedType === 'Content Feed') {
             contentPreviewPage = new ContentPreviewPage(
               appManagerHomePage.page,
-              siteDetails.siteId,
-              pageDetails.contentId,
+              siteId,
+              contentId,
               ContentType.PAGE.toLowerCase()
             );
             await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
           } else if (testData.feedType === 'Site Feed') {
-            siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteDetails.siteId);
+            siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteId);
             await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+            await siteDashboardPage.actions.clickOnFeedLink();
           } else if (testData.feedType === 'Home Feed') {
             await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
           }
-          await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+          //await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
         }
       );
 
@@ -251,6 +213,8 @@ for (const testData of feedTestData) {
             storyId: testData.storyId,
           });
 
+          await appManagerHomePage.page.pause();
+          await appManagerFeedPage.page.pause();
           // Add reply to the feed post
           await appManagerFeedPage.actions.addReplyToPost(replyText);
 

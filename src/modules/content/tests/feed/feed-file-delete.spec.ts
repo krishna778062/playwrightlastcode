@@ -49,41 +49,28 @@ interface FeedResponse {
 /**
  * Creates required resources based on feed type (API only - no page objects needed)
  * @param helpers - Required helper instances
- * @param options - Configuration for what to create
+ * @param testData - Test data configuration
  * @returns Promise with created resources
  */
-async function createSiteAndContentByOptions(
+async function getPrerequisiteData(
   helpers: {
     siteManagementHelper: any;
     contentManagementHelper: any;
   },
-  options: {
-    createSite?: boolean;
-    createPage?: boolean;
-  }
+  testData: any
 ) {
   const resources: any = {};
 
-  if (options.createSite) {
-    const siteResult = await helpers.siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
-    resources.siteDetails = siteResult;
+  // Create site only once, even if both createSite and createPage are true
+  if (testData.feedType === 'Site Feed') {
+    const siteResult = await helpers.siteManagementHelper.getSiteWithAccessType({ accessType: 'public' });
+    resources.siteId = siteResult;
   }
 
-  if (options.createPage) {
-    const siteResult = await helpers.siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
-    const pageResult = await helpers.contentManagementHelper.createPage({
-      siteId: siteResult.siteId,
-      contentInfo: {
-        contentType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.content,
-        contentSubType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.contentType,
-      },
-      options: {
-        contentDescription: 'Auto-generated content for feed test',
-        waitForSearchIndex: false,
-      },
-    });
-    resources.siteDetails = siteResult;
-    resources.pageDetails = pageResult;
+  if (testData.feedType === 'Content Feed') {
+    const response = await helpers.contentManagementHelper.getContentId();
+    resources.contentId = response.contentId;
+    resources.siteId = response.siteId;
   }
 
   return resources;
@@ -157,25 +144,33 @@ for (const testData of feedTestData) {
           await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
           // Initialize feed page
           appManagerFeedPage = new FeedPage(appManagerHomePage.page);
-
-          // Create site and content resources based on feed type
-          const needsSite = testData.feedType === 'Site Feed' || testData.feedType === 'Content Feed';
-          const needsPage = testData.feedType === 'Content Feed';
-
-          const resources = await createSiteAndContentByOptions(
-            { siteManagementHelper, contentManagementHelper },
-            {
-              createSite: needsSite,
-              createPage: needsPage,
-            }
-          );
+          const resources = await getPrerequisiteData({ siteManagementHelper, contentManagementHelper }, testData);
 
           // Assign created resources
-          if (resources.siteDetails) {
-            siteDetails = resources.siteDetails;
+          if (resources.siteId) {
+            siteDetails = {
+              siteId: resources.siteId,
+              siteName: '',
+              categoryId: '',
+              categoryName: '',
+              access: '',
+            };
           }
-          if (resources.pageDetails) {
-            pageDetails = resources.pageDetails;
+          if (resources.contentId) {
+            siteDetails = {
+              siteId: resources.siteId,
+              siteName: '',
+              categoryId: '',
+              categoryName: '',
+              access: '',
+            };
+            pageDetails = {
+              contentId: resources.contentId,
+              siteId: resources.siteId,
+              pageName: '',
+              authorName: '',
+              contentDescription: '',
+            };
           }
 
           // Generate feed data based on feed type
@@ -247,6 +242,7 @@ for (const testData of feedTestData) {
           } else if (testData.feedType === 'Site Feed') {
             siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteDetails.siteId);
             await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+            await siteDashboardPage.actions.clickOnFeedLink();
           } else if (testData.feedType === 'Home Feed') {
             await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
           }

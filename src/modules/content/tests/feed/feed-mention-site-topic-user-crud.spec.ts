@@ -2,7 +2,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { SiteDashboardPage } from '../../pages/sitePages/siteDashboardPage';
 import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
 
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
@@ -12,6 +11,7 @@ import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
+import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { SiteType } from '@/src/modules/content-abac/constants/siteType';
 
@@ -78,76 +78,32 @@ async function fetchUserSiteAndTopicByOptions(
 
 /**
  * Creates required resources based on feed type
- * @param feedType - Type of feed (Home Feed, Site Feed, Content Feed)
  * @param helpers - Required helper instances
- * @param testDescription - Test description for content creation
+ * @param testData - Test data configuration
  * @returns Promise with created resources
  */
-async function createSiteAndContentByOptions(
+async function getPrerequisiteData(
   helpers: {
     siteManagementHelper: any;
     contentManagementHelper: any;
-    appManagerHomePage: any;
   },
-  options: {
-    createSite?: boolean;
-    createPage?: boolean;
-  }
+  testData: any
 ) {
   const resources: any = {};
 
-  if (options.createSite) {
-    const siteResult = await helpers.siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
-    resources.siteDashboardPage = new SiteDashboardPage(helpers.appManagerHomePage.page, siteResult.siteId);
+  // Create site only once, even if both createSite and createPage are true
+  if (testData.feedType === 'Site Feed') {
+    const siteResult = await helpers.siteManagementHelper.getSiteWithAccessType({ accessType: 'public' });
+    resources.siteId = siteResult;
   }
 
-  if (options.createPage) {
-    const siteResult = await helpers.siteManagementHelper.createPublicSite({ waitForSearchIndex: false });
-    const pageResult = await helpers.contentManagementHelper.createPage({
-      siteId: siteResult.siteId,
-      contentInfo: {
-        contentType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.content,
-        contentSubType: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.contentType,
-      },
-      waitForSearchIndex: false,
-    });
-    resources.contentPreviewPage = new ContentPreviewPage(
-      helpers.appManagerHomePage.page,
-      siteResult.siteId,
-      pageResult.contentId,
-      ContentType.PAGE.toLowerCase()
-    );
+  if (testData.feedType === 'Content Feed') {
+    const response = await helpers.contentManagementHelper.getContentId();
+    resources.contentId = response.contentId;
+    resources.siteId = response.siteId;
   }
 
   return resources;
-}
-
-/**
- * Handles navigation based on feed type
- * @param feedType - Type of feed (Home Feed, Site Feed, Content Feed)
- * @param resources - Created resources from createFeedResources
- * @param appManagerHomePage - Home page instance for navigation
- */
-async function navigateToFeedType(feedType: string, resources: any, appManagerHomePage: any) {
-  switch (feedType) {
-    case 'Home Feed': {
-      await appManagerHomePage.actions.clickOnGlobalFeed();
-      break;
-    }
-
-    case 'Site Feed': {
-      await resources.siteDashboardPage.loadPage();
-      break;
-    }
-
-    case 'Content Feed': {
-      await resources.contentPreviewPage.loadPage();
-      break;
-    }
-
-    default:
-      throw new Error(`Unknown feed type: ${feedType}`);
-  }
 }
 
 // Test data for different feed types
@@ -231,17 +187,25 @@ for (const testData of feedTestData) {
               Math.floor(Math.random() * testDataResults.topicList.result.listOfItems.length)
             ];
 
-          // Create site and content resources based on feed type via API calls
-          const resources = await createSiteAndContentByOptions(
-            { siteManagementHelper, contentManagementHelper, appManagerHomePage },
-            {
-              createSite: testData.feedType === 'Site Feed' || testData.feedType === 'Content Feed',
-              createPage: testData.feedType === 'Content Feed',
-            }
-          );
+          // Get prerequisite data based on feed type
+          const resources = await getPrerequisiteData({ siteManagementHelper, contentManagementHelper }, testData);
 
           // Navigate to appropriate feed type
-          await navigateToFeedType(testData.feedType, resources, appManagerHomePage);
+          if (testData.feedType === 'Home Feed') {
+            await appManagerHomePage.actions.clickOnGlobalFeed();
+          } else if (testData.feedType === 'Site Feed') {
+            const siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, resources.siteId);
+            await siteDashboardPage.loadPage();
+            await siteDashboardPage.actions.clickOnFeedLink();
+          } else if (testData.feedType === 'Content Feed') {
+            const contentPreviewPage = new ContentPreviewPage(
+              appManagerHomePage.page,
+              resources.siteId,
+              resources.contentId,
+              ContentType.PAGE.toLowerCase()
+            );
+            await contentPreviewPage.loadPage();
+          }
         }
       );
 
