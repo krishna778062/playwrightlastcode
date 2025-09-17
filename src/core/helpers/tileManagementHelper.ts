@@ -33,6 +33,10 @@ export class TileManagementHelper {
 
     const integrationTileId = matchedTile?.contentTileId || matchedTile?.id || matchedTile?.tileId;
     if (!integrationTileId) {
+      console.log(
+        'Available tiles:',
+        tiles.map(t => ({ title: t.title, id: t.id, contentTileId: t.contentTileId, tileId: t.tileId }))
+      );
       throw new Error(`Delete Flow: Failed to get integration app tile id based on title ${tileTitle}`);
     }
 
