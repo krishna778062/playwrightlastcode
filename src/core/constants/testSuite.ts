@@ -15,4 +15,5 @@ export enum TestSuite {
   AUDIENCE_CSV = '@audience-csv',
   PLATFORM = '@platform',
   AD_GROUP = '@zeus-AD-Group',
+  OKTA_GROUP = '@zeus-Okta-Group',
 }
