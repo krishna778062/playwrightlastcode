@@ -105,7 +105,7 @@ test.describe('AD Group Integration', () => {
   test(
     'Verify that able to delete selected groups, select new groups and count should be updated accordingly, Verify that user is able to get okta groups modal',
     {
-      tag: [TestPriority.P4, TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.OKTA_GROUP],
+      tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.OKTA_GROUP],
     },
 
     async ({ page }) => {
@@ -134,7 +134,7 @@ test.describe('AD Group Integration', () => {
   test(
     'Verify that user is able to select multiple groups and count should be visible',
     {
-      tag: [TestPriority.P4, TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.OKTA_GROUP],
+      tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.OKTA_GROUP],
     },
 
     async ({ page }) => {
