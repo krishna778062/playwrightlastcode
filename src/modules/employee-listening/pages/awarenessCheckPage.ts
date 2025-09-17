@@ -6,6 +6,14 @@ import {
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/pages/basePage';
+import { TestDataGenerator } from '@core/utils/testDataGenerator';
+
+import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
+import { CreateComponent } from '@/src/modules/content/components/createComponent';
+// Import content creation related classes and types
+import { ContentType } from '@/src/modules/content/constants/contentType';
+import { PageContentType } from '@/src/modules/content/constants/pageContentType';
+import { PageCreationOptions, PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 
 export interface IAwarenessCheckActions {
   toggleCheckbox(label: string, shouldCheck: boolean, options?: AwarenessCheckOptions): Promise<void>;
@@ -17,6 +25,15 @@ export interface IAwarenessCheckActions {
   chooseAnswer(answerText: string, options?: AwarenessCheckOptions): Promise<void>;
   clickAddAnotherQuestion(options?: AwarenessCheckOptions): Promise<void>;
   loadRecentlyCreatedSite(options?: AwarenessCheckOptions): Promise<void>;
+  createPageWithAwarenessCheck(options?: {
+    pageTitle?: string;
+    contentType?: PageContentType;
+    stepInfo?: string;
+  }): Promise<{
+    pageId: string;
+    siteId: string;
+    pageTitle: string;
+  }>;
 }
 
 export interface IAwarenessCheckAssertions {
@@ -29,39 +46,46 @@ export interface IAwarenessCheckAssertions {
 }
 
 export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActions, IAwarenessCheckAssertions {
-  // Locators
-  readonly addAnswerButton: Locator;
-  readonly addAnotherQuestionButton: Locator;
-  readonly threeDotIcon: Locator;
-  readonly editButton: Locator;
-  readonly pageContent: Locator;
-
   // Locator strings
   private readonly questionFieldLocator = (index: number) => `input[id="questions_${index}_text"]`;
+  private readonly threeDotIcon = this.page.getByRole('button', { name: 'Category option' });
+  private readonly addAnotherQuestionButton = this.page.getByRole('button', { name: 'Add another question' });
+  private readonly addAnswerButton = this.page.getByRole('button', { name: 'Add answer' });
+  private readonly editButton = this.page.getByRole('button', { name: 'Edit' });
   private readonly answerFieldLocator = (questionIndex: number, answerIndex: number) =>
     `input[name="questions[${questionIndex}].options[${answerIndex}].text"]`;
   private readonly correctnessDropdownLocator = (questionIndex: number, answerIndex: number) =>
     `select[name="questions[${questionIndex}].options[${answerIndex}].correct"]`;
 
   constructor(page: Page) {
-    super(page);
-
-    // Initialize locators
-    this.addAnswerButton = this.page.locator('button.AnswerBuilder_addAnswerButton--_ibz1.AnswerBuilder_border--weT7a');
-    this.addAnotherQuestionButton = this.page.locator('button:has-text("Add another question")');
-    this.threeDotIcon = this.page.locator('[aria-label="More"]');
-    this.editButton = this.page.locator('[aria-label="Edit"]');
-    this.pageContent = this.page.locator('#page-content');
+    super(page, '/site/c96eabdf-89cb-4631-be88-7c420c87965c/dashboard');
   }
 
   /**
-   * Verifies the awareness check page is loaded
+   * Verifies the page is loaded - now supports different page contexts
+   * Since we work with dynamic page creation, we verify based on URL patterns
    */
   async verifyThePageIsLoaded(): Promise<void> {
-    await test.step('Verifying the awareness check page is loaded', async () => {
-      // TODO: Add proper page load verification
-      // This could be checking for a specific element that indicates the page is loaded
-      await expect(this.pageContent).toBeVisible();
+    await test.step('Verifying the page is loaded', async () => {
+      // Check if we're on a valid page by looking for common elements
+      // This is more flexible than checking for a specific #page-content element
+      const currentUrl = this.page.url();
+
+      if (currentUrl.includes('/site/') && currentUrl.includes('/dashboard')) {
+        // We're on a site dashboard - verify dashboard elements
+        await expect(this.page.locator('main, [role="main"], .dashboard')).toBeVisible({ timeout: 10000 });
+      } else if (currentUrl.includes('/site/') && currentUrl.includes('/content/')) {
+        // We're on a content page - verify content elements
+        await expect(this.page.locator('main, [role="main"], .content-view')).toBeVisible({ timeout: 10000 });
+      } else if (currentUrl.includes('/home')) {
+        // We're on home page - verify home elements
+        await expect(this.page.locator('main, [role="main"], .home-page')).toBeVisible({ timeout: 10000 });
+      } else {
+        // Generic verification - just ensure page has loaded with main content
+        await expect(this.page.locator('body')).toBeVisible({ timeout: 10000 });
+        // Ensure we're not on an error page
+        await expect(this.page.locator('text=error, text=Error, text=404, text=500')).toHaveCount(0);
+      }
     });
   }
 
@@ -245,7 +269,66 @@ export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActio
     });
   }
 
-  // ==================== ASSERTION METHODS ====================
+  /**
+   * Creates a page with awareness check functionality using the reusable content creation workflow
+   * This replaces the manual steps: Click Add Content -> Select Page -> Add -> Enter details -> Publish
+   */
+  async createPageWithAwarenessCheck(options?: {
+    pageTitle?: string;
+    contentType?: PageContentType;
+    stepInfo?: string;
+  }): Promise<{
+    pageId: string;
+    siteId: string;
+    pageTitle: string;
+  }> {
+    return await test.step(options?.stepInfo || 'Create page with awareness check functionality', async () => {
+      // Step 2: Click on Create button to open the create modal
+      const createComponent = new CreateComponent(this.page);
+      await this.clickOnElement(this.page.getByRole('button', { name: 'Create' }), {
+        stepInfo: 'Click Create button from home page',
+      });
+      await createComponent.verifyTheCreateComponentIsVisible();
+
+      // Step 3: Select Page content type and open Add Content Modal
+      const addContentModal = await createComponent.selectContentTypeAndCreateContent(ContentType.PAGE, {
+        stepInfo: 'Select Page content type',
+      });
+
+      // Step 4: Complete content creation form (select site, template, etc.)
+      const pageCreationPage = (await addContentModal.completeContentCreationForm(ContentType.PAGE, {
+        isFromHomePage: true, // We're creating from home page
+      })) as PageCreationPage;
+
+      // Step 5: Generate page creation options using TestDataGenerator (without cover image)
+      const pageTitle = options?.pageTitle || `Awareness Check Test Page - ${new Date().getTime()}`;
+      const contentType = options?.contentType || PageContentType.NEWS;
+
+      const pageCreationOptions: PageCreationOptions = TestDataGenerator.generatePage(
+        contentType,
+        '', // Empty string to skip image upload
+        'Uncategorized', // Default category
+        {
+          title: pageTitle,
+          description: 'Test page content for awareness check functionality',
+          coverImage: undefined, // Explicitly skip cover image
+        }
+      );
+
+      // Step 6: Create and publish the page with increased timeout
+      // Create and publish the page using the content module's proven method
+      const { pageId, siteId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+
+      // Navigate to the created content page to continue with awareness check setup
+      await this.page.goto(`/site/${siteId}/content/${pageId}`);
+
+      return {
+        pageId,
+        siteId,
+        pageTitle,
+      };
+    });
+  }
 
   /**
    * Verifies a question is visible on the screen
