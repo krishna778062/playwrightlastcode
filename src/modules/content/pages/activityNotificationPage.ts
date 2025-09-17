@@ -1,4 +1,3 @@
-import { th } from '@faker-js/faker/.';
 import { Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/pages/basePage';

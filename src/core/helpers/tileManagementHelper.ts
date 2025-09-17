@@ -41,6 +41,10 @@ export class TileManagementHelper {
 
   private async getIntegrationTilesList(): Promise<any[]> {
     const { frontendBaseUrl, tenantUserRoleId } = getEnvConfig();
+    //if tenantUserRoleId is not set, throw an error
+    if (!tenantUserRoleId) {
+      throw new Error('Tenant user role ID is not set');
+    }
     const frontendHost = new URL(frontendBaseUrl).host;
 
     const headers: Record<string, string> = {
