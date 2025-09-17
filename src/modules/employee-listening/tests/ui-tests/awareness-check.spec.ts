@@ -1,26 +1,44 @@
+import { test } from '@employee-listening/fixtures/loginFixture';
 import { AwarenessCheckPage } from '@employee-listening/pages/awarenessCheckPage';
 import { AwarenessQuestionData } from '@employee-listening/types/awareness-check.type';
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { tagTest } from '@core/utils/testDecorator';
+
+// Import content creation related types
+import { PageContentType } from '@/src/modules/content/constants/pageContentType';
 
 test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () => {
   let awarenessCheckPage: AwarenessCheckPage;
+  let createdPageInfo: { pageId: string; siteId: string; pageTitle: string };
 
-  test.beforeEach(async ({ page }) => {
-    // TODO: Add proper login fixture and page navigation
+  test.beforeEach(async ({ page, loginAs }) => {
+    // Step 1: Navigate to the base URL
+    const baseUrl = getEnvConfig().frontendBaseUrl.replace(/\/$/, '');
+    await page.goto(baseUrl);
+
+    // Step 2: Login using the login fixture
+    await loginAs('appManager');
+
+    // Step 3: Initialize awareness check page (without loading specific site yet)
+    // We'll create page content dynamically using the reusable method
     awarenessCheckPage = new AwarenessCheckPage(page);
 
-    // TODO: Navigate to the awareness check page
-    // await awarenessCheckPage.loadPage();
+    // Step 4: Create page content with awareness check functionality
+    // This replaces the manual TODO steps for page creation
+    createdPageInfo = await awarenessCheckPage.actions.createPageWithAwarenessCheck({
+      pageTitle: `Test Page for Awareness Check - ${test.info().title}`,
+      contentType: PageContentType.NEWS,
+      stepInfo: 'Create test page for awareness check',
+    });
   });
-
   test(
     'Verify admin can create a awareness check with question',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@createAwarenessCheck'],
     },
     async () => {
       tagTest(test.info(), {
@@ -28,19 +46,16 @@ test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () 
         description: 'Verify admin can create awareness check with questions',
       });
 
-      // TODO: Add page creation steps
-      // Given Login as "App_Manager"
-      // Given Load `EL-UI-AUTOMATION` site
-      // And Click on Add Content icon
-      // And select the Add content label as "Page"
-      // And Click on `Add`
-      // And Enter "Page" content name
-      // And Enter "Page Content" page content
-      // And Select "News" content type
-      // And Select "Uncategorized" category
-      // And Click on Publish button at the bottom
-      // And Click on "Skip this step"
-      // And Click on option menu three dot
+      // Page creation is now handled in beforeEach using the reusable method
+      // The page is created and published, and we're already on the content page
+      // No need to navigate again since createPageWithAwarenessCheck ends on the content page
+
+      // Click on option menu three dot to access "Make 'must read'" option
+      await awarenessCheckPage.actions.clickThreeDotIcon({
+        stepInfo: 'Click three dot menu to access must read options',
+      });
+
+      // TODO: Add "Make must read" action - this step needs to be implemented
       // And Click on "Make 'must read'"
 
       // Toggle "Enable Awareness check" checkbox "check"
@@ -92,7 +107,8 @@ test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () 
         description: 'Verify admin can edit awareness check with single question',
       });
 
-      // TODO: Add page creation and initial setup steps
+      // Page creation is now handled in beforeEach using the reusable method
+      // We're already on the content page, no need to navigate again
 
       // Toggle "Enable Awareness check" checkbox "check"
       await awarenessCheckPage.actions.toggleCheckbox('Enable Awareness check', true, {
@@ -156,7 +172,8 @@ test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () 
         description: 'Verify admin can edit awareness check with multiple questions',
       });
 
-      // TODO: Add page creation and initial setup steps
+      // Page creation is now handled in beforeEach using the reusable method
+      // We're already on the content page, no need to navigate again
 
       // Toggle "Enable Awareness check" checkbox "check"
       await awarenessCheckPage.actions.toggleCheckbox('Enable Awareness check', true, {
@@ -238,7 +255,8 @@ test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () 
         description: 'Verify admin can edit and remove awareness check',
       });
 
-      // TODO: Add page creation and initial setup steps
+      // Page creation is now handled in beforeEach using the reusable method
+      // We're already on the content page, no need to navigate again
 
       // Toggle "Enable Awareness check" checkbox "check"
       await awarenessCheckPage.actions.toggleCheckbox('Enable Awareness check', true, {
@@ -338,7 +356,8 @@ test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () 
         description: 'Verify admin can participate in awareness check and view report',
       });
 
-      // TODO: Add page creation and initial setup steps
+      // Page creation is now handled in beforeEach using the reusable method
+      // We're already on the content page, no need to navigate again
 
       // Toggle "Enable Awareness check" checkbox "check"
       await awarenessCheckPage.actions.toggleCheckbox('Enable Awareness check', true, {
@@ -397,7 +416,8 @@ test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () 
         description: 'Verify follower cannot see awareness check created for members only',
       });
 
-      // TODO: Add page creation and initial setup steps as App_Manager
+      // Page creation is now handled in beforeEach using the reusable method
+      // We're already on the content page, no need to navigate again
 
       // Toggle "Enable Awareness check" checkbox "check"
       await awarenessCheckPage.actions.toggleCheckbox('Enable Awareness check', true, {
@@ -450,7 +470,8 @@ test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () 
         description: 'Verify end user cannot edit awareness check',
       });
 
-      // TODO: Add page creation and initial setup steps as App_Manager
+      // Page creation is now handled in beforeEach using the reusable method
+      // We're already on the content page, no need to navigate again
 
       // Toggle "Enable Awareness check" checkbox "check"
       await awarenessCheckPage.actions.toggleCheckbox('Enable Awareness check', true, {
