@@ -139,7 +139,7 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
    */
   async updateUser(userId: string, userData: UpdateUserRequest): Promise<UpdateUserResponse> {
     return await test.step(`Updating user ${userId}`, async () => {
-      const response = await this.put(`${API_ENDPOINTS.identity.updateUser(userId)}`, {
+      const response = await this.put(`${API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserId(userId)}`, {
         data: userData,
       });
       return await this.parseResponse<UpdateUserResponse>(response);
@@ -206,7 +206,7 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
   async getUserById(userId: string, parseCustomFields: boolean = true): Promise<GetUserByIdResponse> {
     return await test.step(`Getting user by ID: ${userId}`, async () => {
       const response = await this.get(
-        `${API_ENDPOINTS.identity.getUserById(userId)}?parseCustomFields=${parseCustomFields}`
+        `${API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserId(userId)}?parseCustomFields=${parseCustomFields}`
       );
       return await this.parseResponse<GetUserByIdResponse>(response);
     });
