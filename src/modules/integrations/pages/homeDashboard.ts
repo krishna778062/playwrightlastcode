@@ -1,6 +1,7 @@
 import { DASHBOARD_BUTTONS, FIELD_NAMES, ORGANIZATION_SETTINGS } from '@integrations/constants/common';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { TileOperationsComponent } from '@integrations-components/tileOperationsComponent';
+import { TimeOffRequestTileComponent } from '@integrations-components/timeOffRequestTileComponent';
 import { AIRTABLE_TILE } from '@integrations-test-data/app-tiles.test-data';
 import { expect, Page, test } from '@playwright/test';
 
@@ -16,6 +17,7 @@ export class HomeDashboard {
   readonly page: Page;
   private readonly airtableComponent: BaseAppTileComponent;
   private readonly appTileComponent: AppTileComponent;
+  private readonly timeOffRequestTileComponent: TimeOffRequestTileComponent;
   private readonly tileOperationsComponent: TileOperationsComponent;
   private readonly tileManagementHelper: TileManagementHelper;
 
@@ -30,6 +32,7 @@ export class HomeDashboard {
     this.page = page;
     this.airtableComponent = new BaseAppTileComponent(page);
     this.appTileComponent = new AppTileComponent(page);
+    this.timeOffRequestTileComponent = new TimeOffRequestTileComponent(page);
     this.tileOperationsComponent = new TileOperationsComponent(page);
     this.tileManagementHelper = tileManagementHelper;
   }
@@ -318,5 +321,13 @@ export class HomeDashboard {
    */
   async verifyAirtableTileContentStructure(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyAirtableTileContentStructure(tileTitle);
+  }
+
+  /**
+   * Verify Leave Management tile content structure with leave categories
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyLeaveCategoryFields(tileTitle: string): Promise<void> {
+    await this.timeOffRequestTileComponent.verifyLeaveCategoryFields(tileTitle);
   }
 }

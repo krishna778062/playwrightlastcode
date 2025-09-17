@@ -6,6 +6,8 @@ export const CONNECTOR_IDS = {
   AIRTABLE: '51a2e31b-af80-4bc6-a1ff-8839f2fb6eee',
   EXPENSIFY: 'e576282c-58b3-423b-8b9f-3d6f9f538ded',
   GITHUB: '9099f0b6-55ee-425b-b790-3231f750e7c7',
+  BAMBOOHR: '76108098-da7d-4030-b7c1-ef737e61e5a2',
+  SAP_SUCCESSFACTORS: '498f6b36-6f0d-4cf2-b6a7-06c8e5d26b1e',
 } as const;
 
 /**
@@ -15,6 +17,10 @@ export const TILE_IDS = {
   GITHUB_MY_OPEN_PRS: '8f82cbb1-56a6-4455-80cb-85fcb778fe27',
   GITHUB_PENDING_PR_REVIEWS: '210775b7-9745-455e-9cc4-5653e40211ff',
   EXPENSIFY_REPORT: '82ca87cd-d155-46b5-92db-fcec1caf5f85',
+  BAMBOOHR_APPLY_TIMEOFF: 'c4a4221f-fd07-4b9e-bf36-e039eb10bca2',
+  BAMBOOHR_DISPLAY_TIMEOFF_BALANCE: 'c49ce6e0-89fc-40ef-9e9b-bd738c93a55a',
+  SAP_APPLY_FOR_TIMEOFF: '0fd74213-db63-40d8-bd86-93f69cf47bf3',
+  SAP_DISPLAY_TIMEOFF_BALANCE: '8316a4bf-96a3-4c94-8b75-9453809b70c5',
 } as const;
 
 /**
@@ -60,6 +66,8 @@ export const APP_NAMES = {
   AIRTABLE: 'Airtable',
   FRESHSERVICE: 'Freshservice',
   GITHUB: 'GitHub',
+  BAMBOOHR: 'BambooHR',
+  SAP_SUCCESSFACTORS: 'SAPSuccessFactors',
 } as const;
 
 /**

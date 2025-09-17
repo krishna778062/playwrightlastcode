@@ -1,5 +1,6 @@
 import { BaseAppTileComponent } from '@integrations/components/baseAppTileComponent';
 import { TileOperationsComponent } from '@integrations/components/tileOperationsComponent';
+import { TimeOffRequestTileComponent } from '@integrations/components/timeOffRequestTileComponent';
 import { ACTION_LABELS, DASHBOARD_BUTTONS } from '@integrations/constants/common';
 import { AIRTABLE_TILE } from '@integrations/test-data/app-tiles.test-data';
 import { Page, test } from '@playwright/test';
@@ -13,6 +14,7 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 export class SiteDashboard {
   private page!: Page;
   private airtableComponent!: BaseAppTileComponent;
+  private timeOffRequestTileComponent!: TimeOffRequestTileComponent;
   private tileOperationsComponent!: TileOperationsComponent;
   private appManagerApiClient?: any;
 
@@ -20,6 +22,7 @@ export class SiteDashboard {
     this.page = page;
     this.appManagerApiClient = appManagerApiClient;
     this.airtableComponent = new BaseAppTileComponent(page);
+    this.timeOffRequestTileComponent = new TimeOffRequestTileComponent(page);
     this.tileOperationsComponent = new TileOperationsComponent(page);
   }
 
@@ -148,5 +151,13 @@ export class SiteDashboard {
    */
   async verifyExpensifyReportData(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyExpensifyReportData(tileTitle);
+  }
+
+  /**
+   * Verify Leave Management tile content structure with leave categories
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyLeaveCategoryFields(tileTitle: string): Promise<void> {
+    await this.timeOffRequestTileComponent.verifyLeaveCategoryFields(tileTitle);
   }
 }
