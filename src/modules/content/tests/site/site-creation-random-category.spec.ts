@@ -5,7 +5,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { SiteCreationPage } from '@/src/modules/content/pages/siteCreationPage';
-import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
+import { SiteDashboardPage } from '@/src/modules/content/pages/sitePages/siteDashboardPage';
 import { SitesListPage } from '@/src/modules/content/pages/sitesListPage';
 
 test.describe('Site Creation', { tag: ['@content', '@site-creation'] }, () => {
@@ -27,7 +27,7 @@ test.describe('Site Creation', { tag: ['@content', '@site-creation'] }, () => {
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE, '@random-category'],
     },
-    async ({ appManagerHomePage }) => {
+    async ({ appManagerHomePage, siteManagementHelper }) => {
       tagTest(test.info(), {
         zephyrTestId: 'CONT-20912',
         storyId: 'CONT-20912',

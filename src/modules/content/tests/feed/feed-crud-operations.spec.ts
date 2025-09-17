@@ -4,7 +4,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { SiteDashboardPage } from '../../pages/siteDashboardPage';
+import { SiteDashboardPage } from '../../pages/sitePages/siteDashboardPage';
 
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
