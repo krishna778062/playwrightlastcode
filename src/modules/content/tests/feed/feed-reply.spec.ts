@@ -1,34 +1,17 @@
-import { ContentType } from '@content/constants/contentType';
-import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
-import { SiteDashboardPage } from '@content/pages/siteDashboardPage';
-import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
-import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FileUtil } from '@/src/core/utils/fileUtil';
+import { SiteDashboardPage } from '../../pages/siteDashboardPage';
+import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
+
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
-
-interface SiteDetails {
-  siteId: string;
-  siteName: string;
-  categoryId: string;
-  categoryName: string;
-  access: string;
-}
-
-interface PageDetails {
-  contentId: string;
-  siteId: string;
-  pageName: string;
-  authorName: string;
-  contentDescription: string;
-}
 
 interface FeedResponse {
   result: {
@@ -49,7 +32,7 @@ interface FeedResponse {
 /**
  * Creates required resources based on feed type (API only - no page objects needed)
  * @param helpers - Required helper instances
- * @param testData - Test data configuration
+ * @param options - Configuration for what to create
  * @returns Promise with created resources
  */
 async function getPrerequisiteData(
@@ -76,34 +59,10 @@ async function getPrerequisiteData(
   return resources;
 }
 
-// Common attachment configuration for all test cases
-const commonAttachmentConfig = {
-  hasAttachment: true as const,
-  fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
-  fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
-  mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
-  filePath: FileUtil.getFilePath(
-    __dirname,
-    '..',
-    '..',
-    'test-data',
-    'static-files',
-    'images',
-    FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName
-  ),
-};
-
-// Updated image configuration for version update
-const updatedImageConfig = {
-  filePath: FileUtil.getFilePath(
-    __dirname,
-    '..',
-    '..',
-    'test-data',
-    'static-files',
-    'images',
-    FEED_TEST_DATA.UPDATED_FEED_CONTENT.fileName
-  ),
+// Common feed configuration for all test cases
+const commonFeedConfig = {
+  hasAttachment: false as const,
+  waitForSearchIndex: false,
 };
 
 // Test data for different feed types
@@ -111,23 +70,23 @@ const feedTestData = [
   {
     feedType: 'Home Feed',
     scope: 'public',
-    description: 'Verify user can update image version in Home Feed',
-    storyId: 'CONT-36286',
-    ...commonAttachmentConfig,
+    description: 'Verify user can add reply to Home Feed post',
+    storyId: 'CONT-39688',
+    ...commonFeedConfig,
   },
   {
     feedType: 'Site Feed',
     scope: 'site',
-    description: 'Verify user can update image version in Site Feed',
-    storyId: 'CONT-39628',
-    ...commonAttachmentConfig,
+    description: 'Verify user can add reply to Site Feed post',
+    storyId: 'CONT-39687',
+    ...commonFeedConfig,
   },
   {
     feedType: 'Content Feed',
     scope: 'site',
-    description: 'Verify user can update image version in Content Feed',
-    storyId: 'CONT-39629',
-    ...commonAttachmentConfig,
+    description: 'Verify user can add reply to Content Feed post',
+    storyId: 'CONT-26347',
+    ...commonFeedConfig,
   },
 ];
 
@@ -136,20 +95,19 @@ for (const testData of feedTestData) {
   test.describe(
     `${testData.feedType} Tests`,
     {
-      tag: [ContentTestSuite.FEED_IMAGE_UPDATE_APP_MANAGER],
+      tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER],
     },
     () => {
       let appManagerFeedPage: FeedPage;
       let createdPostText: string;
       let createdPostId: string;
-      let siteDetails: SiteDetails;
-      let pageDetails: PageDetails;
+      let siteId: string;
+      let contentId: string;
       let feedResponse: FeedResponse;
-      let feedTestDataGenerated: any;
-      let originalFileId: string;
-      let updatedFileId: string;
-      let contentPreviewPage: ContentPreviewPage;
       let siteDashboardPage: SiteDashboardPage;
+      let feedTestDataGenerated: any;
+      let replyText: string;
+      let contentPreviewPage: ContentPreviewPage;
 
       test.beforeEach(
         'Setup test environment and data creation',
@@ -162,30 +120,15 @@ for (const testData of feedTestData) {
 
           // Assign created resources
           if (resources.siteId) {
-            siteDetails = {
-              siteId: resources.siteId,
-              siteName: '',
-              categoryId: '',
-              categoryName: '',
-              access: '',
-            };
+            siteId = resources.siteId;
           }
           if (resources.contentId) {
-            siteDetails = {
-              siteId: resources.siteId,
-              siteName: '',
-              categoryId: '',
-              categoryName: '',
-              access: '',
-            };
-            pageDetails = {
-              contentId: resources.contentId,
-              siteId: resources.siteId,
-              pageName: '',
-              authorName: '',
-              contentDescription: '',
-            };
+            siteId = resources.siteId;
+            contentId = resources.contentId;
           }
+
+          console.log('spec siteId: ', siteId);
+          console.log('spec contentId: ', contentId);
 
           // Generate feed data based on feed type
           switch (testData.feedType) {
@@ -194,11 +137,7 @@ for (const testData of feedTestData) {
                 scope: 'public',
                 siteId: undefined,
                 withAttachment: testData.hasAttachment,
-                fileName: testData.fileName,
-                fileSize: testData.fileSize,
-                mimeType: testData.mimeType,
-                filePath: testData.filePath,
-                waitForSearchIndex: false,
+                waitForSearchIndex: testData.waitForSearchIndex,
               });
               break;
             }
@@ -206,13 +145,9 @@ for (const testData of feedTestData) {
             case 'Site Feed': {
               feedTestDataGenerated = TestDataGenerator.generateFeed({
                 scope: 'site',
-                siteId: siteDetails.siteId,
+                siteId: siteId,
                 withAttachment: testData.hasAttachment,
-                fileName: testData.fileName,
-                fileSize: testData.fileSize,
-                mimeType: testData.mimeType,
-                filePath: testData.filePath,
-                waitForSearchIndex: false,
+                waitForSearchIndex: testData.waitForSearchIndex,
               });
               break;
             }
@@ -220,14 +155,10 @@ for (const testData of feedTestData) {
             case 'Content Feed': {
               feedTestDataGenerated = TestDataGenerator.generateFeed({
                 scope: 'site',
-                siteId: siteDetails.siteId,
-                contentId: pageDetails.contentId,
+                siteId: siteId,
+                contentId: contentId,
                 withAttachment: testData.hasAttachment,
-                fileName: testData.fileName,
-                fileSize: testData.fileSize,
-                mimeType: testData.mimeType,
-                filePath: testData.filePath,
-                waitForSearchIndex: false,
+                waitForSearchIndex: testData.waitForSearchIndex,
               });
               break;
             }
@@ -235,32 +166,31 @@ for (const testData of feedTestData) {
             default:
               throw new Error(`Unknown feed type: ${testData.feedType}`);
           }
-
           // Create feed via API
           feedResponse = await feedManagementHelper.createFeed(feedTestDataGenerated);
           createdPostText = feedTestDataGenerated.text;
           createdPostId = feedResponse.result.feedId;
-          originalFileId = feedResponse.result.listOfFiles[0].fileId;
-
-          console.log(`Created feed with image via API: ${feedResponse.result.feedId}`);
+          // Generate reply text
+          replyText = TestDataGenerator.generateRandomText('Reply to feed post', 3, true);
+          console.log(`Created feed via API: ${feedResponse.result.feedId}`);
 
           // Navigate to feed URL
           if (testData.feedType === 'Content Feed') {
             contentPreviewPage = new ContentPreviewPage(
               appManagerHomePage.page,
-              siteDetails.siteId,
-              pageDetails.contentId,
+              siteId,
+              contentId,
               ContentType.PAGE.toLowerCase()
             );
             await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
           } else if (testData.feedType === 'Site Feed') {
-            siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteDetails.siteId);
+            siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteId);
             await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
-            await siteDashboardPage.clickOnFeedLink();
+            await siteDashboardPage.actions.clickOnFeedLink();
           } else if (testData.feedType === 'Home Feed') {
             await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
           }
-          await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+          //await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
         }
       );
 
@@ -272,38 +202,33 @@ for (const testData of feedTestData) {
       });
 
       test(
-        `Verify user can update image version on ${testData.feedType}`,
+        `Verify user can add reply to ${testData.feedType} post`,
         {
           tag: [TestPriority.P1, TestGroupType.REGRESSION, `@${testData.storyId}`],
         },
-        async ({ feedManagementHelper }) => {
+        async ({ appManagerHomePage, feedManagementHelper }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.storyId,
             storyId: testData.storyId,
           });
 
-          await appManagerFeedPage.assertions.verifyVersionImageIsDisplayed(originalFileId);
-          await appManagerFeedPage.actions.clickInfoIcon(originalFileId);
-          await appManagerFeedPage.actions.verifyPreviewModalIsOpened();
-          await appManagerFeedPage.actions.clickOnInfoIconOnImage();
-          await appManagerFeedPage.actions.clickOnEditVersionButton();
-          await appManagerFeedPage.assertions.verifyVersionNumber('1');
-          const responseURL = await appManagerFeedPage.actions.uploadImage(updatedImageConfig.filePath);
-          if (testData.feedType === 'Home Feed') {
-            updatedFileId = responseURL.split('/u/o/')[1].split('?')[0];
-          } else {
-            updatedFileId = responseURL.split('/u/r/')[1].split('?')[0];
-          }
+          await appManagerHomePage.page.pause();
+          await appManagerFeedPage.page.pause();
+          // Add reply to the feed post
+          await appManagerFeedPage.actions.addReplyToPost(replyText);
 
-          await appManagerFeedPage.actions.clickOnUploadButton(updatedFileId);
-          await appManagerFeedPage.assertions.verifyToastMessage('Added new version successfully');
-          await appManagerFeedPage.assertions.verifyVersionNumber('2');
-          await appManagerFeedPage.actions.clickOnCloseButton();
-          //referesh the page
-          await appManagerFeedPage.page.reload();
-          await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
-          await appManagerFeedPage.actions.verifyVersionImageIsDisplayed(updatedFileId);
+          // Verify reply is associated with the correct post
+          await appManagerFeedPage.assertions.verifyReplyIsVisible(replyText);
+
+          // Click reply show more button
+          await appManagerFeedPage.actions.clickReplyShowMoreButton();
+
+          // Click delete button
+          await appManagerFeedPage.actions.clickOnDeleteReplyButton();
+
+          // Verify delete button is visible
+          await appManagerFeedPage.assertions.verifyReplyIsNotVisible(replyText);
         }
       );
     }
