@@ -24,9 +24,12 @@ export default defineConfig({
         video: 'off',
         ...devices['Desktop Chrome'],
         baseURL: getEnvConfig().frontendBaseUrl,
+        permissions: ['camera', 'microphone', 'notifications'],
         launchOptions: {
-          args: ['--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage'],
+          args: ['--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage', '--enable-notifications'],
         },
+        viewport: { width: 1920, height: 1080 },
+        ignoreHTTPSErrors: true,
       },
     },
   ],

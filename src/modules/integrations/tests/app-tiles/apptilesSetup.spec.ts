@@ -47,13 +47,19 @@ test.describe(
           APP_NAMES.EXPENSIFY,
           AppConnectorOptions.Delete
         );
-        await customIntegrationsPage.verifyToastMessage(MESSAGES.getAppDeletedMessage(APP_NAMES.EXPENSIFY));
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(
+          MESSAGES.getAppDeletedMessage(APP_NAMES.EXPENSIFY)
+        );
         await customIntegrationsPage.addPrebuiltApp(APP_NAMES.EXPENSIFY);
         await customIntegrationsPage.clickSaveButton();
-        await customIntegrationsPage.verifyToastMessage(MESSAGES.getAppAddedMessage(APP_NAMES.EXPENSIFY));
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(
+          MESSAGES.getAppAddedMessage(APP_NAMES.EXPENSIFY)
+        );
         await customIntegrationsPage.enterCredentials(EXPENSIFY_CREDS.USER_ID, EXPENSIFY_CREDS.USER_SECRET);
         await customIntegrationsPage.openConnectorOptions(ACTION_LABELS.ENABLE);
-        await customIntegrationsPage.verifyToastMessage(MESSAGES.getAppEnabledMessage(APP_NAMES.EXPENSIFY));
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(
+          MESSAGES.getAppEnabledMessage(APP_NAMES.EXPENSIFY)
+        );
       }
     );
   }

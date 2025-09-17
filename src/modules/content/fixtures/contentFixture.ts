@@ -9,7 +9,6 @@ import { LoginHelper } from '@core/helpers/loginHelper';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
-import { UserManagerApiClient } from '@/src/core/api/clients/userManagerApiClient';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
@@ -77,7 +76,6 @@ export const contentTestFixture = test.extend<
 
     // Utility functions
     loginAs: (userType: UserType) => Promise<void>;
-    switchUser: (fromPage: Page, toUserType: UserType) => Promise<HomePageType>;
   },
   {
     // Worker-scoped fixtures
@@ -124,9 +122,7 @@ export const contentTestFixture = test.extend<
   appManagerContext: [
     async ({ browser }, use) => {
       const context = await browser.newContext({
-        // Optimize context creation
-        ignoreHTTPSErrors: true,
-        viewport: { width: 1920, height: 1080 },
+        permissions: ['camera', 'microphone', 'notifications'],
       });
 
       await use(context);
@@ -147,6 +143,7 @@ export const contentTestFixture = test.extend<
   standardUserContext: [
     async ({ browser }, use) => {
       const context = await browser.newContext({
+        permissions: ['camera', 'microphone', 'notifications'],
         // Optimize context creation
         ignoreHTTPSErrors: true,
         viewport: { width: 1920, height: 1080 },
@@ -184,7 +181,9 @@ export const contentTestFixture = test.extend<
 
   siteManagerContext: [
     async ({ browser }, use, workerInfo) => {
-      const context = await browser.newContext();
+      const context = await browser.newContext({
+        permissions: ['camera', 'microphone', 'notifications'],
+      });
       await use(context);
       await context?.close();
     },
@@ -267,26 +266,6 @@ export const contentTestFixture = test.extend<
           throw new Error(`Missing credentials for user type: ${userType}`);
         }
         await LoginHelper.loginWithPassword(page, credentials);
-      });
-    },
-    { scope: 'test' },
-  ],
-
-  switchUser: [
-    async ({}, use) => {
-      await use(async (fromPage: Page, toUserType: UserType) => {
-        // Logout current user
-        await LoginHelper.logoutByNavigatingToLogoutPage(fromPage);
-
-        // Login as new user
-        const credentials = users[toUserType];
-        if (!credentials.email || !credentials.password) {
-          throw new Error(`Missing credentials for user type: ${toUserType}`);
-        }
-
-        const homePage = await LoginHelper.loginWithPassword(fromPage, credentials);
-        await homePage.verifyThePageIsLoaded();
-        return homePage;
       });
     },
     { scope: 'test' },
