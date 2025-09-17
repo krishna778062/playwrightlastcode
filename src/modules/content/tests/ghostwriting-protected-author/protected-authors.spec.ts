@@ -36,8 +36,8 @@ test.describe('Protected Authors', () => {
       tagTest(test.info(), {
         description:
           'Verify As an application manager, I should be able to add the users to protected authors - authors list',
-        zephyrTestId: 'CONT-33433',
-        storyId: 'CONT-33433',
+        zephyrTestId: 'CONT-32768',
+        storyId: 'CONT-32768',
       });
       const userName = await page.evaluate(() => {
         const user = (window as any).Simpplr?.CurrentUser;
@@ -52,11 +52,7 @@ test.describe('Protected Authors', () => {
       await expect(async () => {
         await privilegesScreenPage.actions.clickOnSave();
       }).toPass();
-      console.log('Changes confirmation is visible');
       await privilegesScreenPage.assertions.verifyTheChangesConfirmationIsVisible();
-      console.log('Cross user is visible-------');
-      // await privilegesScreenPage.actions.clickOnCrossUser();
-
       await expect(async () => {
         await privilegesScreenPage.actions.clickOnCrossUser();
       }).toPass();
