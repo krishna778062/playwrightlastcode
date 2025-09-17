@@ -72,7 +72,6 @@ export const contentTestFixture = test.extend<
     siteManagerHomePage: HomePageType;
     siteManagerPage: Page;
     feedManagerService: FeedManagementService;
-    manageContentHelper: ContentManagementHelper;
     manageContentEndUserHelper: ContentManagementHelper;
 
     standardUserHomePage: HomePageType;
@@ -86,7 +85,6 @@ export const contentTestFixture = test.extend<
 
     // Utility functions
     loginAs: (userType: UserType) => Promise<void>;
-    switchUser: (fromPage: Page, toUserType: UserType) => Promise<HomePageType>;
   },
   {
     // Worker-scoped fixtures
@@ -97,8 +95,8 @@ export const contentTestFixture = test.extend<
   // Worker-scoped API client - shared across all tests in worker
   appManagerApiClient: [
     // eslint-disable-next-line no-empty-pattern
-    async ({}, use, _workerInfo) => {
-      console.log(`Setting up app manager API client for worker ${_workerInfo.workerIndex}`);
+    async ({}, use, workerInfo) => {
+      console.log(`Setting up app manager API client for worker ${workerInfo.workerIndex}`);
 
       const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
         type: 'credentials',
@@ -112,7 +110,7 @@ export const contentTestFixture = test.extend<
       await use(appManagerApiClient);
 
       // Cleanup worker-scoped resources
-      console.log(`Cleaning up app manager API client for worker ${_workerInfo.workerIndex}`);
+      console.log(`Cleaning up app manager API client for worker ${workerInfo.workerIndex}`);
     },
     { scope: 'worker' },
   ],
@@ -135,9 +133,7 @@ export const contentTestFixture = test.extend<
   appManagerContext: [
     async ({ browser }, use) => {
       const context = await browser.newContext({
-        // Optimize context creation
-        ignoreHTTPSErrors: true,
-        // viewport: { width: 1920, height: 1238 },
+        permissions: ['camera', 'microphone', 'notifications'],
       });
 
       await use(context);
@@ -158,6 +154,7 @@ export const contentTestFixture = test.extend<
   standardUserContext: [
     async ({ browser }, use) => {
       const context = await browser.newContext({
+        permissions: ['camera', 'microphone', 'notifications'],
         // Optimize context creation
         ignoreHTTPSErrors: true,
         viewport: { width: 1920, height: 1080 },
@@ -169,8 +166,10 @@ export const contentTestFixture = test.extend<
     { scope: 'test' },
   ],
   siteManagerContext: [
-    async ({ browser }, use, _workerInfo) => {
-      const context = await browser.newContext();
+    async ({ browser }, use, workerInfo) => {
+      const context = await browser.newContext({
+        permissions: ['camera', 'microphone', 'notifications'],
+      });
       await use(context);
       await context?.close();
     },
@@ -178,7 +177,7 @@ export const contentTestFixture = test.extend<
   ],
 
   siteManagerHomePage: [
-    async ({ siteManagerContext }, use, _workerInfo) => {
+    async ({ siteManagerContext }, use, workerInfo) => {
       const page = await siteManagerContext.newPage();
       const siteManagerHomePage = await LoginHelper.loginWithPassword(page, {
         email: getEnvConfig().siteManagerEmail || '',
@@ -192,7 +191,7 @@ export const contentTestFixture = test.extend<
   ],
 
   siteManagerPage: [
-    async ({ siteManagerHomePage }, use, _workerInfo) => {
+    async ({ siteManagerHomePage }, use, workerInfo) => {
       await use(siteManagerHomePage.page);
     },
     { scope: 'test' },
@@ -225,7 +224,7 @@ export const contentTestFixture = test.extend<
     { scope: 'test' },
   ],
   endUserHomePage: [
-    async ({ endUserContext }, use, _workerInfo) => {
+    async ({ endUserContext }, use, workerInfo) => {
       const page = await endUserContext.newPage();
       const endUserHomePage = await LoginHelper.loginWithPassword(page, {
         email: getEnvConfig().endUserEmail!,
@@ -238,7 +237,7 @@ export const contentTestFixture = test.extend<
     { scope: 'test' },
   ],
   endUsersPage: [
-    async ({ endUserHomePage }, use, _workerInfo) => {
+    async ({ endUserHomePage }, use, workerInfo) => {
       await use(endUserHomePage.page);
     },
     { scope: 'test' },
@@ -272,14 +271,6 @@ export const contentTestFixture = test.extend<
       } catch (error) {
         console.warn('Feed management helper cleanup failed:', error);
       }
-    },
-    { scope: 'test' },
-  ],
-
-  manageContentHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const manageContentHelper = new ContentManagementHelper(appManagerApiClient);
-      await use(manageContentHelper);
     },
     { scope: 'test' },
   ],
@@ -325,27 +316,6 @@ export const contentTestFixture = test.extend<
           throw new Error(`Missing credentials for user type: ${userType}`);
         }
         await LoginHelper.loginWithPassword(page, credentials);
-      });
-    },
-    { scope: 'test' },
-  ],
-
-  switchUser: [
-    // eslint-disable-next-line no-empty-pattern
-    async ({}, use) => {
-      await use(async (fromPage: Page, toUserType: UserType) => {
-        // Logout current user
-        await LoginHelper.logoutByNavigatingToLogoutPage(fromPage);
-
-        // Login as new user
-        const credentials = users[toUserType];
-        if (!credentials.email || !credentials.password) {
-          throw new Error(`Missing credentials for user type: ${toUserType}`);
-        }
-
-        const homePage = await LoginHelper.loginWithPassword(fromPage, credentials);
-        await homePage.verifyThePageIsLoaded();
-        return homePage;
       });
     },
     { scope: 'test' },

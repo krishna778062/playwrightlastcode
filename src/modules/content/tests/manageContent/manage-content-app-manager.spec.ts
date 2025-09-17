@@ -3,12 +3,12 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
 import { ManageFeaturePage } from '@/src/modules/content/pages/manageFeaturePage';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
   ContentSuiteTags.MANAGE_CONTENT,
@@ -76,8 +76,13 @@ test.describe(
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnMoveButton();
         await manageContentPage.actions.clickOnApplyButton();
-        const publicSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
-        await manageContentPage.actions.moveContentSearchBar(publicSite?.name || '');
+        const privateSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
+        let privateNewOneSite = privateSite;
+        if (privateSite === null) {
+          await siteManagementHelper.createSite({ accessType: SITE_TYPES.PRIVATE });
+          privateNewOneSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
+        }
+        await manageContentPage.actions.moveContentSearchBar(privateSite?.name || privateNewOneSite?.name || '');
         await manageContentPage.actions.siteListSelecting();
         await manageContentPage.actions.selectPageCategoryIfVisible();
         await manageContentPage.actions.selectPageCategory();
@@ -169,7 +174,12 @@ test.describe(
         await manageFeaturePage.actions.navigateToContentButton();
         await manageContentPage.actions.clickFilterButton();
         const publicSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        await manageContentPage.actions.clickSiteSearchBar(publicSite?.name || '');
+        let publicNewOneSite = publicSite;
+        if (publicSite === null) {
+          await siteManagementHelper.createSite({ accessType: SITE_TYPES.PUBLIC });
+          publicNewOneSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        }
+        await manageContentPage.actions.clickSiteSearchBar(publicSite?.name || publicNewOneSite?.name || '');
         await manageContentPage.actions.selectSiteSearchBarOption();
         await manageContentPage.assertions.verifySiteNameLink();
       }
