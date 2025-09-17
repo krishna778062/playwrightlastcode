@@ -91,7 +91,7 @@ export class ConversationWindowComponent extends BaseComponent {
           let messageFoundInList: boolean = false;
           for (const eachMessage of await this.listChatMessagesComponent.all()) {
             //fetch message
-            const messageText = await eachMessage.locator('section').locator('p').last().textContent();
+            const messageText = await eachMessage.locator('section').locator('p').textContent();
             if (messageText === message) {
               messageFoundInList = true;
               break;

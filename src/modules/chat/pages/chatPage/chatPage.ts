@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
+import { FormattingOptions } from '@/src/modules/chat/components/chatEditorComponent';
 import { IncomingAudioVideoCallComponent } from '@/src/modules/chat/components/incomingAudioVideoCallComponent';
 import { MessageReplyThreadComponent } from '@/src/modules/chat/components/messageReplyThreadComponent';
 import { AudioVideoCallPage } from '@/src/modules/chat/pages/audioVideoCallPage/audioVideoCallPage';
@@ -8,6 +9,11 @@ import { ChatPageBase } from '@/src/modules/chat/pages/chatPage/chatPageBase';
 
 export interface IChatActions {
   sendMessage: (message: string, options?: { stepInfo?: string }) => Promise<void>;
+  sendFormattedMessage: (
+    message: string,
+    formattingOptions: FormattingOptions,
+    options?: { stepInfo?: string }
+  ) => Promise<void>;
   deleteMessage: (message: string, options?: { stepInfo?: string }) => Promise<void>;
   getDataMessageId: (message: string, options?: { stepInfo?: string }) => Promise<string>;
   getMessageItemFromChat: (message: string, options?: { stepInfo?: string }) => Promise<Locator>;
@@ -101,7 +107,26 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
       });
     });
   }
-
+  /**
+   * Sends a formatted message in the focused chat window.
+   * @param message - The message to send.
+   * @param formattingOptions - The formatting options to apply.
+   * @param options - Optional parameters for the step.
+   */
+  public async sendFormattedMessage(
+    message: string,
+    formattingOptions: FormattingOptions,
+    options?: { stepInfo?: string }
+  ): Promise<void> {
+    const stepInfo = options?.stepInfo ?? `Sending formatted message: "${message}"`;
+    await test.step(stepInfo, async () => {
+      await this.getConversationWindowComponent()
+        .getChatEditorComponent()
+        .sendFormattedMessage(message, formattingOptions, {
+          stepInfo: options?.stepInfo ?? `Sending formatted message ${message} in focused chat`,
+        });
+    });
+  }
   /**
    * Sends a reply to a specific message in a thread.
    * @param messageToReplyTo - The message to reply to.
