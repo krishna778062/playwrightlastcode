@@ -217,18 +217,16 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
         filter: options.filter || 'active',
       };
 
-      console.log('Sites list payload:', payload);
-
       const response = await this.post(API_ENDPOINTS.site.listOfSites, {
         data: payload,
       });
 
       const json = await response.json();
-      console.log('Sites list JSON Response:', JSON.stringify(json, null, 2));
 
       if (json.status !== 'success') {
-        throw new Error(`Failed to get sites list. Response: ${JSON.stringify(json)}`);
+        throw new Error(`Failed to get sites list. Status: ${json.status}`);
       }
+      console.log('Sites list response:', JSON.stringify(json, null, 2));
 
       return json;
     });
@@ -294,6 +292,28 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
         console.log(`Failed to delete category "${categoryName}" via API: ${error}`);
         throw error;
       }
+    });
+  }
+
+  /**
+   * Gets the membership list for a site
+   * @param siteId - The site ID
+   * @param options - Optional parameters for the membership list request
+   * @returns Promise containing the membership list response
+   */
+  async getSiteMembershipList(siteId: string, options?: { size?: number; type?: string }): Promise<any> {
+    return await test.step(`Getting membership list for site ${siteId}`, async () => {
+      const defaultOptions = {
+        size: 16,
+        type: 'members',
+        ...options,
+      };
+
+      const response = await this.post(API_ENDPOINTS.site.membershipList(siteId), {
+        data: defaultOptions,
+      });
+
+      return await this.parseResponse(response);
     });
   }
 }

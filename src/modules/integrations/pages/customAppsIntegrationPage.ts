@@ -14,11 +14,19 @@ export enum CustomAppType {
 export class CustomAppsIntegrationPage extends BasePage {
   readonly resultListAppTilesItemCountLocator: Locator;
   readonly customAppsListComponent: CustomAppsListComponent;
+  readonly saveButton: Locator;
+  readonly saveButtonSubmit: Locator;
+  readonly usernameInput: Locator;
+  readonly passwordInput: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.CUSTOM_APPS_INTEGRATION_PAGE);
     this.resultListAppTilesItemCountLocator = page.locator('div[class*="ConnectorsList_resultCount"]');
     this.customAppsListComponent = new CustomAppsListComponent(page);
+    this.saveButton = page.locator('button:has-text("Save")');
+    this.saveButtonSubmit = page.locator('button[type="submit"]:has-text("Save")');
+    this.usernameInput = page.locator('input[name="username"]');
+    this.passwordInput = page.locator('input[name="password"]');
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -52,9 +60,8 @@ export class CustomAppsIntegrationPage extends BasePage {
       await this.fillFormField('#authDetails_tokenRequestHeaders', AIRTABLE_AUTH_DATA.TOKEN_HEADERS, true);
       await this.fillFormField('#authDetails_baseUrl', AIRTABLE_AUTH_DATA.BASE_URL, true);
 
-      const saveButton = this.page.locator('button:has-text("Save")');
-      await expect(saveButton).toBeVisible({ timeout: 10000 });
-      await saveButton.click();
+      await expect(this.saveButton).toBeVisible({ timeout: 10000 });
+      await this.saveButton.click();
     });
   }
 
@@ -63,8 +70,8 @@ export class CustomAppsIntegrationPage extends BasePage {
    * @param message - The message to verify
    * @returns void
    */
-  async verifyToastMessage(message: string): Promise<void> {
-    return this.customAppsListComponent.verifyToastMessage(message);
+  async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
+    return this.customAppsListComponent.verifyToastMessageIsVisibleWithText(message);
   }
 
   async openConnectorOptions(service: string): Promise<void> {
@@ -88,6 +95,39 @@ export class CustomAppsIntegrationPage extends BasePage {
       await this.customAppsListComponent.searchForPrebuiltApp(appName);
       await this.customAppsListComponent.clickAddPrebuilt(appName);
       await this.page.waitForURL(/new/);
+    });
+  }
+
+  async clickSaveButton(): Promise<void> {
+    await this.customAppsListComponent.clickButton('Save');
+    await expect(this.saveButton).toBeDisabled({ timeout: 10000 });
+  }
+
+  /**
+   * Fill both Partner user ID and Partner user secret fields
+   */
+  async enterCredentials(userId: string, userSecret: string): Promise<void> {
+    await test.step(`Enter credentials: userId=${userId}`, async () => {
+      await this.usernameInput.fill(userId);
+      await this.usernameInput.blur();
+      await this.passwordInput.fill(userSecret);
+      await this.passwordInput.blur();
+      await this.clickSaveButton();
+    });
+  }
+
+  /**
+   * Submit the form by clicking the Save button
+   */
+  async submitForm(): Promise<void> {
+    await test.step('Submit form by clicking Save button', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.saveButtonSubmit, {
+        assertionMessage: 'Save button should be visible',
+      });
+      await this.verifier.verifyTheElementIsEnabled(this.saveButtonSubmit, {
+        assertionMessage: 'Save button should be enabled',
+      });
+      await this.saveButtonSubmit.click();
     });
   }
 }

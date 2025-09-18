@@ -1,5 +1,7 @@
+// external imports
 import { APIRequestContext, expect, test } from '@playwright/test';
 
+// @core imports
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { IIdentityAdminOperations } from '@core/api/interfaces/IIdentityOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
@@ -9,7 +11,11 @@ import {
   IdentityAudienceSearchResponse,
   ListAudiencesResponse,
 } from '@core/types/audience.type';
+import { PeopleListResponse } from '@core/types/people.type';
 import { IdentityUserSearchResponse } from '@core/types/user.type';
+
+// @/src imports
+import { audienceCreationParams } from '@/src/core/types/audience.type';
 
 interface ListRolesResponse {
   result: Array<{
@@ -65,7 +71,7 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
   async getIdentityUserId(firstName: string, lastName: string): Promise<string> {
     let userId: string = '';
     await test.step(`Fetch the identity user id of the user ${firstName} ${lastName}`, async () => {
-      const response = await this.post(API_ENDPOINTS.appManagement.users.list, {
+      const response = await this.post(API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersList, {
         data: {
           size: 16,
           sort_by: {
@@ -236,29 +242,25 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
 
   /**
    * Creates audience under the given category name
-   * @param name - Name of the category
-   * @param categoryid - Parent category id under which audience need to found
-   * @param attribute - Attribute to be selected for audience creation
-   * @param operator - Operator to be selected for audience creation
-   * @param value - Value to be passed for audience creation
+   * @param createAudienceParams - Object containing the audience name, category id, attribute, operator and value
    * @param options - Optional attributes
    * @returns - Return boolean value according to the presence/absence of the audience under the given category
    */
   async createAudience(
-    name: string,
-    categoryId: string,
-    attribute: string,
-    operator: string,
-    value: string,
+    createAudienceParams: audienceCreationParams,
     options?: { type: string; fieldType: string }
   ): Promise<string> {
-    const isAudienceCreated = await this.isAudienceCreated(name, 10000, categoryId);
+    const isAudienceCreated = await this.isAudienceCreated(
+      createAudienceParams.audienceName,
+      10000,
+      createAudienceParams.categoryId
+    );
     if (!isAudienceCreated) {
       let audienceId = '';
-      await test.step(`Creating audience ${name} under category ${categoryId}`, async () => {
+      await test.step(`Creating audience ${createAudienceParams.audienceName} under category ${createAudienceParams.categoryId}`, async () => {
         const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiences, {
           data: {
-            name: name,
+            name: createAudienceParams.audienceName,
             type: options?.type || 'mixed',
             audienceRule: {
               AND: [
@@ -267,28 +269,30 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
                     {
                       values: [
                         {
-                          value: value,
+                          value: createAudienceParams.value,
                         },
                       ],
-                      attribute: attribute,
-                      operator: operator,
+                      attribute: createAudienceParams.attribute,
+                      operator: createAudienceParams.operator,
                       fieldType: options?.fieldType || 'regular',
                     },
                   ],
                 },
               ],
             },
-            categoryId: categoryId,
+            categoryId: createAudienceParams.categoryId,
           },
         });
         expect(response.status(), `Audience created successfully`).toEqual(201);
         const responseJson = await this.parseResponse<audienceCreationResponse>(response);
-        console.log(`Audience created: ${name}`);
+        console.log(`Audience created: ${createAudienceParams.audienceName}`);
         audienceId = responseJson.result.audienceId;
       });
       return audienceId;
     } else {
-      console.log(`Audience ${name} already created under category ${categoryId}!!!`);
+      console.log(
+        `Audience ${createAudienceParams.audienceName} already created under category ${createAudienceParams.categoryId}!!!`
+      );
       return '';
     }
   }
@@ -472,6 +476,25 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
           },
         })
       ).toBeOK();
+    });
+  }
+
+  /**
+   * Gets the list of people with optional email filtering
+   * @param emailId - Optional email address to filter by
+   * @returns The people list response
+   */
+  async getListOfPeople(emailId?: string): Promise<PeopleListResponse> {
+    return await test.step(`Getting list of people${emailId ? ` for email: ${emailId}` : ''}`, async () => {
+      const requestData = {
+        size: 100,
+        ...(emailId && { searchTerm: emailId }),
+      };
+
+      const response = await this.post(API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersList, {
+        data: requestData,
+      });
+      return await this.parseResponse<PeopleListResponse>(response);
     });
   }
 }
