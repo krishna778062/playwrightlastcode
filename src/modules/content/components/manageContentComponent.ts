@@ -2,8 +2,8 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/components/baseComponent';
 
-import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 
 export class ManageContentComponent extends BaseComponent {
   readonly searchBar: Locator;
@@ -441,7 +441,6 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.statusField);
       await this.selectPublishOption.selectOption('Published');
       await this.clickFilterButton();
-
     });
   }
 }

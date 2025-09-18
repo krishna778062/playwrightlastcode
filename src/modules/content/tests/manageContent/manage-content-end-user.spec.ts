@@ -1,13 +1,14 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
+
+import { ApplicationScreenPage } from '../../pages/manageFeaturesPage';
 
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
-import { ApplicationScreenPage } from '../../pages/manageFeaturesPage';
-import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 
 test.describe(
   ContentSuiteTags.MANAGE_CONTENT,
@@ -18,7 +19,7 @@ test.describe(
     let manageFeaturePage: ApplicationScreenPage;
     let manageContentPage: ManageContentPage;
     let homePage: NewUxHomePage;
-    test.beforeEach(async ({ standardUserApiClient, standardUserHomePage }) => {
+    test.beforeEach(async ({ standardUserHomePage }) => {
       await standardUserHomePage.verifyThePageIsLoaded();
       manageFeaturePage = new ApplicationScreenPage(standardUserHomePage.page);
       manageContentPage = new ManageContentPage(standardUserHomePage.page);
@@ -34,7 +35,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({  }) => {
+      async ({}) => {
         tagTest(test.info(), {
           description: 'Login as End User who is Site Owner/Manager of any site',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],

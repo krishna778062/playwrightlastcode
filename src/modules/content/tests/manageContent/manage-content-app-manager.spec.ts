@@ -3,13 +3,14 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { ApplicationScreenPage } from '../../pages/manageFeaturesPage';
+
+import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
-import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
-import { ApplicationScreenPage } from '../../pages/manageFeaturesPage';
 
 test.describe(
   ContentSuiteTags.MANAGE_CONTENT,

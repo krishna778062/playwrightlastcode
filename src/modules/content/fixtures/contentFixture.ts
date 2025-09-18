@@ -94,7 +94,6 @@ export const contentTestFixture = test.extend<
 >({
   // Worker-scoped API client - shared across all tests in worker
   appManagerApiClient: [
-    // eslint-disable-next-line no-empty-pattern
     async ({}, use, workerInfo) => {
       console.log(`Setting up app manager API client for worker ${workerInfo.workerIndex}`);
 
@@ -115,7 +114,6 @@ export const contentTestFixture = test.extend<
     { scope: 'worker' },
   ],
   standardUserApiClient: [
-    // eslint-disable-next-line no-empty-pattern
     async ({}, use, _workerInfo) => {
       const standardUserApiClient = await ApiClientFactory.createClient(StandardUserApiClient, {
         type: 'credentials',
