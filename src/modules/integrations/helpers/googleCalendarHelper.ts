@@ -361,3 +361,83 @@ export const verifyEventDetailsInGoogleCalendar = async (
   const helper = createAppManagerGoogleCalendarHelper();
   return helper.verifyEventDetailsWithRetry(eventTitle, expectedDetails, options);
 };
+
+// Event configuration assertion functions
+export function assertEventSyncConfiguration(
+  eventResult: any,
+  expectedConfig: {
+    enabled: boolean;
+    destination: string;
+    emailEnabled: boolean;
+    invitees: string;
+    syncStatus?: string;
+  }
+): void {
+  const { expect } = require('@playwright/test');
+
+  expect(eventResult.eventSyncDetails, 'Event sync details should be defined').toBeDefined();
+  expect(eventResult.eventSyncDetails.enabled, 'Event sync should be enabled as expected').toBe(expectedConfig.enabled);
+  expect(eventResult.eventSyncDetails.destination, 'Event sync destination should match expected').toBe(
+    expectedConfig.destination
+  );
+  expect(eventResult.eventSyncDetails.emailEnabled, 'Email invitation should be enabled as expected').toBe(
+    expectedConfig.emailEnabled
+  );
+  expect(eventResult.eventSyncDetails.invitees, 'Event sync invitees should match expected').toBe(
+    expectedConfig.invitees
+  );
+
+  if (expectedConfig.syncStatus) {
+    expect(eventResult.eventSyncDetails.syncStatus, 'Sync status should match expected').toBe(
+      expectedConfig.syncStatus
+    );
+  }
+}
+
+export function assertRsvpConfiguration(
+  eventResult: any,
+  expectedConfig: {
+    hasRsvp: boolean;
+    hasMaybeOption?: boolean;
+    noteLabel?: string | null;
+  }
+): void {
+  const { expect } = require('@playwright/test');
+
+  expect(eventResult.hasRsvp, 'Event should have RSVP as expected').toBe(expectedConfig.hasRsvp);
+
+  if (expectedConfig.hasRsvp) {
+    expect(eventResult.rsvpDetails, 'RSVP details should be defined when RSVP is enabled').toBeDefined();
+
+    if (expectedConfig.hasMaybeOption !== undefined) {
+      expect(eventResult.rsvpDetails.hasMaybeOption, 'RSVP maybe option should match expected').toBe(
+        expectedConfig.hasMaybeOption
+      );
+    }
+
+    if (expectedConfig.noteLabel !== undefined) {
+      expect(eventResult.rsvpDetails.noteLabel, 'RSVP note label should match expected').toBe(expectedConfig.noteLabel);
+    }
+  }
+}
+
+export function assertCompleteEventConfiguration(
+  eventResult: any,
+  config: {
+    eventSync: {
+      enabled: boolean;
+      destination: string;
+      emailEnabled: boolean;
+      invitees: string;
+      syncStatus?: string;
+    };
+    rsvp: {
+      hasRsvp: boolean;
+      hasMaybeOption?: boolean;
+      noteLabel?: string | null;
+    };
+  }
+): void {
+  assertEventSyncConfiguration(eventResult, config.eventSync);
+  assertRsvpConfiguration(eventResult, config.rsvp);
+}

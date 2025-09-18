@@ -12,8 +12,8 @@ import { SiteMembershipAction, SitePermission } from '@/src/core/types/siteManag
 import { EventDetailPage, RsvpOption } from '@/src/modules/content/pages/eventDetailPage';
 import { IntegrationsFeatureTags, IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
 import { integrationsEventFixture as test } from '@/src/modules/integrations/fixtures/eventSyncFixture';
-import { assertCompleteEventConfiguration } from '@/src/modules/integrations/helpers/eventSyncHelper';
 import {
+  assertCompleteEventConfiguration,
   createAppManagerGoogleCalendarHelper,
   createEndUserGoogleCalendarHelper,
   GoogleCalendarHelper,
