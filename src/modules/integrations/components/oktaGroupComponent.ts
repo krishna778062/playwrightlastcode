@@ -112,35 +112,45 @@ export class OktaGroupComponent extends BaseComponent {
 
   async verifyDoNotUseOktaGroupsRadioIsSelected(text: string): Promise<void> {
     const radioButton = this.doNotUseOktaGroupsRadio(text);
-    await expect(radioButton, 'expecting "Do not use Okta groups" radio button to be visible').toBeVisible();
-    await expect(radioButton, 'expecting "Do not use Okta groups" radio button to be checked').toBeChecked();
+    await test.step(`Verify "Do not use Okta groups" radio button: ${text}`, async () => {
+      await expect(radioButton, 'expecting "Do not use Okta groups" radio button to be visible').toBeVisible();
+      await expect(radioButton, 'expecting "Do not use Okta groups" radio button to be checked').toBeChecked();
+    });
   }
 
   async verifyAddedGroupsMessage(expectedCount: number): Promise<void> {
     const messageElement = this.addedGroupsMessage();
-    await expect(messageElement, 'expecting added groups message to be visible').toBeVisible();
-    await expect(messageElement, 'expecting message to contain "Added"').toContainText('Added');
-    const countElement = messageElement.locator('strong');
-    await expect(countElement, 'expecting count element to be visible').toBeVisible();
-    await expect(countElement, `expecting count to be ${expectedCount}`).toHaveText(expectedCount.toString());
+    await test.step(`Verify added groups message: ${expectedCount}`, async () => {
+      await expect(messageElement, 'expecting added groups message to be visible').toBeVisible();
+      await expect(messageElement, 'expecting message to contain "Added"').toContainText('Added');
+      const countElement = messageElement.locator('strong');
+      await expect(countElement, 'expecting count element to be visible').toBeVisible();
+      await expect(countElement, `expecting count to be ${expectedCount}`).toHaveText(expectedCount.toString());
+    });
   }
 
   async clickOnSelectedGroupsTab(text: string): Promise<void> {
-    const tab = this.selectedGroupsTab(text);
-    await tab.click();
+    await test.step(`Click on Selected Groups tab: ${text}`, async () => {
+      const tab = this.selectedGroupsTab(text);
+      await tab.click();
+    });
   }
 
   async clickOnClearGroupButton(groupName: string): Promise<void> {
     const clearButton = this.clearGroupButton(groupName);
-    await clearButton.click();
+    await test.step(`Click on Clear Group button: ${groupName}`, async () => {
+      await clearButton.click();
+    });
   }
 
   async verifyRemovedGroupsMessage(expectedCount: number): Promise<void> {
     const messageElement = this.removedGroupsMessage();
-    await expect(messageElement, 'expecting removed groups message to be visible').toBeVisible();
-    await expect(messageElement, 'expecting message to contain "Removed"').toContainText('Removed');
-    const countElement = messageElement.locator('strong');
-    await expect(countElement, 'expecting count element to be visible').toBeVisible();
-    await expect(countElement, `expecting count to be ${expectedCount}`).toHaveText(expectedCount.toString());
+    await test.step(`Verify removed groups message: ${expectedCount}`, async () => {
+      await expect(messageElement, 'expecting removed groups message to be visible').toBeVisible();
+      await expect(messageElement, 'expecting message to contain "Removed"').toContainText('Removed');
+      const countElement = messageElement.locator('strong');
+      await expect(countElement, 'expecting count element to be visible').toBeVisible();
+      await expect(countElement, `expecting count to be ${expectedCount}`).toHaveText(expectedCount.toString());
+    });
   }
 }
