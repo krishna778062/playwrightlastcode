@@ -19,7 +19,7 @@ export interface IActions {
   clickSiteSearchBar: (siteName: string) => Promise<void>;
   clickOnTheSiteName: () => Promise<void>;
   clickSortByButton: () => Promise<void>;
-  selectCreatedNewestOptionThroughUrl: () => Promise<void>;
+  selectCreatedNewestOption: () => Promise<void>;
   selectPageCategoryIfVisible: () => Promise<void>;
   selectPageCategory: () => Promise<void>;
   clickOnContent: () => Promise<void>;
@@ -27,6 +27,7 @@ export interface IActions {
   clickOnEditButton: () => Promise<void>;
   verifyingValidationRequiredBarState: () => Promise<void>;
   clickOnCancel: () => Promise<void>;
+  addPublishContentFilter: () => Promise<void>;
 }
 
 export interface IAssertions {
@@ -45,12 +46,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   static actions: any;
 
   constructor(page: Page) {
-    super(page, PAGE_ENDPOINTS.MANAGE_CONTENT_PAGE);
+    super(page, PAGE_ENDPOINTS.MANAGE_CONTENT);
     this.manageContentComponent = new ManageContentComponent(page);
   }
 
   async load(): Promise<void> {
-    await this.page.goto(PAGE_ENDPOINTS.MANAGE_CONTENT_PAGE);
+    await this.page.goto(PAGE_ENDPOINTS.MANAGE_CONTENT);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -184,7 +185,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickSortByButton(): Promise<void> {
     await this.manageContentComponent.clickSortByButton();
   }
-  async selectCreatedNewestOptionThroughUrl(): Promise<void> {
+  async selectCreatedNewestOption(): Promise<void> {
     await this.manageContentComponent.selectCreatedNewestOptionByText();
   }
 
@@ -206,4 +207,15 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickOnContent(): Promise<void> {
     await this.manageContentComponent.clickOnContent();
   }
+  async addPublishContentFilter(): Promise<void> {
+    await this.manageContentComponent.addPublishContentFilter();
+  }
+
+  async selectMoveApplyButton(): Promise<void> {
+    await this.manageContentComponent.selectMoveApplyButton();
+  }
+  async selectDeleteApplyButton(): Promise<void> {
+    await this.manageContentComponent.selectDeleteApplyButton();
+  }
+
 }

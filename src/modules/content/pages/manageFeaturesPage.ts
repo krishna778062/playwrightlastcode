@@ -4,15 +4,8 @@ import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
 import { BasePage } from '@core/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { FileUtil } from '@/src/core/utils/fileUtil';
-import { PageCreationResponse } from '@/src/modules/content/apis/types/pageCreationResponse';
-import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
-import { AttachementUploaderComponent } from '@/src/modules/content/components/attachementUploader';
-import { ImageCropperComponent } from '@/src/modules/content/components/imageCropper';
 import { ManageFeatureComponent } from '@/src/modules/content/components/manageFeatureComponent';
-import { PromotePageModal } from '@/src/modules/content/components/promotePageModal';
-import { PageContentType } from '@/src/modules/content/constants/pageContentType';
-import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+
 
 export interface IManageFeaturesPageActions {
   clickOnContentCard: () => Promise<void>;

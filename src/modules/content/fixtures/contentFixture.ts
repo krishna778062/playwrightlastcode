@@ -157,7 +157,7 @@ export const contentTestFixture = test.extend<
         permissions: ['camera', 'microphone', 'notifications'],
         // Optimize context creation
         ignoreHTTPSErrors: true,
-        viewport: { width: 1920, height: 1080 },
+        // viewport: { width: 1920, height: 1080 },
       });
 
       await use(context);

@@ -3,6 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { BaseComponent } from '@core/components/baseComponent';
 
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 export class ManageContentComponent extends BaseComponent {
   readonly searchBar: Locator;
@@ -47,6 +48,9 @@ export class ManageContentComponent extends BaseComponent {
   readonly editButton: Locator;
   readonly validationRequiredBar: Locator;
   readonly clickOnCancelButton: Locator;
+  readonly statusField: Locator;
+  readonly selectPublishOption: Locator;
+  readonly crossButton: Locator;
   constructor(page: Page) {
     super(page);
     this.searchBar = page.locator("[aria-label='Search…']");
@@ -70,8 +74,8 @@ export class ManageContentComponent extends BaseComponent {
     this.deleteButton = page.getByText('Delete', { exact: true });
     this.selectAllButton = page.locator('[type="checkbox"]').first();
     this.validateButton = page.getByText('Validate', { exact: true });
-    this.firstDropDownOption = page.locator(`[aria-label="Category option"]`).nth(1);
-    this.publishOption = page.locator(`[title="Publish"]`);
+    this.firstDropDownOption = page.locator(`[aria-label="Category option"]`).first();
+    this.publishOption = page.locator(`[title="Publish"]`).first();
     this.unpublishOption = page.locator(`[title="Unpublish"]`).first();
     this.deleteOption = page.locator(`[title="Delete"]`).first();
     this.deleteModalConfirmButton = page.locator(`[type="submit"]`);
@@ -85,6 +89,7 @@ export class ManageContentComponent extends BaseComponent {
     this.siteSearchBarOption = page.locator('[role="listbox"]').first();
     this.siteName = page.locator(`[class="meta-link"]`).last();
     this.sortByButton = page.locator(`[name="sortBy"]`);
+    this.statusField = page.locator('[name="status"]');
     this.pageCategorySelectorDropdown = page
       .locator('div')
       .filter({ hasText: /^Select a page category…$/ })
@@ -102,6 +107,8 @@ export class ManageContentComponent extends BaseComponent {
       '[class*="ValidationRequired"], [data-testid*="validation"], .validation-bar, [class*="validation-required"]'
     );
     this.clickOnCancelButton = page.getByRole('button', { name: 'Cancel' });
+    this.selectPublishOption = page.getByLabel('Status:');
+    this.crossButton = page.getByRole('button', { name: 'Dismiss' }).first();
   }
 
   async clickSearchBar(): Promise<void> {
@@ -156,7 +163,6 @@ export class ManageContentComponent extends BaseComponent {
   async selectActionDropdown(): Promise<void> {
     await test.step(`Selecting the action dropdown`, async () => {
       await this.clickOnElement(this.actionDropdown);
-      await this.page.waitForTimeout(1000);
     });
   }
 
@@ -168,8 +174,55 @@ export class ManageContentComponent extends BaseComponent {
 
   async selectApplyButton(): Promise<void> {
     await test.step(`Selecting the confirm unpublish button`, async () => {
-      await this.clickOnElement(this.applyButton);
-      await this.page.waitForTimeout(1000);
+      const publishResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.applyButton, { delay: 2_000 }),
+        response =>
+          response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_APPLY_API) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      return publishResponse;
+    });
+  }
+
+  async selectMoveApplyButton(): Promise<void> {
+    await test.step(`Selecting the confirm unpublish button`, async () => {
+      const publishResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.applyButton, { delay: 2_000 }),
+        response =>
+          response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_MOVE_API) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      return publishResponse;
+    });
+  }
+
+  async selectDeleteApplyButton(): Promise<void> {
+    await test.step(`Selecting the confirm delete button`, async () => {
+      const publishResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.applyButton, { delay: 2_000 }),
+        response =>
+          response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_DELETE_API) &&
+          response.request().method() === 'DELETE' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      return publishResponse;
+    });
+  }
+
+  async clickOnCrossButton(): Promise<void> {
+    await test.step(`Clicking on the cross button`, async () => {
+      await this.clickOnElement(this.crossButton);
     });
   }
 
@@ -380,6 +433,15 @@ export class ManageContentComponent extends BaseComponent {
   async clickOnCancel(): Promise<void> {
     await test.step('Clicking on cancel', async () => {
       await this.clickOnElement(this.clickOnCancelButton);
+    });
+  }
+  async addPublishContentFilter(): Promise<void> {
+    await test.step('Adding publish content filter', async () => {
+      await this.clickFilterButton();
+      await this.clickOnElement(this.statusField);
+      await this.selectPublishOption.selectOption('Published');
+      await this.clickFilterButton();
+
     });
   }
 }

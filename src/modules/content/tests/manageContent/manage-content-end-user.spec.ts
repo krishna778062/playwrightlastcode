@@ -5,8 +5,9 @@ import { tagTest } from '@core/utils/testDecorator';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
-import { ManageFeaturePage } from '@/src/modules/content/pages/manageFeaturePage';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
+import { ApplicationScreenPage } from '../../pages/manageFeaturesPage';
+import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 
 test.describe(
   ContentSuiteTags.MANAGE_CONTENT,
@@ -14,13 +15,14 @@ test.describe(
     tag: [ContentSuiteTags.MANAGE_CONTENT],
   },
   () => {
-    let manageFeaturePage: ManageFeaturePage;
+    let manageFeaturePage: ApplicationScreenPage;
     let manageContentPage: ManageContentPage;
+    let homePage: NewUxHomePage;
     test.beforeEach(async ({ standardUserApiClient, standardUserHomePage }) => {
       await standardUserHomePage.verifyThePageIsLoaded();
-      manageContentPage = await standardUserHomePage.actions.manageContent();
-      manageFeaturePage = new ManageFeaturePage(standardUserHomePage.page);
+      manageFeaturePage = new ApplicationScreenPage(standardUserHomePage.page);
       manageContentPage = new ManageContentPage(standardUserHomePage.page);
+      homePage = new NewUxHomePage(standardUserHomePage.page);
     });
 
     test.afterEach(async ({ page }) => {
@@ -32,7 +34,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async () => {
+      async ({  }) => {
         tagTest(test.info(), {
           description: 'Login as End User who is Site Owner/Manager of any site',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
@@ -40,7 +42,8 @@ test.describe(
           storyId: 'CONT-25055',
         });
         const title = MANAGE_CONTENT_TEST_DATA.TITLE;
-        await manageFeaturePage.actions.navigateToContentButton();
+        await homePage.actions.clickOnManageFeature();
+        await manageFeaturePage.actions.clickOnContentCard();
         await manageContentPage.actions.writeRandomTextInSearchBar(title);
         await manageContentPage.actions.clickSearchIcon();
         await manageContentPage.assertions.nothingToShowHereText();

@@ -1,6 +1,8 @@
 import { Page } from '@playwright/test';
 
 import { BasePage } from '@core/pages/basePage';
+import { SideNavBarComponent } from '@/src/core/components/sideNavBarComponent';
+import { ManageSitesComponent } from '../components/manageSitesComponent';
 
 interface ContentFilters {
   contentType?: string;
@@ -9,13 +11,22 @@ interface ContentFilters {
   status?: string;
 }
 
-export interface IManageSiteContentActions {}
+export interface IManageSiteContentActions {
+  navigateToSitesButton: () => Promise<void>;
+
+}
 
 export interface IManageSiteContentAssertions {}
 
 export class ManageSiteContentPage extends BasePage implements IManageSiteContentActions, IManageSiteContentAssertions {
+  private sideNavBarComponent: SideNavBarComponent;
+  private manageSitesComponent: ManageSitesComponent;
+  static actions: any;
+
   constructor(page: Page) {
     super(page);
+    this.manageSitesComponent = new ManageSitesComponent(page);
+    this.sideNavBarComponent = new SideNavBarComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -29,4 +40,10 @@ export class ManageSiteContentPage extends BasePage implements IManageSiteConten
   get assertions(): IManageSiteContentAssertions {
     return this;
   }
+
+  async navigateToSitesButton(): Promise<void> {
+    await this.sideNavBarComponent.clickOnManageFeatureButton();
+    await this.manageSitesComponent.clickOnSite();
+  }
+
 }

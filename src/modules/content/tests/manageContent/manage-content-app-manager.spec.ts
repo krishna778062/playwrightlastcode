@@ -6,9 +6,10 @@ import { tagTest } from '@core/utils/testDecorator';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
-import { ManageFeaturePage } from '@/src/modules/content/pages/manageFeaturePage';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
+import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
+import { ApplicationScreenPage } from '../../pages/manageFeaturesPage';
 
 test.describe(
   ContentSuiteTags.MANAGE_CONTENT,
@@ -16,13 +17,15 @@ test.describe(
     tag: [ContentSuiteTags.MANAGE_CONTENT],
   },
   () => {
-    let manageFeaturePage: ManageFeaturePage;
+    let manageFeaturesPage: ApplicationScreenPage;
     let manageContentPage: ManageContentPage;
+    let homePage: NewUxHomePage;
+
     test.beforeEach(async ({ appManagerHomePage }) => {
       await appManagerHomePage.verifyThePageIsLoaded();
-      manageContentPage = await appManagerHomePage.actions.manageContent();
-      manageFeaturePage = new ManageFeaturePage(manageContentPage.page);
-      manageContentPage = new ManageContentPage(manageContentPage.page);
+      manageFeaturesPage = new ApplicationScreenPage(appManagerHomePage.page);
+      manageContentPage = new ManageContentPage(appManagerHomePage.page);
+      homePage = new NewUxHomePage(appManagerHomePage.page);
     });
 
     test.afterEach(async ({ page }) => {
@@ -43,7 +46,8 @@ test.describe(
         });
 
         const title = MANAGE_CONTENT_TEST_DATA.TITLE;
-        await manageFeaturePage.actions.navigateToContentButton();
+        await homePage.actions.clickOnManageFeature();
+        await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.writeRandomTextInSearchBar(title);
         await manageContentPage.actions.clickSearchIcon();
         await manageContentPage.assertions.nothingToShowHereText();
@@ -65,7 +69,8 @@ test.describe(
           zephyrTestId: 'CONT-20952',
           storyId: 'CONT-20952',
         });
-        await manageFeaturePage.actions.navigateToContentButton();
+        await homePage.actions.clickOnManageFeature();
+        await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickOnFirstContentButton();
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnUnpublishButton();
@@ -75,7 +80,7 @@ test.describe(
         await manageContentPage.actions.clickOnApplyButton();
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnMoveButton();
-        await manageContentPage.actions.clickOnApplyButton();
+        await manageContentPage.actions.selectMoveApplyButton();
         const privateSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
         let privateNewOneSite = privateSite;
         if (privateSite === null) {
@@ -89,8 +94,8 @@ test.describe(
         await manageContentPage.actions.clickOnMoveConfirmButton();
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnDeleteButton();
-        await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.selectDeleteApplyButton();
+        await manageContentPage.actions.clickOnFirstContentButton();
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnValidateButton();
         await manageContentPage.actions.clickOnApplyButton();
@@ -109,7 +114,9 @@ test.describe(
           zephyrTestId: 'CONT-20951',
           storyId: 'CONT-20951',
         });
-        await manageFeaturePage.actions.navigateToContentButton();
+        await homePage.actions.clickOnManageFeature();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.addPublishContentFilter();
         await manageContentPage.actions.clickOnFirstDropDownOption();
         await manageContentPage.actions.checkPublishOption();
       }
@@ -127,7 +134,9 @@ test.describe(
           zephyrTestId: 'CONT-20946',
           storyId: 'CONT-20946',
         });
-        await manageFeaturePage.actions.navigateToContentButton();
+        await homePage.actions.clickOnManageFeature();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.addPublishContentFilter();
         await manageContentPage.actions.clickOnFirstDropDownOption();
         await manageContentPage.actions.clickDeleteOption();
         await manageContentPage.actions.clickDeleteModalConfirmButton();
@@ -147,7 +156,8 @@ test.describe(
           zephyrTestId: 'CONT-20945',
           storyId: 'CONT-20945',
         });
-        await manageFeaturePage.actions.navigateToContentButton();
+        await homePage.actions.clickOnManageFeature();
+        await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.assertions.verifyImageContainer();
         await manageContentPage.assertions.authorNameShouldBeVisible();
         await manageContentPage.assertions.clickOnTheAuthorName();
@@ -171,7 +181,8 @@ test.describe(
           zephyrTestId: 'CONT-20944',
           storyId: 'CONT-20944',
         });
-        await manageFeaturePage.actions.navigateToContentButton();
+        await homePage.actions.clickOnManageFeature();
+        await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
         const publicSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
         let publicNewOneSite = publicSite;
@@ -197,9 +208,10 @@ test.describe(
           zephyrTestId: 'CONT-20943',
           storyId: 'CONT-20943',
         });
-        await manageFeaturePage.actions.navigateToContentButton();
+        await homePage.actions.clickOnManageFeature();
+        await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreatedNewestOptionThroughUrl();
+        await manageContentPage.actions.selectCreatedNewestOption();
       }
     );
   }

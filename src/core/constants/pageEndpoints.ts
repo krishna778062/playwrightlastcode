@@ -4,7 +4,6 @@ export const PAGE_ENDPOINTS = {
   CHATS_PAGE: '/chat/conversations',
   AUDIO_VIDEO_CALL_PAGE: '/call',
   FEATURED_SITES_PAGE: '/sites/featured',
-  MANAGE_CONTENT_PAGE: '/manage/content',
   SITES_LIST_PAGE: '/sites',
   SITE_PAGE: (siteId: string) => `/site/${siteId}/`,
   MANAGE_QR_PAGE: '/manage/promotions',
@@ -39,6 +38,11 @@ export const PAGE_ENDPOINTS = {
   GOVERNANCE_SCREEN: 'manage/app/setup/governance',
   MANAGE_FEATURE: 'manage-features',
   MANAGE_CONTENT: 'manage/content',
+  MANAGE_CONTENT_APPLY_API: '/manage',
+  MANAGE_CONTENT_MOVE_API: '/v1/page',
+  MANAGE_CONTENT_DELETE_API: '/v1/content/sites/',
+  
+
   MANAGE_SITE_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
   SITE_DETAILS_PAGE: (siteId: string) => PAGE_ENDPOINTS.getSiteDashboardPage(siteId),
 
