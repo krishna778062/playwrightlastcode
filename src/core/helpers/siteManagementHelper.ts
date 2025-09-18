@@ -142,6 +142,13 @@ export class SiteManagementHelper {
     siteName?: string;
     category?: { name: string; categoryId: string };
     overrides?: Partial<SiteCreationPayload>;
+    hasPages?: boolean;
+    hasEvents?: boolean;
+    hasAlbums?: boolean;
+    hasDashboard?: boolean;
+    landingPage?: string;
+    isContentFeedEnabled?: boolean;
+    isContentSubmissionsEnabled?: boolean;
     waitForSearchIndex?: boolean;
   }) {
     const { siteName, category, overrides, waitForSearchIndex } = params;
@@ -408,30 +415,59 @@ export class SiteManagementHelper {
     options?: {
       category?: { name: string; categoryId: string };
       overrides?: Partial<SiteCreationPayload>;
+      hasPages?: boolean;
+      hasEvents?: boolean;
+      hasAlbums?: boolean;
+      hasDashboard?: boolean;
+      landingPage?: string;
+      isContentFeedEnabled?: boolean;
+      isContentSubmissionsEnabled?: boolean;
+      isOwner?: boolean;
+      isMembershipAutoApproved?: boolean;
+      isBroadcast?: boolean;
     }
   ): Promise<{ siteId: string; siteName: string }> {
     let createdSite;
+
+    // Prepare overrides with optional parameters
+    const overrides = {
+      ...options?.overrides,
+      ...(options?.hasPages !== undefined && { hasPages: options.hasPages }),
+      ...(options?.hasEvents !== undefined && { hasEvents: options.hasEvents }),
+      ...(options?.hasAlbums !== undefined && { hasAlbums: options.hasAlbums }),
+      ...(options?.hasDashboard !== undefined && { hasDashboard: options.hasDashboard }),
+      ...(options?.landingPage !== undefined && { landingPage: options.landingPage }),
+      ...(options?.isContentFeedEnabled !== undefined && { isContentFeedEnabled: options.isContentFeedEnabled }),
+      ...(options?.isContentSubmissionsEnabled !== undefined && {
+        isContentSubmissionsEnabled: options.isContentSubmissionsEnabled,
+      }),
+      ...(options?.isOwner !== undefined && { isOwner: options.isOwner }),
+      ...(options?.isMembershipAutoApproved !== undefined && {
+        isMembershipAutoApproved: options.isMembershipAutoApproved,
+      }),
+      ...(options?.isBroadcast !== undefined && { isBroadcast: options.isBroadcast }),
+    };
 
     switch (accessType) {
       case SITE_TYPES.PRIVATE:
         createdSite = await this.createPrivateSite({
           siteName,
           category: options?.category,
-          overrides: options?.overrides,
+          overrides,
         });
         break;
       case SITE_TYPES.UNLISTED:
         createdSite = await this.createUnlistedSite({
           siteName,
           category: options?.category,
-          overrides: options?.overrides,
+          overrides,
         });
         break;
       default:
         createdSite = await this.createPublicSite({
           siteName,
           category: options?.category,
-          overrides: options?.overrides,
+          overrides,
         });
     }
 
@@ -464,14 +500,31 @@ export class SiteManagementHelper {
       site => site.access.toLowerCase() === accessType.toLowerCase()
     );
     let siteId: string | undefined, siteName: string | undefined;
-    if (siteDetails && options?.hasPages) {
-      siteDetails.hasPages = options.hasPages;
+
+    if (siteDetails) {
+      // Apply optional parameters if provided
+      if (options?.hasPages !== undefined) {
+        siteDetails.hasPages = options.hasPages;
+      }
+      if (options?.hasEvents !== undefined) {
+        siteDetails.hasEvents = options.hasEvents;
+      }
+      if (options?.hasAlbums !== undefined) {
+        siteDetails.hasAlbums = options.hasAlbums;
+      }
+      if (options?.isContentFeedEnabled !== undefined) {
+        siteDetails.isContentFeedEnabled = options.isContentFeedEnabled;
+      }
+      if (options?.isContentSubmissionsEnabled !== undefined) {
+        siteDetails.isContentSubmissionsEnabled = options.isContentSubmissionsEnabled;
+      }
+
       siteId = siteDetails?.siteId;
       siteName = siteDetails?.name;
     }
 
     if (!siteId) {
-      const createdSite = await this.createSiteByAccessType(accessType);
+      const createdSite = await this.createSiteByAccessType(accessType, undefined, options);
       siteId = createdSite.siteId;
       siteName = createdSite.siteName;
     }

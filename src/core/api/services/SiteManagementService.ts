@@ -70,9 +70,21 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       const siteName = `AutomateUI_Test_${randomNum}`;
       const categoryObj = await this.getCategoryId(overrides.category?.name || 'default');
 
+      // Only include optional parameters if they are explicitly provided
+      const optionalParams = {
+        ...(overrides.hasPages !== undefined && { hasPages: overrides.hasPages }),
+        ...(overrides.hasEvents !== undefined && { hasEvents: overrides.hasEvents }),
+        ...(overrides.hasAlbums !== undefined && { hasAlbums: overrides.hasAlbums }),
+        ...(overrides.isContentFeedEnabled !== undefined && { isContentFeedEnabled: overrides.isContentFeedEnabled }),
+        ...(overrides.isContentSubmissionsEnabled !== undefined && {
+          isContentSubmissionsEnabled: overrides.isContentSubmissionsEnabled,
+        }),
+      };
+
       const payload: SiteCreationPayload = {
         ...defaultSitePayload,
         ...overrides,
+        ...optionalParams,
         category: {
           ...defaultSitePayload.category,
           ...overrides.category,
@@ -81,26 +93,41 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
         },
       };
 
+      // Build API payload with only defined optional parameters
+      const apiPayload: any = {
+        access: payload.access,
+        hasDashboard: payload.hasDashboard,
+        landingPage: payload.landingPage,
+        isOwner: payload.isOwner,
+        isMembershipAutoApproved: payload.isMembershipAutoApproved,
+        isBroadcast: payload.isBroadcast,
+        name: payload.name,
+        category: {
+          categoryId: payload.category.categoryId,
+          name: payload.category.name,
+        },
+      };
+
+      // Only include optional parameters if they are explicitly provided
+      if (overrides.hasPages !== undefined) {
+        apiPayload.hasPages = payload.hasPages;
+      }
+      if (overrides.hasEvents !== undefined) {
+        apiPayload.hasEvents = payload.hasEvents;
+      }
+      if (overrides.hasAlbums !== undefined) {
+        apiPayload.hasAlbums = payload.hasAlbums;
+      }
+      if (overrides.isContentFeedEnabled !== undefined) {
+        apiPayload.isContentFeedEnabled = payload.isContentFeedEnabled;
+      }
+      if (overrides.isContentSubmissionsEnabled !== undefined) {
+        apiPayload.isContentSubmissionsEnabled = payload.isContentSubmissionsEnabled;
+      }
+
       const response = await this.post(API_ENDPOINTS.site.url, {
         data: {
-          data: {
-            access: payload.access,
-            hasPages: payload.hasPages,
-            hasEvents: payload.hasEvents,
-            hasAlbums: payload.hasAlbums,
-            hasDashboard: payload.hasDashboard,
-            landingPage: payload.landingPage,
-            isContentFeedEnabled: payload.isContentFeedEnabled,
-            isContentSubmissionsEnabled: payload.isContentSubmissionsEnabled,
-            isOwner: payload.isOwner,
-            isMembershipAutoApproved: payload.isMembershipAutoApproved,
-            isBroadcast: payload.isBroadcast,
-            name: payload.name,
-            category: {
-              categoryId: payload.category.categoryId,
-              name: payload.category.name,
-            },
-          },
+          data: apiPayload,
         },
       });
       const siteJson = await response.json();
