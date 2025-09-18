@@ -29,8 +29,20 @@ export function loadEnvVariablesForGivenModule(envName: Environments, moduleName
   }
 
   // Fallback to GitHub environment variables for sensitive data
+  if (!process.env.GOOGLE_CALENDAR_CLIENT_ID && process.env.CI_GOOGLE_CALENDAR_CLIENT_ID) {
+    process.env.GOOGLE_CALENDAR_CLIENT_ID = process.env.CI_GOOGLE_CALENDAR_CLIENT_ID;
+  }
+  if (!process.env.GOOGLE_CALENDAR_CLIENT_SECRET && process.env.CI_GOOGLE_CALENDAR_CLIENT_SECRET) {
+    process.env.GOOGLE_CALENDAR_CLIENT_SECRET = process.env.CI_GOOGLE_CALENDAR_CLIENT_SECRET;
+  }
   if (!process.env.GOOGLE_CALENDAR_REFRESH_TOKEN && process.env.CI_GOOGLE_CALENDAR_REFRESH_TOKEN) {
     process.env.GOOGLE_CALENDAR_REFRESH_TOKEN = process.env.CI_GOOGLE_CALENDAR_REFRESH_TOKEN;
+  }
+  if (!process.env.END_USER_GOOGLE_CALENDAR_CLIENT_ID && process.env.CI_END_USER_GOOGLE_CALENDAR_CLIENT_ID) {
+    process.env.END_USER_GOOGLE_CALENDAR_CLIENT_ID = process.env.CI_END_USER_GOOGLE_CALENDAR_CLIENT_ID;
+  }
+  if (!process.env.END_USER_GOOGLE_CALENDAR_CLIENT_SECRET && process.env.CI_END_USER_GOOGLE_CALENDAR_CLIENT_SECRET) {
+    process.env.END_USER_GOOGLE_CALENDAR_CLIENT_SECRET = process.env.CI_END_USER_GOOGLE_CALENDAR_CLIENT_SECRET;
   }
   if (!process.env.END_USER_GOOGLE_CALENDAR_REFRESH_TOKEN && process.env.CI_END_USER_GOOGLE_CALENDAR_REFRESH_TOKEN) {
     process.env.END_USER_GOOGLE_CALENDAR_REFRESH_TOKEN = process.env.CI_END_USER_GOOGLE_CALENDAR_REFRESH_TOKEN;
