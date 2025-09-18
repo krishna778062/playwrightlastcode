@@ -251,6 +251,40 @@ export class ChatEditorComponent extends BaseComponent {
       }
     );
   }
+
+  /**
+   * Sends a message by first writing text, then selecting it and applying formatting
+   * @param message - The message to send
+   * @param formattingOptions - The formatting options to apply
+   * @param options - Additional options for the step
+   */
+  async sendMessageWithSelectAndFormat(
+    message: string,
+    formattingOptions: FormattingOptions,
+    options?: {
+      stepInfo?: string;
+    }
+  ): Promise<void> {
+    const stepInfo = options?.stepInfo ?? `Sending message with select-then-format: ${message}`;
+    await test.step(stepInfo, async () => {
+      // First, fill the message
+      await this.fillInElement(this.inputTextBox, message);
+
+      // Select all text in the input
+      await this.inputTextBox.selectText();
+
+      // Apply formatting to the selected text
+      await this.applyFormatting(formattingOptions, {
+        stepInfo: 'Applying formatting to selected text',
+      });
+
+      await this.inputTextBox.click();
+
+      // Send the message
+      await this.clickOnSendMessageButton();
+    });
+  }
+
   /**
    * Applies formatting options to the chat editor
    * @param formattingOptions - The formatting options to apply

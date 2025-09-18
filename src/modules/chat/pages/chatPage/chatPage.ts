@@ -127,6 +127,27 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
         });
     });
   }
+
+  /**
+   * Sends a message by first writing text, then selecting it and applying formatting.
+   * @param message - The message to send.
+   * @param formattingOptions - The formatting options to apply.
+   * @param options - Optional parameters for the step.
+   */
+  public async sendMessageWithSelectAndFormat(
+    message: string,
+    formattingOptions: FormattingOptions,
+    options?: { stepInfo?: string }
+  ): Promise<void> {
+    const stepInfo = options?.stepInfo ?? `Sending message with select-then-format: "${message}"`;
+    await test.step(stepInfo, async () => {
+      await this.getConversationWindowComponent()
+        .getChatEditorComponent()
+        .sendMessageWithSelectAndFormat(message, formattingOptions, {
+          stepInfo: options?.stepInfo ?? `Writing text first, then selecting and formatting: ${message}`,
+        });
+    });
+  }
   /**
    * Sends a reply to a specific message in a thread.
    * @param messageToReplyTo - The message to reply to.

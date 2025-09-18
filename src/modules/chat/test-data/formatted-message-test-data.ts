@@ -105,3 +105,19 @@ export const formattedMessageTestData: FormattedMessageTestData[] = [
     groupType: 'SMOKE',
   },
 ];
+
+export const selectThenFormatTestData: FormattedMessageTestData[] = [
+  {
+    testName: 'select text then apply bold formatting',
+    message: () => `Select then bold text ${generateRandomNumber(6)} - ${generateRandomText()}`,
+    usesBold: true,
+    usesItalic: false,
+    usesUnderline: false,
+    usesStrikethrough: false,
+    testId: 'CHAT-2220',
+    storyId: 'CHAT-2220',
+    description: 'To verify that text can be written first, then selected and bold formatting applied',
+    priority: 'P2',
+    groupType: 'SMOKE',
+  },
+];
