@@ -184,7 +184,7 @@ test.describe(
         ],
       },
       async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper }) => {
-        test.setTimeout(300000); // 5 minutes timeout for this test
+        test.setTimeout(300000);
         tagTest(test.info(), {
           description: 'Test event unpublish/republish sync with Google Calendar',
           zephyrTestId: 'INT-27087, INT-27089',
@@ -312,7 +312,7 @@ test.describe(
           location: updatedEventLocation,
         });
 
-        // Verify event updates are reflected in Google Calendar using new helper
+        // Verify event updates are reflected in Google Calendar using helper class
         const updateVerificationResult = await appManagerCalendarHelper.verifyEventDetailsWithRetry(updatedEventTitle, {
           title: updatedEventTitle,
           description: updatedEventDescription,
@@ -337,13 +337,12 @@ test.describe(
         ],
       },
       async ({ appManagerApiClient, appManagerHomePage, siteManagementHelper }) => {
-        test.setTimeout(360000); // 6 minutes timeout for this comprehensive test
+        test.setTimeout(360000);
         tagTest(test.info(), {
           description: 'Test site deactivation/reactivation impact on Google Calendar event sync',
           zephyrTestId: 'INT-14871, INT-27342, INT-27341',
         });
 
-        // Create a dedicated test site
         const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
         const dedicatedTestSite = await siteManagementHelper.createPublicSite({
           category,
@@ -352,7 +351,6 @@ test.describe(
 
         const siteId = dedicatedTestSite.siteId;
 
-        // Create event with Google Calendar sync enabled
         const eventTitle = `${EVENT_CONFIGS.SITE_DEACTIVATION.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
         const appManagerEmail = getEnvConfig().appManagerEmail;
@@ -369,10 +367,8 @@ test.describe(
           .getContentManagementService()
           .addNewEventContent(siteId, eventPayload);
 
-        // Verify event sync configuration
         assertCompleteEventConfiguration(eventResult, EXPECTED_EVENT_SYNC_CONFIG);
 
-        // Verify initial event sync to Google Calendar using new helper
         const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
         await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
@@ -380,7 +376,7 @@ test.describe(
         await appManagerApiClient.getSiteManagementService().deactivateSite(siteId);
         await appManagerHomePage.page.waitForTimeout(20000);
 
-        // Verify event removal from Google Calendar after site deactivation (optional check)
+        // Verify event removal from Google Calendar after site deactivation
         await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
           expectFound: false,
         });
@@ -389,7 +385,7 @@ test.describe(
         await appManagerApiClient.getSiteManagementService().activateSite(siteId);
         await appManagerHomePage.page.waitForTimeout(25000);
 
-        // Verify event reappears in Google Calendar after site reactivation (optional check)
+        // Verify event reappears in Google Calendar after site reactivation
         await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
       }
     );
@@ -405,7 +401,7 @@ test.describe(
         ],
       },
       async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper }) => {
-        test.setTimeout(300000); // 5 minutes timeout for this test
+        test.setTimeout(300000);
         tagTest(test.info(), {
           description:
             'Test event sync toggle behavior - disable sync removes event from Google Calendar, enable sync restores it',
@@ -442,7 +438,6 @@ test.describe(
         const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
         await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
-        // Navigate to event detail page
         const eventDetailPage = new EventDetailPage(appManagerHomePage.page, siteId, eventResult.eventId);
         await eventDetailPage.loadPage();
         await eventDetailPage.assertions.verifyThePageIsLoaded();
@@ -481,7 +476,7 @@ test.describe(
         ],
       },
       async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper }) => {
-        test.setTimeout(300000); // 5 minutes timeout for this test
+        test.setTimeout(300000);
         tagTest(test.info(), {
           description:
             'Test event sync to end user calendar when added as site member - verifies invitee sync functionality',
@@ -518,16 +513,13 @@ test.describe(
           .getContentManagementService()
           .addNewEventContent(siteId, eventPayload);
 
-        // Now add end user as site member after event creation
-
         // Get user ID for the end user email
         const endUserId = await appManagerApiClient.getUserManagementService().getUserId(endUserEmail);
 
-        // Add end user as site member using the correct API
         await appManagerApiClient
           .getSiteManagementService()
           .makeUserSiteMembership(siteId, endUserId, SitePermission.MEMBER, SiteMembershipAction.ADD);
-        // Use new helper classes for better encapsulation
+
         const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
         await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
@@ -553,7 +545,7 @@ test.describe(
         ],
       },
       async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper }) => {
-        test.setTimeout(300000); // 5 minutes timeout for this test
+        test.setTimeout(300000);
         tagTest(test.info(), {
           description:
             'Test event sync when user is site member before event creation, then verify event removal when user is removed from site',
@@ -642,7 +634,7 @@ test.describe(
         ],
       },
       async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper, browser }) => {
-        test.setTimeout(300000); // 5 minutes timeout for this test
+        test.setTimeout(300000);
         tagTest(test.info(), {
           description: 'Test non-member RSVP to public site event and verify event sync to their Google Calendar',
           zephyrTestId: 'NT-27128, INT-27127',
@@ -718,10 +710,9 @@ test.describe(
             `Non-member RSVP should trigger calendar sync but event was not found after ${endUserVerificationResult.attempts} verification attempts.`
         ).toBe(true);
 
-        // Step 5: Optional - Verify App Manager calendar still has the event
+        // Step 5: Verify App Manager calendar still has the event
         await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
-        // Cleanup: Close end user browser context
         await endUserContext.close();
       }
     );
@@ -744,7 +735,6 @@ test.describe(
           zephyrTestId: 'INT-27254',
         });
 
-        // Get site ID for the test site (initially public)
         const sitesResponse = await siteManagementHelper.getListOfSites();
         const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
 
@@ -760,10 +750,8 @@ test.describe(
 
         // Step 1: Add end user as site member (while site is public)
 
-        // Get user ID for the end user email
         const endUserId = await appManagerApiClient.getUserManagementService().getUserId(endUserEmail);
 
-        // Add end user as site member
         await appManagerApiClient
           .getSiteManagementService()
           .makeUserSiteMembership(siteId, endUserId, SitePermission.MEMBER, SiteMembershipAction.ADD);
@@ -800,7 +788,6 @@ test.describe(
         // Step 5: Change site from public to private
         await appManagerApiClient.getSiteManagementService().updateSiteAccess(siteId, 'private');
 
-        // Wait for the change to propagate
         await appManagerHomePage.page.waitForTimeout(10000);
 
         // Step 6: Verify event still exists in both calendars after site access change
