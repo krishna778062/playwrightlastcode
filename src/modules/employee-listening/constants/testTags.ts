@@ -1,14 +1,23 @@
-export enum EMPLOYEE_LISTENING_FEATURE_TAGS {}
-// Add your feature-specific tags here
-// Example: FEATURE_A = '@feature-a',
+export enum EmployeeListeningSuiteTags {
+  AWARENESS_CHECK = '@awarenessCheck',
+  CREATE_AWARENESS_CHECK = '@createAwarenessCheck',
+  EDIT_AWARENESS_CHECK = '@editAwarenessCheck',
+  REMOVE_AWARENESS_CHECK = '@removeAwarenessCheck',
+  AWARENESS_REPORT = '@awarenessReport',
+}
 
-export enum EMPLOYEE_LISTENING_SUITE_TAGS {}
-// Add your test suite tags here
-// Example: SMOKE = '@smoke',
+export enum EmployeeListeningFeatureTags {
+  MUST_READ = '@must-read',
+  QUESTION_MANAGEMENT = '@question-management',
+  ANSWER_VALIDATION = '@answer-validation',
+  USER_PARTICIPATION = '@user-participation',
+  REPORT_VIEWING = '@report-viewing',
+  PERMISSION_CONTROL = '@permission-control',
+}
 
-export const EMPLOYEE_LISTENING_TEST_TAGS = [
-  ...Object.values(EMPLOYEE_LISTENING_FEATURE_TAGS),
-  ...Object.values(EMPLOYEE_LISTENING_SUITE_TAGS),
+export const EmployeeListeningTestTags = [
+  ...Object.values(EmployeeListeningSuiteTags),
+  ...Object.values(EmployeeListeningFeatureTags),
 ] as const;
 
-export default EMPLOYEE_LISTENING_TEST_TAGS;
+export default EmployeeListeningTestTags;

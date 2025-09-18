@@ -1,12 +1,23 @@
-import {
-  AwarenessCheckOptions,
-  AwarenessQuestion,
-  AwarenessQuestionData,
-} from '@employee-listening/types/awareness-check.type';
-import { expect, Locator, Page, test } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/pages/basePage';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
+
+// Type definitions for awareness check functionality
+export interface AwarenessCheckOptions {
+  stepInfo?: string;
+  timeout?: number;
+}
+
+export interface AwarenessQuestionData {
+  question: string;
+  answers: string[];
+  correctness: string[];
+}
+
+import { AwarenessCheckDisplayComponent } from '@employee-listening/components/awarenessCheckDisplayComponent';
+import { AwarenessCheckFormComponent } from '@employee-listening/components/awarenessCheckFormComponent';
+import { AwarenessCheckMenuComponent } from '@employee-listening/components/awarenessCheckMenuComponent';
 
 import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
 import { CreateComponent } from '@/src/modules/content/components/createComponent';
@@ -16,22 +27,26 @@ import { PageContentType } from '@/src/modules/content/constants/pageContentType
 import { PageCreationOptions, PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 
 export interface IAwarenessCheckActions {
-  toggleCheckbox(label: string, shouldCheck: boolean, options?: AwarenessCheckOptions): Promise<void>;
+  selectMustReadOption(options?: AwarenessCheckOptions): Promise<void>;
+  enableAwarenessCheck(options?: AwarenessCheckOptions): Promise<void>;
   enterAwarenessQuestions(questions: AwarenessQuestionData[], options?: AwarenessCheckOptions): Promise<void>;
   enterSingleQuestion(question: string, options?: AwarenessCheckOptions): Promise<void>;
   editAwarenessQuestions(questions: AwarenessQuestionData[], options?: AwarenessCheckOptions): Promise<void>;
-  clickThreeDotIcon(options?: AwarenessCheckOptions): Promise<void>;
-  clickButtonInPopup(buttonText: string, options?: AwarenessCheckOptions): Promise<void>;
+  clickMakeMustReadButton(options?: AwarenessCheckOptions): Promise<void>;
+  hoverOverThreeDotIcon(options?: AwarenessCheckOptions): Promise<void>;
+  clickMustReadHistoryButton(options?: AwarenessCheckOptions): Promise<void>;
+  clickMoreButton(options?: AwarenessCheckOptions): Promise<void>;
+  clickEditButton(options?: AwarenessCheckOptions): Promise<void>;
+  clickButton(buttonText: string, options?: AwarenessCheckOptions): Promise<void>;
+  clickUpdateButton(options?: AwarenessCheckOptions): Promise<void>;
+  removeAwarenessCheck(options?: AwarenessCheckOptions): Promise<void>;
   chooseAnswer(answerText: string, options?: AwarenessCheckOptions): Promise<void>;
+  clickFinishButton(options?: AwarenessCheckOptions): Promise<void>;
   clickAddAnotherQuestion(options?: AwarenessCheckOptions): Promise<void>;
+  handleSkipStepIfVisible(options?: AwarenessCheckOptions): Promise<void>;
   loadRecentlyCreatedSite(options?: AwarenessCheckOptions): Promise<void>;
-  createPageWithAwarenessCheck(options?: {
-    pageTitle?: string;
-    contentType?: PageContentType;
-    stepInfo?: string;
-  }): Promise<{
-    pageId: string;
-    siteId: string;
+  createPage(options?: { pageTitle?: string; contentType?: PageContentType; stepInfo?: string }): Promise<{
+    pageCreationPage: PageCreationPage;
     pageTitle: string;
   }>;
 }
@@ -46,12 +61,17 @@ export interface IAwarenessCheckAssertions {
 }
 
 export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActions, IAwarenessCheckAssertions {
-  // Locator strings
+  // Component instances
+  readonly awarenessCheckFormComponent: AwarenessCheckFormComponent;
+  readonly awarenessCheckMenuComponent: AwarenessCheckMenuComponent;
+  readonly awarenessCheckDisplayComponent: AwarenessCheckDisplayComponent;
+
+  // Page-specific locators (not in components)
+  private readonly publishButton = this.page.getByRole('button', { name: 'Publish' });
+  private readonly contentSuccessMessage = this.page.getByText("Created page successfully - it's published");
+
+  // Legacy locator methods (for methods that haven't been fully refactored yet)
   private readonly questionFieldLocator = (index: number) => `input[id="questions_${index}_text"]`;
-  private readonly threeDotIcon = this.page.getByRole('button', { name: 'Category option' });
-  private readonly addAnotherQuestionButton = this.page.getByRole('button', { name: 'Add another question' });
-  private readonly addAnswerButton = this.page.getByRole('button', { name: 'Add answer' });
-  private readonly editButton = this.page.getByRole('button', { name: 'Edit' });
   private readonly answerFieldLocator = (questionIndex: number, answerIndex: number) =>
     `input[name="questions[${questionIndex}].options[${answerIndex}].text"]`;
   private readonly correctnessDropdownLocator = (questionIndex: number, answerIndex: number) =>
@@ -59,6 +79,11 @@ export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActio
 
   constructor(page: Page) {
     super(page, '/site/c96eabdf-89cb-4631-be88-7c420c87965c/dashboard');
+
+    // Initialize components
+    this.awarenessCheckFormComponent = new AwarenessCheckFormComponent(page);
+    this.awarenessCheckMenuComponent = new AwarenessCheckMenuComponent(page);
+    this.awarenessCheckDisplayComponent = new AwarenessCheckDisplayComponent(page);
   }
 
   /**
@@ -89,24 +114,24 @@ export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActio
     });
   }
 
-  // ==================== ACTION METHODS ====================
+  // ==================== ACTION METHODS ===================
 
-  /**
-   * Toggles a checkbox by label
-   */
-  async toggleCheckbox(label: string, shouldCheck: boolean, options?: AwarenessCheckOptions): Promise<void> {
-    await test.step(
-      options?.stepInfo || `Toggling checkbox "${label}" to ${shouldCheck ? 'checked' : 'unchecked'}`,
-      async () => {
-        const checkbox = this.page.getByLabel(label);
+  async selectMustReadOption(options?: AwarenessCheckOptions): Promise<void> {
+    await test.step(options?.stepInfo || 'Click must read button', async () => {
+      await this.awarenessCheckMenuComponent.selectMustReadOption();
+    });
+  }
 
-        if (shouldCheck) {
-          await this.checkElement(checkbox, { stepInfo: `Check checkbox "${label}"` });
-        } else {
-          await this.clickOnElement(checkbox, { stepInfo: `Uncheck checkbox "${label}"` });
-        }
-      }
-    );
+  async enableAwarenessCheck(options?: AwarenessCheckOptions): Promise<void> {
+    await test.step(options?.stepInfo || 'Enable awareness check', async () => {
+      await this.awarenessCheckFormComponent.enableAwarenessCheck();
+    });
+  }
+
+  async clickMakeMustReadButton(options?: AwarenessCheckOptions): Promise<void> {
+    await test.step(options?.stepInfo || 'Make must read', async () => {
+      await this.awarenessCheckFormComponent.clickMakeMustRead();
+    });
   }
 
   /**
@@ -115,48 +140,76 @@ export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActio
   async enterAwarenessQuestions(questions: AwarenessQuestionData[], options?: AwarenessCheckOptions): Promise<void> {
     await test.step(options?.stepInfo || `Entering ${questions.length} awareness check questions`, async () => {
       for (let i = 0; i < questions.length; i++) {
-        const question = questions[i];
+        console.log(`Processing Question ${i + 1}:`, questions[i]);
 
-        // Fill the question input field
-        const questionLocator = this.questionFieldLocator(i);
-        await this.fillInElement(questionLocator, question.question, {
-          stepInfo: `Fill question ${i + 1}: ${question.question}`,
+        // Fill the question input field using form component
+        const questionInput = this.awarenessCheckFormComponent.getQuestionInput(i);
+        await this.fillInElement(questionInput, questions[i].question, {
+          stepInfo: `Fill question ${i + 1}: ${questions[i].question}`,
         });
 
         // Process answers for this question
-        for (let j = 0; j < question.answers.length; j++) {
+        for (let j = 0; j < questions[i].answers.length; j++) {
           // Add answer field if needed (for the third and subsequent answers)
           if (j >= 2) {
-            const addAnswerButton = this.addAnswerButton.nth(i);
+            const addAnswerButton = this.page
+              .locator('button.AnswerBuilder_addAnswerButton--_ibz1.AnswerBuilder_border--weT7a')
+              .nth(i);
             await addAnswerButton.waitFor({ state: 'visible' });
-            await this.clickOnElement(addAnswerButton, {
-              stepInfo: `Add answer field for question ${i + 1}`,
-            });
+            await addAnswerButton.click();
           }
 
-          // Fill the answer input field
-          const answerLocator = this.answerFieldLocator(i, j);
-          await this.fillInElement(answerLocator, question.answers[j], {
-            stepInfo: `Fill answer ${j + 1} for question ${i + 1}: ${question.answers[j]}`,
+          // Fill the answer input field using form component
+          const answerInput = this.awarenessCheckFormComponent.getAnswerInput(i, j);
+          await this.fillInElement(answerInput, questions[i].answers[j], {
+            stepInfo: `Fill answer ${j + 1} for question ${i + 1}: ${questions[i].answers[j]}`,
           });
 
-          // Set correctness if provided
-          if (question.correctness[j]) {
-            const correctnessLocator = this.correctnessDropdownLocator(i, j);
-            await this.clickOnElement(correctnessLocator, {
-              stepInfo: `Select correctness for answer ${j + 1} of question ${i + 1}`,
-            });
+          // Define correctness dropdown locator
+          const correctnessDropdownLocator = `select[name="questions[${i}].options[${j}].correct"]`;
+          const correctnessDropdown = this.page.locator(correctnessDropdownLocator);
 
-            // TODO: Need to implement dropdown selection logic
-            // This might require a more specific approach based on the actual dropdown implementation
+          console.log(`Correctness dropdown locator for Q${i + 1} A${j + 1}:`, correctnessDropdownLocator);
+
+          // Ensure correctness exists for this answer (default to empty)
+          const correctnessValue = questions[i].correctness[j] ?? ''; // Fix: Prevent undefined errors
+          console.log(`Setting correctness for Q${i + 1} A${j + 1}:`, correctnessValue || 'default (not changed)');
+
+          if (correctnessValue) {
+            try {
+              // Wait for correctness dropdown to be attached and selectable
+              await correctnessDropdown.waitFor({
+                state: 'attached',
+                timeout: 5000,
+              });
+
+              // Ensure dropdown is visible before selecting correctness
+              if (await correctnessDropdown.isVisible()) {
+                await correctnessDropdown.selectOption({
+                  value: correctnessValue,
+                });
+              } else {
+                console.warn(`Dropdown not visible for Q${i + 1} A${j + 1}`);
+              }
+
+              // Verify the selected correctness value
+              const selectedValue = await correctnessDropdown.inputValue();
+              if (selectedValue !== correctnessValue) {
+                console.warn(
+                  `Mismatch: Expected correctness for Q${i + 1} A${
+                    j + 1
+                  } is '${correctnessValue}', but found '${selectedValue}'`
+                );
+              }
+            } catch (error) {
+              console.error(`Error setting correctness for Q${i + 1} A${j + 1}:`, error);
+            }
           }
         }
 
         // Click "Add another question" only if it's not the last question
         if (i < questions.length - 1) {
-          await this.clickAddAnotherQuestion({
-            stepInfo: `Add another question after question ${i + 1}`,
-          });
+          await this.awarenessCheckFormComponent.clickAddAnotherQuestion();
         }
       }
     });
@@ -168,52 +221,141 @@ export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActio
   async editAwarenessQuestions(questions: AwarenessQuestionData[], options?: AwarenessCheckOptions): Promise<void> {
     await test.step(options?.stepInfo || `Editing ${questions.length} awareness check questions`, async () => {
       for (let i = 0; i < questions.length; i++) {
-        const question = questions[i];
+        console.log(`Processing Question ${i + 1}:`, questions[i]);
 
-        // Update Question
-        const questionLocator = this.questionFieldLocator(i);
-        await this.fillInElement(questionLocator, question.question, {
-          stepInfo: `Update question ${i + 1}: ${question.question}`,
+        // Fill the question input field
+        const questionInput = this.awarenessCheckFormComponent.getQuestionInput(i);
+        await this.fillInElement(questionInput, questions[i].question, {
+          stepInfo: `Update question ${i + 1}: ${questions[i].question}`,
         });
 
-        // Update answers
-        for (let j = 0; j < question.answers.length; j++) {
-          const answerLocator = this.answerFieldLocator(i, j);
-          await this.fillInElement(answerLocator, question.answers[j], {
-            stepInfo: `Update answer ${j + 1} for question ${i + 1}: ${question.answers[j]}`,
+        // Process answers for this question
+        for (let j = 0; j < questions[i].answers.length; j++) {
+          // Add answer field if needed (for the third and subsequent answers)
+          if (j >= 2) {
+            const addAnswerButton = this.page
+              .locator('button.AnswerBuilder_addAnswerButton--_ibz1.AnswerBuilder_border--weT7a')
+              .nth(i);
+            await addAnswerButton.waitFor({ state: 'visible' });
+            await addAnswerButton.click();
+          }
+
+          // Fill the answer input field using form component
+          const answerInput = this.awarenessCheckFormComponent.getAnswerInput(i, j);
+          await this.fillInElement(answerInput, questions[i].answers[j], {
+            stepInfo: `Update answer ${j + 1} for question ${i + 1}: ${questions[i].answers[j]}`,
           });
 
-          // Update correctness
-          if (question.correctness[j]) {
-            const correctnessLocator = this.correctnessDropdownLocator(i, j);
-            await this.clickOnElement(correctnessLocator, {
-              stepInfo: `Update correctness for answer ${j + 1} of question ${i + 1}`,
-            });
+          // Define correctness dropdown locator
+          const correctnessDropdownLocator = `select[name="questions[${i}].options[${j}].correct"]`;
+          const correctnessDropdown = this.page.locator(correctnessDropdownLocator);
 
-            // TODO: Need to implement dropdown selection logic
+          console.log(`Correctness dropdown locator for Q${i + 1} A${j + 1}:`, correctnessDropdownLocator);
+
+          // Ensure correctness exists for this answer (default to empty)
+          const correctnessValue = questions[i].correctness[j] ?? ''; // Fix: Prevent undefined errors
+          console.log(`Setting correctness for Q${i + 1} A${j + 1}:`, correctnessValue || 'default (not changed)');
+
+          if (correctnessValue) {
+            try {
+              // Wait for correctness dropdown to be attached and selectable
+              await correctnessDropdown.waitFor({
+                state: 'attached',
+                timeout: 5000,
+              });
+
+              // Ensure dropdown is visible before selecting correctness
+              if (await correctnessDropdown.isVisible()) {
+                await correctnessDropdown.selectOption({
+                  value: correctnessValue,
+                });
+              } else {
+                console.warn(`Dropdown not visible for Q${i + 1} A${j + 1}`);
+              }
+
+              // Verify the selected correctness value
+              const selectedValue = await correctnessDropdown.inputValue();
+              if (selectedValue !== correctnessValue) {
+                console.warn(
+                  `Mismatch: Expected correctness for Q${i + 1} A${
+                    j + 1
+                  } is '${correctnessValue}', but found '${selectedValue}'`
+                );
+              }
+            } catch (error) {
+              console.error(`Error setting correctness for Q${i + 1} A${j + 1}:`, error);
+            }
           }
+        }
+
+        // Click "Add another question" only if it's not the last question
+        if (i < questions.length - 1) {
+          await this.awarenessCheckFormComponent.clickAddAnotherQuestion();
         }
       }
     });
   }
 
   /**
-   * Clicks the three dot icon (More button)
+   * Clicks the three dot icon\
    */
-  async clickThreeDotIcon(options?: AwarenessCheckOptions): Promise<void> {
+  async hoverOverThreeDotIcon(options?: AwarenessCheckOptions): Promise<void> {
     await test.step(options?.stepInfo || 'Click three dot icon (More button)', async () => {
-      await this.clickOnElement(this.threeDotIcon, {
-        stepInfo: 'Click three dot icon',
-      });
+      await this.awarenessCheckMenuComponent.hoverOverThreeDotIcon();
     });
   }
 
   /**
+   * Clicks the must read history button
+   */
+  async clickMustReadHistoryButton(options?: AwarenessCheckOptions): Promise<void> {
+    await test.step(options?.stepInfo || 'Click must read history button', async () => {
+      await this.awarenessCheckMenuComponent.clickMustReadHistoryButton();
+    });
+  }
+
+  /**
+   * Clicks the three dot icon (More button)
+   */
+  async clickMoreButton(options?: AwarenessCheckOptions): Promise<void> {
+    await test.step(options?.stepInfo || 'Click three dot icon (More button)', async () => {
+      await this.awarenessCheckMenuComponent.clickMoreButton();
+    });
+  }
+
+  /**
+   * Clicks the edit button
+   */
+  async clickEditButton(options?: AwarenessCheckOptions): Promise<void> {
+    await test.step(options?.stepInfo || 'Click edit button', async () => {
+      await this.awarenessCheckMenuComponent.clickEditButton();
+    });
+  }
+
+  /**
+   * Clicks the update button
+   */
+  async clickUpdateButton(options?: AwarenessCheckOptions): Promise<void> {
+    await test.step(options?.stepInfo || 'Click update button', async () => {
+      await this.awarenessCheckMenuComponent.clickUpdateButton();
+    });
+  }
+
+  /**
+   * Clicks the remove button
+   */
+  async removeAwarenessCheck(options?: AwarenessCheckOptions): Promise<void> {
+    await test.step(options?.stepInfo || 'Click remove button', async () => {
+      await this.awarenessCheckMenuComponent.clickRemoveButton();
+      await this.awarenessCheckMenuComponent.clickConfirmRemoveButton();
+    });
+  }
+  /**
    * Clicks a button in a popup window
    */
-  async clickButtonInPopup(buttonText: string, options?: AwarenessCheckOptions): Promise<void> {
+  async clickButton(buttonText: string, options?: AwarenessCheckOptions): Promise<void> {
     await test.step(options?.stepInfo || `Click "${buttonText}" button in popup`, async () => {
-      await this.clickOnButtonWithName(buttonText);
+      await this.awarenessCheckDisplayComponent.clickButton(buttonText);
     });
   }
 
@@ -222,10 +364,15 @@ export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActio
    */
   async chooseAnswer(answerText: string, options?: AwarenessCheckOptions): Promise<void> {
     await test.step(options?.stepInfo || `Choose answer: ${answerText}`, async () => {
-      const answerElement = this.page.getByRole('heading', { name: answerText });
-      await this.clickOnElement(answerElement, {
-        stepInfo: `Click on answer: ${answerText}`,
-      });
+      await this.awarenessCheckDisplayComponent.chooseAnswer(answerText);
+    });
+  }
+  /**
+   * Clicks the finish button
+   */
+  async clickFinishButton(options?: AwarenessCheckOptions): Promise<void> {
+    await test.step(options?.stepInfo || 'Click finish button', async () => {
+      await this.awarenessCheckDisplayComponent.clickButton('Finish');
     });
   }
 
@@ -234,9 +381,7 @@ export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActio
    */
   async clickAddAnotherQuestion(options?: AwarenessCheckOptions): Promise<void> {
     await test.step(options?.stepInfo || 'Click "Add another question" button', async () => {
-      await this.clickOnElement(this.addAnotherQuestionButton, {
-        stepInfo: 'Click Add another question button',
-      });
+      await this.awarenessCheckFormComponent.clickAddAnotherQuestion();
     });
   }
 
@@ -249,6 +394,20 @@ export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActio
       await this.fillInElement(questionLocator, question, {
         stepInfo: `Enter single question: ${question}`,
       });
+    });
+  }
+
+  /**
+   * Handles the "Skip this step" button if it appears after publishing
+   */
+  async handleSkipStepIfVisible(options?: AwarenessCheckOptions): Promise<void> {
+    await test.step(options?.stepInfo || 'Handle Skip this step button if visible', async () => {
+      const skipButton = this.page.getByRole('button', { name: 'Skip this step' });
+
+      if (await skipButton.isVisible()) {
+        await skipButton.click();
+      }
+      // If not visible, do nothing
     });
   }
 
@@ -273,13 +432,8 @@ export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActio
    * Creates a page with awareness check functionality using the reusable content creation workflow
    * This replaces the manual steps: Click Add Content -> Select Page -> Add -> Enter details -> Publish
    */
-  async createPageWithAwarenessCheck(options?: {
-    pageTitle?: string;
-    contentType?: PageContentType;
-    stepInfo?: string;
-  }): Promise<{
-    pageId: string;
-    siteId: string;
+  async createPage(options?: { pageTitle?: string; contentType?: PageContentType; stepInfo?: string }): Promise<{
+    pageCreationPage: PageCreationPage;
     pageTitle: string;
   }> {
     return await test.step(options?.stepInfo || 'Create page with awareness check functionality', async () => {
@@ -315,16 +469,37 @@ export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActio
         }
       );
 
-      // Step 6: Create and publish the page with increased timeout
-      // Create and publish the page using the content module's proven method
-      const { pageId, siteId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+      // Step 6: Fill page details and return the page creation page for publishing
+      // Fill page details using the content module's proven method
+      await pageCreationPage.actions.fillPageDetails({
+        title: pageCreationOptions.title,
+        description: pageCreationOptions.description,
+        category: pageCreationOptions.category,
+        contentType: pageCreationOptions.contentType,
+      });
 
-      // Navigate to the created content page to continue with awareness check setup
-      await this.page.goto(`/site/${siteId}/content/${pageId}`);
+      // Step 7: Click Publish button of content creation page
+      await this.clickOnElement(this.publishButton, {
+        stepInfo: 'Click Publish button of content creation page',
+      });
 
+      await this.verifier.waitUntilElementIsVisible(this.contentSuccessMessage, {
+        timeout: 7000,
+        stepInfo: 'Wait until content success message is visible',
+      });
+
+      await this.verifier.waitUntilElementIsHidden(this.contentSuccessMessage, {
+        timeout: 7000,
+        stepInfo: 'Wait until content success message is hidden',
+      });
+
+      // Step 8: Handle "Skip this step" button if it appears
+      await this.handleSkipStepIfVisible({
+        stepInfo: 'Handle Skip this step button after publishing',
+      });
+      // Return the pageCreationPage instance so the test can handle publishing
       return {
-        pageId,
-        siteId,
+        pageCreationPage,
         pageTitle,
       };
     });
@@ -335,7 +510,7 @@ export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActio
    */
   async verifyQuestionIsVisible(questionText: string, options?: AwarenessCheckOptions): Promise<void> {
     await test.step(options?.stepInfo || `Verify question "${questionText}" is visible`, async () => {
-      const questionElement = this.page.getByRole('heading', { name: questionText });
+      const questionElement = this.awarenessCheckDisplayComponent.getQuestionByText(questionText);
       await expect(questionElement).toBeVisible();
     });
   }
@@ -345,7 +520,7 @@ export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActio
    */
   async verifyQuestionIsNotVisible(questionText: string, options?: AwarenessCheckOptions): Promise<void> {
     await test.step(options?.stepInfo || `Verify question "${questionText}" is not visible`, async () => {
-      const questionElement = this.page.getByRole('heading', { name: questionText });
+      const questionElement = this.awarenessCheckDisplayComponent.getQuestionByText(questionText);
       await expect(questionElement).toHaveCount(0);
     });
   }
@@ -355,7 +530,8 @@ export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActio
    */
   async verifyThreeDotIconIsNotVisible(options?: AwarenessCheckOptions): Promise<void> {
     await test.step(options?.stepInfo || 'Verify three dot icon is not visible', async () => {
-      await expect(this.threeDotIcon).toHaveCount(0);
+      const isVisible = await this.awarenessCheckMenuComponent.isThreeDotIconVisible();
+      expect(isVisible).toBe(false);
     });
   }
 
@@ -364,7 +540,8 @@ export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActio
    */
   async verifyEditButtonIsNotVisible(options?: AwarenessCheckOptions): Promise<void> {
     await test.step(options?.stepInfo || 'Verify edit button is not visible', async () => {
-      await expect(this.editButton).toHaveCount(0);
+      const isVisible = await this.awarenessCheckMenuComponent.isEditButtonVisible();
+      expect(isVisible).toBe(false);
     });
   }
 
@@ -373,9 +550,8 @@ export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActio
    */
   async verifyConfirmationMessage(message: string, options?: AwarenessCheckOptions): Promise<void> {
     await test.step(options?.stepInfo || `Verify confirmation message: ${message}`, async () => {
-      const messageElement = this.page.getByText("You've confirmed that you");
-      const actualMessage = await messageElement.textContent();
-      expect(actualMessage).toMatch(message);
+      const messageElement = this.awarenessCheckDisplayComponent.getConfirmationMessage(message);
+      await expect(messageElement).toBeVisible();
     });
   }
 
@@ -384,7 +560,7 @@ export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActio
    */
   async verifyPopupTitle(title: string, options?: AwarenessCheckOptions): Promise<void> {
     await test.step(options?.stepInfo || `Verify popup title: ${title}`, async () => {
-      const titleElement = this.page.getByText(title);
+      const titleElement = this.awarenessCheckDisplayComponent.getPopupTitle(title);
       await expect(titleElement).toBeVisible();
     });
   }

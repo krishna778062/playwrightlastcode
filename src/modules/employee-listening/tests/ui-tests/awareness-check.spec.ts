@@ -1,19 +1,18 @@
+import { EmployeeListeningFeatureTags, EmployeeListeningSuiteTags } from '@employee-listening/constants/testTags';
 import { test } from '@employee-listening/fixtures/loginFixture';
-import { AwarenessCheckPage } from '@employee-listening/pages/awarenessCheckPage';
-import { AwarenessQuestionData } from '@employee-listening/types/awareness-check.type';
-import { expect } from '@playwright/test';
+import { AwarenessCheckPage, AwarenessQuestionData } from '@employee-listening/pages/awarenessCheckPage';
+import { EMPLOYEE_LISTENING_TEST_DATA } from '@employee-listening/test-data/module.test-data';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { tagTest } from '@core/utils/testDecorator';
 
-// Import content creation related types
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
 
-test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () => {
+test.describe('Awareness Check Functionality', { tag: [EmployeeListeningSuiteTags.AWARENESS_CHECK] }, () => {
   let awarenessCheckPage: AwarenessCheckPage;
-  let createdPageInfo: { pageId: string; siteId: string; pageTitle: string };
+  let createdPageInfo: { pageTitle: string };
 
   test.beforeEach(async ({ page, loginAs }) => {
     // Step 1: Navigate to the base URL
@@ -27,18 +26,25 @@ test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () 
     // We'll create page content dynamically using the reusable method
     awarenessCheckPage = new AwarenessCheckPage(page);
 
-    // Step 4: Create page content with awareness check functionality
+    // Step 4: Create page form and fill details (without publishing)
     // This replaces the manual TODO steps for page creation
-    createdPageInfo = await awarenessCheckPage.actions.createPageWithAwarenessCheck({
+    const { pageTitle } = await awarenessCheckPage.actions.createPage({
       pageTitle: `Test Page for Awareness Check - ${test.info().title}`,
       contentType: PageContentType.NEWS,
-      stepInfo: 'Create test page for awareness check',
+      stepInfo: 'Setup page creation form for awareness check',
     });
+
+    createdPageInfo = { pageTitle };
   });
   test(
     'Verify admin can create a awareness check with question',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@createAwarenessCheck'],
+      tag: [
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+        EmployeeListeningSuiteTags.CREATE_AWARENESS_CHECK,
+        EmployeeListeningFeatureTags.QUESTION_MANAGEMENT,
+      ],
     },
     async () => {
       tagTest(test.info(), {
@@ -46,51 +52,35 @@ test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () 
         description: 'Verify admin can create awareness check with questions',
       });
 
-      // Page creation is now handled in beforeEach using the reusable method
-      // The page is created and published, and we're already on the content page
-      // No need to navigate again since createPageWithAwarenessCheck ends on the content page
-
-      // Click on option menu three dot to access "Make 'must read'" option
-      await awarenessCheckPage.actions.clickThreeDotIcon({
-        stepInfo: 'Click three dot menu to access must read options',
+      // Click three dot icon
+      await awarenessCheckPage.actions.hoverOverThreeDotIcon({
+        stepInfo: 'Click More button (three dots)',
       });
 
-      // TODO: Add "Make must read" action - this step needs to be implemented
-      // And Click on "Make 'must read'"
+      // Click must read button
+      await awarenessCheckPage.actions.selectMustReadOption({
+        stepInfo: 'Click must read button',
+      });
 
       // Toggle "Enable Awareness check" checkbox "check"
-      await awarenessCheckPage.actions.toggleCheckbox('Enable Awareness check', true, {
-        stepInfo: 'Enable awareness check checkbox',
+      await awarenessCheckPage.actions.enableAwarenessCheck({
+        stepInfo: 'Enable Awareness check',
       });
 
-      // Enter awareness check question and answers
-      const questions: AwarenessQuestionData[] = [
-        {
-          question: 'First Question',
-          answers: ['answer1', 'answer2'],
-          correctness: ['correct', 'incorrect'],
-        },
-        {
-          question: 'Second Question',
-          answers: ['answer1', 'answer2', 'answer3'],
-          correctness: ['correct', 'correct', 'incorrect'],
-        },
-        {
-          question: 'Third Question',
-          answers: ['answer1', 'answer3', 'answer4', 'answer5'],
-          correctness: ['incorrect', 'correct', 'correct', 'incorrect'],
-        },
-      ];
+      // Enter awareness check question and answers using test data
+      const questions = EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.MULTIPLE;
 
       await awarenessCheckPage.actions.enterAwarenessQuestions(questions, {
         stepInfo: 'Enter awareness check questions with answers',
       });
 
       // TODO: Add "Make must read" action
-      // And Click on "Make must read"
+      await awarenessCheckPage.actions.clickMakeMustReadButton({
+        stepInfo: 'Make must read',
+      });
 
       // Verify first question is visible
-      await awarenessCheckPage.assertions.verifyQuestionIsVisible('First Question', {
+      await awarenessCheckPage.assertions.verifyQuestionIsVisible(questions[0].question, {
         stepInfo: 'Verify first question is visible on screen',
       });
     }
@@ -99,7 +89,12 @@ test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () 
   test(
     'Verify admin can edit the awareness check with single question',
     {
-      tag: [TestPriority.P1, TestGroupType.REGRESSION],
+      tag: [
+        TestPriority.P1,
+        TestGroupType.REGRESSION,
+        EmployeeListeningSuiteTags.EDIT_AWARENESS_CHECK,
+        EmployeeListeningFeatureTags.QUESTION_MANAGEMENT,
+      ],
     },
     async () => {
       tagTest(test.info(), {
@@ -107,55 +102,57 @@ test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () 
         description: 'Verify admin can edit awareness check with single question',
       });
 
-      // Page creation is now handled in beforeEach using the reusable method
-      // We're already on the content page, no need to navigate again
-
-      // Toggle "Enable Awareness check" checkbox "check"
-      await awarenessCheckPage.actions.toggleCheckbox('Enable Awareness check', true, {
-        stepInfo: 'Enable awareness check checkbox',
+      // Click three dot icon
+      await awarenessCheckPage.actions.hoverOverThreeDotIcon({
+        stepInfo: 'Click More button (three dots)',
       });
 
-      // Enter initial question
-      const initialQuestions: AwarenessQuestionData[] = [
-        {
-          question: 'First Question',
-          answers: ['answer1', 'answer2'],
-          correctness: ['correct', 'incorrect'],
-        },
-      ];
+      // Click must read button
+      await awarenessCheckPage.actions.selectMustReadOption({
+        stepInfo: 'Click must read button',
+      });
+
+      // Toggle "Enable Awareness check" checkbox "check"
+      await awarenessCheckPage.actions.enableAwarenessCheck({
+        stepInfo: 'Enable Awareness check',
+      });
+
+      // Enter initial question using test data
+      const initialQuestions: AwarenessQuestionData[] = [EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE];
 
       await awarenessCheckPage.actions.enterAwarenessQuestions(initialQuestions, {
         stepInfo: 'Enter initial awareness check question',
       });
 
-      // TODO: Add "Make must read" action
-
-      // Click three dot icon
-      await awarenessCheckPage.actions.clickThreeDotIcon({
-        stepInfo: 'Click three dot icon',
+      await awarenessCheckPage.actions.clickMakeMustReadButton({
+        stepInfo: 'Make must read',
       });
 
-      // TODO: Add "Click on Edit label" action
-      // And Click on "Edit" label
+      // Click three dot icon (More button)
+      await awarenessCheckPage.actions.clickMoreButton({
+        stepInfo: 'Click three dot icon (More button)',
+      });
 
-      // Edit awareness check question and answers
+      // Click Edit button
+      await awarenessCheckPage.actions.clickEditButton({
+        stepInfo: 'Click Edit button',
+      });
+
+      // Edit awareness check question and answers using test data
       const updatedQuestions: AwarenessQuestionData[] = [
-        {
-          question: 'First Question Updated',
-          answers: ['answer1Updated', 'answerUpdated'],
-          correctness: ['incorrect', 'correct'],
-        },
+        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.UPDATED_QUESTIONS.SINGLE,
       ];
 
       await awarenessCheckPage.actions.editAwarenessQuestions(updatedQuestions, {
         stepInfo: 'Edit awareness check question and answers',
       });
 
-      // TODO: Add "Click on Update button" action
-      // Then Click on 'Update' button
+      await awarenessCheckPage.actions.clickUpdateButton({
+        stepInfo: 'Click Update button',
+      });
 
       // Verify updated question is visible
-      await awarenessCheckPage.assertions.verifyQuestionIsVisible('First Question Updated', {
+      await awarenessCheckPage.assertions.verifyQuestionIsVisible(updatedQuestions[0].question, {
         stepInfo: 'Verify updated question is visible on screen',
       });
     }
@@ -171,74 +168,51 @@ test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () 
         zephyrTestId: 'EL-1003',
         description: 'Verify admin can edit awareness check with multiple questions',
       });
+      // Click three dot icon
+      await awarenessCheckPage.actions.hoverOverThreeDotIcon({
+        stepInfo: 'Click More button (three dots)',
+      });
 
-      // Page creation is now handled in beforeEach using the reusable method
-      // We're already on the content page, no need to navigate again
+      // Click must read button
+      await awarenessCheckPage.actions.selectMustReadOption({
+        stepInfo: 'Click must read button',
+      });
 
       // Toggle "Enable Awareness check" checkbox "check"
-      await awarenessCheckPage.actions.toggleCheckbox('Enable Awareness check', true, {
-        stepInfo: 'Enable awareness check checkbox',
+      await awarenessCheckPage.actions.enableAwarenessCheck({
+        stepInfo: 'Enable Awareness check',
       });
 
       // Enter initial questions
-      const initialQuestions: AwarenessQuestionData[] = [
-        {
-          question: 'First Question',
-          answers: ['answer1', 'answer2'],
-          correctness: ['correct', 'incorrect'],
-        },
-        {
-          question: 'Second Question',
-          answers: ['answer1', 'answer2', 'answer3'],
-          correctness: ['correct', 'correct', 'incorrect'],
-        },
-        {
-          question: 'Third Question',
-          answers: ['answer1', 'answer3', 'answer4', 'answer5'],
-          correctness: ['incorrect', 'correct', 'correct', 'incorrect'],
-        },
-      ];
+      const initialQuestions: AwarenessQuestionData[] = EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.MULTIPLE;
 
       await awarenessCheckPage.actions.enterAwarenessQuestions(initialQuestions, {
         stepInfo: 'Enter initial awareness check questions',
       });
 
-      // TODO: Add "Make must read" action
-
-      // Click three dot icon
-      await awarenessCheckPage.actions.clickThreeDotIcon({
-        stepInfo: 'Click three dot icon',
+      await awarenessCheckPage.actions.clickMakeMustReadButton({
+        stepInfo: 'Make must read',
       });
 
-      // TODO: Add "Click on Edit label" action
-
-      // Edit awareness check questions
-      const updatedQuestions: AwarenessQuestionData[] = [
-        {
-          question: 'First Question Updated',
-          answers: ['answer1', 'answer2Updated'],
-          correctness: ['correct', 'incorrect'],
-        },
-        {
-          question: 'Second Question Updated',
-          answers: ['answer1Updated', 'answer2Updated', 'answer3Updated'],
-          correctness: ['correct', 'incorrect', 'incorrect'],
-        },
-        {
-          question: 'Third Question Updated',
-          answers: ['answer1Updated', 'answer3Updated', 'answer4Updated', 'answer5Updated'],
-          correctness: ['incorrect', 'incorrect', 'correct', 'incorrect'],
-        },
-      ];
-
-      await awarenessCheckPage.actions.editAwarenessQuestions(updatedQuestions, {
-        stepInfo: 'Edit awareness check questions and answers',
+      // Click three dot icon (More button)
+      await awarenessCheckPage.actions.clickMoreButton({
+        stepInfo: 'Click three dot icon (More button)',
       });
 
-      // TODO: Add "Click on Update button" action
+      // Click Edit button
+      await awarenessCheckPage.actions.clickEditButton({
+        stepInfo: 'Click Edit button',
+      });
+
+      const updatedQuestions: AwarenessQuestionData[] =
+        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.UPDATED_QUESTIONS.MULTIPLE;
+
+      await awarenessCheckPage.actions.clickUpdateButton({
+        stepInfo: 'Click Update button',
+      });
 
       // Verify updated question is visible
-      await awarenessCheckPage.assertions.verifyQuestionIsVisible('First Question Updated', {
+      await awarenessCheckPage.assertions.verifyQuestionIsVisible(updatedQuestions[0].question, {
         stepInfo: 'Verify updated question is visible on screen',
       });
     }
@@ -255,92 +229,67 @@ test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () 
         description: 'Verify admin can edit and remove awareness check',
       });
 
-      // Page creation is now handled in beforeEach using the reusable method
-      // We're already on the content page, no need to navigate again
+      // Click three dot icon
+      await awarenessCheckPage.actions.hoverOverThreeDotIcon({
+        stepInfo: 'Click More button (three dots)',
+      });
+
+      // Click must read button
+      await awarenessCheckPage.actions.selectMustReadOption({
+        stepInfo: 'Click must read button',
+      });
 
       // Toggle "Enable Awareness check" checkbox "check"
-      await awarenessCheckPage.actions.toggleCheckbox('Enable Awareness check', true, {
-        stepInfo: 'Enable awareness check checkbox',
+      await awarenessCheckPage.actions.enableAwarenessCheck({
+        stepInfo: 'Enable Awareness check',
       });
 
-      // Enter initial questions
-      const initialQuestions: AwarenessQuestionData[] = [
-        {
-          question: 'First Question',
-          answers: ['answer1', 'answer2'],
-          correctness: ['correct', 'incorrect'],
-        },
-        {
-          question: 'Second Question',
-          answers: ['answer1', 'answer2', 'answer3'],
-          correctness: ['correct', 'correct', 'incorrect'],
-        },
-        {
-          question: 'Third Question',
-          answers: ['answer1', 'answer3', 'answer4', 'answer5'],
-          correctness: ['incorrect', 'correct', 'correct', 'incorrect'],
-        },
-      ];
+      // Enter initial question using test data
+      const initialQuestions: AwarenessQuestionData[] = [EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE];
 
       await awarenessCheckPage.actions.enterAwarenessQuestions(initialQuestions, {
-        stepInfo: 'Enter initial awareness check questions',
+        stepInfo: 'Enter initial awareness check question',
       });
 
-      // TODO: Add "Make must read" action
-
-      // Click three dot icon
-      await awarenessCheckPage.actions.clickThreeDotIcon({
-        stepInfo: 'Click three dot icon',
+      await awarenessCheckPage.actions.clickMakeMustReadButton({
+        stepInfo: 'Make must read',
       });
 
-      // TODO: Add "Click on Edit label" action
+      // Click three dot icon (More button)
+      await awarenessCheckPage.actions.clickMoreButton({
+        stepInfo: 'Click three dot icon (More button)',
+      });
 
-      // Edit awareness check questions
+      // Click Edit button
+      await awarenessCheckPage.actions.clickEditButton({
+        stepInfo: 'Click Edit button',
+      });
+
+      // Edit awareness check question and answers using test data
       const updatedQuestions: AwarenessQuestionData[] = [
-        {
-          question: 'First Question Updated',
-          answers: ['answer1', 'answer2Updated'],
-          correctness: ['correct', 'incorrect'],
-        },
-        {
-          question: 'Second Question Updated',
-          answers: ['answer1Updated', 'answer2Updated', 'answer3Updated'],
-          correctness: ['correct', 'incorrect', 'incorrect'],
-        },
-        {
-          question: 'Third Question Updated',
-          answers: ['answer1Updated', 'answer3Updated', 'answer4Updated', 'answer5Updated'],
-          correctness: ['incorrect', 'incorrect', 'correct', 'incorrect'],
-        },
+        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.UPDATED_QUESTIONS.SINGLE,
       ];
 
       await awarenessCheckPage.actions.editAwarenessQuestions(updatedQuestions, {
-        stepInfo: 'Edit awareness check questions and answers',
+        stepInfo: 'Edit awareness check question and answers',
       });
 
-      // TODO: Add "Click on Update button" action
+      await awarenessCheckPage.actions.clickUpdateButton({
+        stepInfo: 'Click Update button',
+      });
 
       // Verify updated question is visible
-      await awarenessCheckPage.assertions.verifyQuestionIsVisible('First Question Updated', {
+      await awarenessCheckPage.assertions.verifyQuestionIsVisible(updatedQuestions[0].question, {
         stepInfo: 'Verify updated question is visible on screen',
       });
 
-      // Click three dot icon again
-      await awarenessCheckPage.actions.clickThreeDotIcon({
-        stepInfo: 'Click three dot icon for removal',
+      // Click three dot icon (More button)
+      await awarenessCheckPage.actions.clickMoreButton({
+        stepInfo: 'Click three dot icon (More button)',
       });
 
-      // TODO: Add "Click on Remove label" action
-      // Then Click on "Remove" label
-
-      // Click on the "Remove" button from the Remove awareness check popup window
-      await awarenessCheckPage.actions.clickButtonInPopup('Remove', {
-        stepInfo: 'Click Remove button from popup window',
-      });
-
-      // Verify question is not visible
-      await awarenessCheckPage.assertions.verifyQuestionIsNotVisible('First Question Updated', {
-        stepInfo: 'Verify question is not visible after removal',
+      await awarenessCheckPage.actions.removeAwarenessCheck({
+        stepInfo: 'Remove awareness check',
       });
     }
   );
@@ -356,52 +305,73 @@ test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () 
         description: 'Verify admin can participate in awareness check and view report',
       });
 
-      // Page creation is now handled in beforeEach using the reusable method
-      // We're already on the content page, no need to navigate again
-
-      // Toggle "Enable Awareness check" checkbox "check"
-      await awarenessCheckPage.actions.toggleCheckbox('Enable Awareness check', true, {
-        stepInfo: 'Enable awareness check checkbox',
+      // Click three dot icon
+      await awarenessCheckPage.actions.hoverOverThreeDotIcon({
+        stepInfo: 'Click More button (three dots)',
       });
 
-      // Enter awareness check question
-      const questions: AwarenessQuestionData[] = [
-        {
-          question: 'First Question',
-          answers: ['answer1', 'answer2'],
-          correctness: ['incorrect', 'correct'],
-        },
-      ];
+      // Click must read button
+      await awarenessCheckPage.actions.selectMustReadOption({
+        stepInfo: 'Click must read button',
+      });
 
-      await awarenessCheckPage.actions.enterAwarenessQuestions(questions, {
-        stepInfo: 'Enter awareness check question',
+      // Toggle "Enable Awareness check" checkbox "check"
+      await awarenessCheckPage.actions.enableAwarenessCheck({
+        stepInfo: 'Enable Awareness check',
+      });
+
+      // Enter awareness check question and answers using test data
+      const questions = EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE;
+
+      await awarenessCheckPage.actions.enterAwarenessQuestions([questions], {
+        stepInfo: 'Enter awareness check questions with answers',
       });
 
       // TODO: Add "Make must read" action
-
-      // Choose answer
-      await awarenessCheckPage.actions.chooseAnswer('answer2', {
-        stepInfo: 'Choose answer: answer2',
+      await awarenessCheckPage.actions.clickMakeMustReadButton({
+        stepInfo: 'Make must read',
       });
 
-      // TODO: Add "Click on Finish" action
-      // And Click on "Finish"
+      // Verify first question is visible
+      await awarenessCheckPage.assertions.verifyQuestionIsVisible(questions.question, {
+        stepInfo: 'Verify first question is visible on screen',
+      });
 
-      // Verify confirmation message
+      // Select answer
+      await awarenessCheckPage.actions.chooseAnswer(questions.answers[0], {
+        stepInfo: 'Participate in awareness check',
+      });
+
+      //Click Finish button
+      await awarenessCheckPage.actions.clickFinishButton({
+        stepInfo: 'Click Finish button',
+      });
+
+      //Verify confirmation message is visible
       await awarenessCheckPage.assertions.verifyConfirmationMessage(
-        "You've confirmed that you read and understood the content.",
+        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.MESSAGES.PARTICIPATED,
         {
           stepInfo: 'Verify confirmation message is visible',
         }
       );
 
-      // TODO: Add "Click on View history" action
-      // And Click on "View history"
-
-      // Verify popup title
-      await awarenessCheckPage.assertions.verifyPopupTitle('Must read report', {
-        stepInfo: 'Verify popup window has correct title',
+      // Click three dot icon
+      await awarenessCheckPage.actions.hoverOverThreeDotIcon({
+        stepInfo: 'Click More button (three dots)',
       });
+
+      // Click Must read history button
+      await awarenessCheckPage.actions.clickMustReadHistoryButton({
+        stepInfo: 'Click Must read history button',
+      });
+
+      // Verify Must read report title is visible
+      await awarenessCheckPage.assertions.verifyPopupTitle(
+        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.POPUP_TITLES.MUST_READ_REPORT,
+        {
+          stepInfo: 'Verify Must read report title is visible',
+        }
+      );
     }
   );
 
@@ -420,8 +390,8 @@ test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () 
       // We're already on the content page, no need to navigate again
 
       // Toggle "Enable Awareness check" checkbox "check"
-      await awarenessCheckPage.actions.toggleCheckbox('Enable Awareness check', true, {
-        stepInfo: 'Enable awareness check checkbox',
+      await awarenessCheckPage.actions.selectMustReadOption({
+        stepInfo: 'Click must read button',
       });
 
       // Enter awareness check question
@@ -474,8 +444,8 @@ test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () 
       // We're already on the content page, no need to navigate again
 
       // Toggle "Enable Awareness check" checkbox "check"
-      await awarenessCheckPage.actions.toggleCheckbox('Enable Awareness check', true, {
-        stepInfo: 'Enable awareness check checkbox',
+      await awarenessCheckPage.actions.selectMustReadOption({
+        stepInfo: 'Click must read button',
       });
 
       // Enter awareness check question
