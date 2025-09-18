@@ -7,7 +7,7 @@ import { dualUserChatFixture as test } from '@modules/chat/fixtures/dualUserChat
 test.describe('Direct Message between two static users', () => {
   test('Real-time conversation between two users', async ({ dualUserHelpers }) => {
     // Open the same group chat for both users
-    await dualUserHelpers.openSameGroupChatForBothUsers('General');
+    await dualUserHelpers.openSameGroupChatForBothUsers('direct-message');
 
     // User 1 starts the conversation
     const message1 = `Hi there! - ${Date.now()}`;
@@ -25,7 +25,7 @@ test.describe('Direct Message between two static users', () => {
     await dualUserHelpers.verifyMessageVisibleForBothUsers(message3);
   });
 
-  test.only('Direct message between two users', async ({ dualUserHelpers }) => {
+  test('Direct message between two users', async ({ dualUserHelpers }) => {
     // Open direct message conversation between users
     await dualUserHelpers.openDirectMessageBetweenUsers();
 
@@ -41,24 +41,24 @@ test.describe('Direct Message between two static users', () => {
 
   test('Multiple group chats simultaneously', async ({ user1ChatPage, user2ChatPage }) => {
     // User 1 joins Group A
-    await user1ChatPage.actions.openGroupChat('Group A', {
-      stepInfo: 'User 1 opening Group A',
+    await user1ChatPage.actions.openGroupChat('group1', {
+      stepInfo: 'User 1 opening group1',
     });
 
     // User 2 joins Group B
-    await user2ChatPage.actions.openGroupChat('Group B', {
-      stepInfo: 'User 2 opening Group B',
+    await user2ChatPage.actions.openGroupChat('group2', {
+      stepInfo: 'User 2 opening group2',
     });
 
     // Send messages in different groups
-    await user1ChatPage.actions.sendMessage(`Message in Group A - ${Date.now()}`);
-    await user2ChatPage.actions.sendMessage(`Message in Group B - ${Date.now()}`);
+    await user1ChatPage.actions.sendMessage(`Message in group1 - ${Date.now()}`);
+    await user2ChatPage.actions.sendMessage(`Message in group2 - ${Date.now()}`);
 
     // Now both users join the same group
-    await user1ChatPage.actions.openGroupChat('Common Group', {
+    await user1ChatPage.actions.openGroupChat('direct-message', {
       stepInfo: 'User 1 opening Common Group',
     });
-    await user2ChatPage.actions.openGroupChat('Common Group', {
+    await user2ChatPage.actions.openGroupChat('direct-message', {
       stepInfo: 'User 2 opening Common Group',
     });
 
