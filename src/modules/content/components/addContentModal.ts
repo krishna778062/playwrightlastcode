@@ -129,6 +129,7 @@ export class AddContentModalComponent extends BaseComponent {
    */
   async selectSiteFromDropdown(siteName: string) {
     await test.step(`Select ${siteName} site from select site dropdown`, async () => {
+      await this.typeInElement(this.selectSiteDropdown, siteName);
       await this.clickOnElement(this.selectSiteDropdownOption(siteName));
     });
   }

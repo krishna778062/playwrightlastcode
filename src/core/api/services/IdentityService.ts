@@ -142,6 +142,7 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
       const response = await this.put(`${API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserId(userId)}`, {
         data: userData,
       });
+      console.log(`Updated user ${userId}`, JSON.stringify(userData, null, 2));
       return await this.parseResponse<UpdateUserResponse>(response);
     });
   }

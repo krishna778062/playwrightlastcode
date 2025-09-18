@@ -387,7 +387,7 @@ export class SiteManagementHelper {
     const defaultOptions = {
       size: 1000,
       canManage: true,
-      filter: 'active',
+      filter: options?.filter || 'active',
       page: 0,
       ...options,
     };
@@ -408,6 +408,7 @@ export class SiteManagementHelper {
     options?: {
       category?: { name: string; categoryId: string };
       overrides?: Partial<SiteCreationPayload>;
+      waitForSearchIndex?: boolean;
     }
   ): Promise<{ siteId: string; siteName: string }> {
     let createdSite;
@@ -418,6 +419,7 @@ export class SiteManagementHelper {
           siteName,
           category: options?.category,
           overrides: options?.overrides,
+          waitForSearchIndex: options?.waitForSearchIndex,
         });
         break;
       case SITE_TYPES.UNLISTED:
@@ -425,6 +427,7 @@ export class SiteManagementHelper {
           siteName,
           category: options?.category,
           overrides: options?.overrides,
+          waitForSearchIndex: options?.waitForSearchIndex,
         });
         break;
       default:
@@ -432,6 +435,7 @@ export class SiteManagementHelper {
           siteName,
           category: options?.category,
           overrides: options?.overrides,
+          waitForSearchIndex: options?.waitForSearchIndex,
         });
     }
 
@@ -457,12 +461,11 @@ export class SiteManagementHelper {
       isOwner?: boolean;
       isMembershipAutoApproved?: boolean;
       isBroadcast?: boolean;
+      waitForSearchIndex?: boolean;
     }
   ): Promise<{ siteId: string; name: string }> {
-    const siteListResponse = await this.getListOfSites();
-    const siteDetails = siteListResponse.result.listOfItems.find(
-      site => site.access.toLowerCase() === accessType.toLowerCase()
-    );
+    const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+    const siteDetails = siteListResponse.result.listOfItems.find(site => site.isActive === true);
     let siteId: string | undefined, siteName: string | undefined;
     if (siteDetails && options?.hasPages) {
       siteDetails.hasPages = options.hasPages;
@@ -471,7 +474,9 @@ export class SiteManagementHelper {
     }
 
     if (!siteId) {
-      const createdSite = await this.createSiteByAccessType(accessType);
+      const createdSite = await this.createSiteByAccessType(accessType, undefined, {
+        waitForSearchIndex: options?.waitForSearchIndex,
+      });
       siteId = createdSite.siteId;
       siteName = createdSite.siteName;
     }
