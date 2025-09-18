@@ -12,8 +12,8 @@ import { ManageContentPage } from '@content/pages/manageContentPage';
 import { ApplicationScreenPage as ManageFeature } from '@content/pages/manageFeaturesPage';
 import { ManageSitePage } from '@content/pages/manageSitePage';
 import { PageCreationPage } from '@content/pages/pageCreationPage';
-import { SiteDashboardPage } from '@content/pages/siteDashboardPage';
 import { SiteDetailsPage } from '@content/pages/siteDetailsPage';
+import { SiteDashboardPage } from '@content/pages/sitePages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { SITE_TEST_DATA } from '@content/test-data/sites-create.test-data';
 import { TestPriority } from '@core/constants/testPriority';
@@ -157,7 +157,7 @@ test.describe(
 
         //flow
         await siteDashboardPage.loadPage();
-        pageCreationPage = await siteDashboardPage.actions.navigateToPageCreationFromSiteDashboard();
+        pageCreationPage = await siteDashboardPage.navigateToPageCreation();
 
         // Generate page data using TestDataGenerator
         const pageCreationOptions = TestDataGenerator.generatePage(

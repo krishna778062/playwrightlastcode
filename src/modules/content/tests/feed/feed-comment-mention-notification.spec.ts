@@ -1,17 +1,14 @@
-import { faker } from '@faker-js/faker';
-
-import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
+
 import { FeedManagementService } from '@/src/core/api/services/FeedManagementService';
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
-import { NotificationComponent } from '@/src/modules/content/components/notificationComponent';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
-import { FeedPage } from '@/src/modules/content/pages/feedPage';
 
 test.describe(
   '@FeedCommentMentionNotification - Feed Comment Mention Notification Tests',
@@ -25,7 +22,10 @@ test.describe(
     let siteManagerInfo: { userId: string; fullName: string };
     let endUserInfo: { userId: string; fullName: string };
 
-    test.beforeEach('Setup test environment', async ({ appManagerApiClient }) => {
+    test.beforeEach('Setup test environment', async ({ appManagerApiClient, feedManagementHelper }) => {
+      // Configure app governance settings and enable timeline comment post(feed)
+      await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
+
       // Get user information for mentions (optimized single API calls)
       const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
 

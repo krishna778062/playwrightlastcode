@@ -217,8 +217,6 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
         filter: options.filter || 'active',
       };
 
-      console.log('Sites list payload:', payload);
-
       const response = await this.post(API_ENDPOINTS.site.listOfSites, {
         data: payload,
       });
@@ -226,8 +224,9 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       const json = await response.json();
 
       if (json.status !== 'success') {
-        throw new Error(`Failed to get sites list. Response: ${JSON.stringify(json)}`);
+        throw new Error(`Failed to get sites list. Status: ${json.status}`);
       }
+      console.log('Sites list response:', JSON.stringify(json, null, 2));
 
       return json;
     });
