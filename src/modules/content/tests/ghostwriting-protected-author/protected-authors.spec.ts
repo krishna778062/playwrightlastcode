@@ -5,12 +5,11 @@ import { TestGroupType } from '@core/constants/testType';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { PrivilegesScreenPage } from '../../pages/privilegesScreenPage';
-
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ApplicationScreenPage } from '@/src/modules/content/pages/applicationscreenPage';
 import { ManageApplicationPage } from '@/src/modules/content/pages/manageApplicationPage';
+import { PrivilegesScreenPage } from '@/src/modules/content/pages/privilegesScreenPage';
 
 test.describe('Protected Authors', () => {
   let applicationScreen: ApplicationScreenPage;
@@ -36,8 +35,8 @@ test.describe('Protected Authors', () => {
       tagTest(test.info(), {
         description:
           'Verify As an application manager, I should be able to add the users to protected authors - authors list',
-        zephyrTestId: 'CONT-33433',
-        storyId: 'CONT-33433',
+        zephyrTestId: 'CONT-32768',
+        storyId: 'CONT-32768',
       });
       const userName = await page.evaluate(() => {
         const user = (window as any).Simpplr?.CurrentUser;
@@ -49,18 +48,9 @@ test.describe('Protected Authors', () => {
       await privilegesScreenPage.assertions.verifyTheProtectedAuthorsAuthorsIsVisible();
       await privilegesScreenPage.assertions.verifyTheProtectedAuthorsAllowlistIsVisible();
       await privilegesScreenPage.actions.verifyAndFillProtectedAuthorsAuthors(userName);
-      await expect(async () => {
-        await privilegesScreenPage.actions.clickOnSave();
-      }).toPass();
-      console.log('Changes confirmation is visible');
+      await privilegesScreenPage.actions.clickOnSave();
       await privilegesScreenPage.assertions.verifyTheChangesConfirmationIsVisible();
-      console.log('Cross user is visible-------');
-      // await privilegesScreenPage.actions.clickOnCrossUser();
-
-      await expect(async () => {
-        await privilegesScreenPage.actions.clickOnCrossUser();
-      }).toPass();
-      console.log('Save is visible-------');
+      await privilegesScreenPage.actions.clickOnCrossUser();
       await privilegesScreenPage.actions.clickOnSave();
     }
   );

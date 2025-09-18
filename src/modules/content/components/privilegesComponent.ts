@@ -10,6 +10,7 @@ export class PrivilegesComponent extends BaseComponent {
   readonly clickOnSave: Locator;
   readonly crossUser: Locator;
   readonly changesConfirmation: Locator;
+  readonly selectingAuthor: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -20,5 +21,6 @@ export class PrivilegesComponent extends BaseComponent {
     this.clickOnSave = page.getByRole('button', { name: 'Save' });
     this.crossUser = page.locator('.Tag-remove').first();
     this.changesConfirmation = page.getByText('Saved changes successfully');
+    this.selectingAuthor = page.locator(`[role="listbox"]`);
   }
 }
