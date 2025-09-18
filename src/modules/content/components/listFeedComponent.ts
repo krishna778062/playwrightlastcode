@@ -26,6 +26,7 @@ export class ListFeedComponent extends BaseComponent {
 
   readonly successMessage = (message: string) =>
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
+  readonly versionImageLocator = (fileId: string): Locator => this.page.locator(`img[src*="${fileId}"]`);
 
   /**
    * Gets a locator for the post timestamp
@@ -37,7 +38,7 @@ export class ListFeedComponent extends BaseComponent {
       `xpath=//p[text()='${postText}']/ancestor::div[4]//div[contains(@class,'nameAndStatement')]/following-sibling::p/a`
     );
   readonly imageButton = this.page.locator("button[aria-label='Open image in lightbox']");
-  readonly infoIcon = this.page.locator("i[data-testid='i-info']");
+  readonly infoIcon = this.page.getByTestId('i-info');
 
   readonly postTextLocator = (postText: string): Locator => this.page.locator('p').filter({ hasText: postText });
 
@@ -246,6 +247,20 @@ export class ListFeedComponent extends BaseComponent {
     await test.step('Verify image button is not visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.successMessage('Deleted file successfully'));
       await this.verifier.verifyTheElementIsNotVisible(this.imageButton);
+    });
+  }
+
+  async verifyVersionImageIsDisplayed(fileId: string): Promise<void> {
+    await test.step(`Verify version image is displayed for fileId: ${fileId}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.versionImageLocator(fileId), {
+        assertionMessage: `Version image with fileId ${fileId} should be visible`,
+      });
+    });
+  }
+
+  async clickOnInfoIcon(fileId: string): Promise<void> {
+    await test.step(`Click on info icon for fileId: ${fileId}`, async () => {
+      await this.clickOnElement(this.infoIcon);
     });
   }
 }

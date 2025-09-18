@@ -1,11 +1,9 @@
-import { faker } from '@faker-js/faker';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ContentType } from '../../constants/contentType';
-import { SiteDashboardPage } from '../../pages/siteDashboardPage';
+import { SiteDashboardPage } from '../../pages/sitePages/siteDashboardPage';
+import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
 
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
@@ -198,7 +196,16 @@ test.describe(
 
         test.beforeEach(
           'Setup test environment and data creation',
-          async ({ appManagerHomePage, appManagerApiClient, contentManagementHelper, siteManagementHelper }) => {
+          async ({
+            appManagerHomePage,
+            appManagerApiClient,
+            contentManagementHelper,
+            siteManagementHelper,
+            feedManagementHelper,
+          }) => {
+            // Configure app governance settings and enable timeline comment post(feed)
+            await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
+
             // Initialize feed page
             appManagerFeedPage = new FeedPage(appManagerHomePage.page);
             identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
