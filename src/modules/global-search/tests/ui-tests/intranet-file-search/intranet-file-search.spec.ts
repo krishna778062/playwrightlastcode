@@ -70,8 +70,7 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
         },
         async ({ appManagerHomePage }) => {
           tagTest(test.info(), {
-            zephyrTestId: 'SEN-12434',
-            storyId: 'SEN-12296',
+            zephyrTestId: 'SEN-19283',
           });
 
           // Search for the file

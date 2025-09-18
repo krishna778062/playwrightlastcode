@@ -76,7 +76,7 @@ test.describe(
       },
       async ({ appManagerHomePage, tileManagementHelper }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'SEN-19197',
+          zephyrTestId: 'SEN-19284',
         });
 
         // Create tile using the helper

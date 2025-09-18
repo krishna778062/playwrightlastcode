@@ -73,7 +73,7 @@ test.describe(
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'SEN-19196',
+          zephyrTestId: 'SEN-19281',
         });
 
         // Search for the feed
@@ -100,13 +100,13 @@ test.describe(
     );
 
     test(
-      `Verify Site Feed Search results for a new site feed ${testData.content}`,
+      `Verify user able to search feed post from site feed ${testData.content}`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
       async ({ appManagerHomePage, publicSite }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'SEN-13080',
+          zephyrTestId: 'SEN-13079',
           storyId: 'SEN-12844',
         });
 

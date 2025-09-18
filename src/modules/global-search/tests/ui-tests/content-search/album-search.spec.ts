@@ -136,7 +136,7 @@ test.describe(
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'SEN-ALBUM-AUTOCOMPLETE-001',
+          zephyrTestId: 'SEN-19288',
         });
 
         // Type in search input

@@ -126,7 +126,7 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
         },
         async ({ appManagerHomePage }) => {
           tagTest(test.info(), {
-            zephyrTestId: 'SEN-19194',
+            zephyrTestId: 'SEN-19285',
           });
 
           // Type in search input

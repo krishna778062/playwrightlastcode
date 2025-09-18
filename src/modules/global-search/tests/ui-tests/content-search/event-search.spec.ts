@@ -139,7 +139,7 @@ test.describe(
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'SEN-EVENT-AUTOCOMPLETE-001',
+          zephyrTestId: 'SEN-19287',
         });
 
         // Type in search input
