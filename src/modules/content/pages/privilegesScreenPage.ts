@@ -11,28 +11,25 @@ export interface IPrivilegesScreenPageActions {
   clickOnCrossUser: () => Promise<void>;
 }
 
-export interface IPrivilegesScreenAssertions {
+export interface IPrivilegesScreenPageAssertions {
   verifyTheProtectedAuthorsAuthorsIsVisible: () => Promise<void>;
   verifyTheProtectedAuthorsAllowlistIsVisible: () => Promise<void>;
   verifyTheChangesConfirmationIsVisible: () => Promise<void>;
 }
 export class PrivilegesScreenPage extends BasePage {
   private privilegesComponent: PrivilegesComponent;
-  actions: any;
-  assertions: IPrivilegesScreenAssertions;
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.PRIVILEGES_SCREEN);
     this.privilegesComponent = new PrivilegesComponent(page);
-    this.actions = {
-      verifyAndFillProtectedAuthorsAuthors: this.verifyAndFillProtectedAuthorsAuthors.bind(this),
-      clickOnSave: this.clickOnSave.bind(this),
-      clickOnCrossUser: this.clickOnCrossUser.bind(this),
-    };
-    this.assertions = {
-      verifyTheProtectedAuthorsAuthorsIsVisible: this.verifyTheProtectedAuthorsAuthorsIsVisible.bind(this),
-      verifyTheProtectedAuthorsAllowlistIsVisible: this.verifyTheProtectedAuthorsAllowlistIsVisible.bind(this),
-      verifyTheChangesConfirmationIsVisible: this.verifyTheChangesConfirmationIsVisible.bind(this),
-    };
+  }
+
+  get actions(): IPrivilegesScreenPageActions {
+    return this;
+  }
+
+  get assertions(): IPrivilegesScreenPageAssertions {
+    return this;
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -59,9 +56,9 @@ export class PrivilegesScreenPage extends BasePage {
     await test.step('Verify protected authors authors is visible and fill value', async () => {
       await this.clickOnElement(this.privilegesComponent.authorInputBox);
       await this.fillInElement(this.privilegesComponent.authorInputBox, value);
-      await this.sleep(2000);
       await this.privilegesComponent.authorInputBox.focus();
-      await this.page.keyboard.press('Enter');
+      const newWorkspaceOption = this.privilegesComponent.selectingAuthor.filter({ hasText: value });
+      await this.clickOnElement(newWorkspaceOption);
     });
   }
 

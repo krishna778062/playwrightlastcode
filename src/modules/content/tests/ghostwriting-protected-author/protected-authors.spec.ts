@@ -5,12 +5,11 @@ import { TestGroupType } from '@core/constants/testType';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { PrivilegesScreenPage } from '../../pages/privilegesScreenPage';
-
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ApplicationScreenPage } from '@/src/modules/content/pages/applicationscreenPage';
 import { ManageApplicationPage } from '@/src/modules/content/pages/manageApplicationPage';
+import { PrivilegesScreenPage } from '@/src/modules/content/pages/privilegesScreenPage';
 
 test.describe('Protected Authors', () => {
   let applicationScreen: ApplicationScreenPage;
@@ -49,14 +48,9 @@ test.describe('Protected Authors', () => {
       await privilegesScreenPage.assertions.verifyTheProtectedAuthorsAuthorsIsVisible();
       await privilegesScreenPage.assertions.verifyTheProtectedAuthorsAllowlistIsVisible();
       await privilegesScreenPage.actions.verifyAndFillProtectedAuthorsAuthors(userName);
-      await expect(async () => {
-        await privilegesScreenPage.actions.clickOnSave();
-      }).toPass();
+      await privilegesScreenPage.actions.clickOnSave();
       await privilegesScreenPage.assertions.verifyTheChangesConfirmationIsVisible();
-      await expect(async () => {
-        await privilegesScreenPage.actions.clickOnCrossUser();
-      }).toPass();
-      console.log('Save is visible-------');
+      await privilegesScreenPage.actions.clickOnCrossUser();
       await privilegesScreenPage.actions.clickOnSave();
     }
   );
