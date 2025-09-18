@@ -557,11 +557,12 @@ export class TestDataGenerator {
         }
   ) {
     if ('withAttachment' in options && options.withAttachment) {
-      const { scope, siteId, fileName, fileSize, mimeType, filePath, waitForSearchIndex = false } = options;
+      const { scope, siteId, contentId, fileName, fileSize, mimeType, filePath, waitForSearchIndex = false } = options;
       return {
         text: `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Post - ${faker.commerce.productName()}`,
         scope,
         siteId: siteId || undefined,
+        contentId: contentId || undefined,
         withAttachment: true as const,
         fileName,
         fileSize,
@@ -572,11 +573,12 @@ export class TestDataGenerator {
         },
       };
     } else {
-      const { scope, siteId, waitForSearchIndex = false } = options;
+      const { scope, siteId, contentId, waitForSearchIndex = false } = options;
       return {
         text: `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Post - ${faker.commerce.productName()}`,
         scope,
         siteId: siteId || undefined,
+        contentId: contentId || undefined,
         withAttachment: false as const,
         fileName: undefined,
         fileSize: undefined,
