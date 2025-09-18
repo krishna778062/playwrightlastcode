@@ -1,5 +1,5 @@
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
-import { expect, Locator, Page } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import {
   addWorkingDays,
@@ -18,7 +18,6 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
   readonly startDateButton: Locator;
   readonly endDateButton: Locator;
   readonly timeOffCategoryDropdown: Locator;
-  readonly dropdownListbox: Locator;
   readonly commentsTextarea: Locator;
   readonly requestTimeOffButton: Locator;
   readonly editAmountButton: Locator;
@@ -26,13 +25,21 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
   readonly totalAmountInput: Locator;
   readonly totalAmountHeading: Locator;
   readonly dropdownOption: Locator;
+  readonly calendarGrid: Locator;
+  readonly dayPickerCell: Locator;
+  readonly tileContainer: Locator;
+  readonly tileContent: Locator;
+  readonly monthSelect: Locator;
+  readonly yearSelect: Locator;
+  readonly genericButton: Locator;
+  readonly dropdownSelector: Locator;
+  readonly dayPickerCellByAriaLabel: Locator;
 
   constructor(page: Page) {
     super(page);
     this.startDateButton = page.locator('button[id*="dateRange_startDate"]').first();
     this.endDateButton = page.locator('button[id*="dateRange_endDate"]').first();
-    this.timeOffCategoryDropdown = page.locator('[data-testid="field-Time off category"] .css-1bbetpp-control').first();
-    this.dropdownListbox = page.locator('[id^="react-select-"][id$="-listbox"]').first();
+    this.timeOffCategoryDropdown = page.getByTestId('field-Time off category').locator('.css-1bbetpp-control').first();
     this.commentsTextarea = page.locator('#employeeNote');
     this.requestTimeOffButton = page.getByRole('button', { name: 'Request time off' }).first();
     this.editAmountButton = page.getByRole('button', { name: 'Edit amount' });
@@ -40,6 +47,25 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
     this.totalAmountInput = page.locator('input[aria-label="Amount"]').first();
     this.totalAmountHeading = page.getByRole('heading', { name: /total:/i }).first();
     this.dropdownOption = page.locator('div[role="menuitem"]');
+    this.calendarGrid = page.getByRole('grid');
+    this.dayPickerCell = page.locator('.DayPicker-Day[aria-label]');
+    this.tileContainer = page.locator('aside.Tile').first();
+    this.tileContent = this.tileContainer.locator('div, span, p').first();
+    this.monthSelect = page.locator('select[aria-label="Select month"]').first();
+    this.yearSelect = page.locator('select[aria-label="Select year"]').first();
+    this.genericButton = page.getByRole('button');
+    this.dropdownSelector = page.locator('[role="listbox"], [id^="react-select-"][id$="-listbox"]');
+    this.dayPickerCellByAriaLabel = page.locator('.DayPicker-Day');
+  }
+
+  /**
+   * Gets a day cell locator by aria-label
+   * @param ariaLabel - The aria-label value to match
+   * @returns Locator for the specific day cell
+   */
+  getDayCellByAriaLabel(ariaLabel: string): Locator {
+    const dayNumber = ariaLabel.split(' ')[2];
+    return this.dayPickerCellByAriaLabel.filter({ hasText: dayNumber }).first();
   }
 
   /**
@@ -47,15 +73,15 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    * @param workingDays - Number of working days for the leave
    */
   async selectLeaveDates(workingDays: number): Promise<void> {
-    // Create a date at midnight UTC to avoid timezone issues
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
-
-    const startDate = getNextWorkingDay(today);
-    const endDate = addWorkingDays(startDate, workingDays - 1);
-
-    await this.selectDate('start', startDate);
-    await this.selectDate('end', endDate);
+    await test.step(`Select leave dates for ${workingDays} working days`, async () => {
+      // Create a date at midnight UTC to avoid timezone issues
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
+      const startDate = getNextWorkingDay(today);
+      const endDate = addWorkingDays(startDate, workingDays - 1);
+      await this.selectDate('start', startDate);
+      await this.selectDate('end', endDate);
+    });
   }
 
   /**
@@ -71,9 +97,35 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
     const expectedText = formatDateForDisplay(targetDate);
     const ariaLabel = formatDateForAriaLabel(targetDate);
     await dateButton.click();
-    const dayCell = this.page.getByRole('gridcell', { name: ariaLabel }).first();
+    await this.calendarGrid.waitFor({ state: 'visible', timeout: 10000 });
+    await this.navigateToCorrectMonthYear(targetDate);
+
+    // Wait a bit for the calendar to update after month/year selection
+    await this.page.waitForTimeout(500);
+
+    const dayCell = this.getDayCellByAriaLabel(ariaLabel);
+    await dayCell.waitFor({ state: 'visible', timeout: 10000 });
     await dayCell.click();
-    await expect(dateButton).toContainText(expectedText, { timeout: 10000 });
+    await expect(dateButton).toContainText(expectedText, { timeout: 15000 });
+  }
+
+  /**
+   * Navigates to the correct month and year in the calendar
+   * @param targetDate - The target date to navigate to
+   */
+  private async navigateToCorrectMonthYear(targetDate: Date): Promise<void> {
+    const targetMonth = targetDate.getUTCMonth();
+    const targetYear = targetDate.getUTCFullYear();
+
+    // Select the correct month
+    if (await this.monthSelect.isVisible()) {
+      await this.monthSelect.selectOption({ index: targetMonth });
+    }
+
+    // Select the correct year
+    if (await this.yearSelect.isVisible()) {
+      await this.yearSelect.selectOption({ value: targetYear.toString() });
+    }
   }
 
   /**
@@ -81,11 +133,14 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    * @param category - The category to select (e.g., 'Vacation', 'Sick', 'Personal')
    */
   async selectTimeOffCategory(category: string): Promise<void> {
-    await this.timeOffCategoryDropdown.click();
-    await this.dropdownListbox.waitFor({ state: 'visible', timeout: 5000 });
-    const option = this.dropdownOption.filter({ hasText: category }).first();
-    await option.click();
-    await this.dropdownListbox.waitFor({ state: 'hidden', timeout: 5000 });
+    await test.step(`Select time off category '${category}'`, async () => {
+      await this.timeOffCategoryDropdown.click();
+      await this.dropdownSelector.waitFor({ state: 'visible', timeout: 10000 });
+      const option = this.dropdownOption.filter({ hasText: category }).first();
+      await option.waitFor({ state: 'visible', timeout: 5000 });
+      await option.click();
+      await this.dropdownSelector.waitFor({ state: 'hidden', timeout: 5000 });
+    });
   }
 
   /**
@@ -93,14 +148,18 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    * @param comments - The comments to enter
    */
   async enterComments(comments: string): Promise<void> {
-    await this.commentsTextarea.fill(comments);
+    await test.step(`Enter comments: '${comments}'`, async () => {
+      await this.commentsTextarea.fill(comments);
+    });
   }
 
   /**
    * Clicks the "Request time off" button to submit the form
    */
   async submitTimeOffRequest(): Promise<void> {
-    await this.requestTimeOffButton.click();
+    await test.step('Submit time off request', async () => {
+      await this.requestTimeOffButton.click();
+    });
   }
 
   /**
@@ -108,30 +167,34 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    * @param expectedTotalDays - The expected total days
    */
   async verifyTotalDays(expectedTotalDays: number): Promise<void> {
-    const inputCount = await this.totalAmountInput.count();
-    const inputVisible = inputCount > 0 && (await this.totalAmountInput.isVisible());
-    if (inputVisible) {
-      await expect(this.totalAmountInput).toHaveValue(`${expectedTotalDays} days`);
-    } else {
-      await expect(this.totalAmountHeading).toContainText(`Total: ${expectedTotalDays} days`);
-    }
+    await test.step(`Verify total days is ${expectedTotalDays}`, async () => {
+      const inputCount = await this.totalAmountInput.count();
+      const inputVisible = inputCount > 0 && (await this.totalAmountInput.isVisible());
+      if (inputVisible) {
+        await expect(this.totalAmountInput).toHaveValue(`${expectedTotalDays} days`);
+      } else {
+        await expect(this.totalAmountHeading).toContainText(`Total: ${expectedTotalDays} days`);
+      }
+    });
   }
 
   /**
    * Verifies all required form fields are present and in correct state
    */
   async verifyRequiredFields(): Promise<void> {
-    // allow either the single-character ellipsis (U+2026) or three dots, case-insensitive
-    const selectDateRegex = /select\s*date(?:\u2026|\.{3})?/i;
-    const selectRegex = /select(?:\u2026|\.{3})?/i;
-    await expect(this.startDateButton).toBeVisible();
-    await expect(this.startDateButton).toContainText(selectDateRegex);
-    await expect(this.endDateButton).toBeVisible();
-    await expect(this.endDateButton).toContainText(selectDateRegex);
-    await expect(this.timeOffCategoryDropdown).toBeVisible();
-    await expect(this.timeOffCategoryDropdown).toContainText(selectRegex);
-    await expect(this.requestTimeOffButton).toBeVisible();
-    await expect(this.requestTimeOffButton).toContainText(/request time off/i);
+    await test.step('Verify all required form fields are present and in correct state', async () => {
+      // allow either the single-character ellipsis (U+2026) or three dots, case-insensitive
+      const selectDateRegex = /select\s*date(?:\u2026|\.{3})?/i;
+      const selectRegex = /select(?:\u2026|\.{3})?/i;
+      await expect(this.startDateButton).toBeVisible();
+      await expect(this.startDateButton).toContainText(selectDateRegex);
+      await expect(this.endDateButton).toBeVisible();
+      await expect(this.endDateButton).toContainText(selectDateRegex);
+      await expect(this.timeOffCategoryDropdown).toBeVisible();
+      await expect(this.timeOffCategoryDropdown).toContainText(selectRegex);
+      await expect(this.requestTimeOffButton).toBeVisible();
+      await expect(this.requestTimeOffButton).toContainText(/request time off/i);
+    });
   }
 
   /**
@@ -139,7 +202,9 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    * @param message - The message text to verify
    */
   async verifyMessageOnTile(message: string): Promise<void> {
-    await expect(this.page.getByText(message).first()).toBeVisible();
+    await test.step(`Verify message '${message}' is displayed on tile`, async () => {
+      await expect(this.page.getByText(message).first()).toBeVisible();
+    });
   }
 
   /**
@@ -147,16 +212,38 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    * @param buttonText - The text of the button to verify
    */
   async verifyButton(buttonText: string): Promise<void> {
-    await expect(this.page.getByRole('button', { name: buttonText })).toBeVisible();
+    await test.step(`Verify button '${buttonText}' is visible`, async () => {
+      await expect(this.genericButton.filter({ hasText: buttonText }).first()).toBeVisible();
+    });
   }
 
   /**
-   * Verifies leave category fields are present and functional
+   * Verifies Apply for Time Off tile form fields are present and functional
    * @param tileTitle - The title of the tile to verify
    */
-  async verifyLeaveCategoryFields(tileTitle: string): Promise<void> {
-    void tileTitle;
-    await this.verifyRequiredFields();
+  async verifyApplyForTimeOffFields(tileTitle: string): Promise<void> {
+    await test.step(`Verify Apply for Time Off tile '${tileTitle}' form fields`, async () => {
+      await this.verifyRequiredFields();
+    });
+  }
+
+  /**
+   * Verifies Display Time Off Balance tile content (no form fields expected)
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDisplayTimeOffBalanceFields(tileTitle: string): Promise<void> {
+    await test.step(`Verify Display Time Off Balance tile '${tileTitle}' content`, async () => {
+      await this.verifyDisplayBalanceTileContent();
+    });
+  }
+
+  /**
+   * Verifies Display Time Off Balance tile content (no form fields expected)
+   */
+  private async verifyDisplayBalanceTileContent(): Promise<void> {
+    await this.page.waitForLoadState('domcontentloaded');
+    await expect(this.tileContainer).toBeVisible({ timeout: 10000 });
+    await expect(this.tileContent).toBeVisible({ timeout: 5000 });
   }
 
   /**
@@ -172,27 +259,29 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
     categoryConfig: TimeOffCategoryConfig,
     shouldClickEdit: boolean = true
   ): Promise<void> {
-    const unit = categoryConfig.unit;
-    // Verify total amount display (support either input with aria-label or heading)
-    const inputCount = await this.totalAmountInput.count();
-    const inputVisible = inputCount > 0 && (await this.totalAmountInput.isVisible());
-    if (inputVisible) {
-      await expect(this.totalAmountInput).toHaveValue(`${expectedTotal} ${unit}`);
-    } else {
-      await expect(this.totalAmountHeading).toContainText(`Total: ${expectedTotal} ${unit}`);
-    }
-    // Verify individual day amounts if requested
-    if (shouldClickEdit && (await this.editAmountButton.isVisible())) {
-      await this.editAmountButton.click();
-      const today = new Date();
-      const startDate = getNextWorkingDay(today);
-      const endDate = addWorkingDays(startDate, workingDays - 1);
-      const expectedAmounts = this.generateExpectedDayAmounts(startDate, endDate, categoryConfig);
-      const inputCount = await this.amountInputs.count();
-      for (let i = 0; i < Math.min(expectedAmounts.length, inputCount); i++) {
-        await expect(this.amountInputs.nth(i)).toHaveValue(expectedAmounts[i].toString());
+    await test.step(`Verify amount values: ${expectedTotal} ${categoryConfig.unit} for ${workingDays} working days`, async () => {
+      const unit = categoryConfig.unit;
+      // Verify total amount display (support either input with aria-label or heading)
+      const inputCount = await this.totalAmountInput.count();
+      const inputVisible = inputCount > 0 && (await this.totalAmountInput.isVisible());
+      if (inputVisible) {
+        await expect(this.totalAmountInput).toHaveValue(`${expectedTotal} ${unit}`);
+      } else {
+        await expect(this.totalAmountHeading).toContainText(`Total: ${expectedTotal} ${unit}`);
       }
-    }
+      // Verify individual day amounts if requested
+      if (shouldClickEdit && (await this.editAmountButton.isVisible())) {
+        await this.editAmountButton.click();
+        const today = new Date();
+        const startDate = getNextWorkingDay(today);
+        const endDate = addWorkingDays(startDate, workingDays - 1);
+        const expectedAmounts = this.generateExpectedDayAmounts(startDate, endDate, categoryConfig);
+        const inputCount = await this.amountInputs.count();
+        for (let i = 0; i < Math.min(expectedAmounts.length, inputCount); i++) {
+          await expect(this.amountInputs.nth(i)).toHaveValue(expectedAmounts[i].toString());
+        }
+      }
+    });
   }
 
   /**

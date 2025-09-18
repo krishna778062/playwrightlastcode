@@ -324,10 +324,18 @@ export class HomeDashboard {
   }
 
   /**
-   * Verify Leave Management tile content structure with leave categories
+   * Verify Apply for Time Off tile form fields are present and functional
    * @param tileTitle - The title of the tile to verify
    */
-  async verifyLeaveCategoryFields(tileTitle: string): Promise<void> {
-    await this.timeOffRequestTileComponent.verifyLeaveCategoryFields(tileTitle);
+  async verifyApplyForTimeOffFields(tileTitle: string): Promise<void> {
+    await this.timeOffRequestTileComponent.verifyApplyForTimeOffFields(tileTitle);
+  }
+
+  /**
+   * Verify Display Time Off Balance tile content (no form fields expected)
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDisplayTimeOffBalanceFields(tileTitle: string): Promise<void> {
+    await this.timeOffRequestTileComponent.verifyDisplayTimeOffBalanceFields(tileTitle);
   }
 }

@@ -15,7 +15,7 @@ import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { CONNECTOR_IDS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 test.describe(
-  'gitHub App Tiles Integration',
+  'bambooHR App Tiles Integration',
   {
     tag: [IntegrationsSuiteTags.BAMBOOHR, IntegrationsSuiteTags.ABSOLUTE],
   },
@@ -44,8 +44,8 @@ test.describe(
       },
       async ({ homeDashboard, tileManagementHelper }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24073',
-          storyId: 'INT-23629',
+          zephyrTestId: 'INT-23138',
+          storyId: 'INT-22854',
         });
 
         createdTileTitle = `Display Time Off Balance ${faker.string.alphanumeric({ length: 6 })}`;
@@ -72,8 +72,8 @@ test.describe(
       async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
         void homeDashboard;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24070',
-          storyId: 'INT-23629',
+          zephyrTestId: 'INT-21575',
+          storyId: 'INT-22854',
         });
 
         //Generate a random tile title
@@ -99,14 +99,48 @@ test.describe(
     );
 
     test(
+      'create and edit BambooHR Apply for Time Off tile on site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
+        void homeDashboard;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-23137',
+          storyId: 'INT-22854',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Apply for Time Off ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTile(createdTileTitle, AppName, ApplyForTimeOff, UI_ACTIONS.ADD_TO_SITE);
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
       'create and verify metadata for BambooHR Display Time Off Balance tile on home dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ homeDashboard, tileManagementHelper }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24049',
-          storyId: 'INT-23629',
+          zephyrTestId: 'INT-21608',
+          storyId: 'INT-22854',
         });
         createdTileTitle = `Display Time Off Balance ${faker.string.alphanumeric({ length: 6 })}`;
         await tileManagementHelper.createIntegrationAppTile(
@@ -115,7 +149,7 @@ test.describe(
           CONNECTOR_IDS.BAMBOOHR
         );
         await homeDashboard.isTilePresent(createdTileTitle);
-        await homeDashboard.verifyLeaveCategoryFields(createdTileTitle);
+        await homeDashboard.verifyDisplayTimeOffBalanceFields(createdTileTitle);
       }
     );
 
@@ -126,8 +160,8 @@ test.describe(
       },
       async ({ homeDashboard, tileManagementHelper }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24069',
-          storyId: 'INT-23629',
+          zephyrTestId: 'INT-23138',
+          storyId: 'INT-22854',
         });
 
         createdTileTitle = `Apply for Time Off ${faker.string.alphanumeric({ length: 6 })}`;
@@ -152,8 +186,8 @@ test.describe(
       },
       async ({ homeDashboard, tileManagementHelper, page }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24071',
-          storyId: 'INT-23629',
+          zephyrTestId: 'INT-23143',
+          storyId: 'INT-22854',
         });
 
         createdTileTitle = `Apply for Time Off ${faker.string.alphanumeric({ length: 6 })}`;
@@ -194,8 +228,8 @@ test.describe(
       async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient, page }) => {
         void homeDashboard;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24070',
-          storyId: 'INT-23629',
+          zephyrTestId: 'INT-23132',
+          storyId: 'INT-22854',
         });
 
         //Generate a random tile title
@@ -234,15 +268,15 @@ test.describe(
     );
 
     test(
-      'verify BambooHR Display Time Off Balance tile on Site dashboard',
+      'verify edit and remove functionality for BambooHR Display Time Off Balance tile on Site dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
         void homeDashboard;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24070',
-          storyId: 'INT-23629',
+          zephyrTestId: 'INT-23139',
+          storyId: 'INT-22854',
         });
 
         //Generate a random tile title
@@ -268,14 +302,44 @@ test.describe(
     );
 
     test(
+      'verify form fields for BambooHR Display Time Off Balance tile on Site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
+        void homeDashboard;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-23131',
+          storyId: 'INT-22854',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Display Time Off Balance ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTile(createdTileTitle, AppName, DisplayTimeOffBalance, UI_ACTIONS.ADD_TO_SITE);
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyDisplayTimeOffBalanceFields(createdTileTitle);
+        await siteDashboard.removeTile(createdTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
       'verify BambooHR Apply for Time Off tile amount calculation for different categories',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ homeDashboard, tileManagementHelper, page }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24071',
-          storyId: 'INT-23629',
+          zephyrTestId: 'INT-23140',
+          storyId: 'INT-22854',
         });
 
         createdTileTitle = `Apply for Time Off ${faker.string.alphanumeric({ length: 6 })}`;
