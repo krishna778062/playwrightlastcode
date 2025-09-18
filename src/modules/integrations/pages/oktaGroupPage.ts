@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
@@ -6,15 +6,17 @@ import { OktaGroupComponent } from '@/src/modules/integrations/components/oktaGr
 
 export class OktaGroupPage extends BasePage {
   readonly oktaGroupComponent: OktaGroupComponent;
+  readonly scheduledSources: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.PEOPLE_DATA_PAGE);
+    this.scheduledSources = page.getByRole('heading', { name: 'Scheduled sources' });
     this.oktaGroupComponent = new OktaGroupComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify the page is loaded', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.oktaGroupComponent.rootLocator, {
+      await this.verifier.verifyTheElementIsVisible(this.scheduledSources, {
         timeout: 30_000,
         assertionMessage: 'Verifying the page is loaded',
       });

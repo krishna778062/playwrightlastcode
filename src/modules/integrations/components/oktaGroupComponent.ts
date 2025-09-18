@@ -56,6 +56,7 @@ export class OktaGroupComponent extends BaseComponent {
     await this.oktaLink().fill(oktaLink);
     await this.oktaApiToken().hover();
     await this.editButton().first().click();
+    await this.oktaApiToken().waitFor({ state: 'visible' });
     await this.oktaApiToken().fill(apiToken);
   }
 
