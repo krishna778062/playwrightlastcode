@@ -6,7 +6,6 @@ import { BasePage } from '@core/pages/basePage';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { ManageFeatureComponent } from '@/src/modules/content/components/manageFeatureComponent';
 
-
 export interface IManageFeaturesPageActions {
   clickOnContentCard: () => Promise<void>;
   clickOnSitesCard: () => Promise<void>;

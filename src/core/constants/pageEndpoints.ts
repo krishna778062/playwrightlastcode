@@ -42,7 +42,6 @@ export const PAGE_ENDPOINTS = {
   MANAGE_CONTENT_APPLY_API: '/manage',
   MANAGE_CONTENT_MOVE_API: '/v1/page',
   MANAGE_CONTENT_DELETE_API: '/v1/content/sites/',
-  
 
   MANAGE_SITE_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
   SITE_DETAILS_PAGE: (siteId: string) => PAGE_ENDPOINTS.getSiteDashboardPage(siteId),

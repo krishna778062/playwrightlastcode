@@ -217,5 +217,4 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async selectDeleteApplyButton(): Promise<void> {
     await this.manageContentComponent.selectDeleteApplyButton();
   }
-
 }
