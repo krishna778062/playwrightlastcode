@@ -2,14 +2,19 @@ import { APIRequestContext, test } from '@playwright/test';
 
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 import { IImageUploaderService } from '@/src/core/api/interfaces/IImageUploaderService';
+import { FeedManagementService } from '@/src/core/api/services/FeedManagementService';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 
 export class ImageUploaderService implements IImageUploaderService {
+  private feedService: FeedManagementService;
+
   constructor(
     private apiClient: HttpClient,
     private request: APIRequestContext
-  ) {}
+  ) {
+    this.feedService = new FeedManagementService(request);
+  }
 
   /**
    * Gets a signed URL from the API for file uploads.
@@ -77,54 +82,6 @@ export class ImageUploaderService implements IImageUploaderService {
   }
 
   /**
-   * Uploads file binary data to the signed upload URL for intranet files (similar to feed attachment)
-   * @param uploadUrl - The signed upload URL from getSignedUploadUrl response
-   * @param fileName - The original filename for Content-Disposition header
-   * @param filePath - The local path to the file
-   * @param mimeType - The MIME type of the file
-   * @returns Promise that resolves when upload is complete
-   */
-  async uploadToIntranetAttachmentURL(
-    uploadUrl: string,
-    fileName: string,
-    filePath: string,
-    mimeType: string
-  ): Promise<void> {
-    return await test.step(`Uploading file binary data to intranet attachment URL for "${fileName}"`, async () => {
-      if (!uploadUrl) {
-        throw new Error('Upload URL is required but not provided');
-      }
-
-      if (!FileUtil.fileExists(filePath)) {
-        throw new Error(`File not found at path: ${filePath}`);
-      }
-
-      const fileBuffer = FileUtil.readFile(filePath);
-
-      // Build headers for the request
-      const headers = {
-        'Content-Type': mimeType,
-        'Content-Disposition': `attachment; filename="${fileName}"`,
-      };
-
-      // Make a PUT request to the signed URL with the file data
-      const response = await this.request.put(uploadUrl, {
-        headers,
-        data: fileBuffer,
-      });
-
-      if (!response.ok()) {
-        const errorText = await response.text();
-        throw new Error(
-          `File upload to intranet attachment URL failed. Status: ${response.status()}, Error: ${errorText}`
-        );
-      }
-
-      console.log(`File "${fileName}" uploaded successfully to intranet attachment URL`);
-    });
-  }
-
-  /**
    * Creates an intranet file with attachment (similar to createFeedWithAttachment pattern)
    * @param siteId - The site ID to upload the file to
    * @param fileName - The name of the file to upload
@@ -158,8 +115,8 @@ export class ImageUploaderService implements IImageUploaderService {
         throw new Error('Failed to get fileId from intranet upload response');
       }
 
-      // Step 2: Upload file to signed URL using intranet attachment method
-      await this.uploadToIntranetAttachmentURL(uploadUrl, fileName, filePath, mimeType);
+      // Step 2: Upload file to signed URL using FeedManagementService
+      await this.feedService.uploadToAttachmentURL(uploadUrl, fileName, filePath, mimeType);
 
       // Step 3: Get file details from content files API to get owner name
       const fileDetails = await this.getIntranetFileDetails(fileId, siteId);

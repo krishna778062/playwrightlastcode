@@ -2,6 +2,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { ResultListingComponent } from '../../../components/resultsListComponent';
+
 import { ContentType } from '@/src/core/constants/contentTypes';
 import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
@@ -127,6 +129,36 @@ test.describe(
           expectedCountAfterFilter: 1,
         });
         await pageResultItem.verifyNameIsDisplayed(pageName);
+      }
+    );
+
+    test(
+      `Verify Page Autocomplete functionality`,
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE],
+      },
+      async ({ appManagerHomePage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-PAGE-AUTOCOMPLETE-001',
+        });
+
+        // Type in search input
+        await appManagerHomePage.topNavBarComponent.typeInSearchBarInput(pageName, {
+          stepInfo: `Typing "${pageName}" in search input`,
+        });
+
+        // Wait for autocomplete to appear first
+        const resultList = new ResultListingComponent(appManagerHomePage.page);
+        await resultList.waitForAndVerifyAutocompleteListIsDisplayed();
+
+        // Then get specific autocomplete item
+        const pageResult = resultList.getAutocompleteItemByName(pageName);
+
+        // Verify all autocomplete item data in one comprehensive method
+        await pageResult.verifyAutocompleteItemData(pageName, ContentType.Page);
+
+        // Click on the autocomplete item and verify navigation
+        await pageResult.verifyAutocompleteNavigationToTitleLink(contentId, pageName, ContentType.Page);
       }
     );
   }

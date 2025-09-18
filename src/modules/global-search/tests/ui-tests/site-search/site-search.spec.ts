@@ -122,7 +122,7 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
       test(
         `Verify Site Autocomplete functionality for a ${testData.siteType} site"`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, '@test'],
+          tag: [TestPriority.P0, TestGroupType.SMOKE],
         },
         async ({ appManagerHomePage }) => {
           tagTest(test.info(), {
@@ -134,10 +134,12 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
             stepInfo: `Typing "${newSiteName}" in search input`,
           });
 
-          // Wait for autocomplete to appear and get specific autocomplete item
+          // Wait for autocomplete to appear first
           const resultList = new ResultListingComponent(appManagerHomePage.page);
+          await resultList.waitForAndVerifyAutocompleteListIsDisplayed();
+
+          // Then get specific autocomplete item
           const siteResult = resultList.getAutocompleteItemByName(newSiteName);
-          await siteResult.waitForAndVerifyAutocompleteListIsDisplayed();
           await siteResult.verifyAutocompleteItemData(newSiteName, testData.label, testData.siteType);
 
           // Click on the autocomplete item and verify navigation

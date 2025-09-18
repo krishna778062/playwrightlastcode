@@ -2,6 +2,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { ResultListingComponent } from '../../../components/resultsListComponent';
+
 import { ContentType } from '@/src/core/constants/contentTypes';
 import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
@@ -124,6 +126,36 @@ test.describe(
           expectedCountAfterFilter: 1, // Should show only 1 result (the album we created)
         });
         await albumResultItem.verifyNameIsDisplayed(albumName);
+      }
+    );
+
+    test(
+      `Verify Album Autocomplete functionality`,
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE],
+      },
+      async ({ appManagerHomePage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-ALBUM-AUTOCOMPLETE-001',
+        });
+
+        // Type in search input
+        await appManagerHomePage.topNavBarComponent.typeInSearchBarInput(albumName, {
+          stepInfo: `Typing "${albumName}" in search input`,
+        });
+
+        // Wait for autocomplete to appear first
+        const resultList = new ResultListingComponent(appManagerHomePage.page);
+        await resultList.waitForAndVerifyAutocompleteListIsDisplayed();
+
+        // Then get specific autocomplete item
+        const albumResult = resultList.getAutocompleteItemByName(albumName);
+
+        // Verify all autocomplete item data in one comprehensive method
+        await albumResult.verifyAutocompleteItemData(albumName, ContentType.Album);
+
+        // Click on the autocomplete item and verify navigation
+        await albumResult.verifyAutocompleteNavigationToTitleLink(contentId, albumName, ALBUM_SEARCH_TEST_DATA.label);
       }
     );
   }

@@ -66,7 +66,7 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
       test(
         `Verify Intranet File Search results with sidebar filter for ${fileType.type}`,
         {
-          tag: [TestPriority.P1, TestGroupType.REGRESSION],
+          tag: [TestPriority.P1, TestGroupType.REGRESSION, '@test'],
         },
         async ({ appManagerHomePage }) => {
           tagTest(test.info(), {

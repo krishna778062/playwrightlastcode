@@ -1,6 +1,8 @@
 import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
+import { ContentType } from '@/src/core/constants/contentTypes';
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 export class ResultListingComponent extends BaseComponent {
   readonly name: Locator;
@@ -22,6 +24,7 @@ export class ResultListingComponent extends BaseComponent {
   readonly autocompleteSiteLabel: Locator;
   readonly autocompleteSiteThumbnail: Locator;
   readonly autocompleteLockIcon: Locator;
+  readonly autocompleteDateEmblem: Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
@@ -42,8 +45,9 @@ export class ResultListingComponent extends BaseComponent {
     this.autocompleteList = this.page.locator('div[class*="AutocompleteListingItem_wrapper"]');
     this.autocompleteSiteName = this.rootLocator;
     this.autocompleteSiteLabel = this.autocompleteSiteName.locator('p[class*="Typography-module__paragraph"]');
-    this.autocompleteSiteThumbnail = this.autocompleteSiteName.locator('[data-testid="i-sites"]');
+    this.autocompleteSiteThumbnail = this.autocompleteSiteName.locator('[class*="Emblem-module__iconContainer"]');
     this.autocompleteLockIcon = this.autocompleteSiteName.locator('[data-testid="i-lock"]');
+    this.autocompleteDateEmblem = this.autocompleteSiteName.locator('[class*="DateEmblem-module__date"]').first();
   }
 
   /**
@@ -245,20 +249,8 @@ export class ResultListingComponent extends BaseComponent {
    */
   async waitForAndVerifyAutocompleteListIsDisplayed(): Promise<void> {
     await test.step('Waiting for autocomplete list to appear and verifying it is displayed', async () => {
-      // Wait for autocomplete to appear using constructor locator
-      await this.verifier.verifyTheElementIsVisible(this.autocompleteList, {
-        timeout: 20000,
-        assertionMessage: 'Verifying autocomplete list is visible',
-      });
-    });
-  }
-
-  /**
-   * Verify autocomplete list is displayed
-   */
-  async verifyAutocompleteListIsDisplayed(): Promise<void> {
-    await test.step('Verifying autocomplete list is displayed', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.autocompleteList, {
+      // Wait for at least one autocomplete item to appear
+      await this.verifier.verifyTheElementIsVisible(this.autocompleteList.first(), {
         timeout: 20000,
         assertionMessage: 'Verifying autocomplete list is visible',
       });
@@ -305,13 +297,23 @@ export class ResultListingComponent extends BaseComponent {
 
   /**
    * Verify item thumbnail in autocomplete item
+   * @param itemLabel - The item label to determine verification type
    */
-  async verifyAutocompleteItemThumbnail(): Promise<void> {
+  async verifyAutocompleteItemThumbnail(itemLabel?: string): Promise<void> {
     await test.step('Verifying item thumbnail in autocomplete item', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.autocompleteSiteThumbnail, {
-        timeout: 20000,
-        assertionMessage: 'Verifying item thumbnail in autocomplete item',
-      });
+      if (itemLabel === ContentType.Event) {
+        // For events, verify the date emblem
+        await this.verifier.verifyTheElementIsVisible(this.autocompleteDateEmblem, {
+          timeout: 20000,
+          assertionMessage: 'Verifying date emblem in event autocomplete item',
+        });
+      } else {
+        // For other content types, verify the thumbnail
+        await this.verifier.verifyTheElementIsVisible(this.autocompleteSiteThumbnail, {
+          timeout: 20000,
+          assertionMessage: 'Verifying item thumbnail in autocomplete item',
+        });
+      }
     });
   }
 
@@ -356,15 +358,15 @@ export class ResultListingComponent extends BaseComponent {
    * Comprehensive verification of autocomplete item
    * @param itemName - The item name
    * @param itemLabel - The item label
-   * @param itemType - The item type
+   * @param itemType - The item type (optional, only used for lock icon visibility)
    */
-  async verifyAutocompleteItemData(itemName: string, itemLabel: string, itemType: string): Promise<void> {
+  async verifyAutocompleteItemData(itemName: string, itemLabel: string, itemType?: string): Promise<void> {
     await test.step(`Verifying autocomplete item data for "${itemName}"`, async () => {
       await this.verifyAutocompleteItemName(itemName);
       await this.verifyAutocompleteItemLabel(itemLabel);
-      await this.verifyAutocompleteItemThumbnail();
-      // Use existing lock icon verification method
-      if (itemType === 'private' || (itemType === 'unlisted' && itemLabel === 'Site')) {
+      await this.verifyAutocompleteItemThumbnail(itemLabel);
+      // Use existing lock icon verification method (only for sites with private/unlisted access)
+      if (itemType === SITE_TYPES.PRIVATE || itemType === SITE_TYPES.UNLISTED) {
         await this.verifyLockIconVisibility(itemType);
       }
     });

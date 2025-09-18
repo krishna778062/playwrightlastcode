@@ -2,7 +2,6 @@ export interface IImageUploaderService {
   getSignedUploadUrl(payload: any): Promise<any>;
   uploadFileToSignedUrl(uploadUrl: string, filePath: string, fileName: string): Promise<any>;
   uploadImageAndGetFileId(fileName: string): Promise<string>;
-  uploadToIntranetAttachmentURL(uploadUrl: string, fileName: string, filePath: string, mimeType: string): Promise<void>;
   UploadIntranetFile(
     siteId: string,
     fileName: string,

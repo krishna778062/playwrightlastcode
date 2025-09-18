@@ -210,13 +210,18 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
   /**
    * @description Uploads file binary data to the signed upload URL
    * @param {string} uploadUrl The signed upload URL from uploadImage response
-   * @param {Buffer | string} fileData The file data to upload (binary data)
    * @param {string} fileName The original filename for Content-Disposition header
-   * @param {string} mimeType The MIME type of the file
-   * @returns {Promise<any>}
+   * @param {string} filePath The local path to the file
+   * @param {string} [mimeType] The MIME type of the file (optional, defaults to 'image/png')
+   * @returns {Promise<APIResponse>}
    * @memberof FeedManagementService
    */
-  async uploadToAttachmentURL(uploadUrl: string, fileName: string, filePath: string): Promise<APIResponse> {
+  async uploadToAttachmentURL(
+    uploadUrl: string,
+    fileName: string,
+    filePath: string,
+    mimeType?: string
+  ): Promise<APIResponse> {
     return await test.step(`Uploading file binary data to attachment URL for "${fileName}"`, async () => {
       if (!uploadUrl) {
         throw new Error('Upload URL is required but not provided');
@@ -225,8 +230,8 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
 
       // Build headers for the request
       const headers = {
-        'Content-Type': 'image/png',
-        'Content-Disposition': `attachment; filename=${fileName}`,
+        'Content-Type': mimeType || 'image/png',
+        'Content-Disposition': `attachment; filename="${fileName}"`,
       };
 
       // Make a PUT request to the signed URL with the file data
@@ -300,7 +305,7 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
       if (!fileId) {
         throw new Error('Failed to get fileId from upload response');
       }
-      await this.uploadToAttachmentURL(attachmentURL, fileName, filePath);
+      await this.uploadToAttachmentURL(attachmentURL, fileName, filePath, mimeType);
       // Create attachment object with the uploaded fileId
       const listOfAttachedFiles = [buildAttachmentObject(fileId)];
 
