@@ -41,25 +41,15 @@ export class PrivilegesScreenPage extends BasePage {
   }
 
   async verifyTheProtectedAuthorsAuthorsIsVisible(): Promise<void> {
-    await test.step('Verify the protected authors authors is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.privilegesComponent.protectedAuthorsAuthors);
-    });
+    await this.privilegesComponent.verifyTheProtectedAuthorsAuthorsIsVisible();
   }
 
   async verifyTheProtectedAuthorsAllowlistIsVisible(): Promise<void> {
-    await test.step('Verify the protected authors allowlist is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.privilegesComponent.protectedAuthorsAllowlist);
-    });
+    await this.privilegesComponent.verifyTheProtectedAuthorsAllowlistIsVisible;
   }
 
   async verifyAndFillProtectedAuthorsAuthors(value: string): Promise<void> {
-    await test.step('Verify protected authors authors is visible and fill value', async () => {
-      await this.clickOnElement(this.privilegesComponent.authorInputBox);
-      await this.fillInElement(this.privilegesComponent.authorInputBox, value);
-      await this.privilegesComponent.authorInputBox.focus();
-      const newWorkspaceOption = this.privilegesComponent.selectingAuthor.filter({ hasText: value });
-      await this.clickOnElement(newWorkspaceOption);
-    });
+    await this.privilegesComponent.verifyAndFillProtectedAuthorsAuthors(value);
   }
 
   async clickOnSave(): Promise<void> {
@@ -75,8 +65,6 @@ export class PrivilegesScreenPage extends BasePage {
   }
 
   async clickOnCrossUser(): Promise<void> {
-    await test.step('Clicking on save', async () => {
-      await this.clickOnElement(this.privilegesComponent.crossUser);
-    });
+    await this.privilegesComponent.clickOnCrossUser();
   }
 }

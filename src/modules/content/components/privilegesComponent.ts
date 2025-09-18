@@ -23,4 +23,32 @@ export class PrivilegesComponent extends BaseComponent {
     this.changesConfirmation = page.getByText('Saved changes successfully');
     this.selectingAuthor = page.locator(`[role="listbox"]`);
   }
+
+  async verifyTheProtectedAuthorsAuthorsIsVisible(): Promise<void> {
+    await test.step('Verify the protected authors authors is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.protectedAuthorsAuthors);
+    });
+  }
+
+  async verifyTheProtectedAuthorsAllowlistIsVisible(): Promise<void> {
+    await test.step('Verify the protected authors allowlist is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.protectedAuthorsAllowlist);
+    });
+  }
+
+  async verifyAndFillProtectedAuthorsAuthors(value: string): Promise<void> {
+    await test.step('Verify protected authors authors is visible and fill value', async () => {
+      await this.clickOnElement(this.authorInputBox);
+      await this.fillInElement(this.authorInputBox, value);
+      await this.authorInputBox.focus();
+      const newWorkspaceOption = this.selectingAuthor.filter({ hasText: value });
+      await this.clickOnElement(newWorkspaceOption);
+    });
+  }
+
+  async clickOnCrossUser(): Promise<void> {
+    await test.step('Clicking on cross user', async () => {
+      await this.clickOnElement(this.crossUser);
+    });
+  }
 }
