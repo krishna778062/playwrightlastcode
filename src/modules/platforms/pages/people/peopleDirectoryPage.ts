@@ -20,16 +20,20 @@ export class PeopleDirectoryPage extends BasePage {
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.PEOPLE_DIRECTORY_PAGE) {
     super(page, pageUrl);
 
-    this.userMode = page.locator('[aria-label*="User mode"]');
+    this.userMode = page.getByLabel('User mode');
     this.people = page.getByText('People');
-    this.searchPeople = page.locator('[aria-label*="Search people..."]');
-    this.peopleFilter = page.locator('[aria-label*="Filters"]');
+    this.searchPeople = page.getByLabel('Search people...');
+    this.peopleFilter = page.getByLabel('Filters');
     this.manager = page.locator('[h3*="Manager"]');
     this.assistant = page.locator('[h3*="Assistant"]');
 
-    this.expertise = page.locator('[h3*="Expertise"]');
-    this.hireDate = page.locator('[h3*="Hire date"]');
-    this.timeZone = page.locator('[h3*="Time zone"]');
+    page.getByRole('heading', { name: 'Expertise' });
+    this.expertise = page.getByRole('heading', { name: 'Expertise' });
+    // page.locator('[h3*="Expertise"]');
+    this.hireDate = page.getByRole('heading', { name: 'Hire date' });
+    //page.locator('[h3*="Hire date"]');
+    this.timeZone = page.getByRole('heading', { name: 'Time zone' });
+    //page.locator('[h3*="Time zone"]');
   }
 
   // Verify that the Home page is loaded
@@ -60,27 +64,27 @@ export class PeopleDirectoryPage extends BasePage {
         timeout: TIMEOUTS.MEDIUM,
       });
 
-      await expect(this.manager).toBeVisible,
+      await expect(this.manager).toBeVisible(),
         {
           stepInfo: 'Verify the presence of Manager filter',
           timeout: TIMEOUTS.MEDIUM,
         };
-      await expect(this.assistant).toBeVisible,
+      await expect(this.assistant).toBeVisible(),
         {
           stepInfo: 'Verify the presence of assistant filter',
           timeout: TIMEOUTS.MEDIUM,
         };
-      await expect(this.expertise).toBeVisible,
+      await expect(this.expertise).toBeVisible(),
         {
           stepInfo: 'Verify the presence of expertise filter',
           timeout: TIMEOUTS.MEDIUM,
         };
-      await expect(this.hireDate).toBeVisible,
+      await expect(this.hireDate).toBeVisible(),
         {
           stepInfo: 'Verify the presence of hireDate filter',
           timeout: TIMEOUTS.MEDIUM,
         };
-      await expect(this.timeZone).toBeVisible,
+      await expect(this.timeZone).toBeVisible(),
         {
           stepInfo: 'Verify the presence of timeZone filter',
           timeout: TIMEOUTS.MEDIUM,
