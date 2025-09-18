@@ -2,7 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
 
-export class oktaGroupComponent extends BaseComponent {
+export class OktaGroupComponent extends BaseComponent {
   readonly oktaLink: () => Locator;
   readonly saveButton: () => Locator;
   readonly oktaApiToken: () => Locator;
@@ -68,7 +68,7 @@ export class oktaGroupComponent extends BaseComponent {
   }
 
   async visiblityOfSelectOktaGroupButton(text: string): Promise<void> {
-    await expect(this.selectOktaGroupButton(text)).toBeVisible();
+    await expect(this.selectOktaGroupButton(text), 'expecting button to be visible').toBeVisible();
   }
 
   async clickOnSelectOktaGroupButton(text: string): Promise<void> {
@@ -77,10 +77,6 @@ export class oktaGroupComponent extends BaseComponent {
 
   async clickOnSelectOktaGroup(text: string): Promise<void> {
     await this.selectOktaGroup(text).check();
-  }
-
-  async clickOnDoneButton(text: string): Promise<void> {
-    await this.selectOktaGroupButton(text).click();
   }
 
   async clickOnUnCheckOkta(): Promise<void> {

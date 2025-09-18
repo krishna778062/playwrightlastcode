@@ -1,16 +1,15 @@
-import { Locator, Page, test } from '@playwright/test';
-
-import { oktaGroupComponent } from '../components/oktaGroupComponent';
+import { Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
+import { OktaGroupComponent } from '@/src/modules/integrations/components/oktaGroupComponent';
 
-export class oktaGroupPage extends BasePage {
-  readonly oktaGroupComponent: oktaGroupComponent;
+export class OktaGroupPage extends BasePage {
+  readonly oktaGroupComponent: OktaGroupComponent;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.PEOPLE_DATA_PAGE);
-    this.oktaGroupComponent = new oktaGroupComponent(page);
+    this.oktaGroupComponent = new OktaGroupComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -47,7 +46,7 @@ export class oktaGroupPage extends BasePage {
   }
 
   async clickOnDoneButton(text: string): Promise<void> {
-    return this.oktaGroupComponent.clickOnDoneButton(text);
+    return this.oktaGroupComponent.clickOnSelectOktaGroupButton(text);
   }
 
   async visiblityOfSelectOktaGroupButton(text: string): Promise<void> {

@@ -1,58 +1,62 @@
-import { test } from '@playwright/test';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { UserCredentials } from '@core/types/test.types';
-import { getEnvConfig } from '@core/utils/getEnvConfig';
-
-import { OKTA_GROUP } from '../../../constants/common';
-import { ActionType } from '../../../constants/common';
-import { MESSAGES } from '../../../constants/messageRepo';
-import { oktaGroupPage } from '../../../pages/oktaGroupPage';
+import { tagTest } from '@core/utils/testDecorator';
 
 import { TestSuite } from '@/src/core/constants/testSuite';
-import { LoginHelper } from '@/src/core/helpers/loginHelper';
+import { ActionType } from '@/src/modules/integrations/constants/common';
+import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
+import { integrationsFixture as test } from '@/src/modules/integrations/fixtures/integrationsFixture';
+import { OktaGroupPage } from '@/src/modules/integrations/pages/oktaGroupPage';
+import { OKTA_GROUP } from '@/src/modules/integrations/test-data/gamma-data-file';
 
-const adminUser: UserCredentials = {
-  email: getEnvConfig().appManagerEmail,
-  password: getEnvConfig().appManagerPassword,
-};
+let oktaGroup: OktaGroupPage;
 
-let oktaGroup: oktaGroupPage;
-
-test.describe('AD Group Integration', () => {
-  test.beforeEach(async ({ page }) => {
-    await LoginHelper.loginWithPassword(page, adminUser);
+test.describe('OKTA Group Integration', () => {
+  test.afterEach(async ({}, testInfo) => {
+    // Skip cleanup for error message test
+    if (testInfo.title.includes('error message when anything wrong with the connections')) {
+      return;
+    }
+    await oktaGroup.clickOnUnCheckOkta();
+    await oktaGroup.clickOnSaveButton();
   });
 
   test(
-    'Verify that Select okta groups option should be is visible when selected use okta group option',
+    'verify that Select okta groups option should be is visible when selected use okta group option',
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.OKTA_GROUP],
     },
 
-    async ({ page }) => {
-      oktaGroup = new oktaGroupPage(page);
+    async ({ page, homeDashboard }) => {
+      void homeDashboard;
+      tagTest(test.info(), {
+        zephyrTestId: 'INT-22779,INT-22777',
+      });
+      oktaGroup = new OktaGroupPage(page);
       await oktaGroup.loadPage();
+      await oktaGroup.verifyThePageIsLoaded();
       await oktaGroup.clickOnCheckbox();
       await oktaGroup.fillOktaCredentials(OKTA_GROUP.OKTA_LINK, OKTA_GROUP.TOKEN);
       await oktaGroup.clickOnSaveButton();
       await oktaGroup.clickOnOktaGroupOption(OKTA_GROUP.GROUP_OPTION);
       await oktaGroup.visiblityOfSelectOktaGroupButton(OKTA_GROUP.GROUP_BUTTON);
-      await oktaGroup.clickOnUnCheckOkta();
-      await oktaGroup.clickOnSaveButton();
     }
   );
 
   test(
-    'Verify the error message when anything wrong with the connections',
+    'verify the error message when anything wrong with the connections',
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.OKTA_GROUP],
     },
 
-    async ({ page }) => {
-      oktaGroup = new oktaGroupPage(page);
+    async ({ page, homeDashboard }) => {
+      void homeDashboard;
+      tagTest(test.info(), {
+        zephyrTestId: 'INT-22778',
+      });
+      oktaGroup = new OktaGroupPage(page);
       await oktaGroup.loadPage();
+      await oktaGroup.verifyThePageIsLoaded();
       await oktaGroup.clickOnCheckbox();
       await oktaGroup.fillOktaCredentials(OKTA_GROUP.WRONG_LINK, OKTA_GROUP.WRONG_TOKEN);
       await oktaGroup.clickOnSaveButton();
@@ -61,14 +65,19 @@ test.describe('AD Group Integration', () => {
   );
 
   test(
-    'Verify that "do not use okta groups" is enbaled by default when no group is selected',
+    'verify that "do not use okta groups" is enbaled by default when no group is selected',
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.OKTA_GROUP],
     },
 
-    async ({ page }) => {
-      oktaGroup = new oktaGroupPage(page);
+    async ({ page, homeDashboard }) => {
+      void homeDashboard;
+      tagTest(test.info(), {
+        zephyrTestId: 'INT-22792',
+      });
+      oktaGroup = new OktaGroupPage(page);
       await oktaGroup.loadPage();
+      await oktaGroup.verifyThePageIsLoaded();
       await oktaGroup.clickOnCheckbox();
       await oktaGroup.fillOktaCredentials(OKTA_GROUP.OKTA_LINK, OKTA_GROUP.TOKEN);
       await oktaGroup.clickOnSaveButton();
@@ -81,14 +90,19 @@ test.describe('AD Group Integration', () => {
   );
 
   test(
-    'Validate the message after selecting okta group',
+    'validate the message after selecting okta group',
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.OKTA_GROUP],
     },
 
-    async ({ page }) => {
-      oktaGroup = new oktaGroupPage(page);
+    async ({ page, homeDashboard }) => {
+      void homeDashboard;
+      tagTest(test.info(), {
+        zephyrTestId: 'INT-22795',
+      });
+      oktaGroup = new OktaGroupPage(page);
       await oktaGroup.loadPage();
+      await oktaGroup.verifyThePageIsLoaded();
       await oktaGroup.clickOnCheckbox();
       await oktaGroup.fillOktaCredentials(OKTA_GROUP.OKTA_LINK, OKTA_GROUP.TOKEN);
       await oktaGroup.clickOnSaveButton();
@@ -103,14 +117,19 @@ test.describe('AD Group Integration', () => {
   );
 
   test(
-    'Verify that able to delete selected groups, select new groups and count should be updated accordingly, Verify that user is able to get okta groups modal',
+    'verify that able to delete selected groups, select new groups and count should be updated accordingly, Verify that user is able to get okta groups modal',
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.OKTA_GROUP],
     },
 
-    async ({ page }) => {
-      oktaGroup = new oktaGroupPage(page);
+    async ({ page, homeDashboard }) => {
+      void homeDashboard;
+      tagTest(test.info(), {
+        zephyrTestId: 'INT-22794, INT-22796',
+      });
+      oktaGroup = new OktaGroupPage(page);
       await oktaGroup.loadPage();
+      await oktaGroup.verifyThePageIsLoaded();
       await oktaGroup.clickOnCheckbox();
       await oktaGroup.fillOktaCredentials(OKTA_GROUP.OKTA_LINK, OKTA_GROUP.TOKEN);
       await oktaGroup.clickOnSaveButton();
@@ -132,14 +151,19 @@ test.describe('AD Group Integration', () => {
   );
 
   test(
-    'Verify that user is able to select multiple groups and count should be visible',
+    'verify that user is able to select multiple groups and count should be visible',
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestSuite.OKTA_GROUP],
     },
 
-    async ({ page }) => {
-      oktaGroup = new oktaGroupPage(page);
+    async ({ page, homeDashboard }) => {
+      void homeDashboard;
+      tagTest(test.info(), {
+        zephyrTestId: 'INT-22793',
+      });
+      oktaGroup = new OktaGroupPage(page);
       await oktaGroup.loadPage();
+      await oktaGroup.verifyThePageIsLoaded();
       await oktaGroup.clickOnCheckbox();
       await oktaGroup.fillOktaCredentials(OKTA_GROUP.OKTA_LINK, OKTA_GROUP.TOKEN);
       await oktaGroup.clickOnSaveButton();
