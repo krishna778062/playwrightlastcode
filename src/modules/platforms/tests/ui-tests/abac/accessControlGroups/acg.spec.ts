@@ -251,7 +251,7 @@ test.describe(
     test(
       `Verify that Name column is displayed and is sortable at Access control groups page`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
@@ -291,7 +291,7 @@ test.describe(
     test(
       `Verify the sorting functionality of Name column in access control groups page`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
