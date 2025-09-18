@@ -36,7 +36,7 @@ for (const testCase of testCases) {
   test.describe(
     `@AddContent - ${testCase.testName}`,
     {
-      tag: [ContentTestSuite.SITE_APP_MANAGER],
+      tag: [ContentTestSuite.ADD_CONTENT_ON_UNLISTED_SITE],
     },
     () => {
       let pageCreationPage: PageCreationPage;
