@@ -49,6 +49,7 @@ export interface INewUxHomePageActions extends ICommonHomePageActions {
   clickOnCreateButtonOnSideNavBar: (options?: { stepInfo?: string }) => Promise<CreateComponent>;
   openCreateContentPageForContentType: (
     contentType: ContentType,
+    siteName?: string,
     options?: { stepInfo?: string }
   ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
   clickOnFeaturedSitesTab: (options?: { stepInfo?: string }) => Promise<FeaturedSitePage>;

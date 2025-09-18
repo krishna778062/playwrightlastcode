@@ -349,32 +349,7 @@ export class SiteManagementHelper {
     console.log(`Site "${siteName}" not found. Creating a new site...`);
 
     const accessType = options?.accessType || SITE_TYPES.PUBLIC;
-    let createdSite;
-
-    switch (accessType) {
-      case SITE_TYPES.PRIVATE:
-        createdSite = await this.createPrivateSite({
-          siteName,
-          category: options?.category,
-          overrides: options?.overrides,
-        });
-        break;
-      case SITE_TYPES.UNLISTED:
-        createdSite = await this.createUnlistedSite({
-          siteName,
-          category: options?.category,
-          overrides: options?.overrides,
-        });
-        break;
-      default:
-        createdSite = await this.createPublicSite({
-          siteName,
-          category: options?.category,
-          overrides: options?.overrides,
-        });
-    }
-
-    console.log(`Created new site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
+    const createdSite = await this.createSiteByAccessType(accessType, siteName, options);
     return createdSite.siteId;
   }
 
@@ -421,19 +396,89 @@ export class SiteManagementHelper {
   }
 
   /**
+   * Creates a site based on access type
+   * @param accessType - The access type to create
+   * @param siteName - Optional site name
+   * @param options - Optional configuration for site creation
+   * @returns Promise<Site> - The created site object
+   */
+  private async createSiteByAccessType(
+    accessType: string,
+    siteName?: string,
+    options?: {
+      category?: { name: string; categoryId: string };
+      overrides?: Partial<SiteCreationPayload>;
+    }
+  ): Promise<{ siteId: string; siteName: string }> {
+    let createdSite;
+
+    switch (accessType) {
+      case SITE_TYPES.PRIVATE:
+        createdSite = await this.createPrivateSite({
+          siteName,
+          category: options?.category,
+          overrides: options?.overrides,
+        });
+        break;
+      case SITE_TYPES.UNLISTED:
+        createdSite = await this.createUnlistedSite({
+          siteName,
+          category: options?.category,
+          overrides: options?.overrides,
+        });
+        break;
+      default:
+        createdSite = await this.createPublicSite({
+          siteName,
+          category: options?.category,
+          overrides: options?.overrides,
+        });
+    }
+
+    console.log(`Created new site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
+    return { siteId: createdSite.siteId, siteName: createdSite.siteName };
+  }
+
+  /**
    * Gets a site by access type (e.g., 'public', 'private')
    * @param accessType - The access type to search for
    * @returns Promise<Site | null> - The site object if found, null otherwise
    */
-  async getSiteByAccessType(accessType: string): Promise<{ siteId: string; name: string; access: string }> {
+  async getSiteByAccessType(
+    accessType: string,
+    options?: {
+      hasPages?: boolean;
+      hasEvents?: boolean;
+      hasAlbums?: boolean;
+      hasDashboard?: boolean;
+      landingPage?: string;
+      isContentFeedEnabled?: boolean;
+      isContentSubmissionsEnabled?: boolean;
+      isOwner?: boolean;
+      isMembershipAutoApproved?: boolean;
+      isBroadcast?: boolean;
+    }
+  ): Promise<{ siteId: string; name: string }> {
     const siteListResponse = await this.getListOfSites();
-    const site = siteListResponse.result.listOfItems.find(
+    const siteDetails = siteListResponse.result.listOfItems.find(
       site => site.access.toLowerCase() === accessType.toLowerCase()
     );
-    if (!site) {
-      throw new Error(`No site found with access type ${accessType}`);
+    let siteId: string | undefined, siteName: string | undefined;
+    if (siteDetails && options?.hasPages) {
+      siteDetails.hasPages = options.hasPages;
+      siteId = siteDetails?.siteId;
+      siteName = siteDetails?.name;
     }
-    return site;
+
+    if (!siteId) {
+      const createdSite = await this.createSiteByAccessType(accessType);
+      siteId = createdSite.siteId;
+      siteName = createdSite.siteName;
+    }
+    if (!siteName) {
+      throw new Error(`No site name found with access type ${accessType}`);
+    }
+    return { siteId: siteId, name: siteName };
   }
 
   /**
