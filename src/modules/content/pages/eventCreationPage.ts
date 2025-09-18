@@ -53,6 +53,12 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
   readonly publishButton: Locator;
   readonly publishChangeButton: Locator;
 
+  // Event sync configuration locators
+  readonly eventSyncingToggle: Locator;
+  readonly rsvpToggle: Locator;
+  readonly googleCalendarToggle: Locator;
+  readonly outlookCalendarToggle: Locator;
+
   // Cover image components (if needed)
   readonly coverImageUploaderContainer: Locator;
   readonly submitButton: Locator;
@@ -67,8 +73,18 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
     this.descriptionInput = page.locator("div[aria-label='Event description']");
     this.locationInput = page.locator('//input[@id="location"]');
     this.publishButton = page.getByRole('button', { name: 'Publish' });
-    this.publishChangeButton = page.locator('//span[text()="Publish changes"]');
+    this.publishChangeButton = page.getByRole('button', { name: 'Publish changes' });
     this.submitButton = page.locator('span').filter({ hasText: 'Submit for approval' });
+
+    // Event sync configuration locators
+    this.eventSyncingToggle = page.locator("//button[@role='switch' and @data-state='checked']");
+    this.rsvpToggle = page.locator("//input[@id='hasRsvp_yes']");
+    this.googleCalendarToggle = page.locator(
+      "//label[@for='eventSync_destinationgooglecalendar' and @title='Google Calendar sync']"
+    );
+    this.outlookCalendarToggle = page.locator(
+      "//label[@for='eventSync_destinationoutlook' and @title='Outlook Calendar sync']"
+    );
 
     // Cover image components (optional)
     this.coverImageUploaderContainer = page
@@ -335,42 +351,30 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
     verifyRsvpToggle?: boolean;
   }): Promise<void> {
     await test.step('Verify event sync configuration', async () => {
-      const eventSyncingToggle = this.page.locator("//button[@role='switch' and @data-state='checked']");
-
-      await this.verifier.verifyTheElementIsVisible(eventSyncingToggle, {
+      await this.verifier.verifyTheElementIsVisible(this.eventSyncingToggle, {
         assertionMessage: 'Event syncing toggle should be visible and checked',
         timeout: 10000,
       });
 
       if (options?.verifyRsvpToggle) {
-        const rsvpToggle = this.page.locator("//input[@id='hasRsvp_yes']");
-        await this.verifier.verifyTheElementIsVisible(rsvpToggle, {
+        await this.verifier.verifyTheElementIsVisible(this.rsvpToggle, {
           assertionMessage: 'RSVP toggle should be visible and checked',
           timeout: 10000,
         });
-        console.log('✅ RSVP toggle is visible and checked');
       }
 
       if (options?.verifyGoogleCalendar) {
-        const googleCalendarToggle = this.page.locator(
-          "//label[@for='eventSync_destinationgooglecalendar' and @title='Google Calendar sync']"
-        );
-        await this.verifier.verifyTheElementIsVisible(googleCalendarToggle, {
+        await this.verifier.verifyTheElementIsVisible(this.googleCalendarToggle, {
           assertionMessage: 'Google Calendar toggle should be visible',
           timeout: 10000,
         });
-        console.log('✅ Google Calendar toggle is visible');
       }
 
       if (options?.verifyOutlookCalendar) {
-        const outlookCalendarToggle = this.page.locator(
-          "//label[@for='eventSync_destinationoutlook' and @title='Outlook Calendar sync']"
-        );
-        await this.verifier.verifyTheElementIsVisible(outlookCalendarToggle, {
+        await this.verifier.verifyTheElementIsVisible(this.outlookCalendarToggle, {
           assertionMessage: 'Outlook Calendar toggle should be visible',
           timeout: 10000,
         });
-        console.log('✅ Outlook Calendar toggle is visible');
       }
     });
   }

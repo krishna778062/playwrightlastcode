@@ -18,6 +18,9 @@ report.json
 /config/*.env
 !/config/*.env.example
 
+# Google Calendar Secrets (sensitive data)
+src/modules/*/env/googleCalendarSecrets.env
+
 # Development artifacts
 *.log
 *.tmp

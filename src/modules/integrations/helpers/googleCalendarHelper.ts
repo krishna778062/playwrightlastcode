@@ -1,0 +1,363 @@
+import { getEnvVar } from '@core/utils/getEnvConfig';
+
+export interface GoogleCalendarEvent {
+  id?: string;
+  summary?: string;
+  start?: {
+    dateTime?: string;
+    date?: string;
+  };
+  end?: {
+    dateTime?: string;
+    date?: string;
+  };
+  location?: string;
+  description?: string;
+  attendees?: Array<{
+    email: string;
+    responseStatus: 'accepted' | 'declined' | 'tentative' | 'needsAction';
+  }>;
+}
+
+export interface GoogleCalendarConfig {
+  clientId: string;
+  clientSecret: string;
+  refreshToken: string;
+}
+
+/**
+ * Google Calendar Helper - Instance-based utility class for Google Calendar API interactions
+ *
+ * Usage:
+ * - const appManagerHelper = new GoogleCalendarHelper('APP_MANAGER');
+ * - const endUserHelper = new GoogleCalendarHelper('END_USER');
+ *
+ * Features:
+ * - Automatic token management with refresh
+ * - Instance-based design for better encapsulation
+ * - Environment variable based configuration
+ * - Shared access token per instance to avoid repeated API calls
+ */
+export class GoogleCalendarHelper {
+  private static readonly GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
+  private static readonly CALENDAR_API_BASE = 'https://www.googleapis.com/calendar/v3';
+
+  private config: GoogleCalendarConfig;
+  private accessToken: string | null = null;
+  private tokenExpiryTime: number = 0;
+
+  constructor(userType: 'APP_MANAGER' | 'END_USER' = 'APP_MANAGER') {
+    const prefix = userType === 'APP_MANAGER' ? 'GOOGLE_CALENDAR' : 'END_USER_GOOGLE_CALENDAR';
+
+    this.config = {
+      clientId: getEnvVar(`${prefix}_CLIENT_ID`, true)!,
+      clientSecret: getEnvVar(`${prefix}_CLIENT_SECRET`, true)!,
+      refreshToken: getEnvVar(`${prefix}_REFRESH_TOKEN`, true)!,
+    };
+  }
+
+  /**
+   * Get a valid access token, refreshing if necessary
+   * Token is cached and reused until expiry
+   */
+  async getAccessToken(): Promise<string> {
+    // Return cached token if still valid
+    if (this.accessToken && Date.now() < this.tokenExpiryTime) {
+      console.log(`🔑 Using cached Google Calendar access token`);
+      return this.accessToken;
+    }
+
+    console.log(`🔄 Refreshing Google Calendar access token...`);
+    const body = new URLSearchParams({
+      grant_type: 'refresh_token',
+      client_id: this.config.clientId,
+      client_secret: this.config.clientSecret,
+      refresh_token: this.config.refreshToken,
+    });
+
+    const res = await fetch(GoogleCalendarHelper.GOOGLE_TOKEN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString(),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      console.error(`❌ Google token exchange failed:`, data);
+      throw new Error(`Google token exchange failed: ${JSON.stringify(data)}`);
+    }
+
+    // Cache the token with 1 minute buffer before expiry
+    this.accessToken = data.access_token;
+    this.tokenExpiryTime = Date.now() + data.expires_in * 1000 - 60000;
+    console.log(`✅ Successfully obtained Google Calendar access token`);
+
+    return this.accessToken!;
+  }
+
+  /**
+   * Make authenticated request to Google Calendar API
+   * Automatically handles token refresh and authorization headers
+   */
+  private async makeRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
+    const accessToken = await this.getAccessToken();
+
+    const response = await fetch(`${GoogleCalendarHelper.CALENDAR_API_BASE}${endpoint}`, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Google Calendar API error: ${errorText}`);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Search for events in Google Calendar by title
+   */
+  async findEvents(eventTitle: string, calendarId = 'primary'): Promise<GoogleCalendarEvent[]> {
+    const now = new Date();
+    const timeMin = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+    const timeMax = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+
+    const params = new URLSearchParams({
+      timeMin,
+      timeMax,
+      singleEvents: 'true',
+      orderBy: 'startTime',
+      q: eventTitle,
+    });
+
+    console.log(`🔍 Searching Google Calendar for events containing: "${eventTitle}"`);
+    const data = await this.makeRequest(`/calendars/${encodeURIComponent(calendarId)}/events?${params}`);
+    const events = data.items || [];
+
+    console.log(`📅 Found ${events.length} total events in calendar`);
+    const matchingEvents = events.filter(
+      (event: any) => event.summary && event.summary.includes(eventTitle)
+    ) as GoogleCalendarEvent[];
+
+    console.log(`🎯 Found ${matchingEvents.length} events matching "${eventTitle}"`);
+    if (matchingEvents.length > 0) {
+      console.log(
+        `✅ Matching events:`,
+        matchingEvents.map(e => ({ id: e.id, summary: e.summary }))
+      );
+    }
+
+    return matchingEvents;
+  }
+
+  /**
+   * RSVP to a Google Calendar event
+   */
+  async rsvpToEvent(
+    calendarId: string,
+    eventId: string,
+    email: string,
+    status: 'accepted' | 'declined' | 'tentative'
+  ): Promise<any> {
+    return this.makeRequest(`/calendars/${encodeURIComponent(calendarId)}/events/${eventId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        attendees: [{ email, responseStatus: status }],
+      }),
+    });
+  }
+
+  /**
+   * Verify event sync with retry logic
+   */
+  async verifyEventSyncWithRetry(
+    eventTitle: string,
+    options: {
+      maxAttempts?: number;
+      retryDelayMs?: number;
+      calendarId?: string;
+      expectFound?: boolean;
+    } = {}
+  ): Promise<{ found: boolean; event?: GoogleCalendarEvent; attempts: number }> {
+    const { maxAttempts = 8, retryDelayMs = 10000, calendarId = 'primary', expectFound = true } = options;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const matchingEvents = await this.findEvents(eventTitle, calendarId);
+      const eventFound = matchingEvents.length > 0;
+
+      if (eventFound === expectFound) {
+        return {
+          found: eventFound,
+          event: eventFound ? matchingEvents[0] : undefined,
+          attempts: attempt,
+        };
+      }
+
+      if (attempt < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, retryDelayMs));
+      }
+    }
+
+    return { found: !expectFound, attempts: maxAttempts };
+  }
+
+  /**
+   * Verify event details with retry logic
+   */
+  async verifyEventDetailsWithRetry(
+    eventTitle: string,
+    expectedDetails: {
+      title?: string;
+      description?: string;
+      location?: string;
+    },
+    options: {
+      maxAttempts?: number;
+      retryDelayMs?: number;
+      calendarId?: string;
+    } = {}
+  ): Promise<{
+    found: boolean;
+    detailsMatched: boolean;
+    event?: GoogleCalendarEvent;
+    attempts: number;
+    mismatches?: string[];
+  }> {
+    const { maxAttempts = 8, retryDelayMs = 10000, calendarId = 'primary' } = options;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const matchingEvents = await this.findEvents(eventTitle, calendarId);
+
+      if (matchingEvents.length > 0) {
+        const foundEvent = matchingEvents[0];
+        const mismatches: string[] = [];
+
+        if (expectedDetails.title && foundEvent.summary !== expectedDetails.title) {
+          mismatches.push(`Title mismatch: expected "${expectedDetails.title}", got "${foundEvent.summary}"`);
+        }
+
+        if (expectedDetails.description) {
+          const actualDescription = foundEvent.description || '';
+          if (!actualDescription.includes(expectedDetails.description)) {
+            mismatches.push(
+              `Description mismatch: expected to contain "${expectedDetails.description}", got "${actualDescription}"`
+            );
+          }
+        }
+
+        if (expectedDetails.location && foundEvent.location !== expectedDetails.location) {
+          mismatches.push(
+            `Location mismatch: expected "${expectedDetails.location}", got "${foundEvent.location || 'N/A'}"`
+          );
+        }
+
+        if (mismatches.length === 0) {
+          return {
+            found: true,
+            detailsMatched: true,
+            event: foundEvent,
+            attempts: attempt,
+          };
+        }
+      }
+
+      if (attempt < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, retryDelayMs));
+      }
+    }
+
+    return {
+      found: false,
+      detailsMatched: false,
+      attempts: maxAttempts,
+    };
+  }
+}
+
+// Factory functions for easy instantiation
+export const createAppManagerGoogleCalendarHelper = () => new GoogleCalendarHelper('APP_MANAGER');
+export const createEndUserGoogleCalendarHelper = () => new GoogleCalendarHelper('END_USER');
+
+// Backward compatibility functions for existing code
+export const getGoogleAccessToken = async (): Promise<string> => {
+  const helper = createAppManagerGoogleCalendarHelper();
+  return helper.getAccessToken();
+};
+
+export const getEndUserGoogleAccessToken = async (): Promise<string> => {
+  const helper = createEndUserGoogleCalendarHelper();
+  return helper.getAccessToken();
+};
+
+export const findEventOnGoogleCalendar = async (
+  eventTitle: string,
+  accessToken: string,
+  calendarId = 'primary'
+): Promise<GoogleCalendarEvent[]> => {
+  // Note: accessToken parameter is ignored for backward compatibility
+  // The helper manages its own tokens
+  const helper = createAppManagerGoogleCalendarHelper();
+  return helper.findEvents(eventTitle, calendarId);
+};
+
+export const rsvpEvent = async (
+  accessToken: string,
+  calendarId: string,
+  eventId: string,
+  email: string,
+  status: 'accepted' | 'declined' | 'tentative'
+) => {
+  // Note: accessToken parameter is ignored for backward compatibility
+  // The helper manages its own tokens
+  const helper = createAppManagerGoogleCalendarHelper();
+  return helper.rsvpToEvent(calendarId, eventId, email, status);
+};
+
+export const verifyEventSyncWithRetry = async (
+  eventTitle: string,
+  accessToken: string,
+  options: {
+    maxAttempts?: number;
+    retryDelayMs?: number;
+    calendarId?: string;
+    waitFunction?: (ms: number) => Promise<void>;
+    expectFound?: boolean;
+  } = {}
+): Promise<{ found: boolean; event?: GoogleCalendarEvent; attempts: number }> => {
+  // Note: accessToken parameter is ignored for backward compatibility
+  // The helper manages its own tokens
+  const helper = createAppManagerGoogleCalendarHelper();
+  return helper.verifyEventSyncWithRetry(eventTitle, options);
+};
+
+export const verifyEventDetailsInGoogleCalendar = async (
+  eventTitle: string,
+  expectedDetails: {
+    title?: string;
+    description?: string;
+    location?: string;
+  },
+  accessToken: string,
+  options: {
+    maxAttempts?: number;
+    retryDelayMs?: number;
+    calendarId?: string;
+    waitFunction?: (ms: number) => Promise<void>;
+  } = {}
+): Promise<{
+  found: boolean;
+  detailsMatched: boolean;
+  event?: GoogleCalendarEvent;
+  attempts: number;
+  mismatches?: string[];
+}> => {
+  // Note: accessToken parameter is ignored for backward compatibility
+  // The helper manages its own tokens
+  const helper = createAppManagerGoogleCalendarHelper();
+  return helper.verifyEventDetailsWithRetry(eventTitle, expectedDetails, options);
+};

@@ -3,7 +3,6 @@ import { IContentManagementServices } from '@api/interfaces/IContentManagementSe
 import { APIRequestContext, expect, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-import { TIMEOUTS } from '@core/constants/timeouts';
 import {
   AlbumCreationPayload,
   ContentListResponse,
