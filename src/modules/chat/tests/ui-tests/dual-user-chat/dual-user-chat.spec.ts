@@ -51,8 +51,12 @@ test.describe('Direct Message between two static users', () => {
     });
 
     // Send messages in different groups
-    await user1ChatPage.actions.sendMessage(`Message in group1 - ${Date.now()}`);
-    await user2ChatPage.actions.sendMessage(`Message in group2 - ${Date.now()}`);
+    const message1 = `Message in group1 - ${Date.now()}`;
+    const message2 = `Message in group2 - ${Date.now()}`;
+    await user1ChatPage.actions.sendMessage(message1);
+    await user1ChatPage.assertions.verifyMessageIsVisible(message1);
+    await user2ChatPage.actions.sendMessage(message2);
+    await user2ChatPage.assertions.verifyMessageIsVisible(message2);
 
     // Now both users join the same group
     await user1ChatPage.actions.openGroupChat('direct-message', {
