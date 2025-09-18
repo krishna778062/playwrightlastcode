@@ -69,11 +69,10 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
     const dayCell = this.page.getByRole('gridcell', { name: dayNumber }).first();
     await dayCell.click();
 
-    // Wait a bit for the date to be updated in the UI
-    await this.page.waitForTimeout(500);
-
     const expectedText = formatDateForDisplay(targetDate);
-    await expect(dateButton).toContainText(expectedText);
+
+    // Wait for the date button to contain the expected text
+    await expect(dateButton).toContainText(expectedText, { timeout: 10000 });
   }
 
   /**
