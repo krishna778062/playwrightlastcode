@@ -1,4 +1,4 @@
-import { Locator, Page, test } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 
 import { AdGroupComponent } from '../components/adGroupComponent';
 import { BaseAppTileComponent } from '../components/baseAppTileComponent';
@@ -25,39 +25,47 @@ export class adGroupPage extends BasePage {
     });
   }
 
-  async clickOnButton(text: string): Promise<void> {
-    return this.adGroupComponent.clickOnButton(text);
+  async clickOnSelectADGroupButton(text: string): Promise<void> {
+    return this.adGroupComponent.clickOnSelectADGroupButton(text);
   }
 
-  async clickOnRadioButton(text: string): Promise<void> {
-    return this.adGroupComponent.clickOnSpanContainButtonText(text);
+  async clickOnAdGroupsOption(text: string): Promise<void> {
+    return this.adGroupComponent.clickOnAdGroupsOption(text);
+  }
+
+  async clickOnDoneButton(text: string): Promise<void> {
+    return this.adGroupComponent.clickOnSelectADGroupButton(text);
   }
 
   async selectGroup(text: string): Promise<void> {
     return this.adGroupComponent.selectADGroups(text);
   }
 
-  async validateMessage(text: string, number: string): Promise<void> {
-    return this.adGroupComponent.validateMessage(text, number);
+  async verifyAddedGroupsMessage(expectedCount: number): Promise<void> {
+    return this.adGroupComponent.verifyAddedGroupsMessage(expectedCount);
   }
 
-  async AudienceOptionDisplayed(text: string): Promise<void> {
-    return this.adGroupComponent.VerifyRadioButtonText(text);
+  async createAudiencesButtonVisibilty(text: string): Promise<void> {
+    return this.adGroupComponent.clickOnAudiencesButton(text);
   }
 
-  async verifyGroupType(text: string): Promise<void> {
-    return this.adGroupComponent.verifyGroupType(text);
+  async doNotCreateAudiencesButtonVisibilty(text: string): Promise<void> {
+    return this.adGroupComponent.clickOnAudiencesButton(text);
   }
 
-  async clickOnDisconnectButton(text: string): Promise<void> {
-    return this.adGroupComponent.clickOnDisconnectButton(text);
+  async verifyErrorMessage(expectedMessage: string): Promise<void> {
+    return this.adGroupComponent.verifyErrorMessage(expectedMessage);
   }
 
-  async confirmDisconnect(text: string): Promise<void> {
-    return this.adGroupComponent.headingIsPresent(text);
+  async clickOnDisconnectAccountButton(sourceName: string, buttonText: string): Promise<void> {
+    return this.adGroupComponent.clickOnDisconnectAccountButton(sourceName, buttonText);
   }
 
-  async verifyMessage(message: string): Promise<void> {
-    return this.appTileComponent.verifyToastMessage(message);
+  async verifyDisconnectConfirmationText(expectedText: string): Promise<void> {
+    return this.adGroupComponent.verifyDisconnectConfirmationText(expectedText);
+  }
+
+  async verifyGroupType(): Promise<void> {
+    return this.adGroupComponent.verifyGroupType();
   }
 }

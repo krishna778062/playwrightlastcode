@@ -4,57 +4,65 @@ import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class AdGroupComponent extends BaseComponent {
   readonly adGroupsOption: (text: string) => Locator;
-  readonly spanContainText: (text: string) => Locator;
-  readonly buttonContainText: (text: string) => Locator;
-  readonly messageParagraph: (text: string) => Locator;
-  readonly selectedCount: (count: string) => Locator;
-  readonly groupTypeDropdown: (id: string) => Locator;
-  readonly disconnectButton: (ariaLabel: string) => Locator;
-  readonly headingText: (text: string) => Locator;
+  readonly selectADGroupButton: (text: string) => Locator;
+  readonly selectADGroup: (text: string) => Locator;
+  readonly addedGroupsMessage: () => Locator;
+  readonly selectAudiencesButton: (text: string) => Locator;
+  readonly audienceTypeDropdown: () => Locator;
+  readonly errorMessage: (text: string) => Locator;
+  readonly disconnectAccountButton: (sourceName: string, buttonText: string) => Locator;
+  readonly disconnectConfirmationText: (text: string) => Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
 
-    this.adGroupsOption = (text: string) => this.rootLocator.locator(`//div[text()='${text}']`);
-    this.spanContainText = (text: string) => this.rootLocator.locator(`//span[contains(text(),'${text}')]`);
-    this.buttonContainText = (text: string) => this.rootLocator.locator(`//button[contains(text(),'${text}')]`);
-    this.messageParagraph = (text: string) => this.rootLocator.locator(`//p[contains(text(),'${text}')]`);
-    this.selectedCount = (count: string) => this.rootLocator.locator(`//strong[text()='${count}']`);
-    this.groupTypeDropdown = (id: string) => this.rootLocator.locator(`//select[@id='${id}']`);
-    this.disconnectButton = (ariaLabel: string) => this.rootLocator.locator(`//button[@aria-label='${ariaLabel}']`);
-    this.headingText = (text: string) => this.rootLocator.locator(`//h2[text()='${text}']`);
+    this.adGroupsOption = (text: string) => this.rootLocator.getByText(text, { exact: true });
+    this.selectADGroupButton = (text: string) => this.rootLocator.getByRole('button', { name: text });
+    this.selectADGroup = (text: string) => this.rootLocator.getByRole('checkbox', { name: text });
+    this.addedGroupsMessage = () => this.rootLocator.locator('div.InfoBox-inner p');
+    this.selectAudiencesButton = (text: string) => this.rootLocator.locator('label').filter({ hasText: text }).nth(1);
+    this.audienceTypeDropdown = () => this.rootLocator.getByTestId('overlay').getByTestId('SelectInput');
+    this.errorMessage = (text: string) => this.rootLocator.getByRole('alert').getByText(text);
+    this.disconnectAccountButton = (sourceName: string, buttonText: string) =>
+      this.rootLocator
+        .locator('li.ConnectedServices-module-item___nJXFQ')
+        .filter({ hasText: sourceName })
+        .getByRole('button')
+        .filter({ hasText: buttonText });
+    this.disconnectConfirmationText = (text: string) =>
+      this.rootLocator.locator('.Content.Content--small.type--secondary').getByText(text, { exact: true });
   }
 
   async selectADGroups(text: string): Promise<void> {
-    const option = this.adGroupsOption(text);
-    await expect(option, 'expecting AD Group option to be visible').toBeVisible();
-    await this.clickOnElement(option);
+    await this.selectADGroup(text).click();
   }
 
-  async clickOnSpanContainButtonText(text: string): Promise<void> {
-    const span = this.spanContainText(text);
-    await expect(span, 'expecting span text to be visible').toBeVisible();
+  async clickOnAdGroupsOption(text: string): Promise<void> {
+    const span = this.adGroupsOption(text);
     await span.click();
   }
 
-  async clickOnButton(text: string): Promise<void> {
-    const button = this.buttonContainText(text);
-    await expect(button, 'expecting button text to be visible').toBeVisible();
+  async clickOnSelectADGroupButton(text: string): Promise<void> {
+    const button = this.selectADGroupButton(text);
     await button.click();
   }
 
-  async validateMessage(text: string, number: string): Promise<void> {
-    await expect(this.messageParagraph(text), 'expecting paragraph to be visible').toBeVisible();
-    await expect(this.selectedCount(number), 'expecting count to be visible').toBeVisible();
+  async verifyAddedGroupsMessage(expectedCount: number): Promise<void> {
+    const messageElement = this.addedGroupsMessage();
+    await expect(messageElement, 'expecting added groups message to be visible').toBeVisible();
+    await expect(messageElement, 'expecting message to contain "Added"').toContainText('Added');
+    const countElement = messageElement.locator('strong');
+    await expect(countElement, 'expecting count element to be visible').toBeVisible();
+    await expect(countElement, `expecting count to be ${expectedCount}`).toHaveText(expectedCount.toString());
   }
 
-  async VerifyRadioButtonText(className: string): Promise<void> {
-    await expect(this.spanContainText(className), 'expecting span text to be visible').toBeVisible();
+  async clickOnAudiencesButton(text: string): Promise<void> {
+    await this.selectAudiencesButton(text).isVisible;
   }
 
-  async verifyGroupType(id: string): Promise<void> {
-    const dropdown = this.groupTypeDropdown(id);
-    await expect(dropdown, 'expecting dropdown to be visible').toBeVisible();
+  async verifyGroupType(): Promise<void> {
+    const dropdown = this.audienceTypeDropdown();
+    await expect(dropdown, 'expecting audience type dropdown to be visible').toBeVisible();
     const options = await dropdown.locator('option').allTextContents();
     const actualValues = options.map(option => option.trim());
     const expectedValues = [
@@ -68,13 +76,23 @@ export class AdGroupComponent extends BaseComponent {
     expect(actualValues).toEqual(expectedValues);
   }
 
-  async clickOnDisconnectButton(text: string): Promise<void> {
-    const button = this.disconnectButton(text);
-    await expect(button, 'expecting disconnect button to be visible').toBeVisible();
-    await this.clickOnElement(button);
+  async verifyErrorMessage(expectedMessage: string): Promise<void> {
+    await expect(this.errorMessage(expectedMessage), 'expecting error message to be visible').toBeVisible();
+    await expect(this.errorMessage(expectedMessage), 'expecting error message text to match').toHaveText(
+      expectedMessage
+    );
   }
 
-  async headingIsPresent(linkText: string): Promise<void> {
-    await expect(this.headingText(linkText), 'expecting heading to be visible').toBeVisible();
+  async clickOnDisconnectAccountButton(sourceName: string, buttonText: string): Promise<void> {
+    const disconnectButton = this.disconnectAccountButton(sourceName, buttonText);
+    await disconnectButton.click();
+  }
+
+  async verifyDisconnectConfirmationText(expectedText: string): Promise<void> {
+    const confirmationText = this.disconnectConfirmationText(expectedText);
+    await expect(
+      confirmationText,
+      `expecting disconnect confirmation text "${expectedText}" to be visible`
+    ).toBeVisible();
   }
 }

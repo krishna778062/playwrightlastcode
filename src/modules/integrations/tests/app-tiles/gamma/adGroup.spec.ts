@@ -5,7 +5,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { UserCredentials } from '@core/types/test.types';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
-import { AD_GROUP } from '../../../constants/common';
+import { ActionType, AD_GROUP } from '../../../constants/common';
 import { MESSAGES } from '../../../constants/messageRepo';
 import { adGroupPage } from '../../../pages/adGroupPage';
 
@@ -32,11 +32,11 @@ test.describe('AD Group Integration', () => {
     async ({ page }) => {
       adGroup = new adGroupPage(page);
       await adGroup.loadPage();
-      await adGroup.clickOnRadioButton(AD_GROUP.AD_GROUP_OPTION);
-      await adGroup.clickOnButton(AD_GROUP.GROUP_BUTTON);
+      await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
+      await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
       await adGroup.selectGroup(AD_GROUP.GROUP_NAME1);
-      await adGroup.clickOnButton(AD_GROUP.DONE_BUTTON);
-      await adGroup.validateMessage(AD_GROUP.ADDED_MESSAGE, AD_GROUP.COUNT);
+      await adGroup.clickOnDoneButton(AD_GROUP.DONE_BUTTON);
+      await adGroup.verifyAddedGroupsMessage(1);
     }
   );
 
@@ -48,12 +48,12 @@ test.describe('AD Group Integration', () => {
     async ({ page }) => {
       adGroup = new adGroupPage(page);
       await adGroup.loadPage();
-      await adGroup.clickOnRadioButton(AD_GROUP.AD_GROUP_OPTION);
-      await adGroup.clickOnButton(AD_GROUP.GROUP_BUTTON);
+      await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
+      await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
       await adGroup.selectGroup(AD_GROUP.GROUP_NAME2);
-      await adGroup.clickOnButton(AD_GROUP.DONE_BUTTON);
-      await adGroup.AudienceOptionDisplayed(AD_GROUP.DO_NOT_CREATE_AUDIENCES);
-      await adGroup.AudienceOptionDisplayed(AD_GROUP.CREATE_AUDIENCES);
+      await adGroup.clickOnDoneButton(AD_GROUP.DONE_BUTTON);
+      await adGroup.doNotCreateAudiencesButtonVisibilty(AD_GROUP.DO_NOT_CREATE_AUDIENCES);
+      await adGroup.createAudiencesButtonVisibilty(AD_GROUP.CREATE_AUDIENCES);
     }
   );
 
@@ -65,10 +65,9 @@ test.describe('AD Group Integration', () => {
     async ({ page }) => {
       adGroup = new adGroupPage(page);
       await adGroup.loadPage();
-      await adGroup.verifyThePageIsLoaded();
-      await adGroup.clickOnRadioButton(AD_GROUP.AD_GROUP_OPTION);
-      await adGroup.clickOnButton(AD_GROUP.GROUP_BUTTON);
-      await adGroup.verifyGroupType(AD_GROUP.TYPE);
+      await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
+      await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
+      await adGroup.verifyGroupType();
     }
   );
 
@@ -80,11 +79,10 @@ test.describe('AD Group Integration', () => {
     async ({ page }) => {
       adGroup = new adGroupPage(page);
       await adGroup.loadPage();
-      await adGroup.clickOnRadioButton(AD_GROUP.AD_GROUP_OPTION);
-      await adGroup.clickOnButton(AD_GROUP.GROUP_BUTTON);
-      await adGroup.clickOnButton(AD_GROUP.DONE_BUTTON);
-      await adGroup.clickOnRadioButton(AD_GROUP.SAVE_BUTTON);
-      await adGroup.verifyMessage(MESSAGES.NO_GROUP_SELECTED_MESSAGE);
+      await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
+      await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
+      await adGroup.clickOnDoneButton(ActionType.Save);
+      await adGroup.verifyErrorMessage(MESSAGES.NO_GROUP_SELECTED_MESSAGE);
     }
   );
 
@@ -96,8 +94,8 @@ test.describe('AD Group Integration', () => {
     async ({ page }) => {
       adGroup = new adGroupPage(page);
       await adGroup.loadPage();
-      await adGroup.clickOnDisconnectButton(AD_GROUP.DISCONNECT_BUTTON);
-      await adGroup.confirmDisconnect(AD_GROUP.CONFIRM_MESSAGE);
+      await adGroup.clickOnDisconnectAccountButton(AD_GROUP.SOURCE_NAME, AD_GROUP.DISCONNECT_BUTTON_TEXT);
+      await adGroup.verifyDisconnectConfirmationText(AD_GROUP.CONFIRM_MESSAGE);
     }
   );
 });
