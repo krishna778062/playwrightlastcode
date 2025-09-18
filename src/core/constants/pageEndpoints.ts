@@ -42,6 +42,7 @@ export const PAGE_ENDPOINTS = {
   MANAGE_CONTENT: 'manage/content',
   MANAGE_SITE_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
   SITE_DETAILS_PAGE: (siteId: string) => PAGE_ENDPOINTS.getSiteDashboardPage(siteId),
+  ADD_SITE_SCREEN_PAGE: '/manage/sites/add?nextLinkTo=/manage/sites',
   SITE_CATEGORIES_PAGE: '/manage/site-categories',
   PAGE_CREATION_PAGE: '/site/:siteId/page/:pageId',
   ALBUM_CREATION_PAGE: '/site/:siteId/album/:albumId',
