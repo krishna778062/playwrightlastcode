@@ -38,13 +38,20 @@ export const integrationsEventFixture = base.extend<IntegrationsEventFixtures, I
     { scope: 'worker' },
   ],
 
-  testSiteName: [
+  siteManagementHelper: [
     async ({ appManagerApiClient }, use) => {
       const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
+      await use(siteManagementHelper);
+      await siteManagementHelper.cleanup();
+    },
+    { scope: 'test' },
+  ],
+
+  testSiteName: [
+    async ({ siteManagementHelper, appManagerApiClient }, use) => {
       let createdSiteName = '';
 
       try {
-        // Always create a dedicated test site for reliable event creation
         console.log('Creating dedicated test site for event creation...');
         const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
         const testSite = await siteManagementHelper.createPublicSite({
@@ -55,24 +62,10 @@ export const integrationsEventFixture = base.extend<IntegrationsEventFixtures, I
         console.log(`✅ Created dedicated test site: ${createdSiteName} (ID: ${testSite.siteId})`);
 
         await use(createdSiteName);
-
-        // Cleanup the created site
-        console.log(`🧹 Cleaning up test site: ${createdSiteName}`);
-        await siteManagementHelper.cleanup();
       } catch (error) {
-        console.error('Failed to create/cleanup test site:', error);
-        // Still provide a fallback empty string to avoid test failure
+        console.error('Failed to create test site:', error);
         await use(createdSiteName);
       }
-    },
-    { scope: 'test' }, // Test scope for site creation
-  ],
-
-  siteManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
-      await use(siteManagementHelper);
-      // No cleanup here since testSiteName handles it
     },
     { scope: 'test' },
   ],

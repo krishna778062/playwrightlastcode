@@ -25,19 +25,6 @@ export interface GoogleCalendarConfig {
   refreshToken: string;
 }
 
-/**
- * Google Calendar Helper - Instance-based utility class for Google Calendar API interactions
- *
- * Usage:
- * - const appManagerHelper = new GoogleCalendarHelper('APP_MANAGER');
- * - const endUserHelper = new GoogleCalendarHelper('END_USER');
- *
- * Features:
- * - Automatic token management with refresh
- * - Instance-based design for better encapsulation
- * - Environment variable based configuration
- * - Shared access token per instance to avoid repeated API calls
- */
 export class GoogleCalendarHelper {
   private static readonly GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
   private static readonly CALENDAR_API_BASE = 'https://www.googleapis.com/calendar/v3';
@@ -56,10 +43,6 @@ export class GoogleCalendarHelper {
     };
   }
 
-  /**
-   * Get a valid access token, refreshing if necessary
-   * Token is cached and reused until expiry
-   */
   async getAccessToken(): Promise<string> {
     // Return cached token if still valid
     if (this.accessToken && Date.now() < this.tokenExpiryTime) {
@@ -95,10 +78,6 @@ export class GoogleCalendarHelper {
     return this.accessToken!;
   }
 
-  /**
-   * Make authenticated request to Google Calendar API
-   * Automatically handles token refresh and authorization headers
-   */
   private async makeRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
     const accessToken = await this.getAccessToken();
 
@@ -119,9 +98,6 @@ export class GoogleCalendarHelper {
     return response.json();
   }
 
-  /**
-   * Search for events in Google Calendar by title
-   */
   async findEvents(eventTitle: string, calendarId = 'primary'): Promise<GoogleCalendarEvent[]> {
     const now = new Date();
     const timeMin = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
@@ -155,9 +131,6 @@ export class GoogleCalendarHelper {
     return matchingEvents;
   }
 
-  /**
-   * RSVP to a Google Calendar event
-   */
   async rsvpToEvent(
     calendarId: string,
     eventId: string,
@@ -172,9 +145,6 @@ export class GoogleCalendarHelper {
     });
   }
 
-  /**
-   * Verify event sync with retry logic
-   */
   async verifyEventSyncWithRetry(
     eventTitle: string,
     options: {
@@ -206,9 +176,6 @@ export class GoogleCalendarHelper {
     return { found: !expectFound, attempts: maxAttempts };
   }
 
-  /**
-   * Verify event details with retry logic
-   */
   async verifyEventDetailsWithRetry(
     eventTitle: string,
     expectedDetails: {
@@ -279,11 +246,9 @@ export class GoogleCalendarHelper {
   }
 }
 
-// Factory functions for easy instantiation
 export const createAppManagerGoogleCalendarHelper = () => new GoogleCalendarHelper('APP_MANAGER');
 export const createEndUserGoogleCalendarHelper = () => new GoogleCalendarHelper('END_USER');
 
-// Backward compatibility functions for existing code
 export const getGoogleAccessToken = async (): Promise<string> => {
   const helper = createAppManagerGoogleCalendarHelper();
   return helper.getAccessToken();
@@ -299,8 +264,6 @@ export const findEventOnGoogleCalendar = async (
   accessToken: string,
   calendarId = 'primary'
 ): Promise<GoogleCalendarEvent[]> => {
-  // Note: accessToken parameter is ignored for backward compatibility
-  // The helper manages its own tokens
   const helper = createAppManagerGoogleCalendarHelper();
   return helper.findEvents(eventTitle, calendarId);
 };

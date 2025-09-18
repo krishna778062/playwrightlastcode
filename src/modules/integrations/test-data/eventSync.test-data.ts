@@ -1,13 +1,5 @@
 import { EventSyncDestination, EventSyncInvitees } from '@/src/core/types/contentManagement.types';
 
-/**
- * Centralized event sync test data for consistent testing
- * Contains reusable event payload structures and configurations
- */
-
-/**
- * Base event sync configuration for Google Calendar integration
- */
 export const BASE_EVENT_SYNC_CONFIG = {
   enabled: true,
   destination: EventSyncDestination.GOOGLE_CALENDAR,
@@ -15,17 +7,11 @@ export const BASE_EVENT_SYNC_CONFIG = {
   invitees: EventSyncInvitees.SITE_MEMBERS_FOLLOWERS,
 } as const;
 
-/**
- * Base RSVP configuration
- */
 export const BASE_RSVP_CONFIG = {
   hasMaybeOption: true,
   noteLabel: null,
 } as const;
 
-/**
- * Common event body structure generator
- */
 export const createEventBody = (description: string) => ({
   type: 'doc',
   content: [
@@ -37,9 +23,6 @@ export const createEventBody = (description: string) => ({
   ],
 });
 
-/**
- * Event payload factory for creating consistent event data
- */
 export const createEventPayload = (params: {
   title: string;
   description: string;
@@ -77,9 +60,6 @@ export const createEventPayload = (params: {
   };
 };
 
-/**
- * Pre-defined event configurations for common test scenarios
- */
 export const EVENT_CONFIGS = {
   RSVP_SYNC: {
     titleSuffix: 'API Event with Google Sync',
@@ -133,9 +113,6 @@ export const EVENT_CONFIGS = {
   },
 } as const;
 
-/**
- * Expected event sync configuration for assertions
- */
 export const EXPECTED_EVENT_SYNC_CONFIG = {
   eventSync: {
     enabled: true,
