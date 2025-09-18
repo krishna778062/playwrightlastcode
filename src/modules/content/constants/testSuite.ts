@@ -16,4 +16,5 @@ export enum ContentTestSuite {
   FEED_COMMENT_MENTION_NOTIFICATION = '@feed-comment-mention-notification',
   FEED_IMAGE_UPDATE_APP_MANAGER = '@feed-image-update-app-manager',
   FILES_PREVIEW = '@Files-Preview',
+  FEED_REPLY_APP_MANAGER = '@feed-reply-app-manager',
 }
