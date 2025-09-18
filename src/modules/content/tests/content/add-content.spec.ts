@@ -60,7 +60,10 @@ test.describe(
         roleId = await identityManagementHelper.getListOfRoles(Roles.UNLISTED_SITES_MANAGER);
         await identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
 
-        const siteDetails = await siteManagementHelper.getSiteByAccessType(SiteType.UNLISTED, { hasPages: true });
+        const siteDetails = await siteManagementHelper.getSiteByAccessType(SiteType.UNLISTED, {
+          waitForSearchIndex: true,
+          hasPages: true,
+        });
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.name;
 
