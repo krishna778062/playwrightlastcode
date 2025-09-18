@@ -84,8 +84,6 @@ test.describe('OKTA Group Integration', () => {
       await oktaGroup.clickOnOktaGroupOption(OKTA_GROUP.GROUP_OPTION);
       await page.reload();
       await oktaGroup.verifyDoNotUseOktaGroupsIsSelected(OKTA_GROUP.DO_NOT_USE_OKTA_GROUPS);
-      await oktaGroup.clickOnUnCheckOkta();
-      await oktaGroup.clickOnSaveButton();
     }
   );
 
@@ -111,8 +109,6 @@ test.describe('OKTA Group Integration', () => {
       await oktaGroup.clickOnSelectOktaGroup(OKTA_GROUP.GROUP_NAME1);
       await oktaGroup.clickOnDoneButton(ActionType.Done);
       await oktaGroup.verifyAddedGroupsMessage(1);
-      await oktaGroup.clickOnUnCheckOkta();
-      await oktaGroup.clickOnSaveButton();
     }
   );
 
@@ -145,8 +141,6 @@ test.describe('OKTA Group Integration', () => {
       await oktaGroup.clickOnClearGroupButton(OKTA_GROUP.GROUP_NAME2);
       await oktaGroup.clickOnDoneButton(ActionType.Done);
       await oktaGroup.verifyRemovedGroupsMessage(1);
-      await oktaGroup.clickOnUnCheckOkta();
-      await oktaGroup.clickOnSaveButton();
     }
   );
 
@@ -175,8 +169,6 @@ test.describe('OKTA Group Integration', () => {
       await oktaGroup.clickOnSelectOktaGroup(OKTA_GROUP.GROUP_NAME4);
       await oktaGroup.clickOnDoneButton(ActionType.Done);
       await oktaGroup.verifyAddedGroupsMessage(4);
-      await oktaGroup.clickOnUnCheckOkta();
-      await oktaGroup.clickOnSaveButton();
     }
   );
 });
