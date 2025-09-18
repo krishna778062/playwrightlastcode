@@ -1,5 +1,3 @@
-import { expect } from '@playwright/test';
-
 import { dualUserChatFixture as test } from '@modules/chat/fixtures/dualUserChatFixture';
 
 /**
