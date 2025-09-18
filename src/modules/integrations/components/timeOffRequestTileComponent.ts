@@ -1,7 +1,13 @@
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { expect, Locator, Page } from '@playwright/test';
 
-import { addWorkingDays, formatDateForDisplay, getNextWorkingDay, isWeekend } from '@core/utils/dateUtil';
+import {
+  addWorkingDays,
+  formatDateForAriaLabel,
+  formatDateForDisplay,
+  getNextWorkingDay,
+  isWeekend,
+} from '@core/utils/dateUtil';
 
 export interface TimeOffCategoryConfig {
   unit: 'hours' | 'days';
@@ -62,16 +68,11 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
     if (isWeekend(targetDate)) {
       throw new Error(`Cannot select weekend date: ${targetDate.toDateString()}`);
     }
-    await dateButton.click();
-
-    // Use UTC date to avoid timezone issues
-    const dayNumber = targetDate.getUTCDate().toString();
-    const dayCell = this.page.getByRole('gridcell', { name: dayNumber }).first();
-    await dayCell.click();
-
     const expectedText = formatDateForDisplay(targetDate);
-
-    // Wait for the date button to contain the expected text
+    const ariaLabel = formatDateForAriaLabel(targetDate);
+    await dateButton.click();
+    const dayCell = this.page.getByRole('gridcell', { name: ariaLabel }).first();
+    await dayCell.click();
     await expect(dateButton).toContainText(expectedText, { timeout: 10000 });
   }
 

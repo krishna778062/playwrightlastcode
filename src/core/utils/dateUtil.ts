@@ -137,12 +137,18 @@ export function addWorkingDays(startDate: Date, workingDaysToAdd: number): Date 
  * @returns {string} Formatted date string for aria-label
  */
 export function formatDateForAriaLabel(date: Date): string {
-  return date.toLocaleDateString('en-US', {
+  const formatter = new Intl.DateTimeFormat('en-US', {
     weekday: 'short',
     month: 'short',
-    day: 'numeric',
+    day: '2-digit',
     year: 'numeric',
+    timeZone: 'UTC',
   });
+
+  return formatter
+    .format(date)
+    .replace(/,/g, '')
+    .replace(/\u00A0/g, ' ');
 }
 
 /**
