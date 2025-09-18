@@ -1,6 +1,3 @@
-import { faker } from '@faker-js/faker';
-import path from 'path';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { tagTest } from '@core/utils/testDecorator';
 
@@ -9,7 +6,7 @@ import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
-import { SiteMembershipAction, SitePermission } from '@/src/core/types/siteManagement.types';
+import { SitePermission } from '@/src/core/types/siteManagement.types';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';

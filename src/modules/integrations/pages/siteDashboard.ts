@@ -41,7 +41,7 @@ export class SiteDashboard {
   }
 
   async verifyToastMessage(message: string) {
-    return this.airtableComponent.verifyToastMessage(message);
+    return this.airtableComponent.verifyToastMessageIsVisibleWithText(message);
   }
 
   async isTilePresent(tileTitle: string) {
@@ -54,7 +54,7 @@ export class SiteDashboard {
     await this.airtableComponent.verifyRemovePopupAppears(tileTitle);
     await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.REMOVE);
     if (successMessage) {
-      await this.airtableComponent.verifyToastMessage(successMessage);
+      await this.airtableComponent.verifyToastMessageIsVisibleWithText(successMessage);
     }
   }
 
