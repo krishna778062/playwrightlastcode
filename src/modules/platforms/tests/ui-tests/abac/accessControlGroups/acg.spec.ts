@@ -239,7 +239,7 @@ test.describe(
     test(
       `Verify that Name column is displayed and is sortable at Access control groups page`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
@@ -276,34 +276,19 @@ test.describe(
       }
     );
 
-    test(
+    test.only(
       `Verify the sorting functionality of Name column in access control groups page`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
-          zephyrTestId: ['PS-35732'],
+          zephyrTestId: ['PS-35732', 'PS-35733', 'PS-35734', 'PS-35735', 'PS-35736'],
         });
         const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
         // Test Scenario
         await accessControlGroupsPage.loadPage();
         await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.NAME);
-      }
-    );
-
-    test(
-      `Verify the sorting functionality of Feature column in access control groups page`,
-      {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`],
-      },
-      async ({ appManagerPage }) => {
-        tagTest(test.info(), {
-          zephyrTestId: ['PS-35733', 'PS-35734', 'PS-35735', 'PS-35736'],
-        });
-        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
-        // Test Scenario
-        await accessControlGroupsPage.loadPage();
         await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.FEATURE);
         await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.GROUP_TYPE);
         await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.STATUS);

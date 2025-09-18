@@ -330,14 +330,30 @@ export class AccessControlGroupsPage extends BasePage {
     // Ascending order
     await this.clickOnElement(selector.locator('button'));
     await expect(selector.locator('button').locator('i')).toBeVisible();
-    sortingOrder = await selector.locator('i').getAttribute('aria-label');
-    expect(await this.veryfySorting(this.acgColumns, columnName, sortingOrder ?? '')).toBeTruthy();
+    try {
+      sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
+      expect(sortingOrder).not.toBeNull();
+    } catch (e) {
+      await test.step(`Waiting for sorting order to be visible`, async () => {
+        await this.page.waitForTimeout(1000);
+      });
+      sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
+    }
+    await this.veryfySorting(this.acgColumns, columnName, sortingOrder ?? '');
 
     // Descending order
     await this.clickOnElement(selector.locator('button'));
     await expect(selector.locator('button').locator('i')).toBeVisible();
-    sortingOrder = await selector.locator('i').getAttribute('aria-label');
-    expect(await this.veryfySorting(this.acgColumns, columnName, sortingOrder ?? '')).toBeTruthy();
+    try {
+      sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
+      expect(sortingOrder).not.toBeNull();
+    } catch (e) {
+      await test.step(`Waiting for sorting order to be visible`, async () => {
+        await this.page.waitForTimeout(1000);
+      });
+      sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
+    }
+    await this.veryfySorting(this.acgColumns, columnName, sortingOrder ?? '');
   }
 
   /**
@@ -346,7 +362,7 @@ export class AccessControlGroupsPage extends BasePage {
    * @param columnName - Name of the column to be checked for sorting.
    * @param sortingOrder - Sorting order to be used for sorting the array(ascending/descending).
    */
-  async veryfySorting(selector: Locator, columnName: string, sortingOrder: string): Promise<boolean> {
+  async veryfySorting(selector: Locator, columnName: string, sortingOrder: string): Promise<void> {
     let columnIndex = -1;
     const allTextContents: string[] = [];
     let sortedTextContents: string[] = [];
@@ -357,8 +373,6 @@ export class AccessControlGroupsPage extends BasePage {
         break;
       }
     }
-    console.log(columnIndex);
-    console.log(await this.acgRecordsElement.count());
     for (let j = 0; j < (await this.acgRecordsElement.count()); j++) {
       const textContent = await this.acgRecordsElement.nth(j).locator('td').nth(columnIndex).textContent();
       if (!textContent?.includes('Syncing...')) {
@@ -374,8 +388,7 @@ export class AccessControlGroupsPage extends BasePage {
     sortedTextContents = await this.sortOntheBasisOfSortOrder(allTextContents, sortingOrder);
     console.log('<<<<<<<<<<<<<<sortedTextContents>>>>>>>>>>>\n');
     console.log(sortedTextContents);
-    console.log(await this.stringArrayVerifier.areArraysEqualIgnoreCase(allTextContents, sortedTextContents));
-    return await this.stringArrayVerifier.areArraysEqualIgnoreCase(allTextContents, sortedTextContents);
+    expect(sortedTextContents).toEqual(allTextContents);
   }
 
   /**
@@ -387,10 +400,22 @@ export class AccessControlGroupsPage extends BasePage {
     let sortedTextContents: string[] = [];
     console.log(`sorting array in ${sortingOrder} order`);
     if (sortingOrder === 'ascending') {
-      sortedTextContents = [...arrayToSort].sort();
+      sortedTextContents = [...arrayToSort].sort((a, b) =>
+        a.replace(/\s+/g, '').localeCompare(b.replace(/\s+/g, ''), undefined, {
+          sensitivity: 'base',
+          numeric: true,
+        })
+      );
       return sortedTextContents;
     } else {
-      sortedTextContents = [...arrayToSort].sort().reverse();
+      sortedTextContents = [...arrayToSort]
+        .sort((a, b) =>
+          a.replace(/\s+/g, '').localeCompare(b.replace(/\s+/g, ''), undefined, {
+            sensitivity: 'base',
+            numeric: true,
+          })
+        )
+        .reverse();
       return sortedTextContents;
     }
   }
