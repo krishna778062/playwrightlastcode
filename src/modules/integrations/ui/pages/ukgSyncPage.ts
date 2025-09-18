@@ -36,8 +36,8 @@ export class UkgSyncPage extends BasePage {
     this.ukgSyncComponents = new UkgSyncComponents(page);
   }
 
-  async verifyCheckBox(name: string): Promise<void> {
-    await this.ukgSyncComponents.verifyCheckBox(name);
+  async verifyScheduledSourcesCheckBox(name: string): Promise<void> {
+    await this.ukgSyncComponents.verifyScheduledSourcesCheckBox(name);
   }
 
   async clearInputField(source: string, username: string, password: string, url: string, key: string): Promise<void> {
@@ -84,5 +84,9 @@ export class UkgSyncPage extends BasePage {
 
   async selectDetailsSyncCheckBox(source: string, name: string): Promise<void> {
     await this.ukgSyncComponents.selectDetailsSyncCheckBox(source, name);
+  }
+
+  async uncheckScheduledSourcesCheckBox(name: string): Promise<void> {
+    await this.ukgSyncComponents.uncheckScheduledSourcesCheckBox(name);
   }
 }

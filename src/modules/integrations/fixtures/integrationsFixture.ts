@@ -128,6 +128,7 @@ export const integrationsFixture = test.extend<
     },
     { scope: 'test' },
   ],
+<<<<<<< HEAD
 
   // UI-only fixtures - browser and page components
   // Note: HomeDashboard requires tileManagementHelper, so we pass it from API fixture
@@ -147,4 +148,6 @@ export const integrationsFixture = test.extend<
     },
     { scope: 'test' },
   ],
+=======
+>>>>>>> fc6fbc81 (test(ukg_sync): resolved comments)
 });

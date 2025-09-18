@@ -106,10 +106,11 @@ export const APP_LABELS = {
 
 export const SYNCING = {
   UKG_PRO: 'UKG Pro',
+  UKG_PRO_SYNCING: 'UkgPro',
   USERNAME: 'username',
   PASSWORD: 'password',
-  BASE_URL: 'Base URL',
-  KEY: 'key',
+  BASE_URL: 'baseUrl',
+  KEY: 'apiKey',
   SYNC_DROPDOWN: 'syncSource',
   TEST: 'test',
   PAY_CURRENCY: 'Pay Currency',

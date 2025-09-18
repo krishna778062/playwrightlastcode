@@ -7,15 +7,15 @@ import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class UkgSyncComponents extends BaseComponent {
   protected userSyncingDropdown(option?: string): Locator {
-    return this.page.locator(`select[name="${option}"]`);
+    return this.page.locator(`select[id="${option}"]`);
   }
 
   protected scheduledSourcesCheckbox(name: string): Locator {
-    return this.page.getByText(`${name}`).locator('..').locator('..').locator('input');
+    return this.page.getByText(`${name}`).locator('xpath=ancestor::div[2]//input');
   }
 
   protected inputField(source: string, field: string): Locator {
-    return this.page.getByText(`${source}`).locator('..').locator('..').locator('..').getByPlaceholder(`${field}`);
+    return this.page.getByText(`${source}`).locator(`xpath=ancestor::div[3]//input[contains(@name,"${field}")]`);
   }
 
   protected spanText(name: string): Locator {
@@ -26,6 +26,10 @@ export class UkgSyncComponents extends BaseComponent {
     return this.page.locator(`option:has-text("${name}")`);
   }
 
+  protected optionValue(name: string): Locator {
+    return this.page.locator(`option[value="${name}"]`);
+  }
+
   protected syncDetailsCheckBox(option: string): Locator {
     return this.page.getByText(`${option}`).locator('..').locator('..').getByRole('combobox');
   }
@@ -34,10 +38,10 @@ export class UkgSyncComponents extends BaseComponent {
     return this.rootLocator.getByRole('option', { name: option });
   }
 
-  async verifyCheckBox(name: string): Promise<void> {
+  async verifyScheduledSourcesCheckBox(name: string): Promise<void> {
     const actual: string = (await this.scheduledSourcesCheckbox(name).getAttribute('value')) ?? '';
     if (actual.includes('false')) {
-      this.scheduledSourcesCheckbox(name).click();
+      await this.scheduledSourcesCheckbox(name).click();
     } else {
       console.log('Already checked');
     }
@@ -53,13 +57,13 @@ export class UkgSyncComponents extends BaseComponent {
 
     for (const field of fields) {
       const inputElement = this.inputField(source, field.value);
-      inputElement.clear();
+      await inputElement.clear();
       expect(inputElement, `${field.name} field should be empty`).toHaveValue('');
     }
   }
 
   async clickOnButton(text: string): Promise<void> {
-    this.spanText(text).click();
+    await this.spanText(text).click();
   }
 
   async verifyErrorMessage(message: string): Promise<void> {
@@ -72,13 +76,13 @@ export class UkgSyncComponents extends BaseComponent {
   }
 
   async verifyVisibility(name: string): Promise<void> {
-    this.userSyncingDropdown(SYNCING.SYNC_DROPDOWN).click();
+    await this.userSyncingDropdown(SYNCING.SYNC_DROPDOWN).click();
     const optionElement = await this.syncDropdown(name);
     expect(optionElement, `${name} is visible`).not.toBeVisible();
   }
 
   async selectDropdown(option: string): Promise<void> {
-    this.userSyncingDropdown(option).click();
+    await this.userSyncingDropdown(option).click();
   }
 
   async addUkgConnectionDetails(
@@ -97,20 +101,29 @@ export class UkgSyncComponents extends BaseComponent {
 
     for (const field of fields) {
       const inputElement = this.inputField(source, field.value);
-      inputElement.fill(field.name);
+      await inputElement.fill(field.name);
     }
   }
 
   async selectSyncOptions(name: string): Promise<void> {
-    this.optionText(name).click();
+    await this.optionValue(name).click();
   }
 
   async verifyDetailsCheckBoxVisibility(name: string): Promise<void> {
-    expect(this.spanText(name), 'Detail checkbox option not visible').toBeVisible();
+    await expect(this.spanText(name), 'Detail checkbox option not visible').toBeVisible();
   }
 
   async selectDetailsSyncCheckBox(source: string, name: string): Promise<void> {
-    this.syncDetailsCheckBox(source).click();
-    this.optionText(name).click();
+    await this.syncDetailsCheckBox(source).click();
+    await this.optionText(name).click();
+  }
+
+  async uncheckScheduledSourcesCheckBox(name: string): Promise<void> {
+    const actual: string = (await this.scheduledSourcesCheckbox(name).getAttribute('value')) ?? '';
+    if (actual.includes('true')) {
+      await this.scheduledSourcesCheckbox(name).click();
+    } else {
+      console.log('Already checked');
+    }
   }
 }

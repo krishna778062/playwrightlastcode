@@ -23,14 +23,14 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ page, loggedInPage }) => {
-        void loggedInPage;
+      async ({ page, homeDashboard }) => {
+        void homeDashboard;
         tagTest(test.info(), {
           zephyrTestId: 'INT-7614',
         });
-        const ukgSyncPage = new UkgSyncPage(page);
+        ukgSyncPage = new UkgSyncPage(page);
         await ukgSyncPage.navigateToPeopleDataPage();
-        await ukgSyncPage.verifyCheckBox(SYNCING.UKG_PRO);
+        await ukgSyncPage.verifyScheduledSourcesCheckBox(SYNCING.UKG_PRO);
         await ukgSyncPage.clearInputField(
           SYNCING.UKG_PRO,
           SYNCING.USERNAME,
@@ -54,14 +54,14 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ page, loggedInPage }) => {
-        void loggedInPage;
+      async ({ page, homeDashboard }) => {
+        void homeDashboard;
         tagTest(test.info(), {
           zephyrTestId: 'INT-4060',
         });
-        const ukgSyncPage = new UkgSyncPage(page);
+        ukgSyncPage = new UkgSyncPage(page);
         await ukgSyncPage.navigateToPeopleDataPage();
-        await ukgSyncPage.verifyCheckBox(SYNCING.UKG_PRO);
+        await ukgSyncPage.verifyScheduledSourcesCheckBox(SYNCING.UKG_PRO);
         await ukgSyncPage.addUkgConnectionDetails(
           SYNCING.UKG_PRO,
           SYNCING.USERNAME,
@@ -70,10 +70,13 @@ test.describe(
           SYNCING.KEY
         );
         await ukgSyncPage.clickOnButton(UI_ACTIONS.SAVE);
-        await ukgSyncPage.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
+        await ukgSyncPage.verifyToastMessage(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
         await ukgSyncPage.navigateToUserSyncingProvisioningPage();
         await ukgSyncPage.selectDropdown(SYNCING.SYNC_DROPDOWN);
         await ukgSyncPage.verifyVisibility(SYNCING.UKG_PRO);
+        await ukgSyncPage.navigateToPeopleDataPage();
+        await ukgSyncPage.uncheckScheduledSourcesCheckBox(SYNCING.UKG_PRO);
+        await ukgSyncPage.clickOnButton(UI_ACTIONS.SAVE);
       }
     );
 
@@ -82,14 +85,14 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ page, loggedInPage }) => {
-        void loggedInPage;
+      async ({ page, homeDashboard }) => {
+        void homeDashboard;
         tagTest(test.info(), {
           zephyrTestId: 'INT-15305',
         });
-        const ukgSyncPage = new UkgSyncPage(page);
+        ukgSyncPage = new UkgSyncPage(page);
         await ukgSyncPage.navigateToPeopleDataPage();
-        await ukgSyncPage.verifyCheckBox(SYNCING.UKG_PRO);
+        await ukgSyncPage.verifyScheduledSourcesCheckBox(SYNCING.UKG_PRO);
         await ukgSyncPage.addUkgConnectionDetails(
           SYNCING.UKG_PRO,
           SYNCING.USERNAME,
@@ -98,16 +101,19 @@ test.describe(
           SYNCING.KEY
         );
         await ukgSyncPage.clickOnButton(UI_ACTIONS.SAVE);
-        await ukgSyncPage.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
+        await ukgSyncPage.verifyToastMessage(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
         await ukgSyncPage.navigateToUserSyncingProvisioningPage();
         await ukgSyncPage.selectDropdown(SYNCING.SYNC_DROPDOWN);
-        await ukgSyncPage.verifyVisibility(SYNCING.UKG_PRO);
-        await ukgSyncPage.selectSyncOptions(SYNCING.UKG_PRO);
+        await ukgSyncPage.verifyVisibility(SYNCING.UKG_PRO_SYNCING);
+        await ukgSyncPage.selectSyncOptions(SYNCING.UKG_PRO_SYNCING);
         await ukgSyncPage.verifyDetailsCheckBoxVisibility(SYNCING.PAY_CURRENCY);
         await ukgSyncPage.verifyDetailsCheckBoxVisibility(SYNCING.FIRST_NAME);
         await ukgSyncPage.selectDetailsSyncCheckBox(SYNCING.FIRST_NAME, SYNCING.PREFERRED_NAME);
         await ukgSyncPage.verifyDetailsCheckBoxVisibility(SYNCING.HIRE_DATE);
         await ukgSyncPage.selectDetailsSyncCheckBox(SYNCING.HIRE_DATE, SYNCING.SENIORITY_DATE);
+        await ukgSyncPage.navigateToPeopleDataPage();
+        await ukgSyncPage.uncheckScheduledSourcesCheckBox(SYNCING.UKG_PRO);
+        await ukgSyncPage.clickOnButton(UI_ACTIONS.SAVE);
       }
     );
   }
