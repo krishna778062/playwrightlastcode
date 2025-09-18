@@ -16,6 +16,7 @@ export interface ISiteDashboardActions {
   navigateToEventCreationFromSiteDashboard: () => Promise<EventCreationPage>;
   navigateToManageSite: () => Promise<void>;
   verfiyFeedSection: () => Promise<void>;
+  clickOnFeedLink: () => Promise<void>;
 }
 
 export interface ISiteDashboardAssertions {
@@ -39,6 +40,8 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
   readonly categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
   readonly categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
   readonly siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
+  readonly feedSection = this.page.locator('div[class*="Feed-module"]');
+  readonly feedLink = this.page.locator('a:has-text("eed")');
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
@@ -203,6 +206,12 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
         assertionMessage: `Category heading "${categoryName}" should be visible`,
         timeout: 15000,
       });
+    });
+  }
+
+  async clickOnFeedLink(): Promise<void> {
+    await test.step('Click on feed link', async () => {
+      await this.clickOnElement(this.feedLink);
     });
   }
 }

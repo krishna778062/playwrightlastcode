@@ -81,7 +81,9 @@ test.describe(
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
         await accessControlGroupsPage.verifyACGStatus(acgName[0], ACG_STATUS.ACTIVE);
         await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully updated'
+        );
         await accessControlGroupsPage.dismissTheToastMessage();
         await accessControlGroupsPage.deleteACG(acgName.pop() as string);
       }
@@ -106,7 +108,9 @@ test.describe(
         );
         await accessControlGroupsPage.verifyACGStatus(acgName[0], ACG_STATUS.INACTIVE);
         await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully updated'
+        );
         await accessControlGroupsPage.dismissTheToastMessage();
         await accessControlGroupsPage.deleteACG(acgName.pop() as string);
       }
@@ -127,7 +131,9 @@ test.describe(
         //after these actions are done, we will wait for the api call to be completed
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
         await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully updated'
+        );
         await accessControlGroupsPage.dismissTheToastMessage();
         await accessControlGroupsPage.deleteACG(acgName.pop() as string);
       }
@@ -180,7 +186,9 @@ test.describe(
         // Create an ACG with target audiecne only
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
         await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully updated'
+        );
         await accessControlGroupsPage.dismissTheToastMessage();
         // Test Scenario
         await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
@@ -212,11 +220,15 @@ test.describe(
         // Create an ACG with target audiecne only
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
         await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully updated'
+        );
         await accessControlGroupsPage.dismissTheToastMessage();
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[1]));
         await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[1]);
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully updated'
+        );
         await accessControlGroupsPage.dismissTheToastMessage();
         // Test Scenario
         await accessControlGroupsPage.searchForACG(acgName[1]);
