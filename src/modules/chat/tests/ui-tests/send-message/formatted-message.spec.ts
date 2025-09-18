@@ -9,7 +9,7 @@ import { tagTest } from '@/src/core/utils/testDecorator';
 
 test.describe('Send Formatted Message', { tag: [TestPriority.P2] }, () => {
   for (const data of formattedMessageTestData) {
-    test.only(`Scenario: ${data.testName}`, async ({ appManagerHomePage }) => {
+    test(`Scenario: ${data.testName}`, async ({ appManagerHomePage }) => {
       tagTest(test.info(), {
         zephyrTestId: data.testId,
         storyId: data.storyId,
@@ -34,6 +34,8 @@ test.describe('Send Formatted Message', { tag: [TestPriority.P2] }, () => {
 
       // Send formatted message using chatAppPage method
       await chatAppPage.sendFormattedMessage(messageText, formattingOptions);
+
+      await chatAppPage.verifyFormattedMessageIsVisible(messageText, formattingOptions);
     });
   }
 });

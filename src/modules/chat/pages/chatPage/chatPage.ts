@@ -569,6 +569,24 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
     });
   }
 
+  public async verifyFormattedMessageIsVisible(
+    message: string,
+    formattingOptions: FormattingOptions,
+
+    options?: { stepInfo?: string; timeout?: number }
+  ): Promise<void> {
+    await test.step(options?.stepInfo || `Verifying message "${message}" is visible`, async () => {
+      return await this.getConversationWindowComponent().verifyFormattedMessageIsPresentInListOfChatMessages(
+        message,
+        formattingOptions,
+        {
+          stepInfo: options?.stepInfo,
+          timeout: options?.timeout,
+        }
+      );
+    });
+  }
+
   public async verifyUnsupportedFileHandling(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Verifying unsupported file handling`, async () => {
       await this.getUnsupportedFileMessageDialogBoxComponent().verifyTheUnsupportedFileMessageIsVisible({

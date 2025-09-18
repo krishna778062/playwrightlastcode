@@ -1,6 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { ChatEditorComponent } from '@chat/components/chatEditorComponent';
+import { ChatEditorComponent, FormattingOptions } from '@chat/components/chatEditorComponent';
 import { IncomingAudioVideoCallComponent } from '@chat/components/incomingAudioVideoCallComponent';
 
 import { ChatMentionsListSection } from './chatMentionsListSection';
@@ -100,6 +100,67 @@ export class ConversationWindowComponent extends BaseComponent {
           expect(messageFoundInList, `expecting message: ${message} to be present in the list of chat messages`).toBe(
             true
           );
+        }).toPass({ timeout: options?.timeout ?? TIMEOUTS.MEDIUM });
+      }
+    );
+  }
+
+  async verifyFormattedMessageIsPresentInListOfChatMessages(
+    message: string,
+    formattingOptions: FormattingOptions,
+    options?: {
+      stepInfo?: string;
+      timeout?: number;
+    }
+  ) {
+    await test.step(
+      options?.stepInfo ?? `Verifying formatted message: ${message} is present in the list of chat messages`,
+      async () => {
+        await expect(async () => {
+          let messageFoundInList: boolean = false;
+
+          // Get the last (most recent) chat message
+          const lastMessage = this.listChatMessagesComponent.last();
+          let messageText: string | null = null;
+
+          // Check for different formatting types in the last message only
+          if (formattingOptions.usesBold) {
+            const boldElement = lastMessage.locator('section p strong');
+            if (await boldElement.isVisible()) {
+              messageText = await boldElement.textContent();
+            }
+          }
+
+          if (formattingOptions.usesItalic) {
+            const italicElement = lastMessage.locator('section p em');
+            if (await italicElement.isVisible()) {
+              messageText = await italicElement.textContent();
+            }
+          }
+
+          if (formattingOptions.usesUnderline) {
+            const underlineElement = lastMessage.locator('section p u');
+            if (await underlineElement.isVisible()) {
+              messageText = await underlineElement.textContent();
+            }
+          }
+
+          if (formattingOptions.usesStrikethrough) {
+            const strikethroughElement = lastMessage.locator('section p s');
+            if (await strikethroughElement.isVisible()) {
+              messageText = await strikethroughElement.textContent();
+            }
+          }
+
+          // Check if the found text matches our expected message
+          if (messageText === message) {
+            messageFoundInList = true;
+          }
+
+          expect(
+            messageFoundInList,
+            `expecting formatted message: ${message} to be present in the list of chat messages`
+          ).toBe(true);
         }).toPass({ timeout: options?.timeout ?? TIMEOUTS.MEDIUM });
       }
     );
