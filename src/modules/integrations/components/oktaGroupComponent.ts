@@ -1,4 +1,4 @@
-import { expect, Locator, Page } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
 
@@ -40,56 +40,74 @@ export class OktaGroupComponent extends BaseComponent {
   }
 
   async clickOnCheckbox(): Promise<void> {
-    const oktaCheckbox = this.rootLocator.locator('#Okta_selected');
-    const isChecked = await oktaCheckbox.isChecked();
+    await test.step('Click on Okta checkbox', async () => {
+      const oktaCheckbox = this.rootLocator.locator('#Okta_selected');
+      const isChecked = await oktaCheckbox.isChecked();
 
-    if (!isChecked) {
-      await oktaCheckbox.check();
-      console.log('Okta checkbox has been checked');
-    } else {
-      console.log('Okta checkbox is already checked');
-    }
+      if (!isChecked) {
+        await oktaCheckbox.check();
+        console.log('Okta checkbox has been checked');
+      } else {
+        console.log('Okta checkbox is already checked');
+      }
+    });
   }
 
   async fillOktaCredentials(oktaLink: string, apiToken: string): Promise<void> {
-    await this.oktaLink().click();
-    await this.oktaLink().fill(oktaLink);
-    await this.oktaApiToken().hover();
-    await this.editButton().first().click();
-    await this.oktaApiToken().waitFor({ state: 'visible' });
-    await this.oktaApiToken().fill(apiToken);
+    await test.step('Fill Okta credentials', async () => {
+      await this.oktaLink().click();
+      await this.oktaLink().fill(oktaLink);
+      await this.oktaApiToken().hover();
+      await this.editButton().first().click();
+      await this.oktaApiToken().waitFor({ state: 'visible' });
+      await this.oktaApiToken().fill(apiToken);
+    });
   }
 
   async clickOnSaveButton(): Promise<void> {
-    await this.saveButton().click();
+    await test.step('Click on Save button', async () => {
+      await this.saveButton().click();
+    });
   }
 
   async clickOnOktaGroupOption(text: string): Promise<void> {
-    await this.groupOption(text).click();
+    await test.step(`Click on Okta group option: ${text}`, async () => {
+      await this.groupOption(text).click();
+    });
   }
 
   async visiblityOfSelectOktaGroupButton(text: string): Promise<void> {
-    await expect(this.selectOktaGroupButton(text), 'expecting button to be visible').toBeVisible();
+    await test.step(`Verify visibility of Select Okta Group button: ${text}`, async () => {
+      await expect(this.selectOktaGroupButton(text), 'expecting button to be visible').toBeVisible();
+    });
   }
 
   async clickOnSelectOktaGroupButton(text: string): Promise<void> {
-    await this.selectOktaGroupButton(text).click();
+    await test.step(`Click on Select Okta Group button: ${text}`, async () => {
+      await this.selectOktaGroupButton(text).click();
+    });
   }
 
   async clickOnSelectOktaGroup(text: string): Promise<void> {
-    await this.selectOktaGroup(text).check();
+    await test.step(`Select Okta group: ${text}`, async () => {
+      await this.selectOktaGroup(text).check();
+    });
   }
 
   async clickOnUnCheckOkta(): Promise<void> {
-    const oktaCheckbox = this.rootLocator.locator('#Okta_selected');
-    await oktaCheckbox.uncheck();
+    await test.step('Uncheck Okta checkbox', async () => {
+      const oktaCheckbox = this.rootLocator.locator('#Okta_selected');
+      await oktaCheckbox.uncheck();
+    });
   }
 
   async verifyErrorMessage(expectedMessage: string): Promise<void> {
-    await expect(this.errorMessage(expectedMessage), 'expecting error message to be visible').toBeVisible();
-    await expect(this.errorMessage(expectedMessage), 'expecting error message text to match').toHaveText(
-      expectedMessage
-    );
+    await test.step(`Verify error message: ${expectedMessage}`, async () => {
+      await expect(this.errorMessage(expectedMessage), 'expecting error message to be visible').toBeVisible();
+      await expect(this.errorMessage(expectedMessage), 'expecting error message text to match').toHaveText(
+        expectedMessage
+      );
+    });
   }
 
   async verifyDoNotUseOktaGroupsRadioIsSelected(text: string): Promise<void> {

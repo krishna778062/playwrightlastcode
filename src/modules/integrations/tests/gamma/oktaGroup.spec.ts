@@ -31,8 +31,7 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
 
-      async ({ page, homeDashboard }) => {
-        void homeDashboard;
+      async ({ page, homeDashboard: _ }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-22779,INT-22777',
           storyId: 'INT-21556',
@@ -54,8 +53,7 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
 
-      async ({ page, homeDashboard }) => {
-        void homeDashboard;
+      async ({ page, homeDashboard: _ }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-22778',
           storyId: 'INT-21556',
@@ -76,8 +74,7 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
 
-      async ({ page, homeDashboard }) => {
-        void homeDashboard;
+      async ({ page, homeDashboard: _ }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-22792',
           storyId: 'INT-21556',
@@ -100,8 +97,7 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
 
-      async ({ page, homeDashboard }) => {
-        void homeDashboard;
+      async ({ page, homeDashboard: _ }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-22795',
           storyId: 'INT-21556',
@@ -126,8 +122,7 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
 
-      async ({ page, homeDashboard }) => {
-        void homeDashboard;
+      async ({ page, homeDashboard: _ }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-22794, INT-22796',
           storyId: 'INT-21556',
@@ -159,8 +154,7 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
 
-      async ({ page, homeDashboard }) => {
-        void homeDashboard;
+      async ({ page, homeDashboard: _ }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-22793',
           storyId: 'INT-21556',
