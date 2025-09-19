@@ -9,10 +9,11 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 export class PeopleDirectoryPage extends BasePage {
   readonly userMode: Locator;
   readonly people: Locator;
+  readonly directory: Locator;
   readonly searchPeople: Locator;
   readonly peopleFilter: Locator;
   readonly manager: Locator;
-  readonly assistant: Locator;
+  readonly division: Locator;
   readonly expertise: Locator;
   readonly hireDate: Locator;
   readonly timeZone: Locator;
@@ -22,18 +23,15 @@ export class PeopleDirectoryPage extends BasePage {
 
     this.userMode = page.getByLabel('User mode');
     this.people = page.getByText('People');
+    this.directory = page.getByText('Directory');
     this.searchPeople = page.getByLabel('Search people...');
     this.peopleFilter = page.getByLabel('Filters');
-    this.manager = page.locator('[h3*="Manager"]');
-    this.assistant = page.locator('[h3*="Assistant"]');
 
-    page.getByRole('heading', { name: 'Expertise' });
-    this.expertise = page.getByRole('heading', { name: 'Expertise' });
-    // page.locator('[h3*="Expertise"]');
-    this.hireDate = page.getByRole('heading', { name: 'Hire date' });
-    //page.locator('[h3*="Hire date"]');
-    this.timeZone = page.getByRole('heading', { name: 'Time zone' });
-    //page.locator('[h3*="Time zone"]');
+    this.timeZone = this.page.locator('xpath=//h3[text()="Time zone"]');
+    this.hireDate = this.page.locator('xpath=//h3[text()="Hire date"]');
+    this.expertise = this.page.locator('xpath=//h3[text()="Expertise"]');
+    this.division = this.page.locator('xpath=//h3[text()="Division"]');
+    this.manager = this.page.locator('xpath=//h3[text()="Manager"]');
   }
 
   // Verify that the Home page is loaded
@@ -50,6 +48,8 @@ export class PeopleDirectoryPage extends BasePage {
    */
   async navigatePeopleDirectory(): Promise<void> {
     await this.clickOnElement(this.people);
+    await this.clickOnElement(this.directory);
+    await this.clickOnElement(this.peopleFilter);
     await expect(this.searchPeople, 'expecting search people to be visible').toBeVisible({
       timeout: TIMEOUTS.MEDIUM,
     });
@@ -64,31 +64,11 @@ export class PeopleDirectoryPage extends BasePage {
         timeout: TIMEOUTS.MEDIUM,
       });
 
-      await expect(this.manager).toBeVisible(),
-        {
-          stepInfo: 'Verify the presence of Manager filter',
-          timeout: TIMEOUTS.MEDIUM,
-        };
-      await expect(this.assistant).toBeVisible(),
-        {
-          stepInfo: 'Verify the presence of assistant filter',
-          timeout: TIMEOUTS.MEDIUM,
-        };
-      await expect(this.expertise).toBeVisible(),
-        {
-          stepInfo: 'Verify the presence of expertise filter',
-          timeout: TIMEOUTS.MEDIUM,
-        };
-      await expect(this.hireDate).toBeVisible(),
-        {
-          stepInfo: 'Verify the presence of hireDate filter',
-          timeout: TIMEOUTS.MEDIUM,
-        };
-      await expect(this.timeZone).toBeVisible(),
-        {
-          stepInfo: 'Verify the presence of timeZone filter',
-          timeout: TIMEOUTS.MEDIUM,
-        };
+      await expect(this.manager).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await expect(this.division).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await expect(this.expertise).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await expect(this.hireDate).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await expect(this.timeZone).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     });
   }
 }
