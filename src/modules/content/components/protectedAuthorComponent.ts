@@ -2,14 +2,12 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/components/baseComponent';
 
-export class PrivilegesComponent extends BaseComponent {
+export class ProtectedAuthorsComponent extends BaseComponent {
   readonly protectedAuthorsAuthors: Locator;
   readonly protectedAuthorsAllowlist: Locator;
   readonly protectedAuthors: Locator;
   readonly authorInputBox: Locator;
-  readonly clickOnSave: Locator;
   readonly crossUser: Locator;
-  readonly changesConfirmation: Locator;
   readonly selectingAuthor: Locator;
 
   constructor(readonly page: Page) {
@@ -18,9 +16,7 @@ export class PrivilegesComponent extends BaseComponent {
     this.protectedAuthorsAllowlist = page.getByText('Protected authors - allowlist:');
     this.protectedAuthors = page.getByRole('heading', { name: 'Protected authors' });
     this.authorInputBox = page.locator('#react-select-3-input');
-    this.clickOnSave = page.getByRole('button', { name: 'Save' });
     this.crossUser = page.locator('.Tag-remove').first();
-    this.changesConfirmation = page.getByText('Saved changes successfully');
     this.selectingAuthor = page.locator(`[role="listbox"]`);
   }
 
