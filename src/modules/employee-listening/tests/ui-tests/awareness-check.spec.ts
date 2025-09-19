@@ -15,20 +15,9 @@ test.describe('Awareness Check Functionality', { tag: ['@awarenessCheck'] }, () 
   let awarenessCheckPage: AwarenessCheckPage;
   let createdPageInfo: { pageId: string; siteId: string; pageTitle: string };
 
-  test.beforeEach(async ({ page, loginAs }) => {
-    // Step 1: Navigate to the base URL
-    const baseUrl = getEnvConfig().frontendBaseUrl.replace(/\/$/, '');
-    await page.goto(baseUrl);
-
-    // Step 2: Login using the login fixture
-    await loginAs('appManager');
-
-    // Step 3: Initialize awareness check page (without loading specific site yet)
-    // We'll create page content dynamically using the reusable method
-    awarenessCheckPage = new AwarenessCheckPage(page);
-
-    // Step 4: Create page content with awareness check functionality
-    // This replaces the manual TODO steps for page creation
+  test.beforeEach(async ({ appManagerPage }) => {
+    awarenessCheckPage = new AwarenessCheckPage(appManagerPage);
+    await awarenessCheckPage.loadPage();
     createdPageInfo = await awarenessCheckPage.actions.createPageWithAwarenessCheck({
       pageTitle: `Test Page for Awareness Check - ${test.info().title}`,
       contentType: PageContentType.NEWS,

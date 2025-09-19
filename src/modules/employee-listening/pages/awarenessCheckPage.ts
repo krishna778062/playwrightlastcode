@@ -8,6 +8,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { BasePage } from '@core/pages/basePage';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
 import { CreateComponent } from '@/src/modules/content/components/createComponent';
 // Import content creation related classes and types
@@ -58,7 +59,7 @@ export class AwarenessCheckPage extends BasePage implements IAwarenessCheckActio
     `select[name="questions[${questionIndex}].options[${answerIndex}].correct"]`;
 
   constructor(page: Page) {
-    super(page, '/site/c96eabdf-89cb-4631-be88-7c420c87965c/dashboard');
+    super(page, PAGE_ENDPOINTS.getSiteDashboardPage('c96eabdf-89cb-4631-be88-7c420c87965c'));
   }
 
   /**
