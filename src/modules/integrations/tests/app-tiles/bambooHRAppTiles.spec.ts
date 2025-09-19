@@ -334,7 +334,7 @@ test.describe(
     test(
       'verify BambooHR Apply for Time Off tile amount calculation for different categories',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ homeDashboard, tileManagementHelper, page }) => {
         tagTest(test.info(), {

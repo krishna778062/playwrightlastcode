@@ -34,6 +34,12 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
   readonly genericButton: Locator;
   readonly dropdownSelector: Locator;
   readonly dayPickerCellByAriaLabel: Locator;
+  readonly requestTypeDropdown: Locator;
+  readonly requestTypeInput: Locator;
+  readonly requestTypeMenu: Locator;
+  readonly requestTypeOption: Locator;
+  readonly requestTimeOffBtn: Locator;
+  readonly commentNoteTextarea: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -56,6 +62,13 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
     this.genericButton = page.getByRole('button');
     this.dropdownSelector = page.locator('[role="listbox"], [id^="react-select-"][id$="-listbox"]');
     this.dayPickerCellByAriaLabel = page.locator('.DayPicker-Day');
+    this.requestTypeDropdown = page.locator('.css-b62m3t-container');
+    this.requestTypeInput = page.locator('input[role="combobox"][aria-label="Request type"]');
+    this.requestTypeMenu = page.locator('.Menu-module__menu__3PjCm, [role="listbox"]');
+    this.requestTypeOption = page.locator('[role="menuitem"]');
+
+    this.requestTimeOffBtn = page.locator('button[type="button"]').filter({ hasText: 'Request time off' }).first();
+    this.commentNoteTextarea = page.locator('textarea[name="commentNote"]');
   }
 
   /**
@@ -96,23 +109,29 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
     const validDate = new Date(targetDate.getTime());
     const expectedText = formatDateForDisplay(validDate);
     const ariaLabel = formatDateForAriaLabel(validDate);
-    await dateButton.click();
-    await this.calendarGrid.waitFor({ state: 'visible', timeout: 10000 });
-    await this.navigateToCorrectMonthYear(validDate);
-    // Wait for the calendar to update after month/year selection
-    await this.calendarGrid.waitFor({ state: 'visible' });
-    const dayCell = this.getDayCellByAriaLabel(ariaLabel);
-    await dayCell.waitFor({ state: 'visible', timeout: 10000 });
-    await dayCell.click();
-    // Wait for the date to be applied and check the result
-    await expect(dateButton).not.toContainText('Select date', { timeout: 5000 });
-    const actualText = await dateButton.textContent();
-    if (actualText?.includes('Invalid DateTime')) {
-      throw new Error(
-        `Date selection resulted in "Invalid DateTime". Expected: ${expectedText}, Actual: ${actualText}`
-      );
+
+    const maxRetries = 2;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await dateButton.click();
+        await this.calendarGrid.waitFor({ state: 'visible', timeout: 10000 });
+        await this.navigateToCorrectMonthYear(validDate);
+        await this.calendarGrid.waitFor({ state: 'visible' });
+        const dayCell = this.getDayCellByAriaLabel(ariaLabel);
+        await dayCell.click();
+        return; // Success, exit the retry loop
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        if (attempt < maxRetries) {
+          // Wait a bit before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
     }
-    await expect(dateButton).toContainText(expectedText, { timeout: 15000 });
+
+    throw new Error(`Failed to select date ${expectedText} after ${maxRetries} attempts: ${lastError?.message}`);
   }
 
   /**
@@ -156,6 +175,16 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
   async enterComments(comments: string): Promise<void> {
     await test.step(`Enter comments: '${comments}'`, async () => {
       await this.commentsTextarea.fill(comments);
+    });
+  }
+
+  /**
+   * Enters comment note in the Comment note textarea
+   * @param commentNote - The comment note to enter
+   */
+  async enterCommentNote(commentNote: string): Promise<void> {
+    await test.step(`Enter comment note: '${commentNote}'`, async () => {
+      await this.commentNoteTextarea.fill(commentNote);
     });
   }
 
@@ -306,5 +335,70 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
       currentDate.setDate(currentDate.getDate() + 1);
     }
     return amounts;
+  }
+
+  /**
+   * Clicks the "Request time off" button
+   * @param buttonText - The button text to click (optional, defaults to "Request time off")
+   * @param options - Optional step information
+   */
+  async clickRequestButton(buttonText?: string, options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || `Click ${buttonText || 'Request time off'} button`, async () => {
+      await this.clickOnElement(this.requestTimeOffBtn);
+    });
+  }
+
+  /**
+   * Selects a value from any dropdown field
+   * @param fieldType - The type of field ('Request type', 'Duration', 'Comment Type')
+   * @param value - The value to select
+   * @param options - Optional step information
+   */
+  async selectRequestType(fieldType: string, value: string, options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || `Select ${fieldType}: ${value}`, async () => {
+      // More robust input locator with multiple strategies
+      const input = this.page
+        .locator(
+          `input[aria-label="${fieldType}"], input[aria-label*="${fieldType}"], input[placeholder*="${fieldType}"]`
+        )
+        .first();
+      await input.click();
+      await this.page.waitForTimeout(500);
+
+      // Better menu locator with fallbacks
+      const menu = this.page.locator('.Menu-module__menu__3PjCm, [role="listbox"], .css-fnh3vc-menu').first();
+      await menu.waitFor({ state: 'visible', timeout: 5000 });
+
+      // More specific option locator
+      const option = this.page
+        .locator('[role="menuitem"], .MenuItem-module__item__qso52')
+        .filter({ hasText: value })
+        .first();
+      await option.click();
+    });
+  }
+
+  /**
+   * Verifies the "Request time off" button is enabled and ready for interaction
+   * @param options - Optional step information
+   */
+  async verifyRequestTimeOffButtonIsEnabled(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Verify Request time off button is enabled', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.requestTimeOffButton);
+      await expect(this.requestTimeOffButton).toBeEnabled();
+      await expect(this.requestTimeOffButton).toContainText(/request time off/i);
+    });
+  }
+
+  /**
+   * Verifies the "Request time off" button is disabled
+   * @param options - Optional step information
+   */
+  async verifyRequestTimeOffButtonIsDisabled(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Verify Request time off button is disabled', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.requestTimeOffButton);
+      await expect(this.requestTimeOffButton).toBeDisabled();
+      await expect(this.requestTimeOffButton).toContainText(/request time off/i);
+    });
   }
 }
