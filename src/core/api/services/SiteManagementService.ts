@@ -70,21 +70,17 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       const siteName = `AutomateUI_Test_${randomNum}`;
       const categoryObj = await this.getCategoryId(overrides.category?.name || 'default');
 
-      // Only include optional parameters if they are explicitly provided
+      // Always include as true, only override if explicitly provided
       const optionalParams = {
-        ...(overrides.hasPages !== undefined && { hasPages: overrides.hasPages }),
-        ...(overrides.hasEvents !== undefined && { hasEvents: overrides.hasEvents }),
-        ...(overrides.hasAlbums !== undefined && { hasAlbums: overrides.hasAlbums }),
-        ...(overrides.isContentFeedEnabled !== undefined && { isContentFeedEnabled: overrides.isContentFeedEnabled }),
-        ...(overrides.isContentSubmissionsEnabled !== undefined && {
-          isContentSubmissionsEnabled: overrides.isContentSubmissionsEnabled,
-        }),
+        hasPages: overrides.hasPages !== undefined ? overrides.hasPages : true,
+        hasEvents: overrides.hasEvents !== undefined ? overrides.hasEvents : true,
+        hasAlbums: overrides.hasAlbums !== undefined ? overrides.hasAlbums : true,
       };
 
       const payload: SiteCreationPayload = {
         ...defaultSitePayload,
-        ...overrides,
         ...optionalParams,
+        ...overrides,
         category: {
           ...defaultSitePayload.category,
           ...overrides.category,
@@ -93,7 +89,7 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
         },
       };
 
-      // Build API payload with only defined optional parameters
+      // Build API payload with all required properties
       const apiPayload: any = {
         access: payload.access,
         hasDashboard: payload.hasDashboard,
@@ -106,25 +102,15 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
           categoryId: payload.category.categoryId,
           name: payload.category.name,
         },
+        // Always include required properties
+        hasPages: payload.hasPages,
+        hasEvents: payload.hasEvents,
+        hasAlbums: payload.hasAlbums,
+        isContentFeedEnabled: payload.isContentFeedEnabled,
+        isContentSubmissionsEnabled: payload.isContentSubmissionsEnabled,
       };
 
-      // Only include optional parameters if they are explicitly provided
-      if (overrides.hasPages !== undefined) {
-        apiPayload.hasPages = payload.hasPages;
-      }
-      if (overrides.hasEvents !== undefined) {
-        apiPayload.hasEvents = payload.hasEvents;
-      }
-      if (overrides.hasAlbums !== undefined) {
-        apiPayload.hasAlbums = payload.hasAlbums;
-      }
-      if (overrides.isContentFeedEnabled !== undefined) {
-        apiPayload.isContentFeedEnabled = payload.isContentFeedEnabled;
-      }
-      if (overrides.isContentSubmissionsEnabled !== undefined) {
-        apiPayload.isContentSubmissionsEnabled = payload.isContentSubmissionsEnabled;
-      }
-
+      console.log('site management service API payload:', JSON.stringify(apiPayload, null, 2));
       const response = await this.post(API_ENDPOINTS.site.url, {
         data: {
           data: apiPayload,
@@ -253,7 +239,6 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       if (json.status !== 'success') {
         throw new Error(`Failed to get sites list. Status: ${json.status}`);
       }
-      console.log('Sites list response:', JSON.stringify(json, null, 2));
 
       return json;
     });

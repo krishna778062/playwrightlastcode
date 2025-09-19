@@ -394,7 +394,7 @@ export class SiteManagementHelper {
     const defaultOptions = {
       size: 1000,
       canManage: true,
-      filter: 'active',
+      filter: options?.filter || 'active',
       page: 0,
       ...options,
     };
@@ -415,13 +415,12 @@ export class SiteManagementHelper {
     options?: {
       category?: { name: string; categoryId: string };
       overrides?: Partial<SiteCreationPayload>;
+      waitForSearchIndex?: boolean;
       hasPages?: boolean;
       hasEvents?: boolean;
       hasAlbums?: boolean;
       hasDashboard?: boolean;
       landingPage?: string;
-      isContentFeedEnabled?: boolean;
-      isContentSubmissionsEnabled?: boolean;
       isOwner?: boolean;
       isMembershipAutoApproved?: boolean;
       isBroadcast?: boolean;
@@ -437,10 +436,6 @@ export class SiteManagementHelper {
       ...(options?.hasAlbums !== undefined && { hasAlbums: options.hasAlbums }),
       ...(options?.hasDashboard !== undefined && { hasDashboard: options.hasDashboard }),
       ...(options?.landingPage !== undefined && { landingPage: options.landingPage }),
-      ...(options?.isContentFeedEnabled !== undefined && { isContentFeedEnabled: options.isContentFeedEnabled }),
-      ...(options?.isContentSubmissionsEnabled !== undefined && {
-        isContentSubmissionsEnabled: options.isContentSubmissionsEnabled,
-      }),
       ...(options?.isOwner !== undefined && { isOwner: options.isOwner }),
       ...(options?.isMembershipAutoApproved !== undefined && {
         isMembershipAutoApproved: options.isMembershipAutoApproved,
@@ -454,6 +449,7 @@ export class SiteManagementHelper {
           siteName,
           category: options?.category,
           overrides,
+          waitForSearchIndex: options?.waitForSearchIndex,
         });
         break;
       case SITE_TYPES.UNLISTED:
@@ -461,6 +457,7 @@ export class SiteManagementHelper {
           siteName,
           category: options?.category,
           overrides,
+          waitForSearchIndex: options?.waitForSearchIndex,
         });
         break;
       default:
@@ -468,6 +465,7 @@ export class SiteManagementHelper {
           siteName,
           category: options?.category,
           overrides,
+          waitForSearchIndex: options?.waitForSearchIndex,
         });
     }
 
@@ -488,43 +486,38 @@ export class SiteManagementHelper {
       hasAlbums?: boolean;
       hasDashboard?: boolean;
       landingPage?: string;
-      isContentFeedEnabled?: boolean;
-      isContentSubmissionsEnabled?: boolean;
       isOwner?: boolean;
       isMembershipAutoApproved?: boolean;
       isBroadcast?: boolean;
+      waitForSearchIndex?: boolean;
     }
   ): Promise<{ siteId: string; name: string }> {
-    const siteListResponse = await this.getListOfSites();
-    const siteDetails = siteListResponse.result.listOfItems.find(
-      site => site.access.toLowerCase() === accessType.toLowerCase()
-    );
+    const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+    let siteDetails = siteListResponse.result.listOfItems.find(site => site.isActive === true);
     let siteId: string | undefined, siteName: string | undefined;
 
     if (siteDetails) {
-      // Apply optional parameters if provided
-      if (options?.hasPages !== undefined) {
-        siteDetails.hasPages = options.hasPages;
-      }
-      if (options?.hasEvents !== undefined) {
-        siteDetails.hasEvents = options.hasEvents;
-      }
-      if (options?.hasAlbums !== undefined) {
-        siteDetails.hasAlbums = options.hasAlbums;
-      }
-      if (options?.isContentFeedEnabled !== undefined) {
-        siteDetails.isContentFeedEnabled = options.isContentFeedEnabled;
-      }
-      if (options?.isContentSubmissionsEnabled !== undefined) {
-        siteDetails.isContentSubmissionsEnabled = options.isContentSubmissionsEnabled;
-      }
+      // Check if the existing site matches the required options
+      const matchesRequirements =
+        (options?.hasPages === undefined || siteDetails.hasPages === options.hasPages) &&
+        (options?.hasEvents === undefined || siteDetails.hasEvents === options.hasEvents) &&
+        (options?.hasAlbums === undefined || siteDetails.hasAlbums === options.hasAlbums);
 
-      siteId = siteDetails?.siteId;
-      siteName = siteDetails?.name;
+      if (matchesRequirements) {
+        siteId = siteDetails?.siteId;
+        siteName = siteDetails?.name;
+        console.log(`Using existing site: ${siteName} (${siteId}) that matches requirements`);
+      } else {
+        console.log(`Existing site doesn't match requirements, will create new site`);
+        siteDetails = undefined; // Reset to undefined so we create a new site
+      }
     }
 
     if (!siteId) {
-      const createdSite = await this.createSiteByAccessType(accessType, undefined, options);
+      const createdSite = await this.createSiteByAccessType(accessType, undefined, {
+        ...options,
+        waitForSearchIndex: options?.waitForSearchIndex,
+      });
       siteId = createdSite.siteId;
       siteName = createdSite.siteName;
     }

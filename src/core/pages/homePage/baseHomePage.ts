@@ -32,6 +32,13 @@ export interface ICommonHomePageActions {
   openSiteCreationForm: (options?: { stepInfo?: string }) => Promise<AbacSiteCreationPage>;
 }
 
+export interface ICommonHomePageAssertions {
+  verifyErrorMessageWhenContentSubmissionIsDisabled: (
+    addContentModal: AddContentModalComponent,
+    contentType: ContentType
+  ) => Promise<void>;
+}
+
 export interface IOldUxHomePageActions extends ICommonHomePageActions {
   clickOnCreateContentButtonOnTopNavBar: (
     contentType: ContentType,
@@ -43,6 +50,11 @@ export interface IOldUxHomePageActions extends ICommonHomePageActions {
   ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
   openSiteCreationFormForNonAbac: (options?: { stepInfo?: string }) => Promise<ContentSiteCreationPage>;
   clickOnBellIcon: (options?: { stepInfo?: string }) => Promise<NotificationComponent>;
+  openAddContentModal: (
+    contentType: ContentType,
+    siteName?: string,
+    options?: { stepInfo?: string }
+  ) => Promise<AddContentModalComponent>;
 }
 
 export interface INewUxHomePageActions extends ICommonHomePageActions {
@@ -61,6 +73,11 @@ export interface INewUxHomePageActions extends ICommonHomePageActions {
   clickOnManageFeature: () => Promise<void>;
   clickOnHomeButton: () => Promise<void>;
   clickOnFeedSideMenu: () => Promise<void>;
+  openAddContentModal: (
+    contentType: ContentType,
+    siteName?: string,
+    options?: { stepInfo?: string }
+  ) => Promise<AddContentModalComponent>;
 }
 
 export abstract class BaseHomePage extends BasePage implements ICommonHomePageActions {
