@@ -66,6 +66,7 @@ export enum ActionType {
   Download = 'Download',
   Upload = 'Upload',
   Closed = 'Closed',
+  Done = 'Done',
 }
 
 export const NAVIGATION_LABELS = {
