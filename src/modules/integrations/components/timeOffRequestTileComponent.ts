@@ -74,9 +74,8 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    */
   async selectLeaveDates(workingDays: number): Promise<void> {
     await test.step(`Select leave dates for ${workingDays} working days`, async () => {
-      // Create a date at midnight UTC to avoid timezone issues
-      const today = new Date();
-      today.setUTCHours(0, 0, 0, 0);
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const startDate = getNextWorkingDay(today);
       const endDate = addWorkingDays(startDate, workingDays - 1);
       await this.selectDate('start', startDate);
@@ -94,18 +93,25 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
     if (isWeekend(targetDate)) {
       throw new Error(`Cannot select weekend date: ${targetDate.toDateString()}`);
     }
-    const expectedText = formatDateForDisplay(targetDate);
-    const ariaLabel = formatDateForAriaLabel(targetDate);
+    const validDate = new Date(targetDate.getTime());
+    const expectedText = formatDateForDisplay(validDate);
+    const ariaLabel = formatDateForAriaLabel(validDate);
     await dateButton.click();
     await this.calendarGrid.waitFor({ state: 'visible', timeout: 10000 });
-    await this.navigateToCorrectMonthYear(targetDate);
-
-    // Wait a bit for the calendar to update after month/year selection
-    await this.page.waitForTimeout(500);
-
+    await this.navigateToCorrectMonthYear(validDate);
+    // Wait for the calendar to update after month/year selection
+    await this.calendarGrid.waitFor({ state: 'visible' });
     const dayCell = this.getDayCellByAriaLabel(ariaLabel);
     await dayCell.waitFor({ state: 'visible', timeout: 10000 });
     await dayCell.click();
+    // Wait for the date to be applied and check the result
+    await expect(dateButton).not.toContainText('Select date', { timeout: 5000 });
+    const actualText = await dateButton.textContent();
+    if (actualText?.includes('Invalid DateTime')) {
+      throw new Error(
+        `Date selection resulted in "Invalid DateTime". Expected: ${expectedText}, Actual: ${actualText}`
+      );
+    }
     await expect(dateButton).toContainText(expectedText, { timeout: 15000 });
   }
 
@@ -186,9 +192,9 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
       // allow either the single-character ellipsis (U+2026) or three dots, case-insensitive
       const selectDateRegex = /select\s*date(?:\u2026|\.{3})?/i;
       const selectRegex = /select(?:\u2026|\.{3})?/i;
-      await expect(this.startDateButton).toBeVisible();
+      await expect(this.startDateButton).toBeVisible({ timeout: 15000 });
       await expect(this.startDateButton).toContainText(selectDateRegex);
-      await expect(this.endDateButton).toBeVisible();
+      await expect(this.endDateButton).toBeVisible({ timeout: 15000 });
       await expect(this.endDateButton).toContainText(selectDateRegex);
       await expect(this.timeOffCategoryDropdown).toBeVisible();
       await expect(this.timeOffCategoryDropdown).toContainText(selectRegex);

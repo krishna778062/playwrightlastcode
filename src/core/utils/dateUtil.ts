@@ -101,10 +101,10 @@ export function isWeekend(date: Date): boolean {
 export function getNextWorkingDay(startDate: Date): Date {
   // Create a new date object to avoid mutating the original
   const result = new Date(startDate.getTime());
-  result.setUTCDate(result.getUTCDate() + 1);
+  result.setDate(result.getDate() + 1);
 
   while (isWeekend(result)) {
-    result.setUTCDate(result.getUTCDate() + 1);
+    result.setDate(result.getDate() + 1);
   }
   return result;
 }
@@ -121,7 +121,7 @@ export function addWorkingDays(startDate: Date, workingDaysToAdd: number): Date 
   let addedDays = 0;
 
   while (addedDays < workingDaysToAdd) {
-    result.setUTCDate(result.getUTCDate() + 1);
+    result.setDate(result.getDate() + 1);
     if (!isWeekend(result)) {
       addedDays++;
     }
@@ -140,7 +140,6 @@ export function formatDateForAriaLabel(date: Date): string {
     month: 'short',
     day: '2-digit',
     year: 'numeric',
-    timeZone: 'UTC',
   });
   return formatter
     .format(date)
@@ -158,9 +157,14 @@ export function formatDateForDisplay(date: Date): string {
   if (!date || isNaN(date.getTime())) {
     throw new Error(`Invalid date object: ${date}`);
   }
-  // Use UTC methods to avoid timezone issues in CI
-  const month = date.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
-  const day = date.getUTCDate();
-  const year = date.getUTCFullYear();
+
+  // for consistent local time formatting
+  const month = date.toLocaleDateString('en-US', {
+    month: 'short',
+    localeMatcher: 'best fit',
+  });
+  const day = date.getDate();
+  const year = date.getFullYear();
+
   return `${month} ${day}, ${year}`;
 }
