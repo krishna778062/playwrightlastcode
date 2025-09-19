@@ -16,29 +16,28 @@ test.describe(
     let currentFeedId: string;
     let currentFeedName: string;
     let currentAuthorName: string;
+    let feedResponse: any;
 
     test.beforeEach(async ({ feedManagementHelper, publicSite }, testInfo) => {
       // Determine if this is a site feed test based on test title
-      const isSiteFeedTest = testInfo.title.includes('Site Feed');
+      const isSiteFeedTest = testInfo.title.includes('site');
 
       if (isSiteFeedTest) {
         // Create a site feed for site feed tests
-        const feedResponse = await feedManagementHelper.createFeed({
+        feedResponse = await feedManagementHelper.createFeed({
           scope: 'site',
           siteId: publicSite.siteId,
         });
-        currentFeedId = feedResponse.result.feedId;
-        currentFeedName = feedResponse.feedName;
-        currentAuthorName = feedResponse.result.authoredBy?.name;
       } else {
         // Create a home feed for home feed tests
-        const feedResponse = await feedManagementHelper.createFeed({
+        feedResponse = await feedManagementHelper.createFeed({
           scope: 'public',
         });
-        currentFeedId = feedResponse.result.feedId;
-        currentFeedName = feedResponse.feedName;
-        currentAuthorName = feedResponse.result.authoredBy?.name;
       }
+      
+      currentFeedId = feedResponse.result.feedId;
+      currentFeedName = feedResponse.feedName;
+      currentAuthorName = feedResponse.result.authoredBy?.name;
     });
 
     test(
@@ -100,7 +99,7 @@ test.describe(
     );
 
     test(
-      `Verify user able to search feed post from site feed ${testData.content}`,
+      `Verify user able to search feed post from site ${testData.content}`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },

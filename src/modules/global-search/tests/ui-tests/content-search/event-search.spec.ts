@@ -2,7 +2,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ResultListingComponent } from '../../../components/resultsListComponent';
+import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 
 import { ContentType } from '@/src/core/constants/contentTypes';
 import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
