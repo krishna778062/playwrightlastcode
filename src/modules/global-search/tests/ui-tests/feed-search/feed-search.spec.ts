@@ -19,17 +19,13 @@ test.describe(
     let feedResponse: any;
 
     test.beforeEach(async ({ feedManagementHelper, publicSite }, testInfo) => {
-      // Determine if this is a site feed test based on test title
-      const isSiteFeedTest = testInfo.title.includes('site');
-
-      if (isSiteFeedTest) {
-        // Create a site feed for site feed tests
+      // Create feed based on test title
+      if (testInfo.title.includes('site')) {
         feedResponse = await feedManagementHelper.createFeed({
           scope: 'site',
           siteId: publicSite.siteId,
         });
       } else {
-        // Create a home feed for home feed tests
         feedResponse = await feedManagementHelper.createFeed({
           scope: 'public',
         });
