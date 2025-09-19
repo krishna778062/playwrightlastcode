@@ -54,6 +54,19 @@ export class ConversationWindowComponent extends BaseComponent {
   }
 
   /**
+   * Determines the active formatting type from formatting options
+   * @param formattingOptions - The formatting options to check
+   * @returns The active formatting type or null if none
+   */
+  private getActiveFormattingType(formattingOptions: FormattingOptions): string | null {
+    if (formattingOptions.usesBold) return 'bold';
+    if (formattingOptions.usesItalic) return 'italic';
+    if (formattingOptions.usesUnderline) return 'underline';
+    if (formattingOptions.usesStrikethrough) return 'strikethrough';
+    return null;
+  }
+
+  /**
    * Sends a message in the chat
    * @param message - The message to send
    * @param options - Optional parameters
@@ -124,32 +137,36 @@ export class ConversationWindowComponent extends BaseComponent {
           let messageText: string | null = null;
 
           // Check for different formatting types in the last message only
-          if (formattingOptions.usesBold) {
-            const boldElement = lastMessage.locator('section p strong');
-            if (await boldElement.isVisible()) {
-              messageText = await boldElement.textContent();
-            }
-          }
-
-          if (formattingOptions.usesItalic) {
-            const italicElement = lastMessage.locator('section p em');
-            if (await italicElement.isVisible()) {
-              messageText = await italicElement.textContent();
-            }
-          }
-
-          if (formattingOptions.usesUnderline) {
-            const underlineElement = lastMessage.locator('section p u');
-            if (await underlineElement.isVisible()) {
-              messageText = await underlineElement.textContent();
-            }
-          }
-
-          if (formattingOptions.usesStrikethrough) {
-            const strikethroughElement = lastMessage.locator('section p s');
-            if (await strikethroughElement.isVisible()) {
-              messageText = await strikethroughElement.textContent();
-            }
+          const formattingType = this.getActiveFormattingType(formattingOptions);
+          switch (formattingType) {
+            case 'bold':
+              const boldElement = lastMessage.locator('section p strong');
+              if (await boldElement.isVisible()) {
+                messageText = await boldElement.textContent();
+              }
+              break;
+            case 'italic':
+              const italicElement = lastMessage.locator('section p em');
+              if (await italicElement.isVisible()) {
+                messageText = await italicElement.textContent();
+              }
+              break;
+            case 'underline':
+              const underlineElement = lastMessage.locator('section p u');
+              if (await underlineElement.isVisible()) {
+                messageText = await underlineElement.textContent();
+              }
+              break;
+            case 'strikethrough':
+              const strikethroughElement = lastMessage.locator('section p s');
+              if (await strikethroughElement.isVisible()) {
+                messageText = await strikethroughElement.textContent();
+              }
+              break;
+            default:
+              // No specific formatting detected, use default text content
+              messageText = await lastMessage.locator('section p').textContent();
+              break;
           }
 
           // Check if the found text matches our expected message

@@ -297,20 +297,23 @@ export class ChatEditorComponent extends BaseComponent {
     }
   ): Promise<void> {
     await test.step(options?.stepInfo ?? 'Applying text formatting', async () => {
-      if (formattingOptions.usesBold) {
-        await this.clickOnElement(this.boldButton);
-      }
+      const formattingActions = [
+        { condition: formattingOptions.usesBold, action: () => this.clickOnElement(this.boldButton) },
+        { condition: formattingOptions.usesItalic, action: () => this.clickOnElement(this.italicButton) },
+        { condition: formattingOptions.usesUnderline, action: () => this.clickOnElement(this.underlineButton) },
+        { condition: formattingOptions.usesStrikethrough, action: () => this.clickOnElement(this.strikethroughButton) },
+      ];
 
-      if (formattingOptions.usesItalic) {
-        await this.clickOnElement(this.italicButton);
-      }
-
-      if (formattingOptions.usesUnderline) {
-        await this.clickOnElement(this.underlineButton);
-      }
-
-      if (formattingOptions.usesStrikethrough) {
-        await this.clickOnElement(this.strikethroughButton);
+      for (const { condition, action } of formattingActions) {
+        switch (condition) {
+          case true:
+            await action();
+            break;
+          case false:
+          default:
+            // No action needed
+            break;
+        }
       }
     });
   }
