@@ -65,6 +65,7 @@ export const API_ENDPOINTS = {
     files: '/v1/content/files',
     listFiles: '/v1/content/files/list',
     topics: '/v1/content/topics/manage/list',
+    contentListInSite: '/v1/content/sites/content/list',
   },
 
   fileUpload: {
@@ -82,6 +83,7 @@ export const API_ENDPOINTS = {
     update: (feedId: string) => `/v1/wfeed/feeds/${feedId}`,
     feedURL: (feedId: string) => `/feed/${feedId}`,
     comment: (feedId: string) => `/v1/wfeed/feeds/${feedId}/comments`,
+    rudderstack: 'https://rudderstack-data-plane.qa.simpplr.xyz/v1/track',
   },
   appConfig: {
     governance: '/v1/account/appConfig/app.setup.governance',
