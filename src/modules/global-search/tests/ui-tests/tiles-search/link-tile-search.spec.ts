@@ -7,6 +7,7 @@ import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures
 import {
   PREDEFINED_LINKS,
   TILE_NUMBER_OF_LINKS,
+  getLinkTileSearchTestData,
 } from '@/src/modules/global-search/test-data/link-tile-search.test-data';
 
 test.describe(
@@ -32,19 +33,20 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE],
         },
-        async ({ appManagerHomePage, tileManagementHelper }) => {
+        async ({ appManagerHomePage, appManagerApiClient, tileCleanupTracker }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-12408',
             storyId: 'SEN-12305',
           });
 
-          // Create tile using the helper
-          const tileData = await tileManagementHelper.createLinkTile({
-            siteId: newSiteId,
-            numberOfLinks: numberOfLinks,
-          });
-          const tileId = tileData.tileResponse.result.id;
-          const tileTitle = tileData.tileTitle;
+          // Create tile using the service directly
+          const testData = getLinkTileSearchTestData();
+          const tileResponse = await appManagerApiClient
+            .getTileManagementService()
+            .createTile(newSiteId, testData.tileTitle, numberOfLinks, PREDEFINED_LINKS);
+          
+          const tileId = tileResponse.result.id;
+          const tileTitle = testData.tileTitle;
 
           const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(tileTitle, {
             stepInfo: `Searching for tile "${tileTitle}" created with ID: ${tileId}`,
@@ -64,27 +66,31 @@ test.describe(
           const links = PREDEFINED_LINKS.slice(0, numberOfLinks);
           await tileResultItem.verifyShowMoreButtonIsDisplayed(links.length);
           await tileResultItem.verifyTileLinkIsClickable(links);
+
+          // Track tile for automatic cleanup
+          tileCleanupTracker.tiles.push({ tileId, siteId: newSiteId });
         }
       );
     });
 
-    // Sidebar filter test (runs once with 2 links)
     test(
       `Verify Link Tile Search results with sidebar filter`,
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
-      async ({ appManagerHomePage, tileManagementHelper }) => {
+      async ({ appManagerHomePage, appManagerApiClient, tileCleanupTracker }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19284',
         });
 
-        // Create tile using the helper
-        const tileData = await tileManagementHelper.createLinkTile({
-          siteId: newSiteId,
-          numberOfLinks: 2,
-        });
-        const tileTitle = tileData.tileTitle;
+        // Create tile using the service directly
+        const testData = getLinkTileSearchTestData();
+        const tileResponse = await appManagerApiClient
+          .getTileManagementService()
+          .createTile(newSiteId, testData.tileTitle, 2, PREDEFINED_LINKS);
+        
+        const tileId = tileResponse.result.id;
+        const tileTitle = testData.tileTitle;
 
         // Search for the tile
         const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(tileTitle, {
@@ -118,6 +124,9 @@ test.describe(
           expectedCountAfterFilter: 1,
         });
         await tileResult.verifyTileTitleIsDisplayed();
+
+        // Track tile for automatic cleanup
+        tileCleanupTracker.tiles.push({ tileId, siteId: newSiteId });
       }
     );
   }

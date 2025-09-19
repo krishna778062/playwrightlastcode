@@ -10,7 +10,6 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { LoginHelper } from '../../../core/helpers/loginHelper';
 
-import { TileManagementHelper } from '@/src/core/helpers/tileManagementHelper';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
@@ -21,7 +20,7 @@ export const searchTestFixtures = test.extend<
     contentManagementHelper: ContentManagementHelper;
     feedManagementHelper: FeedManagementHelper;
     intranetFileHelper: IntranetFileHelper;
-    tileManagementHelper: TileManagementHelper;
+    tileCleanupTracker: { tiles: Array<{ tileId: string; siteId: string }> };
   },
   {
     appManagerApiClient: AppManagerApiClient;
@@ -85,6 +84,24 @@ export const searchTestFixtures = test.extend<
     },
     { scope: 'test' },
   ],
+  tileCleanupTracker: [
+    async ({ appManagerApiClient }, use) => {
+      const tileCleanupTracker = { tiles: [] as Array<{ tileId: string; siteId: string }> };
+      
+      await use(tileCleanupTracker);
+      
+      // Cleanup all tracked tiles
+      for (const { tileId, siteId } of tileCleanupTracker.tiles) {
+        try {
+          await appManagerApiClient.getTileManagementService().deleteTile(siteId, tileId);
+          console.log(`Successfully deleted tile: ${tileId}`);
+        } catch (error) {
+          console.warn(`Failed to delete tile ${tileId}:`, error);
+        }
+      }
+    },
+    { scope: 'test' },
+  ],
   publicSite: [
     async ({ appManagerApiClient, siteManagementHelper }, use, workerInfo) => {
       console.log(`🔧 Creating publicSite fixture for worker ${workerInfo.workerIndex}`);
@@ -99,6 +116,7 @@ export const searchTestFixtures = test.extend<
           categoryId: category.categoryId,
           name: category.name,
         },
+        waitForSearchIndex: true,
       });
 
       console.log(
@@ -121,13 +139,5 @@ export const searchTestFixtures = test.extend<
       await siteManagementHelper.cleanup();
     },
     { scope: 'worker' },
-  ],
-  tileManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const tileManagementHelper = new TileManagementHelper(appManagerApiClient);
-      await use(tileManagementHelper);
-      await tileManagementHelper.cleanup();
-    },
-    { scope: 'test' },
   ],
 });

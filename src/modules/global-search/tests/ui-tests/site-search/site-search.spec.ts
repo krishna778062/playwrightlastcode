@@ -39,6 +39,7 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
                 categoryId: categoryObj.categoryId,
                 name: categoryObj.name,
               },
+              waitForSearchIndex: true,
             });
             newSiteId = createdSiteDetails.siteId;
             newSiteName = createdSiteDetails.siteName;
