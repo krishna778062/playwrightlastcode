@@ -104,8 +104,8 @@ export class ExternalAppsPage extends BasePage {
     });
   }
 
-  async verifyToastMessage(message: string): Promise<void> {
-    return this.customAppsListComponent.verifyToastMessage(message);
+  async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
+    return this.customAppsListComponent.verifyToastMessageIsVisibleWithText(message);
   }
 
   /**

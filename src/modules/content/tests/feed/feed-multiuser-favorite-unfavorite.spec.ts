@@ -1,6 +1,3 @@
-import { faker } from '@faker-js/faker';
-import path from 'path';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { tagTest } from '@core/utils/testDecorator';
 
@@ -9,7 +6,7 @@ import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
-import { SiteMembershipAction, SitePermission } from '@/src/core/types/siteManagement.types';
+import { SitePermission } from '@/src/core/types/siteManagement.types';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
@@ -69,6 +66,9 @@ test.describe(
         siteManagementHelper,
         feedManagementHelper,
       }) => {
+        // Configure app governance settings and enable timeline comment post(feed)
+        await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
+
         // Initialize feed pages for different user roles
         appManagerFeedPage = new FeedPage(appManagerHomePage.page);
         standardUserFeedPage = new FeedPage(standardUserHomePage.page);
@@ -76,7 +76,7 @@ test.describe(
 
         // Setup user and site
         const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
-        const endUserPeopleId = await identityManagementHelper.getUserIdByEmail(users.endUser.email);
+        const endUserInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
 
         createdSite = await siteManagementHelper.createPublicSite({
           waitForSearchIndex: false,
@@ -85,7 +85,7 @@ test.describe(
         // update user as a content manager of the site
         await siteManagementHelper.updateUserSiteMembershipWithRole({
           siteId: createdSite.siteId,
-          userId: endUserPeopleId,
+          userId: endUserInfo.userId,
           role: SitePermission.CONTENT_MANAGER,
         });
       }

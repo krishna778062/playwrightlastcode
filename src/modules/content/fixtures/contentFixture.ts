@@ -1,6 +1,7 @@
 import { BrowserContext, Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
+import { StandardUserApiClient } from '@core/api/clients/standardUserApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
 import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
@@ -71,14 +72,15 @@ export const contentTestFixture = test.extend<
     siteManagerPage: Page;
     contentManagementHelper: ContentManagementHelper;
     feedManagementHelper: FeedManagementHelper;
+    standardUserFeedManagementHelper: FeedManagementHelper;
 
     // Utility functions
     loginAs: (userType: UserType) => Promise<void>;
-    switchUser: (fromPage: Page, toUserType: UserType) => Promise<HomePageType>;
   },
   {
     // Worker-scoped fixtures
     appManagerApiClient: AppManagerApiClient;
+    standardUserApiClient: StandardUserApiClient;
   }
 >({
   // Worker-scoped API client - shared across all tests in worker
@@ -102,13 +104,25 @@ export const contentTestFixture = test.extend<
     },
     { scope: 'worker' },
   ],
+  standardUserApiClient: [
+    async ({}, use, workerInfo) => {
+      const standardUserApiClient = await ApiClientFactory.createClient(StandardUserApiClient, {
+        type: 'credentials',
+        credentials: {
+          username: envConfig.endUserEmail || '',
+          password: envConfig.endUserPassword || '',
+        },
+        baseUrl: envConfig.apiBaseUrl,
+      });
+      await use(standardUserApiClient);
+    },
+    { scope: 'worker' },
+  ],
   // Browser contexts - isolated per test
   appManagerContext: [
     async ({ browser }, use) => {
       const context = await browser.newContext({
-        // Optimize context creation
-        ignoreHTTPSErrors: true,
-        viewport: { width: 1920, height: 1080 },
+        permissions: ['camera', 'microphone', 'notifications'],
       });
 
       await use(context);
@@ -129,6 +143,7 @@ export const contentTestFixture = test.extend<
   standardUserContext: [
     async ({ browser }, use) => {
       const context = await browser.newContext({
+        permissions: ['camera', 'microphone', 'notifications'],
         // Optimize context creation
         ignoreHTTPSErrors: true,
         viewport: { width: 1920, height: 1080 },
@@ -166,7 +181,9 @@ export const contentTestFixture = test.extend<
 
   siteManagerContext: [
     async ({ browser }, use, workerInfo) => {
-      const context = await browser.newContext();
+      const context = await browser.newContext({
+        permissions: ['camera', 'microphone', 'notifications'],
+      });
       await use(context);
       await context?.close();
     },
@@ -249,26 +266,6 @@ export const contentTestFixture = test.extend<
           throw new Error(`Missing credentials for user type: ${userType}`);
         }
         await LoginHelper.loginWithPassword(page, credentials);
-      });
-    },
-    { scope: 'test' },
-  ],
-
-  switchUser: [
-    async ({}, use) => {
-      await use(async (fromPage: Page, toUserType: UserType) => {
-        // Logout current user
-        await LoginHelper.logoutByNavigatingToLogoutPage(fromPage);
-
-        // Login as new user
-        const credentials = users[toUserType];
-        if (!credentials.email || !credentials.password) {
-          throw new Error(`Missing credentials for user type: ${toUserType}`);
-        }
-
-        const homePage = await LoginHelper.loginWithPassword(fromPage, credentials);
-        await homePage.verifyThePageIsLoaded();
-        return homePage;
       });
     },
     { scope: 'test' },

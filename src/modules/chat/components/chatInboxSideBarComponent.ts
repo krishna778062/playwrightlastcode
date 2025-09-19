@@ -34,7 +34,7 @@ export class ChatInboxSideBarComponent extends BaseComponent {
     this.dropDownOptionCreateNewMessage = this.page.getByTestId('dropdown-create-message');
     this.dropDownOptionCreateNewGroup = this.page.getByTestId('dropdown-create-group');
     this.createNewMessageForm = this.page.getByTestId('message-form');
-    this.inputBoxInCreateNewMessageForm = this.page.locator("input[aria-label*='Select people']");
+    this.inputBoxInCreateNewMessageForm = this.page.getByRole('combobox', { name: 'Select people' });
     this.startChatButton = this.page.getByTestId('dmStartChatButton');
     this.userSelectionDropdownOptions = this.page.locator("div[role='menuitem']");
     this.createNewMessageIcon = this.page.getByTestId('newMessageButton');
@@ -44,6 +44,13 @@ export class ChatInboxSideBarComponent extends BaseComponent {
 
   async clickOnCreateNewMessageIcon(): Promise<void> {
     await this.clickOnElement(this.createNewMessageIcon, { stepInfo: 'Clicking on create new message icon' });
+  }
+
+  // drop-down clicked
+  async clickOnCreateNewMessageButton(): Promise<void> {
+    await this.clickOnElement(this.dropDownOptionCreateNewMessage, {
+      stepInfo: 'Clicking on create new message button ',
+    });
   }
 
   /**

@@ -1,4 +1,4 @@
-import { APIRequestContext, Page, test } from '@playwright/test';
+import { APIRequestContext, Page } from '@playwright/test';
 
 import { BaseApiClient } from '../clients/baseApiClient';
 
