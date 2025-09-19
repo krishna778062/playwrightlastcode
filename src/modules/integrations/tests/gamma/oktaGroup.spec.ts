@@ -31,12 +31,12 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
 
-      async ({ page, homeDashboard: _ }) => {
+      async ({ homeDashboard }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-22779,INT-22777',
           storyId: 'INT-21556',
         });
-        oktaGroup = new OktaGroupPage(page);
+        oktaGroup = new OktaGroupPage(homeDashboard.page);
         await oktaGroup.loadPage();
         await oktaGroup.verifyThePageIsLoaded();
         await oktaGroup.clickOnCheckbox();
@@ -53,12 +53,12 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
 
-      async ({ page, homeDashboard: _ }) => {
+      async ({ homeDashboard }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-22778',
           storyId: 'INT-21556',
         });
-        oktaGroup = new OktaGroupPage(page);
+        oktaGroup = new OktaGroupPage(homeDashboard.page);
         await oktaGroup.loadPage();
         await oktaGroup.verifyThePageIsLoaded();
         await oktaGroup.clickOnCheckbox();
@@ -74,19 +74,19 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
 
-      async ({ page, homeDashboard: _ }) => {
+      async ({ homeDashboard }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-22792',
           storyId: 'INT-21556',
         });
-        oktaGroup = new OktaGroupPage(page);
+        oktaGroup = new OktaGroupPage(homeDashboard.page);
         await oktaGroup.loadPage();
         await oktaGroup.verifyThePageIsLoaded();
         await oktaGroup.clickOnCheckbox();
         await oktaGroup.fillOktaCredentials(OKTA_GROUP.OKTA_LINK, OKTA_GROUP.TOKEN);
         await oktaGroup.clickOnSaveButton();
         await oktaGroup.clickOnOktaGroupOption(OKTA_GROUP.GROUP_OPTION);
-        await page.reload();
+        await homeDashboard.page.reload();
         await oktaGroup.verifyDoNotUseOktaGroupsIsSelected(OKTA_GROUP.DO_NOT_USE_OKTA_GROUPS);
       }
     );
@@ -97,12 +97,12 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
 
-      async ({ page, homeDashboard: _ }) => {
+      async ({ homeDashboard }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-22795',
           storyId: 'INT-21556',
         });
-        oktaGroup = new OktaGroupPage(page);
+        oktaGroup = new OktaGroupPage(homeDashboard.page);
         await oktaGroup.loadPage();
         await oktaGroup.verifyThePageIsLoaded();
         await oktaGroup.clickOnCheckbox();
@@ -122,12 +122,12 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
 
-      async ({ page, homeDashboard: _ }) => {
+      async ({ homeDashboard }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-22794, INT-22796',
           storyId: 'INT-21556',
         });
-        oktaGroup = new OktaGroupPage(page);
+        oktaGroup = new OktaGroupPage(homeDashboard.page);
         await oktaGroup.loadPage();
         await oktaGroup.verifyThePageIsLoaded();
         await oktaGroup.clickOnCheckbox();
@@ -154,12 +154,12 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
 
-      async ({ page, homeDashboard: _ }) => {
+      async ({ homeDashboard }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-22793',
           storyId: 'INT-21556',
         });
-        oktaGroup = new OktaGroupPage(page);
+        oktaGroup = new OktaGroupPage(homeDashboard.page);
         await oktaGroup.loadPage();
         await oktaGroup.verifyThePageIsLoaded();
         await oktaGroup.clickOnCheckbox();
