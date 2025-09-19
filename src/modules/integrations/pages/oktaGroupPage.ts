@@ -82,4 +82,8 @@ export class OktaGroupPage extends BasePage {
   async verifyRemovedGroupsMessage(expectedCount: number): Promise<void> {
     return this.oktaGroupComponent.verifyRemovedGroupsMessage(expectedCount);
   }
+
+  async clickOnConfirmButton(): Promise<void> {
+    return this.oktaGroupComponent.clickOnConfirmButton();
+  }
 }

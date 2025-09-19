@@ -42,6 +42,7 @@ test.describe(
         await oktaGroup.clickOnCheckbox();
         await oktaGroup.fillOktaCredentials(OKTA_GROUP.OKTA_LINK, OKTA_GROUP.TOKEN);
         await oktaGroup.clickOnSaveButton();
+        await oktaGroup.clickOnConfirmButton();
         await oktaGroup.clickOnOktaGroupOption(OKTA_GROUP.GROUP_OPTION);
         await oktaGroup.visiblityOfSelectOktaGroupButton(OKTA_GROUP.GROUP_BUTTON);
       }
@@ -64,6 +65,7 @@ test.describe(
         await oktaGroup.clickOnCheckbox();
         await oktaGroup.fillOktaCredentials(OKTA_GROUP.WRONG_LINK, OKTA_GROUP.WRONG_TOKEN);
         await oktaGroup.clickOnSaveButton();
+        await oktaGroup.clickOnConfirmButton();
         await oktaGroup.verifyErrorMessage(MESSAGES.OKTA_GROUP_WRONG_CONNECTION);
       }
     );
@@ -85,6 +87,7 @@ test.describe(
         await oktaGroup.clickOnCheckbox();
         await oktaGroup.fillOktaCredentials(OKTA_GROUP.OKTA_LINK, OKTA_GROUP.TOKEN);
         await oktaGroup.clickOnSaveButton();
+        await oktaGroup.clickOnConfirmButton();
         await oktaGroup.clickOnOktaGroupOption(OKTA_GROUP.GROUP_OPTION);
         await appManagerPage.reload();
         await oktaGroup.verifyDoNotUseOktaGroupsIsSelected(OKTA_GROUP.DO_NOT_USE_OKTA_GROUPS);
@@ -108,6 +111,7 @@ test.describe(
         await oktaGroup.clickOnCheckbox();
         await oktaGroup.fillOktaCredentials(OKTA_GROUP.OKTA_LINK, OKTA_GROUP.TOKEN);
         await oktaGroup.clickOnSaveButton();
+        await oktaGroup.clickOnConfirmButton();
         await oktaGroup.clickOnOktaGroupOption(OKTA_GROUP.GROUP_OPTION);
         await oktaGroup.clickOnSelectOktaGroupButton(OKTA_GROUP.GROUP_BUTTON);
         await oktaGroup.clickOnSelectOktaGroup(OKTA_GROUP.GROUP_NAME1);
@@ -133,6 +137,7 @@ test.describe(
         await oktaGroup.clickOnCheckbox();
         await oktaGroup.fillOktaCredentials(OKTA_GROUP.OKTA_LINK, OKTA_GROUP.TOKEN);
         await oktaGroup.clickOnSaveButton();
+        await oktaGroup.clickOnConfirmButton();
         await oktaGroup.clickOnOktaGroupOption(OKTA_GROUP.GROUP_OPTION);
         await oktaGroup.clickOnSelectOktaGroupButton(OKTA_GROUP.GROUP_BUTTON);
         await oktaGroup.clickOnSelectOktaGroup(OKTA_GROUP.GROUP_NAME1);
@@ -165,6 +170,7 @@ test.describe(
         await oktaGroup.clickOnCheckbox();
         await oktaGroup.fillOktaCredentials(OKTA_GROUP.OKTA_LINK, OKTA_GROUP.TOKEN);
         await oktaGroup.clickOnSaveButton();
+        await oktaGroup.clickOnConfirmButton();
         await oktaGroup.clickOnOktaGroupOption(OKTA_GROUP.GROUP_OPTION);
         await oktaGroup.clickOnSelectOktaGroupButton(OKTA_GROUP.GROUP_BUTTON);
         await oktaGroup.clickOnSelectOktaGroup(OKTA_GROUP.GROUP_NAME1);

@@ -16,6 +16,7 @@ export class OktaGroupComponent extends BaseComponent {
   readonly removedGroupsMessage: () => Locator;
   readonly selectedGroupsTab: (text: string) => Locator;
   readonly clearGroupButton: (groupText: string) => Locator;
+  readonly confirmButton: () => Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
@@ -37,6 +38,7 @@ export class OktaGroupComponent extends BaseComponent {
         .locator('li')
         .filter({ hasText: groupText })
         .getByTestId(/clear-button/);
+    this.confirmButton = () => this.rootLocator.getByRole('button', { name: 'Confirm' });
   }
 
   async clickOnCheckbox(): Promise<void> {
@@ -58,8 +60,15 @@ export class OktaGroupComponent extends BaseComponent {
       await this.oktaLink().click();
       await this.oktaLink().fill(oktaLink);
       await this.oktaApiToken().hover();
-      await this.editButton().first().click();
-      await this.oktaApiToken().waitFor({ state: 'visible' });
+
+      try {
+        await this.editButton().first().waitFor({ state: 'visible' });
+        await this.editButton().first().click();
+        await this.oktaApiToken().waitFor({ state: 'visible' });
+      } catch {
+        console.log('Edit button not found, filling API token directly...');
+      }
+
       await this.oktaApiToken().fill(apiToken);
     });
   }
@@ -151,6 +160,17 @@ export class OktaGroupComponent extends BaseComponent {
       const countElement = messageElement.locator('strong');
       await expect(countElement, 'expecting count element to be visible').toBeVisible();
       await expect(countElement, `expecting count to be ${expectedCount}`).toHaveText(expectedCount.toString());
+    });
+  }
+
+  async clickOnConfirmButton(): Promise<void> {
+    await test.step('Click on Confirm button if available', async () => {
+      try {
+        await this.confirmButton().waitFor({ state: 'visible', timeout: 3000 });
+        await this.confirmButton().click();
+      } catch {
+        console.log('Confirm button not found, continuing...');
+      }
     });
   }
 }
