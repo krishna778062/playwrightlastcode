@@ -17,4 +17,5 @@ export enum ContentTestSuite {
   FEED_IMAGE_UPDATE_APP_MANAGER = '@feed-image-update-app-manager',
   FILES_PREVIEW = '@Files-Preview',
   FEED_REPLY_APP_MANAGER = '@feed-reply-app-manager',
+  ADD_CONTENT_ON_UNLISTED_SITE = '@add-content-on-unlisted-site',
 }
