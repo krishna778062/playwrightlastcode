@@ -1,9 +1,11 @@
 import { expect, Page, test } from '@playwright/test';
 
+import { CreateFeedPostComponent, FeedPostOptions, FeedPostResult } from '@content/components/createFeedPostComponent';
+import { FilePreviewComponent } from '@content/components/filePreviewComponent';
+import { ListFeedComponent } from '@content/components/listFeedComponent';
 import { BasePage } from '@core/pages/basePage';
 
-import { CreateFeedPostComponent, FeedPostOptions, FeedPostResult } from '../components/createFeedPostComponent';
-import { ListFeedComponent } from '../components/listFeedComponent';
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 // Re-export the interfaces and types for backwards compatibility
 export { FeedPostOptions, FeedPostResult };
@@ -13,25 +15,63 @@ export interface IFeedActions {
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
   deletePost: (postText: string) => Promise<void>;
-
   // Content creation flow
   createPostWithAttachments: (text: string, files?: string[]) => Promise<FeedPostResult>;
+  createfeedWithMentionUserNameAndTopic: (params: {
+    text: string;
+    userName: string;
+    topicName: string;
+    siteName: string | string[];
+    embedUrl: string;
+  }) => Promise<FeedPostResult>;
+  editPostWithTopicAndUserName: (params: {
+    currentText: string;
+    newText: string;
+    topicName: string;
+    userName: string;
+  }) => Promise<void>;
+  markPostAsFavourite: () => Promise<void>;
+  removePostFromFavourite: (postText: string) => Promise<void>;
+  clickInfoIcon: (fileId: string) => Promise<void>;
+  verifyPreviewModalIsOpened: () => Promise<void>;
+  clickDeleteButton: () => Promise<void>;
+  clickShowMoreButton: () => Promise<void>;
+  verifyVersionImageIsDisplayed: (fileId: string) => Promise<void>;
+  uploadImage: (fileName: string) => Promise<string>;
+  clickOnUploadButton: (fileId: string) => Promise<void>;
+  clickOnCloseButton: () => Promise<void>;
+  clickOnInfoIconOnImage: () => Promise<void>;
+  clickOnEditVersionButton: () => Promise<void>;
+  addReplyToPost: (replyText: string) => Promise<void>;
+  clickReplyShowMoreButton: () => Promise<void>;
+  clickOnDeleteReplyButton: () => Promise<void>;
 }
 
 export interface IFeedAssertions {
   // High-level verification flows
   verifyPostDetails: (postText: string, expectedAttachmentCount: number) => Promise<void>;
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
+  verifyPostIsNotFavorited: (postText: string) => Promise<void>;
+  verifyPostIsFavorited: (postText: string) => Promise<void>;
+  validatePostText: (postText: string) => Promise<void>;
+  verifyImageButtonIsNotVisible: () => Promise<void>;
+  verifyReplyIsVisible: (replyText: string) => Promise<void>;
+  verifyReplyIsNotVisible: (replyText: string) => Promise<void>;
+  verifyVersionImageIsDisplayed: (fileId: string) => Promise<void>;
+  verifyVersionNumber: (expectedVersionNumber: string) => Promise<void>;
+  verifyToastMessage: (message: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
   private createFeedPostComponent: CreateFeedPostComponent;
   private listFeedComponent: ListFeedComponent;
+  private filePreviewComponent: FilePreviewComponent;
 
-  constructor(page: Page) {
-    super(page);
+  constructor(page: Page, feedId?: string) {
+    super(page, feedId ? PAGE_ENDPOINTS.getFeedPage(feedId) : '');
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
+    this.filePreviewComponent = new FilePreviewComponent(page);
   }
 
   get actions(): IFeedActions {
@@ -72,6 +112,32 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       ...(files && { attachments: { files } }),
     };
     return await this.createAndPost(options);
+  }
+
+  /**
+   * Creates a feed post with user mention and topic mention
+   * @param text - The base text for the post
+   * @param userName - The user name to mention (e.g., "John Doe")
+   * @param topicName - The topic name to mention (e.g., "Technology")
+   * @returns Promise<FeedPostResult>
+   */
+  async createfeedWithMentionUserNameAndTopic(params: {
+    text: string;
+    userName: string;
+    topicName: string;
+    siteName: string | string[];
+    embedUrl: string;
+  }): Promise<FeedPostResult> {
+    return await this.createFeedPostComponent.createfeedWithMentionUserNameAndTopic(params);
+  }
+
+  async editPostWithTopicAndUserName(params: {
+    currentText: string;
+    newText: string;
+    topicName: string;
+    userName: string;
+  }): Promise<void> {
+    return await this.createFeedPostComponent.editPostWithTopicAndUserName(params);
   }
 
   // High-level verification methods
@@ -118,5 +184,104 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    */
   async getPostTimestamp(postText: string): Promise<void> {
     await this.listFeedComponent.getPostTimestamp(postText);
+  }
+
+  //Favourite Post Methods
+  async markPostAsFavourite(): Promise<void> {
+    await test.step(`Marking post as favourite:`, async () => {
+      await this.listFeedComponent.markPostAsFavourite();
+    });
+  }
+
+  async removePostFromFavourite(postText: string): Promise<void> {
+    await this.listFeedComponent.removePostFromFavourite(postText);
+  }
+
+  async verifyPostIsFavorited(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyPostIsFavorited(postText);
+  }
+
+  async verifyPostIsNotFavorited(postText: string): Promise<void> {
+    await test.step(`Verify post is not favorited: ${postText}`, async () => {
+      await this.listFeedComponent.verifyPostIsNotFavorited(postText);
+    });
+  }
+
+  async validatePostText(postText: string): Promise<void> {
+    await this.listFeedComponent.validatePostText(postText);
+  }
+
+  // File preview methods
+  async clickInfoIcon(fileId: string): Promise<void> {
+    await this.listFeedComponent.clickInfoIcon(fileId);
+  }
+
+  async verifyPreviewModalIsOpened(): Promise<void> {
+    await this.filePreviewComponent.verifyPreviewModalIsOpened();
+  }
+
+  async clickDeleteButton(): Promise<void> {
+    await this.filePreviewComponent.clickDeleteButton();
+  }
+
+  async clickOnDeleteReplyButton(): Promise<void> {
+    await this.listFeedComponent.clickDeleteOption();
+    await this.listFeedComponent.confirmDelete();
+  }
+
+  async verifyImageButtonIsNotVisible(): Promise<void> {
+    await this.listFeedComponent.verifyImageButtonIsNotVisible();
+  }
+
+  async clickShowMoreButton(): Promise<void> {
+    await this.filePreviewComponent.clickShowMoreButton();
+  }
+
+  async verifyVersionImageIsDisplayed(fileId: string): Promise<void> {
+    await this.listFeedComponent.verifyVersionImageIsDisplayed(fileId);
+  }
+
+  async verifyVersionNumber(expectedVersionNumber: string): Promise<void> {
+    await this.filePreviewComponent.verifyVersionNumber(expectedVersionNumber);
+  }
+
+  async verifyToastMessage(message: string): Promise<void> {
+    await this.listFeedComponent.verifyToastMessageIsVisibleWithText(message);
+  }
+
+  async uploadImage(fileName: string): Promise<string> {
+    return await this.filePreviewComponent.uploadImage(fileName);
+  }
+
+  async clickOnUploadButton(fileId: string): Promise<void> {
+    await this.filePreviewComponent.clickOnUploadButton(fileId);
+  }
+
+  async clickOnCloseButton(): Promise<void> {
+    await this.filePreviewComponent.clickOnCloseButton();
+  }
+
+  async clickOnInfoIconOnImage(): Promise<void> {
+    await this.filePreviewComponent.clickOnInfoIconOnImage();
+  }
+
+  async clickOnEditVersionButton(): Promise<void> {
+    await this.filePreviewComponent.clickOnEditVersionButton();
+  }
+
+  async addReplyToPost(replyText: string): Promise<void> {
+    await this.listFeedComponent.addReplyToPost(replyText);
+  }
+
+  async verifyReplyIsVisible(replyText: string): Promise<void> {
+    await this.listFeedComponent.verifyReplyIsVisible(replyText);
+  }
+
+  async clickReplyShowMoreButton(): Promise<void> {
+    await this.listFeedComponent.clickReplyShowMoreButton();
+  }
+
+  async verifyReplyIsNotVisible(replyText: string): Promise<void> {
+    await this.listFeedComponent.verifyReplyIsNotVisible(replyText);
   }
 }

@@ -1,57 +1,169 @@
-import { APIRequestContext } from '@playwright/test';
+import { APIRequestContext, APIResponse } from '@playwright/test';
 
-import { API_ENDPOINTS } from '../../constants/apiEndpoints';
-import { LinkTilePayload, LinkTileResponse, TileLink } from '../../types/tile.type';
+import { API_ENDPOINTS, API_QUERY_PARAMS } from '../../constants/apiEndpoints';
+import { LinkTilePayload, LinkTileResponse, TileCreationResult, TileLink } from '../../types/tile.type';
+import { getEnvConfig } from '../../utils/getEnvConfig';
 
 import { BaseApiClient } from '@/src/core/api/clients/baseApiClient';
 import { ITileManagementOperations } from '@/src/core/api/interfaces/ITileManagementOperations';
-
-const defaultTilePayload: LinkTilePayload = {
-  siteId: '',
-  dashboardId: 'site',
-  tile: {
-    title: '',
-    options: {
-      layout: 'standard',
-      links: [],
-    },
-    pushToAllHomeDashboards: false,
-    items: [],
-    type: 'links',
-    variant: 'custom',
-  },
-  isNewTiptap: false,
-};
 
 export class TileManagementService extends BaseApiClient implements ITileManagementOperations {
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
   }
-  async createTile(
-    siteId: string,
-    tileTitle: string,
-    numberOfLinks: number,
-    predefinedLinks: TileLink[]
-  ): Promise<LinkTileResponse> {
-    const tile = {
-      ...defaultTilePayload,
-      siteId,
-      tile: {
-        ...defaultTilePayload.tile,
-        title: tileTitle,
-        options: { ...defaultTilePayload.tile.options, links: predefinedLinks.slice(0, numberOfLinks) },
-      },
-    };
-    console.log(`Creating tile with payload: ${JSON.stringify(tile)}`);
-    const response = await this.post(API_ENDPOINTS.linkTile.create(tile.siteId), {
-      data: tile,
+
+  // Get root tiles instances
+  async getRootAppTilesInstances(): Promise<any> {
+    const { frontendBaseUrl } = getEnvConfig();
+    const response = await this.get(`${API_ENDPOINTS.integrations.tilesRootInstances}?${API_QUERY_PARAMS.TYPE_APP}`, {
+      headers: { Origin: frontendBaseUrl, Referer: frontendBaseUrl, Accept: 'application/json' },
     });
     return response.json();
   }
-  async deleteTile(siteId: string, tileId: string): Promise<void> {
-    console.log(`Deleting tile ${tileId} from site ${siteId}`);
-    const response = await this.delete(API_ENDPOINTS.linkTile.delete(siteId, tileId));
-    console.log(`Tile deleted response: ${response.status()}`);
+
+  // Get instance metadata
+  async fetchInstanceMetadata(instanceId: string): Promise<any> {
+    const { frontendBaseUrl } = getEnvConfig();
+    const res = await this.get(`${API_ENDPOINTS.integrations.tilesRootInstances}/${instanceId}/metadata?type=app`, {
+      headers: { Origin: frontendBaseUrl, Referer: frontendBaseUrl, Accept: 'application/json' },
+    });
+    return res.json();
+  }
+
+  /**
+   * Delete a integration app tile id (preferred for this tenant)
+   */
+  async deleteIntegrationAppTile(integrationAppTileId: string): Promise<APIResponse> {
+    const { frontendBaseUrl } = getEnvConfig();
+    return await this.delete(
+      `${API_ENDPOINTS.integrations.contentTiles}/${integrationAppTileId}?${API_QUERY_PARAMS.HIDE_TILE_FALSE}`,
+      {
+        headers: {
+          Origin: frontendBaseUrl,
+          Referer: frontendBaseUrl,
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  }
+
+  /**
+   * Create app tile via API using authenticated client
+   */
+  async createIntegrationAppTile(args: {
+    tileInstanceName: string;
+    tileId: string;
+    connectorId: string;
+  }): Promise<TileCreationResult> {
+    // Get the template to get proper request schema
+    const templateRes = await this.get(API_ENDPOINTS.integrations.tilesByConnector(args.connectorId));
+    const templates = (await templateRes.json()).data || [];
+    const template = templates.find((t: any) => t.tileId === args.tileId) || templates[0];
+    const rawSchema = template?.inputConfig?.requestSchema || { parameters: [] };
+
+    // Sanitize schema by removing UI-specific fields that cause validation errors
+    const requestSchema = {
+      ...rawSchema,
+      parameters: Array.isArray(rawSchema.parameters)
+        ? rawSchema.parameters.map((p: any) => {
+            const clean = { ...p };
+            delete clean.definedBy;
+            return clean;
+          })
+        : [],
+    };
+
+    const response = await this.post(API_ENDPOINTS.integrations.createTileInstance(args.tileId), {
+      data: {
+        dashboard: 'home',
+        tileInstanceName: args.tileInstanceName,
+        type: 'app',
+        connectorId: args.connectorId,
+        connectionType: 'user',
+        inputConfig: {
+          requestSchema,
+          parameters: {},
+          personalization: { enabled: false },
+        },
+      },
+    });
+
+    if (!response.ok()) {
+      const errorText = await response.text();
+      throw new Error(`Failed to create tile "${args.tileInstanceName}": ${response.status()} - ${errorText}`);
+    }
+
+    const body = await response.json();
+
+    const instanceId =
+      body?.result?.instanceId || body?.data?.instanceId || body?.data?.tileInstanceId || body?.instanceId;
+
+    if (!instanceId) {
+      throw new Error(`No instance ID returned for tile "${args.tileInstanceName}". Response: ${JSON.stringify(body)}`);
+    }
+
+    return { instanceId, templateTileId: args.tileId, tileInstanceName: args.tileInstanceName };
+  }
+
+  /**
+   * Create a link tile via API
+   */
+  async createTile(siteId: string, title: string, numberOfLinks: number, links: TileLink[]): Promise<LinkTileResponse> {
+    const { frontendBaseUrl } = getEnvConfig();
+
+    // Ensure we don't exceed the provided links count
+    const actualLinksCount = Math.min(numberOfLinks, links.length);
+    const selectedLinks = links.slice(0, actualLinksCount);
+
+    const payload: LinkTilePayload = {
+      siteId: siteId,
+      dashboardId: 'site',
+      tile: {
+        title: title,
+        options: {
+          layout: 'standard',
+          links: selectedLinks,
+        },
+        pushToAllHomeDashboards: false,
+        items: [],
+        type: 'links',
+        variant: 'custom',
+      },
+      isNewTiptap: false,
+    };
+
+    const response = await this.post(API_ENDPOINTS.linkTile.create(siteId), {
+      data: payload,
+      headers: {
+        Origin: frontendBaseUrl,
+        Referer: frontendBaseUrl,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok()) {
+      const errorText = await response.text();
+      throw new Error(`Failed to create link tile "${title}": ${response.status()} - ${errorText}`);
+    }
+
     return response.json();
+  }
+
+  /**
+   * Delete a link tile via API
+   */
+  async deleteTile(siteId: string, tileId: string): Promise<APIResponse> {
+    const { frontendBaseUrl } = getEnvConfig();
+
+    return await this.delete(API_ENDPOINTS.linkTile.delete(siteId, tileId), {
+      headers: {
+        Origin: frontendBaseUrl,
+        Referer: frontendBaseUrl,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
   }
 }

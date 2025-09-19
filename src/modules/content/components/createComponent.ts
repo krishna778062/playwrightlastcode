@@ -1,10 +1,11 @@
 import { Locator, Page, test } from '@playwright/test';
 
+import { AddContentModalComponent } from '@content/components/addContentModal';
 import { ContentType } from '@content/constants/contentType';
-
-import { AddContentModalComponent } from './addContentModal';
+import { SiteCreationPage } from '@content/pages/siteCreationPage';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
+import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
 /**
  * This component gives user an
  * quick and easy interface to select
@@ -22,13 +23,15 @@ export class CreateComponent extends BaseComponent {
   readonly albumOption: Locator;
   readonly eventOption: Locator;
   readonly siteOption: Locator;
+  readonly siteLink: Locator;
   readonly createComponentContainer: Locator;
   constructor(page: Page) {
     super(page);
     this.pageOption = this.page.locator('p', { hasText: 'Page' });
     this.albumOption = this.page.locator('p', { hasText: 'Album' });
-    this.eventOption = this.page.locator('p', { hasText: 'Event' });
-    this.siteOption = this.page.getByRole('link', { name: 'Site' });
+    this.eventOption = this.page.locator('p').filter({ hasText: /^Event$/ });
+    this.siteOption = this.page.locator('p', { hasText: /^Site$/ });
+    this.siteLink = this.page.getByRole('link', { name: 'Site' });
     this.createComponentContainer = this.page.locator("[data-slot='dialog-content']");
   }
 
@@ -46,7 +49,7 @@ export class CreateComponent extends BaseComponent {
       // Select the content type
       await this.selectContentType(contentType);
       const addContentModal = new AddContentModalComponent(this.page);
-      await addContentModal.verifyTheAddContentModalIsVisible();
+      await addContentModal.verifyTheAddContentModalIsVisible(contentType);
       return addContentModal;
     });
   }
@@ -84,6 +87,13 @@ export class CreateComponent extends BaseComponent {
     await test.step(options?.stepInfo || `Verifying create content modal is visible`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.createComponentContainer);
       await this.verifier.verifyTheElementIsVisible(this.pageOption);
+    });
+  }
+
+  async selectSiteOption(options?: { stepInfo?: string }): Promise<SiteCreationPage> {
+    return await test.step(options?.stepInfo || `Selecting site option`, async () => {
+      await this.clickOnElement(this.siteOption);
+      return new SiteCreationPage(this.page);
     });
   }
 }

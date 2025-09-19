@@ -7,7 +7,6 @@ export const API_ENDPOINTS = {
   appManagement: {
     users: {
       add: '/v1/identity/accounts/users',
-      list: '/v1/identity/accounts/users/list',
       getUserId: (firstName: string, lastName: string) => `/v1/chat/search/users?query=${firstName} ${lastName}`,
       delete: (userId: string) => `/v1/identity/accounts/users/${userId}`,
       v1IdentityAccountsUsersUserId: (userId: string) => `/v1/identity/accounts/users/${userId}`,
@@ -39,6 +38,11 @@ export const API_ENDPOINTS = {
   identity: {
     validate: '/v2/identity/users/validate',
     login: '/v2/identity/users/login',
+    people: '/v2/identity/people',
+    v2IdentityProfileQuestionsVerify: '/v2/identity/profile-questions/verify',
+    v2IdentityUsersSetPassword: '/v2/identity/users/set-password',
+    v2IdentityUsersRegisterProfile: '/v2/identity/users/register-profile',
+    roles: '/v1/identity/accounts/roles/list',
   },
   admin: {
     login: '/v2/identity/admin/login',
@@ -48,15 +52,21 @@ export const API_ENDPOINTS = {
     url: '/v1/content/sites',
     category: '/v1/content/siteCategories/list',
     deactivate: '/v1/content/sites/attributes?attribute=status',
+    listOfSites: '/v1/content/sites/list',
+    manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
+    membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,
   },
 
   content: {
     category: '/pageCategories/list',
     publish: '/content?action=publish',
     delete: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}`,
+    file: (fileId: string) => `/v1/content/files/${fileId}`,
     signedUrl: '/v1/content/static/signedurl/upload',
     files: '/v1/content/files',
     listFiles: '/v1/content/files/list',
+    topics: '/v1/content/topics/manage/list',
+    contentListInSite: '/v1/content/sites/content/list',
   },
 
   fileUpload: {
@@ -71,6 +81,13 @@ export const API_ENDPOINTS = {
   feed: {
     create: `/v1/wfeed/feeds`,
     delete: (feedId: string) => `/v1/wfeed/feeds/${feedId}`,
+    update: (feedId: string) => `/v1/wfeed/feeds/${feedId}`,
+    feedURL: (feedId: string) => `/feed/${feedId}`,
+    comment: (feedId: string) => `/v1/wfeed/feeds/${feedId}/comments`,
+    rudderstack: 'https://rudderstack-data-plane.qa.simpplr.xyz/v1/track',
+  },
+  appConfig: {
+    governance: '/v1/account/appConfig/app.setup.governance',
   },
   apps: {
     settings: '/v1/account/apps-links-settings',
@@ -80,4 +97,32 @@ export const API_ENDPOINTS = {
     intranetFile: '/v1/search/intranet-file',
     enterprise: '/search-ai/v1/enterprise/search',
   },
+  externalSearch: {
+    config: '/v1/account/appConfig/app.integrations.enterprise.search',
+  },
+  qr: {
+    create: '/v1/promotions/w/qrcodes',
+    contentList: '/v1/content/sites/content/list',
+    delete: (qrCodeId: string) => `/v1/promotions/w/qrcodes/${qrCodeId}`,
+  },
+  integrations: {
+    tiles: '/v1/tiles',
+    tilesRootInstances: '/v1/tiles/root/instances',
+    tilesInstances: '/v1/tiles/instances',
+    contentTiles: '/v1/content/tiles',
+    contentTilesList: '/v1/content/tiles/list',
+    tilesByConnector: (connectorId: string) => `/v1/tiles?type=app&connectorId=${connectorId}`,
+    createTileInstance: (tileId: string) => `/v1/tiles/${tileId}/instances`,
+  },
+} as const;
+
+export const API_QUERY_PARAMS = {
+  TYPE_APP: 'type=app',
+  DASHBOARD_HOME: 'dashboard=home',
+  HIDE_TILE_FALSE: 'hideTile=false',
+} as const;
+
+export const API_HEADERS = {
+  ACCEPT: 'application/json',
+  CONTENT_TYPE: 'application/json',
 } as const;

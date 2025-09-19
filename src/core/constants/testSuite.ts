@@ -13,4 +13,7 @@ export enum TestSuite {
   AUDIENCE = '@audience',
   AUDIENCE_CATEGORY = '@audience-category',
   PEOPLE_DIRECTORY = '@people-directory',
+  AUDIENCE_CSV = '@audience-csv',
+  PLATFORM = '@platform',
+
 }
