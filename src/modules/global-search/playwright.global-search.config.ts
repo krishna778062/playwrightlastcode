@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import { devices } from '@playwright/test';
 import { defineConfig } from '@playwright/test';
 import path from 'path';
