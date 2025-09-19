@@ -32,6 +32,9 @@ export default defineConfig({
             '--disable-dev-shm-usage', // Disable /dev/shm usage
             '--use-fake-ui-for-media-stream', // Use fake UI for media stream
             '--use-fake-device-for-media-stream', // Use fake device for media stream
+            //Bypass bot detection
+            '--disable-blink-features=AutomationControlled',
+            '--disable-web-security',
           ],
         },
       },

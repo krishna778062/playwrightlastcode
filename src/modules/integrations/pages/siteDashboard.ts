@@ -1,4 +1,5 @@
 import { BaseAppTileComponent } from '@integrations/components/baseAppTileComponent';
+import { TileOperationsComponent } from '@integrations/components/tileOperationsComponent';
 import { ACTION_LABELS, DASHBOARD_BUTTONS } from '@integrations/constants/common';
 import { AIRTABLE_TILE } from '@integrations/test-data/app-tiles.test-data';
 import { Page, test } from '@playwright/test';
@@ -12,10 +13,14 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 export class SiteDashboard {
   private page!: Page;
   private airtableComponent!: BaseAppTileComponent;
+  private tileOperationsComponent!: TileOperationsComponent;
+  private appManagerApiClient?: any;
 
-  constructor(page: Page) {
+  constructor(page: Page, appManagerApiClient?: any) {
     this.page = page;
+    this.appManagerApiClient = appManagerApiClient;
     this.airtableComponent = new BaseAppTileComponent(page);
+    this.tileOperationsComponent = new TileOperationsComponent(page);
   }
 
   /**
@@ -36,7 +41,7 @@ export class SiteDashboard {
   }
 
   async verifyToastMessage(message: string) {
-    return this.airtableComponent.verifyToastMessage(message);
+    return this.airtableComponent.verifyToastMessageIsVisibleWithText(message);
   }
 
   async isTilePresent(tileTitle: string) {
@@ -49,7 +54,7 @@ export class SiteDashboard {
     await this.airtableComponent.verifyRemovePopupAppears(tileTitle);
     await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.REMOVE);
     if (successMessage) {
-      await this.airtableComponent.verifyToastMessage(successMessage);
+      await this.airtableComponent.verifyToastMessageIsVisibleWithText(successMessage);
     }
   }
 
@@ -91,5 +96,57 @@ export class SiteDashboard {
       await this.airtableComponent.configureAppTile(config);
       await this.airtableComponent.submitTileToHomeOrDashboard(destination);
     });
+  }
+
+  /**
+   * Complete workflow to add an Airtable tile
+   */
+  async addTile(tileTitle: string, appName: string, tileName: string, destination: string): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.airtableComponent.clickEditDashboard();
+      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
+      await this.airtableComponent.selectAppTile(appName);
+      await this.airtableComponent.selectTile(tileName);
+      await this.airtableComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
+      await this.airtableComponent.setTileTitle(tileTitle);
+      await this.airtableComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
+
+  async verifyGitHubPRTileData(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyGitHubPRTileData(tileTitle);
+  }
+
+  /**
+   * Verify GitHub My Open PRs tile data
+   */
+  async verifyGitHubOpenPRs(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyGitHubOpenPRs(tileTitle);
+  }
+
+  /**
+   * Generic method to verify tile redirects to any URL
+   * @param tileTitle - The title of the tile
+   * @param expectedUrl - The expected URL to redirect to
+   * @param linkSelector - Optional custom link selector (defaults to 'a:has(h3)')
+   */
+  async verifyTileRedirects(tileTitle: string, expectedUrl: string, linkSelector?: string): Promise<void> {
+    await this.tileOperationsComponent.verifyTileRedirects(tileTitle, expectedUrl, linkSelector);
+  }
+
+  /**
+   * Verify Airtable tile content structure with task records
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyAirtableTileContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyAirtableTileContentStructure(tileTitle);
+  }
+
+  /**
+   * Verify Expensify report tile data
+   */
+  async verifyExpensifyReportData(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyExpensifyReportData(tileTitle);
   }
 }

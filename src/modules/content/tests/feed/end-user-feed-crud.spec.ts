@@ -6,7 +6,6 @@ import { FeedPage } from '@content/pages/feedPage';
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 
 test.describe(
@@ -19,16 +18,13 @@ test.describe(
     let createdPostText: string;
     let createdPostId: string = '';
 
-    test.beforeEach(async ({ page, loginAs }) => {
-      // Login as end user using loginAs
-      await loginAs('endUser');
+    test.beforeEach(async ({ standardUserHomePage, feedManagementHelper }) => {
+      // Configure app governance settings and enable timeline comment post(feed)
+      await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
 
-      // Create home page instance and navigate to feed
-      const homePage = new NewUxHomePage(page);
-      await homePage.verifyThePageIsLoaded();
-      await homePage.actions.clickOnGlobalFeed();
+      await standardUserHomePage.actions.clickOnGlobalFeed();
 
-      feedPage = new FeedPage(page);
+      feedPage = new FeedPage(standardUserHomePage.page);
       await feedPage.verifyThePageIsLoaded();
     });
 
