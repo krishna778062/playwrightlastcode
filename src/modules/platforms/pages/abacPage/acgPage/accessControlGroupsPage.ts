@@ -330,6 +330,7 @@ export class AccessControlGroupsPage extends BasePage {
     // Ascending order
     await this.clickOnElement(selector.locator('button'));
     await expect(selector.locator('button').locator('i')).toBeVisible();
+    //Using try catch to handle the flakiness of element due to which sometimes sortingOrder is returned as null
     try {
       sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
       expect(sortingOrder).not.toBeNull();
@@ -344,6 +345,7 @@ export class AccessControlGroupsPage extends BasePage {
     // Descending order
     await this.clickOnElement(selector.locator('button'));
     await expect(selector.locator('button').locator('i')).toBeVisible();
+    //Using try catch to handle the flakiness of element due to which sometimes sortingOrder is returned as null
     try {
       sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
       expect(sortingOrder).not.toBeNull();
