@@ -70,8 +70,16 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       const siteName = `AutomateUI_Test_${randomNum}`;
       const categoryObj = await this.getCategoryId(overrides.category?.name || 'default');
 
+      // Always include as true, only override if explicitly provided
+      const optionalParams = {
+        hasPages: overrides.hasPages !== undefined ? overrides.hasPages : true,
+        hasEvents: overrides.hasEvents !== undefined ? overrides.hasEvents : true,
+        hasAlbums: overrides.hasAlbums !== undefined ? overrides.hasAlbums : true,
+      };
+
       const payload: SiteCreationPayload = {
         ...defaultSitePayload,
+        ...optionalParams,
         ...overrides,
         category: {
           ...defaultSitePayload.category,
@@ -81,26 +89,31 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
         },
       };
 
+      // Build API payload with all required properties
+      const apiPayload: any = {
+        access: payload.access,
+        hasDashboard: payload.hasDashboard,
+        landingPage: payload.landingPage,
+        isOwner: payload.isOwner,
+        isMembershipAutoApproved: payload.isMembershipAutoApproved,
+        isBroadcast: payload.isBroadcast,
+        name: payload.name,
+        category: {
+          categoryId: payload.category.categoryId,
+          name: payload.category.name,
+        },
+        // Always include required properties
+        hasPages: payload.hasPages,
+        hasEvents: payload.hasEvents,
+        hasAlbums: payload.hasAlbums,
+        isContentFeedEnabled: payload.isContentFeedEnabled,
+        isContentSubmissionsEnabled: payload.isContentSubmissionsEnabled,
+      };
+
+      console.log('site management service API payload:', JSON.stringify(apiPayload, null, 2));
       const response = await this.post(API_ENDPOINTS.site.url, {
         data: {
-          data: {
-            access: payload.access,
-            hasPages: payload.hasPages,
-            hasEvents: payload.hasEvents,
-            hasAlbums: payload.hasAlbums,
-            hasDashboard: payload.hasDashboard,
-            landingPage: payload.landingPage,
-            isContentFeedEnabled: payload.isContentFeedEnabled,
-            isContentSubmissionsEnabled: payload.isContentSubmissionsEnabled,
-            isOwner: payload.isOwner,
-            isMembershipAutoApproved: payload.isMembershipAutoApproved,
-            isBroadcast: payload.isBroadcast,
-            name: payload.name,
-            category: {
-              categoryId: payload.category.categoryId,
-              name: payload.category.name,
-            },
-          },
+          data: apiPayload,
         },
       });
       const siteJson = await response.json();
@@ -226,7 +239,6 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       if (json.status !== 'success') {
         throw new Error(`Failed to get sites list. Status: ${json.status}`);
       }
-      console.log('Sites list response:', JSON.stringify(json, null, 2));
 
       return json;
     });
