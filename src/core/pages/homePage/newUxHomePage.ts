@@ -4,6 +4,7 @@ import { SiteManagementHelper } from '../../helpers/siteManagementHelper';
 
 import { BaseHomePage, INewUxHomePageActions } from './baseHomePage';
 
+import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
 import { CreateComponent } from '@/src/modules/content/components/createComponent';
 import { NotificationComponent } from '@/src/modules/content/components/notificationComponent';
 import { ContentType } from '@/src/modules/content/constants/contentType';
@@ -21,6 +22,13 @@ export interface IFeaturedSiteActions {
   clickOnHomeButton: () => Promise<void>;
   clickOnFeedSideMenu: () => Promise<void>;
 }
+
+export interface ICommonHomePageAssertions {
+  verifyErrorMessageWhenContentSubmissionIsDisabled: (
+    addContentModal: AddContentModalComponent,
+    contentType: ContentType
+  ) => Promise<void>;
+}
 export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions {
   // actions: any;
   constructor(page: Page) {
@@ -32,6 +40,10 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
   }
 
   get actions(): INewUxHomePageActions {
+    return this;
+  }
+
+  get assertions(): ICommonHomePageAssertions {
     return this;
   }
 
@@ -52,6 +64,7 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
 
   async openCreateContentPageForContentType(
     contentType: ContentType,
+    siteName?: string,
     options?: { stepInfo?: string }
   ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage> {
     return await test.step(options?.stepInfo || `Opening create content page for ${contentType}`, async () => {
@@ -59,7 +72,25 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
       const createComponent = new CreateComponent(this.page);
       await createComponent.verifyTheCreateComponentIsVisible();
       const addContentModal = await createComponent.selectContentTypeAndCreateContent(contentType);
-      return await addContentModal.completeContentCreationForm(contentType, { isFromHomePage: true });
+      return await addContentModal.completeContentCreationForm(contentType, {
+        isFromHomePage: true,
+        siteName: siteName,
+      });
+    });
+  }
+
+  async openAddContentModal(
+    contentType: ContentType,
+    siteName?: string,
+    options?: { stepInfo?: string }
+  ): Promise<AddContentModalComponent> {
+    return await test.step(options?.stepInfo || `Opening create content page for ${contentType}`, async () => {
+      await this.clickOnCreateButtonOnSideNavBar();
+      const createComponent = new CreateComponent(this.page);
+      await createComponent.verifyTheCreateComponentIsVisible();
+      const addContentModal = await createComponent.selectContentTypeAndCreateContent(contentType);
+      await addContentModal.selectSiteToAddContentFromDropdown(siteName);
+      return addContentModal;
     });
   }
 
@@ -166,5 +197,14 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
   async clickOnBellIcon(options?: { stepInfo?: string }): Promise<NotificationComponent> {
     await this.topNavBarComponent.clickOnBellIcon();
     return new NotificationComponent(this.page);
+  }
+
+  async verifyErrorMessageWhenContentSubmissionIsDisabled(
+    addContentModal: AddContentModalComponent,
+    contentType: ContentType
+  ) {
+    await test.step('Verify error message when content submission is disabled', async () => {
+      await addContentModal.verifyErrorMessageWhenContentSubmissionIsDisabled(contentType);
+    });
   }
 }

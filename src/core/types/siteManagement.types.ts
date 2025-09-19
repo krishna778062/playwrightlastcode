@@ -56,6 +56,7 @@ export interface Site {
   memberCount?: number;
   createdAt?: string;
   updatedAt?: string;
+  isActive: boolean;
 }
 
 export interface SiteListResponse {
