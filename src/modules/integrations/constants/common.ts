@@ -66,6 +66,7 @@ export enum ActionType {
   Download = 'Download',
   Upload = 'Upload',
   Closed = 'Closed',
+  Done = 'Done',
 }
 
 export const NAVIGATION_LABELS = {
@@ -96,7 +97,6 @@ export const APP_LABELS = {
   DISABLE_LABEL: 'Disable',
   DELETE_LABEL: 'Delete',
 } as const;
-
 export const AD_GROUP = {
   AD_GROUP_OPTION: 'Use Microsoft Entra ID groups',
   GROUP_BUTTON: 'Select Microsoft Entra ID groups',

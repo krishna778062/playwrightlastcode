@@ -5,6 +5,7 @@ import { StandardUserApiClient } from '@core/api/clients/standardUserApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
 import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
+import { IdentityManagementHelper } from '@core/helpers/identityManagementHelper';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
@@ -73,6 +74,7 @@ export const contentTestFixture = test.extend<
     contentManagementHelper: ContentManagementHelper;
     feedManagementHelper: FeedManagementHelper;
     standardUserFeedManagementHelper: FeedManagementHelper;
+    identityManagementHelper: IdentityManagementHelper;
 
     // Utility functions
     loginAs: (userType: UserType) => Promise<void>;
@@ -253,6 +255,15 @@ export const contentTestFixture = test.extend<
       } catch (error) {
         console.warn('Content management helper cleanup failed:', error);
       }
+    },
+    { scope: 'test' },
+  ],
+
+  identityManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const helper = new IdentityManagementHelper(appManagerApiClient);
+
+      await use(helper);
     },
     { scope: 'test' },
   ],

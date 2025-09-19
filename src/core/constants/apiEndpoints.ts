@@ -42,6 +42,7 @@ export const API_ENDPOINTS = {
     v2IdentityProfileQuestionsVerify: '/v2/identity/profile-questions/verify',
     v2IdentityUsersSetPassword: '/v2/identity/users/set-password',
     v2IdentityUsersRegisterProfile: '/v2/identity/users/register-profile',
+    roles: '/v1/identity/accounts/roles/list',
   },
   admin: {
     login: '/v2/identity/admin/login',
@@ -65,6 +66,7 @@ export const API_ENDPOINTS = {
     files: '/v1/content/files',
     listFiles: '/v1/content/files/list',
     topics: '/v1/content/topics/manage/list',
+    contentListInSite: '/v1/content/sites/content/list',
   },
 
   fileUpload: {
@@ -82,6 +84,7 @@ export const API_ENDPOINTS = {
     update: (feedId: string) => `/v1/wfeed/feeds/${feedId}`,
     feedURL: (feedId: string) => `/feed/${feedId}`,
     comment: (feedId: string) => `/v1/wfeed/feeds/${feedId}/comments`,
+    rudderstack: 'https://rudderstack-data-plane.qa.simpplr.xyz/v1/track',
   },
   appConfig: {
     governance: '/v1/account/appConfig/app.setup.governance',
