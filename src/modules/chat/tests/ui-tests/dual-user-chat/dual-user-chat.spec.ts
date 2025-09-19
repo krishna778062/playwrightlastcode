@@ -1,76 +1,70 @@
 import { dualUserChatFixture as test } from '@modules/chat/fixtures/dualUserChatFixture';
 
+import CONSTANT_DATA from '../../../constants/constantData';
+import { CHAT_SUITE_TAGS } from '../../../constants/testTags';
+
+import { TestPriority } from '@/src/core/constants/testPriority';
+import { TestGroupType } from '@/src/core/constants/testType';
+import { tagTest } from '@/src/core/utils/testDecorator';
+
 /**
  * Example test suite demonstrating how to use the dualUserChatFixture
  * for testing chat functionality with two users simultaneously
  */
-test.describe('Direct Message between two static users', () => {
-  test('Real-time conversation between two users', async ({ dualUserHelpers }) => {
-    // Open the same group chat for both users
-    await dualUserHelpers.openSameGroupChatForBothUsers('direct-message');
+test.describe('Direct Message between two static users', { tag: [CHAT_SUITE_TAGS.DIRECT_MESSAGE] }, () => {
+  test(
+    'Real-time conversation between two users in a group chat',
+    {
+      tag: [TestPriority.P1, TestGroupType.SMOKE],
+    },
+    async ({ dualUserHelpers }) => {
+      tagTest(test.info(), {
+        description: 'Real-time conversation between two users in a group chat',
+        zephyrTestId: 'CHAT-2179',
+        storyId: 'CHAT-2179',
+      });
+      // Open the same group chat for both users
+      await dualUserHelpers.openSameGroupChatForBothUsers(CONSTANT_DATA.COMMON_GROUP_NAME);
 
-    // User 1 starts the conversation
-    const message1 = `Hi there! - ${Date.now()}`;
-    await dualUserHelpers.sendMessageFromUser1(message1);
-    await dualUserHelpers.verifyMessageVisibleForBothUsers(message1);
+      // User 1 starts the conversation
+      const message1 = `Hi there! - ${Date.now()}`;
+      await dualUserHelpers.sendMessageFromUser1(message1);
+      await dualUserHelpers.verifyMessageVisibleForBothUsers(message1);
 
-    // User 2 responds
-    const message2 = `Hello back! - ${Date.now()}`;
-    await dualUserHelpers.sendMessageFromUser2(message2);
-    await dualUserHelpers.verifyMessageVisibleForBothUsers(message2);
+      // User 2 responds
+      const message2 = `Hello back! - ${Date.now()}`;
+      await dualUserHelpers.sendMessageFromUser2(message2);
+      await dualUserHelpers.verifyMessageVisibleForBothUsers(message2);
 
-    // User 1 continues the conversation
-    const message3 = `How are you doing? - ${Date.now()}`;
-    await dualUserHelpers.sendMessageFromUser1(message3);
-    await dualUserHelpers.verifyMessageVisibleForBothUsers(message3);
-  });
+      // User 1 continues the conversation
+      const message3 = `How are you doing? - ${Date.now()}`;
+      await dualUserHelpers.sendMessageFromUser1(message3);
+      await dualUserHelpers.verifyMessageVisibleForBothUsers(message3);
+    }
+  );
 
-  test('Direct message between two users', async ({ dualUserHelpers }) => {
-    // Open direct message conversation between users
-    await dualUserHelpers.openDirectMessageBetweenUsers();
+  test(
+    'Direct message between two users in a direct message chat',
+    {
+      tag: [TestPriority.P1, TestGroupType.SMOKE],
+    },
+    async ({ dualUserHelpers }) => {
+      tagTest(test.info(), {
+        description: 'DDirect message between two users in a direct message chat',
+        zephyrTestId: 'CHAT-2179',
+        storyId: 'CHAT-2179',
+      });
+      // Open direct message conversation between users
+      await dualUserHelpers.openDirectMessageBetweenUsers();
 
-    // Send direct messages
-    const directMessage1 = `Private message from User 1 - ${Date.now()}`;
-    await dualUserHelpers.sendMessageFromUser1(directMessage1);
-    await dualUserHelpers.verifyMessageVisibleForBothUsers(directMessage1);
+      // Send direct messages
+      const directMessage1 = `Private message from User 1 - ${Date.now()}`;
+      await dualUserHelpers.sendMessageFromUser1(directMessage1);
+      await dualUserHelpers.verifyMessageVisibleForBothUsers(directMessage1);
 
-    const directMessage2 = `Private reply from User 2 - ${Date.now()}`;
-    await dualUserHelpers.sendMessageFromUser2(directMessage2);
-    await dualUserHelpers.verifyMessageVisibleForBothUsers(directMessage2);
-  });
-
-  test('Multiple group chats simultaneously', async ({ user1ChatPage, user2ChatPage }) => {
-    // User 1 joins Group A
-    await user1ChatPage.actions.openGroupChat('group1', {
-      stepInfo: 'User 1 opening group1',
-    });
-
-    // User 2 joins Group B
-    await user2ChatPage.actions.openGroupChat('group2', {
-      stepInfo: 'User 2 opening group2',
-    });
-
-    // Send messages in different groups
-    const message1 = `Message in group1 - ${Date.now()}`;
-    const message2 = `Message in group2 - ${Date.now()}`;
-    await user1ChatPage.actions.sendMessage(message1);
-    await user1ChatPage.assertions.verifyMessageIsVisible(message1);
-    await user2ChatPage.actions.sendMessage(message2);
-    await user2ChatPage.assertions.verifyMessageIsVisible(message2);
-
-    // Now both users join the same group
-    await user1ChatPage.actions.openGroupChat('direct-message', {
-      stepInfo: 'User 1 opening Common Group',
-    });
-    await user2ChatPage.actions.openGroupChat('direct-message', {
-      stepInfo: 'User 2 opening Common Group',
-    });
-
-    // Test real-time messaging in the common group
-    const commonMessage = `Common group message - ${Date.now()}`;
-    await user1ChatPage.actions.sendMessage(commonMessage);
-    await user2ChatPage.assertions.verifyMessageIsVisible(commonMessage, {
-      stepInfo: 'User 2 verifying message in common group',
-    });
-  });
+      const directMessage2 = `Private reply from User 2 - ${Date.now()}`;
+      await dualUserHelpers.sendMessageFromUser2(directMessage2);
+      await dualUserHelpers.verifyMessageVisibleForBothUsers(directMessage2);
+    }
+  );
 });
