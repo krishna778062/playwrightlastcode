@@ -4,6 +4,9 @@ export enum Roles {
   APPLICATION_SETTINGS_MANAGER = 'Application settings manager',
   APPLICATION_MANAGER = 'Application Manager',
   RECOGNITION_MANAGER = 'Recognition Manager',
+  ALL_SITES_MANAGER = 'All sites manager',
+  PUBLIC_SITES_MANAGER = 'Public sites manager',
+  PRIVATE_SITES_MANAGER = 'Private sites manager',
 }
 
 export enum RolesId {
