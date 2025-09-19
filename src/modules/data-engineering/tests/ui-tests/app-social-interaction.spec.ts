@@ -1,98 +1,120 @@
-import { ContentTestSuite } from '@content/constants/testSuite';
-import { ContentSuiteTags } from '@content/constants/testTags';
-import { contentTestFixture as test } from '@content/fixtures/contentFixture';
-import { SiteCreationPage as ContentSiteCreationPage } from '@content/pages/siteCreationPage';
+import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
+import { expect, test } from '@data-engineering/fixtures/analyticsFixture';
+import { SnowflakeHelper } from '@data-engineering/helpers/snowflakeHelper';
+import { SocialInteractionPage } from '@data-engineering/pages/socialInteractionPage';
+
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { SocialInteractionSql } from '../../sql/social-interaction';
+
 /**
- * This test suite is used to test the site creation functionality with different access types.
- * We will test that App Manager is able to create sites with public, private, and unlisted access types.
- * The test is data-driven to avoid code duplication between different site types.
+ * This test suite validates the Social Interaction dashboard
+ * using a data-driven approach
  */
 
 const HERO_METRICS_DATA = [
   {
-    query: 'ReactionSql',
+    title: 'Reactions',
+    query: 'SocialInteractionSql.Reaction_Count',
     zephyrTestId: 'DE-26105',
     storyId: 'DE-25753',
     description: 'TS To verify the answer of Reactions in Social Interaction dashboard',
+    min: 0,
+  },
+  {
+    title: 'Feed posts and comments',
+    query: 'SocialInteractionSql.Feed_Posts_Comments_Count',
+    zephyrTestId: 'DE-26020',
+    storyId: 'DE-25754',
+    description: 'TS To verify the answer of Feed posts and comments in Social Interaction dashboard',
+    min: 0,
+  },
+  {
+    title: 'Replies',
+    query: 'SocialInteractionSql.Replies_Count',
+    zephyrTestId: 'DE-26107',
+    storyId: 'DE-25755',
+    description: 'TS To verify the answer of Replies in Social Interaction dashboard',
+    min: 0,
+  },
+  {
+    title: 'Shares',
+    query: 'SocialInteractionSql.Shares_Count',
+    zephyrTestId: 'DE-26037',
+    storyId: 'DE-25769',
+    description: 'TS To verify the answer of Shares in Social Interaction dashboard',
+    min: 0,
+  },
+  {
+    title: 'Favorites',
+    query: 'SocialInteractionSql.Favorites_Count',
+    zephyrTestId: 'DE-26018',
+    storyId: 'DE-25756',
+    description: 'TS To verify the answer of Favorites in Social Interaction dashboard',
+    min: 0,
+  },
+  {
+    title: 'Active social campaign',
+    query: 'SocialInteractionSql.Active_Campaign_Count',
+    zephyrTestId: 'DE-26016',
+    storyId: 'DE-25757',
+    description: 'TS To verify the answer of Active social campaign in Social Interaction dashboard',
+    min: 0,
   },
 ] as const;
 
 test.describe(
-  'Site Creation by Application Manager',
-  { tag: [ContentTestSuite.SITE_APP_MANAGER, ContentSuiteTags.SITE_CREATION] },
+  'Social Interaction Dashboard',
+  {
+    tag: [DataEngineeringTestSuite.SOCIAL_INTERACTION],
+  },
   () => {
-    let siteCreationPage: ContentSiteCreationPage;
-    let createdSiteId: string;
-    let createdSiteName: string;
-    let manualCleanupNeeded = false;
-
-    test.beforeEach('Setting up the test environment for site creation', async ({ appManagerHomePage }) => {
-      // Create home page instance and verify it's loaded
-      await appManagerHomePage.verifyThePageIsLoaded();
-
-      // Reset cleanup flag for each test
-      manualCleanupNeeded = false;
-    });
-
-    test.afterEach('Site Clean up', async ({ appManagerApiClient }) => {
-      // Only cleanup manually if needed (for UI-only tests)
-      if (manualCleanupNeeded && createdSiteId) {
-        await appManagerApiClient.getSiteManagementService().deactivateSite(createdSiteId);
-        console.log('Manual cleanup completed for site:', createdSiteId);
-      } else {
-        console.log('No site was created, hence skipping the deletion');
-      }
-
-      // Reset variables for next test
-      manualCleanupNeeded = false;
-      createdSiteId = '';
-      createdSiteName = '';
-    });
-
-    for (const siteData of HERO_METRICS_DATA) {
+    for (const metricData of HERO_METRICS_DATA) {
       test(
-        `Verify admin can create a ${siteData.displayName.toLowerCase()}`,
+        `Verify ${metricData.title} metric data validation`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.SITE_CREATION],
+          tag: [TestPriority.P0, TestGroupType.REGRESSION],
         },
-        async ({ appManagerHomePage, appManagersPage, siteManagementHelper }) => {
+        async ({ openAppAnalytics, page }) => {
+          await openAppAnalytics();
+
+          const socialInteractionPage = new SocialInteractionPage(page);
+
+          await socialInteractionPage.navigateToSocialInteraction();
+
           tagTest(test.info(), {
-            description: siteData.description,
-            zephyrTestId: siteData.zephyrTestId,
-            storyId: siteData.storyId,
+            description: metricData.description,
+            zephyrTestId: metricData.zephyrTestId,
+            storyId: metricData.storyId,
           });
 
-          // STEP 1: Navigate to site creation page
-          siteCreationPage = await appManagerHomePage.actions.openSiteCreationFormForNonAbac();
+          //UI validation
+          await socialInteractionPage.verifyMetricTitleIsVisible(metricData.title);
+          const metricValue = await socialInteractionPage.getMetricValue(metricData.title);
+          console.log(`${metricData.title}: ${metricValue}`);
 
-          // STEP 2: Generate site data using TestDataGenerator
-          const siteCreationOptions = TestDataGenerator.generateSite(siteData.siteType);
+          //Data sanity validation
+          await socialInteractionPage.verifyMetricHasValidValue(metricData.title);
 
-          console.log(`INFO: Creating ${siteData.displayName} with options:`, siteCreationOptions);
-
-          // STEP 3: Create and publish the site
-          const { siteDashboard, siteId } = await siteCreationPage.actions.addSite(
-            siteCreationOptions,
-            siteManagementHelper
+          const numericValue = parseInt(metricValue.replace(/,/g, ''));
+          expect(numericValue, `${metricData.title} should be >= ${metricData.min}`).toBeGreaterThanOrEqual(
+            metricData.min
           );
 
-          // Store IDs for cleanup
-          createdSiteId = siteId;
-          createdSiteName = siteCreationOptions.title || siteCreationOptions.name;
-          manualCleanupNeeded = true;
+          //DB validation
+          const sqlKey = metricData.query.split('.').pop() as keyof typeof SocialInteractionSql;
+          const rawSql = SocialInteractionSql[sqlKey];
+          if (!rawSql) {
+            throw new Error(`SQL not found for key: ${String(sqlKey)}`);
+          }
 
-          console.log(`INFO: ${siteData.displayName} created - Site ID: ${siteId}`);
+          const dbCountRaw = await SnowflakeHelper.getDataForSqlQuery(rawSql);
+          const dbCount = typeof dbCountRaw === 'string' ? parseInt(dbCountRaw, 10) : Number(dbCountRaw);
 
-          // STEP 4: Verify we're on the correct site dashboard page
-          await siteDashboard.assertions.verifyDashboardUrl(createdSiteId);
-
-          // STEP 5: Verify site name is displayed correctly
-          await siteDashboard.verifySiteNameIs(siteCreationOptions.title || siteCreationOptions.name);
+          console.log(`DB ${metricData.title}: ${dbCount}`);
+          expect(numericValue, `${metricData.title} UI (${numericValue}) should equal DB (${dbCount})`).toBe(dbCount);
         }
       );
     }
