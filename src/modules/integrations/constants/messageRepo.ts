@@ -41,7 +41,7 @@ export const MESSAGES = {
   RESPONSE_SAVED_MESSAGE: 'Your RSVP response has been saved',
   LEAVE_REQUEST_SUCCESSFULLY_MESSAGE: 'Requested leave of absence successfully',
   OKTA_GROUP_WRONG_CONNECTION: 'Incorrect credentials. Please try again.',
-  NO_GROUP_SELECTED_MESSAGE: 'Please select at least one group',
+  NO_GROUP_SELECTED_MESSAGE: 'Please select at least one Microsoft Entra ID group',
   getAppAddedMessage: (appName: string) => `${appName} added`,
   getAppDeletedMessage: (appName: string) => `${appName} deleted`,
   getAppEnabledMessage: (appName: string) => `${appName} enabled`,
