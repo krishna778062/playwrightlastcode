@@ -97,15 +97,3 @@ export const APP_LABELS = {
   DISABLE_LABEL: 'Disable',
   DELETE_LABEL: 'Delete',
 } as const;
-export const AD_GROUP = {
-  AD_GROUP_OPTION: 'Use Microsoft Entra ID groups',
-  GROUP_BUTTON: 'Select Microsoft Entra ID groups',
-  GROUP_NAME1: 'Analytics-Insights',
-  GROUP_NAME2: 'App-Access-Salesforce',
-  DONE_BUTTON: 'Done',
-  DO_NOT_CREATE_AUDIENCES: 'Do not create audiences',
-  CREATE_AUDIENCES: 'Create audiences',
-  CONFIRM_MESSAGE: 'Are you sure you want to disconnect Microsoft Entra ID?',
-  DISCONNECT_BUTTON_TEXT: 'Disconnect account',
-  SOURCE_NAME: 'Microsoft Entra ID',
-} as const;
