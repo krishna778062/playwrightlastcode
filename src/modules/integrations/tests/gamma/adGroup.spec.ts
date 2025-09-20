@@ -95,6 +95,7 @@ test.describe(
         await adGroup.verifyThePageIsLoaded();
         await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
         await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
+        await adGroup.clickOnDoneButton(AD_GROUP.DONE_BUTTON);
         await adGroup.clickOnDoneButton(ActionType.Save);
         await adGroup.verifyErrorMessage(MESSAGES.NO_GROUP_SELECTED_MESSAGE);
       }
