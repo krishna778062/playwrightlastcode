@@ -51,6 +51,7 @@ test.describe(
         });
         adGroup = new AdGroupPage(appManagerPage);
         await adGroup.loadPage();
+        await adGroup.verifyThePageIsLoaded();
         await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
         await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
         await adGroup.selectGroup(AD_GROUP.GROUP_NAME2);
@@ -72,6 +73,7 @@ test.describe(
         });
         adGroup = new AdGroupPage(appManagerPage);
         await adGroup.loadPage();
+        await adGroup.verifyThePageIsLoaded();
         await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
         await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
         await adGroup.verifyGroupType();
@@ -90,6 +92,7 @@ test.describe(
         });
         adGroup = new AdGroupPage(appManagerPage);
         await adGroup.loadPage();
+        await adGroup.verifyThePageIsLoaded();
         await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
         await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
         await adGroup.clickOnDoneButton(ActionType.Save);
@@ -109,6 +112,7 @@ test.describe(
         });
         adGroup = new AdGroupPage(appManagerPage);
         await adGroup.loadPage();
+        await adGroup.verifyThePageIsLoaded();
         await adGroup.clickOnDisconnectAccountButton(AD_GROUP.SOURCE_NAME, AD_GROUP.DISCONNECT_BUTTON_TEXT);
         await adGroup.verifyDisconnectConfirmationText(AD_GROUP.CONFIRM_MESSAGE);
       }
