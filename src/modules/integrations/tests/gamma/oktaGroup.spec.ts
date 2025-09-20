@@ -33,7 +33,7 @@ test.describe(
 
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22779,INT-22777',
+          zephyrTestId: ['INT-22779,INT-22777'],
           storyId: 'INT-21556',
         });
         oktaGroup = new OktaGroupPage(appManagerPage);
@@ -128,7 +128,7 @@ test.describe(
 
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22794, INT-22796',
+          zephyrTestId: ['INT-22794, INT-22796'],
           storyId: 'INT-21556',
         });
         oktaGroup = new OktaGroupPage(appManagerPage);
