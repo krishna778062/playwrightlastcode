@@ -40,27 +40,13 @@ export const contentAbacTestFixture = test.extend<{
 
   appManagerApiClient: [
     async ({ appManagerPage }, use) => {
-      // Try credentials-based authentication first (more reliable across environments)
-      try {
-        const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-          type: 'credentials',
-          credentials: {
-            username: getEnvConfig().appManagerEmail,
-            password: getEnvConfig().appManagerPassword,
-          },
-          baseUrl: getEnvConfig().apiBaseUrl,
-        });
-        await use(appManagerApiClient);
-      } catch (error) {
-        // Fallback to cookies if credentials fail
-        console.log('Credentials authentication failed, trying cookies fallback');
-        const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-          type: 'cookies',
-          page: appManagerPage,
-          baseUrl: getEnvConfig().apiBaseUrl,
-        });
-        await use(appManagerApiClient);
-      }
+      // Use cookie-based authentication (more reliable)
+      const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
+        type: 'cookies',
+        page: appManagerPage,
+        baseUrl: getEnvConfig().apiBaseUrl,
+      });
+      await use(appManagerApiClient);
     },
     { scope: 'test' },
   ],

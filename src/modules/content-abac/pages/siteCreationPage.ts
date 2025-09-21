@@ -50,6 +50,24 @@ export class SiteCreationPage extends BasePage implements ISiteCreationPageAsser
 
   async verifySiteCreationFormStructure(): Promise<void> {
     await test.step('Verify site creation form structure', async () => {
+      // Verify basic form elements
+      await this.verifier.verifyTheElementIsVisible(this.form.siteNameInput, {
+        assertionMessage: 'Site name input should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.form.categoryInput, {
+        assertionMessage: 'Category input should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.form.addSiteButton, {
+        assertionMessage: 'Add site button should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.form.cancelButton, {
+        assertionMessage: 'Cancel button should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.form.targetAudienceSection.browseAudiencesButton, {
+        assertionMessage: 'Browse audiences button should be visible',
+      });
+
+      // Verify form sections
       await this.form.verifyAccessSectionIsVisible();
       await this.form.verifyTargetAudienceSection();
       await this.form.verifySubscriptionsSection();

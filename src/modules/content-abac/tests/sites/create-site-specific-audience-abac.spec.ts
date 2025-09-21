@@ -35,12 +35,8 @@ test.describe('Site Creation by Application Manager', { tag: [ContentFeatureTags
       await appManagerHomePage.actions.openSiteCreationForm();
       const siteCreationPage = new SiteCreationPage(page);
 
-      // Verify form inputs and buttons are present and functional
-      await siteCreationPage.form.siteNameInput.isVisible();
-      await siteCreationPage.form.categoryInput.isVisible();
-      await siteCreationPage.form.addSiteButton.isVisible();
-      await siteCreationPage.form.cancelButton.isVisible();
-      await siteCreationPage.form.targetAudienceSection.browseAudiencesButton.isVisible();
+      // Verify form structure
+      await siteCreationPage.assertions.verifySiteCreationFormStructure();
 
       // STEP 3: Setup specific audience (reuse existing or create new)
       const identity = new IdentityService(appManagerApiClient.context, getEnvConfig().apiBaseUrl);
@@ -75,6 +71,9 @@ test.describe('Site Creation by Application Manager', { tag: [ContentFeatureTags
       // STEP 1: Open site creation page via ABAC CreateComponent
       await appManagerHomePage.actions.openSiteCreationForm();
       const siteCreationPage = new SiteCreationPage(page);
+
+      // Verify form structure
+      await siteCreationPage.assertions.verifySiteCreationFormStructure();
 
       // STEP 2: Setup specific audience (reuse existing or create new)
       const identity = new IdentityService(appManagerApiClient.context, getEnvConfig().apiBaseUrl);
