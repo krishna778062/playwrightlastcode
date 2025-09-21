@@ -5,9 +5,10 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 import { AccessControlGroupModalComponent } from '@platforms/components/accessControlGroupModal';
 import { ConfirmEditAccessControlGroupModalComponent } from '@platforms/components/confirmEditAccessControlGroupModal';
-import { ACG_STATUS } from '@platforms/constants/acgStatus';
+import { ACG_STATUS } from '@platforms/constants/acg';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { changeDateFormatToYYYYMMDD } from '@/src/core/utils/dateUtil';
 
 export enum ACGFeature {
   ADD_SITES = 'Add_sites',
@@ -37,6 +38,7 @@ export class AccessControlGroupsPage extends BasePage {
   readonly acgEditButton: Locator;
   readonly acgRecords: Locator;
   readonly clearButtonOnSearchInputBox: Locator;
+  readonly acgColumns: Locator;
 
   createACGModal: AccessControlGroupModalComponent;
   editACGModal: AccessControlGroupModalComponent;
@@ -67,6 +69,7 @@ export class AccessControlGroupsPage extends BasePage {
     this.acgRecords = page.locator('[data-testid*="dataGridRow"]');
     this.confirmEditACGModal = new ConfirmEditAccessControlGroupModalComponent(page);
     this.clearButtonOnSearchInputBox = page.locator('[aria-label="Clear"]');
+    this.acgColumns = page.locator('[class*="Cell-module__isHeader"]');
   }
 
   // To verify that the ACG page is loaded
@@ -282,5 +285,140 @@ export class AccessControlGroupsPage extends BasePage {
       force: true,
       stepInfo: 'Clicking on the Edit button with coordinates',
     });
+  }
+
+  /**
+   * Verifies the visibility of a column at ACG page.
+   * @param columnName - Name of the column to be verified.
+   */
+  async verifyColumnIsDisplayed(columnName: string): Promise<void> {
+    await test.step(`Verifying that ${columnName} column is displayed`, async () => {
+      await expect(
+        this.acgColumns.filter({ hasText: columnName }),
+        `expecting ${columnName} column name to be visible`
+      ).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Verifies column is sortable or not.
+   * @param columnName - Name of the column to be checked.
+   * @param isSortable - Need to check for sortability or unsortability.
+   */
+  async verifyColumnSortable(columnName: string, isSortable: boolean): Promise<void> {
+    const sortableOrNot: string = isSortable ? `sortable` : `not sortable`;
+    await test.step(`Verifying ${columnName} column to be ${sortableOrNot}`, async () => {
+      expect(
+        await this.verifier.isTheElementVisible(this.acgColumns.filter({ hasText: columnName }).locator('button'), {
+          timeout: TIMEOUTS.VERY_SHORT,
+        }),
+        `expecting ${columnName} column to be ${sortableOrNot}`
+      ).toBe(isSortable);
+    });
+  }
+
+  /**
+   * Verifies the sorting functionality.
+   * @param columnName - Name of the column to be checked for sorting functionality.
+   */
+  async verifyTheSortingFunctionalityOfColumn(columnName: string): Promise<void> {
+    const selector: Locator = this.acgColumns.filter({ hasText: columnName });
+    let sortingOrder: string | null = null;
+
+    // Ascending order
+    await this.clickOnElement(selector.locator('button'));
+    await expect(selector.locator('button').locator('i')).toBeVisible();
+    //Using try catch to handle the flakiness of element due to which sometimes sortingOrder is returned as null
+    try {
+      sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
+      expect(sortingOrder).not.toBeNull();
+    } catch (e) {
+      await test.step(`Waiting for sorting order to be visible`, async () => {
+        await this.page.waitForTimeout(1000);
+      });
+      sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
+    }
+    await this.veryfySorting(this.acgColumns, columnName, sortingOrder ?? '');
+
+    // Descending order
+    await this.clickOnElement(selector.locator('button'));
+    await expect(selector.locator('button').locator('i')).toBeVisible();
+    //Using try catch to handle the flakiness of element due to which sometimes sortingOrder is returned as null
+    try {
+      sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
+      expect(sortingOrder).not.toBeNull();
+    } catch (e) {
+      await test.step(`Waiting for sorting order to be visible`, async () => {
+        await this.page.waitForTimeout(1000);
+      });
+      sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
+    }
+    await this.veryfySorting(this.acgColumns, columnName, sortingOrder ?? '');
+  }
+
+  /**
+   * Verifies that the given column has sorted values or not.
+   * @param selector - Common locator of the column to be checked for sorting.
+   * @param columnName - Name of the column to be checked for sorting.
+   * @param sortingOrder - Sorting order to be used for sorting the array(ascending/descending).
+   */
+  async veryfySorting(selector: Locator, columnName: string, sortingOrder: string): Promise<void> {
+    let columnIndex = -1;
+    const allTextContents: string[] = [];
+    let sortedTextContents: string[] = [];
+    for (let i = 0; i < (await selector.count()); i++) {
+      if ((await selector.nth(i).textContent()) == columnName) {
+        columnIndex = i;
+        console.log(await this.acgRecordsElement.locator('td').nth(i).textContent());
+        break;
+      }
+    }
+    for (let j = 0; j < (await this.acgRecordsElement.count()); j++) {
+      const textContent = await this.acgRecordsElement.nth(j).locator('td').nth(columnIndex).textContent();
+      if (!textContent?.includes('Syncing...')) {
+        if (columnName === 'Modified') {
+          allTextContents.push(changeDateFormatToYYYYMMDD(textContent ?? ''));
+        } else {
+          allTextContents.push(textContent ?? '');
+        }
+      }
+    }
+    console.log('<<<<<<<<<<<<<<allTextContents>>>>>>>>>>>\n');
+    console.log(allTextContents);
+    sortedTextContents = await this.sortOntheBasisOfSortOrder(allTextContents, sortingOrder);
+    console.log('<<<<<<<<<<<<<<sortedTextContents>>>>>>>>>>>\n');
+    console.log(sortedTextContents);
+    expect(sortedTextContents).toEqual(allTextContents);
+  }
+
+  /**
+   * Sorts the array based on the sorting order.
+   * @param arrayToSort - Given array to be sorted.
+   * @param sortingOrder - Sorting order to be used for sorting the array(ascending/descending).
+   */
+  async sortOntheBasisOfSortOrder(arrayToSort: string[], sortingOrder: string): Promise<string[]> {
+    let sortedTextContents: string[] = [];
+    console.log(`sorting array in ${sortingOrder} order`);
+    if (sortingOrder === 'ascending') {
+      sortedTextContents = [...arrayToSort].sort((a, b) =>
+        a.replace(/\s+/g, '').localeCompare(b.replace(/\s+/g, ''), undefined, {
+          sensitivity: 'base',
+          numeric: true,
+        })
+      );
+      return sortedTextContents;
+    } else {
+      sortedTextContents = [...arrayToSort]
+        .sort((a, b) =>
+          a.replace(/\s+/g, '').localeCompare(b.replace(/\s+/g, ''), undefined, {
+            sensitivity: 'base',
+            numeric: true,
+          })
+        )
+        .reverse();
+      return sortedTextContents;
+    }
   }
 }
