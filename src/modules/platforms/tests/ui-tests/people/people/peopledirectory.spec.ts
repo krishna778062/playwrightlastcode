@@ -14,7 +14,7 @@ test.describe(
     test(
       'Verify the presence of filter under filters field of people directory for custom user',
       {
-        tag: [TestPriority.P1],
+        tag: [TestPriority.P1, `@PEOPLE_DIRECTORY`, `@people-directory`],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
