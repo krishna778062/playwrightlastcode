@@ -3,15 +3,14 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { SiteDashboardPage } from '../../pages/siteDashboardPage';
-import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
-
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
+import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 
 interface FeedResponse {
   result: {

@@ -22,6 +22,11 @@ import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
+
+import { ContentManagementHelper } from '@/src/core/helpers/contentManagementHelper';
+import { SiteType } from '@/src/modules/content-abac/constants/siteType';
+
 test.describe(
   `Page Creation by Application Manager`,
   {
@@ -47,102 +52,20 @@ test.describe(
 
     test.beforeEach(
       'Setting up the test environment for page creation by opening page creation page from home page',
-      async ({ appManagerHomePage, appManagersPage, siteManagementHelper }) => {
+      async ({
+        appManagerHomePage,
+        appManagersPage,
+        siteManagementHelper,
+        feedManagementHelper,
+        contentManagementHelper,
+        appManagerApiClient,
+      }) => {
+        //disable
+        await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
+
         // Create home page instance and navigate to page creation
         await appManagerHomePage.verifyThePageIsLoaded();
-        contentPreviewPage = new ContentPreviewPage(
-          appManagersPage,
-          siteIdToPublishPage,
-          publishedPageId,
-          ContentType.PAGE
-        );
 
-        // Initialize additional page objects for the moved test cases
-        homePage = new NewUxHomePage(appManagersPage);
-        applicationscreen = new ApplicationScreenPage(appManagersPage);
-        manageFeaturePage = new ManageFeature(appManagersPage);
-        manageApplicationPage = new ManageApplicationPage(appManagersPage);
-        governanceScreenPage = new GovernanceScreenPage(appManagersPage);
-        manageContentPage = new ManageContentPage(appManagersPage);
-        manageSitePage = new ManageSitePage(appManagersPage, '');
-        siteDetailsPage = new SiteDetailsPage(appManagersPage, '');
-        editPagePage = new EditPagePage(appManagersPage);
-        siteDashboardPage = new SiteDashboardPage(appManagersPage, '');
-
-        // Reset cleanup flag for each test
-        manualCleanupNeeded = false;
-      }
-    );
-
-    test.afterEach(async ({ contentManagementHelper }) => {
-      // Only cleanup manually if needed (for UI-only tests)
-      if (manualCleanupNeeded && publishedPageId && siteIdToPublishPage) {
-        await contentManagementHelper.deleteContent(siteIdToPublishPage, publishedPageId);
-        console.log('Manual cleanup completed for page:', publishedPageId);
-      } else {
-        console.log('No page was published, hence skipping the deletion');
-      }
-    });
-
-    test(
-      'Verify admin is able to publish a new page created with cover image from home page',
-      {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentFeatureTags.COVER_IMAGE,
-          ContentSuiteTags.PAGE_CREATION,
-          '@CONT-11635',
-        ],
-      },
-      async ({ appManagerHomePage, appManagersPage, siteManagementHelper }) => {
-        tagTest(test.info(), {
-          description: 'Verify admin is able to publish a new page created with cover image from home page',
-          zephyrTestId: 'CONT-11635',
-          storyId: 'CONT-11635',
-        });
-
-        pageCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
-          ContentType.PAGE
-        )) as PageCreationPage;
-
-        // Generate page data using TestDataGenerator
-        const pageCreationOptions = TestDataGenerator.generatePage(
-          PageContentType.NEWS,
-          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
-        );
-
-        // Use the new wrapper method to create and publish the page
-        const { pageId, siteId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
-
-        // Store IDs for cleanup
-        publishedPageId = pageId;
-        siteIdToPublishPage = siteId;
-        manualCleanupNeeded = true;
-
-        // Initialize preview page and handle the promotion
-        await contentPreviewPage.actions.handlePromotionPageStep();
-
-        // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
-          pageCreationOptions.title,
-          "Created page successfully - it's published"
-        );
-
-        console.log(`Created page: ${pageCreationOptions.title} with ID: ${pageId} in site: ${siteId}`);
-      }
-    );
-    test(
-      'Verify admin is able to publish a new page created with cover image from site dashboard',
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE, ContentSuiteTags.PAGE_CREATION],
-      },
-      async ({ appManagerApiClient, siteManagementHelper, appManagersPage }) => {
-        tagTest(test.info(), {
-          description: 'Verify admin is able to publish a new page created with cover image from site dashboard',
-          zephyrTestId: 'CONT-39089',
-          storyId: 'CONT-39089',
-        });
         const category = await appManagerApiClient.getSiteManagementService().getCategoryId(SITE_TEST_DATA[0].category);
         createdSite = await siteManagementHelper.createPublicSite({
           category,
@@ -171,7 +94,12 @@ test.describe(
 
         // Store page ID for cleanup (siteIdToPublishPage is already set above)
         publishedPageId = pageId;
-
+        contentPreviewPage = new ContentPreviewPage(
+          appManagersPage,
+          createdSite.siteId,
+          publishedPageId,
+          ContentType.PAGE
+        );
         // Initialize preview page and handle the promotion
         await contentPreviewPage.actions.handlePromotionPageStep();
 
@@ -180,8 +108,34 @@ test.describe(
           pageCreationOptions.title,
           "Created page successfully - it's published"
         );
+
+        // Initialize additional page objects for the moved test cases
+        homePage = new NewUxHomePage(appManagersPage);
+
+        applicationscreen = new ApplicationScreenPage(appManagersPage);
+        manageFeaturePage = new ManageFeature(appManagersPage);
+        manageApplicationPage = new ManageApplicationPage(appManagersPage);
+        governanceScreenPage = new GovernanceScreenPage(appManagersPage);
+        manageContentPage = new ManageContentPage(appManagersPage);
+        manageSitePage = new ManageSitePage(appManagersPage, '');
+        siteDetailsPage = new SiteDetailsPage(appManagersPage, '');
+        editPagePage = new EditPagePage(appManagersPage);
+        siteDashboardPage = new SiteDashboardPage(appManagersPage, '');
+
+        // Reset cleanup flag for each test
+        manualCleanupNeeded = false;
       }
     );
+
+    test.afterEach(async ({ contentManagementHelper }) => {
+      // Only cleanup manually if needed (for UI-only tests)
+      if (manualCleanupNeeded && publishedPageId && siteIdToPublishPage) {
+        await contentManagementHelper.deleteContent(siteIdToPublishPage, publishedPageId);
+        console.log('Manual cleanup completed for page:', publishedPageId);
+      } else {
+        console.log('No page was published, hence skipping the deletion');
+      }
+    });
 
     test(
       'Verify feed and comment should not be displayed when feed and comments are disabled app level',

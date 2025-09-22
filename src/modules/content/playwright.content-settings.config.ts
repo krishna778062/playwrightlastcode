@@ -10,7 +10,7 @@ import { getContentTenantConfigFor } from './config/contentConfig';
 
 export default defineConfig({
   ...baseConfig,
-  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'content', 'tests', 'content-common'),
+  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'content', 'tests', 'content-settings'),
   testIgnore: '**/api-tests/**',
   workers: process.env.CI ? 2 : 4,
   timeout: 180_000,
@@ -19,7 +19,7 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'content-common-chromium',
+      name: 'content-settings-chromium',
       use: {
         headless: process.env.CI ? true : false,
         video: 'off',

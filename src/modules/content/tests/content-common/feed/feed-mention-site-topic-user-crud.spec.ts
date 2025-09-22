@@ -2,8 +2,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
-
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
@@ -13,6 +11,7 @@ import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPa
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { SiteType } from '@/src/modules/content-abac/constants/siteType';
 
 // ==================== HELPER FUNCTIONS ====================
