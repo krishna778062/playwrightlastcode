@@ -13,7 +13,7 @@ class AppTileComponent extends BaseAppTileComponent {
 }
 
 export class HomeDashboard {
-  private readonly page: Page;
+  readonly page: Page;
   private readonly airtableComponent: BaseAppTileComponent;
   private readonly appTileComponent: AppTileComponent;
   private readonly tileOperationsComponent: TileOperationsComponent;
