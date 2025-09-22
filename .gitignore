@@ -20,6 +20,7 @@ report.json
 
 # Google Calendar Secrets (sensitive data)
 src/modules/*/env/googleCalendarSecrets.env
+githubSecrets.json
 
 # Development artifacts
 *.log

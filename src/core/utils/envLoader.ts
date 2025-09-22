@@ -14,39 +14,40 @@ export function loadEnvVariablesForGivenModule(envName: Environments, moduleName
     PROJECT_ROOT,
     `src/modules/${moduleName}/env/googleCalendarSecrets.env`
   );
+  const githubSecretsPath = path.resolve(PROJECT_ROOT, 'githubSecrets.json');
 
   // Load main environment file first
   if (!FileUtil.fileExists(envPath)) {
     throw new Error(`Environment file not found at this given path: ${envPath}`);
   }
-  console.log(`Loading env variables from: ${envPath}`);
   dotenv.config({ path: envPath });
 
-  // Load Google Calendar secrets file if it exists (overrides main env values)
-  if (FileUtil.fileExists(googleCalendarSecretsPath)) {
-    console.log(`Loading Google Calendar secrets from: ${googleCalendarSecretsPath}`);
+  // Check if running in CI and load from GitHub secrets JSON
+  if (process.env.CI && FileUtil.fileExists(githubSecretsPath)) {
+    try {
+      const secretsContent = require('fs').readFileSync(githubSecretsPath, 'utf8');
+      const secrets = JSON.parse(secretsContent);
+
+      const requiredKeys = [
+        'GOOGLE_CALENDAR_CLIENT_ID',
+        'GOOGLE_CALENDAR_CLIENT_SECRET',
+        'GOOGLE_CALENDAR_REFRESH_TOKEN',
+        'END_USER_GOOGLE_CALENDAR_CLIENT_ID',
+        'END_USER_GOOGLE_CALENDAR_CLIENT_SECRET',
+        'END_USER_GOOGLE_CALENDAR_REFRESH_TOKEN',
+      ];
+
+      for (const key of requiredKeys) {
+        if (secrets[key]) {
+          process.env[key] = secrets[key];
+        }
+      }
+    } catch (error) {
+      console.error('Failed to parse GitHub secrets JSON:', error);
+    }
+  }
+  // Load Google Calendar secrets file if it exists (for local development)
+  else if (FileUtil.fileExists(googleCalendarSecretsPath)) {
     dotenv.config({ path: googleCalendarSecretsPath, override: true });
   }
-
-  // Fallback to GitHub environment variables for sensitive data
-  if (!process.env.GOOGLE_CALENDAR_CLIENT_ID && process.env.CI_GOOGLE_CALENDAR_CLIENT_ID) {
-    process.env.GOOGLE_CALENDAR_CLIENT_ID = process.env.CI_GOOGLE_CALENDAR_CLIENT_ID;
-  }
-  if (!process.env.GOOGLE_CALENDAR_CLIENT_SECRET && process.env.CI_GOOGLE_CALENDAR_CLIENT_SECRET) {
-    process.env.GOOGLE_CALENDAR_CLIENT_SECRET = process.env.CI_GOOGLE_CALENDAR_CLIENT_SECRET;
-  }
-  if (!process.env.GOOGLE_CALENDAR_REFRESH_TOKEN && process.env.CI_GOOGLE_CALENDAR_REFRESH_TOKEN) {
-    process.env.GOOGLE_CALENDAR_REFRESH_TOKEN = process.env.CI_GOOGLE_CALENDAR_REFRESH_TOKEN;
-  }
-  if (!process.env.END_USER_GOOGLE_CALENDAR_CLIENT_ID && process.env.CI_END_USER_GOOGLE_CALENDAR_CLIENT_ID) {
-    process.env.END_USER_GOOGLE_CALENDAR_CLIENT_ID = process.env.CI_END_USER_GOOGLE_CALENDAR_CLIENT_ID;
-  }
-  if (!process.env.END_USER_GOOGLE_CALENDAR_CLIENT_SECRET && process.env.CI_END_USER_GOOGLE_CALENDAR_CLIENT_SECRET) {
-    process.env.END_USER_GOOGLE_CALENDAR_CLIENT_SECRET = process.env.CI_END_USER_GOOGLE_CALENDAR_CLIENT_SECRET;
-  }
-  if (!process.env.END_USER_GOOGLE_CALENDAR_REFRESH_TOKEN && process.env.CI_END_USER_GOOGLE_CALENDAR_REFRESH_TOKEN) {
-    process.env.END_USER_GOOGLE_CALENDAR_REFRESH_TOKEN = process.env.CI_END_USER_GOOGLE_CALENDAR_REFRESH_TOKEN;
-  }
-
-  console.log('Environment variables loaded successfully');
 }
