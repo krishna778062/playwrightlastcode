@@ -64,7 +64,7 @@ export class AdGroupComponent extends BaseComponent {
     });
   }
 
-  async clickOnAudiencesButton(text: string): Promise<void> {
+  async createAudiencesButtonVisibilty(text: string): Promise<void> {
     await test.step(`Click on Audiences button: ${text}`, async () => {
       await this.selectAudiencesButton(text).isVisible;
     });
@@ -84,7 +84,7 @@ export class AdGroupComponent extends BaseComponent {
         'Security groups',
       ];
       expect(actualValues.length).toBe(expectedValues.length);
-      expect(actualValues).toEqual(expectedValues);
+      expect(actualValues, 'expecting all the group types match with expected values').toEqual(expectedValues);
     });
   }
 

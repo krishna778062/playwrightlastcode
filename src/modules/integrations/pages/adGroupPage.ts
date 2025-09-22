@@ -44,11 +44,11 @@ export class AdGroupPage extends BasePage {
   }
 
   async createAudiencesButtonVisibilty(text: string): Promise<void> {
-    return this.adGroupComponent.clickOnAudiencesButton(text);
+    return this.adGroupComponent.createAudiencesButtonVisibilty(text);
   }
 
   async doNotCreateAudiencesButtonVisibilty(text: string): Promise<void> {
-    return this.adGroupComponent.clickOnAudiencesButton(text);
+    return this.adGroupComponent.createAudiencesButtonVisibilty(text);
   }
 
   async verifyErrorMessage(expectedMessage: string): Promise<void> {
