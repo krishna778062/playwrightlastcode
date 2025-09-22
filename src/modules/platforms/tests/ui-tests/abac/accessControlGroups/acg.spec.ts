@@ -7,8 +7,7 @@ import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 // import { User } from '@core/types/user.type';
 import { tagTest } from '@core/utils/testDecorator';
 // @platforms imports
-import { ACG_EDIT_ASSETS } from '@platforms/constants/acgEditAssets';
-import { ACG_STATUS } from '@platforms/constants/acgStatus';
+import { ACG_COLUMNS, ACG_EDIT_ASSETS, ACG_STATUS } from '@platforms/constants/acg';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/acgPage/accessControlGroupsPage';
 import { FeatureOwnersPage } from '@platforms/pages/abacPage/featureOwnersPage/featureOwnersPage';
@@ -386,6 +385,66 @@ test.describe(
         // Clean up: Delete the above created ACG
         await accessControlGroupsPage.deleteACG(acgName.pop() as string);
         await accessControlGroupsPage.deleteACG(acgName.pop() as string);
+      }
+    );
+
+    test(
+      `Verify that Name column is displayed and is sortable at Access control groups page`,
+      {
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: [
+            'PS-31013',
+            'PS-31032',
+            'PS-31039',
+            'PS-31028',
+            'PS-31023',
+            'PS-31018',
+            'PS-31100',
+            'PS-31007',
+          ],
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        // Test Scenario
+        await accessControlGroupsPage.loadPage();
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.NAME);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.NAME, true);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.FEATURE);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.FEATURE, true);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.GROUP_TYPE);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.GROUP_TYPE, true);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.TARGET_AUDIENCE);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.TARGET_AUDIENCE, false);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.MANAGERS);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.MANAGERS, false);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.ADMINS);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.ADMINS, false);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.STATUS);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.STATUS, true);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.MODIFIED);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.MODIFIED, true);
+      }
+    );
+
+    test(
+      `Verify the sorting functionality of Name column in access control groups page`,
+      {
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-35732', 'PS-35733', 'PS-35734', 'PS-35735', 'PS-35736'],
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        // Test Scenario
+        await accessControlGroupsPage.loadPage();
+        await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.NAME);
+        await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.FEATURE);
+        await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.GROUP_TYPE);
+        await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.STATUS);
+        await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.MODIFIED);
       }
     );
   }

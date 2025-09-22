@@ -16,6 +16,7 @@ export const PAGE_ENDPOINTS = {
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
   MANAGE_USERS_PAGE: '/manage/users',
+  PEOPLE_DIRECTORY_PAGE: '/people',
   ACTIVITY_NOTIFICATION_PAGE: '/notifications/activity',
   LOGOUT: '/logout',
 
@@ -38,6 +39,7 @@ export const PAGE_ENDPOINTS = {
   getFeedPage: (feedId: string) => `/feed/${feedId}`,
   APPLICATION_SETTINGS: 'manage/app/setup/general',
   GOVERNANCE_SCREEN: 'manage/app/setup/governance',
+  PRIVILEGES_SCREEN: 'manage/app/setup/privileges',
   MANAGE_FEATURE: 'manage-features',
   MANAGE_CONTENT: 'manage/content',
   MANAGE_SITE_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,

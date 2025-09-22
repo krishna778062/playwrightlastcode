@@ -6,9 +6,7 @@ import { EventCreationPage } from '@content/pages/eventCreationPage';
 import { PageCreationPage } from '@content/pages/pageCreationPage';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
-import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
 import { extractSiteIdFromContentAdditionUrl } from '@/src/core/utils/urlUtils';
-import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 
 export class AddContentModalComponent extends BaseComponent {
   readonly recentlyUsedSitesList: Locator;
@@ -34,6 +32,7 @@ export class AddContentModalComponent extends BaseComponent {
   readonly selectTemplateDropdownOption: Locator;
   readonly clearButtonOnSelectTemplateDropdown: Locator;
   readonly selectTemplateDropdownOptionByIndex: (index: number) => Locator;
+  readonly errorMessage: (contentType: ContentType) => Locator;
 
   constructor(page: Page) {
     super(page);
@@ -65,6 +64,9 @@ export class AddContentModalComponent extends BaseComponent {
     this.clearButtonOnSelectTemplateDropdown = page.getByLabel("button[aria-label*='Clear']");
     this.selectTemplateDropdownOptionByIndex = (index: number) =>
       page.locator("div[class*='Menu-module'] div[role='menuitem']").nth(index);
+
+    this.errorMessage = (contentType: ContentType) =>
+      page.locator(`p:has-text('${contentType}s have been disabled within this site')`);
   }
 
   /**
@@ -129,6 +131,7 @@ export class AddContentModalComponent extends BaseComponent {
    */
   async selectSiteFromDropdown(siteName: string) {
     await test.step(`Select ${siteName} site from select site dropdown`, async () => {
+      await this.typeInElement(this.selectSiteDropdown, siteName);
       await this.clickOnElement(this.selectSiteDropdownOption(siteName));
     });
   }
@@ -289,5 +292,11 @@ export class AddContentModalComponent extends BaseComponent {
     }
     await contentCreationPage.verifyThePageIsLoaded();
     return contentCreationPage;
+  }
+
+  async verifyErrorMessageWhenContentSubmissionIsDisabled(contentType: ContentType) {
+    await test.step('Verify error message when content submission is disabled', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.errorMessage(contentType));
+    });
   }
 }

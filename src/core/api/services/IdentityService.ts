@@ -18,11 +18,87 @@ import { IdentityUserSearchResponse } from '@core/types/user.type';
 import { audienceCreationParams } from '@/src/core/types/audience.type';
 
 interface ListRolesResponse {
+  status: number;
+  message: string;
   result: Array<{
     role_id: number;
     name: string;
-    description?: string;
+    description: string;
+    type: string;
+    is_editable: boolean;
+    scope: string | null;
+    is_applicable: boolean;
+    assignment_type: string;
+    account_id: string;
+    metadata: any;
+    created_on: string;
+    modified_on: string | null;
+    count: string;
   }>;
+}
+
+interface ListOfRolesResponse {
+  status: number;
+  message: string;
+  result: Array<{
+    role_id: string;
+    name: string;
+    description: string;
+    type: string;
+    is_editable: boolean;
+    scope: string | null;
+    is_applicable: boolean;
+    assignment_type: string;
+    account_id: string;
+    metadata: any;
+    created_on: string;
+    modified_on: string | null;
+    count: string;
+  }>;
+}
+
+interface UpdateUserRequest {
+  personal_info: {
+    first_name: string;
+    last_name: string;
+    timezone_id: number;
+    language_id: number;
+    locale_id: number;
+    email: string;
+    license_type: string;
+  };
+  work_info: {
+    department: string;
+    start_date: string;
+  };
+  role_id: string;
+  additional_role_id: string[];
+}
+
+interface UpdateUserResponse {
+  result: {
+    user_id: string;
+  };
+  message: string;
+}
+
+interface GetUserByIdResponse {
+  personal_info: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    timezone_id: number;
+    language_id: number;
+    locale_id: number;
+    license_type: string;
+  };
+  work_info: {
+    work_info_id: string;
+    department: string;
+    start_date: string;
+  };
+  role_id: string;
+  additional_role_id: string[];
 }
 
 export class IdentityService extends BaseApiClient implements IIdentityAdminOperations {
@@ -60,6 +136,101 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
     }
 
     return roleData.role_id;
+  }
+
+  /**
+   * Gets the list of roles from identity service
+   * @returns Promise<ListRolesResponse> - The roles list response
+   */
+  async getListOfRoles(): Promise<ListOfRolesResponse> {
+    return await test.step('Getting list of roles from identity service', async () => {
+      const response = await this.post(API_ENDPOINTS.identity.roles, {
+        data: {},
+      });
+      return await this.parseResponse<ListOfRolesResponse>(response);
+    });
+  }
+
+  /**
+   * Updates user information in identity service
+   * @param userId - The ID of the user to update
+   * @param userData - The user data to update
+   * @returns Promise<UpdateUserResponse> - The update response
+   */
+  async updateUser(userId: string, userData: UpdateUserRequest): Promise<UpdateUserResponse> {
+    return await test.step(`Updating user ${userId}`, async () => {
+      const response = await this.put(`${API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserId(userId)}`, {
+        data: userData,
+      });
+      console.log(`Updated user ${userId}`, JSON.stringify(userData, null, 2));
+      return await this.parseResponse<UpdateUserResponse>(response);
+    });
+  }
+
+  /**
+   * Updates user information with parameterized values
+   * @param userId - The ID of the user to update
+   * @param firstName - User's first name
+   * @param lastName - User's last name
+   * @param email - User's email
+   * @param department - User's department
+   * @param roleId - Primary role ID
+   * @param additionalRoleIds - Array of additional role IDs
+   * @param timezoneId - Timezone ID (default: 328)
+   * @param languageId - Language ID (default: 1)
+   * @param localeId - Locale ID (default: 1)
+   * @param licenseType - License type (default: "Corporate")
+   * @param startDate - Start date (default: "2024-07-22")
+   * @returns Promise<UpdateUserResponse> - The update response
+   */
+  async updateUserWithParams(
+    userId: string,
+    firstName: string,
+    lastName: string,
+    email: string,
+    department: string,
+    roleId: string,
+    additionalRoleIds: string[] = [],
+    timezoneId: number = 328,
+    languageId: number = 1,
+    localeId: number = 1,
+    licenseType: string = 'Corporate',
+    startDate: string = '2024-07-22'
+  ): Promise<UpdateUserResponse> {
+    const userData: UpdateUserRequest = {
+      personal_info: {
+        first_name: firstName,
+        last_name: lastName,
+        timezone_id: timezoneId,
+        language_id: languageId,
+        locale_id: localeId,
+        email: email,
+        license_type: licenseType,
+      },
+      work_info: {
+        department: department,
+        start_date: startDate,
+      },
+      role_id: roleId,
+      additional_role_id: [...additionalRoleIds],
+    };
+
+    return await this.updateUser(userId, userData);
+  }
+
+  /**
+   * Gets user information by user ID
+   * @param userId - The ID of the user to retrieve
+   * @param parseCustomFields - Whether to parse custom fields (default: true)
+   * @returns Promise<GetUserByIdResponse> - The user information response
+   */
+  async getUserById(userId: string, parseCustomFields: boolean = true): Promise<GetUserByIdResponse> {
+    return await test.step(`Getting user by ID: ${userId}`, async () => {
+      const response = await this.get(
+        `${API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserId(userId)}?parseCustomFields=${parseCustomFields}`
+      );
+      return await this.parseResponse<GetUserByIdResponse>(response);
+    });
   }
 
   /**

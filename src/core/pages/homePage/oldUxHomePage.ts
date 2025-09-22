@@ -2,7 +2,7 @@ import { Page, test } from '@playwright/test';
 
 import { SiteManagementHelper } from '../../helpers/siteManagementHelper';
 
-import { BaseHomePage, ICommonHomePageActions, IOldUxHomePageActions } from './baseHomePage';
+import { BaseHomePage, ICommonHomePageActions, ICommonHomePageAssertions, IOldUxHomePageActions } from './baseHomePage';
 
 import { ChatNavigationComponent } from '@/src/modules/chat/components/chatNavigationComponent';
 import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
@@ -24,6 +24,10 @@ export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions
   }
 
   get actions(): IOldUxHomePageActions {
+    return this;
+  }
+
+  get assertions(): ICommonHomePageAssertions {
     return this;
   }
 
@@ -84,6 +88,28 @@ export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions
     return await test.step(options?.stepInfo || 'Click on bell icon', async () => {
       await this.topNavBarComponent.clickOnBellIcon();
       return new NotificationComponent(this.page);
+    });
+  }
+
+  async openAddContentModal(
+    contentType: ContentType,
+    siteName?: string,
+    options?: { stepInfo?: string }
+  ): Promise<AddContentModalComponent> {
+    return await test.step(options?.stepInfo || `Opening create content page for ${contentType}`, async () => {
+      await this.clickOnCreateContentButtonOnTopNavBar(contentType);
+      const addContentModal = new AddContentModalComponent(this.page);
+      await addContentModal.verifyTheAddContentModalIsVisible(contentType);
+      return addContentModal;
+    });
+  }
+
+  async verifyErrorMessageWhenContentSubmissionIsDisabled(
+    addContentModal: AddContentModalComponent,
+    contentType: ContentType
+  ) {
+    await test.step('Verify error message when content submission is disabled', async () => {
+      await addContentModal.verifyErrorMessageWhenContentSubmissionIsDisabled(contentType);
     });
   }
 }
