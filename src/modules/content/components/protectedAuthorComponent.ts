@@ -44,6 +44,16 @@ export class ProtectedAuthorsComponent extends BaseComponent {
     });
   }
 
+  async fillProtectedAuthorsAllowlistFieldBarWithLoggedInUser(value: string): Promise<void> {
+    await test.step('Verify protected authors authors is visible and fill value', async () => {
+      await this.clickOnElement(this.authorInputBox);
+      await this.fillInElement(this.authorInputBox, value);
+      await this.authorInputBox.focus();
+      const newWorkspaceOption = this.selectingAuthor.filter({ hasText: value });
+      await this.clickOnElement(newWorkspaceOption);
+    });
+  }
+
   async clickOnCrossUser(): Promise<void> {
     await test.step('Clicking on cross user', async () => {
       await this.clickOnElement(this.crossUser);

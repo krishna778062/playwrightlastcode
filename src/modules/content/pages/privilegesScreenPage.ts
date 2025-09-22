@@ -8,8 +8,10 @@ import { ProtectedAuthorsComponent } from '@/src/modules/content/components/prot
 
 export interface IPrivilegesScreenPageActions {
   fillProtectedAuthorsAuthorsFieldBarWithLoggedInUser: (value: string) => Promise<void>;
+  fillProtectedAuthorsAllowlistFieldBarWithLoggedInUser: (value: string) => Promise<void>;
   clickOnSave: () => Promise<void>;
   clickOnCrossUserFromAuthorList: () => Promise<void>;
+  clickOnCrossAllowlistUser: () => Promise<void>;
 }
 
 export interface IPrivilegesScreenPageAssertions {
@@ -55,6 +57,10 @@ export class PrivilegesScreenPage extends BasePage {
     await this.protectedAuthorsComponent.fillProtectedAuthorsAuthorsFieldBarWithLoggedInUser(value);
   }
 
+  async fillProtectedAuthorsAllowlistFieldBarWithLoggedInUser(value: string): Promise<void> {
+    await this.protectedAuthorsComponent.fillProtectedAuthorsAllowlistFieldBarWithLoggedInUser(value);
+  }
+
   async clickOnSave(): Promise<void> {
     await test.step('Clicking on save', async () => {
       await this.clickOnElement(this.clickOnSaveButton);
@@ -69,6 +75,10 @@ export class PrivilegesScreenPage extends BasePage {
   }
 
   async clickOnCrossUserFromAuthorList(): Promise<void> {
+    await this.protectedAuthorsComponent.clickOnCrossUser();
+  }
+
+  async clickOnCrossAllowlistUser(): Promise<void> {
     await this.protectedAuthorsComponent.clickOnCrossUser();
   }
 
