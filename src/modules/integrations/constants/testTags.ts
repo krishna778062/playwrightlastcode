@@ -5,6 +5,7 @@ export enum IntegrationsSuiteTags {
   EXPENSIFY = '@expensifyAppTiles',
   GITHUB = '@gitHubAppTiles',
   ABSOLUTE = '@absolute',
+  GAMMA = '@gamma',
 }
 
 export enum IntegrationsFeatureTags {
@@ -23,3 +24,7 @@ export const TEST_TAGS = {
   TILE_MANAGEMENT: IntegrationsFeatureTags.TILE_MANAGEMENT,
   MULTI_USER: IntegrationsFeatureTags.MULTI_USER,
 } as const;
+
+export enum GammaIntegrationsFeatureTags {
+  OKTA_GROUP = '@okta-group',
+}

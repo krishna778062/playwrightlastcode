@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { BrowserContext, Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
@@ -13,6 +13,8 @@ import { SiteDashboard } from '@/src/modules/integrations/pages/siteDashboard';
 export const integrationsFixture = test.extend<
   {
     homeDashboard: HomeDashboard;
+    appManagerBrowserContext: BrowserContext;
+    appManagerPage: Page;
     siteDashboard: SiteDashboard;
     siteManagementHelper: SiteManagementHelper;
     tileManagementHelper: TileManagementHelper;
@@ -37,14 +39,31 @@ export const integrationsFixture = test.extend<
     { scope: 'worker' },
   ],
 
+  appManagerBrowserContext: [
+    async ({ browser }, use) => {
+      const context = await browser.newContext();
+      await use(context);
+      await context?.close();
+    },
+    { scope: 'test' },
+  ],
+
   homeDashboard: [
-    async ({ page, tileManagementHelper }, use) => {
+    async ({ appManagerBrowserContext, tileManagementHelper }, use) => {
+      const page = await appManagerBrowserContext.newPage();
       await LoginHelper.loginWithPassword(page, {
         email: getEnvConfig().appManagerEmail,
         password: getEnvConfig().appManagerPassword,
       });
       const homeDashboard = new HomeDashboard(page, tileManagementHelper);
       await use(homeDashboard);
+    },
+    { scope: 'test' },
+  ],
+
+  appManagerPage: [
+    async ({ homeDashboard }, use) => {
+      await use(homeDashboard.page);
     },
     { scope: 'test' },
   ],
