@@ -1,6 +1,7 @@
 // @/src imports
 // @core imports
 import { expect } from '@playwright/test';
+
 import { POPUP_BUTTONS } from '@core/constants/popupButtons';
 import { TestPriority } from '@core/constants/testPriority';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
