@@ -9,11 +9,11 @@ import { SiteDashboardPage } from '../../pages/sitePages/siteDashboardPage';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
-import { SiteType } from '@/src/modules/content-abac/constants/siteType';
 
 test.describe(
   '@FeedCRUD - Feed Post Add, Edit, Delete Operations',
@@ -49,8 +49,8 @@ test.describe(
         const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
         const userInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
 
-        const publicSite = await siteManagementHelper.getSiteByAccessType(SiteType.PUBLIC);
-        const privateSite = await siteManagementHelper.getSiteByAccessType(SiteType.PRIVATE);
+        const publicSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const privateSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
 
         if (!publicSite) {
           throw new Error('No public site found in the list');
@@ -128,8 +128,8 @@ test.describe(
         const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
         const userInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
 
-        const publicSite = await siteManagementHelper.getSiteByAccessType(SiteType.PUBLIC);
-        const privateSite = await siteManagementHelper.getSiteByAccessType(SiteType.PRIVATE);
+        const publicSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const privateSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
 
         if (!publicSite) {
           throw new Error('No public site found in the list');

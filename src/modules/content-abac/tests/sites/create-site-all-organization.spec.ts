@@ -2,7 +2,7 @@ import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { SiteType } from '@/src/modules/content-abac/constants/siteType';
+import { SiteType } from '@/src/modules/content-abac/constants/siteTypeABAC';
 import { contentAbacTestFixture as test } from '@/src/modules/content-abac/fixtures/contentAbacFixture';
 import { SiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 import { SITE_CREATION_TEST_DATA } from '@/src/modules/content-abac/test-data/create-site.test-data';

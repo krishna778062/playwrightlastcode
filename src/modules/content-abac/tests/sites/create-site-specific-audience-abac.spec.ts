@@ -3,7 +3,7 @@ import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { tagTest } from '@/src/core/utils/testDecorator';
-import { SiteType } from '@/src/modules/content-abac/constants/siteType';
+import { SiteType } from '@/src/modules/content-abac/constants/siteTypeABAC';
 import { ContentSuiteTags } from '@/src/modules/content-abac/constants/testTags';
 import { ContentFeatureTags } from '@/src/modules/content-abac/constants/testTags';
 import { contentAbacTestFixture as test } from '@/src/modules/content-abac/fixtures/contentAbacFixture';

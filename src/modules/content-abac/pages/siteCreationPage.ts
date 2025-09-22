@@ -6,7 +6,7 @@ import { BasePage } from '@/src/core/pages/basePage';
 import { SiteCreationPayload } from '@/src/core/types/siteManagement.types';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { SiteCreationFormComponent } from '@/src/modules/content-abac/components/createSite/siteCreationFormComponent';
-import { SiteType } from '@/src/modules/content-abac/constants/siteType';
+import { SiteType } from '@/src/modules/content-abac/constants/siteTypeABAC';
 
 export interface ISiteCreationPageAssertions {
   verifySiteCreationFormStructure: () => Promise<void>;
