@@ -5,6 +5,7 @@ export type EnvConfig = {
   userManagerEmail?: string;
   frontendBaseUrl: string;
   apiBaseUrl: string;
+  apiBaseUrlPD?: string;
   newUxEnabled: boolean;
   tenantUserRoleId?: string;
   //optional env variables (might be required for few modules)
@@ -21,6 +22,7 @@ export const getEnvConfig = (): EnvConfig => ({
   appManagerPassword: getEnvVar('APP_MANAGER_PASSWORD', true)!,
   frontendBaseUrl: getEnvVar('FRONTEND_BASE_URL', true)!,
   apiBaseUrl: getEnvVar('API_BASE_URL', true)!,
+  apiBaseUrlPD: getEnvVar('API_BASE_URL_PD', false),
   newUxEnabled: getEnvVar('NEW_UX_ENABLED', false) === 'true' || false,
   tenantUserRoleId: getEnvVar('TENANT_USER_ROLE_ID', false),
 
