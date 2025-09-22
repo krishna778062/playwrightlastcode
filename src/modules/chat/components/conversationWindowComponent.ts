@@ -8,6 +8,7 @@ import { MessageReplyThreadComponent } from './messageReplyThreadComponent';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
+import { BaseVerificationUtil } from '@/src/core/utils/baseVerificationUtil';
 import { MessageCardComponent } from '@/src/modules/chat/components/messageCardComponent';
 import { AudioVideoCallPage } from '@/src/modules/chat/pages/audioVideoCallPage/audioVideoCallPage';
 
@@ -129,56 +130,38 @@ export class ConversationWindowComponent extends BaseComponent {
     await test.step(
       options?.stepInfo ?? `Verifying formatted message: ${message} is present in the list of chat messages`,
       async () => {
-        await expect(async () => {
-          let messageFoundInList: boolean = false;
+        // Get the last (most recent) chat message
+        const lastMessage = this.listChatMessagesComponent.last();
+        const verificationUtil = new BaseVerificationUtil(this.page);
+        let expectedLoc: Locator | undefined;
 
-          // Get the last (most recent) chat message
-          const lastMessage = this.listChatMessagesComponent.last();
-          let messageText: string | null = null;
+        // Check for different formatting types in the last message only
+        const formattingType = this.getActiveFormattingType(formattingOptions);
+        switch (formattingType) {
+          case 'bold':
+            expectedLoc = lastMessage.locator('section p strong');
 
-          // Check for different formatting types in the last message only
-          const formattingType = this.getActiveFormattingType(formattingOptions);
-          switch (formattingType) {
-            case 'bold':
-              const boldElement = lastMessage.locator('section p strong');
-              if (await boldElement.isVisible()) {
-                messageText = await boldElement.textContent();
-              }
-              break;
-            case 'italic':
-              const italicElement = lastMessage.locator('section p em');
-              if (await italicElement.isVisible()) {
-                messageText = await italicElement.textContent();
-              }
-              break;
-            case 'underline':
-              const underlineElement = lastMessage.locator('section p u');
-              if (await underlineElement.isVisible()) {
-                messageText = await underlineElement.textContent();
-              }
-              break;
-            case 'strikethrough':
-              const strikethroughElement = lastMessage.locator('section p s');
-              if (await strikethroughElement.isVisible()) {
-                messageText = await strikethroughElement.textContent();
-              }
-              break;
-            default:
-              // No specific formatting detected, use default text content
-              messageText = await lastMessage.locator('section p').textContent();
-              break;
-          }
+            break;
+          case 'italic':
+            expectedLoc = lastMessage.locator('section p em');
 
-          // Check if the found text matches our expected message
-          if (messageText === message) {
-            messageFoundInList = true;
-          }
+            break;
+          case 'underline':
+            expectedLoc = lastMessage.locator('section p u');
 
-          expect(
-            messageFoundInList,
-            `expecting formatted message: ${message} to be present in the list of chat messages`
-          ).toBe(true);
-        }).toPass({ timeout: options?.timeout ?? TIMEOUTS.MEDIUM });
+            break;
+          case 'strikethrough':
+            expectedLoc = lastMessage.locator('section p s');
+
+            break;
+        }
+        // Verify exact text match
+        if (expectedLoc) {
+          await verificationUtil.verifyElementHasText(expectedLoc, message, {
+            timeout: 10000,
+            assertionMessage: 'Message text should match exactly',
+          });
+        }
       }
     );
   }
