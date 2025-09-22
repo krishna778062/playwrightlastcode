@@ -2,6 +2,8 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/components/baseComponent';
 
+import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
+
 export class ProtectedAuthorsComponent extends BaseComponent {
   readonly protectedAuthorsAuthors: Locator;
   readonly protectedAuthorsAllowlist: Locator;
@@ -16,23 +18,23 @@ export class ProtectedAuthorsComponent extends BaseComponent {
     this.protectedAuthorsAllowlist = page.getByText('Protected authors - allowlist:');
     this.protectedAuthors = page.getByRole('heading', { name: 'Protected authors' });
     this.authorInputBox = page.locator('#react-select-3-input');
-    this.crossUser = page.locator('.Tag-remove').first();
+    this.crossUser = page.locator('button.Tag-remove').first();
     this.selectingAuthor = page.locator(`[role="listbox"]`);
   }
 
-  async verifyTheProtectedAuthorsAuthorsIsVisible(): Promise<void> {
+  async verifyProtectedAuthorsAuthorsFieldBarIsVisible(): Promise<void> {
     await test.step('Verify the protected authors authors is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.protectedAuthorsAuthors);
     });
   }
 
-  async verifyTheProtectedAuthorsAllowlistIsVisible(): Promise<void> {
+  async verifyProtectedAuthorsAllowlistFieldBarIsVisible(): Promise<void> {
     await test.step('Verify the protected authors allowlist is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.protectedAuthorsAllowlist);
     });
   }
 
-  async verifyAndFillProtectedAuthorsAuthors(value: string): Promise<void> {
+  async fillProtectedAuthorsAuthorsFieldBarWithLoggedInUser(value: string): Promise<void> {
     await test.step('Verify protected authors authors is visible and fill value', async () => {
       await this.clickOnElement(this.authorInputBox);
       await this.fillInElement(this.authorInputBox, value);
