@@ -64,6 +64,14 @@ export class ConversationWindowComponent extends BaseComponent {
     if (formattingOptions.usesItalic) return 'italic';
     if (formattingOptions.usesUnderline) return 'underline';
     if (formattingOptions.usesStrikethrough) return 'strikethrough';
+    if (formattingOptions.usesBold && formattingOptions.usesItalic) return 'bold-italic';
+    if (
+      formattingOptions.usesBold &&
+      formattingOptions.usesItalic &&
+      formattingOptions.usesUnderline &&
+      formattingOptions.usesStrikethrough
+    )
+      return 'allformats';
     return null;
   }
 
@@ -152,6 +160,16 @@ export class ConversationWindowComponent extends BaseComponent {
             break;
           case 'strikethrough':
             expectedLoc = lastMessageStrip.locator('section p s');
+
+            break;
+
+          case 'bold-italic':
+            expectedLoc = lastMessageStrip.locator('section p em strong');
+
+            break;
+
+          case 'allformats':
+            expectedLoc = lastMessageStrip.locator('section p em s strong u');
 
             break;
         }
