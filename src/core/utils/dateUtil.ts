@@ -67,3 +67,18 @@ export function getEventDateDisplayText(fromDate: string, toDate: string): strin
     return `${fromStr} - ${toStr}`;
   }
 }
+
+/**
+ * Changes the date format to YYYY-MM-DD.
+ * @param {string} dateToBeFormatted - Date to be formatted.
+ * @returns {string} The formatted date.
+ */
+export function changeDateFormatToYYYYMMDD(dateToBeFormatted: string): string {
+  const date = new Date(dateToBeFormatted);
+  // Format as YYYY-MM-DD
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
