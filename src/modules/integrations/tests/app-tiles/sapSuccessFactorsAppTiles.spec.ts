@@ -22,8 +22,8 @@ test.describe(
   () => {
     const AppName = 'SAPSuccessFactors';
     const DisplayTimeOffBalance = 'Display Time Off Balance';
-    const Vacation = 'Vacation';
-    const PTO = 'PTO';
+    const sickLeave = 'INDIA SICK LEAVE';
+    const compTime = 'Comp Time';
 
     let createdTileTitle: string | undefined = undefined;
 
@@ -184,13 +184,13 @@ test.describe(
 
         // Select leave dates starting tomorrow for the specified working days
         await leaveForm.selectLeaveDates(workingDays);
-        await leaveForm.selectTimeOffCategory(Vacation);
+        await leaveForm.selectTimeOffCategory(sickLeave);
         await leaveForm.verifyTotalDays(workingDays);
 
         // Verify individual day amounts and total calculation (weekends will be 0)
         const vacationConfig: TimeOffCategoryConfig = { unit: 'days', amountPerDay: 1 };
         await leaveForm.verifyAmountValues(workingDays, workingDays, vacationConfig);
-        await leaveForm.selectTimeOffCategory(PTO);
+        await leaveForm.selectTimeOffCategory(compTime);
 
         // Verify hours mode (Sick category) - no need to click edit when switching categories
         const sickConfig: TimeOffCategoryConfig = { unit: 'hours', amountPerDay: 8 };
