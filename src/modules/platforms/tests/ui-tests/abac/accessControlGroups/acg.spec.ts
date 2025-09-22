@@ -284,17 +284,9 @@ test.describe(
         await accessControlGroupsPage.clickOnButtonWithName('Done');
         await accessControlGroupsPage.clickOnButtonWithName('Next');
 
-        // Browse Search Admin and select any available user from list for Managers
-        await accessControlGroupsPage.clickOnButtonWithName('Browse');
-        await accessControlGroupsPage.searchAndSelectUserWithEnter('Admin');
-        await accessControlGroupsPage.clickOnButtonWithName('Done');
-        await accessControlGroupsPage.clickOnButtonWithName('Next');
-
-        // Browse Search Admin and select any available user from list for Admins
-        await accessControlGroupsPage.clickOnButtonWithName('Browse');
-        await accessControlGroupsPage.searchAndSelectUserWithEnter('Admin');
-        await accessControlGroupsPage.clickOnButtonWithName('Done');
-        await accessControlGroupsPage.clickOnButtonWithName('Next');
+        // Select Manager and Admin users for the ACG
+        await accessControlGroupsPage.browseSelectUserAndProceed('Admin', 'Manager');
+        await accessControlGroupsPage.browseSelectUserAndProceed('Admin', 'Admin');
 
         // Edit Manager flow - test the new functionality
         await accessControlGroupsPage.clickOnEditManagerButton();

@@ -270,11 +270,7 @@ export class FeatureOwnersPage extends BasePage {
         await this.clickOnElement(this.showMoreButton);
 
         // Wait for new features to load by checking if count has increased
-        await this.page.waitForFunction(
-          count => document.querySelectorAll("[class*='FeatureColumn-module-featureName'] p").length > count,
-          initialFeatureCount,
-          { timeout: 10000 }
-        );
+        await expect.poll(async () => await this.feature.count()).toBeGreaterThan(initialFeatureCount);
       }
     });
   }
@@ -306,11 +302,12 @@ export class FeatureOwnersPage extends BasePage {
       let userCountButton;
 
       if (typeof featureNameOrIndex === 'string') {
-        // Find by feature name
-        const featureRow = this.page
-          .locator(`[class*='FeatureColumn-module-featureName'] p`)
-          .filter({ hasText: featureNameOrIndex })
-          .locator('../../..');
+        // Find by feature name - using stable row selector instead of DOM traversal
+        const featureRow = this.page.locator('[data-testid*="dataGridRow"]').filter({
+          has: this.page
+            .locator(`[class*='FeatureColumn-module-featureName'] p`)
+            .filter({ hasText: featureNameOrIndex }),
+        });
         userCountButton = featureRow.locator('[class*="OwnerColumn-module-userCount"]');
       } else {
         // Find by index (fallback)

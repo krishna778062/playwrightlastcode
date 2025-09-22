@@ -267,6 +267,20 @@ export class AccessControlGroupsPage extends BasePage {
   }
 
   /**
+   * Browse, search, select user and proceed to next step
+   * @param searchTerm - The user to search for (e.g., 'Admin')
+   * @param userType - The type of user being selected (e.g., 'Manager', 'Admin') for better reporting
+   */
+  async browseSelectUserAndProceed(searchTerm: string, userType: string): Promise<void> {
+    await test.step(`Select ${userType}: Browse, search for "${searchTerm}", select and proceed`, async () => {
+      await this.clickOnButtonWithName('Browse');
+      await this.searchAndSelectUserWithEnter(searchTerm);
+      await this.clickOnButtonWithName('Done');
+      await this.clickOnButtonWithName('Next');
+    });
+  }
+
+  /**
    * Simple method to search and select user using Enter key
    */
   async searchAndSelectUserWithEnter(searchTerm: string): Promise<void> {
@@ -278,13 +292,13 @@ export class AccessControlGroupsPage extends BasePage {
       try {
         await this.page.waitForSelector('[role="option"]', {
           state: 'visible',
-          timeout: 5000,
+          timeout: TIMEOUTS.VERY_SHORT,
         });
       } catch {
         // Fallback: wait for any dropdown/listbox to appear
         await this.page.waitForSelector('[role="listbox"], [class*="dropdown"], [class*="menu"]', {
           state: 'visible',
-          timeout: 5000,
+          timeout: TIMEOUTS.VERY_SHORT,
         });
       }
 
@@ -297,12 +311,12 @@ export class AccessControlGroupsPage extends BasePage {
           '[role="option"][aria-selected="true"], [role="option"].selected, [role="option"]:focus',
           {
             state: 'visible',
-            timeout: 2000,
+            timeout: TIMEOUTS.VERY_VERY_SHORT,
           }
         );
       } catch {
         // Fallback: short wait for dropdown navigation
-        await this.page.waitForTimeout(500);
+        await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT / 4);
       }
 
       // Select the highlighted option
