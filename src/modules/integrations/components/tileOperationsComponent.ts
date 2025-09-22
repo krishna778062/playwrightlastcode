@@ -292,22 +292,26 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   async verifyUKGProTileMetadata(tileTitle: string): Promise<void> {
     await test.step(`Verify UKG Pro tile metadata for '${tileTitle}'`, async () => {
       const tile = this.getTileContainers(tileTitle).first();
-      await expect(tile).toBeVisible({ timeout: 10_000 });
+      await expect(tile, `UKG Pro tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
       const paystubLinks = tile.locator(this.ukgProPaystubLinks);
       const linkCount = await paystubLinks.count();
       if (linkCount > 0) {
         const firstEntry = paystubLinks.first();
         const payPeriodHeading = firstEntry.locator('h3');
-        await expect(payPeriodHeading).toBeVisible();
+        await expect(payPeriodHeading, 'Pay period heading should be visible').toBeVisible();
         const payPeriodText = await payPeriodHeading.textContent();
-        expect(payPeriodText).toMatch(/\w{3}\s+\d{1,2}\s+-\s+\w{3}\s+\d{1,2},\s+\d{4}/);
+        expect(payPeriodText, 'Pay period text should match expected format').toMatch(
+          /\w{3}\s+\d{1,2}\s+-\s+\w{3}\s+\d{1,2},\s+\d{4}/
+        );
         const linkHref = await firstEntry.getAttribute('href');
-        expect(linkHref).toContain('ultipro.com');
+        expect(linkHref, 'Paystub link should contain ultipro.com').toContain('ultipro.com');
         // Verify received date
         const receivedDateParagraph = tile.locator(this.ukgProReceivedDateParagraph);
-        await expect(receivedDateParagraph).toBeVisible();
+        await expect(receivedDateParagraph, 'Received date paragraph should be visible').toBeVisible();
         const receivedDateText = await receivedDateParagraph.textContent();
-        expect(receivedDateText).toMatch(/Received on \w{3}\s+\d{1,2},\s+\d{4}/);
+        expect(receivedDateText, 'Received date text should match expected format').toMatch(
+          /Received on \w{3}\s+\d{1,2},\s+\d{4}/
+        );
       }
     });
   }
@@ -319,20 +323,23 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   async verifyDisplayTimeOffMetadata(tileTitle: string): Promise<void> {
     await test.step(`Verify Display Time Off tile metadata for '${tileTitle}'`, async () => {
       const tile = this.getTileContainers(tileTitle).first();
-      await expect(tile).toBeVisible({ timeout: 10_000 });
+      await expect(tile, `Display Time Off tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
 
       // Verify VACFT section
-      await expect(tile.locator(this.ukgTimeOffVacftHeading)).toBeVisible();
-      await expect(tile.locator(this.usedText)).toBeVisible();
-      await expect(tile.locator(this.balanceText)).toBeVisible();
+      await expect(tile.locator(this.ukgTimeOffVacftHeading), 'VACFT heading should be visible').toBeVisible();
+      await expect(tile.locator(this.usedText), 'Used text should be visible in VACFT section').toBeVisible();
+      await expect(tile.locator(this.balanceText), 'Balance text should be visible in VACFT section').toBeVisible();
 
       // Verify divider
-      await expect(tile.locator(this.ukgTimeOffDivider).first()).toBeVisible();
+      await expect(
+        tile.locator(this.ukgTimeOffDivider).first(),
+        'Divider should be visible between sections'
+      ).toBeVisible();
 
       // Verify SICKFT section
-      await expect(tile.locator(this.ukgTimeOffSickftHeading)).toBeVisible();
-      await expect(tile.locator(this.usedText)).toBeVisible();
-      await expect(tile.locator(this.balanceText)).toBeVisible();
+      await expect(tile.locator(this.ukgTimeOffSickftHeading), 'SICKFT heading should be visible').toBeVisible();
+      await expect(tile.locator(this.usedText), 'Used text should be visible in SICKFT section').toBeVisible();
+      await expect(tile.locator(this.balanceText), 'Balance text should be visible in SICKFT section').toBeVisible();
     });
   }
 }

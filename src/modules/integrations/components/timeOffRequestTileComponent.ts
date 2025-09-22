@@ -218,9 +218,14 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
       const inputCount = await this.totalAmountInput.count();
       const inputVisible = inputCount > 0 && (await this.totalAmountInput.isVisible());
       if (inputVisible) {
-        await expect(this.totalAmountInput).toHaveValue(`${expectedTotalDays} days`);
+        await expect(this.totalAmountInput, `Total amount input should display ${expectedTotalDays} days`).toHaveValue(
+          `${expectedTotalDays} days`
+        );
       } else {
-        await expect(this.totalAmountHeading).toContainText(`Total: ${expectedTotalDays} days`);
+        await expect(
+          this.totalAmountHeading,
+          `Total amount heading should contain ${expectedTotalDays} days`
+        ).toContainText(`Total: ${expectedTotalDays} days`);
       }
     });
   }
@@ -233,14 +238,23 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
       // allow either the single-character ellipsis (U+2026) or three dots, case-insensitive
       const selectDateRegex = /select\s*date(?:\u2026|\.{3})?/i;
       const selectRegex = /select(?:\u2026|\.{3})?/i;
-      await expect(this.startDateButton).toBeVisible({ timeout: 15000 });
-      await expect(this.startDateButton).toContainText(selectDateRegex);
-      await expect(this.endDateButton).toBeVisible({ timeout: 15000 });
-      await expect(this.endDateButton).toContainText(selectDateRegex);
-      await expect(this.timeOffCategoryDropdown).toBeVisible();
-      await expect(this.timeOffCategoryDropdown).toContainText(selectRegex);
-      await expect(this.requestTimeOffButton).toBeVisible();
-      await expect(this.requestTimeOffButton).toContainText(/request time off/i);
+      await expect(this.startDateButton, 'Start date button should be visible').toBeVisible({ timeout: 15000 });
+      await expect(this.startDateButton, 'Start date button should contain select date text').toContainText(
+        selectDateRegex
+      );
+      await expect(this.endDateButton, 'End date button should be visible').toBeVisible({ timeout: 15000 });
+      await expect(this.endDateButton, 'End date button should contain select date text').toContainText(
+        selectDateRegex
+      );
+      await expect(this.timeOffCategoryDropdown, 'Time off category dropdown should be visible').toBeVisible();
+      await expect(this.timeOffCategoryDropdown, 'Time off category dropdown should contain select text').toContainText(
+        selectRegex
+      );
+      await expect(this.requestTimeOffButton, 'Request time off button should be visible').toBeVisible();
+      await expect(
+        this.requestTimeOffButton,
+        'Request time off button should contain request time off text'
+      ).toContainText(/request time off/i);
     });
   }
 
@@ -250,7 +264,10 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    */
   async verifyMessageOnTile(message: string): Promise<void> {
     await test.step(`Verify message '${message}' is displayed on tile`, async () => {
-      await expect(this.textLocator.filter({ hasText: message }).first()).toBeVisible();
+      await expect(
+        this.textLocator.filter({ hasText: message }).first(),
+        `Message '${message}' should be visible on tile`
+      ).toBeVisible();
     });
   }
 
@@ -260,7 +277,10 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    */
   async verifyButton(buttonText: string): Promise<void> {
     await test.step(`Verify button '${buttonText}' is visible`, async () => {
-      await expect(this.genericButton.filter({ hasText: buttonText }).first()).toBeVisible();
+      await expect(
+        this.genericButton.filter({ hasText: buttonText }).first(),
+        `Button '${buttonText}' should be visible`
+      ).toBeVisible();
     });
   }
 
@@ -289,8 +309,8 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    */
   private async verifyDisplayBalanceTileContent(): Promise<void> {
     await this.page.waitForLoadState('domcontentloaded');
-    await expect(this.tileContainer).toBeVisible({ timeout: 10000 });
-    await expect(this.tileContent).toBeVisible({ timeout: 5000 });
+    await expect(this.tileContainer, 'Tile container should be visible').toBeVisible({ timeout: 10000 });
+    await expect(this.tileContent, 'Tile content should be visible').toBeVisible({ timeout: 5000 });
   }
 
   /**
@@ -312,9 +332,14 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
       const inputCount = await this.totalAmountInput.count();
       const inputVisible = inputCount > 0 && (await this.totalAmountInput.isVisible());
       if (inputVisible) {
-        await expect(this.totalAmountInput).toHaveValue(`${expectedTotal} ${unit}`);
+        await expect(this.totalAmountInput, `Total amount input should display ${expectedTotal} ${unit}`).toHaveValue(
+          `${expectedTotal} ${unit}`
+        );
       } else {
-        await expect(this.totalAmountHeading).toContainText(`Total: ${expectedTotal} ${unit}`);
+        await expect(
+          this.totalAmountHeading,
+          `Total amount heading should contain ${expectedTotal} ${unit}`
+        ).toContainText(`Total: ${expectedTotal} ${unit}`);
       }
       // Verify individual day amounts if requested
       if (shouldClickEdit && (await this.editAmountButton.isVisible())) {
@@ -325,7 +350,10 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
         const expectedAmounts = this.generateExpectedDayAmounts(startDate, endDate, categoryConfig);
         const inputCount = await this.amountInputs.count();
         for (let i = 0; i < Math.min(expectedAmounts.length, inputCount); i++) {
-          await expect(this.amountInputs.nth(i)).toHaveValue(expectedAmounts[i].toString());
+          await expect(
+            this.amountInputs.nth(i),
+            `Amount input ${i + 1} should have value ${expectedAmounts[i]}`
+          ).toHaveValue(expectedAmounts[i].toString());
         }
       }
     });
@@ -385,8 +413,11 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
   async verifyRequestTimeOffButtonIsEnabled(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Verify Request time off button is enabled', async () => {
       await this.verifier.verifyTheElementIsVisible(this.requestTimeOffButton);
-      await expect(this.requestTimeOffButton).toBeEnabled();
-      await expect(this.requestTimeOffButton).toContainText(/request time off/i);
+      await expect(this.requestTimeOffButton, 'Request time off button should be enabled').toBeEnabled();
+      await expect(
+        this.requestTimeOffButton,
+        'Request time off button should contain request time off text'
+      ).toContainText(/request time off/i);
     });
   }
 
@@ -397,8 +428,11 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
   async verifyRequestTimeOffButtonIsDisabled(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Verify Request time off button is disabled', async () => {
       await this.verifier.verifyTheElementIsVisible(this.requestTimeOffButton);
-      await expect(this.requestTimeOffButton).toBeDisabled();
-      await expect(this.requestTimeOffButton).toContainText(/request time off/i);
+      await expect(this.requestTimeOffButton, 'Request time off button should be disabled').toBeDisabled();
+      await expect(
+        this.requestTimeOffButton,
+        'Request time off button should contain request time off text'
+      ).toContainText(/request time off/i);
     });
   }
 }
