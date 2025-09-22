@@ -31,8 +31,6 @@ export const getEnvConfig = (): EnvConfig => ({
   endUserEmail: getEnvVar('END_USER_USERNAME', false)!,
   endUserPassword: getEnvVar('END_USER_PASSWORD', false)!,
 
-  apiBaseUrlPD: getEnvVar('API_BASE_URL_PD', true)!,
-
   siteManagerEmail: getEnvVar('SITE_MANAGER_USERNAME', false)!,
   siteManagerPassword: getEnvVar('SITE_MANAGER_PASSWORD', false)!,
 });
