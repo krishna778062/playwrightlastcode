@@ -34,7 +34,6 @@ export const getEnvConfig = (): EnvConfig => ({
 
   siteManagerEmail: getEnvVar('SITE_MANAGER_USERNAME', false)!,
   siteManagerPassword: getEnvVar('SITE_MANAGER_PASSWORD', false)!,
-
 });
 
 /**
