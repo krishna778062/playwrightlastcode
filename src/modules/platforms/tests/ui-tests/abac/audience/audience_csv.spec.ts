@@ -13,7 +13,7 @@ import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestSuite.AUDIENCE_CSV] }, () => {
   test(
     'CSV Upload: Verify user can fill audience name, description, select category, upload CSV file, and create audience',
-    { tag: [TestPriority.P1] },
+    { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
     async ({ appManagerPage, audienceCategoryManagementHelper }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-33624', 'PS-33625', 'PS-33628'],
@@ -57,7 +57,7 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
 
   test(
     'CSV Upload Error Validation: Verify error messages for missing name, invalid CSV format, and download example CSV',
-    { tag: [TestPriority.P1] },
+    { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-33632', 'PS-33630', 'PS-33629', 'PS-33627'],
@@ -94,30 +94,34 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
     }
   );
 
-  test('CSV Upload: Verify blank CSV file validation error', { tag: [TestPriority.P1] }, async ({ appManagerPage }) => {
-    tagTest(test.info(), {
-      zephyrTestId: ['PS-33633'],
-    });
+  test(
+    'CSV Upload: Verify blank CSV file validation error',
+    { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
+    async ({ appManagerPage }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-33633'],
+      });
 
-    const audiencePage = new AudiencePage(appManagerPage);
+      const audiencePage = new AudiencePage(appManagerPage);
 
-    await audiencePage.loadPage();
-    await audiencePage.openCreateAudienceWithCsvModal();
+      await audiencePage.loadPage();
+      await audiencePage.openCreateAudienceWithCsvModal();
 
-    // Step 1: Upload blank/empty CSV file (no need to fill other fields for error validation)
-    await audiencePage.csvUploadModal.uploadCsvFile(AUDIENCE_TEST_DATA.CSV_FILES.EMPTY_CSV);
-    await audiencePage.csvUploadModal.verifyErrorMessage('CSV file cannot be empty');
+      // Step 1: Upload blank/empty CSV file (no need to fill other fields for error validation)
+      await audiencePage.csvUploadModal.uploadCsvFile(AUDIENCE_TEST_DATA.CSV_FILES.EMPTY_CSV);
+      await audiencePage.csvUploadModal.verifyErrorMessage('CSV file cannot be empty');
 
-    // Step 2: Cancel the modal to clean up
-    await audiencePage.csvUploadModal.clickCancelButton(
-      audiencePage.csvUploadModal.cancelButton,
-      'Click Cancel button to close CSV upload modal'
-    );
-  });
+      // Step 2: Cancel the modal to clean up
+      await audiencePage.csvUploadModal.clickCancelButton(
+        audiencePage.csvUploadModal.cancelButton,
+        'Click Cancel button to close CSV upload modal'
+      );
+    }
+  );
 
   test(
     'CSV Upload: Verify user can add new category during CSV upload process',
-    { tag: [TestPriority.P1] },
+    { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
     async ({ appManagerPage, audienceCategoryManagementHelper, appManagerApiClient }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-33626'],

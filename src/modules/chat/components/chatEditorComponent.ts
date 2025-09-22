@@ -5,12 +5,22 @@ import { RecordVideoPromptComponent } from '@chat/components/recordVideoPromptCo
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
 
+export interface FormattingOptions {
+  usesBold?: boolean;
+  usesItalic?: boolean;
+  usesUnderline?: boolean;
+  usesStrikethrough?: boolean;
+}
+
 export class ChatEditorComponent extends BaseComponent {
   readonly inputTextBox: Locator;
   readonly sendMessageButton: Locator;
   //toolbar buttons
   readonly toolbarContainer: Locator;
   readonly boldButton: Locator;
+  readonly italicButton: Locator;
+  readonly underlineButton: Locator;
+  readonly strikethroughButton: Locator;
 
   //actions buttons
   readonly addMediaAttachmentButton: Locator;
@@ -35,6 +45,9 @@ export class ChatEditorComponent extends BaseComponent {
     this.toolbarContainer = this.chatEditorComponentContainer.locator("[class*='_toolbarWrapper_']");
     //toolbar buttons
     this.boldButton = this.toolbarContainer.getByLabel('Bold');
+    this.italicButton = this.toolbarContainer.getByLabel('Italic');
+    this.underlineButton = this.toolbarContainer.getByLabel('Underline');
+    this.strikethroughButton = this.toolbarContainer.getByLabel('Strikethrough');
 
     //action buttons on editor footer
     this.addMediaAttachmentButton = this.chatEditorComponentContainer.getByLabel('Choose files');
@@ -58,6 +71,34 @@ export class ChatEditorComponent extends BaseComponent {
   ): Promise<void> {
     await test.step(options?.stepInfo ?? `Sending message: ${message}`, async () => {
       await this.fillInElement(this.inputTextBox, message);
+      await this.clickOnSendMessageButton();
+    });
+  }
+
+  /**
+   * Sends a formatted message to the chat
+   * @param message - The message to send
+   * @param formattingOptions - The formatting options to apply
+   * @param options - Additional options for the step
+   */
+  async sendFormattedMessage(
+    message: string,
+    formattingOptions: FormattingOptions,
+    options?: {
+      stepInfo?: string;
+    }
+  ): Promise<void> {
+    const stepInfo = options?.stepInfo ?? `Sending formatted message: ${message}`;
+    await test.step(stepInfo, async () => {
+      // Apply formatting first
+      await this.applyFormatting(formattingOptions, {
+        stepInfo: 'Applying text formatting',
+      });
+
+      // Fill the message
+      await this.fillInElement(this.inputTextBox, message);
+
+      // Send the message
       await this.clickOnSendMessageButton();
     });
   }
@@ -209,5 +250,71 @@ export class ChatEditorComponent extends BaseComponent {
         });
       }
     );
+  }
+
+  /**
+   * Sends a message by first writing text, then selecting it and applying formatting
+   * @param message - The message to send
+   * @param formattingOptions - The formatting options to apply
+   * @param options - Additional options for the step
+   */
+  async sendMessageWithSelectAndFormat(
+    message: string,
+    formattingOptions: FormattingOptions,
+    options?: {
+      stepInfo?: string;
+    }
+  ): Promise<void> {
+    const stepInfo = options?.stepInfo ?? `Sending message with select-then-format: ${message}`;
+    await test.step(stepInfo, async () => {
+      // First, fill the message
+      await this.fillInElement(this.inputTextBox, message);
+
+      // Select all text in the input
+      await this.inputTextBox.selectText();
+
+      // Apply formatting to the selected text
+      await this.applyFormatting(formattingOptions, {
+        stepInfo: 'Applying formatting to selected text',
+      });
+
+      await this.inputTextBox.click();
+
+      // Send the message
+      await this.clickOnSendMessageButton();
+    });
+  }
+
+  /**
+   * Applies formatting options to the chat editor
+   * @param formattingOptions - The formatting options to apply
+   * @param options - Additional options for the step
+   */
+  async applyFormatting(
+    formattingOptions: FormattingOptions,
+    options?: {
+      stepInfo?: string;
+    }
+  ): Promise<void> {
+    await test.step(options?.stepInfo ?? 'Applying text formatting', async () => {
+      const formattingActions = [
+        { condition: formattingOptions.usesBold, action: () => this.clickOnElement(this.boldButton) },
+        { condition: formattingOptions.usesItalic, action: () => this.clickOnElement(this.italicButton) },
+        { condition: formattingOptions.usesUnderline, action: () => this.clickOnElement(this.underlineButton) },
+        { condition: formattingOptions.usesStrikethrough, action: () => this.clickOnElement(this.strikethroughButton) },
+      ];
+
+      for (const { condition, action } of formattingActions) {
+        switch (condition) {
+          case true:
+            await action();
+            break;
+          case false:
+          default:
+            // No action needed
+            break;
+        }
+      }
+    });
   }
 }

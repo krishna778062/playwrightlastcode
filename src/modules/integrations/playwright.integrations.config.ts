@@ -21,7 +21,7 @@ export default defineConfig({
       name: 'integrations-chromium',
       use: {
         headless: process.env.CI ? true : false,
-        video: 'on-first-retry',
+        video: 'off',
         ...devices['Desktop Chrome'],
         permissions: ['camera', 'microphone'],
         baseURL: getEnvConfig().frontendBaseUrl,

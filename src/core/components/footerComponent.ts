@@ -21,7 +21,7 @@ export class FooterComponent extends BaseComponent {
   async verifyPrivacyPolicyLinkIsVisible(): Promise<void> {
     await this.privacyPolicyLink.waitFor({ state: 'visible' });
   }
-  async verifynavigationofprivacyPolicyLink(): Promise<void> {
+  async verifyNavigationOfPrivacyPolicyLink(): Promise<void> {
     await this.clickAndWaitForNewPageToOpen(() => this.clickOnElement(this.privacyPolicyLink), {
       timeout: TIMEOUTS.MEDIUM,
       stepInfo: 'Clicking on privacy policy link should redirect to privacy policy page',
