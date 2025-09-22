@@ -11,7 +11,6 @@ export class SideNavBarComponent extends BaseComponent {
   readonly homeLink: Locator;
   readonly analyticsButton: Locator;
   readonly sitesButton: Locator;
-  readonly manageFeatureButton: Locator;
   readonly navigateOnApplication: Locator;
   readonly applicationSettings: Locator;
   readonly rolesButton: Locator;
@@ -23,8 +22,6 @@ export class SideNavBarComponent extends BaseComponent {
     super(page);
     this.createSection = page.locator('span', { hasText: 'Create' });
     this.analyticsButton = page.getByRole('menuitem', { name: 'Analytics', exact: true });
-    this.manageFeatureButton = page.getByRole('menuitem', { name: 'Manage features', exact: true });
-
     this.feedLink = page.locator('p', { hasText: 'Feed' });
     this.homeLink = page.locator('p', { hasText: 'Home' });
     this.applicationSettings = page.locator('p', { hasText: 'Application settings' });
@@ -84,12 +81,6 @@ export class SideNavBarComponent extends BaseComponent {
     await test.step(options?.stepInfo || `Clicking Sites button in side navigation`, async () => {
       // Click on sites button using framework method
       await this.clickOnElement(this.sitesButton);
-    });
-  }
-
-  async clickOnManageFeatureButton(options?: TestOptions): Promise<void> {
-    await test.step(options?.stepInfo || `Clicking Manage Feature button in side navigation`, async () => {
-      await this.clickOnElement(this.manageFeatureButton);
     });
   }
 

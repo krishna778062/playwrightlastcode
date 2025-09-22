@@ -29,7 +29,6 @@ export interface ICommonHomePageActions {
   clickOnGlobalFeed: (options?: { stepInfo?: string }) => Promise<void>;
   clickOnMessageInbox: (options?: { stepInfo?: string }) => Promise<ChatNavigationComponent>;
   navigateToChatPageViaTopNavBar: (options?: { stepInfo?: string }) => Promise<ChatAppPage>;
-  manageContent: (options?: { stepInfo?: string }) => Promise<ManageContentPage>;
   openSiteCreationForm: (options?: { stepInfo?: string }) => Promise<AbacSiteCreationPage>;
 }
 
@@ -58,7 +57,6 @@ export interface INewUxHomePageActions extends ICommonHomePageActions {
   verifyRolesButtonVisibility: (visible: boolean, options?: { stepInfo?: string }) => Promise<void>;
   clickOnBellIcon: (options?: { stepInfo?: string }) => Promise<NotificationComponent>;
   navigateToApplication: () => Promise<void>;
-  clickOnManageFeature: () => Promise<void>;
   clickOnHomeButton: () => Promise<void>;
   clickOnFeedSideMenu: () => Promise<void>;
 }
@@ -165,10 +163,6 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
     await this.topNavBarComponent.openMessageInbox(options);
     await chatNavigationComponent.isCommonNavigationComponentVisible(options);
     return chatNavigationComponent;
-  }
-
-  async manageContent(): Promise<ManageContentPage> {
-    return new ManageContentPage(this.page);
   }
 
   /**

@@ -114,7 +114,7 @@ export const contentTestFixture = test.extend<
     { scope: 'worker' },
   ],
   standardUserApiClient: [
-    async ({}, use, _workerInfo) => {
+    async ({}, use, workerInfo) => {
       const standardUserApiClient = await ApiClientFactory.createClient(StandardUserApiClient, {
         type: 'credentials',
         credentials: {

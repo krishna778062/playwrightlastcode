@@ -1,10 +1,9 @@
-import { Page } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
-import { ManageContentComponent } from '../components/manageContentComponent';
-
 import { BasePage } from '@/src/core/pages/basePage';
+import { ManageContentComponent } from '@/src/modules/content/components/manageContentComponent';
 
 export interface IActions {
   writeRandomTextInSearchBar: (inputText: string) => Promise<void>;
@@ -55,7 +54,11 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.page.waitForLoadState('networkidle');
+    await test.step('Verify manage content page is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.manageContentComponent.sendFeedback, {
+        assertionMessage: 'Manage content page should be visible',
+      });
+    });
   }
 
   get actions() {

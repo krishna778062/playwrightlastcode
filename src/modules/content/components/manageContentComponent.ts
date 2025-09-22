@@ -14,6 +14,7 @@ export class ManageContentComponent extends BaseComponent {
   readonly firstContentCheckbox: Locator;
   readonly actionDropdown: Locator;
   readonly unpublishButton: Locator;
+  readonly sendFeedback: Locator;
   readonly applyButton: Locator;
   readonly publishButton: Locator;
   readonly moveButton: Locator;
@@ -56,6 +57,8 @@ export class ManageContentComponent extends BaseComponent {
     this.searchBar = page.locator("[aria-label='Search…']");
     this.searchIconButton = page.locator('.SearchField-submit');
     this.nothingToShowHereText = page.locator('p:has-text("Nothing to show here")');
+    this.sendFeedback = page.getByRole('button', { name: 'Send feedback' });
+
     this.xButton = page.locator('[aria-label="Clear"]');
     this.placeHolderText = page.locator(`[placeholder="Search…"]`);
     this.firstContentCheckbox = page.locator('[type="checkbox"]').nth(1);
@@ -281,6 +284,7 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
+  // has to fix this in next PR by aditya
   async checkPublishOption(): Promise<void> {
     await test.step(`Checking the publish option`, async () => {
       if (await this.verifier.isTheElementVisible(this.publishOption)) {
@@ -401,6 +405,7 @@ export class ManageContentComponent extends BaseComponent {
       }
     });
   }
+  // Fix this and add a filter for page selection on manage content by aditya
   async selectPageCategory(): Promise<void> {
     await test.step('Selecting the page category', async () => {
       if (await this.verifier.isTheElementVisible(this.pageCategorySelectorDropdownOptions)) {
