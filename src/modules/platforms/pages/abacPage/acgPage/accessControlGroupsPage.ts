@@ -3,9 +3,9 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { POPUP_BUTTONS } from '@core/constants/popupButtons';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
-import { EditWarningPopupComponent } from '@platforms/components/editWarningPopupComponent';
 import { AccessControlGroupModalComponent } from '@platforms/components/accessControlGroupModal';
 import { ConfirmEditAccessControlGroupModalComponent } from '@platforms/components/confirmEditAccessControlGroupModal';
+import { EditWarningPopupComponent } from '@platforms/components/editWarningPopupComponent';
 import { ACG_STATUS } from '@platforms/constants/acg';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
@@ -394,7 +394,6 @@ export class AccessControlGroupsPage extends BasePage {
       saveButtonName = 'Save';
     }
     return await test.step(`Creating ACG with target audience as ${targetAudienceName}  and status as ${options?.acgStatus ?? this.acgDefaultStatus} only`, async () => {
-      let acgName: string;
       await this.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
       await this.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
       await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
@@ -405,7 +404,7 @@ export class AccessControlGroupsPage extends BasePage {
       await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
       await this.clickOnButtonWithName(POPUP_BUTTONS.SKIP);
       await this.clickOnButtonWithName(POPUP_BUTTONS.SKIP);
-      acgName = await this.getACGName();
+      const acgName = await this.getACGName();
       console.log(`ACG name is ${acgName}`);
       await this.changeACGStatus(currACGStatus);
       await this.clickOnButtonWithName(saveButtonName);
@@ -488,7 +487,7 @@ export class AccessControlGroupsPage extends BasePage {
     try {
       sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
       expect(sortingOrder).not.toBeNull();
-    } catch (e) {
+    } catch (_e) {
       await test.step(`Waiting for sorting order to be visible`, async () => {
         await this.page.waitForTimeout(1000);
       });
@@ -503,7 +502,7 @@ export class AccessControlGroupsPage extends BasePage {
     try {
       sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
       expect(sortingOrder).not.toBeNull();
-    } catch (e) {
+    } catch (_e) {
       await test.step(`Waiting for sorting order to be visible`, async () => {
         await this.page.waitForTimeout(1000);
       });
