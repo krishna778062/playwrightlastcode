@@ -1,6 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { ChatEditorComponent } from '@chat/components/chatEditorComponent';
+import { ChatEditorComponent, FormattingOptions } from '@chat/components/chatEditorComponent';
 import { IncomingAudioVideoCallComponent } from '@chat/components/incomingAudioVideoCallComponent';
 
 import { ChatMentionsListSection } from './chatMentionsListSection';
@@ -8,6 +8,7 @@ import { MessageReplyThreadComponent } from './messageReplyThreadComponent';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
+import { BaseVerificationUtil } from '@/src/core/utils/baseVerificationUtil';
 import { MessageCardComponent } from '@/src/modules/chat/components/messageCardComponent';
 import { AudioVideoCallPage } from '@/src/modules/chat/pages/audioVideoCallPage/audioVideoCallPage';
 
@@ -54,6 +55,27 @@ export class ConversationWindowComponent extends BaseComponent {
   }
 
   /**
+   * Determines the active formatting type from formatting options
+   * @param formattingOptions - The formatting options to check
+   * @returns The active formatting type or null if none
+   */
+  private getActiveFormattingType(formattingOptions: FormattingOptions): string | null {
+    if (formattingOptions.usesBold) return 'bold';
+    if (formattingOptions.usesItalic) return 'italic';
+    if (formattingOptions.usesUnderline) return 'underline';
+    if (formattingOptions.usesStrikethrough) return 'strikethrough';
+    if (formattingOptions.usesBold && formattingOptions.usesItalic) return 'bold-italic';
+    if (
+      formattingOptions.usesBold &&
+      formattingOptions.usesItalic &&
+      formattingOptions.usesUnderline &&
+      formattingOptions.usesStrikethrough
+    )
+      return 'allformats';
+    return null;
+  }
+
+  /**
    * Sends a message in the chat
    * @param message - The message to send
    * @param options - Optional parameters
@@ -91,7 +113,7 @@ export class ConversationWindowComponent extends BaseComponent {
           let messageFoundInList: boolean = false;
           for (const eachMessage of await this.listChatMessagesComponent.all()) {
             //fetch message
-            const messageText = await eachMessage.locator('section').locator('p').last().textContent();
+            const messageText = await eachMessage.locator('section').locator('p').textContent();
             if (messageText === message) {
               messageFoundInList = true;
               break;
@@ -101,6 +123,63 @@ export class ConversationWindowComponent extends BaseComponent {
             true
           );
         }).toPass({ timeout: options?.timeout ?? TIMEOUTS.MEDIUM });
+      }
+    );
+  }
+
+  async verifyFormattedMessageIsPresentInListOfChatMessages(
+    message: string,
+    formattingOptions: FormattingOptions,
+    options?: {
+      stepInfo?: string;
+      timeout?: number;
+    }
+  ) {
+    await test.step(
+      options?.stepInfo ?? `Verifying formatted message: ${message} is present in the list of chat messages`,
+      async () => {
+        // Get the last (most recent) chat message
+        const lastMessageStrip = this.listChatMessagesComponent.last();
+        const verificationUtil = new BaseVerificationUtil(this.page);
+        let expectedLoc: Locator | undefined;
+
+        // Check for different formatting types in the last message only
+        const formattingType = this.getActiveFormattingType(formattingOptions);
+        switch (formattingType) {
+          case 'bold':
+            expectedLoc = lastMessageStrip.locator('section p strong');
+
+            break;
+          case 'italic':
+            expectedLoc = lastMessageStrip.locator('section p em');
+
+            break;
+          case 'underline':
+            expectedLoc = lastMessageStrip.locator('section p u');
+
+            break;
+          case 'strikethrough':
+            expectedLoc = lastMessageStrip.locator('section p s');
+
+            break;
+
+          case 'bold-italic':
+            expectedLoc = lastMessageStrip.locator('section p em strong');
+
+            break;
+
+          case 'allformats':
+            expectedLoc = lastMessageStrip.locator('section p em s strong u');
+
+            break;
+        }
+        // Verify exact text match
+        if (expectedLoc) {
+          await verificationUtil.verifyElementHasText(expectedLoc, message, {
+            timeout: 10000,
+            assertionMessage: 'Message text should match exactly',
+          });
+        }
       }
     );
   }
