@@ -1,3 +1,5 @@
+import { Page } from '@playwright/test';
+
 import { TestPriority } from '@core/constants/testPriority';
 import { TestSuite } from '@core/constants/testSuite';
 import { tagTest } from '@core/utils/testDecorator';
@@ -9,8 +11,8 @@ import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSuite.AUDIENCE_CATEGORY] }, () => {
   test(
     'Create category modal: Verify category name and description fields accept alphanumeric and special characters',
-    { tag: [TestPriority.P2] },
-    async ({ appManagerPage }) => {
+    { tag: [TestPriority.P2,`@ABAC`, `@acg`] },
+    async ({ appManagerPage }: { appManagerPage: Page }) => {
       tagTest(test.info(), {
         zephyrTestId: [
           'PS-35395',
@@ -41,8 +43,8 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
   test(
     'Create category modal: Verify category name and description strips out input length > max length allowed',
-    { tag: [TestPriority.P2] },
-    async ({ appManagerPage }) => {
+    { tag: [TestPriority.P2,`@ABAC`, `@acg`] },
+    async ({ appManagerPage }: { appManagerPage: Page }) => {
       tagTest(test.info(), {
         zephyrTestId: [
           'PS-35395',
@@ -69,8 +71,8 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
   test(
     'Verify category should not get created when user clicks on Cancel button',
-    { tag: [TestPriority.P2] },
-    async ({ appManagerPage }) => {
+    { tag: [TestPriority.P2,`@ABAC`, `@acg`] },
+    async ({ appManagerPage }: { appManagerPage: Page }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35407'],
       });
@@ -85,8 +87,8 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
   test(
     'Verify category should not get created when user clicks on Close button',
-    { tag: [TestPriority.P2] },
-    async ({ appManagerPage }) => {
+    { tag: [TestPriority.P2,`@ABAC`, `@acg`] },
+    async ({ appManagerPage }: { appManagerPage: Page }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35408'],
       });
@@ -101,7 +103,7 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
   test(
     'Verify alert message when duplicate category name is provided and verify presence of three options under option menu dropdown for category',
-    { tag: [TestPriority.P0] },
+    { tag: [TestPriority.P0,`@ABAC`, `@acg`] },
     async ({ appManagerPage, audienceCategoryManagementHelper }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35411', 'PS-35413'],
@@ -133,8 +135,8 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
   test(
     'Verify category WITH description should get created when user clicks on Add button under Create category popup',
-    { tag: [TestPriority.P1] },
-    async ({ appManagerPage }) => {
+    { tag: [TestPriority.P1,`@ABAC`, `@acg`] },
+    async ({ appManagerPage }: { appManagerPage: Page }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35410'],
       });
@@ -157,8 +159,8 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
   test(
     'Verify category WITHOUT description should get created when user clicks on Add button under Create category popup',
-    { tag: [TestPriority.P1] },
-    async ({ appManagerPage }) => {
+    { tag: [TestPriority.P1,`@ABAC`, `@acg`] },
+    async ({ appManagerPage }: { appManagerPage: Page }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35409'],
       });
@@ -180,7 +182,7 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
   test(
     'Verify the appearance of Edit category modal, Save button behavior, and name field validation',
-    { tag: [TestPriority.P2] },
+    { tag: [TestPriority.P2,`@ABAC`, `@acg`] },
     async ({ appManagerPage, audienceCategoryManagementHelper }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35417', 'PS-35416', 'PS-35412'],
@@ -217,7 +219,7 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
   test(
     'Verify the presence of alert message when duplicate category name is provided in name field under Edit category popup',
-    { tag: [TestPriority.P0] },
+    { tag: [TestPriority.P0,`@ABAC`, `@acg`] },
     async ({ appManagerPage, audienceCategoryManagementHelper }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35415'],
@@ -248,7 +250,7 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
   test(
     'Edit category modal: validations and basic actions',
-    { tag: [TestPriority.P1] },
+    { tag: [TestPriority.P1,`@ABAC`, `@acg`] },
     async ({ appManagerPage, audienceCategoryManagementHelper }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35418', 'PS-35419', 'PS-35420', 'PS-35421', 'PS-35422'],
@@ -287,7 +289,7 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
   test(
     'Verify category should not get updated when user clicks on Cancel or Close button under Edit category popup',
-    { tag: [TestPriority.P2] },
+    { tag: [TestPriority.P2,`@ABAC`, `@acg`] },
     async ({ appManagerPage, audienceCategoryManagementHelper }) => {
       tagTest(test.info(), { zephyrTestId: ['PS-35423', 'PS-35424'] });
       const audiencePage = new AudiencePage(appManagerPage);
@@ -312,7 +314,7 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
   test(
     'Edit category modal: Update actions',
-    { tag: [TestPriority.P1] },
+    { tag: [TestPriority.P1,`@ABAC`, `@acg`] },
     async ({ appManagerPage, audienceCategoryManagementHelper }) => {
       tagTest(test.info(), { zephyrTestId: ['PS-35425', 'PS-35426', 'PS-35428', 'PS-35427'] });
 
