@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/components/baseComponent';
 
@@ -7,10 +7,10 @@ export class FeatureSiteComponent extends BaseComponent {
   readonly searchSitesInput = this.page
     .locator("div:has-text('Select site')")
     .locator("xpath=following-sibling::div/input[not(@type='hidden')]");
-  readonly addButton = this.page.getByRole('button', { name: 'Add' });
+  readonly addButton = this.page.getByRole('button', { name: 'Add', exact: true });
   readonly doneButton = this.page.getByRole('button', { name: 'Done' });
   readonly getSiteFromDropdown = (siteName: string) => this.page.locator(`div[id*="listbox"] :text("${siteName}")`);
-  readonly siteListingItem = (siteName: string) =>
+  readonly siteListingItemByName = (siteName: string) =>
     this.page.locator(`div[class*="ListingItem-module"] p:text("${siteName}")`);
   readonly siteListingItemByIndex = (index: number) =>
     this.page.locator(`div[class*="ListingItem-module"] p`).nth(index);
@@ -46,7 +46,17 @@ export class FeatureSiteComponent extends BaseComponent {
    */
   async clickAddButton(): Promise<void> {
     await test.step('Click on Add button', async () => {
-      await this.clickOnElement(this.addButton);
+      const addButtonResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.addButton, { delay: 2_000 }),
+        response =>
+          response.url().includes('featured?action=feature') &&
+          response.request().method() === 'POST' &&
+          response.status() === 201,
+        {
+          timeout: 20_000,
+        }
+      );
+      return addButtonResponse;
     });
   }
 
@@ -61,26 +71,24 @@ export class FeatureSiteComponent extends BaseComponent {
 
   async verifyFeaturedSitesVisibleInModal(siteNames: string): Promise<void> {
     await test.step('Verify featured sites are visible in modal', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.siteListingItem(siteNames));
+      await this.verifier.verifyTheElementIsVisible(this.siteListingItemByName(siteNames));
     });
   }
 
   /**
    * Verifies the order of featured sites by index
-   * @param sites - Array of sites in the expected UI order (index 0, index 1, etc.)
+   * @param sites - Array of sites in the order they were added (first added = index 1, second added = index 0)
    */
   async verifyFeaturedSitesIndex(sites: { siteId: string; name: string }[]): Promise<void> {
     await test.step('Verify featured sites are in correct order by index', async () => {
-      for (let i = 0; i < sites.length; i++) {
-        const siteName = sites[i]?.name;
-        if (siteName) {
-          const siteLocator = this.siteListingItem(siteName).nth(i);
-          await this.verifier.verifyTheElementIsVisible(siteLocator, {
-            assertionMessage: `Site "${siteName}" should be at index ${i}`,
-          });
-          console.log(`Verified site "${siteName}" is at index ${i}`);
-        }
-      }
+      const expectedSiteFirst = sites[1]?.name;
+      const expectedSiteSecond = sites[0]?.name;
+      const firstSiteText = await this.siteListingItemByIndex(0).textContent();
+      const secondSiteText = await this.siteListingItemByIndex(1).textContent();
+      await test.step('Verify featured sites are in correct order by index', async () => {
+        expect(firstSiteText).toEqual(expectedSiteFirst);
+        expect(secondSiteText).toEqual(expectedSiteSecond);
+      });
     });
   }
 

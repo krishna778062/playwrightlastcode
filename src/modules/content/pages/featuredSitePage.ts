@@ -19,6 +19,7 @@ export interface IFeaturedSiteAssertions {
   verifySiteDashboardLoaded: (siteName: string) => Promise<void>;
   verifyToastMessage: (message: string) => Promise<void>;
   verifyFeaturedSitesVisibleInModal: (siteNames: string) => Promise<void>;
+  verifyFeaturedSitesIndex: (sites: { siteId: string; name: string }[]) => Promise<void>;
 }
 
 export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, IFeaturedSiteAssertions {
