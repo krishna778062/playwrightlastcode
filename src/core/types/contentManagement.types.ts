@@ -1,3 +1,13 @@
+export enum EventSyncDestination {
+  GOOGLE_CALENDAR = 'googlecalendar',
+  OUTLOOK_CALENDAR = 'outlookcalendar',
+}
+
+export enum EventSyncInvitees {
+  SITE_MEMBERS_FOLLOWERS = 'site_members_followers',
+  SITE_MEMBERS = 'site_members',
+}
+
 export interface BaseContentPayload {
   listOfFiles: any[];
   publishAt: string;
@@ -22,6 +32,20 @@ export interface PageCreationPayload extends BaseContentPayload {
   };
 }
 
+export interface EventSyncPayload {
+  enabled: boolean;
+  destination?: EventSyncDestination | string;
+  emailInvitationEnabled?: boolean;
+  invitees?: EventSyncInvitees | string;
+  organizerId?: string;
+}
+
+export interface RsvpPayload {
+  noteLabel?: string | null;
+  hasMaybeOption?: boolean;
+  capacityCount?: number | null;
+}
+
 export interface EventCreationPayload extends BaseContentPayload {
   startsAt: string;
   endsAt: string;
@@ -29,6 +53,8 @@ export interface EventCreationPayload extends BaseContentPayload {
   timezoneIso: string;
   location: string;
   directions: any[];
+  eventSync?: EventSyncPayload;
+  rsvp?: RsvpPayload;
 }
 
 export interface AlbumCreationPayload extends BaseContentPayload {
