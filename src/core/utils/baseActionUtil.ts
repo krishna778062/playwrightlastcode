@@ -486,4 +486,24 @@ export class BaseActionUtil {
       return { download, downloadPath, filename };
     });
   }
+
+  /**
+   * Gets the current logged-in user's name from the browser's JavaScript context
+   * @param stepInfo - Optional custom step information
+   * @returns Promise with the user's name
+   */
+  async getCurrentLoggedInUserName(stepInfo?: string): Promise<string> {
+    return await test.step(stepInfo || 'Get current user name from browser context', async () => {
+      const userName = await this.page.evaluate(() => {
+        const user = (window as any).Simpplr?.CurrentUser;
+        return user?.name || `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || user?.email;
+      });
+
+      if (!userName) {
+        throw new Error('Unable to retrieve current user name from browser context');
+      }
+
+      return userName;
+    });
+  }
 }
