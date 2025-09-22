@@ -148,6 +148,29 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
     });
   }
 
+  /**
+   * Activates a site using the API
+   * @param siteId - The id of the site to activate
+   */
+  async activateSite(siteId: string) {
+    return await test.step(`Activating site using API: ${siteId}`, async () => {
+      const fullUrl = this.baseUrl ? `${this.baseUrl}${API_ENDPOINTS.site.activate}` : API_ENDPOINTS.site.activate;
+      console.log('Activate site full URL:', fullUrl);
+      const response = await this.put(API_ENDPOINTS.site.activate, {
+        data: {
+          ids: [siteId],
+          newStatus: 'activated',
+        },
+      });
+      console.log('Activate site response:', response.status());
+      const json = await response.json();
+      if (json.status !== 'success') {
+        throw new Error(`Failed to activate site: ${JSON.stringify(json)}`);
+      }
+      return json;
+    });
+  }
+
   async getFileIdFromSite(siteId: string, fileName: string): Promise<{ fileId: string; authorName: string }> {
     let file: any;
     await test.step(`Getting file id from site: ${siteId} and file name: ${fileName}`, async () => {
@@ -281,11 +304,15 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
     action: SiteMembershipAction = SiteMembershipAction.ADD
   ): Promise<SiteMembershipResponse> {
     return await test.step(`Making user ${userId} a content manager for site ${siteId}`, async () => {
-      const payload = {
+      const payload: any = {
         userId: userId,
         action: action,
-        permission: permission,
       };
+
+      // Only include permission for ADD operations, not for REMOVE
+      if (action === SiteMembershipAction.ADD) {
+        payload.permission = permission;
+      }
 
       console.log('Site membership payload:', JSON.stringify(payload, null, 2));
 
@@ -299,6 +326,33 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       if (!response.ok()) {
         throw new Error(
           `Failed to make user content manager. Status: ${response.status()}, Response: ${JSON.stringify(json)}`
+        );
+      }
+
+      return json;
+    });
+  }
+
+  /**
+   * Updates site access level (public/private/unlisted)
+   * @param siteId - The ID of the site to update
+   * @param newAccess - The new access level ('public', 'private', 'unlisted')
+   */
+  async updateSiteAccess(siteId: string, newAccess: 'public' | 'private' | 'unlisted'): Promise<any> {
+    return await test.step(`Updating site access level to ${newAccess} for site ${siteId}`, async () => {
+      const response = await this.put(API_ENDPOINTS.site.updateAccess, {
+        data: {
+          ids: [siteId],
+          newAccessType: newAccess,
+        },
+      });
+
+      const json = await response.json();
+      console.log(`Site access update response:`, JSON.stringify(json, null, 2));
+
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to update site access. Status: ${response.status()}, Response: ${JSON.stringify(json)}`
         );
       }
 
