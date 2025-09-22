@@ -25,10 +25,6 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
   // actions: any;
   constructor(page: Page) {
     super(page);
-    this.navigateToApplication = this.navigateToApplication.bind(this);
-    this.clickOnManageFeature = this.clickOnManageFeature.bind(this);
-    this.clickOnHomeButton = this.clickOnHomeButton.bind(this);
-    this.clickOnFeedSideMenu = this.clickOnFeedSideMenu.bind(this);
   }
 
   get actions(): INewUxHomePageActions {

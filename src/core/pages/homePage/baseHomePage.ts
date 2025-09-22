@@ -57,6 +57,7 @@ export interface INewUxHomePageActions extends ICommonHomePageActions {
   verifyRolesButtonVisibility: (visible: boolean, options?: { stepInfo?: string }) => Promise<void>;
   clickOnBellIcon: (options?: { stepInfo?: string }) => Promise<NotificationComponent>;
   navigateToApplication: () => Promise<void>;
+  clickOnManageFeature: () => Promise<void>;
   clickOnHomeButton: () => Promise<void>;
   clickOnFeedSideMenu: () => Promise<void>;
 }
