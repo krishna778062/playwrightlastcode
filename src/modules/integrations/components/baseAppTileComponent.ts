@@ -18,6 +18,8 @@ export class BaseAppTileComponent extends BaseComponent {
   readonly dialog: Locator;
   readonly tileTypeCombobox: Locator;
   readonly tileSelector: Locator;
+  readonly urlRadioButton: Locator;
+  readonly urlTextbox: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -30,9 +32,11 @@ export class BaseAppTileComponent extends BaseComponent {
     this.dialog = page.getByRole('dialog');
     this.tileTypeCombobox = page.getByRole('combobox', { name: 'Tile type' });
     this.tileSelector = page.locator('aside.Tile');
+    this.urlRadioButton = page.getByRole('radio');
+    this.urlTextbox = page.getByRole('textbox');
   }
   protected getAppTileButton(name: string): Locator {
-    return this.page.getByRole('button').filter({ hasText: name });
+    return this.page.getByRole('button', { name: name, exact: true });
   }
 
   async clickButton(buttonName: string, step?: string, timeout = 30_000): Promise<void> {
@@ -378,6 +382,17 @@ export class BaseAppTileComponent extends BaseComponent {
         sortBy: sortBy.trim(),
         sortOrder: sortOrder.trim(),
       };
+    });
+  }
+
+  /**
+   * Enter URL with radio selection
+   */
+  async enterUrl(fieldName: string, urlType: string, url: string): Promise<void> {
+    await test.step(`Enter ${fieldName}`, async () => {
+      // Select radio button and enter URL
+      await this.page.getByRole('radio', { name: urlType }).click();
+      await this.page.getByRole('textbox', { name: fieldName }).fill(url);
     });
   }
 }

@@ -338,4 +338,45 @@ export class HomeDashboard {
   async verifyDisplayTimeOffBalanceFields(tileTitle: string): Promise<void> {
     await this.timeOffRequestTileComponent.verifyDisplayTimeOffBalanceFields(tileTitle);
   }
+
+  /**
+   * Verify UKG Pro tile metadata including pay periods, received dates, and links
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyUKGProTileMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyUKGProTileMetadata(tileTitle);
+  }
+
+  /**
+   * Verify Display Time Off tile metadata including VACFT and SICKFT sections
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDisplayTimeOffMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyDisplayTimeOffMetadata(tileTitle);
+  }
+
+  /**
+   * Complete workflow to add an app tile with app manager defined settings
+   */
+  async addTilewithAppManagerDefined(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    appManagerDefined: string,
+    fieldName: string,
+    url: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.appTileComponent.clickEditDashboard();
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
+      await this.appTileComponent.selectAppTile(appName);
+      await this.appTileComponent.selectTile(tileName);
+      await this.appTileComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
+      await this.appTileComponent.setTileTitle(tileTitle);
+      await this.appTileComponent.enterUrl(fieldName, appManagerDefined, url);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
 }

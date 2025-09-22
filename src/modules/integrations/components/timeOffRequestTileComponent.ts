@@ -40,6 +40,12 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
   readonly requestTypeOption: Locator;
   readonly requestTimeOffBtn: Locator;
   readonly commentNoteTextarea: Locator;
+  readonly genericDropdownInput: Locator;
+  readonly genericMenu: Locator;
+  readonly genericMenuItem: Locator;
+  readonly ariaLabelLocator: Locator;
+  readonly textLocator: Locator;
+  readonly fieldDropdownInput: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -69,6 +75,12 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
 
     this.requestTimeOffBtn = page.locator('button[type="button"]').filter({ hasText: 'Request time off' }).first();
     this.commentNoteTextarea = page.locator('textarea[name="commentNote"]');
+    this.genericDropdownInput = page.locator('input[aria-label]');
+    this.genericMenu = page.locator('[role="listbox"], .Menu-module__menu, [id*="listbox"]');
+    this.genericMenuItem = page.locator('[role="menuitem"], .MenuItem-module__item');
+    this.ariaLabelLocator = page.locator('[aria-label]');
+    this.textLocator = page.getByText('');
+    this.fieldDropdownInput = page.locator('input[aria-label]');
   }
 
   /**
@@ -115,12 +127,12 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        await dateButton.click();
+        await this.clickOnElement(dateButton);
         await this.calendarGrid.waitFor({ state: 'visible', timeout: 10000 });
         await this.navigateToCorrectMonthYear(validDate);
         await this.calendarGrid.waitFor({ state: 'visible' });
         const dayCell = this.getDayCellByAriaLabel(ariaLabel);
-        await dayCell.click();
+        await this.clickOnElement(dayCell);
         return; // Success, exit the retry loop
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
@@ -159,11 +171,11 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    */
   async selectTimeOffCategory(category: string): Promise<void> {
     await test.step(`Select time off category '${category}'`, async () => {
-      await this.timeOffCategoryDropdown.click();
+      await this.clickOnElement(this.timeOffCategoryDropdown);
       await this.dropdownSelector.waitFor({ state: 'visible', timeout: 10000 });
       const option = this.dropdownOption.filter({ hasText: category }).first();
       await option.waitFor({ state: 'visible', timeout: 5000 });
-      await option.click();
+      await this.clickOnElement(option);
       await this.dropdownSelector.waitFor({ state: 'hidden', timeout: 5000 });
     });
   }
@@ -193,7 +205,7 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    */
   async submitTimeOffRequest(): Promise<void> {
     await test.step('Submit time off request', async () => {
-      await this.requestTimeOffButton.click();
+      await this.clickOnElement(this.requestTimeOffButton);
     });
   }
 
@@ -238,7 +250,7 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    */
   async verifyMessageOnTile(message: string): Promise<void> {
     await test.step(`Verify message '${message}' is displayed on tile`, async () => {
-      await expect(this.page.getByText(message).first()).toBeVisible();
+      await expect(this.textLocator.filter({ hasText: message }).first()).toBeVisible();
     });
   }
 
@@ -306,7 +318,7 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
       }
       // Verify individual day amounts if requested
       if (shouldClickEdit && (await this.editAmountButton.isVisible())) {
-        await this.editAmountButton.click();
+        await this.clickOnElement(this.editAmountButton);
         const today = new Date();
         const startDate = getNextWorkingDay(today);
         const endDate = addWorkingDays(startDate, workingDays - 1);
@@ -356,25 +368,13 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    */
   async selectRequestType(fieldType: string, value: string, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Select ${fieldType}: ${value}`, async () => {
-      // More robust input locator with multiple strategies
-      const input = this.page
-        .locator(
-          `input[aria-label="${fieldType}"], input[aria-label*="${fieldType}"], input[placeholder*="${fieldType}"]`
-        )
-        .first();
-      await input.click();
+      const dropdown = this.page.locator(`input[aria-label="${fieldType}"]`);
+      await this.clickOnElement(dropdown);
       await this.page.waitForTimeout(500);
-
-      // Better menu locator with fallbacks
-      const menu = this.page.locator('.Menu-module__menu__3PjCm, [role="listbox"], .css-fnh3vc-menu').first();
-      await menu.waitFor({ state: 'visible', timeout: 5000 });
-
-      // More specific option locator
-      const option = this.page
-        .locator('[role="menuitem"], .MenuItem-module__item__qso52')
-        .filter({ hasText: value })
-        .first();
-      await option.click();
+      await this.genericMenu.waitFor({ state: 'visible', timeout: 10000 });
+      const option = this.genericMenuItem.filter({ hasText: value });
+      await this.clickOnElement(option);
+      await this.genericMenu.waitFor({ state: 'hidden', timeout: 5000 });
     });
   }
 

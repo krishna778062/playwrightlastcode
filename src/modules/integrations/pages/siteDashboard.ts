@@ -13,6 +13,7 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
  */
 export class SiteDashboard {
   private page!: Page;
+  private appTileComponent!: BaseAppTileComponent;
   private airtableComponent!: BaseAppTileComponent;
   private timeOffRequestTileComponent!: TimeOffRequestTileComponent;
   private tileOperationsComponent!: TileOperationsComponent;
@@ -21,6 +22,7 @@ export class SiteDashboard {
   constructor(page: Page, appManagerApiClient?: any) {
     this.page = page;
     this.appManagerApiClient = appManagerApiClient;
+    this.appTileComponent = new BaseAppTileComponent(page);
     this.airtableComponent = new BaseAppTileComponent(page);
     this.timeOffRequestTileComponent = new TimeOffRequestTileComponent(page);
     this.tileOperationsComponent = new TileOperationsComponent(page);
@@ -167,5 +169,37 @@ export class SiteDashboard {
    */
   async verifyDisplayTimeOffBalanceFields(tileTitle: string): Promise<void> {
     await this.timeOffRequestTileComponent.verifyDisplayTimeOffBalanceFields(tileTitle);
+  }
+  /**
+   * Verify Display Time Off tile metadata including VACFT and SICKFT sections
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDisplayTimeOffMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyDisplayTimeOffMetadata(tileTitle);
+  }
+
+  /**
+   * Complete workflow to add an app tile
+   */
+  async addTilewithAppManagerDefined(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    appManagerDefined: string,
+    fieldName: string,
+    url: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.appTileComponent.clickEditDashboard();
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
+      await this.appTileComponent.selectAppTile(appName);
+      await this.appTileComponent.selectTile(tileName);
+      await this.appTileComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
+      await this.appTileComponent.setTileTitle(tileTitle);
+      await this.appTileComponent.enterUrl(fieldName, appManagerDefined, url);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
   }
 }

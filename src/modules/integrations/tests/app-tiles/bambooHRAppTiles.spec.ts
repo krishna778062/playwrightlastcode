@@ -69,8 +69,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
-        void homeDashboard;
+      async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-21575',
           storyId: 'INT-22854',
@@ -184,7 +183,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper, page }) => {
+      async ({ homeDashboard, tileManagementHelper, appManagerPage }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-23143',
           storyId: 'INT-22854',
@@ -200,7 +199,7 @@ test.describe(
           CONNECTOR_IDS.BAMBOOHR
         );
         await homeDashboard.isTilePresent(createdTileTitle);
-        const leaveForm = new TimeOffRequestTileComponent(page);
+        const leaveForm = new TimeOffRequestTileComponent(appManagerPage);
         const workingDays = 2;
 
         // Verify all required fields are present
@@ -225,7 +224,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient, page }) => {
+      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient, appManagerPage }) => {
         void homeDashboard;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23132',
@@ -244,7 +243,7 @@ test.describe(
         // Add, edit, and remove tile
         await siteDashboard.addTile(createdTileTitle, AppName, ApplyForTimeOff, UI_ACTIONS.ADD_TO_SITE);
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
-        const leaveForm = new TimeOffRequestTileComponent(page);
+        const leaveForm = new TimeOffRequestTileComponent(appManagerPage);
         const workingDays = 2;
 
         // Verify all required fields are present
@@ -336,7 +335,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper, page }) => {
+      async ({ homeDashboard, tileManagementHelper, appManagerPage }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-23140',
           storyId: 'INT-22854',
@@ -351,7 +350,7 @@ test.describe(
           CONNECTOR_IDS.BAMBOOHR
         );
         await homeDashboard.isTilePresent(createdTileTitle);
-        const leaveForm = new TimeOffRequestTileComponent(page);
+        const leaveForm = new TimeOffRequestTileComponent(appManagerPage);
         const workingDays = 3;
 
         // Verify all required fields are present

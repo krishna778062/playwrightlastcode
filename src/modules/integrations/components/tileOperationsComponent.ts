@@ -29,6 +29,14 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly amountPattern: RegExp;
   readonly lastUpdatedPattern: RegExp;
   readonly duePattern: RegExp;
+  readonly ukgProPaystubLinks: Locator;
+  readonly ukgProReceivedDateParagraph: Locator;
+  readonly tileByTitle: (title: string) => Locator;
+  readonly ukgTimeOffVacftHeading: Locator;
+  readonly ukgTimeOffSickftHeading: Locator;
+  readonly ukgTimeOffDivider: Locator;
+  readonly usedText: Locator;
+  readonly balanceText: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -59,6 +67,14 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.amountPattern = /^\$\d+\.\d{2}$/;
     this.lastUpdatedPattern = /Last updated \d+ days? ago/;
     this.duePattern = /Due/;
+    this.ukgProPaystubLinks = page.getByRole('link', { name: /ultipro\.com/ });
+    this.ukgProReceivedDateParagraph = page.getByText(/Received on/);
+    this.tileByTitle = (title: string) => page.getByRole('heading', { name: title }).locator('..');
+    this.ukgTimeOffVacftHeading = page.getByRole('heading', { name: 'VACFT', level: 3 });
+    this.ukgTimeOffSickftHeading = page.getByRole('heading', { name: 'SICKFT', level: 3 });
+    this.ukgTimeOffDivider = page.getByTestId('divider');
+    this.usedText = page.getByText(/Used: \d+(\.\d+)? hours/).first();
+    this.balanceText = page.getByText(/Balance: \d+(\.\d+)? hours/).first();
   }
 
   /**
@@ -266,6 +282,57 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await expect(firstRecord.locator('p').first()).toBeVisible();
       await expect(firstRecord.getByText(this.duePattern).first()).toBeVisible();
       await expect(this.getTagElement(firstRecord).first()).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify UKG Pro tile metadata including pay periods, received dates, and links
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyUKGProTileMetadata(tileTitle: string): Promise<void> {
+    await test.step(`Verify UKG Pro tile metadata for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile).toBeVisible({ timeout: 10_000 });
+      const paystubLinks = tile.locator(this.ukgProPaystubLinks);
+      const linkCount = await paystubLinks.count();
+      if (linkCount > 0) {
+        const firstEntry = paystubLinks.first();
+        const payPeriodHeading = firstEntry.locator('h3');
+        await expect(payPeriodHeading).toBeVisible();
+        const payPeriodText = await payPeriodHeading.textContent();
+        expect(payPeriodText).toMatch(/\w{3}\s+\d{1,2}\s+-\s+\w{3}\s+\d{1,2},\s+\d{4}/);
+        const linkHref = await firstEntry.getAttribute('href');
+        expect(linkHref).toContain('ultipro.com');
+        // Verify received date
+        const receivedDateParagraph = tile.locator(this.ukgProReceivedDateParagraph);
+        await expect(receivedDateParagraph).toBeVisible();
+        const receivedDateText = await receivedDateParagraph.textContent();
+        expect(receivedDateText).toMatch(/Received on \w{3}\s+\d{1,2},\s+\d{4}/);
+      }
+    });
+  }
+
+  /**
+   * Verify Display Time Off tile metadata including VACFT and SICKFT sections
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDisplayTimeOffMetadata(tileTitle: string): Promise<void> {
+    await test.step(`Verify Display Time Off tile metadata for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile).toBeVisible({ timeout: 10_000 });
+
+      // Verify VACFT section
+      await expect(tile.locator(this.ukgTimeOffVacftHeading)).toBeVisible();
+      await expect(tile.locator(this.usedText)).toBeVisible();
+      await expect(tile.locator(this.balanceText)).toBeVisible();
+
+      // Verify divider
+      await expect(tile.locator(this.ukgTimeOffDivider).first()).toBeVisible();
+
+      // Verify SICKFT section
+      await expect(tile.locator(this.ukgTimeOffSickftHeading)).toBeVisible();
+      await expect(tile.locator(this.usedText)).toBeVisible();
+      await expect(tile.locator(this.balanceText)).toBeVisible();
     });
   }
 }

@@ -8,6 +8,8 @@ export enum IntegrationsSuiteTags {
   SAP_SUCCESSFACTORS = '@sapSuccessFactorsAppTiles',
   ABSOLUTE = '@absolute',
   GAMMA = '@gamma',
+  UKG_WFM = '@ukgWFMAppTiles',
+  UKG_PRO = '@ukgProAppTiles',
 }
 
 export enum IntegrationsFeatureTags {
@@ -27,6 +29,8 @@ export const TEST_TAGS = {
   ABSOLUTE: IntegrationsSuiteTags.ABSOLUTE,
   TILE_MANAGEMENT: IntegrationsFeatureTags.TILE_MANAGEMENT,
   MULTI_USER: IntegrationsFeatureTags.MULTI_USER,
+  UKG_WFM: IntegrationsSuiteTags.UKG_WFM,
+  UKG_PRO: IntegrationsSuiteTags.UKG_PRO,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {

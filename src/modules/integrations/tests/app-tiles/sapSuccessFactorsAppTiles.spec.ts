@@ -161,7 +161,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper, page }) => {
+      async ({ homeDashboard, tileManagementHelper, appManagerPage }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-24071',
           storyId: 'INT-23629',
@@ -176,7 +176,7 @@ test.describe(
           CONNECTOR_IDS.SAP_SUCCESSFACTORS
         );
         await homeDashboard.isTilePresent(createdTileTitle);
-        const leaveForm = new TimeOffRequestTileComponent(page);
+        const leaveForm = new TimeOffRequestTileComponent(appManagerPage);
         const workingDays = 3;
 
         // Verify all required fields are present
