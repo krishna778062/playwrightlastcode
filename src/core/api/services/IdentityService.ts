@@ -21,6 +21,26 @@ interface ListRolesResponse {
   status: number;
   message: string;
   result: Array<{
+    role_id: number;
+    name: string;
+    description: string;
+    type: string;
+    is_editable: boolean;
+    scope: string | null;
+    is_applicable: boolean;
+    assignment_type: string;
+    account_id: string;
+    metadata: any;
+    created_on: string;
+    modified_on: string | null;
+    count: string;
+  }>;
+}
+
+interface ListOfRolesResponse {
+  status: number;
+  message: string;
+  result: Array<{
     role_id: string;
     name: string;
     description: string;
@@ -115,19 +135,19 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
       throw new Error(`Role ${role} not found in fetched list of roles`);
     }
 
-    return parseInt(roleData.role_id);
+    return roleData.role_id;
   }
 
   /**
    * Gets the list of roles from identity service
    * @returns Promise<ListRolesResponse> - The roles list response
    */
-  async getListOfRoles(): Promise<ListRolesResponse> {
+  async getListOfRoles(): Promise<ListOfRolesResponse> {
     return await test.step('Getting list of roles from identity service', async () => {
       const response = await this.post(API_ENDPOINTS.identity.roles, {
         data: {},
       });
-      return await this.parseResponse<ListRolesResponse>(response);
+      return await this.parseResponse<ListOfRolesResponse>(response);
     });
   }
 
