@@ -82,13 +82,8 @@ test.describe(
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnMoveButton();
         await manageContentPage.actions.selectMoveApplyButton();
-        const privateSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
-        let privateNewOneSite = privateSite;
-        if (privateSite === null) {
-          await siteManagementHelper.createSite({ accessType: SITE_TYPES.PRIVATE });
-          privateNewOneSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
-        }
-        await manageContentPage.actions.moveContentSearchBar(privateSite?.name || privateNewOneSite?.name || '');
+        const site = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
+        await manageContentPage.actions.moveContentSearchBar(site?.name || '');
         await manageContentPage.actions.siteListSelecting();
         await manageContentPage.actions.selectPageCategoryIfVisible();
         await manageContentPage.actions.selectPageCategory();
