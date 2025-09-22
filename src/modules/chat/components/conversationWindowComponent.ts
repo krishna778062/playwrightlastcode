@@ -131,7 +131,7 @@ export class ConversationWindowComponent extends BaseComponent {
       options?.stepInfo ?? `Verifying formatted message: ${message} is present in the list of chat messages`,
       async () => {
         // Get the last (most recent) chat message
-        const lastMessage = this.listChatMessagesComponent.last();
+        const lastMessageStrip = this.listChatMessagesComponent.last();
         const verificationUtil = new BaseVerificationUtil(this.page);
         let expectedLoc: Locator | undefined;
 
@@ -139,19 +139,19 @@ export class ConversationWindowComponent extends BaseComponent {
         const formattingType = this.getActiveFormattingType(formattingOptions);
         switch (formattingType) {
           case 'bold':
-            expectedLoc = lastMessage.locator('section p strong');
+            expectedLoc = lastMessageStrip.locator('section p strong');
 
             break;
           case 'italic':
-            expectedLoc = lastMessage.locator('section p em');
+            expectedLoc = lastMessageStrip.locator('section p em');
 
             break;
           case 'underline':
-            expectedLoc = lastMessage.locator('section p u');
+            expectedLoc = lastMessageStrip.locator('section p u');
 
             break;
           case 'strikethrough':
-            expectedLoc = lastMessage.locator('section p s');
+            expectedLoc = lastMessageStrip.locator('section p s');
 
             break;
         }
