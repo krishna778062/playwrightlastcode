@@ -262,29 +262,6 @@ export function createDualUserChatFixture(userConfig?: DualUserConfig) {
       },
       { scope: 'test' },
     ],
-
-    // Management Helpers
-    feedManagementHelper: [
-      async ({ appManagerApiClient }, use) => {
-        const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
-        await use(feedManagementHelper);
-        try {
-          await feedManagementHelper.cleanup();
-        } catch (error) {
-          console.warn('Feed management helper cleanup failed:', error);
-        }
-      },
-      { scope: 'test' },
-    ],
-
-    siteManagementHelper: [
-      async ({ appManagerApiClient }, use) => {
-        const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
-        await use(siteManagementHelper);
-        await siteManagementHelper.cleanup();
-      },
-      { scope: 'test' },
-    ],
   });
 }
 

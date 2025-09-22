@@ -13,15 +13,15 @@ import { tagTest } from '@/src/core/utils/testDecorator';
  */
 test.describe('Direct Message between two static users', { tag: [CHAT_SUITE_TAGS.DIRECT_MESSAGE] }, () => {
   test(
-    'Real-time conversation between two users in a group chat',
+    'Messaging: Real time conversation in a group chat',
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE],
     },
     async ({ dualUserHelpers }) => {
       tagTest(test.info(), {
         description: 'Real-time conversation between two users in a group chat',
-        zephyrTestId: 'CHAT-2179',
-        storyId: 'CHAT-2179',
+        zephyrTestId: 'CHAT-2245',
+        storyId: 'CHAT-2245',
       });
       // Open the same group chat for both users
       await dualUserHelpers.openSameGroupChatForBothUsers(CONSTANT_DATA.COMMON_GROUP_NAME);
@@ -44,15 +44,15 @@ test.describe('Direct Message between two static users', { tag: [CHAT_SUITE_TAGS
   );
 
   test(
-    'Direct message between two users in a direct message chat',
+    'Messaging: Real time conversation between static user in direct message',
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE],
     },
     async ({ dualUserHelpers }) => {
       tagTest(test.info(), {
-        description: 'DDirect message between two users in a direct message chat',
-        zephyrTestId: 'CHAT-2179',
-        storyId: 'CHAT-2179',
+        description: 'Messaging: Real time conversation between static user in direct message',
+        zephyrTestId: 'CHAT-2246',
+        storyId: 'CHAT-2246',
       });
       // Open direct message conversation between users
       await dualUserHelpers.openDirectMessageBetweenUsers();
