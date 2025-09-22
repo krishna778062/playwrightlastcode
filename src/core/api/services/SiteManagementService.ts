@@ -245,6 +245,30 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
   }
 
   /**
+   * Unfeatures a site (removes it from featured sites)
+   * @param siteId - The ID of the site to unfeature
+   * @returns Promise containing the response
+   */
+  async unfeatureSite(siteId: string): Promise<any> {
+    return await test.step(`Unfeaturing site: ${siteId}`, async () => {
+      const response = await this.put(API_ENDPOINTS.site.unfeature(siteId), {
+        data: {},
+      });
+
+      const json = await response.json();
+
+      if (json.status !== 'success') {
+        throw new Error(
+          `Failed to unfeature site. Status: ${json.status}, Message: ${json.message || 'Unknown error'}`
+        );
+      }
+
+      console.log(`Successfully unfeatured site: ${siteId}`);
+      return json;
+    });
+  }
+
+  /**
    * Makes a user a site content manager
    * @param siteId - The ID of the site
    * @param userId - The ID of the user to make content manager

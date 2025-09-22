@@ -43,6 +43,7 @@ test.describe(
 
         // Step 1: Search and add the created site to featured
         await featuredSitePage.actions.addSiteToFeatured(createdSite.siteName);
+        await featuredSitePage.actions.clickDoneButton();
 
         // Step 2.1: Verify success toast message appears
         await featuredSitePage.assertions.verifyToastMessage('Added featured site');
@@ -61,6 +62,31 @@ test.describe(
 
         // Step 7: Verify user is navigated to the site dashboard
         await featuredSitePage.assertions.verifySiteDashboardLoaded(createdSite.siteName);
+      }
+    );
+
+    test(
+      'Shuffling sites from feature modal list',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE],
+      },
+      async ({ appManagerHomePage, siteManagementHelper }) => {
+        const featuredSitePage = await appManagerHomePage.clickOnFeaturedSitesTab();
+        await featuredSitePage.actions.clickOnAddUpdateFeaturedSiteButton();
+
+        const unFeaturedSites: { siteId: string; name: string }[] = await siteManagementHelper.getUnFeaturedSites();
+        for (const site of unFeaturedSites) {
+          await featuredSitePage.actions.addSiteToFeatured(site.name);
+          await featuredSitePage.assertions.verifyToastMessage('Added featured site');
+          await featuredSitePage.assertions.verifyFeaturedSitesVisibleInModal(site.name);
+        }
+        await featuredSitePage.assertions.verifyFeaturedSitesIndex(reorderedSites);
+
+        await featuredSitePage.actions.shuffleSites();
+        // Reorder sites to match expected UI order: [second added, first added]
+        const reorderedSites = [unFeaturedSites[1], unFeaturedSites[0]].filter(Boolean);
+        // After shuffling, verify the new order
+        await featuredSitePage.assertions.verifyFeaturedSitesIndex(reorderedSites);
       }
     );
   }

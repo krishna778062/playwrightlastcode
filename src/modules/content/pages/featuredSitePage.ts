@@ -10,12 +10,15 @@ export interface IFeaturedSiteActions {
   addSiteToFeatured: (siteName: string) => Promise<void>;
   navigateToSiteDashboard: (siteName: string) => Promise<void>;
   clickOnAddUpdateFeaturedSiteButton: () => Promise<void>;
+  clickDoneButton: () => Promise<void>;
+  shuffleSites: () => Promise<void>;
 }
 
 export interface IFeaturedSiteAssertions {
   verifyFeaturedSitesVisible: (siteNames: string[]) => Promise<void>;
   verifySiteDashboardLoaded: (siteName: string) => Promise<void>;
   verifyToastMessage: (message: string) => Promise<void>;
+  verifyFeaturedSitesVisibleInModal: (siteNames: string) => Promise<void>;
 }
 
 export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, IFeaturedSiteAssertions {
@@ -86,6 +89,11 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
     await test.step(`Add site "${siteName}" to featured`, async () => {
       await this.featureSiteComponent.searchFeaturedSite(siteName);
       await this.featureSiteComponent.clickAddButton();
+    });
+  }
+
+  async clickDoneButton(): Promise<void> {
+    await test.step('Click on Done button', async () => {
       await this.featureSiteComponent.clickDoneButton();
     });
   }
@@ -148,6 +156,24 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
         assertionMessage: `Expected toast message "${message}" to be visible`,
         timeout: 10000,
       });
+    });
+  }
+
+  async verifyFeaturedSitesVisibleInModal(siteName: string): Promise<void> {
+    await test.step('Verify featured sites are visible in modal', async () => {
+      await this.featureSiteComponent.verifyFeaturedSitesVisibleInModal(siteName);
+    });
+  }
+
+  async shuffleSites(): Promise<void> {
+    await test.step('Shuffle sites', async () => {
+      await this.featureSiteComponent.shuffleSites();
+    });
+  }
+
+  async verifyFeaturedSitesIndex(sites: { siteId: string; name: string }[]): Promise<void> {
+    await test.step('Verify featured sites index', async () => {
+      await this.featureSiteComponent.verifyFeaturedSitesIndex(sites);
     });
   }
 }
