@@ -10,7 +10,8 @@ export class PrivilegesComponent extends BaseComponent {
   readonly clickOnSave: Locator;
   readonly crossUser: Locator;
   readonly changesConfirmation: Locator;
-  readonly selectingAuthor: Locator;
+  readonly allowlistInputBox: Locator;
+  readonly crossAllowlistUser: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -18,9 +19,10 @@ export class PrivilegesComponent extends BaseComponent {
     this.protectedAuthorsAllowlist = page.getByText('Protected authors - allowlist:');
     this.protectedAuthors = page.getByRole('heading', { name: 'Protected authors' });
     this.authorInputBox = page.locator('#react-select-3-input');
+    this.allowlistInputBox = page.locator('#react-select-4-input');
     this.clickOnSave = page.getByRole('button', { name: 'Save' });
     this.crossUser = page.locator('.Tag-remove').first();
+    this.crossAllowlistUser = page.locator('.Tag-remove').nth(1);
     this.changesConfirmation = page.getByText('Saved changes successfully');
-    this.selectingAuthor = page.locator(`[role="listbox"]`);
   }
 }

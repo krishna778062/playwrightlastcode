@@ -12,6 +12,7 @@ export enum ContentFeatureTags {
   VALIDATION_REQUIRED_BAR_STATE = '@validation-required-bar-state',
   ADD_USERS_TO_AUTHOR = '@add-users-to-author',
   ADD_TARGET_AUDIENCE = '@add-target-audience',
+  ADD_USERS_TO_ALLOWLIST = '@add-users-to-allowlist',
 }
 
 export const ContentTestTags = [...Object.values(ContentSuiteTags), ...Object.values(ContentFeatureTags)] as const;

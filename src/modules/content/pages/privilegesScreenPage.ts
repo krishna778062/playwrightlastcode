@@ -3,25 +3,30 @@ import { Locator, Page, Response, test } from '@playwright/test';
 import { BasePage } from '@core/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { PrivilegesComponent } from '@/src/modules/content/components/privilegesComponent';
+import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
+import { ProtectedAuthorsComponent } from '@/src/modules/content/components/protectedAuthorComponent';
 
 export interface IPrivilegesScreenPageActions {
-  verifyAndFillProtectedAuthorsAuthors: (value: string) => Promise<void>;
+  fillProtectedAuthorsAuthorsFieldBarWithLoggedInUser: (value: string) => Promise<void>;
+  fillProtectedAuthorsAllowlistFieldBarWithLoggedInUser: (value: string) => Promise<void>;
   clickOnSave: () => Promise<void>;
-  clickOnCrossUser: () => Promise<void>;
+  clickOnCrossUserFromAuthorList: () => Promise<void>;
+  clickOnCrossAllowlistUser: () => Promise<void>;
 }
 
 export interface IPrivilegesScreenPageAssertions {
-  verifyTheProtectedAuthorsAuthorsIsVisible: () => Promise<void>;
-  verifyTheProtectedAuthorsAllowlistIsVisible: () => Promise<void>;
-  verifyTheChangesConfirmationIsVisible: () => Promise<void>;
+  verifyProtectedAuthorsAuthorsFieldBarIsVisible: () => Promise<void>;
+  verifyProtectedAuthorsAllowlistFieldBarIsVisible: () => Promise<void>;
+  verifyTheChangesConfirmationToastMessageIsVisible: () => Promise<void>;
 }
 export class PrivilegesScreenPage extends BasePage {
-  private privilegesComponent: PrivilegesComponent;
+  private protectedAuthorsComponent: ProtectedAuthorsComponent;
+  readonly clickOnSaveButton = this.page.getByRole('button', { name: 'Save' });
+  readonly changesConfirmation = this.page.getByText('Saved changes successfully');
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.PRIVILEGES_SCREEN);
-    this.privilegesComponent = new PrivilegesComponent(page);
+    this.protectedAuthorsComponent = new ProtectedAuthorsComponent(page);
   }
 
   get actions(): IPrivilegesScreenPageActions {
@@ -34,49 +39,53 @@ export class PrivilegesScreenPage extends BasePage {
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify governance page is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.privilegesComponent.protectedAuthors, {
+      await this.verifier.verifyTheElementIsVisible(this.protectedAuthorsComponent.protectedAuthors, {
         assertionMessage: 'Privileges page should be visible',
       });
     });
   }
 
-  async verifyTheProtectedAuthorsAuthorsIsVisible(): Promise<void> {
-    await test.step('Verify the protected authors authors is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.privilegesComponent.protectedAuthorsAuthors);
-    });
+  async verifyProtectedAuthorsAuthorsFieldBarIsVisible(): Promise<void> {
+    await this.protectedAuthorsComponent.verifyProtectedAuthorsAuthorsFieldBarIsVisible();
   }
 
-  async verifyTheProtectedAuthorsAllowlistIsVisible(): Promise<void> {
-    await test.step('Verify the protected authors allowlist is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.privilegesComponent.protectedAuthorsAllowlist);
-    });
+  async verifyProtectedAuthorsAllowlistFieldBarIsVisible(): Promise<void> {
+    await this.protectedAuthorsComponent.verifyProtectedAuthorsAllowlistFieldBarIsVisible();
   }
 
-  async verifyAndFillProtectedAuthorsAuthors(value: string): Promise<void> {
-    await test.step('Verify protected authors authors is visible and fill value', async () => {
-      await this.clickOnElement(this.privilegesComponent.authorInputBox);
-      await this.fillInElement(this.privilegesComponent.authorInputBox, value);
-      await this.privilegesComponent.authorInputBox.focus();
-      const newWorkspaceOption = this.privilegesComponent.selectingAuthor.filter({ hasText: value });
-      await this.clickOnElement(newWorkspaceOption);
-    });
+  async fillProtectedAuthorsAuthorsFieldBarWithLoggedInUser(value: string): Promise<void> {
+    await this.protectedAuthorsComponent.fillProtectedAuthorsAuthorsFieldBarWithLoggedInUser(value);
+  }
+
+  async fillProtectedAuthorsAllowlistFieldBarWithLoggedInUser(value: string): Promise<void> {
+    await this.protectedAuthorsComponent.fillProtectedAuthorsAllowlistFieldBarWithLoggedInUser(value);
   }
 
   async clickOnSave(): Promise<void> {
     await test.step('Clicking on save', async () => {
-      await this.clickOnElement(this.privilegesComponent.clickOnSave);
+      await this.clickOnElement(this.clickOnSaveButton);
     });
   }
 
-  async verifyTheChangesConfirmationIsVisible(): Promise<void> {
-    await test.step('Verify the changes confirmation is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.privilegesComponent.changesConfirmation);
+  async verifyTheChangesConfirmationToastMessageIsVisible(): Promise<void> {
+    const baseActionUtil = new BaseActionUtil(this.page);
+    await baseActionUtil.verifyToastMessageIsVisibleWithText('Saved changes successfully', {
+      stepInfo: 'Verify the changes confirmation toast message is visible',
     });
   }
 
-  async clickOnCrossUser(): Promise<void> {
-    await test.step('Clicking on save', async () => {
-      await this.clickOnElement(this.privilegesComponent.crossUser);
+  async clickOnCrossUserFromAuthorList(): Promise<void> {
+    await this.protectedAuthorsComponent.clickOnCrossUser();
+  }
+
+  async clickOnCrossAllowlistUser(): Promise<void> {
+    await this.protectedAuthorsComponent.clickOnCrossUser();
+  }
+
+  async reloadScreen(): Promise<void> {
+    await test.step('Reload the privileges screen', async () => {
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      await this.page.waitForLoadState('domcontentloaded');
     });
   }
 }
