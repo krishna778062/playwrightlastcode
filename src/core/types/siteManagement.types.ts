@@ -8,6 +8,7 @@ export enum SitePermission {
 export enum SiteMembershipAction {
   ADD = 'addPeople',
   SET_PERMISSION = 'setPeoplePermission',
+  REMOVE = 'removePeople',
 }
 
 export interface SiteCreationPayload {
