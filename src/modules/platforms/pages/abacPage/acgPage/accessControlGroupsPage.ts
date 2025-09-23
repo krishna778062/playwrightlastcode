@@ -5,11 +5,11 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 import { AccessControlGroupModalComponent } from '@platforms/components/accessControlGroupModal';
 import { ConfirmEditAccessControlGroupModalComponent } from '@platforms/components/confirmEditAccessControlGroupModal';
+import { ACG_COLUMNS } from '@platforms/constants/acg';
 import { ACG_STATUS } from '@platforms/constants/acg';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { changeDateFormatToYYYYMMDD } from '@/src/core/utils/dateUtil';
-import { ACG_COLUMNS } from '@platforms/constants/acg';
 
 export enum ACGFeature {
   ADD_SITES = 'Add_sites',
