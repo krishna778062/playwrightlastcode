@@ -1,5 +1,7 @@
 import { APIRequestContext, test } from '@playwright/test';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import {
   SiteCreationPayload,
   SiteMembershipAction,
@@ -10,7 +12,6 @@ import { SiteManagementService } from '@/src/modules/content/apis/services/SiteM
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
-import { PAGE_ENDPOINTS } from '../constants/pageEndpoints';
 
 interface Site {
   siteId: string;
@@ -26,12 +27,14 @@ export class SiteManagementHelper {
   private sites: Site[] = [];
   private siteMembers: SiteMember[] = [];
   readonly siteManagementService: SiteManagementService;
+  readonly appManagerApiClient: AppManagerApiClient;
 
   constructor(
     readonly apiRequestContext: APIRequestContext,
     readonly baseUrl: string
   ) {
     this.siteManagementService = new SiteManagementService(apiRequestContext, baseUrl);
+    this.appManagerApiClient = new AppManagerApiClient(apiRequestContext, baseUrl);
   }
 
   /**
