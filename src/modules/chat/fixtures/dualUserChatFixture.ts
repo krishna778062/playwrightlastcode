@@ -36,10 +36,6 @@ export const defaultDualUsers: StaticUsersConfig = {
 };
 
 /**
- * Converts DualUserConfig to TestUser array for MultiUserChatTestHelper
- */
-
-/**
  * Creates a dual user chat test fixture with custom user configurations
  *
  * @param userConfig - Optional custom user configuration. If not provided, uses default users from environment variables
