@@ -127,10 +127,7 @@ jobs:
             echo "Running all tests without filters"
             npm run test:${{ inputs.module_name || 'chat' }} -- --workers=${{ inputs.workers }}
           else
-            GREP_REGEX=""
-            for tag in "${ALL_TAGS[@]}"; do
-              GREP_REGEX="${GREP_REGEX}(?=.*${tag})"
-            done
+            GREP_REGEX=$(IFS='|'; echo "${ALL_TAGS[*]}")
             echo "Running tests with grep filter: $GREP_REGEX"
             npm run test:${{ inputs.module_name || 'chat' }} -- --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
           fi
