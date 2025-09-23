@@ -87,9 +87,9 @@ export const searchTestFixtures = test.extend<
   tileCleanupTracker: [
     async ({ appManagerApiClient }, use) => {
       const tileCleanupTracker = { tiles: [] as Array<{ tileId: string; siteId: string }> };
-      
+
       await use(tileCleanupTracker);
-      
+
       // Cleanup all tracked tiles
       for (const { tileId, siteId } of tileCleanupTracker.tiles) {
         try {

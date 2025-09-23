@@ -30,7 +30,7 @@ test.describe(
           scope: 'public',
         });
       }
-      
+
       currentFeedId = feedResponse.result.feedId;
       currentFeedName = feedResponse.feedName;
       currentAuthorName = feedResponse.result.authoredBy?.name;
