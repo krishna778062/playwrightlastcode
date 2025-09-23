@@ -10,26 +10,25 @@ import { LoginHelper } from '@core/helpers/loginHelper';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
-import { getContentTenantConfigFromCache } from '../config/contentConfig';
-
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
+import { getContentTenantConfigFor, getContentTenantConfigFromCache } from '@/src/modules/content/config/contentConfig';
 
 export type UserType = 'appManager' | 'endUser';
 export type HomePageType = NewUxHomePage | OldUxHomePage;
 
 export const users = {
   appManager: {
-    email: getContentTenantConfigFromCache().appManagerEmail,
-    password: getContentTenantConfigFromCache().appManagerPassword,
+    email: getContentTenantConfigFor('contentSettings').appManagerEmail,
+    password: getContentTenantConfigFor('contentSettings').appManagerPassword,
   },
   endUser: {
-    email: getContentTenantConfigFromCache().endUserEmail || '',
-    password: getContentTenantConfigFromCache().endUserPassword || '',
+    email: getContentTenantConfigFor('contentSettings').endUserEmail || '',
+    password: getContentTenantConfigFor('contentSettings').endUserPassword || '',
   },
   siteManager: {
-    email: getContentTenantConfigFromCache().siteManagerEmail || '',
-    password: getContentTenantConfigFromCache().siteManagerPassword || '',
+    email: getContentTenantConfigFor('contentSettings').siteManagerEmail || '',
+    password: getContentTenantConfigFor('contentSettings').siteManagerPassword || '',
   },
 } as const;
 
@@ -92,10 +91,10 @@ export const contentTestFixture = test.extend<
       const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
         type: 'credentials',
         credentials: {
-          username: getContentTenantConfigFromCache().appManagerEmail,
-          password: getContentTenantConfigFromCache().appManagerPassword,
+          username: getContentTenantConfigFor('contentSettings').appManagerEmail,
+          password: getContentTenantConfigFor('contentSettings').appManagerPassword,
         },
-        baseUrl: getContentTenantConfigFromCache().apiBaseUrl,
+        baseUrl: getContentTenantConfigFor('contentSettings').apiBaseUrl,
       });
 
       await use(appManagerApiClient);
@@ -110,10 +109,10 @@ export const contentTestFixture = test.extend<
       const standardUserApiClient = await ApiClientFactory.createClient(StandardUserApiClient, {
         type: 'credentials',
         credentials: {
-          username: getContentTenantConfigFromCache().endUserEmail || '',
-          password: getContentTenantConfigFromCache().endUserPassword || '',
+          username: getContentTenantConfigFor('contentSettings').endUserEmail || '',
+          password: getContentTenantConfigFor('contentSettings').endUserPassword || '',
         },
-        baseUrl: getContentTenantConfigFromCache().apiBaseUrl,
+        baseUrl: getContentTenantConfigFor('contentSettings').apiBaseUrl,
       });
       await use(standardUserApiClient);
     },

@@ -24,7 +24,7 @@ export default defineConfig({
         headless: process.env.CI ? true : false,
         video: 'off',
         ...devices['Desktop Chrome'],
-        baseURL: getContentTenantConfigFor('primary').frontendBaseUrl,
+        baseURL: getContentTenantConfigFor('contentSettings').frontendBaseUrl,
         permissions: ['camera', 'microphone', 'notifications'],
         launchOptions: {
           args: ['--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage', '--enable-notifications'],
