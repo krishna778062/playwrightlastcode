@@ -9,6 +9,7 @@ import { ACG_STATUS } from '@platforms/constants/acg';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { changeDateFormatToYYYYMMDD } from '@/src/core/utils/dateUtil';
+import { ACG_COLUMNS } from '@platforms/constants/acg';
 
 export enum ACGFeature {
   ADD_SITES = 'Add_sites',
@@ -376,7 +377,11 @@ export class AccessControlGroupsPage extends BasePage {
       }
     }
     for (let j = 0; j < (await this.acgRecordsElement.count()); j++) {
-      const textContent = await this.acgRecordsElement.nth(j).locator('td').nth(columnIndex).textContent();
+      console.log(`columnIndex is ${columnIndex} outside for loop`);
+      const textContent =
+        columnName === ACG_COLUMNS.NAME
+          ? await this.acgRecordsElement.nth(j).locator('td p').nth(columnIndex).textContent()
+          : await this.acgRecordsElement.nth(j).locator('td').nth(columnIndex).textContent();
       if (!textContent?.includes('Syncing...')) {
         if (columnName === 'Modified') {
           allTextContents.push(changeDateFormatToYYYYMMDD(textContent ?? ''));
