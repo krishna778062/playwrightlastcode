@@ -123,7 +123,7 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
       test(
         `Verify Site Autocomplete functionality for a ${testData.siteType} site"`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, '@test'],
         },
         async ({ appManagerHomePage }) => {
           tagTest(test.info(), {
@@ -137,7 +137,10 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
 
           // Wait for autocomplete to appear first
           const resultList = new ResultListingComponent(appManagerHomePage.page);
-          await resultList.waitForAndVerifyAutocompleteListIsDisplayed();
+          await resultList.waitForAndVerifyAutocompleteListIsDisplayed(
+            appManagerHomePage.topNavBarComponent.globalSearchInputBox,
+            newSiteName
+          );
 
           // Then get specific autocomplete item
           const siteResult = resultList.getAutocompleteItemByName(newSiteName);

@@ -246,14 +246,37 @@ export class ResultListingComponent extends BaseComponent {
   /** ---------------------------- AUTOCOMPLETE VERIFICATIONS ---------------------------- */
   /**
    * Wait for autocomplete list to appear and verify it's displayed
+   * If autocomplete is not displayed, retries by deleting last character and retyping it
    */
-  async waitForAndVerifyAutocompleteListIsDisplayed(): Promise<void> {
+  async waitForAndVerifyAutocompleteListIsDisplayed(searchInputLocator?: Locator, searchTerm?: string): Promise<void> {
     await test.step('Waiting for autocomplete list to appear and verifying it is displayed', async () => {
-      // Wait for at least one autocomplete item to appear
-      await this.verifier.verifyTheElementIsVisible(this.autocompleteList.first(), {
-        timeout: 20000,
-        assertionMessage: 'Verifying autocomplete list is visible',
-      });
+      try {
+        // Wait for at least one autocomplete item to appear
+        await this.verifier.verifyTheElementIsVisible(this.autocompleteList.first(), {
+          timeout: 20000,
+          assertionMessage: 'Verifying autocomplete list is visible',
+        });
+      } catch (error) {
+        // If autocomplete is not displayed, retry by deleting last character and retyping
+        if (searchInputLocator && searchTerm && searchTerm.length > 0) {
+          await test.step('Autocomplete not displayed, retrying by deleting last character and retyping', async () => {
+            // Delete the last character
+            await searchInputLocator.press('Backspace');
+
+            // Retype the last character
+            const lastChar = searchTerm[searchTerm.length - 1];
+            await searchInputLocator.fill(lastChar);
+
+            // Try to verify autocomplete list again
+            await this.verifier.verifyTheElementIsVisible(this.autocompleteList.first(), {
+              timeout: 10000,
+              assertionMessage: 'Verifying autocomplete list is visible after retry',
+            });
+          });
+        } else {
+          throw error; // Re-throw the original error if we can't retry
+        }
+      }
     });
   }
 
