@@ -103,19 +103,6 @@ export function createDualUserChatFixture(userConfig?: DualUserConfig) {
 
       // Parallel chat page navigation result
       chatPages: { user1ChatPage: ChatAppPage; user2ChatPage: ChatAppPage };
-
-      // Dual user helper methods
-      dualUserHelpers: {
-        openSameGroupChatForBothUsers: (groupName: string) => Promise<void>;
-        sendMessageFromUser1: (message: string) => Promise<void>;
-        sendMessageFromUser2: (message: string) => Promise<void>;
-        verifyMessageVisibleForBothUsers: (message: string, timeout?: number) => Promise<void>;
-        openDirectMessageBetweenUsers: () => Promise<void>;
-      };
-
-      // Management helpers
-      siteManagementHelper: SiteManagementHelper;
-      feedManagementHelper: FeedManagementHelper;
     },
     {
       appManagerApiClient: AppManagerApiClient;
@@ -271,70 +258,6 @@ export function createDualUserChatFixture(userConfig?: DualUserConfig) {
     user2ChatPage: [
       async ({ chatPages }, use) => {
         await use(chatPages.user2ChatPage);
-      },
-      { scope: 'test' },
-    ],
-
-    // Dual User Helper Methods (using MultiUserChatTestHelper)
-    dualUserHelpers: [
-      async ({ user1ChatPage, user2ChatPage, multiUserChatTestHelper }, use) => {
-        const chatPages = [user1ChatPage, user2ChatPage];
-
-        const helpers = {
-          /**
-           * Opens the same group chat for both users simultaneously using MultiUserChatTestHelper
-           */
-          async openSameGroupChatForBothUsers(groupName: string): Promise<void> {
-            await multiUserChatTestHelper.openGroupChatForMultipleUsers(chatPages, groupName, [0, 1]);
-          },
-
-          /**
-           * Sends a message from User 1
-           */
-          async sendMessageFromUser1(message: string): Promise<void> {
-            await test.step(`${users.user1.name} sending message: "${message}"`, async () => {
-              await user1ChatPage.actions.sendMessage(message);
-            });
-          },
-
-          /**
-           * Sends a message from User 2
-           */
-          async sendMessageFromUser2(message: string): Promise<void> {
-            await test.step(`${users.user2.name} sending message: "${message}"`, async () => {
-              await user2ChatPage.actions.sendMessage(message);
-            });
-          },
-
-          /**
-           * Verifies that a message is visible for both users using MultiUserChatTestHelper
-           */
-          async verifyMessageVisibleForBothUsers(message: string, timeout: number = 10000): Promise<void> {
-            await multiUserChatTestHelper.verifyMessageAppearsForAllTheUsersInChatSection(chatPages, message, {
-              timeout,
-              userIndices: [0, 1],
-            });
-          },
-
-          /**
-           * Opens direct message conversation between the two users
-           */
-          async openDirectMessageBetweenUsers(): Promise<void> {
-            await test.step(`Opening direct message between ${users.user1.name} and ${users.user2.name}`, async () => {
-              // User 1 opens chat with User 2
-              await user1ChatPage.actions.openDirectMessageWithUser(users.user2.name, {
-                stepInfo: `${users.user1.name} opening direct message with ${users.user2.name}`,
-              });
-
-              // User 2 opens chat with User 1
-              await user2ChatPage.actions.openDirectMessageWithUser(users.user1.name, {
-                stepInfo: `${users.user2.name} opening direct message with ${users.user1.name}`,
-              });
-            });
-          },
-        };
-
-        await use(helpers);
       },
       { scope: 'test' },
     ],
