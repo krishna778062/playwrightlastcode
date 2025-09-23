@@ -9,6 +9,7 @@ export const OKTA_GROUP = {
   SELECTED_GROUPS_TAB: 'Selected groups',
   GROUP_NAME1: 'Okta Administrators',
   GROUP_NAME2: 'Everyone',
+  CREATED_BY: 'Automatically generated',
   GROUP_NAME3: 'AutomationTestingGroup01',
   GROUP_NAME4: 'AutomationTestingGroup02',
   DO_NOT_CREATE_AUDIENCES: 'Do not create audiences',
