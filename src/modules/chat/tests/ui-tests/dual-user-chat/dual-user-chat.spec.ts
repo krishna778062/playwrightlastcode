@@ -24,7 +24,6 @@ test.describe('Direct Message between two static users', { tag: [CHAT_SUITE_TAGS
         storyId: 'CHAT-2245',
       });
       // Open the same group chat for both users
-      // await dualUserHelpers.openSameGroupChatForBothUsers(CONSTANT_DATA.COMMON_GROUP_NAME);
       await multiUserChatTestHelper.openGroupChatForMultipleUsers(
         [chatPages.user1ChatPage, chatPages.user2ChatPage],
         CONSTANT_DATA.COMMON_GROUP_NAME,
