@@ -421,10 +421,14 @@ export class GlobalSearchResultPage extends BasePage {
    * Dismisses survey popup if present
    */
   async dismissSurveyPopupIfPresent(): Promise<void> {
-    if (await this.verifier.isTheElementVisible(this.dismissButton, { timeout: 5000 })) {
-      await test.step('Dismissing survey popup', async () => {
+    await test.step('Checking for survey popup and dismissing if present', async () => {
+      try {
+        // Wait for the dismiss button to appear with a short timeout
+        await this.dismissButton.waitFor({ state: 'visible', timeout: 5000 });
         await this.clickOnElement(this.dismissButton);
-      });
-    }
+      } catch (error) {
+        // No survey popup present - continue with test
+      }
+    });
   }
 }
