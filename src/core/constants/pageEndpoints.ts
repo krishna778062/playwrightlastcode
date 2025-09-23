@@ -39,6 +39,7 @@ export const PAGE_ENDPOINTS = {
   getFeedPage: (feedId: string) => `/feed/${feedId}`,
   APPLICATION_SETTINGS: 'manage/app/setup/general',
   GOVERNANCE_SCREEN: 'manage/app/setup/governance',
+  PRIVILEGES_SCREEN: 'manage/app/setup/privileges',
   MANAGE_FEATURE: 'manage-features',
   MANAGE_CONTENT: 'manage/content',
   MANAGE_CONTENT_APPLY_API: '/manage',

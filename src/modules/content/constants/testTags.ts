@@ -15,6 +15,7 @@ export enum ContentFeatureTags {
   MANAGE_CONTENT = '@manage-content',
   VERIFY_COMMENTS_AND_FEEDS = '@verify-comments-and-feeds',
   VALIDATION_REQUIRED_BAR_STATE = '@validation-required-bar-state',
+  ADD_USERS_TO_AUTHOR = '@add-users-to-author',
 }
 
 export const ContentTestTags = [...Object.values(ContentSuiteTags), ...Object.values(ContentFeatureTags)] as const;
