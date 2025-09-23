@@ -42,6 +42,7 @@ export const API_ENDPOINTS = {
     v2IdentityProfileQuestionsVerify: '/v2/identity/profile-questions/verify',
     v2IdentityUsersSetPassword: '/v2/identity/users/set-password',
     v2IdentityUsersRegisterProfile: '/v2/identity/users/register-profile',
+    roles: '/v1/identity/accounts/roles/list',
   },
   admin: {
     login: '/v2/identity/admin/login',
@@ -51,9 +52,12 @@ export const API_ENDPOINTS = {
     url: '/v1/content/sites',
     category: '/v1/content/siteCategories/list',
     deactivate: '/v1/content/sites/attributes?attribute=status',
+    activate: '/v1/content/sites/attributes?attribute=status',
+    updateAccess: '/v1/content/sites/attributes?attribute=access',
     listOfSites: '/v1/content/sites/list',
     manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
     membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,
+    unfeature: (siteId: string) => `/v1/content/sites/${siteId}/featured?action=unfeature`,
   },
 
   content: {
