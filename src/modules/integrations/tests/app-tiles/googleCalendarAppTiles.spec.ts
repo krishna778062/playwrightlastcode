@@ -17,24 +17,13 @@ test.describe(
   },
   () => {
     let createdTileTitle: string | undefined = undefined;
-    let cleanupCtx: { location: 'home' | 'site'; siteId?: string } | undefined;
-    test.afterEach(async ({ homeDashboard, siteDashboard, tileManagementHelper }) => {
-      if (!createdTileTitle) return;
 
-      const tasks =
-        cleanupCtx?.location === 'site' && cleanupCtx.siteId
-          ? [
-              siteDashboard.navigateToSite(cleanupCtx.siteId),
-              siteDashboard.removeTile(createdTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE),
-              siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE),
-            ]
-          : [
-              tileManagementHelper.removeIntegrationAppTile(createdTileTitle),
-              homeDashboard.verifyTileRemoved(createdTileTitle),
-            ];
-      await Promise.allSettled(tasks);
-      createdTileTitle = undefined;
-      cleanupCtx = undefined;
+    test.afterEach(async ({ tileManagementHelper, homeDashboard }) => {
+      if (createdTileTitle) {
+        await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
+        await homeDashboard.verifyTileRemoved(createdTileTitle);
+        createdTileTitle = undefined;
+      }
     });
 
     test(
@@ -49,7 +38,6 @@ test.describe(
         });
 
         createdTileTitle = `Google Calendar apptile ${faker.string.alphanumeric({ length: 6 })}`;
-        cleanupCtx = { location: 'home' };
 
         await tileManagementHelper.createIntegrationAppTile(
           createdTileTitle,
@@ -71,8 +59,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
-        void homeDashboard;
+      async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-24182',
           storyId: 'INT-23049',
@@ -83,7 +70,6 @@ test.describe(
         const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
-        cleanupCtx = { location: 'site', siteId: createdSite.siteId };
 
         await siteDashboard.addTile(
           createdTileTitle,
@@ -97,6 +83,9 @@ test.describe(
         await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
         await siteDashboard.isTilePresent(updatedTileTitle);
         createdTileTitle = updatedTileTitle;
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
       }
     );
 
@@ -111,7 +100,6 @@ test.describe(
           storyId: 'INT-23629',
         });
         createdTileTitle = `Display upcoming events ${faker.string.alphanumeric({ length: 6 })}`;
-        cleanupCtx = { location: 'home' };
 
         await tileManagementHelper.createIntegrationAppTile(
           createdTileTitle,
@@ -129,8 +117,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
-        void homeDashboard;
+      async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-24182',
           storyId: 'INT-23049',
@@ -141,7 +128,6 @@ test.describe(
         const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
-        cleanupCtx = { location: 'site', siteId: createdSite.siteId };
 
         await siteDashboard.addTile(
           createdTileTitle,
@@ -165,7 +151,6 @@ test.describe(
           storyId: 'INT-23629',
         });
         createdTileTitle = `Display upcoming events ${faker.string.alphanumeric({ length: 6 })}`;
-        cleanupCtx = { location: 'home' };
         await tileManagementHelper.createIntegrationAppTile(
           createdTileTitle,
           TILE_IDS.GOOGLE_CALENDAR_APPTILES,
@@ -181,8 +166,7 @@ test.describe(
       {
         tag: [TestPriority.P2, TestGroupType.SANITY],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
-        void homeDashboard;
+      async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-24182',
           storyId: 'INT-23049',
@@ -192,7 +176,6 @@ test.describe(
         const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
-        cleanupCtx = { location: 'site', siteId: createdSite.siteId };
         await siteDashboard.addTile(
           createdTileTitle,
           'Google Calendar',
