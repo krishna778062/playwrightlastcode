@@ -201,7 +201,7 @@ export class GlobalSearchResultPage extends BasePage {
   private async handleExactMatchCheckboxRetry(verificationFn: () => Promise<void>) {
     try {
       await verificationFn();
-    } catch (error) {
+    } catch {
       // If the verification fails, check if the "Search for an exact match" checkbox is visible and click it
       const exactMatchCheckbox = this.page.getByRole('checkbox', { name: 'Search for an exact match' });
       await exactMatchCheckbox.waitFor({ state: 'visible', timeout: 50_000 });
@@ -426,7 +426,7 @@ export class GlobalSearchResultPage extends BasePage {
         // Wait for the dismiss button to appear with a short timeout
         await this.dismissButton.waitFor({ state: 'visible', timeout: 5000 });
         await this.clickOnElement(this.dismissButton);
-      } catch (error) {
+      } catch {
         // No survey popup present - continue with test
       }
     });
