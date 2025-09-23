@@ -2,9 +2,11 @@ import { BrowserContext, expect, Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@/src/core/api/factories/apiClientFactory';
+import { IdentityService } from '@/src/core/api/services/IdentityService';
 import { SiteManagementService } from '@/src/core/api/services/SiteManagementService';
 import { FeedManagementHelper } from '@/src/core/helpers/feedManagementHelper';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
+import { SiteAudienceHelper } from '@/src/core/helpers/siteAudienceHelper';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
@@ -17,6 +19,7 @@ export const contentAbacTestFixture = test.extend<{
   endUserHomePage: NewUxHomePage | OldUxHomePage;
   endUserPage: Page;
   feedManagementHelper: FeedManagementHelper;
+  siteAudienceHelper: SiteAudienceHelper;
   siteManagementService: SiteManagementService;
 }>({
   appManagerHomePage: [
@@ -64,6 +67,15 @@ export const contentAbacTestFixture = test.extend<{
     async ({ appManagerApiClient }, use) => {
       const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
       await use(feedManagementHelper);
+    },
+    { scope: 'test' },
+  ],
+
+  siteAudienceHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const identity = new IdentityService(appManagerApiClient.context, getEnvConfig().apiBaseUrl);
+      const siteAudienceHelper = new SiteAudienceHelper(identity);
+      await use(siteAudienceHelper);
     },
     { scope: 'test' },
   ],

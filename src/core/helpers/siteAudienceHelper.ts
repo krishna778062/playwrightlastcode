@@ -34,4 +34,36 @@ export class SiteAudienceHelper {
       return null;
     }
   }
+
+  /**
+   * Get or create an audience name for site creation.
+   * Business logic: Create audience when there are no audience, else use existing.
+   */
+  async getOrCreateAudienceName(): Promise<string> {
+    try {
+      // Try to find existing audience first
+      const existingAudience = await this.findFirstAvailableAudience();
+      if (existingAudience) {
+        return existingAudience;
+      }
+
+      // Create new audience if none exist
+      const categoryName = `Category_${Date.now()}`;
+      const audienceName = `Audience_${Date.now()}`;
+
+      const categoryId = await this.identity.createCategory(categoryName);
+      await this.identity.createAudience({
+        audienceName,
+        categoryId,
+        attribute: 'first_name',
+        operator: 'CONTAINS',
+        value: 'e',
+      });
+
+      return audienceName;
+    } catch (error) {
+      console.error('Error getting or creating audience name:', error);
+      throw new Error(`Failed to get or create audience: ${error}`);
+    }
+  }
 }

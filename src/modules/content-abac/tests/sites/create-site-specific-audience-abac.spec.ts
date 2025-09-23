@@ -1,7 +1,5 @@
-import { IdentityService } from '@/src/core/api/services/IdentityService';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
-import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { tagTest } from '@/src/core/utils/testDecorator';
 import { SiteType } from '@/src/modules/content-abac/constants/siteTypeABAC';
 import { ContentSuiteTags } from '@/src/modules/content-abac/constants/testTags';
@@ -24,7 +22,7 @@ test.describe('Site Creation by Application Manager', { tag: [ContentFeatureTags
     {
       tag: [ContentSuiteTags.CREATE_SITE, TestPriority.P0, TestGroupType.REGRESSION],
     },
-    async ({ appManagerHomePage, page, appManagerApiClient }) => {
+    async ({ appManagerHomePage, page, siteAudienceHelper }) => {
       tagTest(test.info(), {
         description: 'ABAC: Create Public site selecting an existing specific audience via picker',
         zephyrTestId: 'CONT-39272',
@@ -39,8 +37,7 @@ test.describe('Site Creation by Application Manager', { tag: [ContentFeatureTags
       await siteCreationPage.assertions.verifySiteCreationFormStructure();
 
       // STEP 3: Setup specific audience (reuse existing or create new)
-      const identity = new IdentityService(appManagerApiClient.context, getEnvConfig().apiBaseUrl);
-      const audienceName = await siteCreationPage.getOrCreateAudienceName(identity);
+      const audienceName = await siteAudienceHelper.getOrCreateAudienceName();
       console.log(`Audience name is ${audienceName}`);
 
       // STEP 4: Create the site with specific audience and capture siteId from URL
@@ -62,7 +59,7 @@ test.describe('Site Creation by Application Manager', { tag: [ContentFeatureTags
     {
       tag: [ContentSuiteTags.CREATE_SITE, TestPriority.P0, TestGroupType.REGRESSION],
     },
-    async ({ appManagerHomePage, page, appManagerApiClient }) => {
+    async ({ appManagerHomePage, page, siteAudienceHelper }) => {
       tagTest(test.info(), {
         zephyrTestId: 'CONT-39288',
         storyId: 'CONT-33515',
@@ -76,8 +73,7 @@ test.describe('Site Creation by Application Manager', { tag: [ContentFeatureTags
       await siteCreationPage.assertions.verifySiteCreationFormStructure();
 
       // STEP 2: Setup specific audience (reuse existing or create new)
-      const identity = new IdentityService(appManagerApiClient.context, getEnvConfig().apiBaseUrl);
-      const audienceName = await siteCreationPage.getOrCreateAudienceName(identity);
+      const audienceName = await siteAudienceHelper.getOrCreateAudienceName();
       console.log(`Audience name is ${audienceName}`);
 
       // STEP 3: Create the site with specific audience and capture siteId from URL
