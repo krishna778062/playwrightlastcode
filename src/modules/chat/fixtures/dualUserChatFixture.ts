@@ -2,10 +2,13 @@ import { BrowserContext, Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
+import { Roles } from '@core/constants/roles';
 import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
+import { TestUser } from '@core/types/test.types';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
+import { MultiUserChatTestHelper } from '@modules/chat/helpers/multiUserChatTestHelper';
 
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
@@ -39,6 +42,36 @@ export const defaultDualUsers: DualUserConfig = {
 };
 
 /**
+ * Converts DualUserConfig to TestUser array for MultiUserChatTestHelper
+ */
+function convertToTestUsers(dualUserConfig: DualUserConfig): TestUser[] {
+  return [
+    {
+      first_name: dualUserConfig.user1.name.split(' ')[0] || 'User',
+      last_name: dualUserConfig.user1.name.split(' ')[1] || '1',
+      username: dualUserConfig.user1.email,
+      email: dualUserConfig.user1.email,
+      mobile: 1234567890,
+      emp: 'EMP001',
+      userId: 'user1',
+      fullName: dualUserConfig.user1.name,
+      role: Roles.END_USER,
+    },
+    {
+      first_name: dualUserConfig.user2.name.split(' ')[0] || 'User',
+      last_name: dualUserConfig.user2.name.split(' ')[1] || '2',
+      username: dualUserConfig.user2.email,
+      email: dualUserConfig.user2.email,
+      mobile: 1234567891,
+      emp: 'EMP002',
+      userId: 'user2',
+      fullName: dualUserConfig.user2.name,
+      role: Roles.END_USER,
+    },
+  ];
+}
+
+/**
  * Creates a dual user chat test fixture with custom user configurations
  *
  * @param userConfig - Optional custom user configuration. If not provided, uses default users from environment variables
@@ -46,6 +79,7 @@ export const defaultDualUsers: DualUserConfig = {
  */
 export function createDualUserChatFixture(userConfig?: DualUserConfig) {
   const users = userConfig || defaultDualUsers;
+  const testUsers = convertToTestUsers(users);
 
   return test.extend<
     {
@@ -60,6 +94,15 @@ export function createDualUserChatFixture(userConfig?: DualUserConfig) {
       user2HomePage: NewUxHomePage | OldUxHomePage;
       user2Page: Page;
       user2ChatPage: ChatAppPage;
+
+      // Multi-user test helper
+      multiUserChatTestHelper: MultiUserChatTestHelper;
+
+      // Parallel login result
+      loggedInHomePages: Array<{ homePage: NewUxHomePage | OldUxHomePage; page: Page }>;
+
+      // Parallel chat page navigation result
+      chatPages: { user1ChatPage: ChatAppPage; user2ChatPage: ChatAppPage };
 
       // Dual user helper methods
       dualUserHelpers: {
@@ -94,121 +137,162 @@ export function createDualUserChatFixture(userConfig?: DualUserConfig) {
       { scope: 'worker' },
     ],
 
+    multiUserChatTestHelper: [
+      async ({ browser }, use) => {
+        console.log(
+          `INFO: Setting up MultiUserChatTestHelper for parallel context creation: ${testUsers.map(u => u.fullName).join(', ')}`
+        );
+        const helper = new MultiUserChatTestHelper(browser, true);
+
+        // Create contexts for users in parallel using the helper
+        await helper.createContextsForUsers(testUsers);
+
+        await use(helper);
+
+        // Cleanup
+        await helper.cleanup();
+      },
+      { scope: 'test' },
+    ],
+
+    // Parallel login for both users
+    loggedInHomePages: [
+      async ({ multiUserChatTestHelper }, use, workerInfo) => {
+        console.log(`INFO: Logging in both users in parallel => Worker ${workerInfo.workerIndex}`);
+
+        // Login both users simultaneously using Promise.all
+        const loginPromises = testUsers.map(async (user, index) => {
+          const userContext = multiUserChatTestHelper.getContextForUser(user.email);
+          const page = await userContext.context.newPage();
+
+          console.log(`INFO: Starting parallel login for ${user.fullName}`);
+          const homePage = await LoginHelper.loginWithPassword(page, {
+            email: user.email,
+            password: users[index === 0 ? 'user1' : 'user2'].password,
+          });
+
+          await homePage.verifyThePageIsLoaded();
+          console.log(`SUCCESS: ${user.fullName} logged in successfully`);
+
+          return { homePage, page };
+        });
+
+        // Wait for both users to login simultaneously
+        const loggedInHomePages = await Promise.all(loginPromises);
+
+        await use(loggedInHomePages);
+
+        // Cleanup pages
+        await Promise.all(loggedInHomePages.map(({ page }) => page.close()));
+      },
+      { scope: 'test' },
+    ],
+
     // User 1 (End User) Setup
     user1Context: [
-      async ({ browser }, use, workerInfo) => {
-        console.log(`INFO: Creating User 1 context => Worker ${workerInfo.workerIndex}`);
-        const context = await browser.newContext({
-          viewport: { width: 1920, height: 1080 },
-        });
-        await use(context);
-        await context?.close();
+      async ({ multiUserChatTestHelper }, use, workerInfo) => {
+        console.log(`INFO: Getting User 1 context from MultiUserChatTestHelper => Worker ${workerInfo.workerIndex}`);
+        const userContext = multiUserChatTestHelper.getContextForUser(testUsers[0].email);
+        await use(userContext.context);
       },
       { scope: 'test' },
     ],
 
     user1HomePage: [
-      async ({ user1Context }, use, workerInfo) => {
-        console.log(`INFO: Logging in User 1 (${users.user1.name}) => Worker ${workerInfo.workerIndex}`);
-        const page = await user1Context.newPage();
-        const user1HomePage = await LoginHelper.loginWithPassword(page, {
-          email: users.user1.email,
-          password: users.user1.password,
-        });
-        await user1HomePage.verifyThePageIsLoaded();
-        console.log(`SUCCESS: User 1 (${users.user1.name}) logged in successfully`);
-        await use(user1HomePage);
-        await page.close();
+      async ({ loggedInHomePages }, use, workerInfo) => {
+        console.log(`INFO: Getting User 1 HomePage from parallel login => Worker ${workerInfo.workerIndex}`);
+        const user1HomePageData = loggedInHomePages[0];
+        await use(user1HomePageData.homePage);
       },
       { scope: 'test' },
     ],
 
     user1Page: [
-      async ({ user1HomePage }, use) => {
-        await use(user1HomePage.page);
+      async ({ loggedInHomePages }, use) => {
+        const user1PageData = loggedInHomePages[0];
+        await use(user1PageData.page);
+      },
+      { scope: 'test' },
+    ],
+
+    // Parallel chat page navigation for both users
+    chatPages: [
+      async ({ user1HomePage, user2HomePage }, use) => {
+        console.log(`INFO: Navigating to chat pages in parallel for both users`);
+
+        // Navigate to chat pages simultaneously using Promise.all
+        const chatPagePromises = [
+          user1HomePage.navigateToChatPageViaTopNavBar(),
+          user2HomePage.navigateToChatPageViaTopNavBar(),
+        ];
+
+        const [user1ChatPage, user2ChatPage] = await Promise.all(chatPagePromises);
+        console.log(`SUCCESS: Both users navigated to chat pages in parallel`);
+
+        await use({ user1ChatPage, user2ChatPage });
       },
       { scope: 'test' },
     ],
 
     user1ChatPage: [
-      async ({ user1HomePage }, use) => {
-        console.log(`INFO: Initializing User 1 chat page`);
-        const chatPage = await user1HomePage.navigateToChatPageViaTopNavBar();
-        await use(chatPage);
+      async ({ chatPages }, use) => {
+        await use(chatPages.user1ChatPage);
       },
       { scope: 'test' },
     ],
 
     // User 2 (End User) Setup
     user2Context: [
-      async ({ browser }, use, workerInfo) => {
-        console.log(`INFO: Creating User 2 context => Worker ${workerInfo.workerIndex}`);
-        const context = await browser.newContext({
-          viewport: { width: 1920, height: 1080 },
-        });
-        await use(context);
-        await context?.close();
+      async ({ multiUserChatTestHelper }, use, workerInfo) => {
+        console.log(`INFO: Getting User 2 context from MultiUserChatTestHelper => Worker ${workerInfo.workerIndex}`);
+        const userContext = multiUserChatTestHelper.getContextForUser(testUsers[1].email);
+        await use(userContext.context);
       },
       { scope: 'test' },
     ],
 
     user2HomePage: [
-      async ({ user2Context }, use, workerInfo) => {
-        console.log(`INFO: Logging in User 2 (${users.user2.name}) => Worker ${workerInfo.workerIndex}`);
-        const page = await user2Context.newPage();
-        const user2HomePage = await LoginHelper.loginWithPassword(page, {
-          email: users.user2.email,
-          password: users.user2.password,
-        });
-        await user2HomePage.verifyThePageIsLoaded();
-        console.log(`SUCCESS: User 2 (${users.user2.name}) logged in successfully`);
-        await use(user2HomePage);
-        await page.close();
+      async ({ loggedInHomePages }, use, workerInfo) => {
+        console.log(`INFO: Getting User 2 HomePage from parallel login => Worker ${workerInfo.workerIndex}`);
+        const user2HomePageData = loggedInHomePages[1];
+        await use(user2HomePageData.homePage);
       },
       { scope: 'test' },
     ],
 
     user2Page: [
-      async ({ user2HomePage }, use) => {
-        await use(user2HomePage.page);
+      async ({ loggedInHomePages }, use) => {
+        const user2PageData = loggedInHomePages[1];
+        await use(user2PageData.page);
       },
       { scope: 'test' },
     ],
 
     user2ChatPage: [
-      async ({ user2HomePage }, use) => {
-        console.log(`INFO: Initializing User 2 chat page`);
-        const chatPage = await user2HomePage.navigateToChatPageViaTopNavBar();
-        await use(chatPage);
+      async ({ chatPages }, use) => {
+        await use(chatPages.user2ChatPage);
       },
       { scope: 'test' },
     ],
 
-    // Dual User Helper Methods
+    // Dual User Helper Methods (using MultiUserChatTestHelper)
     dualUserHelpers: [
-      async ({ user1ChatPage, user2ChatPage }, use) => {
+      async ({ user1ChatPage, user2ChatPage, multiUserChatTestHelper }, use) => {
+        const chatPages = [user1ChatPage, user2ChatPage];
+
         const helpers = {
           /**
-           * Opens the same group chat for both users simultaneously
+           * Opens the same group chat for both users simultaneously using MultiUserChatTestHelper
            */
           async openSameGroupChatForBothUsers(groupName: string): Promise<void> {
-            await test.step(`Opening group chat "${groupName}" for both users simultaneously`, async () => {
-              await Promise.all([
-                user1ChatPage.actions.openGroupChat(groupName, {
-                  stepInfo: `User 1 opening group chat "${groupName}"`,
-                }),
-                user2ChatPage.actions.openGroupChat(groupName, {
-                  stepInfo: `User 2 opening group chat "${groupName}"`,
-                }),
-              ]);
-            });
+            await multiUserChatTestHelper.openGroupChatForMultipleUsers(chatPages, groupName, [0, 1]);
           },
 
           /**
            * Sends a message from User 1
            */
           async sendMessageFromUser1(message: string): Promise<void> {
-            await test.step(`User 1 sending message: "${message}"`, async () => {
+            await test.step(`${users.user1.name} sending message: "${message}"`, async () => {
               await user1ChatPage.actions.sendMessage(message);
             });
           },
@@ -217,26 +301,18 @@ export function createDualUserChatFixture(userConfig?: DualUserConfig) {
            * Sends a message from User 2
            */
           async sendMessageFromUser2(message: string): Promise<void> {
-            await test.step(`User 2 sending message: "${message}"`, async () => {
+            await test.step(`${users.user2.name} sending message: "${message}"`, async () => {
               await user2ChatPage.actions.sendMessage(message);
             });
           },
 
           /**
-           * Verifies that a message is visible for both users
+           * Verifies that a message is visible for both users using MultiUserChatTestHelper
            */
           async verifyMessageVisibleForBothUsers(message: string, timeout: number = 10000): Promise<void> {
-            await test.step(`Verifying message "${message}" is visible for both users`, async () => {
-              await Promise.all([
-                user1ChatPage.assertions.verifyMessageIsVisible(message, {
-                  stepInfo: `Verifying message "${message}" is visible for User 1`,
-                  timeout,
-                }),
-                user2ChatPage.assertions.verifyMessageIsVisible(message, {
-                  stepInfo: `Verifying message "${message}" is visible for User 2`,
-                  timeout,
-                }),
-              ]);
+            await multiUserChatTestHelper.verifyMessageAppearsForAllTheUsersInChatSection(chatPages, message, {
+              timeout,
+              userIndices: [0, 1],
             });
           },
 
@@ -244,7 +320,7 @@ export function createDualUserChatFixture(userConfig?: DualUserConfig) {
            * Opens direct message conversation between the two users
            */
           async openDirectMessageBetweenUsers(): Promise<void> {
-            await test.step(`Opening direct message between users`, async () => {
+            await test.step(`Opening direct message between ${users.user1.name} and ${users.user2.name}`, async () => {
               // User 1 opens chat with User 2
               await user1ChatPage.actions.openDirectMessageWithUser(users.user2.name, {
                 stepInfo: `${users.user1.name} opening direct message with ${users.user2.name}`,

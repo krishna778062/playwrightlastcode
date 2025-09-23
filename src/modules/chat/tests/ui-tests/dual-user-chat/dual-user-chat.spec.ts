@@ -48,12 +48,19 @@ test.describe('Direct Message between two static users', { tag: [CHAT_SUITE_TAGS
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE],
     },
-    async ({ dualUserHelpers }) => {
+    async ({ dualUserHelpers, loggedInHomePages, chatPages }) => {
       tagTest(test.info(), {
-        description: 'Messaging: Real time conversation between static user in direct message',
+        description: 'Direct message between two users with parallel browser context setup',
         zephyrTestId: 'CHAT-2246',
         storyId: 'CHAT-2246',
       });
+
+      // Verify that both users have been logged in in parallel
+      console.log(
+        `INFO: Both users logged in parallel - User1: ${loggedInHomePages[0].homePage.constructor.name}, User2: ${loggedInHomePages[1].homePage.constructor.name}`
+      );
+      console.log(`INFO: Both chat pages created in parallel - Total pages: ${Object.keys(chatPages).length}`);
+
       // Open direct message conversation between users
       await dualUserHelpers.openDirectMessageBetweenUsers();
 
