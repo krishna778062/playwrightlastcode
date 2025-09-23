@@ -100,6 +100,9 @@ test.describe(
           stepInfo: `Searching with term "${pageName}" to verify page appears in search results`,
         });
 
+        // Dismiss any survey popup that might appear
+        await globalSearchResultPage.dismissSurveyPopupIfPresent();
+
         // Verify the page appears in the initial search results
         const pageResult = await globalSearchResultPage.getPageResultItemExactlyMatchingTheSearchTerm(pageName);
         const pageResultItem = new ContentListComponent(pageResult.page, pageResult.rootLocator);

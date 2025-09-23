@@ -2,10 +2,9 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
-
 import { ContentType } from '@/src/core/constants/contentTypes';
 import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
+import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { EVENT_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
@@ -99,6 +98,9 @@ test.describe(
         const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(eventName, {
           stepInfo: `Searching with term "${eventName}" to verify event appears in search results`,
         });
+
+        // Dismiss any survey popup that might appear
+        await globalSearchResultPage.dismissSurveyPopupIfPresent();
 
         // Verify the event appears in the initial search results
         const eventResult = await globalSearchResultPage.getEventResultItemExactlyMatchingTheSearchTerm(eventName);

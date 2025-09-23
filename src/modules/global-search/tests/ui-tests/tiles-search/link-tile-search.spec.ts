@@ -5,9 +5,9 @@ import { tagTest } from '@core/utils/testDecorator';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import {
+  getLinkTileSearchTestData,
   PREDEFINED_LINKS,
   TILE_NUMBER_OF_LINKS,
-  getLinkTileSearchTestData,
 } from '@/src/modules/global-search/test-data/link-tile-search.test-data';
 
 test.describe(
@@ -44,7 +44,7 @@ test.describe(
           const tileResponse = await appManagerApiClient
             .getTileManagementService()
             .createTile(newSiteId, testData.tileTitle, numberOfLinks, PREDEFINED_LINKS);
-          
+
           const tileId = tileResponse.result.id;
           const tileTitle = testData.tileTitle;
 
@@ -88,7 +88,7 @@ test.describe(
         const tileResponse = await appManagerApiClient
           .getTileManagementService()
           .createTile(newSiteId, testData.tileTitle, 2, PREDEFINED_LINKS);
-        
+
         const tileId = tileResponse.result.id;
         const tileTitle = testData.tileTitle;
 
@@ -96,6 +96,9 @@ test.describe(
         const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(tileTitle, {
           stepInfo: `Searching with term "${tileTitle}" to verify tile appears in search results`,
         });
+
+        // Dismiss any survey popup that might appear
+        await globalSearchResultPage.dismissSurveyPopupIfPresent();
 
         // Verify the tile appears in the initial search results
         const tileResult = await globalSearchResultPage.getTileResultItemExactlyMatchingTheSearchTerm(tileTitle);

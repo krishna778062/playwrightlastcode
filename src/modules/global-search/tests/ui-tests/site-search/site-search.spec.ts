@@ -100,6 +100,9 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
             stepInfo: `Searching with term "${newSiteName}" to verify site appears in search results`,
           });
 
+          // Dismiss any survey popup that might appear
+          await globalSearchResultPage.dismissSurveyPopupIfPresent();
+
           // Verify the site appears in the initial search results
           const siteResult = await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(newSiteName);
           const siteResultItem = new SiteListComponent(siteResult.page, siteResult.rootLocator);
@@ -123,7 +126,7 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
       test(
         `Verify Site Autocomplete functionality for a ${testData.siteType} site"`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, '@test'],
+          tag: [TestPriority.P0, TestGroupType.SMOKE],
         },
         async ({ appManagerHomePage }) => {
           tagTest(test.info(), {

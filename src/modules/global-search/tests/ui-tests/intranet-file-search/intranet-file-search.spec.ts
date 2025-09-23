@@ -66,7 +66,7 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
       test(
         `Verify Intranet File Search results with sidebar filter for ${fileType.type}`,
         {
-          tag: [TestPriority.P1, TestGroupType.REGRESSION, '@test'],
+          tag: [TestPriority.P1, TestGroupType.REGRESSION],
         },
         async ({ appManagerHomePage }) => {
           tagTest(test.info(), {
@@ -77,6 +77,9 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
           const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(uploadedFileName, {
             stepInfo: `Searching with term "${uploadedFileName}" to verify file appears in search results`,
           });
+
+          // Dismiss any survey popup that might appear
+          await globalSearchResultPage.dismissSurveyPopupIfPresent();
 
           // Verify the file appears in the initial search results
           const fileResult = await globalSearchResultPage.getFileResultItemExactlyMatchingTheSearchTerm(

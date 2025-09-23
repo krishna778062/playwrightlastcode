@@ -32,6 +32,7 @@ export class GlobalSearchResultPage extends BasePage {
   readonly tileButton: Locator;
   readonly appResultContainer: Locator;
   readonly externalSearchResultItems: Locator;
+  readonly dismissButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -63,6 +64,7 @@ export class GlobalSearchResultPage extends BasePage {
     this.appResultContainer = this.page.locator("div[class*='AppItemList_appListTopWrapper']");
 
     this.externalSearchResultItems = this.page.locator("div[class*='externalSearchBox']");
+    this.dismissButton = this.page.locator('button[aria-label*="Dismiss"]');
   }
 
   /**
@@ -413,5 +415,16 @@ export class GlobalSearchResultPage extends BasePage {
       expectedCountAfterFilter: options.expectedCountAfterFilter,
       originalCount: options.originalCount,
     });
+  }
+
+  /**
+   * Dismisses survey popup if present
+   */
+  async dismissSurveyPopupIfPresent(): Promise<void> {
+    if (await this.verifier.isTheElementVisible(this.dismissButton, { timeout: 5000 })) {
+      await test.step('Dismissing survey popup', async () => {
+        await this.clickOnElement(this.dismissButton);
+      });
+    }
   }
 }
