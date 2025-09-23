@@ -2,11 +2,7 @@ import { BrowserContext, Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
-import { Roles } from '@core/constants/roles';
-import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
 import { LoginHelper } from '@core/helpers/loginHelper';
-import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
-import { TestUser } from '@core/types/test.types';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { MultiUserChatTestHelper } from '@modules/chat/helpers/multiUserChatTestHelper';
 
@@ -14,21 +10,19 @@ import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 
-export type DualUserType = 'user1' | 'user2';
-
-export interface DualUserCredentials {
+export interface StaticUsers {
   email: string;
   password: string;
   name: string;
 }
 
-export interface DualUserConfig {
-  user1: DualUserCredentials;
-  user2: DualUserCredentials;
+export interface StaticUsersConfig {
+  user1: StaticUsers;
+  user2: StaticUsers;
 }
 
 // Default users (fallback to environment variables)
-export const defaultDualUsers: DualUserConfig = {
+export const defaultDualUsers: StaticUsersConfig = {
   user1: {
     email: process.env.END_USER_USERNAME || '',
     password: process.env.END_USER_PASSWORD || '',
@@ -44,32 +38,6 @@ export const defaultDualUsers: DualUserConfig = {
 /**
  * Converts DualUserConfig to TestUser array for MultiUserChatTestHelper
  */
-function convertToTestUsers(dualUserConfig: DualUserConfig): TestUser[] {
-  return [
-    {
-      first_name: dualUserConfig.user1.name.split(' ')[0] || 'User',
-      last_name: dualUserConfig.user1.name.split(' ')[1] || '1',
-      username: dualUserConfig.user1.email,
-      email: dualUserConfig.user1.email,
-      mobile: 1234567890,
-      emp: 'EMP001',
-      userId: 'user1',
-      fullName: dualUserConfig.user1.name,
-      role: Roles.END_USER,
-    },
-    {
-      first_name: dualUserConfig.user2.name.split(' ')[0] || 'User',
-      last_name: dualUserConfig.user2.name.split(' ')[1] || '2',
-      username: dualUserConfig.user2.email,
-      email: dualUserConfig.user2.email,
-      mobile: 1234567891,
-      emp: 'EMP002',
-      userId: 'user2',
-      fullName: dualUserConfig.user2.name,
-      role: Roles.END_USER,
-    },
-  ];
-}
 
 /**
  * Creates a dual user chat test fixture with custom user configurations
@@ -77,9 +45,8 @@ function convertToTestUsers(dualUserConfig: DualUserConfig): TestUser[] {
  * @param userConfig - Optional custom user configuration. If not provided, uses default users from environment variables
  * @returns Playwright test fixture configured for dual user chat testing
  */
-export function createDualUserChatFixture(userConfig?: DualUserConfig) {
-  const users = userConfig || defaultDualUsers;
-  const testUsers = convertToTestUsers(users);
+export function createDualUserChatFixture(userConfig?: StaticUsersConfig) {
+  const testUsers = userConfig || defaultDualUsers;
 
   return test.extend<
     {
@@ -127,12 +94,12 @@ export function createDualUserChatFixture(userConfig?: DualUserConfig) {
     multiUserChatTestHelper: [
       async ({ browser }, use) => {
         console.log(
-          `INFO: Setting up MultiUserChatTestHelper for parallel context creation: ${testUsers.map(u => u.fullName).join(', ')}`
+          `INFO: Setting up MultiUserChatTestHelper for parallel context creation: ${testUsers.user1.name}, ${testUsers.user2.name}`
         );
         const helper = new MultiUserChatTestHelper(browser, true);
 
         // Create contexts for users in parallel using the helper
-        await helper.createContextsForUsers(testUsers);
+        await helper.createContextsForUsers(Object.values(testUsers));
 
         await use(helper);
 
@@ -148,14 +115,14 @@ export function createDualUserChatFixture(userConfig?: DualUserConfig) {
         console.log(`INFO: Logging in both users in parallel => Worker ${workerInfo.workerIndex}`);
 
         // Login both users simultaneously using Promise.all
-        const loginPromises = testUsers.map(async (user, index) => {
+        const loginPromises = Object.values(testUsers).map(async (user, index) => {
           const userContext = multiUserChatTestHelper.getContextForUser(user.email);
           const page = await userContext.context.newPage();
 
           console.log(`INFO: Starting parallel login for ${user.fullName}`);
           const homePage = await LoginHelper.loginWithPassword(page, {
             email: user.email,
-            password: users[index === 0 ? 'user1' : 'user2'].password,
+            password: testUsers[index === 0 ? 'user1' : 'user2'].password,
           });
 
           await homePage.verifyThePageIsLoaded();
@@ -179,7 +146,7 @@ export function createDualUserChatFixture(userConfig?: DualUserConfig) {
     user1Context: [
       async ({ multiUserChatTestHelper }, use, workerInfo) => {
         console.log(`INFO: Getting User 1 context from MultiUserChatTestHelper => Worker ${workerInfo.workerIndex}`);
-        const userContext = multiUserChatTestHelper.getContextForUser(testUsers[0].email);
+        const userContext = multiUserChatTestHelper.getContextForUser(testUsers.user1.email);
         await use(userContext.context);
       },
       { scope: 'test' },
@@ -232,7 +199,7 @@ export function createDualUserChatFixture(userConfig?: DualUserConfig) {
     user2Context: [
       async ({ multiUserChatTestHelper }, use, workerInfo) => {
         console.log(`INFO: Getting User 2 context from MultiUserChatTestHelper => Worker ${workerInfo.workerIndex}`);
-        const userContext = multiUserChatTestHelper.getContextForUser(testUsers[1].email);
+        const userContext = multiUserChatTestHelper.getContextForUser(testUsers.user2.email);
         await use(userContext.context);
       },
       { scope: 'test' },
