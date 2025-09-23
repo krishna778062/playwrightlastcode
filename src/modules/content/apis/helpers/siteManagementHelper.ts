@@ -10,6 +10,7 @@ import { SiteManagementService } from '@/src/modules/content/apis/services/SiteM
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
+import { PAGE_ENDPOINTS } from '../constants/pageEndpoints';
 
 interface Site {
   siteId: string;
@@ -476,7 +477,7 @@ export class SiteManagementHelper {
    * @param options - Optional configuration for site creation
    * @returns Promise<Site> - The created site object
    */
-  private async createSiteByAccessType(
+  async createSiteByAccessType(
     accessType: string,
     siteName?: string,
     options?: {
@@ -600,6 +601,72 @@ export class SiteManagementHelper {
     }
     return { siteId: siteId, name: siteName };
   }
+
+  async getSiteWithCoverImageAndAuthorNameAndStartDate(): Promise<{
+    siteId: string;
+    authorName?: string;
+    startsAt?: string;
+    eventName?: string;
+  }> {
+    const siteListResponse = await this.getListOfSites();
+
+    for (const site of siteListResponse.result.listOfItems) {
+      // Get individual site details to check for coverImage and hasEvents
+      const response = await this.appManagerApiClient
+        .getSiteManagementService()
+        .get(`${PAGE_ENDPOINTS.CONTENT_SITES}/${site.siteId}`);
+      const siteDetails = await response.json();
+      if (
+        siteDetails.result.coverImage &&
+        siteDetails.result.hasEvents === true &&
+        siteDetails.result.hasAlbums === true
+      ) {
+        // Get content details for author name and event info
+        const contentResponse = await this.appManagerApiClient
+          .getSiteManagementService()
+          .post(PAGE_ENDPOINTS.CONTENT_SITES_CONTENT_LIST, {
+            data: {
+              status: 'published',
+              size: 18,
+              filter: 'latest',
+              siteId: site.siteId,
+            },
+          });
+        const contentData = await contentResponse.json();
+        const contentItems = contentData.result?.listOfItems || [];
+
+        let authorName: string | undefined;
+        let startsAt: string | undefined;
+        let eventName: string | undefined;
+
+        // Extract author and event information
+        for (const item of contentItems) {
+          if (!authorName && item.authoredBy?.name) {
+            authorName = item.authoredBy.name;
+          }
+          if (!startsAt && item.startsAt) {
+            startsAt = item.startsAt;
+            eventName = item.name || item.title;
+          }
+        }
+
+        return {
+          siteId: site.siteId,
+          authorName,
+          startsAt,
+          eventName,
+        };
+      }
+    }
+
+    throw new Error('No site found with cover image and hasEvents: true');
+  }
+
+  /**
+   * Checks if a site has a valid coverImage
+   * @param site - Site object to check
+   * @returns Boolean indicating if the site has a valid coverImage
+   */
 
   /**
    * Ensures user is a member of the site with the specified role

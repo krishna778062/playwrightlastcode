@@ -19,6 +19,8 @@ export const PAGE_ENDPOINTS = {
   PEOPLE_DIRECTORY_PAGE: '/people',
   ACTIVITY_NOTIFICATION_PAGE: '/notifications/activity',
   LOGOUT: '/logout',
+  CONTENT_SITES: '/v1/content/sites',
+  CONTENT_SITES_CONTENT_LIST: '/v1/content/sites/content/list',
 
   // abac pages
   AUDIENCE_PAGE: '/audiences/org',
