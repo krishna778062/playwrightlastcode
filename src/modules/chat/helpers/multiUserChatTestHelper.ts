@@ -51,11 +51,11 @@ export class MultiUserChatTestHelper extends MultiUserTestHelper {
     }
     await test.step(`Opening direct message between User ${userIndices[0] + 1} and User ${userIndices[1] + 1}`, async () => {
       // User 1 opens DM with User 2
-      await chatPages[0].actions.openDirectMessageWithUser(defaultDualUsers.user2.name, {
+      await chatPages[0].actions.openDirectMessageWithUser(defaultDualUsers.user2.fullName, {
         stepInfo: `User ${userIndices[0] + 1} opening direct message with User ${userIndices[1] + 1}`,
       });
       // User 2 opens DM with User 1
-      await chatPages[1].actions.openDirectMessageWithUser(defaultDualUsers.user1.name, {
+      await chatPages[1].actions.openDirectMessageWithUser(defaultDualUsers.user1.fullName, {
         stepInfo: `User ${userIndices[1] + 1} opening direct message with User ${userIndices[0] + 1}`,
       });
     });

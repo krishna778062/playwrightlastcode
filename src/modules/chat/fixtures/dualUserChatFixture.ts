@@ -8,13 +8,8 @@ import { MultiUserChatTestHelper } from '@modules/chat/helpers/multiUserChatTest
 
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
+import { StaticUsers } from '@/src/core/types';
 import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
-
-export interface StaticUsers {
-  email: string;
-  password: string;
-  name: string;
-}
 
 export interface StaticUsersConfig {
   user1: StaticUsers;
@@ -26,12 +21,12 @@ export const defaultDualUsers: StaticUsersConfig = {
   user1: {
     email: process.env.END_USER_USERNAME || '',
     password: process.env.END_USER_PASSWORD || '',
-    name: process.env.END_USER_PROFILENAME || '',
+    fullName: process.env.END_USER_PROFILENAME || '',
   },
   user2: {
     email: process.env.END_USER2_USERNAME || '',
     password: process.env.END_USER2_PASSWORD || '',
-    name: process.env.END_USER2_PROFILENAME || '',
+    fullName: process.env.END_USER2_PROFILENAME || '',
   },
 };
 
@@ -90,7 +85,7 @@ export function createDualUserChatFixture(userConfig?: StaticUsersConfig) {
     multiUserChatTestHelper: [
       async ({ browser }, use) => {
         console.log(
-          `INFO: Setting up MultiUserChatTestHelper for parallel context creation: ${testUsers.user1.name}, ${testUsers.user2.name}`
+          `INFO: Setting up MultiUserChatTestHelper for parallel context creation: ${testUsers.user1.fullName}, ${testUsers.user2.fullName}`
         );
         const helper = new MultiUserChatTestHelper(browser, true);
 
