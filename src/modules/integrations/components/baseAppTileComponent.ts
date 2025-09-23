@@ -18,8 +18,8 @@ export class BaseAppTileComponent extends BaseComponent {
   readonly dialog: Locator;
   readonly tileTypeCombobox: Locator;
   readonly tileSelector: Locator;
-  readonly urlRadioButton: Locator;
-  readonly urlTextbox: Locator;
+  readonly urlRadioButton: (name: string) => Locator;
+  readonly urlTextbox: (name: string) => Locator;
 
   constructor(page: Page) {
     super(page);
@@ -32,8 +32,8 @@ export class BaseAppTileComponent extends BaseComponent {
     this.dialog = page.getByRole('dialog');
     this.tileTypeCombobox = page.getByRole('combobox', { name: 'Tile type' });
     this.tileSelector = page.locator('aside.Tile');
-    this.urlRadioButton = page.getByRole('radio');
-    this.urlTextbox = page.getByRole('textbox');
+    this.urlRadioButton = (name: string) => page.getByRole('radio', { name });
+    this.urlTextbox = (name: string) => page.getByRole('textbox', { name });
   }
   protected getAppTileButton(name: string): Locator {
     return this.page.getByRole('button', { name: name, exact: true });
@@ -390,9 +390,8 @@ export class BaseAppTileComponent extends BaseComponent {
    */
   async enterUrl(fieldName: string, urlType: string, url: string): Promise<void> {
     await test.step(`Enter ${fieldName}`, async () => {
-      // Select radio button and enter URL
-      await this.page.getByRole('radio', { name: urlType }).click();
-      await this.page.getByRole('textbox', { name: fieldName }).fill(url);
+      await this.urlRadioButton(urlType).click();
+      await this.urlTextbox(fieldName).fill(url);
     });
   }
 }
