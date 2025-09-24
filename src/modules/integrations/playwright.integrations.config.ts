@@ -2,10 +2,18 @@ import { devices } from '@playwright/test';
 import { defineConfig } from '@playwright/test';
 import path from 'path';
 
+import { Environments } from '@core/constants/environments';
 import { PROJECT_ROOT } from '@core/constants/paths';
+import { loadEnvVariablesForGivenModule } from '@core/utils/envLoader';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import baseConfig from '../../../playwright.base.config';
+
+// Override module name for integrations to ensure correct environment loading
+process.env.MODULE_NAME = 'integrations';
+
+// Load environment variables for integrations module
+loadEnvVariablesForGivenModule((process.env.TEST_ENV as Environments) || Environments.QA, 'integrations');
 
 export default defineConfig({
   ...baseConfig,
