@@ -1,4 +1,5 @@
-import { Page, test, expect } from '@playwright/test';
+import { Page, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
@@ -17,9 +18,6 @@ export interface IManageSiteActions {
   clickOnTheManageSiteButton: () => Promise<void>;
   clickOnThePageCategoryButton: () => Promise<void>;
   searchEventInSearchBar: (eventName: string) => Promise<void>;
-
-
-
 }
 
 export interface IManageSiteAssertions {
@@ -212,33 +210,29 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   }
 
   async markAsFavoriteAndCheckRGBColor(membersName: string): Promise<void> {
-      const publishResponse = await this.performActionAndWaitForResponse(
-        () => this.clickOnElement(this.manageSitesComponent.clickOnStartIcon),
-        response =>
-          response.url().includes(PAGE_ENDPOINTS.IDENTITY_FAVOURITES) &&
-          response.request().method() === 'POST' &&
-          response.status() === 200,
-          {
-            timeout: 20_000,
-          }
-        );
-        await publishResponse.finished();
-      
-      const favoriteButton = this.manageSitesComponent.getFavoriteButtonForUser(membersName);
-      
-      // Target the SVG path specifically
-      const svgPath = favoriteButton.locator('svg path');
-      
-      // Debug: Log the actual fill color
-      const fillColor = await svgPath.evaluate(el => 
-        window.getComputedStyle(el).fill
-      );
-      console.log('Actual SVG fill color:', fillColor);
-      
-      await expect(svgPath).toHaveCSS('fill', 'rgb(207, 130, 7)');
-    }
-    
+    const publishResponse = await this.performActionAndWaitForResponse(
+      () => this.clickOnElement(this.manageSitesComponent.clickOnStartIcon),
+      response =>
+        response.url().includes(PAGE_ENDPOINTS.IDENTITY_FAVOURITES) &&
+        response.request().method() === 'POST' &&
+        response.status() === 200,
+      {
+        timeout: 20_000,
+      }
+    );
+    await publishResponse.finished();
 
+    const favoriteButton = this.manageSitesComponent.getFavoriteButtonForUser(membersName);
+
+    // Target the SVG path specifically
+    const svgPath = favoriteButton.locator('svg path');
+
+    // Debug: Log the actual fill color
+    const fillColor = await svgPath.evaluate(el => window.getComputedStyle(el).fill);
+    console.log('Actual SVG fill color:', fillColor);
+
+    await expect(svgPath).toHaveCSS('fill', 'rgb(207, 130, 7)');
+  }
 
   async checkIsUserMarkedAsFavorite(): Promise<void> {
     await test.step('Check is user marked as favorite', async () => {
@@ -253,13 +247,9 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
             timeout: 20_000,
           }
         );
-        await publishResponse.finished();       
+        await publishResponse.finished();
       } else {
-
-
-console.log('The user is not marked as favorite');
-
-          
+        console.log('The user is not marked as favorite');
       }
     });
   }
@@ -267,7 +257,6 @@ console.log('The user is not marked as favorite');
   async clickOnTheFavouriteTabs(): Promise<void> {
     await test.step('Click on the favourite tabs', async () => {
       await this.clickOnElement(this.manageSitesComponent.clickOnFavouriteTabs);
-
     });
   }
 
@@ -305,9 +294,12 @@ console.log('The user is not marked as favorite');
 
   async checkMarkedAsFavoriteInPeopleListShouldNotBeVisible(membersName: string): Promise<void> {
     await test.step('Check marked as favorite in people list should not be visible', async () => {
-      await this.verifier.verifyTheElementIsNotVisible(this.manageSitesComponent.getMembersListInPeopleTab(membersName), {
-        assertionMessage: 'The user should not be marked as favorite',
-      });
+      await this.verifier.verifyTheElementIsNotVisible(
+        this.manageSitesComponent.getMembersListInPeopleTab(membersName),
+        {
+          assertionMessage: 'The user should not be marked as favorite',
+        }
+      );
     });
   }
 }
