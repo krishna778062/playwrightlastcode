@@ -651,6 +651,43 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
   }
 
   /**
+   * Get all categories using hierarchy API
+   */
+  async getCategories(): Promise<any[]> {
+    const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
+      data: {
+        nextPageToken: 0,
+        type: 'category',
+        size: 10,
+        selectedFields: [],
+        term: '',
+      },
+    });
+
+    const json = await response.json();
+    return json?.result?.listOfItems || [];
+  }
+
+  /**
+   * Get audiences in a specific category using hierarchy API
+   */
+  async getAudiencesInCategory(categoryId: string): Promise<any[]> {
+    const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
+      data: {
+        nextPageToken: 0,
+        type: 'audience',
+        parentCategoryId: categoryId,
+        size: 10,
+        selectedFields: [],
+        term: '',
+      },
+    });
+
+    const json = await response.json();
+    return json?.result?.listOfItems || [];
+  }
+
+  /**
    * Gets the list of people with optional email filtering
    * @param emailId - Optional email address to filter by
    * @returns The people list response
