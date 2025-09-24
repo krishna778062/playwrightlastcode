@@ -36,18 +36,24 @@ export class SiteAudienceHelper {
   }
 
   /**
-   * Get or create an audience name for site creation.
-   * Business logic: Create audience when there are no audience, else use existing.
+   * Get an existing audience name for site creation.
+   * Returns the first available audience or null if none exist.
    */
-  async getOrCreateAudienceName(): Promise<string> {
+  async getAudienceName(): Promise<string | null> {
     try {
-      // Try to find existing audience first
-      const existingAudience = await this.findFirstAvailableAudience();
-      if (existingAudience) {
-        return existingAudience;
-      }
+      return await this.findFirstAvailableAudience();
+    } catch (error) {
+      console.error('Error getting audience name:', error);
+      throw new Error(`Failed to get audience: ${error}`);
+    }
+  }
 
-      // Create new audience if none exist
+  /**
+   * Create a new audience for site creation.
+   * Creates a new category and audience with default attributes.
+   */
+  async createAudienceName(): Promise<string> {
+    try {
       const categoryName = `Category_${Date.now()}`;
       const audienceName = `Audience_${Date.now()}`;
 
@@ -62,8 +68,8 @@ export class SiteAudienceHelper {
 
       return audienceName;
     } catch (error) {
-      console.error('Error getting or creating audience name:', error);
-      throw new Error(`Failed to get or create audience: ${error}`);
+      console.error('Error creating audience name:', error);
+      throw new Error(`Failed to create audience: ${error}`);
     }
   }
 }

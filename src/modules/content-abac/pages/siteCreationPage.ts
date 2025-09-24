@@ -177,25 +177,13 @@ export class SiteCreationPage extends BasePage implements ISiteCreationPageAsser
       // Use SiteAudienceHelper to find existing audience
       const audienceHelper = new SiteAudienceHelper(identity);
 
-      const existingAudience = await audienceHelper.findFirstAvailableAudience();
+      const existingAudience = await audienceHelper.getAudienceName();
       if (existingAudience) {
         return existingAudience;
       }
 
       // Create new audience if none exist
-      const categoryName = `Category_${Date.now()}`;
-      const audienceName = `Audience_${Date.now()}`;
-
-      const categoryId = await identity.createCategory(categoryName);
-      await identity.createAudience({
-        audienceName,
-        categoryId,
-        attribute: 'first_name',
-        operator: 'CONTAINS',
-        value: 'e',
-      });
-
-      return audienceName;
+      return await audienceHelper.createAudienceName();
     } catch (error) {
       throw new Error(`Failed to get or create audience: ${error}`);
     }

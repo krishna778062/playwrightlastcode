@@ -37,7 +37,13 @@ test.describe('Site Creation by Application Manager', { tag: [ContentFeatureTags
       await siteCreationPage.assertions.verifySiteCreationFormStructure();
 
       // STEP 3: Setup specific audience (reuse existing or create new)
-      const audienceName = await siteAudienceHelper.getOrCreateAudienceName();
+      let audienceName = await siteAudienceHelper.getAudienceName();
+
+      // If no audience exists, create a new one
+      if (!audienceName) {
+        audienceName = await siteAudienceHelper.createAudienceName();
+      }
+
       console.log(`Audience name is ${audienceName}`);
 
       // STEP 4: Create the site with specific audience and capture siteId from URL
@@ -73,7 +79,13 @@ test.describe('Site Creation by Application Manager', { tag: [ContentFeatureTags
       await siteCreationPage.assertions.verifySiteCreationFormStructure();
 
       // STEP 2: Setup specific audience (reuse existing or create new)
-      const audienceName = await siteAudienceHelper.getOrCreateAudienceName();
+      let audienceName = await siteAudienceHelper.getAudienceName();
+
+      // If no audience exists, create a new one
+      if (!audienceName) {
+        audienceName = await siteAudienceHelper.createAudienceName();
+      }
+
       console.log(`Audience name is ${audienceName}`);
 
       // STEP 3: Create the site with specific audience and capture siteId from URL
