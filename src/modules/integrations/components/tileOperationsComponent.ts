@@ -1,6 +1,9 @@
 import { DASHBOARD_BUTTONS } from '@integrations/constants/common';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
+const DEFAULT_EVENT_TITLE = /^[\p{L}\p{N}\p{P}\p{S} ]{1,100}$/u;
+const DEFAULT_EVENT_DATE =
+  /(?!^)(?:[A-Z][a-z]{2},\s[A-Z][a-z]{2}\s(?:[1-9]|[12]\d|3[01]),\s\d{4}\sat\s(?:1[0-2]|0?\d):[0-5]\d(?:AM|PM)|Today\sat\s(?:1[0-2]|0?\d):[0-5]\d(?:AM|PM))/;
 
 export class TileOperationsComponent extends BaseAppTileComponent {
   readonly tagElement: Locator;
@@ -22,6 +25,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly personalizeText: Locator;
   readonly organizationLabel: Locator;
   readonly linkWithH3: Locator;
+  readonly showMoreButton: Locator;
+  readonly visibleRowsContainer: Locator;
   readonly menuitemFilter: Locator;
   readonly prNumberPattern: RegExp;
   readonly createdAgoPattern: RegExp;
@@ -60,6 +65,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.organizationLabel = page.getByLabel('Organization');
     this.linkWithH3 = page.locator('a:has(h3)');
     this.menuitemFilter = page.getByRole('menuitem');
+    this.showMoreButton = page.getByRole('button', { name: 'Show more' });
+    this.visibleRowsContainer = page.locator('[data-testid="container"][aria-hidden="false"]');
     // Regex patterns for text matching
     this.prNumberPattern = /^#\d+/;
     this.createdAgoPattern = /^Created\s+.*\s+ago$/;
@@ -284,7 +291,6 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await expect(this.getTagElement(firstRecord).first()).toBeVisible();
     });
   }
-
   /**
    * Verify UKG Pro tile metadata including pay periods, received dates, and links
    * @param tileTitle - The title of the tile to verify
@@ -315,6 +321,24 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       }
     });
   }
+  /**
+   * Verify Calendar upcoming events tile data
+   */
+  async verifyUpcomingEventsTileData(
+    tileTitle: string,
+    eventTitle: RegExp = DEFAULT_EVENT_TITLE,
+    calDate: RegExp = DEFAULT_EVENT_DATE
+  ): Promise<void> {
+    await test.step(`Verify Calendar upcoming events tile data for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      const rows = tile.locator(this.container);
+      const row = rows
+        .filter({ has: this.page.getByText(eventTitle) })
+        .filter({ has: this.page.getByText(calDate) })
+        .first();
+      await expect(row).toBeVisible();
+    });
+  }
 
   /**
    * Verify Display Time Off tile metadata including VACFT and SICKFT sections
@@ -340,6 +364,23 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await expect(tile.locator(this.ukgTimeOffSickftHeading), 'SICKFT heading should be visible').toBeVisible();
       await expect(tile.locator(this.usedText), 'Used text should be visible in SICKFT section').toBeVisible();
       await expect(tile.locator(this.balanceText), 'Balance text should be visible in SICKFT section').toBeVisible();
+    });
+  }
+  /**
+   * Verify 'Show more' behavior
+   */
+  async verifyShowMoreBehavior(tileTitle: string): Promise<void> {
+    await test.step(`Verify 'Show more' behavior for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      const rowsVisible = tile.locator(this.visibleRowsContainer);
+      const showMoreButton = tile.locator(this.showMoreButton);
+
+      await expect(showMoreButton, 'Show More button should be visible').toBeVisible();
+      const initialVisible = await rowsVisible.count();
+      await expect(initialVisible).toBeGreaterThanOrEqual(4);
+
+      await this.clickOnElement(showMoreButton);
+      await expect.poll(async () => rowsVisible.count(), { timeout: 10_000 }).toBeGreaterThan(initialVisible);
     });
   }
 }
