@@ -108,7 +108,7 @@ test.describe(
       }
     );
 
-  test.only(
+  test(
     'To verify the favourite people from manage site people',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, ContentFeatureTags.MANAGE_SITE],
