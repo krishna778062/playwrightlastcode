@@ -379,4 +379,17 @@ export class HomeDashboard {
       await this.appTileComponent.submitTileToHomeOrDashboard(destination);
     });
   }
+  /**
+   * Verify Calendar upcoming events tile data
+   */
+  async verifyCalendarUpcomingEventsTileData(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyUpcomingEventsTileData(tileTitle);
+  }
+
+  /**
+   * Verify Show more behaviour for apptile
+   */
+  async verifyShowMoreBehavior(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyShowMoreBehavior(tileTitle);
+  }
 }
