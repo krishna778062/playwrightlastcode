@@ -10,6 +10,12 @@ export interface User {
   locale_id?: number;
 }
 
+export interface StaticUsers {
+  email: string;
+  password?: string;
+  fullName: string;
+}
+
 export interface SearchUserRecord {
   id: string;
   name: string;
