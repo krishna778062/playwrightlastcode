@@ -59,7 +59,7 @@ export class ChatInboxSideBarComponent extends BaseComponent {
   async clickCreateNewMessageButton(): Promise<void> {
     await test.step(`Clicking create new message button and then select new message option`, async () => {
       await this.clickOnElement(this.createNewMessageIcon);
-      await this.clickOnElement(this.dropDownOptionCreateNewMessage);
+      await this.clickByInjectingJavaScript(this.dropDownOptionCreateNewMessage);
     });
   }
 
