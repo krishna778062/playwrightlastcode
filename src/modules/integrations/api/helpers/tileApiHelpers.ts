@@ -86,28 +86,27 @@ export async function createTileViaApi(page: Page, args: TileCreationArgs): Prom
   // Get first template for connector
   const templateResponse = await api.get(API_ENDPOINTS.integrations.tilesByConnector(args.connectorId));
   if (!templateResponse.ok()) {
-    const message = await templateResponse.text().catch(() => '');
+    const message = await templateResponse.text();
     throw new Error(
       `Failed to fetch templates for connector ${args.connectorId}: ${templateResponse.status()} ${message}`
     );
   }
-  const templatesPayload = (await templateResponse.json().catch(() => ({}))) as { data?: TileTemplate[] };
-  const templates = Array.isArray(templatesPayload?.data) ? templatesPayload.data : [];
+  const templatesPayload = (await templateResponse.json()) as { data: TileTemplate[] };
+  const templates = templatesPayload.data || [];
   const template = templates[0];
   if (!template) throw new Error(`No template found for connector: ${args.connectorId}`);
 
   // Helper: sanitize schema by removing UI-only fields
-  const sanitizeRequestSchema = (schema: unknown): RequestSchema => {
-    const raw = (schema ?? { parameters: [] }) as RequestSchema;
-    const parameters = Array.isArray((raw as any)?.parameters) ? raw.parameters : [];
-    const cleaned = parameters.map(param => {
-      const copy: Record<string, unknown> = { ...param };
-      UI_ONLY_FIELDS.forEach(field => {
-        delete (copy as any)[field];
-      });
-      return copy as RequestSchemaParameter;
-    });
-    return { ...(raw as object), parameters: cleaned } as RequestSchema;
+  const sanitizeRequestSchema = (schema: RequestSchema): RequestSchema => {
+    const parameters =
+      schema.parameters?.map(param => {
+        const copy = { ...param };
+        UI_ONLY_FIELDS.forEach(field => {
+          delete (copy as any)[field];
+        });
+        return copy as RequestSchemaParameter;
+      }) || [];
+    return { ...schema, parameters };
   };
 
   // Helper: derive parameter key names from schema and map provided values
@@ -155,6 +154,24 @@ export async function createTileViaApi(page: Page, args: TileCreationArgs): Prom
             presetValue: args.tableId,
           });
         }
+        if (args.scheduleUrl && (keyLower.includes('schedule') || keyLower.includes('url'))) {
+          Object.assign(next, {
+            definedBy: 'author', // This sets "App manager defined"
+            persistedValue: args.scheduleUrl,
+            default: args.scheduleUrl,
+            value: args.scheduleUrl,
+            presetValue: args.scheduleUrl,
+          });
+        }
+        if (args.timePeriod && (keyLower.includes('time') || keyLower.includes('period'))) {
+          Object.assign(next, {
+            definedBy: 'author', // This sets "App manager defined"
+            persistedValue: args.timePeriod,
+            default: args.timePeriod,
+            value: args.timePeriod,
+            presetValue: args.timePeriod,
+          });
+        }
         return next as RequestSchemaParameter;
       }) ?? [],
   };
@@ -179,43 +196,21 @@ export async function createTileViaApi(page: Page, args: TileCreationArgs): Prom
   });
 
   if (!createResponse.ok()) {
-    const errorText = await createResponse.text().catch(() => '');
+    const errorText = await createResponse.text();
     throw new Error(`Tile creation failed: ${createResponse.status()} - ${errorText}`);
   }
 
-  const body = await createResponse.json().catch(() => ({}));
-  let instanceId: string | undefined =
-    body?.result?.instanceId ||
-    body?.data?.instanceId ||
-    body?.instanceId ||
-    body?.result?.id ||
-    body?.data?.id ||
-    body?.id ||
-    body?.result?.tileInstanceId ||
-    body?.data?.tileInstanceId ||
-    body?.tileInstanceId;
+  const body = await createResponse.json();
+  const instanceId = body?.result?.instanceId || body?.data?.tileInstanceId;
 
-  // If instanceId missing, try to locate it via list API
   if (!instanceId) {
-    const listResponse = await api.get(`${API_ENDPOINTS.integrations.tilesRootInstances}?type=app`);
-    if (listResponse.ok()) {
-      const jsonPayload = await listResponse.json().catch(() => ({}) as any);
-      const candidates: any[] =
-        (Array.isArray(jsonPayload?.data) && jsonPayload.data) ||
-        (Array.isArray(jsonPayload?.result?.listOfItems) && jsonPayload.result.listOfItems) ||
-        (Array.isArray(jsonPayload?.items) && jsonPayload.items) ||
-        [];
-      const match = candidates.find(
-        (i: any) => i?.tileInstanceName === args.tileInstanceName || i?.name === args.tileInstanceName
-      );
-      instanceId = match?.instanceId || match?.id || match?.tileInstanceId;
-    }
+    throw new Error(`No instance ID returned for tile "${args.tileInstanceName}". Response: ${JSON.stringify(body)}`);
   }
 
   return {
     tileInstanceName: args.tileInstanceName,
-    instanceId: instanceId || 'unknown',
-    templateTileId: template?.tileId,
+    instanceId,
+    templateTileId: template.tileId,
   };
 }
 

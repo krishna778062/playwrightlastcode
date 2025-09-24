@@ -1,6 +1,9 @@
 import { DASHBOARD_BUTTONS } from '@integrations/constants/common';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
+const DEFAULT_EVENT_TITLE = /^[\p{L}\p{N}\p{P}\p{S} ]{1,100}$/u;
+const DEFAULT_EVENT_DATE =
+  /(?!^)(?:[A-Z][a-z]{2},\s[A-Z][a-z]{2}\s(?:[1-9]|[12]\d|3[01]),\s\d{4}\sat\s(?:1[0-2]|0?\d):[0-5]\d(?:AM|PM)|Today\sat\s(?:1[0-2]|0?\d):[0-5]\d(?:AM|PM))/;
 
 export class TileOperationsComponent extends BaseAppTileComponent {
   readonly tagElement: Locator;
@@ -22,6 +25,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly personalizeText: Locator;
   readonly organizationLabel: Locator;
   readonly linkWithH3: Locator;
+  readonly showMoreButton: Locator;
+  readonly visibleRowsContainer: Locator;
   readonly menuitemFilter: Locator;
   readonly prNumberPattern: RegExp;
   readonly createdAgoPattern: RegExp;
@@ -29,6 +34,14 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly amountPattern: RegExp;
   readonly lastUpdatedPattern: RegExp;
   readonly duePattern: RegExp;
+  readonly ukgProPaystubLinks: Locator;
+  readonly ukgProReceivedDateParagraph: Locator;
+  readonly tileByTitle: (title: string) => Locator;
+  readonly ukgTimeOffVacftHeading: Locator;
+  readonly ukgTimeOffSickftHeading: Locator;
+  readonly ukgTimeOffDivider: Locator;
+  readonly usedText: Locator;
+  readonly balanceText: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -52,6 +65,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.organizationLabel = page.getByLabel('Organization');
     this.linkWithH3 = page.locator('a:has(h3)');
     this.menuitemFilter = page.getByRole('menuitem');
+    this.showMoreButton = page.getByRole('button', { name: 'Show more' });
+    this.visibleRowsContainer = page.locator('[data-testid="container"][aria-hidden="false"]');
     // Regex patterns for text matching
     this.prNumberPattern = /^#\d+/;
     this.createdAgoPattern = /^Created\s+.*\s+ago$/;
@@ -59,6 +74,14 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.amountPattern = /^\$\d+\.\d{2}$/;
     this.lastUpdatedPattern = /Last updated \d+ days? ago/;
     this.duePattern = /Due/;
+    this.ukgProPaystubLinks = page.getByRole('link', { name: /ultipro\.com/ });
+    this.ukgProReceivedDateParagraph = page.getByText(/Received on/);
+    this.tileByTitle = (title: string) => page.getByRole('heading', { name: title }).locator('..');
+    this.ukgTimeOffVacftHeading = page.getByRole('heading', { name: 'VACFT', level: 3 });
+    this.ukgTimeOffSickftHeading = page.getByRole('heading', { name: 'SICKFT', level: 3 });
+    this.ukgTimeOffDivider = page.getByTestId('divider');
+    this.usedText = page.getByText(/Used: \d+(\.\d+)? hours/).first();
+    this.balanceText = page.getByText(/Balance: \d+(\.\d+)? hours/).first();
   }
 
   /**
@@ -266,6 +289,98 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await expect(firstRecord.locator('p').first()).toBeVisible();
       await expect(firstRecord.getByText(this.duePattern).first()).toBeVisible();
       await expect(this.getTagElement(firstRecord).first()).toBeVisible();
+    });
+  }
+  /**
+   * Verify UKG Pro tile metadata including pay periods, received dates, and links
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyUKGProTileMetadata(tileTitle: string): Promise<void> {
+    await test.step(`Verify UKG Pro tile metadata for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `UKG Pro tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+      const paystubLinks = tile.locator(this.ukgProPaystubLinks);
+      const linkCount = await paystubLinks.count();
+      if (linkCount > 0) {
+        const firstEntry = paystubLinks.first();
+        const payPeriodHeading = firstEntry.locator('h3');
+        await expect(payPeriodHeading, 'Pay period heading should be visible').toBeVisible();
+        const payPeriodText = await payPeriodHeading.textContent();
+        expect(payPeriodText, 'Pay period text should match expected format').toMatch(
+          /\w{3}\s+\d{1,2}\s+-\s+\w{3}\s+\d{1,2},\s+\d{4}/
+        );
+        const linkHref = await firstEntry.getAttribute('href');
+        expect(linkHref, 'Paystub link should contain ultipro.com').toContain('ultipro.com');
+        // Verify received date
+        const receivedDateParagraph = tile.locator(this.ukgProReceivedDateParagraph);
+        await expect(receivedDateParagraph, 'Received date paragraph should be visible').toBeVisible();
+        const receivedDateText = await receivedDateParagraph.textContent();
+        expect(receivedDateText, 'Received date text should match expected format').toMatch(
+          /Received on \w{3}\s+\d{1,2},\s+\d{4}/
+        );
+      }
+    });
+  }
+  /**
+   * Verify Calendar upcoming events tile data
+   */
+  async verifyUpcomingEventsTileData(
+    tileTitle: string,
+    eventTitle: RegExp = DEFAULT_EVENT_TITLE,
+    calDate: RegExp = DEFAULT_EVENT_DATE
+  ): Promise<void> {
+    await test.step(`Verify Calendar upcoming events tile data for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      const rows = tile.locator(this.container);
+      const row = rows
+        .filter({ has: this.page.getByText(eventTitle) })
+        .filter({ has: this.page.getByText(calDate) })
+        .first();
+      await expect(row).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify Display Time Off tile metadata including VACFT and SICKFT sections
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDisplayTimeOffMetadata(tileTitle: string): Promise<void> {
+    await test.step(`Verify Display Time Off tile metadata for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Display Time Off tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+
+      // Verify VACFT section
+      await expect(tile.locator(this.ukgTimeOffVacftHeading), 'VACFT heading should be visible').toBeVisible();
+      await expect(tile.locator(this.usedText), 'Used text should be visible in VACFT section').toBeVisible();
+      await expect(tile.locator(this.balanceText), 'Balance text should be visible in VACFT section').toBeVisible();
+
+      // Verify divider
+      await expect(
+        tile.locator(this.ukgTimeOffDivider).first(),
+        'Divider should be visible between sections'
+      ).toBeVisible();
+
+      // Verify SICKFT section
+      await expect(tile.locator(this.ukgTimeOffSickftHeading), 'SICKFT heading should be visible').toBeVisible();
+      await expect(tile.locator(this.usedText), 'Used text should be visible in SICKFT section').toBeVisible();
+      await expect(tile.locator(this.balanceText), 'Balance text should be visible in SICKFT section').toBeVisible();
+    });
+  }
+  /**
+   * Verify 'Show more' behavior
+   */
+  async verifyShowMoreBehavior(tileTitle: string): Promise<void> {
+    await test.step(`Verify 'Show more' behavior for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      const rowsVisible = tile.locator(this.visibleRowsContainer);
+      const showMoreButton = tile.locator(this.showMoreButton);
+
+      await expect(showMoreButton, 'Show More button should be visible').toBeVisible();
+      const initialVisible = await rowsVisible.count();
+      await expect(initialVisible).toBeGreaterThanOrEqual(4);
+
+      await this.clickOnElement(showMoreButton);
+      await expect.poll(async () => rowsVisible.count(), { timeout: 10_000 }).toBeGreaterThan(initialVisible);
     });
   }
 }

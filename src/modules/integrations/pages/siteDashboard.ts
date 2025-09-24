@@ -1,5 +1,6 @@
 import { BaseAppTileComponent } from '@integrations/components/baseAppTileComponent';
 import { TileOperationsComponent } from '@integrations/components/tileOperationsComponent';
+import { TimeOffRequestTileComponent } from '@integrations/components/timeOffRequestTileComponent';
 import { ACTION_LABELS, DASHBOARD_BUTTONS } from '@integrations/constants/common';
 import { AIRTABLE_TILE } from '@integrations/test-data/app-tiles.test-data';
 import { Page, test } from '@playwright/test';
@@ -12,14 +13,18 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
  */
 export class SiteDashboard {
   private page!: Page;
+  private appTileComponent!: BaseAppTileComponent;
   private airtableComponent!: BaseAppTileComponent;
+  private timeOffRequestTileComponent!: TimeOffRequestTileComponent;
   private tileOperationsComponent!: TileOperationsComponent;
   private appManagerApiClient?: any;
 
   constructor(page: Page, appManagerApiClient?: any) {
     this.page = page;
     this.appManagerApiClient = appManagerApiClient;
+    this.appTileComponent = new BaseAppTileComponent(page);
     this.airtableComponent = new BaseAppTileComponent(page);
+    this.timeOffRequestTileComponent = new TimeOffRequestTileComponent(page);
     this.tileOperationsComponent = new TileOperationsComponent(page);
   }
 
@@ -148,5 +153,66 @@ export class SiteDashboard {
    */
   async verifyExpensifyReportData(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyExpensifyReportData(tileTitle);
+  }
+
+  /**
+   * Verify Apply for Time Off tile form fields are present and functional
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyApplyForTimeOffFields(tileTitle: string): Promise<void> {
+    await this.timeOffRequestTileComponent.verifyApplyForTimeOffFields(tileTitle);
+  }
+
+  /**
+   * Verify Display Time Off Balance tile content (no form fields expected)
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDisplayTimeOffBalanceFields(tileTitle: string): Promise<void> {
+    await this.timeOffRequestTileComponent.verifyDisplayTimeOffBalanceFields(tileTitle);
+  }
+  /**
+   * Verify Display Time Off tile metadata including VACFT and SICKFT sections
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDisplayTimeOffMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyDisplayTimeOffMetadata(tileTitle);
+  }
+
+  /**
+   * Complete workflow to add an app tile
+   */
+  async addTilewithAppManagerDefined(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    appManagerDefined: string,
+    fieldName: string,
+    url: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.appTileComponent.clickEditDashboard();
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
+      await this.appTileComponent.selectAppTile(appName);
+      await this.appTileComponent.selectTile(tileName);
+      await this.appTileComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
+      await this.appTileComponent.setTileTitle(tileTitle);
+      await this.appTileComponent.enterUrl(fieldName, appManagerDefined, url);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
+  /**
+   * Verify Calendar upcoming events tile data
+   */
+  async verifyCalendarUpcomingEventsTileData(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyUpcomingEventsTileData(tileTitle);
+  }
+
+  /**
+   * Verify Show more behaviour for apptile on site dashboard
+   */
+  async verifyShowMoreBehavior(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyShowMoreBehavior(tileTitle);
   }
 }
