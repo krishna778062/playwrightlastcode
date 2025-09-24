@@ -104,6 +104,9 @@ export interface TileCreationArgs {
   baseId?: string;
   tableId?: string;
   baseName?: string;
+  scheduleUrl?: string;
+  timePeriod?: string;
+  instanceUrl?: string;
 }
 
 // Additional utility types

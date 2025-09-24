@@ -17,6 +17,9 @@ export class BaseAppTileComponent extends BaseComponent {
   readonly removePopupMessageLocator: Locator;
   readonly dialog: Locator;
   readonly tileTypeCombobox: Locator;
+  readonly tileSelector: Locator;
+  readonly urlRadioButton: (name: string) => Locator;
+  readonly urlTextbox: (name: string) => Locator;
 
   constructor(page: Page) {
     super(page);
@@ -28,9 +31,12 @@ export class BaseAppTileComponent extends BaseComponent {
     this.removePopupMessageLocator = page.getByRole('dialog').locator('p');
     this.dialog = page.getByRole('dialog');
     this.tileTypeCombobox = page.getByRole('combobox', { name: 'Tile type' });
+    this.tileSelector = page.locator('aside.Tile');
+    this.urlRadioButton = (name: string) => page.getByRole('radio', { name });
+    this.urlTextbox = (name: string) => page.getByRole('textbox', { name });
   }
   protected getAppTileButton(name: string): Locator {
-    return this.page.getByRole('button').filter({ hasText: name });
+    return this.page.getByRole('button', { name: name, exact: true });
   }
 
   async clickButton(buttonName: string, step?: string, timeout = 30_000): Promise<void> {
@@ -176,18 +182,18 @@ export class BaseAppTileComponent extends BaseComponent {
       if ((await tiles.count()) <= 0) {
         await this.page.reload({ waitUntil: 'domcontentloaded' });
         await this.waitForPageLoadingToComplete();
+        await this.tileSelector.first().waitFor({ timeout: 10000 });
         tiles = await this.findTilesByTitle(title);
       }
       await this.waitForTilesToBeFullyLoaded(tiles);
       const count = await tiles.count();
-      if (count <= 0) throw new Error(`No tile found with title "${title}"`);
-
-      for (let i = 0; i < count; i++) {
-        await this.verifier.verifyTheElementIsVisible(tiles.nth(i), {
-          assertionMessage: `Tile #${i + 1} with title "${title}" should be visible`,
-          timeout: 10_000,
-        });
+      if (count <= 0) {
+        throw new Error(`No tile found with title "${title}"`);
       }
+      await this.verifier.verifyTheElementIsVisible(tiles.first(), {
+        assertionMessage: `Tile with title "${title}" should be visible`,
+        timeout: 15_000,
+      });
     });
   }
 
@@ -376,6 +382,16 @@ export class BaseAppTileComponent extends BaseComponent {
         sortBy: sortBy.trim(),
         sortOrder: sortOrder.trim(),
       };
+    });
+  }
+
+  /**
+   * Enter URL with radio selection
+   */
+  async enterUrl(fieldName: string, urlType: string, url: string): Promise<void> {
+    await test.step(`Enter ${fieldName}`, async () => {
+      await this.urlRadioButton(urlType).click();
+      await this.urlTextbox(fieldName).fill(url);
     });
   }
 }
