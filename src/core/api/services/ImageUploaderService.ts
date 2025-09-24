@@ -89,7 +89,7 @@ export class ImageUploaderService implements IImageUploaderService {
    * @param mimeType - The MIME type of the file
    * @returns Promise with file ID
    */
-  async UploadIntranetFile(
+  async uploadIntranetFile(
     siteId: string,
     fileName: string,
     filePath: string,

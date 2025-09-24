@@ -148,7 +148,7 @@ export class IntranetFileHelper {
         // Use createIntranetFileWithAttachment for complete workflow (like feed attachments)
         const fileDetails = await this.appManagerApiClient
           .getImageUploaderService()
-          .UploadIntranetFile(siteId, fileName, copiedFilePath, this.getMimeTypeFromFileName(fileName));
+          .uploadIntranetFile(siteId, fileName, copiedFilePath, this.getMimeTypeFromFileName(fileName));
 
         // Wait for the file to appear in search results
         await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
