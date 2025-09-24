@@ -15,7 +15,7 @@ export class AudienceModalComponent extends BaseComponent {
     this.audienceModalHeading = page.getByText('Audiences', { exact: true });
     this.allOrganizationToggle = page.getByRole('switch', { name: 'All organization' });
     this.allOrganizationMessage = page.getByText("You've selected 'All organization'");
-    this.openParentContainer = page.getByLabel('0', { exact: true }).getByRole('button');
+    this.openParentContainer = page.getByTestId('i-arrowRight').first();
     this.selectingAudienceGroup = page
       .locator(
         '.FirstColumn-module-firstColumnNameSectionContainer___CHCQ6.FirstColumn-module-firstColumnNameSectionContainerInsidePicker___W7fG6 > .FirstColumn-module-firstColumnNameContainer___qPuUp > .FirstColumn-module-checkboxContainer___cVWLA > .CheckboxInput-module__wrapper__6OBBL > .u-ignoreLegacyStyle'

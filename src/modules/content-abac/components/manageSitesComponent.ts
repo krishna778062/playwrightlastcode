@@ -9,6 +9,6 @@ export class ManageSitesComponent extends BaseComponent {
   constructor(readonly page: Page) {
     super(page);
     this.addSite = page.getByRole('link', { name: 'Add site' });
-    this.contentTab = page.locator('a[href*="/content"], button:has-text("Content"), [data-testid="content-tab"]');
+    this.contentTab = page.getByTestId('content-tab');
   }
 }
