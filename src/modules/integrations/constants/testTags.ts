@@ -12,6 +12,7 @@ export enum IntegrationsSuiteTags {
   UKG_WFM = '@ukgWFMAppTiles',
   UKG_PRO = '@ukgProAppTiles',
   GOOGLE_CALENDAR_APPTILES = '@googleCalendarAppTiles',
+  DOCUSIGN = '@docuSignAppTiles',
 }
 
 export enum IntegrationsFeatureTags {
@@ -41,6 +42,7 @@ export const TEST_TAGS = {
   UKG_WFM: IntegrationsSuiteTags.UKG_WFM,
   UKG_PRO: IntegrationsSuiteTags.UKG_PRO,
   GOOGLE_CALENDAR_APPTILES: IntegrationsSuiteTags.GOOGLE_CALENDAR_APPTILES,
+  DOCUSIGN: IntegrationsSuiteTags.DOCUSIGN,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {
