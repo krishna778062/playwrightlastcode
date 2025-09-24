@@ -137,6 +137,7 @@ test.describe(
         );
         await siteDashboard.isTilePresent(createdTileTitle);
         await siteDashboard.verifyCalendarUpcomingEventsTileData(createdTileTitle);
+        createdTileTitle = undefined;
       }
     );
 
@@ -184,6 +185,7 @@ test.describe(
         );
         await siteDashboard.isTilePresent(createdTileTitle);
         await siteDashboard.verifyShowMoreBehavior(createdTileTitle);
+        createdTileTitle = undefined;
       }
     );
   }
