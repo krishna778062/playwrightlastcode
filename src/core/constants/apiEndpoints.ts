@@ -57,6 +57,7 @@ export const API_ENDPOINTS = {
     listOfSites: '/v1/content/sites/list',
     manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
     membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,
+    unfeature: (siteId: string) => `/v1/content/sites/${siteId}/featured?action=unfeature`,
   },
 
   content: {

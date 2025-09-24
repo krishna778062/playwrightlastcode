@@ -19,13 +19,12 @@ test.describe('Protected Authors', () => {
   let privilegesScreenPage: PrivilegesScreenPage;
   let baseActionUtil: BaseActionUtil;
 
-  test.beforeEach('Setup for protected authors test', async ({ page, loginAs }) => {
-    await loginAs('appManager');
-    applicationScreen = new ApplicationScreenPage(page);
-    homePage = new NewUxHomePage(page);
-    manageApplicationPage = new ManageApplicationPage(page);
-    privilegesScreenPage = new PrivilegesScreenPage(page);
-    baseActionUtil = new BaseActionUtil(page);
+  test.beforeEach('Setup for protected authors test', async ({ appManagersPage }) => {
+    applicationScreen = new ApplicationScreenPage(appManagersPage);
+    homePage = new NewUxHomePage(appManagersPage);
+    manageApplicationPage = new ManageApplicationPage(appManagersPage);
+    privilegesScreenPage = new PrivilegesScreenPage(appManagersPage);
+    baseActionUtil = new BaseActionUtil(appManagersPage);
   });
 
   test.afterEach(async ({}) => {});

@@ -59,19 +59,22 @@ export class TileManagementService extends BaseApiClient implements ITileManagem
     // Get the template to get proper request schema
     const templateRes = await this.get(API_ENDPOINTS.integrations.tilesByConnector(args.connectorId));
     const templates = (await templateRes.json()).data || [];
-    const template = templates.find((t: any) => t.tileId === args.tileId) || templates[0];
-    const rawSchema = template?.inputConfig?.requestSchema || { parameters: [] };
+    const template = templates.find((t: any) => t.tileId === args.tileId);
+
+    if (!template) {
+      throw new Error(`Template not found for tileId: ${args.tileId}`);
+    }
+    const rawSchema = template.inputConfig?.requestSchema || { parameters: [] };
 
     // Sanitize schema by removing UI-specific fields that cause validation errors
     const requestSchema = {
       ...rawSchema,
-      parameters: Array.isArray(rawSchema.parameters)
-        ? rawSchema.parameters.map((p: any) => {
-            const clean = { ...p };
-            delete clean.definedBy;
-            return clean;
-          })
-        : [],
+      parameters:
+        rawSchema.parameters?.map((p: any) => {
+          const clean = { ...p };
+          delete clean.definedBy;
+          return clean;
+        }) || [],
     };
 
     const response = await this.post(API_ENDPOINTS.integrations.createTileInstance(args.tileId), {
@@ -96,8 +99,129 @@ export class TileManagementService extends BaseApiClient implements ITileManagem
 
     const body = await response.json();
 
-    const instanceId =
-      body?.result?.instanceId || body?.data?.instanceId || body?.data?.tileInstanceId || body?.instanceId;
+    const instanceId = body?.result?.instanceId || body?.data?.tileInstanceId;
+
+    if (!instanceId) {
+      throw new Error(`No instance ID returned for tile "${args.tileInstanceName}". Response: ${JSON.stringify(body)}`);
+    }
+
+    return { instanceId, templateTileId: args.tileId, tileInstanceName: args.tileInstanceName };
+  }
+
+  /**
+   * Create app tile via API with configured settings (e.g., UKG WFM with schedule URL, UKG Pro with instance URL)
+   */
+  async createIntegrationAppTileWithSettings(args: {
+    tileInstanceName: string;
+    tileId: string;
+    connectorId: string;
+    scheduleUrl?: string;
+    timePeriod?: string;
+    instanceUrl?: string;
+  }): Promise<TileCreationResult> {
+    // Get the template to get proper request schema
+    const templateRes = await this.get(API_ENDPOINTS.integrations.tilesByConnector(args.connectorId));
+    const templates = (await templateRes.json()).data || [];
+    const template = templates.find((t: any) => t.tileId === args.tileId);
+
+    if (!template) {
+      throw new Error(`Template not found for tileId: ${args.tileId}`);
+    }
+
+    const rawSchema = template.inputConfig?.requestSchema || { parameters: [] };
+
+    // Sanitize schema by removing UI-only fields that cause validation errors
+    const sanitizedSchema = {
+      ...rawSchema,
+      parameters:
+        rawSchema.parameters?.map((param: any) => {
+          const clean = { ...param };
+          // Remove UI-only fields that cause validation errors
+          delete clean.definedBy;
+          delete clean.ui;
+          delete clean.uiSchema;
+          delete clean.controlType;
+          return clean;
+        }) || [],
+    };
+
+    // Update the request schema to set definedBy to "author" for app manager defined
+    const updatedRequestSchema = {
+      ...sanitizedSchema,
+      parameters:
+        sanitizedSchema.parameters?.map((param: any) => {
+          // Handle UKG WFM schedule URL parameter
+          if (
+            args.scheduleUrl &&
+            (param.name?.toLowerCase().includes('schedule') ||
+              param.id?.toLowerCase().includes('schedule') ||
+              param.name?.toLowerCase().includes('url'))
+          ) {
+            return {
+              ...param,
+              definedBy: 'author',
+              presetValue: args.scheduleUrl,
+              value: args.scheduleUrl,
+            };
+          }
+
+          // Handle ServiceNow time period parameter
+          if (
+            args.timePeriod &&
+            (param.name?.toLowerCase().includes('time') ||
+              param.id?.toLowerCase().includes('time') ||
+              param.name?.toLowerCase().includes('period'))
+          ) {
+            return {
+              ...param,
+              definedBy: 'author',
+              presetValue: args.timePeriod,
+              value: args.timePeriod,
+            };
+          }
+
+          // Handle UKG Pro instance URL parameter
+          if (
+            args.instanceUrl &&
+            (param.name?.toLowerCase().includes('instance') ||
+              param.id?.toLowerCase().includes('instance') ||
+              param.name?.toLowerCase().includes('url'))
+          ) {
+            return {
+              ...param,
+              definedBy: 'author',
+              presetValue: args.instanceUrl,
+              value: args.instanceUrl,
+            };
+          }
+
+          return param;
+        }) || [],
+    };
+
+    const response = await this.post(API_ENDPOINTS.integrations.createTileInstance(template.tileId), {
+      data: {
+        dashboard: 'home',
+        tileInstanceName: args.tileInstanceName,
+        type: 'app',
+        connectorId: args.connectorId,
+        connectionType: 'user',
+        inputConfig: {
+          requestSchema: updatedRequestSchema,
+          parameters: {},
+          personalization: { enabled: false },
+        },
+      },
+    });
+
+    if (!response.ok()) {
+      const errorText = await response.text();
+      throw new Error(`Failed to create tile "${args.tileInstanceName}": ${response.status()} - ${errorText}`);
+    }
+
+    const body = await response.json();
+
+    const instanceId = body?.result?.instanceId || body?.data?.tileInstanceId;
 
     if (!instanceId) {
       throw new Error(`No instance ID returned for tile "${args.tileInstanceName}". Response: ${JSON.stringify(body)}`);

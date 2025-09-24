@@ -6,6 +6,10 @@ export const CONNECTOR_IDS = {
   AIRTABLE: '51a2e31b-af80-4bc6-a1ff-8839f2fb6eee',
   EXPENSIFY: 'e576282c-58b3-423b-8b9f-3d6f9f538ded',
   GITHUB: '9099f0b6-55ee-425b-b790-3231f750e7c7',
+  BAMBOOHR: '76108098-da7d-4030-b7c1-ef737e61e5a2',
+  SAP_SUCCESSFACTORS: '498f6b36-6f0d-4cf2-b6a7-06c8e5d26b1e',
+  UKG_WFM: '460b431c-41f2-4d7e-9610-33892b73336d',
+  UKG_PRO: '4e342748-5371-4f02-b21e-86fda7cbde1d',
 } as const;
 
 /**
@@ -15,6 +19,14 @@ export const TILE_IDS = {
   GITHUB_MY_OPEN_PRS: '8f82cbb1-56a6-4455-80cb-85fcb778fe27',
   GITHUB_PENDING_PR_REVIEWS: '210775b7-9745-455e-9cc4-5653e40211ff',
   EXPENSIFY_REPORT: '82ca87cd-d155-46b5-92db-fcec1caf5f85',
+  BAMBOOHR_APPLY_TIMEOFF: 'c4a4221f-fd07-4b9e-bf36-e039eb10bca2',
+  BAMBOOHR_DISPLAY_TIMEOFF_BALANCE: 'c49ce6e0-89fc-40ef-9e9b-bd738c93a55a',
+  SAP_APPLY_FOR_TIMEOFF: '0fd74213-db63-40d8-bd86-93f69cf47bf3',
+  SAP_DISPLAY_TIMEOFF_BALANCE: '8316a4bf-96a3-4c94-8b75-9453809b70c5',
+  UKG_WFM_APPLY_FOR_TIMEOFF: '26fb1868-4bd8-4890-85e8-15e52c1ae1a3',
+  UKG_WFM_DISPLAY_UPCOMING_SCHEDULE: '584f5919-771c-4282-8ce9-50378f240ad0',
+  UKG_PRO_DISPLAY_RECENT_PAYSTUBS: '297398ea-9827-4b94-97a4-82a101446ba9',
+  UKG_PRO_DISPLAY_TIMEOFF_BALANCE: 'aca631d6-dd7e-4cae-a174-fa80a01faa5e',
 } as const;
 
 /**
@@ -60,6 +72,8 @@ export const APP_NAMES = {
   AIRTABLE: 'Airtable',
   FRESHSERVICE: 'Freshservice',
   GITHUB: 'GitHub',
+  BAMBOOHR: 'BambooHR',
+  SAP_SUCCESSFACTORS: 'SAPSuccessFactors',
 } as const;
 
 /**
@@ -69,6 +83,7 @@ export const REDIRECT_URLS = {
   GITHUB: 'https://github.com/',
   EXPENSIFY: 'https://www.expensify.com/',
   AIRTABLE: 'https://airtable.com/',
+  UKG_PRO: 'https://et19.ultipro.com/',
 } as const;
 
 /**
@@ -85,6 +100,11 @@ export const EXPENSIFY_CREDS = {
   USER_ID: 'aa_tushar_roy_simpplr_com',
   USER_SECRET: '1cb6b45720674f10558719c18a17947937fd4723',
 } as const;
+
+/**
+ * UKG Pro instance URL for testing
+ */
+export const UKG_PRO_INSTANCE_URL = 'https://et19.ultipro.com/' as const;
 
 /**
  * Status values for different app tiles

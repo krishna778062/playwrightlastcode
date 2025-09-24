@@ -18,7 +18,7 @@ import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
 import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
-import { FeedPage } from '@/src/modules/content/pages/feedPage';
+import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 import { SiteCreationPage as ContentSiteCreationPage } from '@/src/modules/content/pages/siteCreationPage';
 import { SiteCreationPage as AbacSiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
