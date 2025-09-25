@@ -12,6 +12,9 @@ export class AdGroupComponent extends BaseComponent {
   readonly errorMessage: (text: string) => Locator;
   readonly disconnectAccountButton: (sourceName: string, buttonText: string) => Locator;
   readonly disconnectConfirmationText: (text: string) => Locator;
+  readonly doNotUseADGroupsRadio: (text: string) => Locator;
+  readonly clearGroupButton: (groupText: string) => Locator;
+  readonly selectedGroupsTab: (text: string) => Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
@@ -31,6 +34,13 @@ export class AdGroupComponent extends BaseComponent {
         .filter({ hasText: buttonText });
     this.disconnectConfirmationText = (text: string) =>
       this.rootLocator.locator('.Content.Content--small.type--secondary').getByText(text, { exact: true });
+    this.doNotUseADGroupsRadio = (text: string) => this.rootLocator.getByRole('radio', { name: text });
+    this.clearGroupButton = (groupText: string) =>
+      this.rootLocator
+        .locator('li')
+        .filter({ hasText: groupText })
+        .getByTestId(/clear-button/);
+    this.selectedGroupsTab = (text: string) => this.rootLocator.getByRole('tab', { name: text });
   }
 
   async selectADGroups(text: string): Promise<void> {
@@ -111,6 +121,36 @@ export class AdGroupComponent extends BaseComponent {
         confirmationText,
         `expecting disconnect confirmation text "${expectedText}" to be visible`
       ).toBeVisible();
+    });
+  }
+
+  async clickOnDoNotUseADGroupsRadioButton(text: string): Promise<void> {
+    const radioButton = this.doNotUseADGroupsRadio(text);
+    await test.step(`Click on Do not use AD groups radio button: ${text}`, async () => {
+      await radioButton.click();
+    });
+  }
+
+  async verifyMicrosoftEntraButtonCount(expectedCount: number): Promise<void> {
+    await test.step(`Verify Microsoft Entra ID button shows count: ${expectedCount}`, async () => {
+      const buttonText = `Select Microsoft Entra ID groups (${expectedCount})`;
+      const button = this.selectADGroupButton(buttonText);
+      await expect(button, 'expecting Microsoft Entra ID button to be visible').toBeVisible();
+      await expect(button, `expecting button text to contain count ${expectedCount}`).toHaveText(buttonText);
+    });
+  }
+
+  async clickOnSelectedGroupsTab(text: string): Promise<void> {
+    await test.step(`Click on Selected Groups tab: ${text}`, async () => {
+      const tab = this.selectedGroupsTab(text);
+      await tab.click();
+    });
+  }
+
+  async clickOnClearGroupButton(groupName: string): Promise<void> {
+    const clearButton = this.clearGroupButton(groupName);
+    await test.step(`Click on Clear Group button: ${groupName}`, async () => {
+      await clearButton.click();
     });
   }
 }

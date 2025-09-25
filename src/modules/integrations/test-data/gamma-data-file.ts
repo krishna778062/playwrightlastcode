@@ -18,10 +18,11 @@ export const OKTA_GROUP = {
 
 export const AD_GROUP = {
   AD_GROUP_OPTION: 'Use Microsoft Entra ID groups',
+  DO_NOT_USE_AD_GROUPS: 'Do not use Microsoft Entra ID groups',
   GROUP_BUTTON: 'Select Microsoft Entra ID groups',
   GROUP_NAME1: 'Analytics-Insights',
   GROUP_NAME2: 'App-Access-Salesforce',
-  DONE_BUTTON: 'Done',
+  SELECTED_GROUPS_TAB: 'Selected groups',
   DO_NOT_CREATE_AUDIENCES: 'Do not create audiences',
   CREATE_AUDIENCES: 'Create audiences',
   CONFIRM_MESSAGE: 'Are you sure you want to disconnect Microsoft Entra ID?',

@@ -66,4 +66,20 @@ export class AdGroupPage extends BasePage {
   async verifyGroupType(): Promise<void> {
     return this.adGroupComponent.verifyGroupType();
   }
+
+  async clickOnDoNotUseADGroupsButton(text: string): Promise<void> {
+    return this.adGroupComponent.clickOnDoNotUseADGroupsRadioButton(text);
+  }
+
+  async verifyMicrosoftEntraButtonCount(expectedCount: number): Promise<void> {
+    return this.adGroupComponent.verifyMicrosoftEntraButtonCount(expectedCount);
+  }
+
+  async clickOnClearGroupButton(groupName: string): Promise<void> {
+    return this.adGroupComponent.clickOnClearGroupButton(groupName);
+  }
+
+  async clickOnSelectedGroupsTab(text: string): Promise<void> {
+    return this.adGroupComponent.clickOnSelectedGroupsTab(text);
+  }
 }
