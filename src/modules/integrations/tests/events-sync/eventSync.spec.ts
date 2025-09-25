@@ -7,7 +7,6 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
-import { EventSyncDestination, EventSyncInvitees } from '@/src/core/types/contentManagement.types';
 import { SiteMembershipAction, SitePermission } from '@/src/core/types/siteManagement.types';
 import { EventDetailPage, RsvpOption } from '@/src/modules/content/pages/eventDetailPage';
 import { IntegrationsFeatureTags, IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
@@ -16,7 +15,6 @@ import {
   assertCompleteEventConfiguration,
   createAppManagerGoogleCalendarHelper,
   createEndUserGoogleCalendarHelper,
-  GoogleCalendarHelper,
 } from '@/src/modules/integrations/helpers/googleCalendarHelper';
 import {
   createEventPayload,
