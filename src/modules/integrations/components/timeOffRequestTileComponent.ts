@@ -90,7 +90,6 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    */
   getDayCellByAriaLabel(ariaLabel: string): Locator {
     const dayNumber = ariaLabel.split(' ')[2];
-    // Use getByRole with gridcell and filter by exact text match
     return this.page
       .getByRole('gridcell')
       .filter({ hasText: new RegExp(`^${dayNumber}$`) })
