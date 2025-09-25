@@ -56,7 +56,7 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
     this.requestTimeOffButton = page.getByRole('button', { name: 'Request time off' }).first();
     this.editAmountButton = page.getByRole('button', { name: 'Edit amount' });
     this.amountInputs = page.locator('input[name*="days"][name*="amount"]');
-    this.totalAmountInput = page.getByLabel('Amount').first();
+    this.totalAmountInput = page.locator('input[aria-label="Amount"]').first();
     this.totalAmountHeading = page.getByRole('heading', { name: /total:/i }).first();
     this.dropdownOption = page.getByRole('menuitem');
     this.calendarGrid = page.getByRole('grid');
