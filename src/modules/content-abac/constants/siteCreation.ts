@@ -31,7 +31,7 @@ export const SiteCreationUI = {
     PRIVATE_HELP: 'Users will have to request permission to join this site',
     TARGET_AUDIENCE_HELP: 'Defining the target audience establishes who in your organization can access this site',
     SUBSCRIPTIONS_HELP:
-      'When a subscription is created, the users within the defined audience will automatically follow the selected sites or people.',
+      'When a subscription is created, the users within the defined audience will automatically be made members of this site.',
     SUBSCRIPTION_WARNING: 'Target audience must be set before you can add a subscription',
   },
   MESSAGES: {

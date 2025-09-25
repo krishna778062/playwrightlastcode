@@ -33,7 +33,7 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
       deleteByUI: true,
     };
     // Navigate to Site Files page
-    const siteId = await siteManagementHelper.getSiteId(testSiteName);
+    const siteId = await siteManagementHelper.getSiteIdWithName(testSiteName);
     const siteManager = new SiteManager(appManagersPage, siteId);
     await siteManager.loadSite();
     siteFilesPage = (await siteManager.goToTab(SitePageTab.FilesTab)) as SiteFilesPage;

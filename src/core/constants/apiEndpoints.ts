@@ -52,9 +52,12 @@ export const API_ENDPOINTS = {
     url: '/v1/content/sites',
     category: '/v1/content/siteCategories/list',
     deactivate: '/v1/content/sites/attributes?attribute=status',
+    activate: '/v1/content/sites/attributes?attribute=status',
+    updateAccess: '/v1/content/sites/attributes?attribute=access',
     listOfSites: '/v1/content/sites/list',
     manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
     membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,
+    unfeature: (siteId: string) => `/v1/content/sites/${siteId}/featured?action=unfeature`,
   },
 
   content: {

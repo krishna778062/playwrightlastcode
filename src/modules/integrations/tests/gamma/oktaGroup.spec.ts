@@ -181,5 +181,119 @@ test.describe(
         await oktaGroup.verifyAddedGroupsMessage(4);
       }
     );
+
+    test(
+      'Verify that user is able select create audience. , Verify that user is able select "do not create audience',
+      {
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+      },
+
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-24843', 'INT-24844'],
+          storyId: 'INT-24198',
+        });
+        oktaGroup = new OktaGroupPage(appManagerPage);
+        await oktaGroup.loadPage();
+        await oktaGroup.verifyThePageIsLoaded();
+        await oktaGroup.clickOnCheckbox();
+        await oktaGroup.fillOktaCredentials(OKTA_GROUP.OKTA_LINK, OKTA_GROUP.TOKEN);
+        await oktaGroup.clickOnSaveButton();
+        await oktaGroup.clickOnConfirmButton();
+        await oktaGroup.clickOnOktaGroupOption(OKTA_GROUP.GROUP_OPTION);
+        await oktaGroup.clickOnSelectOktaGroupButton(OKTA_GROUP.GROUP_BUTTON);
+        await oktaGroup.clickOnSelectOktaGroup(OKTA_GROUP.GROUP_NAME1);
+        await oktaGroup.clickOnDoneButton(ActionType.Done);
+        await oktaGroup.clickOnCreateAudiencesButton(OKTA_GROUP.CREATE_AUDIENCES);
+        await oktaGroup.clickOnDoNotCreateAudiencesButton(OKTA_GROUP.DO_NOT_CREATE_AUDIENCES);
+      }
+    );
+
+    test(
+      'verify that audience is created automatically while selecting create audience button',
+      {
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-24842',
+          storyId: 'INT-24198',
+        });
+        oktaGroup = new OktaGroupPage(appManagerPage);
+        await oktaGroup.loadPage();
+        await oktaGroup.verifyThePageIsLoaded();
+        await oktaGroup.clickOnCheckbox();
+        await oktaGroup.fillOktaCredentials(OKTA_GROUP.OKTA_LINK, OKTA_GROUP.TOKEN);
+        await oktaGroup.clickOnSaveButton();
+        await oktaGroup.clickOnConfirmButton();
+        await oktaGroup.clickOnOktaGroupOption(OKTA_GROUP.GROUP_OPTION);
+        await oktaGroup.clickOnSelectOktaGroupButton(OKTA_GROUP.GROUP_BUTTON);
+        await oktaGroup.clickOnSelectOktaGroup(OKTA_GROUP.GROUP_NAME1);
+        await oktaGroup.clickOnDoneButton(ActionType.Done);
+        await oktaGroup.clickOnCreateAudiencesButton(OKTA_GROUP.CREATE_AUDIENCES);
+        await oktaGroup.clickOnSaveButton();
+        await oktaGroup.clickOnAudiencesMenuItem();
+        await appManagerPage.reload();
+        await oktaGroup.verifyAudienceNameIsVisible(OKTA_GROUP.GROUP_NAME1);
+        await oktaGroup.verifyAudienceCreatedByIsVisible(OKTA_GROUP.CREATED_BY);
+        await oktaGroup.navigateBack();
+      }
+    );
+
+    test(
+      'verify that audience should be deleted if any created while selecting the "do not create audience" option',
+      {
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-24845',
+          storyId: 'INT-24198',
+        });
+        oktaGroup = new OktaGroupPage(appManagerPage);
+        await oktaGroup.loadPage();
+        await oktaGroup.verifyThePageIsLoaded();
+        await oktaGroup.clickOnCheckbox();
+        await oktaGroup.fillOktaCredentials(OKTA_GROUP.OKTA_LINK, OKTA_GROUP.TOKEN);
+        await oktaGroup.clickOnSaveButton();
+        await oktaGroup.clickOnConfirmButton();
+        await oktaGroup.clickOnOktaGroupOption(OKTA_GROUP.GROUP_OPTION);
+        await oktaGroup.clickOnSelectOktaGroupButton(OKTA_GROUP.GROUP_BUTTON);
+        await oktaGroup.clickOnSelectOktaGroup(OKTA_GROUP.GROUP_NAME1);
+        await oktaGroup.clickOnDoneButton(ActionType.Done);
+        await oktaGroup.clickOnCreateAudiencesButton(OKTA_GROUP.CREATE_AUDIENCES);
+        await oktaGroup.clickOnSaveButton();
+        await oktaGroup.clickOnAudiencesMenuItem();
+        await appManagerPage.reload();
+        await oktaGroup.verifyAudienceNameIsNotVisible(OKTA_GROUP.GROUP_NAME1);
+        await oktaGroup.navigateBack();
+      }
+    );
+
+    test(
+      'verify all group types should be displayed correctly, verify that standard error message should be displayed when no group will be selected',
+      {
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-28024', 'INT-28023'],
+          storyId: 'INT-21172',
+        });
+        oktaGroup = new OktaGroupPage(appManagerPage);
+        await oktaGroup.loadPage();
+        await oktaGroup.verifyThePageIsLoaded();
+        await oktaGroup.clickOnCheckbox();
+        await oktaGroup.fillOktaCredentials(OKTA_GROUP.OKTA_LINK, OKTA_GROUP.TOKEN);
+        await oktaGroup.clickOnSaveButton();
+        await oktaGroup.clickOnConfirmButton();
+        await oktaGroup.clickOnOktaGroupOption(OKTA_GROUP.GROUP_OPTION);
+        await oktaGroup.clickOnSelectOktaGroupButton(OKTA_GROUP.GROUP_BUTTON);
+        await oktaGroup.verifyGroupType();
+        await oktaGroup.clickOnDoneButton(ActionType.Done);
+        await oktaGroup.clickOnSaveButton();
+        await oktaGroup.verifyErrorMessage(MESSAGES.OKTA_NO_GROUP_SELECTED_MESSAGE);
+      }
+    );
   }
 );

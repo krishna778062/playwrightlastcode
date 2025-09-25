@@ -17,6 +17,12 @@ export class OktaGroupComponent extends BaseComponent {
   readonly selectedGroupsTab: (text: string) => Locator;
   readonly clearGroupButton: (groupText: string) => Locator;
   readonly confirmButton: () => Locator;
+  readonly selectAudiencesButton: (text: string) => Locator;
+  readonly audiencesTable: () => Locator;
+  readonly audienceName: (name: string) => Locator;
+  readonly audienceCreatedBy: (createdBy: string) => Locator;
+  readonly audiencesMenuItem: () => Locator;
+  readonly audienceTypeDropdown: () => Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
@@ -39,6 +45,21 @@ export class OktaGroupComponent extends BaseComponent {
         .filter({ hasText: groupText })
         .getByTestId(/clear-button/);
     this.confirmButton = () => this.rootLocator.getByRole('button', { name: 'Confirm' });
+    this.selectAudiencesButton = (text: string) => this.rootLocator.locator('label').filter({ hasText: text }).nth(1);
+    this.audiencesTable = () => this.rootLocator.locator('table.Table');
+    this.audienceName = (name: string) =>
+      this.audiencesTable()
+        .locator('tr[data-testid="dataGridRow"]')
+        .filter({ hasText: name })
+        .locator('div.type--fs15');
+    this.audienceCreatedBy = (createdBy: string) =>
+      this.audiencesTable()
+        .locator('tr[data-testid="dataGridRow"]')
+        .filter({ hasText: createdBy })
+        .locator('td')
+        .nth(3);
+    this.audiencesMenuItem = () => this.rootLocator.getByRole('menuitem', { name: 'Audiences' });
+    this.audienceTypeDropdown = () => this.rootLocator.getByTestId('overlay').getByTestId('SelectInput');
   }
 
   async clickOnCheckbox(): Promise<void> {
@@ -171,6 +192,63 @@ export class OktaGroupComponent extends BaseComponent {
       } catch {
         console.log('Confirm button not found, continuing...');
       }
+    });
+  }
+
+  async clickOnAudiencesButton(text: string): Promise<void> {
+    await test.step(`Click on Create Audiences button: ${text}`, async () => {
+      await this.selectAudiencesButton(text).click();
+    });
+  }
+
+  async clickOnAudiencesMenuItem(): Promise<void> {
+    await test.step('Click on Audiences menu item and wait for page load', async () => {
+      await this.audiencesMenuItem().click();
+    });
+  }
+
+  async navigateBack(): Promise<void> {
+    await test.step('Navigate back to previous page', async () => {
+      await this.page.goBack();
+    });
+  }
+
+  async verifyAudienceNameIsVisible(audienceName: string): Promise<void> {
+    await test.step(`Verify audience name '${audienceName}' is visible`, async () => {
+      await expect(
+        this.audienceName(audienceName),
+        `expecting audience name '${audienceName}' to be visible`
+      ).toBeVisible();
+    });
+  }
+
+  async verifyAudienceCreatedByIsVisible(createdBy: string): Promise<void> {
+    await test.step(`Verify audience created by '${createdBy}' is visible`, async () => {
+      await expect(
+        this.audienceCreatedBy(createdBy),
+        `expecting audience created by '${createdBy}' to be visible`
+      ).toBeVisible();
+    });
+  }
+
+  async verifyAudienceNameIsNotVisible(audienceName: string): Promise<void> {
+    await test.step(`Verify audience name '${audienceName}' is visible`, async () => {
+      await expect(
+        this.audienceName(audienceName),
+        `expecting audience name '${audienceName}' to be not visible`
+      ).not.toBeVisible();
+    });
+  }
+
+  async verifyGroupType(): Promise<void> {
+    await test.step('Verify group types in dropdown', async () => {
+      const dropdown = this.audienceTypeDropdown();
+      await expect(dropdown, 'expecting audience type dropdown to be visible').toBeVisible();
+      const options = await dropdown.locator('option').allTextContents();
+      const actualValues = options.map(option => option.trim());
+      const expectedValues = ['All groups', 'App groups', 'Built-in groups', 'Okta groups'];
+      expect(actualValues.length).toBe(expectedValues.length);
+      expect(actualValues, 'expecting groups types to be displayed correctly').toEqual(expectedValues);
     });
   }
 }

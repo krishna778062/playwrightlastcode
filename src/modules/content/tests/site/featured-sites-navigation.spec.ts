@@ -12,37 +12,46 @@ test.describe(
   },
   () => {
     let createdSite: any;
+    let featureSites: { siteId: string; name: string }[] = [];
 
-    test.beforeEach(
-      `Setting up the test environment for featured site by creating new site`,
-      async ({ appManagerApiClient, siteManagementHelper }) => {
-        // Get category and create site using helper
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId(SITE_TEST_DATA[0].category);
-        createdSite = await siteManagementHelper.createPublicSite({
-          category,
-          overrides: { access: SITE_TEST_DATA[0].siteType },
-        });
-        console.log(`Created site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
+    test.afterEach(async ({ siteManagementHelper }) => {
+      if (featureSites.length > 0) {
+        for (const site of featureSites) {
+          try {
+            await siteManagementHelper.makeSiteUnFeatured(site.siteId);
+            console.log(`Successfully unfeatured site: ${site.name}`);
+          } catch (error) {
+            console.warn(`Failed to unfeature site ${site.name}:`, error);
+          }
+        }
+        featureSites = []; // Clear the array after cleanup
       }
-    );
+    });
 
     test(
       'Verify user can navigate to featured sites page from side nav bar and add site to featured',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerHomePage, siteManagementHelper }) => {
         tagTest(test.info(), {
           description: 'Test featured sites navigation from home dashboard to site dashboard',
           zephyrTestId: 'CONT-20911',
           storyId: 'CONT-20911',
         });
 
+        createdSite = await siteManagementHelper.createPublicSite({
+          overrides: { access: SITE_TEST_DATA[0].siteType },
+        });
+        console.log(`Created site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
+
         const featuredSitePage = await appManagerHomePage.clickOnFeaturedSitesTab();
         await featuredSitePage.actions.clickOnAddUpdateFeaturedSiteButton();
 
         // Step 1: Search and add the created site to featured
         await featuredSitePage.actions.addSiteToFeatured(createdSite.siteName);
+        featureSites.push({ siteId: createdSite.siteId, name: createdSite.siteName });
+        await featuredSitePage.actions.clickDoneButton();
 
         // Step 2.1: Verify success toast message appears
         await featuredSitePage.assertions.verifyToastMessage('Added featured site');
@@ -61,6 +70,37 @@ test.describe(
 
         // Step 7: Verify user is navigated to the site dashboard
         await featuredSitePage.assertions.verifySiteDashboardLoaded(createdSite.siteName);
+      }
+    );
+
+    test(
+      'Shuffling sites from feature modal list',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-27919'],
+      },
+      async ({ appManagerHomePage, siteManagementHelper }) => {
+        tagTest(test.info(), {
+          description: 'Shuffling sites from feature modal list',
+          zephyrTestId: 'CONT-27919',
+          storyId: 'CONT-27919',
+        });
+        const featuredSitePage = await appManagerHomePage.clickOnFeaturedSitesTab();
+        await featuredSitePage.actions.clickOnAddUpdateFeaturedSiteButton();
+
+        const unFeaturedSites: { siteId: string; name: string }[] = await siteManagementHelper.getUnFeaturedSites();
+        for (const site of unFeaturedSites) {
+          await featuredSitePage.actions.addSiteToFeatured(site.name);
+          featureSites.push(site); // Add the entire site object to the array
+          await featuredSitePage.assertions.verifyToastMessage('Added featured site');
+          await featuredSitePage.assertions.verifyFeaturedSitesVisibleInModal(site.name);
+        }
+        await featuredSitePage.assertions.verifyFeaturedSitesIndex(unFeaturedSites);
+
+        await featuredSitePage.actions.shuffleSites();
+        // Reorder sites to match expected UI order: [second added, first added]
+        const reorderedSites = [unFeaturedSites[1], unFeaturedSites[0]].filter(Boolean);
+        // After shuffling, verify the new order
+        await featuredSitePage.assertions.verifyFeaturedSitesIndex(reorderedSites);
       }
     );
   }
