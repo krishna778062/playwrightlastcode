@@ -1,9 +1,8 @@
+import { ApplicationScreenPage } from '@content/pages/manageFeaturesPage';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-
-import { ApplicationScreenPage } from '../../pages/manageFeaturesPage';
 
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';

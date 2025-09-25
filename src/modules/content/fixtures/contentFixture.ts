@@ -1,4 +1,4 @@
-import { BrowserContext, Page, test, WorkerInfo } from '@playwright/test';
+import { BrowserContext, Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { StandardUserApiClient } from '@core/api/clients/standardUserApiClient';
@@ -20,18 +20,18 @@ export type HomePageType = NewUxHomePage | OldUxHomePage;
 
 export const users = {
   appManager: {
-    email: getContentTenantConfigFor('contentSettings').appManagerEmail,
-    password: getContentTenantConfigFor('contentSettings').appManagerPassword,
+    email: getContentTenantConfigFromCache().appManagerEmail,
+    password: getContentTenantConfigFromCache().appManagerPassword,
   },
 
   endUser: {
-    email: getContentTenantConfigFor('contentSettings').endUserEmail || '',
-    password: getContentTenantConfigFor('contentSettings').endUserPassword || '',
+    email: getContentTenantConfigFromCache().endUserEmail || '',
+    password: getContentTenantConfigFromCache().endUserPassword || '',
   },
 
   siteManager: {
-    email: getContentTenantConfigFor('contentSettings').siteManagerEmail || '',
-    password: getContentTenantConfigFor('contentSettings').siteManagerPassword || '',
+    email: getContentTenantConfigFromCache().siteManagerEmail || '',
+    password: getContentTenantConfigFromCache().siteManagerPassword || '',
   },
 } as const;
 
@@ -164,7 +164,7 @@ export const contentTestFixture = test.extend<
     { scope: 'test' },
   ],
   siteManagerContext: [
-    async ({ browser }, use, workerInfo) => {
+    async ({ browser }, use) => {
       const context = await browser.newContext({
         permissions: ['camera', 'microphone', 'notifications'],
       });
@@ -175,7 +175,7 @@ export const contentTestFixture = test.extend<
   ],
 
   siteManagerHomePage: [
-    async ({ siteManagerContext }, use, workerInfo) => {
+    async ({ siteManagerContext }, use) => {
       const page = await siteManagerContext.newPage();
       const siteManagerHomePage = await LoginHelper.loginWithPassword(page, {
         email: getEnvConfig().siteManagerEmail || '',
@@ -189,7 +189,7 @@ export const contentTestFixture = test.extend<
   ],
 
   siteManagerPage: [
-    async ({ siteManagerHomePage }, use, workerInfo) => {
+    async ({ siteManagerHomePage }, use) => {
       await use(siteManagerHomePage.page);
     },
     { scope: 'test' },
@@ -222,7 +222,7 @@ export const contentTestFixture = test.extend<
     { scope: 'test' },
   ],
   endUserHomePage: [
-    async ({ endUserContext }, use, workerInfo) => {
+    async ({ endUserContext }, use) => {
       const page = await endUserContext.newPage();
       const endUserHomePage = await LoginHelper.loginWithPassword(page, {
         email: getEnvConfig().endUserEmail!,
@@ -235,7 +235,7 @@ export const contentTestFixture = test.extend<
     { scope: 'test' },
   ],
   endUsersPage: [
-    async ({ endUserHomePage }, use, workerInfo) => {
+    async ({ endUserHomePage }, use) => {
       await use(endUserHomePage.page);
     },
     { scope: 'test' },

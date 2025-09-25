@@ -17,6 +17,29 @@
 export type TenantKey = 'primary' | 'contentSettings';
 export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prod';
 
+/**
+ * Get caller function information for debugging
+ */
+function getCallerInfo(): string {
+  const stack = new Error().stack;
+  if (!stack) return 'unknown';
+
+  const lines = stack.split('\n');
+  // Skip the first 3 lines: Error, getCallerInfo, and the function calling getCallerInfo
+  const callerLine = lines[3];
+  if (!callerLine) return 'unknown';
+
+  // Extract file name and line number
+  const match = callerLine.match(/\((.+):(\d+):(\d+)\)/);
+  if (match) {
+    const [, filePath, line, col] = match;
+    const fileName = filePath.split('/').pop() || filePath;
+    return `${fileName}:${line}`;
+  }
+
+  return 'unknown';
+}
+
 // Singleton config cache - loaded once per test run (like Java properties)
 let configCache: {
   environment: EnvironmentKey;
@@ -145,16 +168,19 @@ function getCurrentEnvironment(): EnvironmentKey {
  * Call this at the start of your test suite with the tenant you're testing
  */
 export function initializeContentConfig(tenant: TenantKey): void {
-  console.log(`🔧 Initializing content config for tenant: ${tenant}`);
+  const caller = getCallerInfo();
+
   if (configCache && configCache.currentTenant === tenant) {
-    console.log(`🔧 Config already initialized for tenant: ${tenant}`);
+    console.log(`🔧 Config already initialized for tenant: ${tenant} (called from: ${caller})`);
     return; // Already initialized for same tenant
   }
 
   // Allow tenant switching - clear cache if different tenant
   if (configCache && configCache.currentTenant !== tenant) {
-    console.log(`🔧 Switching from tenant '${configCache.currentTenant}' to '${tenant}'`);
+    console.log(`🔧 Switching from tenant '${configCache.currentTenant}' to '${tenant}' (called from: ${caller})`);
   }
+
+  console.log(`🔧 Initializing content config for tenant: ${tenant} (called from: ${caller})`);
 
   const environment = getCurrentEnvironment();
   const tenantConfig = config[tenant];
@@ -186,7 +212,6 @@ export function initializeContentConfig(tenant: TenantKey): void {
  * @returns Tenant configuration object
  */
 export function getContentTenantConfigFromCache(): ContentTenantConfig {
-  console.log(`🔧 Getting tenant config from cache`);
   if (!configCache) {
     throw new Error(`❌ Config not initialized! Call initializeContentConfig(tenant) first`);
   }
@@ -200,14 +225,16 @@ export function getContentTenantConfigFromCache(): ContentTenantConfig {
  * @returns Tenant configuration object
  */
 export function getContentTenantConfigFor(tenant: TenantKey): ContentTenantConfig {
+  const caller = getCallerInfo();
+
   // If cache is initialized for the same tenant, use it
   if (configCache && configCache.currentTenant === tenant) {
-    console.log(`🔧 Using cached config for tenant: ${tenant}`);
+    console.log(`🔧 Using cached config for tenant: ${tenant} (called from: ${caller})`);
     return configCache.tenantConfig;
   }
 
   // Otherwise, initialize for this tenant
-  console.log(`🔧 Initializing config for tenant: ${tenant}`);
+  console.log(`🔧 Initializing config for tenant: ${tenant} (called from: ${caller})`);
   initializeContentConfig(tenant);
   return configCache!.tenantConfig;
 }

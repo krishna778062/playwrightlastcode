@@ -11,7 +11,6 @@ import { ManageApplicationPage } from '@content/pages/manageApplicationPage';
 import { ManageContentPage } from '@content/pages/manageContentPage';
 import { ApplicationScreenPage as ManageFeature } from '@content/pages/manageFeaturesPage';
 import { ManageSitePage } from '@content/pages/manageSitePage';
-import { PageCreationPage } from '@content/pages/pageCreationPage';
 import { SiteDetailsPage } from '@content/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@content/pages/sitePages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
@@ -23,9 +22,6 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
-
-import { ContentManagementHelper } from '@/src/core/helpers/contentManagementHelper';
-import { SiteType } from '@/src/modules/content-abac/constants/siteType';
 
 test.describe(
   `Page Creation by Application Manager`,
