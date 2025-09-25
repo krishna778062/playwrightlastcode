@@ -31,7 +31,7 @@ export class AdGroupPage extends BasePage {
     return this.adGroupComponent.clickOnAdGroupsOption(text);
   }
 
-  async clickOnDoneButton(text: string): Promise<void> {
+  async clickOnSubmitButton(text: string): Promise<void> {
     return this.adGroupComponent.clickOnSelectADGroupButton(text);
   }
 

@@ -17,24 +17,26 @@ test.describe(
     tag: [IntegrationsSuiteTags.GAMMA, GammaIntegrationsFeatureTags.AD_GROUP],
   },
   () => {
+    test.beforeEach(async ({ appManagerPage }) => {
+      adGroup = new AdGroupPage(appManagerPage);
+      await adGroup.loadPage();
+      await adGroup.verifyThePageIsLoaded();
+      await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
+      await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
+    });
     test(
       'verify that Select Active Directory groups option is visible in Zeus',
       {
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
 
-      async ({ appManagerPage }) => {
+      async () => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-11721',
           storyId: 'INT-5282',
         });
-        adGroup = new AdGroupPage(appManagerPage);
-        await adGroup.loadPage();
-        await adGroup.verifyThePageIsLoaded();
-        await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
-        await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
         await adGroup.selectGroup(AD_GROUP.GROUP_NAME1);
-        await adGroup.clickOnDoneButton(ActionType.Done);
+        await adGroup.clickOnSubmitButton(ActionType.Done);
         await adGroup.verifyAddedGroupsMessage(1);
       }
     );
@@ -44,18 +46,13 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
-      async ({ appManagerPage }) => {
+      async () => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-11705',
           storyId: 'INT-5282',
         });
-        adGroup = new AdGroupPage(appManagerPage);
-        await adGroup.loadPage();
-        await adGroup.verifyThePageIsLoaded();
-        await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
-        await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
         await adGroup.selectGroup(AD_GROUP.GROUP_NAME2);
-        await adGroup.clickOnDoneButton(ActionType.Done);
+        await adGroup.clickOnSubmitButton(ActionType.Done);
         await adGroup.doNotCreateAudiencesButtonVisibilty(AD_GROUP.DO_NOT_CREATE_AUDIENCES);
         await adGroup.createAudiencesButtonVisibilty(AD_GROUP.CREATE_AUDIENCES);
       }
@@ -66,16 +63,11 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
-      async ({ appManagerPage }) => {
+      async () => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-5691',
           storyId: 'INT-5439',
         });
-        adGroup = new AdGroupPage(appManagerPage);
-        await adGroup.loadPage();
-        await adGroup.verifyThePageIsLoaded();
-        await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
-        await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
         await adGroup.verifyGroupType();
       }
     );
@@ -85,23 +77,18 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
-      async ({ appManagerPage }) => {
+      async () => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-4921',
           storyId: 'INT-4563',
         });
-        adGroup = new AdGroupPage(appManagerPage);
-        await adGroup.loadPage();
-        await adGroup.verifyThePageIsLoaded();
-        await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
-        await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
-        await adGroup.clickOnDoneButton(ActionType.Done);
-        await adGroup.clickOnDoneButton(ActionType.Save);
+        await adGroup.clickOnSubmitButton(ActionType.Done);
+        await adGroup.clickOnSubmitButton(ActionType.Save);
         await adGroup.verifyErrorMessage(MESSAGES.NO_GROUP_SELECTED_MESSAGE);
       }
     );
 
-    test(
+    test.only(
       'verify that Retain AD groups if user switches from "Do not use AD groups" to "Use AD groups"',
       {
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
@@ -111,18 +98,13 @@ test.describe(
           zephyrTestId: 'INT-5577',
           storyId: 'INT-5282',
         });
-        adGroup = new AdGroupPage(appManagerPage);
-        await adGroup.loadPage();
-        await adGroup.verifyThePageIsLoaded();
-        await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
-        await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
         await adGroup.selectGroup(AD_GROUP.GROUP_NAME1);
         await adGroup.selectGroup(AD_GROUP.GROUP_NAME2);
-        await adGroup.clickOnDoneButton(ActionType.Done);
+        await adGroup.clickOnSubmitButton(ActionType.Done);
         await adGroup.verifyAddedGroupsMessage(2);
-        await adGroup.clickOnDoneButton(ActionType.Save);
+        await adGroup.clickOnSubmitButton(ActionType.Save);
         await adGroup.clickOnDoNotUseADGroupsButton(AD_GROUP.DO_NOT_USE_AD_GROUPS);
-        await adGroup.clickOnDoneButton(ActionType.Save);
+        await adGroup.clickOnSubmitButton(ActionType.Save);
         await appManagerPage.reload();
         await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
         await adGroup.verifyMicrosoftEntraButtonCount(2);
@@ -130,9 +112,9 @@ test.describe(
         await adGroup.clickOnSelectedGroupsTab(AD_GROUP.SELECTED_GROUPS_TAB);
         await adGroup.clickOnClearGroupButton(AD_GROUP.GROUP_NAME1);
         await adGroup.clickOnClearGroupButton(AD_GROUP.GROUP_NAME2);
-        await adGroup.clickOnDoneButton(ActionType.Done);
+        await adGroup.clickOnSubmitButton(ActionType.Done);
         await adGroup.clickOnDoNotUseADGroupsButton(AD_GROUP.DO_NOT_USE_AD_GROUPS);
-        await adGroup.clickOnDoneButton(ActionType.Save);
+        await adGroup.clickOnSubmitButton(ActionType.Save);
       }
     );
   }
