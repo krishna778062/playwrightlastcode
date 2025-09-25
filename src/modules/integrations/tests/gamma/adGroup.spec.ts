@@ -101,25 +101,6 @@ test.describe(
       }
     );
 
-    // Waiting for Vimmi's confirmation to remove this test
-    // test(
-    //   'verify the alert message should be displayed while clicking on Disconnect Active directory.',
-    //   {
-    //     tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
-    //   },
-    //   async ({ appManagerPage }) => {
-    //     tagTest(test.info(), {
-    //       zephyrTestId: 'INT-5863',
-    //       storyId: 'INT-5273',
-    //     });
-    //     adGroup = new AdGroupPage(appManagerPage);
-    //     await adGroup.loadPage();
-    //     await adGroup.verifyThePageIsLoaded();
-    //     await adGroup.clickOnDisconnectAccountButton(AD_GROUP.SOURCE_NAME, AD_GROUP.DISCONNECT_BUTTON_TEXT);
-    //     await adGroup.verifyDisconnectConfirmationText(AD_GROUP.CONFIRM_MESSAGE);
-    //   }
-    // );
-
     test(
       'verify that Retain AD groups if user switches from "Do not use AD groups" to "Use AD groups"',
       {

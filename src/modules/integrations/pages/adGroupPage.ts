@@ -55,14 +55,6 @@ export class AdGroupPage extends BasePage {
     return this.adGroupComponent.verifyErrorMessage(expectedMessage);
   }
 
-  async clickOnDisconnectAccountButton(sourceName: string, buttonText: string): Promise<void> {
-    return this.adGroupComponent.clickOnDisconnectAccountButton(sourceName, buttonText);
-  }
-
-  async verifyDisconnectConfirmationText(expectedText: string): Promise<void> {
-    return this.adGroupComponent.verifyDisconnectConfirmationText(expectedText);
-  }
-
   async verifyGroupType(): Promise<void> {
     return this.adGroupComponent.verifyGroupType();
   }

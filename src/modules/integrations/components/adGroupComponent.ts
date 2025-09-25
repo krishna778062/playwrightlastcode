@@ -10,8 +10,6 @@ export class AdGroupComponent extends BaseComponent {
   readonly selectAudiencesButton: (text: string) => Locator;
   readonly audienceTypeDropdown: () => Locator;
   readonly errorMessage: (text: string) => Locator;
-  readonly disconnectAccountButton: (sourceName: string, buttonText: string) => Locator;
-  readonly disconnectConfirmationText: (text: string) => Locator;
   readonly doNotUseADGroupsRadio: (text: string) => Locator;
   readonly clearGroupButton: (groupText: string) => Locator;
   readonly selectedGroupsTab: (text: string) => Locator;
@@ -26,14 +24,6 @@ export class AdGroupComponent extends BaseComponent {
     this.selectAudiencesButton = (text: string) => this.rootLocator.locator('label').filter({ hasText: text }).nth(1);
     this.audienceTypeDropdown = () => this.rootLocator.getByTestId('overlay').getByTestId('SelectInput');
     this.errorMessage = (text: string) => this.rootLocator.getByRole('alert').getByText(text);
-    this.disconnectAccountButton = (sourceName: string, buttonText: string) =>
-      this.rootLocator
-        .locator('li.ConnectedServices-module-item___nJXFQ')
-        .filter({ hasText: sourceName })
-        .getByRole('button')
-        .filter({ hasText: buttonText });
-    this.disconnectConfirmationText = (text: string) =>
-      this.rootLocator.locator('.Content.Content--small.type--secondary').getByText(text, { exact: true });
     this.doNotUseADGroupsRadio = (text: string) => this.rootLocator.getByRole('radio', { name: text });
     this.clearGroupButton = (groupText: string) =>
       this.rootLocator
@@ -104,23 +94,6 @@ export class AdGroupComponent extends BaseComponent {
       await expect(this.errorMessage(expectedMessage), 'expecting error message text to match').toHaveText(
         expectedMessage
       );
-    });
-  }
-
-  async clickOnDisconnectAccountButton(sourceName: string, buttonText: string): Promise<void> {
-    await test.step(`Click on Disconnect Account button: ${sourceName}`, async () => {
-      const disconnectButton = this.disconnectAccountButton(sourceName, buttonText);
-      await disconnectButton.click();
-    });
-  }
-
-  async verifyDisconnectConfirmationText(expectedText: string): Promise<void> {
-    await test.step(`Verify disconnect confirmation text: ${expectedText}`, async () => {
-      const confirmationText = this.disconnectConfirmationText(expectedText);
-      await expect(
-        confirmationText,
-        `expecting disconnect confirmation text "${expectedText}" to be visible`
-      ).toBeVisible();
     });
   }
 
