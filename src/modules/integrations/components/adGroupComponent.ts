@@ -66,7 +66,7 @@ export class AdGroupComponent extends BaseComponent {
 
   async createAudiencesButtonVisibilty(text: string): Promise<void> {
     await test.step(`Click on Audiences button: ${text}`, async () => {
-      await this.selectAudiencesButton(text).isVisible;
+      await this.selectAudiencesButton(text).isVisible();
     });
   }
 
