@@ -207,7 +207,6 @@ export class OktaGroupComponent extends BaseComponent {
 
   async clickOnAudiencesMenuItem(): Promise<void> {
     await test.step('Click on Audiences menu item and wait for page load', async () => {
-      await this.page.waitForTimeout(10000);
       await expect(this.applicationSettingsButton(), 'expecting Audiences setting button to be visible').toBeVisible();
       const button = this.applicationSettingsButton();
       await button.hover();
@@ -223,12 +222,19 @@ export class OktaGroupComponent extends BaseComponent {
 
   async verifyAudienceNameIsVisible(audienceName: string): Promise<void> {
     await test.step(`Verify audience name '${audienceName}' is visible`, async () => {
-      await this.page.reload();
-      await this.page.waitForTimeout(10000);
-      await expect(
-        this.audienceName(audienceName),
-        `expecting audience name '${audienceName}' to be visible`
-      ).toBeVisible();
+      try {
+        await expect(
+          this.audienceName(audienceName),
+          `expecting audience name '${audienceName}' to be visible`
+        ).toBeVisible({ timeout: 5000 });
+      } catch {
+        console.log(`Audience name '${audienceName}' not visible, reloading page once...`);
+        await this.page.reload();
+        await expect(
+          this.audienceName(audienceName),
+          `expecting audience name '${audienceName}' to be visible after reload`
+        ).toBeVisible();
+      }
     });
   }
 
