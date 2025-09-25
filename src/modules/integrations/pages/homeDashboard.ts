@@ -1,6 +1,7 @@
 import { DASHBOARD_BUTTONS, FIELD_NAMES, ORGANIZATION_SETTINGS } from '@integrations/constants/common';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { TileOperationsComponent } from '@integrations-components/tileOperationsComponent';
+import { TimeOffRequestTileComponent } from '@integrations-components/timeOffRequestTileComponent';
 import { AIRTABLE_TILE } from '@integrations-test-data/app-tiles.test-data';
 import { expect, Page, test } from '@playwright/test';
 
@@ -16,6 +17,7 @@ export class HomeDashboard {
   readonly page: Page;
   private readonly airtableComponent: BaseAppTileComponent;
   private readonly appTileComponent: AppTileComponent;
+  private readonly timeOffRequestTileComponent: TimeOffRequestTileComponent;
   private readonly tileOperationsComponent: TileOperationsComponent;
   private readonly tileManagementHelper: TileManagementHelper;
 
@@ -30,6 +32,7 @@ export class HomeDashboard {
     this.page = page;
     this.airtableComponent = new BaseAppTileComponent(page);
     this.appTileComponent = new AppTileComponent(page);
+    this.timeOffRequestTileComponent = new TimeOffRequestTileComponent(page);
     this.tileOperationsComponent = new TileOperationsComponent(page);
     this.tileManagementHelper = tileManagementHelper;
   }
@@ -318,5 +321,82 @@ export class HomeDashboard {
    */
   async verifyAirtableTileContentStructure(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyAirtableTileContentStructure(tileTitle);
+  }
+
+  /**
+   * Verify Apply for Time Off tile form fields are present and functional
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyApplyForTimeOffFields(tileTitle: string): Promise<void> {
+    await this.timeOffRequestTileComponent.verifyApplyForTimeOffFields(tileTitle);
+  }
+
+  /**
+   * Verify Display Time Off Balance tile content (no form fields expected)
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDisplayTimeOffBalanceFields(tileTitle: string): Promise<void> {
+    await this.timeOffRequestTileComponent.verifyDisplayTimeOffBalanceFields(tileTitle);
+  }
+
+  /**
+   * Verify UKG Pro tile metadata including pay periods, received dates, and links
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyUKGProTileMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyUKGProTileMetadata(tileTitle);
+  }
+
+  /**
+   * Verify Display Time Off tile metadata including VACFT and SICKFT sections
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDisplayTimeOffMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyDisplayTimeOffMetadata(tileTitle);
+  }
+
+  /**
+   * Complete workflow to add an app tile with app manager defined settings
+   */
+  async addTilewithAppManagerDefined(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    appManagerDefined: string,
+    fieldName: string,
+    url: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.appTileComponent.clickEditDashboard();
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
+      await this.appTileComponent.selectAppTile(appName);
+      await this.appTileComponent.selectTile(tileName);
+      await this.appTileComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
+      await this.appTileComponent.setTileTitle(tileTitle);
+      await this.appTileComponent.enterUrl(fieldName, appManagerDefined, url);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
+  /**
+   * Verify Calendar upcoming events tile data
+   */
+  async verifyCalendarUpcomingEventsTileData(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyUpcomingEventsTileData(tileTitle);
+  }
+
+  /**
+   * Verify Show more behaviour for apptile
+   */
+  async verifyShowMoreBehavior(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyShowMoreBehavior(tileTitle);
+  }
+  /**
+   * Verify DocuSign tile content structure with task records
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDocuSignContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyDocuSignTileContentStructure(tileTitle);
   }
 }

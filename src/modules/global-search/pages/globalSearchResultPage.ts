@@ -32,6 +32,7 @@ export class GlobalSearchResultPage extends BasePage {
   readonly tileButton: Locator;
   readonly appResultContainer: Locator;
   readonly externalSearchResultItems: Locator;
+  readonly dismissButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -63,6 +64,7 @@ export class GlobalSearchResultPage extends BasePage {
     this.appResultContainer = this.page.locator("div[class*='AppItemList_appListTopWrapper']");
 
     this.externalSearchResultItems = this.page.locator("div[class*='externalSearchBox']");
+    this.dismissButton = this.page.locator('button[aria-label*="Dismiss"]');
   }
 
   /**
@@ -199,7 +201,7 @@ export class GlobalSearchResultPage extends BasePage {
   private async handleExactMatchCheckboxRetry(verificationFn: () => Promise<void>) {
     try {
       await verificationFn();
-    } catch (error) {
+    } catch {
       // If the verification fails, check if the "Search for an exact match" checkbox is visible and click it
       const exactMatchCheckbox = this.page.getByRole('checkbox', { name: 'Search for an exact match' });
       await exactMatchCheckbox.waitFor({ state: 'visible', timeout: 50_000 });
@@ -412,6 +414,21 @@ export class GlobalSearchResultPage extends BasePage {
     await siteSubFilter.verifySiteSubFilterWithCountTracking({
       expectedCountAfterFilter: options.expectedCountAfterFilter,
       originalCount: options.originalCount,
+    });
+  }
+
+  /**
+   * Dismisses survey popup if present
+   */
+  async dismissSurveyPopupIfPresent(): Promise<void> {
+    await test.step('Checking for survey popup and dismissing if present', async () => {
+      try {
+        // Wait for the dismiss button to appear with a short timeout
+        await this.dismissButton.waitFor({ state: 'visible', timeout: 5000 });
+        await this.clickOnElement(this.dismissButton);
+      } catch {
+        // No survey popup present - continue with test
+      }
     });
   }
 }

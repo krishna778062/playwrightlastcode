@@ -38,6 +38,11 @@ export interface IEventCreationActions {
 
 export interface IEventCreationAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
+  verifyEventSyncConfiguration: (options?: {
+    verifyGoogleCalendar?: boolean;
+    verifyOutlookCalendar?: boolean;
+    verifyRsvpToggle?: boolean;
+  }) => Promise<void>;
 }
 
 export class EventCreationPage extends BasePage implements IEventCreationActions, IEventCreationAssertions {
@@ -46,6 +51,13 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
   readonly descriptionInput: Locator;
   readonly locationInput: Locator;
   readonly publishButton: Locator;
+  readonly publishChangeButton: Locator;
+
+  // Event sync configuration locators
+  readonly eventSyncingToggle: Locator;
+  readonly rsvpToggle: Locator;
+  readonly googleCalendarToggle: Locator;
+  readonly outlookCalendarToggle: Locator;
 
   // Cover image components (if needed)
   readonly coverImageUploaderContainer: Locator;
@@ -61,7 +73,18 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
     this.descriptionInput = page.locator("div[aria-label='Event description']");
     this.locationInput = page.locator('//input[@id="location"]');
     this.publishButton = page.getByRole('button', { name: 'Publish' });
+    this.publishChangeButton = page.getByRole('button', { name: 'Publish changes' });
     this.submitButton = page.locator('span').filter({ hasText: 'Submit for approval' });
+
+    // Event sync configuration locators
+    this.eventSyncingToggle = page.locator("//button[@role='switch' and @data-state='checked']");
+    this.rsvpToggle = page.locator("//input[@id='hasRsvp_yes']");
+    this.googleCalendarToggle = page.locator(
+      "//label[@for='eventSync_destinationgooglecalendar' and @title='Google Calendar sync']"
+    );
+    this.outlookCalendarToggle = page.locator(
+      "//label[@for='eventSync_destinationoutlook' and @title='Outlook Calendar sync']"
+    );
 
     // Cover image components (optional)
     this.coverImageUploaderContainer = page
@@ -183,14 +206,46 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
    */
   async fillEventDetails(options: { title: string; description: string; location: string }) {
     await test.step(`Filling event details`, async () => {
-      // Add title
-      await this.fillInElement(this.titleInput, options.title);
+      // Add title (only if not empty)
+      if (options.title) {
+        await this.fillInElement(this.titleInput, options.title);
+      }
 
-      // Add description
-      await this.fillInElement(this.descriptionInput, options.description);
+      // Add description (only if not empty) - Handle rich text editor specially
+      if (options.description) {
+        await test.step('Fill description in rich text editor', async () => {
+          // Based on logs: div[contenteditable='true'] always works, no fallback needed
+          try {
+            const locator = this.page.locator("div[contenteditable='true']").first();
+            await locator.waitFor({ state: 'visible', timeout: 3000 });
 
-      //add location
-      await this.fillInElement(this.locationInput, options.location);
+            // Use evaluate method directly (proven to work)
+            await locator.evaluate((element, text) => {
+              if (element instanceof HTMLElement) {
+                element.innerHTML = text;
+                element.dispatchEvent(new Event('input', { bubbles: true }));
+                element.dispatchEvent(new Event('change', { bubbles: true }));
+              }
+            }, options.description);
+          } catch (error) {
+            console.log('Failed to fill description field');
+          }
+        });
+      }
+
+      // Add location (only if not empty)
+      if (options.location) {
+        await this.fillInElement(this.locationInput, options.location);
+      }
+    });
+  }
+
+  /**
+   * Publishes the event changes and waits for API response
+   */
+  async publishEditEventChanges(): Promise<void> {
+    return await test.step(`Publishing event changes`, async () => {
+      await this.clickOnElement(this.publishChangeButton, { force: true });
     });
   }
 
@@ -279,6 +334,48 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
         }
       );
       return submitResponse;
+    });
+  }
+
+  /**
+   * Verifies the event sync configuration section on the event creation page
+   * This includes toggle state, calendar connections, and other sync-related settings
+   * @param options - Configuration for what to verify
+   * @param options.verifyGoogleCalendar
+   * @param options.verifyOutlookCalendar
+   * @param options.verifyRsvpToggle
+   */
+  async verifyEventSyncConfiguration(options?: {
+    verifyGoogleCalendar?: boolean;
+    verifyOutlookCalendar?: boolean;
+    verifyRsvpToggle?: boolean;
+  }): Promise<void> {
+    await test.step('Verify event sync configuration', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.eventSyncingToggle, {
+        assertionMessage: 'Event syncing toggle should be visible and checked',
+        timeout: 10000,
+      });
+
+      if (options?.verifyRsvpToggle) {
+        await this.verifier.verifyTheElementIsVisible(this.rsvpToggle, {
+          assertionMessage: 'RSVP toggle should be visible and checked',
+          timeout: 10000,
+        });
+      }
+
+      if (options?.verifyGoogleCalendar) {
+        await this.verifier.verifyTheElementIsVisible(this.googleCalendarToggle, {
+          assertionMessage: 'Google Calendar toggle should be visible',
+          timeout: 10000,
+        });
+      }
+
+      if (options?.verifyOutlookCalendar) {
+        await this.verifier.verifyTheElementIsVisible(this.outlookCalendarToggle, {
+          assertionMessage: 'Outlook Calendar toggle should be visible',
+          timeout: 10000,
+        });
+      }
     });
   }
 }

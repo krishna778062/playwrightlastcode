@@ -86,4 +86,36 @@ export class OktaGroupPage extends BasePage {
   async clickOnConfirmButton(): Promise<void> {
     return this.oktaGroupComponent.clickOnConfirmButton();
   }
+
+  async clickOnCreateAudiencesButton(text: string): Promise<void> {
+    return this.oktaGroupComponent.clickOnAudiencesButton(text);
+  }
+
+  async clickOnDoNotCreateAudiencesButton(text: string): Promise<void> {
+    return this.oktaGroupComponent.clickOnAudiencesButton(text);
+  }
+
+  async verifyAudienceNameIsVisible(audienceName: string): Promise<void> {
+    return this.oktaGroupComponent.verifyAudienceNameIsVisible(audienceName);
+  }
+
+  async verifyAudienceCreatedByIsVisible(createdBy: string): Promise<void> {
+    return this.oktaGroupComponent.verifyAudienceCreatedByIsVisible(createdBy);
+  }
+
+  async clickOnAudiencesMenuItem(): Promise<void> {
+    return this.oktaGroupComponent.clickOnAudiencesMenuItem();
+  }
+
+  async verifyAudienceNameIsNotVisible(audienceName: string): Promise<void> {
+    return this.oktaGroupComponent.verifyAudienceNameIsNotVisible(audienceName);
+  }
+
+  async navigateBack(): Promise<void> {
+    return this.oktaGroupComponent.navigateBack();
+  }
+
+  async verifyGroupType(): Promise<void> {
+    return this.oktaGroupComponent.verifyGroupType();
+  }
 }

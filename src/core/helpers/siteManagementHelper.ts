@@ -1,3 +1,5 @@
+import { test } from '@playwright/test';
+
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import {
@@ -174,6 +176,7 @@ export class SiteManagementHelper {
     category?: { name: string; categoryId: string };
     overrides?: Partial<SiteCreationPayload>;
     accessType: SITE_TYPES;
+    waitForSearchIndex?: boolean;
   }) {
     switch (options.accessType) {
       case SITE_TYPES.PUBLIC:
@@ -181,18 +184,21 @@ export class SiteManagementHelper {
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
+          waitForSearchIndex: options.waitForSearchIndex,
         });
       case SITE_TYPES.PRIVATE:
         return await this.createPrivateSite({
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
+          waitForSearchIndex: options.waitForSearchIndex,
         });
       case SITE_TYPES.UNLISTED:
         return await this.createUnlistedSite({
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
+          waitForSearchIndex: options.waitForSearchIndex,
         });
       default:
         throw new Error(`Invalid access type: ${options.accessType}`);
@@ -327,7 +333,7 @@ export class SiteManagementHelper {
    * @param options.accessType - The access type of the site (default: 'public')
    * @returns The siteId of the found or created site
    */
-  async getSiteId(
+  async getSiteIdWithName(
     siteName: string,
     options?: {
       category?: { name: string; categoryId: string };
@@ -400,6 +406,64 @@ export class SiteManagementHelper {
     };
 
     return await this.appManagerApiClient.getSiteManagementService().getListOfSites(defaultOptions);
+  }
+
+  /**
+   * Gets 2 sites that are not in the featured sites list
+   * @param count - Number of non-featured sites to return (default: 2)
+   * @returns Promise containing non-featured sites
+   */
+  async getUnFeaturedSites(count: number = 2): Promise<{ siteId: string; name: string }[]> {
+    return await test.step(`Getting ${count} non-featured sites`, async () => {
+      // Fetch both lists in parallel for better performance
+      const [allSitesResponse, featuredSitesResponse] = await Promise.all([
+        this.getListOfSites({ filter: 'active', size: 1000 }),
+        this.getListOfSites({ filter: 'featured', size: 1000 }),
+      ]);
+
+      // Early validation
+      if (!allSitesResponse.result?.listOfItems?.length) {
+        throw new Error('No active sites found');
+      }
+
+      // Create Set for O(1) lookup performance
+      const featuredSiteIds = new Set(featuredSitesResponse.result?.listOfItems?.map((site: any) => site.siteId) || []);
+
+      // Single pass filtering and mapping for better performance
+      const nonFeaturedSites: { siteId: string; name: string }[] = [];
+
+      for (const site of allSitesResponse.result.listOfItems) {
+        if (!featuredSiteIds.has(site.siteId)) {
+          nonFeaturedSites.push({
+            siteId: site.siteId,
+            name: site.name,
+          });
+
+          // Early exit if we have enough sites
+          if (nonFeaturedSites.length >= count) {
+            break;
+          }
+        }
+      }
+
+      if (nonFeaturedSites.length < count) {
+        throw new Error(`Not enough non-featured sites found. Found: ${nonFeaturedSites.length}, Required: ${count}`);
+      }
+
+      console.log(
+        `Selected ${nonFeaturedSites.length} non-featured sites: ${nonFeaturedSites.map(s => s.name).join(', ')}`
+      );
+      return nonFeaturedSites;
+    });
+  }
+
+  /**
+   * Unfeatures a site (removes it from featured sites)
+   * @param siteId - The ID of the site to unfeature
+   * @returns Promise containing the response
+   */
+  async makeSiteUnFeatured(siteId: string): Promise<any> {
+    return await this.appManagerApiClient.getSiteManagementService().unfeatureSite(siteId);
   }
 
   /**

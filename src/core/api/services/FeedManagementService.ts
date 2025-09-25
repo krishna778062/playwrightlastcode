@@ -210,10 +210,10 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
   /**
    * @description Uploads file binary data to the signed upload URL
    * @param {string} uploadUrl The signed upload URL from uploadImage response
-   * @param {Buffer | string} fileData The file data to upload (binary data)
    * @param {string} fileName The original filename for Content-Disposition header
-   * @param {string} mimeType The MIME type of the file
-   * @returns {Promise<any>}
+   * @param {string} filePath The local path to the file
+   * @param {string} [mimeType] The MIME type of the file (optional, defaults to 'image/png')
+   * @returns {Promise<APIResponse>}
    * @memberof FeedManagementService
    */
   async uploadToAttachmentURL(
