@@ -42,6 +42,9 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly ukgTimeOffDivider: Locator;
   readonly usedText: Locator;
   readonly balanceText: Locator;
+  readonly docuSignImage: Locator;
+  readonly fromPattern: RegExp;
+  readonly sentPattern: RegExp;
 
   constructor(page: Page) {
     super(page);
@@ -67,6 +70,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.menuitemFilter = page.getByRole('menuitem');
     this.showMoreButton = page.getByRole('button', { name: 'Show more' });
     this.visibleRowsContainer = page.locator('[data-testid="container"][aria-hidden="false"]');
+    this.docuSignImage = page.locator('img[src*="docusign"]');
     // Regex patterns for text matching
     this.prNumberPattern = /^#\d+/;
     this.createdAgoPattern = /^Created\s+.*\s+ago$/;
@@ -82,6 +86,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.ukgTimeOffDivider = page.getByTestId('divider');
     this.usedText = page.getByText(/Used: \d+(\.\d+)? hours/).first();
     this.balanceText = page.getByText(/Balance: \d+(\.\d+)? hours/).first();
+    this.fromPattern = /From/;
+    this.sentPattern = /Sent \d+ days? ago/;
   }
 
   /**
@@ -381,6 +387,36 @@ export class TileOperationsComponent extends BaseAppTileComponent {
 
       await this.clickOnElement(showMoreButton);
       await expect.poll(async () => rowsVisible.count(), { timeout: 10_000 }).toBeGreaterThan(initialVisible);
+    });
+  }
+  /**
+   * Verify DocuSign tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDocuSignTileContentStructure(tileTitle: string): Promise<void> {
+    await test.step(`Verify DocuSign tile content structure for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `DocuSign tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+      // Verify added Tile data
+      await expect(tile.locator(this.docuSignImage), 'DocuSign image should be visible in tile').toBeVisible();
+      // Get task records and verify at least one exists
+      const containers = tile.locator(this.container);
+      const count = await containers.count();
+      await expect(count, 'At least one container should be present in DocuSign tile').toBeGreaterThan(0);
+      // Verify first record has all required elements
+      const firstRecord = containers.first();
+      await expect(
+        firstRecord.getByText(this.duePattern).first(),
+        'Due date should be visible in the first record'
+      ).toBeVisible();
+      await expect(
+        firstRecord.getByText(this.fromPattern).first(),
+        'From field should be visible in the first record'
+      ).toBeVisible();
+      await expect(
+        firstRecord.getByText(this.sentPattern).first(),
+        'Sent field should be visible in the first record'
+      ).toBeVisible();
     });
   }
 }
