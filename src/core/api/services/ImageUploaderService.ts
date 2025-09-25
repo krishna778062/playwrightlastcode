@@ -2,14 +2,19 @@ import { APIRequestContext, test } from '@playwright/test';
 
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 import { IImageUploaderService } from '@/src/core/api/interfaces/IImageUploaderService';
+import { FeedManagementService } from '@/src/core/api/services/FeedManagementService';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 
 export class ImageUploaderService implements IImageUploaderService {
+  private feedService: FeedManagementService;
+
   constructor(
     private apiClient: HttpClient,
     private request: APIRequestContext
-  ) {}
+  ) {
+    this.feedService = new FeedManagementService(request);
+  }
 
   /**
    * Gets a signed URL from the API for file uploads.
@@ -74,5 +79,135 @@ export class ImageUploaderService implements IImageUploaderService {
     });
     await this.uploadFileToSignedUrl(uploadUrl, filePath, fileName);
     return fileId;
+  }
+
+  /**
+   * Creates an intranet file with attachment (similar to createFeedWithAttachment pattern)
+   * @param siteId - The site ID to upload the file to
+   * @param fileName - The name of the file to upload
+   * @param filePath - The local path to the file
+   * @param mimeType - The MIME type of the file
+   * @returns Promise with file ID
+   */
+  async uploadIntranetFile(
+    siteId: string,
+    fileName: string,
+    filePath: string,
+    mimeType: string
+  ): Promise<{
+    fileInfo: any;
+  }> {
+    return await test.step(`Creating intranet file with attachment "${fileName}"`, async () => {
+      // Get file size
+      const fileSize = FileUtil.getFileSize(filePath);
+
+      // Step 1: Get signed upload URL (similar to feed attachment)
+      const { uploadUrl, fileId } = await this.getSignedUploadUrl({
+        file_name: fileName,
+        size: fileSize,
+        mime_type: mimeType,
+        uploadContext: 'site-files',
+        type: 'content',
+        siteId: siteId,
+      });
+
+      if (!fileId) {
+        throw new Error('Failed to get fileId from intranet upload response');
+      }
+
+      // Step 2: Upload file to signed URL using FeedManagementService
+      await this.feedService.uploadToAttachmentURL(uploadUrl, fileName, filePath, mimeType);
+
+      // Step 3: Get file details from content files API to get owner name
+      const fileDetails = await this.getIntranetFileDetails(fileId, siteId);
+
+      return {
+        fileInfo: fileDetails.fileInfo,
+      };
+    });
+  }
+
+  /**
+   * Gets file details from content files API after upload
+   * @param fileId - The file ID from upload response
+   * @param siteId - The site ID
+   * @returns File details including owner name
+   */
+  private async getIntranetFileDetails(
+    fileId: string,
+    siteId: string
+  ): Promise<{
+    fileInfo: any;
+  }> {
+    return await test.step(`Getting file details for fileId: ${fileId}`, async () => {
+      const payload = {
+        file_id: [
+          {
+            file_id: fileId,
+            provider: 'intranet',
+          },
+        ],
+        site_id: siteId,
+      };
+
+      const response = await this.apiClient.post(API_ENDPOINTS.content.files, {
+        data: payload,
+      });
+
+      if (response.status() !== 201) {
+        throw new Error(`Failed to get file details. Status: ${response.status()}`);
+      }
+
+      const responseData = await response.json();
+
+      if (responseData.status !== 'success' || !responseData.result?.listOfFiles?.length) {
+        throw new Error('Invalid response from content files API');
+      }
+
+      const fileInfo = responseData.result.listOfFiles[0];
+
+      return {
+        fileInfo: fileInfo,
+      };
+    });
+  }
+
+  /**
+   * Deletes an intranet file using the content files API
+   * @param fileId - The file ID to delete
+   * @param siteId - The site ID
+   * @param provider - The provider (default: 'intranet')
+   * @returns Promise with deletion result
+   */
+  async deleteIntranetFile(
+    fileId: string,
+    siteId: string,
+    provider: string = 'intranet'
+  ): Promise<{
+    status: string;
+    message: string;
+    listOfFileIds: string[];
+  }> {
+    return await test.step(`Deleting intranet file with ID: ${fileId}`, async () => {
+      const deleteUrl = `${API_ENDPOINTS.content.files}/${fileId}?provider=${provider}&action=delete&isDir=false&siteId=${siteId}`;
+
+      const response = await this.apiClient.delete(deleteUrl);
+
+      if (response.status() !== 200) {
+        throw new Error(`Failed to delete file. Status: ${response.status()}`);
+      }
+
+      const responseData = await response.json();
+
+      if (responseData.status !== 'success') {
+        throw new Error(`File deletion failed: ${responseData.message || 'Unknown error'}`);
+      }
+
+      return {
+        status: responseData.status,
+        message: responseData.message,
+        listOfFileIds: responseData.result?.listOfFileIds || [fileId],
+      };
+    });
   }
 }
