@@ -119,7 +119,7 @@ test.describe(
       }
     );
 
-    test.only(
+    test(
       'verify that Retain AD groups if user switches from "Do not use AD groups" to "Use AD groups"',
       {
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
