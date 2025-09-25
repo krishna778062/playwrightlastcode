@@ -56,18 +56,18 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
     this.requestTimeOffButton = page.getByRole('button', { name: 'Request time off' }).first();
     this.editAmountButton = page.getByRole('button', { name: 'Edit amount' });
     this.amountInputs = page.locator('input[name*="days"][name*="amount"]');
-    this.totalAmountInput = page.locator('input[aria-label="Amount"]').first();
+    this.totalAmountInput = page.getByLabel('Amount').first();
     this.totalAmountHeading = page.getByRole('heading', { name: /total:/i }).first();
-    this.dropdownOption = page.locator('div[role="menuitem"]');
+    this.dropdownOption = page.getByRole('menuitem');
     this.calendarGrid = page.getByRole('grid');
-    this.dayPickerCell = page.locator('.DayPicker-Day[aria-label]');
+    this.dayPickerCell = page.getByRole('gridcell').filter({ hasText: /\d+/ });
     this.tileContainer = page.locator('aside.Tile').first();
     this.tileContent = this.tileContainer.locator('div, span, p').first();
-    this.monthSelect = page.locator('select[aria-label="Select month"]').first();
-    this.yearSelect = page.locator('select[aria-label="Select year"]').first();
+    this.monthSelect = page.getByLabel('Select month');
+    this.yearSelect = page.getByLabel('Select year');
     this.genericButton = page.getByRole('button');
     this.dropdownSelector = page.locator('[role="listbox"], [id^="react-select-"][id$="-listbox"]');
-    this.dayPickerCellByAriaLabel = page.locator('.DayPicker-Day');
+    this.dayPickerCellByAriaLabel = page.getByRole('gridcell').filter({ hasText: /\d+/ });
     this.requestTypeDropdown = page.locator('.css-b62m3t-container');
     this.requestTypeInput = page.locator('input[role="combobox"][aria-label="Request type"]');
     this.requestTypeMenu = page.locator('.Menu-module__menu__3PjCm, [role="listbox"]');
@@ -90,7 +90,11 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    */
   getDayCellByAriaLabel(ariaLabel: string): Locator {
     const dayNumber = ariaLabel.split(' ')[2];
-    return this.dayPickerCellByAriaLabel.filter({ hasText: dayNumber }).first();
+    // Use getByRole with gridcell and filter by exact text match
+    return this.page
+      .getByRole('gridcell')
+      .filter({ hasText: new RegExp(`^${dayNumber}$`) })
+      .first();
   }
 
   /**
