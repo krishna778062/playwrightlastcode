@@ -1,9 +1,9 @@
-name: Daily Regression Tests
+name: Integrations Regression Tests
 
 on:
   schedule:
-    # Run daily at 2 AM UTC (adjust timezone as needed)
-    - cron: '0 2 * * *'
+    # Run every 2 days on weekdays only (Monday-Friday) to check if integrations should run based on day/date logic
+    - cron: '0 2 */2 * 1-5'
   workflow_dispatch: # allows manual triggering for testing
 
 permissions:
@@ -12,13 +12,13 @@ permissions:
   pages: write
 
 jobs:
-  regression-tests:
+  integrations-regression-tests:
     timeout-minutes: 120
     runs-on: [kubernetes]
     strategy:
       fail-fast: false
       matrix:
-        module: [chat, platforms, global-search, content, de, reward, content-abac, frontline] # de is short for data-engineering
+        module: [integrations]
         environment: [qa]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
@@ -44,11 +44,35 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: Run regression tests
+      - name: Check if integrations should run today
+        id: check-integrations-schedule
+        run: |
+          # Get current day of week (1=Monday, 7=Sunday)
+          DAY_OF_WEEK=$(date +%u)
+          # Get current day of month
+          DAY_OF_MONTH=$(date +%d)
+
+          # Check if today is Monday, Wednesday, or Friday (1, 3, 5)
+          if [[ "$DAY_OF_WEEK" == "1" || "$DAY_OF_WEEK" == "3" || "$DAY_OF_WEEK" == "5" ]]; then
+            # Check if it's an odd day of month (1, 3, 5, 7, 9, etc.)
+            if (( DAY_OF_MONTH % 2 == 1 )); then
+              echo "should_run=true" >> $GITHUB_OUTPUT
+              echo "Integrations scheduled to run today (Day $DAY_OF_MONTH, Weekday $DAY_OF_WEEK)"
+            else
+              echo "should_run=false" >> $GITHUB_OUTPUT
+              echo "Integrations skipped today (Day $DAY_OF_MONTH, Weekday $DAY_OF_WEEK) - runs every 2 days on odd days"
+            fi
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "Integrations skipped today (Day $DAY_OF_MONTH, Weekday $DAY_OF_WEEK) - weekends excluded"
+          fi
+
+      - name: Run integrations regression tests
+        if: steps.check-integrations-schedule.outputs.should_run == 'true'
         env:
           TEST_ENV: ${{ matrix.environment }}
         run: |
-          # Run regression tests i.e. entire suite
+          # Run integrations regression tests
           npm run test:${{ matrix.module }} -- --workers=3
 
       - name: Upload test report to github artifact backup
@@ -174,8 +198,8 @@ jobs:
         run: |
           # Only send notification if tests actually ran (TOTAL_TESTS > 0)
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
-            # Prepare Slack message with hyperlinks
-            MESSAGE="🧪 *Daily Regression* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.FAILED_TESTS }} ❌ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+            # Prepare Slack message with hyperlinks for integrations
+            MESSAGE="🧪 *Integrations Regression (Every 2 Days, Weekdays Only)* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.FAILED_TESTS }} ❌ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             echo "MESSAGE: $MESSAGE"
             # Send to Slack using curl
             curl -X POST -H 'Content-type: application/json' \
@@ -195,7 +219,7 @@ jobs:
             if [ "$TOTAL_TESTS" -eq 0 ]; then
               # No tests found
               echo "No tests were found matching the criteria"
-              NO_TESTS_MESSAGE="⚠️ *Daily Regression: No Tests Found* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              NO_TESTS_MESSAGE="⚠️ *Integrations Regression: No Tests Found* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
               echo "NO_TESTS_MESSAGE: $NO_TESTS_MESSAGE"
               curl -X POST -H 'Content-type: application/json' \
                 --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
@@ -208,7 +232,7 @@ jobs:
           else
             # No test results file - this means pipeline failed before tests could run
             echo "No test results file found - pipeline likely failed"
-            FAILURE_MESSAGE="🚨 *Daily Regression Pipeline Failed* - \`${{ matrix.module }}\` module pipeline on \`${{ matrix.environment }}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+            FAILURE_MESSAGE="🚨 *Integrations Regression Pipeline Failed* - \`${{ matrix.module }}\` module pipeline on \`${{ matrix.environment }}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             echo "FAILURE_MESSAGE: $FAILURE_MESSAGE"
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
