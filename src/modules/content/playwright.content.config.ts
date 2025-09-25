@@ -6,7 +6,10 @@ import { PROJECT_ROOT } from '@core/constants/paths';
 
 import baseConfig from '../../../playwright.base.config';
 
-import { getContentTenantConfigFor } from './config/contentConfig';
+import { getContentTenantConfigFromCache, initializeContentConfig } from './config/contentConfig';
+
+// Initialize config for contentSettings tenant at config load time
+initializeContentConfig('primary');
 
 export default defineConfig({
   ...baseConfig,
@@ -24,7 +27,7 @@ export default defineConfig({
         headless: process.env.CI ? true : false,
         video: 'off',
         ...devices['Desktop Chrome'],
-        baseURL: getContentTenantConfigFor('primary').frontendBaseUrl,
+        baseURL: getContentTenantConfigFromCache().frontendBaseUrl,
         permissions: ['camera', 'microphone', 'notifications'],
         launchOptions: {
           args: ['--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage', '--enable-notifications'],
