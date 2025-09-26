@@ -27,6 +27,7 @@ test.describe(
         await loginAs('appManager');
 
         const homepage = new NewUxHomePage(page);
+        await homepage.verifyThePageIsLoaded();
         const analyticsLandingPage = await homepage.getSideNavBarComponent().clickOnAnalyticsButton();
         await analyticsLandingPage.verifyAllAnalyticsOptionsAreVisible();
       }
@@ -44,8 +45,8 @@ test.describe(
         });
 
         await loginAs('standardUser');
-
         const homepage = new NewUxHomePage(page);
+        await homepage.verifyThePageIsLoaded();
         await homepage.getSideNavBarComponent().verifyAnalyticsButtonVisibility(false);
       }
     );

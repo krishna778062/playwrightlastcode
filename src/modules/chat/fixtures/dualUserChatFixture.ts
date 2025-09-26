@@ -1,15 +1,14 @@
-import { BrowserContext, Page, test } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
-import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
-import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { MultiUserChatTestHelper } from '@modules/chat/helpers/multiUserChatTestHelper';
 
-import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
+import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
 import { StaticUsers } from '@/src/core/types';
-import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
+import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
+import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
+import { ChatAppPage } from '@/src/modules/chat/ui/pages/chatPage/chatPage';
 
 export interface StaticUsersConfig {
   user1: StaticUsers;
@@ -63,21 +62,17 @@ export function createDualUserChatFixture(userConfig?: StaticUsersConfig) {
       chatPages: { user1ChatPage: ChatAppPage; user2ChatPage: ChatAppPage };
     },
     {
-      appManagerApiClient: AppManagerApiClient;
+      appManagerApiContext: APIRequestContext;
     }
   >({
-    appManagerApiClient: [
-      async ({}, use, workerInfo) => {
-        console.log(`INFO: Setting up app manager client for dual user tests => Worker ${workerInfo.workerIndex}`);
-        const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-          type: 'credentials',
-          credentials: {
-            username: getEnvConfig().appManagerEmail,
-            password: getEnvConfig().appManagerPassword,
-          },
-          baseUrl: getEnvConfig().apiBaseUrl,
+    appManagerApiContext: [
+      async ({}, use) => {
+        const appManagerApiContext = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
+          email: getEnvConfig().appManagerEmail,
+          password: getEnvConfig().appManagerPassword,
         });
-        await use(appManagerApiClient);
+        await use(appManagerApiContext);
+        await appManagerApiContext.dispose();
       },
       { scope: 'worker' },
     ],
