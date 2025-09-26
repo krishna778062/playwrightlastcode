@@ -1,15 +1,16 @@
-import { BrowserContext, Page, test } from '@playwright/test';
+import { BrowserContext, Page, test, WorkerInfo } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { StandardUserApiClient } from '@core/api/clients/standardUserApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
+import { FeedManagementService } from '@core/api/services/FeedManagementService';
 import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
 import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
+import { IdentityManagementHelper } from '@core/helpers/identityManagementHelper';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
-import { UserManagerApiClient } from '@/src/core/api/clients/userManagerApiClient';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
@@ -24,13 +25,15 @@ export const users = {
     email: envConfig.appManagerEmail,
     password: envConfig.appManagerPassword,
   },
+
   endUser: {
     email: envConfig.endUserEmail || '',
     password: envConfig.endUserPassword || '',
   },
+
   siteManager: {
-    email: process.env.SITE_MANAGER_USERNAME || '',
-    password: process.env.SITE_MANAGER_PASSWORD || '',
+    email: envConfig.siteManagerEmail || '',
+    password: envConfig.siteManagerPassword || '',
   },
 } as const;
 
@@ -59,25 +62,31 @@ export const contentTestFixture = test.extend<
     // Browser contexts
     appManagerContext: BrowserContext;
     standardUserContext: BrowserContext;
+    siteManagerContext: BrowserContext;
 
     // Authenticated pages
     appManagerHomePage: HomePageType;
     appManagersPage: Page;
+    endUserContext: BrowserContext;
+    endUserHomePage: NewUxHomePage | OldUxHomePage;
+    endUsersPage: Page;
+    siteManagerHomePage: HomePageType;
+    siteManagerPage: Page;
+    feedManagerService: FeedManagementService;
+    manageContentEndUserHelper: ContentManagementHelper;
+
     standardUserHomePage: HomePageType;
     standardUserPage: Page;
 
     // Helpers and services
     siteManagementHelper: SiteManagementHelper;
-    siteManagerContext: BrowserContext;
-    siteManagerHomePage: NewUxHomePage | OldUxHomePage;
-    siteManagerPage: Page;
     contentManagementHelper: ContentManagementHelper;
     feedManagementHelper: FeedManagementHelper;
     standardUserFeedManagementHelper: FeedManagementHelper;
+    identityManagementHelper: IdentityManagementHelper;
 
     // Utility functions
     loginAs: (userType: UserType) => Promise<void>;
-    switchUser: (fromPage: Page, toUserType: UserType) => Promise<HomePageType>;
   },
   {
     // Worker-scoped fixtures
@@ -124,9 +133,7 @@ export const contentTestFixture = test.extend<
   appManagerContext: [
     async ({ browser }, use) => {
       const context = await browser.newContext({
-        // Optimize context creation
-        ignoreHTTPSErrors: true,
-        viewport: { width: 1920, height: 1080 },
+        permissions: ['camera', 'microphone', 'notifications'],
       });
 
       await use(context);
@@ -147,9 +154,10 @@ export const contentTestFixture = test.extend<
   standardUserContext: [
     async ({ browser }, use) => {
       const context = await browser.newContext({
+        permissions: ['camera', 'microphone', 'notifications'],
         // Optimize context creation
         ignoreHTTPSErrors: true,
-        viewport: { width: 1920, height: 1080 },
+        // viewport: { width: 1920, height: 1080 },
       });
 
       await use(context);
@@ -157,34 +165,11 @@ export const contentTestFixture = test.extend<
     },
     { scope: 'test' },
   ],
-
-  standardUserHomePage: [
-    async ({ standardUserContext }, use) => {
-      const homePage = await createAuthenticatedHomePage(standardUserContext, users.endUser);
-      await use(homePage);
-      await performLogout(homePage);
-    },
-    { scope: 'test' },
-  ],
-
-  standardUserPage: [
-    async ({ standardUserHomePage }, use) => {
-      await use(standardUserHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-
-  // Page references - lightweight wrappers
-  appManagersPage: [
-    async ({ appManagerHomePage }, use) => {
-      await use(appManagerHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-
   siteManagerContext: [
     async ({ browser }, use, workerInfo) => {
-      const context = await browser.newContext();
+      const context = await browser.newContext({
+        permissions: ['camera', 'microphone', 'notifications'],
+      });
       await use(context);
       await context?.close();
     },
@@ -212,6 +197,70 @@ export const contentTestFixture = test.extend<
     { scope: 'test' },
   ],
 
+  standardUserHomePage: [
+    async ({ standardUserContext }, use) => {
+      const homePage = await createAuthenticatedHomePage(standardUserContext, users.endUser);
+
+      await use(homePage);
+      await performLogout(homePage);
+    },
+    { scope: 'test' },
+  ],
+
+  // Page references - lightweight wrappers
+  appManagersPage: [
+    async ({ appManagerHomePage }, use) => {
+      await use(appManagerHomePage.page);
+    },
+    { scope: 'test' },
+  ],
+
+  endUserContext: [
+    async ({ browser }, use, _workerInfo) => {
+      const context = await browser.newContext();
+      await use(context);
+      await context?.close();
+    },
+    { scope: 'test' },
+  ],
+  endUserHomePage: [
+    async ({ endUserContext }, use, workerInfo) => {
+      const page = await endUserContext.newPage();
+      const endUserHomePage = await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().endUserEmail!,
+        password: getEnvConfig().endUserPassword!,
+      });
+      await endUserHomePage.verifyThePageIsLoaded();
+      await use(endUserHomePage);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+  endUsersPage: [
+    async ({ endUserHomePage }, use, workerInfo) => {
+      await use(endUserHomePage.page);
+    },
+    { scope: 'test' },
+  ],
+  standardUserPage: [
+    async ({ standardUserHomePage }, use) => {
+      await use(standardUserHomePage.page);
+    },
+    { scope: 'test' },
+  ],
+
+  feedManagerService: [
+    async (
+      { appManagerApiClient }: { appManagerApiClient: AppManagerApiClient },
+      use: (r: FeedManagementService) => Promise<void>
+    ) => {
+      const feedManagerService = new FeedManagementService(appManagerApiClient.context);
+      await use(feedManagerService);
+    },
+    { scope: 'test' },
+  ],
+
+  // Services and helpers - with proper cleanup
   feedManagementHelper: [
     async ({ appManagerApiClient }, use) => {
       const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
@@ -258,6 +307,15 @@ export const contentTestFixture = test.extend<
     { scope: 'test' },
   ],
 
+  identityManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const helper = new IdentityManagementHelper(appManagerApiClient);
+
+      await use(helper);
+    },
+    { scope: 'test' },
+  ],
+
   // Utility functions for user switching
   loginAs: [
     async ({ page }, use) => {
@@ -267,26 +325,6 @@ export const contentTestFixture = test.extend<
           throw new Error(`Missing credentials for user type: ${userType}`);
         }
         await LoginHelper.loginWithPassword(page, credentials);
-      });
-    },
-    { scope: 'test' },
-  ],
-
-  switchUser: [
-    async ({}, use) => {
-      await use(async (fromPage: Page, toUserType: UserType) => {
-        // Logout current user
-        await LoginHelper.logoutByNavigatingToLogoutPage(fromPage);
-
-        // Login as new user
-        const credentials = users[toUserType];
-        if (!credentials.email || !credentials.password) {
-          throw new Error(`Missing credentials for user type: ${toUserType}`);
-        }
-
-        const homePage = await LoginHelper.loginWithPassword(fromPage, credentials);
-        await homePage.verifyThePageIsLoaded();
-        return homePage;
       });
     },
     { scope: 'test' },

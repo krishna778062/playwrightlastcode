@@ -16,6 +16,7 @@ export const PAGE_ENDPOINTS = {
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
   MANAGE_USERS_PAGE: '/manage/users',
+  PEOPLE_DIRECTORY_PAGE: '/people',
   ACTIVITY_NOTIFICATION_PAGE: '/notifications/activity',
   LOGOUT: '/logout',
 
@@ -25,15 +26,32 @@ export const PAGE_ENDPOINTS = {
 
   // content management pages
   getSiteDashboardPage: (siteId: string) => `/site/${siteId}/dashboard`,
-  PAGE_CREATION_PAGE: '/site/:siteId/page/:pageId',
-  ALBUM_CREATION_PAGE: '/site/:siteId/album/:albumId',
-  EVENT_CREATION_PAGE: '/site/:siteId/event/:albumId',
-  SITE_CATEGORIES_PAGE: '/manage/site-categories',
+  getSiteFeedPage: (siteId: string) => `/site/${siteId}/feed`,
+  getSiteContentPage: (siteId: string) => `/site/${siteId}/content`,
+  getSiteQuestionsPage: (siteId: string) => `/site/${siteId}/questions`,
+  getSiteFilesPage: (siteId: string) => `/site/${siteId}/files`,
+  getSiteAboutPage: (siteId: string) => `/site/${siteId}/about/managers`,
   getContentPreviewPage: (siteId: string, contentId: string, contentType: string) =>
     `/site/${siteId}/${contentType}/${contentId}`,
   getAlbumCreationPage: (siteId: string) => `/site/${siteId}/album/add`,
   getEventCreationPage: (siteId: string) => `/site/${siteId}/event/add`,
   getPageCreationPage: (siteId: string) => `/site/${siteId}/page/add`,
+  getFeedPage: (feedId: string) => `/feed/${feedId}`,
+  APPLICATION_SETTINGS: 'manage/app/setup/general',
+  GOVERNANCE_SCREEN: 'manage/app/setup/governance',
+  PRIVILEGES_SCREEN: 'manage/app/setup/privileges',
+  MANAGE_FEATURE: 'manage-features',
+  MANAGE_CONTENT: 'manage/content',
+  MANAGE_CONTENT_APPLY_API: '/manage',
+  MANAGE_CONTENT_MOVE_API: '/v1/page',
+  MANAGE_CONTENT_DELETE_API: '/v1/content/sites/',
+
+  MANAGE_SITE_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
+  SITE_DETAILS_PAGE: (siteId: string) => PAGE_ENDPOINTS.getSiteDashboardPage(siteId),
+  SITE_CATEGORIES_PAGE: '/manage/site-categories',
+  PAGE_CREATION_PAGE: '/site/:siteId/page/:pageId',
+  ALBUM_CREATION_PAGE: '/site/:siteId/album/:albumId',
+  EVENT_CREATION_PAGE: '/site/:siteId/event/:albumId',
 
   // Integrations page
   CUSTOM_APPS_INTEGRATION_PAGE: '/manage/app/integrations/custom',

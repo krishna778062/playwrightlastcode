@@ -16,6 +16,7 @@ export class SiteCreationFormComponent extends BaseComponent {
 
   readonly siteNameInput: Locator;
   readonly categoryInput: Locator;
+  readonly categoryList: Locator;
 
   readonly manageSiteLink: Locator;
   readonly deactivateButton: Locator;
@@ -37,6 +38,7 @@ export class SiteCreationFormComponent extends BaseComponent {
 
     this.siteNameInput = page.getByRole('textbox', { name: 'Site name' });
     this.categoryInput = page.getByRole('combobox', { name: 'Category: This is a required' });
+    this.categoryList = page.locator('#category-list');
 
     this.manageSiteLink = page.getByRole('link', { name: 'Manage site' });
     this.deactivateButton = page.getByRole('button', { name: 'Deactivate' });
@@ -79,7 +81,8 @@ export class SiteCreationFormComponent extends BaseComponent {
 
       if (options.category) {
         await this.clickOnElement(this.categoryInput);
-        await this.clickOnElement(this.page.getByText(options.category, { exact: true }));
+        // Use more specific locator to avoid multiple matches
+        await this.clickOnElement(this.categoryList.getByText(options.category, { exact: true }));
       }
 
       if (options.isPrivate !== undefined) {
@@ -94,6 +97,10 @@ export class SiteCreationFormComponent extends BaseComponent {
 
   async setupTargetAudience(options?: { stepInfo?: string }): Promise<void> {
     await this.targetAudienceSection.setupAllOrganization(options);
+  }
+
+  async setupSpecificAudience(audienceName: string, options?: { stepInfo?: string }): Promise<void> {
+    await this.targetAudienceSection.setupSpecificAudienceViaPicker(audienceName, options);
   }
 
   async setMembershipApproval(

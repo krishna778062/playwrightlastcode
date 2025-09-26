@@ -2,6 +2,8 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/components/baseComponent';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
+
 export class ListFeedComponent extends BaseComponent {
   // Post options section
   readonly deleteButton: Locator;
@@ -12,6 +14,12 @@ export class ListFeedComponent extends BaseComponent {
   readonly favoriteButton: Locator;
   readonly unfavoriteButton: Locator;
   readonly likeButton: Locator;
+  readonly editButton: Locator;
+  readonly replyButton: Locator;
+  readonly replyInput: Locator;
+  readonly submitReplyButton: Locator;
+  readonly replyEditor: Locator;
+  readonly replyShowMoreButton: Locator;
 
   // Dynamic locator functions
   /**
@@ -22,6 +30,10 @@ export class ListFeedComponent extends BaseComponent {
   readonly getFeedTextLocator = (text: string): Locator =>
     this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
 
+  readonly successMessage = (message: string) =>
+    this.page.locator('div[class*="Toast-module"] p', { hasText: message });
+  readonly versionImageLocator = (fileId: string): Locator => this.page.locator(`img[src*="${fileId}"]`);
+
   /**
    * Gets a locator for the post timestamp
    * @param postText - The text of the post to find timestamp for
@@ -31,8 +43,13 @@ export class ListFeedComponent extends BaseComponent {
     this.page.locator(
       `xpath=//p[text()='${postText}']/ancestor::div[4]//div[contains(@class,'nameAndStatement')]/following-sibling::p/a`
     );
+  readonly imageButton = this.page.locator("button[aria-label='Open image in lightbox']");
+  readonly infoIcon = this.page.getByTestId('i-info');
 
   readonly postTextLocator = (postText: string): Locator => this.page.locator('p').filter({ hasText: postText });
+
+  readonly replyLocator = (replyText: string): Locator =>
+    this.page.locator('div[class*="replyContent"] p').filter({ hasText: replyText }).first();
 
   /**
    * Gets a locator for the post attachments
@@ -84,12 +101,19 @@ export class ListFeedComponent extends BaseComponent {
     super(page);
     this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' });
     this.deleteButton = this.page.locator("div:text('Delete')");
+    this.editButton = this.page.locator("div:text('Edit')");
     this.deleteConfirmDialog = this.page.locator('div[role="dialog"]');
     this.deleteConfirmButton = this.page.getByRole('button', { name: 'Delete' });
     this.closeButton = this.page.locator("button[class*='closeBtn']");
     this.inlineImagePreview = this.page.locator("div[class*='gallerySlide'] img");
     this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' });
     this.likeButton = this.page.getByRole('button', { name: 'React to this post' });
+    this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
+    this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' }).first();
+    this.replyInput = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
+    this.submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
+    this.replyEditor = this.page.getByRole('textbox', { name: 'You are in the content editor' });
+    this.replyShowMoreButton = this.page.getByTestId('replyContent').getByRole('button', { name: 'Show more' });
   }
 
   /**
@@ -152,6 +176,7 @@ export class ListFeedComponent extends BaseComponent {
    */
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
+      await this.getFeedTextLocator(expectedText).scrollIntoViewIfNeeded();
       await this.verifier.verifyTheElementIsVisible(this.getFeedTextLocator(expectedText), {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`,
@@ -216,6 +241,112 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.postTextLocator(postText), {
         assertionMessage: `Post "${postText}" should be visible`,
       });
+    });
+  }
+
+  async clickInfoIcon(fileId: string): Promise<void> {
+    await test.step('Click info icon', async () => {
+      await this.imageButton.hover();
+      console.log('Waiting for API: ', `${API_ENDPOINTS.content.files}/${fileId}`);
+      const fileApiPromise = this.page.waitForResponse(
+        response =>
+          response.url().includes(`${API_ENDPOINTS.content.files}/${fileId}`) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200
+      );
+      await this.clickOnElement(this.infoIcon);
+
+      await fileApiPromise;
+    });
+  }
+
+  async verifyImageButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify image button is not visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.successMessage('Deleted file successfully'));
+      await this.verifier.verifyTheElementIsNotVisible(this.imageButton);
+    });
+  }
+
+  /**
+   * Adds a reply to a specific post
+   * @param postText - The text of the post to reply to
+   * @param replyText - The reply text to add
+   */
+  async addReplyToPost(replyText: string): Promise<void> {
+    await test.step(`Add reply to post`, async () => {
+      // Click reply button
+      //add API wait for response
+      const replyApiPromise = this.page.waitForResponse(
+        response =>
+          response.url().includes(API_ENDPOINTS.feed.rudderstack) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200
+      );
+
+      await this.clickOnElement(this.replyButton, { stepInfo: 'Clicking on reply button' });
+
+      await replyApiPromise;
+      await this.verifier.verifyTheElementIsVisible(this.replyInput, {
+        assertionMessage: `Reply input should be visible`,
+      });
+
+      await this.fillInElement(this.replyEditor, replyText);
+
+      // Click submit reply button
+      await this.clickOnElement(this.submitReplyButton);
+    });
+  }
+
+  /**
+   * Verifies that a reply is visible under a specific post
+   * @param postText - The text of the original post
+   * @param replyText - The text of the reply to verify
+   */
+  async verifyReplyIsVisible(replyText: string): Promise<void> {
+    await test.step(`Verify reply is visible under post`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.replyLocator(replyText), {
+        assertionMessage: `Reply "${replyText}" should be visible under post`,
+      });
+    });
+  }
+
+  async verifyReplyIsNotVisible(replyText: string): Promise<void> {
+    await test.step(`Verify reply is not visible under post`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.replyLocator(replyText), {
+        assertionMessage: `Reply "${replyText}" should not be visible under post`,
+      });
+    });
+  }
+
+  /**
+   *
+   * @param postText Click reply show more button
+   */
+
+  async clickReplyShowMoreButton(): Promise<void> {
+    await test.step(`Click reply show more button`, async () => {
+      await this.hoverOverElementInJavaScript(this.replyShowMoreButton);
+      await this.clickOnElement(this.replyShowMoreButton);
+    });
+  }
+
+  async clickEditButton(): Promise<void> {
+    await test.step(`Click edit button`, async () => {
+      await this.clickOnElement(this.editButton);
+    });
+  }
+
+  async verifyVersionImageIsDisplayed(fileId: string): Promise<void> {
+    await test.step(`Verify version image is displayed for fileId: ${fileId}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.versionImageLocator(fileId), {
+        assertionMessage: `Version image with fileId ${fileId} should be visible`,
+      });
+    });
+  }
+
+  async clickOnInfoIcon(fileId: string): Promise<void> {
+    await test.step(`Click on info icon for fileId: ${fileId}`, async () => {
+      await this.clickOnElement(this.infoIcon);
     });
   }
 }

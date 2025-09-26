@@ -1,5 +1,7 @@
+// external imports
 import { APIRequestContext, expect, test } from '@playwright/test';
 
+// @core imports
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { IIdentityAdminOperations } from '@core/api/interfaces/IIdentityOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
@@ -9,15 +11,94 @@ import {
   IdentityAudienceSearchResponse,
   ListAudiencesResponse,
 } from '@core/types/audience.type';
-import { PeopleListOptions, PeopleListResponse } from '@core/types/people.type';
+import { PeopleListResponse } from '@core/types/people.type';
 import { IdentityUserSearchResponse } from '@core/types/user.type';
 
+// @/src imports
+import { audienceCreationParams } from '@/src/core/types/audience.type';
+
 interface ListRolesResponse {
+  status: number;
+  message: string;
   result: Array<{
     role_id: number;
     name: string;
-    description?: string;
+    description: string;
+    type: string;
+    is_editable: boolean;
+    scope: string | null;
+    is_applicable: boolean;
+    assignment_type: string;
+    account_id: string;
+    metadata: any;
+    created_on: string;
+    modified_on: string | null;
+    count: string;
   }>;
+}
+
+interface ListOfRolesResponse {
+  status: number;
+  message: string;
+  result: Array<{
+    role_id: string;
+    name: string;
+    description: string;
+    type: string;
+    is_editable: boolean;
+    scope: string | null;
+    is_applicable: boolean;
+    assignment_type: string;
+    account_id: string;
+    metadata: any;
+    created_on: string;
+    modified_on: string | null;
+    count: string;
+  }>;
+}
+
+interface UpdateUserRequest {
+  personal_info: {
+    first_name: string;
+    last_name: string;
+    timezone_id: number;
+    language_id: number;
+    locale_id: number;
+    email: string;
+    license_type: string;
+  };
+  work_info: {
+    department: string;
+    start_date: string;
+  };
+  role_id: string;
+  additional_role_id: string[];
+}
+
+interface UpdateUserResponse {
+  result: {
+    user_id: string;
+  };
+  message: string;
+}
+
+interface GetUserByIdResponse {
+  personal_info: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    timezone_id: number;
+    language_id: number;
+    locale_id: number;
+    license_type: string;
+  };
+  work_info: {
+    work_info_id: string;
+    department: string;
+    start_date: string;
+  };
+  role_id: string;
+  additional_role_id: string[];
 }
 
 export class IdentityService extends BaseApiClient implements IIdentityAdminOperations {
@@ -55,6 +136,101 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
     }
 
     return roleData.role_id;
+  }
+
+  /**
+   * Gets the list of roles from identity service
+   * @returns Promise<ListRolesResponse> - The roles list response
+   */
+  async getListOfRoles(): Promise<ListOfRolesResponse> {
+    return await test.step('Getting list of roles from identity service', async () => {
+      const response = await this.post(API_ENDPOINTS.identity.roles, {
+        data: {},
+      });
+      return await this.parseResponse<ListOfRolesResponse>(response);
+    });
+  }
+
+  /**
+   * Updates user information in identity service
+   * @param userId - The ID of the user to update
+   * @param userData - The user data to update
+   * @returns Promise<UpdateUserResponse> - The update response
+   */
+  async updateUser(userId: string, userData: UpdateUserRequest): Promise<UpdateUserResponse> {
+    return await test.step(`Updating user ${userId}`, async () => {
+      const response = await this.put(`${API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserId(userId)}`, {
+        data: userData,
+      });
+      console.log(`Updated user ${userId}`, JSON.stringify(userData, null, 2));
+      return await this.parseResponse<UpdateUserResponse>(response);
+    });
+  }
+
+  /**
+   * Updates user information with parameterized values
+   * @param userId - The ID of the user to update
+   * @param firstName - User's first name
+   * @param lastName - User's last name
+   * @param email - User's email
+   * @param department - User's department
+   * @param roleId - Primary role ID
+   * @param additionalRoleIds - Array of additional role IDs
+   * @param timezoneId - Timezone ID (default: 328)
+   * @param languageId - Language ID (default: 1)
+   * @param localeId - Locale ID (default: 1)
+   * @param licenseType - License type (default: "Corporate")
+   * @param startDate - Start date (default: "2024-07-22")
+   * @returns Promise<UpdateUserResponse> - The update response
+   */
+  async updateUserWithParams(
+    userId: string,
+    firstName: string,
+    lastName: string,
+    email: string,
+    department: string,
+    roleId: string,
+    additionalRoleIds: string[] = [],
+    timezoneId: number = 328,
+    languageId: number = 1,
+    localeId: number = 1,
+    licenseType: string = 'Corporate',
+    startDate: string = '2024-07-22'
+  ): Promise<UpdateUserResponse> {
+    const userData: UpdateUserRequest = {
+      personal_info: {
+        first_name: firstName,
+        last_name: lastName,
+        timezone_id: timezoneId,
+        language_id: languageId,
+        locale_id: localeId,
+        email: email,
+        license_type: licenseType,
+      },
+      work_info: {
+        department: department,
+        start_date: startDate,
+      },
+      role_id: roleId,
+      additional_role_id: [...additionalRoleIds],
+    };
+
+    return await this.updateUser(userId, userData);
+  }
+
+  /**
+   * Gets user information by user ID
+   * @param userId - The ID of the user to retrieve
+   * @param parseCustomFields - Whether to parse custom fields (default: true)
+   * @returns Promise<GetUserByIdResponse> - The user information response
+   */
+  async getUserById(userId: string, parseCustomFields: boolean = true): Promise<GetUserByIdResponse> {
+    return await test.step(`Getting user by ID: ${userId}`, async () => {
+      const response = await this.get(
+        `${API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserId(userId)}?parseCustomFields=${parseCustomFields}`
+      );
+      return await this.parseResponse<GetUserByIdResponse>(response);
+    });
   }
 
   /**
@@ -237,29 +413,25 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
 
   /**
    * Creates audience under the given category name
-   * @param name - Name of the category
-   * @param categoryid - Parent category id under which audience need to found
-   * @param attribute - Attribute to be selected for audience creation
-   * @param operator - Operator to be selected for audience creation
-   * @param value - Value to be passed for audience creation
+   * @param createAudienceParams - Object containing the audience name, category id, attribute, operator and value
    * @param options - Optional attributes
    * @returns - Return boolean value according to the presence/absence of the audience under the given category
    */
   async createAudience(
-    name: string,
-    categoryId: string,
-    attribute: string,
-    operator: string,
-    value: string,
+    createAudienceParams: audienceCreationParams,
     options?: { type: string; fieldType: string }
   ): Promise<string> {
-    const isAudienceCreated = await this.isAudienceCreated(name, 10000, categoryId);
+    const isAudienceCreated = await this.isAudienceCreated(
+      createAudienceParams.audienceName,
+      10000,
+      createAudienceParams.categoryId
+    );
     if (!isAudienceCreated) {
       let audienceId = '';
-      await test.step(`Creating audience ${name} under category ${categoryId}`, async () => {
+      await test.step(`Creating audience ${createAudienceParams.audienceName} under category ${createAudienceParams.categoryId}`, async () => {
         const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiences, {
           data: {
-            name: name,
+            name: createAudienceParams.audienceName,
             type: options?.type || 'mixed',
             audienceRule: {
               AND: [
@@ -268,28 +440,30 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
                     {
                       values: [
                         {
-                          value: value,
+                          value: createAudienceParams.value,
                         },
                       ],
-                      attribute: attribute,
-                      operator: operator,
+                      attribute: createAudienceParams.attribute,
+                      operator: createAudienceParams.operator,
                       fieldType: options?.fieldType || 'regular',
                     },
                   ],
                 },
               ],
             },
-            categoryId: categoryId,
+            categoryId: createAudienceParams.categoryId,
           },
         });
         expect(response.status(), `Audience created successfully`).toEqual(201);
         const responseJson = await this.parseResponse<audienceCreationResponse>(response);
-        console.log(`Audience created: ${name}`);
+        console.log(`Audience created: ${createAudienceParams.audienceName}`);
         audienceId = responseJson.result.audienceId;
       });
       return audienceId;
     } else {
-      console.log(`Audience ${name} already created under category ${categoryId}!!!`);
+      console.log(
+        `Audience ${createAudienceParams.audienceName} already created under category ${createAudienceParams.categoryId}!!!`
+      );
       return '';
     }
   }
@@ -474,6 +648,43 @@ export class IdentityService extends BaseApiClient implements IIdentityAdminOper
         })
       ).toBeOK();
     });
+  }
+
+  /**
+   * Get all categories using hierarchy API
+   */
+  async getCategories(): Promise<any[]> {
+    const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
+      data: {
+        nextPageToken: 0,
+        type: 'category',
+        size: 10,
+        selectedFields: [],
+        term: '',
+      },
+    });
+
+    const json = await response.json();
+    return json?.result?.listOfItems || [];
+  }
+
+  /**
+   * Get audiences in a specific category using hierarchy API
+   */
+  async getAudiencesInCategory(categoryId: string): Promise<any[]> {
+    const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
+      data: {
+        nextPageToken: 0,
+        type: 'audience',
+        parentCategoryId: categoryId,
+        size: 10,
+        selectedFields: [],
+        term: '',
+      },
+    });
+
+    const json = await response.json();
+    return json?.result?.listOfItems || [];
   }
 
   /**

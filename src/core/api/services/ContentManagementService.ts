@@ -3,9 +3,9 @@ import { IContentManagementServices } from '@api/interfaces/IContentManagementSe
 import { APIRequestContext, expect, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-import { TIMEOUTS } from '@core/constants/timeouts';
 import {
   AlbumCreationPayload,
+  ContentListResponse,
   EventCreationPayload,
   PageCreationPayload,
   TopicListResponse,
@@ -234,6 +234,8 @@ export class ContentManagementService extends BaseApiClient implements IContentM
           listOfTopics: payload.listOfTopics,
           contentType: payload.contentType,
           isNewTiptap: payload.isNewTiptap,
+          ...(payload.eventSync && { eventSync: payload.eventSync }),
+          ...(payload.rsvp && { rsvp: payload.rsvp }),
         },
       });
       const json = await response.json();
@@ -244,6 +246,9 @@ export class ContentManagementService extends BaseApiClient implements IContentM
       return {
         eventId: json.result.id,
         authorName: json.result.authoredBy?.name,
+        ...(json.result.eventSyncDetails && { eventSyncDetails: json.result.eventSyncDetails }),
+        ...(json.result.hasRsvp !== undefined && { hasRsvp: json.result.hasRsvp }),
+        ...(json.result.rsvp && { rsvpDetails: json.result.rsvp }),
       };
     });
   }
@@ -329,6 +334,33 @@ export class ContentManagementService extends BaseApiClient implements IContentM
         data: requestData,
       });
       return await this.parseResponse<TopicListResponse>(response);
+    });
+  }
+
+  /**
+   * Gets the content list in a specific site
+   * @param siteId - The ID of the site to get content from
+   * @param options - Optional parameters for content filtering
+   * @returns Promise with the content list response
+   */
+  async getContentList(
+    options: {
+      size?: number;
+      status?: string;
+      sortBy?: string;
+    } = {}
+  ) {
+    return await test.step('Getting content list ', async () => {
+      const requestData = {
+        size: options.size || 16,
+        status: options.status || 'published',
+        sortBy: options.sortBy || 'publishedNewest',
+      };
+
+      const response = await this.post(API_ENDPOINTS.content.contentListInSite, {
+        data: requestData,
+      });
+      return await this.parseResponse<ContentListResponse>(response);
     });
   }
 }

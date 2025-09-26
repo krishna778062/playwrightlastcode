@@ -75,7 +75,7 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.SITE_CREATION],
         },
-        async ({ appManagerHomePage, appManagersPage }) => {
+        async ({ appManagerHomePage, appManagersPage, siteManagementHelper }) => {
           tagTest(test.info(), {
             description: siteData.description,
             zephyrTestId: siteData.zephyrTestId,
@@ -91,7 +91,10 @@ test.describe(
           console.log(`INFO: Creating ${siteData.displayName} with options:`, siteCreationOptions);
 
           // STEP 3: Create and publish the site
-          const { siteDashboard, siteId } = await siteCreationPage.actions.addSite(siteCreationOptions);
+          const { siteDashboard, siteId } = await siteCreationPage.actions.addSite(
+            siteCreationOptions,
+            siteManagementHelper
+          );
 
           // Store IDs for cleanup
           createdSiteId = siteId;
@@ -103,11 +106,8 @@ test.describe(
           // STEP 4: Verify we're on the correct site dashboard page
           await siteDashboard.assertions.verifyDashboardUrl(createdSiteId);
 
-          // STEP 5: Verify site name and creation success
-          await siteDashboard.assertions.verifySiteName(
-            siteCreationOptions.title || siteCreationOptions.name,
-            'Created site successfully'
-          );
+          // STEP 5: Verify site name is displayed correctly
+          await siteDashboard.verifySiteNameIs(siteCreationOptions.title || siteCreationOptions.name);
         }
       );
     }

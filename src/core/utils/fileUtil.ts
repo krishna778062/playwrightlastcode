@@ -1,6 +1,6 @@
+import { faker } from '@faker-js/faker';
 import fs from 'fs';
 import path from 'path';
-
 export class FileUtil {
   /**
    * Reads the contents of a directory.
@@ -107,6 +107,69 @@ export class FileUtil {
     const { faker } = require('@faker-js/faker');
     const uniqueName = `${faker.lorem.word()}-${Date.now()}${fileExtension}`;
     return path.join(path.dirname(originalFilePath), uniqueName);
+  }
+
+  /**
+   * Safely deletes a temporary file with error handling.
+   * Used for cleanup operations to remove temporary files after processing.
+   * @param filePath - The path to the temporary file to delete.
+   * @throws Will throw an error if the file cannot be deleted.
+   */
+  private static deleteFile(filePath: string): void {
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } catch (error) {
+      console.error(`Error deleting temporary file ${filePath}:`, error);
+      throw new Error(`Failed to delete temporary file: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * Creates a copy of a file with a random name for testing purposes.
+   * This method generates a unique filename and creates a copy.
+   * @param originalFilePath - The path to the original file
+   * @returns Object containing both the file path and filename
+   */
+  public static createRandomFileCopy(originalFilePath: string): {
+    filePath: string;
+    fileName: string;
+  } {
+    if (!this.fileExists(originalFilePath)) {
+      throw new Error(`Source file not found: ${originalFilePath}`);
+    }
+
+    const fileName = path.basename(originalFilePath);
+    const lastDotIndex = fileName.lastIndexOf('.');
+    const baseName = lastDotIndex !== -1 ? fileName.substring(0, lastDotIndex) : fileName;
+    const extension = lastDotIndex !== -1 ? fileName.substring(lastDotIndex) : '';
+
+    // Generate random filename
+    const randomNum = faker.number.int({ min: 1000, max: 9000 });
+    const randomFileName = `${baseName}${randomNum}${extension}`;
+
+    const newFilePath = path.join(path.dirname(originalFilePath), randomFileName);
+    this.createTemporaryFileCopy(originalFilePath, newFilePath);
+
+    return {
+      filePath: newFilePath,
+      fileName: randomFileName,
+    };
+  }
+
+  /**
+   * Cleans up a temporary file if it exists.
+   * @param filePath - The path to the file to clean up
+   */
+  public static cleanUpFile(filePath: string): void {
+    if (this.fileExists(filePath)) {
+      try {
+        this.deleteFile(filePath);
+      } catch (error) {
+        console.warn(`Failed to cleanup temporary file ${filePath}: ${error}`);
+      }
+    }
   }
 
   /**
