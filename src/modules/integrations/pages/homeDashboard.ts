@@ -392,4 +392,11 @@ export class HomeDashboard {
   async verifyShowMoreBehavior(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyShowMoreBehavior(tileTitle);
   }
+  /**
+   * Verify DocuSign tile content structure with task records
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDocuSignContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyDocuSignTileContentStructure(tileTitle);
+  }
 }
