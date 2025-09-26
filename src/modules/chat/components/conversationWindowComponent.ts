@@ -172,6 +172,10 @@ export class ConversationWindowComponent extends BaseComponent {
             expectedLoc = lastMessageStrip.locator('section p em s strong u');
 
             break;
+          case 'bullet points ':
+            expectedLoc = lastMessageStrip.locator('section p ul.custom-bullet-list li');
+
+            break;
         }
         // Verify exact text match
         if (expectedLoc) {
