@@ -7,7 +7,7 @@ import { MessageEmojis } from '@core/constants/messageEmojis';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 
-import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
+import { ChatAppPage } from '@/src/modules/chat/ui/pages/chatPage/chatPage';
 
 test.describe('Group Chat with multiple users', { tag: [CHAT_SUITE_TAGS.GROUP_CHAT] }, () => {
   let user1: ChatTestUser;

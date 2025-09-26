@@ -4,9 +4,9 @@ import { groupChatTestFixture as test } from '@chat/fixtures/groupChatFixture';
 import { ChatTestUser } from '@chat/types/chat-test.type';
 import { TestPriority } from '@core/constants/testPriority';
 
-import { MessageCardComponent } from '@/src/modules/chat/components/messageCardComponent';
 import { CHAT_SUITE_TAGS } from '@/src/modules/chat/constants/testTags';
-import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
+import { MessageCardComponent } from '@/src/modules/chat/ui/components/messageCardComponent';
+import { ChatAppPage } from '@/src/modules/chat/ui/pages/chatPage/chatPage';
 
 test.describe(
   'Test chat application with attachment',

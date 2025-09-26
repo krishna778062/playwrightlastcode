@@ -1,8 +1,8 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { FIELD_VALIDATION } from '@/src/core/constants/fieldValidation';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { FIELD_VALIDATION } from '@/src/modules/platforms/constants/fieldValidation';
 
 export type CategoryModalMode = 'create' | 'edit';
 
