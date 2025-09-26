@@ -9,6 +9,7 @@ import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
 import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/contentManagementHelper';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
+import { UserManagementService } from '@/src/modules/platforms/apis/services/UserManagementService';
 
 export type IntegrationsEventFixtures = {
   appManagerBrowserContext: BrowserContext;
@@ -16,6 +17,7 @@ export type IntegrationsEventFixtures = {
   appManagerHomePage: NewUxHomePage | OldUxHomePage;
   siteManagementHelper: SiteManagementHelper;
   contentManagementHelper: ContentManagementHelper;
+  userManagementService: UserManagementService;
   testSiteName: string;
 };
 
@@ -41,6 +43,13 @@ export const integrationsEventFixture = base.extend<IntegrationsEventFixtures, I
       const siteManagementHelper = new SiteManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
       await use(siteManagementHelper);
       await siteManagementHelper.cleanup();
+    },
+    { scope: 'test' },
+  ],
+  userManagementService: [
+    async ({ appManagerApiContext }, use) => {
+      const userManagementService = new UserManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
+      await use(userManagementService);
     },
     { scope: 'test' },
   ],

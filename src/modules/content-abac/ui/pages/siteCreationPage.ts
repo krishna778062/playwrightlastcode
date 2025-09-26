@@ -3,7 +3,7 @@ import { expect, Page, test } from '@playwright/test';
 
 import { SiteCreationPayload } from '@/src/core/types/siteManagement.types';
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { SiteType } from '@/src/modules/content-abac/constants/siteType';
+import { SiteType } from '@/src/modules/content-abac/constants/siteTypeABAC';
 
 export interface ISiteCreationPageAssertions {
   verifySiteCreationFormStructure: () => Promise<void>;
@@ -165,24 +165,24 @@ export class SiteCreationPage extends BasePage implements ISiteCreationPageAsser
     });
   }
 
-  /**
-   * Get or create an audience name for site creation.
-   * Business logic: Create audience when there are no audience, else use existing.
-   */
-  async getOrCreateAudienceName(identity: IdentityService): Promise<string> {
-    try {
-      // Use SiteAudienceHelper to find existing audience
-      const audienceHelper = new SiteAudienceHelper(identity);
+  // /**
+  //  * Get or create an audience name for site creation.
+  //  * Business logic: Create audience when there are no audience, else use existing.
+  //  */
+  // async getOrCreateAudienceName(identity: IdentityService): Promise<string> {
+  //   try {
+  //     // Use SiteAudienceHelper to find existing audience
+  //     const audienceHelper = new SiteAudienceHelper(identity);
 
-      const existingAudience = await audienceHelper.getAudienceName();
-      if (existingAudience) {
-        return existingAudience;
-      }
+  //     const existingAudience = await audienceHelper.getAudienceName();
+  //     if (existingAudience) {
+  //       return existingAudience;
+  //     }
 
-      // Create new audience if none exist
-      return await audienceHelper.createAudienceName();
-    } catch (error) {
-      throw new Error(`Failed to get or create audience: ${error}`);
-    }
-  }
+  //     // Create new audience if none exist
+  //     return await audienceHelper.createAudienceName();
+  //   } catch (error) {
+  //     throw new Error(`Failed to get or create audience: ${error}`);
+  //   }
+  // }
 }

@@ -1,10 +1,15 @@
-import { test } from '@playwright/test';
+import { APIRequestContext } from '@playwright/test';
 
-import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
-import { IdentityService } from '@/src/core/api/services/IdentityService';
+import { IdentityService } from '@/src/modules/platforms/apis/services';
 
 export class SiteAudienceHelper {
-  constructor(private identity: IdentityService) {}
+  readonly identity: IdentityService;
+  constructor(
+    readonly apiRequestContext: APIRequestContext,
+    readonly baseUrl: string
+  ) {
+    this.identity = new IdentityService(apiRequestContext, baseUrl);
+  }
 
   /**
    * Find first available audience from any category (excluding 'Site' category)

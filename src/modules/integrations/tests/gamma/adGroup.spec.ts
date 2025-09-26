@@ -6,8 +6,8 @@ import { ActionType } from '@/src/modules/integrations/constants/common';
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { GammaIntegrationsFeatureTags, IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
 import { integrationsFixture as test } from '@/src/modules/integrations/fixtures/integrationsFixture';
-import { AdGroupPage } from '@/src/modules/integrations/pages/adGroupPage';
 import { AD_GROUP } from '@/src/modules/integrations/test-data/gamma-data-file';
+import { AdGroupPage } from '@/src/modules/integrations/ui/pages/adGroupPage';
 
 let adGroup: AdGroupPage;
 
