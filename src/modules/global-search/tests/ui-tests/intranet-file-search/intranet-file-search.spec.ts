@@ -2,10 +2,10 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { IntranetFileListComponent } from '@/src/modules/global-search/components/intranetFileListComponent';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { INTRANET_FILE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/intranet-file-search.test-data';
+import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
+import { IntranetFileListComponent } from '@/src/modules/global-search/ui/components/intranetFileListComponent';
 
 for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
   test.describe(
@@ -87,7 +87,15 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
             fileType.type
           );
           const fileResultItem = new IntranetFileListComponent(fileResult.page, fileResult.rootLocator);
-          await fileResultItem.verifyNameIsDisplayed(uploadedFileName);
+          await fileResultItem.verifyIntranetFileResultItem({
+            name: uploadedFileName,
+            label: fileType.label,
+            author: authorName,
+            type: fileType.type,
+            siteName,
+            siteId,
+            fileId,
+          });
 
           // Click on the file filter in the sidebar to filter results by files only
           await globalSearchResultPage.verifyAndClickSidebarFilter({
@@ -95,14 +103,30 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
             iconType: 'file',
           });
 
-          await fileResultItem.verifyNameIsDisplayed(uploadedFileName);
+          await fileResultItem.verifyIntranetFileResultItem({
+            name: uploadedFileName,
+            label: fileType.label,
+            author: authorName,
+            type: fileType.type,
+            siteName,
+            siteId,
+            fileId,
+          });
 
           const originalCount = await globalSearchResultPage.verifyAndClickSiteSubFilter({
             filterText: 'Files',
             siteName: siteName,
           });
 
-          await fileResultItem.verifyNameIsDisplayed(uploadedFileName);
+          await fileResultItem.verifyIntranetFileResultItem({
+            name: uploadedFileName,
+            label: fileType.label,
+            author: authorName,
+            type: fileType.type,
+            siteName,
+            siteId,
+            fileId,
+          });
 
           // Click on site subfilter, verify count tracking, and reset functionality
           await globalSearchResultPage.verifySiteSubFilterWithCountTracking({
@@ -111,7 +135,15 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
             originalCount: originalCount,
             expectedCountAfterFilter: 1,
           });
-          await fileResultItem.verifyNameIsDisplayed(uploadedFileName);
+          await fileResultItem.verifyIntranetFileResultItem({
+            name: uploadedFileName,
+            label: fileType.label,
+            author: authorName,
+            type: fileType.type,
+            siteName,
+            siteId,
+            fileId,
+          });
         }
       );
     }

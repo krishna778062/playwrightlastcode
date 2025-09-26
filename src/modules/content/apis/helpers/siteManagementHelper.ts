@@ -1,6 +1,5 @@
 import { APIRequestContext, test } from '@playwright/test';
 
-import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import {
   SiteCreationPayload,
   SiteMembershipAction,
@@ -9,6 +8,7 @@ import {
 } from '@/src/core/types/siteManagement.types';
 import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
+import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 interface Site {

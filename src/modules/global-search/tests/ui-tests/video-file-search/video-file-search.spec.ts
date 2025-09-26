@@ -3,8 +3,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { VIDEO_FILE_SEARCH_TEST_DATA as testData } from '@/src/modules/global-search/test-data/video-file-search.test-data';
+import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
 
 for (const fileType of testData.fileTypes) {
   test.describe(

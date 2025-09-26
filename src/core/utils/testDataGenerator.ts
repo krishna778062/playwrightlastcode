@@ -3,9 +3,9 @@ import { faker } from '@faker-js/faker';
 import { User } from '@core/types/user.type';
 
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
-import { AlbumCreationOptions } from '@/src/modules/content/pages/albumCreationPage';
-import { EventCreationOptions } from '@/src/modules/content/pages/eventCreationPage';
-import { PageCreationOptions } from '@/src/modules/content/pages/pageCreationPage';
+import { AlbumCreationOptions } from '@/src/modules/content/ui/pages/albumCreationPage';
+import { EventCreationOptions } from '@/src/modules/content/ui/pages/eventCreationPage';
+import { PageCreationOptions } from '@/src/modules/content/ui/pages/pageCreationPage';
 
 export class TestDataGenerator {
   /**

@@ -3,12 +3,12 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import {
   getLinkTileSearchTestData,
   PREDEFINED_LINKS,
   TILE_NUMBER_OF_LINKS,
 } from '@/src/modules/global-search/test-data/link-tile-search.test-data';
+import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
 
 test.describe(
   `Test Global Search - Link Tile Search functionality`,
@@ -33,7 +33,7 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE],
         },
-        async ({ appManagerHomePage, appManagerApiClient, tileCleanupTracker }) => {
+        async ({ appManagerHomePage, tileManagementHelper, tileCleanupTracker }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-12408',
             storyId: 'SEN-12305',
@@ -41,9 +41,12 @@ test.describe(
 
           // Create tile using the service directly
           const testData = getLinkTileSearchTestData();
-          const tileResponse = await appManagerApiClient
-            .getTileManagementService()
-            .createTile(newSiteId, testData.tileTitle, numberOfLinks, PREDEFINED_LINKS);
+          const tileResponse = await tileManagementHelper.tileManagementService.createTile(
+            newSiteId,
+            testData.tileTitle,
+            numberOfLinks,
+            PREDEFINED_LINKS
+          );
 
           const tileId = tileResponse.result.id;
           const tileTitle = testData.tileTitle;
@@ -78,16 +81,19 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
-      async ({ appManagerHomePage, appManagerApiClient, tileCleanupTracker }) => {
+      async ({ appManagerHomePage, tileManagementHelper, tileCleanupTracker }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19284',
         });
 
         // Create tile using the service directly
         const testData = getLinkTileSearchTestData();
-        const tileResponse = await appManagerApiClient
-          .getTileManagementService()
-          .createTile(newSiteId, testData.tileTitle, 2, PREDEFINED_LINKS);
+        const tileResponse = await tileManagementHelper.tileManagementService.createTile(
+          newSiteId,
+          testData.tileTitle,
+          2,
+          PREDEFINED_LINKS
+        );
 
         const tileId = tileResponse.result.id;
         const tileTitle = testData.tileTitle;

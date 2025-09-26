@@ -4,8 +4,8 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { ExternalSearch } from '@/src/core/types/externalSearch.type';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { generateUniqueExternalSearchTestData } from '@/src/modules/global-search/test-data/external-search.test-data';
+import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
 
 test.describe(
   'Global Search - To verify External Search links',
@@ -16,7 +16,7 @@ test.describe(
     let expectedProviderOrder: ExternalSearch['provider'][];
     let searchTerm: string;
 
-    test.beforeEach('Setup External Search Configuration', async ({ appManagerApiClient }) => {
+    test.beforeEach('Setup External Search Configuration', async ({ externalSearchManagementService }) => {
       // Generate unique test data to avoid conflicts in parallel execution
       const testData = generateUniqueExternalSearchTestData();
       expectedProviderOrder = testData.expectedProviderOrder;
@@ -25,8 +25,7 @@ test.describe(
       // Setup external search configuration directly
       await test.step('Setup External Search Configuration', async () => {
         await test.step(`Configure ${testData.providers.length} unique external search providers`, async () => {
-          const externalSearchService = appManagerApiClient.getExternalSearchManagementService();
-          await externalSearchService.updateExternalSearchConfig(testData.providers);
+          await externalSearchManagementService.updateExternalSearchConfig(testData.providers);
         });
       });
     });

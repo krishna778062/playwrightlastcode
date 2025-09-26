@@ -3,11 +3,11 @@ import { APIRequestContext, test } from '@playwright/test';
 
 import { FeedMode } from '@core/types/feedManagement.types';
 
-import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import {
   buildFeedTextJsonAndTextHtml,
   FeedManagementService,
 } from '@/src/modules/content/apis/services/FeedManagementService';
+import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 
 interface CreatedFeed {
   feedId: string;

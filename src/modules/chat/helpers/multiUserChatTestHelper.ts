@@ -1,9 +1,8 @@
 import { Browser, test } from '@playwright/test';
 
+import { ChatAppPage } from '@chat/ui/pages/chatPage/chatPage';
 import { MultiUserTestHelper } from '@core/helpers/multiUserTestHelper';
 import { ChatTestSetupResult } from '@modules/chat/types';
-
-import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 
 export class MultiUserChatTestHelper extends MultiUserTestHelper {
   public testData!: ChatTestSetupResult;

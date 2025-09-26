@@ -3,8 +3,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { generateUniqueTestData } from '@/src/modules/global-search/test-data/apps-search.test-data';
+import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
 
 test.describe(
   'Test Global Search - Apps Search functionality',
@@ -16,7 +16,7 @@ test.describe(
     let uniqueTestData: any;
     let uniqueTestApp: any;
 
-    test.beforeEach('Setting up the test environment for apps search', async ({ appManagerApiClient }) => {
+    test.beforeEach('Setting up the test environment for apps search', async ({ appManagementService }) => {
       try {
         // Generate unique test data to avoid conflicts in parallel execution
         const { testData, testApp } = generateUniqueTestData();
@@ -26,18 +26,18 @@ test.describe(
         console.log(`Generated unique test data: ${uniqueTestData.appName}`);
 
         // Store original apps settings
-        const currentSettings = await appManagerApiClient.getAppsManagementService().getAppsSettings();
+        const currentSettings = await appManagementService.getAppsSettings();
         originalAppsSettings = currentSettings.result;
 
         // Add unique test app to the apps settings
-        await appManagerApiClient.getAppsManagementService().addApp(uniqueTestApp);
+        await appManagementService.addApp(uniqueTestApp);
         console.log(`Added unique app: ${uniqueTestApp.name}`);
 
         // Wait until the app appears in the launchpad apps list
-        await appManagerApiClient.getAppsManagementService().waitForAppToAppearInLaunchpadList(uniqueTestData.appName);
+        await appManagementService.waitForAppToAppearInLaunchpadList(uniqueTestData.appName);
 
-        await appManagerApiClient.getAppsManagementService().getAppsSettings();
-        await appManagerApiClient.getAppsManagementService().getLaunchpadAppsList();
+        await appManagementService.getAppsSettings();
+        await appManagementService.getLaunchpadAppsList();
         console.log('Successfully set up test environment for apps search');
       } catch (error) {
         console.error('Failed to set up test environment:', error);
@@ -45,11 +45,11 @@ test.describe(
       }
     });
 
-    test.afterEach('Tearing down the test environment for apps search', async ({ appManagerApiClient }) => {
+    test.afterEach('Tearing down the test environment for apps search', async ({ appManagementService }) => {
       try {
         // Remove the specific test app we added
         if (uniqueTestApp) {
-          await appManagerApiClient.getAppsManagementService().removeApp(uniqueTestApp.name);
+          await appManagementService.removeApp(uniqueTestApp.name);
           console.log(`Removed unique app: ${uniqueTestApp.name}`);
         }
       } catch (error) {

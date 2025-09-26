@@ -1,6 +1,5 @@
 import { APIRequestContext, expect, test } from '@playwright/test';
 
-import { IContentManagementServices } from '@core/api/interfaces/IContentManagementServices';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import {
   AlbumCreationPayload,
@@ -11,6 +10,8 @@ import {
 } from '@core/types/contentManagement.types';
 
 import { HttpClient } from '../../../../core/api/clients/httpClient';
+
+import { IContentManagementServices } from '@/src/modules/content/apis/interfaces/IContentManagementServices';
 
 const defaultBaseContentPayload = {
   listOfFiles: [],

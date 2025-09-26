@@ -1,7 +1,7 @@
-import { FormattingOptions } from '../../../components/chatEditorComponent';
-import CONSTANT_DATA from '../../../constants/constantData';
-import { chatTestFixture as test } from '../../../fixtures/chatFixture';
-import { formattedMessageTestData, selectThenFormatTestData } from '../../../test-data/formatted-message-test-data';
+import CONSTANT_DATA from '@chat/constants/constantData';
+import { chatTestFixture as test } from '@chat/fixtures/chatFixture';
+import { selectThenFormatTestData } from '@chat/test-data/formatted-message-test-data';
+import { FormattingOptions } from '@chat/ui/components/chatEditorComponent';
 
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';

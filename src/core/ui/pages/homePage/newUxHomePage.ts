@@ -1,19 +1,18 @@
+import { CreateComponent as AbacCreateComponent } from '@content-abac/ui/components/globalCreateContainerComponent';
+import { SiteCreationPage as AbacSiteCreationPage } from '@content-abac/ui/pages/siteCreationPage';
 import { Page, test } from '@playwright/test';
 
+import { ContentType } from '@content/constants/contentType';
 import { AddContentModalComponent } from '@content/ui/components/addContentModal';
+import { CreateComponent } from '@content/ui/components/createComponent';
+import { NotificationComponent } from '@content/ui/components/notificationComponent';
+import { AlbumCreationPage } from '@content/ui/pages/albumCreationPage';
+import { EventCreationPage } from '@content/ui/pages/eventCreationPage';
+import { FeaturedSitePage } from '@content/ui/pages/featuredSitePage';
+import { PageCreationPage } from '@content/ui/pages/pageCreationPage';
+import { SiteCreationPage as ContentSiteCreationPage } from '@content/ui/pages/siteCreationPage';
 
 import { BaseHomePage, INewUxHomePageActions } from './baseHomePage';
-
-import { ContentType } from '@/src/modules/content/constants/contentType';
-import { CreateComponent } from '@/src/modules/content/ui/components/createComponent';
-import { NotificationComponent } from '@/src/modules/content/ui/components/notificationComponent';
-import { AlbumCreationPage } from '@/src/modules/content/ui/pages/albumCreationPage';
-import { EventCreationPage } from '@/src/modules/content/ui/pages/eventCreationPage';
-import { FeaturedSitePage } from '@/src/modules/content/ui/pages/featuredSitePage';
-import { PageCreationPage } from '@/src/modules/content/ui/pages/pageCreationPage';
-import { SiteCreationPage as ContentSiteCreationPage } from '@/src/modules/content/ui/pages/siteCreationPage';
-import { CreateComponent as AbacCreateComponent } from '@/src/modules/content-abac/components/globalCreateContainerComponent';
-import { SiteCreationPage as AbacSiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 
 export interface IFeaturedSiteActions {
   navigateToApplication: () => Promise<void>;

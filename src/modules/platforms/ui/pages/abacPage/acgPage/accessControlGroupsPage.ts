@@ -1,6 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { POPUP_BUTTONS } from '@core/constants/popupButtons';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { ACG_COLUMNS } from '@platforms/constants/acg';
 import { ACG_STATUS } from '@platforms/constants/acg';
@@ -8,6 +7,7 @@ import { ACG_STATUS } from '@platforms/constants/acg';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { changeDateFormatToYYYYMMDD } from '@/src/core/utils/dateUtil';
+import { POPUP_BUTTONS } from '@/src/modules/platforms/constants/popupButtons';
 import { AccessControlGroupModalComponent } from '@/src/modules/platforms/ui/components/accessControlGroupModal';
 import { ConfirmEditAccessControlGroupModalComponent } from '@/src/modules/platforms/ui/components/confirmEditAccessControlGroupModal';
 

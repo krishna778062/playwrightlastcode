@@ -1,3 +1,5 @@
+import { CreateComponent } from '@content-abac/ui/components/globalCreateContainerComponent';
+import { SiteCreationPage } from '@content-abac/ui/pages/siteCreationPage';
 import { Page, test } from '@playwright/test';
 
 import { BaseHomePage, ICommonHomePageAssertions, IOldUxHomePageActions } from './baseHomePage';
@@ -11,8 +13,6 @@ import { EventCreationPage } from '@/src/modules/content/ui/pages/eventCreationP
 import { FeaturedSitePage } from '@/src/modules/content/ui/pages/featuredSitePage';
 import { PageCreationPage } from '@/src/modules/content/ui/pages/pageCreationPage';
 import { SiteCreationPage as ContentSiteCreationPage } from '@/src/modules/content/ui/pages/siteCreationPage';
-import { CreateComponent } from '@/src/modules/content-abac/components/globalCreateContainerComponent';
-import { SiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
 
 export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions {
   constructor(page: Page) {

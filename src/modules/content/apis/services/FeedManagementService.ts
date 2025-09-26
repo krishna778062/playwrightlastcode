@@ -2,12 +2,13 @@ import { faker } from '@faker-js/faker';
 import { APIRequestContext, APIResponse, expect, test } from '@playwright/test';
 import * as fs from 'fs';
 
-import { IFeedManagementOperations } from '@core/api/interfaces/IFeedManagementOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { CreateFeedPostPayload, FeedPostResponse, UpdateFeedPostPayload } from '@core/types/feed.type';
 import { FeedMode } from '@core/types/feedManagement.types';
 
 import { HttpClient } from '../../../../core/api/clients/httpClient';
+
+import { IFeedManagementOperations } from '@/src/modules/content/apis/interfaces/IFeedManagementOperations';
 
 export function buildFeedTextJsonAndTextHtml(text: string) {
   const textJsonObject = {

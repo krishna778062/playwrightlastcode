@@ -1,10 +1,9 @@
-import { BrowserContext, Page, test } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
-import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
-import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
+import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
 import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
 import { FeedManagementHelper } from '@/src/modules/content/apis/helpers/feedManagementHelper';
@@ -25,93 +24,99 @@ export const users = {
 
 export const chatTestFixture = test.extend<
   {
-    appManagerContext: BrowserContext;
-    endUserContext: BrowserContext;
+    // App manager browser context, Request Context + page
+    appManagerBrowserContext: BrowserContext;
+    appManagerPage: Page;
     appManagerHomePage: NewUxHomePage | OldUxHomePage;
+    // End user browser context, Request Context + page
+    endUserContext: BrowserContext;
     endUserHomePage: NewUxHomePage | OldUxHomePage;
-    appManagersPage: Page;
     endUsersPage: Page;
+
+    // Services and helpers for app manager
     siteManagementHelper: SiteManagementHelper;
     feedManagementHelper: FeedManagementHelper;
     loginAs: (userType: UserType) => Promise<void>;
   },
   {
-    appManagerApiClient: AppManagerApiClient;
+    appManagerApiContext: APIRequestContext;
   }
 >({
-  appManagerApiClient: [
-    async ({}, use, workerInfo) => {
-      console.log(`INFO: Setting up app manager client for worker => `, workerInfo.workerIndex);
-      const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-        type: 'credentials',
-        credentials: {
-          username: getEnvConfig().appManagerEmail,
-          password: getEnvConfig().appManagerPassword,
-        },
-        baseUrl: getEnvConfig().apiBaseUrl,
+  appManagerApiContext: [
+    async ({}, use) => {
+      const appManagerApiContext = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
+        email: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
       });
-      await use(appManagerApiClient);
+      await use(appManagerApiContext);
+      await appManagerApiContext.dispose();
     },
     { scope: 'worker' },
   ],
-  appManagerContext: [
-    async ({ browser }, use, workerInfo) => {
+  appManagerBrowserContext: [
+    async ({ browser }, use) => {
       const context = await browser.newContext();
+      const page = await context.newPage();
+      await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
+      });
       await use(context);
-      await context?.close();
+      await context.close();
+    },
+    { scope: 'test' },
+  ],
+  appManagerPage: [
+    async ({ appManagerBrowserContext }, use) => {
+      const page = await appManagerBrowserContext.newPage();
+      await use(page);
+      await page.close();
     },
     { scope: 'test' },
   ],
   appManagerHomePage: [
-    async ({ appManagerContext }, use, workerInfo) => {
-      const page = await appManagerContext.newPage();
-      const appManagerHomePage = await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().appManagerEmail,
-        password: getEnvConfig().appManagerPassword,
-      });
+    async ({ appManagerPage }, use) => {
+      const appManagerHomePage = new NewUxHomePage(appManagerPage);
+      await appManagerHomePage.loadPage();
       await appManagerHomePage.verifyThePageIsLoaded();
       await use(appManagerHomePage);
-      await page.close();
-    },
-    { scope: 'test' },
-  ],
-  appManagersPage: [
-    async ({ appManagerHomePage }, use, workerInfo) => {
-      await use(appManagerHomePage.page);
     },
     { scope: 'test' },
   ],
   endUserContext: [
-    async ({ browser }, use, workerInfo) => {
+    async ({ browser }, use) => {
       const context = await browser.newContext();
-      await use(context);
-      await context?.close();
-    },
-    { scope: 'test' },
-  ],
-  endUserHomePage: [
-    async ({ endUserContext }, use, workerInfo) => {
-      const page = await endUserContext.newPage();
-      const endUserHomePage = await LoginHelper.loginWithPassword(page, {
+      const page = await context.newPage();
+      await LoginHelper.loginWithPassword(page, {
         email: getEnvConfig().endUserEmail!,
         password: getEnvConfig().endUserPassword,
       });
-      await endUserHomePage.verifyThePageIsLoaded();
-      await use(endUserHomePage);
-      await page.close();
+      await use(context);
+      await context.close();
     },
     { scope: 'test' },
   ],
   endUsersPage: [
-    async ({ endUserHomePage }, use, workerInfo) => {
-      await use(endUserHomePage.page);
+    async ({ endUserContext }, use) => {
+      const page = await endUserContext.newPage();
+      await use(page);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+  endUserHomePage: [
+    async ({ endUsersPage }, use) => {
+      const recognitionHomePage = new NewUxHomePage(endUsersPage);
+      await recognitionHomePage.loadPage();
+      await recognitionHomePage.verifyThePageIsLoaded();
+      await use(recognitionHomePage);
     },
     { scope: 'test' },
   ],
 
   feedManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
+    async ({ appManagerApiContext }, use) => {
+      const feedManagementHelper = new FeedManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
       await use(feedManagementHelper);
       // Ensure cleanup happens even if test fails
       try {
@@ -124,8 +129,8 @@ export const chatTestFixture = test.extend<
   ],
 
   siteManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
+    async ({ appManagerApiContext }, use) => {
+      const siteManagementHelper = new SiteManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
       await use(siteManagementHelper);
       await siteManagementHelper.cleanup();
     },

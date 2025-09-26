@@ -7,7 +7,7 @@ import { expect, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { TileManagementHelper } from '@/src/modules/integrations/apis/helpers/tileManagementHelper';
+import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileManagementHelper';
 
 class AppTileComponent extends BaseAppTileComponent {
   constructor(page: Page) {

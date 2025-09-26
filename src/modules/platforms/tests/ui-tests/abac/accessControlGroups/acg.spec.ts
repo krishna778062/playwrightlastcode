@@ -1,17 +1,20 @@
 // @/src imports
 // @core imports
-import { POPUP_BUTTONS } from '@core/constants/popupButtons';
 import { TestPriority } from '@core/constants/testPriority';
 import { tagTest } from '@core/utils/testDecorator';
 // @platforms imports
 import { ACG_COLUMNS, ACG_EDIT_ASSETS, ACG_STATUS } from '@platforms/constants/acg';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 
-import { AUDIENCE_API_ATTRIBUTES, AUDIENCE_API_OPERATORS } from '@/src/core/constants/createAudienceAPI';
 import { TestSuite } from '@/src/core/constants/testSuite';
 import { audienceCreationParams } from '@/src/core/types/audience.type';
 import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import {
+  AUDIENCE_API_ATTRIBUTES,
+  AUDIENCE_API_OPERATORS,
+} from '@/src/modules/platforms/apis/payloads/createAudienceAPI';
+import { POPUP_BUTTONS } from '@/src/modules/platforms/constants/popupButtons';
 import {
   AccessControlGroupsPage,
   ACGFeature,

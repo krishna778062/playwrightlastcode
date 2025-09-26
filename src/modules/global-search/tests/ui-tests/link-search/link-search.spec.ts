@@ -2,10 +2,9 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { AppsSettingsPayload, ExternalLink } from '@/src/core/types/app.type';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { generateUniqueLinkTestData } from '@/src/modules/global-search/test-data/link-search.test-data';
+import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
 
 test.describe(
   'Test Global Search - Link Search functionality',
@@ -16,7 +15,7 @@ test.describe(
     let linkName: string;
     let linkUrl: string;
 
-    test.beforeEach('Setting up the test environment for link search', async ({ appManagerApiClient }) => {
+    test.beforeEach('Setting up the test environment for link search', async ({ linkManagementService }) => {
       try {
         // Generate unique test data to avoid conflicts in parallel execution
         const linkDetails = generateUniqueLinkTestData();
@@ -24,7 +23,7 @@ test.describe(
         linkUrl = linkDetails.testLink.url;
 
         // Append unique link to existing settings using service
-        await appManagerApiClient.getLinkManagementService().addExternalLink(linkDetails.testLink);
+        await linkManagementService.addExternalLink(linkDetails.testLink);
         console.log(`Added unique link: ${linkName}`);
 
         console.log('Successfully added a link ');
@@ -34,9 +33,9 @@ test.describe(
       }
     });
 
-    test.afterEach('Tearing down the test environment for link search', async ({ appManagerApiClient }) => {
+    test.afterEach('Tearing down the test environment for link search', async ({ linkManagementService }) => {
       try {
-        await appManagerApiClient.getLinkManagementService().removeExternalLink(linkName);
+        await linkManagementService.removeExternalLink(linkName);
         console.log(`Removed unique external link: ${linkName}`);
       } catch (error) {
         console.warn('Failed to clean up test environment:', error);

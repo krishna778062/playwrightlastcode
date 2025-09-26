@@ -3,14 +3,14 @@ import { APIRequestContext } from '@playwright/test';
 
 import { SiteManagementService } from '../services/SiteManagementService';
 
-import { ImageUploaderService } from '@/src/core/api/services/ImageUploaderService';
-import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import { EventSyncPayload, RsvpPayload } from '@/src/core/types/contentManagement.types';
 import { getTodayDateIsoString, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import {
   buildBodyAndBodyHtml,
   ContentManagementService,
 } from '@/src/modules/content/apis/services/ContentManagementService';
+import { ImageUploaderService } from '@/src/modules/content/apis/services/ImageUploaderService';
+import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 interface Content {

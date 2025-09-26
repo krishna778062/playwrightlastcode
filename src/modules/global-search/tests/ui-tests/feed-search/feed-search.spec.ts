@@ -1,10 +1,10 @@
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
-import { FeedListComponent } from '@/src/modules/global-search/components/feedListComponent';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { FEED_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/feed-search.test-data';
+import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
+import { FeedListComponent } from '@/src/modules/global-search/ui/components/feedListComponent';
 
 test.describe(
   'Global Search - Feed Search functionality',
@@ -121,7 +121,7 @@ test.describe(
         const feedResultItem =
           await globalSearchResultPage.getFeedResultItemExactlyMatchingTheSearchTerm(currentFeedName);
         const feedListComponent = new FeedListComponent(feedResultItem.page, feedResultItem.rootLocator);
-        await feedListComponent.verifyNavigationWithSiteLink(publicSite.siteId, publicSite.siteName);
+        await feedListComponent.verifyNavigationToFeedLink(publicSite.siteId, publicSite.siteName);
       }
     );
   }

@@ -66,9 +66,10 @@ export const rewardTestFixture = test.extend<
   ],
   appManagerHomePage: [
     async ({ appManagerPage }, use) => {
-      const adminHomePage = new NewUxHomePage(appManagerPage);
-      await adminHomePage.verifyThePageIsLoaded();
-      await use(adminHomePage);
+      const appManagerHomePage = new NewUxHomePage(appManagerPage);
+      await appManagerHomePage.loadPage();
+      await appManagerHomePage.verifyThePageIsLoaded();
+      await use(appManagerHomePage);
     },
     { scope: 'test' },
   ],
@@ -98,6 +99,7 @@ export const rewardTestFixture = test.extend<
   recoManagerHomePage: [
     async ({ recoManagerPage }, use) => {
       const recognitionHomePage = new NewUxHomePage(recoManagerPage);
+      await recognitionHomePage.loadPage();
       await recognitionHomePage.verifyThePageIsLoaded();
       await use(recognitionHomePage);
     },
@@ -129,6 +131,7 @@ export const rewardTestFixture = test.extend<
   standardUserHomePage: [
     async ({ standardUserPage }, use) => {
       const recognitionHomePage = new NewUxHomePage(standardUserPage);
+      await recognitionHomePage.loadPage();
       await recognitionHomePage.verifyThePageIsLoaded();
       await use(recognitionHomePage);
     },

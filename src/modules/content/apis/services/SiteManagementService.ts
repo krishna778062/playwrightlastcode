@@ -1,6 +1,5 @@
 import { APIRequestContext, expect, test } from '@playwright/test';
 
-import { ISiteManagementOperations } from '@core/api/interfaces/ISiteManagemenOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import {
   SiteCreationPayload,
@@ -12,6 +11,8 @@ import {
 } from '@core/types/siteManagement.types';
 
 import { HttpClient } from '../../../../core/api/clients/httpClient';
+
+import { ISiteManagementOperations } from '@/src/modules/content/apis/interfaces/ISiteManagemenOperations';
 
 const defaultSitePayload: SiteCreationPayload = {
   access: 'public',

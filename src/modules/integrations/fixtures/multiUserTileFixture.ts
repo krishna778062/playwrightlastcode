@@ -5,7 +5,7 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
-import { TileManagementHelper } from '@/src/modules/integrations/apis/helpers/tileManagementHelper';
+import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileManagementHelper';
 
 export type UserType = 'appManager' | 'endUser';
 

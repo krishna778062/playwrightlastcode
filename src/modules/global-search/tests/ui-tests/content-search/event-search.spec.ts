@@ -3,11 +3,11 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentType } from '@/src/core/constants/contentTypes';
-import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
-import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { EVENT_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
+import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
+import { ContentListComponent } from '@/src/modules/global-search/ui/components/contentListComponent';
+import { ResultListingComponent } from '@/src/modules/global-search/ui/components/resultsListComponent';
 
 test.describe(
   'Global Search- Event Search functionality',

@@ -1,14 +1,14 @@
 import { Page, test } from '@playwright/test';
 
+import { ChatNavigationComponent } from '@chat/ui/components/chatNavigationComponent';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { FooterComponent } from '@core/ui/components/footerComponent';
 import { SideNavBarComponent } from '@core/ui/components/sideNavBarComponent';
 import { TopNavBarComponent } from '@core/ui/components/topNavBarComponent';
+import { BasePage } from '@core/ui/pages/basePage';
 
-import { BasePage } from '@/src/core/ui/pages/basePage';
-import { ChatNavigationComponent } from '@/src/modules/chat/components/chatNavigationComponent';
-import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
+import { ChatAppPage } from '@/src/modules/chat/ui/pages/chatPage/chatPage';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AddContentModalComponent } from '@/src/modules/content/ui/components/addContentModal';
 import { CreateComponent } from '@/src/modules/content/ui/components/createComponent';
@@ -18,8 +18,8 @@ import { EventCreationPage } from '@/src/modules/content/ui/pages/eventCreationP
 import { FeaturedSitePage } from '@/src/modules/content/ui/pages/featuredSitePage';
 import { PageCreationPage } from '@/src/modules/content/ui/pages/pageCreationPage';
 import { SiteCreationPage as ContentSiteCreationPage } from '@/src/modules/content/ui/pages/siteCreationPage';
-import { SiteCreationPage as AbacSiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
-import { GlobalSearchResultPage } from '@/src/modules/global-search/pages/globalSearchResultPage';
+import { SiteCreationPage as AbacSiteCreationPage } from '@/src/modules/content-abac/ui/pages/siteCreationPage';
+import { GlobalSearchResultPage } from '@/src/modules/global-search/ui/pages/globalSearchResultPage';
 
 export interface ICommonHomePageActions {
   searchForTerm: (searchTerm: string, options?: { stepInfo?: string }) => Promise<GlobalSearchResultPage>;
