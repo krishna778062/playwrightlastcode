@@ -85,7 +85,7 @@ test.describe(
       }
     });
 
-    test.only(
+    test(
       'Verify admin is able to publish a new page created with cover image from home page',
       {
         tag: [
