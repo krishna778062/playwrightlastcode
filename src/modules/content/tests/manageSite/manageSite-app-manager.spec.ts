@@ -141,6 +141,5 @@ test.describe(
         await manageSitePage.assertions.checkMarkedAsFavoriteInPeopleListShouldNotBeVisible(membersName.membersName[0]);
       }
     );
-
   }
 );
