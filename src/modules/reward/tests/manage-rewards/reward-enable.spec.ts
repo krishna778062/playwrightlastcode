@@ -1,4 +1,3 @@
-import { expect } from '@playwright/test';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 
 import { TestPriority } from '@core/constants/testPriority';
