@@ -53,7 +53,7 @@ export class MessageCardComponent extends MessageBaseComponent {
   async deleteMessage(): Promise<void> {
     await test.step(`Deleting the message`, async () => {
       await this.openMessageActionsMenuFromThreeDots();
-      await this.clickOnElement(this.deleteMessageButtonFromMessageActionsMenu);
+      await this.clickByInjectingJavaScript(this.deleteMessageButtonFromMessageActionsMenu);
       await this.verifier.verifyTheElementIsVisible(this.deleteMessageConfirmationPrompt, {
         assertionMessage: 'expecting delete message confirmation prompt to be visible',
       });

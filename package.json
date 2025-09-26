@@ -40,9 +40,9 @@
     "test:de:dev": "MODULE_NAME=data-engineering TEST_ENV=dev npx playwright test src/modules/data-engineering/tests/ui-tests/analytics.spec.ts --config=src/modules/data-engineering/playwright.data-engineering.config.ts --project=data-engineering-chromium",
     "test:de": "MODULE_NAME=data-engineering npx playwright test src/modules/data-engineering/tests/ui-tests/analytics.spec.ts --config=src/modules/data-engineering/playwright.data-engineering.config.ts --project=data-engineering-chromium",
     "report:postgres": "node reporting/enhanced-pg-reporter.mjs",
-    "test:integrations": "playwright test --config=src/modules/integrations/playwright.integrations.config.ts",
-    "test:integrations:p0": "playwright test --config=src/modules/integrations/playwright.integrations.config.ts --grep=@P0",
-    "test:integrations:smoke": "playwright test --config=src/modules/integrations/playwright.integrations.config.ts --grep=@smoke"
+    "test:integrations": "MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations.config.ts",
+    "test:integrations:p0": "MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations.config.ts --grep=@P0",
+    "test:integrations:smoke": "MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations.config.ts --grep=@smoke"
   },
   "keywords": [],
   "author": "",

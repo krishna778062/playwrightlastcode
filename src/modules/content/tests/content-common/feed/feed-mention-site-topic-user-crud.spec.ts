@@ -6,6 +6,7 @@ import { getContentConfigFromCache } from '../../../config/contentConfig';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
@@ -50,12 +51,12 @@ async function fetchUserSiteAndTopicByOptions(
   }
 
   if (options.fetchPublicSite) {
-    requests.push(helpers.siteManagementHelper.getSiteByAccessType(SiteType.PUBLIC));
+    requests.push(helpers.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC));
     dataKeys.push('publicSite');
   }
 
   if (options.fetchPrivateSite) {
-    requests.push(helpers.siteManagementHelper.getSiteByAccessType(SiteType.PRIVATE));
+    requests.push(helpers.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE));
     dataKeys.push('privateSite');
   }
 

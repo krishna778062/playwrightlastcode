@@ -2,6 +2,7 @@ import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test'
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
+import { SiteAudienceHelper } from '@/src/core/helpers/siteAudienceHelper';
 import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
@@ -23,6 +24,7 @@ export const contentAbacTestFixture = test.extend<
     // Services and helpers for app manager
     feedManagementHelper: FeedManagementHelper;
     siteManagementService: SiteManagementService;
+    siteAudienceHelper: SiteAudienceHelper;
   },
   {
     appManagerApiContext: APIRequestContext;
@@ -77,6 +79,14 @@ export const contentAbacTestFixture = test.extend<
     async ({ appManagerApiContext }, use) => {
       const siteManagementService = new SiteManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
       await use(siteManagementService);
+    },
+    { scope: 'test' },
+  ],
+
+  siteAudienceHelper: [
+    async ({ appManagerApiContext }, use) => {
+      const siteAudienceHelper = new SiteAudienceHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
+      await use(siteAudienceHelper);
     },
     { scope: 'test' },
   ],

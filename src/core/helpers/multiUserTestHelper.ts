@@ -4,12 +4,14 @@ import { LoginHelper } from '@core/helpers/loginHelper';
 import { TestUser } from '@core/types/test.types';
 import { BrowserFactory, MultiUserContexts } from '@core/utils/browserFactory';
 
+import { StaticUsers } from '../types';
+
 export class MultiUserTestHelper {
   protected multiUserContexts!: MultiUserContexts;
   protected browserFactory!: BrowserFactory;
   protected defaultPassword = 'Simpplr@2025';
   private recordVideo = false;
-  public testUsers: TestUser[] = [];
+  public testUsers: TestUser[] | StaticUsers[] = [];
 
   constructor(browser: Browser, options?: { recordVideo?: boolean }) {
     this.browserFactory = new BrowserFactory(browser);
@@ -51,7 +53,7 @@ export class MultiUserTestHelper {
    * @param users - The list of users for which the contexts are required
    * @returns The browser contexts for the users
    */
-  public async createContextsForUsers(users: TestUser[]) {
+  public async createContextsForUsers(users: TestUser[] | StaticUsers[]) {
     return await test.step(`Creating browser contexts for users`, async () => {
       const contexts: MultiUserContexts = {};
       for (const user of users) {
@@ -69,7 +71,7 @@ export class MultiUserTestHelper {
    * @param listOfUsers - The list of users for which the logged in contexts are required
    * @returns The logged in contexts for the users
    */
-  async createLoggedInContextsForUsers(listOfUsers: TestUser[]) {
+  async createLoggedInContextsForUsers(listOfUsers: TestUser[] | StaticUsers[]) {
     const loggedInContexts: { [key: string]: BrowserContext } = {};
     return await test.step(`Simultaneously logging in and navigating to chats for users  ${listOfUsers.map(user => user.email).join(', ')}`, async () => {
       const loginPromises = listOfUsers.map(async user => {
