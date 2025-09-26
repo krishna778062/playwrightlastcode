@@ -107,7 +107,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiContext }) => {
         void homeDashboard;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23139',
@@ -118,7 +118,7 @@ test.describe(
         createdTileTitle = `UKG WFM Apply for Time Off ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -141,7 +141,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient, appManagerPage }) => {
+      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiContext, appManagerPage }) => {
         void homeDashboard;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23132',
@@ -153,7 +153,7 @@ test.describe(
         const comments = faker.lorem.sentence();
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -207,14 +207,14 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
+      async ({ appManagerApiContext, siteManagementHelper, siteDashboard }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-23138',
           storyId: 'INT-22854',
         });
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 

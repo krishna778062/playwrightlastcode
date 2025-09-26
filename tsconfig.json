@@ -4,6 +4,8 @@
     "paths": {
       "@/*": ["./*"],
       "@core/*": ["./src/core/*"],
+      "@core/ui/*": ["./src/core/ui/*"],
+      "@core/ui/components/*": ["./src/core/ui/components/*"],
       "@common-utils/*": ["src/core/utils/*"],
       "@api/*": ["./src/core/api/*"],
       "@types/*": ["./src/core/types/*"],
@@ -23,9 +25,9 @@
       "@integrations/*": ["./src/modules/integrations/*"],
       "@integrations-constants/*": ["./src/modules/integrations/constants/*"],
       "@integrations-fixtures/*": ["./src/modules/integrations/fixtures/*"],
-      "@integrations-pages/*": ["./src/modules/integrations/pages/*"],
-      "@integrations-components/*": ["./src/modules/integrations/components/*"],
-      "@integrations-api/*": ["./src/modules/integrations/api/*"],
+      "@integrations-pages/*": ["src/modules/integrations/ui/pages/*"],
+      "@integrations-components/*": ["./src/modules/integrations/ui/components/*"],
+      "@integrations-api/*": ["src/modules/integrations/apis/*"],
       "@integrations-test-data/*": ["./src/modules/integrations/test-data/*"]
     },
     "target": "ES2019",

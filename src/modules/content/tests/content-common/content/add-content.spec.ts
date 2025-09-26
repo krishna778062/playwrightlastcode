@@ -6,12 +6,12 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { Roles } from '@/src/core/constants/roles';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
-import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
-import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
-import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+import { AddContentModalComponent } from '@/src/modules/content/ui/components/addContentModal';
+import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
+import { PageCreationPage } from '@/src/modules/content/ui/pages/pageCreationPage';
 import { SiteType } from '@/src/modules/content-abac/constants/siteType';
 
 test.describe(
@@ -46,7 +46,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-30521'],
       },
-      async ({ appManagerApiClient, standardUserHomePage, identityManagementHelper, siteManagementHelper }) => {
+      async ({ standardUserHomePage, identityManagementHelper, siteManagementHelper }) => {
         tagTest(test.info(), {
           description: 'Verify Unlisted site manager Add content scenarios',
           zephyrTestId: 'CONT-30521',
@@ -110,7 +110,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39680'],
       },
-      async ({ appManagerApiClient, appManagerHomePage, siteManagementHelper }) => {
+      async ({ appManagerHomePage, siteManagementHelper }) => {
         tagTest(test.info(), {
           description: 'Verify Application Manager Add content scenarios',
           zephyrTestId: 'CONT-39680',
@@ -332,7 +332,6 @@ test.describe(
           hasPages: false,
           waitForSearchIndex: true,
         });
-        const siteName = siteDetails.siteName;
 
         addContentModal = await standardUserHomePage.actions.openAddContentModal(ContentType.PAGE);
 

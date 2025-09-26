@@ -1,16 +1,18 @@
 import { faker } from '@faker-js/faker';
-import { test as base } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page, test as base } from '@playwright/test';
 
-import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
-import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
-import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
 import { LoginHelper } from '@core/helpers/loginHelper';
-import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
-import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@core/pages/homePage/oldUxHomePage';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
+import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
+import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
+import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
+import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/contentManagementHelper';
+import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
+
 export type IntegrationsEventFixtures = {
+  appManagerBrowserContext: BrowserContext;
+  appManagerPage: Page;
   appManagerHomePage: NewUxHomePage | OldUxHomePage;
   siteManagementHelper: SiteManagementHelper;
   contentManagementHelper: ContentManagementHelper;
@@ -18,42 +20,59 @@ export type IntegrationsEventFixtures = {
 };
 
 export type IntegrationsEventWorkerFixtures = {
-  appManagerApiClient: AppManagerApiClient;
+  appManagerApiContext: APIRequestContext;
 };
 
 export const integrationsEventFixture = base.extend<IntegrationsEventFixtures, IntegrationsEventWorkerFixtures>({
-  appManagerApiClient: [
-    async ({}, use, workerInfo) => {
-      console.log(`Setting up app manager API client for worker ${workerInfo.workerIndex}`);
-      const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-        type: 'credentials',
-        credentials: {
-          username: getEnvConfig().appManagerEmail,
-          password: getEnvConfig().appManagerPassword,
-        },
-        baseUrl: getEnvConfig().apiBaseUrl,
+  appManagerApiContext: [
+    async ({}, use) => {
+      const appManagerApiContext = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
+        email: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
       });
-      await use(appManagerApiClient);
+      await use(appManagerApiContext);
+      await appManagerApiContext.dispose();
     },
     { scope: 'worker' },
   ],
 
   siteManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
+    async ({ appManagerApiContext }, use) => {
+      const siteManagementHelper = new SiteManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
       await use(siteManagementHelper);
       await siteManagementHelper.cleanup();
     },
     { scope: 'test' },
   ],
+  appManagerBrowserContext: [
+    async ({ browser }, use) => {
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
+      });
+      await use(context);
+      await context.close();
+    },
+    { scope: 'test' },
+  ],
+
+  appManagerPage: [
+    async ({ appManagerBrowserContext }, use) => {
+      const page = await appManagerBrowserContext.newPage();
+      await use(page);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
 
   testSiteName: [
-    async ({ siteManagementHelper, appManagerApiClient }, use) => {
+    async ({ siteManagementHelper }, use) => {
       let createdSiteName = '';
-
       try {
         console.log('Creating dedicated test site for event creation...');
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const testSite = await siteManagementHelper.createPublicSite({
           category,
           siteName: `Event Test Site ${faker.string.alphanumeric({ length: 6 })}`,
@@ -71,8 +90,8 @@ export const integrationsEventFixture = base.extend<IntegrationsEventFixtures, I
   ],
 
   contentManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const contentManagementHelper = new ContentManagementHelper(appManagerApiClient);
+    async ({ appManagerApiContext }, use) => {
+      const contentManagementHelper = new ContentManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
       await use(contentManagementHelper);
       await contentManagementHelper.cleanup();
     },
@@ -80,16 +99,11 @@ export const integrationsEventFixture = base.extend<IntegrationsEventFixtures, I
   ],
 
   appManagerHomePage: [
-    async ({ page, siteManagementHelper }, use) => {
+    async ({ appManagerPage }, use) => {
       // Login and get HomePage instance for event creation
-      const homePage = await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().appManagerEmail,
-        password: getEnvConfig().appManagerPassword,
-      });
-
-      await homePage.verifyThePageIsLoaded();
-      console.log('App Manager logged in and ready for event creation');
-      await use(homePage);
+      const appManagerHomePage = new NewUxHomePage(appManagerPage);
+      await appManagerHomePage.verifyThePageIsLoaded();
+      await use(appManagerHomePage);
     },
     { scope: 'test' },
   ],

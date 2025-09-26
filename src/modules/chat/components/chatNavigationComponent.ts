@@ -1,8 +1,6 @@
 import test, { Locator, Page } from '@playwright/test';
 
-import { ChatAppPage } from '../pages/chatPage/chatPage';
-
-import { BaseComponent } from '@/src/core/components/baseComponent';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export class ChatNavigationComponent extends BaseComponent {
   readonly seeAllMessagesButton: Locator;

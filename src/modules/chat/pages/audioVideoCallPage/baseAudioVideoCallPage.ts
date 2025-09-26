@@ -4,7 +4,7 @@ import { Page } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 
-import { BasePage } from '@/src/core/pages/basePage';
+import { BasePage } from '@/src/core/ui/pages/basePage';
 
 export interface IAudioVideoCallActions {
   enableMicrophone: (options?: { stepInfo?: string }) => Promise<void>;

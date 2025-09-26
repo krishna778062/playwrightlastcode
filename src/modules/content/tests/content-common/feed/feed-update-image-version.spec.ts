@@ -1,8 +1,7 @@
 import { ContentType } from '@content/constants/contentType';
-import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
-import { SiteDashboardPage } from '@content/pages/siteDashboardPage';
-import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
+import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
+import { SiteDashboardPage } from '@content/ui/pages/siteDashboardPage';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -12,7 +11,7 @@ import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { FeedPage } from '@/src/modules/content/pages/feedPage';
+import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 
 interface SiteDetails {
   siteId: string;

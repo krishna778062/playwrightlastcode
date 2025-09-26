@@ -2,15 +2,17 @@ import { ContentType } from '@content/constants/contentType';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
-import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
-import { EventCreationPage } from '@content/pages/eventCreationPage';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
+import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
+import { EventCreationPage } from '@content/ui/pages/eventCreationPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
+import { getContentConfigFromCache } from '../../../config/contentConfig';
+
+import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
   `Event Creation by Standard user  and Approval/Rejection by Application Manager`,
@@ -44,10 +46,10 @@ test.describe(
       }
     );
 
-    test.afterEach(async ({ appManagerApiClient }) => {
+    test.afterEach(async ({ contentManagementHelper }) => {
       // Only cleanup manually if needed (for UI-only tests)
       if (manualCleanupNeeded && publishedEventId && siteIdToPublishEvent) {
-        await appManagerApiClient.getContentManagementService().deleteContent(siteIdToPublishEvent, publishedEventId);
+        await contentManagementHelper.deleteContent(siteIdToPublishEvent, publishedEventId);
         console.log('Manual cleanup completed for event:', publishedEventId);
       } else {
         console.log('No event was published, hence skipping the deletion');
@@ -84,7 +86,7 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.EVENT_CREATION],
         },
-        async ({ standardUserHomePage, appManagerHomePage, siteManagementHelper, appManagerApiClient }) => {
+        async ({ standardUserHomePage, appManagerHomePage, siteManagementHelper, appManagerApiContext }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
@@ -149,7 +151,10 @@ test.describe(
           const notificationMessageStandardUser = await standardUserHomePage.actions.clickOnBellIcon({
             stepInfo: 'Standard user clicking on bell icon to view notifications',
           });
-          const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
+          const identityManagementHelper = new IdentityManagementHelper(
+            appManagerApiContext,
+            getContentConfigFromCache().tenant.apiBaseUrl
+          );
           const appManagerInfo = await identityManagementHelper.getUserInfoByEmail(users.appManager.email);
           const finalNotificationMessage =
             appManagerInfo.fullName + testData.notificationMessage + ' "' + eventCreationOptions.title + '"';

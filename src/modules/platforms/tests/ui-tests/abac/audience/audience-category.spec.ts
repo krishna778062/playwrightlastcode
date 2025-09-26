@@ -4,9 +4,9 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestSuite } from '@core/constants/testSuite';
 import { tagTest } from '@core/utils/testDecorator';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
-import { AudiencePage } from '@platforms/pages/abacPage/acgPage/audiencePage';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { AudiencePage } from '@/src/modules/platforms/ui/pages/abacPage/acgPage/audiencePage';
 
 test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSuite.AUDIENCE_CATEGORY] }, () => {
   test(

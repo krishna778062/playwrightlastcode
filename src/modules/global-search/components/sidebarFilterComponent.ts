@@ -1,6 +1,6 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '@/src/core/components/baseComponent';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 /**
  * Reusable sidebar filter component for different filter types (Sites, Pages, Albums, etc.)

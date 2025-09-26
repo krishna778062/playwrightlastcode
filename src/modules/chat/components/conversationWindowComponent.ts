@@ -6,8 +6,8 @@ import { IncomingAudioVideoCallComponent } from '@chat/components/incomingAudioV
 import { ChatMentionsListSection } from './chatMentionsListSection';
 import { MessageReplyThreadComponent } from './messageReplyThreadComponent';
 
-import { BaseComponent } from '@/src/core/components/baseComponent';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { BaseVerificationUtil } from '@/src/core/utils/baseVerificationUtil';
 import { MessageCardComponent } from '@/src/modules/chat/components/messageCardComponent';
 import { AudioVideoCallPage } from '@/src/modules/chat/pages/audioVideoCallPage/audioVideoCallPage';

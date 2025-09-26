@@ -1,7 +1,7 @@
 import { expect, Page, test } from '@playwright/test';
 
-import { BasePage } from '@/src/core/pages/basePage';
 import { SiteCreationPayload } from '@/src/core/types/siteManagement.types';
+import { BasePage } from '@/src/core/ui/pages/basePage';
 import { SiteCreationFormComponent } from '@/src/modules/content-abac/components/createSite/siteCreationFormComponent';
 import { SiteType } from '@/src/modules/content-abac/constants/siteType';
 

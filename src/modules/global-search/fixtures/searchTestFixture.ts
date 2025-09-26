@@ -2,16 +2,16 @@ import { Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
-import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
-import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
 import { IntranetFileHelper } from '@core/helpers/intranetFileHelper';
-import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { LoginHelper } from '../../../core/helpers/loginHelper';
 
-import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
+import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
+import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
+import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/contentManagementHelper';
+import { FeedManagementHelper } from '@/src/modules/content/apis/helpers/feedManagementHelper';
+import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 
 export const searchTestFixtures = test.extend<
   {
@@ -70,7 +70,7 @@ export const searchTestFixtures = test.extend<
   ],
   feedManagementHelper: [
     async ({ appManagerApiClient }, use) => {
-      const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
+      const feedManagementHelper = new FeedManagementHelper(appManagerApiClient, getEnvConfig().apiBaseUrl);
       await use(feedManagementHelper);
       await feedManagementHelper.cleanup();
     },
@@ -78,7 +78,11 @@ export const searchTestFixtures = test.extend<
   ],
   intranetFileHelper: [
     async ({ appManagerApiClient, appManagerUserPage }, use) => {
-      const intranetFileHelper = new IntranetFileHelper(appManagerApiClient, appManagerUserPage);
+      const intranetFileHelper = new IntranetFileHelper(
+        appManagerApiClient,
+        getEnvConfig().apiBaseUrl,
+        appManagerUserPage
+      );
       await use(intranetFileHelper);
       await intranetFileHelper.cleanup();
     },

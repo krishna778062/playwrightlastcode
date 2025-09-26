@@ -2,8 +2,8 @@ import { faker } from '@faker-js/faker';
 
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
-import { FeedPage } from '@content/pages/feedPage';
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
+import { FeedPage } from '@content/ui/pages/feedPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';

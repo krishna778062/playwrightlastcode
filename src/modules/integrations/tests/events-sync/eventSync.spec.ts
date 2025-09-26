@@ -7,22 +7,21 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
-import { EventSyncDestination, EventSyncInvitees } from '@/src/core/types/contentManagement.types';
 import { SiteMembershipAction, SitePermission } from '@/src/core/types/siteManagement.types';
-import { EventDetailPage, RsvpOption } from '@/src/modules/content/pages/eventDetailPage';
-import { IntegrationsFeatureTags, IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
-import { integrationsEventFixture as test } from '@/src/modules/integrations/fixtures/eventSyncFixture';
+import { EventDetailPage, RsvpOption } from '@/src/modules/content/ui/pages/eventDetailPage';
 import {
   assertCompleteEventConfiguration,
   createAppManagerGoogleCalendarHelper,
   createEndUserGoogleCalendarHelper,
-  GoogleCalendarHelper,
-} from '@/src/modules/integrations/helpers/googleCalendarHelper';
+} from '@/src/modules/integrations/apis/helpers/googleCalendarHelper';
+import { IntegrationsFeatureTags, IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
+import { integrationsEventFixture as test } from '@/src/modules/integrations/fixtures/eventSyncFixture';
 import {
   createEventPayload,
   EVENT_CONFIGS,
   EXPECTED_EVENT_SYNC_CONFIG,
 } from '@/src/modules/integrations/test-data/eventSync.test-data';
+import { UserManagementService } from '@/src/modules/platforms/apis/services/UserManagementService';
 
 test.describe(
   'Event Sync Integration Tests',
@@ -40,12 +39,20 @@ test.describe(
           IntegrationsFeatureTags.GOOGLE_CALENDAR,
         ],
       },
-      async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper }) => {
+      async ({
+        appManagerApiContext,
+        appManagerHomePage,
+        testSiteName,
+        siteManagementHelper,
+        contentManagementHelper,
+      }) => {
         tagTest(test.info(), {
           description: 'Test 2-way RSVP sync: Simpplr to Google Calendar and Google Calendar to Simpplr UI',
           zephyrTestId: 'INT-14847, INT-27261',
         });
-
+        const userManagementService = new UserManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
         const sitesResponse = await siteManagementHelper.getListOfSites();
         const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
 
@@ -57,9 +64,6 @@ test.describe(
 
         const eventTitle = `${EVENT_CONFIGS.RSVP_SYNC.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
-        const appManagerEmail = getEnvConfig().appManagerEmail;
-        const organizerId = await appManagerApiClient.getUserManagementService().getUserId(appManagerEmail);
-
         const eventPayload = createEventPayload({
           title: eventTitle,
           description: EVENT_CONFIGS.RSVP_SYNC.description,
@@ -67,9 +71,10 @@ test.describe(
           organizerId,
         });
 
-        const eventResult = await appManagerApiClient
-          .getContentManagementService()
-          .addNewEventContent(siteId, eventPayload);
+        const eventResult = await contentManagementHelper.contentManagementService.addNewEventContent(
+          siteId,
+          eventPayload
+        );
 
         assertCompleteEventConfiguration(eventResult, EXPECTED_EVENT_SYNC_CONFIG);
         const eventDetailPage = new EventDetailPage(appManagerHomePage.page, siteId, eventResult.eventId);
@@ -110,12 +115,21 @@ test.describe(
           IntegrationsFeatureTags.GOOGLE_CALENDAR,
         ],
       },
-      async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper }) => {
+      async ({
+        appManagerApiContext,
+        appManagerHomePage,
+        testSiteName,
+        siteManagementHelper,
+        contentManagementHelper,
+      }) => {
         tagTest(test.info(), {
           description: 'Test event deletion sync to Google Calendar',
           zephyrTestId: 'INT-27088',
         });
 
+        const userManagementService = new UserManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
         const sitesResponse = await siteManagementHelper.getListOfSites();
         const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
 
@@ -127,9 +141,6 @@ test.describe(
 
         const eventTitle = `${EVENT_CONFIGS.DELETE_TEST.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
-        const appManagerEmail = getEnvConfig().appManagerEmail;
-        const organizerId = await appManagerApiClient.getUserManagementService().getUserId(appManagerEmail);
-
         const eventPayload = createEventPayload({
           title: eventTitle,
           description: EVENT_CONFIGS.DELETE_TEST.description,
@@ -137,9 +148,10 @@ test.describe(
           organizerId,
         });
 
-        const eventResult = await appManagerApiClient
-          .getContentManagementService()
-          .addNewEventContent(siteId, eventPayload);
+        const eventResult = await contentManagementHelper.contentManagementService.addNewEventContent(
+          siteId,
+          eventPayload
+        );
         assertCompleteEventConfiguration(eventResult, EXPECTED_EVENT_SYNC_CONFIG);
 
         // Verify initial sync to Google Calendar using new helper
@@ -183,12 +195,22 @@ test.describe(
           IntegrationsFeatureTags.GOOGLE_CALENDAR,
         ],
       },
-      async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper }) => {
+      async ({
+        appManagerApiContext,
+        appManagerHomePage,
+        testSiteName,
+        siteManagementHelper,
+        contentManagementHelper,
+      }) => {
         test.setTimeout(300000);
         tagTest(test.info(), {
           description: 'Test event unpublish/republish sync with Google Calendar',
           zephyrTestId: 'INT-27087, INT-27089',
         });
+
+        const userManagementService = new UserManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
 
         const sitesResponse = await siteManagementHelper.getListOfSites();
         const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
@@ -201,9 +223,6 @@ test.describe(
 
         const eventTitle = `${EVENT_CONFIGS.UNPUBLISH_REPUBLISH.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
-        const appManagerEmail = getEnvConfig().appManagerEmail;
-        const organizerId = await appManagerApiClient.getUserManagementService().getUserId(appManagerEmail);
-
         const eventPayload = createEventPayload({
           title: eventTitle,
           description: EVENT_CONFIGS.UNPUBLISH_REPUBLISH.description,
@@ -211,9 +230,10 @@ test.describe(
           organizerId,
         });
 
-        const eventResult = await appManagerApiClient
-          .getContentManagementService()
-          .addNewEventContent(siteId, eventPayload);
+        const eventResult = await contentManagementHelper.contentManagementService.addNewEventContent(
+          siteId,
+          eventPayload
+        );
 
         assertCompleteEventConfiguration(eventResult, EXPECTED_EVENT_SYNC_CONFIG);
 
@@ -257,12 +277,22 @@ test.describe(
           IntegrationsFeatureTags.GOOGLE_CALENDAR,
         ],
       },
-      async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper }) => {
+      async ({
+        appManagerApiContext,
+        appManagerHomePage,
+        testSiteName,
+        siteManagementHelper,
+        contentManagementHelper,
+      }) => {
         test.setTimeout(300000); // 5 minutes timeout for this test
         tagTest(test.info(), {
           description: 'Test event edit sync with Google Calendar',
           zephyrTestId: 'INT-14362',
         });
+
+        const userManagementService = new UserManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
 
         const sitesResponse = await siteManagementHelper.getListOfSites();
         const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
@@ -276,9 +306,6 @@ test.describe(
         // Create event with Google Calendar sync enabled
         const originalEventTitle = `${EVENT_CONFIGS.EDIT_TEST.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
-        const appManagerEmail = getEnvConfig().appManagerEmail;
-        const organizerId = await appManagerApiClient.getUserManagementService().getUserId(appManagerEmail);
-
         const eventPayload = createEventPayload({
           title: originalEventTitle,
           description: EVENT_CONFIGS.EDIT_TEST.description,
@@ -286,9 +313,10 @@ test.describe(
           organizerId,
         });
 
-        const eventResult = await appManagerApiClient
-          .getContentManagementService()
-          .addNewEventContent(siteId, eventPayload);
+        const eventResult = await contentManagementHelper.contentManagementService.addNewEventContent(
+          siteId,
+          eventPayload
+        );
 
         assertCompleteEventConfiguration(eventResult, EXPECTED_EVENT_SYNC_CONFIG);
 
@@ -336,14 +364,18 @@ test.describe(
           IntegrationsFeatureTags.GOOGLE_CALENDAR,
         ],
       },
-      async ({ appManagerApiClient, appManagerHomePage, siteManagementHelper }) => {
+      async ({ appManagerApiContext, appManagerHomePage, siteManagementHelper, contentManagementHelper }) => {
         test.setTimeout(360000);
         tagTest(test.info(), {
           description: 'Test site deactivation/reactivation impact on Google Calendar event sync',
           zephyrTestId: 'INT-14871, INT-27342, INT-27341',
         });
 
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const userManagementService = new UserManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
+
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const dedicatedTestSite = await siteManagementHelper.createPublicSite({
           category,
           siteName: `Site Deactivation Test Site ${faker.string.alphanumeric({ length: 6 })}`,
@@ -353,9 +385,6 @@ test.describe(
 
         const eventTitle = `${EVENT_CONFIGS.SITE_DEACTIVATION.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
-        const appManagerEmail = getEnvConfig().appManagerEmail;
-        const organizerId = await appManagerApiClient.getUserManagementService().getUserId(appManagerEmail);
-
         const eventPayload = createEventPayload({
           title: eventTitle,
           description: EVENT_CONFIGS.SITE_DEACTIVATION.description,
@@ -363,9 +392,10 @@ test.describe(
           organizerId,
         });
 
-        const eventResult = await appManagerApiClient
-          .getContentManagementService()
-          .addNewEventContent(siteId, eventPayload);
+        const eventResult = await contentManagementHelper.contentManagementService.addNewEventContent(
+          siteId,
+          eventPayload
+        );
 
         assertCompleteEventConfiguration(eventResult, EXPECTED_EVENT_SYNC_CONFIG);
 
@@ -373,7 +403,7 @@ test.describe(
         await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
         // STEP 1: Deactivate the site
-        await appManagerApiClient.getSiteManagementService().deactivateSite(siteId);
+        await siteManagementHelper.siteManagementService.deactivateSite(siteId);
         await appManagerHomePage.page.waitForTimeout(20000);
 
         // Verify event removal from Google Calendar after site deactivation
@@ -382,7 +412,7 @@ test.describe(
         });
 
         // STEP 2: Reactivate the site
-        await appManagerApiClient.getSiteManagementService().activateSite(siteId);
+        await siteManagementHelper.siteManagementService.activateSite(siteId);
         await appManagerHomePage.page.waitForTimeout(25000);
 
         // Verify event reappears in Google Calendar after site reactivation
@@ -400,13 +430,23 @@ test.describe(
           IntegrationsFeatureTags.GOOGLE_CALENDAR,
         ],
       },
-      async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper }) => {
+      async ({
+        appManagerApiContext,
+        appManagerHomePage,
+        testSiteName,
+        siteManagementHelper,
+        contentManagementHelper,
+      }) => {
         test.setTimeout(300000);
         tagTest(test.info(), {
           description:
             'Test event sync toggle behavior - disable sync removes event from Google Calendar, enable sync restores it',
           zephyrTestId: 'INT-27246, INT-27245',
         });
+
+        const userManagementService = new UserManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
 
         const sitesResponse = await siteManagementHelper.getListOfSites();
         const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
@@ -419,9 +459,6 @@ test.describe(
 
         const eventTitle = `${EVENT_CONFIGS.SYNC_TOGGLE.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
-        const appManagerEmail = getEnvConfig().appManagerEmail;
-        const organizerId = await appManagerApiClient.getUserManagementService().getUserId(appManagerEmail);
-
         const eventPayload = createEventPayload({
           title: eventTitle,
           description: EVENT_CONFIGS.SYNC_TOGGLE.description,
@@ -429,9 +466,10 @@ test.describe(
           organizerId,
         });
 
-        const eventResult = await appManagerApiClient
-          .getContentManagementService()
-          .addNewEventContent(siteId, eventPayload);
+        const eventResult = await contentManagementHelper.contentManagementService.addNewEventContent(
+          siteId,
+          eventPayload
+        );
 
         assertCompleteEventConfiguration(eventResult, EXPECTED_EVENT_SYNC_CONFIG);
 
@@ -475,13 +513,17 @@ test.describe(
           IntegrationsFeatureTags.GOOGLE_CALENDAR,
         ],
       },
-      async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper }) => {
+      async ({ appManagerApiContext, testSiteName, siteManagementHelper, contentManagementHelper }) => {
         test.setTimeout(300000);
         tagTest(test.info(), {
           description:
             'Test event sync to end user calendar when added as site member - verifies invitee sync functionality',
           zephyrTestId: 'INT-27084',
         });
+
+        const userManagementService = new UserManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
 
         const sitesResponse = await siteManagementHelper.getListOfSites();
         const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
@@ -499,9 +541,6 @@ test.describe(
         // Create event with Google Calendar sync enabled first
         const eventTitle = `${EVENT_CONFIGS.END_USER_SYNC.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
-        const appManagerEmail = getEnvConfig().appManagerEmail;
-        const organizerId = await appManagerApiClient.getUserManagementService().getUserId(appManagerEmail);
-
         const eventPayload = createEventPayload({
           title: eventTitle,
           description: EVENT_CONFIGS.END_USER_SYNC.description,
@@ -509,16 +548,15 @@ test.describe(
           organizerId,
         });
 
-        const eventResult = await appManagerApiClient
-          .getContentManagementService()
-          .addNewEventContent(siteId, eventPayload);
-
         // Get user ID for the end user email
-        const endUserId = await appManagerApiClient.getUserManagementService().getUserId(endUserEmail);
+        const endUserId = await userManagementService.getUserId(endUserEmail);
 
-        await appManagerApiClient
-          .getSiteManagementService()
-          .makeUserSiteMembership(siteId, endUserId, SitePermission.MEMBER, SiteMembershipAction.ADD);
+        await siteManagementHelper.siteManagementService.makeUserSiteMembership(
+          siteId,
+          endUserId,
+          SitePermission.MEMBER,
+          SiteMembershipAction.ADD
+        );
 
         const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
         await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
@@ -544,13 +582,19 @@ test.describe(
           IntegrationsFeatureTags.GOOGLE_CALENDAR,
         ],
       },
-      async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper }) => {
+      async ({ appManagerApiContext, testSiteName, siteManagementHelper }) => {
         test.setTimeout(300000);
         tagTest(test.info(), {
           description:
             'Test event sync when user is site member before event creation, then verify event removal when user is removed from site',
           zephyrTestId: 'INT-27247',
         });
+        const userManagementService = new UserManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
+        const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
+        const endUserId = await userManagementService.getUserId(endUserEmail);
+
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
 
         const sitesResponse = await siteManagementHelper.getListOfSites();
         const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
@@ -561,20 +605,17 @@ test.describe(
 
         const siteId = testSite.siteId;
 
-        const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
-
         const googleCalendarEmail = 'craig.gordon@simpplr.dev';
 
         // Add end user as site member before creating event
-        const endUserId = await appManagerApiClient.getUserManagementService().getUserId(endUserEmail);
 
-        await appManagerApiClient
-          .getSiteManagementService()
-          .makeUserSiteMembership(siteId, endUserId, SitePermission.MEMBER, SiteMembershipAction.ADD);
+        await siteManagementHelper.siteManagementService.makeUserSiteMembership(
+          siteId,
+          endUserId,
+          SitePermission.MEMBER,
+          SiteMembershipAction.ADD
+        );
         const eventTitle = `${EVENT_CONFIGS.MEMBER_FIRST_SYNC.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
-
-        const appManagerEmail = getEnvConfig().appManagerEmail;
-        const organizerId = await appManagerApiClient.getUserManagementService().getUserId(appManagerEmail);
 
         const eventPayload = createEventPayload({
           title: eventTitle,
@@ -582,10 +623,6 @@ test.describe(
           location: EVENT_CONFIGS.MEMBER_FIRST_SYNC.location,
           organizerId,
         });
-
-        const eventResult = await appManagerApiClient
-          .getContentManagementService()
-          .addNewEventContent(siteId, eventPayload);
 
         // Step 3: Verify event appears in App Manager's calendar using new helper
         const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
@@ -602,9 +639,12 @@ test.describe(
         ).toBe(true);
 
         // Step 5: Remove end user from site membership
-        await appManagerApiClient
-          .getSiteManagementService()
-          .makeUserSiteMembership(siteId, endUserId, SitePermission.MEMBER, SiteMembershipAction.REMOVE);
+        await siteManagementHelper.siteManagementService.makeUserSiteMembership(
+          siteId,
+          endUserId,
+          SitePermission.MEMBER,
+          SiteMembershipAction.REMOVE
+        );
 
         // Step 6: Verify event is removed from End User's Google Calendar using new helper
 
@@ -633,12 +673,19 @@ test.describe(
           IntegrationsFeatureTags.GOOGLE_CALENDAR,
         ],
       },
-      async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper, browser }) => {
+      async ({ appManagerApiContext, testSiteName, siteManagementHelper, contentManagementHelper, browser }) => {
         test.setTimeout(300000);
         tagTest(test.info(), {
           description: 'Test non-member RSVP to public site event and verify event sync to their Google Calendar',
           zephyrTestId: 'NT-27128, INT-27127',
         });
+
+        const userManagementService = new UserManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
+        const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
+        const endUserId = await userManagementService.getUserId(endUserEmail);
+
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
 
         const sitesResponse = await siteManagementHelper.getListOfSites();
         const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
@@ -648,10 +695,6 @@ test.describe(
         }
 
         const siteId = testSite.siteId;
-
-        // End user from QA env who will RSVP as non-member
-        const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
-
         const googleCalendarEmail = 'craig.gordon@simpplr.dev';
 
         // Create second browser context for end user
@@ -668,10 +711,6 @@ test.describe(
         // Step 1: Create event with Google Calendar sync enabled (App Manager)
         const eventTitle = `${EVENT_CONFIGS.NON_MEMBER_RSVP.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
-        // Get app manager user ID for organizerId
-        const appManagerEmail = getEnvConfig().appManagerEmail;
-        const organizerId = await appManagerApiClient.getUserManagementService().getUserId(appManagerEmail);
-
         const eventPayload = createEventPayload({
           title: eventTitle,
           description: EVENT_CONFIGS.NON_MEMBER_RSVP.description,
@@ -679,9 +718,10 @@ test.describe(
           organizerId,
         });
 
-        const eventResult = await appManagerApiClient
-          .getContentManagementService()
-          .addNewEventContent(siteId, eventPayload);
+        const eventResult = await contentManagementHelper.contentManagementService.addNewEventContent(
+          siteId,
+          eventPayload
+        );
 
         // Step 2: Verify event appears in App Manager's calendar using new helper
         const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
@@ -727,7 +767,13 @@ test.describe(
           IntegrationsFeatureTags.GOOGLE_CALENDAR,
         ],
       },
-      async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper }) => {
+      async ({
+        appManagerApiContext,
+        appManagerBrowserContext,
+        appManagerHomePage,
+        testSiteName,
+        siteManagementHelper,
+      }) => {
         test.setTimeout(360000); // 6 minutes timeout for this comprehensive test
         tagTest(test.info(), {
           description:
@@ -735,6 +781,13 @@ test.describe(
           zephyrTestId: 'INT-27254',
         });
 
+        const userManagementService = new UserManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
+        const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
+        const endUserId = await userManagementService.getUserId(endUserEmail);
+
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
+        // Step 1: Add end user as site member (while site is public)
         const sitesResponse = await siteManagementHelper.getListOfSites();
         const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
 
@@ -744,23 +797,15 @@ test.describe(
 
         const siteId = testSite.siteId;
 
-        const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
-
-        const googleCalendarEmail = 'craig.gordon@simpplr.dev';
-
-        // Step 1: Add end user as site member (while site is public)
-
-        const endUserId = await appManagerApiClient.getUserManagementService().getUserId(endUserEmail);
-
-        await appManagerApiClient
-          .getSiteManagementService()
-          .makeUserSiteMembership(siteId, endUserId, SitePermission.MEMBER, SiteMembershipAction.ADD);
+        await siteManagementHelper.siteManagementService.makeUserSiteMembership(
+          siteId,
+          endUserId,
+          SitePermission.MEMBER,
+          SiteMembershipAction.ADD
+        );
 
         // Step 2: Create event with Google Calendar sync enabled
         const eventTitle = `${EVENT_CONFIGS.SITE_ACCESS_CHANGE.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
-
-        const appManagerEmail = getEnvConfig().appManagerEmail;
-        const organizerId = await appManagerApiClient.getUserManagementService().getUserId(appManagerEmail);
 
         const eventPayload = createEventPayload({
           title: eventTitle,
@@ -768,10 +813,6 @@ test.describe(
           location: EVENT_CONFIGS.SITE_ACCESS_CHANGE.location,
           organizerId,
         });
-
-        const eventResult = await appManagerApiClient
-          .getContentManagementService()
-          .addNewEventContent(siteId, eventPayload);
 
         // Step 3: Verify initial event sync to both calendars using new helpers
         const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
@@ -786,7 +827,7 @@ test.describe(
         ).toBe(true);
 
         // Step 5: Change site from public to private
-        await appManagerApiClient.getSiteManagementService().updateSiteAccess(siteId, 'private');
+        await siteManagementHelper.siteManagementService.updateSiteAccess(siteId, 'private');
 
         await appManagerHomePage.page.waitForTimeout(10000);
 

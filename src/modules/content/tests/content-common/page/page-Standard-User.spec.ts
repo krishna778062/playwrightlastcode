@@ -3,15 +3,17 @@ import { PageContentType } from '@content/constants/pageContentType';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
-import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
-import { PageCreationPage } from '@content/pages/pageCreationPage';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
+import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
+import { PageCreationPage } from '@content/ui/pages/pageCreationPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
+import { getContentConfigFromCache } from '../../../config/contentConfig';
+
+import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 // Test data for approve/reject scenarios
 const PAGE_APPROVAL_TEST_DATA = [
@@ -67,10 +69,10 @@ test.describe(
       }
     );
 
-    test.afterEach(async ({ appManagerApiClient }) => {
+    test.afterEach(async ({ contentManagementHelper }) => {
       // Only cleanup manually if needed (for UI-only tests)
       if (manualCleanupNeeded && publishedPageId && siteIdToPublishPage) {
-        await appManagerApiClient.getContentManagementService().deleteContent(siteIdToPublishPage, publishedPageId);
+        await contentManagementHelper.deleteContent(siteIdToPublishPage, publishedPageId);
         console.log('Manual cleanup completed for page:', publishedPageId);
       } else {
         console.log('No page was published, hence skipping the deletion');
@@ -83,7 +85,7 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.PAGE_CREATION],
         },
-        async ({ standardUserHomePage, appManagerHomePage, siteManagementHelper, appManagerApiClient }) => {
+        async ({ standardUserHomePage, appManagerHomePage, siteManagementHelper, appManagerApiContext }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
@@ -149,7 +151,10 @@ test.describe(
           const notificationMessageStandardUser = await standardUserHomePage.actions.clickOnBellIcon({
             stepInfo: 'Standard user clicking on bell icon to view notifications',
           });
-          const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
+          const identityManagementHelper = new IdentityManagementHelper(
+            appManagerApiContext,
+            getContentConfigFromCache().tenant.apiBaseUrl
+          );
           const appManagerInfo = await identityManagementHelper.getUserInfoByEmail(users.appManager.email);
           const finalNotificationMessage =
             appManagerInfo.fullName + testData.notificationMessage + ' "' + pageCreationOptions.title + '"';

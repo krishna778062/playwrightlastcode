@@ -3,24 +3,25 @@ import { PageContentType } from '@content/constants/pageContentType';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentFeatureTags, ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
-import { ApplicationScreenPage } from '@content/pages/applicationscreenPage';
-import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
-import { EditPagePage } from '@content/pages/editPagePage';
-import { GovernanceScreenPage } from '@content/pages/governanceScreenPage';
-import { ManageApplicationPage } from '@content/pages/manageApplicationPage';
-import { ManageContentPage } from '@content/pages/manageContentPage';
-import { ApplicationScreenPage as ManageFeature } from '@content/pages/manageFeaturesPage';
-import { ManageSitePage } from '@content/pages/manageSitePage';
-import { PageCreationPage } from '@content/pages/pageCreationPage';
-import { SiteDetailsPage } from '@content/pages/siteDetailsPage';
-import { SiteDashboardPage } from '@content/pages/sitePages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { SITE_TEST_DATA } from '@content/test-data/sites-create.test-data';
+import { ApplicationScreenPage } from '@content/ui/pages/applicationscreenPage';
+import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
+import { EditPagePage } from '@content/ui/pages/editPagePage';
+import { GovernanceScreenPage } from '@content/ui/pages/governanceScreenPage';
+import { ManageApplicationPage } from '@content/ui/pages/manageApplicationPage';
+import { ManageContentPage } from '@content/ui/pages/manageContentPage';
+import { ApplicationScreenPage as ManageFeature } from '@content/ui/pages/manageFeaturesPage';
+import { ManageSitePage } from '@content/ui/pages/manageSitePage';
+import { PageCreationPage } from '@content/ui/pages/pageCreationPage';
+import { SiteDetailsPage } from '@content/ui/pages/siteDetailsPage';
+import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
+
+import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
 
 test.describe(
   `Page Creation by Application Manager`,
@@ -47,7 +48,7 @@ test.describe(
 
     test.beforeEach(
       'Setting up the test environment for page creation by opening page creation page from home page',
-      async ({ appManagerHomePage, appManagersPage, siteManagementHelper }) => {
+      async ({ appManagerHomePage, appManagersPage }) => {
         // Create home page instance and navigate to page creation
         await appManagerHomePage.verifyThePageIsLoaded();
         contentPreviewPage = new ContentPreviewPage(
@@ -137,13 +138,13 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE, ContentSuiteTags.PAGE_CREATION],
       },
-      async ({ appManagerApiClient, siteManagementHelper, appManagersPage }) => {
+      async ({ siteManagementHelper, appManagersPage, siteManagementService }) => {
         tagTest(test.info(), {
           description: 'Verify admin is able to publish a new page created with cover image from site dashboard',
           zephyrTestId: 'CONT-39089',
           storyId: 'CONT-39089',
         });
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId(SITE_TEST_DATA[0].category);
+        const category = await siteManagementService.getCategoryId(SITE_TEST_DATA[0].category);
         createdSite = await siteManagementHelper.createPublicSite({
           category,
           overrides: { access: SITE_TEST_DATA[0].siteType },

@@ -1,4 +1,3 @@
-import { CustomAppsIntegrationPage } from '@integrations/pages/customAppsIntegrationPage';
 import { ACTION_LABELS } from '@integrations-constants/common';
 import { MESSAGES } from '@integrations-constants/messageRepo';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
@@ -12,7 +11,8 @@ import { UserCredentials } from '@core/types/test.types';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { AppConnectorOptions } from '@/src/modules/integrations/components/customAppsListComponent';
+import { AppConnectorOptions } from '@/src/modules/integrations/ui/components/customAppsListComponent';
+import { CustomAppsIntegrationPage } from '@/src/modules/integrations/ui/pages/customAppsIntegrationPage';
 
 const adminUser: UserCredentials = {
   email: getEnvConfig().appManagerEmail,

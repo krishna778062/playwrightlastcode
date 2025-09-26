@@ -34,13 +34,13 @@ function getCallerInfo(): string {
   if (match) {
     const [, filePath, line, col] = match;
     const fileName = filePath.split('/').pop() || filePath;
-    return `${fileName}:${line}`;
+    return `${fileName}:${line}:${col}`;
   }
 
   return 'unknown';
 }
 
-// Singleton config cache - loaded once per test run (like Java properties)
+// Singleton config cache - loaded once per test run
 let configCache: {
   environment: EnvironmentKey;
   currentTenant: TenantKey;

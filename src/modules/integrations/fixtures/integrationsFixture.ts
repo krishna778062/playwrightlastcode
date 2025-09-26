@@ -1,40 +1,35 @@
-import { BrowserContext, Page, test } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
-import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
-import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
 import { LoginHelper } from '@core/helpers/loginHelper';
-import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
-import { TileManagementHelper } from '@core/helpers/tileManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
-import { HomeDashboard } from '@/src/modules/integrations/pages/homeDashboard';
-import { SiteDashboard } from '@/src/modules/integrations/pages/siteDashboard';
+import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
+import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
+import { TileManagementHelper } from '@/src/modules/integrations/apis/helpers/tileManagementHelper';
+import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
+import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
 export const integrationsFixture = test.extend<
   {
-    homeDashboard: HomeDashboard;
     appManagerBrowserContext: BrowserContext;
     appManagerPage: Page;
+    homeDashboard: HomeDashboard;
     siteDashboard: SiteDashboard;
     siteManagementHelper: SiteManagementHelper;
     tileManagementHelper: TileManagementHelper;
   },
   {
-    appManagerApiClient: AppManagerApiClient;
+    appManagerApiContext: APIRequestContext; //worker scoped api context  }
   }
 >({
-  appManagerApiClient: [
-    async ({}, use, workerInfo) => {
-      console.log(`INFO: Setting up app manager client for worker => `, workerInfo.workerIndex);
-      const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-        type: 'credentials',
-        credentials: {
-          username: getEnvConfig().appManagerEmail,
-          password: getEnvConfig().appManagerPassword,
-        },
-        baseUrl: getEnvConfig().apiBaseUrl,
+  appManagerApiContext: [
+    async ({}, use) => {
+      const appManagerApiContext = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
+        email: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
       });
-      await use(appManagerApiClient);
+      await use(appManagerApiContext);
+      await appManagerApiContext.dispose();
     },
     { scope: 'worker' },
   ],
@@ -42,28 +37,32 @@ export const integrationsFixture = test.extend<
   appManagerBrowserContext: [
     async ({ browser }, use) => {
       const context = await browser.newContext();
-      await use(context);
-      await context?.close();
-    },
-    { scope: 'test' },
-  ],
-
-  homeDashboard: [
-    async ({ appManagerBrowserContext, tileManagementHelper }, use) => {
-      const page = await appManagerBrowserContext.newPage();
+      const page = await context.newPage();
       await LoginHelper.loginWithPassword(page, {
         email: getEnvConfig().appManagerEmail,
         password: getEnvConfig().appManagerPassword,
       });
-      const homeDashboard = new HomeDashboard(page, tileManagementHelper);
-      await use(homeDashboard);
+      await use(context);
+      await context.close();
     },
     { scope: 'test' },
   ],
 
   appManagerPage: [
-    async ({ homeDashboard }, use) => {
-      await use(homeDashboard.page);
+    async ({ appManagerBrowserContext }, use) => {
+      const page = await appManagerBrowserContext.newPage();
+      await use(page);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+
+  homeDashboard: [
+    async ({ appManagerPage, tileManagementHelper }, use) => {
+      const homeDashboard = new HomeDashboard(appManagerPage, tileManagementHelper);
+      await homeDashboard.loadPage();
+      await homeDashboard.verifyThePageIsLoaded();
+      await use(homeDashboard);
     },
     { scope: 'test' },
   ],
@@ -77,8 +76,8 @@ export const integrationsFixture = test.extend<
   ],
 
   siteManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
+    async ({ appManagerApiContext }, use) => {
+      const siteManagementHelper = new SiteManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
       await use(siteManagementHelper);
       await siteManagementHelper.cleanup();
     },
@@ -86,8 +85,8 @@ export const integrationsFixture = test.extend<
   ],
 
   tileManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const tileManagementHelper = new TileManagementHelper(appManagerApiClient);
+    async ({ appManagerApiContext }, use) => {
+      const tileManagementHelper = new TileManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
       try {
         await use(tileManagementHelper);
       } finally {

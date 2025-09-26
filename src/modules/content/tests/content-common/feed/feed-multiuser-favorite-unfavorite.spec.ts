@@ -1,16 +1,18 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { getContentConfigFromCache } from '../../../config/contentConfig';
+
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { TestGroupType } from '@/src/core/constants/testType';
-import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { SitePermission } from '@/src/core/types/siteManagement.types';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
-import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
   '@FeedMultiUser - Multi-User Feed Post Favorite/Unfavorite Tests (Site Owner, Manager, Content Manager)',
@@ -61,7 +63,7 @@ test.describe(
         appManagerHomePage,
         standardUserHomePage,
         siteManagerHomePage,
-        appManagerApiClient,
+        appManagerApiContext,
         siteManagementHelper,
         feedManagementHelper,
       }) => {
@@ -74,7 +76,10 @@ test.describe(
         siteManagerFeedPage = new FeedPage(siteManagerHomePage.page);
 
         // Setup user and site
-        const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
+        const identityManagementHelper = new IdentityManagementHelper(
+          appManagerApiContext,
+          getContentConfigFromCache().tenant.apiBaseUrl
+        );
         const endUserInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
 
         createdSite = await siteManagementHelper.createPublicSite({

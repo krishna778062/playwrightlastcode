@@ -3,7 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { RecordAudioPromptComponent } from '@chat/components/recordAudioPromptComponent';
 import { RecordVideoPromptComponent } from '@chat/components/recordVideoPromptComponent';
 
-import { BaseComponent } from '@/src/core/components/baseComponent';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export interface FormattingOptions {
   usesBold?: boolean;

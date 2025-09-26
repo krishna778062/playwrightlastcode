@@ -1,7 +1,7 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '@/src/core/components/baseComponent';
 import { ContentType } from '@/src/core/constants/contentTypes';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 export class ResultListingComponent extends BaseComponent {

@@ -2,12 +2,14 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FeedManagementService } from '@/src/core/api/services/FeedManagementService';
-import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
+import { getContentConfigFromCache } from '../../../config/contentConfig';
+
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
   '@FeedCommentMentionNotification - Feed Comment Mention Notification Tests',
@@ -21,12 +23,15 @@ test.describe(
     let siteManagerInfo: { userId: string; fullName: string };
     let endUserInfo: { userId: string; fullName: string };
 
-    test.beforeEach('Setup test environment', async ({ appManagerApiClient, feedManagementHelper }) => {
+    test.beforeEach('Setup test environment', async ({ appManagerApiContext, feedManagementHelper }) => {
       // Configure app governance settings and enable timeline comment post(feed)
       await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
 
       // Get user information for mentions (optimized single API calls)
-      const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
+      const identityManagementHelper = new IdentityManagementHelper(
+        appManagerApiContext,
+        getContentConfigFromCache().tenant.apiBaseUrl
+      );
 
       const [endUserData, siteManagerData] = await Promise.all([
         identityManagementHelper.getUserInfoByEmail(users.endUser.email),
@@ -49,7 +54,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-30438'],
       },
-      async ({ appManagerApiClient, standardUserApiClient, siteManagerHomePage, feedManagementHelper }) => {
+      async ({ appManagerApiContext, standardUserApiContext, siteManagerHomePage, feedManagementHelper }) => {
         tagTest(test.info(), {
           description:
             'Verify that User gets notified when it is getting mentioned in the reply of the comment of any post',
@@ -64,7 +69,10 @@ test.describe(
           withAttachment: false,
           waitForSearchIndex: false,
         });
-        const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
+        const identityManagementHelper = new IdentityManagementHelper(
+          appManagerApiContext,
+          getContentConfigFromCache().tenant.apiBaseUrl
+        );
         createdPostText = feedTestData.text;
 
         // Create feed using API (more reliable than UI)
@@ -79,7 +87,10 @@ test.describe(
         });
 
         // Add reply via API
-        const feedManagementService = new FeedManagementService(standardUserApiClient.context);
+        const feedManagementService = new FeedManagementService(
+          standardUserApiContext,
+          getContentConfigFromCache().tenant.apiBaseUrl
+        );
         await feedManagementService.addComment(createdPostId, replyData);
         console.log(`Added reply via API with mention: "${replyData.replyText}"`);
 

@@ -1,5 +1,5 @@
 import { contentTestFixture } from '@content/fixtures/contentFixture';
-import { SiteCategoriesPage } from '@content/pages/siteCategoriesPage';
+import { SiteCategoriesPage } from '@content/ui/pages/siteCategoriesPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
@@ -22,11 +22,11 @@ test.describe('Site Category Validation', { tag: ['@content-management', '@site-
     await siteCategoriesPage.loadPage({ timeout: 40000 });
   });
 
-  test.afterEach(async ({ appManagerApiClient }) => {
+  test.afterEach(async ({ siteManagementService }) => {
     // Cleanup: Delete created category using API
     if (createdCategoryName) {
       try {
-        await appManagerApiClient.getSiteManagementService().deleteCategory(createdCategoryName);
+        await siteManagementService.deleteCategory(createdCategoryName);
         console.log(`API cleanup completed for category: ${createdCategoryName.substring(0, 30)}...`);
       } catch (error) {
         console.log(`API cleanup failed for category: ${error}`);

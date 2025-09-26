@@ -1,6 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '@/src/core/components/baseComponent';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { SiteCreationUI } from '@/src/modules/content-abac/constants/siteCreation';
 
 export class SubscriptionsSectionComponent extends BaseComponent {

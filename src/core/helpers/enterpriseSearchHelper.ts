@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { AppManagerApiClient } from '../api/clients/appManagerApiClient';
+import { HttpClient } from '../api/clients/httpClient';
 import { API_ENDPOINTS } from '../constants/apiEndpoints';
 
 export class EnterpriseSearchHelper {
@@ -14,7 +14,7 @@ export class EnterpriseSearchHelper {
    * @param params.fieldToCheck - The field in the result item to check for the value (defaults to 'title').
    */
   static async waitForResultToAppearInApiResponse(params: {
-    apiClient: AppManagerApiClient;
+    apiClient: HttpClient;
     searchTerm: string;
     objectType: string;
     valueToFind?: string;

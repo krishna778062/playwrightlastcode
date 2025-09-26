@@ -1,9 +1,9 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { tagTest } from '@core/utils/testDecorator';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
-import { PeopleDirectoryPage } from '@platforms/pages/people/peopleDirectoryPage';
 
 import { TestSuite } from '@/src/core/constants/testSuite';
+import { PeopleDirectoryPage } from '@/src/modules/platforms/ui/pages/people/peopleDirectoryPage';
 
 test.describe(
   'People Directory Testcases',

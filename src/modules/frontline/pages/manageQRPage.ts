@@ -2,12 +2,11 @@ import { PopupType } from '@frontline/constants/popupType';
 import { Locator, Page } from '@playwright/test';
 import { addDays, format } from 'date-fns';
 
-import { BasePage } from '@core/pages/basePage';
-
 import { PAGE_ENDPOINTS } from '../../../core/constants/pageEndpoints';
 
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { ContentType } from '@/src/core/constants/contentTypes';
+import { BasePage } from '@/src/core/ui/pages/basePage';
 
 export class ManageQRPage extends BasePage {
   readonly manageLink: Locator;

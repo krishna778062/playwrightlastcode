@@ -3,25 +3,26 @@ import { PageContentType } from '@content/constants/pageContentType';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentFeatureTags, ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
-import { ApplicationScreenPage } from '@content/pages/applicationscreenPage';
-import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
-import { EditPagePage } from '@content/pages/editPagePage';
-import { GovernanceScreenPage } from '@content/pages/governanceScreenPage';
-import { ManageApplicationPage } from '@content/pages/manageApplicationPage';
-import { ManageContentPage } from '@content/pages/manageContentPage';
-import { ApplicationScreenPage as ManageFeature } from '@content/pages/manageFeaturesPage';
-import { ManageSitePage } from '@content/pages/manageSitePage';
-import { SiteDetailsPage } from '@content/pages/siteDetailsPage';
-import { SiteDashboardPage } from '@content/pages/sitePages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { SITE_TEST_DATA } from '@content/test-data/sites-create.test-data';
+import { ApplicationScreenPage } from '@content/ui/pages/applicationscreenPage';
+import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
+import { EditPagePage } from '@content/ui/pages/editPagePage';
+import { GovernanceScreenPage } from '@content/ui/pages/governanceScreenPage';
+import { ManageApplicationPage } from '@content/ui/pages/manageApplicationPage';
+import { ManageContentPage } from '@content/ui/pages/manageContentPage';
+import { ApplicationScreenPage as ManageFeature } from '@content/ui/pages/manageFeaturesPage';
+import { ManageSitePage } from '@content/ui/pages/manageSitePage';
+import { SiteDetailsPage } from '@content/ui/pages/siteDetailsPage';
+import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
+
+import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
 
 test.describe(
   `Page Creation by Application Manager`,
@@ -53,7 +54,8 @@ test.describe(
         siteManagementHelper,
         feedManagementHelper,
         contentManagementHelper,
-        appManagerApiClient,
+        appManagerApiContext,
+        siteManagementService,
       }) => {
         // Configure app governance
         // await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
@@ -68,7 +70,7 @@ test.describe(
         await appManagerHomePage.verifyThePageIsLoaded();
 
         // Create site using API
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId(SITE_TEST_DATA[0].category);
+        const category = await siteManagementService.getCategoryId(SITE_TEST_DATA[0].category);
         createdSite = await siteManagementHelper.createPublicSite({
           category,
           overrides: { access: SITE_TEST_DATA[0].siteType },

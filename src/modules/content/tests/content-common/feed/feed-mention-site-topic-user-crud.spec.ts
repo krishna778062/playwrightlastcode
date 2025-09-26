@@ -2,17 +2,18 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
+import { getContentConfigFromCache } from '../../../config/contentConfig';
+
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
-import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
-import { FeedPage } from '@/src/modules/content/pages/feedPage';
-import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
-import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
+import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/siteDashboardPage';
 import { SiteType } from '@/src/modules/content-abac/constants/siteType';
+import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 // ==================== HELPER FUNCTIONS ====================
 
@@ -150,7 +151,7 @@ for (const testData of feedTestData) {
         'Setup test environment and data creation',
         async ({
           appManagerHomePage,
-          appManagerApiClient,
+          appManagerApiContext,
           contentManagementHelper,
           siteManagementHelper,
           feedManagementHelper,
@@ -160,7 +161,10 @@ for (const testData of feedTestData) {
 
           // Initialize feed page
           appManagerFeedPage = new FeedPage(appManagerHomePage.page);
-          identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
+          identityManagementHelper = new IdentityManagementHelper(
+            appManagerApiContext,
+            getContentConfigFromCache().tenant.apiBaseUrl
+          );
 
           // Fetch common test data via API calls
           const testDataResults = await fetchUserSiteAndTopicByOptions(

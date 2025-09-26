@@ -1,4 +1,3 @@
-import { FilesPreviewMenuActionButton } from '@content/components/filesPreviewModalComponent';
 import {
   FilesPreviewDeleteModal,
   FilesPreviewShowMoreActionsOption,
@@ -7,12 +6,14 @@ import {
 import { SitePageTab } from '@content/constants/sitePageEnums';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
-import { SiteManager } from '@content/managers/siteManager';
-import { SiteFilesPage } from '@content/pages/sitePages/siteFilesPage';
+import { FilesPreviewMenuActionButton } from '@content/ui/components/filesPreviewModalComponent';
+import { SiteFilesPage } from '@content/ui/pages/sitePages/siteFilesPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { FileUtil } from '@core/utils/fileUtil';
 import { tagTest } from '@core/utils/testDecorator';
+
+import { SiteManager } from '@/src/modules/content/ui/managers/siteManager';
 
 test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES_PREVIEW}`, () => {
   let testFileDetails: {

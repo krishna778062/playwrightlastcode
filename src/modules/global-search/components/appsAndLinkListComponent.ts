@@ -1,7 +1,7 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '../../../core/components/baseComponent';
-import { TIMEOUTS } from '../../../core/constants/timeouts';
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 /**
  * AppsAndLinkContainerComponent is a UI component class that extends BaseComponent.

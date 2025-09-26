@@ -2,18 +2,20 @@ import { APIRequestContext, test } from '@playwright/test';
 
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 import { IImageUploaderService } from '@/src/core/api/interfaces/IImageUploaderService';
-import { FeedManagementService } from '@/src/core/api/services/FeedManagementService';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { FileUtil } from '@/src/core/utils/fileUtil';
+import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
 
 export class ImageUploaderService implements IImageUploaderService {
-  private feedService: FeedManagementService;
+  readonly feedService: FeedManagementService;
+  readonly httpClient: HttpClient;
 
   constructor(
-    private apiClient: HttpClient,
-    private request: APIRequestContext
+    readonly context: APIRequestContext,
+    readonly baseUrl: string
   ) {
-    this.feedService = new FeedManagementService(request);
+    this.feedService = new FeedManagementService(context, baseUrl);
+    this.httpClient = new HttpClient(context, baseUrl);
   }
 
   /**
@@ -23,7 +25,7 @@ export class ImageUploaderService implements IImageUploaderService {
    */
   async getSignedUploadUrl(payload: any) {
     return await test.step('Getting signed upload URL', async () => {
-      const response = await this.apiClient.post(API_ENDPOINTS.content.signedUrl, {
+      const response = await this.httpClient.post(API_ENDPOINTS.content.signedUrl, {
         data: payload,
       });
       const json = await response.json();
@@ -44,7 +46,7 @@ export class ImageUploaderService implements IImageUploaderService {
   async uploadFileToSignedUrl(uploadUrl: string, filePath: string, fileName: string) {
     return await test.step('Uploading file to signed upload URL', async () => {
       const fileData = FileUtil.readFile(filePath);
-      const response = await this.request.post(uploadUrl, {
+      const response = await this.httpClient.post(uploadUrl, {
         multipart: {
           file: {
             name: fileName,
@@ -150,7 +152,7 @@ export class ImageUploaderService implements IImageUploaderService {
         site_id: siteId,
       };
 
-      const response = await this.apiClient.post(API_ENDPOINTS.content.files, {
+      const response = await this.httpClient.post(API_ENDPOINTS.content.files, {
         data: payload,
       });
 
@@ -191,7 +193,7 @@ export class ImageUploaderService implements IImageUploaderService {
     return await test.step(`Deleting intranet file with ID: ${fileId}`, async () => {
       const deleteUrl = `${API_ENDPOINTS.content.files}/${fileId}?provider=${provider}&action=delete&isDir=false&siteId=${siteId}`;
 
-      const response = await this.apiClient.delete(deleteUrl);
+      const response = await this.httpClient.delete(deleteUrl);
 
       if (response.status() !== 200) {
         throw new Error(`Failed to delete file. Status: ${response.status()}`);

@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { test } from '@playwright/test';
 
-import { BaseComponent } from '@/src/core/components/baseComponent';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export class RecordVideoPromptComponent extends BaseComponent {
   readonly recordVideoButton: Locator;

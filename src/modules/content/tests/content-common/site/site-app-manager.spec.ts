@@ -1,7 +1,7 @@
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
-import { SiteCreationPage as ContentSiteCreationPage } from '@content/pages/siteCreationPage';
+import { SiteCreationPage as ContentSiteCreationPage } from '@content/ui/pages/siteCreationPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
@@ -54,10 +54,10 @@ test.describe(
       manualCleanupNeeded = false;
     });
 
-    test.afterEach('Site Clean up', async ({ appManagerApiClient }) => {
+    test.afterEach('Site Clean up', async ({ siteManagementService }) => {
       // Only cleanup manually if needed (for UI-only tests)
       if (manualCleanupNeeded && createdSiteId) {
-        await appManagerApiClient.getSiteManagementService().deactivateSite(createdSiteId);
+        await siteManagementService.deactivateSite(createdSiteId);
         console.log('Manual cleanup completed for site:', createdSiteId);
       } else {
         console.log('No site was created, hence skipping the deletion');

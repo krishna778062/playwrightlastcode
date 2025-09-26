@@ -4,7 +4,7 @@ import { AccessSectionComponent } from './accessSectionComponent';
 import { SubscriptionsSectionComponent } from './subscriptionsSectionComponent';
 import { TargetAudienceSectionComponent } from './targetAudienceSectionComponent';
 
-import { BaseComponent } from '@/src/core/components/baseComponent';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { SiteCreationUI } from '@/src/modules/content-abac/constants/siteCreation';
 
 export class SiteCreationFormComponent extends BaseComponent {

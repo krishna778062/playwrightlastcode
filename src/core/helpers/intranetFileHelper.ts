@@ -1,11 +1,12 @@
-import { Page, test } from '@playwright/test';
+import { APIRequestContext, Page, test } from '@playwright/test';
 
-import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
+import { ImageUploaderService } from '@/src/core/api/services/ImageUploaderService';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
+import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
 import { IntranetFileListComponent } from '@/src/modules/global-search/components/intranetFileListComponent';
 
 /**
@@ -16,17 +17,23 @@ export class IntranetFileHelper {
   private page: Page;
   private actions: BaseActionUtil;
   private uploadedFiles: Array<{ fileId: string; siteId: string }> = [];
+  readonly siteManagementService: SiteManagementService;
+  readonly imageUploaderService: ImageUploaderService;
 
   /**
    * Constructs a new instance of the IntranetFileHelper class.
-   * @param appManagerApiClient - The AppManagerApiClient instance.
+   * @param apiRequestContext - The APIRequestContext instance.
+   * @param baseUrl - The base URL.
    * @param page - The Playwright Page object.
    */
   constructor(
-    private appManagerApiClient: AppManagerApiClient,
+    readonly apiRequestContext: APIRequestContext,
+    readonly baseUrl: string,
     page: Page
   ) {
     this.page = page;
+    this.siteManagementService = new SiteManagementService(apiRequestContext, baseUrl);
+    this.imageUploaderService = new ImageUploaderService(apiRequestContext, baseUrl);
     this.actions = new BaseActionUtil(page);
   }
 
@@ -87,15 +94,15 @@ export class IntranetFileHelper {
 
       // Get file details - use different methods for video vs regular files
       const fileDetails = options.videoFile
-        ? await this.appManagerApiClient.getSiteManagementService().getVideoFileIdFromSearch(siteId, uploadedFileName)
-        : await this.appManagerApiClient.getSiteManagementService().getFileIdFromSite(siteId, uploadedFileName);
+        ? await this.siteManagementService.getVideoFileIdFromSearch(siteId, uploadedFileName)
+        : await this.siteManagementService.getFileIdFromSite(siteId, uploadedFileName);
 
       // Extract file metadata
       const uploadedFileId = fileDetails.fileId;
       const fileAuthorName = fileDetails.authorName;
 
       await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
-        apiClient: this.appManagerApiClient,
+        apiClient: this.siteManagementService.httpClient,
         searchTerm: uploadedFileName,
         objectType: 'file',
       });
@@ -146,13 +153,16 @@ export class IntranetFileHelper {
         const copiedFilePath = this.copyAndRenameFile(filePath, fileName);
 
         // Use createIntranetFileWithAttachment for complete workflow (like feed attachments)
-        const fileDetails = await this.appManagerApiClient
-          .getImageUploaderService()
-          .uploadIntranetFile(siteId, fileName, copiedFilePath, this.getMimeTypeFromFileName(fileName));
+        const fileDetails = await this.imageUploaderService.uploadIntranetFile(
+          siteId,
+          fileName,
+          copiedFilePath,
+          this.getMimeTypeFromFileName(fileName)
+        );
 
         // Wait for the file to appear in search results
         await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
-          apiClient: this.appManagerApiClient,
+          apiClient: this.imageUploaderService.httpClient,
           searchTerm: fileName,
           objectType: 'file',
         });
@@ -226,7 +236,7 @@ export class IntranetFileHelper {
   async deleteFileViaApi(fileId: string, siteId: string): Promise<void> {
     await test.step(`Deleting intranet file with ID: ${fileId}`, async () => {
       try {
-        await this.appManagerApiClient.getImageUploaderService().deleteIntranetFile(fileId, siteId);
+        await this.imageUploaderService.deleteIntranetFile(fileId, siteId);
       } catch (error) {
         console.error('Error in deleteFileViaApi:', error);
         throw new Error(`Failed to delete file via API: ${error instanceof Error ? error.message : String(error)}`);

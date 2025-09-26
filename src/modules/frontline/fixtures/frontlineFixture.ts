@@ -1,13 +1,12 @@
-import { BrowserContext, Page, test } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
-import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
-import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
-import { LoginHelper } from '@core/helpers/loginHelper';
-import { getEnvConfig } from '@core/utils/getEnvConfig';
+import { QRManagementService } from '../apis/services/QRManagementService';
 
-import { QRManagementService } from '@/src/core/api/services/QRManagementService';
-import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
+import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
+import { LoginHelper } from '@/src/core/helpers/loginHelper';
+import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
+import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
+import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 
 export type UserType = 'appManager' | 'endUser';
 
@@ -24,96 +23,106 @@ export const users = {
 
 export const frontlineTestFixture = test.extend<
   {
-    appManagerContext: BrowserContext;
-    endUserContext: BrowserContext;
+    appManagerBrowserContext: BrowserContext;
+    appManagersPage: Page;
+    endUserBrowserContext: BrowserContext;
+    endUsersPage: Page;
     appManagerHomePage: NewUxHomePage | OldUxHomePage;
     endUserHomePage: NewUxHomePage | OldUxHomePage;
-    appManagersPage: Page;
-    endUsersPage: Page;
     loginAs: (userType: UserType) => Promise<void>;
   },
   {
-    appManagerApiClient: AppManagerApiClient;
+    appManagerApiContext: APIRequestContext;
     qrManagementService: QRManagementService;
   }
 >({
-  appManagerApiClient: [
-    async ({}, use, workerInfo) => {
-      console.log(`INFO: Setting up app manager client for worker => `, workerInfo.workerIndex);
-      const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-        type: 'credentials',
-        credentials: {
-          username: getEnvConfig().appManagerEmail,
-          password: getEnvConfig().appManagerPassword,
-        },
-        baseUrl: getEnvConfig().apiBaseUrl,
+  // Worker-scoped API client - shared across all tests in worker
+  appManagerApiContext: [
+    async ({}, use) => {
+      const appManagerApiContext = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
+        email: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
       });
-      await use(appManagerApiClient);
+
+      await use(appManagerApiContext);
+      await appManagerApiContext.dispose();
     },
     { scope: 'worker' },
   ],
   qrManagementService: [
-    async ({ appManagerApiClient }, use) => {
-      const qrManagementService = new QRManagementService(appManagerApiClient.context);
+    async ({ appManagerApiContext }, use) => {
+      const qrManagementService = new QRManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
       await use(qrManagementService);
     },
     { scope: 'worker' },
   ],
-  appManagerContext: [
-    async ({ browser }, use, workerInfo) => {
+  appManagerBrowserContext: [
+    async ({ browser }, use) => {
       const context = await browser.newContext();
-      await use(context);
-      await context?.close();
-    },
-    { scope: 'test' },
-  ],
-  appManagerHomePage: [
-    async ({ appManagerContext }, use, workerInfo) => {
-      const page = await appManagerContext.newPage();
-      const appManagerHomePage = await LoginHelper.loginWithPassword(page, {
+      const page = await context.newPage();
+      await LoginHelper.loginWithPassword(page, {
         email: getEnvConfig().appManagerEmail,
         password: getEnvConfig().appManagerPassword,
       });
-      await appManagerHomePage.verifyThePageIsLoaded();
-      await use(appManagerHomePage);
-      await page.close();
-    },
-    { scope: 'test' },
-  ],
-  appManagersPage: [
-    async ({ appManagerHomePage }, use, workerInfo) => {
-      await use(appManagerHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-  endUserContext: [
-    async ({ browser }, use, workerInfo) => {
-      const context = await browser.newContext();
       await use(context);
-      await context?.close();
-    },
-    { scope: 'test' },
-  ],
-  endUserHomePage: [
-    async ({ endUserContext }, use, workerInfo) => {
-      const page = await endUserContext.newPage();
-      const endUserHomePage = await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().endUserEmail!,
-        password: getEnvConfig().endUserPassword,
-      });
-      await endUserHomePage.verifyThePageIsLoaded();
-      await use(endUserHomePage);
-      await page.close();
-    },
-    { scope: 'test' },
-  ],
-  endUsersPage: [
-    async ({ endUserHomePage }, use, workerInfo) => {
-      await use(endUserHomePage.page);
+      await context.close();
     },
     { scope: 'test' },
   ],
 
+  appManagersPage: [
+    async ({ appManagerBrowserContext }, use) => {
+      const page = await appManagerBrowserContext.newPage();
+      await use(page);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+
+  appManagerHomePage: [
+    async ({ appManagersPage }, use) => {
+      const homePage = new NewUxHomePage(appManagersPage);
+      await homePage.loadPage();
+      await homePage.verifyThePageIsLoaded();
+      await use(homePage);
+      await appManagersPage.close();
+    },
+    { scope: 'test' },
+  ],
+
+  endUserBrowserContext: [
+    async ({ browser }, use) => {
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
+      });
+      await use(context);
+      await context.close();
+    },
+    { scope: 'test' },
+  ],
+
+  endUsersPage: [
+    async ({ endUserBrowserContext }, use) => {
+      const page = await endUserBrowserContext.newPage();
+      await use(page);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+
+  endUserHomePage: [
+    async ({ endUsersPage }, use) => {
+      const homePage = new NewUxHomePage(endUsersPage);
+      await homePage.loadPage();
+      await homePage.verifyThePageIsLoaded();
+      await use(homePage);
+      await endUsersPage.close();
+    },
+    { scope: 'test' },
+  ],
   loginAs: async ({ page }, use) => {
     await use(async (userType: UserType) => {
       await LoginHelper.loginWithPassword(page, users[userType]);

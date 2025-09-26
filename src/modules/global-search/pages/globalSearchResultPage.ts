@@ -5,7 +5,7 @@ import { ExternalSearchListComponent } from '../components/externalSearchListCom
 
 import { ContentType } from '@/src/core/constants/contentTypes';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
-import { BasePage } from '@/src/core/pages/basePage';
+import { BasePage } from '@/src/core/ui/pages/basePage';
 import { AppsAndLinkContainerComponent } from '@/src/modules/global-search/components/appsAndLinkListComponent';
 import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 import { FeedListComponent } from '@/src/modules/global-search/components/feedListComponent';

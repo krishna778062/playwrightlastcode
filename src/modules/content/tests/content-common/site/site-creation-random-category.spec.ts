@@ -1,12 +1,12 @@
+import { SiteCreationPage } from '@content/ui/pages/siteCreationPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { SiteCreationPage } from '@/src/modules/content/pages/siteCreationPage';
-import { SiteDashboardPage } from '@/src/modules/content/pages/sitePages/siteDashboardPage';
-import { SitesListPage } from '@/src/modules/content/pages/sitesListPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
+import { SitesListPage } from '@/src/modules/content/ui/pages/sitesListPage';
 
 test.describe('Site Creation', { tag: ['@content', '@site-creation'] }, () => {
   let sitesListPage: SitesListPage;

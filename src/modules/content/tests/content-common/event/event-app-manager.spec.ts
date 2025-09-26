@@ -1,9 +1,9 @@
 import { ContentType } from '@content/constants/contentType';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
-import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
-import { EventCreationPage } from '@content/pages/eventCreationPage';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
+import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
+import { EventCreationPage } from '@content/ui/pages/eventCreationPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';

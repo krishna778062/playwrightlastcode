@@ -4,11 +4,11 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestSuite } from '@core/constants/testSuite';
 import { tagTest } from '@core/utils/testDecorator';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
-import { AudiencePage } from '@platforms/pages/abacPage/acgPage/audiencePage';
 
 import { AUDIENCE_TEST_DATA } from '../../../test-data/audience-test-data';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { AudiencePage } from '@/src/modules/platforms/ui/pages/abacPage/acgPage/audiencePage';
 
 test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestSuite.AUDIENCE_CSV] }, () => {
   test(
@@ -27,7 +27,7 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
       await audiencePage.loadPage();
 
       // Step 1: Create category via API
-      const createdCategory = await audienceCategoryManagementHelper.createCategory(uniqueCategoryName, {
+      await audienceCategoryManagementHelper.createCategory(uniqueCategoryName, {
         description: 'Category created via API for CSV test',
       });
 
@@ -122,7 +122,7 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
   test(
     'CSV Upload: Verify user can add new category during CSV upload process',
     { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
-    async ({ appManagerPage, audienceCategoryManagementHelper, appManagerApiClient }) => {
+    async ({ appManagerPage, audienceCategoryManagementHelper, identityManagementHelper }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-33626'],
       });
@@ -157,7 +157,7 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
       await audiencePage.page.waitForTimeout(3000);
 
       // Step 8: Verify new category was created using API
-      const categoryId = await appManagerApiClient.getIdentityService().getCategoryId(newCategoryName, 100);
+      const categoryId = await identityManagementHelper.identityService.getCategoryId(newCategoryName, 100);
       expect(categoryId, `Category "${newCategoryName}" should be created during CSV upload`).toBeTruthy();
 
       // Step 9: Register the existing category for cleanup (don't create duplicate)

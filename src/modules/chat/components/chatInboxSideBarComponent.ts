@@ -4,7 +4,7 @@ import { GroupChatsSectionComponent } from '@chat/components/groupChatsSectionCo
 
 import { ChatMentionsListSection } from './chatMentionsListSection';
 
-import { BaseComponent } from '@/src/core/components/baseComponent';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { DirectMessageSectionInInbox } from '@/src/modules/chat/components/directMessageSectionInChatInbox';
 
 export class ChatInboxSideBarComponent extends BaseComponent {

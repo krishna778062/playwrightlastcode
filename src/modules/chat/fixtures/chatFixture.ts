@@ -2,13 +2,13 @@ import { BrowserContext, Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
-import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
 import { LoginHelper } from '@core/helpers/loginHelper';
-import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
-import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
+import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
+import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
+import { FeedManagementHelper } from '@/src/modules/content/apis/helpers/feedManagementHelper';
+import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 
 export type UserType = 'appManager' | 'endUser';
 

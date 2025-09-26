@@ -200,7 +200,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiContext }) => {
         void homeDashboard;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24070',
@@ -211,7 +211,7 @@ test.describe(
         createdTileTitle = `GitHub Pending PR Reviews ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -236,7 +236,7 @@ test.describe(
       {
         tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiContext }) => {
         void homeDashboard;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24048',
@@ -247,7 +247,7 @@ test.describe(
         createdTileTitle = `Display my open PRs ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 

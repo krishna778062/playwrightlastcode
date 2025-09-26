@@ -2,12 +2,12 @@ import { BrowserContext, Page, test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { ApiClientFactory } from '@/src/core/api/factories/apiClientFactory';
-import { SiteManagementService } from '@/src/core/api/services/SiteManagementService';
-import { FeedManagementHelper } from '@/src/core/helpers/feedManagementHelper';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
-import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
+import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
+import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
+import { FeedManagementHelper } from '@/src/modules/content/apis/helpers/feedManagementHelper';
+import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
 
 export const contentAbacTestFixture = test.extend<{
   appManagerHomePage: NewUxHomePage | OldUxHomePage;

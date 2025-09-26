@@ -1,7 +1,7 @@
 import { Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '../../../core/constants/timeouts';
-import { TileLink } from '../../../core/types/tile.type';
+import { TileLink } from '../../integrations/apis/types/tile.type';
 
 import { ResultListingComponent } from './resultsListComponent';
 

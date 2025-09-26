@@ -1,13 +1,13 @@
-import { ApplicationScreenPage } from '@content/pages/manageFeaturesPage';
+import { ApplicationScreenPage } from '@content/ui/pages/manageFeaturesPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
+import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 
 test.describe(
   ContentSuiteTags.MANAGE_CONTENT,

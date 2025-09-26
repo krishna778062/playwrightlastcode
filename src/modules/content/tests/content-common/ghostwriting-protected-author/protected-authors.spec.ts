@@ -2,15 +2,15 @@ import { expect, Page } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { ApplicationScreenPage } from '@/src/modules/content/pages/applicationscreenPage';
-import { ManageApplicationPage } from '@/src/modules/content/pages/manageApplicationPage';
-import { PrivilegesScreenPage } from '@/src/modules/content/pages/privilegesScreenPage';
+import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationscreenPage';
+import { ManageApplicationPage } from '@/src/modules/content/ui/pages/manageApplicationPage';
+import { PrivilegesScreenPage } from '@/src/modules/content/ui/pages/privilegesScreenPage';
 
 test.describe('Protected Authors', () => {
   let applicationScreen: ApplicationScreenPage;

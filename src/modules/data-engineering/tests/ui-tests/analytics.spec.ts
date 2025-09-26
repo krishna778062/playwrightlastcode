@@ -1,11 +1,9 @@
 import { TestGroupType } from '@core/constants/testType';
 
 import { test } from '../../fixtures/loginFixture';
-import { AnalyticsLandingPage } from '../../pages/analyticsLandingPage';
 
-import { SideNavBarComponent } from '@/src/core/components/sideNavBarComponent';
 import { TestPriority } from '@/src/core/constants/testPriority';
-import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
+import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
 import { tagTest } from '@/src/core/utils/testDecorator';
 import { DataEngineeringTestSuite } from '@/src/modules/data-engineering/constants/testSuite';
 

@@ -4,7 +4,7 @@ import { ChatEditorComponent } from '@chat/components/chatEditorComponent';
 import { FocusedMessageInReplyThreadComponent } from '@chat/components/focusedMessageInReplyThreadComponent';
 import { TIMEOUTS } from '@core/constants/timeouts';
 
-import { BaseComponent } from '@/src/core/components/baseComponent';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export class MessageReplyThreadComponent extends BaseComponent {
   //locators

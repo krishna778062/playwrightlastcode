@@ -1,12 +1,13 @@
 import { expect, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
-import { LoginPage } from '@core/pages/loginPage';
 import { UserCredentials } from '@core/types/test.types';
 
 import { PAGE_ENDPOINTS } from '../constants/pageEndpoints';
-import { NewUxHomePage } from '../pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '../pages/homePage/oldUxHomePage';
+import { NewUxHomePage } from '../ui/pages/homePage/newUxHomePage';
+import { OldUxHomePage } from '../ui/pages/homePage/oldUxHomePage';
+
+import { LoginPage } from '@/src/core/ui/pages/loginPage';
 
 export class LoginHelper {
   /**

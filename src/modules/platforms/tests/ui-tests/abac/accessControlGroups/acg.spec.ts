@@ -2,17 +2,20 @@
 // @core imports
 import { POPUP_BUTTONS } from '@core/constants/popupButtons';
 import { TestPriority } from '@core/constants/testPriority';
-import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 // @platforms imports
 import { ACG_COLUMNS, ACG_EDIT_ASSETS, ACG_STATUS } from '@platforms/constants/acg';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
-import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/acgPage/accessControlGroupsPage';
 
 import { AUDIENCE_API_ATTRIBUTES, AUDIENCE_API_OPERATORS } from '@/src/core/constants/createAudienceAPI';
 import { TestSuite } from '@/src/core/constants/testSuite';
 import { audienceCreationParams } from '@/src/core/types/audience.type';
+import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import {
+  AccessControlGroupsPage,
+  ACGFeature,
+} from '@/src/modules/platforms/ui/pages/abacPage/acgPage/accessControlGroupsPage';
 
 test.describe(
   'ACG Testcases',
@@ -27,12 +30,12 @@ test.describe(
     const categoryId: string[] = [];
     let createAudienceParams: audienceCreationParams;
 
-    test.beforeEach(async ({ appManagerApiClient }) => {
+    test.beforeEach(async ({ identityManagementHelper }) => {
       categoryToCreate = TestDataGenerator.generateCategoryName('ABAC_Target_Category');
       audienceToCreate.push(TestDataGenerator.generateCategoryName('ABAC_Target_Audience'));
       audienceToCreate.push(TestDataGenerator.generateCategoryName('ABAC_Target_Audience_Secondary'));
 
-      categoryId.push(await appManagerApiClient.getIdentityService().createCategory(categoryToCreate));
+      categoryId.push(await identityManagementHelper.identityService.createCategory(categoryToCreate));
       createAudienceParams = {
         audienceName: audienceToCreate[0],
         categoryId: categoryId[0],
@@ -40,23 +43,23 @@ test.describe(
         operator: AUDIENCE_API_OPERATORS.CONTAINS,
         value: 'something',
       };
-      audienceId.push(await appManagerApiClient.getIdentityService().createAudience(createAudienceParams));
+      audienceId.push(await identityManagementHelper.identityService.createAudience(createAudienceParams));
       createAudienceParams.audienceName = audienceToCreate[1];
-      audienceId.push(await appManagerApiClient.getIdentityService().createAudience(createAudienceParams));
+      audienceId.push(await identityManagementHelper.identityService.createAudience(createAudienceParams));
     });
 
-    test.afterEach(async ({ appManagerApiClient }) => {
+    test.afterEach(async ({ identityManagementHelper }) => {
       //delete the acg if it exists
       while (acgName.length > 0) {
-        await appManagerApiClient.getIdentityService().deleteACGByName(acgName.pop() as string);
+        await identityManagementHelper.identityService.deleteACGByName(acgName.pop() as string);
       }
       //delete the audiences if it exists
       while (audienceId.length > 0) {
-        await appManagerApiClient.getIdentityService().deleteAudience(audienceId.pop() as string);
+        await identityManagementHelper.identityService.deleteAudience(audienceId.pop() as string);
       }
       //delete the category if it exists
       while (categoryId.length > 0) {
-        await appManagerApiClient.getIdentityService().deleteCategoryById(categoryId.pop() as string);
+        await identityManagementHelper.identityService.deleteCategoryById(categoryId.pop() as string);
       }
     });
 
@@ -70,7 +73,7 @@ test.describe(
       {
         tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
-      async ({ appManagerPage, appManagerApiClient }) => {
+      async ({ appManagerPage, identityManagementHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-29969', 'PS-29972', 'PS-32216'],
         });
@@ -80,7 +83,7 @@ test.describe(
         //after these actions are done, we will wait for the api call to be completed
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
         await accessControlGroupsPage.verifyACGStatus(acgName[0], ACG_STATUS.ACTIVE);
-        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
+        await identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
           'Access control group was successfully updated'
         );
@@ -94,7 +97,7 @@ test.describe(
       {
         tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
-      async ({ appManagerPage, appManagerApiClient }) => {
+      async ({ appManagerPage, identityManagementHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'PS-32216',
         });
@@ -107,7 +110,7 @@ test.describe(
           })
         );
         await accessControlGroupsPage.verifyACGStatus(acgName[0], ACG_STATUS.INACTIVE);
-        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
+        await identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
           'Access control group was successfully updated'
         );
@@ -121,7 +124,7 @@ test.describe(
       {
         tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
-      async ({ userManagerPage, appManagerApiClient }) => {
+      async ({ userManagerPage, identityManagementHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-33248', 'PS-33250'],
         });
@@ -130,7 +133,7 @@ test.describe(
         await accessControlGroupsPage.loadPage();
         //after these actions are done, we will wait for the api call to be completed
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
-        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
+        await identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
           'Access control group was successfully updated'
         );
@@ -176,7 +179,7 @@ test.describe(
       {
         tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
-      async ({ appManagerPage, appManagerApiClient }) => {
+      async ({ appManagerPage, identityManagementHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-32210'],
         });
@@ -185,7 +188,7 @@ test.describe(
         await accessControlGroupsPage.loadPage();
         // Create an ACG with target audiecne only
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
-        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
+        await identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
           'Access control group was successfully updated'
         );
@@ -210,7 +213,7 @@ test.describe(
       {
         tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
-      async ({ appManagerPage, appManagerApiClient }) => {
+      async ({ appManagerPage, identityManagementHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-32212'],
         });
@@ -219,13 +222,13 @@ test.describe(
         // Prerequisite
         // Create an ACG with target audiecne only
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
-        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
+        await identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
           'Access control group was successfully updated'
         );
         await accessControlGroupsPage.dismissTheToastMessage();
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[1]));
-        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[1]);
+        await identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[1]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
           'Access control group was successfully updated'
         );

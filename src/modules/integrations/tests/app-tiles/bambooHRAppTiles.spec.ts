@@ -69,7 +69,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ siteDashboard, siteManagementHelper, appManagerApiContext }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-21575',
           storyId: 'INT-22854',
@@ -79,7 +79,7 @@ test.describe(
         createdTileTitle = `Display Time Off Balance ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -102,7 +102,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiContext }) => {
         void homeDashboard;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23137',
@@ -113,7 +113,7 @@ test.describe(
         createdTileTitle = `Apply for Time Off ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -224,7 +224,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient, appManagerPage }) => {
+      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiContext, appManagerPage }) => {
         void homeDashboard;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23132',
@@ -236,7 +236,7 @@ test.describe(
         const comments = faker.lorem.sentence();
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -271,7 +271,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiContext }) => {
         void homeDashboard;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23139',
@@ -282,7 +282,7 @@ test.describe(
         createdTileTitle = `Display Time Off Balance ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -305,7 +305,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiContext }) => {
         void homeDashboard;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23131',
@@ -316,7 +316,7 @@ test.describe(
         createdTileTitle = `Display Time Off Balance ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 

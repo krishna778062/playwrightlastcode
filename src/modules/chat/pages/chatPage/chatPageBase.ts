@@ -1,8 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 
-import { BasePage } from '@core/pages/basePage';
-
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ChatInboxSideBarComponent } from '@/src/modules/chat/components/chatInboxSideBarComponent';
 import { ConversationWindowComponent } from '@/src/modules/chat/components/conversationWindowComponent';
 import { DirectMessageSectionInInbox } from '@/src/modules/chat/components/directMessageSectionInChatInbox';

@@ -1,19 +1,17 @@
-import { BrowserContext, Page, test } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
-import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
-import { StandardUserApiClient } from '@core/api/clients/standardUserApiClient';
-import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
-import { FeedManagementService } from '@core/api/services/FeedManagementService';
-import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
-import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
-import { IdentityManagementHelper } from '@core/helpers/identityManagementHelper';
-import { LoginHelper } from '@core/helpers/loginHelper';
-import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
-import { getEnvConfig } from '@core/utils/getEnvConfig';
-
-import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
-import { getContentTenantConfigFor, getContentTenantConfigFromCache } from '@/src/modules/content/config/contentConfig';
+import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
+import { AuthHelper } from '@/src/core/api/helpers/authHelper';
+import { LoginHelper } from '@/src/core/helpers/loginHelper';
+import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
+import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
+import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/contentManagementHelper';
+import { FeedManagementHelper } from '@/src/modules/content/apis/helpers/feedManagementHelper';
+import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
+import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
+import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
+import { getContentTenantConfigFromCache } from '@/src/modules/content/config/contentConfig';
+import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 export type UserType = 'appManager' | 'endUser';
 export type HomePageType = NewUxHomePage | OldUxHomePage;
@@ -35,224 +33,202 @@ export const users = {
   },
 } as const;
 
-// Shared login function to reduce code duplication
-async function createAuthenticatedHomePage(
-  context: BrowserContext,
-  userCredentials: { email: string; password: string }
-): Promise<HomePageType> {
-  const page = await context.newPage();
-  const homePage = await LoginHelper.loginWithPassword(page, userCredentials);
-  await homePage.verifyThePageIsLoaded();
-  return homePage;
-}
-
-// Shared logout function with error handling
-async function performLogout(homePage: HomePageType): Promise<void> {
-  try {
-    await LoginHelper.logoutByNavigatingToLogoutPage(homePage.page);
-  } catch (error) {
-    console.warn('Logout failed, continuing with test cleanup:', error);
-  }
-}
-
 export const contentTestFixture = test.extend<
   {
-    // Browser contexts
-    appManagerContext: BrowserContext;
-    standardUserContext: BrowserContext;
-    siteManagerContext: BrowserContext;
-
-    // Authenticated pages
-    appManagerHomePage: HomePageType;
+    // App manager browser context, Request Context + page
+    appManagerBrowserContext: BrowserContext;
     appManagersPage: Page;
-    endUserContext: BrowserContext;
-    endUserHomePage: NewUxHomePage | OldUxHomePage;
-    endUsersPage: Page;
-    siteManagerHomePage: HomePageType;
-    siteManagerPage: Page;
-    feedManagerService: FeedManagementService;
-    manageContentEndUserHelper: ContentManagementHelper;
-
-    standardUserHomePage: HomePageType;
-    standardUserPage: Page;
-
     // Helpers and services
     siteManagementHelper: SiteManagementHelper;
     contentManagementHelper: ContentManagementHelper;
     feedManagementHelper: FeedManagementHelper;
     standardUserFeedManagementHelper: FeedManagementHelper;
     identityManagementHelper: IdentityManagementHelper;
+    siteManagementService: SiteManagementService;
 
-    // Utility functions
-    loginAs: (userType: UserType) => Promise<void>;
+    // End user browser context, Request Context + page
+    standardUserBrowserContext: BrowserContext;
+    standardUserPage: Page;
+    standardUserHomePage: HomePageType;
+
+    // Site manager browser context, Request Context + page
+    siteManagerBrowserContext: BrowserContext;
+    siteManagerPage: Page;
+
+    // Authenticated pages
+    appManagerHomePage: HomePageType;
+    endUserHomePage: NewUxHomePage | OldUxHomePage;
+    endUsersPage: Page;
+    siteManagerHomePage: HomePageType;
+    feedManagerService: FeedManagementService;
+    manageContentEndUserHelper: ContentManagementHelper;
   },
   {
     // Worker-scoped fixtures
-    appManagerApiClient: AppManagerApiClient;
-    standardUserApiClient: StandardUserApiClient;
+    appManagerApiContext: APIRequestContext;
+    standardUserApiContext: APIRequestContext;
   }
 >({
   // Worker-scoped API client - shared across all tests in worker
-  appManagerApiClient: [
-    async ({}, use, workerInfo) => {
-      console.log(`Setting up app manager API client for worker ${workerInfo.workerIndex}`);
+  appManagerApiContext: [
+    async ({}, use) => {
+      const appManagerApiContext = await RequestContextFactory.createAuthenticatedContext(
+        getContentTenantConfigFromCache().apiBaseUrl,
+        {
+          email: getContentTenantConfigFromCache().appManagerEmail,
+          password: getContentTenantConfigFromCache().appManagerPassword,
+        }
+      );
 
-      const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-        type: 'credentials',
-        credentials: {
-          username: getContentTenantConfigFor('contentSettings').appManagerEmail,
-          password: getContentTenantConfigFor('contentSettings').appManagerPassword,
-        },
-        baseUrl: getContentTenantConfigFor('contentSettings').apiBaseUrl,
-      });
-
-      await use(appManagerApiClient);
-
-      // Cleanup worker-scoped resources
-      console.log(`Cleaning up app manager API client for worker ${workerInfo.workerIndex}`);
+      await use(appManagerApiContext);
+      await appManagerApiContext.dispose();
     },
     { scope: 'worker' },
   ],
-  standardUserApiClient: [
-    async ({}, use, workerInfo) => {
-      const standardUserApiClient = await ApiClientFactory.createClient(StandardUserApiClient, {
-        type: 'credentials',
-        credentials: {
-          username: getContentTenantConfigFor('contentSettings').endUserEmail || '',
-          password: getContentTenantConfigFor('contentSettings').endUserPassword || '',
-        },
-        baseUrl: getContentTenantConfigFor('contentSettings').apiBaseUrl,
-      });
-      await use(standardUserApiClient);
+  standardUserApiContext: [
+    async ({}, use) => {
+      const standardUserApiContext = await RequestContextFactory.createAuthenticatedContext(
+        getContentTenantConfigFromCache().apiBaseUrl,
+        {
+          email: getContentTenantConfigFromCache().endUserEmail || '',
+          password: getContentTenantConfigFromCache().endUserPassword || '',
+        }
+      );
+      await use(standardUserApiContext);
+      await standardUserApiContext.dispose();
     },
     { scope: 'worker' },
   ],
   // Browser contexts - isolated per test
-  appManagerContext: [
+  appManagerBrowserContext: [
     async ({ browser }, use) => {
-      const context = await browser.newContext({
-        permissions: ['camera', 'microphone', 'notifications'],
+      // const page = await context.newPage();
+      // await LoginHelper.loginWithPassword(page, {
+      //   email: getEnvConfig().appManagerEmail,
+      //   password: getEnvConfig().appManagerPassword,
+      // });
+      // const appManagerHomePage = getEnvConfig().newUxEnabled ? new NewUxHomePage(page) : new OldUxHomePage(page);
+      // // await appManagerHomePage.verifyThePageIsLoaded();
+      // await use(context);
+      // await page.close();
+      // await context.close();
+      // const context = await AuthHelper.getLoggedInBrowserContext(
+      //   browser,
+      //   getContentTenantConfigFromCache().apiBaseUrl,
+      //   users.appManager
+      // );
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      await LoginHelper.loginWithPassword(page, {
+        email: getContentTenantConfigFromCache().appManagerEmail,
+        password: getContentTenantConfigFromCache().appManagerPassword,
       });
-
       await use(context);
       await context.close();
     },
     { scope: 'test' },
   ],
   // Authenticated home pages
-  appManagerHomePage: [
-    async ({ appManagerContext }, use) => {
-      const homePage = await createAuthenticatedHomePage(appManagerContext, users.appManager);
-
-      await use(homePage);
-      await performLogout(homePage);
+  appManagersPage: [
+    async ({ appManagerBrowserContext }, use) => {
+      const page = await appManagerBrowserContext.newPage();
+      await use(page);
+      await page.close();
     },
     { scope: 'test' },
   ],
-  standardUserContext: [
+  appManagerHomePage: [
+    async ({ appManagersPage }, use) => {
+      const homePage = new NewUxHomePage(appManagersPage);
+      await homePage.loadPage();
+      await homePage.verifyThePageIsLoaded();
+      await use(homePage);
+    },
+    { scope: 'test' },
+  ],
+  standardUserBrowserContext: [
     async ({ browser }, use) => {
-      const context = await browser.newContext({
-        permissions: ['camera', 'microphone', 'notifications'],
-        // Optimize context creation
-        ignoreHTTPSErrors: true,
-        // viewport: { width: 1920, height: 1080 },
-      });
+      // const context = await browser.newContext({
+      //   permissions: ['camera', 'microphone', 'notifications'],
+      //   // Optimize context creation
+      //   ignoreHTTPSErrors: true,
+      //   // viewport: { width: 1920, height: 1080 },
+      // });
+      const context = await AuthHelper.getLoggedInBrowserContext(
+        browser,
+        getContentTenantConfigFromCache().apiBaseUrl,
+        users.endUser
+      );
 
       await use(context);
       await context.close();
     },
     { scope: 'test' },
   ],
-  siteManagerContext: [
+  standardUserPage: [
+    async ({ standardUserBrowserContext }, use) => {
+      const page = await standardUserBrowserContext.newPage();
+      await use(page);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+  siteManagerBrowserContext: [
     async ({ browser }, use) => {
-      const context = await browser.newContext({
-        permissions: ['camera', 'microphone', 'notifications'],
-      });
+      // const context = await browser.newContext({
+      //   permissions: ['camera', 'microphone', 'notifications'],
+      // });
+      const context = await AuthHelper.getLoggedInBrowserContext(
+        browser,
+        getContentTenantConfigFromCache().apiBaseUrl,
+        users.siteManager
+      );
       await use(context);
       await context?.close();
+    },
+    { scope: 'test' },
+  ],
+  siteManagerPage: [
+    async ({ siteManagerBrowserContext }, use) => {
+      const page = await siteManagerBrowserContext.newPage();
+      await use(page);
+      await page.close();
     },
     { scope: 'test' },
   ],
 
   siteManagerHomePage: [
-    async ({ siteManagerContext }, use) => {
-      const page = await siteManagerContext.newPage();
-      const siteManagerHomePage = await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().siteManagerEmail || '',
-        password: getEnvConfig().siteManagerPassword || '',
-      });
-      await siteManagerHomePage.verifyThePageIsLoaded();
-      await use(siteManagerHomePage);
-      await page.close();
-    },
-    { scope: 'test' },
-  ],
-
-  siteManagerPage: [
-    async ({ siteManagerHomePage }, use) => {
-      await use(siteManagerHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-
-  standardUserHomePage: [
-    async ({ standardUserContext }, use) => {
-      const homePage = await createAuthenticatedHomePage(standardUserContext, users.endUser);
-
+    async ({ siteManagerPage }, use) => {
+      const homePage = new NewUxHomePage(siteManagerPage);
       await use(homePage);
-      await performLogout(homePage);
     },
     { scope: 'test' },
   ],
 
-  // Page references - lightweight wrappers
-  appManagersPage: [
-    async ({ appManagerHomePage }, use) => {
-      await use(appManagerHomePage.page);
+  siteManagementService: [
+    async ({ appManagerApiContext }, use) => {
+      const siteManagementService = new SiteManagementService(
+        appManagerApiContext,
+        getContentTenantConfigFromCache().apiBaseUrl
+      );
+      await use(siteManagementService);
     },
     { scope: 'test' },
   ],
-
-  endUserContext: [
-    async ({ browser }, use, _workerInfo) => {
-      const context = await browser.newContext();
-      await use(context);
-      await context?.close();
-    },
-    { scope: 'test' },
-  ],
-  endUserHomePage: [
-    async ({ endUserContext }, use) => {
-      const page = await endUserContext.newPage();
-      const endUserHomePage = await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().endUserEmail!,
-        password: getEnvConfig().endUserPassword!,
-      });
-      await endUserHomePage.verifyThePageIsLoaded();
-      await use(endUserHomePage);
-      await page.close();
-    },
-    { scope: 'test' },
-  ],
-  endUsersPage: [
-    async ({ endUserHomePage }, use) => {
-      await use(endUserHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-  standardUserPage: [
-    async ({ standardUserHomePage }, use) => {
-      await use(standardUserHomePage.page);
+  standardUserHomePage: [
+    async ({ standardUserPage }, use) => {
+      const homePage = new NewUxHomePage(standardUserPage);
+      await use(homePage);
     },
     { scope: 'test' },
   ],
 
   feedManagerService: [
-    async (
-      { appManagerApiClient }: { appManagerApiClient: AppManagerApiClient },
-      use: (r: FeedManagementService) => Promise<void>
-    ) => {
-      const feedManagerService = new FeedManagementService(appManagerApiClient.context);
+    async ({ appManagerApiContext }, use) => {
+      const feedManagerService = new FeedManagementService(
+        appManagerApiContext,
+        getContentTenantConfigFromCache().apiBaseUrl
+      );
       await use(feedManagerService);
     },
     { scope: 'test' },
@@ -260,8 +236,11 @@ export const contentTestFixture = test.extend<
 
   // Services and helpers - with proper cleanup
   feedManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
+    async ({ appManagerApiContext }, use) => {
+      const feedManagementHelper = new FeedManagementHelper(
+        appManagerApiContext,
+        getContentTenantConfigFromCache().apiBaseUrl
+      );
       await use(feedManagementHelper);
       // Ensure cleanup happens even if test fails
       try {
@@ -274,8 +253,8 @@ export const contentTestFixture = test.extend<
   ],
 
   siteManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const helper = new SiteManagementHelper(appManagerApiClient);
+    async ({ appManagerApiContext }, use) => {
+      const helper = new SiteManagementHelper(appManagerApiContext, getContentTenantConfigFromCache().apiBaseUrl);
 
       await use(helper);
 
@@ -290,8 +269,8 @@ export const contentTestFixture = test.extend<
   ],
 
   contentManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const helper = new ContentManagementHelper(appManagerApiClient);
+    async ({ appManagerApiContext }, use) => {
+      const helper = new ContentManagementHelper(appManagerApiContext, getContentTenantConfigFromCache().apiBaseUrl);
 
       await use(helper);
 
@@ -306,24 +285,10 @@ export const contentTestFixture = test.extend<
   ],
 
   identityManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const helper = new IdentityManagementHelper(appManagerApiClient);
+    async ({ appManagerApiContext }, use) => {
+      const helper = new IdentityManagementHelper(appManagerApiContext, getContentTenantConfigFromCache().apiBaseUrl);
 
       await use(helper);
-    },
-    { scope: 'test' },
-  ],
-
-  // Utility functions for user switching
-  loginAs: [
-    async ({ page }, use) => {
-      await use(async (userType: UserType) => {
-        const credentials = users[userType];
-        if (!credentials.email || !credentials.password) {
-          throw new Error(`Missing credentials for user type: ${userType}`);
-        }
-        await LoginHelper.loginWithPassword(page, credentials);
-      });
     },
     { scope: 'test' },
   ],

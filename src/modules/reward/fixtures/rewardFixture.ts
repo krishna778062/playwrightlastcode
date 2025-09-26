@@ -1,77 +1,136 @@
-import { Page, test } from '@playwright/test';
-import { ManageRewardsPage } from '@rewards/pages/manage-rewards/manage-rewards-page';
-import { RewardOptionsPage } from '@rewards/pages/manage-rewards/reward-options-page';
+import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
-import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
-import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
+import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
+import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
+import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
+import { ManageRewardsPage } from '@/src/modules/reward/ui/pages/manage-rewards/manage-rewards-page';
+import { RewardOptionsPage } from '@/src/modules/reward/ui/pages/manage-rewards/reward-options-page';
 
-export const rewardTestFixture = test.extend<{
-  appManagerHomePage: NewUxHomePage | OldUxHomePage;
-  appManagerPage: Page;
-  appManagerApiClient: AppManagerApiClient;
-  recoManagerHomePage: NewUxHomePage | OldUxHomePage;
-  recoManagerPage: Page;
-  standardUserHomePage: NewUxHomePage | OldUxHomePage;
-  standardUserPage: Page;
-  manageRewardsPage: ManageRewardsPage;
-  rewardOptionsPage: RewardOptionsPage;
-}>({
-  appManagerHomePage: [
-    async ({ page }, use) => {
-      const adminHomePage = await LoginHelper.loginWithPassword(page, {
+export const rewardTestFixture = test.extend<
+  {
+    //app manager browser context, request context, page
+    appManagerBrowserContext: BrowserContext;
+    appManagerHomePage: NewUxHomePage | OldUxHomePage;
+    appManagerPage: Page;
+
+    //recognition manager browser context, request context, page
+    recoManagerBrowserContext: BrowserContext;
+    recoManagerHomePage: NewUxHomePage | OldUxHomePage;
+    recoManagerPage: Page;
+
+    //standard user browser context, request context, page
+    standardUserBrowserContext: BrowserContext;
+    standardUserPage: Page;
+    standardUserHomePage: NewUxHomePage | OldUxHomePage;
+    manageRewardsPage: ManageRewardsPage;
+    rewardOptionsPage: RewardOptionsPage;
+  },
+  {
+    appManagerApiContext: APIRequestContext; //worker scoped api context
+  }
+>({
+  appManagerApiContext: [
+    async ({}, use) => {
+      const appManagerApiContext = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
         email: getEnvConfig().appManagerEmail,
         password: getEnvConfig().appManagerPassword,
       });
+      await use(appManagerApiContext);
+      await appManagerApiContext.dispose();
+    },
+    { scope: 'worker' },
+  ],
+  appManagerBrowserContext: [
+    async ({ browser }, use) => {
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
+      });
+      await use(context);
+      await context.close();
+    },
+    { scope: 'test' },
+  ],
+  appManagerPage: [
+    async ({ appManagerBrowserContext }, use) => {
+      const page = await appManagerBrowserContext.newPage();
+      await use(page);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+  appManagerHomePage: [
+    async ({ appManagerPage }, use) => {
+      const adminHomePage = new NewUxHomePage(appManagerPage);
       await adminHomePage.verifyThePageIsLoaded();
       await use(adminHomePage);
     },
     { scope: 'test' },
   ],
-  appManagerPage: [
-    async ({ appManagerHomePage }, use) => {
-      await use(appManagerHomePage.page);
-    },
-    { scope: 'test' },
-  ],
 
   //recognition manager
-  recoManagerHomePage: [
-    async ({ page }, use) => {
-      const recognitionHomePage = await LoginHelper.loginWithPassword(page, {
-        email: String(process.env['RECOGNITION_USER_USERNAME']),
-        password: String(process.env['RECOGNITION_USER_PASSWORD']),
+  recoManagerBrowserContext: [
+    async ({ browser }, use) => {
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      await LoginHelper.loginWithPassword(page, {
+        email: process.env['RECOGNITION_USER_USERNAME']!,
+        password: process.env['RECOGNITION_USER_PASSWORD']!,
       });
-      await recognitionHomePage.verifyThePageIsLoaded();
-      await use(recognitionHomePage);
+      await use(context);
+      await context.close();
     },
     { scope: 'test' },
   ],
   recoManagerPage: [
-    async ({ recoManagerHomePage }, use) => {
-      await use(recoManagerHomePage.page);
+    async ({ recoManagerBrowserContext }, use) => {
+      const page = await recoManagerBrowserContext.newPage();
+      await use(page);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+  recoManagerHomePage: [
+    async ({ recoManagerPage }, use) => {
+      const recognitionHomePage = new NewUxHomePage(recoManagerPage);
+      await recognitionHomePage.verifyThePageIsLoaded();
+      await use(recognitionHomePage);
     },
     { scope: 'test' },
   ],
 
   //standard user
-  standardUserHomePage: [
-    async ({ page }, use) => {
-      const recognitionHomePage = await LoginHelper.loginWithPassword(page, {
-        email: process.env['STANDARD_USER_USERNAME'] || getEnvConfig().appManagerEmail,
-        password: process.env['STANDARD_USER_PASSWORD'] || getEnvConfig().appManagerPassword,
+  standardUserBrowserContext: [
+    async ({ browser }, use) => {
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      await LoginHelper.loginWithPassword(page, {
+        email: process.env['STANDARD_USER_USERNAME']!,
+        password: process.env['STANDARD_USER_PASSWORD']!,
       });
-      await recognitionHomePage.verifyThePageIsLoaded();
-      await use(recognitionHomePage);
+      await use(context);
+      await context.close();
     },
     { scope: 'test' },
   ],
   standardUserPage: [
-    async ({ standardUserHomePage }, use) => {
-      await use(standardUserHomePage.page);
+    async ({ standardUserBrowserContext }, use) => {
+      const page = await standardUserBrowserContext.newPage();
+      await use(page);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+  standardUserHomePage: [
+    async ({ standardUserPage }, use) => {
+      const recognitionHomePage = new NewUxHomePage(standardUserPage);
+      await recognitionHomePage.verifyThePageIsLoaded();
+      await use(recognitionHomePage);
     },
     { scope: 'test' },
   ],

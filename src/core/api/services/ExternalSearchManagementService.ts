@@ -1,13 +1,18 @@
 import { APIRequestContext } from '@playwright/test';
 
-import { BaseApiClient } from '@/src/core/api/clients/baseApiClient';
+import { HttpClient } from '../clients/httpClient';
+
 import { IExternalSearchManagementServices } from '@/src/core/api/interfaces/IExternalSearchManagementOperations';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { ExternalSearch, ExternalSearchPayload, ExternalSearchResponse } from '@/src/core/types/externalSearch.type';
 
-export class ExternalSearchManagementService extends BaseApiClient implements IExternalSearchManagementServices {
-  constructor(context: APIRequestContext, baseUrl?: string) {
-    super(context, baseUrl);
+export class ExternalSearchManagementService implements IExternalSearchManagementServices {
+  public httpClient: HttpClient;
+  constructor(
+    readonly context: APIRequestContext,
+    readonly baseUrl: string
+  ) {
+    this.httpClient = new HttpClient(context, baseUrl);
   }
 
   /**
@@ -21,7 +26,7 @@ export class ExternalSearchManagementService extends BaseApiClient implements IE
       enterpriseSearchList: providers,
     };
 
-    const response = await this.post(API_ENDPOINTS.externalSearch.config, {
+    const response = await this.httpClient.post(API_ENDPOINTS.externalSearch.config, {
       data: payload,
     });
     const result = await response.json();
