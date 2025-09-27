@@ -105,7 +105,7 @@ export class ManageRewardsPage extends BasePage {
       stepInfo: 'Filling confirm text in dialog',
     });
 
-    const confirmButton = dialogBox.locator('button[type="submit"]');
+    const confirmButton = dialogBox.getByRole('button', { name: 'Disable' });
     await this.clickOnElement(confirmButton, {
       stepInfo: 'Clicking confirm button in dialog',
     });
