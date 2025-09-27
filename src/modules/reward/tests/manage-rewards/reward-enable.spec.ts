@@ -6,7 +6,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 import { ManageRewardsPage } from '@modules/reward/pages/manage-rewards/manage-rewards-page';
 
-test.describe('Enable Rewards flow', { tag: [REWARD_SUITE_TAGS.REGRESSION_TEST] }, () => {
+test.describe('Enable Rewards flow', () => {
   test(
     'Validate Enable rewards flow',
     {
