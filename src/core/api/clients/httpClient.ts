@@ -21,6 +21,14 @@ export class HttpClient {
   }
 
   protected getUrl(endpoint: string): string {
+    //if the endpoint already has http or https, then we need to add the baseUrl to it
+    if (endpoint.startsWith('http') || endpoint.startsWith('https')) {
+      return endpoint;
+    }
+    //if the endpoint does not have / then append it to the baseUrl
+    if (!endpoint.startsWith('/')) {
+      endpoint = `/${endpoint}`;
+    }
     return `${this.baseUrl}${endpoint}`;
   }
 

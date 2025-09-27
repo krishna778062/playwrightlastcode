@@ -18,6 +18,7 @@ import { SiteDetailsPage } from '@content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { FileUtil } from '@core/utils/fileUtil';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
@@ -108,10 +109,16 @@ test.describe(
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator
-        const pageCreationOptions = TestDataGenerator.generatePage(
-          PageContentType.NEWS,
+        const imagePath = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
           CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
         );
+        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
 
         // Use the new wrapper method to create and publish the page
         const { pageId, siteId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);

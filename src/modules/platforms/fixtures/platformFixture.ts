@@ -2,35 +2,29 @@ import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test'
 
 import { RequestContextFactory } from '@core/api/factories/requestContextFactory';
 import { LoginHelper } from '@core/helpers/loginHelper';
-import { BaseHomePage } from '@core/ui/pages/homePage/baseHomePage';
 import { NewUxHomePage } from '@core/ui/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@core/ui/pages/homePage/oldUxHomePage';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { AudienceCategoryManagementHelper, IdentityManagementHelper } from '../apis/helpers';
 import { UserManagementService } from '../apis/services/UserManagementService';
 
-export const platformTestFixture = test.extend<{
-  appManagerBrowserContext: BrowserContext;
-  appManagerApiContext: APIRequestContext;
-  userManagerApiContext: APIRequestContext;
-  appManagerHomePage: NewUxHomePage;
-  userManagerHomePage: NewUxHomePage;
-  appManagerPage: Page;
-  userManagerPage: Page;
-  userManagerBrowserContext: BrowserContext;
-  audienceCategoryManagementHelper: AudienceCategoryManagementHelper;
-  identityManagementHelper: IdentityManagementHelper;
-  userManagementService: UserManagementService;
-}>({
-  appManagerBrowserContext: [
-    async ({ browser }, use) => {
-      const browserContext = await browser.newContext();
-      await use(browserContext);
-      await browserContext?.close();
-    },
-    { scope: 'test' },
-  ],
+export const platformTestFixture = test.extend<
+  {
+    appManagerBrowserContext: BrowserContext;
+    appManagerHomePage: NewUxHomePage;
+    userManagerHomePage: NewUxHomePage;
+    appManagerPage: Page;
+    userManagerPage: Page;
+    userManagerBrowserContext: BrowserContext;
+    audienceCategoryManagementHelper: AudienceCategoryManagementHelper;
+    identityManagementHelper: IdentityManagementHelper;
+    userManagementService: UserManagementService;
+  },
+  {
+    appManagerApiContext: APIRequestContext;
+    userManagerApiContext: APIRequestContext;
+  }
+>({
   appManagerApiContext: [
     async ({}, use) => {
       const appManagerApiClient = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
@@ -40,17 +34,40 @@ export const platformTestFixture = test.extend<{
       await use(appManagerApiClient);
       await appManagerApiClient.dispose();
     },
-    { scope: 'test' },
+    { scope: 'worker' },
   ],
-  appManagerPage: [
-    async ({ appManagerBrowserContext: appManagerContext }, use) => {
-      const page = await appManagerContext.newPage();
+  userManagerApiContext: [
+    async ({}, use) => {
+      const userManagerApiClient = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
+        email: getEnvConfig().userManagerEmail!,
+        password: getEnvConfig().appManagerPassword,
+      });
+      await use(userManagerApiClient);
+      await userManagerApiClient.dispose();
+    },
+    { scope: 'worker' },
+  ],
+  appManagerBrowserContext: [
+    async ({ browser }, use) => {
+      const context = await browser.newContext();
+      const page = await context.newPage();
       await LoginHelper.loginWithPassword(page, {
         email: getEnvConfig().appManagerEmail,
         password: getEnvConfig().appManagerPassword,
       });
+      await use(context);
+      // Logout after each test case using this fixture
+      await context.close();
+    },
+    { scope: 'test' },
+  ],
+
+  appManagerPage: [
+    async ({ appManagerBrowserContext }, use) => {
+      const page = await appManagerBrowserContext.newPage();
       await use(page);
-      await page?.close();
+      await LoginHelper.logoutByNavigatingToLogoutPage(page);
+      await page.close();
     },
     { scope: 'test' },
   ],
@@ -60,14 +77,17 @@ export const platformTestFixture = test.extend<{
       await adminHomePage.loadPage();
       await adminHomePage.verifyThePageIsLoaded();
       await use(adminHomePage);
-      // Logout after each test case using this fixture
-      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
     },
     { scope: 'test' },
   ],
   userManagerBrowserContext: [
     async ({ browser }, use) => {
       const userManagerContext = await browser.newContext();
+      const page = await userManagerContext.newPage();
+      await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().userManagerEmail!,
+        password: getEnvConfig().appManagerPassword,
+      });
       await use(userManagerContext);
       await userManagerContext?.close();
     },
@@ -76,9 +96,6 @@ export const platformTestFixture = test.extend<{
   userManagerPage: [
     async ({ userManagerBrowserContext: userManagerContext }, use) => {
       const page = await userManagerContext.newPage();
-      const userManagerHomePage = new NewUxHomePage(page);
-      await userManagerHomePage.loadPage();
-      await userManagerHomePage.verifyThePageIsLoaded();
       await use(page);
       // Logout after each test case using this fixture
       await LoginHelper.logoutByNavigatingToLogoutPage(page);
@@ -106,20 +123,6 @@ export const platformTestFixture = test.extend<{
     { scope: 'test' },
   ],
 
-  userManagerApiContext: [
-    async ({}, use) => {
-      const userManagerApiRequestContext = await RequestContextFactory.createAuthenticatedContext(
-        getEnvConfig().apiBaseUrl,
-        {
-          email: getEnvConfig().userManagerEmail!,
-          password: getEnvConfig().appManagerPassword,
-        }
-      );
-      await use(userManagerApiRequestContext);
-      await userManagerApiRequestContext.dispose();
-    },
-    { scope: 'test' },
-  ],
   identityManagementHelper: [
     async ({ appManagerApiContext }, use) => {
       const identityManagementHelper = new IdentityManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);

@@ -85,6 +85,7 @@ const commonAttachmentConfig = {
     __dirname,
     '..',
     '..',
+    '..',
     'test-data',
     'static-files',
     'images',

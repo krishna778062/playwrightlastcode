@@ -6,7 +6,6 @@ import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { AttachementUploaderComponent } from '@content/ui/components/attachementUploader';
 import { ImageCropperComponent } from '@content/ui/components/imageCropper';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
-import { FileUtil } from '@core/utils/fileUtil';
 
 import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
 import { BasePage } from '@/src/core/ui/pages/basePage';
@@ -22,7 +21,7 @@ export interface PageCreationOptions {
 
   // Optional fields
   coverImage?: {
-    fileName: string;
+    imagePath: string;
     cropOptions?: {
       widescreen?: boolean;
       square?: boolean;
@@ -142,16 +141,16 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
    * Uploads a cover image to the page creation page
    * It calls uploadAttachment from attachementUploader component
    * and then clicks on next button twice to go to the image cropper page
-   * @param fileName - The name of the file to upload
+   * @param imagePath - The name of the file to upload
    */
   async uploadCoverImage(
-    fileName: string,
+    imagePath: string,
     options?: {
       widescreenCropOption?: boolean;
       squareCropOption?: boolean;
     }
   ) {
-    await test.step(`Upload cover image: ${fileName}`, async () => {
+    await test.step(`Upload cover image: ${imagePath}`, async () => {
       // Setup response promises for 3 upload requests
       const responsePromises = [];
       const responsePromise = this.page.waitForResponse(
@@ -163,7 +162,6 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       );
       responsePromises.push(responsePromise);
 
-      const imagePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', 'images', fileName);
       await this.coverImageUploader.uploadAttachment(imagePath);
 
       //handle wide screen crop option
@@ -263,7 +261,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
 
       // Upload cover image if provided
       if (options.coverImage) {
-        await this.uploadCoverImage(options.coverImage.fileName, {
+        await this.uploadCoverImage(options.coverImage.imagePath, {
           widescreenCropOption: options.coverImage.cropOptions?.widescreen,
           squareCropOption: options.coverImage.cropOptions?.square,
         });
@@ -328,7 +326,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
 
       // Upload cover image if provided
       if (options.coverImage) {
-        await this.uploadCoverImage(options.coverImage.fileName, {
+        await this.uploadCoverImage(options.coverImage.imagePath, {
           widescreenCropOption: options.coverImage.cropOptions?.widescreen,
           squareCropOption: options.coverImage.cropOptions?.square,
         });

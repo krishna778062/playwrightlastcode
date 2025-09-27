@@ -85,6 +85,7 @@ const commonAttachmentConfig = {
     __dirname,
     '..',
     '..',
+    '..',
     'test-data',
     'static-files',
     'images',
@@ -96,6 +97,7 @@ const commonAttachmentConfig = {
 const updatedImageConfig = {
   filePath: FileUtil.getFilePath(
     __dirname,
+    '..',
     '..',
     '..',
     'test-data',
