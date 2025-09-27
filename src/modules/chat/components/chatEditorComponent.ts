@@ -74,7 +74,6 @@ export class ChatEditorComponent extends BaseComponent {
 
     this.insertButton = this.page.locator('button[type="submit"]');
 
-    //'button[type="submit"]   [aria-label="Insert link"]
     //action buttons on editor footer
     this.addMediaAttachmentButton = this.chatEditorComponentContainer.getByLabel('Choose files');
     this.recordAudioButton = this.chatEditorComponentContainer.getByLabel('Record audio');

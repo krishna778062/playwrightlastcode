@@ -10,21 +10,6 @@ import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
 
-//     const chatAppPage = await appManagerHomePage.navigateToChatPageViaTopNavBar();
-//     await chatAppPage.actions.openDirectMessageWithUser(CONSTANT_DATA.USER_NAME_1);
-
-//     await expect(chatAppPage.conversationWindow.getChatEditorComponent().linkButton).toBeVisible();
-
-//     await chatAppPage.conversationWindow.getChatEditorComponent().linkButton.click();
-
-//     await chatAppPage.page.waitForTimeout(100);
-
-//     await expect(chatAppPage.conversationWindow.getChatEditorComponent().linkTextfield).toBeVisible();
-//     await expect(chatAppPage.conversationWindow.getChatEditorComponent().linkUrlfield).toBeVisible();
-//     await expect(chatAppPage.conversationWindow.getChatEditorComponent().insertButton).toBeVisible();
-//   });
-// });
-
 test.describe('Verifying link button , input box and  placeholder text', { tag: [TestPriority.P2] }, () => {
   test(`(placeholder text and input boxes are visible )`, async ({ appManagerHomePage }) => {
     const chatAppPage = await appManagerHomePage.navigateToChatPageViaTopNavBar();
