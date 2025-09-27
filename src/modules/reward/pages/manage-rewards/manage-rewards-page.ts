@@ -87,6 +87,12 @@ export class ManageRewardsPage extends BasePage {
     this.harnessFlagResponse = response;
   }
 
+  async verifyToastMessage(expectedMessage: string): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.toastMessages.filter({ hasText: expectedMessage }), {
+      assertionMessage: `Verify toast message contains: ${expectedMessage}`,
+    });
+  }
+
   async disableTheRewards(): Promise<void> {
     await this.clickOnElement(this.disableRewardLink, {
       stepInfo: 'Clicking on disable rewards link',
