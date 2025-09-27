@@ -3,14 +3,14 @@ import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-import { REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
+import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 import { ManageRewardsPage } from '@modules/reward/pages/manage-rewards/manage-rewards-page';
 
 test.describe('Enable Rewards flow', { tag: [REWARD_SUITE_TAGS.REGRESSION_TEST] }, () => {
-  test.only(
+  test(
     'Validate Enable rewards flow',
     {
-      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, REWARD_FEATURE_TAGS.ENABLE_REWARD, TestPriority.P0, TestGroupType.SMOKE],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
