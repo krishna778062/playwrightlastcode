@@ -35,6 +35,18 @@ export const DASHBOARD_BUTTONS = {
   EDIT: 'Edit',
 } as const;
 
+export const ORGANIZATION_SETTINGS = {
+  USER_DEFINED: 'User defined',
+  APP_MANAGER_DEFINED: 'App manager defined',
+} as const;
+
+export const FIELD_NAMES = {
+  ORGANIZATION: 'Organization',
+  STATUS: 'Status',
+  SORT_BY: 'Sort by',
+  SORT_ORDER: 'Sort order',
+} as const;
+
 export const DEFAULT_SITES = {
   AUTOMATION_PUBLIC: 'Automation_PublicSiteS',
 } as const;
@@ -53,6 +65,8 @@ export enum ActionType {
   Cancel = 'Cancel',
   Download = 'Download',
   Upload = 'Upload',
+  Closed = 'Closed',
+  Done = 'Done',
 }
 
 export const NAVIGATION_LABELS = {

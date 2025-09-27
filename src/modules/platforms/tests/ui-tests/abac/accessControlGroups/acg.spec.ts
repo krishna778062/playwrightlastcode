@@ -1,10 +1,22 @@
+// @/src imports
+// @core imports
+import { expect } from '@playwright/test';
+
+import { POPUP_BUTTONS } from '@core/constants/popupButtons';
 import { TestPriority } from '@core/constants/testPriority';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
+// import { User } from '@core/types/user.type';
 import { tagTest } from '@core/utils/testDecorator';
+// @platforms imports
+import { ACG_COLUMNS, ACG_EDIT_ASSETS, ACG_STATUS } from '@platforms/constants/acg';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/acgPage/accessControlGroupsPage';
+import { FeatureOwnersPage } from '@platforms/pages/abacPage/featureOwnersPage/featureOwnersPage';
 
+import { AUDIENCE_API_ATTRIBUTES, AUDIENCE_API_OPERATORS } from '@/src/core/constants/createAudienceAPI';
 import { TestSuite } from '@/src/core/constants/testSuite';
+import { audienceCreationParams } from '@/src/core/types/audience.type';
+import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 
 test.describe(
   'ACG Testcases',
@@ -12,33 +24,43 @@ test.describe(
     tag: [TestSuite.ABAC],
   },
   () => {
-    let audienceId: string | undefined;
-    let acgName: string | undefined;
+    const audienceId: string[] = [];
+    const acgName: string[] = [];
     let categoryToCreate: string | undefined;
-    let audienceToCreate: string = '';
-    let categoryId: string | undefined;
+    const audienceToCreate: string[] = [];
+    const categoryId: string[] = [];
+    let createAudienceParams: audienceCreationParams;
 
     test.beforeEach(async ({ appManagerApiClient }) => {
-      categoryToCreate = `ABAC_Target_Category`;
-      audienceToCreate = `ABAC_Target_Audience_${Date.now()}`;
+      categoryToCreate = TestDataGenerator.generateCategoryName('ABAC_Target_Category');
+      audienceToCreate.push(TestDataGenerator.generateCategoryName('ABAC_Target_Audience'));
+      audienceToCreate.push(TestDataGenerator.generateCategoryName('ABAC_Target_Audience_Secondary'));
 
-      await appManagerApiClient.getIdentityService().createCategory(categoryToCreate);
-      categoryId = await appManagerApiClient.getIdentityService().getCategoryId(categoryToCreate, 100);
-      audienceId = await appManagerApiClient
-        .getIdentityService()
-        .createAudience(audienceToCreate, categoryId, 'first_name', 'CONTAINS', 'something');
+      categoryId.push(await appManagerApiClient.getIdentityService().createCategory(categoryToCreate));
+      createAudienceParams = {
+        audienceName: audienceToCreate[0],
+        categoryId: categoryId[0],
+        attribute: AUDIENCE_API_ATTRIBUTES.FIRST_NAME,
+        operator: AUDIENCE_API_OPERATORS.CONTAINS,
+        value: 'something',
+      };
+      audienceId.push(await appManagerApiClient.getIdentityService().createAudience(createAudienceParams));
+      createAudienceParams.audienceName = audienceToCreate[1];
+      audienceId.push(await appManagerApiClient.getIdentityService().createAudience(createAudienceParams));
     });
 
     test.afterEach(async ({ appManagerApiClient }) => {
-      //delete the audience if it exists
-      if (audienceId != undefined) {
-        // Cleanup
-        await appManagerApiClient.getIdentityService().deleteAudience(audienceId);
-      }
-
       //delete the acg if it exists
-      if (acgName != undefined) {
-        await appManagerApiClient.getIdentityService().deleteACGByName(acgName);
+      while (acgName.length > 0) {
+        await appManagerApiClient.getIdentityService().deleteACGByName(acgName.pop() as string);
+      }
+      //delete the audiences if it exists
+      while (audienceId.length > 0) {
+        await appManagerApiClient.getIdentityService().deleteAudience(audienceId.pop() as string);
+      }
+      //delete the category if it exists
+      while (categoryId.length > 0) {
+        await appManagerApiClient.getIdentityService().deleteCategoryById(categoryId.pop() as string);
       }
     });
 
@@ -60,27 +82,14 @@ test.describe(
         // Test Scenario(s)
         await accessControlGroupsPage.loadPage();
         //after these actions are done, we will wait for the api call to be completed
-        await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
-        await accessControlGroupsPage.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
-        await accessControlGroupsPage.clickOnButtonWithName('Next');
-        await accessControlGroupsPage.clickOnButtonWithName('Browse');
-        await accessControlGroupsPage.searchForValues(audienceToCreate);
-        await accessControlGroupsPage.clickOnAudience(audienceToCreate);
-        await accessControlGroupsPage.clickOnButtonWithName('Done');
-        await accessControlGroupsPage.clickOnButtonWithName('Next');
-        await accessControlGroupsPage.clickOnButtonWithName('Skip');
-        await accessControlGroupsPage.clickOnButtonWithName('Skip');
-        acgName = await accessControlGroupsPage.getACGName();
-        console.log(`ACG name is ${acgName}`);
-        await accessControlGroupsPage.clickOnButtonWithName('Save and activate');
-        await accessControlGroupsPage.verifyToastMessage('Creating access control groups and audience relationships…');
-        await accessControlGroupsPage.verifyACGStatus(acgName, 'Active');
-        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName);
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
-        await accessControlGroupsPage.searchForACG(acgName);
-        await accessControlGroupsPage.deleteFirstACG();
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully deleted');
-        acgName = undefined; //reset the acg name back to undefined to avoid any future cleanup issues
+        acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
+        await accessControlGroupsPage.verifyACGStatus(acgName[0], ACG_STATUS.ACTIVE);
+        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully updated'
+        );
+        await accessControlGroupsPage.dismissTheToastMessage();
+        await accessControlGroupsPage.deleteACG(acgName.pop() as string);
       }
     );
 
@@ -96,28 +105,18 @@ test.describe(
         const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
         // Test Scenario - Verify that status of the ACG should be displayed as Inactive immediately after creation
         await accessControlGroupsPage.loadPage();
-        await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
-        await accessControlGroupsPage.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
-        await accessControlGroupsPage.clickOnButtonWithName('Next');
-        await accessControlGroupsPage.clickOnButtonWithName('Browse');
-        await accessControlGroupsPage.searchForValues(audienceToCreate);
-        await accessControlGroupsPage.clickOnAudience(audienceToCreate);
-        await accessControlGroupsPage.clickOnButtonWithName('Done');
-        await accessControlGroupsPage.clickOnButtonWithName('Next');
-        await accessControlGroupsPage.clickOnButtonWithName('Skip');
-        await accessControlGroupsPage.clickOnButtonWithName('Skip');
-        acgName = await accessControlGroupsPage.getACGName();
-        console.log(`ACG name is ${acgName}`);
-        await accessControlGroupsPage.changeACGStatus('Inactive');
-        await accessControlGroupsPage.clickOnButtonWithName('Save');
-        await accessControlGroupsPage.verifyToastMessage('Creating access control groups and audience relationships…');
-        await accessControlGroupsPage.verifyACGStatus(acgName, 'Inactive');
-        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName);
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
-        await accessControlGroupsPage.searchForACG(acgName);
-        await accessControlGroupsPage.deleteFirstACG();
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully deleted');
-        acgName = undefined; //reset the acg name back to undefined to avoid any future cleanup issues
+        acgName.push(
+          await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0], {
+            acgStatus: 'Inactive',
+          })
+        );
+        await accessControlGroupsPage.verifyACGStatus(acgName[0], ACG_STATUS.INACTIVE);
+        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully updated'
+        );
+        await accessControlGroupsPage.dismissTheToastMessage();
+        await accessControlGroupsPage.deleteACG(acgName.pop() as string);
       }
     );
 
@@ -134,25 +133,13 @@ test.describe(
         // Test Scenario
         await accessControlGroupsPage.loadPage();
         //after these actions are done, we will wait for the api call to be completed
-        await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
-        await accessControlGroupsPage.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
-        await accessControlGroupsPage.clickOnButtonWithName('Next');
-        await accessControlGroupsPage.clickOnButtonWithName('Browse');
-        await accessControlGroupsPage.searchForValues(audienceToCreate);
-        await accessControlGroupsPage.clickOnAudience(audienceToCreate);
-        await accessControlGroupsPage.clickOnButtonWithName('Done');
-        await accessControlGroupsPage.clickOnButtonWithName('Next');
-        await accessControlGroupsPage.clickOnButtonWithName('Skip');
-        await accessControlGroupsPage.clickOnButtonWithName('Skip');
-        acgName = await accessControlGroupsPage.getACGName();
-        console.log(`ACG name is ${acgName}`);
-        await accessControlGroupsPage.clickOnButtonWithName('Save and activate');
-        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName);
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully updated');
-        await accessControlGroupsPage.searchForACG(acgName);
-        await accessControlGroupsPage.deleteFirstACG();
-        await accessControlGroupsPage.verifyToastMessage('Access control group was successfully deleted');
-        acgName = undefined; //reset the acg name back to undefined to avoid any future cleanup issues
+        acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
+        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully updated'
+        );
+        await accessControlGroupsPage.dismissTheToastMessage();
+        await accessControlGroupsPage.deleteACG(acgName.pop() as string);
       }
     );
 
@@ -185,6 +172,272 @@ test.describe(
         // Test Scenario
         await homePage.goToUrl('manage/roles');
         await homePage.verifyPageNotFoundVisibility();
+      }
+    );
+
+    test(
+      'Verify that the feature list displayed under Feature owners tab should be unique',
+      {
+        tag: [TestPriority.P0, `@ABAC`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify that the feature list displayed under Feature owners tab should be unique',
+          zephyrTestId: 'PS-32997',
+        });
+        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
+        // Navigate to Feature owners page
+        await featureOwnersPage.loadPage();
+        // Click "Show more" button to load additional features for uniqueness testing
+        await featureOwnersPage.clickShowMore();
+        // Get all feature names displayed on the page
+        const allFeatureNames: string[] = await featureOwnersPage.getAllFeatureNames();
+        // Verify that all features are unique
+        const uniqueFeatures: string[] = [...new Set(allFeatureNames)];
+        // Check for duplicates by comparing string array lengths
+        expect(
+          uniqueFeatures.length,
+          `Expected ${uniqueFeatures.length} unique features but found ${allFeatureNames.length} total features. Duplicate features detected.`
+        ).toBe(allFeatureNames.length);
+      }
+    );
+
+    test(
+      'Verify search functionality with invalid string shows no results found message',
+      {
+        tag: [TestPriority.P0, `@ABAC`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify search functionality with invalid string shows no results found message',
+          zephyrTestId: 'PS-32965',
+        });
+        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
+        // Navigate to Feature owners page
+        await featureOwnersPage.loadPage();
+        // Test search functionality with invalid string
+        await featureOwnersPage.searchForFeature('sdbkfjskdfn', false);
+        await featureOwnersPage.verifyNoResultsFoundMessages();
+      }
+    );
+
+    test(
+      'Verify that clicking on owners count should trigger a popup displaying user info',
+      {
+        tag: [TestPriority.P1, `@ABAC`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify that clicking on owners count should trigger a popup displaying user info',
+          zephyrTestId: 'PS-32884',
+        });
+        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
+        // Navigate to Feature owners page
+        await featureOwnersPage.loadPage();
+        // Click on owner count button for the first available feature and get the count value
+        const clickedCount = await featureOwnersPage.clickOnCountButton(0); // Temporarily use index until we fix locator
+        // Verify that popup opens with the same count
+        await featureOwnersPage.verifyUserCountPopupOpened(clickedCount);
+      }
+    );
+
+    test(
+      'Verify that a warning popup is displayed before edit Access control group popup',
+      {
+        tag: [TestPriority.P1, `@ABAC`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify that a warning popup is displayed before edit Access control group popup',
+          zephyrTestId: 'PS-31321',
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        // Navigate to Access Control Groups page
+        await accessControlGroupsPage.loadPage();
+        // Click on menu for any ACG
+        await accessControlGroupsPage.clickOnMenuOptionForACG();
+        // Click on Edit option
+        await accessControlGroupsPage.clickOnEditOption();
+        // Verify all elements in the edit warning popup
+        await accessControlGroupsPage.verifyEditWarningPopup();
+      }
+    );
+
+    test(
+      'Verify that user should be able to change managers from managers screen while editing them during ACG creation flow',
+      {
+        tag: [TestPriority.P1, `@ABAC`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify that user should be able to change managers from managers screen while editing them during ACG creation flow',
+          zephyrTestId: 'PS-30956',
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        await accessControlGroupsPage.loadPage();
+        await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
+        await accessControlGroupsPage.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
+        await accessControlGroupsPage.clickOnButtonWithName('Next');
+        await accessControlGroupsPage.clickOnButtonWithName('Browse');
+        await accessControlGroupsPage.searchForValues(audienceToCreate[0]);
+        await accessControlGroupsPage.clickOnAudience(audienceToCreate[0]);
+        await accessControlGroupsPage.clickOnButtonWithName('Done');
+        await accessControlGroupsPage.clickOnButtonWithName('Next');
+
+        // Select Manager and Admin users for the ACG
+        await accessControlGroupsPage.browseSelectUserAndProceed('Admin', 'Manager');
+        await accessControlGroupsPage.browseSelectUserAndProceed('Admin', 'Admin');
+
+        // Edit Manager flow - test the new functionality
+        await accessControlGroupsPage.clickOnEditManagerButton();
+        await accessControlGroupsPage.clickOnAddUsersButton();
+        await accessControlGroupsPage.searchAndSelectUserWithEnter('Admin');
+        await accessControlGroupsPage.clickOnButtonWithName('Done');
+        await accessControlGroupsPage.clickOnUpdateButton();
+
+        // Click edit manager button again to verify the added users
+        await accessControlGroupsPage.clickOnEditManagerButton();
+
+        // Verify that admin users are displayed in the manager list (dynamic verification)
+        await accessControlGroupsPage.verifyAdminUsersInManagerList();
+      }
+    );
+
+    test(
+      'Verify that duplicate acg error is displayed on attempting to create ACG with same features and target audiences',
+      {
+        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+      },
+      async ({ appManagerPage, appManagerApiClient }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-32210'],
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        // Pre-requisite
+        await accessControlGroupsPage.loadPage();
+        // Create an ACG with target audiecne only
+        acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
+        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully updated'
+        );
+        await accessControlGroupsPage.dismissTheToastMessage();
+        // Test Scenario
+        await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
+        await accessControlGroupsPage.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
+        await accessControlGroupsPage.searchForValues(audienceToCreate[0]);
+        await accessControlGroupsPage.clickOnAudience(audienceToCreate[0]);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
+        await accessControlGroupsPage.createACGModal.verifyDuplicateTargetGroupsErrorMessage();
+        await accessControlGroupsPage.createACGModal.clickCloseButton();
+        // Clean up: Delete the above created ACG
+        await accessControlGroupsPage.deleteACG(acgName.pop() as string);
+      }
+    );
+
+    test(
+      'Verify that duplicate acg error is displayed on editing ACG to match anothers features and target audiences',
+      {
+        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+      },
+      async ({ appManagerPage, appManagerApiClient }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-32212'],
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        await accessControlGroupsPage.loadPage();
+        // Prerequisite
+        // Create an ACG with target audiecne only
+        acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
+        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully updated'
+        );
+        await accessControlGroupsPage.dismissTheToastMessage();
+        acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[1]));
+        await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[1]);
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully updated'
+        );
+        await accessControlGroupsPage.dismissTheToastMessage();
+        // Test Scenario
+        await accessControlGroupsPage.searchForACG(acgName[1]);
+        await accessControlGroupsPage.editACG(acgName[1]);
+        await accessControlGroupsPage.confirmEditACGModal.clickContinueButton();
+        await accessControlGroupsPage.editACGModal.clickOnEditButtonOnSummaryScreen(ACG_EDIT_ASSETS.TARGET_AUDIENCE);
+        await accessControlGroupsPage.editACGModal.clickOnRemoveButtonForAudience(audienceToCreate[1]);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
+        await accessControlGroupsPage.searchForValues(audienceToCreate[0]);
+        await accessControlGroupsPage.clickOnAudience(audienceToCreate[0]);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
+        await accessControlGroupsPage.editACGModal.verifyDuplicateTargetGroupsErrorMessage();
+        await accessControlGroupsPage.editACGModal.clickCloseButton();
+        // Clean up: Delete the above created ACG
+        await accessControlGroupsPage.deleteACG(acgName.pop() as string);
+        await accessControlGroupsPage.deleteACG(acgName.pop() as string);
+      }
+    );
+
+    test(
+      `Verify that Name column is displayed and is sortable at Access control groups page`,
+      {
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: [
+            'PS-31013',
+            'PS-31032',
+            'PS-31039',
+            'PS-31028',
+            'PS-31023',
+            'PS-31018',
+            'PS-31100',
+            'PS-31007',
+          ],
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        // Test Scenario
+        await accessControlGroupsPage.loadPage();
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.NAME);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.NAME, true);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.FEATURE);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.FEATURE, true);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.GROUP_TYPE);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.GROUP_TYPE, true);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.TARGET_AUDIENCE);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.TARGET_AUDIENCE, false);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.MANAGERS);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.MANAGERS, false);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.ADMINS);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.ADMINS, false);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.STATUS);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.STATUS, true);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.MODIFIED);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.MODIFIED, true);
+      }
+    );
+
+    test(
+      `Verify the sorting functionality of Name column in access control groups page`,
+      {
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-35732', 'PS-35733', 'PS-35734', 'PS-35735', 'PS-35736'],
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        // Test Scenario
+        await accessControlGroupsPage.loadPage();
+        await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.NAME);
+        await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.FEATURE);
+        await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.GROUP_TYPE);
+        await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.STATUS);
+        await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.MODIFIED);
       }
     );
   }

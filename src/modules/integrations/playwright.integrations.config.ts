@@ -21,7 +21,7 @@ export default defineConfig({
       name: 'integrations-chromium',
       use: {
         headless: process.env.CI ? true : false,
-        video: 'on-first-retry',
+        video: 'off',
         ...devices['Desktop Chrome'],
         permissions: ['camera', 'microphone'],
         baseURL: getEnvConfig().frontendBaseUrl,
@@ -32,6 +32,9 @@ export default defineConfig({
             '--disable-dev-shm-usage', // Disable /dev/shm usage
             '--use-fake-ui-for-media-stream', // Use fake UI for media stream
             '--use-fake-device-for-media-stream', // Use fake device for media stream
+            //Bypass bot detection
+            '--disable-blink-features=AutomationControlled',
+            '--disable-web-security',
           ],
         },
       },

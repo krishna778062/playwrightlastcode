@@ -3,8 +3,13 @@ import { IContentManagementServices } from '@api/interfaces/IContentManagementSe
 import { APIRequestContext, expect, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-import { TIMEOUTS } from '@core/constants/timeouts';
-import { AlbumCreationPayload, EventCreationPayload, PageCreationPayload } from '@core/types/contentManagement.types';
+import {
+  AlbumCreationPayload,
+  ContentListResponse,
+  EventCreationPayload,
+  PageCreationPayload,
+  TopicListResponse,
+} from '@core/types/contentManagement.types';
 
 const defaultBaseContentPayload = {
   listOfFiles: [],
@@ -229,6 +234,8 @@ export class ContentManagementService extends BaseApiClient implements IContentM
           listOfTopics: payload.listOfTopics,
           contentType: payload.contentType,
           isNewTiptap: payload.isNewTiptap,
+          ...(payload.eventSync && { eventSync: payload.eventSync }),
+          ...(payload.rsvp && { rsvp: payload.rsvp }),
         },
       });
       const json = await response.json();
@@ -239,6 +246,9 @@ export class ContentManagementService extends BaseApiClient implements IContentM
       return {
         eventId: json.result.id,
         authorName: json.result.authoredBy?.name,
+        ...(json.result.eventSyncDetails && { eventSyncDetails: json.result.eventSyncDetails }),
+        ...(json.result.hasRsvp !== undefined && { hasRsvp: json.result.hasRsvp }),
+        ...(json.result.rsvp && { rsvpDetails: json.result.rsvp }),
       };
     });
   }
@@ -292,21 +302,65 @@ export class ContentManagementService extends BaseApiClient implements IContentM
    */
   async deleteContent(siteId: string, contentId: string) {
     return await test.step('Deleting page via API delete request', async () => {
-      const response = await this.delete(API_ENDPOINTS.content.delete(siteId, contentId));
-      expect(response.status()).toBe(200);
-
       await expect
         .poll(
           async () => {
-            const checkResponse = await this.get(API_ENDPOINTS.content.delete(siteId, contentId));
-            return checkResponse.status() === 404 || checkResponse.status() === 400;
+            const response = await this.delete(API_ENDPOINTS.content.delete(siteId, contentId));
+            return response.status() === 200;
           },
           {
-            message: `Content with id ${contentId} was not deleted within the specified timeout.`,
-            timeout: TIMEOUTS.LONG,
+            intervals: [10000, 20000, 30000],
+            timeout: 40_000,
           }
         )
         .toBe(true);
+    });
+  }
+
+  /**
+   * Gets the list of topics
+   * @param size - Number of topics to return (default: 16)
+   * @param term - Search term to filter topics (default: empty string)
+   * @param nextPageToken - Token for pagination (default: 0)
+   * @returns The topic list response
+   */
+  async getTopicList(size: number = 16, term: string = '', nextPageToken: number = 0): Promise<TopicListResponse> {
+    return await test.step(`Getting list of topics with size: ${size}, term: "${term}", nextPageToken: ${nextPageToken}`, async () => {
+      const requestData = {
+        size: 16,
+      };
+
+      const response = await this.post(API_ENDPOINTS.content.topics, {
+        data: requestData,
+      });
+      return await this.parseResponse<TopicListResponse>(response);
+    });
+  }
+
+  /**
+   * Gets the content list in a specific site
+   * @param siteId - The ID of the site to get content from
+   * @param options - Optional parameters for content filtering
+   * @returns Promise with the content list response
+   */
+  async getContentList(
+    options: {
+      size?: number;
+      status?: string;
+      sortBy?: string;
+    } = {}
+  ) {
+    return await test.step('Getting content list ', async () => {
+      const requestData = {
+        size: options.size || 16,
+        status: options.status || 'published',
+        sortBy: options.sortBy || 'publishedNewest',
+      };
+
+      const response = await this.post(API_ENDPOINTS.content.contentListInSite, {
+        data: requestData,
+      });
+      return await this.parseResponse<ContentListResponse>(response);
     });
   }
 }

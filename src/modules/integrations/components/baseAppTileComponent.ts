@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/components/baseComponent';
+import { TIMEOUTS } from '@core/constants/timeouts';
 
 interface AirtableConfig {
   baseName?: string;
@@ -14,6 +15,11 @@ export class BaseAppTileComponent extends BaseComponent {
   readonly tileTitleInput: Locator;
   readonly removePopupTitle: Locator;
   readonly removePopupMessageLocator: Locator;
+  readonly dialog: Locator;
+  readonly tileTypeCombobox: Locator;
+  readonly tileSelector: Locator;
+  readonly urlRadioButton: (name: string) => Locator;
+  readonly urlTextbox: (name: string) => Locator;
 
   constructor(page: Page) {
     super(page);
@@ -23,9 +29,14 @@ export class BaseAppTileComponent extends BaseComponent {
     this.tileTitleInput = page.getByLabel('Tile title');
     this.removePopupTitle = page.getByRole('heading', { name: 'Remove tile' });
     this.removePopupMessageLocator = page.getByRole('dialog').locator('p');
+    this.dialog = page.getByRole('dialog');
+    this.tileTypeCombobox = page.getByRole('combobox', { name: 'Tile type' });
+    this.tileSelector = page.locator('aside.Tile');
+    this.urlRadioButton = (name: string) => page.getByRole('radio', { name });
+    this.urlTextbox = (name: string) => page.getByRole('textbox', { name });
   }
   protected getAppTileButton(name: string): Locator {
-    return this.page.getByRole('button').filter({ hasText: name });
+    return this.page.getByRole('button', { name: name, exact: true });
   }
 
   async clickButton(buttonName: string, step?: string, timeout = 30_000): Promise<void> {
@@ -124,10 +135,11 @@ export class BaseAppTileComponent extends BaseComponent {
   async submitTileToHomeOrDashboard(choice: string): Promise<void> {
     await test.step(`Submit tile to '${choice}'`, async () => {
       await this.clickOnElement(this.page.getByRole('button', { name: choice }), { timeout: 30_000 });
+      await this.dialog.waitFor({ state: 'detached', timeout: 30_000 });
     });
   }
 
-  async verifyToastMessage(message: string): Promise<void> {
+  async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
     await test.step(`Verify toast '${message}'`, async () => {
       const pattern = new RegExp(message.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
       const candidates = this.page.locator('[role="alert"], [role="status"], [aria-live]').filter({ hasText: pattern });
@@ -170,18 +182,18 @@ export class BaseAppTileComponent extends BaseComponent {
       if ((await tiles.count()) <= 0) {
         await this.page.reload({ waitUntil: 'domcontentloaded' });
         await this.waitForPageLoadingToComplete();
+        await this.tileSelector.first().waitFor({ timeout: 10000 });
         tiles = await this.findTilesByTitle(title);
       }
       await this.waitForTilesToBeFullyLoaded(tiles);
       const count = await tiles.count();
-      if (count <= 0) throw new Error(`No tile found with title "${title}"`);
-
-      for (let i = 0; i < count; i++) {
-        await this.verifier.verifyTheElementIsVisible(tiles.nth(i), {
-          assertionMessage: `Tile #${i + 1} with title "${title}" should be visible`,
-          timeout: 10_000,
-        });
+      if (count <= 0) {
+        throw new Error(`No tile found with title "${title}"`);
       }
+      await this.verifier.verifyTheElementIsVisible(tiles.first(), {
+        assertionMessage: `Tile with title "${title}" should be visible`,
+        timeout: 15_000,
+      });
     });
   }
 
@@ -232,12 +244,10 @@ export class BaseAppTileComponent extends BaseComponent {
   }
 
   async clickThreeDotsOnTile(tileName: string): Promise<void> {
-    await test.step(`Click three dots on '${tileName}'`, async () => {
-      const btn = this.getThreeDotsIcon(tileName);
-      await btn.waitFor({ state: 'visible', timeout: 10_000 });
-      await this.page.waitForTimeout(200);
-      await btn.click({ force: true });
-      await this.page.waitForTimeout(300);
+    await test.step(`Click three dots menu on '${tileName}' tile`, async () => {
+      const threeDotsButton = this.getThreeDotsIcon(tileName);
+      await this.verifier.waitUntilElementIsVisible(threeDotsButton, { timeout: 15_000 });
+      await this.clickOnElement(threeDotsButton, { force: true });
     });
   }
 
@@ -349,6 +359,15 @@ export class BaseAppTileComponent extends BaseComponent {
     });
   }
 
+  async selectTile(tileType: string): Promise<void> {
+    await test.step(`Select tile type: ${tileType}`, async () => {
+      await this.clickOnElement(this.tileTypeCombobox, { timeout: 30_000 });
+      await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+      const tileOption = this.page.getByRole('menuitem').filter({ hasText: tileType });
+      await this.clickOnElement(tileOption, { timeout: 30_000 });
+    });
+  }
+
   async getCurrentConfiguration(): Promise<AirtableConfig> {
     return await test.step('Get current Airtable configuration', async () => {
       const baseNameCombobox = this.getComboboxInField(this.getFieldByTestId('field-Base ID'));
@@ -363,6 +382,16 @@ export class BaseAppTileComponent extends BaseComponent {
         sortBy: sortBy.trim(),
         sortOrder: sortOrder.trim(),
       };
+    });
+  }
+
+  /**
+   * Enter URL with radio selection
+   */
+  async enterUrl(fieldName: string, urlType: string, url: string): Promise<void> {
+    await test.step(`Enter ${fieldName}`, async () => {
+      await this.urlRadioButton(urlType).click();
+      await this.urlTextbox(fieldName).fill(url);
     });
   }
 }

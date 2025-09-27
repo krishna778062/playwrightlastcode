@@ -3,6 +3,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentType } from '@/src/core/constants/contentTypes';
+import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
+import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { PAGE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
@@ -20,27 +22,36 @@ test.describe(
     let pageName: string;
     let authorName: string;
 
-    test.beforeEach(
-      `Setting up the test environment for page search by creating site and page content`,
-      async ({ contentManagementHelper }) => {
-        const siteAndPageDetails = await contentManagementHelper.createSiteAndPage({
-          category: testData.category,
+    test.beforeAll(
+      `Setting up the test environment for page search by creating page content in common public site`,
+      async ({ contentManagementHelper, publicSite }) => {
+        const pageDetails = await contentManagementHelper.createPage({
+          siteId: publicSite.siteId,
           contentInfo: {
             contentType: testData.content,
             contentSubType: testData.contentType!,
           },
           options: {
             contentDescription: testData.description,
-            accessType: testData.accessType,
           },
         });
 
-        siteId = siteAndPageDetails.siteId;
-        siteName = siteAndPageDetails.siteName;
-        contentId = siteAndPageDetails.contentId;
-        pageName = siteAndPageDetails.pageName;
-        authorName = siteAndPageDetails.authorName;
+        siteId = publicSite.siteId;
+        siteName = publicSite.siteName;
+        contentId = pageDetails.contentId;
+        pageName = pageDetails.pageName;
+        authorName = pageDetails.authorName;
         console.log(`Created page "${pageName}" in site "${siteName}" with ID: ${siteId}`);
+      }
+    );
+
+    test.afterAll(
+      `Cleaning up the test environment by deleting the created page content`,
+      async ({ contentManagementHelper }) => {
+        if (contentId) {
+          await contentManagementHelper.deleteContent(siteId, contentId);
+          console.log(`Deleted page "${pageName}" with ID: ${contentId}`);
+        }
       }
     );
 
@@ -71,6 +82,80 @@ test.describe(
           siteId,
           siteName,
         });
+      }
+    );
+
+    test(
+      `Verify Page Search results with sidebar filter`,
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerHomePage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-19194',
+        });
+
+        // Search for the page
+        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(pageName, {
+          stepInfo: `Searching with term "${pageName}" to verify page appears in search results`,
+        });
+
+        // Dismiss any survey popup that might appear
+        await globalSearchResultPage.dismissSurveyPopupIfPresent();
+
+        // Verify the page appears in the initial search results
+        const pageResult = await globalSearchResultPage.getPageResultItemExactlyMatchingTheSearchTerm(pageName);
+        const pageResultItem = new ContentListComponent(pageResult.page, pageResult.rootLocator);
+        await pageResultItem.verifyNameIsDisplayed(pageName);
+
+        // Click on the page filter in the sidebar to filter results by pages only
+        await globalSearchResultPage.verifyAndClickSidebarFilter({
+          filterText: 'Content',
+          iconType: 'page',
+        });
+
+        await pageResultItem.verifyNameIsDisplayed(pageName);
+
+        const originalCount = await globalSearchResultPage.verifyAndClickSiteSubFilter({
+          filterText: 'Content',
+          siteName: siteName,
+        });
+
+        await pageResultItem.verifyNameIsDisplayed(pageName);
+
+        // Click on site subfilter, verify count tracking, and reset functionality
+        await globalSearchResultPage.verifySiteSubFilterWithCountTracking({
+          filterText: 'Content',
+          siteName: siteName,
+          originalCount: originalCount,
+          expectedCountAfterFilter: 1,
+        });
+        await pageResultItem.verifyNameIsDisplayed(pageName);
+      }
+    );
+
+    test(
+      `Verify Page Autocomplete functionality`,
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE],
+      },
+      async ({ appManagerHomePage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-19286',
+        });
+
+        // Type in search input
+        await appManagerHomePage.topNavBarComponent.typeInSearchBarInput(pageName, {
+          stepInfo: `Typing "${pageName}" in search input`,
+        });
+
+        // Wait for autocomplete to appear first
+        const resultList = new ResultListingComponent(appManagerHomePage.page);
+        await resultList.waitForAndVerifyAutocompleteListIsDisplayed();
+        const pageResult = resultList.getAutocompleteItemByName(pageName);
+
+        await pageResult.verifyAutocompleteItemData(pageName, ContentType.Page);
+        await pageResult.verifyAutocompleteNavigationToTitleLink(contentId, pageName, ContentType.Page);
       }
     );
   }

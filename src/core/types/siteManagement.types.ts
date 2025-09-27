@@ -1,12 +1,14 @@
 export enum SitePermission {
   MEMBER = 'member',
-  CONTENT_MANAGER = 'content_manager',
-  ADMIN = 'admin',
+  CONTENT_MANAGER = 'contentManager',
+  MANAGER = 'manager',
   OWNER = 'owner',
 }
 
 export enum SiteMembershipAction {
   ADD = 'addPeople',
+  SET_PERMISSION = 'setPeoplePermission',
+  REMOVE = 'removePeople',
 }
 
 export interface SiteCreationPayload {
@@ -55,6 +57,7 @@ export interface Site {
   memberCount?: number;
   createdAt?: string;
   updatedAt?: string;
+  isActive: boolean;
 }
 
 export interface SiteListResponse {

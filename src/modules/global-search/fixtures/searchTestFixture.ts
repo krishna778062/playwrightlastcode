@@ -13,15 +13,21 @@ import { LoginHelper } from '../../../core/helpers/loginHelper';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
-export const searchTestFixtures = test.extend<{
-  appManagerHomePage: NewUxHomePage | OldUxHomePage;
-  appManagerUserPage: Page;
-  appManagerApiClient: AppManagerApiClient;
-  contentManagementHelper: ContentManagementHelper;
-  feedManagementHelper: FeedManagementHelper;
-  intranetFileHelper: IntranetFileHelper;
-  siteManagementHelper: SiteManagementHelper;
-}>({
+export const searchTestFixtures = test.extend<
+  {
+    appManagerHomePage: NewUxHomePage | OldUxHomePage;
+    appManagerUserPage: Page;
+    contentManagementHelper: ContentManagementHelper;
+    feedManagementHelper: FeedManagementHelper;
+    intranetFileHelper: IntranetFileHelper;
+    tileCleanupTracker: { tiles: Array<{ tileId: string; siteId: string }> };
+  },
+  {
+    appManagerApiClient: AppManagerApiClient;
+    siteManagementHelper: SiteManagementHelper;
+    publicSite: { siteName: string; siteId: string };
+  }
+>({
   appManagerHomePage: [
     async ({ page }, use, _workerInfo) => {
       const appManagerHomePage = await LoginHelper.loginWithPassword(page, {
@@ -40,22 +46,25 @@ export const searchTestFixtures = test.extend<{
     { scope: 'test' },
   ],
   appManagerApiClient: [
-    async ({ appManagerUserPage }, use, workerInfo) => {
+    async ({}, use, workerInfo) => {
       console.log(`INFO: Setting up app manager client for worker => `, workerInfo.workerIndex);
       const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-        type: 'cookies',
-        page: appManagerUserPage,
+        type: 'credentials',
+        credentials: {
+          username: getEnvConfig().appManagerEmail,
+          password: getEnvConfig().appManagerPassword,
+        },
         baseUrl: getEnvConfig().apiBaseUrl,
       });
       await use(appManagerApiClient);
     },
-    { scope: 'test' },
+    { scope: 'worker' },
   ],
   contentManagementHelper: [
     async ({ appManagerApiClient }, use) => {
       const contentManagementHelper = new ContentManagementHelper(appManagerApiClient);
       await use(contentManagementHelper);
-      await contentManagementHelper.cleanup();
+      // Note: Cleanup is handled manually in test afterAll hooks
     },
     { scope: 'test' },
   ],
@@ -75,12 +84,60 @@ export const searchTestFixtures = test.extend<{
     },
     { scope: 'test' },
   ],
+  tileCleanupTracker: [
+    async ({ appManagerApiClient }, use) => {
+      const tileCleanupTracker = { tiles: [] as Array<{ tileId: string; siteId: string }> };
+
+      await use(tileCleanupTracker);
+
+      // Cleanup all tracked tiles
+      for (const { tileId, siteId } of tileCleanupTracker.tiles) {
+        try {
+          await appManagerApiClient.getTileManagementService().deleteTile(siteId, tileId);
+          console.log(`Successfully deleted tile: ${tileId}`);
+        } catch (error) {
+          console.warn(`Failed to delete tile ${tileId}:`, error);
+        }
+      }
+    },
+    { scope: 'test' },
+  ],
+  publicSite: [
+    async ({ appManagerApiClient, siteManagementHelper }, use, workerInfo) => {
+      console.log(`🔧 Creating publicSite fixture for worker ${workerInfo.workerIndex}`);
+      const randomNum = Math.floor(Math.random() * 1000000 + 1);
+      const siteName = `Public_${randomNum}`;
+      const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+
+      // Create site using existing SiteManagementHelper
+      const publicSite = await siteManagementHelper.createPublicSite({
+        siteName: siteName,
+        category: {
+          categoryId: category.categoryId,
+          name: category.name,
+        },
+        waitForSearchIndex: true,
+      });
+
+      console.log(
+        `✅ Created publicSite: ${publicSite.siteName} with ID: ${publicSite.siteId} for worker ${workerInfo.workerIndex} using existing SiteManagementHelper`
+      );
+
+      await use({ siteName: publicSite.siteName, siteId: publicSite.siteId });
+
+      // Note: Cleanup is handled by the siteManagementHelper fixture
+      console.log(
+        `🧹 Public site cleanup will be handled by siteManagementHelper fixture for site: ${publicSite.siteName} with ID: ${publicSite.siteId}`
+      );
+    },
+    { scope: 'worker' },
+  ],
   siteManagementHelper: [
     async ({ appManagerApiClient }, use) => {
       const siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
       await use(siteManagementHelper);
       await siteManagementHelper.cleanup();
     },
-    { scope: 'test' },
+    { scope: 'worker' },
   ],
 });

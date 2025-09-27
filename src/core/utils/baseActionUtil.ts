@@ -181,6 +181,18 @@ export class BaseActionUtil {
     });
   }
 
+  /** force type in an element */
+
+  async forceTypeInLocator(locator: Locator, text: string) {
+    await locator.evaluate((element: HTMLElement, value: string) => {
+      if (element instanceof HTMLElement) {
+        (element as HTMLInputElement).value = value;
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }, text);
+  }
+
   /**
    * Gets an element attribute
    * @param selectorOrLocator - The selector or locator to get the attribute from
@@ -371,7 +383,10 @@ export class BaseActionUtil {
    * @param numberOfAttempts - To define number of tries incase the toast message is not found in first try
    * @param options - Optional parameters for the toast message verification.
    */
-  async verifyToastMessage(toastMessage: string, options?: { stepInfo?: string; timeout?: number }): Promise<void> {
+  async verifyToastMessageIsVisibleWithText(
+    toastMessage: string,
+    options?: { stepInfo?: string; timeout?: number }
+  ): Promise<void> {
     await test.step(options?.stepInfo ?? `Verifying ${toastMessage} toast message`, async () => {
       await expect(
         this.toastMessages.filter({ hasText: toastMessage }),
@@ -386,6 +401,109 @@ export class BaseActionUtil {
   async dismissTheToastMessage(): Promise<void> {
     await test.step(`Dismissing the toast message`, async () => {
       await this.clickOnElement(this.dismissToastMessage);
+    });
+  }
+
+  /**
+   * Waits for the element to be visible
+   * @param locator - The locator to wait for
+   * @param options - The options to pass to the verification
+   */
+  async hoverOverElementInJavaScript(locator: Locator) {
+    await this.page.evaluate(
+      el => {
+        (el as HTMLElement).dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+      },
+      await locator.elementHandle()
+    );
+  }
+
+  /**
+   * Generic method to click Cancel button in any modal/popup
+   * @param cancelButton - The cancel button locator
+   * @param stepInfo - Optional custom step information
+   */
+  async clickCancelButton(cancelButton: any, stepInfo?: string): Promise<void> {
+    await this.clickOnElement(cancelButton, {
+      stepInfo: stepInfo || 'Click Cancel button',
+    });
+  }
+
+  /**
+   * Generic method to add description in any modal/popup
+   * @param descriptionInput - The description input locator
+   * @param description - The description text to add
+   * @param stepInfo - Optional custom step information
+   */
+  async addDescription(descriptionInput: any, description: string, stepInfo?: string): Promise<void> {
+    await this.fillInElement(descriptionInput, description, {
+      stepInfo: stepInfo || `Add description: ${description}`,
+    });
+  }
+
+  /**
+   * Generic method to click Close (X) button in any modal/popup
+   * @param closeButton - The close button locator
+   * @param stepInfo - Optional custom step information
+   */
+  async clickCloseButton(closeButton: any, stepInfo?: string): Promise<void> {
+    await this.clickOnElement(closeButton, {
+      stepInfo: stepInfo || 'Click Close (X) button',
+    });
+  }
+
+  /**
+   * Generic method to handle file downloads with automatic cleanup
+   * @param downloadTrigger - Function that triggers the download (e.g., () => this.clickOnElement(downloadButton))
+   * @param stepInfo - Optional custom step information
+   * @param cleanup - Whether to automatically delete the downloaded file (default: true)
+   * @param timeout - Download timeout (default: TIMEOUTS.MEDIUM)
+   * @returns Promise with download object for additional verification if needed
+   */
+  async downloadFileWithCleanup(
+    downloadTrigger: () => Promise<void>,
+    options?: {
+      stepInfo?: string;
+      cleanup?: boolean;
+      timeout?: number;
+    }
+  ) {
+    return await test.step(options?.stepInfo || 'Download file with cleanup', async () => {
+      const [download] = await Promise.all([
+        this.page.waitForEvent('download', { timeout: options?.timeout || 30000 }),
+        downloadTrigger(),
+      ]);
+
+      // Get download info
+      const downloadPath = await download.path();
+      const filename = download.suggestedFilename();
+
+      // Automatic cleanup if enabled (default: true)
+      if (options?.cleanup !== false && downloadPath) {
+        FileUtil.deleteTemporaryFile(downloadPath);
+      }
+
+      return { download, downloadPath, filename };
+    });
+  }
+
+  /**
+   * Gets the current logged-in user's name from the browser's JavaScript context
+   * @param stepInfo - Optional custom step information
+   * @returns Promise with the user's name
+   */
+  async getCurrentLoggedInUserName(stepInfo?: string): Promise<string> {
+    return await test.step(stepInfo || 'Get current user name from browser context', async () => {
+      const userName = await this.page.evaluate(() => {
+        const user = (window as any).Simpplr?.CurrentUser;
+        return user?.name || `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || user?.email;
+      });
+
+      if (!userName) {
+        throw new Error('Unable to retrieve current user name from browser context');
+      }
+
+      return userName;
     });
   }
 }
