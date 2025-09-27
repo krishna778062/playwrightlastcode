@@ -14,8 +14,8 @@ export const platformTestFixture = test.extend<{
   appManagerBrowserContext: BrowserContext;
   appManagerApiContext: APIRequestContext;
   userManagerApiContext: APIRequestContext;
-  appManagerHomePage: BaseHomePage;
-  userManagerHomePage: BaseHomePage;
+  appManagerHomePage: NewUxHomePage;
+  userManagerHomePage: NewUxHomePage;
   appManagerPage: Page;
   userManagerPage: Page;
   userManagerBrowserContext: BrowserContext;
@@ -56,9 +56,8 @@ export const platformTestFixture = test.extend<{
   ],
   appManagerHomePage: [
     async ({ appManagerPage }, use) => {
-      const adminHomePage = getEnvConfig().newUxEnabled
-        ? new NewUxHomePage(appManagerPage)
-        : new OldUxHomePage(appManagerPage);
+      const adminHomePage = new NewUxHomePage(appManagerPage);
+      await adminHomePage.loadPage();
       await adminHomePage.verifyThePageIsLoaded();
       await use(adminHomePage);
       // Logout after each test case using this fixture
@@ -77,10 +76,9 @@ export const platformTestFixture = test.extend<{
   userManagerPage: [
     async ({ userManagerBrowserContext: userManagerContext }, use) => {
       const page = await userManagerContext.newPage();
-      await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().userManagerEmail!,
-        password: getEnvConfig().appManagerPassword,
-      });
+      const userManagerHomePage = new NewUxHomePage(page);
+      await userManagerHomePage.loadPage();
+      await userManagerHomePage.verifyThePageIsLoaded();
       await use(page);
       // Logout after each test case using this fixture
       await LoginHelper.logoutByNavigatingToLogoutPage(page);

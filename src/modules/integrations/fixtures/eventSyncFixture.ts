@@ -111,6 +111,7 @@ export const integrationsEventFixture = base.extend<IntegrationsEventFixtures, I
     async ({ appManagerPage }, use) => {
       // Login and get HomePage instance for event creation
       const appManagerHomePage = new NewUxHomePage(appManagerPage);
+      await appManagerHomePage.loadPage();
       await appManagerHomePage.verifyThePageIsLoaded();
       await use(appManagerHomePage);
     },

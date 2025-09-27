@@ -13,7 +13,6 @@ import { FeatureOwnersPage } from '@platforms/ui/pages/abacPage/featureOwnersPag
 
 import { TestSuite } from '@/src/core/constants/testSuite';
 import { audienceCreationParams } from '@/src/core/types/audience.type';
-import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import {
   AUDIENCE_API_ATTRIBUTES,
@@ -151,14 +150,13 @@ test.describe(
       {
         tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
-      async ({ appManagerPage }) => {
+      async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-31188'],
         });
-        const homePage = new NewUxHomePage(appManagerPage);
         // Test Scenario
-        await homePage.actions.clickOnApplicationSettings();
-        await homePage.actions.verifyRolesButtonVisibility(false);
+        await appManagerHomePage.actions.clickOnApplicationSettings();
+        await appManagerHomePage.actions.verifyRolesButtonVisibility(false);
       }
     );
 
@@ -167,14 +165,13 @@ test.describe(
       {
         tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
-      async ({ appManagerPage }) => {
+      async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-31189'],
         });
-        const homePage = new NewUxHomePage(appManagerPage);
         // Test Scenario
-        await homePage.goToUrl('manage/roles');
-        await homePage.verifyPageNotFoundVisibility();
+        await appManagerHomePage.goToUrl('manage/roles');
+        await appManagerHomePage.verifyPageNotFoundVisibility();
       }
     );
 

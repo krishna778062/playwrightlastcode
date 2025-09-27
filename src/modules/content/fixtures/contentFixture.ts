@@ -154,11 +154,12 @@ export const contentTestFixture = test.extend<
       //   ignoreHTTPSErrors: true,
       //   // viewport: { width: 1920, height: 1080 },
       // });
-      const context = await AuthHelper.getLoggedInBrowserContext(
-        browser,
-        getContentTenantConfigFromCache().apiBaseUrl,
-        users.endUser
-      );
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      await LoginHelper.loginWithPassword(page, {
+        email: users.endUser.email,
+        password: users.endUser.password,
+      });
 
       await use(context);
       await context.close();
@@ -175,14 +176,12 @@ export const contentTestFixture = test.extend<
   ],
   siteManagerBrowserContext: [
     async ({ browser }, use) => {
-      // const context = await browser.newContext({
-      //   permissions: ['camera', 'microphone', 'notifications'],
-      // });
-      const context = await AuthHelper.getLoggedInBrowserContext(
-        browser,
-        getContentTenantConfigFromCache().apiBaseUrl,
-        users.siteManager
-      );
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      await LoginHelper.loginWithPassword(page, {
+        email: users.siteManager.email,
+        password: users.siteManager.password,
+      });
       await use(context);
       await context?.close();
     },
@@ -200,6 +199,8 @@ export const contentTestFixture = test.extend<
   siteManagerHomePage: [
     async ({ siteManagerPage }, use) => {
       const homePage = new NewUxHomePage(siteManagerPage);
+      await homePage.loadPage();
+      await homePage.verifyThePageIsLoaded();
       await use(homePage);
     },
     { scope: 'test' },
@@ -218,6 +219,8 @@ export const contentTestFixture = test.extend<
   standardUserHomePage: [
     async ({ standardUserPage }, use) => {
       const homePage = new NewUxHomePage(standardUserPage);
+      await homePage.loadPage();
+      await homePage.verifyThePageIsLoaded();
       await use(homePage);
     },
     { scope: 'test' },

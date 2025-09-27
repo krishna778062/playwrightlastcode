@@ -29,7 +29,6 @@ test.describe(
 
         const homepage = new NewUxHomePage(page);
         await homepage.getSideNavBarComponent().clickOnAnalyticsButton();
-
         const adoptionPage = new AppAdoptionPage(page);
         await adoptionPage.navigateToAppAdoption();
 
