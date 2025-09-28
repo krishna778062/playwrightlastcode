@@ -10,8 +10,6 @@ export interface IApplicationScreenPageActions {
   clickOnApplication: () => Promise<void>;
 }
 
-export interface IFeaturedSiteAssertions {}
-
 export class ApplicationScreenPage extends BasePage implements IApplicationScreenPageActions {
   private sideNavBarComponent: SideNavBarComponent;
   private applicationSettingsComponent: ApplicationSettingsComponent;

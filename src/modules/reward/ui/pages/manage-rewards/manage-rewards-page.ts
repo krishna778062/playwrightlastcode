@@ -1,9 +1,9 @@
 import { Locator, Page, Response } from '@playwright/test';
 
-import { PAGE_ENDPOINTS, PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
-import { TIMEOUTS } from '@core/constants/timeouts';
+import { TIMEOUTS } from '@core/constants';
+import { PAGE_ENDPOINTS, PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants';
 
-import { BasePage } from '@/src/core/ui/pages/basePage';
+import { BasePage } from '@/src/core/ui';
 
 export class ManageRewardsPage extends BasePage {
   readonly manageRewardsPageContainer: Locator;

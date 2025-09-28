@@ -671,7 +671,7 @@ export class IdentityService implements IIdentityAdminOperations {
    * Get all categories using hierarchy API
    */
   async getCategories(): Promise<any[]> {
-    const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
+    const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
       data: {
         nextPageToken: 0,
         type: 'category',
@@ -689,7 +689,7 @@ export class IdentityService implements IIdentityAdminOperations {
    * Get audiences in a specific category using hierarchy API
    */
   async getAudiencesInCategory(categoryId: string): Promise<any[]> {
-    const response = await this.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
+    const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
       data: {
         nextPageToken: 0,
         type: 'audience',

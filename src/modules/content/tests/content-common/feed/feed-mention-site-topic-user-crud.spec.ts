@@ -3,6 +3,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { getContentConfigFromCache } from '../../../config/contentConfig';
+import { SiteDashboardPage } from '../../../ui/pages/sitePages';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
@@ -12,7 +13,7 @@ import { contentTestFixture as test, users } from '@/src/modules/content/fixture
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
-import { SiteDashboardPage } from '@/src/modules/content/ui/pages/siteDashboardPage';
+// import { SiteDashboardPage } from '@/src/modules/content/ui/pages/siteDashboardPage';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 // ==================== HELPER FUNCTIONS ====================

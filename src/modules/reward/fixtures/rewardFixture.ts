@@ -1,11 +1,11 @@
 import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
-import { LoginHelper } from '@core/helpers/loginHelper';
-import { getEnvConfig } from '@core/utils/getEnvConfig';
+import { LoginHelper } from '@core/helpers';
+import { getEnvConfig } from '@core/utils';
 
-import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
-import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
+import { RequestContextFactory } from '@/src/core/api';
+import { NewUxHomePage } from '@/src/core/ui';
+import { OldUxHomePage } from '@/src/core/ui';
 import { ManageRewardsPage } from '@/src/modules/reward/ui/pages/manage-rewards/manage-rewards-page';
 import { RewardOptionsPage } from '@/src/modules/reward/ui/pages/manage-rewards/reward-options-page';
 

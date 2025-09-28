@@ -1,8 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { PAGE_ENDPOINTS, PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
-
-import { BasePage } from '@/src/core/ui/pages/basePage';
+import { PAGE_ENDPOINTS, PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants';
+import { BasePage } from '@core/ui';
 
 export class RewardOptionsPage extends BasePage {
   readonly rewardsOptionsContainer: Locator;

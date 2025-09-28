@@ -8,7 +8,6 @@ export interface IManageContentPageActions {
   ViewSite: () => Promise<void>;
 }
 
-export interface IFeaturedSiteAssertions {}
 export class SiteDetailsPage extends BasePage {
   private siteDetailsComponent: SiteDetailsComponent;
   actions: any;

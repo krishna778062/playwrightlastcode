@@ -1,4 +1,4 @@
-import { expect, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseSitePage } from '@content/ui/pages/sitePages/baseSite';
 
@@ -8,6 +8,7 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 export interface ISiteDashboardActions {
   verfiyFeedSection: () => Promise<void>;
+  clickOnFeedLink: () => Promise<void>;
 }
 export interface ISiteDashboardAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
@@ -23,6 +24,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   readonly siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
   readonly siteDashboardComponent: SiteDashboardComponent;
 
+  readonly feedLink: Locator;
   // Actions
   get actions(): ISiteDashboardActions {
     return this;
@@ -31,6 +33,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   constructor(page: Page, siteId: string) {
     super(page, siteId);
     this.siteDashboardComponent = new SiteDashboardComponent(page);
+    this.feedLink = this.page.locator('a:has-text("eed")');
   }
   /**
    * Verifies that site was created successfully by checking if site link is visible
@@ -97,6 +100,12 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   async verfiyFeedSection(): Promise<void> {
     await test.step('Verifying feed section', async () => {
       await expect(this.siteDashboardComponent.verfiyFeedSection, 'expecting feed section to be hidden').toBeHidden();
+    });
+  }
+
+  async clickOnFeedLink(): Promise<void> {
+    await test.step('Click on feed link', async () => {
+      await this.clickOnElement(this.feedLink);
     });
   }
 }

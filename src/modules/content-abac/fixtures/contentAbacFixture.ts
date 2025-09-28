@@ -2,12 +2,12 @@ import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test'
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
-import { SiteAudienceHelper } from '@/src/core/helpers/siteAudienceHelper';
 import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { FeedManagementHelper } from '@/src/modules/content/apis/helpers/feedManagementHelper';
 import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
+import { SiteAudienceHelper } from '@/src/modules/content-abac/apis/helpers/siteAudienceHelper';
 
 export const contentAbacTestFixture = test.extend<
   {

@@ -12,7 +12,7 @@ import { FeaturedSitePage } from '@content/ui/pages/featuredSitePage';
 import { PageCreationPage } from '@content/ui/pages/pageCreationPage';
 import { SiteCreationPage as ContentSiteCreationPage } from '@content/ui/pages/siteCreationPage';
 
-import { BaseHomePage, INewUxHomePageActions } from './baseHomePage';
+import { BaseHomePage, ICommonHomePageActions, ICommonHomePageAssertions, INewUxHomePageActions } from './baseHomePage';
 
 export interface IFeaturedSiteActions {
   navigateToApplication: () => Promise<void>;
@@ -21,14 +21,7 @@ export interface IFeaturedSiteActions {
   clickOnFeedSideMenu: () => Promise<void>;
 }
 
-export interface ICommonHomePageAssertions {
-  verifyErrorMessageWhenContentSubmissionIsDisabled: (
-    addContentModal: AddContentModalComponent,
-    contentType: ContentType
-  ) => Promise<void>;
-}
 export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions {
-  // actions: any;
   constructor(page: Page) {
     super(page);
   }
@@ -189,7 +182,7 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
     });
   }
   async clickOnBellIcon(options?: { stepInfo?: string }): Promise<NotificationComponent> {
-    await this.topNavBarComponent.clickOnBellIcon();
+    await this.topNavBarComponent.clickOnBellIconToOpenNotifications();
     return new NotificationComponent(this.page);
   }
 

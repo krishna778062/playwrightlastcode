@@ -82,7 +82,7 @@ export class OldUxHomePage extends BaseHomePage implements IOldUxHomePageActions
 
   async clickOnBellIcon(options?: { stepInfo?: string }): Promise<NotificationComponent> {
     return await test.step(options?.stepInfo || 'Click on bell icon', async () => {
-      await this.topNavBarComponent.clickOnBellIcon();
+      await this.topNavBarComponent.clickOnBellIconToOpenNotifications();
       return new NotificationComponent(this.page);
     });
   }

@@ -1,5 +1,6 @@
 import { APIRequestContext, APIResponse } from '@playwright/test';
 
+import { ApiError } from '@/src/core/api/errors/apiError';
 import {
   DeleteRequestOptions,
   GetRequestOptions,
@@ -7,9 +8,7 @@ import {
   PostRequestOptions,
   PutRequestOptions,
   ValidateResponseOptions,
-} from '../types/types';
-
-import { ApiError } from '@/src/core/api/errors/apiError';
+} from '@/src/core/types/http.type';
 
 export class HttpClient {
   readonly context: APIRequestContext;

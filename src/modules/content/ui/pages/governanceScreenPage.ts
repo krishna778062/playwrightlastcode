@@ -10,7 +10,6 @@ export interface IGovernanceScreenPageActions {
   clickOnSave: () => Promise<void>;
 }
 
-export interface IFeaturedSiteAssertions {}
 export class GovernanceScreenPage extends BasePage {
   private governanceComponent: GovernanceComponent;
   actions: any;

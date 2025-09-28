@@ -1,5 +1,7 @@
 import { APIRequestContext, APIResponse } from '@playwright/test';
 
+import { getInternalBackendUrl } from '../utils/apiUrlUtil';
+
 import { HttpClient } from './httpClient';
 
 import {
@@ -8,7 +10,7 @@ import {
   PatchRequestOptions,
   PostRequestOptions,
   PutRequestOptions,
-} from '@/src/core/api/types/types';
+} from '@/src/core/types/http.type';
 
 export interface ServiceClientConfig {
   serviceName: string;
@@ -70,25 +72,3 @@ export abstract class BaseServiceClient {
     return getInternalBackendUrl(process.env.FRONTEND_BASE_URL!);
   }
 }
-
-export const getInternalBackendUrl = (appUrl: string): string => {
-  if (!appUrl) {
-    throw new Error('App URL is required to determine backend URL');
-  }
-
-  const domain = Object.keys(BACKEND_URLS).find(key => appUrl.includes(key));
-  if (!domain) {
-    throw new Error(`Backend URL is not found for the given app URL : ${appUrl}`);
-  }
-
-  return BACKEND_URLS[domain as keyof typeof BACKEND_URLS];
-};
-
-const BACKEND_URLS = {
-  'test.simpplr.xyz': 'https://api-be.test.simpplr.xyz',
-  'uat.simpplr.xyz': 'https://api-be.uat.simpplr.xyz',
-  'dev.simpplr.xyz': 'https://api-be.dev.simpplr.xyz',
-  'app.simpplr.xyz': 'https://api-be.app.simpplr.xyz',
-  'qa.simpplr.xyz': 'https://api-be.qa.simpplr.xyz',
-  'perf.simpplr.xyz': 'https://api-be.perf.simpplr.xyz',
-} as const;

@@ -11,7 +11,7 @@ import { EditPagePage } from '@content/ui/pages/editPagePage';
 import { GovernanceScreenPage } from '@content/ui/pages/governanceScreenPage';
 import { ManageApplicationPage } from '@content/ui/pages/manageApplicationPage';
 import { ManageContentPage } from '@content/ui/pages/manageContentPage';
-import { ApplicationScreenPage as ManageFeature } from '@content/ui/pages/manageFeaturesPage';
+import { ManageFeaturesPage as ManageFeature } from '@content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@content/ui/pages/manageSitePage';
 import { SiteDetailsPage } from '@content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage';

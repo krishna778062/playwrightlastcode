@@ -1,4 +1,4 @@
-import { ApplicationScreenPage } from '@content/ui/pages/manageFeaturesPage';
+import { ManageFeaturesPage } from '@content/ui/pages/manageFeaturesPage';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -17,13 +17,13 @@ test.describe(
     tag: [ContentSuiteTags.MANAGE_CONTENT],
   },
   () => {
-    let manageFeaturesPage: ApplicationScreenPage;
+    let manageFeaturesPage: ManageFeaturesPage;
     let manageContentPage: ManageContentPage;
     let homePage: NewUxHomePage;
 
     test.beforeEach(async ({ appManagerHomePage }) => {
       await appManagerHomePage.verifyThePageIsLoaded();
-      manageFeaturesPage = new ApplicationScreenPage(appManagerHomePage.page);
+      manageFeaturesPage = new ManageFeaturesPage(appManagerHomePage.page);
       manageContentPage = new ManageContentPage(appManagerHomePage.page);
       homePage = new NewUxHomePage(appManagerHomePage.page);
     });

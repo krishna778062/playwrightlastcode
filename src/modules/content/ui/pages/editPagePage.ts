@@ -3,12 +3,6 @@ import { Page, test } from '@playwright/test';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { EditPageComponent } from '@/src/modules/content/ui/components/editPageComponent';
 
-export interface IFeaturedSiteActions {
-  clickOnPublishChanges: () => Promise<void>;
-}
-
-export interface IFeaturedSiteAssertions {}
-
 export class EditPagePage extends BasePage {
   private editPageComponent: EditPageComponent;
   actions: any;

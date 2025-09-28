@@ -3,13 +3,46 @@ import { expect, Page, test } from '@playwright/test';
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
 
+import { getEnvConfig } from '../..';
+import { SideNavBarComponent, TopNavBarComponent } from '../components';
+
 export abstract class BasePage extends BaseActionUtil {
+  readonly topNavBarComponent: TopNavBarComponent;
+  readonly sideNavBarComponent: SideNavBarComponent;
   readonly verifier: BaseVerificationUtil;
   readonly pageUrl: string;
+  readonly isNewUxEnabled: boolean;
   constructor(page: Page, pageUrl?: string) {
     super(page);
+    this.isNewUxEnabled = getEnvConfig().newUxEnabled;
     this.verifier = new BaseVerificationUtil(page);
     this.pageUrl = pageUrl || '';
+    this.topNavBarComponent = new TopNavBarComponent(page, this.isNewUxEnabled);
+    this.sideNavBarComponent = new SideNavBarComponent(page);
+  }
+
+  // Convenience method for direct Playwright expect access
+  get expect() {
+    return expect;
+  }
+
+  get getTopNavBarComponent() {
+    return this.topNavBarComponent;
+  }
+
+  get getSideNavBarComponent() {
+    if (this.isNewUxEnabled) {
+      return this.sideNavBarComponent;
+    }
+    throw new Error('Side navigation bar component is not available in old UX');
+  }
+
+  get url() {
+    if (this.pageUrl === '') {
+      console.log('Page URL is not set for this page, returning current page URL');
+      return this.page.url();
+    }
+    return this.pageUrl;
   }
 
   /**
@@ -70,12 +103,14 @@ export abstract class BasePage extends BaseActionUtil {
    */
   async verifyAccessDeniedPageVisibility(options?: { stepInfo?: string; timeout?: number }) {
     await test.step(options?.stepInfo || `Verify the page - Access Denied`, async () => {
-      await expect(this.page.locator('h1', { hasText: 'Access denied' })).toBeVisible();
-      await expect(
+      await this.expect(this.page.locator('h1', { hasText: 'Access denied' })).toBeVisible();
+      await this.expect(
         this.page
           .locator('[class*="no-results"] div')
           .filter({ hasText: 'You are not authorized to access this resource, please contact your administrator.' })
       ).toBeVisible();
     });
   }
+
+  //nav bar methods
 }
