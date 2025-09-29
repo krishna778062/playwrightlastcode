@@ -222,7 +222,10 @@ export class RewardsStore extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanel.first(), {
       assertionMessage: ' Verify the order history panel is visible',
     });
-    await this.verifier.verifyElementContainsText(this.orderHistoryPanelRewardName.first(), giftCard);
+    await this.verifier.verifyElementContainsText(this.orderHistoryPanelRewardName.first(), giftCard, {
+      timeout: 10000,
+      assertionMessage: ' Verify the reward name in the order history panel',
+    });
     await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardImage.first());
     await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardResendButton.first());
   }
