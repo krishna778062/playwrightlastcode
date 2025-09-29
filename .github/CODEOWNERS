@@ -7,7 +7,10 @@
 
 # Module-specific ownership
 # Chat Module
-/src/modules/chat/ @prateek-sqa @arvindsingh15992
+/src/modules/chat/ @prateek-sqa @arvindsingh15992 @JoshiMeenakshi30 @Shivam-kalkhanday
+
+# Frontline Module
+/src/modules/frontline/ @prateek-sqa @arvindsingh15992 @JoshiMeenakshi30  @Shivam-kalkhanday
 
 # Content Module
 /src/modules/content/ @prateek-sqa @SonaliGupta0608

@@ -65,6 +65,8 @@ export class ConversationWindowComponent extends BaseComponent {
     if (formattingOptions.usesUnderline) return 'underline';
     if (formattingOptions.usesStrikethrough) return 'strikethrough';
     if (formattingOptions.usesBold && formattingOptions.usesItalic) return 'bold-italic';
+    if (formattingOptions.usesBulletList) return 'bullet points ';
+    if (formattingOptions.usesOrderList) return 'ordered list';
     if (
       formattingOptions.usesBold &&
       formattingOptions.usesItalic &&
@@ -170,6 +172,14 @@ export class ConversationWindowComponent extends BaseComponent {
 
           case 'allformats':
             expectedLoc = lastMessageStrip.locator('section p em s strong u');
+
+            break;
+          case 'bullet points ':
+            expectedLoc = lastMessageStrip.locator('section p ul.custom-bullet-list li');
+
+            break;
+          case 'ordered list':
+            expectedLoc = lastMessageStrip.locator('section p ol.custom-ordered-list li');
 
             break;
         }
