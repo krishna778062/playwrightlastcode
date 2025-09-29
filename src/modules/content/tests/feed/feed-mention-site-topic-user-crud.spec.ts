@@ -225,6 +225,7 @@ for (const testData of feedTestData) {
           const embeedUrl = `https://www.youtube.com/watch?v=F_77M3ZZ1z8`;
 
           // Step 1: Create post with mentions
+          await appManagerFeedPage.actions.clickShareThoughtsButton();
           const postResult = await appManagerFeedPage.actions.createfeedWithMentionUserNameAndTopic({
             text: initialPostText,
             userName: fullName,
