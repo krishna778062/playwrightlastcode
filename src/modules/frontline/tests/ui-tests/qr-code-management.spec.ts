@@ -32,7 +32,7 @@ test.describe(
     test(
       'Scenario: Verify creation of app promotion QR',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
@@ -65,7 +65,7 @@ test.describe(
     test(
       'Scenario: Verify delete app promotion QR code',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
       },
       async ({ appManagerHomePage, qrManagementService }) => {
         tagTest(test.info(), {
@@ -87,7 +87,7 @@ test.describe(
     test(
       'Scenario: Verify delete content QR code',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
       },
       async ({ appManagerHomePage, qrManagementService }) => {
         tagTest(test.info(), {
@@ -109,7 +109,7 @@ test.describe(
     test(
       'Scenario: Verify creation of content QR',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
       },
       async ({ appManagerHomePage, qrManagementService }) => {
         tagTest(test.info(), {
