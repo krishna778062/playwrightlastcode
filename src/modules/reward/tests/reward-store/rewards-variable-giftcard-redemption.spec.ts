@@ -12,7 +12,7 @@ test.describe('Rewards Variable Gift Card Redemption', { tag: [REWARD_FEATURE_TA
     await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
   });
 
-  test.only(
+  test(
     '[RC-3227] Validate Variable amount gift card redemptions',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],
