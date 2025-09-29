@@ -7,13 +7,13 @@ import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
 import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
-import { SiteType } from '@/src/modules/content-abac/constants/siteType';
 
 // ==================== HELPER FUNCTIONS ====================
 
@@ -50,12 +50,12 @@ async function fetchUserSiteAndTopicByOptions(
   }
 
   if (options.fetchPublicSite) {
-    requests.push(helpers.siteManagementHelper.getSiteByAccessType(SiteType.PUBLIC));
+    requests.push(helpers.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC));
     dataKeys.push('publicSite');
   }
 
   if (options.fetchPrivateSite) {
-    requests.push(helpers.siteManagementHelper.getSiteByAccessType(SiteType.PRIVATE));
+    requests.push(helpers.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE));
     dataKeys.push('privateSite');
   }
 

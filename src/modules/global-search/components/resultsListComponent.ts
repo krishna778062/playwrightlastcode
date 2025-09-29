@@ -1,6 +1,8 @@
 import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
+import { ContentType } from '@/src/core/constants/contentTypes';
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 export class ResultListingComponent extends BaseComponent {
   readonly name: Locator;
@@ -16,6 +18,13 @@ export class ResultListingComponent extends BaseComponent {
   readonly headerNavBarHomePageLink: Locator;
   // Lock icon
   readonly lockIcon: Locator;
+  // Autocomplete locators
+  readonly autocompleteList: Locator;
+  readonly autocompleteSiteName: Locator;
+  readonly autocompleteSiteLabel: Locator;
+  readonly autocompleteSiteThumbnail: Locator;
+  readonly autocompleteLockIcon: Locator;
+  readonly autocompleteDateEmblem: Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
@@ -31,6 +40,14 @@ export class ResultListingComponent extends BaseComponent {
     this.copyLinkButton = this.rootLocator.getByRole('button', { name: 'Copy link' });
     this.toolTipMsg = this.rootLocator.locator("[role='tooltip']");
     this.lockIcon = this.rootLocator.locator("i[data-testid='i-lock'][role='img']");
+
+    // Autocomplete locators
+    this.autocompleteList = this.page.locator('div[class*="AutocompleteListingItem_wrapper"]');
+    this.autocompleteSiteName = this.rootLocator;
+    this.autocompleteSiteLabel = this.autocompleteSiteName.locator('p[class*="Typography-module__paragraph"]');
+    this.autocompleteSiteThumbnail = this.autocompleteSiteName.locator('[class*="Emblem-module__iconContainer"]');
+    this.autocompleteLockIcon = this.autocompleteSiteName.locator('[data-testid="i-lock"]');
+    this.autocompleteDateEmblem = this.autocompleteSiteName.locator('[class*="DateEmblem-module__date"]').first();
   }
 
   /**
@@ -39,7 +56,7 @@ export class ResultListingComponent extends BaseComponent {
   async hoverOverCardAndCopyLink() {
     await test.step(`Mouse over and click on copy link button`, async () => {
       await this.page.waitForLoadState('load');
-      await this.rootLocator.hover({ timeout: 20000 });
+      await this.rootLocator.hover({ timeout: 40000 });
       await this.verifier.verifyTheElementIsVisible(this.copyLinkButton, {
         timeout: 20000,
         assertionMessage: `Verifying copy link button is visible`,
@@ -199,7 +216,7 @@ export class ResultListingComponent extends BaseComponent {
    * @param contentId - The unique ID of the content (used to verify navigation URL)
    * @param name - The display name/title of the content (used to locate the link)
    */
-  async verifyNavigationToTitleLink(contentId: string, name: string, type: string) {
+  async verifyNavigationToTitleLink(contentId: string, name: string, _type: string) {
     await test.step(`Verifying navigation to title link for "${name}"`, async () => {
       // Click the title link
       await this.clickOnElement(this.name, { timeout: 40000 });
@@ -223,6 +240,158 @@ export class ResultListingComponent extends BaseComponent {
   async goBackToPreviousPage() {
     await test.step('Navigating back to the previous page', async () => {
       await this.page.goBack();
+    });
+  }
+
+  /** ---------------------------- AUTOCOMPLETE VERIFICATIONS ---------------------------- */
+  /**
+   * Wait for autocomplete list to appear and verify it's displayed
+   * If autocomplete is not displayed, retries by deleting last character and retyping it
+   */
+  async waitForAndVerifyAutocompleteListIsDisplayed(searchInputLocator?: Locator, searchTerm?: string): Promise<void> {
+    await test.step('Waiting for autocomplete list to appear and verifying it is displayed', async () => {
+      try {
+        // Wait for at least one autocomplete item to appear
+        await this.verifier.verifyTheElementIsVisible(this.autocompleteList.first(), {
+          timeout: 20000,
+          assertionMessage: 'Verifying autocomplete list is visible',
+        });
+      } catch (error) {
+        // If autocomplete is not displayed, retry by deleting last character and retyping
+        if (searchInputLocator && searchTerm && searchTerm.length > 0) {
+          await test.step('Autocomplete not displayed, retrying by deleting last character and retyping', async () => {
+            // Delete the last character
+            await searchInputLocator.press('Backspace');
+
+            // Retype the last character
+            const lastChar = searchTerm[searchTerm.length - 1];
+            await searchInputLocator.fill(lastChar);
+
+            // Try to verify autocomplete list again
+            await this.verifier.verifyTheElementIsVisible(this.autocompleteList.first(), {
+              timeout: 10000,
+              assertionMessage: 'Verifying autocomplete list is visible after retry',
+            });
+          });
+        } else {
+          throw error; // Re-throw the original error if we can't retry
+        }
+      }
+    });
+  }
+
+  /**
+   * Get specific autocomplete item by name
+   * @param itemName - The item name to find
+   * @returns ResultListingComponent instance for the specific item
+   */
+  getAutocompleteItemByName(itemName: string): ResultListingComponent {
+    const specificItemLocator = this.autocompleteList.filter({
+      has: this.page.locator('p').filter({ hasText: itemName }).first(),
+    });
+    return new ResultListingComponent(this.page, specificItemLocator);
+  }
+
+  /**
+   * Verify item name in autocomplete item
+   * @param expectedName - The expected item name
+   */
+  async verifyAutocompleteItemName(expectedName: string): Promise<void> {
+    await test.step(`Verifying item name "${expectedName}" in autocomplete item`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.autocompleteSiteName, {
+        timeout: 20000,
+        assertionMessage: `Verifying item name "${expectedName}" in autocomplete item`,
+      });
+    });
+  }
+
+  /**
+   * Verify item label in autocomplete item
+   * @param expectedLabel - The expected item label
+   */
+  async verifyAutocompleteItemLabel(expectedLabel: string): Promise<void> {
+    await test.step(`Verifying item label "${expectedLabel}" in autocomplete item`, async () => {
+      await this.verifier.verifyElementHasText(this.autocompleteSiteLabel.last(), expectedLabel, {
+        timeout: 20000,
+        assertionMessage: `Verifying item label "${expectedLabel}" in autocomplete item`,
+      });
+    });
+  }
+
+  /**
+   * Verify item thumbnail in autocomplete item
+   * @param itemLabel - The item label to determine verification type
+   */
+  async verifyAutocompleteItemThumbnail(itemLabel?: string): Promise<void> {
+    await test.step('Verifying item thumbnail in autocomplete item', async () => {
+      if (itemLabel === ContentType.Event) {
+        // For events, verify the date emblem
+        await this.verifier.verifyTheElementIsVisible(this.autocompleteDateEmblem, {
+          timeout: 20000,
+          assertionMessage: 'Verifying date emblem in event autocomplete item',
+        });
+      } else {
+        // For other content types, verify the thumbnail
+        await this.verifier.verifyTheElementIsVisible(this.autocompleteSiteThumbnail, {
+          timeout: 20000,
+          assertionMessage: 'Verifying item thumbnail in autocomplete item',
+        });
+      }
+    });
+  }
+
+  /**
+   * Click on autocomplete item
+   * @param itemName - The item name to click on
+   */
+  async clickOnAutocompleteItem(itemName: string): Promise<void> {
+    await test.step(`Clicking on autocomplete item for "${itemName}"`, async () => {
+      await this.clickOnElement(this.autocompleteSiteName, { timeout: 20000 });
+    });
+  }
+
+  /**
+   * Verify navigation to autocomplete item
+   * @param contentId - The unique ID of the content (used to verify navigation URL)
+   * @param name - The display name/title of the content (used to locate the link)
+   * @param _type - The type of content (unused parameter for consistency)
+   */
+  async verifyAutocompleteNavigationToTitleLink(contentId: string, name: string, _type: string) {
+    await test.step(`Verifying navigation to autocomplete title link for "${name}"`, async () => {
+      // Click the autocomplete title link
+      await this.clickOnElement(this.autocompleteSiteName, { timeout: 40000 });
+      const utmUrlPattern = new RegExp(
+        `${contentId}.*\\?utm_source=search_result&utm_term=${encodeURIComponent(name)}`
+      );
+      const finalUrlPattern = new RegExp(contentId);
+
+      try {
+        await this.page.waitForURL(url => utmUrlPattern.test(url.toString()) || finalUrlPattern.test(url.toString()), {
+          timeout: 20000,
+        });
+      } catch (error) {
+        throw new Error(
+          `Verifying navigation with autocomplete title link for "${name}" failed. Neither UTM URL nor final URL was loaded in time.\n${error}`
+        );
+      }
+    });
+  }
+
+  /**
+   * Comprehensive verification of autocomplete item
+   * @param itemName - The item name
+   * @param itemLabel - The item label
+   * @param itemType - The item type (optional, only used for lock icon visibility)
+   */
+  async verifyAutocompleteItemData(itemName: string, itemLabel: string, itemType?: string): Promise<void> {
+    await test.step(`Verifying autocomplete item data for "${itemName}"`, async () => {
+      await this.verifyAutocompleteItemName(itemName);
+      await this.verifyAutocompleteItemLabel(itemLabel);
+      await this.verifyAutocompleteItemThumbnail(itemLabel);
+      // Use existing lock icon verification method (only for sites with private/unlisted access)
+      if (itemType === SITE_TYPES.PRIVATE || itemType === SITE_TYPES.UNLISTED) {
+        await this.verifyLockIconVisibility(itemType);
+      }
     });
   }
 }

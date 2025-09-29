@@ -9,8 +9,23 @@ export const OKTA_GROUP = {
   SELECTED_GROUPS_TAB: 'Selected groups',
   GROUP_NAME1: 'Okta Administrators',
   GROUP_NAME2: 'Everyone',
+  CREATED_BY: 'Automatically generated',
   GROUP_NAME3: 'AutomationTestingGroup01',
   GROUP_NAME4: 'AutomationTestingGroup02',
   DO_NOT_CREATE_AUDIENCES: 'Do not create audiences',
   CREATE_AUDIENCES: 'Create audiences',
+} as const;
+
+export const AD_GROUP = {
+  AD_GROUP_OPTION: 'Use Microsoft Entra ID groups',
+  DO_NOT_USE_AD_GROUPS: 'Do not use Microsoft Entra ID groups',
+  GROUP_BUTTON: 'Select Microsoft Entra ID groups',
+  GROUP_NAME1: 'Analytics-Insights',
+  GROUP_NAME2: 'App-Access-Salesforce',
+  SELECTED_GROUPS_TAB: 'Selected groups',
+  DO_NOT_CREATE_AUDIENCES: 'Do not create audiences',
+  CREATE_AUDIENCES: 'Create audiences',
+  CONFIRM_MESSAGE: 'Are you sure you want to disconnect Microsoft Entra ID?',
+  DISCONNECT_BUTTON_TEXT: 'Disconnect account',
+  SOURCE_NAME: 'Microsoft Entra ID',
 } as const;

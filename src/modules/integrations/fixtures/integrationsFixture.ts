@@ -69,8 +69,8 @@ export const integrationsFixture = test.extend<
   ],
 
   siteDashboard: [
-    async ({ page }, use) => {
-      const siteDashboard = new SiteDashboard(page);
+    async ({ appManagerPage }, use) => {
+      const siteDashboard = new SiteDashboard(appManagerPage);
       await use(siteDashboard);
     },
     { scope: 'test' },
