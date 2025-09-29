@@ -175,11 +175,11 @@ export class ConversationWindowComponent extends BaseComponent {
 
             break;
           case 'bullet points ':
-            expectedLoc = lastMessageStrip.locator('section p ul.custom-bullet-list li');
+            expectedLoc = lastMessageStrip.locator('section ul.custom-bullet-list li');
 
             break;
           case 'ordered list':
-            expectedLoc = lastMessageStrip.locator('section p ol.custom-ordered-list li');
+            expectedLoc = lastMessageStrip.locator('section ol.custom-ordered-list li');
 
             break;
         }
