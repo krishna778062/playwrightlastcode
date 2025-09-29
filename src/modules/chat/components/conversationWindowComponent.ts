@@ -65,6 +65,8 @@ export class ConversationWindowComponent extends BaseComponent {
     if (formattingOptions.usesUnderline) return 'underline';
     if (formattingOptions.usesStrikethrough) return 'strikethrough';
     if (formattingOptions.usesBold && formattingOptions.usesItalic) return 'bold-italic';
+    if (formattingOptions.usesBulletList) return 'bullet points ';
+    if (formattingOptions.usesOrderList) return 'ordered list';
     if (
       formattingOptions.usesBold &&
       formattingOptions.usesItalic &&

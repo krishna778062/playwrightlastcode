@@ -647,4 +647,8 @@ export class TestDataGenerator {
       replyText: `@${userName} ${text}`, // For UI verification
     };
   }
+
+  static generateValidLinkPair() {
+    return faker.internet.url();
+  }
 }
