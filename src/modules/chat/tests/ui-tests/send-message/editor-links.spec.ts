@@ -10,27 +10,6 @@ import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
 
-test.describe('Verifying link button , input box and  placeholder text', { tag: [TestPriority.P2] }, () => {
-  test(`(placeholder text and input boxes are visible )`, async ({ appManagerHomePage }) => {
-    const chatAppPage = await appManagerHomePage.navigateToChatPageViaTopNavBar();
-    await chatAppPage.actions.openDirectMessageWithUser(CONSTANT_DATA.USER_NAME_1);
-
-    await expect(chatAppPage.conversationWindow.getChatEditorComponent().linkButton).toBeVisible();
-
-    await chatAppPage.conversationWindow.getChatEditorComponent().linkButton.click();
-
-    await expect(chatAppPage.conversationWindow.getChatEditorComponent().linkTextfield).toBeVisible();
-    await expect(chatAppPage.conversationWindow.getChatEditorComponent().linkUrlfield).toBeVisible();
-    await expect(chatAppPage.conversationWindow.getChatEditorComponent().insertButton).toBeVisible();
-
-    await expect(chatAppPage.conversationWindow.getChatEditorComponent().linkUrlBox).toHaveAttribute(
-      'placeholder',
-      'https://www.example.org'
-    );
-    await expect(chatAppPage.conversationWindow.getChatEditorComponent().insertButton).toBeVisible();
-  });
-});
-
 test.describe('Verifying invalid link msg in the editor', { tag: [TestPriority.P2] }, () => {
   test(`(invalid link msg visible in the editor)`, async ({ appManagerHomePage }) => {
     const chatAppPage = await appManagerHomePage.navigateToChatPageViaTopNavBar();
@@ -39,8 +18,12 @@ test.describe('Verifying invalid link msg in the editor', { tag: [TestPriority.P
     await chatAppPage.conversationWindow.getChatEditorComponent().linkButton.click();
 
     // Fill the "Text" and "Link" fields
+    await expect(chatAppPage.conversationWindow.getChatEditorComponent().linkTextfield).toBeVisible();
     await chatAppPage.conversationWindow.getChatEditorComponent().linkTextBox.fill('hello');
+
+    await expect(chatAppPage.conversationWindow.getChatEditorComponent().linkUrlfield).toBeVisible();
     await chatAppPage.conversationWindow.getChatEditorComponent().linkUrlBox.fill('shivam');
+
     await chatAppPage.conversationWindow.getChatEditorComponent().insertButton.click({ force: true });
 
     // Assert the "Please enter a valid link" error message
@@ -93,8 +76,15 @@ test.describe('Verifying valid link insertion in the editor', { tag: [TestPriori
     // Fill the "Text" and "Link" fields with valid data
     await chatAppPage.conversationWindow.getChatEditorComponent().linkTextBox.fill(linkData.displayText);
 
+    await expect(chatAppPage.conversationWindow.getChatEditorComponent().linkUrlBox).toHaveAttribute(
+      'placeholder',
+      'https://www.example.org'
+    );
+
     await chatAppPage.conversationWindow.getChatEditorComponent().linkUrlBox.fill(linkData.urlText);
 
+    // verifying visibility of insert button and clicking on it
+    await expect(chatAppPage.conversationWindow.getChatEditorComponent().insertButton).toBeVisible();
     await chatAppPage.conversationWindow.getChatEditorComponent().insertButton.click();
 
     // Verify the link text appears in the chat editor input field
