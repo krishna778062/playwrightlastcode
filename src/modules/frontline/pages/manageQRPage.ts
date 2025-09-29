@@ -245,19 +245,13 @@ export class ManageQRPage extends BasePage {
     if (qrType === 'AppPromotion') {
       await this.clickOnDeleteButton();
     }
+    await this.verifySuccessMessage();
   }
 
   async verifySuccessMessage() {
     await this.verifier.verifyTheElementIsVisible(this.successMessage, {
       assertionMessage: 'Success message should be displayed',
     });
-  }
-
-  async deleteQRWithSuccess(qrName: string) {
-    await this.clickOnThreeDots(qrName);
-    await this.clickOnDelete();
-    await this.clickOnDeleteButton();
-    await this.verifySuccessMessage();
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -322,10 +316,9 @@ export class ManageQRPage extends BasePage {
     await this.clickOnElement(this.validTillDatePicker, {
       stepInfo: 'Click on Valid till date picker',
     });
-
     const targetDate = addDays(new Date(), daysFromToday);
-    const ariaLabel = format(targetDate, 'EEE MMM dd yyyy');
-
+    let ariaLabel = format(targetDate, 'dd MMM yyyy');
+    ariaLabel = ariaLabel.split(' ')[0];
     const targetDay = this.targetDay(ariaLabel);
 
     await this.clickOnElement(targetDay, {
