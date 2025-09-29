@@ -90,6 +90,7 @@ export const REDIRECT_URLS = {
   UKG_PRO: 'https://et19.ultipro.com/',
   GOOGLE_CALENDAR: 'https://workspace.google.com/',
   DOCUSIGN: 'https://account-d.docusign.com/',
+  UKG_WFM: 'https://kcfn01-cfn08-ath01.cfn.mykronos.com/',
 } as const;
 
 /**

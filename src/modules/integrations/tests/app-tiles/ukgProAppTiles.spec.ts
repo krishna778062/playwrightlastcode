@@ -23,6 +23,9 @@ test.describe(
   () => {
     const AppName = 'UKG Pro';
     const DisplayTimeOffBalance = 'Display Time Off Balance';
+    const DisplayRecentPaystubs = 'Display recent paystubs';
+    const InstanceUrlOption = 'UKG Pro instance URL';
+    const InstanceUrl = 'https://et19.ultipro.com/';
 
     let createdTileTitle: string | undefined = undefined;
 
@@ -193,6 +196,74 @@ test.describe(
         await siteDashboard.addTile(createdTileTitle, AppName, DisplayTimeOffBalance, UI_ACTIONS.ADD_TO_SITE);
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await siteDashboard.verifyDisplayTimeOffMetadata(createdTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'create and edit UKG Pro Display Recent Paystubs tile on site dashboard',
+      {
+        tag: [TestPriority.P4, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-21114', 'INT-21086'],
+          storyId: 'INT-20795',
+        });
+        //Generate a random tile title
+        createdTileTitle = `Display Recent Paystubs ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        await siteDashboard.addTileWithUrlField(
+          createdTileTitle,
+          AppName,
+          DisplayRecentPaystubs,
+          InstanceUrlOption,
+          InstanceUrl,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify metadata for UKG Pro Display Recent Paystubs tile on site dashboard',
+      {
+        tag: [TestPriority.P4, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-21114', 'INT-21086'],
+          storyId: 'INT-20795',
+        });
+        //Generate a random tile title
+        createdTileTitle = `Display Recent Paystubs ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        await siteDashboard.addTileWithUrlField(
+          createdTileTitle,
+          AppName,
+          DisplayRecentPaystubs,
+          InstanceUrlOption,
+          InstanceUrl,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.verifyUKGProTileMetadata(createdTileTitle);
+        await siteDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.UKG_PRO);
         createdTileTitle = undefined;
       }
     );

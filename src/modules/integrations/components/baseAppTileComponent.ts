@@ -394,4 +394,17 @@ export class BaseAppTileComponent extends BaseComponent {
       await this.urlTextbox(fieldName).fill(url);
     });
   }
+
+  /**
+   * Input any field by name
+   */
+  async inputFieldByName(fieldName: string, value: string): Promise<void> {
+    await test.step(`Input ${fieldName}: ${value}`, async () => {
+      let input = this.page.getByRole('textbox', { name: fieldName });
+      if ((await input.count()) === 0) {
+        input = this.page.locator(`[data-testid="field-${fieldName}"] input`);
+      }
+      await input.fill(value);
+    });
+  }
 }

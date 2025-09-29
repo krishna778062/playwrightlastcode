@@ -9,7 +9,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { UI_ACTIONS } from '@/src/modules/integrations/constants/common';
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
-import { CONNECTOR_IDS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import { CONNECTOR_IDS, REDIRECT_URLS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 test.describe(
   'UKG WFM App Tiles Integration',
@@ -233,6 +233,63 @@ test.describe(
         await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
         await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
         await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify metadata for UKG WFM Display upcoming schedule tile on home dashboard',
+      {
+        tag: [TestPriority.P5, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ homeDashboard, tileManagementHelper }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-23138',
+          storyId: 'INT-22854',
+        });
+
+        createdTileTitle = `UKG WFM Display upcoming schedule ${faker.string.alphanumeric({ length: 6 })}`;
+        await tileManagementHelper.createIntegrationAppTileWithSettings(
+          createdTileTitle,
+          TILE_IDS.UKG_WFM_DISPLAY_UPCOMING_SCHEDULE,
+          CONNECTOR_IDS.UKG_WFM,
+          { scheduleUrl: ScheduleUrl }
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyScheduleTileMetadata(createdTileTitle);
+        await homeDashboard.clickShowAllAndVerifyRedirect(createdTileTitle, REDIRECT_URLS.UKG_WFM);
+      }
+    );
+
+    test(
+      'verify metadata for UKG WFM Display upcoming schedule tile on site dashboard with site manager defined',
+      {
+        tag: [TestPriority.P5, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-23138',
+          storyId: 'INT-22854',
+        });
+
+        // Create site and navigate
+        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        createdTileTitle = `UKG WFM Display upcoming schedule ${faker.string.alphanumeric({ length: 6 })}`;
+        await siteDashboard.addTilewithAppManagerDefined(
+          createdTileTitle,
+          AppName,
+          DisplayUpcomingSchedule,
+          AppManagerDefined,
+          ScheduleUrlOption,
+          ScheduleUrl,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.verifyScheduleTileMetadata(createdTileTitle);
+        await siteDashboard.clickShowAllAndVerifyRedirect(createdTileTitle, REDIRECT_URLS.UKG_WFM);
         createdTileTitle = undefined;
       }
     );

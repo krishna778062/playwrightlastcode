@@ -45,6 +45,12 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly docuSignImage: Locator;
   readonly fromPattern: RegExp;
   readonly sentPattern: RegExp;
+  readonly scheduleContainer: Locator;
+  readonly scheduleShowAllLink: Locator;
+  readonly dateEmblemContainer: Locator;
+  readonly scheduleHeading: Locator;
+  readonly scheduleTimeRange: Locator;
+  readonly scheduleDuration: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -88,6 +94,15 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.balanceText = page.getByText(/Balance: \d+(\.\d+)? hours/).first();
     this.fromPattern = /From/;
     this.sentPattern = /Sent \d+ days? ago/;
+    // Schedule tile locators
+    this.scheduleContainer = page
+      .locator('[data-testid="container"]')
+      .filter({ has: page.locator('[data-testid="date-emblem-container"]') });
+    this.scheduleShowAllLink = page.getByRole('link', { name: /Show all in.*WFM/i });
+    this.dateEmblemContainer = page.getByTestId('date-emblem-container');
+    this.scheduleHeading = page.getByRole('heading', { level: 3 });
+    this.scheduleTimeRange = page.getByText(/^\d{1,2}:\d{2}\s+(am|pm)\s+-\s+\d{1,2}:\d{2}\s+(am|pm)$/);
+    this.scheduleDuration = page.getByText(/\d+\s+hrs?\s+\d+\s+mins?/);
   }
 
   /**
@@ -417,6 +432,56 @@ export class TileOperationsComponent extends BaseAppTileComponent {
         firstRecord.getByText(this.sentPattern).first(),
         'Sent field should be visible in the first record'
       ).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify schedule tile metadata
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyScheduleTileMetadata(tileTitle: string): Promise<void> {
+    await test.step(`Verify schedule tile metadata for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile).toBeVisible({ timeout: 10_000 });
+
+      // Verify schedule entries exist
+      const schedules = tile.locator(this.scheduleContainer);
+      await expect(schedules.first()).toBeVisible();
+
+      // Verify key elements in first schedule entry
+      const firstSchedule = schedules.first();
+      await expect(firstSchedule.locator(this.dateEmblemContainer).first()).toBeVisible();
+      await expect(firstSchedule.locator(this.scheduleHeading).first()).toBeVisible();
+      await expect(firstSchedule.locator(this.scheduleTimeRange).first()).toBeVisible();
+      await expect(firstSchedule.locator(this.scheduleDuration).first()).toBeVisible();
+
+      // Verify show all link if present
+      const showAllLink = tile.locator(this.scheduleShowAllLink);
+      if ((await showAllLink.count()) > 0) {
+        await expect(showAllLink.first()).toBeVisible();
+      }
+    });
+  }
+
+  /**
+   * Click "Show all in UKG Pro WFM" link and verify redirect URL
+   * @param tileTitle - The title of the tile containing the link
+   * @param expectedUrl - The expected URL to redirect to
+   */
+  async clickShowAllAndVerifyRedirect(tileTitle: string, expectedUrl: string): Promise<void> {
+    await test.step(`Click 'Show all' link and verify redirect for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      const showAllLink = tile.locator(this.scheduleShowAllLink);
+      await this.clickOnElement(showAllLink.first());
+      const urlRegex = new RegExp(`^${expectedUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*`);
+      const popup = await this.page.waitForEvent('popup').catch(() => null);
+      if (popup) {
+        await expect(popup).toHaveURL(urlRegex);
+        await popup.close();
+      } else {
+        await this.page.waitForURL(urlRegex);
+        await this.page.goBack();
+      }
     });
   }
 }
