@@ -5,8 +5,8 @@ import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
-import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/contentManagementHelper';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { UserManagementService } from '@/src/modules/platforms/apis/services/UserManagementService';
@@ -14,7 +14,8 @@ import { UserManagementService } from '@/src/modules/platforms/apis/services/Use
 export type IntegrationsEventFixtures = {
   appManagerBrowserContext: BrowserContext;
   appManagerPage: Page;
-  appManagerHomePage: NewUxHomePage | OldUxHomePage;
+  appManagerHomePage: NewHomePage;
+  appManagerUINavigationHelper: NavigationHelper;
   siteManagementHelper: SiteManagementHelper;
   contentManagementHelper: ContentManagementHelper;
   userManagementService: UserManagementService;
@@ -76,6 +77,25 @@ export const integrationsEventFixture = base.extend<IntegrationsEventFixtures, I
     { scope: 'test' },
   ],
 
+  appManagerUINavigationHelper: [
+    async ({ appManagerPage }, use, _workerInfo) => {
+      const appManagerUINavigationHelper = new NavigationHelper(appManagerPage);
+      await use(appManagerUINavigationHelper);
+    },
+    { scope: 'test' },
+  ],
+
+  appManagerHomePage: [
+    async ({ appManagerPage }, use) => {
+      // Login and get HomePage instance for event creation
+      const appManagerHomePage = new NewHomePage(appManagerPage);
+      await appManagerHomePage.loadPage();
+      await appManagerHomePage.verifyThePageIsLoaded();
+      await use(appManagerHomePage);
+    },
+    { scope: 'test' },
+  ],
+
   testSiteName: [
     async ({ siteManagementHelper }, use) => {
       let createdSiteName = '';
@@ -103,17 +123,6 @@ export const integrationsEventFixture = base.extend<IntegrationsEventFixtures, I
       const contentManagementHelper = new ContentManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
       await use(contentManagementHelper);
       await contentManagementHelper.cleanup();
-    },
-    { scope: 'test' },
-  ],
-
-  appManagerHomePage: [
-    async ({ appManagerPage }, use) => {
-      // Login and get HomePage instance for event creation
-      const appManagerHomePage = new NewUxHomePage(appManagerPage);
-      await appManagerHomePage.loadPage();
-      await appManagerHomePage.verifyThePageIsLoaded();
-      await use(appManagerHomePage);
     },
     { scope: 'test' },
   ],

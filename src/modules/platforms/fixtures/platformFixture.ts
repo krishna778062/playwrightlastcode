@@ -2,20 +2,28 @@ import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test'
 
 import { RequestContextFactory } from '@core/api/factories/requestContextFactory';
 import { LoginHelper } from '@core/helpers/loginHelper';
-import { NewUxHomePage } from '@core/ui/pages/homePage/newUxHomePage';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { AudienceCategoryManagementHelper, IdentityManagementHelper } from '../apis/helpers';
 import { UserManagementService } from '../apis/services/UserManagementService';
 
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
+
 export const platformTestFixture = test.extend<
   {
     appManagerBrowserContext: BrowserContext;
-    appManagerHomePage: NewUxHomePage;
-    userManagerHomePage: NewUxHomePage;
     appManagerPage: Page;
-    userManagerPage: Page;
+    appManagerHomePage: NewHomePage;
+    appManagerUINavigationHelper: NavigationHelper;
+
+    //user manager
     userManagerBrowserContext: BrowserContext;
+    userManagerPage: Page;
+    userManagerHomePage: NewHomePage;
+    userManagerUINavigationHelper: NavigationHelper;
+
+    //services and helpers for app manager
     audienceCategoryManagementHelper: AudienceCategoryManagementHelper;
     identityManagementHelper: IdentityManagementHelper;
     userManagementService: UserManagementService;
@@ -73,10 +81,17 @@ export const platformTestFixture = test.extend<
   ],
   appManagerHomePage: [
     async ({ appManagerPage }, use) => {
-      const adminHomePage = new NewUxHomePage(appManagerPage);
+      const adminHomePage = new NewHomePage(appManagerPage);
       await adminHomePage.loadPage();
       await adminHomePage.verifyThePageIsLoaded();
       await use(adminHomePage);
+    },
+    { scope: 'test' },
+  ],
+  appManagerUINavigationHelper: [
+    async ({ appManagerHomePage }, use, _workerInfo) => {
+      const appManagerUINavigationHelper = new NavigationHelper(appManagerHomePage.page);
+      await use(appManagerUINavigationHelper);
     },
     { scope: 'test' },
   ],
@@ -99,6 +114,22 @@ export const platformTestFixture = test.extend<
       await use(page);
       // Logout after each test case using this fixture
       await LoginHelper.logoutByNavigatingToLogoutPage(page);
+    },
+    { scope: 'test' },
+  ],
+  userManagerHomePage: [
+    async ({ userManagerPage }, use) => {
+      const userManagerHomePage = new NewHomePage(userManagerPage);
+      await userManagerHomePage.loadPage();
+      await userManagerHomePage.verifyThePageIsLoaded();
+      await use(userManagerHomePage);
+    },
+    { scope: 'test' },
+  ],
+  userManagerUINavigationHelper: [
+    async ({ userManagerHomePage }, use, _workerInfo) => {
+      const userManagerUINavigationHelper = new NavigationHelper(userManagerHomePage.page);
+      await use(userManagerUINavigationHelper);
     },
     { scope: 'test' },
   ],

@@ -22,8 +22,6 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
 
-import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
-
 test.describe(
   `Page Creation by Application Manager`,
   {
@@ -36,7 +34,6 @@ test.describe(
     let createdSite: any;
     let siteDashboardPage: SiteDashboardPage;
     let manualCleanupNeeded = false;
-    let homePage: NewUxHomePage;
     let applicationscreen: ApplicationScreenPage;
     let manageFeaturePage: ManageFeature;
     let manageApplicationPage: ManageApplicationPage;
@@ -49,12 +46,10 @@ test.describe(
     test.beforeEach(
       'Setting up the test environment for page creation using API',
       async ({
-        appManagerHomePage,
         appManagersPage,
         siteManagementHelper,
         feedManagementHelper,
         contentManagementHelper,
-        appManagerApiContext,
         siteManagementService,
       }) => {
         // Configure app governance
@@ -66,8 +61,6 @@ test.describe(
           console.warn('Failed to configure app governance, continuing with test:', error);
           // Optionally skip the governance step if it's not critical
         }
-        // Create home page instance
-        await appManagerHomePage.verifyThePageIsLoaded();
 
         // Create site using API
         const category = await siteManagementService.getCategoryId(SITE_TEST_DATA[0].category);
@@ -114,7 +107,6 @@ test.describe(
         );
 
         // Initialize additional page objects for the test cases
-        homePage = new NewUxHomePage(appManagersPage);
         applicationscreen = new ApplicationScreenPage(appManagersPage);
         manageFeaturePage = new ManageFeature(appManagersPage);
         manageApplicationPage = new ManageApplicationPage(appManagersPage);
@@ -146,28 +138,30 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VERIFY_COMMENTS_AND_FEEDS],
       },
-      async () => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           description: 'Verify feed and comment should not be displayed when feed and comments are disabled app level',
           zephyrTestId: 'CONT-26613',
           storyId: 'CONT-26613',
         });
-        await homePage.actions.navigateToApplication();
+        // Create home page instance
+        await appManagerHomePage.verifyThePageIsLoaded();
+        await appManagerUINavigationHelper.openApplicationSettings();
         await applicationscreen.actions.clickOnApplication();
         await manageApplicationPage.actions.clickOnGovernance();
         await governanceScreenPage.actions.clickOnTimeline();
         await governanceScreenPage.actions.clickOnSave();
-        await homePage.actions.clickOnManageFeature();
+        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnContentCard();
         await manageContentPage.actions.clickOnContent();
         await contentPreviewPage.actions.checkCommentOption();
-        await homePage.actions.clickOnManageFeature();
+        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnSitesCard();
         await manageSitePage.actions.clickOnSite();
         await siteDetailsPage.actions.ViewSite();
         await siteDashboardPage.actions.verfiyFeedSection();
-        await homePage.actions.clickOnHomeButton();
-        await homePage.actions.clickOnFeedSideMenu();
+        await appManagerUINavigationHelper.clickOnHomeButton();
+        await appManagerUINavigationHelper.clickOnFeedSideMenu();
         await siteDashboardPage.actions.verfiyFeedSection();
       }
     );
@@ -177,13 +171,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VALIDATION_REQUIRED_BAR_STATE],
       },
-      async () => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           description: 'Zeus: Edit the validation Expired Content and Cancel',
           zephyrTestId: 'CONT-36069',
           storyId: 'CONT-36069',
         });
-        await homePage.actions.clickOnManageFeature();
+        await appManagerHomePage.verifyThePageIsLoaded();
+        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnContentCard();
         await manageContentPage.actions.clickOnViewAllButton();
         await manageContentPage.actions.verifyingValidationRequiredBarState();

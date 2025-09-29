@@ -214,8 +214,6 @@ for (const testData of feedTestData) {
             storyId: testData.storyId,
           });
 
-          await appManagerHomePage.page.pause();
-          await appManagerFeedPage.page.pause();
           // Add reply to the feed post
           await appManagerFeedPage.actions.addReplyToPost(replyText);
 

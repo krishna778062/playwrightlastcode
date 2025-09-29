@@ -56,14 +56,15 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-12410',
           storyId: 'SEN-12297',
         });
 
         // 5. UI Search for the album
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(albumName, {
+        await appManagerHomePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(albumName, {
           stepInfo: `Searching with term "${albumName}" and intent is to find the content`,
         });
 
@@ -86,13 +87,14 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19196',
         });
 
         // Search for the album
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(albumName, {
+        await appManagerHomePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(albumName, {
           stepInfo: `Searching with term "${albumName}" to verify album appears in search results`,
         });
 
@@ -133,13 +135,15 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19288',
         });
 
         // Type in search input
-        await appManagerHomePage.topNavBarComponent.typeInSearchBarInput(albumName, {
+        await appManagerHomePage.verifyThePageIsLoaded();
+        const topNavBarComponent = appManagerUINavigationHelper.topNavBarComponent;
+        await topNavBarComponent.typeInSearchBarInput(albumName, {
           stepInfo: `Typing "${albumName}" in search input`,
         });
 

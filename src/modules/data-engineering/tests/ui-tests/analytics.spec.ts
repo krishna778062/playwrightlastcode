@@ -3,7 +3,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { test } from '../../fixtures/loginFixture';
 
 import { TestPriority } from '@/src/core/constants/testPriority';
-import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { tagTest } from '@/src/core/utils/testDecorator';
 import { DataEngineeringTestSuite } from '@/src/modules/data-engineering/constants/testSuite';
 
@@ -26,9 +27,10 @@ test.describe(
 
         await loginAs('appManager');
 
-        const homepage = new NewUxHomePage(page);
+        const homepage = new NewHomePage(page);
         await homepage.verifyThePageIsLoaded();
-        const analyticsLandingPage = await homepage.getSideNavBarComponent().clickOnAnalyticsButton();
+        const appManagerUINavigationHelper = new NavigationHelper(page);
+        const analyticsLandingPage = await appManagerUINavigationHelper.sideNavBarComponent.clickOnAnalyticsButton();
         await analyticsLandingPage.verifyAllAnalyticsOptionsAreVisible();
       }
     );
@@ -45,9 +47,10 @@ test.describe(
         });
 
         await loginAs('standardUser');
-        const homepage = new NewUxHomePage(page);
+        const homepage = new NewHomePage(page);
         await homepage.verifyThePageIsLoaded();
-        await homepage.getSideNavBarComponent().verifyAnalyticsButtonVisibility(false);
+        const appManagerUINavigationHelper = new NavigationHelper(page);
+        await appManagerUINavigationHelper.sideNavBarComponent.verifyAnalyticsButtonVisibility(false);
       }
     );
   }

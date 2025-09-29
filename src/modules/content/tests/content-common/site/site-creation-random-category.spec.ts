@@ -27,18 +27,17 @@ test.describe('Site Creation', { tag: ['@content', '@site-creation'] }, () => {
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE, '@random-category'],
     },
-    async ({ appManagerHomePage, siteManagementHelper }) => {
+    async ({ appManagerHomePage, siteManagementHelper, appManagerUINavigationHelper }) => {
       tagTest(test.info(), {
         zephyrTestId: 'CONT-20912',
         storyId: 'CONT-20912',
         description: 'Verify admin is able to create a new site with random category via UI',
         customTags: ['@random-category'],
       });
+      await appManagerHomePage.verifyThePageIsLoaded();
 
-      // Step 1: Navigate to Sites section from homepage
-      await appManagerHomePage.getSideNavBarComponent().clickOnSites({
-        stepInfo: 'Navigate to Sites section from homepage',
-      });
+      // Step 1: Navigate to Sites section from side bar
+      await appManagerUINavigationHelper.sideNavBarComponent.clickOnSites();
 
       // Step 2: Initialize sites list page and verify it's loaded
       sitesListPage = new SitesListPage(appManagerHomePage.page);

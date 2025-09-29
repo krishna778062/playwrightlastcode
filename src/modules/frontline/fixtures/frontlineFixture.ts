@@ -4,8 +4,8 @@ import { QRManagementService } from '../apis/services/QRManagementService';
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
-import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 
 export type UserType = 'appManager' | 'endUser';
@@ -25,10 +25,13 @@ export const frontlineTestFixture = test.extend<
   {
     appManagerBrowserContext: BrowserContext;
     appManagersPage: Page;
+    appManagerHomePage: NewHomePage;
+    appManagerUINavigationHelper: NavigationHelper;
+
     endUserBrowserContext: BrowserContext;
     endUsersPage: Page;
-    appManagerHomePage: NewUxHomePage | OldUxHomePage;
-    endUserHomePage: NewUxHomePage | OldUxHomePage;
+    endUserHomePage: NewHomePage;
+    endUserUINavigationHelper: NavigationHelper;
     loginAs: (userType: UserType) => Promise<void>;
   },
   {
@@ -81,11 +84,19 @@ export const frontlineTestFixture = test.extend<
 
   appManagerHomePage: [
     async ({ appManagersPage }, use) => {
-      const homePage = new NewUxHomePage(appManagersPage);
+      const homePage = new NewHomePage(appManagersPage);
       await homePage.loadPage();
       await homePage.verifyThePageIsLoaded();
       await use(homePage);
       await appManagersPage.close();
+    },
+    { scope: 'test' },
+  ],
+
+  appManagerUINavigationHelper: [
+    async ({ appManagersPage }, use, _workerInfo) => {
+      const appManagerUINavigationHelper = new NavigationHelper(appManagersPage);
+      await use(appManagerUINavigationHelper);
     },
     { scope: 'test' },
   ],
@@ -115,11 +126,18 @@ export const frontlineTestFixture = test.extend<
 
   endUserHomePage: [
     async ({ endUsersPage }, use) => {
-      const homePage = new NewUxHomePage(endUsersPage);
+      const homePage = new NewHomePage(endUsersPage);
       await homePage.loadPage();
       await homePage.verifyThePageIsLoaded();
       await use(homePage);
       await endUsersPage.close();
+    },
+    { scope: 'test' },
+  ],
+  endUserUINavigationHelper: [
+    async ({ endUsersPage }, use, _workerInfo) => {
+      const endUserUINavigationHelper = new NavigationHelper(endUsersPage);
+      await use(endUserUINavigationHelper);
     },
     { scope: 'test' },
   ],

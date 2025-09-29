@@ -156,6 +156,7 @@ for (const testData of feedTestData) {
           contentManagementHelper,
           siteManagementHelper,
           feedManagementHelper,
+          appManagerUINavigationHelper,
         }) => {
           // Configure app governance settings and enable timeline comment post(feed)
           await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
@@ -196,7 +197,8 @@ for (const testData of feedTestData) {
 
           // Navigate to appropriate feed type
           if (testData.feedType === 'Home Feed') {
-            await appManagerHomePage.actions.clickOnGlobalFeed();
+            await appManagerHomePage.verifyThePageIsLoaded();
+            await appManagerUINavigationHelper.clickOnGlobalFeed();
           } else if (testData.feedType === 'Site Feed') {
             const siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, resources.siteId);
             await siteDashboardPage.loadPage();

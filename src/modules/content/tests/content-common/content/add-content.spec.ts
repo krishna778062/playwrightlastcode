@@ -14,7 +14,7 @@ import { AddContentModalComponent } from '@/src/modules/content/ui/components/ad
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { PageCreationPage } from '@/src/modules/content/ui/pages/pageCreationPage';
 
-test.describe(
+test.describe.only(
   '@AddContent - Add content on unlisted site',
   {
     tag: [ContentTestSuite.ADD_CONTENT_ON_UNLISTED_SITE],
@@ -46,7 +46,12 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-30521'],
       },
-      async ({ standardUserHomePage, identityManagementHelper, siteManagementHelper }) => {
+      async ({
+        standardUserHomePage,
+        identityManagementHelper,
+        siteManagementHelper,
+        standardUserUINavigationHelper,
+      }) => {
         tagTest(test.info(), {
           description: 'Verify Unlisted site manager Add content scenarios',
           zephyrTestId: 'CONT-30521',
@@ -68,8 +73,8 @@ test.describe(
         });
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.name;
-
-        pageCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
+        await standardUserHomePage.verifyThePageIsLoaded();
+        pageCreationPage = (await standardUserUINavigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           siteName
         )) as PageCreationPage;
@@ -110,7 +115,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39680'],
       },
-      async ({ appManagerHomePage, siteManagementHelper }) => {
+      async ({ appManagerHomePage, siteManagementHelper, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           description: 'Verify Application Manager Add content scenarios',
           zephyrTestId: 'CONT-39680',
@@ -121,7 +126,8 @@ test.describe(
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.name;
         console.log('siteName :   ', siteName);
-        pageCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
+        await appManagerHomePage.verifyThePageIsLoaded();
+        pageCreationPage = (await appManagerUINavigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           siteName
         )) as PageCreationPage;
@@ -162,7 +168,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39774'],
       },
-      async ({ appManagerHomePage, siteManagementHelper }) => {
+      async ({ appManagerHomePage, siteManagementHelper, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           description: 'Verify the app Manager can add content when content submission is disabled at site level',
           zephyrTestId: 'CONT-39774',
@@ -176,8 +182,8 @@ test.describe(
         });
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.siteName;
-
-        pageCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
+        await appManagerHomePage.verifyThePageIsLoaded();
+        pageCreationPage = (await appManagerUINavigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           siteName
         )) as PageCreationPage;
@@ -218,7 +224,12 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39775'],
       },
-      async ({ standardUserHomePage, siteManagementHelper, identityManagementHelper }) => {
+      async ({
+        standardUserHomePage,
+        siteManagementHelper,
+        identityManagementHelper,
+        standardUserUINavigationHelper,
+      }) => {
         tagTest(test.info(), {
           description: 'Verify the app Manager can add content when content submission is disabled at site level',
           zephyrTestId: 'CONT-39775',
@@ -242,7 +253,8 @@ test.describe(
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.siteName;
 
-        pageCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
+        await standardUserHomePage.verifyThePageIsLoaded();
+        pageCreationPage = (await standardUserUINavigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           siteName
         )) as PageCreationPage;
@@ -284,7 +296,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39777'],
       },
-      async ({ appManagerHomePage, siteManagementHelper }) => {
+      async ({ appManagerHomePage, siteManagementHelper, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           description: 'Verify the app Manager can add content when content submission is disabled at site level',
           zephyrTestId: 'CONT-39777',
@@ -298,7 +310,8 @@ test.describe(
         });
         const siteName = siteDetails.name;
 
-        addContentModal = await appManagerHomePage.actions.openAddContentModal(ContentType.PAGE);
+        await appManagerHomePage.verifyThePageIsLoaded();
+        addContentModal = await appManagerUINavigationHelper.openAddContentModal(ContentType.PAGE);
 
         await addContentModal.selectSiteToAddContentFromDropdown(siteName);
 
@@ -311,7 +324,12 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39780'],
       },
-      async ({ standardUserHomePage, siteManagementHelper, identityManagementHelper }) => {
+      async ({
+        standardUserHomePage,
+        siteManagementHelper,
+        identityManagementHelper,
+        standardUserUINavigationHelper,
+      }) => {
         tagTest(test.info(), {
           description: 'Verify the app Manager can add content when content submission is disabled at site level',
           zephyrTestId: 'CONT-39780',
@@ -328,18 +346,18 @@ test.describe(
         await identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
 
         // Create site with content submission disabled
-        const siteDetails = await siteManagementHelper.createUnlistedSite({
+        await siteManagementHelper.createUnlistedSite({
           hasPages: false,
           waitForSearchIndex: true,
         });
 
-        addContentModal = await standardUserHomePage.actions.openAddContentModal(ContentType.PAGE);
+        addContentModal = await standardUserUINavigationHelper.openAddContentModal(ContentType.PAGE);
 
-        await standardUserHomePage.assertions.verifyErrorMessageWhenContentSubmissionIsDisabled(
+        await standardUserHomePage.verifyThePageIsLoaded();
+        await standardUserUINavigationHelper.verifyErrorMessageWhenContentSubmissionIsDisabled(
           addContentModal,
           ContentType.PAGE
         );
-
         await identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], false);
       }
     );

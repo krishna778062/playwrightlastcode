@@ -44,13 +44,13 @@ for (const fileType of testData.fileTypes) {
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE],
         },
-        async ({ appManagerHomePage }) => {
+        async ({ appManagerUINavigationHelper }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-15731',
             storyId: 'SEN-12300',
           });
 
-          const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(uploadedFileName, {
+          const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(uploadedFileName, {
             stepInfo: `Searching with term "${uploadedFileName}" and intent is to find the file`,
           });
 

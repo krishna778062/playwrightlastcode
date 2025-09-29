@@ -1,4 +1,4 @@
-import { Page, Response, test } from '@playwright/test';
+import { Locator, Page, Response, test } from '@playwright/test';
 
 import { AlbumCreationResponse } from '@content/apis/types/albumCreationResponse';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
@@ -41,37 +41,49 @@ export interface IAlbumCreationActions {
   }>;
 }
 
-export interface IAlbumCreationAssertions {}
-
-export class AlbumCreationPage extends BasePage implements IAlbumCreationActions, IAlbumCreationAssertions {
-  // Readonly locators - only used ones
-  readonly uploadedCoverImagePreviewContainer = this.page.locator("[class*='Banner-imageContainer']");
-  readonly publishButton = this.page.getByRole('button', { name: 'Publish' });
-  readonly submitButton = this.page.locator('span').filter({ hasText: 'Submit for approval' });
-  readonly titleInput = this.page.locator("textarea[placeholder='Album title']");
-  readonly albumDescriptionInput = this.page.locator("div[aria-label='Album description']");
-  readonly videoUrlInput = this.page.locator('input[placeholder="Paste a video URL"]');
-  readonly videoUploadComplete = this.page.locator('div[class*="AlbumSquare-module-videoIndicator"]');
-  readonly openAlbumCheckbox = this.page.locator('label[for="isOpenToSubmissions"]');
-  readonly topicInput = this.page.locator('input[id="listOfTopics"]');
-  readonly fileInputGeneral = this.page.locator('input[type="file"]');
-  readonly addFromContainerInput = this.page.locator('div[class="AddFromContainer"] input');
-  readonly addFilesAttachmentsButton = this.page.locator('button:has-text("Add files & attachments")');
-  readonly enterVideoURL = this.page.locator('button', { hasText: 'enter a video URL' });
-  readonly addVideo = this.page.locator('button', { hasText: 'Add video' });
-
-  addTopicFromList(topicText: string) {
-    return this.page.locator(`#listOfTopics-list >> text=${topicText}`);
-  }
-
+export class AlbumCreationPage extends BasePage {
   // Page components
   readonly coverImageUploader: AttachementUploaderComponent;
   readonly imageCropper: ImageCropperComponent;
 
+  // Readonly locators - only used ones
+  readonly uploadedCoverImagePreviewContainer: Locator;
+  readonly publishButton: Locator;
+  readonly submitButton: Locator;
+  readonly titleInput: Locator;
+  readonly albumDescriptionInput: Locator;
+  readonly videoUrlInput: Locator;
+  readonly videoUploadComplete: Locator;
+  readonly openAlbumCheckbox: Locator;
+  readonly topicInput: Locator;
+  readonly fileInputGeneral: Locator;
+  readonly addFromContainerInput: Locator;
+  readonly addFilesAttachmentsButton: Locator;
+  readonly enterVideoURL: Locator;
+  readonly addVideo: Locator;
+
   constructor(page: Page, siteId?: string) {
     super(page, PAGE_ENDPOINTS.getAlbumCreationPage(siteId ?? ''));
+    this.uploadedCoverImagePreviewContainer = this.page.locator("[class*='Banner-imageContainer']");
     this.coverImageUploader = new AttachementUploaderComponent(page, this.uploadedCoverImagePreviewContainer);
     this.imageCropper = new ImageCropperComponent(page);
+    this.publishButton = this.page.getByRole('button', { name: 'Publish' });
+    this.submitButton = this.page.locator('span').filter({ hasText: 'Submit for approval' });
+    this.titleInput = this.page.locator("textarea[placeholder='Album title']");
+    this.albumDescriptionInput = this.page.locator("div[aria-label='Album description']");
+    this.videoUrlInput = this.page.locator('input[placeholder="Paste a video URL"]');
+    this.videoUploadComplete = this.page.locator('div[class*="AlbumSquare-module-videoIndicator"]');
+    this.openAlbumCheckbox = this.page.locator('label[for="isOpenToSubmissions"]');
+    this.topicInput = this.page.locator('input[id="listOfTopics"]');
+    this.fileInputGeneral = this.page.locator('input[type="file"]');
+    this.addFromContainerInput = this.page.locator('div[class="AddFromContainer"] input');
+    this.addFilesAttachmentsButton = this.page.locator('button:has-text("Add files & attachments")');
+    this.enterVideoURL = this.page.locator('button', { hasText: 'enter a video URL' });
+    this.addVideo = this.page.locator('button', { hasText: 'Add video' });
+  }
+
+  addTopicFromList(topicText: string) {
+    return this.page.locator(`#listOfTopics-list >> text=${topicText}`);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -81,10 +93,6 @@ export class AlbumCreationPage extends BasePage implements IAlbumCreationActions
   }
 
   get actions(): IAlbumCreationActions {
-    return this;
-  }
-
-  get assertions(): IAlbumCreationAssertions {
     return this;
   }
 

@@ -35,13 +35,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-15167',
           storyId: 'SEN-14964',
         });
 
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(searchTerm, {
+        await appManagerHomePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(searchTerm, {
           stepInfo: `Searching with term "${searchTerm}" to verify external search links`,
         });
 

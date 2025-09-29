@@ -1,7 +1,7 @@
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
-import { SiteCreationPage as ContentSiteCreationPage } from '@content/ui/pages/siteCreationPage';
+import { SiteCreationPage as ContentSiteCreationPage, SiteCreationPage } from '@content/ui/pages/siteCreationPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
@@ -75,15 +75,14 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.SITE_CREATION],
         },
-        async ({ appManagerHomePage, appManagersPage, siteManagementHelper }) => {
+        async ({ appManagerHomePage, appManagersPage, siteManagementHelper, appManagerUINavigationHelper }) => {
           tagTest(test.info(), {
             description: siteData.description,
             zephyrTestId: siteData.zephyrTestId,
             storyId: siteData.storyId,
           });
 
-          // STEP 1: Navigate to site creation page
-          siteCreationPage = await appManagerHomePage.actions.openSiteCreationFormForNonAbac();
+          siteCreationPage = (await appManagerUINavigationHelper.openSiteCreationForm(false)) as SiteCreationPage;
 
           // STEP 2: Generate site data using TestDataGenerator
           const siteCreationOptions = TestDataGenerator.generateSite(siteData.siteType);

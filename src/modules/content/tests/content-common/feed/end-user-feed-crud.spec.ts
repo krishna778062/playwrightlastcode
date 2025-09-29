@@ -18,11 +18,12 @@ test.describe(
     let createdPostText: string;
     let createdPostId: string = '';
 
-    test.beforeEach(async ({ standardUserHomePage, feedManagementHelper }) => {
+    test.beforeEach(async ({ standardUserHomePage, feedManagementHelper, standardUserUINavigationHelper }) => {
       // Configure app governance settings and enable timeline comment post(feed)
       await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
 
-      await standardUserHomePage.actions.clickOnGlobalFeed();
+      await standardUserHomePage.verifyThePageIsLoaded();
+      await standardUserUINavigationHelper.clickOnGlobalFeed();
 
       feedPage = new FeedPage(standardUserHomePage.page);
       await feedPage.verifyThePageIsLoaded();

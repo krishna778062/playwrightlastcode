@@ -1,10 +1,9 @@
 import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
-import { AuthHelper } from '@/src/core/api/helpers/authHelper';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
-import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/contentManagementHelper';
 import { FeedManagementHelper } from '@/src/modules/content/apis/helpers/feedManagementHelper';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
@@ -14,7 +13,6 @@ import { getContentTenantConfigFromCache } from '@/src/modules/content/config/co
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 export type UserType = 'appManager' | 'endUser';
-export type HomePageType = NewUxHomePage | OldUxHomePage;
 
 export const users = {
   appManager: {
@@ -38,6 +36,8 @@ export const contentTestFixture = test.extend<
     // App manager browser context, Request Context + page
     appManagerBrowserContext: BrowserContext;
     appManagersPage: Page;
+    appManagerHomePage: NewHomePage;
+    appManagerUINavigationHelper: NavigationHelper;
     // Helpers and services
     siteManagementHelper: SiteManagementHelper;
     contentManagementHelper: ContentManagementHelper;
@@ -49,17 +49,20 @@ export const contentTestFixture = test.extend<
     // End user browser context, Request Context + page
     standardUserBrowserContext: BrowserContext;
     standardUserPage: Page;
-    standardUserHomePage: HomePageType;
+    standardUserHomePage: NewHomePage;
+    standardUserUINavigationHelper: NavigationHelper;
 
     // Site manager browser context, Request Context + page
     siteManagerBrowserContext: BrowserContext;
     siteManagerPage: Page;
+    siteManagerHomePage: NewHomePage;
+    siteManagerUINavigationHelper: NavigationHelper;
 
     // Authenticated pages
-    appManagerHomePage: HomePageType;
-    endUserHomePage: NewUxHomePage | OldUxHomePage;
+    endUserHomePage: NewHomePage;
     endUsersPage: Page;
-    siteManagerHomePage: HomePageType;
+    endUserUINavigationHelper: NavigationHelper;
+
     feedManagerService: FeedManagementService;
     manageContentEndUserHelper: ContentManagementHelper;
   },
@@ -139,13 +142,21 @@ export const contentTestFixture = test.extend<
   ],
   appManagerHomePage: [
     async ({ appManagersPage }, use) => {
-      const homePage = new NewUxHomePage(appManagersPage);
+      const homePage = new NewHomePage(appManagersPage);
       await homePage.loadPage();
       await homePage.verifyThePageIsLoaded();
       await use(homePage);
     },
     { scope: 'test' },
   ],
+  appManagerUINavigationHelper: [
+    async ({ appManagerHomePage }, use, _workerInfo) => {
+      const appManagerUINavigationHelper = new NavigationHelper(appManagerHomePage.page);
+      await use(appManagerUINavigationHelper);
+    },
+    { scope: 'test' },
+  ],
+
   standardUserBrowserContext: [
     async ({ browser }, use) => {
       // const context = await browser.newContext({
@@ -174,6 +185,24 @@ export const contentTestFixture = test.extend<
     },
     { scope: 'test' },
   ],
+
+  standardUserHomePage: [
+    async ({ standardUserPage }, use) => {
+      const homePage = new NewHomePage(standardUserPage);
+      await homePage.loadPage();
+      await homePage.verifyThePageIsLoaded();
+      await use(homePage);
+    },
+    { scope: 'test' },
+  ],
+  standardUserUINavigationHelper: [
+    async ({ standardUserHomePage }, use, _workerInfo) => {
+      const standardUserUINavigationHelper = new NavigationHelper(standardUserHomePage.page);
+      await use(standardUserUINavigationHelper);
+    },
+    { scope: 'test' },
+  ],
+
   siteManagerBrowserContext: [
     async ({ browser }, use) => {
       const context = await browser.newContext();
@@ -198,10 +227,17 @@ export const contentTestFixture = test.extend<
 
   siteManagerHomePage: [
     async ({ siteManagerPage }, use) => {
-      const homePage = new NewUxHomePage(siteManagerPage);
+      const homePage = new NewHomePage(siteManagerPage);
       await homePage.loadPage();
       await homePage.verifyThePageIsLoaded();
       await use(homePage);
+    },
+    { scope: 'test' },
+  ],
+  siteManagerUINavigationHelper: [
+    async ({ siteManagerHomePage }, use, _workerInfo) => {
+      const siteManagerUINavigationHelper = new NavigationHelper(siteManagerHomePage.page);
+      await use(siteManagerUINavigationHelper);
     },
     { scope: 'test' },
   ],
@@ -213,15 +249,6 @@ export const contentTestFixture = test.extend<
         getContentTenantConfigFromCache().apiBaseUrl
       );
       await use(siteManagementService);
-    },
-    { scope: 'test' },
-  ],
-  standardUserHomePage: [
-    async ({ standardUserPage }, use) => {
-      const homePage = new NewUxHomePage(standardUserPage);
-      await homePage.loadPage();
-      await homePage.verifyThePageIsLoaded();
-      await use(homePage);
     },
     { scope: 'test' },
   ],

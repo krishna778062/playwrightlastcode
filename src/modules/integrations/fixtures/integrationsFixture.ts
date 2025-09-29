@@ -4,6 +4,7 @@ import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileManagementHelper';
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
@@ -13,6 +14,7 @@ export const integrationsFixture = test.extend<
   {
     appManagerBrowserContext: BrowserContext;
     appManagerPage: Page;
+    appManagerUINavigationHelper: NavigationHelper;
     homeDashboard: HomeDashboard;
     siteDashboard: SiteDashboard;
     siteManagementHelper: SiteManagementHelper;
@@ -66,7 +68,13 @@ export const integrationsFixture = test.extend<
     },
     { scope: 'test' },
   ],
-
+  appManagerUINavigationHelper: [
+    async ({ appManagerPage }, use, _workerInfo) => {
+      const appManagerUINavigationHelper = new NavigationHelper(appManagerPage);
+      await use(appManagerUINavigationHelper);
+    },
+    { scope: 'test' },
+  ],
   siteDashboard: [
     async ({ appManagerPage }, use) => {
       const siteDashboard = new SiteDashboard(appManagerPage);

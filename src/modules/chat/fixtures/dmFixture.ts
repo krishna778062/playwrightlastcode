@@ -8,6 +8,7 @@ import { ChatGroupTestDataBuilder } from '../test-data-builders/ChatGroupTestDat
 import { ChatTestUser } from '../types/chat-test.type';
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { BrowserFactory } from '@/src/core/utils/browserFactory';
 
 /**
@@ -23,7 +24,9 @@ import { BrowserFactory } from '@/src/core/utils/browserFactory';
 export const dmTestFixture = test.extend<
   {
     user1Page: Page;
+    user1UINavigationHelper: NavigationHelper;
     user2Page: Page;
+    user2UINavigationHelper: NavigationHelper;
   },
   {
     appManagerApiContext: APIRequestContext;
@@ -84,12 +87,26 @@ export const dmTestFixture = test.extend<
     },
     { scope: 'test' },
   ],
+  user1UINavigationHelper: [
+    async ({ user1Page }, use, _workerInfo) => {
+      const user1UINavigationHelper = new NavigationHelper(user1Page);
+      await use(user1UINavigationHelper);
+    },
+    { scope: 'test' },
+  ],
   user2Page: [
     async ({ loggedInContexts, endUsersForChat }, use) => {
       const user2Context = loggedInContexts[endUsersForChat[1].email];
       const user2Page = await user2Context.newPage();
       await use(user2Page);
       await BrowserFactory.closePageGracefullyForUser(user2Page, endUsersForChat[1].fullName);
+    },
+    { scope: 'test' },
+  ],
+  user2UINavigationHelper: [
+    async ({ user2Page }, use, _workerInfo) => {
+      const user2UINavigationHelper = new NavigationHelper(user2Page);
+      await use(user2UINavigationHelper);
     },
     { scope: 'test' },
   ],

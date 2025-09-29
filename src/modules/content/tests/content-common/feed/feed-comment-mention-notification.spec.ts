@@ -54,7 +54,13 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-30438'],
       },
-      async ({ appManagerApiContext, standardUserApiContext, siteManagerHomePage, feedManagementHelper }) => {
+      async ({
+        appManagerApiContext,
+        standardUserApiContext,
+        siteManagerHomePage,
+        feedManagementHelper,
+        siteManagerUINavigationHelper,
+      }) => {
         tagTest(test.info(), {
           description:
             'Verify that User gets notified when it is getting mentioned in the reply of the comment of any post',
@@ -95,7 +101,8 @@ test.describe(
         console.log(`Added reply via API with mention: "${replyData.replyText}"`);
 
         //SiteManager clicking on bell icon to view notifications
-        const notificationComponentSiteManager = await siteManagerHomePage.actions.clickOnBellIcon({
+        await siteManagerHomePage.verifyThePageIsLoaded();
+        const notificationComponentSiteManager = await siteManagerUINavigationHelper.clickOnBellIcon({
           stepInfo: 'Application Manager clicking on bell icon to view notifications',
         });
 

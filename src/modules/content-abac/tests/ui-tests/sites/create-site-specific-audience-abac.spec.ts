@@ -6,7 +6,7 @@ import { ContentSuiteTags } from '@/src/modules/content-abac/constants/testTags'
 import { ContentFeatureTags } from '@/src/modules/content-abac/constants/testTags';
 import { contentAbacTestFixture as test } from '@/src/modules/content-abac/fixtures/contentAbacFixture';
 import { SITE_CREATION_TEST_DATA } from '@/src/modules/content-abac/test-data/create-site.test-data';
-import { SiteCreationPage } from '@/src/modules/content-abac/ui/pages/siteCreationPage';
+import { SiteCreationPageAbac } from '@/src/modules/content-abac/ui/pages/siteCreationPageAbac';
 
 test.describe('Site Creation by Application Manager', { tag: [ContentFeatureTags.ADD_SITE] }, () => {
   let siteId: string | undefined;
@@ -22,16 +22,18 @@ test.describe('Site Creation by Application Manager', { tag: [ContentFeatureTags
     {
       tag: [ContentSuiteTags.CREATE_SITE, TestPriority.P0, TestGroupType.REGRESSION],
     },
-    async ({ appManagerHomePage, page, siteAudienceHelper }) => {
+    async ({ appManagerHomePage, page, siteAudienceHelper, appManagerUINavigationHelper }) => {
       tagTest(test.info(), {
         description: 'ABAC: Create Public site selecting an existing specific audience via picker',
         zephyrTestId: 'CONT-39272',
         storyId: 'CONT-33515',
       });
-
+      await appManagerHomePage.verifyThePageIsLoaded();
       // STEP 1: Open site creation page via ABAC CreateComponent
-      await appManagerHomePage.actions.openSiteCreationForm();
-      const siteCreationPage = new SiteCreationPage(page);
+      await appManagerUINavigationHelper.openSiteCreationForm(true, {
+        stepInfo: 'Opening site creation form for content for tenant where ABAC is enabled',
+      });
+      const siteCreationPage = new SiteCreationPageAbac(page);
 
       // Verify form structure
       await siteCreationPage.assertions.verifySiteCreationFormStructure();
@@ -65,15 +67,17 @@ test.describe('Site Creation by Application Manager', { tag: [ContentFeatureTags
     {
       tag: [ContentSuiteTags.CREATE_SITE, TestPriority.P0, TestGroupType.REGRESSION],
     },
-    async ({ appManagerHomePage, page, siteAudienceHelper }) => {
+    async ({ appManagerHomePage, page, siteAudienceHelper, appManagerUINavigationHelper }) => {
       tagTest(test.info(), {
         zephyrTestId: 'CONT-39288',
         storyId: 'CONT-33515',
       });
-
+      await appManagerHomePage.verifyThePageIsLoaded();
       // STEP 1: Open site creation page via ABAC CreateComponent
-      await appManagerHomePage.actions.openSiteCreationForm();
-      const siteCreationPage = new SiteCreationPage(page);
+      await appManagerUINavigationHelper.openSiteCreationForm(true, {
+        stepInfo: 'Opening site creation form for content for tenant where ABAC is enabled',
+      });
+      const siteCreationPage = new SiteCreationPageAbac(page);
 
       // Verify form structure
       await siteCreationPage.assertions.verifySiteCreationFormStructure();

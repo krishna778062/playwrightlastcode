@@ -4,6 +4,7 @@ import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileManagementHelper';
 
@@ -30,11 +31,13 @@ export const multiUserTileFixture = test.extend<
     // App manager browser context, Request Context + page
     appManagerBrowserContext: BrowserContext;
     adminPage: Page;
+    appManagerUINavigationHelper: NavigationHelper;
     tileManagementHelper: TileManagementHelper;
     siteManagementHelper: SiteManagementHelper;
     // End user browser context, Request Context + page
     endUserBrowserContext: BrowserContext;
     endUserPage: Page;
+    endUserUINavigationHelper: NavigationHelper;
   },
   {
     appManagerApiContext: APIRequestContext;
@@ -74,6 +77,13 @@ export const multiUserTileFixture = test.extend<
     },
     { scope: 'test' },
   ],
+  appManagerUINavigationHelper: [
+    async ({ adminPage }, use, _workerInfo) => {
+      const appManagerUINavigationHelper = new NavigationHelper(adminPage);
+      await use(appManagerUINavigationHelper);
+    },
+    { scope: 'test' },
+  ],
 
   endUserBrowserContext: [
     async ({ browser }, use) => {
@@ -91,6 +101,13 @@ export const multiUserTileFixture = test.extend<
       const page = await endUserBrowserContext.newPage();
       await use(page);
       await page.close();
+    },
+    { scope: 'test' },
+  ],
+  endUserUINavigationHelper: [
+    async ({ endUserPage }, use, _workerInfo) => {
+      const endUserUINavigationHelper = new NavigationHelper(endUserPage);
+      await use(endUserUINavigationHelper);
     },
     { scope: 'test' },
   ],

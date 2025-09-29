@@ -56,7 +56,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
       },
-      async ({ appManagerHomePage, appManagersPage, siteManagementHelper }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper, appManagersPage, siteManagementHelper }) => {
         tagTest(test.info(), {
           description:
             'Verify admin is able to create and publish a new album with all fields populated from home page',
@@ -65,7 +65,8 @@ test.describe(
         });
 
         // Navigate to album creation page
-        albumCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
+        await appManagerHomePage.verifyThePageIsLoaded();
+        albumCreationPage = (await appManagerUINavigationHelper.openCreateContentPageForContentType(
           ContentType.ALBUM
         )) as AlbumCreationPage;
 

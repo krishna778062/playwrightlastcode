@@ -41,13 +41,14 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE],
         },
-        async ({ appManagerHomePage }) => {
+        async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-12433',
             storyId: 'SEN-12296',
           });
 
-          const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(uploadedFileName, {
+          await appManagerHomePage.verifyThePageIsLoaded();
+          const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(uploadedFileName, {
             stepInfo: `Searching with term "${uploadedFileName}" and intent is to find the file`,
           });
 
@@ -68,13 +69,14 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
         {
           tag: [TestPriority.P1, TestGroupType.REGRESSION],
         },
-        async ({ appManagerHomePage }) => {
+        async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-19283',
           });
 
+          await appManagerHomePage.verifyThePageIsLoaded();
           // Search for the file
-          const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(uploadedFileName, {
+          const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(uploadedFileName, {
             stepInfo: `Searching with term "${uploadedFileName}" to verify file appears in search results`,
           });
 

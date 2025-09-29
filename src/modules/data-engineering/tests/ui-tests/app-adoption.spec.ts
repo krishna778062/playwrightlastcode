@@ -3,7 +3,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { test } from '../../fixtures/loginFixture';
 
 import { TestPriority } from '@/src/core/constants/testPriority';
-import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { tagTest } from '@/src/core/utils/testDecorator';
 import { DataEngineeringTestSuite } from '@/src/modules/data-engineering/constants/testSuite';
 import { AppAdoptionPage } from '@/src/modules/data-engineering/pages/appAdoptionPage';
@@ -27,13 +28,13 @@ test.describe(
 
         await loginAs('appManager');
 
-        const homepage = new NewUxHomePage(page);
-        await homepage.getSideNavBarComponent().clickOnAnalyticsButton();
+        const homepage = new NewHomePage(page);
+        await homepage.verifyThePageIsLoaded();
+        const appManagerUINavigationHelper = new NavigationHelper(page);
+        await appManagerUINavigationHelper.sideNavBarComponent.clickOnAnalyticsButton();
         const adoptionPage = new AppAdoptionPage(page);
         await adoptionPage.navigateToAppAdoption();
-
         await adoptionPage.verifyCommonFiltersVisible();
-
         await adoptionPage.verifyFilterDialogUI('Department');
         await adoptionPage.verifyFilterDialogUI('Location');
         await adoptionPage.verifyFilterDialogUI('Company name');

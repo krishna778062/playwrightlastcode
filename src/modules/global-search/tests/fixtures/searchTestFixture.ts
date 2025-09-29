@@ -4,8 +4,8 @@ import { RequestContextFactory } from '@/src/core/api/factories/requestContextFa
 import { AppsManagementService } from '@/src/core/api/services/AppsManagementService';
 import { LinkManagementService } from '@/src/core/api/services/LinkManagementService';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
-import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/contentManagementHelper';
 import { FeedManagementHelper } from '@/src/modules/content/apis/helpers/feedManagementHelper';
@@ -18,7 +18,8 @@ export const searchTestFixtures = test.extend<
   {
     appManagerBrowserContext: BrowserContext;
     appManagerUserPage: Page;
-    appManagerHomePage: NewUxHomePage | OldUxHomePage;
+    appManagerUINavigationHelper: NavigationHelper;
+    appManagerHomePage: NewHomePage;
     contentManagementHelper: ContentManagementHelper;
     feedManagementHelper: FeedManagementHelper;
     intranetFileHelper: IntranetFileHelper;
@@ -66,10 +67,16 @@ export const searchTestFixtures = test.extend<
     },
     { scope: 'test' },
   ],
-
+  appManagerUINavigationHelper: [
+    async ({ appManagerUserPage }, use, _workerInfo) => {
+      const appManagerUINavigationHelper = new NavigationHelper(appManagerUserPage);
+      await use(appManagerUINavigationHelper);
+    },
+    { scope: 'test' },
+  ],
   appManagerHomePage: [
     async ({ appManagerUserPage }, use, _workerInfo) => {
-      const appManagerHomePage = new NewUxHomePage(appManagerUserPage);
+      const appManagerHomePage = new NewHomePage(appManagerUserPage);
       await appManagerHomePage.loadPage();
       await appManagerHomePage.verifyThePageIsLoaded();
       await use(appManagerHomePage);

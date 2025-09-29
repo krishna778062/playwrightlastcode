@@ -86,7 +86,13 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
         },
-        async ({ standardUserHomePage, appManagerHomePage, appManagerApiContext }) => {
+        async ({
+          standardUserHomePage,
+          appManagerHomePage,
+          appManagerApiContext,
+          standardUserUINavigationHelper,
+          appManagerUINavigationHelper,
+        }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
@@ -102,7 +108,8 @@ test.describe(
           );
 
           // Navigate to album creation by standard user
-          albumCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
+          await standardUserHomePage.verifyThePageIsLoaded();
+          albumCreationPage = (await standardUserUINavigationHelper.openCreateContentPageForContentType(
             ContentType.ALBUM
           )) as AlbumCreationPage;
 
@@ -133,7 +140,7 @@ test.describe(
 
           await appManagerHomePage.page.reload();
           // Handle notification and perform action (approve/reject)
-          const notificationComponentAppManager = await appManagerHomePage.actions.clickOnBellIcon({
+          const notificationComponentAppManager = await appManagerUINavigationHelper.clickOnBellIcon({
             stepInfo: 'Application Manager clicking on bell icon to view notifications',
           });
           const notificationMessage =
@@ -151,7 +158,7 @@ test.describe(
           );
 
           await standardUserHomePage.page.reload();
-          const notificationMessageStandardUser = await standardUserHomePage.actions.clickOnBellIcon({
+          const notificationMessageStandardUser = await standardUserUINavigationHelper.clickOnBellIcon({
             stepInfo: 'Standard user clicking on bell icon to view notifications',
           });
           const identityManagementHelper = new IdentityManagementHelper(

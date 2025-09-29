@@ -41,13 +41,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-13079',
           storyId: 'SEN-12843',
         });
 
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(currentFeedName, {
+        await appManagerHomePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(currentFeedName, {
           stepInfo: `Searching with term "${currentFeedName}" and intent is to find the content`,
         });
 
@@ -66,13 +67,14 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19281',
         });
 
+        await appManagerHomePage.verifyThePageIsLoaded();
         // Search for the feed
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(currentFeedName, {
+        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(currentFeedName, {
           stepInfo: `Searching with term "${currentFeedName}" to verify feed appears in search results`,
         });
 
@@ -99,13 +101,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage, publicSite }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper, publicSite }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-13079',
           storyId: 'SEN-12844',
         });
 
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(currentFeedName, {
+        await appManagerHomePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(currentFeedName, {
           stepInfo: `Searching with term "${currentFeedName}" and intent is to find the site feed content`,
         });
 

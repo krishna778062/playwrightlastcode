@@ -3,7 +3,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
@@ -17,16 +16,9 @@ test.describe(
   () => {
     let manageFeaturePage: ManageFeaturesPage;
     let manageContentPage: ManageContentPage;
-    let homePage: NewUxHomePage;
-    test.beforeEach(async ({ standardUserHomePage }) => {
-      await standardUserHomePage.verifyThePageIsLoaded();
-      manageFeaturePage = new ManageFeaturesPage(standardUserHomePage.page);
-      manageContentPage = new ManageContentPage(standardUserHomePage.page);
-      homePage = new NewUxHomePage(standardUserHomePage.page);
-    });
-
-    test.afterEach(async ({ page }) => {
-      await page.close();
+    test.beforeEach(async ({ standardUserPage }) => {
+      manageFeaturePage = new ManageFeaturesPage(standardUserPage);
+      manageContentPage = new ManageContentPage(standardUserPage);
     });
 
     test(
@@ -34,7 +26,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({}) => {
+      async ({ standardUserHomePage, standardUserUINavigationHelper }) => {
         tagTest(test.info(), {
           description: 'Login as End User who is Site Owner/Manager of any site',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
@@ -42,7 +34,8 @@ test.describe(
           storyId: 'CONT-25055',
         });
         const title = MANAGE_CONTENT_TEST_DATA.TITLE;
-        await homePage.actions.clickOnManageFeature();
+        await standardUserHomePage.verifyThePageIsLoaded();
+        await standardUserUINavigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnContentCard();
         await manageContentPage.actions.writeRandomTextInSearchBar(title);
         await manageContentPage.actions.clickSearchIcon();

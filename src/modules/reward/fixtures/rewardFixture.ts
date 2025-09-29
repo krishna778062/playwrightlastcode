@@ -4,8 +4,7 @@ import { LoginHelper } from '@core/helpers';
 import { getEnvConfig } from '@core/utils';
 
 import { RequestContextFactory } from '@/src/core/api';
-import { NewUxHomePage } from '@/src/core/ui';
-import { OldUxHomePage } from '@/src/core/ui';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { ManageRewardsPage } from '@/src/modules/reward/ui/pages/manage-rewards/manage-rewards-page';
 import { RewardOptionsPage } from '@/src/modules/reward/ui/pages/manage-rewards/reward-options-page';
 
@@ -13,18 +12,18 @@ export const rewardTestFixture = test.extend<
   {
     //app manager browser context, request context, page
     appManagerBrowserContext: BrowserContext;
-    appManagerHomePage: NewUxHomePage | OldUxHomePage;
+    appManagerHomePage: NewHomePage;
     appManagerPage: Page;
 
     //recognition manager browser context, request context, page
     recoManagerBrowserContext: BrowserContext;
-    recoManagerHomePage: NewUxHomePage | OldUxHomePage;
+    recoManagerHomePage: NewHomePage;
     recoManagerPage: Page;
 
     //standard user browser context, request context, page
     standardUserBrowserContext: BrowserContext;
     standardUserPage: Page;
-    standardUserHomePage: NewUxHomePage | OldUxHomePage;
+    standardUserHomePage: NewHomePage;
     manageRewardsPage: ManageRewardsPage;
     rewardOptionsPage: RewardOptionsPage;
   },
@@ -66,7 +65,7 @@ export const rewardTestFixture = test.extend<
   ],
   appManagerHomePage: [
     async ({ appManagerPage }, use) => {
-      const appManagerHomePage = new NewUxHomePage(appManagerPage);
+      const appManagerHomePage = new NewHomePage(appManagerPage);
       await appManagerHomePage.loadPage();
       await appManagerHomePage.verifyThePageIsLoaded();
       await use(appManagerHomePage);
@@ -98,7 +97,7 @@ export const rewardTestFixture = test.extend<
   ],
   recoManagerHomePage: [
     async ({ recoManagerPage }, use) => {
-      const recognitionHomePage = new NewUxHomePage(recoManagerPage);
+      const recognitionHomePage = new NewHomePage(recoManagerPage);
       await recognitionHomePage.loadPage();
       await recognitionHomePage.verifyThePageIsLoaded();
       await use(recognitionHomePage);
@@ -130,7 +129,7 @@ export const rewardTestFixture = test.extend<
   ],
   standardUserHomePage: [
     async ({ standardUserPage }, use) => {
-      const recognitionHomePage = new NewUxHomePage(standardUserPage);
+      const recognitionHomePage = new NewHomePage(standardUserPage);
       await recognitionHomePage.loadPage();
       await recognitionHomePage.verifyThePageIsLoaded();
       await use(recognitionHomePage);

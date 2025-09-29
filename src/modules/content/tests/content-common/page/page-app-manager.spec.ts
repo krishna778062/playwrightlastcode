@@ -22,8 +22,6 @@ import { FileUtil } from '@core/utils/fileUtil';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
-
 test.describe(
   `Page Creation by Application Manager`,
   {
@@ -37,7 +35,6 @@ test.describe(
     let createdSite: any;
     let siteDashboardPage: SiteDashboardPage;
     let manualCleanupNeeded = false;
-    let homePage: NewUxHomePage;
     let applicationscreen: ApplicationScreenPage;
     let manageFeaturePage: ManageFeature;
     let manageApplicationPage: ManageApplicationPage;
@@ -49,9 +46,8 @@ test.describe(
 
     test.beforeEach(
       'Setting up the test environment for page creation by opening page creation page from home page',
-      async ({ appManagerHomePage, appManagersPage }) => {
+      async ({ appManagersPage }) => {
         // Create home page instance and navigate to page creation
-        await appManagerHomePage.verifyThePageIsLoaded();
         contentPreviewPage = new ContentPreviewPage(
           appManagersPage,
           siteIdToPublishPage,
@@ -60,7 +56,6 @@ test.describe(
         );
 
         // Initialize additional page objects for the moved test cases
-        homePage = new NewUxHomePage(appManagersPage);
         applicationscreen = new ApplicationScreenPage(appManagersPage);
         manageFeaturePage = new ManageFeature(appManagersPage);
         manageApplicationPage = new ManageApplicationPage(appManagersPage);
@@ -97,14 +92,14 @@ test.describe(
           '@CONT-11635',
         ],
       },
-      async ({ appManagerHomePage, appManagersPage, siteManagementHelper }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           description: 'Verify admin is able to publish a new page created with cover image from home page',
           zephyrTestId: 'CONT-11635',
           storyId: 'CONT-11635',
         });
-
-        pageCreationPage = (await appManagerHomePage.actions.openCreateContentPageForContentType(
+        await appManagerHomePage.verifyThePageIsLoaded();
+        pageCreationPage = (await appManagerUINavigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE
         )) as PageCreationPage;
 
@@ -198,28 +193,29 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VERIFY_COMMENTS_AND_FEEDS],
       },
-      async () => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           description: 'Verify feed and comment should not be displayed when feed and comments are disabled app level',
           zephyrTestId: 'CONT-26613',
           storyId: 'CONT-26613',
         });
-        await homePage.actions.navigateToApplication();
+        await appManagerHomePage.verifyThePageIsLoaded();
+        await appManagerUINavigationHelper.openApplicationSettings();
         await applicationscreen.actions.clickOnApplication();
         await manageApplicationPage.actions.clickOnGovernance();
         await governanceScreenPage.actions.clickOnTimeline();
         await governanceScreenPage.actions.clickOnSave();
-        await homePage.actions.clickOnManageFeature();
+        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnContentCard();
         await manageContentPage.actions.clickOnContent();
         await contentPreviewPage.actions.checkCommentOption();
-        await homePage.actions.clickOnManageFeature();
+        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnSitesCard();
         await manageSitePage.actions.clickOnSite();
         await siteDetailsPage.actions.ViewSite();
         await siteDashboardPage.actions.verfiyFeedSection();
-        await homePage.actions.clickOnHomeButton();
-        await homePage.actions.clickOnFeedSideMenu();
+        await appManagerUINavigationHelper.clickOnHomeButton();
+        await appManagerUINavigationHelper.clickOnFeedSideMenu();
         await siteDashboardPage.actions.verfiyFeedSection();
       }
     );

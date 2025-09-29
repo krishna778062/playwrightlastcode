@@ -47,13 +47,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-16516',
         });
 
+        await appManagerHomePage.verifyThePageIsLoaded();
         // Search for the unique link
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(linkName, {
+        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(linkName, {
           stepInfo: `Searching for unique link "${linkName}"`,
         });
 

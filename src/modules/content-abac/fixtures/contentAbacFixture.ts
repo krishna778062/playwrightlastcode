@@ -2,8 +2,8 @@ import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test'
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
-import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { FeedManagementHelper } from '@/src/modules/content/apis/helpers/feedManagementHelper';
 import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
@@ -14,12 +14,14 @@ export const contentAbacTestFixture = test.extend<
     // App manager browser context, Request Context + page
     appManagerBrowserContext: BrowserContext;
     appManagerPage: Page;
-    appManagerHomePage: NewUxHomePage | OldUxHomePage;
+    appManagerHomePage: NewHomePage;
+    appManagerUINavigationHelper: NavigationHelper;
 
     // End user browser context, Request Context + page
     endUserContext: BrowserContext;
-    endUserHomePage: NewUxHomePage | OldUxHomePage;
     endUserPage: Page;
+    endUserHomePage: NewHomePage;
+    endUserUINavigationHelper: NavigationHelper;
 
     // Services and helpers for app manager
     feedManagementHelper: FeedManagementHelper;
@@ -67,10 +69,17 @@ export const contentAbacTestFixture = test.extend<
 
   appManagerHomePage: [
     async ({ appManagerPage }, use) => {
-      const appManagerHomePage = new NewUxHomePage(appManagerPage);
+      const appManagerHomePage = new NewHomePage(appManagerPage);
       await appManagerHomePage.loadPage();
       await appManagerHomePage.verifyThePageIsLoaded();
       await use(appManagerHomePage);
+    },
+    { scope: 'test' },
+  ],
+  appManagerUINavigationHelper: [
+    async ({ appManagerPage }, use, _workerInfo) => {
+      const appManagerUINavigationHelper = new NavigationHelper(appManagerPage);
+      await use(appManagerUINavigationHelper);
     },
     { scope: 'test' },
   ],
@@ -133,10 +142,17 @@ export const contentAbacTestFixture = test.extend<
 
   endUserHomePage: [
     async ({ endUserPage }, use) => {
-      const endUserHomePage = new NewUxHomePage(endUserPage);
+      const endUserHomePage = new NewHomePage(endUserPage);
       await endUserHomePage.loadPage();
       await endUserHomePage.verifyThePageIsLoaded();
       await use(endUserHomePage);
+    },
+    { scope: 'test' },
+  ],
+  endUserUINavigationHelper: [
+    async ({ endUserPage }, use, _workerInfo) => {
+      const endUserUINavigationHelper = new NavigationHelper(endUserPage);
+      await use(endUserUINavigationHelper);
     },
     { scope: 'test' },
   ],

@@ -7,9 +7,9 @@ import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 export class FooterComponent extends BaseComponent {
   readonly privacyPolicyLink: Locator;
 
-  constructor(page: Page, rootLocator: Locator) {
-    super(page);
-    this.privacyPolicyLink = rootLocator.getByText('Privacy policy', { exact: true });
+  constructor(page: Page, rootLocator?: Locator) {
+    super(page, rootLocator);
+    this.privacyPolicyLink = this.rootLocator.getByText('Privacy policy', { exact: true });
   }
 
   /**

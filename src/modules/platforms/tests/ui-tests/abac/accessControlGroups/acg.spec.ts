@@ -150,13 +150,14 @@ test.describe(
       {
         tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-31188'],
         });
         // Test Scenario
-        await appManagerHomePage.actions.clickOnApplicationSettings();
-        await appManagerHomePage.actions.verifyRolesButtonVisibility(false);
+        await appManagerHomePage.verifyThePageIsLoaded();
+        await appManagerUINavigationHelper.openApplicationSettings();
+        await appManagerUINavigationHelper.verifyRolesButtonVisibility(false);
       }
     );
 

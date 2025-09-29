@@ -59,14 +59,15 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-12462',
           storyId: 'SEN-12298',
         });
 
         // 4. UI Search for the event
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(eventName, {
+        await appManagerHomePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(eventName, {
           stepInfo: `Searching with term "${eventName}" and intent is to find the event`,
         });
 
@@ -89,13 +90,14 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19195',
         });
 
+        await appManagerHomePage.verifyThePageIsLoaded();
         // Search for the event
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(eventName, {
+        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(eventName, {
           stepInfo: `Searching with term "${eventName}" to verify event appears in search results`,
         });
 
@@ -139,13 +141,15 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19287',
         });
 
+        await appManagerHomePage.verifyThePageIsLoaded();
         // Type in search input
-        await appManagerHomePage.topNavBarComponent.typeInSearchBarInput(eventName, {
+        const topNavBarComponent = appManagerUINavigationHelper.topNavBarComponent;
+        await topNavBarComponent.typeInSearchBarInput(eventName, {
           stepInfo: `Typing "${eventName}" in search input`,
         });
 

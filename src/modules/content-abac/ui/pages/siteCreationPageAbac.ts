@@ -24,7 +24,7 @@ export interface ISiteCreationPageActions {
   deactivateSiteViaUI: (options?: { stepInfo?: string }) => Promise<void>;
 }
 
-export class SiteCreationPage extends BasePage implements ISiteCreationPageAssertions, ISiteCreationPageActions {
+export class SiteCreationPageAbac extends BasePage implements ISiteCreationPageAssertions, ISiteCreationPageActions {
   readonly form: SiteCreationFormComponent;
   private lastCreatedSiteId?: string;
 

@@ -3,17 +3,12 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 
+import { NewHomePage } from './newHomePage';
+
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
-import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 
 export interface ILoginPageActions {
-  performLogin: (
-    username: string,
-    password: string,
-    options?: { timeout?: number }
-  ) => Promise<NewUxHomePage | OldUxHomePage>;
+  performLogin: (username: string, password: string, options?: { timeout?: number }) => Promise<NewHomePage>;
   performLoginWithPassword: (username: string, password: string, options?: { timeout?: number }) => Promise<void>;
 }
 
@@ -51,17 +46,13 @@ export class LoginPage extends BasePage implements ILoginPageActions {
    * @param username - The username to log in with
    * @param password - The password to log in with
    */
-  async performLogin(
-    username: string,
-    password: string,
-    options?: { timeout?: number }
-  ): Promise<NewUxHomePage | OldUxHomePage> {
+  async performLogin(username: string, password: string, options?: { timeout?: number }): Promise<NewHomePage> {
     await this.performLoginWithPassword(username, password);
     await this.page.waitForURL('/home', {
       timeout: options?.timeout || TIMEOUTS.MEDIUM,
       waitUntil: 'domcontentloaded',
     });
-    return getEnvConfig().newUxEnabled ? new NewUxHomePage(this.page) : new OldUxHomePage(this.page);
+    return new NewHomePage(this.page);
   }
 
   /**

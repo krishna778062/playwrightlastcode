@@ -85,7 +85,14 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.PAGE_CREATION],
         },
-        async ({ standardUserHomePage, appManagerHomePage, siteManagementHelper, appManagerApiContext }) => {
+        async ({
+          standardUserHomePage,
+          appManagerHomePage,
+          siteManagementHelper,
+          appManagerApiContext,
+          standardUserUINavigationHelper,
+          appManagerUINavigationHelper,
+        }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
@@ -101,7 +108,7 @@ test.describe(
           );
 
           // Navigate to page creation by standard user
-          pageCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
+          pageCreationPage = (await standardUserUINavigationHelper.openCreateContentPageForContentType(
             ContentType.PAGE
           )) as PageCreationPage;
 
@@ -131,7 +138,7 @@ test.describe(
 
           await appManagerHomePage.page.reload();
           // Handle notification and perform action (approve/reject)
-          const notificationComponentAppManager = await appManagerHomePage.actions.clickOnBellIcon({
+          const notificationComponentAppManager = await appManagerUINavigationHelper.clickOnBellIcon({
             stepInfo: 'Application Manager clicking on bell icon to view notifications',
           });
           const notificationMessage = peopleName + ' submitted a page for approval "' + pageCreationOptions.title + '"';
@@ -148,7 +155,7 @@ test.describe(
           );
           await standardUserHomePage.page.reload();
 
-          const notificationMessageStandardUser = await standardUserHomePage.actions.clickOnBellIcon({
+          const notificationMessageStandardUser = await standardUserUINavigationHelper.clickOnBellIcon({
             stepInfo: 'Standard user clicking on bell icon to view notifications',
           });
           const identityManagementHelper = new IdentityManagementHelper(

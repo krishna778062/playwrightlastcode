@@ -5,9 +5,9 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { MultiUserChatTestHelper } from '@modules/chat/helpers/multiUserChatTestHelper';
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { StaticUsers } from '@/src/core/types';
-import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { ChatAppPage } from '@/src/modules/chat/ui/pages/chatPage/chatPage';
 
 export interface StaticUsersConfig {
@@ -42,21 +42,22 @@ export function createDualUserChatFixture(userConfig?: StaticUsersConfig) {
     {
       // User 1 (End User) fixtures
       user1Context: BrowserContext;
-      user1HomePage: NewUxHomePage | OldUxHomePage;
+      user1HomePage: NewHomePage;
       user1Page: Page;
       user1ChatPage: ChatAppPage;
+      user1UINavigationHelper: NavigationHelper;
 
       // User 2 (End User) fixtures
       user2Context: BrowserContext;
-      user2HomePage: NewUxHomePage | OldUxHomePage;
+      user2HomePage: NewHomePage;
       user2Page: Page;
       user2ChatPage: ChatAppPage;
-
+      user2UINavigationHelper: NavigationHelper;
       // Multi-user test helper
       multiUserChatTestHelper: MultiUserChatTestHelper;
 
       // Parallel login result
-      loggedInHomePages: Array<{ homePage: NewUxHomePage | OldUxHomePage; page: Page }>;
+      loggedInHomePages: Array<{ homePage: NewHomePage; page: Page }>;
 
       // Parallel chat page navigation result
       chatPages: { user1ChatPage: ChatAppPage; user2ChatPage: ChatAppPage };
@@ -154,29 +155,10 @@ export function createDualUserChatFixture(userConfig?: StaticUsersConfig) {
       },
       { scope: 'test' },
     ],
-
-    // Parallel chat page navigation for both users
-    chatPages: [
-      async ({ user1HomePage, user2HomePage }, use) => {
-        console.log(`INFO: Navigating to chat pages in parallel for both users`);
-
-        // Navigate to chat pages simultaneously using Promise.all
-        const chatPagePromises = [
-          user1HomePage.navigateToChatPageViaTopNavBar(),
-          user2HomePage.navigateToChatPageViaTopNavBar(),
-        ];
-
-        const [user1ChatPage, user2ChatPage] = await Promise.all(chatPagePromises);
-        console.log(`SUCCESS: Both users navigated to chat pages in parallel`);
-
-        await use({ user1ChatPage, user2ChatPage });
-      },
-      { scope: 'test' },
-    ],
-
-    user1ChatPage: [
-      async ({ chatPages }, use) => {
-        await use(chatPages.user1ChatPage);
+    user1UINavigationHelper: [
+      async ({ user1HomePage }, use, _workerInfo) => {
+        const user1UINavigationHelper = new NavigationHelper(user1HomePage.page);
+        await use(user1UINavigationHelper);
       },
       { scope: 'test' },
     ],
@@ -204,6 +186,40 @@ export function createDualUserChatFixture(userConfig?: StaticUsersConfig) {
       async ({ loggedInHomePages }, use) => {
         const user2PageData = loggedInHomePages[1];
         await use(user2PageData.page);
+      },
+      { scope: 'test' },
+    ],
+
+    user2UINavigationHelper: [
+      async ({ user2HomePage }, use, _workerInfo) => {
+        const user2UINavigationHelper = new NavigationHelper(user2HomePage.page);
+        await use(user2UINavigationHelper);
+      },
+      { scope: 'test' },
+    ],
+
+    // Parallel chat page navigation for both users
+    chatPages: [
+      async ({ user1UINavigationHelper, user2UINavigationHelper }, use) => {
+        console.log(`INFO: Navigating to chat pages in parallel for both users`);
+
+        // Navigate to chat pages simultaneously using Promise.all
+        const chatPagePromises = [
+          user1UINavigationHelper.navigateToChatPageViaTopNavBar(),
+          user2UINavigationHelper.navigateToChatPageViaTopNavBar(),
+        ];
+
+        const [user1ChatPage, user2ChatPage] = await Promise.all(chatPagePromises);
+        console.log(`SUCCESS: Both users navigated to chat pages in parallel`);
+
+        await use({ user1ChatPage, user2ChatPage });
+      },
+      { scope: 'test' },
+    ],
+
+    user1ChatPage: [
+      async ({ chatPages }, use) => {
+        await use(chatPages.user1ChatPage);
       },
       { scope: 'test' },
     ],

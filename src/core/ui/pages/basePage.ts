@@ -4,11 +4,10 @@ import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
 
 import { getEnvConfig } from '../..';
-import { SideNavBarComponent, TopNavBarComponent } from '../components';
 
 export abstract class BasePage extends BaseActionUtil {
-  readonly topNavBarComponent: TopNavBarComponent;
-  readonly sideNavBarComponent: SideNavBarComponent;
+  // readonly topNavBarComponent: TopNavBarComponent;
+  // readonly sideNavBarComponent: SideNavBarComponent;
   readonly verifier: BaseVerificationUtil;
   readonly pageUrl: string;
   readonly isNewUxEnabled: boolean;
@@ -17,8 +16,6 @@ export abstract class BasePage extends BaseActionUtil {
     this.isNewUxEnabled = getEnvConfig().newUxEnabled;
     this.verifier = new BaseVerificationUtil(page);
     this.pageUrl = pageUrl || '';
-    this.topNavBarComponent = new TopNavBarComponent(page, this.isNewUxEnabled);
-    this.sideNavBarComponent = new SideNavBarComponent(page);
   }
 
   // Convenience method for direct Playwright expect access
@@ -26,16 +23,16 @@ export abstract class BasePage extends BaseActionUtil {
     return expect;
   }
 
-  get getTopNavBarComponent() {
-    return this.topNavBarComponent;
-  }
+  // get getTopNavBarComponent() {
+  //   return this.topNavBarComponent;
+  // }
 
-  get getSideNavBarComponent() {
-    if (this.isNewUxEnabled) {
-      return this.sideNavBarComponent;
-    }
-    throw new Error('Side navigation bar component is not available in old UX');
-  }
+  // get getSideNavBarComponent() {
+  //   if (this.isNewUxEnabled) {
+  //     return this.sideNavBarComponent;
+  //   }
+  //   throw new Error('Side navigation bar component is not available in old UX');
+  // }
 
   get url() {
     if (this.pageUrl === '') {

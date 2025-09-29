@@ -5,7 +5,7 @@ import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { SiteType } from '@/src/modules/content-abac/constants/siteTypeABAC';
 import { contentAbacTestFixture as test } from '@/src/modules/content-abac/fixtures/contentAbacFixture';
 import { SITE_CREATION_TEST_DATA } from '@/src/modules/content-abac/test-data/create-site.test-data';
-import { SiteCreationPage } from '@/src/modules/content-abac/ui/pages/siteCreationPage';
+import { SiteCreationPageAbac } from '@/src/modules/content-abac/ui/pages/siteCreationPageAbac';
 
 /**
  * This test suite is used to test the site creation functionality via ABAC.
@@ -38,16 +38,19 @@ test.describe('Site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
     test(
       `Verify user is able to create a ${site.siteType} site (ABAC)`,
       { tag: [ContentSuiteTags.SITE_CREATION, TestPriority.P0, TestGroupType.REGRESSION] },
-      async ({ appManagerHomePage, appManagerPage }) => {
+      async ({ appManagerHomePage, appManagerPage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           description: 'ABAC: Verify Target Audience and Subscriptions and create site',
           zephyrTestId: site.siteType === SiteType.PUBLIC ? 'CONT-38637' : 'CONT-37643',
           storyId: 'CONT-33515',
         });
 
+        await appManagerHomePage.verifyThePageIsLoaded();
         // STEP 1: Open site creation page via ABAC CreateComponent
-        await appManagerHomePage.actions.openSiteCreationForm();
-        const siteCreationPage = new SiteCreationPage(appManagerPage);
+        await appManagerUINavigationHelper.openSiteCreationForm(true, {
+          stepInfo: 'Opening site creation form via ABAC',
+        });
+        const siteCreationPage = new SiteCreationPageAbac(appManagerPage);
 
         // STEP 2: Verify site creation form structure and elements
         await siteCreationPage.assertions.verifySiteCreationFormStructure();

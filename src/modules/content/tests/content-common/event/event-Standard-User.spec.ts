@@ -86,7 +86,14 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.EVENT_CREATION],
         },
-        async ({ standardUserHomePage, appManagerHomePage, siteManagementHelper, appManagerApiContext }) => {
+        async ({
+          standardUserHomePage,
+          appManagerHomePage,
+          siteManagementHelper,
+          appManagerApiContext,
+          standardUserUINavigationHelper,
+          appManagerUINavigationHelper,
+        }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
@@ -100,9 +107,10 @@ test.describe(
             publishedEventId,
             ContentType.EVENT
           );
+          await standardUserHomePage.verifyThePageIsLoaded();
 
           // Navigate to event creation by standard user
-          eventCreationPage = (await standardUserHomePage.actions.openCreateContentPageForContentType(
+          eventCreationPage = (await standardUserUINavigationHelper.openCreateContentPageForContentType(
             ContentType.EVENT
           )) as EventCreationPage;
 
@@ -130,7 +138,7 @@ test.describe(
 
           await appManagerHomePage.page.reload();
           // Handle notification and perform action (approve/reject)
-          const notificationComponentAppManager = await appManagerHomePage.actions.clickOnBellIcon({
+          const notificationComponentAppManager = await appManagerUINavigationHelper.clickOnBellIcon({
             stepInfo: 'Application Manager clicking on bell icon to view notifications',
           });
           const notificationMessage =
@@ -148,7 +156,7 @@ test.describe(
           );
 
           await standardUserHomePage.page.reload();
-          const notificationMessageStandardUser = await standardUserHomePage.actions.clickOnBellIcon({
+          const notificationMessageStandardUser = await standardUserUINavigationHelper.clickOnBellIcon({
             stepInfo: 'Standard user clicking on bell icon to view notifications',
           });
           const identityManagementHelper = new IdentityManagementHelper(

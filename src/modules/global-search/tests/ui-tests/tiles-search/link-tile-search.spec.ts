@@ -33,7 +33,7 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE],
         },
-        async ({ appManagerHomePage, tileManagementHelper, tileCleanupTracker }) => {
+        async ({ appManagerHomePage, appManagerUINavigationHelper, tileManagementHelper, tileCleanupTracker }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-12408',
             storyId: 'SEN-12305',
@@ -50,8 +50,8 @@ test.describe(
 
           const tileId = tileResponse.result.id;
           const tileTitle = testData.tileTitle;
-
-          const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(tileTitle, {
+          await appManagerHomePage.verifyThePageIsLoaded();
+          const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(tileTitle, {
             stepInfo: `Searching for tile "${tileTitle}" created with ID: ${tileId}`,
           });
 
@@ -81,7 +81,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
-      async ({ appManagerHomePage, tileManagementHelper, tileCleanupTracker }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper, tileManagementHelper, tileCleanupTracker }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19284',
         });
@@ -97,9 +97,9 @@ test.describe(
 
         const tileId = tileResponse.result.id;
         const tileTitle = testData.tileTitle;
-
+        await appManagerHomePage.verifyThePageIsLoaded();
         // Search for the tile
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(tileTitle, {
+        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(tileTitle, {
           stepInfo: `Searching with term "${tileTitle}" to verify tile appears in search results`,
         });
 

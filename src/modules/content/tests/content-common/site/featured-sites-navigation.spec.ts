@@ -33,7 +33,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage, siteManagementHelper }) => {
+      async ({ appManagerHomePage, siteManagementHelper, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           description: 'Test featured sites navigation from home dashboard to site dashboard',
           zephyrTestId: 'CONT-20911',
@@ -45,7 +45,8 @@ test.describe(
         });
         console.log(`Created site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
 
-        const featuredSitePage = await appManagerHomePage.clickOnFeaturedSitesTab();
+        await appManagerHomePage.verifyThePageIsLoaded();
+        const featuredSitePage = await appManagerUINavigationHelper.clickOnFeaturedSitesTab();
         await featuredSitePage.actions.clickOnAddUpdateFeaturedSiteButton();
 
         // Step 1: Search and add the created site to featured
@@ -78,13 +79,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-27919'],
       },
-      async ({ appManagerHomePage, siteManagementHelper }) => {
+      async ({ appManagerHomePage, siteManagementHelper, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           description: 'Shuffling sites from feature modal list',
           zephyrTestId: 'CONT-27919',
           storyId: 'CONT-27919',
         });
-        const featuredSitePage = await appManagerHomePage.clickOnFeaturedSitesTab();
+        await appManagerHomePage.verifyThePageIsLoaded();
+        const featuredSitePage = await appManagerUINavigationHelper.clickOnFeaturedSitesTab();
         await featuredSitePage.actions.clickOnAddUpdateFeaturedSiteButton();
 
         const unFeaturedSites: { siteId: string; name: string }[] = await siteManagementHelper.getUnFeaturedSites();

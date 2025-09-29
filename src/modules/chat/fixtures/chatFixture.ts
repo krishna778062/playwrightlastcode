@@ -4,8 +4,8 @@ import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
-import { NewUxHomePage } from '@/src/core/ui/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/ui/pages/homePage/oldUxHomePage';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { FeedManagementHelper } from '@/src/modules/content/apis/helpers/feedManagementHelper';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 
@@ -27,11 +27,13 @@ export const chatTestFixture = test.extend<
     // App manager browser context, Request Context + page
     appManagerBrowserContext: BrowserContext;
     appManagerPage: Page;
-    appManagerHomePage: NewUxHomePage | OldUxHomePage;
+    appManagerHomePage: NewHomePage;
+    appManagerUINavigationHelper: NavigationHelper;
     // End user browser context, Request Context + page
     endUserContext: BrowserContext;
-    endUserHomePage: NewUxHomePage | OldUxHomePage;
+    endUserHomePage: NewHomePage;
     endUsersPage: Page;
+    endUserUINavigationHelper: NavigationHelper;
 
     // Services and helpers for app manager
     siteManagementHelper: SiteManagementHelper;
@@ -76,10 +78,17 @@ export const chatTestFixture = test.extend<
   ],
   appManagerHomePage: [
     async ({ appManagerPage }, use) => {
-      const appManagerHomePage = new NewUxHomePage(appManagerPage);
+      const appManagerHomePage = new NewHomePage(appManagerPage);
       await appManagerHomePage.loadPage();
       await appManagerHomePage.verifyThePageIsLoaded();
       await use(appManagerHomePage);
+    },
+    { scope: 'test' },
+  ],
+  appManagerUINavigationHelper: [
+    async ({ appManagerHomePage }, use, _workerInfo) => {
+      const appManagerUINavigationHelper = new NavigationHelper(appManagerHomePage.page);
+      await use(appManagerUINavigationHelper);
     },
     { scope: 'test' },
   ],
@@ -106,10 +115,17 @@ export const chatTestFixture = test.extend<
   ],
   endUserHomePage: [
     async ({ endUsersPage }, use) => {
-      const recognitionHomePage = new NewUxHomePage(endUsersPage);
+      const recognitionHomePage = new NewHomePage(endUsersPage);
       await recognitionHomePage.loadPage();
       await recognitionHomePage.verifyThePageIsLoaded();
       await use(recognitionHomePage);
+    },
+    { scope: 'test' },
+  ],
+  endUserUINavigationHelper: [
+    async ({ endUserHomePage }, use, _workerInfo) => {
+      const endUserUINavigationHelper = new NavigationHelper(endUserHomePage.page);
+      await use(endUserUINavigationHelper);
     },
     { scope: 'test' },
   ],

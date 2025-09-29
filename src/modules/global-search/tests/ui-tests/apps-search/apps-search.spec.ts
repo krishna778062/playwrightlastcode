@@ -62,14 +62,15 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-10325',
           storyId: 'SEN-16500',
         });
 
         // Search for the unique app
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(uniqueTestData.searchTerm, {
+        await appManagerHomePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(uniqueTestData.searchTerm, {
           stepInfo: `Searching for unique app "${uniqueTestData.appName}"`,
         });
 

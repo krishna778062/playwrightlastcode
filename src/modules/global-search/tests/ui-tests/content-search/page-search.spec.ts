@@ -60,14 +60,15 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-12432',
           storyId: 'SEN-12295',
         });
 
         // 4. UI Search for the page
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(pageName, {
+        await appManagerHomePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(pageName, {
           stepInfo: `Searching with term "${pageName}" and intent is to find the content`,
         });
 
@@ -90,13 +91,14 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19194',
         });
 
         // Search for the page
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(pageName, {
+        await appManagerHomePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(pageName, {
           stepInfo: `Searching with term "${pageName}" to verify page appears in search results`,
         });
 
@@ -139,13 +141,15 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19286',
         });
 
         // Type in search input
-        await appManagerHomePage.topNavBarComponent.typeInSearchBarInput(pageName, {
+        await appManagerHomePage.verifyThePageIsLoaded();
+        const topNavBarComponent = appManagerUINavigationHelper.topNavBarComponent;
+        await topNavBarComponent.typeInSearchBarInput(pageName, {
           stepInfo: `Typing "${pageName}" in search input`,
         });
 
