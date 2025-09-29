@@ -1,5 +1,4 @@
 import type { ExternalLink } from '@/src/core/types/app.type';
-import { T } from '@faker-js/faker/dist/airline-BUL6NtOJ';
 
 /**
  * Generates unique test data for parallel test execution
