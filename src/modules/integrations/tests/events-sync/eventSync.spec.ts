@@ -7,7 +7,6 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
-import { EventSyncDestination, EventSyncInvitees } from '@/src/core/types/contentManagement.types';
 import { SiteMembershipAction, SitePermission } from '@/src/core/types/siteManagement.types';
 import { EventDetailPage, RsvpOption } from '@/src/modules/content/pages/eventDetailPage';
 import { IntegrationsFeatureTags, IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
@@ -16,7 +15,6 @@ import {
   assertCompleteEventConfiguration,
   createAppManagerGoogleCalendarHelper,
   createEndUserGoogleCalendarHelper,
-  GoogleCalendarHelper,
 } from '@/src/modules/integrations/helpers/googleCalendarHelper';
 import {
   createEventPayload,
@@ -475,7 +473,7 @@ test.describe(
           IntegrationsFeatureTags.GOOGLE_CALENDAR,
         ],
       },
-      async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper }) => {
+      async ({ appManagerApiClient, testSiteName, siteManagementHelper }) => {
         test.setTimeout(300000);
         tagTest(test.info(), {
           description:
@@ -494,7 +492,7 @@ test.describe(
 
         const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
 
-        const googleCalendarEmail = 'craig.gordon@simpplr.dev';
+        const eventAuthorEmail = 'craig.gordon@simpplr.dev';
 
         // Create event with Google Calendar sync enabled first
         const eventTitle = `${EVENT_CONFIGS.END_USER_SYNC.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
@@ -509,9 +507,7 @@ test.describe(
           organizerId,
         });
 
-        const eventResult = await appManagerApiClient
-          .getContentManagementService()
-          .addNewEventContent(siteId, eventPayload);
+        await appManagerApiClient.getContentManagementService().addNewEventContent(siteId, eventPayload);
 
         // Get user ID for the end user email
         const endUserId = await appManagerApiClient.getUserManagementService().getUserId(endUserEmail);
@@ -528,7 +524,7 @@ test.describe(
 
         expect(
           endUserVerificationResult.found,
-          `Event "${eventTitle}" should have been synced to Google Calendar (${googleCalendarEmail}) because end user (${endUserEmail}) was added as a site member. ` +
+          `Event "${eventTitle}" should have been synced to Google Calendar (${eventAuthorEmail}) because end user (${endUserEmail}) was added as a site member. ` +
             `Event sync is configured for SITE_MEMBERS_FOLLOWERS but event was not found after ${endUserVerificationResult.attempts} verification attempts.`
         ).toBe(true);
       }
@@ -544,7 +540,7 @@ test.describe(
           IntegrationsFeatureTags.GOOGLE_CALENDAR,
         ],
       },
-      async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper }) => {
+      async ({ appManagerApiClient, testSiteName, siteManagementHelper }) => {
         test.setTimeout(300000);
         tagTest(test.info(), {
           description:
@@ -563,7 +559,7 @@ test.describe(
 
         const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
 
-        const googleCalendarEmail = 'craig.gordon@simpplr.dev';
+        const eventAuthorEmail = 'craig.gordon@simpplr.dev';
 
         // Add end user as site member before creating event
         const endUserId = await appManagerApiClient.getUserManagementService().getUserId(endUserEmail);
@@ -583,9 +579,7 @@ test.describe(
           organizerId,
         });
 
-        const eventResult = await appManagerApiClient
-          .getContentManagementService()
-          .addNewEventContent(siteId, eventPayload);
+        await appManagerApiClient.getContentManagementService().addNewEventContent(siteId, eventPayload);
 
         // Step 3: Verify event appears in App Manager's calendar using new helper
         const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
@@ -597,7 +591,7 @@ test.describe(
 
         expect(
           initialVerificationResult.found,
-          `Event "${eventTitle}" should have been synced to Google Calendar (${googleCalendarEmail}) because end user (${endUserEmail}) was already a site member when event was created. ` +
+          `Event "${eventTitle}" should have been synced to Google Calendar (${eventAuthorEmail}) because end user (${endUserEmail}) was already a site member when event was created. ` +
             `Event sync is configured for SITE_MEMBERS_FOLLOWERS but event was not found after ${initialVerificationResult.attempts} verification attempts.`
         ).toBe(true);
 
@@ -614,7 +608,7 @@ test.describe(
 
         expect(
           removalVerificationResult.found,
-          `Event "${eventTitle}" should have been removed from Google Calendar (${googleCalendarEmail}) because end user (${endUserEmail}) was removed from site membership. ` +
+          `Event "${eventTitle}" should have been removed from Google Calendar (${eventAuthorEmail}) because end user (${endUserEmail}) was removed from site membership. ` +
             `Event sync is configured for SITE_MEMBERS_FOLLOWERS but event was still found after ${removalVerificationResult.attempts} verification attempts.`
         ).toBe(false);
 
@@ -633,7 +627,7 @@ test.describe(
           IntegrationsFeatureTags.GOOGLE_CALENDAR,
         ],
       },
-      async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper, browser }) => {
+      async ({ appManagerApiClient, testSiteName, siteManagementHelper, browser }) => {
         test.setTimeout(300000);
         tagTest(test.info(), {
           description: 'Test non-member RSVP to public site event and verify event sync to their Google Calendar',
@@ -652,7 +646,7 @@ test.describe(
         // End user from QA env who will RSVP as non-member
         const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
 
-        const googleCalendarEmail = 'craig.gordon@simpplr.dev';
+        const eventAuthorEmail = 'craig.gordon@simpplr.dev';
 
         // Create second browser context for end user
         const endUserContext = await browser.newContext();
@@ -706,7 +700,7 @@ test.describe(
 
         expect(
           endUserVerificationResult.found,
-          `Event "${eventTitle}" should have been synced to Google Calendar (${googleCalendarEmail}) because end user (${endUserEmail}) RSVPed "Yes" as a non-member to a public site event. ` +
+          `Event "${eventTitle}" should have been synced to Google Calendar (${eventAuthorEmail}) because end user (${endUserEmail}) RSVPed "Yes" as a non-member to a public site event. ` +
             `Non-member RSVP should trigger calendar sync but event was not found after ${endUserVerificationResult.attempts} verification attempts.`
         ).toBe(true);
 
@@ -746,8 +740,6 @@ test.describe(
 
         const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
 
-        const googleCalendarEmail = 'craig.gordon@simpplr.dev';
-
         // Step 1: Add end user as site member (while site is public)
 
         const endUserId = await appManagerApiClient.getUserManagementService().getUserId(endUserEmail);
@@ -769,9 +761,7 @@ test.describe(
           organizerId,
         });
 
-        const eventResult = await appManagerApiClient
-          .getContentManagementService()
-          .addNewEventContent(siteId, eventPayload);
+        await appManagerApiClient.getContentManagementService().addNewEventContent(siteId, eventPayload);
 
         // Step 3: Verify initial event sync to both calendars using new helpers
         const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();

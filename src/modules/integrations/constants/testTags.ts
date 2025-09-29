@@ -47,4 +47,5 @@ export const TEST_TAGS = {
 
 export enum GammaIntegrationsFeatureTags {
   OKTA_GROUP = '@okta-group',
+  AD_GROUP = '@ad-group',
 }
