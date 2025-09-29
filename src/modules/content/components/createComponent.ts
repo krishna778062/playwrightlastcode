@@ -5,6 +5,7 @@ import { ContentType } from '@content/constants/contentType';
 import { SiteCreationPage } from '@content/pages/siteCreationPage';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
+import { SiteManagementHelper } from '@/src/core/helpers/siteManagementHelper';
 /**
  * This component gives user an
  * quick and easy interface to select

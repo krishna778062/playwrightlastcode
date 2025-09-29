@@ -10,6 +10,12 @@ export interface User {
   locale_id?: number;
 }
 
+export interface StaticUsers {
+  email: string;
+  password?: string;
+  fullName: string;
+}
+
 export interface SearchUserRecord {
   id: string;
   name: string;
@@ -109,4 +115,18 @@ export interface work_info {
   title?: string;
   department?: string;
   start_date?: string;
+}
+
+export interface IdentityValidateResponse {
+  status: number;
+  message: string;
+  result: {
+    token: string;
+    firstLogin: boolean;
+    identifierType: string;
+    sso: boolean;
+    showForgotPassword: boolean;
+    isVerificationAllowed: boolean;
+    language: number;
+  };
 }

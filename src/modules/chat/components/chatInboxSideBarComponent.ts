@@ -31,10 +31,10 @@ export class ChatInboxSideBarComponent extends BaseComponent {
       name: 'Create new message',
     });
     this.messageOptionsDropDown = this.inboxSideBarContainer.getByTestId('dropdown-menu');
-    this.dropDownOptionCreateNewMessage = this.page.getByTestId('dropdown-create-message');
-    this.dropDownOptionCreateNewGroup = this.page.getByTestId('dropdown-create-group');
+    this.dropDownOptionCreateNewMessage = this.page.getByLabel('Create new message').locator('p');
+    this.dropDownOptionCreateNewGroup = this.page.getByLabel('Create new group').locator('p');
     this.createNewMessageForm = this.page.getByTestId('message-form');
-    this.inputBoxInCreateNewMessageForm = this.page.locator("input[aria-label*='Select people']");
+    this.inputBoxInCreateNewMessageForm = this.page.getByRole('combobox', { name: 'Select people' });
     this.startChatButton = this.page.getByTestId('dmStartChatButton');
     this.userSelectionDropdownOptions = this.page.locator("div[role='menuitem']");
     this.createNewMessageIcon = this.page.getByTestId('newMessageButton');
@@ -46,13 +46,20 @@ export class ChatInboxSideBarComponent extends BaseComponent {
     await this.clickOnElement(this.createNewMessageIcon, { stepInfo: 'Clicking on create new message icon' });
   }
 
+  // drop-down clicked
+  async clickOnCreateNewMessageButton(): Promise<void> {
+    await this.clickOnElement(this.dropDownOptionCreateNewMessage, {
+      stepInfo: 'Clicking on create new message button ',
+    });
+  }
+
   /**
    * Clicks on the create new message button and then selects the new message option
    */
   async clickCreateNewMessageButton(): Promise<void> {
     await test.step(`Clicking create new message button and then select new message option`, async () => {
       await this.clickOnElement(this.createNewMessageIcon);
-      await this.clickOnElement(this.dropDownOptionCreateNewMessage);
+      await this.clickByInjectingJavaScript(this.dropDownOptionCreateNewMessage);
     });
   }
 

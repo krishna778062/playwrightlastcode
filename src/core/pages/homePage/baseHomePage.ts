@@ -6,6 +6,8 @@ import { TopNavBarComponent } from '@core/components/topNavBarComponent';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 
+import { SiteManagementHelper } from '../../helpers/siteManagementHelper';
+
 import { BasePage } from '@/src/core/pages/basePage';
 import { ChatNavigationComponent } from '@/src/modules/chat/components/chatNavigationComponent';
 import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
@@ -16,7 +18,7 @@ import { ContentType } from '@/src/modules/content/constants/contentType';
 import { AlbumCreationPage } from '@/src/modules/content/pages/albumCreationPage';
 import { EventCreationPage } from '@/src/modules/content/pages/eventCreationPage';
 import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
-import { FeedPage } from '@/src/modules/content/pages/feedPage';
+import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 import { SiteCreationPage as ContentSiteCreationPage } from '@/src/modules/content/pages/siteCreationPage';
 import { SiteCreationPage as AbacSiteCreationPage } from '@/src/modules/content-abac/pages/siteCreationPage';
@@ -30,6 +32,13 @@ export interface ICommonHomePageActions {
   openSiteCreationForm: (options?: { stepInfo?: string }) => Promise<AbacSiteCreationPage>;
 }
 
+export interface ICommonHomePageAssertions {
+  verifyErrorMessageWhenContentSubmissionIsDisabled: (
+    addContentModal: AddContentModalComponent,
+    contentType: ContentType
+  ) => Promise<void>;
+}
+
 export interface IOldUxHomePageActions extends ICommonHomePageActions {
   clickOnCreateContentButtonOnTopNavBar: (
     contentType: ContentType,
@@ -41,12 +50,18 @@ export interface IOldUxHomePageActions extends ICommonHomePageActions {
   ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
   openSiteCreationFormForNonAbac: (options?: { stepInfo?: string }) => Promise<ContentSiteCreationPage>;
   clickOnBellIcon: (options?: { stepInfo?: string }) => Promise<NotificationComponent>;
+  openAddContentModal: (
+    contentType: ContentType,
+    siteName?: string,
+    options?: { stepInfo?: string }
+  ) => Promise<AddContentModalComponent>;
 }
 
 export interface INewUxHomePageActions extends ICommonHomePageActions {
   clickOnCreateButtonOnSideNavBar: (options?: { stepInfo?: string }) => Promise<CreateComponent>;
   openCreateContentPageForContentType: (
     contentType: ContentType,
+    siteName?: string,
     options?: { stepInfo?: string }
   ) => Promise<PageCreationPage | AlbumCreationPage | EventCreationPage>;
   clickOnFeaturedSitesTab: (options?: { stepInfo?: string }) => Promise<FeaturedSitePage>;
@@ -54,6 +69,15 @@ export interface INewUxHomePageActions extends ICommonHomePageActions {
   clickOnApplicationSettings: (options?: { stepInfo?: string }) => Promise<void>;
   verifyRolesButtonVisibility: (visible: boolean, options?: { stepInfo?: string }) => Promise<void>;
   clickOnBellIcon: (options?: { stepInfo?: string }) => Promise<NotificationComponent>;
+  navigateToApplication: () => Promise<void>;
+  clickOnManageFeature: () => Promise<void>;
+  clickOnHomeButton: () => Promise<void>;
+  clickOnFeedSideMenu: () => Promise<void>;
+  openAddContentModal: (
+    contentType: ContentType,
+    siteName?: string,
+    options?: { stepInfo?: string }
+  ) => Promise<AddContentModalComponent>;
 }
 
 export abstract class BaseHomePage extends BasePage implements ICommonHomePageActions {
@@ -143,7 +167,7 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
    * @param options - The options for the step
    */
   async verifyRolesButtonVisibility(visible: boolean, options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo || 'Clicking on Roles button', async () => {
+    await test.step(options?.stepInfo || 'Verify the visibility of Roles button', async () => {
       await this.sideNavBarComponent.verifyRolesButtonVisibility(visible);
     });
   }

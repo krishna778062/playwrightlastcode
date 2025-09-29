@@ -1,9 +1,9 @@
 # Global repository owners (for overall framework decisions)
-* @prateek-sqa
+* @prateek-sqa @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992
 
 
 # Core framework components (shared across all modules)
-/src/core/ @prateek-sqa
+/src/core/ @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992
 
 # Module-specific ownership
 # Chat Module
@@ -20,7 +20,7 @@
 /src/modules/global-search/ @prateek-sqa @shubhambhar @NiroshaYadla @pinku-simpplr
 
 # Integrations Module
-/src/modules/integrations/ @prateek-sqa @Srikant5g
+/src/modules/integrations/ @prateek-sqa @Srikant5g @abhishekbisht-21 @aniketSri98
 
 # Platforms Module
 /src/modules/platforms/ @prateek-sqa @poojapathak188 @amanmmishra @LakshmiJoshi1527

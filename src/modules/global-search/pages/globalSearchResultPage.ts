@@ -1,14 +1,17 @@
-import { expect, Locator, Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 import { test } from '@playwright/test';
+
+import { ExternalSearchListComponent } from '../components/externalSearchListComponent';
 
 import { ContentType } from '@/src/core/constants/contentTypes';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/pages/basePage';
-import { AppContainerComponent } from '@/src/modules/global-search/components/appListComponent';
+import { AppsAndLinkContainerComponent } from '@/src/modules/global-search/components/appsAndLinkListComponent';
 import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 import { FeedListComponent } from '@/src/modules/global-search/components/feedListComponent';
 import { IntranetFileListComponent } from '@/src/modules/global-search/components/intranetFileListComponent';
 import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
+import { SidebarFilterComponent } from '@/src/modules/global-search/components/sidebarFilterComponent';
 import { SiteListComponent } from '@/src/modules/global-search/components/siteListComponent';
 import { TileListComponent } from '@/src/modules/global-search/components/tileListComponent';
 import { IContentSearch } from '@/src/modules/global-search/types/content-search.type';
@@ -28,6 +31,8 @@ export class GlobalSearchResultPage extends BasePage {
   readonly tileResultItems: Locator;
   readonly tileButton: Locator;
   readonly appResultContainer: Locator;
+  readonly externalSearchResultItems: Locator;
+  readonly dismissButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -57,6 +62,18 @@ export class GlobalSearchResultPage extends BasePage {
     });
 
     this.appResultContainer = this.page.locator("div[class*='AppItemList_appListTopWrapper']");
+
+    this.externalSearchResultItems = this.page.locator("div[class*='externalSearchBox']");
+    this.dismissButton = this.page.locator('button[aria-label*="Dismiss"]');
+  }
+
+  /**
+   * Creates a sidebar filter component for the specified filter type
+   * @param options - Filter options with text and optional icon type
+   * @returns SidebarFilterComponent - The filter component instance
+   */
+  getSidebarFilter(options: { filterText: string; iconType?: string; siteName?: string }): SidebarFilterComponent {
+    return new SidebarFilterComponent(this.page, options);
   }
 
   private getTestIdForFileType(fileType: string): string {
@@ -184,7 +201,7 @@ export class GlobalSearchResultPage extends BasePage {
   private async handleExactMatchCheckboxRetry(verificationFn: () => Promise<void>) {
     try {
       await verificationFn();
-    } catch (error) {
+    } catch {
       // If the verification fails, check if the "Search for an exact match" checkbox is visible and click it
       const exactMatchCheckbox = this.page.getByRole('checkbox', { name: 'Search for an exact match' });
       await exactMatchCheckbox.waitFor({ state: 'visible', timeout: 50_000 });
@@ -354,6 +371,64 @@ export class GlobalSearchResultPage extends BasePage {
     const appResultToLocate = this.appResultContainer.locator('a').filter({
       has: this.page.locator('h3', { hasText: searchTerm }),
     });
-    return new AppContainerComponent(this.page, appResultToLocate);
+    return new AppsAndLinkContainerComponent(this.page, appResultToLocate);
+  }
+
+  /**
+   * Verifies external search results are displayed
+   */
+  async verifyExternalSearchLinksAreDisplayed(): Promise<ExternalSearchListComponent> {
+    return await test.step('Verifying external search results are displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.externalSearchResultItems, { timeout: 10000 });
+      return new ExternalSearchListComponent(this.page, this.externalSearchResultItems);
+    });
+  }
+
+  /**
+   * Verifies and clicks on a sidebar filter with complete verification workflow
+   * @param options - Filter options with text and optional icon type
+   */
+  async verifyAndClickSidebarFilter(options: { filterText: string; iconType?: string }): Promise<void> {
+    return await this.getSidebarFilter(options).verifyAndClickFilter();
+  }
+
+  /**
+   * Verifies and clicks on site subfilter with site selection
+   * @param siteName - The name of the site to select
+   */
+  async verifyAndClickSiteSubFilter(options: { filterText: string; siteName: string }): Promise<number> {
+    return await this.getSidebarFilter(options).verifyAndClickSiteSubFilter();
+  }
+
+  /**
+   * Verifies site subfilter with count tracking and reset functionality
+   * @param options - Options including filter text and site name
+   */
+  async verifySiteSubFilterWithCountTracking(options: {
+    filterText: string;
+    siteName: string;
+    originalCount: number;
+    expectedCountAfterFilter: number;
+  }): Promise<void> {
+    const siteSubFilter = this.getSidebarFilter(options);
+    await siteSubFilter.verifySiteSubFilterWithCountTracking({
+      expectedCountAfterFilter: options.expectedCountAfterFilter,
+      originalCount: options.originalCount,
+    });
+  }
+
+  /**
+   * Dismisses survey popup if present
+   */
+  async dismissSurveyPopupIfPresent(): Promise<void> {
+    await test.step('Checking for survey popup and dismissing if present', async () => {
+      try {
+        // Wait for the dismiss button to appear with a short timeout
+        await this.dismissButton.waitFor({ state: 'visible', timeout: 5000 });
+        await this.clickOnElement(this.dismissButton);
+      } catch {
+        // No survey popup present - continue with test
+      }
+    });
   }
 }

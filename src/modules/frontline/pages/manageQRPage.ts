@@ -1,10 +1,13 @@
+import { PopupType } from '@frontline/constants/popupType';
 import { Locator, Page } from '@playwright/test';
+import { addDays, format } from 'date-fns';
 
 import { BasePage } from '@core/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '../../../core/constants/pageEndpoints';
 
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
+import { ContentType } from '@/src/core/constants/contentTypes';
 
 export class ManageQRPage extends BasePage {
   readonly manageLink: Locator;
@@ -29,6 +32,15 @@ export class ManageQRPage extends BasePage {
   readonly toggleOnQRName: Locator;
   readonly togglePopup: Locator;
   readonly successMessage: Locator;
+  readonly enterContent: Locator;
+  readonly selectFirstContent: Locator;
+  readonly listOfPagesSelected: Locator;
+  readonly generateContentQRPageHeading: Locator;
+  readonly promoteContentQRModalHeading: Locator;
+  readonly contentPreviewQRPopupHeader: Locator;
+  readonly nextButton: Locator;
+  readonly validTillDatePicker: Locator;
+  readonly targetDay: (ariaLabel: string) => Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_QR_PAGE);
@@ -37,7 +49,7 @@ export class ManageQRPage extends BasePage {
     this.qrCodesLink = page.getByRole('menuitem', { name: 'QR codes' });
     this.addQRButton = page.getByText('Add QR');
     this.appPromotionMenuOption = page.getByRole('menuitem', { name: 'App promotion' });
-    this.contentMenuOption = page.getByRole('menuitem', { name: 'Content' });
+    this.contentMenuOption = page.getByRole('menuitem', { name: 'Content', exact: true });
     this.eyeIcon = page.getByTestId('preview-button');
     this.saveAndVisitDashboardBtn = page.getByRole('button', { name: 'Save and visit dashboard' });
     this.qrNameField = page.getByRole('textbox', { name: 'QR name*' });
@@ -57,6 +69,15 @@ export class ManageQRPage extends BasePage {
     this.toggleOnQRName = page.getByRole('switch');
     this.togglePopup = page.getByRole('tooltip').nth(0);
     this.successMessage = page.getByText('Successfully deleted QR code');
+    this.enterContent = page.getByRole('combobox', { name: 'Select content...' });
+    this.selectFirstContent = page.locator("//p[text()='Content']/..//div[@role='menuitem']").first();
+    this.listOfPagesSelected = page.getByRole('button', { name: /Remove/ });
+    this.generateContentQRPageHeading = page.getByText('Generate content QR');
+    this.promoteContentQRModalHeading = page.getByText('Promote content via QR');
+    this.contentPreviewQRPopupHeader = page.getByText('Preview QR code');
+    this.nextButton = page.getByRole('button', { name: 'Next' });
+    this.validTillDatePicker = page.getByLabel('Valid till');
+    this.targetDay = (ariaLabel: string) => page.getByRole('gridcell', { name: ariaLabel });
   }
 
   async clickOnManage() {
@@ -78,9 +99,9 @@ export class ManageQRPage extends BasePage {
    * the response and return the id of the new QR code
    * @returns The id of the new QR code
    */
-  async clickOnAddQRAndGetQRId(QRType: 'AppPromotion' | 'Content'): Promise<string> {
+  async clickOnAddQRAndGetQRId(qrType: 'AppPromotion' | 'Content'): Promise<string> {
     const qrCodeResponse = await this.performActionAndWaitForResponse(
-      () => this.clickOnAddQR(QRType),
+      () => this.clickOnAddQR(qrType),
       response =>
         response.url().includes(API_ENDPOINTS.qr.create) &&
         response.request().method() === 'POST' &&
@@ -95,11 +116,11 @@ export class ManageQRPage extends BasePage {
     return qrCodeResponseJson.result.qrCodeId;
   }
 
-  async clickOnAddQR(QRType: 'AppPromotion' | 'Content') {
+  async clickOnAddQR(qrType: 'AppPromotion' | 'Content') {
     await this.clickOnElement(this.addQRButton, {
       stepInfo: 'Click on Add QR button',
     });
-    if (QRType === 'AppPromotion') {
+    if (qrType === 'AppPromotion') {
       await this.clickOnElement(this.appPromotionMenuOption, {
         stepInfo: 'Click on App promotion menu option',
       });
@@ -107,6 +128,9 @@ export class ManageQRPage extends BasePage {
       await this.clickOnElement(this.contentMenuOption, {
         stepInfo: 'Click on Content menu option',
       });
+      await this.verifyContentQRPageHeading();
+      await this.enterAndSelectContent();
+      await this.clickOnNextButton();
     }
   }
 
@@ -155,10 +179,26 @@ export class ManageQRPage extends BasePage {
     });
   }
 
-  async verifyPopupDisplayedByHeader(expectedText: string) {
+  async verifyPromotionPopup() {
+    await this.appPreviewQRPopupHeader.waitFor();
     await this.verifier.verifyTheElementIsVisible(this.appPreviewQRPopupHeader, {
-      assertionMessage: `Popup header should display: ${expectedText}`,
+      assertionMessage: 'App preview popup header should be visible',
     });
+  }
+
+  async verifyPreviewPopup() {
+    await this.contentPreviewQRPopupHeader.waitFor();
+    await this.verifier.verifyTheElementIsVisible(this.contentPreviewQRPopupHeader, {
+      assertionMessage: 'Content preview popup header should be visible',
+    });
+  }
+
+  async verifyPopupDisplayedByHeader(popupType: PopupType) {
+    if (popupType === PopupType.PromotionPopup) {
+      await this.verifyPromotionPopup();
+    } else if (popupType === PopupType.PreviewPopup) {
+      await this.verifyPreviewPopup();
+    }
   }
 
   async verifyQRImageDisplayOnPreview() {
@@ -199,23 +239,19 @@ export class ManageQRPage extends BasePage {
     });
   }
 
-  async deleteAppQRByName(qrName: string) {
+  async deleteAppQRByName(qrType: 'AppPromotion' | 'Content', qrName: string) {
     await this.clickOnThreeDots(qrName);
     await this.clickOnDelete();
-    await this.clickOnDeleteButton();
+    if (qrType === 'AppPromotion') {
+      await this.clickOnDeleteButton();
+    }
+    await this.verifySuccessMessage();
   }
 
   async verifySuccessMessage() {
     await this.verifier.verifyTheElementIsVisible(this.successMessage, {
       assertionMessage: 'Success message should be displayed',
     });
-  }
-
-  async deleteQRWithSuccess(qrName: string) {
-    await this.clickOnThreeDots(qrName);
-    await this.clickOnDelete();
-    await this.clickOnDeleteButton();
-    await this.verifySuccessMessage();
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -235,6 +271,64 @@ export class ManageQRPage extends BasePage {
       'QR codes promoting the mobile app cannot be marked disabled as they are directly mapped with App/Play store links.';
     await this.verifier.verifyTheElementIsVisible(this.togglePopup, {
       assertionMessage: `Toggle popup should display text: ${expectedText}`,
+    });
+  }
+  /**
+   * Clicks on the Content menu option
+   */
+  async clickOnContentMenu() {
+    await this.clickOnElement(this.contentMenuOption, {
+      stepInfo: 'Click on Content menu option',
+    });
+  }
+
+  async enterAndSelectContent() {
+    await this.enterContent.fill(ContentType.Page);
+    await this.selectFirstContent.click();
+  }
+
+  async verifyContentQRPageHeading() {
+    await this.verifier.verifyTheElementIsVisible(this.generateContentQRPageHeading, {
+      assertionMessage: 'Generate content QR page heading should be visible',
+    });
+  }
+
+  async verifyContentQRModalHeading() {
+    await this.verifier.verifyTheElementIsVisible(this.promoteContentQRModalHeading, {
+      assertionMessage: 'GPromote content via QR Modal heading should be visible',
+    });
+  }
+
+  /**
+   * Selects a date from the date picker using a relative approach
+   *
+   * Approach:
+   * 1. Click on the date picker to open the calendar
+   * 2. Calculate the target date by adding/subtracting days from today
+   * 3. Format the date to match the aria-label format used by the calendar component
+   * 4. Locate the specific date cell using the formatted aria-label
+   * 5. Click on the target date to select it
+   *
+   * @param daysFromToday - Number of days from today to select (positive for future dates, negative for past dates)
+   *                        Examples: 1 = tomorrow, 7 = next week, -1 = yesterday
+   */
+  async selectDateFromToday(daysFromToday: number) {
+    await this.clickOnElement(this.validTillDatePicker, {
+      stepInfo: 'Click on Valid till date picker',
+    });
+    const targetDate = addDays(new Date(), daysFromToday);
+    let ariaLabel = format(targetDate, 'dd MMM yyyy');
+    ariaLabel = ariaLabel.split(' ')[0];
+    const targetDay = this.targetDay(ariaLabel);
+
+    await this.clickOnElement(targetDay, {
+      stepInfo: `Click on date: ${ariaLabel}`,
+    });
+  }
+
+  async clickOnNextButton() {
+    await this.clickOnElement(this.nextButton, {
+      stepInfo: 'Click on Next button',
     });
   }
 }

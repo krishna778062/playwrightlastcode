@@ -11,4 +11,4 @@ export * from './audience.type';
 export * from './http.type';
 
 // Feed related types
-export * from './feed.types';
+export * from './feed.type';
