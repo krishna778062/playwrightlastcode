@@ -464,7 +464,8 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
    */
   async openMentionsSection(options?: { stepInfo?: string }) {
     await test.step(options?.stepInfo ?? `Opening mentions section`, async () => {
-      await this.page.getByTestId('chat.mentions-section').click();
+      const mentionsSection = this.page.getByTestId('chat.mentions-section');
+      await this.clickByInjectingJavaScript(mentionsSection);
     });
   }
 
