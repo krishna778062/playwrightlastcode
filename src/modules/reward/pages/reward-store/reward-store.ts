@@ -37,6 +37,21 @@ export class RewardsStore extends BasePage {
   readonly orderHistoryPanelRewardName: Locator;
   readonly orderHistoryPanelRewardImage: Locator;
   readonly orderHistoryPanelRewardResendButton: Locator;
+  readonly orderHistoryPanelRewardPrimaryEmail: Locator;
+  readonly orderHistoryPanelRewardLogo: Locator;
+  readonly disabledResendButton: Locator;
+  readonly resendOrderTooltip: Locator;
+  readonly resentRewardDialog: Locator;
+  readonly resentRewardDialogBoxEmailInput: Locator;
+  readonly resentRewardDialogBoxConfirmEmailInput: Locator;
+  readonly resentRewardDialogBoxEmailLabel: Locator;
+  readonly resentRewardDialogBoxConfirmEmailLabel: Locator;
+  readonly resentRewardDialogBoxDescription: Locator;
+  readonly resentRewardDialogBoxHeading: Locator;
+  readonly resentRewardDialogBoxCancel: Locator;
+  readonly resentRewardDialogBoxResend: Locator;
+  readonly resentRewardInvalidEmailError: Locator;
+  readonly resentRewardDoNotMatchEmailError: Locator;
   readonly rewardsDialogBox: RewardsDialogBox;
 
   /**
@@ -85,6 +100,27 @@ export class RewardsStore extends BasePage {
     this.orderHistoryPanelRewardResendButton = this.orderHistoryPanel.locator(
       '[class*="OrderHistory_buttonContainer"] button'
     );
+    this.orderHistoryPanelRewardPrimaryEmail = this.orderHistoryPanel.locator('div div[class*="OrderHistory_email"]');
+    this.orderHistoryPanelRewardLogo = this.orderHistoryPanel.locator('[class*="OrderHistory_brandImage"] img');
+    this.disabledResendButton = this.orderHistoryPanelRewardResendButton.filter({ hasText: 'Resend' });
+    this.resendOrderTooltip = page.locator('[role="tooltip"]');
+    this.resentRewardDialog = page.locator('[role="dialog"]');
+    this.resentRewardDialogBoxEmailInput = this.resentRewardDialog.getByRole('textbox', { name: 'Email address*' });
+    this.resentRewardDialogBoxConfirmEmailInput = this.resentRewardDialog.getByRole('textbox', {
+      name: 'Confirm email*',
+    });
+    this.resentRewardDialogBoxEmailLabel = this.resentRewardDialog.locator('label[for*="email"]');
+    this.resentRewardDialogBoxConfirmEmailLabel = this.resentRewardDialog.locator('label[for*="confirm"]');
+    this.resentRewardDialogBoxDescription = this.resentRewardDialog.locator('p[class*="Typography-module__paragraph"]');
+    this.resentRewardDialogBoxHeading = this.resentRewardDialog.locator('h2[class*="Typography-module__heading"]');
+    this.resentRewardDialogBoxCancel = this.resentRewardDialog.getByRole('button', { name: 'Cancel' });
+    this.resentRewardDialogBoxResend = this.resentRewardDialog.getByRole('button', { name: 'Resend' });
+    this.resentRewardInvalidEmailError = this.resentRewardDialog
+      .locator('p[class*="Field-module__error"]')
+      .filter({ hasText: 'This is not a valid email address' });
+    this.resentRewardDoNotMatchEmailError = this.resentRewardDialog
+      .locator('p[class*="Field-module__error"]')
+      .filter({ hasText: 'Emails do not match' });
 
     // Dialog box
     this.rewardsDialogBox = new RewardsDialogBox(page);
@@ -298,5 +334,147 @@ export class RewardsStore extends BasePage {
     await this.clickOnElement(this.rewardsDialogBox.closeButton, {
       stepInfo: 'Clicking on close button',
     });
+  }
+
+  async mockTheOrderAPIResponse() {
+    await this.page.route('**/recognition/redemption/orders?**', async route => {
+      try {
+        // First, get the actual order data
+        const response = await route.fetch();
+        const originalData = await response.json();
+
+        // Modify the first order to have a date before 90 days
+        if (originalData.results && originalData.results.length > 0) {
+          const ninetyDaysAgo = new Date();
+          ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 95); // 95 days ago to ensure it's before 90 days
+
+          originalData.results[0].createdAt = ninetyDaysAgo.toISOString();
+          originalData.results[0].canResend = false; // Disable resend for old orders
+        }
+
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(originalData),
+        });
+      } catch {
+        // Fallback to original response if fetching fails
+        await route.continue();
+      }
+    });
+  }
+
+  async validateTheOrderResendForMoreThan90Days() {
+    await this.disabledResendButton.hover({ force: true });
+    await this.verifier.verifyTheElementIsVisible(this.resendOrderTooltip);
+    await this.verifier.verifyElementHasText(
+      this.resendOrderTooltip,
+      'Rewards can only be resent within 90 days of your order date'
+    );
+  }
+
+  async validateTheOrderHistoryElements() {
+    await this.verifier.verifyTheElementIsVisible(this.orderHistorySearchField);
+    const counts = await this.orderHistoryPanel.count();
+    expect(counts).toBeGreaterThanOrEqual(1);
+
+    for (let i = 0; i < counts; i++) {
+      await this.orderHistoryPanelRewardName.nth(i).scrollIntoViewIfNeeded();
+      await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardName.nth(i));
+      await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardLogo.nth(i));
+      await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardResendButton.nth(i));
+    }
+  }
+
+  async clickOnTheResendButton(number: number) {
+    await this.orderHistoryPanelRewardResendButton.nth(number - 1).waitFor({ state: 'visible', timeout: 10000 });
+    await this.clickOnElement(this.orderHistoryPanelRewardResendButton.nth(number - 1), {
+      stepInfo: `Clicking on the ${number} indexed Resend order button`,
+    });
+  }
+
+  async validateTheResendDialogElements() {
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialog);
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxResend);
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxDescription);
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxEmailLabel);
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxConfirmEmailLabel);
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxEmailInput);
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxConfirmEmailInput);
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxCancel);
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxResend);
+    await this.verifier.verifyTheElementIsDisabled(this.resentRewardDialogBoxResend);
+  }
+
+  async clickOnTheCancelButtonInResendReward() {
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxCancel);
+    await this.verifier.verifyTheElementIsEnabled(this.resentRewardDialogBoxCancel);
+    await this.clickOnElement(this.resentRewardDialogBoxCancel, {
+      stepInfo: 'Clicking on cancel button in resend reward dialog',
+    });
+    await this.verifier.verifyTheElementIsNotVisible(this.resentRewardDialog);
+  }
+
+  async enterAllTheDetailsAndClickOnResend(email: string) {
+    const inputValue = await this.resentRewardDialogBoxEmailInput.inputValue();
+
+    // Enter invalid email and validate error
+    await this.fillInElement(this.resentRewardDialogBoxEmailInput, 'sonu.kumar@simpplr.com@REWARDS', {
+      stepInfo: 'Entering invalid email',
+    });
+    await this.resentRewardDialogBoxEmailInput.blur();
+    await this.clickOnElement(this.resentRewardDialogBoxHeading, {
+      stepInfo: 'Clicking on dialog heading',
+    });
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardInvalidEmailError);
+    await this.verifier.verifyElementHasText(this.resentRewardInvalidEmailError, 'This is not a valid email address');
+    await this.verifier.verifyTheElementIsDisabled(this.resentRewardDialogBoxResend);
+
+    // Enter different email in confirm field and validate error
+    await this.fillInElement(this.resentRewardDialogBoxConfirmEmailInput, 'sonu.kumar@simpplr.com', {
+      stepInfo: 'Entering different email in confirm field',
+    });
+    await this.resentRewardDialogBoxEmailInput.blur();
+    await this.clickOnElement(this.resentRewardDialogBoxHeading, {
+      stepInfo: 'Clicking on dialog heading',
+    });
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDoNotMatchEmailError);
+    await this.verifier.verifyElementHasText(this.resentRewardDoNotMatchEmailError, 'Emails do not match');
+    await this.verifier.verifyTheElementIsDisabled(this.resentRewardDialogBoxResend);
+
+    // Enter valid email and enable resend button
+    if (email === 'primary') {
+      await this.fillInElement(this.resentRewardDialogBoxEmailInput, inputValue, {
+        stepInfo: 'Entering primary email',
+      });
+      await this.resentRewardDialogBoxEmailInput.blur();
+      await this.fillInElement(this.resentRewardDialogBoxConfirmEmailInput, inputValue, {
+        stepInfo: 'Confirming primary email',
+      });
+      await this.resentRewardDialogBoxConfirmEmailInput.blur();
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        throw new Error(`Invalid email format: ${email}`);
+      }
+      await this.fillInElement(this.resentRewardDialogBoxEmailInput, email, {
+        stepInfo: 'Entering custom email',
+      });
+      await this.fillInElement(this.resentRewardDialogBoxConfirmEmailInput, email, {
+        stepInfo: 'Confirming custom email',
+      });
+      await this.resentRewardDialogBoxConfirmEmailInput.blur();
+    }
+    await this.clickOnElement(this.resentRewardDialogBoxHeading, {
+      stepInfo: 'Clicking on dialog heading',
+    });
+    await this.verifier.verifyTheElementIsEnabled(this.resentRewardDialogBoxResend);
+    await this.clickOnElement(this.resentRewardDialogBoxResend, {
+      stepInfo: 'Clicking on resend button',
+    });
+  }
+
+  async validateTheResentConfirmation() {
+    await this.verifyToastMessageIsVisibleWithText('Reward sent successfully');
   }
 }
