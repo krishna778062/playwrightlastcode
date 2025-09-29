@@ -22,8 +22,8 @@ export class SideNavBarComponent extends BaseComponent {
     super(page);
     this.createSection = page.locator('span', { hasText: 'Create' });
     this.analyticsButton = page.getByRole('menuitem', { name: 'Analytics', exact: true });
-    this.feedLink = page.locator('p', { hasText: 'Feed' });
-    this.homeLink = page.locator('p', { hasText: 'Home' });
+    this.feedLink = page.locator('p', { hasText: /^Feed$/ });
+    this.homeLink = page.getByRole('menuitem', { name: 'Home Home' });
     this.applicationSettings = page.locator('p', { hasText: 'Application settings' });
     this.sitesButton = page.getByRole('button', { name: 'Sites' });
     this.navigateOnApplication = page.getByRole('menuitem', { name: 'Application settings', exact: true });
