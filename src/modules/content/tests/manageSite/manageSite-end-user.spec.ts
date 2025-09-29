@@ -2,14 +2,15 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { tagTest } from '@core/utils/testDecorator';
+
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ApplicationScreenPage } from '@/src/modules/content/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/pages/manageSitePage';
 import { SiteCategoriesPage } from '@/src/modules/content/pages/siteCategoriesPage';
 import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
-import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
   ContentSuiteTags.MANAGE_SITE,
