@@ -26,7 +26,15 @@
       "@integrations-pages/*": ["./src/modules/integrations/pages/*"],
       "@integrations-components/*": ["./src/modules/integrations/components/*"],
       "@integrations-api/*": ["./src/modules/integrations/api/*"],
-      "@integrations-test-data/*": ["./src/modules/integrations/test-data/*"]
+      "@integrations-test-data/*": ["./src/modules/integrations/test-data/*"],
+      "@alert-notification/*": ["./src/modules/alert-notification/*"],
+      "@alert-notification-fixtures/*": ["./src/modules/alert-notification/fixtures/*"],
+      "@alert-notification-pages/*": ["./src/modules/alert-notification/pages/*"],
+      "@alert-notification-helpers/*": ["./src/modules/alert-notification/helpers/*"],
+      "@alert-notification-tests/*": ["./src/modules/alert-notification/tests/*"],
+      "@alert-notification-env/*": ["./src/modules/alert-notification/env/*"],
+      "@alert-notification-constants/*": ["./src/modules/alert-notification/constants/*"],
+      "@alert-notification-test-data/*": ["./src/modules/alert-notification/test-data/*"]
     },
     "target": "ES2019",
     "module": "commonjs",
