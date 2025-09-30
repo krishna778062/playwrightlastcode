@@ -208,23 +208,97 @@ await rewardsStorePage.rewardsDialogBox.enterTheConfirmEmail();
 **After (Central Framework):**
 
 ```typescript
-// Placeholder object in page object
-readonly rewardsDialogBox: any;
+// Create a separate dialog box class
+export class RewardsDialogBox extends BasePage {
+  readonly container: Locator;
+  readonly checkoutButton: Locator;
+  readonly confirmOrder: Locator;
+  // ... other locators
+
+  constructor(page: Page) {
+    super(page);
+    this.container = page.getByRole('dialog');
+    this.checkoutButton = this.container.getByRole('button', { name: 'Checkout' });
+    this.confirmOrder = this.container.getByRole('button', { name: 'Confirm order' });
+    // ... other locator initializations
+  }
+
+  async clickOnTheCheckoutButton() {
+    await this.clickOnElement(this.checkoutButton, {
+      stepInfo: 'Clicking on checkout button',
+    });
+  }
+}
+
+// Use in main page object
+readonly rewardsDialogBox: RewardsDialogBox;
 
 constructor(page: Page) {
   // ... other locators
-  this.rewardsDialogBox = {
-    clickOnTheCheckoutButton: () => Promise.resolve(),
-    enterTheConfirmEmail: () => Promise.resolve(),
-    checkTheTermsAndConditionCheckbox: () => Promise.resolve(),
-    confirmOrder: page.locator('button[type="submit"]'),
-    clickOnConfirmOrder: () => Promise.resolve(),
-    successOrderLogo: page.locator('[class*="SuccessDialog_logo"]'),
-    successOrderHeading: page.locator('[class*="SuccessDialog_heading"]'),
-    successOrderDescription: page.locator('[class*="SuccessDialog_description"]'),
-    closeTheSuccessDialogBox: () => Promise.resolve(),
-  };
+  this.rewardsDialogBox = new RewardsDialogBox(page);
 }
+```
+
+### 7. API Mocking and Route Interception
+
+**Before (Old Rewards):**
+
+```typescript
+// Direct API mocking in test
+await rewardsStorePage.mockTheAvailablePoints(Number(limits[0] - 10));
+```
+
+**After (Central Framework):**
+
+```typescript
+// Add mocking method to page object
+async mockTheAvailablePoints(pointToSpend: number) {
+  await this.page.route('**/recognition/rewards/users/**/wallet', route =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        result: {
+          gifting: {
+            pendingIn: 0,
+            available: 0,
+            refreshingAt: '2025-07-01T00:00:00.000Z',
+          },
+          redeemable: {
+            pendingIn: 0,
+            available: Number(pointToSpend),
+          },
+          redeemed: {
+            pendingIn: 0,
+            available: 0,
+          },
+        },
+      }),
+    })
+  );
+  await this.page.reload();
+}
+
+// Use in test
+await rewardsStore.mockTheAvailablePoints(Number(limits[0] - 10));
+```
+
+### 8. Input Field Interactions with Blur Events
+
+**Before (Old Rewards):**
+
+```typescript
+await rewardsStorePage.rewardsDialogBox.rewardAmountInputBox.fill(String(Number(limits[0] - 10)));
+await rewardsStorePage.rewardsDialogBox.rewardAmountInputBox.blur();
+```
+
+**After (Central Framework):**
+
+```typescript
+await rewardsStore.fillInElement(rewardsStore.rewardsDialogBox.rewardAmountInputBox, String(Number(limits[0] - 10)), {
+  stepInfo: 'Filling reward amount input box',
+});
+await rewardsStore.rewardsDialogBox.rewardAmountInputBox.blur();
 ```
 
 ## Common Utility Function Mappings
@@ -283,6 +357,12 @@ See the following migrated files for complete examples of how to migrate test fi
    - Complex UI component handling
    - Multiple page object interactions
    - Dynamic content handling
+
+3. **API Mocking Test Migration**: `rewards-variable-giftcard-redemption.spec.ts` in `/src/modules/reward/tests/reward-store/`
+   - API route interception and mocking
+   - Input field interactions with blur events
+   - Error message validation patterns
+   - Complex dialog box interactions
 
 ## Notes
 
