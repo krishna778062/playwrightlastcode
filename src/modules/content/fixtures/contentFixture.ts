@@ -35,6 +35,10 @@ export const users = {
     email: envConfig.siteManagerEmail || '',
     password: envConfig.siteManagerPassword || '',
   },
+  socialCampaignManager: {
+    email: envConfig.socialCampaignManagerEmail || '',
+    password: envConfig.socialCampaignManagerPassword || '',
+  },
 } as const;
 
 // Shared login function to reduce code duplication
