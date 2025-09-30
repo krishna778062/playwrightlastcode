@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import { UI_ACTIONS } from '@integrations-constants/common';
 import { MESSAGES } from '@integrations-constants/messageRepo';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
+import { IntegrationsFeatureTags } from '@integrations-constants/testTags';
 import { createCustomMultiUserFixture, multiUserTileFixture } from '@integrations-fixtures/multiUserTileFixture';
 import { test } from '@playwright/test';
 
@@ -30,7 +31,7 @@ const expensifyMultiUserFixture = createCustomMultiUserFixture(expensifyAdmin, e
 test.describe(
   'expensify App Tiles Multi-user Tests',
   {
-    tag: [IntegrationsSuiteTags.EXPENSIFY, IntegrationsSuiteTags.ABSOLUTE],
+    tag: [IntegrationsSuiteTags.EXPENSIFY, IntegrationsSuiteTags.ABSOLUTE, IntegrationsFeatureTags.MULTI_USER],
   },
   () => {
     const AppName = 'Expensify';

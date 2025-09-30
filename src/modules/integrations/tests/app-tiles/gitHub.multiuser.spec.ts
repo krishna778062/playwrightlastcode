@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import { UI_ACTIONS } from '@integrations-constants/common';
 import { MESSAGES } from '@integrations-constants/messageRepo';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
+import { IntegrationsFeatureTags } from '@integrations-constants/testTags';
 import { multiUserTileFixture } from '@integrations-fixtures/multiUserTileFixture';
 import { test } from '@playwright/test';
 
@@ -16,7 +17,7 @@ import { SiteDashboard } from '@/src/modules/integrations/pages/siteDashboard';
 test.describe(
   'gitHub App Tiles Multi-user Tests',
   {
-    tag: [IntegrationsSuiteTags.GITHUB, IntegrationsSuiteTags.ABSOLUTE],
+    tag: [IntegrationsSuiteTags.GITHUB, IntegrationsSuiteTags.ABSOLUTE, IntegrationsFeatureTags.MULTI_USER],
   },
   () => {
     const AppName = 'GitHub';
