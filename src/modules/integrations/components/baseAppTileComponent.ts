@@ -20,6 +20,8 @@ export class BaseAppTileComponent extends BaseComponent {
   readonly tileSelector: Locator;
   readonly urlRadioButton: (name: string) => Locator;
   readonly urlTextbox: (name: string) => Locator;
+  readonly textboxByName: (name: string) => Locator;
+  readonly fieldInputByTestId: (fieldName: string) => Locator;
 
   constructor(page: Page) {
     super(page);
@@ -34,6 +36,8 @@ export class BaseAppTileComponent extends BaseComponent {
     this.tileSelector = page.locator('aside.Tile');
     this.urlRadioButton = (name: string) => page.getByRole('radio', { name });
     this.urlTextbox = (name: string) => page.getByRole('textbox', { name });
+    this.textboxByName = (name: string) => page.getByRole('textbox', { name });
+    this.fieldInputByTestId = (fieldName: string) => page.locator(`[data-testid="field-${fieldName}"] input`);
   }
   protected getAppTileButton(name: string): Locator {
     return this.page.getByRole('button', { name: name, exact: true });
@@ -400,9 +404,9 @@ export class BaseAppTileComponent extends BaseComponent {
    */
   async inputFieldByName(fieldName: string, value: string): Promise<void> {
     await test.step(`Input ${fieldName}: ${value}`, async () => {
-      let input = this.page.getByRole('textbox', { name: fieldName });
+      let input = this.textboxByName(fieldName);
       if ((await input.count()) === 0) {
-        input = this.page.locator(`[data-testid="field-${fieldName}"] input`);
+        input = this.fieldInputByTestId(fieldName);
       }
       await input.fill(value);
     });
