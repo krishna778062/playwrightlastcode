@@ -132,7 +132,7 @@ test.describe(
     multiUserTileFixture(
       'site Manager creates site with UKG Pro Display upcoming schedule tile, End User verifies, Site Manager deletes tile and deactivates site',
       {
-        tag: [TestPriority.P3, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient }) => {
         tagTest(multiUserTileFixture.info(), {
