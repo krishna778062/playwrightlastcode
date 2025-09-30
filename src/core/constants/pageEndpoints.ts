@@ -62,4 +62,5 @@ export const PAGE_ENDPOINTS = {
   DOMAIN_NAMES_PAGE: '/manage/app/integrations/domains',
   EVENTS_PAGE: '/people/:userId/calendar',
   CUSTOM_APP_TILES_PAGE: '/manage/custom-app-tiles',
+  USER_SYNCING_PAGE: '/manage/app/people/user-syncing',
 };
