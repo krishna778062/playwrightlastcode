@@ -39,12 +39,12 @@ test.describe(
     multiUserTileFixture(
       'multi-user tile management for UKG Pro Workforce Management Apply for Time Off app tile - Admin creates, EndUser verifies, Admin deletes',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-27189',
-          storyId: 'INT-23049',
+          zephyrTestId: 'INT-28158',
+          storyId: 'INT-22854',
         });
 
         //Generate a random tile title
@@ -68,8 +68,8 @@ test.describe(
       },
       async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-24195',
-          storyId: 'INT-23049',
+          zephyrTestId: 'INT-28159',
+          storyId: 'INT-22854',
         });
 
         //Generate a random tile title
@@ -101,8 +101,8 @@ test.describe(
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-27189',
-          storyId: 'INT-23049',
+          zephyrTestId: 'INT-28160',
+          storyId: 'INT-22854',
         });
 
         //Generate a random tile title
@@ -134,8 +134,8 @@ test.describe(
       },
       async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-24195',
-          storyId: 'INT-23049',
+          zephyrTestId: 'INT-28161',
+          storyId: 'INT-22854',
         });
 
         //Generate a random tile title

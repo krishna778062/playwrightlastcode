@@ -42,8 +42,8 @@ test.describe(
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-27189',
-          storyId: 'INT-23049',
+          zephyrTestId: 'INT-28162',
+          storyId: 'INT-20795',
         });
 
         //Generate a random tile title
@@ -74,8 +74,8 @@ test.describe(
       },
       async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-24195',
-          storyId: 'INT-23049',
+          zephyrTestId: 'INT-28163',
+          storyId: 'INT-20795',
         });
 
         //Generate a random tile title
@@ -110,12 +110,12 @@ test.describe(
     multiUserTileFixture(
       'multi-user tile management for UKG Pro Display Time Off Balance app tile - Admin creates, EndUser verifies, Admin deletes',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P12, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-27189',
-          storyId: 'INT-23049',
+          zephyrTestId: 'INT-21151',
+          storyId: 'INT-20795',
         });
 
         //Generate a random tile title
@@ -139,8 +139,8 @@ test.describe(
       },
       async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-24195',
-          storyId: 'INT-23049',
+          zephyrTestId: 'INT-28164',
+          storyId: 'INT-20795',
         });
 
         //Generate a random tile title
