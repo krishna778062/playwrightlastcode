@@ -244,7 +244,7 @@ test.describe(
       },
       async ({ homeDashboard, tileManagementHelper }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23138',
+          zephyrTestId: 'INT-23693',
           storyId: 'INT-22854',
         });
 
@@ -268,7 +268,7 @@ test.describe(
       },
       async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23138',
+          zephyrTestId: 'INT-23186',
           storyId: 'INT-22854',
         });
 

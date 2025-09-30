@@ -53,7 +53,7 @@ test.describe(
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-27189',
+          zephyrTestId: 'INT-24797',
           storyId: 'INT-23049',
         });
 
@@ -78,7 +78,7 @@ test.describe(
       },
       async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-24195',
+          zephyrTestId: 'INT-24795',
           storyId: 'INT-23049',
         });
 

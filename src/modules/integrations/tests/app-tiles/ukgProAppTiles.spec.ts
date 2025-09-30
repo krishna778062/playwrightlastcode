@@ -207,7 +207,7 @@ test.describe(
       },
       async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
         tagTest(test.info(), {
-          zephyrTestId: ['INT-21114', 'INT-21086'],
+          zephyrTestId: 'INT-28183',
           storyId: 'INT-20795',
         });
         //Generate a random tile title
@@ -242,7 +242,7 @@ test.describe(
       },
       async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
         tagTest(test.info(), {
-          zephyrTestId: ['INT-21114', 'INT-21086'],
+          zephyrTestId: 'INT-28184',
           storyId: 'INT-20795',
         });
         //Generate a random tile title

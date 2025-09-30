@@ -1,201 +1,152 @@
 import { faker } from '@faker-js/faker';
-import {
-  TimeOffCategoryConfig,
-  TimeOffRequestTileComponent,
-} from '@integrations-components/timeOffRequestTileComponent';
-import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
-import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
+import { UI_ACTIONS } from '@integrations-constants/common';
+import { MESSAGES } from '@integrations-constants/messageRepo';
+import { IntegrationsFeatureTags, IntegrationsSuiteTags } from '@integrations-constants/testTags';
+import { multiUserTileFixture } from '@integrations-fixtures/multiUserTileFixture';
+import { test } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { UI_ACTIONS } from '@/src/modules/integrations/constants/common';
-import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
-import { CONNECTOR_IDS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import { waitUntilTilePresentInApi } from '@/src/modules/integrations/api/helpers/tileApiHelpers';
+import { HomeDashboard } from '@/src/modules/integrations/pages/homeDashboard';
+import { SiteDashboard } from '@/src/modules/integrations/pages/siteDashboard';
 
 test.describe(
-  'SAP SuccessFactors App Tiles Integration',
+  'SAP SuccessFactors App Tiles Multi-user Tests',
   {
-    tag: [IntegrationsSuiteTags.SAP_SUCCESSFACTORS, IntegrationsSuiteTags.ABSOLUTE],
+    tag: [IntegrationsSuiteTags.SAP_SUCCESSFACTORS, IntegrationsSuiteTags.ABSOLUTE, IntegrationsFeatureTags.MULTI_USER],
   },
   () => {
     const AppName = 'SAPSuccessFactors';
-    const DisplayTimeOffBalance = 'Display Time Off Balance';
-    const sickLeave = 'INDIA SICK LEAVE';
-    const compTime = 'Comp Time';
-
+    const DisplayTimeOffBalance = 'Display time Off balance';
+    const ApplyForTimeOff = 'Apply for time off';
     let createdTileTitle: string | undefined = undefined;
 
-    test.afterEach(async ({ tileManagementHelper, homeDashboard }) => {
+    multiUserTileFixture.afterEach(async ({ adminPage, tileManagementHelper }) => {
       if (createdTileTitle) {
+        const homeDashboard = new HomeDashboard(adminPage, tileManagementHelper);
         await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
         createdTileTitle = undefined;
       }
     });
 
-    test(
-      'create and edit SAP SuccessFactors Display Time Off Balance tile on home dashboard',
+    multiUserTileFixture(
+      'multi-user tile management for SAP SuccessFactors Display time Off balance app tile - Admin creates, EndUser verifies, Admin deletes',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P13, TestGroupType.SANITY],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-24073',
-          storyId: 'INT-23629',
-        });
-
-        createdTileTitle = `Display Time Off Balance ${faker.string.alphanumeric({ length: 6 })}`;
-
-        await tileManagementHelper.createIntegrationAppTile(
-          createdTileTitle,
-          TILE_IDS.SAP_DISPLAY_TIMEOFF_BALANCE,
-          CONNECTOR_IDS.SAP_SUCCESSFACTORS
-        );
-        await homeDashboard.isTilePresent(createdTileTitle);
-        const updatedTileTitle = `${createdTileTitle}-Updated`;
-        await homeDashboard.editTile(createdTileTitle, updatedTileTitle);
-        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
-        await homeDashboard.isTilePresent(updatedTileTitle);
-        createdTileTitle = updatedTileTitle;
-      }
-    );
-
-    test(
-      'create and edit SAP SuccessFactors Display Time Off Balance tile on site dashboard',
-      {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
-      },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
-        void homeDashboard;
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-24070',
-          storyId: 'INT-23629',
+      async ({ adminPage, endUserPage, tileManagementHelper }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: 'INT-21479',
+          storyId: 'INT-22854',
         });
 
         //Generate a random tile title
-        createdTileTitle = `Display Time Off Balance ${faker.string.alphanumeric({ length: 6 })}`;
+        createdTileTitle = `Display time Off balance ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Add tile, verify by both users, then remove
+        const adminHomeDashboard = new HomeDashboard(adminPage, tileManagementHelper);
+        await adminHomeDashboard.addTile(createdTileTitle, AppName, DisplayTimeOffBalance, UI_ACTIONS.ADD_TO_HOME);
+        await adminHomeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await adminHomeDashboard.isTilePresent(createdTileTitle);
+        const endUserHomeDashboard = new HomeDashboard(endUserPage, tileManagementHelper);
+        await waitUntilTilePresentInApi(endUserPage, createdTileTitle);
+        await endUserHomeDashboard.reloadAndVerifyTilePresent(createdTileTitle);
+      }
+    );
+
+    multiUserTileFixture(
+      'site Manager creates site with SAP SuccessFactors Display time Off balance tile, End User verifies, Site Manager deletes tile and deactivates site',
+      {
+        tag: [TestPriority.P13, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: 'INT-28167',
+          storyId: 'INT-22854',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Display time Off balance ${faker.string.alphanumeric({ length: 6 })}`;
+        const endUserSiteDashboard = new SiteDashboard(endUserPage);
+        const siteDashboard = new SiteDashboard(adminPage);
 
         // Create site and navigate
         const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
-        // Add, edit, and remove tile
+        // Add tile, verify by both users, then remove
         await siteDashboard.addTile(createdTileTitle, AppName, DisplayTimeOffBalance, UI_ACTIONS.ADD_TO_SITE);
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
-        const updatedTileTitle = `${createdTileTitle}-Updated`;
-        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
-        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
-        await siteDashboard.isTilePresent(updatedTileTitle);
-        createdTileTitle = updatedTileTitle;
-        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
-        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await endUserSiteDashboard.navigateToSite(createdSite.siteId);
+        await waitUntilTilePresentInApi(endUserPage, createdTileTitle);
+        await endUserSiteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.removeTile(createdTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         createdTileTitle = undefined;
       }
     );
 
-    test(
-      'create and edit SAP SuccessFactors Apply for Time Off tile on home dashboard',
+    multiUserTileFixture(
+      'multi-user tile management for SAP SuccessFactors Apply for time off app tile - Admin creates, EndUser verifies, Admin deletes',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P13, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-24069',
-          storyId: 'INT-23629',
-        });
-
-        createdTileTitle = `Apply for Time Off ${faker.string.alphanumeric({ length: 6 })}`;
-        await tileManagementHelper.createIntegrationAppTile(
-          createdTileTitle,
-          TILE_IDS.SAP_APPLY_FOR_TIMEOFF,
-          CONNECTOR_IDS.SAP_SUCCESSFACTORS
-        );
-        await homeDashboard.isTilePresent(createdTileTitle);
-        const updatedTileTitle = `${createdTileTitle}-Updated`;
-        await homeDashboard.editTile(createdTileTitle, updatedTileTitle);
-        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
-        await homeDashboard.isTilePresent(updatedTileTitle);
-        createdTileTitle = updatedTileTitle;
-      }
-    );
-
-    test(
-      'verify SAP SuccessFactors Display Time Off Balance tile on Site dashboard',
-      {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
-      },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
-        void homeDashboard;
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-24070',
-          storyId: 'INT-23629',
+      async ({ adminPage, endUserPage, tileManagementHelper }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: 'INT-24236',
+          storyId: 'INT-22854',
         });
 
         //Generate a random tile title
-        createdTileTitle = `Display Time Off Balance ${faker.string.alphanumeric({ length: 6 })}`;
+        createdTileTitle = `Apply for time off ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Add tile, verify by both users, then remove
+        const adminHomeDashboard = new HomeDashboard(adminPage, tileManagementHelper);
+        await adminHomeDashboard.addTile(createdTileTitle, AppName, ApplyForTimeOff, UI_ACTIONS.ADD_TO_HOME);
+        await adminHomeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await adminHomeDashboard.isTilePresent(createdTileTitle);
+        const endUserHomeDashboard = new HomeDashboard(endUserPage, tileManagementHelper);
+        await waitUntilTilePresentInApi(endUserPage, createdTileTitle);
+        await endUserHomeDashboard.reloadAndVerifyTilePresent(createdTileTitle);
+      }
+    );
+
+    multiUserTileFixture(
+      'site Manager creates site with SAP SuccessFactors Apply for time off tile, End User verifies, Site Manager deletes tile and deactivates site',
+      {
+        tag: [TestPriority.P13, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: 'INT-28170',
+          storyId: 'INT-22854',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Apply for time off ${faker.string.alphanumeric({ length: 6 })}`;
+        const endUserSiteDashboard = new SiteDashboard(endUserPage);
+        const siteDashboard = new SiteDashboard(adminPage);
 
         // Create site and navigate
         const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
-        // Add, edit, and remove tile
-        await siteDashboard.addTile(createdTileTitle, AppName, DisplayTimeOffBalance, UI_ACTIONS.ADD_TO_SITE);
+        // Add tile, verify by both users, then remove
+        createdTileTitle = `Apply for time off ${faker.string.alphanumeric({ length: 6 })}`;
+        await siteDashboard.addTile(createdTileTitle, AppName, ApplyForTimeOff, UI_ACTIONS.ADD_TO_SITE);
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
-        const updatedTileTitle = `${createdTileTitle}-Updated`;
-        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
-        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
-        await siteDashboard.isTilePresent(updatedTileTitle);
-        createdTileTitle = updatedTileTitle;
-        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
-        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await endUserSiteDashboard.navigateToSite(createdSite.siteId);
+        await waitUntilTilePresentInApi(endUserPage, createdTileTitle);
+        await endUserSiteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.removeTile(createdTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         createdTileTitle = undefined;
-      }
-    );
-
-    test(
-      'verify SAP SuccessFactors Apply for Time Off tile amount calculation for different categories',
-      {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
-      },
-      async ({ homeDashboard, tileManagementHelper, appManagerPage }) => {
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-24071',
-          storyId: 'INT-23629',
-        });
-
-        createdTileTitle = `Apply for Time Off ${faker.string.alphanumeric({ length: 6 })}`;
-
-        // Create SAP SuccessFactors Apply for Time Off tile
-        await tileManagementHelper.createIntegrationAppTile(
-          createdTileTitle,
-          TILE_IDS.SAP_APPLY_FOR_TIMEOFF,
-          CONNECTOR_IDS.SAP_SUCCESSFACTORS
-        );
-        await homeDashboard.isTilePresent(createdTileTitle);
-        const leaveForm = new TimeOffRequestTileComponent(appManagerPage);
-        const workingDays = 3;
-
-        // Verify all required fields are present
-        await leaveForm.verifyRequiredFields();
-
-        // Select leave dates starting tomorrow for the specified working days
-        await leaveForm.selectLeaveDates(workingDays);
-        await leaveForm.selectTimeOffCategory(sickLeave);
-        await leaveForm.verifyTotalDays(workingDays);
-
-        // Verify individual day amounts and total calculation (weekends will be 0)
-        const vacationConfig: TimeOffCategoryConfig = { unit: 'days', amountPerDay: 1 };
-        await leaveForm.verifyAmountValues(workingDays, workingDays, vacationConfig);
-        await leaveForm.selectTimeOffCategory(compTime);
-
-        // Verify hours mode (Sick category) - no need to click edit when switching categories
-        const sickConfig: TimeOffCategoryConfig = { unit: 'hours', amountPerDay: 8 };
-        const expectedTotalHours = workingDays * 8; // 3 working days * 8 hours = 24 hours
-        await leaveForm.verifyAmountValues(workingDays, expectedTotalHours, sickConfig, false);
       }
     );
   }
