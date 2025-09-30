@@ -6,7 +6,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 import { RewardsStore } from '@modules/reward/pages/reward-store/reward-store';
 
-test.describe.only('Rewards store - Order history page', { tag: [REWARD_FEATURE_TAGS.REWARD_STORE] }, () => {
+test.describe('Rewards store - Order history page', { tag: [REWARD_FEATURE_TAGS.REWARD_STORE] }, () => {
   test.beforeEach(async ({ appManagerPage }) => {
     const rewardsStore = new RewardsStore(appManagerPage);
     await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
@@ -35,10 +35,10 @@ test.describe.only('Rewards store - Order history page', { tag: [REWARD_FEATURE_
     }
   );
 
-  test(
+  test.only(
     '[RC-3245] Validate Resend reward dialogue on order history Resending',
     {
-      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, REWARD_FEATURE_TAGS.REWARD_STORE, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -47,9 +47,6 @@ test.describe.only('Rewards store - Order history page', { tag: [REWARD_FEATURE_
         storyId: 'RC-3245',
       });
       const rewardsStore = new RewardsStore(appManagerPage);
-      await rewardsStore.loadPage();
-      await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
-      await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
       await rewardsStore.visitTheOrderHistory();
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/order-history');
       await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
@@ -66,7 +63,7 @@ test.describe.only('Rewards store - Order history page', { tag: [REWARD_FEATURE_
   test(
     '[RC-3242] Validate order history resending using secondary email address',
     {
-      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, REWARD_FEATURE_TAGS.REWARD_STORE, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -94,7 +91,7 @@ test.describe.only('Rewards store - Order history page', { tag: [REWARD_FEATURE_
   test(
     '[RC-3244] Validate(form validation) if both email address field contains same value on resend reward dialogue',
     {
-      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, REWARD_FEATURE_TAGS.REWARD_STORE, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {

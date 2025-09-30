@@ -38,7 +38,6 @@ export class RewardsStore extends BasePage {
   readonly orderHistoryPanelRewardImage: Locator;
   readonly orderHistoryPanelRewardResendButton: Locator;
   readonly orderHistoryPanelRewardPrimaryEmail: Locator;
-  readonly orderHistoryPanelRewardLogo: Locator;
   readonly disabledResendButton: Locator;
   readonly resendOrderTooltip: Locator;
   readonly resentRewardDialog: Locator;
@@ -101,7 +100,6 @@ export class RewardsStore extends BasePage {
       '[class*="OrderHistory_buttonContainer"] button'
     );
     this.orderHistoryPanelRewardPrimaryEmail = this.orderHistoryPanel.locator('div div[class*="OrderHistory_email"]');
-    this.orderHistoryPanelRewardLogo = this.orderHistoryPanel.locator('[class*="OrderHistory_brandImage"] img');
     this.disabledResendButton = this.orderHistoryPanelRewardResendButton.filter({ hasText: 'Resend' });
     this.resendOrderTooltip = page.locator('[role="tooltip"]');
     this.resentRewardDialog = page.locator('[role="dialog"]');
@@ -365,7 +363,7 @@ export class RewardsStore extends BasePage {
   }
 
   async validateTheOrderResendForMoreThan90Days() {
-    await this.disabledResendButton.hover({ force: true });
+    await this.disabledResendButton.first().hover({ force: true });
     await this.verifier.verifyTheElementIsVisible(this.resendOrderTooltip);
     await this.verifier.verifyElementHasText(
       this.resendOrderTooltip,
@@ -381,7 +379,7 @@ export class RewardsStore extends BasePage {
     for (let i = 0; i < counts; i++) {
       await this.orderHistoryPanelRewardName.nth(i).scrollIntoViewIfNeeded();
       await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardName.nth(i));
-      await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardLogo.nth(i));
+      await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardImage.nth(i));
       await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardResendButton.nth(i));
     }
   }
@@ -419,14 +417,10 @@ export class RewardsStore extends BasePage {
     const inputValue = await this.resentRewardDialogBoxEmailInput.inputValue();
 
     // Enter invalid email and validate error
-    await this.fillInElement(this.resentRewardDialogBoxEmailInput, 'sonu.kumar@simpplr.com@REWARDS', {
+    await this.fillInElement(this.resentRewardDialogBoxEmailInput, `${inputValue}@REWARDS`, {
       stepInfo: 'Entering invalid email',
     });
-    await this.resentRewardDialogBoxEmailInput.blur();
-    await this.clickOnElement(this.resentRewardDialogBoxHeading, {
-      stepInfo: 'Clicking on dialog heading',
-    });
-    await this.verifier.verifyTheElementIsVisible(this.resentRewardInvalidEmailError);
+    await this.resentRewardDialogBoxHeading.click();
     await this.verifier.verifyElementHasText(this.resentRewardInvalidEmailError, 'This is not a valid email address');
     await this.verifier.verifyTheElementIsDisabled(this.resentRewardDialogBoxResend);
 
