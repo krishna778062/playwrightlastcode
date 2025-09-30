@@ -11,28 +11,28 @@ export default defineConfig({
   ...baseConfig,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'alert-notification', 'tests'),
   testIgnore: '**/api-tests/**',
-  timeout: 90000,
-  globalTimeout: 900000,
-  workers: process.env.CI ? 2 : 1,
-  retries: 0,
+  workers: process.env.CI ? 2 : 4,
+  timeout: 180_000,
   expect: {
     timeout: 10_000,
   },
-  use: {
-    ...baseConfig.use,
-    screenshot: 'only-on-failure',
-    trace: 'retain-on-failure',
-  },
-  reporter: [['html', { open: 'never' }]],
   projects: [
     {
       name: 'alert-notification-chromium',
       use: {
-        ...devices['Desktop Chrome'],
         headless: process.env.CI ? true : false,
+        video: 'on-first-retry',
+        ...devices['Desktop Chrome'],
+        permissions: ['camera', 'microphone'],
         baseURL: getEnvConfig().frontendBaseUrl,
         launchOptions: {
-          args: ['--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage'],
+          args: [
+            '--disable-gpu',
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
+            '--use-fake-ui-for-media-stream',
+            '--use-fake-device-for-media-stream',
+          ],
         },
       },
     },
