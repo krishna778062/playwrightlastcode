@@ -25,6 +25,7 @@ test.describe(
     const DisplayUpcomingSchedule = 'Display upcoming schedule';
     const ScheduleUrl = 'https://simpplr-dev.cfn.mykronos.com/wfd/ess/myschedule';
     const AppManagerDefined = 'App manager defined';
+    const SiteManagerDefined = 'Site manager defined';
     const ScheduleUrlOption = 'Schedule URL';
     let createdTileTitle: string | undefined = undefined;
 
@@ -131,7 +132,7 @@ test.describe(
     multiUserTileFixture(
       'site Manager creates site with UKG Pro Display upcoming schedule tile, End User verifies, Site Manager deletes tile and deactivates site',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P3, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -155,7 +156,7 @@ test.describe(
           createdTileTitle,
           AppName,
           DisplayUpcomingSchedule,
-          AppManagerDefined,
+          SiteManagerDefined,
           ScheduleUrlOption,
           ScheduleUrl,
           UI_ACTIONS.ADD_TO_SITE
