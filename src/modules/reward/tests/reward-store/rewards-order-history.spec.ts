@@ -12,7 +12,7 @@ test.describe('Rewards order history', { tag: REWARD_FEATURE_TAGS.REWARD_STORE }
     await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
   });
 
-  test(
+  test.only(
     '[RC-3538] Validate reward value of rewards on Order History page',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],

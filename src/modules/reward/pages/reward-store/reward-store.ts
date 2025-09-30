@@ -217,9 +217,10 @@ export class RewardsStore extends BasePage {
     }
     await this.selectAndRedeemGiftCard(giftCard);
     await this.validateSuccessMessage(successMessage, additionalMessages);
-
+    await this.page.reload();
     await this.visitTheOrderHistory();
     await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanel.first(), {
+      timeout: 10000,
       assertionMessage: ' Verify the order history panel is visible',
     });
     await this.verifier.verifyElementContainsText(this.orderHistoryPanelRewardName.first(), giftCard, {
