@@ -255,6 +255,15 @@ export class ConversationWindowComponent extends BaseComponent {
     return messageComponent!;
   }
 
+  async getDeletedMessageCardFromListOfChatMessages(): Promise<MessageCardComponent> {
+    let messageComponent: MessageCardComponent | undefined;
+    await test.step(`Getting focused message object from list of chat messages`, async () => {
+      const lastMessage = this.listChatMessagesComponent.last();
+      messageComponent = new MessageCardComponent(this.page, lastMessage);
+    });
+    return messageComponent!;
+  }
+
   async getFocusedMessageCardIdFromListOfChatMessages(messageText: string): Promise<string | null> {
     let messageId: string | null;
     return await test.step(`Getting focused message data-message-id from list of chat messages`, async () => {

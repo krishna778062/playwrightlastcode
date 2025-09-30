@@ -61,6 +61,36 @@ export class MessageCardComponent extends MessageBaseComponent {
     });
   }
 
+  async verifyMessageActionsNotVisibleToUser(): Promise<void> {
+    await test.step(`Verifying message actions are not visible`, async () => {
+      await this.messageContainer.hover();
+      await this.verifier.verifyTheElementIsNotVisible(this.messageActionsContainer, {
+        assertionMessage: 'expecting message actions container to be not visible',
+      });
+      await this.verifier.verifyTheElementIsNotVisible(this.emojiPickerButton, {
+        assertionMessage: 'expecting emoji picker button to be not visible',
+      });
+      await this.verifier.verifyTheElementIsNotVisible(this.threeDotsButtonToOpenMessageActionsMenu, {
+        assertionMessage: 'expecting three dots button to be not visible',
+      });
+    });
+  }
+
+  async verifyMessageActionsIsVisibleToUser(): Promise<void> {
+    await test.step(`Verifying message actions are not visible`, async () => {
+      await this.messageContainer.hover();
+      await this.verifier.verifyTheElementIsVisible(this.messageActionsContainer, {
+        assertionMessage: 'expecting message actions container to be not visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.emojiPickerButton, {
+        assertionMessage: 'expecting emoji picker button to be not visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.threeDotsButtonToOpenMessageActionsMenu, {
+        assertionMessage: 'expecting three dots button to be not visible',
+      });
+    });
+  }
+
   async reactOnMessage(reaction: MessageEmojis, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `React on message: ${reaction}`, async () => {
       await this.openMessageActions(options);
