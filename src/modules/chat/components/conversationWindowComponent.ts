@@ -232,13 +232,12 @@ export class ConversationWindowComponent extends BaseComponent {
 
   async getMessageItemFromChat(message: string, options?: { stepInfo?: string }): Promise<Locator> {
     await this.verifyMessageIsPresentInListOfChatMessages(message);
-    for (const eachMessage of await this.listChatMessagesComponent.all()) {
-      //fetch message
-      const messageText = await eachMessage.locator('section').locator('p').textContent();
+    const lastMessage = await this.listChatMessagesComponent.last();
+    //fetch message
+    const messageText = await lastMessage.locator('section').locator('p').textContent();
 
-      if (messageText === message) {
-        return eachMessage;
-      }
+    if (messageText === message) {
+      return lastMessage;
     }
     throw new Error(`Message: ${message} not found in the list of chat messages`);
   }
