@@ -10,6 +10,8 @@ export interface FormattingOptions {
   usesItalic?: boolean;
   usesUnderline?: boolean;
   usesStrikethrough?: boolean;
+  usesBulletList?: boolean;
+  usesOrderList?: boolean;
 }
 
 export class ChatEditorComponent extends BaseComponent {
@@ -21,6 +23,16 @@ export class ChatEditorComponent extends BaseComponent {
   readonly italicButton: Locator;
   readonly underlineButton: Locator;
   readonly strikethroughButton: Locator;
+  readonly bulletListButton: Locator;
+  readonly orderListButton: Locator;
+  readonly linkButton: Locator;
+  readonly linkTextBox: Locator;
+  readonly linkTextfield: Locator;
+  readonly linkUrlfield: Locator;
+  readonly linkUrlBox: Locator;
+  readonly insertButton: Locator;
+  readonly linkErrorMessage: Locator;
+  readonly textErrorMessage: Locator;
 
   //actions buttons
   readonly addMediaAttachmentButton: Locator;
@@ -48,6 +60,19 @@ export class ChatEditorComponent extends BaseComponent {
     this.italicButton = this.toolbarContainer.getByLabel('Italic');
     this.underlineButton = this.toolbarContainer.getByLabel('Underline');
     this.strikethroughButton = this.toolbarContainer.getByLabel('Strikethrough');
+    this.bulletListButton = this.toolbarContainer.getByLabel('Bulleted list');
+    this.orderListButton = this.toolbarContainer.getByLabel('Ordered list');
+    this.linkButton = this.toolbarContainer.getByLabel('Open Insert link options');
+    this.linkTextBox = this.page.locator('#text');
+    this.linkUrlBox = this.page.locator('#url');
+
+    this.linkTextfield = this.page.getByTestId('field-Text');
+    this.linkUrlfield = this.page.getByTestId('field-Link');
+
+    this.linkErrorMessage = this.page.getByText('Please enter a valid link');
+    this.textErrorMessage = this.page.getByText('Please fill out this field');
+
+    this.insertButton = this.page.locator('button[type="submit"]');
 
     //action buttons on editor footer
     this.addMediaAttachmentButton = this.chatEditorComponentContainer.getByLabel('Choose files');
@@ -285,6 +310,18 @@ export class ChatEditorComponent extends BaseComponent {
     });
   }
 
+  async verifyInsertLinkErrorMessages(errorType: string): Promise<void> {
+    if (errorType === 'link') {
+      await this.verifier.verifyTheElementIsVisible(this.linkErrorMessage, {
+        assertionMessage: 'Please enter a valid link',
+      });
+    } else if (errorType === 'text') {
+      await this.verifier.verifyTheElementIsVisible(this.textErrorMessage, {
+        assertionMessage: 'Please fill out this field',
+      });
+    }
+  }
+
   /**
    * Applies formatting options to the chat editor
    * @param formattingOptions - The formatting options to apply
@@ -302,6 +339,8 @@ export class ChatEditorComponent extends BaseComponent {
         { condition: formattingOptions.usesItalic, action: () => this.clickOnElement(this.italicButton) },
         { condition: formattingOptions.usesUnderline, action: () => this.clickOnElement(this.underlineButton) },
         { condition: formattingOptions.usesStrikethrough, action: () => this.clickOnElement(this.strikethroughButton) },
+        { condition: formattingOptions.usesBulletList, action: () => this.clickOnElement(this.bulletListButton) },
+        { condition: formattingOptions.usesOrderList, action: () => this.clickOnElement(this.orderListButton) },
       ];
 
       for (const { condition, action } of formattingActions) {
