@@ -12,7 +12,7 @@ let peopleTab: PeopleTabPage;
 test.describe(
   'people tab',
   {
-    tag: [IntegrationsSuiteTags.GAMMA, GammaIntegrationsFeatureTags.AD_GROUP],
+    tag: [IntegrationsSuiteTags.GAMMA, GammaIntegrationsFeatureTags.PEOPLE_TAB],
   },
   () => {
     test.beforeEach(async ({ appManagerPage }) => {
