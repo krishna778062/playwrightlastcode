@@ -230,4 +230,74 @@ export class RewardsStore extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardImage.first());
     await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardResendButton.first());
   }
+
+  async mockTheAvailablePoints(pointToSpend: number) {
+    // Get next month's first day
+    const now = new Date();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const refreshingAt = nextMonth.toISOString();
+
+    await this.page.route('**/recognition/rewards/users/**/wallet', route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          result: {
+            gifting: {
+              pendingIn: 0,
+              available: 0,
+              refreshingAt: refreshingAt,
+            },
+            redeemable: {
+              pendingIn: 0,
+              available: Number(pointToSpend),
+            },
+            redeemed: {
+              pendingIn: 0,
+              available: 0,
+            },
+          },
+        }),
+      })
+    );
+    await this.page.reload();
+  }
+
+  async verifyErrorScenario(giftCardName: string, mockPoints: number, inputAmount: number, expectedError: string) {
+    await this.mockTheAvailablePoints(mockPoints);
+    await this.searchForGiftCard(giftCardName);
+    await this.clickOnTheNthGiftCard(1);
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.container);
+    await this.verifier.verifyElementContainsText(this.rewardsDialogBox.title, giftCardName);
+    await this.fillInElement(this.rewardsDialogBox.rewardAmountInputBox, String(inputAmount), {
+      stepInfo: 'Filling reward amount input box',
+    });
+    await this.rewardsDialogBox.rewardAmountInputBox.blur();
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.rewardBalanceError);
+    await this.verifier.verifyElementHasText(this.rewardsDialogBox.rewardBalanceError, expectedError);
+    await this.clickOnElement(this.rewardsDialogBox.closeButton, {
+      stepInfo: 'Clicking on close button',
+    });
+  }
+
+  async verifyInsufficientFundsError(giftCardName: string, mockPoints: number) {
+    await this.mockTheAvailablePoints(mockPoints);
+    await this.searchForGiftCard(giftCardName);
+    await this.clickOnTheNthGiftCard(1);
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.container);
+    await this.verifier.verifyElementContainsText(this.rewardsDialogBox.title, giftCardName);
+    const availableAmountText = await this.rewardsDialogBox.rewardAmountsAvailablePoints.textContent();
+    const availablePoints = availableAmountText
+      ? Number(availableAmountText.match(/\d{1,3}(?:,\d{3})*|\d+/)?.[0]?.replace(/,/g, '') || '0')
+      : 0;
+    await this.fillInElement(this.rewardsDialogBox.rewardAmountInputBox, String(availablePoints + 5), {
+      stepInfo: 'Filling reward amount input box',
+    });
+    await this.rewardsDialogBox.rewardAmountInputBox.blur();
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.rewardBalanceError);
+    await this.verifier.verifyElementHasText(this.rewardsDialogBox.rewardBalanceError, 'Insufficient funds.');
+    await this.clickOnElement(this.rewardsDialogBox.closeButton, {
+      stepInfo: 'Clicking on close button',
+    });
+  }
 }
