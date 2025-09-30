@@ -270,30 +270,6 @@ export class ConversationWindowComponent extends BaseComponent {
     });
   }
 
-  // async verifyMessageIsNotPresentInListOfChatMessages(
-  //   message: string,
-  //   options?: {
-  //     stepInfo?: string;
-  //     timeout?: number;
-  //   }
-  // ) {
-  //   await test.step(
-  //     options?.stepInfo ?? `Verifying message: ${message} is not present in the list of chat messages`,
-  //     async () => {
-  //       await expect(async () => {
-  //         const listOfMessages = await this.listChatMessagesComponent.all();
-  //         for (const eachMessage of listOfMessages) {
-  //           const fetchedMessageText = await eachMessage.locator('section').locator('p').textContent();
-  //           expect(
-  //             fetchedMessageText,
-  //             `expecting message: ${message} to be not present in the list of chat messages`
-  //           ).not.toBe(message);
-  //         }
-  //       }).toPass({ timeout: options?.timeout ?? TIMEOUTS.MEDIUM });
-  //     }
-  //   );
-  // }
-
   async verifyMessageIsNotPresentInListOfChatMessages(
     message: string,
     options?: {
