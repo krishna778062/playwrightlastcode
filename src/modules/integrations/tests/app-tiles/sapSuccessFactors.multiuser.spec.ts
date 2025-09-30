@@ -36,7 +36,7 @@ test.describe(
     multiUserTileFixture(
       'multi-user tile management for SAP SuccessFactors Display time Off balance app tile - Admin creates, EndUser verifies, Admin deletes',
       {
-        tag: [TestPriority.P13, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -61,7 +61,7 @@ test.describe(
     multiUserTileFixture(
       'site Manager creates site with SAP SuccessFactors Display time Off balance tile, End User verifies, Site Manager deletes tile and deactivates site',
       {
-        tag: [TestPriority.P13, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -94,7 +94,7 @@ test.describe(
     multiUserTileFixture(
       'multi-user tile management for SAP SuccessFactors Apply for time off app tile - Admin creates, EndUser verifies, Admin deletes',
       {
-        tag: [TestPriority.P13, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -119,7 +119,7 @@ test.describe(
     multiUserTileFixture(
       'site Manager creates site with SAP SuccessFactors Apply for time off tile, End User verifies, Site Manager deletes tile and deactivates site',
       {
-        tag: [TestPriority.P13, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient }) => {
         tagTest(multiUserTileFixture.info(), {

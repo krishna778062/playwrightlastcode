@@ -203,7 +203,7 @@ test.describe(
     test(
       'create and edit UKG Pro Display Recent Paystubs tile on site dashboard',
       {
-        tag: [TestPriority.P4, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -238,7 +238,7 @@ test.describe(
     test(
       'verify metadata for UKG Pro Display Recent Paystubs tile on site dashboard',
       {
-        tag: [TestPriority.P4, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
         tagTest(test.info(), {

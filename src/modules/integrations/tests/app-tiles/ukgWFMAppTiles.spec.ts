@@ -240,7 +240,7 @@ test.describe(
     test(
       'verify metadata for UKG WFM Display upcoming schedule tile on home dashboard',
       {
-        tag: [TestPriority.P5, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ homeDashboard, tileManagementHelper }) => {
         tagTest(test.info(), {
@@ -264,7 +264,7 @@ test.describe(
     test(
       'verify metadata for UKG WFM Display upcoming schedule tile on site dashboard with site manager defined',
       {
-        tag: [TestPriority.P5, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
         tagTest(test.info(), {

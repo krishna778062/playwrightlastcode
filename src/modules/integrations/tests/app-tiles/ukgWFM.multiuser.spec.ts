@@ -39,7 +39,7 @@ test.describe(
     multiUserTileFixture(
       'multi-user tile management for UKG Pro Workforce Management Apply for Time Off app tile - Admin creates, EndUser verifies, Admin deletes',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY],
+        tag: [TestPriority.P2, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -64,7 +64,7 @@ test.describe(
     multiUserTileFixture(
       'site Manager creates site with UKG Pro Apply for Time Off tile, End User verifies, Site Manager deletes tile and deactivates site',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -97,7 +97,7 @@ test.describe(
     multiUserTileFixture(
       'multi-user tile management for UKG Pro Display upcoming schedule app tile - Admin creates, EndUser verifies, Admin deletes',
       {
-        tag: [TestPriority.P7, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -130,7 +130,7 @@ test.describe(
     multiUserTileFixture(
       'site Manager creates site with UKG Pro Display upcoming schedule tile, End User verifies, Site Manager deletes tile and deactivates site',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient }) => {
         tagTest(multiUserTileFixture.info(), {

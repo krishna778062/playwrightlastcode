@@ -110,7 +110,7 @@ test.describe(
     multiUserTileFixture(
       'multi-user tile management for UKG Pro Display Time Off Balance app tile - Admin creates, EndUser verifies, Admin deletes',
       {
-        tag: [TestPriority.P12, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
