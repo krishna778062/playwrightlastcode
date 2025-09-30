@@ -113,14 +113,13 @@ export class ConversationWindowComponent extends BaseComponent {
       async () => {
         await expect(async () => {
           let messageFoundInList: boolean = false;
-          for (const eachMessage of await this.listChatMessagesComponent.all()) {
-            //fetch message
-            const messageText = await eachMessage.locator('section').locator('p').textContent();
-            if (messageText === message) {
-              messageFoundInList = true;
-              break;
-            }
+          const lastMessage = this.listChatMessagesComponent.last();
+          //fetch message
+          const messageText = await lastMessage.locator('section').locator('p').textContent();
+          if (messageText === message) {
+            messageFoundInList = true;
           }
+
           expect(messageFoundInList, `expecting message: ${message} to be present in the list of chat messages`).toBe(
             true
           );
@@ -247,13 +246,10 @@ export class ConversationWindowComponent extends BaseComponent {
   async getFocusedMessageCardFromListOfChatMessages(messageText: string): Promise<MessageCardComponent> {
     let messageComponent: MessageCardComponent | undefined;
     await test.step(`Getting focused message object from list of chat messages`, async () => {
-      const listOfMessages = await this.listChatMessagesComponent.all();
-      for (const eachMessage of listOfMessages) {
-        const fetchedMessageText = await eachMessage.locator('section').locator('p').textContent();
-        if (fetchedMessageText === messageText) {
-          messageComponent = new MessageCardComponent(this.page, eachMessage);
-          break;
-        }
+      const lastMessage = this.listChatMessagesComponent.last();
+      const fetchedMessageText = await lastMessage.locator('section').locator('p').textContent();
+      if (fetchedMessageText === messageText) {
+        messageComponent = new MessageCardComponent(this.page, lastMessage);
       }
       expect(messageComponent, `Message: ${messageText} not found in the list of chat messages`).toBeDefined();
     });
@@ -263,18 +259,40 @@ export class ConversationWindowComponent extends BaseComponent {
   async getFocusedMessageCardIdFromListOfChatMessages(messageText: string): Promise<string | null> {
     let messageId: string | null;
     return await test.step(`Getting focused message data-message-id from list of chat messages`, async () => {
-      const listOfMessages = await this.listChatMessagesComponent.all();
-      for (const eachMessage of listOfMessages) {
-        const fetchedMessageText = await eachMessage.locator('section').locator('p').textContent();
-        if (fetchedMessageText === messageText) {
-          console.log(`eachMessage: ${eachMessage.toString()}`);
-          messageId = await eachMessage.getAttribute('data-message-id');
-          break;
-        }
+      const lastMessage = this.listChatMessagesComponent.last();
+      const fetchedMessageText = await lastMessage.locator('section').locator('p').textContent();
+      if (fetchedMessageText === messageText) {
+        console.log(`eachMessage: ${lastMessage.toString()}`);
+        messageId = await lastMessage.getAttribute('data-message-id');
       }
+
       return messageId;
     });
   }
+
+  // async verifyMessageIsNotPresentInListOfChatMessages(
+  //   message: string,
+  //   options?: {
+  //     stepInfo?: string;
+  //     timeout?: number;
+  //   }
+  // ) {
+  //   await test.step(
+  //     options?.stepInfo ?? `Verifying message: ${message} is not present in the list of chat messages`,
+  //     async () => {
+  //       await expect(async () => {
+  //         const listOfMessages = await this.listChatMessagesComponent.all();
+  //         for (const eachMessage of listOfMessages) {
+  //           const fetchedMessageText = await eachMessage.locator('section').locator('p').textContent();
+  //           expect(
+  //             fetchedMessageText,
+  //             `expecting message: ${message} to be not present in the list of chat messages`
+  //           ).not.toBe(message);
+  //         }
+  //       }).toPass({ timeout: options?.timeout ?? TIMEOUTS.MEDIUM });
+  //     }
+  //   );
+  // }
 
   async verifyMessageIsNotPresentInListOfChatMessages(
     message: string,
@@ -287,14 +305,12 @@ export class ConversationWindowComponent extends BaseComponent {
       options?.stepInfo ?? `Verifying message: ${message} is not present in the list of chat messages`,
       async () => {
         await expect(async () => {
-          const listOfMessages = await this.listChatMessagesComponent.all();
-          for (const eachMessage of listOfMessages) {
-            const fetchedMessageText = await eachMessage.locator('section').locator('p').textContent();
-            expect(
-              fetchedMessageText,
-              `expecting message: ${message} to be not present in the list of chat messages`
-            ).not.toBe(message);
-          }
+          const lastMessage = this.listChatMessagesComponent.last();
+          const fetchedMessageText = await lastMessage.locator('p').textContent();
+          expect(
+            fetchedMessageText,
+            `expecting message: ${message} to be not present in the list of chat messages`
+          ).not.toBe(message);
         }).toPass({ timeout: options?.timeout ?? TIMEOUTS.MEDIUM });
       }
     );
