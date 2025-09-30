@@ -135,5 +135,27 @@ test.describe(
         await manageQRPage.verifyQRName(qrDetails.qrName);
       }
     );
+
+    test(
+      '[FL-210] Verify enable Content and feature promotion from manage application as adminUser',
+      {
+        tag: [TestPriority.P2, FrontlineFeatureTags.QR_CODE],
+      },
+      async ({ appManagerHomePage }) => {
+        tagTest(test.info(), {
+          description: 'Verify enable Content and feature promotion from manage application as adminUser',
+          zephyrTestId: 'FL-210',
+          storyId: 'FL-210',
+        });
+
+        const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+        await manageQRPage.navigateToApplicationSetup();
+        await manageQRPage.verifyContentAndFeatureText();
+        await manageQRPage.checkContentAndFeatureCheckBox();
+        await manageQRPage.saveChangesOnSetup();
+        await manageQRPage.clickOnManage();
+        await manageQRPage.verifyQRCodeMenuVisible();
+      }
+    );
   }
 );
