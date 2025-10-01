@@ -341,11 +341,11 @@ test.describe(
     test(
       'Verify that duplicate acg error is displayed on editing ACG to match anothers features and target audiences',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
-          zephyrTestId: ['PS-32212'],
+          zephyrTestId: ['PS-32212', 'PS-30752'],
         });
         const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
         await accessControlGroupsPage.loadPage();
@@ -438,6 +438,60 @@ test.describe(
         await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.GROUP_TYPE);
         await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.STATUS);
         await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.MODIFIED);
+      }
+    );
+
+    test(
+      'Verify that the user should be redirected to the feature selection screen on clicking edit icon for the same at summary screen during ACG creation',
+      {
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-30969', 'PS-30970', 'PS-30960', 'PS-30962'],
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        await accessControlGroupsPage.loadPage();
+        // Prerequisite
+        // Create an ACG with target audiecne only
+        await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
+        await accessControlGroupsPage.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
+        await accessControlGroupsPage.searchForValues(audienceToCreate[0]);
+        await accessControlGroupsPage.clickOnAudience(audienceToCreate[0]);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.SKIP);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.SKIP);
+        const featureName: string = await accessControlGroupsPage.createACGModal.getFeatureNameFromSummaryScreen();
+        const targetAudienceCount: number =
+          await accessControlGroupsPage.createACGModal.getTargetAudienceCountFromSummaryScreen();
+        await accessControlGroupsPage.createACGModal.clickOnEditButtonOnSummaryScreen(ACG_EDIT_ASSETS.FEATURE);
+        await accessControlGroupsPage.createACGModal.verifyTitleOfTheModal('Feature');
+        await accessControlGroupsPage.createACGModal.verifyFeatureIsSelectedAtFeatureSelectionScreen(featureName);
+        await accessControlGroupsPage.createACGModal.clickOnBackButton();
+        await accessControlGroupsPage.createACGModal.clickOnEditButtonOnSummaryScreen(ACG_EDIT_ASSETS.TARGET_AUDIENCE);
+        await accessControlGroupsPage.createACGModal.verifyTitleOfTheModal('Target audience');
+        await accessControlGroupsPage.createACGModal.verifyListCount('Target audience', targetAudienceCount);
+        await accessControlGroupsPage.editACGModal.clickOnRemoveButtonForAudience(audienceToCreate[0]);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
+        await accessControlGroupsPage.searchForValues(audienceToCreate[0]);
+        await accessControlGroupsPage.clickOnAudience(audienceToCreate[0]);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.UPDATE);
+        acgName.push(await accessControlGroupsPage.getACGName());
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.SAVE_AND_ACTIVATE);
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Creating access control groups and audience relationships…'
+        );
+        await accessControlGroupsPage.dismissTheToastMessage();
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          'Access control group was successfully updated'
+        );
+        await accessControlGroupsPage.dismissTheToastMessage();
+        // Clean up: Delete the above created ACG
+        await accessControlGroupsPage.deleteACG(acgName.pop() as string);
       }
     );
   }

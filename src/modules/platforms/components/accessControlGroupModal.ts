@@ -1,4 +1,4 @@
-import { Locator, Page } from '@playwright/test';
+import { Locator, Page, expect } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
 
@@ -15,6 +15,9 @@ export class AccessControlGroupModalComponent extends BaseComponent {
   private closeButton: Locator;
   private duplicateTargetAudienceErrorMessageHeading: Locator;
   private duplicateTargetAudienceErrorMessageDescription: Locator;
+  private featureSection: Locator;
+  private targetAudienceSection: Locator;
+  private backButton: Locator;
 
   constructor(page: Page, accessControlGroupModalMode: AccessControlGroupModalMode) {
     super(page);
@@ -29,6 +32,11 @@ export class AccessControlGroupModalComponent extends BaseComponent {
     this.duplicateTargetAudienceErrorMessageDescription = this.acgDialog
       .locator('[class*="Panel-module__panel"] p')
       .filter({ hasText: this.duplicateTargetAudienceErrorMessageDescriptionText });
+    this.featureSection = this.acgDialog.locator('[class*="Spacing-module__divider"]').filter({ hasText: 'Feature' });
+    this.targetAudienceSection = this.acgDialog
+      .locator('[class*="Spacing-module__divider"]')
+      .filter({ hasText: 'Target audience' });
+    this.backButton = this.acgDialog.getByRole('button', { name: 'Back' });
   }
 
   /**
@@ -72,5 +80,65 @@ export class AccessControlGroupModalComponent extends BaseComponent {
       .filter({ hasText: audienceName })
       .getByRole('button', { name: 'Remove audience' });
     await this.clickOnElement(removeButtonElement);
+  }
+
+  /**
+   * Gets feature name from summary screen
+   */
+  async getFeatureNameFromSummaryScreen(): Promise<string> {
+    return (await this.featureSection.locator('span').nth(1).textContent()) || 'blank';
+  }
+
+  /**
+   * Gets target audience count from summary screen
+   */
+  async getTargetAudienceCountFromSummaryScreen(): Promise<number> {
+    return await this.targetAudienceSection.locator('span').nth(1).count();
+  }
+
+  /**
+   * Verifies the title of the modal
+   *@param title - Title of the modal
+   */
+  async verifyTitleOfTheModal(title: string): Promise<void> {
+    expect(
+      await this.verifier.verifyTheElementIsVisible(this.acgDialog.getByRole('heading', { name: title }))
+    ).toBeTruthy();
+  }
+
+  /**
+   * Verifies the list count on the popup
+   *@param title - Title of the popup
+   *@param count - Count of the list on the popup
+   */
+  async verifyListCount(title: string, count: number): Promise<void> {
+    expect(
+      await this.acgDialog
+        .filter({ hasText: title })
+        .locator('[class*="AccessControlListItem-module-listItemContainer"]')
+        .count()
+    ).toEqual(count);
+  }
+
+  /**
+   * Verifies that feature is already displayed as selected at feature selection screen
+   *@param featureName - feature name to verify
+   */
+  async verifyFeatureIsSelectedAtFeatureSelectionScreen(featureName: string): Promise<void> {
+    expect(
+      await this.verifier.verifyTheElementIsVisible(
+        this.acgDialog
+          .locator('[class*="AutoGrid-module__item"]')
+          .filter({ hasText: featureName })
+          .locator('[class*="AbacFeatureRadioInput-module-radioSelected"]')
+      )
+    ).toBeTruthy();
+  }
+
+  /**
+   * Clicks the back button on the access control group modal
+   */
+  async clickOnBackButton(): Promise<void> {
+    await this.clickOnElement(this.backButton);
   }
 }
