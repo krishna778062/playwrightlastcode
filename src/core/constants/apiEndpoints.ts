@@ -89,6 +89,15 @@ export const API_ENDPOINTS = {
     comment: (feedId: string) => `/v1/wfeed/feeds/${feedId}/comments`,
     rudderstack: 'https://rudderstack-data-plane.qa.simpplr.xyz/v1/track',
   },
+
+  socialCampaign: {
+    create: '/v1/socialcampaigns',
+    list: '/v1/socialcampaigns/list',
+    get: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
+    update: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
+    delete: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
+    updateStatus: (campaignId: string) => `/v1/socialcampaigns/${campaignId}/status`,
+  },
   appConfig: {
     governance: '/v1/account/appConfig/app.setup.governance',
   },

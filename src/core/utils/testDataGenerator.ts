@@ -651,4 +651,50 @@ export class TestDataGenerator {
   static generateValidLinkPair() {
     return faker.internet.url();
   }
+
+  /**
+   * Generates test data for social campaigns with customizable options
+   * @param options Configuration options for the social campaign
+   * @returns Object with social campaign creation parameters
+   *
+   * @example
+   * // Generate campaign for everyone with default settings
+   * const everyoneCampaign = TestDataGenerator.generateSocialCampaign({ recipient: 'everyone' });
+   *
+   * // Generate campaign for specific audience
+   * const audienceCampaign = TestDataGenerator.generateSocialCampaign({
+   *   recipient: 'audience',
+   *   audienceId: 'audience123'
+   * });
+   *
+   * // Generate campaign with custom message and URL
+   * const customCampaign = TestDataGenerator.generateSocialCampaign({
+   *   recipient: 'everyone',
+   *   message: 'Custom campaign message',
+   *   url: 'https://www.example.com',
+   *   networks: ['fb', 'ln']
+   * });
+   */
+  static generateSocialCampaign(
+    options: {
+      recipient?: 'everyone' | 'audience';
+      message?: string;
+      url?: string;
+      networks?: string[];
+      audienceId?: string;
+    } = {}
+  ) {
+    const { recipient = 'everyone', message, url, networks = ['fb', 'ln', 'tw'], audienceId } = options;
+
+    const timestamp = Date.now().toString().slice(-4);
+    const randomId = Math.random().toString(36).substring(2, 6);
+
+    return {
+      recipient,
+      message: message || `Test Social Campaign ${timestamp}_${randomId} - ${faker.company.buzzPhrase()}`,
+      url: url || faker.internet.url(),
+      networks,
+      ...(audienceId && { audienceId }),
+    };
+  }
 }

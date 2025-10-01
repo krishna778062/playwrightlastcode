@@ -42,6 +42,7 @@ export const PAGE_ENDPOINTS = {
   MANAGE_TOPICS_SCREEN: 'manage/topics',
   PRIVILEGES_SCREEN: 'manage/app/setup/privileges',
   DEFAULT_SCREEN: 'manage/app/defaults/email-notifications',
+  SOCIAL_CAMPAIGNS: '/social-campaigns',
   MANAGE_FEATURE: 'manage-features',
   MANAGE_CONTENT: 'manage/content',
   MANAGE_CONTENT_APPLY_API: '/manage',
@@ -65,4 +66,5 @@ export const PAGE_ENDPOINTS = {
   DOMAIN_NAMES_PAGE: '/manage/app/integrations/domains',
   EVENTS_PAGE: '/people/:userId/calendar',
   CUSTOM_APP_TILES_PAGE: '/manage/custom-app-tiles',
+  SOCIAL_CAMPAIGNS_PAGE: '/campaigns/latest',
 };

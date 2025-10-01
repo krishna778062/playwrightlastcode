@@ -7,6 +7,9 @@ export enum ContentSuiteTags {
   SITE_CREATION = '@site-creation',
   SITE_CATEGORIES = '@site-categories',
   EVENT_CREATION = '@event-creation',
+  FEED_SETTINGS = '@feed-settings',
+  QUESTION_SETTINGS = '@question-settings',
+  SOCIAL_CAMPAIGN = '@social-campaign',
 }
 
 export enum ContentFeatureTags {
