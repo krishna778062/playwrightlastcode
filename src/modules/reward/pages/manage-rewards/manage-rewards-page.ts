@@ -29,7 +29,7 @@ export class ManageRewardsPage extends BasePage {
     // Enable/Disable rewards locators
     this.rewardsTabHeading = this.page.locator('h2[class*="Typography-module__heading1"]');
     this.enableRewardsButton = this.page.locator('button[aria-label="Enable rewards"]');
-    this.disableRewardLink = this.page.locator('a[href="/manage/recognition/rewards/disable-rewards"]');
+    this.disableRewardLink = this.page.locator('a[href*="/rewards/disable-rewards"]');
     this.disableRewardContainer = this.page.locator('div[class*="Rewards_content"]');
     this.disableRewardH1Text = this.disableRewardContainer.getByRole('button', {
       name: 'Disable rewards',
