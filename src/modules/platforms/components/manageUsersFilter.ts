@@ -1,5 +1,6 @@
-import { BaseComponent } from '@/src/core/components/baseComponent';
 import { Page, Locator, expect } from '@playwright/test';
+
+import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class ManageUsersFilter extends BaseComponent {
   private filterName: (name: string) => Locator;

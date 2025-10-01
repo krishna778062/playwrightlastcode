@@ -1,9 +1,9 @@
-import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { TestSuite } from '@/src/core/constants/testSuite';
-import { ManageUsersPage } from '../../../pages/managerUsersPage/manageUsersPage';
-import { tagTest } from '@core/utils/testDecorator';
 import { TestPriority } from '@core/constants/testPriority';
+import { tagTest } from '@core/utils/testDecorator';
 import { FILTER_ATTRIBUTES, PRIMARY_ROLES_VALUES } from '@platforms/constants/ManageUsers';
+import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
+import { ManageUsersPage } from '../../../pages/managerUsersPage/manageUsersPage';
 
 test.describe(
   'ACG Testcases',

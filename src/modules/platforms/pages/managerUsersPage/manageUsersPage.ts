@@ -1,8 +1,8 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 import { ManageUsersFilter } from '@platforms/components/manageUsersFilter';
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 export enum MUOptions {
   EDIT_USER = 'Edit user',
