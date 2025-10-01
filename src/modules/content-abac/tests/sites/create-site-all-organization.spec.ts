@@ -3,9 +3,8 @@ import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
-import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
-import { SiteType } from '@/src/modules/content-abac/constants/siteType';
+import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
+import { SiteType } from '@/src/modules/content-abac/constants/siteTypeABAC';
 import { contentAbacTestFixture as test } from '@/src/modules/content-abac/fixtures/contentAbacFixture';
 import { AddSiteScreenPage } from '@/src/modules/content-abac/pages/addSiteScreenPage';
 import { AudienceModalPage } from '@/src/modules/content-abac/pages/audienceModalPage';
@@ -71,8 +70,8 @@ test.describe('Site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
         await appManagerHomePage.actions.openSiteCreationForm();
         const siteCreationPage = new SiteCreationPage(page);
 
-        // STEP 2: Verify sections (Access, Target Audience, Subscriptions)
-        await siteCreationPage.verifySiteCreationFormStructure();
+        // STEP 2: Verify site creation form structure and elements
+        await siteCreationPage.assertions.verifySiteCreationFormStructure();
 
         // STEP 3: Create the site and capture siteId from URL
         siteId = await siteCreationPage.createSite({

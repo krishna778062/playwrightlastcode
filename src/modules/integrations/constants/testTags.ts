@@ -11,6 +11,8 @@ export enum IntegrationsSuiteTags {
   SAP_SUCCESSFACTORS = '@sapSuccessFactorsAppTiles',
   UKG_WFM = '@ukgWFMAppTiles',
   UKG_PRO = '@ukgProAppTiles',
+  GOOGLE_CALENDAR_APPTILES = '@googleCalendarAppTiles',
+  DOCUSIGN = '@docuSignAppTiles',
 }
 
 export enum IntegrationsFeatureTags {
@@ -39,8 +41,11 @@ export const TEST_TAGS = {
   SAP_SUCCESSFACTORS: IntegrationsSuiteTags.SAP_SUCCESSFACTORS,
   UKG_WFM: IntegrationsSuiteTags.UKG_WFM,
   UKG_PRO: IntegrationsSuiteTags.UKG_PRO,
+  GOOGLE_CALENDAR_APPTILES: IntegrationsSuiteTags.GOOGLE_CALENDAR_APPTILES,
+  DOCUSIGN: IntegrationsSuiteTags.DOCUSIGN,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {
   OKTA_GROUP = '@okta-group',
+  AD_GROUP = '@ad-group',
 }

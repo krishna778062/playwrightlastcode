@@ -202,4 +202,24 @@ export class SiteDashboard {
       await this.appTileComponent.submitTileToHomeOrDashboard(destination);
     });
   }
+  /**
+   * Verify Calendar upcoming events tile data
+   */
+  async verifyCalendarUpcomingEventsTileData(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyUpcomingEventsTileData(tileTitle);
+  }
+
+  /**
+   * Verify Show more behaviour for apptile on site dashboard
+   */
+  async verifyShowMoreBehavior(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyShowMoreBehavior(tileTitle);
+  }
+  /**
+   * Verify DocuSign tile content structure with task records
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDocuSignContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyDocuSignTileContentStructure(tileTitle);
+  }
 }

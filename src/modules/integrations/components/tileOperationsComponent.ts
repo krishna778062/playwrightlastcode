@@ -1,6 +1,9 @@
 import { DASHBOARD_BUTTONS } from '@integrations/constants/common';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
+const DEFAULT_EVENT_TITLE = /^[\p{L}\p{N}\p{P}\p{S} ]{1,100}$/u;
+const DEFAULT_EVENT_DATE =
+  /(?!^)(?:[A-Z][a-z]{2},\s[A-Z][a-z]{2}\s(?:[1-9]|[12]\d|3[01]),\s\d{4}\sat\s(?:1[0-2]|0?\d):[0-5]\d(?:AM|PM)|Today\sat\s(?:1[0-2]|0?\d):[0-5]\d(?:AM|PM))/;
 
 export class TileOperationsComponent extends BaseAppTileComponent {
   readonly tagElement: Locator;
@@ -22,6 +25,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly personalizeText: Locator;
   readonly organizationLabel: Locator;
   readonly linkWithH3: Locator;
+  readonly showMoreButton: Locator;
+  readonly visibleRowsContainer: Locator;
   readonly menuitemFilter: Locator;
   readonly prNumberPattern: RegExp;
   readonly createdAgoPattern: RegExp;
@@ -37,6 +42,9 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly ukgTimeOffDivider: Locator;
   readonly usedText: Locator;
   readonly balanceText: Locator;
+  readonly docuSignImage: Locator;
+  readonly fromPattern: RegExp;
+  readonly sentPattern: RegExp;
 
   constructor(page: Page) {
     super(page);
@@ -60,6 +68,9 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.organizationLabel = page.getByLabel('Organization');
     this.linkWithH3 = page.locator('a:has(h3)');
     this.menuitemFilter = page.getByRole('menuitem');
+    this.showMoreButton = page.getByRole('button', { name: 'Show more' });
+    this.visibleRowsContainer = page.locator('[data-testid="container"][aria-hidden="false"]');
+    this.docuSignImage = page.locator('img[src*="docusign"]');
     // Regex patterns for text matching
     this.prNumberPattern = /^#\d+/;
     this.createdAgoPattern = /^Created\s+.*\s+ago$/;
@@ -75,6 +86,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.ukgTimeOffDivider = page.getByTestId('divider');
     this.usedText = page.getByText(/Used: \d+(\.\d+)? hours/).first();
     this.balanceText = page.getByText(/Balance: \d+(\.\d+)? hours/).first();
+    this.fromPattern = /From/;
+    this.sentPattern = /Sent \d+ days? ago/;
   }
 
   /**
@@ -284,7 +297,6 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await expect(this.getTagElement(firstRecord).first()).toBeVisible();
     });
   }
-
   /**
    * Verify UKG Pro tile metadata including pay periods, received dates, and links
    * @param tileTitle - The title of the tile to verify
@@ -315,6 +327,24 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       }
     });
   }
+  /**
+   * Verify Calendar upcoming events tile data
+   */
+  async verifyUpcomingEventsTileData(
+    tileTitle: string,
+    eventTitle: RegExp = DEFAULT_EVENT_TITLE,
+    calDate: RegExp = DEFAULT_EVENT_DATE
+  ): Promise<void> {
+    await test.step(`Verify Calendar upcoming events tile data for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      const rows = tile.locator(this.container);
+      const row = rows
+        .filter({ has: this.page.getByText(eventTitle) })
+        .filter({ has: this.page.getByText(calDate) })
+        .first();
+      await expect(row).toBeVisible();
+    });
+  }
 
   /**
    * Verify Display Time Off tile metadata including VACFT and SICKFT sections
@@ -340,6 +370,53 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await expect(tile.locator(this.ukgTimeOffSickftHeading), 'SICKFT heading should be visible').toBeVisible();
       await expect(tile.locator(this.usedText), 'Used text should be visible in SICKFT section').toBeVisible();
       await expect(tile.locator(this.balanceText), 'Balance text should be visible in SICKFT section').toBeVisible();
+    });
+  }
+  /**
+   * Verify 'Show more' behavior
+   */
+  async verifyShowMoreBehavior(tileTitle: string): Promise<void> {
+    await test.step(`Verify 'Show more' behavior for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      const rowsVisible = tile.locator(this.visibleRowsContainer);
+      const showMoreButton = tile.locator(this.showMoreButton);
+
+      await expect(showMoreButton, 'Show More button should be visible').toBeVisible();
+      const initialVisible = await rowsVisible.count();
+      await expect(initialVisible).toBeGreaterThanOrEqual(4);
+
+      await this.clickOnElement(showMoreButton);
+      await expect.poll(async () => rowsVisible.count(), { timeout: 10_000 }).toBeGreaterThan(initialVisible);
+    });
+  }
+  /**
+   * Verify DocuSign tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDocuSignTileContentStructure(tileTitle: string): Promise<void> {
+    await test.step(`Verify DocuSign tile content structure for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `DocuSign tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+      // Verify added Tile data
+      await expect(tile.locator(this.docuSignImage), 'DocuSign image should be visible in tile').toBeVisible();
+      // Get task records and verify at least one exists
+      const containers = tile.locator(this.container);
+      const count = await containers.count();
+      await expect(count, 'At least one container should be present in DocuSign tile').toBeGreaterThan(0);
+      // Verify first record has all required elements
+      const firstRecord = containers.first();
+      await expect(
+        firstRecord.getByText(this.duePattern).first(),
+        'Due date should be visible in the first record'
+      ).toBeVisible();
+      await expect(
+        firstRecord.getByText(this.fromPattern).first(),
+        'From field should be visible in the first record'
+      ).toBeVisible();
+      await expect(
+        firstRecord.getByText(this.sentPattern).first(),
+        'Sent field should be visible in the first record'
+      ).toBeVisible();
     });
   }
 }
