@@ -41,7 +41,6 @@ export class AccessControlGroupsPage extends BasePage {
   readonly updateButton: Locator;
   readonly searchInput: Locator;
   readonly acgStatusToggle: Locator;
-  readonly acgRecordsElement: Locator;
   readonly acgEditButton: Locator;
   readonly acgRecords: Locator;
   readonly clearButtonOnSearchInputBox: Locator;
@@ -64,8 +63,8 @@ export class AccessControlGroupsPage extends BasePage {
     this.acgSearchField = page.locator('#search');
     this.acgCheckBoxes = page.locator("[type='checkbox']");
     this.acgAudiencesName = page.locator('[class*="NameWithDescription"] p');
-    this.acgRecordsElement = page.locator('[data-testid*="dataGridRow"]');
-    this.acgMenuOptions = this.acgRecordsElement.locator('[aria-haspopup="menu"]');
+    this.acgRecords = page.locator('[data-testid*="dataGridRow"]');
+    this.acgMenuOptions = this.acgRecords.locator('[aria-haspopup="menu"]');
     this.acgDeleteButton = page.locator("text='Delete'");
     this.acgEditButton = page
       .locator('[class*="DropdownMenu-module__DropdownMenuItemLabel"]')
@@ -81,7 +80,6 @@ export class AccessControlGroupsPage extends BasePage {
     this.acgStatusToggle = page.locator('[aria-checked="true"]');
     this.createACGModal = new AccessControlGroupModalComponent(page, 'create');
     this.editACGModal = new AccessControlGroupModalComponent(page, 'edit');
-    this.acgRecords = page.locator('[data-testid*="dataGridRow"]');
     this.confirmEditACGModal = new ConfirmEditAccessControlGroupModalComponent(page);
     this.clearButtonOnSearchInputBox = page.locator('[aria-label="Clear"]');
     this.acgColumns = page.locator('[class*="Cell-module__isHeader"]');
@@ -234,7 +232,7 @@ export class AccessControlGroupsPage extends BasePage {
    */
   async verifyACGStatus(acgName: string, status: string): Promise<void> {
     await test.step(`Verifying the status of ${acgName} ACG as ${status}`, async () => {
-      const userNameElement: Locator = this.acgRecordsElement.filter({ hasText: acgName });
+      const userNameElement: Locator = this.acgRecords.filter({ hasText: acgName });
       await expect(
         userNameElement.locator('[class*="Typography-module__secondary"]'),
         `Checking the status of ${acgName} as ${status}`
@@ -525,16 +523,16 @@ export class AccessControlGroupsPage extends BasePage {
     for (let i = 0; i < (await selector.count()); i++) {
       if ((await selector.nth(i).textContent()) == columnName) {
         columnIndex = i;
-        console.log(await this.acgRecordsElement.locator('td').nth(i).textContent());
+        console.log(await this.acgRecords.locator('td').nth(i).textContent());
         break;
       }
     }
-    for (let j = 0; j < (await this.acgRecordsElement.count()); j++) {
+    for (let j = 0; j < (await this.acgRecords.count()); j++) {
       console.log(`columnIndex is ${columnIndex} outside for loop`);
       const textContent =
         columnName === ACG_COLUMNS.NAME
-          ? await this.acgRecordsElement.nth(j).locator('td p').nth(columnIndex).textContent()
-          : await this.acgRecordsElement.nth(j).locator('td').nth(columnIndex).textContent();
+          ? await this.acgRecords.nth(j).locator('td p').nth(columnIndex).textContent()
+          : await this.acgRecords.nth(j).locator('td').nth(columnIndex).textContent();
       if (!textContent?.includes('Syncing...')) {
         if (columnName === 'Modified') {
           allTextContents.push(changeDateFormatToYYYYMMDD(textContent ?? ''));

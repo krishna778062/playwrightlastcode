@@ -55,6 +55,7 @@ export interface IOldUxHomePageActions extends ICommonHomePageActions {
     siteName?: string,
     options?: { stepInfo?: string }
   ) => Promise<AddContentModalComponent>;
+  clickOnSocialCampaigns: () => Promise<void>;
 }
 
 export interface INewUxHomePageActions extends ICommonHomePageActions {
@@ -73,6 +74,7 @@ export interface INewUxHomePageActions extends ICommonHomePageActions {
   clickOnManageFeature: () => Promise<void>;
   clickOnHomeButton: () => Promise<void>;
   clickOnFeedSideMenu: () => Promise<void>;
+  clickOnSocialCampaigns: () => Promise<void>;
   openAddContentModal: (
     contentType: ContentType,
     siteName?: string,
