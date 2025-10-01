@@ -703,11 +703,9 @@ If you prefer to create modules manually:
    ```
 
 3. **Create Environment Files**: Add environment-specific config files in `src/modules/<your-module>/env/`:
-
    - `qa.env`
    - `uat.env`
    - etc.
-
 4. **Choose Page Architecture**: Select the appropriate page class pattern based on complexity:
 
    - **Simple modules**: Use single class pattern with inline methods
