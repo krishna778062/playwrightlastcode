@@ -9,6 +9,7 @@ import { SOCIAL_CAMPAIGN_TEST_DATA } from '@content/test-data/social-campaign.te
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
+import { SocialCampaignRecipient } from '@core/types/social-campaign.types';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
@@ -68,7 +69,7 @@ test.describe(
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
           url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
           linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
-          recipient: 'everyone' as const,
+          recipient: SocialCampaignRecipient.EVERYONE,
         };
 
         // When Add Campaign and Create
