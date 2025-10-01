@@ -348,18 +348,14 @@ await rewardsStore.rewardsDialogBox.rewardAmountInputBox.blur();
 See the following migrated files for complete examples of how to migrate test files from the old Rewards project to the central framework:
 
 1. **Simple Test Migration**: `reward-enable.spec.ts` in `/src/modules/reward/tests/manage-rewards/`
-
    - Basic test structure migration
    - Element interaction updates
    - Page object method updates
-
 2. **Complex Test Migration**: `rewards-order-history.spec.ts` in `/src/modules/reward/tests/reward-store/`
-
    - BeforeEach hook migration
    - Complex UI component handling
    - Multiple page object interactions
    - Dynamic content handling
-
 3. **API Mocking Test Migration**: `rewards-variable-giftcard-redemption.spec.ts` in `/src/modules/reward/tests/reward-store/`
    - API route interception and mocking
    - Input field interactions with blur events
