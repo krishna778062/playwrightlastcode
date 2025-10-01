@@ -66,7 +66,8 @@ export class OktaGroupComponent extends BaseComponent {
         .locator('td')
         .nth(3);
     this.audiencesMenuItem = () => this.rootLocator.getByTestId('main-nav-item').filter({ hasText: 'Audiences' });
-    this.applicationSettingsButton = () => this.rootLocator.getByRole('menuitem', { name: 'Application settings' });
+    this.applicationSettingsButton = () =>
+      this.rootLocator.getByRole('menuitem', { name: 'Application settings' }).first();
     this.audienceTypeDropdown = () => this.rootLocator.getByTestId('overlay').getByTestId('SelectInput');
   }
 
