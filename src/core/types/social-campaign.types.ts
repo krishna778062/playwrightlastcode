@@ -103,6 +103,7 @@ export interface CreateSocialCampaignRequest {
   networks: SocialCampaignNetwork[];
   url: string;
   message: string;
+  audienceId?: string;
 }
 
 export interface SocialCampaignListRequest {

@@ -12,10 +12,17 @@ export interface ISocialCampaignPageActions {
   getSocialCampaignLink: () => Promise<string>;
   AddCampaignAndCreate: (options: SocialCampaignOptions) => Promise<string>;
   clickAddCampaignButton: () => Promise<void>;
+  clickCampaignOptions: (campaignId: string) => Promise<void>;
+  clickExpireCampaignButton: () => Promise<void>;
+  confirmExpireCampaign: () => Promise<void>;
+  clickExpiredLink: () => Promise<void>;
+  getSocialCampaignCount: () => Promise<number>;
 }
 
 export interface ISocialCampaignPageAssertions {
   verifyCampaignLinkDisplayed: (linkText: string) => Promise<void>;
+  verifyCampaignNotInLatest: (linkText: string) => Promise<void>;
+  verifyCampaignInExpired: (linkText: string) => Promise<void>;
 }
 
 export class SocialCampaignPage extends BasePage implements ISocialCampaignPageActions, ISocialCampaignPageAssertions {
@@ -24,6 +31,11 @@ export class SocialCampaignPage extends BasePage implements ISocialCampaignPageA
   readonly linkByText: (linkText: string) => Locator;
   readonly popularLink: Locator;
   readonly addCampaignButton: Locator;
+  readonly expiredLink: Locator;
+  readonly campaignOptionsButton: (campaignId: string) => Locator;
+  readonly expireCampaignButton: Locator;
+  readonly confirmExpireButton: Locator;
+  readonly campaignCount: Locator;
   private addCampaignComponent: AddCampaignComponent;
 
   constructor(page: Page) {
@@ -34,6 +46,12 @@ export class SocialCampaignPage extends BasePage implements ISocialCampaignPageA
     this.linkByText = (linkText: string) => page.locator('a', { hasText: linkText });
     this.popularLink = page.locator('a', { hasText: /^Popular$/ });
     this.addCampaignButton = page.locator('span:has-text("Add campaign")');
+    this.expiredLink = page.locator('a', { hasText: /^Expired$/ });
+    this.campaignOptionsButton = (campaignId: string) =>
+      page.locator(`[data-campaign-id="${campaignId}"] button[aria-label="Options"]`);
+    this.expireCampaignButton = page.locator('button:has-text("Expire campaign")');
+    this.confirmExpireButton = page.locator('button:has-text("Expire")');
+    this.campaignCount = page.locator('[data-testid="campaign-count"]');
     this.addCampaignComponent = new AddCampaignComponent(page);
   }
 
@@ -94,5 +112,52 @@ export class SocialCampaignPage extends BasePage implements ISocialCampaignPageA
    */
   async AddCampaignAndCreate(options: SocialCampaignOptions): Promise<string> {
     return await this.addCampaignComponent.AddCampaignAndCreate(options);
+  }
+
+  async clickCampaignOptions(campaignId: string): Promise<void> {
+    await test.step(`Click options for campaign: ${campaignId}`, async () => {
+      await this.clickOnElement(this.campaignOptionsButton(campaignId));
+    });
+  }
+
+  async clickExpireCampaignButton(): Promise<void> {
+    await test.step('Click Expire campaign button', async () => {
+      await this.clickOnElement(this.expireCampaignButton);
+    });
+  }
+
+  async confirmExpireCampaign(): Promise<void> {
+    await test.step('Confirm expire campaign', async () => {
+      await this.clickOnElement(this.confirmExpireButton);
+    });
+  }
+
+  async clickExpiredLink(): Promise<void> {
+    await test.step('Click Expired link', async () => {
+      await this.clickOnElement(this.expiredLink);
+    });
+  }
+
+  async getSocialCampaignCount(): Promise<number> {
+    return await test.step('Get social campaign count', async () => {
+      const countText = await this.campaignCount.textContent();
+      return parseInt(countText || '0', 10);
+    });
+  }
+
+  async verifyCampaignNotInLatest(linkText: string): Promise<void> {
+    await test.step(`Verify campaign "${linkText}" is not in latest`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.linkByText(linkText).first(), {
+        assertionMessage: `Campaign "${linkText}" should not be visible in latest`,
+      });
+    });
+  }
+
+  async verifyCampaignInExpired(linkText: string): Promise<void> {
+    await test.step(`Verify campaign "${linkText}" is in expired`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.linkByText(linkText).first(), {
+        assertionMessage: `Campaign "${linkText}" should be visible in expired`,
+      });
+    });
   }
 }
