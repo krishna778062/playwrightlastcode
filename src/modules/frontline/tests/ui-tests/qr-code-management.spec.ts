@@ -32,7 +32,7 @@ test.describe(
     test(
       'Scenario: Verify creation of app promotion QR',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
@@ -65,7 +65,7 @@ test.describe(
     test(
       'Scenario: Verify delete app promotion QR code',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
       },
       async ({ appManagerHomePage, qrManagementService }) => {
         tagTest(test.info(), {
@@ -87,7 +87,7 @@ test.describe(
     test(
       'Scenario: Verify delete content QR code',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
       },
       async ({ appManagerHomePage, qrManagementService }) => {
         tagTest(test.info(), {
@@ -109,7 +109,7 @@ test.describe(
     test(
       'Scenario: Verify creation of content QR',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
       },
       async ({ appManagerHomePage, qrManagementService }) => {
         tagTest(test.info(), {
@@ -133,6 +133,28 @@ test.describe(
         await manageQRPage.clickSaveAndVisit();
         await manageQRPage.verifyManagePage();
         await manageQRPage.verifyQRName(qrDetails.qrName);
+      }
+    );
+
+    test(
+      '[FL-210] Verify enable Content and feature promotion from manage application as adminUser',
+      {
+        tag: [TestPriority.P2, FrontlineFeatureTags.QR_CODE],
+      },
+      async ({ appManagerHomePage }) => {
+        tagTest(test.info(), {
+          description: 'Verify enable Content and feature promotion from manage application as adminUser',
+          zephyrTestId: 'FL-210',
+          storyId: 'FL-210',
+        });
+
+        const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+        await manageQRPage.navigateToApplicationSetup();
+        await manageQRPage.verifyContentAndFeatureText();
+        await manageQRPage.checkContentAndFeatureCheckBox();
+        await manageQRPage.saveChangesOnSetup();
+        await manageQRPage.clickOnManage();
+        await manageQRPage.verifyQRCodeMenuVisible();
       }
     );
   }

@@ -2,8 +2,8 @@ name: Integrations Regression Tests
 
 on:
   schedule:
-    # Run every 2 days on weekdays only (Monday-Friday) to check if integrations should run based on day/date logic
-    - cron: '0 2 */2 * 1-5'
+    # Run daily at 2 AM UTC to check if integrations should run (Mon/Wed/Fri)
+    - cron: '0 2 * * *'
   workflow_dispatch: # allows manual triggering for testing
 
 permissions:
@@ -54,14 +54,8 @@ jobs:
 
           # Check if today is Monday, Wednesday, or Friday (1, 3, 5)
           if [[ "$DAY_OF_WEEK" == "1" || "$DAY_OF_WEEK" == "3" || "$DAY_OF_WEEK" == "5" ]]; then
-            # Check if it's an odd day of month (1, 3, 5, 7, 9, etc.)
-            if (( DAY_OF_MONTH % 2 == 1 )); then
-              echo "should_run=true" >> $GITHUB_OUTPUT
-              echo "Integrations scheduled to run today (Day $DAY_OF_MONTH, Weekday $DAY_OF_WEEK)"
-            else
-              echo "should_run=false" >> $GITHUB_OUTPUT
-              echo "Integrations skipped today (Day $DAY_OF_MONTH, Weekday $DAY_OF_WEEK) - runs every 2 days on odd days"
-            fi
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "Integrations scheduled to run today (Day $DAY_OF_MONTH, Weekday $DAY_OF_WEEK)"
           else
             echo "should_run=false" >> $GITHUB_OUTPUT
             echo "Integrations skipped today (Day $DAY_OF_MONTH, Weekday $DAY_OF_WEEK) - weekends excluded"
