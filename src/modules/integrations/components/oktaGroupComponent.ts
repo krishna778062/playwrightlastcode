@@ -47,7 +47,12 @@ export class OktaGroupComponent extends BaseComponent {
         .getByTestId(/clear-button/);
     this.confirmButton = () => this.rootLocator.getByRole('button', { name: 'Confirm' });
     this.selectAudiencesButton = (text: string) =>
-      this.rootLocator.locator('label').filter({ hasText: text }).locator('span').getByText(text, { exact: true });
+      this.rootLocator
+        .locator('label')
+        .filter({ hasText: text })
+        .locator('span')
+        .getByText(text, { exact: true })
+        .first();
     this.audiencesTable = () => this.rootLocator.locator('table.Table');
     this.audienceName = (name: string) =>
       this.audiencesTable()
