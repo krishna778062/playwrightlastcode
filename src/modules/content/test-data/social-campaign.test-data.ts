@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import { SocialCampaignNetwork, SocialCampaignRecipient } from '@core/types/social-campaign.types';
 
 export const SOCIAL_CAMPAIGN_TEST_DATA = {
   // Default campaign messages
@@ -24,18 +25,18 @@ export const SOCIAL_CAMPAIGN_TEST_DATA = {
 
   // Social networks
   NETWORKS: {
-    ALL: ['fb', 'ln', 'tw'],
-    FACEBOOK_LINKEDIN: ['fb', 'ln'],
-    LINKEDIN_TWITTER: ['ln', 'tw'],
-    FACEBOOK_ONLY: ['fb'],
-    LINKEDIN_ONLY: ['ln'],
-    TWITTER_ONLY: ['tw'],
+    ALL: [SocialCampaignNetwork.FACEBOOK, SocialCampaignNetwork.LINKEDIN, SocialCampaignNetwork.TWITTER],
+    FACEBOOK_LINKEDIN: [SocialCampaignNetwork.FACEBOOK, SocialCampaignNetwork.LINKEDIN],
+    LINKEDIN_TWITTER: [SocialCampaignNetwork.LINKEDIN, SocialCampaignNetwork.TWITTER],
+    FACEBOOK_ONLY: [SocialCampaignNetwork.FACEBOOK],
+    LINKEDIN_ONLY: [SocialCampaignNetwork.LINKEDIN],
+    TWITTER_ONLY: [SocialCampaignNetwork.TWITTER],
   },
 
   // Recipient types
   RECIPIENTS: {
-    EVERYONE: 'everyone',
-    AUDIENCE: 'audience',
+    EVERYONE: SocialCampaignRecipient.EVERYONE,
+    AUDIENCE: SocialCampaignRecipient.AUDIENCE,
   },
 
   // Campaign statuses
@@ -57,22 +58,22 @@ export const SOCIAL_CAMPAIGN_TEST_DATA = {
   // Default campaign configurations
   DEFAULT_CAMPAIGNS: {
     EVERYONE_YOUTUBE: {
-      recipient: 'everyone',
+      recipient: SocialCampaignRecipient.EVERYONE,
       message: 'Test YouTube Campaign for Everyone',
       url: 'https://www.youtube.com/watch?v=6_q_LHq85Cs',
-      networks: ['fb', 'ln', 'tw'],
+      networks: [SocialCampaignNetwork.FACEBOOK, SocialCampaignNetwork.LINKEDIN, SocialCampaignNetwork.TWITTER],
     },
     EVERYONE_BLOG: {
-      recipient: 'everyone',
+      recipient: SocialCampaignRecipient.EVERYONE,
       message: 'Test Blog Campaign for Everyone',
       url: 'https://www.simpplr.com/blog/2022/new-brand/',
-      networks: ['fb', 'ln'],
+      networks: [SocialCampaignNetwork.FACEBOOK, SocialCampaignNetwork.LINKEDIN],
     },
     AUDIENCE_NEWS: {
-      recipient: 'audience',
+      recipient: SocialCampaignRecipient.AUDIENCE,
       message: 'Test News Campaign for Audience',
       url: 'https://www.simpplr.com/blog/2023/building-transparent-leadership-and-trust',
-      networks: ['ln', 'tw'],
+      networks: [SocialCampaignNetwork.LINKEDIN, SocialCampaignNetwork.TWITTER],
       audienceId: 'f6fe0c5c-9ed6-4d95-a6fd-4329173bafa0', // Example audience ID
     },
   },
@@ -82,8 +83,8 @@ export const SOCIAL_CAMPAIGN_TEST_DATA = {
     MIN_MESSAGE_LENGTH: 1,
     MAX_MESSAGE_LENGTH: 500,
     REQUIRED_FIELDS: ['recipient', 'message', 'url', 'networks'],
-    VALID_NETWORKS: ['fb', 'ln', 'tw'],
-    VALID_RECIPIENTS: ['everyone', 'audience'],
+    VALID_NETWORKS: [SocialCampaignNetwork.FACEBOOK, SocialCampaignNetwork.LINKEDIN, SocialCampaignNetwork.TWITTER],
+    VALID_RECIPIENTS: [SocialCampaignRecipient.EVERYONE, SocialCampaignRecipient.AUDIENCE],
   },
 
   // Error messages
@@ -100,19 +101,19 @@ export const SOCIAL_CAMPAIGN_TEST_DATA = {
     CREATE_EVERYONE_CAMPAIGN: {
       name: 'Create Campaign for Everyone',
       data: {
-        recipient: 'everyone',
+        recipient: SocialCampaignRecipient.EVERYONE,
         message: 'Test Campaign for All Users',
         url: 'https://www.simpplr.com/blog/2022/new-brand/',
-        networks: ['fb', 'ln', 'tw'],
+        networks: [SocialCampaignNetwork.FACEBOOK, SocialCampaignNetwork.LINKEDIN, SocialCampaignNetwork.TWITTER],
       },
     },
     CREATE_AUDIENCE_CAMPAIGN: {
       name: 'Create Campaign for Specific Audience',
       data: {
-        recipient: 'audience',
+        recipient: SocialCampaignRecipient.AUDIENCE,
         message: 'Test Campaign for Specific Audience',
         url: 'https://www.youtube.com/watch?v=6_q_LHq85Cs',
-        networks: ['fb', 'ln'],
+        networks: [SocialCampaignNetwork.FACEBOOK, SocialCampaignNetwork.LINKEDIN],
         audienceId: 'f6fe0c5c-9ed6-4d95-a6fd-4329173bafa0',
       },
     },
@@ -132,7 +133,7 @@ export const SOCIAL_CAMPAIGN_TEST_DATA = {
       count: 3,
       baseMessage: 'Bulk Test Campaign',
       url: 'https://www.simpplr.com/blog/2022/new-brand/',
-      networks: ['fb', 'ln', 'tw'],
+      networks: [SocialCampaignNetwork.FACEBOOK, SocialCampaignNetwork.LINKEDIN, SocialCampaignNetwork.TWITTER],
     },
     DELETE_ALL_CAMPAIGNS: {
       operation: 'deleteAll',

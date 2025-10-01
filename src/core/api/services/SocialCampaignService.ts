@@ -5,10 +5,13 @@ import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import {
   CreateSocialCampaignRequest,
   SocialCampaign,
+  SocialCampaignAction,
   SocialCampaignApiResponse,
   SocialCampaignDeleteResponse,
   SocialCampaignListRequest,
   SocialCampaignListResponse,
+  SocialCampaignNetwork,
+  SocialCampaignRecipient,
   SocialCampaignStatusUpdateRequest,
   SocialCampaignStatusUpdateResponse,
 } from '@core/types/social-campaign.types';
@@ -97,7 +100,7 @@ export class SocialCampaignService extends BaseApiClient {
    */
   async updateCampaignStatus(
     campaignId: string,
-    action: 'expire' | 'activate' | 'deactivate'
+    action: SocialCampaignAction
   ): Promise<SocialCampaignStatusUpdateResponse> {
     return await test.step(`Updating social campaign status: ${campaignId} to ${action}`, async () => {
       const response = await this.put(API_ENDPOINTS.socialCampaign.updateStatus(campaignId), { data: { action } });
@@ -112,7 +115,7 @@ export class SocialCampaignService extends BaseApiClient {
    */
   async expireCampaign(campaignId: string): Promise<SocialCampaignStatusUpdateResponse> {
     return await test.step(`Expiring social campaign: ${campaignId}`, async () => {
-      return this.updateCampaignStatus(campaignId, 'expire');
+      return this.updateCampaignStatus(campaignId, SocialCampaignAction.EXPIRE);
     });
   }
 
@@ -123,7 +126,7 @@ export class SocialCampaignService extends BaseApiClient {
    */
   async activateCampaign(campaignId: string): Promise<SocialCampaignStatusUpdateResponse> {
     return await test.step(`Activating social campaign: ${campaignId}`, async () => {
-      return this.updateCampaignStatus(campaignId, 'activate');
+      return this.updateCampaignStatus(campaignId, SocialCampaignAction.ACTIVATE);
     });
   }
 
@@ -134,7 +137,7 @@ export class SocialCampaignService extends BaseApiClient {
    */
   async deactivateCampaign(campaignId: string): Promise<SocialCampaignStatusUpdateResponse> {
     return await test.step(`Deactivating social campaign: ${campaignId}`, async () => {
-      return this.updateCampaignStatus(campaignId, 'deactivate');
+      return this.updateCampaignStatus(campaignId, SocialCampaignAction.DEACTIVATE);
     });
   }
 }

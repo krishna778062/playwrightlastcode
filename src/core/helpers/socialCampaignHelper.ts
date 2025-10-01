@@ -2,7 +2,13 @@ import { test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { SocialCampaignService } from '@/src/core/api/services/SocialCampaignService';
-import { CreateSocialCampaignRequest, SocialCampaign } from '@/src/core/types/social-campaign.types';
+import {
+  CreateSocialCampaignRequest,
+  SocialCampaign,
+  SocialCampaignAction,
+  SocialCampaignNetwork,
+  SocialCampaignRecipient,
+} from '@/src/core/types/social-campaign.types';
 
 interface Campaign {
   campaignId: string;
@@ -33,8 +39,8 @@ export class SocialCampaignHelper {
   async createCampaign(params: {
     message?: string;
     url?: string;
-    recipient?: string;
-    networks?: string[];
+    recipient?: SocialCampaignRecipient;
+    networks?: SocialCampaignNetwork[];
     overrides?: Partial<CreateSocialCampaignRequest>;
   }): Promise<SocialCampaign> {
     const { message, url, recipient, networks, overrides } = params;
@@ -45,8 +51,12 @@ export class SocialCampaignHelper {
     const campaignData: CreateSocialCampaignRequest = {
       message: message ?? `Test Campaign ${timestamp}_${randomId}`,
       url: url ?? 'https://www.simpplr.com/blog/2022/new-brand/',
-      recipient: recipient ?? 'everyone',
-      networks: networks ?? ['fb', 'ln', 'tw'],
+      recipient: recipient ?? SocialCampaignRecipient.EVERYONE,
+      networks: networks ?? [
+        SocialCampaignNetwork.FACEBOOK,
+        SocialCampaignNetwork.LINKEDIN,
+        SocialCampaignNetwork.TWITTER,
+      ],
       ...overrides,
     };
 
@@ -60,7 +70,11 @@ export class SocialCampaignHelper {
       campaignId: createdCampaign.campaignId,
       message: createdCampaign.message,
       recipient: createdCampaign.recipient,
-      networks: networks ?? ['fb', 'ln', 'tw'],
+      networks: networks ?? [
+        SocialCampaignNetwork.FACEBOOK,
+        SocialCampaignNetwork.LINKEDIN,
+        SocialCampaignNetwork.TWITTER,
+      ],
       url: createdCampaign.campaignUrl || campaignData.url,
     });
 
@@ -75,12 +89,12 @@ export class SocialCampaignHelper {
   async createCampaignForEveryone(params: {
     message?: string;
     url?: string;
-    networks?: string[];
+    networks?: SocialCampaignNetwork[];
     overrides?: Partial<CreateSocialCampaignRequest>;
   }): Promise<SocialCampaign> {
     return await this.createCampaign({
       ...params,
-      recipient: 'everyone',
+      recipient: SocialCampaignRecipient.EVERYONE,
     });
   }
 
@@ -92,13 +106,13 @@ export class SocialCampaignHelper {
   async createCampaignForAudience(params: {
     message?: string;
     url?: string;
-    networks?: string[];
+    networks?: SocialCampaignNetwork[];
     audienceId?: string;
     overrides?: Partial<CreateSocialCampaignRequest>;
   }): Promise<SocialCampaign> {
     return await this.createCampaign({
       ...params,
-      recipient: 'audience',
+      recipient: SocialCampaignRecipient.AUDIENCE,
       overrides: {
         ...params.overrides,
         ...(params.audienceId && { audienceId: params.audienceId }),
@@ -117,8 +131,8 @@ export class SocialCampaignHelper {
     params?: {
       message?: string;
       url?: string;
-      recipient?: string;
-      networks?: string[];
+      recipient?: SocialCampaignRecipient;
+      networks?: SocialCampaignNetwork[];
     }
   ): Promise<SocialCampaign[]> {
     const campaigns: SocialCampaign[] = [];
@@ -183,7 +197,7 @@ export class SocialCampaignHelper {
    * @param action - The action to perform ('expire', 'activate', 'deactivate')
    * @returns Promise<any> - The update response
    */
-  async updateCampaignStatus(campaignId: string, action: 'expire' | 'activate' | 'deactivate'): Promise<any> {
+  async updateCampaignStatus(campaignId: string, action: SocialCampaignAction): Promise<any> {
     return await this.getSocialCampaignService().updateCampaignStatus(campaignId, action);
   }
 
@@ -263,7 +277,7 @@ export class SocialCampaignHelper {
    * @param network - The network to filter by ('fb', 'ln', 'tw')
    * @returns Promise<SocialCampaign[]> - Campaigns that include the specified network
    */
-  async getCampaignsByNetwork(network: 'fb' | 'ln' | 'tw'): Promise<SocialCampaign[]> {
+  async getCampaignsByNetwork(network: SocialCampaignNetwork): Promise<SocialCampaign[]> {
     const allCampaigns = await this.getAllCampaignsFromAPI();
     return allCampaigns.filter(campaign => campaign.networks && campaign.networks[network] !== undefined);
   }

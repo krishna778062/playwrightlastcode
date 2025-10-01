@@ -1,9 +1,33 @@
+export enum SocialCampaignStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  DRAFT = 'draft',
+  EXPIRED = 'expired',
+}
+
+export enum SocialCampaignAction {
+  EXPIRE = 'expire',
+  ACTIVATE = 'activate',
+  DEACTIVATE = 'deactivate',
+}
+
+export enum SocialCampaignRecipient {
+  EVERYONE = 'everyone',
+  AUDIENCE = 'audience',
+}
+
+export enum SocialCampaignNetwork {
+  FACEBOOK = 'fb',
+  LINKEDIN = 'ln',
+  TWITTER = 'tw',
+}
+
 export interface SocialCampaignOptions {
   message: string;
   url: string;
   linkText: string;
-  recipient?: 'everyone' | 'audience';
-  networks?: string[];
+  recipient?: SocialCampaignRecipient;
+  networks?: SocialCampaignNetwork[];
 }
 
 export interface SocialCampaign {
@@ -11,7 +35,7 @@ export interface SocialCampaign {
   recipient: string;
   audienceId?: string;
   recipientId?: string;
-  status: 'active' | 'inactive' | 'draft' | 'expired';
+  status: SocialCampaignStatus;
   message: string;
   campaignUrl?: string;
   urlPreview?: {
@@ -76,7 +100,7 @@ export interface SocialCampaign {
 
 export interface CreateSocialCampaignRequest {
   recipient: string;
-  networks: string[];
+  networks: SocialCampaignNetwork[];
   url: string;
   message: string;
 }
@@ -121,7 +145,7 @@ export interface SocialCampaignDeleteResponse {
 }
 
 export interface SocialCampaignStatusUpdateRequest {
-  action: 'expire' | 'activate' | 'deactivate';
+  action: SocialCampaignAction;
 }
 
 export interface SocialCampaignStatusUpdateResponse {

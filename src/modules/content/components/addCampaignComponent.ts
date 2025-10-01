@@ -2,7 +2,7 @@ import { Locator, Page, Response, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/components/baseComponent';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-import { SocialCampaignOptions } from '@core/types/social-campaign.types';
+import { SocialCampaignOptions, SocialCampaignRecipient } from '@core/types/social-campaign.types';
 
 export interface IAddCampaignActions {
   selectMemberAsAudience: () => Promise<void>;
@@ -77,7 +77,7 @@ export class AddCampaignComponent extends BaseComponent implements IAddCampaignA
   async AddCampaignAndCreate(options: SocialCampaignOptions): Promise<string> {
     return await test.step(`Creating and publishing social campaign with message: ${options.message}`, async () => {
       // Select member as "audience" (default) or handle everyone selection
-      if (options.recipient !== 'everyone') {
+      if (options.recipient !== SocialCampaignRecipient.EVERYONE) {
         await this.selectMemberAsAudience();
       }
 
