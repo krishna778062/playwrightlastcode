@@ -3,11 +3,15 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ApplicationScreenPage } from '../../pages/manageFeaturesPage';
-
+import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { ApplicationScreenPage } from '@/src/modules/content/pages/applicationscreenPage';
+import { FeedPage } from '@/src/modules/content/pages/feedPage';
+import { HomeFeedPage } from '@/src/modules/content/pages/manageApplicationDefaultHomeFeedPage';
+import { DefaultScreenPage } from '@/src/modules/content/pages/manageApplicationDefaultScreenPage';
+import { ManageApplicationPage } from '@/src/modules/content/pages/manageApplicationPage';
 import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
@@ -21,12 +25,22 @@ test.describe(
     let manageFeaturesPage: ApplicationScreenPage;
     let manageContentPage: ManageContentPage;
     let homePage: NewUxHomePage;
+    let applicationScreenPage: ApplicationScreenPage;
+    let manageApplicationPage: ManageApplicationPage;
+    let defaultScreenPage: DefaultScreenPage;
+    let homeFeedPage: HomeFeedPage;
+    let feedPage: FeedPage;
 
     test.beforeEach(async ({ appManagerHomePage }) => {
       await appManagerHomePage.verifyThePageIsLoaded();
       manageFeaturesPage = new ApplicationScreenPage(appManagerHomePage.page);
       manageContentPage = new ManageContentPage(appManagerHomePage.page);
       homePage = new NewUxHomePage(appManagerHomePage.page);
+      applicationScreenPage = new ApplicationScreenPage(appManagerHomePage.page);
+      manageApplicationPage = new ManageApplicationPage(appManagerHomePage.page);
+      defaultScreenPage = new DefaultScreenPage(appManagerHomePage.page);
+      homeFeedPage = new HomeFeedPage(appManagerHomePage.page);
+      feedPage = new FeedPage(appManagerHomePage.page);
     });
 
     test.afterEach(async ({ page }) => {
@@ -208,6 +222,42 @@ test.describe(
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectCreatedNewestOption();
+      }
+    );
+    test(
+      'In Zeus Verify Default filters (Posts I follow and Recent Activity) are applied for Home Feed for New users',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.HOME_FEED],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify Default filters (Posts I follow and Recent Activity) are applied for Home Feed for New users',
+          zephyrTestId: 'CONT-29493',
+          storyId: 'CONT-29493',
+        });
+        await homePage.actions.clickOnApplicationSettings();
+        await applicationScreenPage.actions.clickOnApplication();
+        await manageApplicationPage.actions.clickOnDefaults();
+        await defaultScreenPage.actions.clickOnHomeFeed();
+        await homeFeedPage.actions.selectingPostsIFollow();
+        await homeFeedPage.actions.recentActivity();
+        // Logout from app manager account
+        await test.step('Logout from app manager account', async () => {
+          await LoginHelper.logoutByNavigatingToLogoutPage(homePage.page);
+        });
+
+        // Login with standard user
+        await test.step('Login with standard user', async () => {
+          const standardUserHomePage = await LoginHelper.loginWithPassword(homePage.page, users.endUser);
+          await standardUserHomePage.verifyThePageIsLoaded();
+          console.log('✅ Successfully logged in as standard user');
+          console.log('🔍 Verifying home feed defaults are applied for standard user');
+          await feedPage.assertions.verifyPostsIFollow();
+          await feedPage.assertions.verifySortByRecentActivity();
+          await feedPage.actions.selectPostsToMe();
+          await feedPage.actions.selectPostDate();
+        });
       }
     );
   }

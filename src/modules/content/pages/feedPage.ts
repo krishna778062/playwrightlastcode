@@ -45,6 +45,8 @@ export interface IFeedActions {
   addReplyToPost: (replyText: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
   clickOnDeleteReplyButton: () => Promise<void>;
+  selectPostsToMe: () => Promise<void>;
+  selectPostDate: () => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -60,6 +62,8 @@ export interface IFeedAssertions {
   verifyVersionImageIsDisplayed: (fileId: string) => Promise<void>;
   verifyVersionNumber: (expectedVersionNumber: string) => Promise<void>;
   verifyToastMessage: (message: string) => Promise<void>;
+  verifyPostsIFollow: () => Promise<void>;
+  verifySortByRecentActivity: () => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -283,5 +287,21 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyReplyIsNotVisible(replyText: string): Promise<void> {
     await this.listFeedComponent.verifyReplyIsNotVisible(replyText);
+  }
+
+  async verifyPostsIFollow(): Promise<void> {
+    await this.listFeedComponent.verifyPostsIFollow();
+  }
+
+  async verifySortByRecentActivity(): Promise<void> {
+    await this.listFeedComponent.verifySortByRecentActivity();
+  }
+
+  async selectPostsToMe(): Promise<void> {
+    await this.listFeedComponent.selectPostsToMe();
+  }
+
+  async selectPostDate(): Promise<void> {
+    await this.listFeedComponent.selectPostDate();
   }
 }

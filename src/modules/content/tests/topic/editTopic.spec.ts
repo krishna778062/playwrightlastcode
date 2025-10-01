@@ -1,0 +1,53 @@
+import { expect, Page } from '@playwright/test';
+
+import { TestPriority } from '@core/constants/testPriority';
+import { TestGroupType } from '@core/constants/testType';
+import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
+import { tagTest } from '@core/utils/testDecorator';
+
+import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
+import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { AddTopicModal } from '@/src/modules/content/pages/addTopicPage';
+import { ApplicationScreenPage } from '@/src/modules/content/pages/applicationscreenPage';
+import { EditTopicModal } from '@/src/modules/content/pages/editTopicPage';
+import { ManageTopicsPage } from '@/src/modules/content/pages/manageTopicsPage';
+test.describe('Edit Topic', () => {
+  let homePage: NewUxHomePage;
+  let applicationScreenPage: ApplicationScreenPage;
+  let manageTopicsPage: ManageTopicsPage;
+  let addTopicModal: AddTopicModal;
+  let editTopicPage: EditTopicModal;
+
+  test.beforeEach('Setup for edit topic test', async ({ appManagersPage }) => {
+    homePage = new NewUxHomePage(appManagersPage);
+    applicationScreenPage = new ApplicationScreenPage(appManagersPage);
+    manageTopicsPage = new ManageTopicsPage(appManagersPage);
+    addTopicModal = new AddTopicModal(appManagersPage);
+    editTopicPage = new EditTopicModal(appManagersPage);
+  });
+
+  test.afterEach(async ({}) => {});
+
+  test(
+    'In Zeus to verify the Edit topic - negative scenario',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.EDIT_TOPICS],
+    },
+    async ({ page }) => {
+      tagTest(test.info(), {
+        description: 'In Zeus to verify the Edit topic - negative scenario',
+        zephyrTestId: 'CONT-38095',
+        storyId: 'CONT-38095',
+      });
+      await homePage.actions.navigateToApplication();
+      await applicationScreenPage.actions.clickOnTopics();
+      await manageTopicsPage.actions.clickOnAddTopic();
+      await addTopicModal.actions.fillTopicName('Test Topic');
+      await addTopicModal.actions.clickOnAddButton();
+      await manageTopicsPage.actions.clickOnEditTopic();
+      await editTopicPage.actions.editTopicName('Test Topic--__');
+      await editTopicPage.actions.clickOnUpdateButton();
+      await manageTopicsPage.assertions.verifyErroToastMessage();
+    }
+  );
+});

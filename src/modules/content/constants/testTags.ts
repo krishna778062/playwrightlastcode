@@ -18,6 +18,9 @@ export enum ContentFeatureTags {
   ADD_USERS_TO_AUTHOR = '@add-users-to-author',
   ADD_TARGET_AUDIENCE = '@add-target-audience',
   ADD_USERS_TO_ALLOWLIST = '@add-users-to-allowlist',
+  HOME_FEED = '@home-feed',
+  MANAGE_TOPICS = '@manage-topics',
+  EDIT_TOPICS = '@edit-topics',
 }
 
 export const ContentTestTags = [...Object.values(ContentSuiteTags), ...Object.values(ContentFeatureTags)] as const;
