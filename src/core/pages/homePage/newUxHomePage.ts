@@ -203,4 +203,21 @@ export class NewUxHomePage extends BaseHomePage implements INewUxHomePageActions
       await addContentModal.verifyErrorMessageWhenContentSubmissionIsDisabled(contentType);
     });
   }
+
+  async clickOnSocialCampaigns(): Promise<void> {
+    await test.step('Clicking on social campaigns', async () => {
+      // Check if Social campaigns is directly visible
+      const isSocialCampaignsVisible = await this.verifier.isTheElementVisible(
+        this.sideNavBarComponent.socialCampaignsElement
+      );
+
+      if (!isSocialCampaignsVisible) {
+        // If not visible, click on "More" to expand the menu
+        await this.clickOnElement(this.sideNavBarComponent.moreElement);
+      }
+
+      // Click on Social campaigns
+      await this.clickOnElement(this.sideNavBarComponent.socialCampaignsElement);
+    });
+  }
 }
