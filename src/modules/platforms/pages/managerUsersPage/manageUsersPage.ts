@@ -1,8 +1,9 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 import { ManageUsersFilter } from '@platforms/components/manageUsersFilter';
+
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 export enum MUOptions {
   EDIT_USER = 'Edit user',
@@ -154,7 +155,7 @@ export class ManageUsersPage extends BasePage {
    */
   async verifyPrimaryRoleValues(value: string): Promise<void> {
     await test.step(`Verifying primary role values`, async () => {
-      let primaryRoleValues: string[] = [];
+      const primaryRoleValues: string[] = [];
       await this.verifyThePageIsLoaded();
       const count = await this.manageUsersPageElements.count();
       for (let i = 0; i < count; i++) {
