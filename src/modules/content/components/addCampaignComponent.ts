@@ -2,14 +2,7 @@ import { Locator, Page, Response, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/components/baseComponent';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-
-export interface SocialCampaignOptions {
-  message: string;
-  url: string;
-  linkText: string;
-  recipient?: 'everyone' | 'audience';
-  networks?: string[];
-}
+import { SocialCampaignOptions } from '@core/types/social-campaign.types';
 
 export interface IAddCampaignActions {
   selectMemberAsAudience: () => Promise<void>;

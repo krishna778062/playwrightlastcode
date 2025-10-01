@@ -1,11 +1,8 @@
 import { test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
-import {
-  CreateSocialCampaignRequest,
-  SocialCampaign,
-  SocialCampaignService,
-} from '@/src/core/api/services/SocialCampaignService';
+import { SocialCampaignService } from '@/src/core/api/services/SocialCampaignService';
+import { CreateSocialCampaignRequest, SocialCampaign } from '@/src/core/types/social-campaign.types';
 
 interface Campaign {
   campaignId: string;

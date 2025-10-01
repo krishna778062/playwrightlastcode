@@ -1,7 +1,8 @@
 import { Locator, Page, Response, test } from '@playwright/test';
 
-import { AddCampaignComponent, SocialCampaignOptions } from '@content/components/addCampaignComponent';
+import { AddCampaignComponent } from '@content/components/addCampaignComponent';
 import { BasePage } from '@core/pages/basePage';
+import { SocialCampaignOptions } from '@core/types/social-campaign.types';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 

@@ -2,136 +2,16 @@ import { APIRequestContext, test } from '@playwright/test';
 
 import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-
-export interface SocialCampaign {
-  campaignId: string;
-  recipient: string;
-  audienceId?: string;
-  recipientId?: string;
-  status: 'active' | 'inactive' | 'draft' | 'expired';
-  message: string;
-  campaignUrl?: string;
-  urlPreview?: {
-    author_name: string;
-    author_url: string;
-    description: string;
-    duration: number;
-    height: number;
-    html: string;
-    provider_name: string;
-    provider_url: string;
-    thumbnail_height: number;
-    thumbnail_url: string;
-    thumbnail_width: number;
-    title: string;
-    type: string;
-    url: string;
-    version: string;
-    width: number;
-    author: string;
-    cache_age: number;
-    options?: any;
-  };
-  popularityIndex: number;
-  expiredBy?: string;
-  expireReason?: string;
-  createdBy: string;
-  modifiedBy?: string;
-  createdAt: string;
-  modifiedOn: string;
-  addedToCarousel: boolean;
-  audience?: {
-    name: string;
-    isDeleted: boolean;
-    audienceId: string;
-    displayName: string;
-  };
-  author: {
-    name: string;
-    email: string;
-    userId: string;
-  };
-  thumbnailAltText?: string;
-  canShareToHomeCarousel: boolean;
-  networks: {
-    fb?: {
-      hasShared: boolean;
-      shareCount: number;
-    };
-    ln?: {
-      hasShared: boolean;
-      shareCount: number;
-    };
-    tw?: {
-      hasShared: boolean;
-      shareCount: number;
-    };
-  };
-  odinCampaignId?: string;
-  segment?: any;
-}
-
-export interface CreateSocialCampaignRequest {
-  recipient: string;
-  networks: string[];
-  url: string;
-  message: string;
-}
-
-export interface SocialCampaignListRequest {
-  nextPageToken: number;
-  size: number;
-  filter: string;
-}
-
-export interface SocialCampaignListResponse {
-  success: boolean;
-  status: number;
-  textStatus: string;
-  message: string;
-  responseTimeStamp: number;
-  result: {
-    nextPageToken: number;
-    listOfItems: SocialCampaign[];
-  };
-  errors: any[];
-}
-
-export interface SocialCampaignApiResponse {
-  success: boolean;
-  status: number;
-  textStatus: string;
-  message: string;
-  responseTimeStamp: number;
-  result: SocialCampaign;
-  errors: any[];
-}
-
-export interface SocialCampaignDeleteResponse {
-  success: boolean;
-  status: number;
-  textStatus: string;
-  message: string;
-  responseTimeStamp: number;
-  result: {};
-  errors: any[];
-}
-
-export interface SocialCampaignStatusUpdateRequest {
-  action: 'expire' | 'activate' | 'deactivate';
-}
-
-export interface SocialCampaignStatusUpdateResponse {
-  success: boolean;
-  status: number;
-  textStatus: string;
-  message: string;
-  responseTimeStamp: number;
-  result: {
-    data: SocialCampaign;
-  };
-  errors: any[];
-}
+import {
+  CreateSocialCampaignRequest,
+  SocialCampaign,
+  SocialCampaignApiResponse,
+  SocialCampaignDeleteResponse,
+  SocialCampaignListRequest,
+  SocialCampaignListResponse,
+  SocialCampaignStatusUpdateRequest,
+  SocialCampaignStatusUpdateResponse,
+} from '@core/types/social-campaign.types';
 
 export class SocialCampaignService extends BaseApiClient {
   constructor(context: APIRequestContext, baseUrl?: string) {
