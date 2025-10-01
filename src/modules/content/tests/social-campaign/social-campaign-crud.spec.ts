@@ -19,19 +19,11 @@ test.describe(
     tag: [ContentTestSuite.SOCIAL_CAMPAIGN],
   },
   () => {
-    let homePage: NewUxHomePage;
-    let applicationscreen: ApplicationScreenPage;
-    let manageApplicationPage: ManageApplicationPage;
-    let governanceScreenPage: GovernanceScreenPage;
     let socialCampaignPage: SocialCampaignPage;
     let manualCleanupNeeded: boolean = false;
     let campaignId: string;
 
     test.beforeEach(async ({ socialCampaignManagerHomePage, socialCampaignHelper }) => {
-      homePage = new NewUxHomePage(socialCampaignManagerHomePage.page);
-      applicationscreen = new ApplicationScreenPage(socialCampaignManagerHomePage.page);
-      manageApplicationPage = new ManageApplicationPage(socialCampaignManagerHomePage.page);
-      governanceScreenPage = new GovernanceScreenPage(socialCampaignManagerHomePage.page);
       socialCampaignPage = new SocialCampaignPage(socialCampaignManagerHomePage.page);
       //clean up all the campaigns
       await socialCampaignHelper.deleteAllCampaigns();
