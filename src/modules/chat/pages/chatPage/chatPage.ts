@@ -81,6 +81,8 @@ export interface IChatAssertions {
     senderName: string,
     options?: { stepInfo?: string }
   ) => Promise<void>;
+  verifyMessageActionsNotVisible: (message: string, options?: { stepInfo?: string }) => Promise<void>;
+  verifyMessageActionsIsVisible: (message: string, options?: { stepInfo?: string }) => Promise<void>;
 }
 
 export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAssertions {
@@ -515,6 +517,24 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
       const messageItem =
         await this.getConversationWindowComponent().getFocusedMessageCardFromListOfChatMessages(message);
       await messageItem.deleteMessage();
+    });
+  }
+
+  async verifyMessageActionsNotVisible(message: string, options?: { stepInfo?: string }) {
+    await test.step(
+      options?.stepInfo ?? `Verifying message actions are not visible for message ${message}`,
+      async () => {
+        const messageItem = await this.getConversationWindowComponent().getDeletedMessageCardFromListOfChatMessages();
+        await messageItem.verifyMessageActionsNotVisibleToUser();
+      }
+    );
+  }
+
+  async verifyMessageActionsIsVisible(message: string, options?: { stepInfo?: string }) {
+    await test.step(options?.stepInfo ?? `Verifying message actions are visible for message ${message}`, async () => {
+      const messageItem =
+        await this.getConversationWindowComponent().getFocusedMessageCardFromListOfChatMessages(message);
+      await messageItem.verifyMessageActionsIsVisibleToUser();
     });
   }
 
