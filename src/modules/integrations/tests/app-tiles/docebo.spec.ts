@@ -6,6 +6,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { UI_ACTIONS } from '../../constants/common';
+
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { CONNECTOR_IDS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
@@ -15,6 +17,8 @@ test.describe(
     tag: [IntegrationsSuiteTags.DOCEBO, IntegrationsSuiteTags.ABSOLUTE],
   },
   () => {
+    const AppName = 'Docebo';
+    const tileName = 'Display learning courses';
     let createdTileTitle: string | undefined = undefined;
 
     test.afterEach(async ({ homeDashboard, tileManagementHelper }) => {
@@ -53,6 +57,39 @@ test.describe(
         await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(updatedTileTitle);
         createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'Verify users should be able to display pending learning courses from Docebo on a tile on Site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-24661',
+          storyId: 'INT-24422',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTile(createdTileTitle, AppName, tileName, UI_ACTIONS.ADD_TO_SITE);
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
       }
     );
   }
