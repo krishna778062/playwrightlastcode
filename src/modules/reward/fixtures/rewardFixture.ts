@@ -1,6 +1,4 @@
 import { Page, test } from '@playwright/test';
-import { ManageRewardsPage } from '@rewards/pages/manage-rewards/manage-rewards-page';
-import { RewardOptionsPage } from '@rewards/pages/manage-rewards/reward-options-page';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { LoginHelper } from '@core/helpers/loginHelper';
@@ -17,8 +15,6 @@ export const rewardTestFixture = test.extend<{
   recoManagerPage: Page;
   standardUserHomePage: NewUxHomePage | OldUxHomePage;
   standardUserPage: Page;
-  manageRewardsPage: ManageRewardsPage;
-  rewardOptionsPage: RewardOptionsPage;
 }>({
   appManagerHomePage: [
     async ({ page }, use) => {
