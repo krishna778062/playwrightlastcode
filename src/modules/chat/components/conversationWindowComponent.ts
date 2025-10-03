@@ -128,6 +128,33 @@ export class ConversationWindowComponent extends BaseComponent {
     );
   }
 
+  async verifyEditedMessageIsPresentInListOfChatMessages(
+    message: string,
+    options?: {
+      stepInfo?: string;
+      timeout?: number;
+    }
+  ) {
+    await test.step(
+      options?.stepInfo ?? `Verifying message: ${message} is present in the list of chat messages`,
+      async () => {
+        await expect(async () => {
+          let messageFoundInList: boolean = false;
+          const lastMessage = this.listChatMessagesComponent.last();
+          //fetch message
+          const messageText = await lastMessage.locator('section').locator('p').textContent();
+          if (messageText && messageText.includes(message + '  (edited')) {
+            messageFoundInList = true;
+          }
+
+          expect(messageFoundInList, `expecting message: ${message} to be present in the list of chat messages`).toBe(
+            true
+          );
+        }).toPass({ timeout: options?.timeout ?? TIMEOUTS.MEDIUM });
+      }
+    );
+  }
+
   async verifyFormattedMessageIsPresentInListOfChatMessages(
     message: string,
     formattingOptions: FormattingOptions,
@@ -255,7 +282,7 @@ export class ConversationWindowComponent extends BaseComponent {
     return messageComponent!;
   }
 
-  async getDeletedMessageCardFromListOfChatMessages(): Promise<MessageCardComponent> {
+  async getDeletedOrLastMessageCardFromListOfChatMessages(): Promise<MessageCardComponent> {
     let messageComponent: MessageCardComponent | undefined;
     await test.step(`Getting focused message object from list of chat messages`, async () => {
       const lastMessage = this.listChatMessagesComponent.last();
