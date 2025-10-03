@@ -60,6 +60,8 @@ export interface IChatActions {
     message: string,
     options?: { stepInfo?: string }
   ) => Promise<void>;
+  editAndUpdateMessage: (message: string, editedMessage: string, options?: { stepInfo?: string }) => Promise<void>;
+  editAndCancelMessage: (message: string, options?: { stepInfo?: string }) => Promise<void>;
 }
 
 export interface IChatAssertions {
@@ -68,6 +70,7 @@ export interface IChatAssertions {
     options?: { stepInfo?: string }
   ) => Promise<void>;
   verifyMessageIsVisible: (message: string, options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
+  verifyEditedMessageIsVisible: (message: string, options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
   verifyUnsupportedFileHandling: (options?: { stepInfo?: string }) => Promise<void>;
   verifyIncomingCallIsReceivedFromCallerInGroupChat: (
     groupName: string,
@@ -524,7 +527,8 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
     await test.step(
       options?.stepInfo ?? `Verifying message actions are not visible for message ${message}`,
       async () => {
-        const messageItem = await this.getConversationWindowComponent().getDeletedMessageCardFromListOfChatMessages();
+        const messageItem =
+          await this.getConversationWindowComponent().getDeletedOrLastMessageCardFromListOfChatMessages();
         await messageItem.verifyMessageActionsNotVisibleToUser();
       }
     );
@@ -535,6 +539,22 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
       const messageItem =
         await this.getConversationWindowComponent().getFocusedMessageCardFromListOfChatMessages(message);
       await messageItem.verifyMessageActionsIsVisibleToUser();
+    });
+  }
+
+  async editAndUpdateMessage(message: string, editedMessage: string, options?: { stepInfo?: string }) {
+    await test.step(options?.stepInfo ?? `Editing and updating the message ${message}`, async () => {
+      const messageItem =
+        await this.getConversationWindowComponent().getFocusedMessageCardFromListOfChatMessages(message);
+      await messageItem.editAndUpdateMessage(message, editedMessage);
+    });
+  }
+
+  async editAndCancelMessage(message: string, options?: { stepInfo?: string }) {
+    await test.step(options?.stepInfo ?? `Editing and canceling the message ${message}`, async () => {
+      const messageItem =
+        await this.getConversationWindowComponent().getDeletedOrLastMessageCardFromListOfChatMessages();
+      await messageItem.editAndCancelMessage();
     });
   }
 
@@ -605,6 +625,18 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
   ): Promise<void> {
     await test.step(options?.stepInfo || `Verifying message "${message}" is visible`, async () => {
       return await this.getConversationWindowComponent().verifyMessageIsPresentInListOfChatMessages(message, {
+        stepInfo: options?.stepInfo,
+        timeout: options?.timeout,
+      });
+    });
+  }
+
+  public async verifyEditedMessageIsVisible(
+    message: string,
+    options?: { stepInfo?: string; timeout?: number }
+  ): Promise<void> {
+    await test.step(options?.stepInfo || `Verifying message "${message}" is visible`, async () => {
+      return await this.getConversationWindowComponent().verifyEditedMessageIsPresentInListOfChatMessages(message, {
         stepInfo: options?.stepInfo,
         timeout: options?.timeout,
       });
