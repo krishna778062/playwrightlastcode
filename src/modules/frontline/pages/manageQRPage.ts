@@ -1,5 +1,5 @@
 import { PopupType } from '@frontline/constants/popupType';
-import { expect, Locator, Page } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 import { addDays, format } from 'date-fns';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
@@ -42,6 +42,10 @@ export class ManageQRPage extends BasePage {
   readonly contentFeaturePromotionText: Locator;
   readonly contentFeatureCheckbox: Locator;
   readonly saveButtonOnSetup: Locator;
+  readonly searchQRTextbox: Locator;
+  readonly searchButton: Locator;
+  readonly clearButton: Locator;
+  readonly nothingToShowMessage: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_QR_PAGE);
@@ -82,6 +86,10 @@ export class ManageQRPage extends BasePage {
     this.contentFeaturePromotionText = page.getByRole('heading', { name: 'Content and feature promotion' });
     this.contentFeatureCheckbox = page.getByRole('checkbox', { name: 'Content and feature promotion' });
     this.saveButtonOnSetup = page.getByRole('button', { name: 'Save' });
+    this.searchQRTextbox = page.getByRole('textbox', { name: 'Search QR...' });
+    this.searchButton = page.getByTestId('pageContainer-page').getByRole('button', { name: 'Search' });
+    this.clearButton = page.getByRole('button', { name: 'Clear' });
+    this.nothingToShowMessage = page.getByText('Nothing to show here');
   }
 
   async clickOnManage() {
@@ -386,6 +394,86 @@ export class ManageQRPage extends BasePage {
   async verifyQRCodeMenuVisible() {
     await this.verifier.verifyTheElementIsVisible(this.qrCodesLink, {
       assertionMessage: 'QR codes menu should be visible',
+    });
+  }
+  async clickOnSearchQRTextbox() {
+    await this.clickOnElement(this.searchQRTextbox, {
+      stepInfo: 'Click on Search QR textbox',
+    });
+  }
+
+  async fillSearchQRTextbox(searchTerm: string) {
+    await this.fillInElement(this.searchQRTextbox, searchTerm, {
+      stepInfo: `Fill search term: ${searchTerm}`,
+    });
+  }
+
+  async clickSearchButton() {
+    await this.clickOnElement(this.searchButton, {
+      stepInfo: 'Click on Search button',
+    });
+  }
+
+  async clickClearButton() {
+    await this.clickOnElement(this.clearButton, {
+      stepInfo: 'Click on Clear button',
+    });
+  }
+
+  async searchForQR(searchTerm: string) {
+    await this.clickOnSearchQRTextbox();
+    await this.fillSearchQRTextbox(searchTerm);
+    await this.clickSearchButton();
+  }
+
+  async searchForQRWithEnter(searchTerm: string) {
+    await this.clickOnSearchQRTextbox();
+    await this.fillSearchQRTextbox(searchTerm);
+    await this.hitEnterOnSearchBox();
+  }
+
+  async hitEnterOnSearchBox() {
+    await test.step('Press Enter on search box', async () => {
+      await this.searchQRTextbox.press('Enter');
+    });
+  }
+
+  async verifySearchResults(expectedText: string) {
+    await test.step(`Verify search results contain: ${expectedText}`, async () => {
+      const results = this.page.getByRole('row').filter({ hasText: expectedText });
+      await results.first().waitFor({ state: 'visible' });
+
+      const count = await results.count();
+      if (count === 0) {
+        throw new Error(`No search results found containing: "${expectedText}"`);
+      }
+
+      // Verify at least one result contains the expected text
+      let matchFound = false;
+      for (let i = 0; i < count; i++) {
+        const text = await results.nth(i).textContent();
+        if (text?.toLowerCase().includes(expectedText.toLowerCase())) {
+          matchFound = true;
+          break;
+        }
+      }
+
+      if (!matchFound) {
+        throw new Error(`No row element has text matching: "${expectedText}"`);
+      }
+    });
+  }
+
+  async verifyNothingToShowMessage() {
+    await this.verifier.verifyTheElementIsVisible(this.nothingToShowMessage, {
+      assertionMessage: 'Nothing to show here message should be displayed',
+    });
+  }
+
+  async clearSearchAndVerify() {
+    await this.clickClearButton();
+    await this.verifier.verifyElementHasText(this.searchQRTextbox, '', {
+      assertionMessage: 'Search textbox should be cleared',
     });
   }
 }
