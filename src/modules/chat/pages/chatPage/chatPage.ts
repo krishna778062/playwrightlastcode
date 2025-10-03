@@ -86,6 +86,7 @@ export interface IChatAssertions {
   ) => Promise<void>;
   verifyMessageActionsNotVisible: (message: string, options?: { stepInfo?: string }) => Promise<void>;
   verifyMessageActionsIsVisible: (message: string, options?: { stepInfo?: string }) => Promise<void>;
+  verifyEditMessageOptionNotVisible: (message: string, options?: { stepInfo?: string }) => Promise<void>;
 }
 
 export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAssertions {
@@ -530,6 +531,17 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
         const messageItem =
           await this.getConversationWindowComponent().getDeletedOrLastMessageCardFromListOfChatMessages();
         await messageItem.verifyMessageActionsNotVisibleToUser();
+      }
+    );
+  }
+
+  async verifyEditMessageOptionNotVisible(message: string, options?: { stepInfo?: string }) {
+    await test.step(
+      options?.stepInfo ?? `Verifying edit message option are not visible for message ${message}`,
+      async () => {
+        const messageItem =
+          await this.getConversationWindowComponent().getDeletedOrLastMessageCardFromListOfChatMessages();
+        await messageItem.verifyEditMessageOptionNotVisibleToUser();
       }
     );
   }

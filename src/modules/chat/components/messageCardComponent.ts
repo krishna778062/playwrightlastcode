@@ -82,6 +82,20 @@ export class MessageCardComponent extends MessageBaseComponent {
     });
   }
 
+  async verifyEditMessageOptionNotVisibleToUser(): Promise<void> {
+    await test.step(`Verifying edit message option is not visible`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.messageContainer, {
+        assertionMessage: 'expecting message container to be visible',
+      });
+      await this.messageContainer.hover();
+      await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu);
+      await this.verifier.verifyTheElementIsNotVisible(this.editMessageButtonFromMessageActionsMenu, {
+        assertionMessage: 'expecting edit message button to be not visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.replyInThreadButton);
+    });
+  }
+
   async verifyMessageActionsIsVisibleToUser(): Promise<void> {
     await test.step(`Verifying message actions are not visible`, async () => {
       await this.messageContainer.hover();
