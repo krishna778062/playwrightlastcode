@@ -85,7 +85,7 @@ export class FeatureOwnersPage extends BasePage {
         }
       } else {
         // Default behavior when expectResults is not passed (backward compatibility)
-        await this.page.waitForTimeout(TIMEOUTS.SHORT);
+        await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT / 2);
         await this.userCountButton.first().waitFor({ state: 'visible', timeout: 10000 });
       }
     });
