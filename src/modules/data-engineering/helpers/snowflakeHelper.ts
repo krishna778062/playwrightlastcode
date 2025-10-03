@@ -88,25 +88,4 @@ export class SnowflakeHelper {
     await helper.destroy();
     return result;
   }
-
-  /**
-   * Runs SQL by key and returns the result.
-   * Handles placeholder substitution using env or provided overrides.
-   */
-  static async getDataForSqlQuery(rawSql: string): Promise<string | number> {
-    const orgId = process.env.ORG_ID;
-    if (!orgId) {
-      throw new Error('ORG_ID env variable must be defined for DB validation');
-    }
-
-    const sql = rawSql.replace(/'orgId'/g, `'${orgId}'`);
-
-    const rows = await SnowflakeHelper.runQuery<Record<string, any>>(sql);
-    if (!rows.length) {
-      throw new Error('Snowflake returned no rows');
-    }
-    const firstRow = rows[0] ?? {};
-    const dbRaw = Object.values(firstRow)[0];
-    return dbRaw;
-  }
 }
