@@ -2,6 +2,7 @@ export enum REWARD_FEATURE_TAGS {
   DISABLE_REWARD = '@disable-reward',
   ENABLE_REWARD = '@enable-reward',
   REWARD_OPTION = '@reward-option',
+  REWARD_STORE = '@reward-store',
   CURRENCY_CONVERSION = '@currency-conversion',
 }
 

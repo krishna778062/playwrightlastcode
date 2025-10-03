@@ -3,6 +3,8 @@ import { Browser, test } from '@playwright/test';
 import { MultiUserTestHelper } from '@core/helpers/multiUserTestHelper';
 import { ChatTestSetupResult } from '@modules/chat/types';
 
+import { defaultDualUsers } from '../fixtures/dualUserChatFixture';
+
 import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 
 export class MultiUserChatTestHelper extends MultiUserTestHelper {
@@ -38,6 +40,26 @@ export class MultiUserChatTestHelper extends MultiUserTestHelper {
     });
   }
 
+  /**
+   * Opens a direct message between two users (assumes two users only).
+   * @param chatPages - Array of ChatAppPage for the users (length 2)
+   * @param userIndices - Array of user indices to identify users in step info (length 2)
+   */
+  async openDirectMessageBetweenUsers(chatPages: ChatAppPage[], userIndices: number[]) {
+    if (chatPages.length !== 2 || userIndices.length !== 2) {
+      throw new Error('openDirectMessageBetweenUsers expects exactly two users.');
+    }
+    await test.step(`Opening direct message between User ${userIndices[0] + 1} and User ${userIndices[1] + 1}`, async () => {
+      // User 1 opens DM with User 2
+      await chatPages[0].actions.openDirectMessageWithUser(defaultDualUsers.user2.fullName, {
+        stepInfo: `User ${userIndices[0] + 1} opening direct message with User ${userIndices[1] + 1}`,
+      });
+      // User 2 opens DM with User 1
+      await chatPages[1].actions.openDirectMessageWithUser(defaultDualUsers.user1.fullName, {
+        stepInfo: `User ${userIndices[1] + 1} opening direct message with User ${userIndices[0] + 1}`,
+      });
+    });
+  }
   /**
    * Verify a message is present in chat for multiple users
    * @param chatPages - Array of chat pages for different users

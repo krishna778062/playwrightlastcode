@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker';
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
 import { buildBodyAndBodyHtml } from '@/src/core/api/services/ContentManagementService';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
-import { ContentListResponse } from '@/src/core/types/contentManagement.types';
+import { ContentListResponse, EventSyncPayload, RsvpPayload } from '@/src/core/types/contentManagement.types';
 import { getTodayDateIsoString, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
@@ -168,7 +168,13 @@ export class ContentManagementHelper {
   async createEvent(params: {
     siteId: string;
     contentInfo: { contentType: string };
-    options?: { eventName?: string; contentDescription?: string; location?: string };
+    options?: {
+      eventName?: string;
+      contentDescription?: string;
+      location?: string;
+      eventSync?: EventSyncPayload;
+      rsvp?: RsvpPayload;
+    };
   }) {
     const { siteId, contentInfo, options = {} } = params;
     const finalEventName = options.eventName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Event`;
@@ -184,6 +190,8 @@ export class ContentManagementHelper {
       endsAt: getTomorrowDateIsoString(),
       timezoneIso: 'Asia/Kolkata',
       location: finalLocation,
+      ...(options.eventSync && { eventSync: options.eventSync }),
+      ...(options.rsvp && { rsvp: options.rsvp }),
     });
     await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
       apiClient: this.appManagerApiClient,
@@ -196,6 +204,9 @@ export class ContentManagementHelper {
       eventName: finalEventName,
       authorName: eventResult.authorName,
       contentDescription: finalContentDescription,
+      ...(eventResult.eventSyncDetails && { eventSyncDetails: eventResult.eventSyncDetails }),
+      ...(eventResult.hasRsvp !== undefined && { hasRsvp: eventResult.hasRsvp }),
+      ...(eventResult.rsvpDetails && { rsvpDetails: eventResult.rsvpDetails }),
     };
     this.content.push({ siteId, contentId: eventResult.eventId });
     return { ...createdContent };

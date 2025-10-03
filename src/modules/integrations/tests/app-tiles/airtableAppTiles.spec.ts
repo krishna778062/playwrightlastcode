@@ -56,7 +56,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, page }) => {
+      async ({ homeDashboard, appManagerPage }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-24130',
           storyId: 'INT-23049',
@@ -66,7 +66,7 @@ test.describe(
         createdTileTitle = `Airtable content calendar ${faker.string.alphanumeric({ length: 6 })}`;
 
         //add,edit,verify
-        await createAirtableTileViaApi(page, { tileInstanceName: createdTileTitle });
+        await createAirtableTileViaApi(appManagerPage, { tileInstanceName: createdTileTitle });
         await homeDashboard.reloadAndVerifyTilePresent(createdTileTitle);
         await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
@@ -118,7 +118,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ homeDashboard, page }) => {
+      async ({ homeDashboard, appManagerPage }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-24189',
           storyId: 'INT-23049',
@@ -128,7 +128,7 @@ test.describe(
         createdTileTitle = `Airtable task records ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Add tile and verify content structure
-        await createAirtableTileViaApi(page, { tileInstanceName: createdTileTitle });
+        await createAirtableTileViaApi(appManagerPage, { tileInstanceName: createdTileTitle });
         await homeDashboard.isTilePresent(createdTileTitle);
 
         // Verify tile content structure

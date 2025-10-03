@@ -1,6 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { ChatEditorComponent } from '@chat/components/chatEditorComponent';
+import { ChatEditorComponent, FormattingOptions } from '@chat/components/chatEditorComponent';
 import { IncomingAudioVideoCallComponent } from '@chat/components/incomingAudioVideoCallComponent';
 
 import { ChatMentionsListSection } from './chatMentionsListSection';
@@ -8,6 +8,7 @@ import { MessageReplyThreadComponent } from './messageReplyThreadComponent';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
+import { BaseVerificationUtil } from '@/src/core/utils/baseVerificationUtil';
 import { MessageCardComponent } from '@/src/modules/chat/components/messageCardComponent';
 import { AudioVideoCallPage } from '@/src/modules/chat/pages/audioVideoCallPage/audioVideoCallPage';
 
@@ -54,6 +55,29 @@ export class ConversationWindowComponent extends BaseComponent {
   }
 
   /**
+   * Determines the active formatting type from formatting options
+   * @param formattingOptions - The formatting options to check
+   * @returns The active formatting type or null if none
+   */
+  private getActiveFormattingType(formattingOptions: FormattingOptions): string | null {
+    if (formattingOptions.usesBold) return 'bold';
+    if (formattingOptions.usesItalic) return 'italic';
+    if (formattingOptions.usesUnderline) return 'underline';
+    if (formattingOptions.usesStrikethrough) return 'strikethrough';
+    if (formattingOptions.usesBold && formattingOptions.usesItalic) return 'bold-italic';
+    if (formattingOptions.usesBulletList) return 'bullet points ';
+    if (formattingOptions.usesOrderList) return 'ordered list';
+    if (
+      formattingOptions.usesBold &&
+      formattingOptions.usesItalic &&
+      formattingOptions.usesUnderline &&
+      formattingOptions.usesStrikethrough
+    )
+      return 'allformats';
+    return null;
+  }
+
+  /**
    * Sends a message in the chat
    * @param message - The message to send
    * @param options - Optional parameters
@@ -89,18 +113,82 @@ export class ConversationWindowComponent extends BaseComponent {
       async () => {
         await expect(async () => {
           let messageFoundInList: boolean = false;
-          for (const eachMessage of await this.listChatMessagesComponent.all()) {
-            //fetch message
-            const messageText = await eachMessage.locator('section').locator('p').last().textContent();
-            if (messageText === message) {
-              messageFoundInList = true;
-              break;
-            }
+          const lastMessage = this.listChatMessagesComponent.last();
+          //fetch message
+          const messageText = await lastMessage.locator('section').locator('p').textContent();
+          if (messageText === message) {
+            messageFoundInList = true;
           }
+
           expect(messageFoundInList, `expecting message: ${message} to be present in the list of chat messages`).toBe(
             true
           );
         }).toPass({ timeout: options?.timeout ?? TIMEOUTS.MEDIUM });
+      }
+    );
+  }
+
+  async verifyFormattedMessageIsPresentInListOfChatMessages(
+    message: string,
+    formattingOptions: FormattingOptions,
+    options?: {
+      stepInfo?: string;
+      timeout?: number;
+    }
+  ) {
+    await test.step(
+      options?.stepInfo ?? `Verifying formatted message: ${message} is present in the list of chat messages`,
+      async () => {
+        // Get the last (most recent) chat message
+        const lastMessageStrip = this.listChatMessagesComponent.last();
+        const verificationUtil = new BaseVerificationUtil(this.page);
+        let expectedLoc: Locator | undefined;
+
+        // Check for different formatting types in the last message only
+        const formattingType = this.getActiveFormattingType(formattingOptions);
+        switch (formattingType) {
+          case 'bold':
+            expectedLoc = lastMessageStrip.locator('section p strong');
+
+            break;
+          case 'italic':
+            expectedLoc = lastMessageStrip.locator('section p em');
+
+            break;
+          case 'underline':
+            expectedLoc = lastMessageStrip.locator('section p u');
+
+            break;
+          case 'strikethrough':
+            expectedLoc = lastMessageStrip.locator('section p s');
+
+            break;
+
+          case 'bold-italic':
+            expectedLoc = lastMessageStrip.locator('section p em strong');
+
+            break;
+
+          case 'allformats':
+            expectedLoc = lastMessageStrip.locator('section p em s strong u');
+
+            break;
+          case 'bullet points ':
+            expectedLoc = lastMessageStrip.locator('section ul.custom-bullet-list li');
+
+            break;
+          case 'ordered list':
+            expectedLoc = lastMessageStrip.locator('section ol.custom-ordered-list li');
+
+            break;
+        }
+        // Verify exact text match
+        if (expectedLoc) {
+          await verificationUtil.verifyElementHasText(expectedLoc, message, {
+            timeout: 10000,
+            assertionMessage: 'Message text should match exactly',
+          });
+        }
       }
     );
   }
@@ -144,13 +232,12 @@ export class ConversationWindowComponent extends BaseComponent {
 
   async getMessageItemFromChat(message: string, options?: { stepInfo?: string }): Promise<Locator> {
     await this.verifyMessageIsPresentInListOfChatMessages(message);
-    for (const eachMessage of await this.listChatMessagesComponent.all()) {
-      //fetch message
-      const messageText = await eachMessage.locator('section').locator('p').textContent();
+    const lastMessage = await this.listChatMessagesComponent.last();
+    //fetch message
+    const messageText = await lastMessage.locator('section').locator('p').textContent();
 
-      if (messageText === message) {
-        return eachMessage;
-      }
+    if (messageText === message) {
+      return lastMessage;
     }
     throw new Error(`Message: ${message} not found in the list of chat messages`);
   }
@@ -158,15 +245,21 @@ export class ConversationWindowComponent extends BaseComponent {
   async getFocusedMessageCardFromListOfChatMessages(messageText: string): Promise<MessageCardComponent> {
     let messageComponent: MessageCardComponent | undefined;
     await test.step(`Getting focused message object from list of chat messages`, async () => {
-      const listOfMessages = await this.listChatMessagesComponent.all();
-      for (const eachMessage of listOfMessages) {
-        const fetchedMessageText = await eachMessage.locator('section').locator('p').textContent();
-        if (fetchedMessageText === messageText) {
-          messageComponent = new MessageCardComponent(this.page, eachMessage);
-          break;
-        }
+      const lastMessage = this.listChatMessagesComponent.last();
+      const fetchedMessageText = await lastMessage.locator('section').locator('p').textContent();
+      if (fetchedMessageText === messageText) {
+        messageComponent = new MessageCardComponent(this.page, lastMessage);
       }
       expect(messageComponent, `Message: ${messageText} not found in the list of chat messages`).toBeDefined();
+    });
+    return messageComponent!;
+  }
+
+  async getDeletedMessageCardFromListOfChatMessages(): Promise<MessageCardComponent> {
+    let messageComponent: MessageCardComponent | undefined;
+    await test.step(`Getting focused message object from list of chat messages`, async () => {
+      const lastMessage = this.listChatMessagesComponent.last();
+      messageComponent = new MessageCardComponent(this.page, lastMessage);
     });
     return messageComponent!;
   }
@@ -174,15 +267,13 @@ export class ConversationWindowComponent extends BaseComponent {
   async getFocusedMessageCardIdFromListOfChatMessages(messageText: string): Promise<string | null> {
     let messageId: string | null;
     return await test.step(`Getting focused message data-message-id from list of chat messages`, async () => {
-      const listOfMessages = await this.listChatMessagesComponent.all();
-      for (const eachMessage of listOfMessages) {
-        const fetchedMessageText = await eachMessage.locator('section').locator('p').textContent();
-        if (fetchedMessageText === messageText) {
-          console.log(`eachMessage: ${eachMessage.toString()}`);
-          messageId = await eachMessage.getAttribute('data-message-id');
-          break;
-        }
+      const lastMessage = this.listChatMessagesComponent.last();
+      const fetchedMessageText = await lastMessage.locator('section').locator('p').textContent();
+      if (fetchedMessageText === messageText) {
+        console.log(`eachMessage: ${lastMessage.toString()}`);
+        messageId = await lastMessage.getAttribute('data-message-id');
       }
+
       return messageId;
     });
   }
@@ -198,14 +289,12 @@ export class ConversationWindowComponent extends BaseComponent {
       options?.stepInfo ?? `Verifying message: ${message} is not present in the list of chat messages`,
       async () => {
         await expect(async () => {
-          const listOfMessages = await this.listChatMessagesComponent.all();
-          for (const eachMessage of listOfMessages) {
-            const fetchedMessageText = await eachMessage.locator('section').locator('p').textContent();
-            expect(
-              fetchedMessageText,
-              `expecting message: ${message} to be not present in the list of chat messages`
-            ).not.toBe(message);
-          }
+          const lastMessage = this.listChatMessagesComponent.last();
+          const fetchedMessageText = await lastMessage.locator('p').textContent();
+          expect(
+            fetchedMessageText,
+            `expecting message: ${message} to be not present in the list of chat messages`
+          ).not.toBe(message);
         }).toPass({ timeout: options?.timeout ?? TIMEOUTS.MEDIUM });
       }
     );

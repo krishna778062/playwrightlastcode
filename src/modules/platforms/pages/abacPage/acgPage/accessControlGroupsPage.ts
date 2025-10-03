@@ -5,9 +5,12 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 import { AccessControlGroupModalComponent } from '@platforms/components/accessControlGroupModal';
 import { ConfirmEditAccessControlGroupModalComponent } from '@platforms/components/confirmEditAccessControlGroupModal';
-import { ACG_STATUS } from '@platforms/constants/acgStatus';
+import { EditWarningPopupComponent } from '@platforms/components/editWarningPopupComponent';
+import { ACG_COLUMNS } from '@platforms/constants/acg';
+import { ACG_STATUS } from '@platforms/constants/acg';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { changeDateFormatToYYYYMMDD } from '@/src/core/utils/dateUtil';
 
 export enum ACGFeature {
   ADD_SITES = 'Add_sites',
@@ -32,16 +35,25 @@ export class AccessControlGroupsPage extends BasePage {
   readonly iUnderstand: Locator;
   readonly acgNameInputBox: Locator;
   readonly acgSearchBox: Locator;
+  readonly editOption: Locator;
+  readonly editManagerButton: Locator;
+  readonly addUsersButton: Locator;
+  readonly updateButton: Locator;
+  readonly searchInput: Locator;
   readonly acgStatusToggle: Locator;
   readonly acgRecordsElement: Locator;
   readonly acgEditButton: Locator;
   readonly acgRecords: Locator;
   readonly clearButtonOnSearchInputBox: Locator;
+  readonly acgColumns: Locator;
 
   createACGModal: AccessControlGroupModalComponent;
   editACGModal: AccessControlGroupModalComponent;
 
   confirmEditACGModal: ConfirmEditAccessControlGroupModalComponent;
+
+  // Component
+  readonly editWarningPopup: EditWarningPopupComponent;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.ACCESS_CONTROL_GROUPS_PAGE) {
     super(page, pageUrl);
@@ -52,7 +64,8 @@ export class AccessControlGroupsPage extends BasePage {
     this.acgSearchField = page.locator('#search');
     this.acgCheckBoxes = page.locator("[type='checkbox']");
     this.acgAudiencesName = page.locator('[class*="NameWithDescription"] p');
-    this.acgMenuOptions = page.locator('[aria-haspopup="menu"]');
+    this.acgRecords = page.locator('[data-testid*="dataGridRow"]');
+    this.acgMenuOptions = this.acgRecords.locator('[aria-haspopup="menu"]');
     this.acgDeleteButton = page.locator("text='Delete'");
     this.acgEditButton = page
       .locator('[class*="DropdownMenu-module__DropdownMenuItemLabel"]')
@@ -60,13 +73,21 @@ export class AccessControlGroupsPage extends BasePage {
     this.iUnderstand = page.locator('#confirmDelete');
     this.acgNameInputBox = page.locator('[name="controlGroupName"]');
     this.acgSearchBox = page.locator('#q');
+    this.editOption = page.getByText('Edit');
+    this.editManagerButton = page.getByRole('button', { name: 'Edit manager' });
+    this.addUsersButton = page.getByRole('button', { name: 'Add users' });
+    this.updateButton = page.getByRole('button', { name: 'Update' });
+    this.searchInput = page.getByRole('combobox').first();
     this.acgStatusToggle = page.locator('[aria-checked="true"]');
     this.acgRecordsElement = page.locator('[data-testid*="dataGridRow"]');
     this.createACGModal = new AccessControlGroupModalComponent(page, 'create');
     this.editACGModal = new AccessControlGroupModalComponent(page, 'edit');
-    this.acgRecords = page.locator('[data-testid*="dataGridRow"]');
     this.confirmEditACGModal = new ConfirmEditAccessControlGroupModalComponent(page);
     this.clearButtonOnSearchInputBox = page.locator('[aria-label="Clear"]');
+    this.acgColumns = page.locator('[class*="Cell-module__isHeader"]');
+
+    // Initialize component
+    this.editWarningPopup = new EditWarningPopupComponent(page);
   }
 
   // To verify that the ACG page is loaded
@@ -196,6 +217,17 @@ export class AccessControlGroupsPage extends BasePage {
   }
 
   /**
+   * Clicks on menu option for any ACG with specific status and group type
+   */
+  async clickOnMenuOptionForACG(_status?: string, _groupType?: string): Promise<void> {
+    await test.step('Click on menu option for any ACG', async () => {
+      await this.clickOnElement(this.acgMenuOptions.first(), {
+        stepInfo: 'Click on menu options button for first ACG in the list',
+      });
+    });
+  }
+
+  /**
    * Verifies the status if the ACG.
    * @param acgName - Name of the ACG whose status need to be verified.
    * @param status - Status of the ACG to be verified.
@@ -207,6 +239,132 @@ export class AccessControlGroupsPage extends BasePage {
         userNameElement.locator('[class*="Typography-module__secondary"]'),
         `Checking the status of ${acgName} as ${status}`
       ).toHaveText(status);
+    });
+  }
+
+  /**
+   * Clicks on Edit option from the dropdown menu
+   */
+  async clickOnEditOption(): Promise<void> {
+    await test.step('Click on Edit option from dropdown menu', async () => {
+      try {
+        await this.clickOnElement(this.editOption, {
+          stepInfo: 'Click on Edit option for ACG',
+        });
+      } catch {
+        await this.clickOnElementWithCoordinates(this.editOption, {
+          force: true,
+          stepInfo: 'Clicking on the Edit button with coordinates',
+        });
+      }
+    });
+  }
+
+  /**
+   * Verifies all elements in the edit warning popup using dedicated component
+   */
+  async verifyEditWarningPopup(): Promise<void> {
+    await this.editWarningPopup.verifyAllElements();
+  }
+
+  /**
+   * Browse, search, select user and proceed to next step
+   * @param searchTerm - The user to search for (e.g., 'Admin')
+   * @param userType - The type of user being selected (e.g., 'Manager', 'Admin') for better reporting
+   */
+  async browseSelectUserAndProceed(searchTerm: string, userType: string): Promise<void> {
+    await test.step(`Select ${userType}: Browse, search for "${searchTerm}", select and proceed`, async () => {
+      await this.clickOnButtonWithName('Browse');
+      await this.searchAndSelectUserWithEnter(searchTerm);
+      await this.clickOnButtonWithName('Done');
+      await this.clickOnButtonWithName('Next');
+    });
+  }
+
+  /**
+   * Simple method to search and select user using Enter key
+   */
+  async searchAndSelectUserWithEnter(searchTerm: string): Promise<void> {
+    await test.step(`Search for "${searchTerm}" and select with Enter key`, async () => {
+      // Fill search term
+      await this.searchInput.fill(searchTerm);
+
+      // Wait for dropdown options to appear (state-based wait)
+      try {
+        await this.page.waitForSelector('[role="option"]', {
+          state: 'visible',
+          timeout: TIMEOUTS.VERY_SHORT,
+        });
+      } catch {
+        // Fallback: wait for any dropdown/listbox to appear
+        await this.page.waitForSelector('[role="listbox"], [class*="dropdown"], [class*="menu"]', {
+          state: 'visible',
+          timeout: TIMEOUTS.VERY_SHORT,
+        });
+      }
+
+      // Navigate to first option
+      await this.searchInput.press('ArrowDown');
+
+      // Wait for option to be highlighted/active (state-based wait)
+      try {
+        await this.page.waitForSelector(
+          '[role="option"][aria-selected="true"], [role="option"].selected, [role="option"]:focus',
+          {
+            state: 'visible',
+            timeout: TIMEOUTS.VERY_VERY_SHORT,
+          }
+        );
+      } catch {
+        // Fallback: short wait for dropdown navigation
+        await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT / 4);
+      }
+
+      // Select the highlighted option
+      await this.searchInput.press('Enter');
+    });
+  }
+
+  /**
+   * Clicks on the Edit Manager button
+   */
+  async clickOnEditManagerButton(): Promise<void> {
+    await test.step('Click on Edit Manager button', async () => {
+      await this.clickOnElement(this.editManagerButton);
+    });
+  }
+
+  /**
+   * Clicks on the Add Users button (+ icon)
+   */
+  async clickOnAddUsersButton(): Promise<void> {
+    await test.step('Click on Add Users button', async () => {
+      await this.clickOnElement(this.addUsersButton);
+    });
+  }
+
+  /**
+   * Clicks on the Update button
+   */
+  async clickOnUpdateButton(): Promise<void> {
+    await test.step('Click on Update button', async () => {
+      await this.clickOnElement(this.updateButton);
+    });
+  }
+
+  async verifyAdminUsersInManagerList(): Promise<void> {
+    await test.step('Verify admin users in manager list', async () => {
+      // Wait for the dialog to be fully loaded
+      await this.page.waitForSelector('[role="dialog"]', { state: 'visible', timeout: 10000 });
+
+      // Directly target admin elements in the dialog
+      const adminElements = this.page.locator('[role="dialog"]').getByText(/Admin/i);
+
+      // Use base verification method with auto-retry and polling mechanism
+      await this.verifier.verifyCountOfElementsIsGreaterThan(adminElements, 0, {
+        timeout: 10000,
+        assertionMessage: 'Should have at least one admin user in manager list',
+      });
     });
   }
 
@@ -237,7 +395,6 @@ export class AccessControlGroupsPage extends BasePage {
       saveButtonName = 'Save';
     }
     return await test.step(`Creating ACG with target audience as ${targetAudienceName}  and status as ${options?.acgStatus ?? this.acgDefaultStatus} only`, async () => {
-      let acgName: string;
       await this.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
       await this.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
       await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
@@ -248,7 +405,7 @@ export class AccessControlGroupsPage extends BasePage {
       await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
       await this.clickOnButtonWithName(POPUP_BUTTONS.SKIP);
       await this.clickOnButtonWithName(POPUP_BUTTONS.SKIP);
-      acgName = await this.getACGName();
+      const acgName = await this.getACGName();
       console.log(`ACG name is ${acgName}`);
       await this.changeACGStatus(currACGStatus);
       await this.clickOnButtonWithName(saveButtonName);
@@ -282,5 +439,144 @@ export class AccessControlGroupsPage extends BasePage {
       force: true,
       stepInfo: 'Clicking on the Edit button with coordinates',
     });
+  }
+
+  /**
+   * Verifies the visibility of a column at ACG page.
+   * @param columnName - Name of the column to be verified.
+   */
+  async verifyColumnIsDisplayed(columnName: string): Promise<void> {
+    await test.step(`Verifying that ${columnName} column is displayed`, async () => {
+      await expect(
+        this.acgColumns.filter({ hasText: columnName }),
+        `expecting ${columnName} column name to be visible`
+      ).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Verifies column is sortable or not.
+   * @param columnName - Name of the column to be checked.
+   * @param isSortable - Need to check for sortability or unsortability.
+   */
+  async verifyColumnSortable(columnName: string, isSortable: boolean): Promise<void> {
+    const sortableOrNot: string = isSortable ? `sortable` : `not sortable`;
+    await test.step(`Verifying ${columnName} column to be ${sortableOrNot}`, async () => {
+      expect(
+        await this.verifier.isTheElementVisible(this.acgColumns.filter({ hasText: columnName }).locator('button'), {
+          timeout: TIMEOUTS.VERY_SHORT,
+        }),
+        `expecting ${columnName} column to be ${sortableOrNot}`
+      ).toBe(isSortable);
+    });
+  }
+
+  /**
+   * Verifies the sorting functionality.
+   * @param columnName - Name of the column to be checked for sorting functionality.
+   */
+  async verifyTheSortingFunctionalityOfColumn(columnName: string): Promise<void> {
+    const selector: Locator = this.acgColumns.filter({ hasText: columnName });
+    let sortingOrder: string | null = null;
+
+    // Ascending order
+    await this.clickOnElement(selector.locator('button'));
+    await expect(selector.locator('button').locator('i')).toBeVisible();
+    //Using try catch to handle the flakiness of element due to which sometimes sortingOrder is returned as null
+    try {
+      sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
+      expect(sortingOrder).not.toBeNull();
+    } catch (_e) {
+      await test.step(`Waiting for sorting order to be visible`, async () => {
+        await this.page.waitForTimeout(1000);
+      });
+      sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
+    }
+    await this.veryfySorting(this.acgColumns, columnName, sortingOrder ?? '');
+
+    // Descending order
+    await this.clickOnElement(selector.locator('button'));
+    await expect(selector.locator('button').locator('i')).toBeVisible();
+    //Using try catch to handle the flakiness of element due to which sometimes sortingOrder is returned as null
+    try {
+      sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
+      expect(sortingOrder).not.toBeNull();
+    } catch (_e) {
+      await test.step(`Waiting for sorting order to be visible`, async () => {
+        await this.page.waitForTimeout(1000);
+      });
+      sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
+    }
+    await this.veryfySorting(this.acgColumns, columnName, sortingOrder ?? '');
+  }
+
+  /**
+   * Verifies that the given column has sorted values or not.
+   * @param selector - Common locator of the column to be checked for sorting.
+   * @param columnName - Name of the column to be checked for sorting.
+   * @param sortingOrder - Sorting order to be used for sorting the array(ascending/descending).
+   */
+  async veryfySorting(selector: Locator, columnName: string, sortingOrder: string): Promise<void> {
+    let columnIndex = -1;
+    const allTextContents: string[] = [];
+    let sortedTextContents: string[] = [];
+    for (let i = 0; i < (await selector.count()); i++) {
+      if ((await selector.nth(i).textContent()) == columnName) {
+        columnIndex = i;
+        console.log(await this.acgRecordsElement.locator('td').nth(i).textContent());
+        break;
+      }
+    }
+    for (let j = 0; j < (await this.acgRecordsElement.count()); j++) {
+      console.log(`columnIndex is ${columnIndex} outside for loop`);
+      const textContent =
+        columnName === ACG_COLUMNS.NAME
+          ? await this.acgRecordsElement.nth(j).locator('td p').nth(columnIndex).textContent()
+          : await this.acgRecordsElement.nth(j).locator('td').nth(columnIndex).textContent();
+      if (!textContent?.includes('Syncing...')) {
+        if (columnName === 'Modified') {
+          allTextContents.push(changeDateFormatToYYYYMMDD(textContent ?? ''));
+        } else {
+          allTextContents.push(textContent ?? '');
+        }
+      }
+    }
+    console.log('<<<<<<<<<<<<<<allTextContents>>>>>>>>>>>\n');
+    console.log(allTextContents);
+    sortedTextContents = await this.sortOntheBasisOfSortOrder(allTextContents, sortingOrder);
+    console.log('<<<<<<<<<<<<<<sortedTextContents>>>>>>>>>>>\n');
+    console.log(sortedTextContents);
+    expect(sortedTextContents).toEqual(allTextContents);
+  }
+
+  /**
+   * Sorts the array based on the sorting order.
+   * @param arrayToSort - Given array to be sorted.
+   * @param sortingOrder - Sorting order to be used for sorting the array(ascending/descending).
+   */
+  async sortOntheBasisOfSortOrder(arrayToSort: string[], sortingOrder: string): Promise<string[]> {
+    let sortedTextContents: string[] = [];
+    console.log(`sorting array in ${sortingOrder} order`);
+    if (sortingOrder === 'ascending') {
+      sortedTextContents = [...arrayToSort].sort((a, b) =>
+        a.replace(/\s+/g, '').localeCompare(b.replace(/\s+/g, ''), undefined, {
+          sensitivity: 'base',
+          numeric: true,
+        })
+      );
+      return sortedTextContents;
+    } else {
+      sortedTextContents = [...arrayToSort]
+        .sort((a, b) =>
+          a.replace(/\s+/g, '').localeCompare(b.replace(/\s+/g, ''), undefined, {
+            sensitivity: 'base',
+            numeric: true,
+          })
+        )
+        .reverse();
+      return sortedTextContents;
+    }
   }
 }

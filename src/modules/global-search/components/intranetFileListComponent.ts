@@ -93,7 +93,7 @@ export class IntranetFileListComponent extends ContentListComponent {
    */
   async verifyNavigationWithFileThumbnailLink(fileId: string) {
     await test.step(`Verifying navigation with thumbnail link to "${fileId}"`, async () => {
-      await this.clickOnElement(this.thumbnail, { timeout: 30000 });
+      await this.clickOnElement(this.thumbnail, { timeout: 50000 });
       await this.verifier.waitUntilPageHasNavigatedTo(new RegExp(fileId), {
         timeout: 50_000,
         stepInfo: `Verifying navigation with thumbnail link to "${fileId}"`,

@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
+import { FormattingOptions } from '@/src/modules/chat/components/chatEditorComponent';
 import { IncomingAudioVideoCallComponent } from '@/src/modules/chat/components/incomingAudioVideoCallComponent';
 import { MessageReplyThreadComponent } from '@/src/modules/chat/components/messageReplyThreadComponent';
 import { AudioVideoCallPage } from '@/src/modules/chat/pages/audioVideoCallPage/audioVideoCallPage';
@@ -8,6 +9,11 @@ import { ChatPageBase } from '@/src/modules/chat/pages/chatPage/chatPageBase';
 
 export interface IChatActions {
   sendMessage: (message: string, options?: { stepInfo?: string }) => Promise<void>;
+  sendFormattedMessage: (
+    message: string,
+    formattingOptions: FormattingOptions,
+    options?: { stepInfo?: string }
+  ) => Promise<void>;
   deleteMessage: (message: string, options?: { stepInfo?: string }) => Promise<void>;
   getDataMessageId: (message: string, options?: { stepInfo?: string }) => Promise<string>;
   getMessageItemFromChat: (message: string, options?: { stepInfo?: string }) => Promise<Locator>;
@@ -75,6 +81,8 @@ export interface IChatAssertions {
     senderName: string,
     options?: { stepInfo?: string }
   ) => Promise<void>;
+  verifyMessageActionsNotVisible: (message: string, options?: { stepInfo?: string }) => Promise<void>;
+  verifyMessageActionsIsVisible: (message: string, options?: { stepInfo?: string }) => Promise<void>;
 }
 
 export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAssertions {
@@ -101,7 +109,47 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
       });
     });
   }
+  /**
+   * Sends a formatted message in the focused chat window.
+   * @param message - The message to send.
+   * @param formattingOptions - The formatting options to apply.
+   * @param options - Optional parameters for the step.
+   */
+  public async sendFormattedMessage(
+    message: string,
+    formattingOptions: FormattingOptions,
+    options?: { stepInfo?: string }
+  ): Promise<void> {
+    const stepInfo = options?.stepInfo ?? `Sending formatted message: "${message}"`;
+    await test.step(stepInfo, async () => {
+      await this.getConversationWindowComponent()
+        .getChatEditorComponent()
+        .sendFormattedMessage(message, formattingOptions, {
+          stepInfo: options?.stepInfo ?? `Sending formatted message ${message} in focused chat`,
+        });
+    });
+  }
 
+  /**
+   * Sends a message by first writing text, then selecting it and applying formatting.
+   * @param message - The message to send.
+   * @param formattingOptions - The formatting options to apply.
+   * @param options - Optional parameters for the step.
+   */
+  public async sendMessageWithSelectAndFormat(
+    message: string,
+    formattingOptions: FormattingOptions,
+    options?: { stepInfo?: string }
+  ): Promise<void> {
+    const stepInfo = options?.stepInfo ?? `Sending message with select-then-format: "${message}"`;
+    await test.step(stepInfo, async () => {
+      await this.getConversationWindowComponent()
+        .getChatEditorComponent()
+        .sendMessageWithSelectAndFormat(message, formattingOptions, {
+          stepInfo: options?.stepInfo ?? `Writing text first, then selecting and formatting: ${message}`,
+        });
+    });
+  }
   /**
    * Sends a reply to a specific message in a thread.
    * @param messageToReplyTo - The message to reply to.
@@ -418,7 +466,8 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
    */
   async openMentionsSection(options?: { stepInfo?: string }) {
     await test.step(options?.stepInfo ?? `Opening mentions section`, async () => {
-      await this.page.getByTestId('chat.mentions-section').click();
+      const mentionsSection = this.page.getByTestId('chat.mentions-section');
+      await this.clickByInjectingJavaScript(mentionsSection);
     });
   }
 
@@ -468,6 +517,24 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
       const messageItem =
         await this.getConversationWindowComponent().getFocusedMessageCardFromListOfChatMessages(message);
       await messageItem.deleteMessage();
+    });
+  }
+
+  async verifyMessageActionsNotVisible(message: string, options?: { stepInfo?: string }) {
+    await test.step(
+      options?.stepInfo ?? `Verifying message actions are not visible for message ${message}`,
+      async () => {
+        const messageItem = await this.getConversationWindowComponent().getDeletedMessageCardFromListOfChatMessages();
+        await messageItem.verifyMessageActionsNotVisibleToUser();
+      }
+    );
+  }
+
+  async verifyMessageActionsIsVisible(message: string, options?: { stepInfo?: string }) {
+    await test.step(options?.stepInfo ?? `Verifying message actions are visible for message ${message}`, async () => {
+      const messageItem =
+        await this.getConversationWindowComponent().getFocusedMessageCardFromListOfChatMessages(message);
+      await messageItem.verifyMessageActionsIsVisibleToUser();
     });
   }
 
@@ -541,6 +608,24 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
         stepInfo: options?.stepInfo,
         timeout: options?.timeout,
       });
+    });
+  }
+
+  public async verifyFormattedMessageIsVisible(
+    message: string,
+    formattingOptions: FormattingOptions,
+
+    options?: { stepInfo?: string; timeout?: number }
+  ): Promise<void> {
+    await test.step(options?.stepInfo || `Verifying message "${message}" is visible`, async () => {
+      return await this.getConversationWindowComponent().verifyFormattedMessageIsPresentInListOfChatMessages(
+        message,
+        formattingOptions,
+        {
+          stepInfo: options?.stepInfo,
+          timeout: options?.timeout,
+        }
+      );
     });
   }
 

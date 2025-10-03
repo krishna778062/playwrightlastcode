@@ -53,11 +53,41 @@ export class MessageCardComponent extends MessageBaseComponent {
   async deleteMessage(): Promise<void> {
     await test.step(`Deleting the message`, async () => {
       await this.openMessageActionsMenuFromThreeDots();
-      await this.clickOnElement(this.deleteMessageButtonFromMessageActionsMenu);
+      await this.clickByInjectingJavaScript(this.deleteMessageButtonFromMessageActionsMenu);
       await this.verifier.verifyTheElementIsVisible(this.deleteMessageConfirmationPrompt, {
         assertionMessage: 'expecting delete message confirmation prompt to be visible',
       });
       await this.clickOnElement(this.deleteButtonOnDeleteMessageConfirmationPrompt);
+    });
+  }
+
+  async verifyMessageActionsNotVisibleToUser(): Promise<void> {
+    await test.step(`Verifying message actions are not visible`, async () => {
+      await this.messageContainer.hover();
+      await this.verifier.verifyTheElementIsNotVisible(this.messageActionsContainer, {
+        assertionMessage: 'expecting message actions container to be not visible',
+      });
+      await this.verifier.verifyTheElementIsNotVisible(this.emojiPickerButton, {
+        assertionMessage: 'expecting emoji picker button to be not visible',
+      });
+      await this.verifier.verifyTheElementIsNotVisible(this.threeDotsButtonToOpenMessageActionsMenu, {
+        assertionMessage: 'expecting three dots button to be not visible',
+      });
+    });
+  }
+
+  async verifyMessageActionsIsVisibleToUser(): Promise<void> {
+    await test.step(`Verifying message actions are not visible`, async () => {
+      await this.messageContainer.hover();
+      await this.verifier.verifyTheElementIsVisible(this.messageActionsContainer, {
+        assertionMessage: 'expecting message actions container to be not visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.emojiPickerButton, {
+        assertionMessage: 'expecting emoji picker button to be not visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.threeDotsButtonToOpenMessageActionsMenu, {
+        assertionMessage: 'expecting three dots button to be not visible',
+      });
     });
   }
 

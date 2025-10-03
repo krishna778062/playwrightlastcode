@@ -42,6 +42,7 @@ export const API_ENDPOINTS = {
     v2IdentityProfileQuestionsVerify: '/v2/identity/profile-questions/verify',
     v2IdentityUsersSetPassword: '/v2/identity/users/set-password',
     v2IdentityUsersRegisterProfile: '/v2/identity/users/register-profile',
+    roles: '/v1/identity/accounts/roles/list',
   },
   admin: {
     login: '/v2/identity/admin/login',
@@ -51,9 +52,12 @@ export const API_ENDPOINTS = {
     url: '/v1/content/sites',
     category: '/v1/content/siteCategories/list',
     deactivate: '/v1/content/sites/attributes?attribute=status',
+    activate: '/v1/content/sites/attributes?attribute=status',
+    updateAccess: '/v1/content/sites/attributes?attribute=access',
     listOfSites: '/v1/content/sites/list',
     manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
     membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,
+    unfeature: (siteId: string) => `/v1/content/sites/${siteId}/featured?action=unfeature`,
   },
 
   content: {
@@ -84,6 +88,15 @@ export const API_ENDPOINTS = {
     feedURL: (feedId: string) => `/feed/${feedId}`,
     comment: (feedId: string) => `/v1/wfeed/feeds/${feedId}/comments`,
     rudderstack: 'https://rudderstack-data-plane.qa.simpplr.xyz/v1/track',
+  },
+
+  socialCampaign: {
+    create: '/v1/socialcampaigns',
+    list: '/v1/socialcampaigns/list',
+    get: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
+    update: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
+    delete: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
+    updateStatus: (campaignId: string) => `/v1/socialcampaigns/${campaignId}/status`,
   },
   appConfig: {
     governance: '/v1/account/appConfig/app.setup.governance',

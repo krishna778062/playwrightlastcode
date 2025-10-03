@@ -16,6 +16,7 @@ export const PAGE_ENDPOINTS = {
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
   MANAGE_USERS_PAGE: '/manage/users',
+  PEOPLE_DIRECTORY_PAGE: '/people',
   ACTIVITY_NOTIFICATION_PAGE: '/notifications/activity',
   LOGOUT: '/logout',
 
@@ -38,8 +39,14 @@ export const PAGE_ENDPOINTS = {
   getFeedPage: (feedId: string) => `/feed/${feedId}`,
   APPLICATION_SETTINGS: 'manage/app/setup/general',
   GOVERNANCE_SCREEN: 'manage/app/setup/governance',
+  PRIVILEGES_SCREEN: 'manage/app/setup/privileges',
+  SOCIAL_CAMPAIGNS: '/social-campaigns',
   MANAGE_FEATURE: 'manage-features',
   MANAGE_CONTENT: 'manage/content',
+  MANAGE_CONTENT_APPLY_API: '/manage',
+  MANAGE_CONTENT_MOVE_API: '/v1/page',
+  MANAGE_CONTENT_DELETE_API: '/v1/content/sites/',
+
   MANAGE_SITE_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
   SITE_DETAILS_PAGE: (siteId: string) => PAGE_ENDPOINTS.getSiteDashboardPage(siteId),
   SITE_CATEGORIES_PAGE: '/manage/site-categories',
@@ -60,4 +67,5 @@ export const PAGE_ENDPOINTS = {
   //analytics pages
   ANALYTICS_PAGE: '/analytics-landing',
   APP_ANALYTICS_PAGE: '/analytics',
+  SOCIAL_CAMPAIGNS_PAGE: '/campaigns/latest',
 };

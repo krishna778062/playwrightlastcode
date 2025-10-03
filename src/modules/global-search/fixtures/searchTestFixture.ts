@@ -20,6 +20,7 @@ export const searchTestFixtures = test.extend<
     contentManagementHelper: ContentManagementHelper;
     feedManagementHelper: FeedManagementHelper;
     intranetFileHelper: IntranetFileHelper;
+    tileCleanupTracker: { tiles: Array<{ tileId: string; siteId: string }> };
   },
   {
     appManagerApiClient: AppManagerApiClient;
@@ -83,6 +84,24 @@ export const searchTestFixtures = test.extend<
     },
     { scope: 'test' },
   ],
+  tileCleanupTracker: [
+    async ({ appManagerApiClient }, use) => {
+      const tileCleanupTracker = { tiles: [] as Array<{ tileId: string; siteId: string }> };
+
+      await use(tileCleanupTracker);
+
+      // Cleanup all tracked tiles
+      for (const { tileId, siteId } of tileCleanupTracker.tiles) {
+        try {
+          await appManagerApiClient.getTileManagementService().deleteTile(siteId, tileId);
+          console.log(`Successfully deleted tile: ${tileId}`);
+        } catch (error) {
+          console.warn(`Failed to delete tile ${tileId}:`, error);
+        }
+      }
+    },
+    { scope: 'test' },
+  ],
   publicSite: [
     async ({ appManagerApiClient, siteManagementHelper }, use, workerInfo) => {
       console.log(`🔧 Creating publicSite fixture for worker ${workerInfo.workerIndex}`);
@@ -97,6 +116,7 @@ export const searchTestFixtures = test.extend<
           categoryId: category.categoryId,
           name: category.name,
         },
+        waitForSearchIndex: true,
       });
 
       console.log(
