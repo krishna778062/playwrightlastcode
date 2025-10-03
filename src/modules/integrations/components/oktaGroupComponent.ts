@@ -47,7 +47,12 @@ export class OktaGroupComponent extends BaseComponent {
         .getByTestId(/clear-button/);
     this.confirmButton = () => this.rootLocator.getByRole('button', { name: 'Confirm' });
     this.selectAudiencesButton = (text: string) =>
-      this.rootLocator.locator('label').filter({ hasText: text }).locator('span').getByText(text, { exact: true });
+      this.rootLocator
+        .locator('label')
+        .filter({ hasText: text })
+        .locator('span')
+        .getByText(text, { exact: true })
+        .first();
     this.audiencesTable = () => this.rootLocator.locator('table.Table');
     this.audienceName = (name: string) =>
       this.audiencesTable()
@@ -61,7 +66,8 @@ export class OktaGroupComponent extends BaseComponent {
         .locator('td')
         .nth(3);
     this.audiencesMenuItem = () => this.rootLocator.getByTestId('main-nav-item').filter({ hasText: 'Audiences' });
-    this.applicationSettingsButton = () => this.rootLocator.getByRole('menuitem', { name: 'Application settings' });
+    this.applicationSettingsButton = () =>
+      this.rootLocator.getByRole('menuitem', { name: 'Application settings' }).first();
     this.audienceTypeDropdown = () => this.rootLocator.getByTestId('overlay').getByTestId('SelectInput');
   }
 
