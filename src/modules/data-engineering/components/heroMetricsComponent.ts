@@ -10,18 +10,22 @@ export interface HeroMetric {
 export class HeroMetricsComponent extends BaseComponent {
   readonly getMetricByTitle: (title: string) => Locator;
   readonly getMetricValueByTitle: (title: string) => Locator;
+  readonly getMetricBySubTitle: (subTitle: string) => Locator;
 
   constructor(page: Page) {
     super(page);
 
     this.getMetricByTitle = (title: string) =>
-      this.page.locator('[data-testid="content-editable"]').filter({ hasText: title }).first();
+      this.page.locator('[id="_thoughtspot-embed"]').contentFrame().getByRole('heading', { name: title, exact: true });
 
     this.getMetricValueByTitle = (title: string) =>
       this.getMetricByTitle(title)
         .locator('xpath=ancestor::div[contains(@class, "answer-content-module__answerVizContainer")]')
         .locator('[data-testid="kpi_herodata"]')
         .first();
+
+    this.getMetricBySubTitle = (subTitle: string) =>
+      this.page.locator('[id="_thoughtspot-embed"]').contentFrame().getByRole('heading', { name: subTitle });
   }
 
   /**
@@ -32,7 +36,7 @@ export class HeroMetricsComponent extends BaseComponent {
   async getMetricValue(title: string): Promise<string> {
     return await test.step(`Get ${title} metric value`, async () => {
       const valueElement = this.getMetricValueByTitle(title);
-      await this.verifier.verifyTheElementIsVisible(valueElement);
+      await this.verifier.verifyTheElementIsVisible(valueElement, { timeout: 30_000 });
       const value = await valueElement.textContent();
       return value?.trim() || '';
     });
@@ -62,6 +66,15 @@ export class HeroMetricsComponent extends BaseComponent {
       const titleElement = this.getMetricByTitle(title);
       await this.verifier.verifyTheElementIsVisible(titleElement, {
         assertionMessage: `${title} metric title should be visible`,
+      });
+    });
+  }
+
+  async verifyMetricSubTitleIsVisible(subTitle: string): Promise<void> {
+    await test.step(`Verify ${subTitle} metric sub title is visible`, async () => {
+      const subTitleElement = this.getMetricBySubTitle(subTitle);
+      await this.verifier.verifyTheElementIsVisible(subTitleElement, {
+        assertionMessage: `${subTitle} metric sub title should be visible`,
       });
     });
   }

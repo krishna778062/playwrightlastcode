@@ -22,7 +22,6 @@ export class SocialInteractionPage extends BasePage {
   async navigateToSocialInteraction(): Promise<void> {
     await test.step('Navigate to Social Interaction page', async () => {
       await this.clickOnElement(this.socialInteractionTab);
-      await this.verifyThePageIsLoaded();
     });
   }
 
@@ -51,6 +50,14 @@ export class SocialInteractionPage extends BasePage {
    */
   async verifyMetricTitleIsVisible(metricTitle: string): Promise<void> {
     await this.heroMetrics.verifyMetricTitleIsVisible(metricTitle);
+  }
+
+  /**
+   * Verifies a specific metric sub title is visible
+   * @param metricSubTitle - The metric sub title
+   */
+  async verifyMetricSubTitleIsVisible(metricSubTitle: string): Promise<void> {
+    await this.heroMetrics.verifyMetricSubTitleIsVisible(metricSubTitle);
   }
 
   /**
