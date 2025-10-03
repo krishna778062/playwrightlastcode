@@ -19,6 +19,7 @@
       "@content-pages/*": ["./src/modules/content/pages/*"],
       "@content-tests/*": ["./src/modules/content/tests/*"],
       "@rewards/*": ["./src/modules/reward/*"],
+      "@newsletter/*": ["./src/modules/newsletter/*"],
       "@frontline/*": ["./src/modules/frontline/*"],
       "@integrations/*": ["./src/modules/integrations/*"],
       "@integrations-constants/*": ["./src/modules/integrations/constants/*"],
