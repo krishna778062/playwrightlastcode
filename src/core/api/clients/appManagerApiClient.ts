@@ -12,6 +12,7 @@ import { ExternalSearchManagementService } from '@/src/core/api/services/Externa
 import { ImageUploaderService } from '@/src/core/api/services/ImageUploaderService';
 import { LinkManagementService } from '@/src/core/api/services/LinkManagementService';
 import { SiteManagementService } from '@/src/core/api/services/SiteManagementService';
+import { SocialCampaignService } from '@/src/core/api/services/SocialCampaignService';
 import { TileManagementService } from '@/src/core/api/services/TileManagementService';
 
 export class AppManagerApiClient extends BaseApiClient {
@@ -26,6 +27,7 @@ export class AppManagerApiClient extends BaseApiClient {
   private readonly linkManagementService: LinkManagementService;
   private readonly externalSearchManagementService: ExternalSearchManagementService;
   private readonly feedManagementService: FeedManagementService;
+  private readonly socialCampaignService: SocialCampaignService;
 
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
@@ -40,6 +42,7 @@ export class AppManagerApiClient extends BaseApiClient {
     this.linkManagementService = new LinkManagementService(context, baseUrl);
     this.externalSearchManagementService = new ExternalSearchManagementService(context, baseUrl);
     this.feedManagementService = new FeedManagementService(context, baseUrl);
+    this.socialCampaignService = new SocialCampaignService(context, baseUrl);
   }
 
   getChatService(): ChatService {
@@ -84,5 +87,9 @@ export class AppManagerApiClient extends BaseApiClient {
 
   getFeedManagementService(): FeedManagementService {
     return this.feedManagementService;
+  }
+
+  getSocialCampaignService(): SocialCampaignService {
+    return this.socialCampaignService;
   }
 }

@@ -40,6 +40,7 @@ export const PAGE_ENDPOINTS = {
   APPLICATION_SETTINGS: 'manage/app/setup/general',
   GOVERNANCE_SCREEN: 'manage/app/setup/governance',
   PRIVILEGES_SCREEN: 'manage/app/setup/privileges',
+  SOCIAL_CAMPAIGNS: '/social-campaigns',
   MANAGE_FEATURE: 'manage-features',
   MANAGE_CONTENT: 'manage/content',
   MANAGE_CONTENT_APPLY_API: '/manage',
@@ -62,4 +63,5 @@ export const PAGE_ENDPOINTS = {
   DOMAIN_NAMES_PAGE: '/manage/app/integrations/domains',
   EVENTS_PAGE: '/people/:userId/calendar',
   CUSTOM_APP_TILES_PAGE: '/manage/custom-app-tiles',
+  SOCIAL_CAMPAIGNS_PAGE: '/campaigns/latest',
 };
