@@ -28,7 +28,7 @@ test.describe(
     test(
       'verify users should be able to display pending learning courses from Docebo on a tile on Home dashboard',
       {
-        tag: [TestPriority.P4, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
 
       async ({ homeDashboard, tileManagementHelper }) => {
