@@ -13,6 +13,7 @@ export enum IntegrationsSuiteTags {
   UKG_PRO = '@ukgProAppTiles',
   GOOGLE_CALENDAR_APPTILES = '@googleCalendarAppTiles',
   DOCUSIGN = '@docuSignAppTiles',
+  DOCEBO = '@doceboAppTiles',
 }
 
 export enum IntegrationsFeatureTags {
