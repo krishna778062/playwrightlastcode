@@ -87,4 +87,24 @@ export class MultiUserChatTestHelper extends MultiUserTestHelper {
       await Promise.all(verifyPromises);
     });
   }
+
+  async verifyEditedMessageAppearsForAllTheUsersInChatSection(
+    chatPages: ChatAppPage[],
+    message: string,
+    options?: {
+      timeout?: number;
+      userIndices?: number[];
+    }
+  ) {
+    await test.step(`Verifying message "${message}" for multiple users simultaneously`, async () => {
+      const verifyPromises = chatPages.map((chatPage, index) => {
+        const userNumber = options?.userIndices ? options.userIndices[index] + 1 : index + 1;
+        return chatPage.assertions.verifyEditedMessageIsVisible(message, {
+          stepInfo: `Verifying message "${message}" is present for User ${userNumber}`,
+          timeout: options?.timeout,
+        });
+      });
+      await Promise.all(verifyPromises);
+    });
+  }
 }
