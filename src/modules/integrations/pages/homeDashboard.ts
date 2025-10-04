@@ -446,4 +446,12 @@ export class HomeDashboard {
   async clickShowAllAndVerifyRedirect(tileTitle: string, expectedUrl: string): Promise<void> {
     await this.tileOperationsComponent.clickShowAllAndVerifyRedirect(tileTitle, expectedUrl);
   }
+
+  /**
+   * Verify Monday.com tile content structure with task records
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyMondayDotComContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyMondayDotComTileContentStructure(tileTitle);
+  }
 }

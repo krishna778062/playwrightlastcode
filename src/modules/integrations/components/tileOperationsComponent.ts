@@ -51,6 +51,13 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly scheduleHeading: Locator;
   readonly scheduleTimeRange: Locator;
   readonly scheduleDuration: Locator;
+  readonly canvasContainer: Locator;
+  readonly loopWrapper: Locator;
+  readonly loopContainer: Locator;
+  readonly taskLink: Locator;
+  readonly taskTitle: Locator;
+  readonly statusTag: Locator;
+  readonly MondayLastUpdatedPattern: RegExp;
 
   constructor(page: Page) {
     super(page);
@@ -103,6 +110,13 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.scheduleHeading = page.getByRole('heading', { level: 3 });
     this.scheduleTimeRange = page.getByText(/^\d{1,2}:\d{2}\s+(am|pm)\s+-\s+\d{1,2}:\d{2}\s+(am|pm)$/);
     this.scheduleDuration = page.getByText(/\d+\s+hrs?\s+\d+\s+mins?/);
+    this.canvasContainer = page.locator('#canvasContainer');
+    this.loopWrapper = page.locator('div[class*="loopWrapper"]');
+    this.loopContainer = page.locator('div[class*="loopContainer"]');
+    this.taskLink = page.getByRole('link').filter({ has: page.getByRole('heading', { level: 3 }) });
+    this.taskTitle = page.getByRole('heading', { level: 3 });
+    this.statusTag = page.getByTestId('tag');
+    this.MondayLastUpdatedPattern = /Last updated on/;
   }
 
   /**
@@ -482,6 +496,42 @@ export class TileOperationsComponent extends BaseAppTileComponent {
         await this.page.waitForURL(urlRegex);
         await this.page.goBack();
       }
+    });
+  }
+
+  /**
+   * Verify Monday.com tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyMondayDotComTileContentStructure(tileTitle: string): Promise<void> {
+    await test.step(`Verify Monday.com tile content structure for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Monday.com tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+
+      // Verify main canvas and task containers
+      await expect(tile.locator(this.canvasContainer), 'Canvas container should be visible').toBeVisible();
+      await expect(tile.locator(this.loopWrapper), 'Loop wrapper should be visible').toBeVisible();
+
+      // Check at least one task exists
+      const taskContainers = tile.locator(this.loopContainer);
+      await expect(await taskContainers.count(), 'At least one task should be present').toBeGreaterThan(0);
+
+      // Verify first task structure
+      const firstTask = taskContainers.first();
+      const taskLink = firstTask
+        .getByRole('link')
+        .filter({ has: this.page.getByRole('heading', { level: 3 }) })
+        .first();
+
+      await expect(taskLink, 'Task link should be visible').toBeVisible();
+      await expect(taskLink.getByRole('heading', { level: 3 }), 'Task title should be visible').toBeVisible();
+      await expect(firstTask.getByTestId('tag'), 'Status tag should be visible').toBeVisible();
+      await expect(firstTask.getByTestId('tag').getByRole('paragraph'), 'Status text should be visible').toBeVisible();
+      await expect(
+        firstTask.getByText(this.MondayLastUpdatedPattern),
+        'Last updated text should be visible'
+      ).toBeVisible();
+      await expect(firstTask.getByTestId('divider'), 'Divider should be visible').toBeVisible();
     });
   }
 }
