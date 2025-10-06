@@ -21,7 +21,8 @@ test.describe(
     let createdPostId: string = '';
     test.beforeEach(async ({ feedManagementHelper }) => {
       // Configure app governance settings and enable timeline comment post(feed)
-      // await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
+      await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
+      await feedManagementHelper.enableQuestionAnswer();
     });
 
     test.afterEach(async ({ feedManagementHelper }) => {
