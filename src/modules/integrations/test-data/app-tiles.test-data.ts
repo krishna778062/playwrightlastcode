@@ -13,6 +13,7 @@ export const CONNECTOR_IDS = {
   GOOGLE_CALENDAR_APPTILES: '86c5fd0a-0137-4618-8aac-ae862e09164d',
   DOCUSIGN: 'e7926584-1a7b-47a5-b8a1-c59f0701df39',
   DOCEBO: 'db7f4f18-16e7-443b-9d72-ae68d146e854',
+  MONDAY_DOT_COM: '46cae9fc-78b9-4f30-916d-ccd6d8eff802',
 } as const;
 
 /**
@@ -33,6 +34,7 @@ export const TILE_IDS = {
   GOOGLE_CALENDAR_APPTILES: 'b260c182-199e-4293-a21e-f5ca976fff36',
   DISPLAY_DOCUSIGN_SIGNATURE_REQUESTS: 'c9368b20-00c3-40d7-b08e-20bc48be72ac',
   DISPLAY_LEARNING_COURSES: 'addf843b-06a7-498b-a471-8895fcaf47a7',
+  MONDAY_DOT_COM_DISPLAY_TASKS: 'cf77a6cf-ed45-4b69-951a-dfd36d374fba',
 } as const;
 
 /**
@@ -93,6 +95,7 @@ export const REDIRECT_URLS = {
   GOOGLE_CALENDAR: 'https://workspace.google.com/',
   DOCUSIGN: 'https://account-d.docusign.com/',
   UKG_WFM: 'https://kcfn01-cfn08-ath01.cfn.mykronos.com/',
+  MONDAY_DOT_COM: 'https://clydenoronha48s-team.monday.com/',
 } as const;
 
 /**
