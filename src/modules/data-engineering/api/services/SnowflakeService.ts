@@ -1,6 +1,5 @@
+import { decodeBase64 } from '@data-engineering/helpers/base64Helper';
 import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
 import snowflake, { Connection, RowStatement } from 'snowflake-sdk';
 
 export type SnowflakeConfig = {
@@ -27,7 +26,7 @@ export class SnowflakeService {
    * Factory method to create SnowflakeService from environment variables
    */
   static fromEnv(): SnowflakeService {
-    const privateKey = this.loadPrivateKeyFromFile();
+    const privateKey = this.loadPrivateKeyFromEnv();
 
     const config: SnowflakeConfig = {
       account: process.env.SNOWFLAKE_ACCOUNT || '',
@@ -43,24 +42,33 @@ export class SnowflakeService {
   }
 
   /**
-   * Loads and processes the private key from the RSA key file
+   * Loads and processes the private key from environment variables
+   * The private key and passphrase should be Base64 encoded in the .env file
    */
-  private static loadPrivateKeyFromFile(): string {
-    const privateKeyPath = path.resolve(__dirname, '../../rsa_key.p8');
-    const passphrase = process.env.SNOWFLAKE_PASSPHRASE;
+  private static loadPrivateKeyFromEnv(): string {
+    const encodedPrivateKey = process.env.SNOWFLAKE_PRIVATE_KEY;
+    const encodedPassphrase = process.env.SNOWFLAKE_PASSPHRASE;
 
-    if (!passphrase) {
-      throw new Error('SNOWFLAKE_PASSPHRASE environment variable is required');
+    if (!encodedPrivateKey) {
+      throw new Error('SNOWFLAKE_PRIVATE_KEY environment variable is required (Base64 encoded)');
     }
 
-    const privateKeyFile = fs.readFileSync(privateKeyPath);
+    if (!encodedPassphrase) {
+      throw new Error('SNOWFLAKE_PASSPHRASE environment variable is required (Base64 encoded)');
+    }
 
+    // Decode Base64 encoded strings (similar to Java's Base64.getDecoder().decode())
+    const privateKeyPem = decodeBase64(encodedPrivateKey);
+    const passphrase = decodeBase64(encodedPassphrase);
+
+    // Decrypt the private key using the passphrase
     const privateKeyObject = crypto.createPrivateKey({
-      key: privateKeyFile,
+      key: privateKeyPem,
       format: 'pem',
       passphrase: passphrase,
     });
 
+    // Export the decrypted private key
     const privateKey = privateKeyObject.export({
       format: 'pem',
       type: 'pkcs8',
