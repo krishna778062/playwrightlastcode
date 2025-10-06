@@ -25,7 +25,7 @@ export const API_ENDPOINTS = {
         `/v1/chat/conversations/list?page=${page}&perPage=${perPage}&conversationType=GROUP`,
     },
     identity: {
-      listOfAudiences: '/v1/identity/audiences/list',
+      listOfAudiences: '/v1/identity/audience/list',
       v2IdentityAudiencesCategories: '/v2/identity/audiences/categories',
       v2IdentityAudiencesHierarchy: '/v2/identity/audiences/hierarchy',
       v2IdentityAudiences: '/v2/identity/audiences',
