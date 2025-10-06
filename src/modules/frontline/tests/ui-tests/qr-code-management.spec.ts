@@ -1,4 +1,5 @@
 import { PopupType } from '@frontline/constants/popupType';
+import { QR_SEARCH_TERMS } from '@frontline/constants/searchTerms';
 import { FrontlineFeatureTags, FrontlineSuiteTags } from '@frontline/constants/testTags';
 import { frontlineTestFixture as test } from '@frontline/fixtures/frontlineFixture';
 import { ManageQRPage } from '@frontline/pages/manageQRPage';
@@ -155,7 +156,55 @@ test.describe(
         await manageQRPage.saveChangesOnSetup();
         await manageQRPage.clickOnManage();
         await manageQRPage.verifyQRCodeMenuVisible();
+        qrDetails.qrCodeId = undefined;
       }
     );
+  }
+);
+
+test(
+  '[FL-149] Display QR codes under Manage as PromotionManager',
+  {
+    tag: [TestPriority.P2, FrontlineFeatureTags.QR_CODE],
+  },
+  async ({ promotionManagerHomePage }) => {
+    tagTest(test.info(), {
+      description: 'Display QR Codes under Manage as PromotionManager',
+      zephyrTestId: 'FL-149',
+      storyId: 'FL-149',
+    });
+
+    const manageQRPage = new ManageQRPage(promotionManagerHomePage.page);
+    await manageQRPage.loadPage();
+    await manageQRPage.clickOnManage();
+    await manageQRPage.verifyQRCodeMenuVisible();
+  }
+);
+
+test(
+  '[FL-415] Verify search qr, searching the textbox should provide valid results',
+  {
+    tag: [TestPriority.P2, FrontlineFeatureTags.QR_CODE],
+  },
+  async ({ appManagerHomePage }) => {
+    tagTest(test.info(), {
+      description: 'Verify search qr, searching the textbox should provide valid results',
+      zephyrTestId: 'FL-415',
+      storyId: 'FL-415',
+    });
+
+    const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+    await manageQRPage.loadPage();
+    await manageQRPage.clickOnManage();
+    await manageQRPage.clickOnQRCodesMenu();
+    await manageQRPage.verifyManagePage();
+    await manageQRPage.clickOnSearchQRTextbox();
+    await manageQRPage.fillSearchQRTextbox(QR_SEARCH_TERMS.VALID_SEARCH);
+    await manageQRPage.hitEnterOnSearchBox();
+    await manageQRPage.verifySearchResults(QR_SEARCH_TERMS.VALID_SEARCH);
+    await manageQRPage.clickClearButton();
+    await manageQRPage.fillSearchQRTextbox(QR_SEARCH_TERMS.INVALID_SEARCH);
+    await manageQRPage.hitEnterOnSearchBox();
+    await manageQRPage.verifyNothingToShowMessage();
   }
 );
