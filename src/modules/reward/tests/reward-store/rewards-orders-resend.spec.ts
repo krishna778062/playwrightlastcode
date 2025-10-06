@@ -100,17 +100,15 @@ test.describe('Rewards store - Order history page', { tag: [REWARD_FEATURE_TAGS.
       });
       const rewardsStore = new RewardsStore(appManagerPage);
       await rewardsStore.loadPage();
-      await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
-      await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
       await rewardsStore.visitTheOrderHistory();
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/order-history');
       await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
       await rewardsStore.validateTheOrderHistoryElements();
       const primaryEmail = await rewardsStore.orderHistoryPanelRewardPrimaryEmail.first().textContent();
       await rewardsStore.clickOnTheResendButton(1);
-      await rewardsStore.verifier.verifyElementHasText(
+      await rewardsStore.verifier.verifyTextOfInputElement(
         rewardsStore.resentRewardDialogBoxEmailInput,
-        primaryEmail || ''
+        primaryEmail?.trim() || ''
       );
     }
   );

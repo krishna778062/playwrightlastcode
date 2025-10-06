@@ -103,10 +103,8 @@ export class RewardsStore extends BasePage {
     this.disabledResendButton = this.orderHistoryPanelRewardResendButton.filter({ hasText: 'Resend' });
     this.resendOrderTooltip = page.locator('[role="tooltip"]');
     this.resentRewardDialog = page.locator('[role="dialog"]');
-    this.resentRewardDialogBoxEmailInput = this.resentRewardDialog.getByRole('textbox', { name: 'Email address*' });
-    this.resentRewardDialogBoxConfirmEmailInput = this.resentRewardDialog.getByRole('textbox', {
-      name: 'Confirm email*',
-    });
+    this.resentRewardDialogBoxEmailInput = this.resentRewardDialog.locator('[id="email"]');
+    this.resentRewardDialogBoxConfirmEmailInput = this.resentRewardDialog.locator('[id="confirmEmail"]');
     this.resentRewardDialogBoxEmailLabel = this.resentRewardDialog.locator('label[for*="email"]');
     this.resentRewardDialogBoxConfirmEmailLabel = this.resentRewardDialog.locator('label[for*="confirm"]');
     this.resentRewardDialogBoxDescription = this.resentRewardDialog.locator('p[class*="Typography-module__paragraph"]');
