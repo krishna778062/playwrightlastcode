@@ -32,7 +32,7 @@ test.describe('Manage Site Test Suite (ABAC)', { tag: [ContentSuiteTags.MANAGE_S
   test(
     'Verify Warning Message Appears After Changing Target Audience',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.CONT_38912],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.CONT_38912, '@CONT-38912'],
     },
     async ({ page }) => {
       tagTest(test.info(), {
