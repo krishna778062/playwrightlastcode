@@ -2,8 +2,11 @@ import { SubjectCustomLinePage } from '@alert-notification-pages/subjectCustomLi
 import {
   NotificationTestDataGenerator,
   SUBJECT_LINES,
+  TEST_EMAILS,
 } from '@alert-notification-test-data/notification-customization.test-data';
 import { expect, Page } from '@playwright/test';
+
+import { POPUP_BUTTONS } from '@core/constants/popupButtons';
 
 // Simple constants for UI text
 const SUBJECT_LINE_OPTIONS = {
@@ -92,6 +95,10 @@ export class NotificationTestWorkflows {
     await this.notificationPage.expectMoreButtonReady();
   }
 
+  async deleteBySubject(subject: string): Promise<void> {
+    await this.notificationPage.deleteBySubject(subject);
+  }
+
   async testTranslationFallback(): Promise<void> {
     const customSubject = NotificationTestDataGenerator.generateUniqueSubject(SUBJECT_LINES.FALLBACK_TEST.ENGLISH);
 
@@ -116,10 +123,9 @@ export class NotificationTestWorkflows {
     await this.notificationPage.typeTestEmail('adafadfaf');
     await this.notificationPage.blurTestEmailInput();
     await this.notificationPage.expectSendTestDisabled();
-    await this.notificationPage.sendTestEmail().catch(() => {});
     await this.notificationPage.expectInvalidEmailError();
 
-    await this.notificationPage.typeTestEmail('krishna.singh@simpplr.com');
+    await this.notificationPage.typeTestEmail(TEST_EMAILS.SINGLE_VALID);
     await this.notificationPage.blurTestEmailInput();
     await this.notificationPage.expectSendTestEnabled();
     await this.notificationPage.sendTestEmail();
@@ -183,7 +189,7 @@ export class NotificationTestWorkflows {
       await expect(loadingSpinner).toBeHidden({ timeout: 10_000 });
     }
 
-    const saveButton = this.page.getByRole('button', { name: 'Save' });
+    const saveButton = this.page.getByRole('button', { name: POPUP_BUTTONS.SAVE });
     await expect(saveButton).toBeEnabled({ timeout: 5_000 });
   }
 }

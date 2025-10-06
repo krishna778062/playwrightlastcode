@@ -111,3 +111,12 @@ export const LOCATOR_TEST_IDS = {
 export const RADIO_VALUES = {
   SUMMARIZED_DIGEST: 'SUMMARIZED_DIGEST',
 } as const;
+
+// Centralized email test data for this module
+export const TEST_EMAILS = {
+  SINGLE_VALID: 'qa.manager@simpplr.com',
+  MULTI_VALID_CSV: 'qa.manager@simpplr.com, qa.manager+1@simpplr.com, qa.manager+2@simpplr.com',
+} as const;
+
+// Centralized email test data to avoid hardcoding in specs
+// Duplicate removed

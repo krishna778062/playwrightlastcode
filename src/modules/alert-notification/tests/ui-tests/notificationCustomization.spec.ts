@@ -2,6 +2,7 @@ import { AlertNotificationSuiteTags } from '@alert-notification-constants/testTa
 import { test } from '@alert-notification-fixtures/fixtures';
 import { NotificationTestWorkflows } from '@alert-notification-helpers/testWorkflows';
 import { SubjectCustomLinePage } from '@alert-notification-pages/subjectCustomLinePage';
+import { TEST_EMAILS } from '@alert-notification-test-data/notification-customization.test-data';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -25,8 +26,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ appManager }) => {
-        const subjectCustomLinePage = new SubjectCustomLinePage(appManager);
+      async () => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-1',
           storyId: 'INT-1',
@@ -37,8 +37,7 @@ test.describe(
         const englishSubject = await workflows.createMustReadWithFrenchTranslation();
 
         await workflows.saveAndVerifyCreation(englishSubject);
-
-        await subjectCustomLinePage.deleteBySubject(englishSubject);
+        await workflows.deleteBySubject(englishSubject);
       }
     );
 
@@ -143,9 +142,7 @@ test.describe(
         tagTest(test.info(), { zephyrTestId: 'INT-27671', storyId: 'INT-7' });
         await workflows.navigateToNotificationCustomization();
         await workflows.selectTemplate('mustRead');
-        await workflows.testSendYourselfMultipleRecipients(
-          'krishna.singh@simpplr.com, krishna.singh+1@simpplr.com, krishna.singh+2@simpplr.com'
-        );
+        await workflows.testSendYourselfMultipleRecipients(TEST_EMAILS.MULTI_VALID_CSV);
       }
     );
   }

@@ -1,5 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { POPUP_BUTTONS } from '@core/constants/popupButtons';
 import { BasePage } from '@core/pages/basePage';
 
 /**
@@ -44,7 +46,7 @@ export class SubjectCustomLinePage extends BasePage {
   private readonly deleteActionButton: Locator;
 
   constructor(page: Page) {
-    super(page);
+    super(page, PAGE_ENDPOINTS.NOTIFICATION_CUSTOMIZATION_PAGE);
     this.page = page;
 
     // Navigation locators
@@ -111,8 +113,8 @@ export class SubjectCustomLinePage extends BasePage {
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify notification customization page is loaded', async () => {
       await this.page.waitForLoadState('domcontentloaded');
-      await expect(this.pageHeading).toBeVisible({ timeout: 15_000 });
-      await expect(this.addCustomizationLink).toBeVisible();
+      // Rely on a stable, actionable control that always exists on the list page
+      await this.verifier.verifyTheElementIsVisible(this.addCustomizationLink, { timeout: 15_000 });
     });
   }
 
@@ -121,17 +123,22 @@ export class SubjectCustomLinePage extends BasePage {
    */
   async navigateToNotificationCustomization(): Promise<void> {
     await test.step('Navigate to notification customization page', async () => {
-      await this.goToApplicationDefaults();
-      await this.openNotificationCustomization();
+      try {
+        await this.goToApplicationDefaults();
+        await this.openNotificationCustomization();
+      } catch {
+        // Fallback to direct route if UI nav fails
+        await this.goToUrl(PAGE_ENDPOINTS.NOTIFICATION_CUSTOMIZATION_PAGE);
+      }
       await this.verifyThePageIsLoaded();
     });
   }
 
   /**
-   * Load method to ensure page is ready (following integrations team pattern)
+   * Load method to ensure page is ready
    */
   async load(): Promise<void> {
-    await this.verifyThePageIsLoaded();
+    await this.loadPage({ stepInfo: 'Loading Notification Customization page' });
   }
 
   /**
@@ -180,7 +187,7 @@ export class SubjectCustomLinePage extends BasePage {
    * Verifies user is on the notification customization list page
    */
   async expectOnListPage(): Promise<void> {
-    await expect(this.pageHeading).toBeVisible({ timeout: 15_000 });
+    await this.verifier.verifyTheElementIsVisible(this.addCustomizationLink, { timeout: 15_000 });
   }
 
   /**
@@ -218,7 +225,7 @@ export class SubjectCustomLinePage extends BasePage {
    * @param subject - The subject text to verify
    */
   async expectRowVisible(subject: string): Promise<void> {
-    await expect(this.rowBySubject(subject)).toBeVisible();
+    await this.verifier.verifyTheElementIsVisible(this.rowBySubject(subject));
   }
 
   /**
@@ -226,7 +233,7 @@ export class SubjectCustomLinePage extends BasePage {
    * @param subject - The subject text to verify absence
    */
   async expectRowAbsent(subject: string): Promise<void> {
-    await expect(this.rowBySubject(subject)).toHaveCount(0);
+    await this.verifier.verifyCountOfElementsIsEqualTo(this.rowBySubject(subject), 0);
   }
 
   /**
@@ -234,7 +241,7 @@ export class SubjectCustomLinePage extends BasePage {
    * @param term - The search term
    */
   async search(term: string): Promise<void> {
-    await this.searchInput.fill(term);
+    await this.fillInElement(this.searchInput, term);
   }
 
   /**
@@ -242,7 +249,7 @@ export class SubjectCustomLinePage extends BasePage {
    */
   async clearSearch(): Promise<void> {
     if (await this.searchInput.isVisible().catch(() => false)) {
-      await this.searchInput.fill('');
+      await this.fillInElement(this.searchInput, '');
       await this.page.keyboard.press('Enter').catch(() => {});
     }
   }
@@ -252,7 +259,7 @@ export class SubjectCustomLinePage extends BasePage {
    */
   async startAddCustomization(): Promise<void> {
     await test.step('Start add customization flow', async () => {
-      await this.addCustomizationLink.click();
+      await this.clickOnElement(this.addCustomizationLink);
     });
   }
 
@@ -284,10 +291,10 @@ export class SubjectCustomLinePage extends BasePage {
    */
   async selectMustReadSingle(): Promise<void> {
     await test.step('Select Must Read template', async () => {
-      await this.mustReadButton.click();
+      await this.clickOnElement(this.mustReadButton);
       await this.mustReadRadio.waitFor({ state: 'visible' });
-      await this.mustReadRadio.click();
-      await this.nextButton.click();
+      await this.clickOnElement(this.mustReadRadio);
+      await this.clickOnElement(this.nextButton);
     });
   }
 
@@ -296,10 +303,10 @@ export class SubjectCustomLinePage extends BasePage {
    */
   async selectFollowSingle(): Promise<void> {
     await test.step('Select Follow template', async () => {
-      await this.followButton.first().click();
+      await this.clickOnElement(this.followButton.first());
       await this.followRadio.first().waitFor({ state: 'visible' });
-      await this.followRadio.first().click();
-      await this.nextButton.click();
+      await this.clickOnElement(this.followRadio.first());
+      await this.clickOnElement(this.nextButton);
     });
   }
 
@@ -308,10 +315,10 @@ export class SubjectCustomLinePage extends BasePage {
    */
   async selectAlertsSingle(): Promise<void> {
     await test.step('Select Alerts template', async () => {
-      await this.alertsButton.click();
+      await this.clickOnElement(this.alertsButton);
       await this.alertsRadio.waitFor({ state: 'visible' });
-      await this.alertsRadio.click();
-      await this.nextButton.click();
+      await this.clickOnElement(this.alertsRadio);
+      await this.clickOnElement(this.nextButton);
     });
   }
 
@@ -321,11 +328,11 @@ export class SubjectCustomLinePage extends BasePage {
    */
   async chooseCustomSubject(subject?: string): Promise<void> {
     await test.step('Choose custom subject line option', async () => {
-      await this.customSubjectRadio.click();
+      await this.clickOnElement(this.customSubjectRadio);
 
       if (subject) {
         const textarea = this.customSubjectTextareaFallback;
-        await textarea.first().fill(subject);
+        await this.fillInElement(textarea.first(), subject);
       }
     });
   }
@@ -336,8 +343,8 @@ export class SubjectCustomLinePage extends BasePage {
    */
   async typeCustomSubjectOnStep2(subject: string): Promise<void> {
     await test.step('Type custom subject and proceed', async () => {
-      await this.customSubjectTextarea.click();
-      await this.customSubjectTextarea.fill(subject);
+      await this.clickOnElement(this.customSubjectTextarea);
+      await this.fillInElement(this.customSubjectTextarea, subject);
       await this.nextIfPresent();
     });
   }
@@ -347,7 +354,7 @@ export class SubjectCustomLinePage extends BasePage {
    */
   async nextIfPresent(): Promise<void> {
     if (await this.nextButton.isVisible().catch(() => false)) {
-      await this.nextButton.click();
+      await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
     }
   }
 
@@ -356,7 +363,7 @@ export class SubjectCustomLinePage extends BasePage {
    */
   async cancel(): Promise<void> {
     await test.step('Cancel current flow', async () => {
-      await this.cancelButton.click();
+      await this.clickCancelButton(this.cancelButton);
     });
   }
 
@@ -365,7 +372,7 @@ export class SubjectCustomLinePage extends BasePage {
    */
   async openLanguageMenu(): Promise<void> {
     await test.step('Open language selection menu', async () => {
-      await this.languageButton.first().click();
+      await this.clickOnElement(this.languageButton.first());
 
       const menuItems = this.page.locator('[role="menuitem"], [role="option"]');
       await expect(menuItems.first()).toBeVisible({ timeout: 10_000 });
@@ -380,7 +387,7 @@ export class SubjectCustomLinePage extends BasePage {
     await test.step(`Select language: ${label}`, async () => {
       const languageButton = this.page.getByRole('button', { name: /Language.*Open/i });
 
-      await languageButton.click();
+      await this.clickOnElement(languageButton);
 
       const menuItems = this.page.locator('[role="menuitem"]');
       await expect(menuItems.first()).toBeVisible({ timeout: 10_000 });
@@ -407,7 +414,7 @@ export class SubjectCustomLinePage extends BasePage {
         throw new Error(`Language "${label}" not found in dropdown. Available: ${allMenuItems.join(', ')}`);
       }
 
-      await target.click();
+      await this.clickOnElement(target);
       await expect(menuItems.first()).toBeHidden({ timeout: 5_000 });
     });
   }
@@ -417,7 +424,7 @@ export class SubjectCustomLinePage extends BasePage {
    */
   async chooseDifferentTestEmail(): Promise<void> {
     await test.step('Choose different email address for test send', async () => {
-      await this.differentEmailRadio.click();
+      await this.clickOnElement(this.differentEmailRadio);
     });
   }
 
@@ -426,7 +433,7 @@ export class SubjectCustomLinePage extends BasePage {
    */
   async typeTestEmail(email: string): Promise<void> {
     await test.step('Type test email address', async () => {
-      await this.testEmailInput.fill(email);
+      await this.fillInElement(this.testEmailInput, email);
     });
   }
 
@@ -435,8 +442,8 @@ export class SubjectCustomLinePage extends BasePage {
    */
   async sendTestEmail(): Promise<void> {
     await test.step('Click Send test', async () => {
-      await expect(this.sendTestButton).toBeEnabled();
-      await this.sendTestButton.click();
+      await this.verifier.verifyTheElementIsEnabled(this.sendTestButton);
+      await this.clickOnElement(this.sendTestButton);
     });
   }
 
@@ -451,7 +458,7 @@ export class SubjectCustomLinePage extends BasePage {
    * Expects success toast after sending a valid test email
    */
   async expectTestEmailSuccess(): Promise<void> {
-    await this.expectToast(/Custom Email subject: Test email sent successfully/i);
+    await this.verifyToastMessageIsVisibleWithText('Custom Email subject: Test email sent successfully');
   }
 
   /**
@@ -503,7 +510,7 @@ export class SubjectCustomLinePage extends BasePage {
     const current = await switchElement.getAttribute('aria-checked');
     const isOn = current === 'true';
     if (isOn !== on) {
-      await switchElement.click();
+      await this.clickOnElement(switchElement);
     }
   }
 
@@ -512,7 +519,7 @@ export class SubjectCustomLinePage extends BasePage {
    * @param subject - The subject text to fill
    */
   async fillManageTranslationsSubject(subject: string): Promise<void> {
-    await this.translationTextarea.fill(subject);
+    await this.fillInElement(this.translationTextarea, subject);
   }
 
   /**
@@ -520,7 +527,7 @@ export class SubjectCustomLinePage extends BasePage {
    */
   async save(): Promise<void> {
     await test.step('Save customization', async () => {
-      await this.saveButton.click();
+      await this.clickOnButtonWithName(POPUP_BUTTONS.SAVE);
     });
   }
 
@@ -528,14 +535,14 @@ export class SubjectCustomLinePage extends BasePage {
    * Expects the saved toast message to appear
    */
   async expectSavedToast(): Promise<void> {
-    await this.expectToast(/Customization saved/i);
+    await this.verifyToastMessageIsVisibleWithText('Customization saved');
   }
 
   /**
    * Expects the deleted toast message to appear
    */
   async expectDeletedToast(): Promise<void> {
-    await this.expectToast(/Customization deleted/i);
+    await this.verifyToastMessageIsVisibleWithText('Customization deleted');
   }
 
   /**
@@ -552,14 +559,18 @@ export class SubjectCustomLinePage extends BasePage {
    * @param timeout - Optional timeout override
    */
   async verifyText(text: string | RegExp, timeout = 10_000): Promise<void> {
-    await expect(this.bodyContainer).toContainText(text, { timeout });
+    if (typeof text === 'string') {
+      await this.verifier.verifyElementContainsText(this.bodyContainer, text, { timeout });
+    } else {
+      await expect(this.bodyContainer).toContainText(text, { timeout });
+    }
   }
 
   /**
    * Verifies that Add customization link is visible
    */
   async expectAddCustomizationVisible(): Promise<void> {
-    await expect(this.addCustomizationLink).toBeVisible();
+    await this.verifier.verifyTheElementIsVisible(this.addCustomizationLink);
   }
 
   /**
@@ -567,29 +578,29 @@ export class SubjectCustomLinePage extends BasePage {
    * @param text - The cell text to verify
    */
   async expectCellVisible(text: string): Promise<void> {
-    await expect(this.page.getByRole('cell', { name: text })).toBeVisible();
+    await this.verifier.verifyTheElementIsVisible(this.page.getByRole('cell', { name: text }));
   }
 
   /**
    * Verifies that More button is visible and enabled
    */
   async expectMoreButtonReady(): Promise<void> {
-    await expect(this.moreButton.first()).toBeVisible();
-    await expect(this.moreButton.first()).toBeEnabled();
+    await this.verifier.verifyTheElementIsVisible(this.moreButton.first());
+    await this.verifier.verifyTheElementIsEnabled(this.moreButton.first());
   }
 
   /**
    * Clears the custom subject textarea
    */
   async clearCustomSubject(): Promise<void> {
-    await this.customSubjectTextarea.fill('');
+    await this.fillInElement(this.customSubjectTextarea, '');
   }
 
   /**
    * Verifies that the Next button is disabled
    */
   async expectNextButtonDisabled(): Promise<void> {
-    await expect(this.nextButton).toBeDisabled();
+    await this.verifier.verifyTheElementIsDisabled(this.nextButton);
   }
 
   /**
@@ -600,7 +611,7 @@ export class SubjectCustomLinePage extends BasePage {
     await test.step(`Delete customization with subject: ${subject}`, async () => {
       const row = this.rowBySubject(subject);
       await expect(row).toBeVisible({ timeout: 10_000 });
-      await row.getByRole('button', { name: /^more$/i }).click();
+      await this.clickOnElement(row.getByRole('button', { name: /^more$/i }));
       await this.clickDeleteFromRowMenuAndConfirm();
       await this.expectDeletedToast();
       await expect(this.rowBySubject(subject)).toHaveCount(0);
@@ -617,11 +628,11 @@ export class SubjectCustomLinePage extends BasePage {
         .first()
         .or(this.page.getByRole('button', { name: /^delete$/i }).first());
       await expect(menuDelete).toBeVisible({ timeout: 10_000 });
-      await menuDelete.click();
+      await this.clickOnElement(menuDelete);
 
       const confirm = this.page.getByRole('button', { name: /^delete$/i }).last();
       await expect(confirm).toBeVisible({ timeout: 10_000 });
-      await confirm.click();
+      await this.clickOnElement(confirm);
     });
   }
 

@@ -64,5 +64,5 @@ export const PAGE_ENDPOINTS = {
   CUSTOM_APP_TILES_PAGE: '/manage/custom-app-tiles',
 
   // Alert Notification pages
-  NOTIFICATION_CUSTOMIZATION_PAGE: '/manage/application/defaults/notification-customization',
+  NOTIFICATION_CUSTOMIZATION_PAGE: '/manage/app/defaults/notification-customization',
 };
