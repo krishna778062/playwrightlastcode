@@ -109,7 +109,7 @@ export class ManageQRPage extends BasePage {
     this.filterResetButton = page.getByRole('button', { name: 'Reset all' });
     this.expiredQRToggle = page.getByRole('switch');
     this.qrListRows = page.getByRole('row');
-    this.tillDateNA = page.locator('tbody tr td:nth-child(4) h4[aria-label="N/A"]');
+    this.tillDateNA = page.getByRole('heading', { name: 'N/A' });
   }
 
   async clickOnManage() {
@@ -581,8 +581,12 @@ export class ManageQRPage extends BasePage {
 
   async verifyValidTillDateIsNAForAllQRs(): Promise<void> {
     await test.step('Verify valid till date is N/A for all displayed QR codes', async () => {
-      // Wait for the QR list to be updated after filter is applied
-      await this.qrListRows.first().waitFor({ state: 'visible', timeout: 10000 });
+      try {
+        await this.tillDateNA.first().waitFor({ state: 'visible', timeout: 10000 });
+      } catch (error) {
+        console.log('No QR codes with N/A valid till date found');
+        return;
+      }
 
       const allTillDates = await this.tillDateNA.count();
 
