@@ -170,10 +170,7 @@ test.describe(
         });
 
         // Create site with content submission disabled
-        const siteDetails = await siteManagementHelper.createUnlistedSite({
-          isContentSubmissionsEnabled: false,
-          waitForSearchIndex: true,
-        });
+        const siteDetails = await siteManagementHelper.getSiteByIdWithContentSubmissions(SITE_TYPES.UNLISTED, false);
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.siteName;
 
