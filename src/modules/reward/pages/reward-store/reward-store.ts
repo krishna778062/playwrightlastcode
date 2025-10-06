@@ -2,7 +2,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS, PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
-import { ManageRewardsPage } from '@modules/reward/pages/manage-rewards/manage-rewards-page';
+import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
 import { RewardsDialogBox } from '@modules/reward/pages/reward-store/rewards-dialog-box';
 
 export class RewardsStore extends BasePage {
@@ -189,7 +189,7 @@ export class RewardsStore extends BasePage {
   }
 
   async enableTheRewardStoreAndPeerGiftingIfDisabled() {
-    const manageRewardsPage = new ManageRewardsPage(this.page);
+    const manageRewardsPage = new ManageRewardsOverviewPage(this.page);
 
     await manageRewardsPage.loadPage();
     await manageRewardsPage.verifyThePageIsLoaded();
@@ -203,7 +203,7 @@ export class RewardsStore extends BasePage {
       await manageRewardsPage.clickOnElement(manageRewardsPage.enableRewardsButton, {
         stepInfo: 'Enabling rewards if disabled',
       });
-      await manageRewardsPage.verifyToastMessage('Rewards enabled');
+      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards enabled');
     }
 
     await this.visit();

@@ -6,7 +6,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 import { REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
-import { ManageRewardsPage } from '@modules/reward/pages/manage-rewards/manage-rewards-page';
+import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
 import { RewardOptionsPage } from '@modules/reward/pages/manage-rewards/reward-options-page';
 
 test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () => {
@@ -21,8 +21,8 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
         zephyrTestId: 'RC-5371',
         storyId: 'RC-5251',
       });
-      const manageRewardsPage = new ManageRewardsPage(appManagerPage);
-      await manageRewardsPage.loadPage();
+      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerPage);
+      await manageRewardsPage.loadPageWithHarness();
       await manageRewardsPage.verifyThePageIsLoaded();
       const rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
       expect(rewardOptionsIsVisible).toBeTruthy();
@@ -42,8 +42,8 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
         zephyrTestId: 'RC-5371',
         storyId: 'RC-5251',
       });
-      const manageRewardsPage = new ManageRewardsPage(recoManagerPage);
-      await manageRewardsPage.loadPage();
+      const manageRewardsPage = new ManageRewardsOverviewPage(recoManagerPage);
+      await manageRewardsPage.loadPageWithHarness();
       await manageRewardsPage.verifyThePageIsLoaded();
       const rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
       expect(rewardOptionsIsVisible).toBeTruthy();
@@ -63,10 +63,10 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
         zephyrTestId: 'RC-5374',
         storyId: 'RC-5251',
       });
-      const manageRewardsPage = new ManageRewardsPage(standardUserPage);
+      const manageRewardsPage = new ManageRewardsOverviewPage(standardUserPage);
       const rewardIsEnabled = await manageRewardsPage.hasManageRecognitionPermission();
+      await manageRewardsPage.loadPageWithHarness();
       expect(rewardIsEnabled).toBeFalsy();
-      await manageRewardsPage.loadPage();
       await manageRewardsPage.verifyPageIsNotFound();
     }
   );
@@ -109,7 +109,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
           zephyrTestId: giftCard.visibility === 'Active' ? 'RC-5565' : 'RC-5376',
           storyId: 'RC-5251',
         });
-        const manageRewardsPage = new ManageRewardsPage(recoManagerPage);
+        const manageRewardsPage = new ManageRewardsOverviewPage(recoManagerPage);
         const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
         const rewardsStorePage = new RewardsStore(recoManagerPage);
 

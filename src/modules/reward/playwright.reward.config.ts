@@ -24,6 +24,7 @@ export default defineConfig({
         baseURL: getEnvConfig().frontendBaseUrl,
         launchOptions: {
           args: [
+            '--start-maximized', // Start maximized
             '--disable-gpu', // Disable GPU acceleration
             '--no-sandbox', // Disable sandbox
             '--disable-dev-shm-usage', // Disable /dev/shm usage
