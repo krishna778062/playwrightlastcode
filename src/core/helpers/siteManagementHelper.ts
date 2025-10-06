@@ -632,4 +632,49 @@ export class SiteManagementHelper {
   async getSiteMembershipList(siteId: string, options?: { size?: number; type?: string }): Promise<any> {
     return await this.appManagerApiClient.getSiteManagementService().getSiteMembershipList(siteId, options);
   }
+
+  async getSiteByIdWithContentSubmissions(accessType: string, isContentSubmissionsEnabled: boolean): Promise<any> {
+    const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+    if (siteListResponse.result.listOfItems.length) {
+      const siteDetails = await this.appManagerApiClient
+        .getSiteManagementService()
+        .getSiteDetails(siteListResponse.result.listOfItems[0].siteId);
+      if (siteDetails.isContentSubmissionsEnabled === isContentSubmissionsEnabled) {
+        return siteDetails;
+      } else {
+        if (accessType === SITE_TYPES.UNLISTED) {
+          this.createUnlistedSite({
+            siteName: siteDetails.name,
+            category: siteDetails.category,
+            overrides: {
+              isContentSubmissionsEnabled: isContentSubmissionsEnabled,
+            },
+            waitForSearchIndex: true,
+          });
+        } else if (accessType === SITE_TYPES.PRIVATE) {
+          this.createPrivateSite({
+            siteName: siteDetails.name,
+            category: siteDetails.category,
+            overrides: {
+              isContentSubmissionsEnabled: isContentSubmissionsEnabled,
+            },
+            waitForSearchIndex: true,
+          });
+        } else if (accessType === SITE_TYPES.PUBLIC) {
+          this.createPublicSite({
+            siteName: siteDetails.name,
+            category: siteDetails.category,
+            overrides: {
+              isContentSubmissionsEnabled: isContentSubmissionsEnabled,
+            },
+            waitForSearchIndex: true,
+          });
+        }
+        return siteDetails;
+      }
+    }
+    return siteListResponse.result.listOfItems.find(
+      site => site.isContentSubmissionsEnabled === isContentSubmissionsEnabled
+    );
+  }
 }
