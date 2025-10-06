@@ -8,6 +8,7 @@ import {
   SocialCampaignAction,
   SocialCampaignApiResponse,
   SocialCampaignDeleteResponse,
+  SocialCampaignFilter,
   SocialCampaignListRequest,
   SocialCampaignListResponse,
   SocialCampaignNetwork,
@@ -35,15 +36,16 @@ export class SocialCampaignService extends BaseApiClient {
 
   /**
    * Gets all social campaigns
+   * @param filter - Filter type (latest, expired, popular)
    * @returns Promise<SocialCampaign[]>
    */
-  async getAllCampaigns(): Promise<SocialCampaign[]> {
-    return await test.step('Getting all social campaigns', async () => {
+  async getAllCampaigns(filter: SocialCampaignFilter = SocialCampaignFilter.LATEST): Promise<SocialCampaign[]> {
+    return await test.step(`Getting all social campaigns with filter: ${filter}`, async () => {
       const response = await this.post(API_ENDPOINTS.socialCampaign.list, {
         data: {
           nextPageToken: 0,
-          size: 12,
-          filter: 'latest',
+          size: 1000,
+          filter: filter,
         },
       });
       const result = (await response.json()) as SocialCampaignListResponse;

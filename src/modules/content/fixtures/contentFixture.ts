@@ -11,6 +11,7 @@ import { LoginHelper } from '@core/helpers/loginHelper';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
+import { AudienceManagementHelper } from '@/src/core/helpers/audienceManagementHelper';
 import { SocialCampaignHelper } from '@/src/core/helpers/socialCampaignHelper';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
@@ -93,6 +94,7 @@ export const contentTestFixture = test.extend<
     standardUserFeedManagementHelper: FeedManagementHelper;
     identityManagementHelper: IdentityManagementHelper;
     socialCampaignHelper: SocialCampaignHelper;
+    audienceManagementHelper: AudienceManagementHelper;
 
     // Utility functions
     loginAs: (userType: UserType) => Promise<void>;
@@ -369,6 +371,15 @@ export const contentTestFixture = test.extend<
       } catch (error) {
         console.warn('Social campaign helper cleanup failed:', error);
       }
+    },
+    { scope: 'test' },
+  ],
+
+  audienceManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const helper = new AudienceManagementHelper(appManagerApiClient);
+
+      await use(helper);
     },
     { scope: 'test' },
   ],
