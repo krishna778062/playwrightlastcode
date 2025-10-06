@@ -37,6 +37,7 @@ test(
       TestGroupType.SMOKE,
       ContentFeatureTags.MY_CONTENT_FILTER,
       ContentFeatureTags.MY_CONTENT_FILTER,
+      '@CONT-33059',
     ],
   },
   async ({ contentManagementHelper, siteManagementHelper }) => {
