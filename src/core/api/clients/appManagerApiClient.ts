@@ -7,6 +7,7 @@ import { UserManagementService } from '@core/api/services/UserManagementService'
 
 import { BaseApiClient } from '@/src/core/api/clients/baseApiClient';
 import { AppsManagementService } from '@/src/core/api/services/AppsManagementService';
+import { AudienceManagementService } from '@/src/core/api/services/AudienceManagementService';
 import { ContentManagementService } from '@/src/core/api/services/ContentManagementService';
 import { ExternalSearchManagementService } from '@/src/core/api/services/ExternalSearchManagementService';
 import { ImageUploaderService } from '@/src/core/api/services/ImageUploaderService';
@@ -28,6 +29,7 @@ export class AppManagerApiClient extends BaseApiClient {
   private readonly externalSearchManagementService: ExternalSearchManagementService;
   private readonly feedManagementService: FeedManagementService;
   private readonly socialCampaignService: SocialCampaignService;
+  private readonly audienceManagementService: AudienceManagementService;
 
   constructor(context: APIRequestContext, baseUrl?: string) {
     super(context, baseUrl);
@@ -43,6 +45,7 @@ export class AppManagerApiClient extends BaseApiClient {
     this.externalSearchManagementService = new ExternalSearchManagementService(context, baseUrl);
     this.feedManagementService = new FeedManagementService(context, baseUrl);
     this.socialCampaignService = new SocialCampaignService(context, baseUrl);
+    this.audienceManagementService = new AudienceManagementService(context, baseUrl || '');
   }
 
   getChatService(): ChatService {
@@ -91,5 +94,9 @@ export class AppManagerApiClient extends BaseApiClient {
 
   getSocialCampaignService(): SocialCampaignService {
     return this.socialCampaignService;
+  }
+
+  getAudienceManagementService(): AudienceManagementService {
+    return this.audienceManagementService;
   }
 }
