@@ -6,6 +6,7 @@ import { ManageSitesComponent } from '@/src/modules/content-abac/components/mana
 
 export interface IManageSiteActions {
   clickOnAddSite: () => Promise<void>;
+  selectSite: () => Promise<void>;
 }
 
 export interface IManageSiteAssertions {}
@@ -34,6 +35,14 @@ export class ManageSitePage extends BasePage {
   async clickOnAddSite(): Promise<void> {
     await test.step('Clicking on add site', async () => {
       await this.clickOnElement(this.manageSitesComponent.addSite);
+    });
+  }
+
+  async selectSite(): Promise<void> {
+    await test.step('Selecting the site', async () => {
+      await this.clickOnElement(this.manageSitesComponent.selectSite);
+      await this.page.keyboard.press('Tab');
+      await this.page.keyboard.press('Enter');
     });
   }
 }

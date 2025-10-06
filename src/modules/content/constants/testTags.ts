@@ -5,6 +5,7 @@ export enum ContentSuiteTags {
   SITE_DASHBOARD = '@site-dashboard',
   ALBUM_CREATION = '@album-creation',
   SITE_CREATION = '@site-creation',
+  MANAGE_SITE = '@manage-site',
   SITE_CATEGORIES = '@site-categories',
   EVENT_CREATION = '@event-creation',
   FEED_SETTINGS = '@feed-settings',
@@ -24,6 +25,7 @@ export enum ContentFeatureTags {
   HOME_FEED = '@home-feed',
   MANAGE_TOPICS = '@manage-topics',
   EDIT_TOPICS = '@edit-topics',
+  CONT_38912 = '@cont-38912',
 }
 
 export const ContentTestTags = [...Object.values(ContentSuiteTags), ...Object.values(ContentFeatureTags)] as const;
