@@ -114,10 +114,10 @@ export class RewardsStore extends BasePage {
     this.resentRewardDialogBoxCancel = this.resentRewardDialog.getByRole('button', { name: 'Cancel' });
     this.resentRewardDialogBoxResend = this.resentRewardDialog.getByRole('button', { name: 'Resend' });
     this.resentRewardInvalidEmailError = this.resentRewardDialog
-      .locator('p[class*="Field-module__error"]')
+      .locator('[class*="Field-module__error"]')
       .filter({ hasText: 'This is not a valid email address' });
     this.resentRewardDoNotMatchEmailError = this.resentRewardDialog
-      .locator('p[class*="Field-module__error"]')
+      .locator('[class*="Field-module__error"]')
       .filter({ hasText: 'Emails do not match' });
 
     // Dialog box
@@ -421,7 +421,7 @@ export class RewardsStore extends BasePage {
     await this.fillInElement(this.resentRewardDialogBoxEmailInput, `${inputValue}@REWARDS`, {
       stepInfo: 'Entering invalid email',
     });
-    await this.resentRewardDialogBoxHeading.click();
+    await this.resentRewardDialogBoxConfirmEmailInput.click({ force: true });
     await this.verifier.verifyElementHasText(this.resentRewardInvalidEmailError, 'This is not a valid email address');
     await this.verifier.verifyTheElementIsDisabled(this.resentRewardDialogBoxResend);
 
@@ -429,10 +429,7 @@ export class RewardsStore extends BasePage {
     await this.fillInElement(this.resentRewardDialogBoxConfirmEmailInput, 'sonu.kumar@simpplr.com', {
       stepInfo: 'Entering different email in confirm field',
     });
-    await this.resentRewardDialogBoxEmailInput.blur();
-    await this.clickOnElement(this.resentRewardDialogBoxHeading, {
-      stepInfo: 'Clicking on dialog heading',
-    });
+    await this.resentRewardDialogBoxEmailInput.click({ force: true });
     await this.verifier.verifyTheElementIsVisible(this.resentRewardDoNotMatchEmailError);
     await this.verifier.verifyElementHasText(this.resentRewardDoNotMatchEmailError, 'Emails do not match');
     await this.verifier.verifyTheElementIsDisabled(this.resentRewardDialogBoxResend);
@@ -460,9 +457,6 @@ export class RewardsStore extends BasePage {
       });
       await this.resentRewardDialogBoxConfirmEmailInput.blur();
     }
-    await this.clickOnElement(this.resentRewardDialogBoxHeading, {
-      stepInfo: 'Clicking on dialog heading',
-    });
     await this.verifier.verifyTheElementIsEnabled(this.resentRewardDialogBoxResend);
     await this.clickOnElement(this.resentRewardDialogBoxResend, {
       stepInfo: 'Clicking on resend button',
