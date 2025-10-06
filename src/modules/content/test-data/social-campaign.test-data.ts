@@ -14,13 +14,14 @@ export const SOCIAL_CAMPAIGN_TEST_DATA = {
   // Common URLs for testing
   URLS: {
     YOUTUBE: 'https://www.youtube.com/watch?v=6_q_LHq85Cs',
-    SIMPPLR_BLOG: 'https://www.simpplr.com/blog/2022/new-brand/',
+    SIMPPLR_BLOG: 'https://www.simpplr.com/blog/2023/building-transparent-leadership-and-trust',
     SIMPPLR_TRANSPARENT_LEADERSHIP: 'https://www.simpplr.com/blog/2023/building-transparent-leadership-and-trust',
     SIMPPLR_COMPANY_VALUES: 'https://www.simpplr.com/blog/2023/is-it-time-to-refresh-your-company-values/',
     GENERIC_URL: faker.internet.url(),
   },
   LINK_TEXT: {
     YOUTUBE: 'How Life Will Look Like In 2050',
+    SIMPPLR_BLOG: 'Building Transparent Leadership and Trust',
   },
 
   // Social networks

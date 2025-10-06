@@ -15,6 +15,8 @@ export type EnvConfig = {
   siteManagerPassword?: string;
   socialCampaignManagerEmail?: string;
   socialCampaignManagerPassword?: string;
+  promotionManagerEmail?: string;
+  promotionManagerPassword?: string;
 };
 
 export const getEnvConfig = (): EnvConfig => ({
@@ -38,6 +40,9 @@ export const getEnvConfig = (): EnvConfig => ({
 
   socialCampaignManagerEmail: getEnvVar('SOCIAL_CAMPAIGN_MANAGER', false)!,
   socialCampaignManagerPassword: getEnvVar('SOCIAL_CAMPAIGN_PASSWORD', false)!,
+
+  promotionManagerEmail: getEnvVar('PROMOTION_MANAGER_USERNAME', false)!,
+  promotionManagerPassword: getEnvVar('PROMOTION_MANAGER_PASSWORD', false)!,
 });
 
 /**

@@ -8,9 +8,11 @@ export enum ContentSuiteTags {
   MANAGE_SITE = '@manage-site',
   SITE_CATEGORIES = '@site-categories',
   EVENT_CREATION = '@event-creation',
+  MANAGE_SITE = '@manage-site',
   FEED_SETTINGS = '@feed-settings',
   QUESTION_SETTINGS = '@question-settings',
   SOCIAL_CAMPAIGN = '@social-campaign',
+  MY_CONTENT_FILTER = '@my-content-filter',
 }
 
 export enum ContentFeatureTags {
@@ -26,6 +28,8 @@ export enum ContentFeatureTags {
   MANAGE_TOPICS = '@manage-topics',
   EDIT_TOPICS = '@edit-topics',
   CONT_38912 = '@cont-38912',
+  MANAGE_SITE = '@manage-site',
+  MY_CONTENT_FILTER = '@my-content-filter',
 }
 
 export const ContentTestTags = [...Object.values(ContentSuiteTags), ...Object.values(ContentFeatureTags)] as const;
