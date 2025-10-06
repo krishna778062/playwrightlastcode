@@ -3,10 +3,9 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ApplicationScreenPage } from '@/src/modules/content/pages/applicationscreenPage';
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { HomeFeedPage } from '@/src/modules/content/pages/manageApplicationDefaultHomeFeedPage';
@@ -29,7 +28,6 @@ test.describe(
     let manageApplicationPage: ManageApplicationPage;
     let defaultScreenPage: DefaultScreenPage;
     let homeFeedPage: HomeFeedPage;
-    let feedPage: FeedPage;
 
     test.beforeEach(async ({ appManagerHomePage }) => {
       await appManagerHomePage.verifyThePageIsLoaded();
@@ -40,7 +38,6 @@ test.describe(
       manageApplicationPage = new ManageApplicationPage(appManagerHomePage.page);
       defaultScreenPage = new DefaultScreenPage(appManagerHomePage.page);
       homeFeedPage = new HomeFeedPage(appManagerHomePage.page);
-      feedPage = new FeedPage(appManagerHomePage.page);
     });
 
     test.afterEach(async ({ page }) => {
@@ -229,7 +226,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.HOME_FEED],
       },
-      async () => {
+      async ({ standardUserHomePage }) => {
         tagTest(test.info(), {
           description:
             'In Zeus Verify Default filters (Posts I follow and Recent Activity) are applied for Home Feed for New users',
@@ -242,21 +239,17 @@ test.describe(
         await defaultScreenPage.actions.clickOnHomeFeed();
         await homeFeedPage.actions.selectingPostsIFollow();
         await homeFeedPage.actions.recentActivity();
-        // Logout from app manager account
-        await test.step('Logout from app manager account', async () => {
-          await LoginHelper.logoutByNavigatingToLogoutPage(homePage.page);
-        });
 
-        // Login with standard user
-        await test.step('Login with standard user', async () => {
-          const standardUserHomePage = await LoginHelper.loginWithPassword(homePage.page, users.endUser);
+        // Verify with standard user in parallel browser context
+        await test.step('Verify home feed defaults for standard user', async () => {
           await standardUserHomePage.verifyThePageIsLoaded();
-          console.log('✅ Successfully logged in as standard user');
-          console.log('🔍 Verifying home feed defaults are applied for standard user');
-          await feedPage.assertions.verifyPostsIFollow();
-          await feedPage.assertions.verifySortByRecentActivity();
-          await feedPage.actions.selectPostsToMe();
-          await feedPage.actions.selectPostDate();
+          const standardUserFeedPage = new FeedPage(standardUserHomePage.page);
+          console.log('Successfully logged in as standard user');
+          console.log('Verifying home feed defaults are applied for standard user');
+          await standardUserFeedPage.assertions.verifyPostsIFollow();
+          await standardUserFeedPage.assertions.verifySortByRecentActivity();
+          await standardUserFeedPage.actions.selectPostsToMe();
+          await standardUserFeedPage.actions.selectPostDate();
         });
       }
     );

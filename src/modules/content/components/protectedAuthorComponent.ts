@@ -59,4 +59,12 @@ export class ProtectedAuthorsComponent extends BaseComponent {
       await this.clickOnElement(this.crossUser);
     });
   }
+
+  async verifyAddedUserGotRemovedFromList(userName: string): Promise<void> {
+    await test.step('Verify added user got removed from list', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.authorInputBox, {
+        assertionMessage: `Protected authors authors list should not contain ${userName}`,
+      });
+    });
+  }
 }

@@ -82,6 +82,7 @@ test.describe('Protected Authors', () => {
       await privilegesScreenPage.actions.clickOnSave();
       await privilegesScreenPage.assertions.verifyTheChangesConfirmationToastMessageIsVisible();
       await privilegesScreenPage.reloadScreen();
+      await privilegesScreenPage.verifyAddedUserGotRemovedFromList(loggedInUserName);
     }
   );
 });
