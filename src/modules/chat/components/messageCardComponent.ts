@@ -16,6 +16,9 @@ export class MessageCardComponent extends MessageBaseComponent {
   readonly replyThreadComponentContainer: Locator;
   readonly deleteMessageConfirmationPrompt: Locator;
   readonly deleteButtonOnDeleteMessageConfirmationPrompt: Locator;
+  readonly editMessageButtonFromMessageActionsMenu: Locator;
+  readonly updateMessageButtonFromMessageActionsMenu: Locator;
+  readonly cancelMessageButtonFromMessageEditBox: Locator;
 
   constructor(page: Page, focusedMessageContainer: Locator) {
     super(page, focusedMessageContainer);
@@ -36,6 +39,9 @@ export class MessageCardComponent extends MessageBaseComponent {
       .filter({ hasText: 'This action cannot be undone' });
     this.deleteButtonOnDeleteMessageConfirmationPrompt =
       this.deleteMessageConfirmationPrompt.getByTestId('delete-message-button');
+    this.editMessageButtonFromMessageActionsMenu = this.page.getByTestId('editMessageButton');
+    this.updateMessageButtonFromMessageActionsMenu = this.page.getByTestId('editUpdateButton');
+    this.cancelMessageButtonFromMessageEditBox = this.page.getByTestId('editCancelButton');
   }
 
   /**
@@ -58,6 +64,76 @@ export class MessageCardComponent extends MessageBaseComponent {
         assertionMessage: 'expecting delete message confirmation prompt to be visible',
       });
       await this.clickOnElement(this.deleteButtonOnDeleteMessageConfirmationPrompt);
+    });
+  }
+
+  async verifyMessageActionsNotVisibleToUser(): Promise<void> {
+    await test.step(`Verifying message actions are not visible`, async () => {
+      await this.messageContainer.hover();
+      await this.verifier.verifyTheElementIsNotVisible(this.messageActionsContainer, {
+        assertionMessage: 'expecting message actions container to be not visible',
+      });
+      await this.verifier.verifyTheElementIsNotVisible(this.emojiPickerButton, {
+        assertionMessage: 'expecting emoji picker button to be not visible',
+      });
+      await this.verifier.verifyTheElementIsNotVisible(this.threeDotsButtonToOpenMessageActionsMenu, {
+        assertionMessage: 'expecting three dots button to be not visible',
+      });
+    });
+  }
+
+  async verifyEditMessageOptionNotVisibleToUser(): Promise<void> {
+    await test.step(`Verifying edit message option is not visible`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.messageContainer, {
+        assertionMessage: 'expecting message container to be visible',
+      });
+      await this.messageContainer.hover();
+      await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu);
+      await this.verifier.verifyTheElementIsNotVisible(this.editMessageButtonFromMessageActionsMenu, {
+        assertionMessage: 'expecting edit message button to be not visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.replyInThreadButton);
+    });
+  }
+
+  async verifyMessageActionsIsVisibleToUser(): Promise<void> {
+    await test.step(`Verifying message actions are not visible`, async () => {
+      await this.messageContainer.hover();
+      await this.verifier.verifyTheElementIsVisible(this.messageActionsContainer, {
+        assertionMessage: 'expecting message actions container to be not visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.emojiPickerButton, {
+        assertionMessage: 'expecting emoji picker button to be not visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.threeDotsButtonToOpenMessageActionsMenu, {
+        assertionMessage: 'expecting three dots button to be not visible',
+      });
+    });
+  }
+
+  async editAndUpdateMessage(message: string, editedMessage: string): Promise<void> {
+    await test.step(`Editing and updating the message`, async () => {
+      await this.messageContainer.hover();
+      await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu);
+      await this.clickOnElement(this.editMessageButtonFromMessageActionsMenu);
+      const messageEditor = this.page.getByLabel(message).getByTestId('tiptap-content');
+      await messageEditor.click();
+      // Clear and fill with new content
+      const contentEditor = this.page.getByLabel(message).getByLabel('You are in the content editor');
+      await contentEditor.fill(editedMessage);
+      await this.clickOnElement(this.updateMessageButtonFromMessageActionsMenu);
+    });
+  }
+
+  async editAndCancelMessage(): Promise<void> {
+    await test.step(`Editing and updating the message`, async () => {
+      await this.messageContainer.hover();
+      await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu);
+      await this.clickOnElement(this.editMessageButtonFromMessageActionsMenu);
+      await this.verifier.verifyTheElementIsVisible(this.cancelMessageButtonFromMessageEditBox, {
+        assertionMessage: 'expecting cancel message button to be visible',
+      });
+      await this.clickOnElement(this.cancelMessageButtonFromMessageEditBox);
     });
   }
 
