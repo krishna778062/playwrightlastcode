@@ -2,7 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
 
-export type AccessControlGroupModalMode = 'create' | 'edit';
+export type AccessControlGroupModalMode = 'create' | 'edit' | 'view';
 
 export class AccessControlGroupModalComponent extends BaseComponent {
   private accessControlGroupModalMode: AccessControlGroupModalMode;
