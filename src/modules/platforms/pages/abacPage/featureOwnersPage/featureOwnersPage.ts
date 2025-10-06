@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/pages/basePage';
+import { UserCountPopupComponent } from '@platforms/components/userCountPopupComponent';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
@@ -9,9 +10,6 @@ export class FeatureOwnersPage extends BasePage {
   readonly feature: Locator;
   readonly searchInputBox: Locator;
   readonly clearButtonOnSearchInputBox: Locator;
-  readonly foUserCountPopupModal: Locator;
-  readonly foUserNamesOnUserCountPopup: Locator;
-  readonly foAppManagerTag: Locator;
   readonly plusIconOnEditFeaturePopup: Locator;
   readonly foOptionButtons: Locator;
   readonly addFeatureOnwersInput: Locator;
@@ -20,15 +18,18 @@ export class FeatureOwnersPage extends BasePage {
   readonly showMoreButtonForEditFO: Locator;
   readonly foCrossButton: Locator;
   readonly featureOwnerMenuOptionButton: Locator;
+  readonly showMoreButton: Locator;
+  readonly noResultsFoundHeading: Locator;
+  readonly noResultsFoundDescription: Locator;
+
+  // Component
+  readonly userCountPopup: UserCountPopupComponent;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.FEATURE_OWNERS) {
     super(page, pageUrl);
     this.userCountButton = page.locator("[class*='Cell-module'] button p");
     this.feature = page.locator("[class*='FeatureColumn-module-featureName'] p");
     this.searchInputBox = page.getByPlaceholder('Search…');
-    this.foUserNamesOnUserCountPopup = page.locator("[class*='Spacing-module'] p a");
-    this.foAppManagerTag = page.locator("[class*='AccessControlListItem-module-appManagerContainer'] p");
-    this.foUserCountPopupModal = page.locator("[class*='AccessControlListItem-module-listItemContainer']");
     this.plusIconOnEditFeaturePopup = page.locator("[class*='IconButton-module__iconbutton-overlay']");
     this.foOptionButtons = page.locator('[class*="DropdownMenu-module__DropdownMenuItemLabel"]');
     this.addFeatureOnwersInput = page.getByRole('combobox');
@@ -40,6 +41,12 @@ export class FeatureOwnersPage extends BasePage {
     );
     this.foCrossButton = page.locator('[aria-label="Remove user"]');
     this.featureOwnerMenuOptionButton = page.locator('[data-testid*="dataGridRow"]');
+    this.showMoreButton = page.getByRole('button', { name: 'Show more' });
+    this.noResultsFoundHeading = page.getByText('No results found');
+    this.noResultsFoundDescription = page.getByText('Try adjusting search terms or filters');
+
+    // Initialize component
+    this.userCountPopup = new UserCountPopupComponent(page);
   }
 
   // To verify that the feature owners page is loaded
@@ -50,17 +57,29 @@ export class FeatureOwnersPage extends BasePage {
   /**
    * Searches for a particular feature.
    * @param featureName - Feature name for which the user count button need to be clicked.
+   * @param expectResults - Whether to expect search results (default: true). Set false for testing "no results" scenarios.
    */
-  async searchForFeature(featureName: string): Promise<void> {
+  async searchForFeature(featureName: string, expectResults: boolean = true): Promise<void> {
     await test.step(`Searching for ${featureName} feature`, async () => {
       if (await this.clearButtonOnSearchInputBox.isVisible()) {
         await this.clickOnElement(this.clearButtonOnSearchInputBox);
       }
       await this.typeInElement(this.searchInputBox, featureName);
       await this.page.keyboard.press('Enter');
-      // TODO Remove sleep and optimize this more to reduce exeuction time
-      await this.sleep(1000);
-      await expect(this.userCountButton.first()).toBeVisible();
+
+      if (expectResults) {
+        // Wait for search results to show feature count buttons (state-based wait)
+        await this.userCountButton.first().waitFor({ state: 'visible', timeout: 10000 });
+      } else {
+        // Wait for search completion - either feature names display or "No results found" message appears
+        await Promise.race([
+          this.page.waitForSelector("[class*='FeatureColumn-module-featureName'] p", {
+            state: 'visible',
+            timeout: 10000,
+          }),
+          this.page.waitForSelector('text="No results found"', { state: 'visible', timeout: 10000 }),
+        ]);
+      }
     });
   }
 
@@ -96,7 +115,7 @@ export class FeatureOwnersPage extends BasePage {
         try {
           await this.clickOnElementWithCoordinates(this.foOptionButtons.filter({ hasText: optionName }));
           await expect(this.plusIconOnEditFeaturePopup.nth(0)).toBeVisible({ timeout: 5_000 });
-        } catch (e) {
+        } catch {
           console.log(`Couldn't click on ${optionName} button`);
           await this.clickOnElement(this.foOptionButtons.filter({ hasText: optionName }), {
             timeout: options?.timeout ?? 10_000,
@@ -117,13 +136,13 @@ export class FeatureOwnersPage extends BasePage {
   async getUsersWithAppManagerTag(): Promise<string[]> {
     const userNamesWithAppManagerTag: string[] = [];
     return await test.step(`Getting all visible usernames with app manager tag from user count popup`, async () => {
-      for (let i = 0; i < (await this.foUserCountPopupModal.count()); i++) {
-        const appManagerElement = this.foUserCountPopupModal
+      for (let i = 0; i < (await this.userCountPopup.foUserCountPopupModal.count()); i++) {
+        const appManagerElement = this.userCountPopup.foUserCountPopupModal
           .nth(i)
           .locator("div [class*='AccessControlListItem-module-appManagerContainer'] p");
 
         if (await appManagerElement.isVisible()) {
-          const userNameElement = this.foUserCountPopupModal
+          const userNameElement = this.userCountPopup.foUserCountPopupModal
             .nth(i)
             .locator("[class*='Typography-module__paragraph'] a");
 
@@ -239,5 +258,76 @@ export class FeatureOwnersPage extends BasePage {
     await test.step(`Verifying ${userName} is not displayed in the feature owners list`, async () => {
       await this.getFeatureOwnerRecordItem(userName, false);
     });
+  }
+
+  /**
+   * Clicks "Show more" button to load additional features for testing purposes
+   */
+  async clickShowMore(): Promise<void> {
+    await test.step('Click "Show more" button to load additional features for testing', async () => {
+      if (await this.showMoreButton.isVisible()) {
+        const initialFeatureCount = await this.feature.count();
+        await this.clickOnElement(this.showMoreButton);
+
+        // Wait for new features to load by checking if count has increased
+        await expect.poll(async () => await this.feature.count()).toBeGreaterThan(initialFeatureCount);
+      }
+    });
+  }
+
+  async getAllFeatureNames(): Promise<string[]> {
+    return await test.step('Get all feature names from Feature Owners page', async () => {
+      const featureTextContents = await this.feature.allTextContents();
+      return featureTextContents.map(name => name.trim()).filter(name => name.length > 0);
+    });
+  }
+
+  async verifyNoResultsFoundMessages(): Promise<void> {
+    await test.step('Verify "No results found" messages are displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.noResultsFoundHeading, {
+        assertionMessage: 'No results found heading should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.noResultsFoundDescription, {
+        assertionMessage: 'No results found description should be visible',
+      });
+    });
+  }
+
+  /**
+   * Clicks on user count button for a specific feature or by index
+   * @param featureNameOrIndex - Name of the feature or index number (for fallback)
+   */
+  async clickOnCountButton(featureNameOrIndex: string | number = 0): Promise<string> {
+    return await test.step(`Click on user count button for ${typeof featureNameOrIndex === 'string' ? `feature: ${featureNameOrIndex}` : `index ${featureNameOrIndex}`}`, async () => {
+      let userCountButton;
+
+      if (typeof featureNameOrIndex === 'string') {
+        // Find by feature name - using stable row selector instead of DOM traversal
+        const featureRow = this.page.locator('[data-testid*="dataGridRow"]').filter({
+          has: this.page
+            .locator(`[class*='FeatureColumn-module-featureName'] p`)
+            .filter({ hasText: featureNameOrIndex }),
+        });
+        userCountButton = featureRow.locator('[class*="OwnerColumn-module-userCount"]');
+      } else {
+        // Find by index (fallback)
+        userCountButton = this.userCountButton.nth(featureNameOrIndex);
+      }
+
+      await this.verifier.verifyTheElementIsVisible(userCountButton, {
+        assertionMessage: `User count button should be visible`,
+      });
+      const countText = await userCountButton.textContent();
+      await this.clickOnElement(userCountButton);
+      return countText?.trim() || '';
+    });
+  }
+
+  /**
+   * Verifies that the user count popup is opened with correct count using dedicated component
+   * @param expectedCount - Expected user count to verify
+   */
+  async verifyUserCountPopupOpened(expectedCount: string): Promise<void> {
+    await this.userCountPopup.verifyPopupOpenedWithCount(expectedCount);
   }
 }

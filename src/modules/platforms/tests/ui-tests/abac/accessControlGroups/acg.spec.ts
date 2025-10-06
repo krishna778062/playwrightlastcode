@@ -1,14 +1,17 @@
 // @/src imports
 // @core imports
+import { expect } from '@playwright/test';
+
 import { POPUP_BUTTONS } from '@core/constants/popupButtons';
 import { TestPriority } from '@core/constants/testPriority';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
+// import { User } from '@core/types/user.type';
 import { tagTest } from '@core/utils/testDecorator';
 // @platforms imports
-import { ACG_EDIT_ASSETS } from '@platforms/constants/acgEditAssets';
-import { ACG_STATUS } from '@platforms/constants/acgStatus';
+import { ACG_COLUMNS, ACG_EDIT_ASSETS, ACG_STATUS } from '@platforms/constants/acg';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/acgPage/accessControlGroupsPage';
+import { FeatureOwnersPage } from '@platforms/pages/abacPage/featureOwnersPage/featureOwnersPage';
 
 import { AUDIENCE_API_ATTRIBUTES, AUDIENCE_API_OPERATORS } from '@/src/core/constants/createAudienceAPI';
 import { TestSuite } from '@/src/core/constants/testSuite';
@@ -173,6 +176,135 @@ test.describe(
     );
 
     test(
+      'Verify that the feature list displayed under Feature owners tab should be unique',
+      {
+        tag: [TestPriority.P0, `@ABAC`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify that the feature list displayed under Feature owners tab should be unique',
+          zephyrTestId: 'PS-32997',
+        });
+        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
+        // Navigate to Feature owners page
+        await featureOwnersPage.loadPage();
+        // Click "Show more" button to load additional features for uniqueness testing
+        await featureOwnersPage.clickShowMore();
+        // Get all feature names displayed on the page
+        const allFeatureNames: string[] = await featureOwnersPage.getAllFeatureNames();
+        // Verify that all features are unique
+        const uniqueFeatures: string[] = [...new Set(allFeatureNames)];
+        // Check for duplicates by comparing string array lengths
+        expect(
+          uniqueFeatures.length,
+          `Expected ${uniqueFeatures.length} unique features but found ${allFeatureNames.length} total features. Duplicate features detected.`
+        ).toBe(allFeatureNames.length);
+      }
+    );
+
+    test(
+      'Verify search functionality with invalid string shows no results found message',
+      {
+        tag: [TestPriority.P0, `@ABAC`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify search functionality with invalid string shows no results found message',
+          zephyrTestId: 'PS-32965',
+        });
+        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
+        // Navigate to Feature owners page
+        await featureOwnersPage.loadPage();
+        // Test search functionality with invalid string
+        await featureOwnersPage.searchForFeature('sdbkfjskdfn', false);
+        await featureOwnersPage.verifyNoResultsFoundMessages();
+      }
+    );
+
+    test(
+      'Verify that clicking on owners count should trigger a popup displaying user info',
+      {
+        tag: [TestPriority.P1, `@ABAC`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify that clicking on owners count should trigger a popup displaying user info',
+          zephyrTestId: 'PS-32884',
+        });
+        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
+        // Navigate to Feature owners page
+        await featureOwnersPage.loadPage();
+        // Click on owner count button for the first available feature and get the count value
+        const clickedCount = await featureOwnersPage.clickOnCountButton(0); // Temporarily use index until we fix locator
+        // Verify that popup opens with the same count
+        await featureOwnersPage.verifyUserCountPopupOpened(clickedCount);
+      }
+    );
+
+    test(
+      'Verify that a warning popup is displayed before edit Access control group popup',
+      {
+        tag: [TestPriority.P1, `@ABAC`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify that a warning popup is displayed before edit Access control group popup',
+          zephyrTestId: 'PS-31321',
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        // Navigate to Access Control Groups page
+        await accessControlGroupsPage.loadPage();
+        // Click on menu for any ACG
+        await accessControlGroupsPage.clickOnMenuOptionForACG();
+        // Click on Edit option
+        await accessControlGroupsPage.clickOnEditOption();
+        // Verify all elements in the edit warning popup
+        await accessControlGroupsPage.verifyEditWarningPopup();
+      }
+    );
+
+    test(
+      'Verify that user should be able to change managers from managers screen while editing them during ACG creation flow',
+      {
+        tag: [TestPriority.P1, `@ABAC`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify that user should be able to change managers from managers screen while editing them during ACG creation flow',
+          zephyrTestId: 'PS-30956',
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        await accessControlGroupsPage.loadPage();
+        await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
+        await accessControlGroupsPage.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
+        await accessControlGroupsPage.clickOnButtonWithName('Next');
+        await accessControlGroupsPage.clickOnButtonWithName('Browse');
+        await accessControlGroupsPage.searchForValues(audienceToCreate[0]);
+        await accessControlGroupsPage.clickOnAudience(audienceToCreate[0]);
+        await accessControlGroupsPage.clickOnButtonWithName('Done');
+        await accessControlGroupsPage.clickOnButtonWithName('Next');
+
+        // Select Manager and Admin users for the ACG
+        await accessControlGroupsPage.browseSelectUserAndProceed('Admin', 'Manager');
+        await accessControlGroupsPage.browseSelectUserAndProceed('Admin', 'Admin');
+
+        // Edit Manager flow - test the new functionality
+        await accessControlGroupsPage.clickOnEditManagerButton();
+        await accessControlGroupsPage.clickOnAddUsersButton();
+        await accessControlGroupsPage.searchAndSelectUserWithEnter('Admin');
+        await accessControlGroupsPage.clickOnButtonWithName('Done');
+        await accessControlGroupsPage.clickOnUpdateButton();
+
+        // Click edit manager button again to verify the added users
+        await accessControlGroupsPage.clickOnEditManagerButton();
+
+        // Verify that admin users are displayed in the manager list (dynamic verification)
+        await accessControlGroupsPage.verifyAdminUsersInManagerList();
+      }
+    );
+
+    test(
       'Verify that duplicate acg error is displayed on attempting to create ACG with same features and target audiences',
       {
         tag: [TestPriority.P0, `@ABAC`, `@acg`],
@@ -246,6 +378,66 @@ test.describe(
         // Clean up: Delete the above created ACG
         await accessControlGroupsPage.deleteACG(acgName.pop() as string);
         await accessControlGroupsPage.deleteACG(acgName.pop() as string);
+      }
+    );
+
+    test(
+      `Verify that Name column is displayed and is sortable at Access control groups page`,
+      {
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: [
+            'PS-31013',
+            'PS-31032',
+            'PS-31039',
+            'PS-31028',
+            'PS-31023',
+            'PS-31018',
+            'PS-31100',
+            'PS-31007',
+          ],
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        // Test Scenario
+        await accessControlGroupsPage.loadPage();
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.NAME);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.NAME, true);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.FEATURE);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.FEATURE, true);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.GROUP_TYPE);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.GROUP_TYPE, true);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.TARGET_AUDIENCE);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.TARGET_AUDIENCE, false);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.MANAGERS);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.MANAGERS, false);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.ADMINS);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.ADMINS, false);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.STATUS);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.STATUS, true);
+        await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.MODIFIED);
+        await accessControlGroupsPage.verifyColumnSortable(ACG_COLUMNS.MODIFIED, true);
+      }
+    );
+
+    test(
+      `Verify the sorting functionality of Name column in access control groups page`,
+      {
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-35732', 'PS-35733', 'PS-35734', 'PS-35735', 'PS-35736'],
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        // Test Scenario
+        await accessControlGroupsPage.loadPage();
+        await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.NAME);
+        await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.FEATURE);
+        await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.GROUP_TYPE);
+        await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.STATUS);
+        await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.MODIFIED);
       }
     );
   }

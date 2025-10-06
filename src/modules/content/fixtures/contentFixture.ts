@@ -1,14 +1,17 @@
-import { BrowserContext, Page, test } from '@playwright/test';
+import { BrowserContext, Page, test, WorkerInfo } from '@playwright/test';
 
 import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { StandardUserApiClient } from '@core/api/clients/standardUserApiClient';
 import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
+import { FeedManagementService } from '@core/api/services/FeedManagementService';
 import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
 import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
+import { IdentityManagementHelper } from '@core/helpers/identityManagementHelper';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
+import { SocialCampaignHelper } from '@/src/core/helpers/socialCampaignHelper';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
@@ -23,13 +26,19 @@ export const users = {
     email: envConfig.appManagerEmail,
     password: envConfig.appManagerPassword,
   },
+
   endUser: {
     email: envConfig.endUserEmail || '',
     password: envConfig.endUserPassword || '',
   },
+
   siteManager: {
-    email: process.env.SITE_MANAGER_USERNAME || '',
-    password: process.env.SITE_MANAGER_PASSWORD || '',
+    email: envConfig.siteManagerEmail || '',
+    password: envConfig.siteManagerPassword || '',
+  },
+  socialCampaignManager: {
+    email: envConfig.socialCampaignManagerEmail || '',
+    password: envConfig.socialCampaignManagerPassword || '',
   },
 } as const;
 
@@ -58,21 +67,32 @@ export const contentTestFixture = test.extend<
     // Browser contexts
     appManagerContext: BrowserContext;
     standardUserContext: BrowserContext;
+    siteManagerContext: BrowserContext;
+    socialCampaignManagerContext: BrowserContext;
 
     // Authenticated pages
     appManagerHomePage: HomePageType;
     appManagersPage: Page;
+    endUserContext: BrowserContext;
+    endUserHomePage: NewUxHomePage | OldUxHomePage;
+    endUsersPage: Page;
+    siteManagerHomePage: HomePageType;
+    siteManagerPage: Page;
+    feedManagerService: FeedManagementService;
+    manageContentEndUserHelper: ContentManagementHelper;
+
     standardUserHomePage: HomePageType;
     standardUserPage: Page;
+    socialCampaignManagerHomePage: HomePageType;
+    socialCampaignManagerPage: Page;
 
     // Helpers and services
     siteManagementHelper: SiteManagementHelper;
-    siteManagerContext: BrowserContext;
-    siteManagerHomePage: NewUxHomePage | OldUxHomePage;
-    siteManagerPage: Page;
     contentManagementHelper: ContentManagementHelper;
     feedManagementHelper: FeedManagementHelper;
     standardUserFeedManagementHelper: FeedManagementHelper;
+    identityManagementHelper: IdentityManagementHelper;
+    socialCampaignHelper: SocialCampaignHelper;
 
     // Utility functions
     loginAs: (userType: UserType) => Promise<void>;
@@ -146,7 +166,7 @@ export const contentTestFixture = test.extend<
         permissions: ['camera', 'microphone', 'notifications'],
         // Optimize context creation
         ignoreHTTPSErrors: true,
-        viewport: { width: 1920, height: 1080 },
+        // viewport: { width: 1920, height: 1080 },
       });
 
       await use(context);
@@ -154,31 +174,6 @@ export const contentTestFixture = test.extend<
     },
     { scope: 'test' },
   ],
-
-  standardUserHomePage: [
-    async ({ standardUserContext }, use) => {
-      const homePage = await createAuthenticatedHomePage(standardUserContext, users.endUser);
-      await use(homePage);
-      await performLogout(homePage);
-    },
-    { scope: 'test' },
-  ],
-
-  standardUserPage: [
-    async ({ standardUserHomePage }, use) => {
-      await use(standardUserHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-
-  // Page references - lightweight wrappers
-  appManagersPage: [
-    async ({ appManagerHomePage }, use) => {
-      await use(appManagerHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-
   siteManagerContext: [
     async ({ browser }, use, workerInfo) => {
       const context = await browser.newContext({
@@ -186,6 +181,38 @@ export const contentTestFixture = test.extend<
       });
       await use(context);
       await context?.close();
+    },
+    { scope: 'test' },
+  ],
+
+  socialCampaignManagerContext: [
+    async ({ browser }, use, workerInfo) => {
+      const context = await browser.newContext({
+        permissions: ['camera', 'microphone', 'notifications'],
+      });
+      await use(context);
+      await context?.close();
+    },
+    { scope: 'test' },
+  ],
+
+  socialCampaignManagerHomePage: [
+    async ({ socialCampaignManagerContext }, use, workerInfo) => {
+      const page = await socialCampaignManagerContext.newPage();
+      const socialCampaignManagerHomePage = await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().socialCampaignManagerEmail || '',
+        password: getEnvConfig().socialCampaignManagerPassword || '',
+      });
+      await socialCampaignManagerHomePage.verifyThePageIsLoaded();
+      await use(socialCampaignManagerHomePage);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+
+  socialCampaignManagerPage: [
+    async ({ socialCampaignManagerHomePage }, use, workerInfo) => {
+      await use(socialCampaignManagerHomePage.page);
     },
     { scope: 'test' },
   ],
@@ -211,6 +238,70 @@ export const contentTestFixture = test.extend<
     { scope: 'test' },
   ],
 
+  standardUserHomePage: [
+    async ({ standardUserContext }, use) => {
+      const homePage = await createAuthenticatedHomePage(standardUserContext, users.endUser);
+
+      await use(homePage);
+      await performLogout(homePage);
+    },
+    { scope: 'test' },
+  ],
+
+  // Page references - lightweight wrappers
+  appManagersPage: [
+    async ({ appManagerHomePage }, use) => {
+      await use(appManagerHomePage.page);
+    },
+    { scope: 'test' },
+  ],
+
+  endUserContext: [
+    async ({ browser }, use, _workerInfo) => {
+      const context = await browser.newContext();
+      await use(context);
+      await context?.close();
+    },
+    { scope: 'test' },
+  ],
+  endUserHomePage: [
+    async ({ endUserContext }, use, workerInfo) => {
+      const page = await endUserContext.newPage();
+      const endUserHomePage = await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().endUserEmail!,
+        password: getEnvConfig().endUserPassword!,
+      });
+      await endUserHomePage.verifyThePageIsLoaded();
+      await use(endUserHomePage);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+  endUsersPage: [
+    async ({ endUserHomePage }, use, workerInfo) => {
+      await use(endUserHomePage.page);
+    },
+    { scope: 'test' },
+  ],
+  standardUserPage: [
+    async ({ standardUserHomePage }, use) => {
+      await use(standardUserHomePage.page);
+    },
+    { scope: 'test' },
+  ],
+
+  feedManagerService: [
+    async (
+      { appManagerApiClient }: { appManagerApiClient: AppManagerApiClient },
+      use: (r: FeedManagementService) => Promise<void>
+    ) => {
+      const feedManagerService = new FeedManagementService(appManagerApiClient.context);
+      await use(feedManagerService);
+    },
+    { scope: 'test' },
+  ],
+
+  // Services and helpers - with proper cleanup
   feedManagementHelper: [
     async ({ appManagerApiClient }, use) => {
       const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
@@ -252,6 +343,31 @@ export const contentTestFixture = test.extend<
         await helper.cleanup();
       } catch (error) {
         console.warn('Content management helper cleanup failed:', error);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  identityManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const helper = new IdentityManagementHelper(appManagerApiClient);
+
+      await use(helper);
+    },
+    { scope: 'test' },
+  ],
+
+  socialCampaignHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const helper = new SocialCampaignHelper(appManagerApiClient);
+
+      await use(helper);
+
+      // Ensure cleanup happens even if test fails
+      try {
+        await helper.cleanup();
+      } catch (error) {
+        console.warn('Social campaign helper cleanup failed:', error);
       }
     },
     { scope: 'test' },

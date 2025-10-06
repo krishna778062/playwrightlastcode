@@ -5,12 +5,34 @@ import { RecordVideoPromptComponent } from '@chat/components/recordVideoPromptCo
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
 
+export interface FormattingOptions {
+  usesBold?: boolean;
+  usesItalic?: boolean;
+  usesUnderline?: boolean;
+  usesStrikethrough?: boolean;
+  usesBulletList?: boolean;
+  usesOrderList?: boolean;
+}
+
 export class ChatEditorComponent extends BaseComponent {
   readonly inputTextBox: Locator;
   readonly sendMessageButton: Locator;
   //toolbar buttons
   readonly toolbarContainer: Locator;
   readonly boldButton: Locator;
+  readonly italicButton: Locator;
+  readonly underlineButton: Locator;
+  readonly strikethroughButton: Locator;
+  readonly bulletListButton: Locator;
+  readonly orderListButton: Locator;
+  readonly linkButton: Locator;
+  readonly linkTextBox: Locator;
+  readonly linkTextfield: Locator;
+  readonly linkUrlfield: Locator;
+  readonly linkUrlBox: Locator;
+  readonly insertButton: Locator;
+  readonly linkErrorMessage: Locator;
+  readonly textErrorMessage: Locator;
 
   //actions buttons
   readonly addMediaAttachmentButton: Locator;
@@ -35,6 +57,22 @@ export class ChatEditorComponent extends BaseComponent {
     this.toolbarContainer = this.chatEditorComponentContainer.locator("[class*='_toolbarWrapper_']");
     //toolbar buttons
     this.boldButton = this.toolbarContainer.getByLabel('Bold');
+    this.italicButton = this.toolbarContainer.getByLabel('Italic');
+    this.underlineButton = this.toolbarContainer.getByLabel('Underline');
+    this.strikethroughButton = this.toolbarContainer.getByLabel('Strikethrough');
+    this.bulletListButton = this.toolbarContainer.getByLabel('Bulleted list');
+    this.orderListButton = this.toolbarContainer.getByLabel('Ordered list');
+    this.linkButton = this.toolbarContainer.getByLabel('Open Insert link options');
+    this.linkTextBox = this.page.locator('#text');
+    this.linkUrlBox = this.page.locator('#url');
+
+    this.linkTextfield = this.page.getByTestId('field-Text');
+    this.linkUrlfield = this.page.getByTestId('field-Link');
+
+    this.linkErrorMessage = this.page.getByText('Please enter a valid link');
+    this.textErrorMessage = this.page.getByText('Please fill out this field');
+
+    this.insertButton = this.page.locator('button[type="submit"]');
 
     //action buttons on editor footer
     this.addMediaAttachmentButton = this.chatEditorComponentContainer.getByLabel('Choose files');
@@ -58,6 +96,34 @@ export class ChatEditorComponent extends BaseComponent {
   ): Promise<void> {
     await test.step(options?.stepInfo ?? `Sending message: ${message}`, async () => {
       await this.fillInElement(this.inputTextBox, message);
+      await this.clickOnSendMessageButton();
+    });
+  }
+
+  /**
+   * Sends a formatted message to the chat
+   * @param message - The message to send
+   * @param formattingOptions - The formatting options to apply
+   * @param options - Additional options for the step
+   */
+  async sendFormattedMessage(
+    message: string,
+    formattingOptions: FormattingOptions,
+    options?: {
+      stepInfo?: string;
+    }
+  ): Promise<void> {
+    const stepInfo = options?.stepInfo ?? `Sending formatted message: ${message}`;
+    await test.step(stepInfo, async () => {
+      // Apply formatting first
+      await this.applyFormatting(formattingOptions, {
+        stepInfo: 'Applying text formatting',
+      });
+
+      // Fill the message
+      await this.fillInElement(this.inputTextBox, message);
+
+      // Send the message
       await this.clickOnSendMessageButton();
     });
   }
@@ -209,5 +275,85 @@ export class ChatEditorComponent extends BaseComponent {
         });
       }
     );
+  }
+
+  /**
+   * Sends a message by first writing text, then selecting it and applying formatting
+   * @param message - The message to send
+   * @param formattingOptions - The formatting options to apply
+   * @param options - Additional options for the step
+   */
+  async sendMessageWithSelectAndFormat(
+    message: string,
+    formattingOptions: FormattingOptions,
+    options?: {
+      stepInfo?: string;
+    }
+  ): Promise<void> {
+    const stepInfo = options?.stepInfo ?? `Sending message with select-then-format: ${message}`;
+    await test.step(stepInfo, async () => {
+      // First, fill the message
+      await this.fillInElement(this.inputTextBox, message);
+
+      // Select all text in the input
+      await this.inputTextBox.selectText();
+
+      // Apply formatting to the selected text
+      await this.applyFormatting(formattingOptions, {
+        stepInfo: 'Applying formatting to selected text',
+      });
+
+      await this.inputTextBox.click();
+
+      // Send the message
+      await this.clickOnSendMessageButton();
+    });
+  }
+
+  async verifyInsertLinkErrorMessages(errorType: string): Promise<void> {
+    if (errorType === 'link') {
+      await this.verifier.verifyTheElementIsVisible(this.linkErrorMessage, {
+        assertionMessage: 'Please enter a valid link',
+      });
+    } else if (errorType === 'text') {
+      await this.verifier.verifyTheElementIsVisible(this.textErrorMessage, {
+        assertionMessage: 'Please fill out this field',
+      });
+    }
+  }
+
+  /**
+   * Applies formatting options to the chat editor
+   * @param formattingOptions - The formatting options to apply
+   * @param options - Additional options for the step
+   */
+  async applyFormatting(
+    formattingOptions: FormattingOptions,
+    options?: {
+      stepInfo?: string;
+    }
+  ): Promise<void> {
+    await test.step(options?.stepInfo ?? 'Applying text formatting', async () => {
+      const formattingActions = [
+        { condition: formattingOptions.usesBold, action: () => this.clickOnElement(this.boldButton) },
+        { condition: formattingOptions.usesItalic, action: () => this.clickOnElement(this.italicButton) },
+        { condition: formattingOptions.usesUnderline, action: () => this.clickOnElement(this.underlineButton) },
+        { condition: formattingOptions.usesStrikethrough, action: () => this.clickOnElement(this.strikethroughButton) },
+        { condition: formattingOptions.usesBulletList, action: () => this.clickOnElement(this.bulletListButton) },
+        { condition: formattingOptions.usesOrderList, action: () => this.clickOnElement(this.orderListButton) },
+      ];
+
+      for (const { condition, action } of formattingActions) {
+        switch (condition) {
+          case true:
+            await action();
+            break;
+          case false:
+          default:
+            // No action needed
+            break;
+        }
+      }
+    });
   }
 }
