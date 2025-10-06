@@ -31,7 +31,7 @@ export class ListOfSocialCampaignComponent
   constructor(page: Page) {
     super(page);
     this.linkByText = (linkText: string) => page.locator('a', { hasText: linkText });
-    this.campaignOptionsButton = page.locator('.OptionsMenu-panel-main').first();
+    this.campaignOptionsButton = page.locator('button.ImageOptions-button').first();
     this.categoryOptionsButton = page.locator('Category option').first();
     this.expireCampaignButton = page.locator('button:has-text("Expire campaign")');
     this.confirmExpireButton = page.locator('span:has-text("Expire")');
@@ -58,7 +58,7 @@ export class ListOfSocialCampaignComponent
 
   async clickCampaignOptions(): Promise<void> {
     await test.step('Click options for campaign', async () => {
-      await this.hoverOverElementInJavaScript(this.categoryOptionsButton);
+      await this.hoverOverElementInJavaScript(this.campaignOptionsButton);
       await this.clickByInjectingJavaScript(this.campaignOptionsButton);
     });
   }

@@ -106,7 +106,7 @@ test.describe(
           audienceId: audienceId,
         });
 
-        await socialCampaignManagerHomePage.actions.clickOnSocialCampaigns();
+        await socialCampaignPage.loadPage();
 
         await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignData.linkText);
         await socialCampaignPage.actions.clickCampaignOptions();

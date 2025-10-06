@@ -40,7 +40,7 @@ export class SocialCampaignPage extends BasePage implements ISocialCampaignPageA
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.SOCIAL_CAMPAIGNS_PAGE);
 
-    this.socialCampaignsSection = page.locator('[data-testid="social-campaigns-section"]');
+    this.socialCampaignsSection = page.locator('h1', { hasText: /^Social campaigns$/ });
     this.addCampaignButton = page.locator('span:has-text("Add campaign")');
     this.popularLink = page.locator('a', { hasText: /^Popular$/ });
     this.expiredLink = page.locator('a', { hasText: /^Expired$/ });
