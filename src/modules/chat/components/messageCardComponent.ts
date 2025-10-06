@@ -19,6 +19,11 @@ export class MessageCardComponent extends MessageBaseComponent {
   readonly editMessageButtonFromMessageActionsMenu: Locator;
   readonly updateMessageButtonFromMessageActionsMenu: Locator;
   readonly cancelMessageButtonFromMessageEditBox: Locator;
+  readonly pinMessageButtonFromMessageActionsMenu: Locator;
+  readonly pinnedToastMessage: Locator;
+  readonly unPinMessageButtonFromMessageActionsMenu: Locator;
+  readonly unPinMessageConfirmationPrompt: Locator;
+  readonly unPinnedToastMessage: Locator;
 
   constructor(page: Page, focusedMessageContainer: Locator) {
     super(page, focusedMessageContainer);
@@ -42,6 +47,20 @@ export class MessageCardComponent extends MessageBaseComponent {
     this.editMessageButtonFromMessageActionsMenu = this.page.getByTestId('editMessageButton');
     this.updateMessageButtonFromMessageActionsMenu = this.page.getByTestId('editUpdateButton');
     this.cancelMessageButtonFromMessageEditBox = this.page.getByTestId('editCancelButton');
+    this.pinMessageButtonFromMessageActionsMenu = this.page.getByTestId('pinMessageButton');
+    this.pinnedToastMessage = this.page.locator("(//div[@role='alert']//p[text()='Message pinned'])[1]");
+    this.unPinMessageButtonFromMessageActionsMenu = this.page.getByTestId('unpinMessageButton');
+    this.unPinMessageConfirmationPrompt = this.page.getByTestId('unpin-message-button');
+    this.unPinnedToastMessage = this.page.locator("(//div[@role='alert']//p[text()='Message un-pinned'])[1]");
+  }
+
+  /**
+   * Gets the pinned message locator with dynamic message text
+   * @param message - The message text to locate in the pinned message
+   * @returns Locator for the pinned message with the specified text
+   */
+  getPinnedMessage(message: string): Locator {
+    return this.page.locator("//div[@class='Base_pinnedMessage__8q6MM']").locator(`//p[text()='${message}']`);
   }
 
   /**
@@ -64,6 +83,17 @@ export class MessageCardComponent extends MessageBaseComponent {
         assertionMessage: 'expecting delete message confirmation prompt to be visible',
       });
       await this.clickOnElement(this.deleteButtonOnDeleteMessageConfirmationPrompt);
+    });
+  }
+
+  async unPinMessageFromPinnedMessage(): Promise<void> {
+    await test.step(`Deleting the message`, async () => {
+      await this.openMessageActionsMenuFromThreeDots();
+      await this.clickOnElement(this.unPinMessageButtonFromMessageActionsMenu);
+      await this.clickOnElement(this.unPinMessageConfirmationPrompt);
+      await this.verifier.verifyTheElementIsVisible(this.unPinnedToastMessage, {
+        assertionMessage: 'expecting unpinned toast message to be visible',
+      });
     });
   }
 
@@ -134,6 +164,23 @@ export class MessageCardComponent extends MessageBaseComponent {
         assertionMessage: 'expecting cancel message button to be visible',
       });
       await this.clickOnElement(this.cancelMessageButtonFromMessageEditBox);
+    });
+  }
+
+  async pinSentMessage(): Promise<void> {
+    await test.step(`Pinning the sent message`, async () => {
+      await this.openMessageActionsMenuFrom3Dots();
+      await this.clickOnElement(this.pinMessageButtonFromMessageActionsMenu);
+      await this.verifier.verifyTheElementIsVisible(this.pinnedToastMessage, {
+        assertionMessage: 'expecting pinned toast message to be visible',
+      });
+    });
+  }
+  async verifyPinnedMessageIsVisible(message: string): Promise<void> {
+    await test.step(`Verifying the pinned message`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getPinnedMessage(message), {
+        assertionMessage: 'expecting pinned message to be visible',
+      });
     });
   }
 
