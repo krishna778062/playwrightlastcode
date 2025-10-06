@@ -1,13 +1,7 @@
-import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
+﻿import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import {
-  addWorkingDays,
-  formatDateForAriaLabel,
-  formatDateForDisplay,
-  getNextWorkingDay,
-  isWeekend,
-} from '@core/utils/dateUtil';
+import { addWorkingDays, formatDateForAriaLabel, getNextWorkingDay, isWeekend } from '@core/utils/dateUtil';
 
 export interface TimeOffCategoryConfig {
   unit: 'hours' | 'days';
@@ -31,6 +25,8 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
   readonly tileContent: Locator;
   readonly monthSelect: Locator;
   readonly yearSelect: Locator;
+  readonly nextMonthButton: Locator;
+  readonly previousMonthButton: Locator;
   readonly genericButton: Locator;
   readonly dropdownSelector: Locator;
   readonly dayPickerCellByAriaLabel: Locator;
@@ -65,6 +61,8 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
     this.tileContent = this.tileContainer.locator('div, span, p').first();
     this.monthSelect = page.getByLabel('Select month');
     this.yearSelect = page.getByLabel('Select year');
+    this.nextMonthButton = page.getByRole('button', { name: 'Next month' });
+    this.previousMonthButton = page.getByRole('button', { name: 'Previous month' });
     this.genericButton = page.getByRole('button');
     this.dropdownSelector = page.locator('[role="listbox"], [id^="react-select-"][id$="-listbox"]');
     this.dayPickerCellByAriaLabel = page.getByRole('gridcell').filter({ hasText: /\d+/ });
@@ -72,7 +70,6 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
     this.requestTypeInput = page.locator('input[role="combobox"][aria-label="Request type"]');
     this.requestTypeMenu = page.locator('.Menu-module__menu__3PjCm, [role="listbox"]');
     this.requestTypeOption = page.locator('[role="menuitem"]');
-
     this.requestTimeOffBtn = page.locator('button[type="button"]').filter({ hasText: 'Request time off' }).first();
     this.commentNoteTextarea = page.locator('textarea[name="commentNote"]');
     this.genericDropdownInput = page.locator('input[aria-label]');
@@ -90,14 +87,12 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
    */
   getDayCellByAriaLabel(ariaLabel: string): Locator {
     const dayNumber = ariaLabel.split(' ')[2];
-    return this.page
-      .getByRole('gridcell')
-      .filter({ hasText: new RegExp(`^${dayNumber}$`) })
-      .first();
+    const dayText = parseInt(dayNumber).toString();
+    return this.page.getByRole('gridcell').filter({ hasText: dayText }).first();
   }
 
   /**
-   * Selects leave dates starting tomorrow for the specified number of working days
+   * Selects leave dates starting from the next working day for the specified number of working days
    * @param workingDays - Number of working days for the leave
    */
   async selectLeaveDates(workingDays: number): Promise<void> {
@@ -122,49 +117,27 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
       throw new Error(`Cannot select weekend date: ${targetDate.toDateString()}`);
     }
     const validDate = new Date(targetDate.getTime());
-    const expectedText = formatDateForDisplay(validDate);
     const ariaLabel = formatDateForAriaLabel(validDate);
-
-    const maxRetries = 2;
-    let lastError: Error | null = null;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        await this.clickOnElement(dateButton);
-        await this.calendarGrid.waitFor({ state: 'visible', timeout: 10000 });
-        await this.navigateToCorrectMonthYear(validDate);
-        await this.calendarGrid.waitFor({ state: 'visible' });
-        const dayCell = this.getDayCellByAriaLabel(ariaLabel);
-        await this.clickOnElement(dayCell);
-        return; // Success, exit the retry loop
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error));
-        if (attempt < maxRetries) {
-          // Wait a bit before retrying
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-      }
+    await this.clickOnElement(dateButton);
+    await this.calendarGrid.waitFor({ state: 'visible', timeout: 10000 });
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    if (validDate.getMonth() !== currentMonth) {
+      await this.navigateToCorrectMonthYear();
+      await this.calendarGrid.waitFor({ state: 'visible' });
     }
-
-    throw new Error(`Failed to select date ${expectedText} after ${maxRetries} attempts: ${lastError?.message}`);
+    const dayCell = this.getDayCellByAriaLabel(ariaLabel);
+    await dayCell.waitFor({ state: 'visible', timeout: 5000 });
+    await dayCell.evaluate((element: HTMLElement) => element.click());
   }
 
   /**
-   * Navigates to the correct month and year in the calendar
-   * @param targetDate - The target date to navigate to
+   * Navigates to the next month in the calendar using navigation buttons
    */
-  private async navigateToCorrectMonthYear(targetDate: Date): Promise<void> {
-    const targetMonth = targetDate.getUTCMonth();
-    const targetYear = targetDate.getUTCFullYear();
-
-    // Select the correct month
-    if (await this.monthSelect.isVisible()) {
-      await this.monthSelect.selectOption({ index: targetMonth });
-    }
-
-    // Select the correct year
-    if (await this.yearSelect.isVisible()) {
-      await this.yearSelect.selectOption({ value: targetYear.toString() });
+  private async navigateToCorrectMonthYear(): Promise<void> {
+    if (await this.nextMonthButton.isVisible()) {
+      await this.nextMonthButton.evaluate((element: HTMLElement) => element.click());
+      await this.calendarGrid.waitFor({ state: 'visible', timeout: 5000 });
     }
   }
 
