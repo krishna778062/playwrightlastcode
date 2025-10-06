@@ -116,6 +116,7 @@ export const API_ENDPOINTS = {
     create: '/v1/promotions/w/qrcodes',
     contentList: '/v1/content/sites/content/list',
     delete: (qrCodeId: string) => `/v1/promotions/w/qrcodes/${qrCodeId}`,
+    list: (pageSize: number) => `/v1/promotions/r/qrcodes?pagesize=${pageSize}`,
   },
   integrations: {
     tiles: '/v1/tiles',
