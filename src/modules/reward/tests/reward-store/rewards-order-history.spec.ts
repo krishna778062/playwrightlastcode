@@ -6,7 +6,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 import { RewardsStore } from '@modules/reward/pages/reward-store/reward-store';
 
-test.describe('Rewards order history', { tag: [REWARD_FEATURE_TAGS.REWARD_STORE] }, () => {
+test.describe('Rewards order history', { tag: [REWARD_SUITE_TAGS.REWARD_ORDER_HISTORY] }, () => {
   test.beforeEach(async ({ appManagerPage }) => {
     const rewardsStore = new RewardsStore(appManagerPage);
     await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
@@ -15,7 +15,12 @@ test.describe('Rewards order history', { tag: [REWARD_FEATURE_TAGS.REWARD_STORE]
   test(
     '[RC-3538] Validate reward value of rewards on Order History page',
     {
-      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [
+        REWARD_SUITE_TAGS.REGRESSION_TEST,
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+        REWARD_FEATURE_TAGS.REWARD_ORDERS_HISTORY_PAGE,
+      ],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
