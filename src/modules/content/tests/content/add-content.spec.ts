@@ -235,10 +235,9 @@ test.describe(
         await identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
 
         // Create site with content submission disabled
-        const siteDetails = await siteManagementHelper.createUnlistedSite({
-          isContentSubmissionsEnabled: false,
-          waitForSearchIndex: true,
-        });
+
+        const siteDetails = await siteManagementHelper.getSiteByIdWithContentSubmissions(SITE_TYPES.UNLISTED, false);
+
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.siteName;
 
@@ -328,10 +327,7 @@ test.describe(
         await identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
 
         // Create site with content submission disabled
-        const siteDetails = await siteManagementHelper.createUnlistedSite({
-          hasPages: false,
-          waitForSearchIndex: true,
-        });
+        const siteDetails = await siteManagementHelper.getSiteByIdWithContentSubmissions(SITE_TYPES.UNLISTED, false);
         const siteName = siteDetails.siteName;
 
         addContentModal = await standardUserHomePage.actions.openAddContentModal(ContentType.PAGE);

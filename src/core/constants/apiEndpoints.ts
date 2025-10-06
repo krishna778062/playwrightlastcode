@@ -100,6 +100,8 @@ export const API_ENDPOINTS = {
   },
   appConfig: {
     governance: '/v1/account/appConfig/app.setup.governance',
+    general: '/v1/account/appConfig/app',
+    appConfig: '/v1/account/appConfig',
   },
   apps: {
     settings: '/v1/account/apps-links-settings',
