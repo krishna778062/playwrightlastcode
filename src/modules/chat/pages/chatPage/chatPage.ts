@@ -60,6 +60,8 @@ export interface IChatActions {
     message: string,
     options?: { stepInfo?: string }
   ) => Promise<void>;
+  editAndUpdateMessage: (message: string, editedMessage: string, options?: { stepInfo?: string }) => Promise<void>;
+  editAndCancelMessage: (message: string, options?: { stepInfo?: string }) => Promise<void>;
 }
 
 export interface IChatAssertions {
@@ -68,6 +70,7 @@ export interface IChatAssertions {
     options?: { stepInfo?: string }
   ) => Promise<void>;
   verifyMessageIsVisible: (message: string, options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
+  verifyEditedMessageIsVisible: (message: string, options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
   verifyUnsupportedFileHandling: (options?: { stepInfo?: string }) => Promise<void>;
   verifyIncomingCallIsReceivedFromCallerInGroupChat: (
     groupName: string,
@@ -81,6 +84,9 @@ export interface IChatAssertions {
     senderName: string,
     options?: { stepInfo?: string }
   ) => Promise<void>;
+  verifyMessageActionsNotVisible: (message: string, options?: { stepInfo?: string }) => Promise<void>;
+  verifyMessageActionsIsVisible: (message: string, options?: { stepInfo?: string }) => Promise<void>;
+  verifyEditMessageOptionNotVisible: (message: string, options?: { stepInfo?: string }) => Promise<void>;
 }
 
 export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAssertions {
@@ -518,6 +524,52 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
     });
   }
 
+  async verifyMessageActionsNotVisible(message: string, options?: { stepInfo?: string }) {
+    await test.step(
+      options?.stepInfo ?? `Verifying message actions are not visible for message ${message}`,
+      async () => {
+        const messageItem =
+          await this.getConversationWindowComponent().getDeletedOrLastMessageCardFromListOfChatMessages();
+        await messageItem.verifyMessageActionsNotVisibleToUser();
+      }
+    );
+  }
+
+  async verifyEditMessageOptionNotVisible(message: string, options?: { stepInfo?: string }) {
+    await test.step(
+      options?.stepInfo ?? `Verifying edit message option are not visible for message ${message}`,
+      async () => {
+        const messageItem =
+          await this.getConversationWindowComponent().getDeletedOrLastMessageCardFromListOfChatMessages();
+        await messageItem.verifyEditMessageOptionNotVisibleToUser();
+      }
+    );
+  }
+
+  async verifyMessageActionsIsVisible(message: string, options?: { stepInfo?: string }) {
+    await test.step(options?.stepInfo ?? `Verifying message actions are visible for message ${message}`, async () => {
+      const messageItem =
+        await this.getConversationWindowComponent().getFocusedMessageCardFromListOfChatMessages(message);
+      await messageItem.verifyMessageActionsIsVisibleToUser();
+    });
+  }
+
+  async editAndUpdateMessage(message: string, editedMessage: string, options?: { stepInfo?: string }) {
+    await test.step(options?.stepInfo ?? `Editing and updating the message ${message}`, async () => {
+      const messageItem =
+        await this.getConversationWindowComponent().getFocusedMessageCardFromListOfChatMessages(message);
+      await messageItem.editAndUpdateMessage(message, editedMessage);
+    });
+  }
+
+  async editAndCancelMessage(message: string, options?: { stepInfo?: string }) {
+    await test.step(options?.stepInfo ?? `Editing and canceling the message ${message}`, async () => {
+      const messageItem =
+        await this.getConversationWindowComponent().getDeletedOrLastMessageCardFromListOfChatMessages();
+      await messageItem.editAndCancelMessage();
+    });
+  }
+
   /**
    * Gets the data message id for a given message
    * @param message - The message to get the data message id for
@@ -585,6 +637,18 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
   ): Promise<void> {
     await test.step(options?.stepInfo || `Verifying message "${message}" is visible`, async () => {
       return await this.getConversationWindowComponent().verifyMessageIsPresentInListOfChatMessages(message, {
+        stepInfo: options?.stepInfo,
+        timeout: options?.timeout,
+      });
+    });
+  }
+
+  public async verifyEditedMessageIsVisible(
+    message: string,
+    options?: { stepInfo?: string; timeout?: number }
+  ): Promise<void> {
+    await test.step(options?.stepInfo || `Verifying message "${message}" is visible`, async () => {
+      return await this.getConversationWindowComponent().verifyEditedMessageIsPresentInListOfChatMessages(message, {
         stepInfo: options?.stepInfo,
         timeout: options?.timeout,
       });
