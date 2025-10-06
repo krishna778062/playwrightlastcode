@@ -23,7 +23,11 @@ export class AccessControlGroupModalComponent extends BaseComponent {
     super(page);
     this.accessControlGroupModalMode = accessControlGroupModalMode;
     this.dialogFilter =
-      accessControlGroupModalMode === 'create' ? 'Create access control group' : 'Edit access control group';
+      accessControlGroupModalMode === 'create'
+        ? 'Create access control group'
+        : accessControlGroupModalMode === 'edit'
+          ? 'Edit access control group'
+          : 'Access control group';
     this.acgDialog = page.locator('[class*="athena"]').filter({ hasText: this.dialogFilter });
     this.closeButton = this.acgDialog.getByRole('button', { name: 'Close' });
     this.duplicateTargetAudienceErrorMessageHeading = this.acgDialog
@@ -66,7 +70,7 @@ export class AccessControlGroupModalComponent extends BaseComponent {
    * Clicks the add button to add new users or audiences
    *@param buttonName - The name of the button to click
    */
-  async clickOnAddButton(buttonName: string): Promise<void> {
+  async clickOnButton(buttonName: string): Promise<void> {
     await this.clickOnElement(this.acgDialog.getByRole('button', { name: buttonName }));
   }
 
