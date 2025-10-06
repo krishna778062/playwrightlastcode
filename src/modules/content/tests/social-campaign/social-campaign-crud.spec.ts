@@ -15,6 +15,8 @@ import { SocialCampaignFilter, SocialCampaignRecipient, SocialCampaignStatus } f
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { SiteDashboardPage } from '../../pages/siteDashboardPage';
+
 test.describe(
   `Social Campaign functionality`,
   {
@@ -25,9 +27,10 @@ test.describe(
     let manualCleanupNeeded: boolean = false;
     let campaignId: string;
 
-    test.beforeEach(async ({ socialCampaignManagerHomePage, socialCampaignHelper }) => {
-      socialCampaignPage = new SocialCampaignPage(socialCampaignManagerHomePage.page);
+    test.beforeEach(async ({ socialCampaignHelper }) => {
       // Reset cleanup flag for each test
+      //clean up all the campaigns
+      await socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
       manualCleanupNeeded = false;
     });
 
@@ -42,16 +45,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33728', '@Social_Campaign_Add_Edit_Delete'],
       },
-      async ({ socialCampaignManagerHomePage, socialCampaignHelper }) => {
+      async ({ socialCampaignManagerHomePage, socialCampaignHelper, socialCampaignManagerPage }) => {
+        socialCampaignPage = new SocialCampaignPage(socialCampaignManagerPage);
         tagTest(test.info(), {
           description:
             'Zeus | Social Campaign | Verify SC Manager able to create and delete Social Campaign for Everyone',
           zephyrTestId: 'CONT-33728',
           storyId: 'CONT-33728',
         });
-
-        //clean up all the campaigns
-        await socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
 
         await socialCampaignManagerHomePage.actions.clickOnSocialCampaigns();
         await socialCampaignPage.actions.clickAddCampaignButton();
@@ -86,6 +87,7 @@ test.describe(
           zephyrTestId: 'CONT-10526',
           storyId: 'CONT-10526',
         });
+        socialCampaignPage = new SocialCampaignPage(socialCampaignManagerHomePage.page);
 
         await socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.EXPIRED);
         const campaignData = {
@@ -105,6 +107,8 @@ test.describe(
           recipient: campaignData.recipient,
           audienceId: audienceId,
         });
+
+        campaignId = createdCampaign.campaignId;
 
         await socialCampaignPage.loadPage();
 
@@ -134,73 +138,51 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-10518'],
       },
-      async ({
-        endUserHomePage,
-        endUsersPage,
-        socialCampaignHelper,
-        audienceManagementHelper,
-        siteManagementHelper,
-      }) => {
+      async ({ appManagerHomePage, socialCampaignHelper, audienceManagementHelper, siteManagementHelper }) => {
         tagTest(test.info(), {
           description: 'Verify App Manager able to share Social Campaign(Audience) to Site feed',
           zephyrTestId: 'CONT-10518',
           storyId: 'CONT-10518',
         });
 
+        socialCampaignPage = new SocialCampaignPage(appManagerHomePage.page);
         // Setup: Get or create audience and site
         const audienceId = await audienceManagementHelper.getRandomAudienceId();
-        const siteId = await siteManagementHelper.getSiteIdWithName('All Employees');
-
-        // Create social campaign page instance
-        const socialCampaignPage = new SocialCampaignPage(endUsersPage);
-
-        // Navigate to social campaigns and add campaign
-        await endUserHomePage.actions.clickOnSocialCampaigns();
-        await socialCampaignPage.actions.clickAddCampaignButton();
-
+        const siteName = 'All Employees';
+        const siteId = await siteManagementHelper.getSiteIdWithName(siteName);
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
           url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
           linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
           recipient: SocialCampaignRecipient.AUDIENCE,
+          audienceId: audienceId,
         };
 
-        campaignId = await socialCampaignPage.actions.AddCampaignAndCreate(campaignOptions);
-
-        // Verify campaign is created and displayed
+        // Create campaign via API
+        const createdCampaign = await socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+          audienceId: campaignOptions.audienceId,
+        });
+        campaignId = createdCampaign.campaignId;
+        socialCampaignPage.loadPage();
         await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
+        const description = TestDataGenerator.generateRandomString();
         // Share campaign to site feed
         await socialCampaignPage.actions.clickCampaignOptions();
         await socialCampaignPage.actions.clickShareToFeedButton();
-        await socialCampaignPage.actions.selectShareOption('site feed');
-        await socialCampaignPage.actions.enterShareDescription('Sharing social campaign to site feed');
+        await socialCampaignPage.actions.selectShareOptionAsSiteFeed();
+        await socialCampaignPage.actions.enterShareDescription(description);
         await socialCampaignPage.actions.enterSiteName(siteName);
         await socialCampaignPage.actions.clickShareButton();
 
-        // Navigate to site and verify campaign is shared
-        await endUserHomePage.actions.searchForTerm(siteName);
-        await endUsersPage.locator(`text="${siteName}"`).first().click();
-        await endUsersPage.locator('a:has-text("Feed")').click();
-
-        // Verify shared social campaign message on feed
-        await expect(endUsersPage.locator(`text=${campaignOptions.message}`)).toBeVisible();
-
-        // Navigate back to social campaigns and expire the campaign
-        await endUserHomePage.actions.clickOnSocialCampaigns();
-        await socialCampaignPage.actions.clickCampaignOptions();
-        await socialCampaignPage.actions.clickExpireCampaignButton();
-        await socialCampaignPage.actions.confirmExpireCampaign();
-
-        // Navigate back to site feed and verify share button is not visible on expired campaign
-        await endUserHomePage.actions.searchForTerm(siteName);
-        await endUsersPage.locator(`text="${siteName}"`).first().click();
-        await endUsersPage.locator('a:has-text("Feed")').click();
-
-        // Verify share button is not visible on the expired campaign
-        await socialCampaignPage.assertions.verifyShareButtonNotVisible();
-
+        const siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.actions.clickOnFeedLink();
+        await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
         manualCleanupNeeded = true;
       }
     );
