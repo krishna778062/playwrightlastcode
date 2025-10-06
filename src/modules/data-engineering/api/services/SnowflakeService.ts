@@ -84,7 +84,6 @@ export class SnowflakeService {
     return snowflake.createConnection({
       account: this.config.account,
       username: this.config.username,
-      password: this.config.password,
       warehouse: this.config.warehouse,
       database: this.config.database,
       authenticator: this.config.authenticator,
