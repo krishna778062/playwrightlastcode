@@ -8,10 +8,10 @@ import { ConfirmEditAccessControlGroupModalComponent } from '@platforms/componen
 import { EditWarningPopupComponent } from '@platforms/components/editWarningPopupComponent';
 import { ACG_COLUMNS } from '@platforms/constants/acg';
 import { ACG_STATUS } from '@platforms/constants/acg';
+import { ACGCreationParams } from '@platforms/types/acgCreationTypes';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { changeDateFormatToYYYYMMDD } from '@/src/core/utils/dateUtil';
-import { ACGCreationParams } from '@platforms/types/acgCreationTypes';
 
 export enum ACGFeature {
   ADD_SITES = 'Add_sites',

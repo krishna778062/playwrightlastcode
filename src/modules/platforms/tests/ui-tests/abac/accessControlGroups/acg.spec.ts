@@ -12,14 +12,14 @@ import { ACG_COLUMNS, ACG_EDIT_ASSETS, ACG_STATUS } from '@platforms/constants/a
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/acgPage/accessControlGroupsPage';
 import { FeatureOwnersPage } from '@platforms/pages/abacPage/featureOwnersPage/featureOwnersPage';
+import { ACGCreationParams } from '@platforms/types/acgCreationTypes';
 
 import { AUDIENCE_API_ATTRIBUTES, AUDIENCE_API_OPERATORS } from '@/src/core/constants/createAudienceAPI';
+import { Roles } from '@/src/core/constants/roles';
 import { TestSuite } from '@/src/core/constants/testSuite';
 import { audienceCreationParams } from '@/src/core/types/audience.type';
-import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { User } from '@/src/core/types/user.type';
-import { Roles } from '@/src/core/constants/roles';
-import { ACGCreationParams } from '@platforms/types/acgCreationTypes';
+import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 
 test.describe(
   'ACG Testcases',
@@ -34,13 +34,13 @@ test.describe(
     const managersAudienceToCreate: string[] = [];
     const adminsAudienceToCreate: string[] = [];
     const categoryId: string[] = [];
-    let createAudienceParams: audienceCreationParams[] = [];
-    let targetAudienceUser: User[] = [];
-    let managersAudienceUser: User[] = [];
-    let adminsAudienceUser: User[] = [];
-    let targetAudienceUserId: string[] = [];
-    let managersAudienceUserId: string[] = [];
-    let adminsAudienceUserId: string[] = [];
+    const createAudienceParams: audienceCreationParams[] = [];
+    const targetAudienceUser: User[] = [];
+    const managersAudienceUser: User[] = [];
+    const adminsAudienceUser: User[] = [];
+    const targetAudienceUserId: string[] = [];
+    const managersAudienceUserId: string[] = [];
+    const adminsAudienceUserId: string[] = [];
 
     test.beforeEach(async ({ appManagerApiClient }) => {
       categoryToCreate = TestDataGenerator.generateCategoryName('ABAC_Target_Category');
