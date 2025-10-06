@@ -27,7 +27,7 @@ const defaultBaseContentPayload = {
   isNewTiptap: false,
 };
 
-const getDefaultPageContentPayload = () => {
+const defaultPageContentPayload = () => {
   const contentText = faker.lorem.sentence();
   return {
     ...defaultBaseContentPayload,
@@ -164,14 +164,13 @@ export class ContentManagementService extends BaseApiClient implements IContentM
    * @param overrides - Page content overrides.
    * @returns The created page's ID.
    */
-  async addNewPageContent(siteId: string, overrides: Partial<ReturnType<typeof getDefaultPageContentPayload>> = {}) {
+  async addNewPageContent(siteId: string, overrides: Partial<ReturnType<typeof defaultPageContentPayload>> = {}) {
     return await test.step('Publishing page content via API post request', async () => {
-      const defaultPayload = getDefaultPageContentPayload();
       const payload = {
-        ...defaultPayload,
+        ...defaultPageContentPayload(),
         ...overrides,
         category: {
-          ...defaultPayload.category,
+          ...defaultPageContentPayload().category,
           ...overrides.category,
         },
       };
