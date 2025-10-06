@@ -12,7 +12,7 @@ export interface ISocialCampaignPageActions {
   clickPopularLink: () => Promise<void>;
   AddCampaignAndCreate: (options: SocialCampaignOptions) => Promise<string>;
   clickAddCampaignButton: () => Promise<void>;
-  clickCampaignOptions: (campaignId: string) => Promise<void>;
+  clickCampaignOptions: () => Promise<void>;
   clickExpireCampaignButton: () => Promise<void>;
   confirmExpireCampaign: () => Promise<void>;
   clickDeleteCampaignButton: () => Promise<void>;
@@ -90,8 +90,8 @@ export class SocialCampaignPage extends BasePage implements ISocialCampaignPageA
     return await this.addCampaignPage.AddCampaignAndCreate(options);
   }
 
-  async clickCampaignOptions(campaignId: string): Promise<void> {
-    return await this.listOfSocialCampaignComponent.clickCampaignOptions(campaignId);
+  async clickCampaignOptions(): Promise<void> {
+    return await this.listOfSocialCampaignComponent.clickCampaignOptions();
   }
 
   async clickExpireCampaignButton(): Promise<void> {

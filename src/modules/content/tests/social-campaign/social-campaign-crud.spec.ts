@@ -109,7 +109,7 @@ test.describe(
         await socialCampaignManagerHomePage.actions.clickOnSocialCampaigns();
 
         await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignData.linkText);
-        await socialCampaignPage.actions.clickCampaignOptions(createdCampaign.campaignId);
+        await socialCampaignPage.actions.clickCampaignOptions();
 
         await socialCampaignPage.actions.clickExpireCampaignButton();
 
@@ -121,7 +121,7 @@ test.describe(
 
         await socialCampaignPage.assertions.verifyCampaignInExpired(campaignData.linkText);
 
-        await socialCampaignPage.actions.clickCampaignOptions(createdCampaign.campaignId);
+        await socialCampaignPage.actions.clickCampaignOptions();
         await socialCampaignPage.actions.clickDeleteCampaignButton();
         await socialCampaignPage.actions.confirmDeleteCampaign();
         await socialCampaignPage.assertions.verifyToastMessage('Deleted social campaign successfully');

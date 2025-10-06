@@ -3,7 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { BaseComponent } from '@core/components/baseComponent';
 
 export interface IListOfSocialCampaignComponentActions {
-  clickCampaignOptions: (campaignId: string) => Promise<void>;
+  clickCampaignOptions: () => Promise<void>;
   clickExpireCampaignButton: () => Promise<void>;
   confirmExpireCampaign: () => Promise<void>;
   getSocialCampaignCount: () => Promise<number>;
@@ -56,9 +56,9 @@ export class ListOfSocialCampaignComponent
     });
   }
 
-  async clickCampaignOptions(campaignId: string): Promise<void> {
-    await test.step(`Click options for campaign: ${campaignId}`, async () => {
-      await this.clickOnElement(this.categoryOptionsButton);
+  async clickCampaignOptions(): Promise<void> {
+    await test.step('Click options for campaign', async () => {
+      await this.hoverOverElementInJavaScript(this.categoryOptionsButton);
       await this.clickByInjectingJavaScript(this.campaignOptionsButton);
     });
   }
