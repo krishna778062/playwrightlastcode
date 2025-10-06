@@ -8,23 +8,17 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-// import { AddTopicModal } from '@/src/modules/content/pages/addTopicPage';
 import { ApplicationScreenPage } from '@/src/modules/content/pages/applicationscreenPage';
-// import { EditTopicModal } from '@/src/modules/content/pages/editTopicPage';
 import { ManageTopicsPage } from '@/src/modules/content/pages/manageTopicsPage';
 test.describe('Edit Topic', () => {
   let homePage: NewUxHomePage;
   let applicationScreenPage: ApplicationScreenPage;
   let manageTopicsPage: ManageTopicsPage;
-  // let addTopicModal: AddTopicModal;
-  // let editTopicPage: EditTopicModal;
 
   test.beforeEach('Setup for edit topic test', async ({ appManagersPage }) => {
     homePage = new NewUxHomePage(appManagersPage);
     applicationScreenPage = new ApplicationScreenPage(appManagersPage);
     manageTopicsPage = new ManageTopicsPage(appManagersPage);
-    // addTopicModal = new AddTopicModal(appManagersPage);
-    // editTopicPage = new EditTopicModal(appManagersPage);
   });
 
   test.afterEach(async ({}) => {});
