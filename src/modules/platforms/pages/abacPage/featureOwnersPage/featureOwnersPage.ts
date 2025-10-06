@@ -1,5 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 import { UserCountPopupComponent } from '@platforms/components/userCountPopupComponent';
 
@@ -57,9 +58,9 @@ export class FeatureOwnersPage extends BasePage {
   /**
    * Searches for a particular feature.
    * @param featureName - Feature name for which the user count button need to be clicked.
-   * @param expectResults - Whether to expect search results (default: true). Set false for testing "no results" scenarios.
+   * @param expectResults - Optional. When passed: true = wait for feature names, false = wait for "No results found". When not passed: uses default behavior (wait for user count button).
    */
-  async searchForFeature(featureName: string, expectResults: boolean = true): Promise<void> {
+  async searchForFeature(featureName: string, expectResults?: boolean): Promise<void> {
     await test.step(`Searching for ${featureName} feature`, async () => {
       if (await this.clearButtonOnSearchInputBox.isVisible()) {
         await this.clickOnElement(this.clearButtonOnSearchInputBox);
@@ -67,18 +68,25 @@ export class FeatureOwnersPage extends BasePage {
       await this.typeInElement(this.searchInputBox, featureName);
       await this.page.keyboard.press('Enter');
 
-      if (expectResults) {
-        // Wait for search results to show feature count buttons (state-based wait)
-        await this.userCountButton.first().waitFor({ state: 'visible', timeout: 10000 });
-      } else {
-        // Wait for search completion - either feature names display or "No results found" message appears
-        await Promise.race([
-          this.page.waitForSelector("[class*='FeatureColumn-module-featureName'] p", {
+      if (expectResults !== undefined) {
+        // Only use conditional logic when expectResults is explicitly passed
+        if (expectResults) {
+          // Wait for feature names when results are expected
+          await this.page.waitForSelector("[class*='FeatureColumn-module-featureName'] p", {
             state: 'visible',
             timeout: 10000,
-          }),
-          this.page.waitForSelector('text="No results found"', { state: 'visible', timeout: 10000 }),
-        ]);
+          });
+        } else {
+          // Wait for "No results found" message when no results are expected
+          await this.page.waitForSelector('text="No results found"', {
+            state: 'visible',
+            timeout: 10000,
+          });
+        }
+      } else {
+        // Default behavior when expectResults is not passed (backward compatibility)
+        await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT / 2);
+        await this.userCountButton.first().waitFor({ state: 'visible', timeout: 10000 });
       }
     });
   }
