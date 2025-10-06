@@ -48,7 +48,7 @@ test.describe(
         // Add and edit tile
         await tileManagementHelper.createIntegrationAppTile(
           createdTileTitle,
-          TILE_IDS.DOCUSIGN_SIGNATURES,
+          TILE_IDS.DISPLAY_DOCUSIGN_SIGNATURE_REQUESTS,
           CONNECTOR_IDS.DOCUSIGN
         );
         await homeDashboard.isTilePresent(createdTileTitle);
@@ -111,7 +111,7 @@ test.describe(
         //add and verify tile
         await tileManagementHelper.createIntegrationAppTile(
           createdTileTitle,
-          TILE_IDS.DOCUSIGN_SIGNATURES,
+          TILE_IDS.DISPLAY_DOCUSIGN_SIGNATURE_REQUESTS,
           CONNECTOR_IDS.DOCUSIGN
         );
         await homeDashboard.isTilePresent(createdTileTitle);
