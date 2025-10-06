@@ -59,7 +59,10 @@ export class ListOfSocialCampaignComponent
   async clickCampaignOptions(): Promise<void> {
     await test.step('Click options for campaign', async () => {
       await this.hoverOverElementInJavaScript(this.campaignOptionsButton);
-      await this.clickOnElement(this.campaignOptionsButton);
+      await this.verifier.verifyTheElementIsVisible(this.campaignOptionsButton, {
+        assertionMessage: `Campaign options button should be visible`,
+      });
+      await this.clickByInjectingJavaScript(this.campaignOptionsButton);
     });
   }
 
