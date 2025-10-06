@@ -25,7 +25,7 @@ export const API_ENDPOINTS = {
         `/v1/chat/conversations/list?page=${page}&perPage=${perPage}&conversationType=GROUP`,
     },
     identity: {
-      listOfAudiences: '/v1/identity/audiences/list',
+      listOfAudiences: '/v1/identity/audience/list',
       v2IdentityAudiencesCategories: '/v2/identity/audiences/categories',
       v2IdentityAudiencesHierarchy: '/v2/identity/audiences/hierarchy',
       v2IdentityAudiences: '/v2/identity/audiences',
@@ -58,6 +58,7 @@ export const API_ENDPOINTS = {
     manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
     membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,
     unfeature: (siteId: string) => `/v1/content/sites/${siteId}/featured?action=unfeature`,
+    siteDetails: (siteId: string) => `/v1/content/sites/${siteId}`,
   },
 
   content: {
@@ -100,6 +101,8 @@ export const API_ENDPOINTS = {
   },
   appConfig: {
     governance: '/v1/account/appConfig/app.setup.governance',
+    general: '/v1/account/appConfig/app',
+    appConfig: '/v1/account/appConfig',
   },
   apps: {
     settings: '/v1/account/apps-links-settings',

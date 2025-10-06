@@ -6,7 +6,7 @@ import { BaseApiClient } from '@core/api/clients/baseApiClient';
 import { IFeedManagementOperations } from '@core/api/interfaces/IFeedManagementOperations';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { CreateFeedPostPayload, FeedPostResponse, UpdateFeedPostPayload } from '@core/types/feed.type';
-import { FeedMode } from '@core/types/feedManagement.types';
+import { AppConfigResponse, FeedMode } from '@core/types/feedManagement.types';
 
 export function buildFeedTextJsonAndTextHtml(text: string) {
   const textJsonObject = {
@@ -465,6 +465,75 @@ export class FeedManagementService extends BaseApiClient implements IFeedManagem
 
       if (!response.ok()) {
         throw new Error(`Failed to configure app governance. Status: ${response.status()}`);
+      }
+
+      return response;
+    });
+  }
+
+  /**
+   * Gets the current app configuration settings
+   * @returns Promise<AppConfigResponse>
+   */
+  async getAppConfig(): Promise<AppConfigResponse> {
+    return await test.step('Get app configuration', async () => {
+      const response = await this.get(API_ENDPOINTS.appConfig.appConfig, {
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+      });
+
+      const responseBody = (await response.json()) as AppConfigResponse;
+      console.log('App configuration response:', JSON.stringify(responseBody, null, 2));
+
+      if (!response.ok()) {
+        throw new Error(`Failed to get app configuration. Status: ${response.status()}`);
+      }
+
+      return responseBody;
+    });
+  }
+
+  /**
+   * Updates app configuration settings
+   * @param config - App configuration settings to update
+   * @returns Promise<APIResponse>
+   */
+  async updateAppConfig(config: {
+    appName?: string;
+    automatedTranslationEnabled?: boolean;
+    availableContentTypes?: string[];
+    addToCalendar?: string[];
+    feedbackRecipients?: string[];
+    enableSmsNotifications?: boolean;
+    enablePushNotificationMobile?: boolean;
+    shareFeedback?: boolean;
+    socialCampaignsPolicyUrl?: string;
+    selectedLanguages?: number[];
+    orgChartEnabled?: boolean;
+    isSmartWritingEnabled?: boolean;
+    isSmartAnswerEnabled?: boolean;
+    isContentAiSummaryEnabled?: boolean;
+    isMultilingualModelEnabled?: boolean;
+    calendarOffice365Enabled?: boolean;
+    calendarOffice365Url?: string;
+    isContentFeaturePromotionEnabled?: boolean;
+    isQuestionAnswerEnabled?: boolean;
+    isNewsletterTranslationEnabled?: boolean;
+  }): Promise<APIResponse> {
+    return await test.step('Update app configuration', async () => {
+      const response = await this.post(API_ENDPOINTS.appConfig.general, {
+        data: config,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const responseBody = await response.json();
+      console.log('App configuration update response:', JSON.stringify(responseBody, null, 2));
+
+      if (!response.ok()) {
+        throw new Error(`Failed to update app configuration. Status: ${response.status()}`);
       }
 
       return response;

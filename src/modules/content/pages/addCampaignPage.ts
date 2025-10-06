@@ -1,10 +1,12 @@
 import { Locator, Page, Response, test } from '@playwright/test';
 
-import { BaseComponent } from '@core/components/baseComponent';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
+import { BasePage } from '@core/pages/basePage';
 import { SocialCampaignOptions, SocialCampaignRecipient } from '@core/types/social-campaign.types';
 
-export interface IAddCampaignActions {
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+
+export interface IAddCampaignPageActions {
   selectMemberAsAudience: () => Promise<void>;
   enterCampaignMessage: (message: string) => Promise<void>;
   enterCampaignUrl: (url: string, linkText: string) => Promise<void>;
@@ -12,7 +14,7 @@ export interface IAddCampaignActions {
   AddCampaignAndCreate: (options: SocialCampaignOptions) => Promise<string>;
 }
 
-export class AddCampaignComponent extends BaseComponent implements IAddCampaignActions {
+export class AddCampaignPage extends BasePage implements IAddCampaignPageActions {
   readonly addCampaignButton: Locator;
   readonly audienceOption: Locator;
   readonly campaignMessageInput: Locator;
@@ -21,7 +23,7 @@ export class AddCampaignComponent extends BaseComponent implements IAddCampaignA
   private getHeadingByText: (text: string) => Locator;
 
   constructor(page: Page) {
-    super(page);
+    super(page, PAGE_ENDPOINTS.ADD_SOCIAL_CAMPAIGNS);
     this.addCampaignButton = page.locator('span:has-text("Add campaign")');
     this.audienceOption = page.getByRole('option', { name: 'Audience' });
     this.campaignMessageInput = page.locator('textarea#message');
@@ -30,14 +32,14 @@ export class AddCampaignComponent extends BaseComponent implements IAddCampaignA
     this.createCampaignButton = page.locator('span:has-text("Create campaign")');
   }
 
-  get actions(): IAddCampaignActions {
+  get actions(): IAddCampaignPageActions {
     return this;
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await test.step('Verify add campaign component is loaded', async () => {
+    await test.step('Verify add campaign page is loaded', async () => {
       await this.verifier.verifyTheElementIsVisible(this.campaignMessageInput, {
-        assertionMessage: 'Add campaign button should be visible',
+        assertionMessage: 'Add campaign form should be visible',
       });
     });
   }

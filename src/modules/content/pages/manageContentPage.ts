@@ -37,6 +37,7 @@ export interface IAssertions {
   clickOnTheAuthorName: () => Promise<void>;
   verifySiteName: () => Promise<void>;
   verifySiteNameLink: () => Promise<void>;
+  scheduledTagVisibleInManageContent: () => Promise<void>;
 }
 
 export class ManageContentPage extends BasePage implements IActions, IAssertions {
@@ -219,5 +220,11 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async selectDeleteApplyButton(): Promise<void> {
     await this.manageContentComponent.selectDeleteApplyButton();
+  }
+  async scheduledTagVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.scheduledTagVisibleInManageContent();
+  }
+  async checkContentDetailsVisibility(pageName: string): Promise<void> {
+    await this.manageContentComponent.checkContentDetailsVisibility(pageName);
   }
 }
