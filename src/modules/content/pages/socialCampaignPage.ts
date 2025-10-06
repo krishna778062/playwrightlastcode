@@ -19,6 +19,11 @@ export interface ISocialCampaignPageActions {
   clickExpiredLink: () => Promise<void>;
   getSocialCampaignCount: () => Promise<number>;
   confirmDeleteCampaign: () => Promise<void>;
+  clickShareToFeedButton: () => Promise<void>;
+  selectShareOption: (option: string) => Promise<void>;
+  enterShareDescription: (description: string) => Promise<void>;
+  enterSiteName: (siteName: string) => Promise<void>;
+  clickShareButton: () => Promise<void>;
 }
 
 export interface ISocialCampaignPageAssertions {
@@ -27,6 +32,7 @@ export interface ISocialCampaignPageAssertions {
   verifyCampaignNotInExpired: (linkText: string) => Promise<void>;
   verifyCampaignInExpired: (linkText: string) => Promise<void>;
   verifyToastMessage: (message: string) => Promise<void>;
+  verifyShareButtonNotVisible: () => Promise<void>;
 }
 
 export class SocialCampaignPage extends BasePage implements ISocialCampaignPageActions, ISocialCampaignPageAssertions {
@@ -34,6 +40,12 @@ export class SocialCampaignPage extends BasePage implements ISocialCampaignPageA
   readonly addCampaignButton: Locator;
   readonly popularLink: Locator;
   readonly expiredLink: Locator;
+  readonly shareToFeedButton: Locator;
+  readonly shareOptionDropdown: Locator;
+  readonly shareDescriptionInput: Locator;
+  readonly siteNameInput: Locator;
+  readonly shareButton: Locator;
+  readonly shareButtonOnFeed: Locator;
   private addCampaignPage: AddCampaignPage;
   private listOfSocialCampaignComponent: ListOfSocialCampaignComponent;
 
@@ -44,6 +56,12 @@ export class SocialCampaignPage extends BasePage implements ISocialCampaignPageA
     this.addCampaignButton = page.locator('span:has-text("Add campaign")');
     this.popularLink = page.locator('a', { hasText: /^Popular$/ });
     this.expiredLink = page.locator('a', { hasText: /^Expired$/ });
+    this.shareToFeedButton = page.locator('button:has-text("Share to feed")');
+    this.shareOptionDropdown = page.locator('[data-testid="share-option-dropdown"]');
+    this.shareDescriptionInput = page.locator('textarea[placeholder*="description"], textarea[name="description"]');
+    this.siteNameInput = page.locator('input[placeholder*="site"], input[name="siteName"]');
+    this.shareButton = page.locator('button:has-text("Share")');
+    this.shareButtonOnFeed = page.locator('button:has-text("Share")').first();
     this.addCampaignPage = new AddCampaignPage(page);
     this.listOfSocialCampaignComponent = new ListOfSocialCampaignComponent(page);
   }
@@ -140,5 +158,48 @@ export class SocialCampaignPage extends BasePage implements ISocialCampaignPageA
 
   async verifyToastMessage(message: string): Promise<void> {
     return await this.listOfSocialCampaignComponent.verifyToastMessage(message);
+  }
+
+  async clickShareToFeedButton(): Promise<void> {
+    await test.step('Click Share to feed button', async () => {
+      await this.clickOnElement(this.shareToFeedButton);
+    });
+  }
+
+  async selectShareOption(option: string): Promise<void> {
+    await test.step(`Select share option: ${option}`, async () => {
+      await this.clickOnElement(
+        this.page.locator(`button:has-text("${option}"), [role="option"]:has-text("${option}")`)
+      );
+    });
+  }
+
+  async enterShareDescription(description: string): Promise<void> {
+    await test.step(`Enter share description: ${description}`, async () => {
+      await this.fillInElement(this.shareDescriptionInput, description);
+    });
+  }
+
+  async enterSiteName(siteName: string): Promise<void> {
+    await test.step(`Enter site name: ${siteName}`, async () => {
+      await this.fillInElement(this.siteNameInput, siteName);
+      // Wait for autocomplete and select the option
+      await this.page.waitForTimeout(1000);
+      await this.page.locator(`[role="option"]:has-text("${siteName}")`).first().click();
+    });
+  }
+
+  async clickShareButton(): Promise<void> {
+    await test.step('Click Share button', async () => {
+      await this.clickOnElement(this.shareButton);
+    });
+  }
+
+  async verifyShareButtonNotVisible(): Promise<void> {
+    await test.step('Verify share button is not visible on expired campaign', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.shareButtonOnFeed, {
+        assertionMessage: 'Share button should not be visible on expired campaign',
+      });
+    });
   }
 }

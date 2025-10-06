@@ -128,5 +128,81 @@ test.describe(
         await socialCampaignPage.assertions.verifyCampaignNotInExpired(campaignData.linkText);
       }
     );
+
+    test(
+      'Verify App Manager able to share Social Campaign(Audience) to Site feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-10518'],
+      },
+      async ({
+        endUserHomePage,
+        endUsersPage,
+        socialCampaignHelper,
+        audienceManagementHelper,
+        siteManagementHelper,
+      }) => {
+        tagTest(test.info(), {
+          description: 'Verify App Manager able to share Social Campaign(Audience) to Site feed',
+          zephyrTestId: 'CONT-10518',
+          storyId: 'CONT-10518',
+        });
+
+        // Setup: Get or create audience and site
+        const audienceId = await audienceManagementHelper.getRandomAudienceId();
+        const siteId = await siteManagementHelper.getSiteIdWithName('All Employees');
+
+        // Create social campaign page instance
+        const socialCampaignPage = new SocialCampaignPage(endUsersPage);
+
+        // Navigate to social campaigns and add campaign
+        await endUserHomePage.actions.clickOnSocialCampaigns();
+        await socialCampaignPage.actions.clickAddCampaignButton();
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
+          recipient: SocialCampaignRecipient.AUDIENCE,
+        };
+
+        campaignId = await socialCampaignPage.actions.AddCampaignAndCreate(campaignOptions);
+
+        // Verify campaign is created and displayed
+        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+
+        // Share campaign to site feed
+        await socialCampaignPage.actions.clickCampaignOptions();
+        await socialCampaignPage.actions.clickShareToFeedButton();
+        await socialCampaignPage.actions.selectShareOption('site feed');
+        await socialCampaignPage.actions.enterShareDescription('Sharing social campaign to site feed');
+        await socialCampaignPage.actions.enterSiteName(siteName);
+        await socialCampaignPage.actions.clickShareButton();
+
+        // Navigate to site and verify campaign is shared
+        await endUserHomePage.actions.searchForTerm(siteName);
+        await endUsersPage.locator(`text="${siteName}"`).first().click();
+        await endUsersPage.locator('a:has-text("Feed")').click();
+
+        // Verify shared social campaign message on feed
+        await expect(endUsersPage.locator(`text=${campaignOptions.message}`)).toBeVisible();
+
+        // Navigate back to social campaigns and expire the campaign
+        await endUserHomePage.actions.clickOnSocialCampaigns();
+        await socialCampaignPage.actions.clickCampaignOptions();
+        await socialCampaignPage.actions.clickExpireCampaignButton();
+        await socialCampaignPage.actions.confirmExpireCampaign();
+
+        // Navigate back to site feed and verify share button is not visible on expired campaign
+        await endUserHomePage.actions.searchForTerm(siteName);
+        await endUsersPage.locator(`text="${siteName}"`).first().click();
+        await endUsersPage.locator('a:has-text("Feed")').click();
+
+        // Verify share button is not visible on the expired campaign
+        await socialCampaignPage.assertions.verifyShareButtonNotVisible();
+
+        manualCleanupNeeded = true;
+      }
+    );
   }
 );
