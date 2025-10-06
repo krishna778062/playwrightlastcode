@@ -22,6 +22,12 @@ export enum SocialCampaignNetwork {
   TWITTER = 'tw',
 }
 
+export enum SocialCampaignFilter {
+  LATEST = 'latest',
+  EXPIRED = 'expired',
+  POPULAR = 'popular',
+}
+
 export interface SocialCampaignOptions {
   message: string;
   url: string;

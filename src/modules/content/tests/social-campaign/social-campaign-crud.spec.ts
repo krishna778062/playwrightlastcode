@@ -11,7 +11,7 @@ import { SOCIAL_CAMPAIGN_TEST_DATA } from '@content/test-data/social-campaign.te
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
-import { SocialCampaignRecipient, SocialCampaignStatus } from '@core/types/social-campaign.types';
+import { SocialCampaignFilter, SocialCampaignRecipient, SocialCampaignStatus } from '@core/types/social-campaign.types';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
@@ -27,15 +27,13 @@ test.describe(
 
     test.beforeEach(async ({ socialCampaignManagerHomePage, socialCampaignHelper }) => {
       socialCampaignPage = new SocialCampaignPage(socialCampaignManagerHomePage.page);
-      //clean up all the campaigns
-      await socialCampaignHelper.deleteAllCampaigns();
       // Reset cleanup flag for each test
       manualCleanupNeeded = false;
     });
 
     test.afterEach(async ({ socialCampaignHelper }) => {
       if (manualCleanupNeeded && campaignId) {
-        await socialCampaignHelper.deleteAllCampaigns();
+        await socialCampaignHelper.deleteCampaign(campaignId);
       }
     });
 
@@ -44,7 +42,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33728', '@Social_Campaign_Add_Edit_Delete'],
       },
-      async ({ socialCampaignManagerHomePage }) => {
+      async ({ socialCampaignManagerHomePage, socialCampaignHelper }) => {
         tagTest(test.info(), {
           description:
             'Zeus | Social Campaign | Verify SC Manager able to create and delete Social Campaign for Everyone',
@@ -52,13 +50,13 @@ test.describe(
           storyId: 'CONT-33728',
         });
 
-        // And Click on Social campaigns section
-        await socialCampaignManagerHomePage.actions.clickOnSocialCampaigns();
+        //clean up all the campaigns
+        await socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
 
-        // Click on Add campaign button
+        await socialCampaignManagerHomePage.actions.clickOnSocialCampaigns();
         await socialCampaignPage.actions.clickAddCampaignButton();
 
-        // When Create and post social campaign using wrapper function
+        // Create and post social campaign using wrapper function
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
           url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
@@ -68,14 +66,9 @@ test.describe(
 
         // When Add Campaign and Create
         campaignId = await socialCampaignPage.actions.AddCampaignAndCreate(campaignOptions);
-
-        // And Verify link is displayed using the returned link text
+        await socialCampaignPage.assertions.verifyToastMessage('Created social campaign successfully');
         await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
-
-        // And Click on "Popular" link
         await socialCampaignPage.actions.clickPopularLink();
-
-        // Then Verify link is displayed using the campaign result
         await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
         manualCleanupNeeded = true;
@@ -83,19 +76,18 @@ test.describe(
     );
 
     test(
-      'Zeus | Social Campaign | Verify End User can view and expire social campaign',
+      'In Zeus Verify SC Manager able to delete the expired Social Campaign(Audience)',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-33729', '@Social_Campaign_Expire'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-10526', '@Social_Campaign_Expire'],
       },
       async ({ socialCampaignManagerHomePage, socialCampaignHelper, audienceManagementHelper }) => {
         tagTest(test.info(), {
           description: 'Zeus | Social Campaign | Verify End User can view and expire social campaign',
-          zephyrTestId: 'CONT-33729',
-          storyId: 'CONT-33729',
+          zephyrTestId: 'CONT-10526',
+          storyId: 'CONT-10526',
         });
 
-        // Given Login as "EndUser1" - using socialCampaignManagerHomePage
-        // And create campaign using API
+        await socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.EXPIRED);
         const campaignData = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
           url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_BLOG,
@@ -104,11 +96,7 @@ test.describe(
         };
 
         // Create or get a test audience for the campaign
-        const audienceId = await audienceManagementHelper.createOrGetTestAudience(
-          'Social Campaign Test Audience',
-          'Test audience for social campaign testing',
-          'India'
-        );
+        const audienceId = await audienceManagementHelper.getRandomAudienceId();
 
         // Create campaign via API
         const createdCampaign = await socialCampaignHelper.createCampaign({
@@ -118,44 +106,26 @@ test.describe(
           audienceId: audienceId,
         });
 
-        // And Click on Social campaigns section
         await socialCampaignManagerHomePage.actions.clickOnSocialCampaigns();
 
-        // And Verify link "Building Transparent Leadership and Trust" is displayed
         await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignData.linkText);
-
-        // And Get the link of Social Campaign
-        const campaignLink = await socialCampaignPage.actions.getSocialCampaignLink();
-        console.log('Campaign link retrieved:', campaignLink);
-
-        // And Click on options on social campaign
         await socialCampaignPage.actions.clickCampaignOptions(createdCampaign.campaignId);
 
-        // And Click on button "Expire campaign"
         await socialCampaignPage.actions.clickExpireCampaignButton();
 
-        // When Click on "Expire" button
         await socialCampaignPage.actions.confirmExpireCampaign();
-
-        // And Check the created social campaign should not present in latest
+        await socialCampaignPage.assertions.verifyToastMessage('Expired social campaign successfully');
         await socialCampaignPage.assertions.verifyCampaignNotInLatest(campaignData.linkText);
 
-        // And Click on "Expired" link
         await socialCampaignPage.actions.clickExpiredLink();
 
-        // And Check the created social campaign should expire
         await socialCampaignPage.assertions.verifyCampaignInExpired(campaignData.linkText);
 
-        // And Get the social campaign count on social Campaign page
-        const campaignCount = await socialCampaignPage.actions.getSocialCampaignCount();
-        console.log('Total social campaign count:', campaignCount);
-
-        // Verify the campaign is expired via API
-        const expiredCampaign = await socialCampaignHelper.getCampaignById(createdCampaign.campaignId);
-        expect(expiredCampaign.status).toBe(SocialCampaignStatus.EXPIRED);
-
-        manualCleanupNeeded = true;
-        campaignId = createdCampaign.campaignId;
+        await socialCampaignPage.actions.clickCampaignOptions(createdCampaign.campaignId);
+        await socialCampaignPage.actions.clickDeleteCampaignButton();
+        await socialCampaignPage.actions.confirmDeleteCampaign();
+        await socialCampaignPage.assertions.verifyToastMessage('Deleted social campaign successfully');
+        await socialCampaignPage.assertions.verifyCampaignNotInExpired(campaignData.linkText);
       }
     );
   }

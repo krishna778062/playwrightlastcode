@@ -6,6 +6,7 @@ import {
   CreateAudienceRequest,
   CreateAudienceResponse,
 } from '@core/types/audience.types';
+import { TestDataGenerator } from '@core/utils/testDataGenerator';
 
 export class AudienceManagementHelper {
   private readonly audienceManagementService: AudienceManagementService;
@@ -56,12 +57,19 @@ export class AudienceManagementHelper {
   /**
    * Gets a random audience ID for testing purposes
    * @param size - Number of audiences to fetch (default: 16)
-   * @returns Promise<string | null> - Random audience ID or null if no audiences found
+   * @returns Promise<string> - Random audience ID
+   * @throws Error if no audiences found
    */
-  async getRandomAudienceId(size: number = 16): Promise<string | null> {
+  async getRandomAudienceId(size: number = 16): Promise<string> {
     const response = await this.getAllAudiences(size);
     if (response.result.listOfItems.length === 0) {
-      return null;
+      const newAudience = await this.createAudience({
+        name: `Test Audience ${Math.random().toString(36).substring(2, 12)}`,
+        description: `Test Audience Description ${Math.random().toString(36).substring(2, 12)}`,
+        type: 'mixed',
+        audienceRule: { AND: [] },
+      });
+      return newAudience.result.audienceId;
     }
 
     const randomIndex = Math.floor(Math.random() * response.result.listOfItems.length);
@@ -89,43 +97,5 @@ export class AudienceManagementHelper {
    */
   async createAudience(request: CreateAudienceRequest): Promise<CreateAudienceResponse> {
     return await this.audienceManagementService.createAudience(request);
-  }
-
-  /**
-   * Creates a test audience for social campaigns
-   * @param name - Name of the audience (optional, defaults to "Test Social Campaign Audience")
-   * @param description - Description of the audience (optional)
-   * @param country - Country to filter by (optional, defaults to "India")
-   * @returns Promise<CreateAudienceResponse>
-   */
-  async createTestAudience(
-    name: string = 'Test Social Campaign Audience',
-    description: string = 'Test audience created for social campaign testing',
-    country: string = 'India'
-  ): Promise<CreateAudienceResponse> {
-    return await this.audienceManagementService.createTestAudience(name, description, country);
-  }
-
-  /**
-   * Creates or gets an existing audience for testing
-   * @param name - Name of the audience to create or find
-   * @param description - Description of the audience (optional)
-   * @param country - Country to filter by (optional, defaults to "India")
-   * @returns Promise<string> - Audience ID
-   */
-  async createOrGetTestAudience(
-    name: string = 'Test Social Campaign Audience',
-    description: string = 'Test audience created for social campaign testing',
-    country: string = 'India'
-  ): Promise<string> {
-    // First try to find existing audience
-    const existingAudience = await this.findAudienceByName(name);
-    if (existingAudience) {
-      return existingAudience.audienceId;
-    }
-
-    // If not found, create new one
-    const response = await this.createTestAudience(name, description, country);
-    return response.result.audienceId;
   }
 }

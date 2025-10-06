@@ -6,6 +6,7 @@ import {
   CreateSocialCampaignRequest,
   SocialCampaign,
   SocialCampaignAction,
+  SocialCampaignFilter,
   SocialCampaignNetwork,
   SocialCampaignRecipient,
 } from '@/src/core/types/social-campaign.types';
@@ -310,8 +311,8 @@ export class SocialCampaignHelper {
    * Use with caution - this will delete ALL campaigns
    * @returns Promise<any[]> - Array of delete responses
    */
-  async deleteAllCampaigns(): Promise<void> {
-    const allCampaigns = await this.getSocialCampaignService().getAllCampaigns();
+  async deleteAllCampaigns(filter?: SocialCampaignFilter): Promise<void> {
+    const allCampaigns = await this.getSocialCampaignService().getAllCampaigns(filter);
     console.log(`Deleting ${allCampaigns.length} campaigns`);
     for (const campaign of allCampaigns) {
       console.log(`Deleting campaign: ${campaign.message} (${campaign.campaignId})`);

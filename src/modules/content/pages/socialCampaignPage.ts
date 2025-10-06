@@ -1,6 +1,7 @@
 import { Locator, Page, Response, test } from '@playwright/test';
 
-import { AddCampaignComponent } from '@content/components/addCampaignComponent';
+import { ListOfSocialCampaignComponent } from '@content/components/listOfSocialCampaignComponent';
+import { AddCampaignPage } from '@content/pages/addCampaignPage';
 import { BasePage } from '@core/pages/basePage';
 import { SocialCampaignOptions } from '@core/types/social-campaign.types';
 
@@ -9,50 +10,42 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 export interface ISocialCampaignPageActions {
   removeAllExistingCampaigns: () => Promise<void>;
   clickPopularLink: () => Promise<void>;
-  getSocialCampaignLink: () => Promise<string>;
   AddCampaignAndCreate: (options: SocialCampaignOptions) => Promise<string>;
   clickAddCampaignButton: () => Promise<void>;
   clickCampaignOptions: (campaignId: string) => Promise<void>;
   clickExpireCampaignButton: () => Promise<void>;
   confirmExpireCampaign: () => Promise<void>;
+  clickDeleteCampaignButton: () => Promise<void>;
   clickExpiredLink: () => Promise<void>;
   getSocialCampaignCount: () => Promise<number>;
+  confirmDeleteCampaign: () => Promise<void>;
 }
 
 export interface ISocialCampaignPageAssertions {
   verifyCampaignLinkDisplayed: (linkText: string) => Promise<void>;
   verifyCampaignNotInLatest: (linkText: string) => Promise<void>;
+  verifyCampaignNotInExpired: (linkText: string) => Promise<void>;
   verifyCampaignInExpired: (linkText: string) => Promise<void>;
+  verifyToastMessage: (message: string) => Promise<void>;
 }
 
 export class SocialCampaignPage extends BasePage implements ISocialCampaignPageActions, ISocialCampaignPageAssertions {
   readonly socialCampaignsSection: Locator;
-  readonly campaignLink: Locator;
-  readonly linkByText: (linkText: string) => Locator;
-  readonly popularLink: Locator;
   readonly addCampaignButton: Locator;
+  readonly popularLink: Locator;
   readonly expiredLink: Locator;
-  readonly campaignOptionsButton: (campaignId: string) => Locator;
-  readonly expireCampaignButton: Locator;
-  readonly confirmExpireButton: Locator;
-  readonly campaignCount: Locator;
-  private addCampaignComponent: AddCampaignComponent;
+  private addCampaignPage: AddCampaignPage;
+  private listOfSocialCampaignComponent: ListOfSocialCampaignComponent;
 
   constructor(page: Page) {
-    super(page, PAGE_ENDPOINTS.SOCIAL_CAMPAIGNS);
+    super(page, PAGE_ENDPOINTS.SOCIAL_CAMPAIGNS_PAGE);
 
     this.socialCampaignsSection = page.locator('[data-testid="social-campaigns-section"]');
-    this.campaignLink = page.locator('[data-testid="campaign-link"]');
-    this.linkByText = (linkText: string) => page.locator('a', { hasText: linkText });
-    this.popularLink = page.locator('a', { hasText: /^Popular$/ });
     this.addCampaignButton = page.locator('span:has-text("Add campaign")');
+    this.popularLink = page.locator('a', { hasText: /^Popular$/ });
     this.expiredLink = page.locator('a', { hasText: /^Expired$/ });
-    this.campaignOptionsButton = (campaignId: string) =>
-      page.locator(`[data-campaign-id="${campaignId}"] button[aria-label="Options"]`);
-    this.expireCampaignButton = page.locator('button:has-text("Expire campaign")');
-    this.confirmExpireButton = page.locator('button:has-text("Expire")');
-    this.campaignCount = page.locator('[data-testid="campaign-count"]');
-    this.addCampaignComponent = new AddCampaignComponent(page);
+    this.addCampaignPage = new AddCampaignPage(page);
+    this.listOfSocialCampaignComponent = new ListOfSocialCampaignComponent(page);
   }
 
   get actions(): ISocialCampaignPageActions {
@@ -84,25 +77,8 @@ export class SocialCampaignPage extends BasePage implements ISocialCampaignPageA
     });
   }
 
-  async getSocialCampaignLink(): Promise<string> {
-    return await test.step('Get social campaign link', async () => {
-      const linkText = await this.campaignLink.textContent();
-      return linkText || '';
-    });
-  }
-
-  async clickPopularLink(): Promise<void> {
-    await test.step('Click Popular link', async () => {
-      await this.clickOnElement(this.popularLink);
-    });
-  }
-
   async verifyCampaignLinkDisplayed(linkText: string): Promise<void> {
-    await test.step(`Verify campaign link "${linkText}" is displayed`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.linkByText(linkText).first(), {
-        assertionMessage: `Campaign link "${linkText}" should be displayed`,
-      });
-    });
+    return await this.listOfSocialCampaignComponent.verifyCampaignLinkDisplayed(linkText);
   }
 
   /**
@@ -111,24 +87,36 @@ export class SocialCampaignPage extends BasePage implements ISocialCampaignPageA
    * @returns Result containing campaign details and link text
    */
   async AddCampaignAndCreate(options: SocialCampaignOptions): Promise<string> {
-    return await this.addCampaignComponent.AddCampaignAndCreate(options);
+    return await this.addCampaignPage.AddCampaignAndCreate(options);
   }
 
   async clickCampaignOptions(campaignId: string): Promise<void> {
-    await test.step(`Click options for campaign: ${campaignId}`, async () => {
-      await this.clickOnElement(this.campaignOptionsButton(campaignId));
-    });
+    return await this.listOfSocialCampaignComponent.clickCampaignOptions(campaignId);
   }
 
   async clickExpireCampaignButton(): Promise<void> {
-    await test.step('Click Expire campaign button', async () => {
-      await this.clickOnElement(this.expireCampaignButton);
-    });
+    return await this.listOfSocialCampaignComponent.clickExpireCampaignButton();
   }
 
   async confirmExpireCampaign(): Promise<void> {
-    await test.step('Confirm expire campaign', async () => {
-      await this.clickOnElement(this.confirmExpireButton);
+    return await this.listOfSocialCampaignComponent.confirmExpireCampaign();
+  }
+
+  async getSocialCampaignCount(): Promise<number> {
+    return await this.listOfSocialCampaignComponent.getSocialCampaignCount();
+  }
+
+  async verifyCampaignNotInLatest(linkText: string): Promise<void> {
+    return await this.listOfSocialCampaignComponent.verifyCampaignNotInLatest(linkText);
+  }
+
+  async verifyCampaignInExpired(linkText: string): Promise<void> {
+    return await this.listOfSocialCampaignComponent.verifyCampaignInExpired(linkText);
+  }
+
+  async clickPopularLink(): Promise<void> {
+    await test.step('Click Popular link', async () => {
+      await this.clickOnElement(this.popularLink);
     });
   }
 
@@ -138,26 +126,19 @@ export class SocialCampaignPage extends BasePage implements ISocialCampaignPageA
     });
   }
 
-  async getSocialCampaignCount(): Promise<number> {
-    return await test.step('Get social campaign count', async () => {
-      const countText = await this.campaignCount.textContent();
-      return parseInt(countText || '0', 10);
-    });
+  async clickDeleteCampaignButton(): Promise<void> {
+    return await this.listOfSocialCampaignComponent.clickDeleteCampaignButton();
   }
 
-  async verifyCampaignNotInLatest(linkText: string): Promise<void> {
-    await test.step(`Verify campaign "${linkText}" is not in latest`, async () => {
-      await this.verifier.verifyTheElementIsNotVisible(this.linkByText(linkText).first(), {
-        assertionMessage: `Campaign "${linkText}" should not be visible in latest`,
-      });
-    });
+  async confirmDeleteCampaign(): Promise<void> {
+    return await this.listOfSocialCampaignComponent.confirmDeleteCampaign();
   }
 
-  async verifyCampaignInExpired(linkText: string): Promise<void> {
-    await test.step(`Verify campaign "${linkText}" is in expired`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.linkByText(linkText).first(), {
-        assertionMessage: `Campaign "${linkText}" should be visible in expired`,
-      });
-    });
+  async verifyCampaignNotInExpired(linkText: string): Promise<void> {
+    return await this.listOfSocialCampaignComponent.verifyCampaignNotInExpired(linkText);
+  }
+
+  async verifyToastMessage(message: string): Promise<void> {
+    return await this.listOfSocialCampaignComponent.verifyToastMessage(message);
   }
 }
