@@ -60,7 +60,7 @@ test.describe('Rewards store - Order history page', { tag: [REWARD_FEATURE_TAGS.
     }
   );
 
-  test.only(
+  test(
     '[RC-3242] Validate order history resending using secondary email address',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],
