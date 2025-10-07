@@ -1,4 +1,5 @@
 import { expect, Locator, Page, Response, test } from '@playwright/test';
+import { RecognitionHubPage } from '@rewards/pages/recognition-hub/recognition-hub-page';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
@@ -384,10 +385,18 @@ export class ManageRewardsOverviewPage extends BasePage {
     }
   }
 
-  async openTheRecognitionCreatedBefore24Hrs(recognitionGiver: string | undefined): Promise<string> {
+  /**
+   * Optimized function to open recognition created before 24 hours
+   * Performs the following steps:
+   * 1. Checks the Activity table
+   * 2. Click the "Show more" button until date difference is more than 3 days
+   * 3. Find the specified user's recognition and click "View recognition"
+   * 4. Validates the post opens in the same page
+   */
+  async openTheRecognitionCreatedBefore24Hrs(recognitionGiver: string): Promise<string> {
     await test.step('Click and verify "Show more" button until last 3 days data is loaded', async () => {
-      while (await this.verifier.isTheElementVisible(this.activityPanelTableShowMoreButton, { timeout: 2000 })) {
-        await Promise.all([
+      while (await this.verifier.isTheElementVisible(this.activityPanelTableShowMoreButton)) {
+        const [response] = await Promise.all([
           this.page.waitForResponse(
             res => res.url().includes('/recognition/admin/rewards/transactions') && res.status() === 200
           ),
@@ -397,32 +406,32 @@ export class ManageRewardsOverviewPage extends BasePage {
         const currentDate = new Date();
         const lastRowDateWithYear = new Date(lastRowDate + ` ${currentDate.getFullYear()}`);
         const differenceInTime = currentDate.getDate() - lastRowDateWithYear.getDate();
-        if (differenceInTime > 3) break;
+        if (differenceInTime > 5) break;
       }
     });
 
-    const rows = this.activityPanelTableRows;
-    let rewardPointsText = '';
+    const rows = this.page.locator('tr[data-testid^="dataGridRow"]');
+    let rewardPointsText: any;
     const rowCount = await rows.count();
-    for (let i = 0; i < rowCount - 1; i++) {
+    for (let i = rowCount - 1; i > 0; i--) {
+      await rows.nth(i).locator('td').first().scrollIntoViewIfNeeded();
       const dateText = await rows.nth(i).locator('td').first().textContent();
-      const rowDate = new Date(dateText + ` ${new Date().getFullYear()}`);
+      const rowDate = new Date(dateText + ` ${new Date().getFullYear()}`); // Append current year to date string
       const today = new Date();
       const diffDays = (today.getTime() - rowDate.getTime()) / (1000 * 60 * 60 * 24);
-      const gifterName = await rows.nth(i).locator('td').nth(1).textContent();
-      const typeText = await rows.nth(i).locator('td').nth(3).locator('p').textContent();
-
-      if (recognitionGiver === gifterName && diffDays > 2 && typeText === 'Peer recognition') {
+      if (
+        recognitionGiver === (await rows.nth(i).locator('td').nth(1).textContent()) &&
+        diffDays > 2 &&
+        (await rows.nth(i).locator('td').nth(3).locator('p').textContent()) === 'Peer recognition'
+      ) {
         await rows.nth(i).locator('td').last().scrollIntoViewIfNeeded();
         await rows.nth(i).locator('td').last().click();
         await this.viewRecognitionDropdown.waitFor({ state: 'visible' });
         await this.viewRecognitionDropdown.scrollIntoViewIfNeeded();
-        rewardPointsText = (await rows.nth(i).locator('td').nth(4).textContent()) || '';
+        rewardPointsText = await rows.nth(i).locator('td').nth(4).textContent();
         await expect(this.viewRecognitionDropdown).toBeVisible();
         await expect(this.viewRecognitionDropdownText).toHaveText('View recognition');
         await this.viewRecognitionDropdownLink.click();
-        // Import RecognitionHubPage dynamically to avoid circular dependency
-        const { RecognitionHubPage } = await import('@modules/reward/pages/recognition-hub/recognition-hub-page');
         const recognitionHub = new RecognitionHubPage(this.page);
         await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'visible', timeout: 25000 });
         break;

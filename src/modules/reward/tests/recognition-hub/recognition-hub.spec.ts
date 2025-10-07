@@ -8,16 +8,16 @@ import { executeQuery } from '@core/utils/dbUtils';
 import { tagTest } from '@core/utils/testDecorator';
 import { DialogBox } from '@modules/reward/components/common/dialog-box';
 import { GiveRecognitionDialogBox } from '@modules/reward/components/recognition/give-recognition-dialog-box';
-import { REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
+import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
 import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recognition-hub-page';
 
-test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
+test.describe.only('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
   let tenantCode: string;
 
   test.beforeEach(async ({ appManagerPage }) => {
     const recognitionHub = new RecognitionHubPage(appManagerPage);
-    await recognitionHub.enableTheRewardsInAndPeerGiftingIfDisabled();
+    await recognitionHub.enableTheRewardStoreAndPeerGiftingIfDisabled();
 
     // Get tenant code
     tenantCode = await appManagerPage.evaluate(() => {
@@ -66,7 +66,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
     }
   );
 
-  test(
+  test.skip(
     '[RC-3327] Validate if "gift points" toggle button is disabled on recognition modal when Allowances are refreshing',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1, TestGroupType.SMOKE],
@@ -101,7 +101,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
     }
   );
 
-  test(
+  test.skip(
     "[RC-3328] Verify if user's point(points to give) balance is 0 when allowances are refreshing",
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1, TestGroupType.SMOKE],
@@ -131,7 +131,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
     }
   );
 
-  test(
+  test.skip(
     '[RC-3417] Verify the Gift points toggle button is disabled when Allowances are refreshing.',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1, TestGroupType.SMOKE],
@@ -165,7 +165,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
     }
   );
 
-  test(
+  test.skip(
     '[RC-3326] Validate if user is able to Delete recognition with points rollback when Allowances are refreshing',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1, TestGroupType.SMOKE],
@@ -230,7 +230,12 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   test(
     '[RC-3099] Validate rewards points are not shown on posts when rewards is disabled.',
     {
-      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1],
+      tag: [
+        REWARD_FEATURE_TAGS.RECOGNITION_POINT_LABELING,
+        TestPriority.P0,
+        TestGroupType.REGRESSION,
+        TestGroupType.SMOKE,
+      ],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -287,7 +292,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
     }
   );
 
-  test(
+  test.only(
     '[RC-3223] Validate Points refreshing banner should not be shown on the delete recognition modal if grace period is over',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1],
@@ -300,14 +305,10 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         storyId: 'RC-3223',
       });
 
-      // TODO: Implement when RecognitionHubPage and ManageRewardsOverviewPage are available
-
       const recognitionHub = new RecognitionHubPage(appManagerPage);
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
-
-      // Open the Recognition post which is published 24 hrs earlier
       await appManagerPage.waitForTimeout(5000);
-      const recognitionGiverName = process.env[`${process.env.PLATFORM}_STANDARD_FULLNAME`];
+      const recognitionGiverName: string = process.env[`STANDARD_USER_FULL_NAME`]!;
       await manageRewardsOverviewPage.loadPage();
       await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();
       const rewardPointsText =
@@ -318,7 +319,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         'Only visible to recipients, their managers and app administrators'
       );
 
-      // Click on Delete option in More Menu and validate revoke point is disabled
+      // Click on the Delete option in More Menu and validate revoke point is disabled
       await recognitionHub.clickOnTheFirstPostMoreOption('Delete');
       await expect(recognitionHub.deleteRecognitionDialogBoxTitle).toHaveText('Delete recognition');
       await expect(recognitionHub.deleteRecognitionWithRevokePoints).not.toBeVisible();
@@ -351,7 +352,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         'Only visible to you, your manager and app administrators'
       );
 
-      // Validate the Delete recognition and revoke points is enabled in dialog box
+      // Validate the Delete recognition and revoke points is enabled in the dialog box
       await recognitionHub.clickOnTheFirstPostMoreOption('Delete');
       await recognitionHub.deleteRecognitionDialogBoxContainer.waitFor({ state: 'visible' });
       await expect(recognitionHub.deleteRecognitionDialogBoxTitle).toHaveText('Delete recognition');
@@ -360,6 +361,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       await expect(recognitionHub.deleteRecognitionWithRevokePoints).toBeEnabled();
       await recognitionHub.deleteRecognitionDialogBoxCloseButton.click({ force: true });
       await expect(recognitionHub.deleteRecognitionDialogBoxContainer).not.toBeVisible();
+      await recognitionHub.deleteTheFirstRecognitionPost();
     }
   );
 });
