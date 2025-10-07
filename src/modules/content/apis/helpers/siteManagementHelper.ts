@@ -735,7 +735,7 @@ export class SiteManagementHelper {
       // Try SET_PERMISSION first, if it fails, fall back to remove and re-add
       try {
         return await this.makeUserSiteMembership(siteId, userId, role, SiteMembershipAction.SET_PERMISSION);
-      } catch (error) {
+      } catch {
         console.log(`SET_PERMISSION failed, falling back to remove and re-add approach`);
         await this.makeUserSiteMembership(siteId, userId, SitePermission.MEMBER, SiteMembershipAction.REMOVE);
         await this.makeUserSiteMembership(siteId, userId, SitePermission.MEMBER, SiteMembershipAction.ADD);
@@ -763,7 +763,7 @@ export class SiteManagementHelper {
   }> {
     return await test.step(`Getting site ${siteId} with its members`, async () => {
       // Get site details
-      const siteDetails = await this.appManagerApiClient.getMultipleSiteManagementService().getSiteDetails(siteId);
+      const siteDetails = await this.appManagerApiClient.getSiteManagementService().getContentSiteDetails(siteId);
       // Get site members
       const membersResponse = await this.getSiteMembershipList(siteId, options);
 
@@ -811,6 +811,38 @@ export class SiteManagementHelper {
 
       return {
         membersName,
+      };
+    });
+  }
+
+  /**
+   * Gets a site by access type with specific content submissions configuration
+   * @param accessType - The access type of the site (e.g., SITE_TYPES.UNLISTED)
+   * @param isContentSubmissionsEnabled - Whether content submissions should be enabled
+   * @returns Promise containing site details with siteName and siteId
+   */
+  async getSiteByIdWithContentSubmissions(
+    accessType: string,
+    isContentSubmissionsEnabled: boolean
+  ): Promise<{ siteId: string; siteName: string }> {
+    return await test.step(`Getting site with access type ${accessType} and content submissions ${isContentSubmissionsEnabled ? 'enabled' : 'disabled'}`, async () => {
+      // Try to find an existing site with the desired configuration
+      const _existingSite = await this.getSiteByAccessType(accessType, {
+        waitForSearchIndex: true,
+      });
+
+      // If we found an existing site, check if it matches our content submission requirements
+      // For now, we'll create a new site with the specific content submission setting
+      const createdSite = await this.createSiteByAccessType(accessType, undefined, {
+        overrides: {
+          isContentSubmissionsEnabled: isContentSubmissionsEnabled,
+        },
+        waitForSearchIndex: true,
+      });
+
+      return {
+        siteId: createdSite.siteId,
+        siteName: createdSite.siteName,
       };
     });
   }

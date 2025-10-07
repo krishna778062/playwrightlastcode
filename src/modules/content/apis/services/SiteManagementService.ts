@@ -400,7 +400,7 @@ export class SiteManagementService implements ISiteManagementOperations {
     });
   }
 
-  async getSiteDetails(siteId: string): Promise<any> {
+  async getContentSiteDetails(siteId: string): Promise<any> {
     return await test.step(`Getting site details for site ${siteId}`, async () => {
       const response = await this.get(`${API_ENDPOINTS.site.url}/${siteId}`);
       return await response.json();
