@@ -37,7 +37,7 @@ test.describe(
     test(
       'Verify different sites can share same page category name',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
       },
       async ({ appManagerHomePage, contentManagementHelper: _contentManagementHelper }) => {
         tagTest(test.info(), {
@@ -98,7 +98,13 @@ test.describe(
     test(
       'To verify the favourite people from manage site people',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, ContentFeatureTags.MANAGE_SITE],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          ContentFeatureTags.MANAGE_SITE,
+          ContentFeatureTags.MANAGE_SITE,
+          '@CONT-29063',
+        ],
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {

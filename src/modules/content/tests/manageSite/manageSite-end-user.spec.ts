@@ -29,7 +29,13 @@ test.describe(
     test(
       'Login as Standard User where user is Site Content Manager of Public site',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, ContentFeatureTags.MANAGE_SITE],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          ContentFeatureTags.MANAGE_SITE,
+          ContentFeatureTags.MANAGE_SITE,
+          '@CONT-29063',
+        ],
       },
       async ({ siteManagementHelper, standardUserHomePage }) => {
         tagTest(test.info(), {
@@ -65,7 +71,7 @@ test.describe(
     test(
       'To verify the UI of Manage site content - End User',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-23740'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
       },
       async ({ contentManagementHelper, siteManagementHelper, identityManagementHelper, standardUserHomePage }) => {
         tagTest(test.info(), {
@@ -134,7 +140,13 @@ test.describe(
     test(
       'Login as Standard User where user is Site Content Manager of Private site',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, ContentFeatureTags.MANAGE_SITE],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          ContentFeatureTags.MANAGE_SITE,
+          ContentFeatureTags.MANAGE_SITE,
+          '@CONT-29063',
+        ],
       },
       async ({ siteManagementHelper, standardUserHomePage }) => {
         tagTest(test.info(), {
@@ -170,7 +182,13 @@ test.describe(
     test(
       'Login as Standard User where user is Site Content Manager of Unlisted site',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, ContentFeatureTags.MANAGE_SITE],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          ContentFeatureTags.MANAGE_SITE,
+          ContentFeatureTags.MANAGE_SITE,
+          '@CONT-29063',
+        ],
       },
       async ({ siteManagementHelper, standardUserHomePage, appManagerApiClient }) => {
         tagTest(test.info(), {
