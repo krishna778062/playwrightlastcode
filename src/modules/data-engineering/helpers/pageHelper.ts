@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 
@@ -17,9 +17,11 @@ export class PageHelper {
    * await PageHelper.waitForLoadingToComplete(page);
    */
   static async waitForLoadingToComplete(page: Page, timeout: number = TIMEOUTS.LONG): Promise<void> {
-    await page.waitForSelector("//div[@class='LoadingDots']", {
-      state: 'detached',
-      timeout,
+    await test.step('Wait for loading to complete', async () => {
+      await page.waitForSelector("//div[@class='LoadingDots']", {
+        state: 'detached',
+        timeout,
+      });
     });
   }
 }
