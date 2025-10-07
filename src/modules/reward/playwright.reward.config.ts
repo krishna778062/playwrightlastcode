@@ -22,9 +22,9 @@ export default defineConfig({
         headless: !!process.env.CI,
         ...devices['Desktop Chrome'],
         baseURL: getEnvConfig().frontendBaseUrl,
+        viewport: { width: 1920, height: 1080 },
         launchOptions: {
           args: [
-            '--start-maximized', // Start maximized
             '--disable-gpu', // Disable GPU acceleration
             '--no-sandbox', // Disable sandbox
             '--disable-dev-shm-usage', // Disable /dev/shm usage

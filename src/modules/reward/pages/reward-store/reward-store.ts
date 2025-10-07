@@ -1,4 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import fs from 'fs';
+import path from 'path';
 
 import { PAGE_ENDPOINTS, PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
@@ -188,25 +190,93 @@ export class RewardsStore extends BasePage {
     });
   }
 
+  /**
+   * Enable rewards and peer gifting if disabled,
+   * This method checks the current state via API and enables both features if needed
+   */
   async enableTheRewardStoreAndPeerGiftingIfDisabled() {
+    const [apiResponse] = await Promise.all([
+      this.page.waitForResponse(
+        res =>
+          res.url().includes('/recognition/v1/tenant/config') &&
+          res.status() === 200 &&
+          res.request().method() === 'GET'
+      ),
+      this.visit(), // action that triggers API
+    ]);
+    const body = await apiResponse.json();
+    const isRewardEnabled = body.rewardConfig?.enabled;
+    const isPeerGiftingEnabled = body.rewardConfig?.peerGiftingEnabled;
+    console.log(
+      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingEnabled}`
+    );
+    await this.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingEnabled);
+    await this.visit();
+  }
+
+  /**
+   * Check and enable rewards and peer gifting based on current state
+   */
+  private async checkTheRewardsIsEnabled(isRewardEnabled: boolean, isPeerGiftingEnabled: boolean): Promise<void> {
     const manageRewardsPage = new ManageRewardsOverviewPage(this.page);
 
-    await manageRewardsPage.loadPage();
-    await manageRewardsPage.verifyThePageIsLoaded();
+    if (!isRewardEnabled && !isPeerGiftingEnabled) {
+      // Both disabled: Enable peer gifting first, then rewards
+      await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
 
-    // Enable rewards if disabled
-    const isRewardsEnabled = await manageRewardsPage.verifier.isTheElementVisible(
-      manageRewardsPage.enableRewardsButton,
-      { timeout: 5000 }
-    );
-    if (isRewardsEnabled) {
+      // Enable peer gifting
+      const isPeerGiftingToggleOff = await manageRewardsPage.peerGifting.peerGiftingToggleSwitch.isChecked();
+      if (!isPeerGiftingToggleOff) {
+        await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
+          stepInfo: 'Enabling peer gifting toggle',
+        });
+      }
+      await manageRewardsPage.peerGifting.saveButton.waitFor({ state: 'attached', timeout: 15000 });
+      await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
+        stepInfo: 'Clicking save button',
+      });
+      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
+
+      // Now enable rewards
+      await manageRewardsPage.loadPage();
+      await manageRewardsPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
       await manageRewardsPage.clickOnElement(manageRewardsPage.enableRewardsButton, {
-        stepInfo: 'Enabling rewards if disabled',
+        stepInfo: 'Enabling rewards',
       });
       await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards enabled');
-    }
+      await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Rewards overview');
+    } else if (!isRewardEnabled && isPeerGiftingEnabled) {
+      // Only rewards disabled: Enable rewards directly
+      await manageRewardsPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.enableRewardsButton, {
+        stepInfo: 'Enabling rewards',
+      });
+      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards enabled');
+      await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Rewards overview');
+    } else if (isRewardEnabled && !isPeerGiftingEnabled) {
+      // Only peer gifting disabled: Enable peer gifting
+      await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
 
-    await this.visit();
+      const isPeerGiftingToggleOff = await manageRewardsPage.peerGifting.peerGiftingToggleSwitch.isChecked();
+      if (!isPeerGiftingToggleOff) {
+        await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
+          stepInfo: 'Enabling peer gifting toggle',
+        });
+      }
+      await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
+        stepInfo: 'Clicking save button',
+      });
+      await manageRewardsPage.peerGifting.selectThePeerGiftingEnableType('Immediately');
+      await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.grantAllowancesConfirmButton, {
+        stepInfo: 'Confirming grant allowances',
+      });
+      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
+    } else if (isRewardEnabled && isPeerGiftingEnabled) {
+      // Both are already enabled, do nothing
+      console.log('Reward and Peer Gifting are already enabled.');
+    }
   }
 
   async selectAndRedeemGiftCard(giftCardName: string) {
@@ -334,35 +404,28 @@ export class RewardsStore extends BasePage {
   }
 
   async mockTheOrderAPIResponse() {
-    await this.page.route('**/recognition/redemption/orders?**', async route => {
-      try {
-        // First, get the actual order data
-        const response = await route.fetch();
-        const originalData = await response.json();
-
-        // Modify the first order to have a date before 90 days
-        if (originalData.results && originalData.results.length > 0) {
-          const ninetyDaysAgo = new Date();
-          ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 95); // 95 days ago to ensure it's before 90 days
-
-          originalData.results[0].createdAt = ninetyDaysAgo.toISOString();
-          originalData.results[0].canResend = false; // Disable resend for old orders
-        }
-
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify(originalData),
-        });
-      } catch {
-        // Fallback to original response if fetching fails
-        await route.continue();
-      }
+    await this.page.route('**/recognition/redemption/orders*', async route => {
+      const fixture = await fs.promises.readFile(path.join(__dirname, '..', '..', 'fixtures', 'orders.json'), 'utf8');
+      const data = JSON.parse(fixture);
+      data.results[0].createdAt = new Date(Date.now() - 95 * 24 * 60 * 60 * 1000).toISOString();
+      data.results[0].canResend = false;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(data),
+      });
     });
   }
 
+  /**
+   * Step 5: Validate the tooltip text for orders older than 90 days
+   */
   async validateTheOrderResendForMoreThan90Days() {
+    await this.verifier.verifyTheElementIsVisible(this.disabledResendButton.first(), {
+      assertionMessage: ' Verify the disabled resend button is visible ',
+    });
     await this.disabledResendButton.first().hover({ force: true });
+    await this.resendOrderTooltip.waitFor({ state: 'visible', timeout: 5000 });
     await this.verifier.verifyTheElementIsVisible(this.resendOrderTooltip);
     await this.verifier.verifyElementHasText(
       this.resendOrderTooltip,
