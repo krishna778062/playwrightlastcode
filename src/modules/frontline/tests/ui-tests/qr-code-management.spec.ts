@@ -208,3 +208,70 @@ test(
     await manageQRPage.verifyNothingToShowMessage();
   }
 );
+
+test(
+  '[FL-416] Verify search status filter Active Inactive Expired as adminUser',
+  {
+    tag: [TestPriority.P2, FrontlineFeatureTags.QR_CODE],
+  },
+  async ({ appManagerHomePage, qrManagementService }) => {
+    tagTest(test.info(), {
+      description: 'Verify search status filter Active Inactive Expired as adminUser',
+      zephyrTestId: 'FL-416',
+      storyId: 'FL-416',
+    });
+
+    const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+
+    await manageQRPage.loadPage();
+    await manageQRPage.verifyManagePage();
+    const qrListData = await qrManagementService.getListOfQRCodes();
+    const originalCount = qrListData.count;
+    await manageQRPage.clickOnFilter();
+    await manageQRPage.verifyFilterHeaderText();
+    await manageQRPage.selectExpiredFilter();
+    await manageQRPage.clickOnFilterApply();
+    await manageQRPage.verifyAllExpiredQRs();
+    await manageQRPage.clickOnFilter();
+    await manageQRPage.clickOnFilterReset();
+    await manageQRPage.verifyFilterReset();
+    await manageQRPage.clickOnFilterApply();
+    await manageQRPage.verifyQRAfterFilterReset(originalCount);
+  }
+);
+
+test(
+  '[FL-417] Verify search type filter Content App promotion as adminUser',
+  {
+    tag: [TestPriority.P2, FrontlineFeatureTags.QR_CODE],
+  },
+  async ({ appManagerHomePage, qrManagementService }) => {
+    tagTest(test.info(), {
+      description: 'Verify search type filter Content App promotion as adminUser',
+      zephyrTestId: 'FL-417',
+      storyId: 'FL-417',
+    });
+
+    const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+
+    await manageQRPage.loadPage();
+    await manageQRPage.verifyManagePage();
+    const qrListData = await qrManagementService.getListOfQRCodes();
+    const originalCount = qrListData.count;
+    await manageQRPage.clickOnFilter();
+    await manageQRPage.verifyFilterHeaderText();
+    await manageQRPage.selectAppPromotionTypeFilter();
+    await manageQRPage.clickOnFilterApply();
+    await manageQRPage.verifyValidTillDateIsNAForAllQRs();
+    await manageQRPage.clickOnFilter();
+    await manageQRPage.selectContentTypeFilter();
+    await manageQRPage.verifyBothTypeFiltersAreChecked();
+    await manageQRPage.clickOnFilterApply();
+    await manageQRPage.verifyQRAfterFilterReset(originalCount);
+    await manageQRPage.clickOnFilter();
+    await manageQRPage.clickOnFilterReset();
+    await manageQRPage.verifyTypeFiltersAreUnchecked();
+    await manageQRPage.clickOnFilterApply();
+    await manageQRPage.verifyQRAfterFilterReset(originalCount);
+  }
+);
