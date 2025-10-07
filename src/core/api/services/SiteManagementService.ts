@@ -406,4 +406,28 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       return await this.parseResponse(response);
     });
   }
+
+  /**
+   * Gets detailed information about a specific site
+   * @param siteId - The site ID to retrieve details for
+   * @returns Promise containing the site details
+   */
+  async getSiteDetails(siteId: string): Promise<any> {
+    return await test.step(`Getting site details for site ID: ${siteId}`, async () => {
+      const response = await this.get(API_ENDPOINTS.site.siteDetails(siteId), {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const responseBody = await response.json();
+      console.log('Site details response:', JSON.stringify(responseBody, null, 2));
+
+      if (!response.ok()) {
+        throw new Error(`Failed to get site details for ${siteId}. Status: ${response.status()}`);
+      }
+
+      return responseBody;
+    });
+  }
 }

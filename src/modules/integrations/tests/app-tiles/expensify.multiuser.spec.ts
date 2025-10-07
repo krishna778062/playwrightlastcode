@@ -2,25 +2,40 @@ import { faker } from '@faker-js/faker';
 import { UI_ACTIONS } from '@integrations-constants/common';
 import { MESSAGES } from '@integrations-constants/messageRepo';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
-import { multiUserTileFixture } from '@integrations-fixtures/multiUserTileFixture';
+import { IntegrationsFeatureTags } from '@integrations-constants/testTags';
+import { createCustomMultiUserFixture, multiUserTileFixture } from '@integrations-fixtures/multiUserTileFixture';
 import { test } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { UserCredentials } from '@core/types/test.types';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { waitUntilTilePresentInApi } from '@/src/modules/integrations/api/helpers/tileApiHelpers';
 import { HomeDashboard } from '@/src/modules/integrations/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/pages/siteDashboard';
 
+const expensifyAdmin: UserCredentials = {
+  email: process.env.QA_SYSTEM_ADMIN_USERNAME!,
+  password: process.env.QA_SYSTEM_ADMIN_PASSWORD!,
+};
+
+const expensifyEndUser: UserCredentials = {
+  email: process.env.QA_SYSTEM_END_USER_USERNAME!,
+  password: process.env.QA_SYSTEM_END_USER_PASSWORD!,
+};
+
+// Create custom fixture with both Expensify admin and end user credentials
+const expensifyMultiUserFixture = createCustomMultiUserFixture(expensifyAdmin, expensifyEndUser);
+
 test.describe(
-  'DocuSign App Tiles Multi-user Tests',
+  'expensify App Tiles Multi-user Tests',
   {
-    tag: [IntegrationsSuiteTags.DOCUSIGN, IntegrationsSuiteTags.ABSOLUTE],
+    tag: [IntegrationsSuiteTags.EXPENSIFY, IntegrationsSuiteTags.ABSOLUTE, IntegrationsFeatureTags.MULTI_USER],
   },
   () => {
-    const AppName = 'Docusign';
-    const tileName = 'Display Docusign signature requests';
+    const AppName = 'Expensify';
+    const tileName = 'Display expense reports';
     let createdTileTitle: string | undefined = undefined;
 
     multiUserTileFixture.afterEach(async ({ adminPage, tileManagementHelper }) => {
@@ -32,19 +47,19 @@ test.describe(
       }
     });
 
-    multiUserTileFixture(
-      'verify the "Display Docusign signature requests" tile is visible to end users after it has been added by the App Manager',
+    expensifyMultiUserFixture(
+      'multi-user tile management for Expensify app tile - Admin creates, EndUser verifies, Admin deletes',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-25165',
-          storyId: 'INT-24586',
+          zephyrTestId: 'INT-24797',
+          storyId: 'INT-23049',
         });
 
         //Generate a random tile title
-        createdTileTitle = `DocuSign report ${faker.string.alphanumeric({ length: 6 })}`;
+        createdTileTitle = `Expensify report ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Add tile, verify by both users, then remove
         const adminHomeDashboard = new HomeDashboard(adminPage, tileManagementHelper);
@@ -57,19 +72,19 @@ test.describe(
       }
     );
 
-    multiUserTileFixture(
-      'Verify the "Display Docusign signature requests" tile is visible to end users on site dashboard',
+    expensifyMultiUserFixture(
+      'site Manager creates site with Expensify tile, End User verifies, Site Manager deletes tile and deactivates site',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-25162',
-          storyId: 'INT-24586',
+          zephyrTestId: 'INT-24795',
+          storyId: 'INT-23049',
         });
 
         //Generate a random tile title
-        createdTileTitle = `DocuSign report${faker.string.alphanumeric({ length: 6 })}`;
+        createdTileTitle = `Expensify report ${faker.string.alphanumeric({ length: 6 })}`;
         const endUserSiteDashboard = new SiteDashboard(endUserPage);
         const siteDashboard = new SiteDashboard(adminPage, tileManagementHelper);
 
