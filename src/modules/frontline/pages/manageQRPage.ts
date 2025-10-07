@@ -56,6 +56,12 @@ export class ManageQRPage extends BasePage {
   readonly expiredQRToggle: Locator;
   readonly qrListRows: Locator;
   readonly tillDateNA: Locator;
+  readonly contentFilter: Locator;
+  readonly inactiveFilterCheckBox: Locator;
+  readonly inactiveQR: Locator;
+  readonly contentPageQRIcon: Locator;
+  readonly promoteContentQRPage: Locator;
+  readonly firstContentHeader: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_QR_PAGE);
@@ -85,7 +91,11 @@ export class ManageQRPage extends BasePage {
     this.togglePopup = page.getByRole('tooltip').nth(0);
     this.successMessage = page.getByText('Successfully deleted QR code');
     this.enterContent = page.getByRole('combobox', { name: 'Select content...' });
-    this.selectFirstContent = page.locator("//p[text()='Content']/..//div[@role='menuitem']").first();
+    this.selectFirstContent = page
+      .locator('p:has-text("Content")')
+      .locator('..')
+      .locator('div[role="menuitem"]')
+      .first();
     this.listOfPagesSelected = page.getByRole('button', { name: /Remove/ });
     this.generateContentQRPageHeading = page.getByText('Generate content QR');
     this.promoteContentQRModalHeading = page.getByText('Promote content via QR');
@@ -110,6 +120,12 @@ export class ManageQRPage extends BasePage {
     this.expiredQRToggle = page.getByRole('switch');
     this.qrListRows = page.getByRole('row');
     this.tillDateNA = page.locator('h4[aria-label="N/A"]');
+    this.contentFilter = page.locator('#type_content');
+    this.inactiveFilterCheckBox = page.locator('#status_disabled');
+    this.inactiveQR = page.locator('//tbody//button[@role="switch"]');
+    this.contentPageQRIcon = page.getByTestId('i-qr');
+    this.promoteContentQRPage = page.getByRole('heading', { name: 'Promote content via QR' });
+    this.firstContentHeader = page.locator('.ManageContentListItem').first().locator('h2 a');
   }
 
   async clickOnManage() {
@@ -614,6 +630,76 @@ export class ManageQRPage extends BasePage {
     await test.step('Verify type filters are unchecked after reset', async () => {
       await expect(this.filterAppCheckbox).not.toBeChecked();
       await expect(this.filterContentCheckbox).not.toBeChecked();
+    });
+  }
+
+  async selectContentFilter(): Promise<void> {
+    await this.checkElement(this.contentFilter, {
+      stepInfo: 'Select content filter checkbox',
+    });
+    await expect(this.contentFilter).toBeChecked();
+  }
+
+  async selectInactiveFilter(): Promise<void> {
+    await this.checkElement(this.inactiveFilterCheckBox, {
+      stepInfo: 'Select inactive filter checkbox',
+    });
+    await expect(this.inactiveFilterCheckBox).toBeChecked();
+  }
+
+  async verifyInactiveQRs(): Promise<void> {
+    await test.step('Verify all inactive QR codes are displayed', async () => {
+      try {
+        await this.inactiveQR.first().waitFor({ state: 'visible', timeout: 10000 });
+      } catch (error) {
+        console.log('No QR codes found');
+        return;
+      }
+      const count = await this.inactiveQR.count();
+
+      if (count === 0) {
+        console.log('No QR codes found.');
+        return;
+      }
+      console.log(`Found ${count} QR codes. Checking for inactive ones...`);
+
+      for (let i = 0; i < count; i++) {
+        const toggle = this.inactiveQR.nth(i);
+
+        await this.verifier.verifyElementHasAttribute(toggle, 'aria-checked', 'false', {
+          assertionMessage: `Toggle ${i + 1} should have aria-checked="false" for inactive state`,
+        });
+
+        await this.verifier.verifyElementHasAttribute(toggle, 'data-state', 'unchecked', {
+          assertionMessage: `Toggle ${i + 1} should have data-state="unchecked" for inactive state`,
+        });
+      }
+    });
+  }
+
+  async openContent(): Promise<void> {
+    await this.goToUrl(PAGE_ENDPOINTS.MANAGE_CONTENT);
+
+    await this.clickOnElement(this.firstContentHeader, {
+      stepInfo: 'Click on first available content header',
+    });
+  }
+
+  async clickOnQRIcon(): Promise<void> {
+    await this.clickOnElement(this.contentPageQRIcon, {
+      stepInfo: 'Click on QR share option',
+    });
+  }
+
+  async verifyPromoteContentPageHeading(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.promoteContentQRPage, {
+      assertionMessage: 'Promote content via QR page should be visible',
+    });
+  }
+
+  async validateQRName(qrName: string): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.qrNameHeaderLocator.filter({ hasText: qrName.trim() }).first(), {
+      assertionMessage: `QR with name "${qrName}" should be visible on first list item`,
     });
   }
 }
