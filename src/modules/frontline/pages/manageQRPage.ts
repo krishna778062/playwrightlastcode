@@ -663,24 +663,17 @@ export class ManageQRPage extends BasePage {
       }
       console.log(`Found ${count} QR codes. Checking for inactive ones...`);
 
-      let inactiveCount = 0;
       for (let i = 0; i < count; i++) {
         const toggle = this.inactiveQR.nth(i);
-        const ariaChecked = await toggle.getAttribute('aria-checked');
 
-        if (ariaChecked === 'false') {
-          inactiveCount++;
-          await this.verifier.verifyElementHasAttribute(toggle, 'aria-checked', 'false', {
-            assertionMessage: `Toggle ${i + 1} should have aria-checked="false" for inactive state`,
-          });
+        await this.verifier.verifyElementHasAttribute(toggle, 'aria-checked', 'false', {
+          assertionMessage: `Toggle ${i + 1} should have aria-checked="false" for inactive state`,
+        });
 
-          await this.verifier.verifyElementHasAttribute(toggle, 'data-state', 'unchecked', {
-            assertionMessage: `Toggle ${i + 1} should have data-state="unchecked" for inactive state`,
-          });
-        }
+        await this.verifier.verifyElementHasAttribute(toggle, 'data-state', 'unchecked', {
+          assertionMessage: `Toggle ${i + 1} should have data-state="unchecked" for inactive state`,
+        });
       }
-
-      console.log(`Found ${inactiveCount} inactive QR codes out of ${count} total QR codes.`);
     });
   }
 
