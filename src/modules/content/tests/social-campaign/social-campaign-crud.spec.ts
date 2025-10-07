@@ -22,6 +22,7 @@ import {
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { FeedPage } from '../../pages/feedPage';
 import { SiteDashboardPage } from '../../pages/siteDashboardPage';
 
 test.describe(
@@ -33,6 +34,7 @@ test.describe(
     let socialCampaignPage: SocialCampaignPage;
     let manualCleanupNeeded: boolean = false;
     let campaignId: string;
+    let feedPage: FeedPage;
 
     test.beforeEach(async ({ socialCampaignHelper }) => {
       // Reset cleanup flag for each test
@@ -292,6 +294,58 @@ test.describe(
           audienceDetailsWithNoDescription.description,
           audienceDetailsWithNoDescription.name
         );
+      }
+    );
+
+    test(
+      'Verify App Manager able to share Social Campaign to Home Feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-10515'],
+      },
+      async ({ appManagerHomePage, socialCampaignHelper, audienceManagementHelper, siteManagementHelper }) => {
+        tagTest(test.info(), {
+          description: 'Verify App Manager able to share Social Campaign to Home Feed',
+          zephyrTestId: 'CONT-10515',
+          storyId: 'CONT-10515',
+        });
+
+        socialCampaignPage = new SocialCampaignPage(appManagerHomePage.page);
+        // Setup: Get or create audience and site
+        const audienceId = await audienceManagementHelper.getRandomAudienceId();
+        const siteName = 'All Employees';
+        const siteId = await siteManagementHelper.getSiteIdWithName(siteName);
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
+          recipient: SocialCampaignRecipient.AUDIENCE,
+          audienceId: audienceId,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+          audienceId: campaignOptions.audienceId,
+        });
+        campaignId = createdCampaign.campaignId;
+        socialCampaignPage.loadPage();
+        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+
+        const description = TestDataGenerator.generateRandomString();
+        // Share campaign to site feed
+        await socialCampaignPage.actions.clickCampaignOptions();
+        await socialCampaignPage.actions.clickShareToFeedButton();
+        await socialCampaignPage.actions.enterShareDescription(description);
+        await socialCampaignPage.actions.clickShareButton();
+
+        await appManagerHomePage.actions.clickOnGlobalFeed();
+        feedPage = new FeedPage(appManagerHomePage.page);
+        await feedPage.verifyThePageIsLoaded();
+        await feedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
+        manualCleanupNeeded = true;
       }
     );
   }

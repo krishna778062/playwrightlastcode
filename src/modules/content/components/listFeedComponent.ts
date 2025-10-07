@@ -20,6 +20,8 @@ export class ListFeedComponent extends BaseComponent {
   readonly submitReplyButton: Locator;
   readonly replyEditor: Locator;
   readonly replyShowMoreButton: Locator;
+  readonly feedLinkWithDescription = (description: string) => this.page.locator('p').filter({ hasText: description });
+  readonly sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
 
   // Dynamic locator functions
   /**
@@ -347,6 +349,17 @@ export class ListFeedComponent extends BaseComponent {
   async clickOnInfoIcon(fileId: string): Promise<void> {
     await test.step(`Click on info icon for fileId: ${fileId}`, async () => {
       await this.clickOnElement(this.infoIcon);
+    });
+  }
+
+  async verifyCampaignLinkDisplayed(linkText: string, description: string): Promise<void> {
+    await test.step(`Verify campaign link "${linkText}" is displayed`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.feedLinkWithDescription(description), {
+        assertionMessage: `Shared Description "${description}" should be visible`,
+      });
+      await this.verifier.verifyTheElementIsVisible(this.sharefeedLink(linkText), {
+        assertionMessage: `Campaign link "${linkText}" should be visible`,
+      });
     });
   }
 }

@@ -74,6 +74,7 @@ export interface IFeedAssertions {
   verifyToastMessage: (message: string) => Promise<void>;
   verifyAskQuestionButtonIsNotDisabled: () => Promise<void>;
   verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
+  verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -352,5 +353,9 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async editQuestion(questionTitle: string, newTitle: string): Promise<void> {
     await this.createQuestionComponent.editQuestion(questionTitle, newTitle);
+  }
+
+  async verifyCampaignLinkDisplayed(linkText: string, description: string): Promise<void> {
+    await this.listFeedComponent.verifyCampaignLinkDisplayed(linkText, description);
   }
 }
