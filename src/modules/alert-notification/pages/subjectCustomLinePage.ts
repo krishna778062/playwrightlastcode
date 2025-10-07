@@ -272,13 +272,22 @@ export class SubjectCustomLinePage extends BasePage {
       // Use specific UI elements that are always present for each step
       switch (stepName) {
         case 'SELECT_NOTIFICATION':
-          await expect(this.mustReadButton).toBeVisible();
+          await expect(
+            this.mustReadButton,
+            'Must Read button should be visible on SELECT_NOTIFICATION step'
+          ).toBeVisible();
           break;
         case 'OVERRIDE_AND_CONFIRMATION':
-          await expect(this.customSubjectRadio).toBeVisible();
+          await expect(
+            this.customSubjectRadio,
+            'Custom subject radio should be visible on OVERRIDE_AND_CONFIRMATION step'
+          ).toBeVisible();
           break;
         case 'MANAGE_TRANSLATIONS':
-          await expect(this.languageButton).toBeVisible();
+          await expect(
+            this.languageButton,
+            'Language button should be visible on MANAGE_TRANSLATIONS step'
+          ).toBeVisible();
           break;
         default:
           throw new Error(`Unknown stepper step: ${stepName}`);
@@ -375,7 +384,7 @@ export class SubjectCustomLinePage extends BasePage {
       await this.clickOnElement(this.languageButton.first());
 
       const menuItems = this.page.locator('[role="menuitem"], [role="option"]');
-      await expect(menuItems.first()).toBeVisible({ timeout: 10_000 });
+      await expect(menuItems.first(), 'Language menu should be visible').toBeVisible({ timeout: 10_000 });
     });
   }
 
@@ -390,7 +399,7 @@ export class SubjectCustomLinePage extends BasePage {
       await this.clickOnElement(languageButton);
 
       const menuItems = this.page.locator('[role="menuitem"]');
-      await expect(menuItems.first()).toBeVisible({ timeout: 10_000 });
+      await expect(menuItems.first(), 'Language menu should open').toBeVisible({ timeout: 10_000 });
 
       const allMenuItems = await this.page.locator('[role="menuitem"]').allTextContents();
 
@@ -415,7 +424,7 @@ export class SubjectCustomLinePage extends BasePage {
       }
 
       await this.clickOnElement(target);
-      await expect(menuItems.first()).toBeHidden({ timeout: 5_000 });
+      await expect(menuItems.first(), 'Language menu should close').toBeHidden({ timeout: 5_000 });
     });
   }
 
@@ -471,11 +480,11 @@ export class SubjectCustomLinePage extends BasePage {
   }
 
   async expectSendTestDisabled(): Promise<void> {
-    await expect(this.sendTestButton).toBeDisabled();
+    await expect(this.sendTestButton, 'Send test button should be disabled').toBeDisabled();
   }
 
   async expectSendTestEnabled(): Promise<void> {
-    await expect(this.sendTestButton).toBeEnabled();
+    await expect(this.sendTestButton, 'Send test button should be enabled').toBeEnabled();
   }
 
   /**
@@ -494,7 +503,7 @@ export class SubjectCustomLinePage extends BasePage {
     let switchElement = null;
     for (const locator of switchLocators) {
       try {
-        await expect(locator).toBeVisible({ timeout: 5_000 });
+        await expect(locator, 'Manual translations switch should be visible').toBeVisible({ timeout: 5_000 });
         switchElement = locator;
         break;
       } catch {
@@ -550,7 +559,7 @@ export class SubjectCustomLinePage extends BasePage {
    * @param re - Regular expression to match the toast message
    */
   async expectToast(re: RegExp): Promise<void> {
-    await expect(this.page.getByText(re)).toBeVisible({ timeout: 15_000 });
+    await expect(this.page.getByText(re), 'Expected toast text should appear').toBeVisible({ timeout: 15_000 });
   }
 
   /**
@@ -562,7 +571,7 @@ export class SubjectCustomLinePage extends BasePage {
     if (typeof text === 'string') {
       await this.verifier.verifyElementContainsText(this.bodyContainer, text, { timeout });
     } else {
-      await expect(this.bodyContainer).toContainText(text, { timeout });
+      await expect(this.bodyContainer, 'Page body should contain expected text').toContainText(text, { timeout });
     }
   }
 
@@ -610,11 +619,11 @@ export class SubjectCustomLinePage extends BasePage {
   async deleteBySubject(subject: string): Promise<void> {
     await test.step(`Delete customization with subject: ${subject}`, async () => {
       const row = this.rowBySubject(subject);
-      await expect(row).toBeVisible({ timeout: 10_000 });
+      await expect(row, `Row with subject \"${subject}\" should be visible`).toBeVisible({ timeout: 10_000 });
       await this.clickOnElement(row.getByRole('button', { name: /^more$/i }));
       await this.clickDeleteFromRowMenuAndConfirm();
       await this.expectDeletedToast();
-      await expect(this.rowBySubject(subject)).toHaveCount(0);
+      await expect(this.rowBySubject(subject), 'Deleted row should no longer be present').toHaveCount(0);
     });
   }
 
@@ -627,11 +636,11 @@ export class SubjectCustomLinePage extends BasePage {
         .getByRole('menuitem', { name: /^delete$/i })
         .first()
         .or(this.page.getByRole('button', { name: /^delete$/i }).first());
-      await expect(menuDelete).toBeVisible({ timeout: 10_000 });
+      await expect(menuDelete, 'Row action menu should contain Delete').toBeVisible({ timeout: 10_000 });
       await this.clickOnElement(menuDelete);
 
       const confirm = this.page.getByRole('button', { name: /^delete$/i }).last();
-      await expect(confirm).toBeVisible({ timeout: 10_000 });
+      await expect(confirm, 'Delete confirmation button should be visible').toBeVisible({ timeout: 10_000 });
       await this.clickOnElement(confirm);
     });
   }

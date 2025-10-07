@@ -186,10 +186,14 @@ export class NotificationTestWorkflows {
   private async waitForTranslationCompletion(): Promise<void> {
     const loadingSpinner = this.page.locator('.loading, .spinner, [aria-busy="true"]').first();
     if (await loadingSpinner.isVisible().catch(() => false)) {
-      await expect(loadingSpinner).toBeHidden({ timeout: 10_000 });
+      await expect(loadingSpinner, 'Loading spinner should disappear before enabling Save').toBeHidden({
+        timeout: 10_000,
+      });
     }
 
     const saveButton = this.page.getByRole('button', { name: POPUP_BUTTONS.SAVE });
-    await expect(saveButton).toBeEnabled({ timeout: 5_000 });
+    await expect(saveButton, 'Save button should be enabled after processing completes').toBeEnabled({
+      timeout: 5_000,
+    });
   }
 }
