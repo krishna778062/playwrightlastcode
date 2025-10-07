@@ -14,9 +14,11 @@ export const SOCIAL_CAMPAIGN_TEST_DATA = {
   // Common URLs for testing
   URLS: {
     YOUTUBE: 'https://www.youtube.com/watch?v=6_q_LHq85Cs',
+    YOUTUBE_2: 'https://www.youtube.com/watch?v=JrUz19vvHbY',
     SIMPPLR_BLOG: 'https://www.simpplr.com/blog/2023/building-transparent-leadership-and-trust',
     SIMPPLR_ALL_EMPLOYEES: 'https://www.simpplr.com/blog/2023/g2-best-intranet-solution/',
     SIMPPLR_TRANSPARENT_LEADERSHIP: 'https://www.simpplr.com/blog/2023/building-transparent-leadership-and-trust',
+    SIMPPLR_NEW_BRAND: 'https://www.simpplr.com/blog/2022/new-brand/',
     SIMPPLR_COMPANY_VALUES: 'https://www.simpplr.com/blog/2023/is-it-time-to-refresh-your-company-values/',
     GENERIC_URL: faker.internet.url(),
   },
@@ -24,6 +26,7 @@ export const SOCIAL_CAMPAIGN_TEST_DATA = {
     YOUTUBE: 'How Life Will Look Like In 2050',
     SIMPPLR_BLOG: 'Building Transparent Leadership and Trust',
     SIMPPLR_ALL_EMPLOYEES: 'Find the best intranet solution with the 2023 G2 report',
+    SIMPPLR_NEW_BRAND: 'Simpplr rebrand announcement | Official',
   },
 
   // Social networks

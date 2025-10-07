@@ -25,6 +25,9 @@ export interface ISocialCampaignPageActions {
   enterShareDescription: (description: string) => Promise<void>;
   enterSiteName: (siteName: string) => Promise<void>;
   clickShareButton: () => Promise<void>;
+  enterCampaignUrl: (url: string, linkText?: string) => Promise<void>;
+  uncheckNetwork: (networkName: string) => Promise<void>;
+  clickCreateCampaignButton: () => Promise<void>;
 }
 
 export interface ISocialCampaignPageAssertions {
@@ -33,6 +36,7 @@ export interface ISocialCampaignPageAssertions {
   verifyCampaignNotInExpired: (linkText: string) => Promise<void>;
   verifyCampaignInExpired: (linkText: string) => Promise<void>;
   verifyToastMessage: (message: string) => Promise<void>;
+  verifyErrorMessagePresence: (errorMessage: string) => Promise<void>;
 }
 
 export class SocialCampaignPage extends BasePage implements ISocialCampaignPageActions, ISocialCampaignPageAssertions {
@@ -172,5 +176,21 @@ export class SocialCampaignPage extends BasePage implements ISocialCampaignPageA
 
   async clickShareButton(): Promise<void> {
     return await this.shareSocialCampaignComponent.clickShareButton();
+  }
+
+  async enterCampaignUrl(url: string, linkText?: string): Promise<void> {
+    return await this.addCampaignPage.enterCampaignUrl(url, linkText);
+  }
+
+  async uncheckNetwork(networkName: string): Promise<void> {
+    return await this.addCampaignPage.actions.uncheckNetwork(networkName);
+  }
+
+  async clickCreateCampaignButton(): Promise<void> {
+    return await this.addCampaignPage.actions.clickCreateCampaignButton();
+  }
+
+  async verifyErrorMessagePresence(errorMessage: string): Promise<void> {
+    return await this.addCampaignPage.verifyErrorMessagePresence(errorMessage);
   }
 }

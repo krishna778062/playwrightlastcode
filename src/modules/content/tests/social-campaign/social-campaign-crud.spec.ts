@@ -186,5 +186,35 @@ test.describe(
         manualCleanupNeeded = true;
       }
     );
+
+    test(
+      'In Zeus Verify error messages on creating social campaign without required details',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19603', '@Social_Campaign_Validation'],
+      },
+      async ({ appManagerHomePage, appManagersPage }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify error messages on creating social campaign without required details',
+          zephyrTestId: 'CONT-19603',
+          storyId: 'CONT-19603',
+        });
+
+        // Create social campaign page instance
+        const socialCampaignPage = new SocialCampaignPage(appManagersPage);
+
+        // Navigate to social campaigns and add campaign
+        await socialCampaignPage.loadPage();
+        await socialCampaignPage.actions.clickAddCampaignButton();
+        await socialCampaignPage.actions.enterCampaignUrl(SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE_2);
+        await socialCampaignPage.actions.uncheckNetwork('X');
+        await socialCampaignPage.actions.uncheckNetwork('Facebook');
+        await socialCampaignPage.actions.uncheckNetwork('LinkedIn');
+        await socialCampaignPage.actions.clickCreateCampaignButton();
+        await socialCampaignPage.assertions.verifyErrorMessagePresence('You must select at least one social network');
+        await socialCampaignPage.assertions.verifyErrorMessagePresence(
+          'Suggested campaign message is a required field is a required field'
+        );
+      }
+    );
   }
 );
