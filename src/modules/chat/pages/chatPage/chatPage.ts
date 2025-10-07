@@ -81,6 +81,7 @@ export interface IChatAssertions {
     senderName: string,
     options?: { stepInfo?: string }
   ) => Promise<void>;
+  verifyEmojiMessageisVisible: (message: string, options?: { stepInfo?: string }) => Promise<void>;
 }
 
 export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAssertions {
@@ -662,6 +663,16 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
       const messageItem = this.page.locator(`article[data-message-id='${messageID}']`);
       await expect(messageItem, `expecting message item to be deleted`).toBeVisible();
     });
+  }
+
+  async verifyEmojiMessageisVisible(message: string, options?: { stepInfo?: string }) {
+    await test.step(
+      options?.stepInfo ?? `Verifying edit message option are not visible for message ${message}`,
+      async () => {
+        await this.getConversationWindowComponent().verifySentEmojiMessageVisible(message);
+        // await messageItem.verifyEditMessageOptionNotVisibleToUser();
+      }
+    );
   }
 
   async verifyMessageIsPresentInMentionsSection(
