@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
 import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
+import { REDIRECT_URLS } from '@integrations-test-data/app-tiles.test-data';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -36,7 +37,7 @@ test.describe(
 
       async ({ homeDashboard, tileManagementHelper }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24660',
+          zephyrTestId: ['INT-24660,INT-24671'],
           storyId: 'INT-24422',
         });
 
@@ -66,7 +67,7 @@ test.describe(
       },
       async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24661',
+          zephyrTestId: ['INT-24661,INT-24670'],
           storyId: 'INT-24422',
         });
 
@@ -89,6 +90,33 @@ test.describe(
         await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         createdTileTitle = undefined;
+      }
+    );
+    test(
+      'verify UI layout for pending learning courses from Docebo on a tile',
+      {
+        tag: [TestPriority.P4, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ homeDashboard, tileManagementHelper }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-24676,INT-24677'],
+          storyId: 'INT-24422',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Docebo reportt ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add and verify tile
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.DISPLAY_LEARNING_COURSES,
+          CONNECTOR_IDS.DOCEBO
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // Verify tile content structure
+        await homeDashboard.verifyDoceboContentStructure(createdTileTitle);
+        await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.DOCEBO);
       }
     );
   }
