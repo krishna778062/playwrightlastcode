@@ -1,4 +1,4 @@
-import { expect, Locator, Page } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
@@ -363,6 +363,25 @@ export class RecognitionHubPage extends BasePage {
   }
 
   /**
+   * Set up the multiple gifting options
+   */
+  async setupTheSingleGiftingOptions(availablePoints: any): Promise<number> {
+    const rewardGiftingOptions = new RewardGiftingOptionsPage(this.page);
+    await rewardGiftingOptions.loadPage();
+    await rewardGiftingOptions.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/options');
+    const existingValue = await rewardGiftingOptions.getTheExistingValueInGiftingOptions();
+    const cleanAvailablePoints = availablePoints.replace(/[,\s]/g, '');
+    const parsedAvailablePoints = Number(cleanAvailablePoints) || 0;
+    const parsedExistingValue = Number(existingValue) || 0;
+    const maxRewardOption = Math.max(1, parsedAvailablePoints - parsedExistingValue - 1);
+    const rewardOption = maxRewardOption > 0 ? Math.floor(Math.random() * maxRewardOption) + 1 : 1;
+    await rewardGiftingOptions.enterTheAmountAndValidateNoError(String(rewardOption));
+    await rewardGiftingOptions.clickOnSaveButton();
+    await rewardGiftingOptions.verifyToastMessageIsVisibleWithText('Saved changes successfully');
+    return rewardOption;
+  }
+
+  /**
    * Enable rewards and peer gifting if disabled
    */
   async enableTheRewardsAndPeerGiftingIfDisabled(): Promise<void> {
@@ -383,11 +402,122 @@ export class RecognitionHubPage extends BasePage {
   }
 
   /**
+   * Enable rewards and peer gifting if disabled (for Recognition Hub context)
+   * This method checks the current state via API and enables both features if needed
+   */
+  async enableTheRewardsInAndPeerGiftingIfDisabled(): Promise<void> {
+    // Wait for the API response and visit recognition hub
+    const [apiResponse] = await Promise.all([
+      this.page.waitForResponse(
+        res =>
+          res.url().includes('/recognition/v1/tenant/config') &&
+          res.status() === 200 &&
+          res.request().method() === 'GET'
+      ),
+      this.visitRecognitionHub(), // action that triggers API
+    ]);
+    const body = await apiResponse.json();
+    const isRewardEnabled = body.rewardConfig?.enabled;
+    const isPeerGiftingEnabled = body.rewardConfig?.peerGiftingEnabled;
+    console.log(
+      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingEnabled}`
+    );
+    if (!isRewardEnabled || !isPeerGiftingEnabled) {
+      const manageRewardsPage = new ManageRewardsOverviewPage(this.page);
+      await manageRewardsPage.loadPage();
+      await this.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingEnabled);
+    }
+    await this.visitRecognitionHub();
+  }
+
+  /**
+   * Check and enable rewards and peer gifting based on current state
+   */
+  private async checkTheRewardsIsEnabled(isRewardEnabled: boolean, isPeerGiftingEnabled: boolean): Promise<void> {
+    const manageRewardsPage = new ManageRewardsOverviewPage(this.page);
+
+    if (!isRewardEnabled && !isPeerGiftingEnabled) {
+      // Both disabled: Enable peer gifting first, then rewards
+      await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
+
+      // Enable peer gifting
+      const isPeerGiftingToggleOff = await manageRewardsPage.peerGifting.peerGiftingToggleSwitch.isChecked();
+      if (!isPeerGiftingToggleOff) {
+        await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
+          stepInfo: 'Enabling peer gifting toggle',
+        });
+      }
+      await manageRewardsPage.peerGifting.saveButton.waitFor({ state: 'attached', timeout: 15000 });
+      await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
+        stepInfo: 'Clicking save button',
+      });
+      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
+
+      // Now enable rewards
+      await manageRewardsPage.loadPage();
+      await manageRewardsPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.enableRewardsButton, {
+        stepInfo: 'Enabling rewards',
+      });
+      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards enabled');
+      await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Rewards overview');
+    } else if (!isRewardEnabled && isPeerGiftingEnabled) {
+      // Only rewards disabled: Enable rewards directly
+      await manageRewardsPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.enableRewardsButton, {
+        stepInfo: 'Enabling rewards',
+      });
+      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards enabled');
+      await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Rewards overview');
+    } else if (isRewardEnabled && !isPeerGiftingEnabled) {
+      // Only peer gifting disabled: Enable peer gifting
+      await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
+
+      const isPeerGiftingToggleOff = await manageRewardsPage.peerGifting.peerGiftingToggleSwitch.isChecked();
+      if (!isPeerGiftingToggleOff) {
+        await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
+          stepInfo: 'Enabling peer gifting toggle',
+        });
+      }
+      await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
+        stepInfo: 'Clicking save button',
+      });
+      await manageRewardsPage.peerGifting.selectThePeerGiftingEnableType('Immediately');
+      await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.grantAllowancesConfirmButton, {
+        stepInfo: 'Confirming grant allowances',
+      });
+      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
+    } else if (isRewardEnabled && isPeerGiftingEnabled) {
+      // Both are already enabled, do nothing
+      console.log('Reward and Peer Gifting are already enabled.');
+    }
+  }
+
+  /**
    * Verify the page is loaded
    */
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.header, {
-      assertionMessage: 'Recognition Hub page header should be visible',
+    await this.verifier.verifyTheElementIsVisible(this.rewardRecognitionFirstPost, {
+      assertionMessage: 'Recognition Hub page first Post should be visible',
     });
+  }
+
+  async validatedTheInsufficientPointError(
+    recognitionHub: RecognitionHubPage,
+    rewardOption: number,
+    userCount: number
+  ) {
+    const textOfRecognitionButton = await recognitionHub.recognitionButtonText();
+    const insufficientErrorMessage = await recognitionHub.insufficientPointErrorMessageIsDisplaying();
+    const insufficientPointsWithRecipients = await recognitionHub.insufficientPointWithRecipientsErrorMessage();
+    expect(textOfRecognitionButton).toContain(
+      `Recognize & gift ${(Number(rewardOption) * userCount).toLocaleString()} points`
+    );
+    expect(insufficientPointsWithRecipients).toContain(
+      `${userCount} recipients = ${(Number(rewardOption) * userCount).toLocaleString()} points`
+    );
+    expect(insufficientErrorMessage).toBe(true);
   }
 }

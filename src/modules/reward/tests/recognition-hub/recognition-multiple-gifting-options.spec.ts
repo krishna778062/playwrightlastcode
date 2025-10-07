@@ -9,7 +9,7 @@ import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recogn
 test.describe('Multiple Gifting options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test.beforeEach(async ({ appManagerPage }) => {
     const recognitionHub = new RecognitionHubPage(appManagerPage);
-    await recognitionHub.enableTheRewardsAndPeerGiftingIfDisabled();
+    await recognitionHub.enableTheRewardsInAndPeerGiftingIfDisabled();
   });
 
   test(

@@ -12,12 +12,12 @@ import { REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
 import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recognition-hub-page';
 
-test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
+test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
   let tenantCode: string;
 
   test.beforeEach(async ({ appManagerPage }) => {
     const recognitionHub = new RecognitionHubPage(appManagerPage);
-    await recognitionHub.enableTheRewardsAndPeerGiftingIfDisabled();
+    await recognitionHub.enableTheRewardsInAndPeerGiftingIfDisabled();
 
     // Get tenant code
     tenantCode = await appManagerPage.evaluate(() => {
@@ -28,7 +28,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
   test(
     '[RC-2717] Validate adding the points pill to the recognition post',
     {
-      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1],
+      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {

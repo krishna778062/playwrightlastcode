@@ -7,6 +7,7 @@ export enum REWARD_FEATURE_TAGS {
   REWARD_ORDERS_HISTORY_PAGE = '@rewards-orders-history-page',
   REWARD_ORDERS_RESEND = '@rewards-orders-resend',
   CURRENCY_CONVERSION = '@currency-conversion',
+  CREATE_RECOGNITION_WITH_POINTS = '@create-recognition-with-points',
 }
 
 export enum REWARD_SUITE_TAGS {

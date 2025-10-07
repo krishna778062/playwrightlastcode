@@ -334,7 +334,6 @@ export class RewardsStore extends BasePage {
   }
 
   async mockTheAvailablePoints(pointToSpend: number) {
-    // Get next month's first day
     const now = new Date();
     const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     const refreshingAt = nextMonth.toISOString();
