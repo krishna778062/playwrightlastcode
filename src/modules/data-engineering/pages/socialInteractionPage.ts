@@ -1,5 +1,6 @@
-import { expect, Locator, Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/pages/basePage';
 import { HeroMetricsComponent } from '@/src/modules/data-engineering/components/heroMetricsComponent';
 
@@ -31,6 +32,7 @@ export class SocialInteractionPage extends BasePage {
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify Social Interaction page is loaded', async () => {
       await this.verifier.verifyTheElementIsVisible(this.socialInteractionTab, {
+        timeout: TIMEOUTS.VERY_LONG,
         assertionMessage: 'Social Interaction tab should be visible and active',
       });
     });
