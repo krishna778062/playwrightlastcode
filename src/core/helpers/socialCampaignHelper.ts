@@ -6,9 +6,11 @@ import {
   CreateSocialCampaignRequest,
   SocialCampaign,
   SocialCampaignAction,
+  SocialCampaignFilter,
   SocialCampaignNetwork,
   SocialCampaignRecipient,
 } from '@/src/core/types/social-campaign.types';
+import { SOCIAL_CAMPAIGN_TEST_DATA } from '@/src/modules/content/test-data/social-campaign.test-data';
 
 interface Campaign {
   campaignId: string;
@@ -41,22 +43,24 @@ export class SocialCampaignHelper {
     url?: string;
     recipient?: SocialCampaignRecipient;
     networks?: SocialCampaignNetwork[];
+    audienceId?: string;
     overrides?: Partial<CreateSocialCampaignRequest>;
   }): Promise<SocialCampaign> {
-    const { message, url, recipient, networks, overrides } = params;
+    const { message, url, recipient, networks, audienceId, overrides } = params;
 
     const timestamp = Date.now().toString().slice(-4);
     const randomId = Math.random().toString(36).substring(2, 6);
 
     const campaignData: CreateSocialCampaignRequest = {
       message: message ?? `Test Campaign ${timestamp}_${randomId}`,
-      url: url ?? 'https://www.simpplr.com/blog/2022/new-brand/',
+      url: url ?? SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
       recipient: recipient ?? SocialCampaignRecipient.EVERYONE,
       networks: networks ?? [
         SocialCampaignNetwork.FACEBOOK,
         SocialCampaignNetwork.LINKEDIN,
         SocialCampaignNetwork.TWITTER,
       ],
+      ...(audienceId && { audienceId }),
       ...overrides,
     };
 
@@ -307,8 +311,8 @@ export class SocialCampaignHelper {
    * Use with caution - this will delete ALL campaigns
    * @returns Promise<any[]> - Array of delete responses
    */
-  async deleteAllCampaigns(): Promise<void> {
-    const allCampaigns = await this.getSocialCampaignService().getAllCampaigns();
+  async deleteAllCampaigns(filter?: SocialCampaignFilter): Promise<void> {
+    const allCampaigns = await this.getSocialCampaignService().getAllCampaigns(filter);
     console.log(`Deleting ${allCampaigns.length} campaigns`);
     for (const campaign of allCampaigns) {
       console.log(`Deleting campaign: ${campaign.message} (${campaign.campaignId})`);

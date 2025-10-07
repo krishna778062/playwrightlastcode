@@ -1,0 +1,101 @@
+import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
+import { AudienceManagementService } from '@core/api/services/AudienceManagementService';
+import {
+  Audience,
+  AudienceListRequest,
+  CreateAudienceRequest,
+  CreateAudienceResponse,
+} from '@core/types/audience.types';
+import { TestDataGenerator } from '@core/utils/testDataGenerator';
+
+export class AudienceManagementHelper {
+  private readonly audienceManagementService: AudienceManagementService;
+
+  constructor(appManagerApiClient: AppManagerApiClient) {
+    this.audienceManagementService = appManagerApiClient.getAudienceManagementService();
+  }
+
+  /**
+   * Gets list of audiences
+   * @param size - Number of audiences to fetch (default: 16)
+   * @returns Promise<AudienceListResponse>
+   */
+  async getAudienceList(size: number = 16) {
+    return await this.audienceManagementService.getAudienceList(size);
+  }
+
+  /**
+   * Gets all audiences with default size
+   * @param size - Number of audiences to fetch (default: 16)
+   * @returns Promise<AudienceListResponse>
+   */
+  async getAllAudiences(size: number = 16) {
+    return await this.audienceManagementService.getAudienceList(size);
+  }
+
+  /**
+   * Finds an audience by name
+   * @param audienceName - Name of the audience to find
+   * @param size - Number of audiences to fetch (default: 16)
+   * @returns Promise<Audience | null>
+   */
+  async findAudienceByName(audienceName: string, size: number = 16): Promise<Audience | null> {
+    return await this.audienceManagementService.findAudienceByName(audienceName, size);
+  }
+
+  /**
+   * Gets audience ID by name
+   * @param audienceName - Name of the audience
+   * @param size - Number of audiences to fetch (default: 16)
+   * @returns Promise<string> - Audience ID
+   * @throws Error if audience not found
+   */
+  async getAudienceIdByName(audienceName: string, size: number = 16): Promise<string> {
+    return await this.audienceManagementService.getAudienceIdByName(audienceName, size);
+  }
+
+  /**
+   * Gets a random audience ID for testing purposes
+   * @param size - Number of audiences to fetch (default: 16)
+   * @returns Promise<string> - Random audience ID
+   * @throws Error if no audiences found
+   */
+  async getRandomAudienceId(size: number = 16): Promise<string> {
+    const response = await this.getAllAudiences(size);
+    if (response.result.listOfItems.length === 0) {
+      const newAudience = await this.createAudience({
+        name: `Test Audience ${Math.random().toString(36).substring(2, 12)}`,
+        description: `Test Audience Description ${Math.random().toString(36).substring(2, 12)}`,
+        type: 'mixed',
+        audienceRule: { AND: [] },
+      });
+      return newAudience.result.audienceId;
+    }
+
+    const randomIndex = Math.floor(Math.random() * response.result.listOfItems.length);
+    return response.result.listOfItems[randomIndex].audienceId;
+  }
+
+  /**
+   * Gets the first available audience ID
+   * @param size - Number of audiences to fetch (default: 16)
+   * @returns Promise<string | null> - First audience ID or null if no audiences found
+   */
+  async getFirstAudienceId(size: number = 16): Promise<string | null> {
+    const response = await this.getAllAudiences(size);
+    if (response.result.listOfItems.length === 0) {
+      return null;
+    }
+
+    return response.result.listOfItems[0].audienceId;
+  }
+
+  /**
+   * Creates a new audience
+   * @param request - Audience creation request data
+   * @returns Promise<CreateAudienceResponse>
+   */
+  async createAudience(request: CreateAudienceRequest): Promise<CreateAudienceResponse> {
+    return await this.audienceManagementService.createAudience(request);
+  }
+}
