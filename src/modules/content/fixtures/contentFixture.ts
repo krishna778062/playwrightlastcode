@@ -11,6 +11,8 @@ import { LoginHelper } from '@core/helpers/loginHelper';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
+import { AudienceManagementHelper } from '@/src/core/helpers/audienceManagementHelper';
+import { SocialCampaignHelper } from '@/src/core/helpers/socialCampaignHelper';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
@@ -34,6 +36,10 @@ export const users = {
   siteManager: {
     email: envConfig.siteManagerEmail || '',
     password: envConfig.siteManagerPassword || '',
+  },
+  socialCampaignManager: {
+    email: envConfig.socialCampaignManagerEmail || '',
+    password: envConfig.socialCampaignManagerPassword || '',
   },
 } as const;
 
@@ -63,6 +69,7 @@ export const contentTestFixture = test.extend<
     appManagerContext: BrowserContext;
     standardUserContext: BrowserContext;
     siteManagerContext: BrowserContext;
+    socialCampaignManagerContext: BrowserContext;
 
     // Authenticated pages
     appManagerHomePage: HomePageType;
@@ -77,6 +84,8 @@ export const contentTestFixture = test.extend<
 
     standardUserHomePage: HomePageType;
     standardUserPage: Page;
+    socialCampaignManagerHomePage: HomePageType;
+    socialCampaignManagerPage: Page;
 
     // Helpers and services
     siteManagementHelper: SiteManagementHelper;
@@ -84,6 +93,8 @@ export const contentTestFixture = test.extend<
     feedManagementHelper: FeedManagementHelper;
     standardUserFeedManagementHelper: FeedManagementHelper;
     identityManagementHelper: IdentityManagementHelper;
+    socialCampaignHelper: SocialCampaignHelper;
+    audienceManagementHelper: AudienceManagementHelper;
 
     // Utility functions
     loginAs: (userType: UserType) => Promise<void>;
@@ -172,6 +183,38 @@ export const contentTestFixture = test.extend<
       });
       await use(context);
       await context?.close();
+    },
+    { scope: 'test' },
+  ],
+
+  socialCampaignManagerContext: [
+    async ({ browser }, use, workerInfo) => {
+      const context = await browser.newContext({
+        permissions: ['camera', 'microphone', 'notifications'],
+      });
+      await use(context);
+      await context?.close();
+    },
+    { scope: 'test' },
+  ],
+
+  socialCampaignManagerHomePage: [
+    async ({ socialCampaignManagerContext }, use, workerInfo) => {
+      const page = await socialCampaignManagerContext.newPage();
+      const socialCampaignManagerHomePage = await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().socialCampaignManagerEmail || '',
+        password: getEnvConfig().socialCampaignManagerPassword || '',
+      });
+      await socialCampaignManagerHomePage.verifyThePageIsLoaded();
+      await use(socialCampaignManagerHomePage);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+
+  socialCampaignManagerPage: [
+    async ({ socialCampaignManagerHomePage }, use, workerInfo) => {
+      await use(socialCampaignManagerHomePage.page);
     },
     { scope: 'test' },
   ],
@@ -310,6 +353,31 @@ export const contentTestFixture = test.extend<
   identityManagementHelper: [
     async ({ appManagerApiClient }, use) => {
       const helper = new IdentityManagementHelper(appManagerApiClient);
+
+      await use(helper);
+    },
+    { scope: 'test' },
+  ],
+
+  socialCampaignHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const helper = new SocialCampaignHelper(appManagerApiClient);
+
+      await use(helper);
+
+      // Ensure cleanup happens even if test fails
+      try {
+        await helper.cleanup();
+      } catch (error) {
+        console.warn('Social campaign helper cleanup failed:', error);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  audienceManagementHelper: [
+    async ({ appManagerApiClient }, use) => {
+      const helper = new AudienceManagementHelper(appManagerApiClient);
 
       await use(helper);
     },

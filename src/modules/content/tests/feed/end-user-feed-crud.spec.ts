@@ -60,6 +60,7 @@ test.describe(
         // Step 1: Create a new post with multiple attachments via UI
         // Note: Post can also be created via API using:
         // const { postResult: apiPostResult, postId } = await feedManagerService.createPost({ text: initialPostText });
+        feedPage.actions.clickShareThoughtsButton();
         const postResult = await feedPage.actions.createAndPost({
           text: initialPostText,
           attachments: {

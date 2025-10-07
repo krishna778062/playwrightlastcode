@@ -9,10 +9,10 @@ import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { AddContentModalComponent } from '@/src/modules/content/components/addContentModal';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
 import { PageCreationPage } from '@/src/modules/content/pages/pageCreationPage';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
-import { SiteType } from '@/src/modules/content-abac/constants/siteType';
 
 test.describe(
   '@AddContent - Add content on unlisted site',
@@ -62,7 +62,7 @@ test.describe(
         roleId = await identityManagementHelper.getListOfRoles(Roles.UNLISTED_SITES_MANAGER);
         await identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
 
-        const siteDetails = await siteManagementHelper.getSiteByAccessType(SiteType.UNLISTED, {
+        const siteDetails = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
           waitForSearchIndex: true,
           hasPages: true,
         });
@@ -117,7 +117,7 @@ test.describe(
           storyId: 'CONT-39680',
         });
 
-        const siteDetails = await siteManagementHelper.getSiteByAccessType(SiteType.UNLISTED, { hasPages: true });
+        const siteDetails = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, { hasPages: true });
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.name;
         console.log('siteName :   ', siteName);
@@ -170,10 +170,7 @@ test.describe(
         });
 
         // Create site with content submission disabled
-        const siteDetails = await siteManagementHelper.createUnlistedSite({
-          isContentSubmissionsEnabled: false,
-          waitForSearchIndex: true,
-        });
+        const siteDetails = await siteManagementHelper.getSiteByIdWithContentSubmissions(SITE_TYPES.UNLISTED, false);
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.siteName;
 
@@ -235,10 +232,9 @@ test.describe(
         await identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
 
         // Create site with content submission disabled
-        const siteDetails = await siteManagementHelper.createUnlistedSite({
-          isContentSubmissionsEnabled: false,
-          waitForSearchIndex: true,
-        });
+
+        const siteDetails = await siteManagementHelper.getSiteByIdWithContentSubmissions(SITE_TYPES.UNLISTED, false);
+
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.siteName;
 
@@ -292,7 +288,7 @@ test.describe(
         });
 
         // Create site with content submission disabled
-        const siteDetails = await siteManagementHelper.getSiteByAccessType(SiteType.UNLISTED, {
+        const siteDetails = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
           hasPages: false,
           waitForSearchIndex: true,
         });
@@ -328,10 +324,7 @@ test.describe(
         await identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
 
         // Create site with content submission disabled
-        const siteDetails = await siteManagementHelper.createUnlistedSite({
-          hasPages: false,
-          waitForSearchIndex: true,
-        });
+        const siteDetails = await siteManagementHelper.getSiteByIdWithContentSubmissions(SITE_TYPES.UNLISTED, false);
         const siteName = siteDetails.siteName;
 
         addContentModal = await standardUserHomePage.actions.openAddContentModal(ContentType.PAGE);

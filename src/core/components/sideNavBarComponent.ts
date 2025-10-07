@@ -17,13 +17,15 @@ export class SideNavBarComponent extends BaseComponent {
   readonly clickOnManageFeature: Locator;
   readonly clickOnFeedSideMenu: Locator;
   readonly clickingOnHome: Locator;
+  readonly socialCampaignsElement: Locator;
+  readonly moreElement: Locator;
 
   constructor(page: Page) {
     super(page);
     this.createSection = page.locator('span', { hasText: 'Create' });
     this.analyticsButton = page.getByRole('menuitem', { name: 'Analytics', exact: true });
-    this.feedLink = page.locator('p', { hasText: 'Feed' });
-    this.homeLink = page.locator('p', { hasText: 'Home' });
+    this.feedLink = page.locator('p', { hasText: /^Feed$/ });
+    this.homeLink = page.getByRole('menuitem', { name: 'Home Home' });
     this.applicationSettings = page.locator('p', { hasText: 'Application settings' });
     this.sitesButton = page.getByRole('button', { name: 'Sites' });
     this.navigateOnApplication = page.getByRole('menuitem', { name: 'Application settings', exact: true });
@@ -31,6 +33,8 @@ export class SideNavBarComponent extends BaseComponent {
     this.clickOnFeedSideMenu = this.page.getByTestId('icon-test').nth(1);
     this.rolesButton = page.getByRole('menuitem', { name: 'Roles' });
     this.clickingOnHome = page.getByRole('menuitem', { name: 'User mode' });
+    this.socialCampaignsElement = page.locator('p', { hasText: 'Social campaigns' });
+    this.moreElement = page.locator('p', { hasText: 'More' });
   }
 
   /**

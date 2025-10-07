@@ -4,6 +4,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentType } from '@/src/core/constants/contentTypes';
 import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
+import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { EVENT_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
@@ -56,7 +57,7 @@ test.describe(
     test(
       `Verify Content Search results for a new ${testData.content}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
@@ -98,6 +99,9 @@ test.describe(
           stepInfo: `Searching with term "${eventName}" to verify event appears in search results`,
         });
 
+        // Dismiss any survey popup that might appear
+        await globalSearchResultPage.dismissSurveyPopupIfPresent();
+
         // Verify the event appears in the initial search results
         const eventResult = await globalSearchResultPage.getEventResultItemExactlyMatchingTheSearchTerm(eventName);
         const eventResultItem = new ContentListComponent(eventResult.page, eventResult.rootLocator);
@@ -127,6 +131,35 @@ test.describe(
           expectedCountAfterFilter: 1, // Should show only 1 result (the event we created)
         });
         await eventResultItem.verifyNameIsDisplayed(eventName);
+      }
+    );
+
+    test(
+      `Verify Event Autocomplete functionality`,
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+      },
+      async ({ appManagerHomePage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-19287',
+        });
+
+        // Type in search input
+        await appManagerHomePage.topNavBarComponent.typeInSearchBarInput(eventName, {
+          stepInfo: `Typing "${eventName}" in search input`,
+        });
+
+        const resultList = new ResultListingComponent(appManagerHomePage.page);
+        await resultList.waitForAndVerifyAutocompleteListIsDisplayed();
+
+        // Then get specific autocomplete item
+        const eventResult = resultList.getAutocompleteItemByName(eventName);
+
+        // Verify all autocomplete item data in one comprehensive method
+        await eventResult.verifyAutocompleteItemData(eventName, ContentType.Event);
+
+        // Click on the autocomplete item and verify navigation
+        await eventResult.verifyAutocompleteNavigationToTitleLink(contentId, eventName, testData.label);
       }
     );
   }
