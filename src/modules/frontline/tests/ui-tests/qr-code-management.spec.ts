@@ -208,3 +208,119 @@ test(
     await manageQRPage.verifyNothingToShowMessage();
   }
 );
+
+test(
+  '[FL-416] Verify search status filter Active Inactive Expired as adminUser',
+  {
+    tag: [TestPriority.P2, FrontlineFeatureTags.QR_CODE],
+  },
+  async ({ appManagerHomePage, qrManagementService }) => {
+    tagTest(test.info(), {
+      description: 'Verify search status filter Active Inactive Expired as adminUser',
+      zephyrTestId: 'FL-416',
+      storyId: 'FL-416',
+    });
+
+    const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+
+    await manageQRPage.loadPage();
+    await manageQRPage.verifyManagePage();
+    const qrListData = await qrManagementService.getListOfQRCodes();
+    const originalCount = qrListData.count;
+    await manageQRPage.clickOnFilter();
+    await manageQRPage.verifyFilterHeaderText();
+    await manageQRPage.selectExpiredFilter();
+    await manageQRPage.clickOnFilterApply();
+    await manageQRPage.verifyAllExpiredQRs();
+    await manageQRPage.clickOnFilter();
+    await manageQRPage.clickOnFilterReset();
+    await manageQRPage.verifyFilterReset();
+    await manageQRPage.clickOnFilterApply();
+    await manageQRPage.verifyQRAfterFilterReset(originalCount);
+  }
+);
+
+test(
+  '[FL-417] Verify search type filter Content App promotion as adminUser',
+  {
+    tag: [TestPriority.P2, FrontlineFeatureTags.QR_CODE],
+  },
+  async ({ appManagerHomePage, qrManagementService }) => {
+    tagTest(test.info(), {
+      description: 'Verify search type filter Content App promotion as adminUser',
+      zephyrTestId: 'FL-417',
+      storyId: 'FL-417',
+    });
+
+    const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+
+    await manageQRPage.loadPage();
+    await manageQRPage.verifyManagePage();
+    const qrListData = await qrManagementService.getListOfQRCodes();
+    const originalCount = qrListData.count;
+    await manageQRPage.clickOnFilter();
+    await manageQRPage.verifyFilterHeaderText();
+    await manageQRPage.selectAppPromotionTypeFilter();
+    await manageQRPage.clickOnFilterApply();
+    await manageQRPage.verifyValidTillDateIsNAForAllQRs();
+    await manageQRPage.clickOnFilter();
+    await manageQRPage.selectContentTypeFilter();
+    await manageQRPage.verifyBothTypeFiltersAreChecked();
+    await manageQRPage.clickOnFilterApply();
+    await manageQRPage.verifyQRAfterFilterReset(originalCount);
+    await manageQRPage.clickOnFilter();
+    await manageQRPage.clickOnFilterReset();
+    await manageQRPage.verifyTypeFiltersAreUnchecked();
+    await manageQRPage.clickOnFilterApply();
+    await manageQRPage.verifyQRAfterFilterReset(originalCount);
+  }
+);
+
+test(
+  '[FL-424] Verify combination of type and status filter as adminUser',
+  {
+    tag: [TestPriority.P2, FrontlineFeatureTags.QR_CODE],
+  },
+  async ({ appManagerHomePage }) => {
+    tagTest(test.info(), {
+      description: 'Verify combination of type and status filter as adminUser',
+      zephyrTestId: 'FL-424',
+      storyId: 'FL-424',
+    });
+
+    const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+    await manageQRPage.loadPage();
+    await manageQRPage.verifyManagePage();
+    await manageQRPage.clickOnFilter();
+    await manageQRPage.verifyFilterHeaderText();
+    await manageQRPage.selectContentFilter();
+    await manageQRPage.selectInactiveFilter();
+    await manageQRPage.clickOnFilterApply();
+    await manageQRPage.verifyInactiveQRs();
+  }
+);
+
+test(
+  '[FL-433] Verify content QR share option via promotion manager',
+  {
+    tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
+  },
+  async ({ promotionManagerHomePage }) => {
+    tagTest(test.info(), {
+      description: 'Verify content QR share option via promotion manager',
+      zephyrTestId: 'FL-433',
+      storyId: 'FL-433',
+    });
+
+    const qrName = TestDataGenerator.generateQRName('Content QR');
+    const manageQRPage = new ManageQRPage(promotionManagerHomePage.page);
+
+    await manageQRPage.openContent();
+    await manageQRPage.clickOnQRIcon();
+    await manageQRPage.verifyPromoteContentPageHeading();
+    await manageQRPage.fillQRName(qrName);
+    await manageQRPage.clickSaveAndVisit();
+    await manageQRPage.verifyManagePage();
+    await manageQRPage.validateQRName(qrName);
+  }
+);
