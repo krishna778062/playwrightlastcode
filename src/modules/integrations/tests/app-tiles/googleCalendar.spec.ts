@@ -41,7 +41,7 @@ test.describe(
 
         await tileManagementHelper.createIntegrationAppTile(
           createdTileTitle,
-          TILE_IDS.DISPLAY_UPCOMING_EVENTS,
+          TILE_IDS.GOOGLE_CAL_DISPLAY_UPCOMING_EVENTS,
           CONNECTOR_IDS.GOOGLE_CALENDAR
         );
 
@@ -103,7 +103,7 @@ test.describe(
 
         await tileManagementHelper.createIntegrationAppTile(
           createdTileTitle,
-          TILE_IDS.DISPLAY_UPCOMING_EVENTS,
+          TILE_IDS.GOOGLE_CAL_DISPLAY_UPCOMING_EVENTS,
           CONNECTOR_IDS.GOOGLE_CALENDAR
         );
         await homeDashboard.isTilePresent(createdTileTitle);
@@ -154,7 +154,7 @@ test.describe(
         createdTileTitle = `Display upcoming events ${faker.string.alphanumeric({ length: 6 })}`;
         await tileManagementHelper.createIntegrationAppTile(
           createdTileTitle,
-          TILE_IDS.DISPLAY_UPCOMING_EVENTS,
+          TILE_IDS.GOOGLE_CAL_DISPLAY_UPCOMING_EVENTS,
           CONNECTOR_IDS.GOOGLE_CALENDAR
         );
         await homeDashboard.isTilePresent(createdTileTitle);
