@@ -227,4 +227,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async checkContentDetailsVisibility(pageName: string): Promise<void> {
     await this.manageContentComponent.checkContentDetailsVisibility(pageName);
   }
+  async applyButtonShouldBeDisabled(): Promise<void> {
+    await this.manageContentComponent.applyButtonShouldBeDisabled();
+  }
 }

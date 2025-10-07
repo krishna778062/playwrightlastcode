@@ -64,3 +64,23 @@ test(
     await manageContentPage.actions.checkContentDetailsVisibility(pageInfo.pageName);
   }
 );
+
+test(
+  'Verify if Application Manager does not select any option from bulk options apply button should be disabled',
+  {
+    tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25065'],
+  },
+  async ({}) => {
+    tagTest(test.info(), {
+      description:
+        'Verify if Application Manager does not select any option from bulk options apply button should be disabled',
+      customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
+      zephyrTestId: 'CONT-25065',
+      storyId: 'CONT-25065',
+    });
+    await homePage.actions.clickOnManageFeature();
+    await manageFeaturesPage.actions.clickOnContentCard();
+    await manageContentPage.actions.clickOnSelectAllButton();
+    await manageContentPage.actions.applyButtonShouldBeDisabled();
+  }
+);

@@ -25,6 +25,7 @@ export interface ISiteDashboardAssertions {
   verifyDashboardUrl: (siteId: string) => Promise<void>;
   verifySiteCreatedSuccessfully: (siteName: string) => Promise<void>;
   verifyCategoryCreatedSuccessfully: (categoryName: string) => Promise<void>;
+  verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BasePage implements ISiteDashboardActions, ISiteDashboardAssertions {
@@ -42,6 +43,8 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
   readonly siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
   readonly feedSection = this.page.locator('div[class*="Feed-module"]');
   readonly feedLink = this.page.locator('a:has-text("eed")');
+  readonly feedLinkWithDescription = (description: string) => this.page.locator('p').filter({ hasText: description });
+  readonly sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
@@ -212,6 +215,17 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
   async clickOnFeedLink(): Promise<void> {
     await test.step('Click on feed link', async () => {
       await this.clickOnElement(this.feedLink);
+    });
+  }
+
+  async verifyCampaignLinkDisplayed(linkText: string, description: string): Promise<void> {
+    await test.step(`Verify campaign link "${linkText}" is displayed`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.feedLinkWithDescription(description), {
+        assertionMessage: `Shared Description "${description}" should be visible`,
+      });
+      await this.verifier.verifyTheElementIsVisible(this.sharefeedLink(linkText), {
+        assertionMessage: `Campaign link "${linkText}" should be visible`,
+      });
     });
   }
 }
