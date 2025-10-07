@@ -29,34 +29,18 @@ export class AudienceModalPage extends BasePage {
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.audienceModalComponent.audienceModalHeading, {
-      assertionMessage: 'Audience modal heading should be visible on audience modal page',
-    });
+    await this.audienceModalComponent.verifyThePageIsLoaded();
   }
 
   async verifyingAudienceModalHeading(): Promise<void> {
-    await test.step('Verifying audience modal heading', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.audienceModalComponent.audienceModalHeading, {
-        assertionMessage: 'Audience modal heading should be visible on audience modal page',
-      });
-    });
+    await this.audienceModalComponent.verifyingAudienceModalHeading();
   }
 
   async clickOnAllOrganizationOption(): Promise<void> {
-    await test.step('Clicking on all organization option', async () => {
-      await this.clickOnElement(this.audienceModalComponent.allOrganizationToggle);
-      await this.verifier.verifyTheElementIsVisible(this.audienceModalComponent.allOrganizationMessage, {
-        assertionMessage: 'All organization switch should be visible on audience modal page',
-      });
-      await this.clickOnElement(this.audienceModalComponent.allOrganizationToggle);
-    });
+    await this.audienceModalComponent.clickOnAllOrganizationOption();
   }
 
   async selectingAudience(): Promise<void> {
-    await test.step('Selecting audience', async () => {
-      await this.clickOnElement(this.audienceModalComponent.openParentContainer);
-      await this.clickOnElement(this.audienceModalComponent.selectingAudienceGroup);
-      await this.clickOnElement(this.audienceModalComponent.clickingOnDoneButton);
-    });
+    await this.audienceModalComponent.selectingAudience();
   }
 }

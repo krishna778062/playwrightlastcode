@@ -2,7 +2,6 @@ import { Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
-import { AddSiteScreenComponent } from '@/src/modules/content-abac/components/addSiteScreenComponent';
 
 export interface IAddSiteScreenActions {
   clickOnBrowseButton: () => Promise<void>;
@@ -11,11 +10,11 @@ export interface IAddSiteScreenActions {
 export interface IAddSiteScreenAssertions {}
 
 export class AddSiteScreenPage extends BasePage {
-  private addSiteScreenComponent: AddSiteScreenComponent;
+  readonly browseButton = this.page.getByRole('button', { name: 'Browse' });
+  readonly addSiteHeading = this.page.getByRole('heading', { name: 'Add site' });
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.ADD_SITE_SCREEN_PAGE);
-    this.addSiteScreenComponent = new AddSiteScreenComponent(page);
   }
 
   get actions(): IAddSiteScreenActions {
@@ -26,14 +25,14 @@ export class AddSiteScreenPage extends BasePage {
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.addSiteScreenComponent.addSiteHeading, {
+    await this.verifier.verifyTheElementIsVisible(this.addSiteHeading, {
       assertionMessage: 'Add site heading should be visible on add site screen page',
     });
   }
 
   async clickOnBrowseButton(): Promise<void> {
     await test.step('Click on browse button', async () => {
-      await this.clickOnElement(this.addSiteScreenComponent.browseButton);
+      await this.clickOnElement(this.browseButton);
     });
   }
 }

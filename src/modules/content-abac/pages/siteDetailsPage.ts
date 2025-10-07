@@ -31,16 +31,10 @@ export class SiteDetailsPage extends BasePage {
   async verifyThePageIsLoaded(): Promise<void> {}
 
   async removingAudienceGroup(): Promise<void> {
-    await test.step('Removing audience group', async () => {
-      await this.clickOnElement(this.targetAudienceComponent.removingAudienceGroup);
-    });
+    await this.targetAudienceComponent.removingAudienceGroup();
   }
 
   async verifyWarningMessage(): Promise<void> {
-    await test.step('Verifying warning message', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.targetAudienceComponent.warningMessage, {
-        assertionMessage: 'Warning message should be visible',
-      });
-    });
+    await this.targetAudienceComponent.verifyWarningMessage();
   }
 }
