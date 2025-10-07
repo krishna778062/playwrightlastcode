@@ -11,7 +11,14 @@ import { SOCIAL_CAMPAIGN_TEST_DATA } from '@content/test-data/social-campaign.te
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
-import { SocialCampaignFilter, SocialCampaignRecipient, SocialCampaignStatus } from '@core/types/social-campaign.types';
+import {
+  SocialCampaignFilter,
+  SocialCampaignNetwork,
+  SocialCampaignNetworkUI,
+  SocialCampaignOptions,
+  SocialCampaignRecipient,
+  SocialCampaignStatus,
+} from '@core/types/social-campaign.types';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
@@ -213,6 +220,77 @@ test.describe(
         await socialCampaignPage.assertions.verifyErrorMessagePresence('You must select at least one social network');
         await socialCampaignPage.assertions.verifyErrorMessagePresence(
           'Suggested campaign message is a required field is a required field'
+        );
+      }
+    );
+
+    test(
+      'In Zeus Verify user able to create social campaign for selected(Twitter) social network',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19604', '@Social_Campaign_Creation'],
+      },
+      async ({ appManagerHomePage, appManagersPage, socialCampaignHelper, audienceManagementHelper }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify user able to create social campaign for selected(Twitter) social network',
+          zephyrTestId: 'CONT-19604',
+          storyId: 'CONT-19604',
+        });
+
+        // Create social campaign page instance
+        const socialCampaignPage = new SocialCampaignPage(appManagersPage);
+        await socialCampaignPage.loadPage();
+        await socialCampaignPage.actions.clickAddCampaignButton();
+
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          recipient: SocialCampaignRecipient.EVERYONE,
+          networks: [SocialCampaignNetworkUI.TWITTER],
+        };
+
+        campaignId = await socialCampaignPage.actions.AddCampaignAndCreate(campaignOptions);
+        await socialCampaignPage.assertions.verifyToastMessage('Created social campaign successfully');
+        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+
+        manualCleanupNeeded = true;
+      }
+    );
+
+    test(
+      'Verify Audience Description Is Not Displayed When Not Present',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-33857', '@Social_Campaign_Audience'],
+      },
+      async ({ appManagerHomePage, appManagersPage, audienceManagementHelper }) => {
+        tagTest(test.info(), {
+          description: 'Verify Audience Description Is Not Displayed When Not Present',
+          zephyrTestId: 'CONT-33857',
+          storyId: 'CONT-33857',
+        });
+
+        // Create social campaign page instance
+        const socialCampaignPage = new SocialCampaignPage(appManagersPage);
+
+        // Navigate to social campaigns and add campaign
+        await socialCampaignPage.loadPage();
+        await socialCampaignPage.actions.clickAddCampaignButton();
+
+        const audienceDetailsWithDescription = await audienceManagementHelper.getAudienceWithDescription();
+        const audienceDetailsWithNoDescription = await audienceManagementHelper.getAudienceWithNoDescription();
+
+        await socialCampaignPage.actions.selectMemberAsAudience();
+        await socialCampaignPage.actions.enterAudienceName(audienceDetailsWithDescription.name);
+        await socialCampaignPage.assertions.verifyAudienceNameAndDescription(
+          audienceDetailsWithDescription.audienceCount,
+          audienceDetailsWithDescription.description,
+          audienceDetailsWithDescription.name
+        );
+        await socialCampaignPage.actions.enterAudienceName(audienceDetailsWithNoDescription.name);
+        await socialCampaignPage.assertions.verifyAudienceNameAndNoDescription(
+          audienceDetailsWithNoDescription.audienceCount,
+          audienceDetailsWithNoDescription.description,
+          audienceDetailsWithNoDescription.name
         );
       }
     );
