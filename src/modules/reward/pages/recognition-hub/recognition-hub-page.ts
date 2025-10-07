@@ -151,7 +151,7 @@ export class RecognitionHubPage extends BasePage {
    */
   async navigateToRecognitionHub(): Promise<void> {
     await this.page.goto('/recognition');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   /**
@@ -210,10 +210,11 @@ export class RecognitionHubPage extends BasePage {
   }
 
   /**
-   * Check if minimum point error message is displaying
+   * Check if the minimum point error message is displaying
    */
   async minimumPointErrorMessageIsDisplaying(): Promise<boolean> {
     const giveRecognitionDialogBox = new GiveRecognitionDialogBox(this.page);
+    await giveRecognitionDialogBox.minimumPointErrorMessage.scrollIntoViewIfNeeded();
     return await giveRecognitionDialogBox.minimumPointErrorMessage.isVisible();
   }
 
@@ -405,7 +406,6 @@ export class RecognitionHubPage extends BasePage {
    * This method checks the current state via API and enables both features if needed
    */
   async enableTheRewardsAndPeerGiftingForHubIfDisabled(): Promise<void> {
-    // Wait for the API response and visit recognition hub
     const [apiResponse] = await Promise.all([
       this.page.waitForResponse(
         res =>
@@ -413,7 +413,8 @@ export class RecognitionHubPage extends BasePage {
           res.status() === 200 &&
           res.request().method() === 'GET'
       ),
-      this.visitRecognitionHub(), // action that triggers API
+      this.navigateToRecognitionHub(),
+      this.verifyThePageIsLoaded(), // action that triggers API
     ]);
     const body = await apiResponse.json();
     const isRewardEnabled = body.rewardConfig?.enabled;
@@ -499,6 +500,7 @@ export class RecognitionHubPage extends BasePage {
    */
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.rewardRecognitionFirstPost, {
+      timeout: 15000,
       assertionMessage: 'Recognition Hub page first Post should be visible',
     });
   }
