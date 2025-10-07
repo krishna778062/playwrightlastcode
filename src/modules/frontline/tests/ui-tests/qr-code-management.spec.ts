@@ -324,3 +324,46 @@ test(
     await manageQRPage.validateQRName(qrName);
   }
 );
+
+test(
+  '[FL-995] Verify UI elements on the Manage QR page',
+  {
+    tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
+  },
+  async ({ appManagerHomePage }) => {
+    tagTest(test.info(), {
+      description: 'Verify UI elements on the Manage QR page',
+      zephyrTestId: 'FL-995',
+      storyId: 'FL-995',
+    });
+
+    const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+    await manageQRPage.loadPage();
+    await manageQRPage.verifyManagePage();
+    await manageQRPage.verifyAddQRButton();
+    await manageQRPage.verifySearchQRTextbox();
+    await manageQRPage.verifySearchButton();
+    await manageQRPage.verifyFilterButton();
+    await manageQRPage.verifyQRCodesAddedHeaderText();
+  }
+);
+
+test.only(
+  '[FL-996] Verify table headers and QR action icons (View, Download, More options) on the Manage QR page',
+  {
+    tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
+  },
+  async ({ appManagerHomePage }) => {
+    tagTest(test.info(), {
+      description: 'Verify table headers are visible on the Manage QR page',
+      zephyrTestId: 'FL-996',
+      storyId: 'FL-996',
+    });
+
+    const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+    await manageQRPage.loadPage();
+    await manageQRPage.verifyManagePage();
+    await manageQRPage.verifyTableHeaders();
+    await manageQRPage.verifyQRActionIcons();
+  }
+);
