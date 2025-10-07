@@ -1,10 +1,10 @@
 import { expect } from '@playwright/test';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { getQuery } from '@rewards/utils/dbQuery';
+import { executeQuery } from '@rewards/utils/dbUtils';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { getQuery } from '@core/utils/dbQuery';
-import { executeQuery } from '@core/utils/dbUtils';
 import { tagTest } from '@core/utils/testDecorator';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';

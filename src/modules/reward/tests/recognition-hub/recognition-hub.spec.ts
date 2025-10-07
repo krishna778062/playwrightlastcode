@@ -1,10 +1,11 @@
 import { expect } from '@playwright/test';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { getQuery } from '@rewards/utils/dbQuery';
+import { executeQuery } from '@rewards/utils/dbUtils';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { getQuery } from '@core/utils/dbQuery';
-import { executeQuery } from '@core/utils/dbUtils';
+import { LoginHelper } from '@core/helpers/loginHelper';
 import { tagTest } from '@core/utils/testDecorator';
 import { DialogBox } from '@modules/reward/components/common/dialog-box';
 import { GiveRecognitionDialogBox } from '@modules/reward/components/recognition/give-recognition-dialog-box';
@@ -17,7 +18,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
 
   test.beforeEach(async ({ appManagerPage }) => {
     const recognitionHub = new RecognitionHubPage(appManagerPage);
-    await recognitionHub.enableTheRewardStoreAndPeerGiftingIfDisabled();
+    await recognitionHub.enableTheRewardsAndPeerGiftingForHubIfDisabled();
 
     // Get tenant code
     tenantCode = await appManagerPage.evaluate(() => {
@@ -25,7 +26,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
     });
   });
 
-  test(
+  test.only(
     '[RC-2717] Validate adding the points pill to the recognition post',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],
@@ -49,7 +50,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
       const rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
         0,
-        process.env.ZEUS_RECOGNITION_FULLNAME,
+        process.env.STANDARD_USER_FULL_NAME,
         'Test Message' + Math.floor(Math.random() * 1000),
         rewardOptionIndex
       );
@@ -62,14 +63,39 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         'Only visible to recipients, their managers and app administrators'
       );
 
-      // TODO: Add login functionality for multiple users when available
+      // Login with the standard user and check the recognition post with points
+      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
+      await LoginHelper.loginWithPassword(appManagerPage, {
+        email: process.env.STANDARD_USER_USERNAME!,
+        password: process.env.STANDARD_USER_PASSWORD!,
+      });
+      await recognitionHub.navigateToRecognitionHub();
+      await recognitionHub.validateTheRewardElementsInRecognitionPost(
+        true,
+        rewardOptionText,
+        'Only visible to you, your manager and app administrators'
+      );
+
+      // Login with the recognition user and check the recognition post with points
+      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
+      await LoginHelper.loginWithPassword(appManagerPage, {
+        email: process.env.RECOGNITION_USER_USERNAME!,
+        password: process.env.RECOGNITION_USER_PASSWORD!,
+      });
+      await recognitionHub.navigateToRecognitionHub();
+      await recognitionHub.validateTheRewardElementsInRecognitionPost(
+        true,
+        rewardOptionText,
+        'Only visible to you, your manager and app administrators'
+      );
+      await recognitionHub.deleteTheFirstRecognitionPost();
     }
   );
 
-  test.skip(
+  test(
     '[RC-3327] Validate if "gift points" toggle button is disabled on recognition modal when Allowances are refreshing',
     {
-      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1, TestGroupType.SMOKE],
+      tag: [REWARD_SUITE_TAGS.REWARDS_DB_CASES, TestGroupType.REGRESSION, TestPriority.P1, TestGroupType.SMOKE],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -78,33 +104,22 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         zephyrTestId: 'RC-3327',
         storyId: 'RC-3327',
       });
-
       const recognitionHub = new RecognitionHubPage(appManagerPage);
-
-      // Enable the distribution using DB
       const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
       await executeQuery(resultAsFailed.replace('tenantCode', tenantCode));
-
-      // Mock the Reward config API and enable the Distributing allowance
       await appManagerPage.reload();
       await recognitionHub.visitRecognitionHub();
-
-      // Click on Give recognition button
       await recognitionHub.clickOnGiveRecognition();
-
-      // Validate the Gift points toggle button is disabled
       await recognitionHub.checkTheGiftingOptionsAre(false);
-
-      // Disable the distribution
       const resultAsSuccess = getQuery('setDistributionAllowanceAsSuccess');
       await executeQuery(resultAsSuccess.replace('tenantCode', tenantCode));
     }
   );
 
-  test.skip(
+  test(
     "[RC-3328] Verify if user's point(points to give) balance is 0 when allowances are refreshing",
     {
-      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1, TestGroupType.SMOKE],
+      tag: [REWARD_SUITE_TAGS.REWARDS_DB_CASES, TestGroupType.REGRESSION, TestPriority.P1, TestGroupType.SMOKE],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -131,10 +146,10 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
     }
   );
 
-  test.skip(
+  test(
     '[RC-3417] Verify the Gift points toggle button is disabled when Allowances are refreshing.',
     {
-      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1, TestGroupType.SMOKE],
+      tag: [REWARD_SUITE_TAGS.REWARDS_DB_CASES, TestGroupType.REGRESSION, TestPriority.P1, TestGroupType.SMOKE],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -165,10 +180,10 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
     }
   );
 
-  test.skip(
+  test(
     '[RC-3326] Validate if user is able to Delete recognition with points rollback when Allowances are refreshing',
     {
-      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1, TestGroupType.SMOKE],
+      tag: [REWARD_SUITE_TAGS.REWARDS_DB_CASES, TestGroupType.REGRESSION, TestPriority.P1, TestGroupType.SMOKE],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {

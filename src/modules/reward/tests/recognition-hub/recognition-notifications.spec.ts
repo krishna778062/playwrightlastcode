@@ -86,7 +86,6 @@ test.describe('Recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNI
         'Only visible to you, your manager and app administrators'
       );
 
-      // Login with the recognition user and check notifications
       // Login with the standard user and check the recognition post with points
       await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
       await LoginHelper.loginWithPassword(appManagerPage, {

@@ -19,6 +19,7 @@ export enum REWARD_SUITE_TAGS {
   REWARD_STORE = '@reward-store',
   REWARD_ORDER_HISTORY = '@reward-order-history',
   RECOGNITION_HUB = '@recognition-hub',
+  REWARDS_DB_CASES = '@rewards-db',
 }
 
 // Combined tags for the module
