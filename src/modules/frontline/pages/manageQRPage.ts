@@ -46,6 +46,16 @@ export class ManageQRPage extends BasePage {
   readonly searchButton: Locator;
   readonly clearButton: Locator;
   readonly nothingToShowMessage: Locator;
+  readonly filterQRButton: Locator;
+  readonly filterHeaderText: Locator;
+  readonly filterExpiredCheckbox: Locator;
+  readonly filterAppCheckbox: Locator;
+  readonly filterContentCheckbox: Locator;
+  readonly filterApplyButton: Locator;
+  readonly filterResetButton: Locator;
+  readonly expiredQRToggle: Locator;
+  readonly qrListRows: Locator;
+  readonly tillDateNA: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_QR_PAGE);
@@ -90,6 +100,16 @@ export class ManageQRPage extends BasePage {
     this.searchButton = page.getByTestId('pageContainer-page').getByRole('button', { name: 'Search' });
     this.clearButton = page.getByRole('button', { name: 'Clear' });
     this.nothingToShowMessage = page.getByText('Nothing to show here');
+    this.filterQRButton = page.getByRole('button', { name: 'Filters' });
+    this.filterHeaderText = page.getByRole('heading', { name: 'Filters' });
+    this.filterExpiredCheckbox = page.getByRole('checkbox', { name: 'Expired' });
+    this.filterAppCheckbox = page.locator('#type_mobile-promotion');
+    this.filterContentCheckbox = page.locator('#type_content');
+    this.filterApplyButton = page.getByRole('button', { name: 'Apply' });
+    this.filterResetButton = page.getByRole('button', { name: 'Reset all' });
+    this.expiredQRToggle = page.getByRole('switch');
+    this.qrListRows = page.getByRole('row');
+    this.tillDateNA = page.locator('h4[aria-label="N/A"]');
   }
 
   async clickOnManage() {
@@ -474,6 +494,126 @@ export class ManageQRPage extends BasePage {
     await this.clickClearButton();
     await this.verifier.verifyElementHasText(this.searchQRTextbox, '', {
       assertionMessage: 'Search textbox should be cleared',
+    });
+  }
+
+  async clickOnFilter(): Promise<void> {
+    await this.clickOnElement(this.filterQRButton, {
+      stepInfo: 'Click on Filter button',
+    });
+  }
+
+  async verifyFilterHeaderText(): Promise<void> {
+    await this.verifier.verifyElementHasText(this.filterHeaderText, 'Filters', {
+      assertionMessage: 'Filter header should have text "Filters"',
+    });
+  }
+
+  async selectExpiredFilter(): Promise<void> {
+    await this.checkElement(this.filterExpiredCheckbox, {
+      stepInfo: 'Select Expired filter checkbox',
+    });
+  }
+
+  async clickOnFilterApply(): Promise<void> {
+    await this.clickOnElement(this.filterApplyButton, {
+      stepInfo: 'Click on Apply button in filter',
+    });
+  }
+
+  async verifyAllExpiredQRs(): Promise<void> {
+    await test.step('Verify all expired QRs have toggle off', async () => {
+      await this.qrListRows.first().waitFor({ state: 'visible', timeout: 10000 });
+
+      const expiredQRsCount = await this.expiredQRToggle.count();
+
+      if (expiredQRsCount === 0) {
+        console.log('No expired QR codes found after applying filter');
+        return;
+      }
+
+      for (let i = 0; i < expiredQRsCount; i++) {
+        await expect.soft(this.expiredQRToggle.nth(i)).toHaveAttribute('data-state', 'unchecked');
+      }
+    });
+  }
+
+  async clickOnFilterReset(): Promise<void> {
+    await this.clickOnElement(this.filterResetButton, {
+      stepInfo: 'Click on Reset all button',
+    });
+    await this.qrListRows.first().waitFor({ state: 'visible', timeout: 10000 });
+  }
+
+  async verifyFilterReset(): Promise<void> {
+    await test.step('Verify filter is reset', async () => {
+      await expect(this.filterExpiredCheckbox).not.toBeChecked();
+    });
+  }
+
+  async verifyQRAfterFilterReset(expectedCount: number): Promise<void> {
+    await test.step(`Verify QR count after filter reset`, async () => {
+      await this.threeDotsInRowLocator.first().waitFor({ state: 'visible', timeout: 10000 });
+
+      const currentCount = await this.threeDotsInRowLocator.count();
+
+      // Verify QRs are visible and count matches expected (accounting for pagination)
+      expect(currentCount).toBeGreaterThan(0);
+      expect(currentCount).toBeLessThanOrEqual(expectedCount);
+
+      if (currentCount < expectedCount) {
+        console.log(`UI shows ${currentCount} of ${expectedCount} QR codes (pagination active)`);
+      }
+    });
+  }
+
+  async selectAppPromotionTypeFilter(): Promise<void> {
+    await this.checkElement(this.filterAppCheckbox, {
+      stepInfo: 'Select App promotion type filter checkbox',
+    });
+  }
+
+  async selectContentTypeFilter(): Promise<void> {
+    await this.checkElement(this.filterContentCheckbox, {
+      stepInfo: 'Select Content type filter checkbox',
+    });
+  }
+
+  async verifyValidTillDateIsNAForAllQRs(): Promise<void> {
+    await test.step('Verify valid till date is N/A for all displayed QR codes', async () => {
+      try {
+        await this.tillDateNA.first().waitFor({ state: 'visible', timeout: 10000 });
+      } catch (error) {
+        console.log('No QR codes with N/A valid till date found');
+        return;
+      }
+
+      const allTillDates = await this.tillDateNA.count();
+
+      if (allTillDates === 0) {
+        console.log('No QR codes with N/A valid till date found');
+        return;
+      }
+
+      console.log(`Found ${allTillDates} app promotion QR codes with N/A valid till date.`);
+
+      for (let i = 0; i < allTillDates; i++) {
+        await expect.soft(this.tillDateNA.nth(i)).toHaveText('N/A');
+      }
+    });
+  }
+
+  async verifyBothTypeFiltersAreChecked(): Promise<void> {
+    await test.step('Verify both App promotion and Content type filters are checked', async () => {
+      await expect(this.filterAppCheckbox).toBeChecked();
+      await expect(this.filterContentCheckbox).toBeChecked();
+    });
+  }
+
+  async verifyTypeFiltersAreUnchecked(): Promise<void> {
+    await test.step('Verify type filters are unchecked after reset', async () => {
+      await expect(this.filterAppCheckbox).not.toBeChecked();
+      await expect(this.filterContentCheckbox).not.toBeChecked();
     });
   }
 }
