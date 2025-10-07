@@ -7,10 +7,10 @@ import { tagTest } from '@core/utils/testDecorator';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recognition-hub-page';
 
-test.describe.only('Single Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
+test.describe('Single Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
   test.beforeEach(async ({ appManagerPage }) => {
     const recognitionHub = new RecognitionHubPage(appManagerPage);
-    await recognitionHub.enableTheRewardsInAndPeerGiftingIfDisabled();
+    await recognitionHub.enableTheRewardsAndPeerGiftingForHubIfDisabled();
   });
 
   test(

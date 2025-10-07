@@ -8,6 +8,7 @@ export enum REWARD_FEATURE_TAGS {
   REWARD_ORDERS_RESEND = '@rewards-orders-resend',
   CURRENCY_CONVERSION = '@currency-conversion',
   CREATE_RECOGNITION_WITH_POINTS = '@create-recognition-with-points',
+  RECOGNITION_NOTIFICATION_CHECK = '@reward-point-notification-check',
 }
 
 export enum REWARD_SUITE_TAGS {

@@ -2,26 +2,22 @@ import { expect } from '@playwright/test';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 
 import { TestPriority } from '@core/constants/testPriority';
+import { TestGroupType } from '@core/constants/testType';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { tagTest } from '@core/utils/testDecorator';
 import { DialogBox } from '@modules/reward/components/common/dialog-box';
 import { Notifications } from '@modules/reward/components/common/notifications';
 import { GiveRecognitionDialogBox } from '@modules/reward/components/recognition/give-recognition-dialog-box';
-import { REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
+import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recognition-hub-page';
 
-test.describe('Recognition post notification', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
-  test.beforeEach(async ({ appManagerPage }) => {
-    const recognitionHub = new RecognitionHubPage(appManagerPage);
-    await recognitionHub.enableTheRewardStoreAndPeerGiftingIfDisabled();
-  });
-
+test.describe.only('Recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
   test(
     '[RC-2619] Validate system notifications on rewards and recognition',
     {
-      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1],
+      tag: [REWARD_FEATURE_TAGS.RECOGNITION_NOTIFICATION_CHECK, TestPriority.P0, TestGroupType.REGRESSION],
     },
-    async ({ appManagerPage, recoManagerPage, standardUserPage }) => {
+    async ({ appManagerPage }) => {
       tagTest(test.info(), {
         description: 'Validate system notifications on rewards and recognition',
         zephyrTestId: 'RC-2619',
@@ -29,9 +25,8 @@ test.describe('Recognition post notification', { tag: [REWARD_SUITE_TAGS.MANAGE_
       });
 
       const recognitionHub = new RecognitionHubPage(appManagerPage);
-      const recognizedUser = process.env.ZEUS_STANDARD_FULLNAME;
-
-      // Visit the Recognition Hub and give one recognition
+      await recognitionHub.enableTheRewardsAndPeerGiftingForHubIfDisabled();
+      const recognizedUser = process.env.STANDARD_USER_FULL_NAME!;
       const existingOptions = await recognitionHub.visitRecognitionHub();
       if (existingOptions.length < 2) {
         await recognitionHub.setupTheMultipleGiftingOptions();
@@ -46,7 +41,12 @@ test.describe('Recognition post notification', { tag: [REWARD_SUITE_TAGS.MANAGE_
       await giveRecognitionModal.recognizeButton.click({ force: true });
 
       const dialogBox = new DialogBox(appManagerPage);
-      if (await dialogBox.container.isVisible()) {
+      if (
+        await recognitionHub.verifier.verifyTheElementIsVisible(dialogBox.container, {
+          timeout: 3000,
+          assertionMessage: ' Container is not visible',
+        })
+      ) {
         await dialogBox.container.waitFor({ state: 'visible' });
         await dialogBox.skipButton.click();
         await expect(dialogBox.container).not.toBeVisible();
@@ -60,58 +60,60 @@ test.describe('Recognition post notification', { tag: [REWARD_SUITE_TAGS.MANAGE_
 
       // Login with the standard user and check the recognition post with points
       await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
-      await LoginHelper.loginWithPassword(recoManagerPage, {
-        email: process.env.ZEUS_RECOGNITION_USER_USERNAME!,
-        password: process.env.ZEUS_RECOGNITION_USER_PASSWORD!,
+      await LoginHelper.loginWithPassword(appManagerPage, {
+        email: process.env.STANDARD_USER_USERNAME!,
+        password: process.env.STANDARD_USER_PASSWORD!,
       });
 
       // Validate the Recognition with points Notification and redirection to post
-      const notifications = new Notifications(recoManagerPage);
+      let notifications = new Notifications(appManagerPage);
       await notifications.siteHeader.waitFor({ state: 'attached' });
-      await recoManagerPage.waitForTimeout(5000);
+      await appManagerPage.waitForTimeout(5000);
       await notifications.navigateToRecentActivityNotifications();
       const firstNotificationText = await notifications.getNotificationText();
       expect(firstNotificationText).toContain(
-        `${process.env.ZEUS_ADMIN_FULLNAME} recognized you for "${recognitionAward}" and gifted you ${rewardPointsText} point`
+        `${process.env.APP_MANAGER_FULL_NAME} recognized you for "${recognitionAward}" and gifted you ${rewardPointsText} point`
       );
       await notifications.notificationListItem.first().click();
 
-      const recognitionHubRecoManager = new RecognitionHubPage(recoManagerPage);
-      await recognitionHubRecoManager.rewardRecognitionFirstPost.waitFor({ state: 'visible' });
-      const countOfPost = await recognitionHubRecoManager.rewardRecognitionFirstPost.count();
+      const recognitionHubStandard = new RecognitionHubPage(appManagerPage);
+      await recognitionHubStandard.rewardRecognitionFirstPost.waitFor({ state: 'visible' });
+      const countOfPost = await recognitionHubStandard.rewardRecognitionFirstPost.count();
       expect(countOfPost).toBeLessThan(2);
-      await recognitionHubRecoManager.validateTheRewardElementsInRecognitionPost(
+      await recognitionHubStandard.validateTheRewardElementsInRecognitionPost(
         true,
         rewardPointsText,
         'Only visible to you, your manager and app administrators'
       );
 
       // Login with the recognition user and check notifications
-      await LoginHelper.logoutByNavigatingToLogoutPage(recoManagerPage);
-      await LoginHelper.loginWithPassword(standardUserPage, {
-        email: process.env.ZEUS_RECOGNITION_USER_USERNAME!,
-        password: process.env.ZEUS_RECOGNITION_USER_PASSWORD!,
+      // Login with the standard user and check the recognition post with points
+      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
+      await LoginHelper.loginWithPassword(appManagerPage, {
+        email: process.env.RECOGNITION_USER_USERNAME!,
+        password: process.env.RECOGNITION_USER_PASSWORD!,
       });
 
-      const notificationsStandard = new Notifications(standardUserPage);
-      await notificationsStandard.siteHeader.waitFor({ state: 'attached' });
-      await standardUserPage.waitForTimeout(5000);
-      await notificationsStandard.navigateToRecentActivityNotifications();
-      const recognitionManagerNotification = await notificationsStandard.getNotificationText();
-      expect(recognitionManagerNotification).toContain(
-        `${process.env.ZEUS_STANDARD_FULLNAME} was recognized for "${recognitionAward}" and gifted ${rewardPointsText} point`
+      notifications = new Notifications(appManagerPage);
+      await notifications.siteHeader.waitFor({ state: 'attached' });
+      await appManagerPage.waitForTimeout(5000);
+      await notifications.navigateToRecentActivityNotifications();
+      const firstNotificationTextForRecognitionUser = await notifications.getNotificationText();
+      expect(firstNotificationTextForRecognitionUser).toContain(
+        `${recognizedUser} was recognized for "${recognitionAward}" and gifted ${rewardPointsText} point`
       );
-      await notificationsStandard.notificationListItem.first().click();
+      await notifications.notificationListItem.first().click();
 
-      const recognitionHubStandard = new RecognitionHubPage(standardUserPage);
-      await recognitionHubStandard.rewardRecognitionFirstPost.waitFor({ state: 'visible' });
-      const postCount = await recognitionHubStandard.rewardRecognitionFirstPost.count();
-      expect(postCount).toBeLessThan(2);
-      await recognitionHubStandard.validateTheRewardElementsInRecognitionPost(
+      const recognitionHubRecoUser = new RecognitionHubPage(appManagerPage);
+      await recognitionHubRecoUser.rewardRecognitionFirstPost.waitFor({ state: 'visible' });
+      const countOfPosts = await recognitionHubRecoUser.rewardRecognitionFirstPost.count();
+      expect(countOfPosts).toBeLessThan(2);
+      await recognitionHubRecoUser.validateTheRewardElementsInRecognitionPost(
         true,
         rewardPointsText,
         'Only visible to you, your manager and app administrators'
       );
+      await recognitionHubRecoUser.deleteTheFirstRecognitionPost();
     }
   );
 });

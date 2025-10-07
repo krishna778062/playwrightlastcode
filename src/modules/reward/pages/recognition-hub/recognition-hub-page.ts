@@ -140,11 +140,10 @@ export class RecognitionHubPage extends BasePage {
     const configResponsePromise = this.page.waitForResponse(
       response => response.url().includes('/recognition/v1/tenant/config') && response.status() === 200
     );
-    await this.page.goto('/recognition');
+    await this.page.goto(PAGE_ENDPOINTS.RECOGNITION_HUB);
     const configResponse = await configResponsePromise;
     const data = await configResponse.json();
-    const amounts: number[] = data?.rewardConfig?.options?.map((opt: any) => opt.amount) || [];
-    return amounts;
+    return data?.rewardConfig?.options?.map((opt: any) => opt.amount) || [];
   }
 
   /**
@@ -405,7 +404,7 @@ export class RecognitionHubPage extends BasePage {
    * Enable rewards and peer gifting if disabled (for Recognition Hub context)
    * This method checks the current state via API and enables both features if needed
    */
-  async enableTheRewardsInAndPeerGiftingIfDisabled(): Promise<void> {
+  async enableTheRewardsAndPeerGiftingForHubIfDisabled(): Promise<void> {
     // Wait for the API response and visit recognition hub
     const [apiResponse] = await Promise.all([
       this.page.waitForResponse(
@@ -519,5 +518,15 @@ export class RecognitionHubPage extends BasePage {
       `${userCount} recipients = ${(Number(rewardOption) * userCount).toLocaleString()} points`
     );
     expect(insufficientErrorMessage).toBe(true);
+  }
+
+  async deleteTheFirstRecognitionPost() {
+    await this.clickOnTheFirstPostMoreOption('Delete');
+    await this.deleteRecognitionDialogBoxContainer.waitFor({ state: 'visible' });
+    await expect(this.deleteRecognitionDialogBoxTitle).toHaveText('Delete recognition');
+    await expect(this.deleteRecognitionDialogBoxDeleteButton).toBeEnabled();
+    await this.clickOnElement(this.deleteRecognitionDialogBoxDeleteButton);
+    await expect(this.deleteRecognitionDialogBoxContainer).not.toBeVisible();
+    await this.verifyToastMessageIsVisibleWithText('Recognition deleted');
   }
 }
