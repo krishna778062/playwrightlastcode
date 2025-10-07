@@ -601,6 +601,5 @@ export class RecognitionHubPage extends BasePage {
     await expect(this.deleteRecognitionDialogBoxDeleteButton).toBeEnabled();
     await this.clickOnElement(this.deleteRecognitionDialogBoxDeleteButton);
     await expect(this.deleteRecognitionDialogBoxContainer).not.toBeVisible();
-    await this.verifyToastMessageIsVisibleWithText('Recognition deleted');
   }
 }

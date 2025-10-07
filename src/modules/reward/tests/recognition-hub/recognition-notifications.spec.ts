@@ -77,7 +77,9 @@ test.describe('Recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNI
       await notifications.notificationListItem.first().click();
 
       const recognitionHubStandard = new RecognitionHubPage(appManagerPage);
-      await recognitionHubStandard.rewardRecognitionFirstPost.waitFor({ state: 'visible' });
+      await recognitionHubStandard.verifier.verifyTheElementIsVisible(
+        recognitionHubStandard.rewardRecognitionFirstPost
+      );
       const countOfPost = await recognitionHubStandard.rewardRecognitionFirstPost.count();
       expect(countOfPost).toBeLessThan(2);
       await recognitionHubStandard.validateTheRewardElementsInRecognitionPost(
@@ -104,7 +106,9 @@ test.describe('Recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNI
       await notifications.notificationListItem.first().click();
 
       const recognitionHubRecoUser = new RecognitionHubPage(appManagerPage);
-      await recognitionHubRecoUser.rewardRecognitionFirstPost.waitFor({ state: 'visible' });
+      await recognitionHubRecoUser.verifier.verifyTheElementIsVisible(
+        recognitionHubRecoUser.rewardRecognitionFirstPost
+      );
       const countOfPosts = await recognitionHubRecoUser.rewardRecognitionFirstPost.count();
       expect(countOfPosts).toBeLessThan(2);
       await recognitionHubRecoUser.validateTheRewardElementsInRecognitionPost(
