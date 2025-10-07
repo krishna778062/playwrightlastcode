@@ -26,7 +26,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
     });
   });
 
-  test.only(
+  test(
     '[RC-2717] Validate adding the points pill to the recognition post',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],

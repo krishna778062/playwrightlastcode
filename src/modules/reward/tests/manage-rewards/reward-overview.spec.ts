@@ -64,7 +64,7 @@ test.describe('Manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     }
   );
 
-  test.skip(
+  test(
     '[RC-3329] Validate if allowances summary shows 0 points when allowances are refreshing.',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OVERVIEW, REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1],
@@ -77,18 +77,13 @@ test.describe('Manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       });
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
       await manageRewardsOverviewPage.verifyThePageIsLoaded();
-      // Get tenant code from window object
       const tenantCode = await appManagerPage.evaluate(() => {
         return (window as any).Simpplr?.Settings?.accountId;
       });
-
-      // Set distribution allowance as failed using DB
       const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
       await executeQuery(resultAsFailed.replace('tenantCode', tenantCode));
-
       await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
       await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
-
       await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
         manageRewardsOverviewPage.pointBalanceSummaryAllowanceValue,
         {
@@ -96,20 +91,15 @@ test.describe('Manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
           stepInfo: 'Verify Allowances value is visible in Points balance summary section',
         }
       );
-
-      // Verify allowance points are 0
       const allowancePointsText = await manageRewardsOverviewPage.pointBalanceSummaryAllowanceValue.textContent();
       const allowancePoints = Number(allowancePointsText?.replace('points', '').trim());
       expect(allowancePoints).toBe(0);
-
       await manageRewardsOverviewPage.clickOnPointBalanceSummaryTheAllowanceInfoIcon();
       await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.tooltipText);
       await manageRewardsOverviewPage.verifier.verifyElementHasText(
         manageRewardsOverviewPage.tooltipText,
         'Allowances are currently refreshing'
       );
-
-      // Restore distribution allowance to success
       const resultAsSuccess = getQuery('setDistributionAllowanceAsSuccess');
       await executeQuery(resultAsSuccess.replace('tenantCode', tenantCode));
     }

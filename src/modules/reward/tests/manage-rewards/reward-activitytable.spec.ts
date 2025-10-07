@@ -7,6 +7,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { CSVUtils } from '@core/utils/csvUtils';
 import { tagTest } from '@core/utils/testDecorator';
+import { DialogBox } from '@modules/reward/components/common/dialog-box';
 import { GiveRecognitionDialogBox } from '@modules/reward/components/recognition/give-recognition-dialog-box';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
@@ -805,55 +806,307 @@ test.describe('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     }
   );
 
-  test.skip(
+  test(
     '[RC-6080] Validate the Message and URL column value in the points given CSV for the Recognition with the points',
     {
-      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1],
+      tag: [REWARD_SUITE_TAGS.REWARDS_DB_CASES, REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1],
     },
-    async () => {
+    async ({ appManagerPage }) => {
       tagTest(test.info(), {
         description:
           'Validate the Message and URL column value in the points given CSV for the Recognition with the points',
         zephyrTestId: 'RC-6080',
         storyId: 'RC-6080',
       });
-      // TODO: This test requires Recognition Hub page and Give Recognition Dialog Box
-      // which are not yet available in the central framework
-      // Will be implemented when those components are migrated
+
+      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      const recognizedUser = process.env.STANDARD_USER_FULL_NAME || 'aishma enduser';
+
+      // Visit the Recognition Hub and give one recognition
+      const existingOptions = await recognitionHub.visitRecognitionHub();
+      if (existingOptions.length < 2) {
+        await recognitionHub.setupTheMultipleGiftingOptions();
+      }
+
+      await recognitionHub.clickOnGiveRecognition();
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+      await giveRecognitionModal.selectTheUserForRecognition(recognizedUser);
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
+      const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
+      await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
+      const rewardPointsText = await giveRecognitionModal.giftThePoints(1);
+
+      const [response] = await Promise.all([
+        appManagerPage.waitForResponse(resp => resp.url().includes('/recognition/create')),
+        giveRecognitionModal.recognizeButton.click({ force: true }),
+      ]);
+
+      const body = await response.json();
+      if (!body || !body.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
+      const recognitionPostId = String(body.id);
+
+      // Handle dialog box if it appears
+      const dialogBox = new DialogBox(appManagerPage);
+      if (await dialogBox.container.isVisible()) {
+        await dialogBox.container.waitFor({ state: 'visible' });
+        await dialogBox.skipButton.click();
+        await expect(dialogBox.container).not.toBeVisible();
+      }
+
+      await manageRewardsOverviewPage.verifyToastMessageIsVisibleWithText('Recognition published');
+      await recognitionHub.validateTheRewardElementsInRecognitionPost(
+        true,
+        rewardPointsText,
+        'Only visible to you, your manager and app administrators'
+      );
+
+      // Validate the new Entry in the Downloaded CSV file
+      const csvUtils = new CSVUtils('./downloads');
+      await manageRewardsOverviewPage.loadPage();
+
+      const [download] = await Promise.all([
+        appManagerPage.waitForEvent('download'),
+        manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
+          stepInfo: 'Clicking on Download CSV button',
+        }),
+      ]);
+
+      await download.saveAs(path.resolve('./downloads', download.suggestedFilename()));
+
+      // Validate last row column values
+      let validationResult = await csvUtils.validateRowValue('last', 14, 'PENDING');
+      expect(validationResult.isMatch, `Expected "PENDING" but got "${validationResult.actualValue}"`).toBeTruthy();
+
+      validationResult = await csvUtils.validateRowValue('last', 15, recognitionPostMessage);
+      expect(
+        validationResult.isMatch,
+        `Expected "${recognitionPostMessage}" but got "${validationResult.actualValue}"`
+      ).toBeTruthy();
+
+      const appURL = process.env.FRONTEND_BASE_URL || 'https://reco.qa.simpplr.xyz';
+      validationResult = await csvUtils.validateRowValue(
+        'last',
+        16,
+        `${appURL}/recognition/recognition/${recognitionPostId}`
+      );
+      expect(
+        validationResult.isMatch,
+        `Expected "${appURL}/recognition/recognition/${recognitionPostId}" but got "${validationResult.actualValue}"`
+      ).toBeTruthy();
+
+      fs.unlinkSync(csvUtils.getLatestCSV());
+      await appManagerPage.goto(`${appURL}/recognition/recognition/${recognitionPostId}`);
+      await recognitionHub.validateTheRewardElementsInRecognitionPost(
+        true,
+        rewardPointsText,
+        'Only visible to you, your manager and app administrators'
+      );
+
+      // Delete the Recognition post and validate the Download CSV again
+      await recognitionHub.deleteTheFirstRecognitionPost();
+
+      // Validate the new Entry in the Downloaded CSV file after deletion
+      const [downloadAfterDelete] = await Promise.all([
+        appManagerPage.waitForEvent('download'),
+        manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
+          stepInfo: 'Clicking on Download CSV button after deletion',
+        }),
+      ]);
+
+      await downloadAfterDelete.saveAs(path.resolve('./downloads', downloadAfterDelete.suggestedFilename()));
+
+      // Validate last row column values after deletion
+      validationResult = await csvUtils.validateRowValue('last', 14, 'REJECTED');
+      expect(validationResult.isMatch, `Expected "REJECTED" but got "${validationResult.actualValue}"`).toBeTruthy();
+
+      validationResult = await csvUtils.validateRowValue('last', 15, 'deleted');
+      expect(validationResult.isMatch, `Expected "deleted" but got "${validationResult.actualValue}"`).toBeTruthy();
+
+      validationResult = await csvUtils.validateRowValue('last', 16, 'deleted');
+      expect(validationResult.isMatch, `Expected "deleted" but got "${validationResult.actualValue}"`).toBeTruthy();
+
+      fs.unlinkSync(csvUtils.getLatestCSV());
+      await appManagerPage.goto(`${appURL}/recognition/recognition/${recognitionPostId}`);
+      await recognitionHub.validateTheRecognitionPostIsDeleted();
     }
   );
 
-  test.skip(
+  test(
     '[RC-6082] Validate the Message and URL column value in the points given CSV for the Recognition with the points',
     {
-      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1],
+      tag: [REWARD_SUITE_TAGS.REWARDS_DB_CASES, REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1],
     },
-    async () => {
+    async ({ appManagerPage }) => {
       tagTest(test.info(), {
         description:
           'Validate the Message and URL column value in the points given CSV for the Recognition with the points',
         zephyrTestId: 'RC-6082',
         storyId: 'RC-6082',
       });
-      // TODO: This test requires Recognition Hub page and Give Recognition Dialog Box
-      // which are not yet available in the central framework
-      // Will be implemented when those components are migrated
+
+      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      const recognizedUser = process.env.STANDARD_USER_FULL_NAME || 'aishma enduser';
+
+      const existingOptions = await recognitionHub.visitRecognitionHub();
+      if (existingOptions.length < 2) {
+        await recognitionHub.setupTheMultipleGiftingOptions();
+      }
+
+      await recognitionHub.clickOnGiveRecognition();
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+      await giveRecognitionModal.selectTheUserForRecognition(recognizedUser);
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
+      const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
+      await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
+      const rewardPointsText = await giveRecognitionModal.giftThePoints(1);
+
+      const [response] = await Promise.all([
+        appManagerPage.waitForResponse(resp => resp.url().includes('/recognition/create')),
+        giveRecognitionModal.recognizeButton.click({ force: true }),
+      ]);
+
+      const body = await response.json();
+      if (!body || !body.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
+      const recognitionPostId = String(body.id);
+
+      // Handle dialog box if it appears
+      const dialogBox = new DialogBox(appManagerPage);
+      if (await dialogBox.container.isVisible()) {
+        await dialogBox.container.waitFor({ state: 'visible' });
+        await dialogBox.skipButton.click();
+        await expect(dialogBox.container).not.toBeVisible();
+      }
+
+      await manageRewardsOverviewPage.verifyToastMessageIsVisibleWithText('Recognition published');
+      await recognitionHub.validateTheRewardElementsInRecognitionPost(
+        true,
+        rewardPointsText,
+        'Only visible to you, your manager and app administrators'
+      );
+
+      // Validate the new Entry in the Downloaded CSV file
+      const csvUtils = new CSVUtils('./downloads');
+      await manageRewardsOverviewPage.loadPage();
+
+      const [download] = await Promise.all([
+        appManagerPage.waitForEvent('download'),
+        manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
+          stepInfo: 'Clicking on Download CSV button',
+        }),
+      ]);
+
+      await download.saveAs(path.resolve('./downloads', download.suggestedFilename()));
+      let validationResult = await csvUtils.validateRowValue('last', 14, 'PENDING');
+      expect(validationResult.isMatch, `Expected "PENDING" but got "${validationResult.actualValue}"`).toBeTruthy();
+
+      validationResult = await csvUtils.validateRowValue('last', 15, recognitionPostMessage);
+      expect(
+        validationResult.isMatch,
+        `Expected "${recognitionPostMessage}" but got "${validationResult.actualValue}"`
+      ).toBeTruthy();
+
+      const appURL = process.env.FRONTEND_BASE_URL || 'https://reco.qa.simpplr.xyz';
+      validationResult = await csvUtils.validateRowValue(
+        'last',
+        16,
+        `${appURL}/recognition/recognition/${recognitionPostId}`
+      );
+      expect(
+        validationResult.isMatch,
+        `Expected "${appURL}/recognition/recognition/${recognitionPostId}" but got "${validationResult.actualValue}"`
+      ).toBeTruthy();
+
+      fs.unlinkSync(csvUtils.getLatestCSV());
+      await appManagerPage.goto(`${appURL}/recognition/recognition/${recognitionPostId}`);
+      await recognitionHub.validateTheRewardElementsInRecognitionPost(
+        true,
+        rewardPointsText,
+        'Only visible to you, your manager and app administrators'
+      );
+      await recognitionHub.deleteTheFirstRecognitionPost();
     }
   );
 
-  test.skip(
+  test(
     '[RC-6099] Validate the Message and URL column value in the points given CSV for the Imported Data',
     {
-      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1],
+      tag: [REWARD_SUITE_TAGS.REWARDS_DB_CASES, REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1],
     },
-    async () => {
+    async ({ appManagerPage }) => {
       tagTest(test.info(), {
         description: 'Validate the Message and URL column value in the points given CSV for the Imported Data',
         zephyrTestId: 'RC-6099',
         storyId: 'RC-6099',
       });
-      // TODO: This test requires DB utilities which are not yet available in the central framework
-      // Will be implemented when DB utilities are migrated
+
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+
+      // Trigger the Reward Data Seeding
+      await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
+        manageRewardsOverviewPage.activityContainer.last(),
+        { timeout: 15000, stepInfo: 'Wait for activity container' }
+      );
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.activityPanelHeader.first()
+      );
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()
+      );
+
+      // Get tenant code from the page
+      const tenantCode = await appManagerPage.evaluate(() => {
+        return (window as any).Simpplr?.Settings?.accountId;
+      });
+
+      if (!tenantCode) {
+        throw new Error('Could not retrieve tenant code from the page');
+      }
+
+      // Execute database query to update allowance job record
+      const { getQuery } = await import('@modules/reward/utils/dbQuery');
+      const { executeQuery } = await import('@modules/reward/utils/dbUtils');
+
+      const resultAsSuccess = getQuery('setTheLatestCreatedDateFromAllowanceJobRecord');
+      await executeQuery(resultAsSuccess.replace(/tenantCode/g, tenantCode));
+
+      // Navigate to distribute allowances page
+      await appManagerPage.goto('/manage/recognition/seed');
+      await appManagerPage.waitForTimeout(15000);
+
+      // Validate the new Entry in the Downloaded CSV file
+      const csvUtils = new CSVUtils('./downloads');
+      await manageRewardsOverviewPage.loadPage();
+      await appManagerPage.reload();
+
+      await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
+        manageRewardsOverviewPage.activityContainer.last(),
+        { timeout: 15000, stepInfo: 'Wait for activity container after reload' }
+      );
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.activityPanelHeader.first()
+      );
+      await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPointsGivenTable, {
+        stepInfo: 'Clicking on Points Given filter',
+        force: true,
+      });
+
+      const [download] = await Promise.all([
+        appManagerPage.waitForEvent('download'),
+        manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
+          stepInfo: 'Clicking on Download CSV button',
+        }),
+      ]);
+
+      await download.saveAs(path.resolve('./downloads', download.suggestedFilename()));
+      let validationResult = await csvUtils.validateRowValue('last', 14, 'APPROVED');
+      expect(validationResult.isMatch, `Expected "APPROVED" but got "${validationResult.actualValue}"`).toBeTruthy();
+      validationResult = await csvUtils.validateRowValue('last', 15, 'import');
+      expect(validationResult.isMatch, `Expected "import" but got "${validationResult.actualValue}"`).toBeTruthy();
+      validationResult = await csvUtils.validateRowValue('last', 16, 'import');
+      expect(validationResult.isMatch, `Expected "import" but got "${validationResult.actualValue}"`).toBeTruthy();
+      fs.unlinkSync(csvUtils.getLatestCSV());
     }
   );
 });
