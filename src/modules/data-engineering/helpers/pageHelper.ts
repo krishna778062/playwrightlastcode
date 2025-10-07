@@ -17,15 +17,11 @@ export class PageHelper {
    * await PageHelper.waitForLoadingToComplete(page);
    */
   static async waitForLoadingToComplete(page: Page, timeout: number = TIMEOUTS.LONG): Promise<void> {
-    await page.waitForSelector("//div[@class='LoadingDots']", {
-      state: 'hidden',
-      timeout,
-    });
-  }
-
-  static async pause(page: Page, timeInMs: number): Promise<void> {
-    await test.step(`Pause for ${timeInMs} milliseconds`, async () => {
-      await page.waitForTimeout(timeInMs);
+    await test.step('Wait for loading to complete', async () => {
+      await page.waitForSelector("//div[@class='LoadingDots']", {
+        state: 'detached',
+        timeout,
+      });
     });
   }
 }
