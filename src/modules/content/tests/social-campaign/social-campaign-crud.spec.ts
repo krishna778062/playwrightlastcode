@@ -147,7 +147,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-10518'],
       },
-      async ({ appManagerHomePage, socialCampaignHelper, audienceManagementHelper, siteManagementHelper }) => {
+      async ({ appManagerHomePage, socialCampaignHelper, siteManagementHelper }) => {
         tagTest(test.info(), {
           description: 'Verify App Manager able to share Social Campaign to Site feed',
           zephyrTestId: 'CONT-10518',
@@ -180,9 +180,10 @@ test.describe(
         await socialCampaignPage.actions.clickCampaignOptions();
         await socialCampaignPage.actions.clickShareToFeedButton();
         await socialCampaignPage.actions.selectShareOptionAsSiteFeed();
-        await socialCampaignPage.actions.enterShareDescription(description);
         await socialCampaignPage.actions.enterSiteName(siteName);
+        await socialCampaignPage.actions.enterShareDescription(description);
         await socialCampaignPage.actions.clickShareButton();
+        await socialCampaignPage.assertions.verifyToastMessage('Shared social campaign successfully');
 
         const siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteId);
         await siteDashboardPage.loadPage();
@@ -197,7 +198,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19603', '@Social_Campaign_Validation'],
       },
-      async ({ appManagerHomePage, appManagersPage }) => {
+      async ({ appManagersPage }) => {
         tagTest(test.info(), {
           description: 'In Zeus Verify error messages on creating social campaign without required details',
           zephyrTestId: 'CONT-19603',
@@ -227,7 +228,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19604', '@Social_Campaign_Creation'],
       },
-      async ({ appManagerHomePage, appManagersPage, socialCampaignHelper, audienceManagementHelper }) => {
+      async ({ appManagersPage }) => {
         tagTest(test.info(), {
           description: 'In Zeus Verify user able to create social campaign for selected(Twitter) social network',
           zephyrTestId: 'CONT-19604',
@@ -325,12 +326,11 @@ test.describe(
         await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
         const description = TestDataGenerator.generateRandomString();
-        // Share campaign to site feed
         await socialCampaignPage.actions.clickCampaignOptions();
         await socialCampaignPage.actions.clickShareToFeedButton();
         await socialCampaignPage.actions.enterShareDescription(description);
         await socialCampaignPage.actions.clickShareButton();
-
+        await socialCampaignPage.assertions.verifyToastMessage('Shared social campaign successfully');
         await appManagerHomePage.actions.clickOnGlobalFeed();
         feedPage = new FeedPage(appManagerHomePage.page);
         await feedPage.verifyThePageIsLoaded();
@@ -342,7 +342,7 @@ test.describe(
     test(
       'In Zeus Verify App Manager able to delete the expired Social Campaign(Audience)',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-10526', '@Social_Campaign_Expire'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-14899', '@Social_Campaign_Expire'],
       },
       async ({ appManagerHomePage, socialCampaignHelper, audienceManagementHelper }) => {
         tagTest(test.info(), {
@@ -350,7 +350,7 @@ test.describe(
           zephyrTestId: 'CONT-14899',
           storyId: 'CONT-14899',
         });
-        socialCampaignPage = new SocialCampaignPage(socialCampaignManagerHomePage.page);
+        socialCampaignPage = new SocialCampaignPage(appManagerHomePage.page);
 
         await socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.EXPIRED);
         const campaignData = {
@@ -393,6 +393,142 @@ test.describe(
         await socialCampaignPage.actions.confirmDeleteCampaign();
         await socialCampaignPage.assertions.verifyToastMessage('Deleted social campaign successfully');
         await socialCampaignPage.assertions.verifyCampaignNotInExpired(campaignData.linkText);
+      }
+    );
+
+    test(
+      'In Zeus Verify End User should not be able to share Social Campaign to Home Carousel delete and expire Campaign',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-14906', '@Social_Campaign_End_User_Restrictions'],
+      },
+      async ({ endUserHomePage, socialCampaignHelper }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify End User should not be able to share Social Campaign to Home Carousel delete and expire Campaign',
+          zephyrTestId: 'CONT-14906',
+          storyId: 'CONT-14906',
+        });
+
+        // Create social campaign using App Manager via API
+        const campaignData = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_BLOG,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_BLOG,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        await socialCampaignHelper.createCampaign({
+          message: campaignData.message,
+          url: campaignData.url,
+          recipient: campaignData.recipient,
+        });
+
+        const endUserSocialCampaignPage = new SocialCampaignPage(endUserHomePage.page);
+        await endUserSocialCampaignPage.loadPage();
+
+        // Verify campaign is visible to end user
+        await endUserSocialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignData.linkText);
+        await endUserSocialCampaignPage.assertions.verifyAddCampaignButtonIsNotVisible();
+        await endUserSocialCampaignPage.assertions.verifyExpireTabNotVisible();
+        await endUserSocialCampaignPage.actions.clickCampaignOptions();
+        await endUserSocialCampaignPage.assertions.verifyExpireCampaignButtonIsNotVisible();
+        await endUserSocialCampaignPage.assertions.verifyDeleteCampaignButtonIsNotVisible();
+      }
+    );
+
+    test(
+      'In Zeus Verify Standard User is able to Share a Social Campaign with a message using Post in HOME FEED option',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26718'],
+      },
+      async ({ standardUserHomePage, socialCampaignHelper }) => {
+        tagTest(test.info(), {
+          description: 'Verify App Manager able to share Social Campaign to Home Feed',
+          zephyrTestId: 'CONT-26718',
+          storyId: 'CONT-26718',
+        });
+
+        socialCampaignPage = new SocialCampaignPage(standardUserHomePage.page);
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+        });
+        campaignId = createdCampaign.campaignId;
+        socialCampaignPage.loadPage();
+        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+
+        const description = TestDataGenerator.generateRandomString();
+        await socialCampaignPage.actions.clickCampaignOptions();
+        await socialCampaignPage.actions.clickShareToFeedButton();
+        await socialCampaignPage.actions.enterShareDescription(description);
+        await socialCampaignPage.actions.clickShareButton();
+        await socialCampaignPage.assertions.verifyToastMessage('Shared social campaign successfully');
+
+        await standardUserHomePage.actions.clickOnGlobalFeed();
+        feedPage = new FeedPage(standardUserHomePage.page);
+        await feedPage.verifyThePageIsLoaded();
+        await feedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
+      }
+    );
+
+    test(
+      'In Zeus Verify Standard User is able to Share a Social Campaign with a message to a Public Site using Post in SITE FEED option',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26719'],
+      },
+      async ({ endUserHomePage, socialCampaignHelper, siteManagementHelper }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify Standard User is able to Share a Social Campaign with a message to a Public Site using Post in SITE FEED option',
+          zephyrTestId: 'CONT-26719',
+          storyId: 'CONT-26719',
+        });
+
+        socialCampaignPage = new SocialCampaignPage(endUserHomePage.page);
+        const siteName = 'All Employees';
+        const siteId = await siteManagementHelper.getSiteIdWithName(siteName);
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+        });
+        campaignId = createdCampaign.campaignId;
+        socialCampaignPage.loadPage();
+        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+
+        const description = TestDataGenerator.generateRandomString();
+        // Share campaign to site feed
+        await socialCampaignPage.actions.clickCampaignOptions();
+        await socialCampaignPage.actions.clickShareToFeedButton();
+        await socialCampaignPage.actions.selectShareOptionAsSiteFeed();
+        await socialCampaignPage.actions.enterSiteName(siteName);
+        await socialCampaignPage.actions.enterShareDescription(description);
+        await socialCampaignPage.actions.clickShareButton();
+        await socialCampaignPage.assertions.verifyToastMessage('Shared social campaign successfully');
+
+        const siteDashboardPage = new SiteDashboardPage(endUserHomePage.page, siteId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.actions.clickOnFeedLink();
+        await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
       }
     );
   }

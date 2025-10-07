@@ -29,7 +29,7 @@ export class ShareSocialCampaignComponent
     this.siteNameInput = page.locator('div[id*="listbox"]');
     this.shareButton = page.getByRole('dialog').getByRole('button', { name: 'Share' });
     this.shareOptionDropdown = page.getByLabel('Post in');
-    this.enterSiteNameInput = page.locator("div:has-text('Search site')").locator('.. input');
+    this.enterSiteNameInput = page.locator('div:has-text("Select site") + div >> input');
   }
 
   get actions(): IShareSocialCampaignComponentActions {
