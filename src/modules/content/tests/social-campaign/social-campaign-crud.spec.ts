@@ -149,14 +149,12 @@ test.describe(
       },
       async ({ appManagerHomePage, socialCampaignHelper, audienceManagementHelper, siteManagementHelper }) => {
         tagTest(test.info(), {
-          description: 'Verify App Manager able to share Social Campaign(Audience) to Site feed',
+          description: 'Verify App Manager able to share Social Campaign to Site feed',
           zephyrTestId: 'CONT-10518',
           storyId: 'CONT-10518',
         });
 
         socialCampaignPage = new SocialCampaignPage(appManagerHomePage.page);
-        // Setup: Get or create audience and site
-        const audienceId = await audienceManagementHelper.getRandomAudienceId();
         const siteName = 'All Employees';
         const siteId = await siteManagementHelper.getSiteIdWithName(siteName);
         // Create campaign with audience
@@ -164,8 +162,7 @@ test.describe(
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
           url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
           linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
-          recipient: SocialCampaignRecipient.AUDIENCE,
-          audienceId: audienceId,
+          recipient: SocialCampaignRecipient.EVERYONE,
         };
 
         // Create campaign via API
@@ -173,7 +170,6 @@ test.describe(
           message: campaignOptions.message,
           url: campaignOptions.url,
           recipient: campaignOptions.recipient,
-          audienceId: campaignOptions.audienceId,
         });
         campaignId = createdCampaign.campaignId;
         socialCampaignPage.loadPage();
@@ -310,17 +306,12 @@ test.describe(
         });
 
         socialCampaignPage = new SocialCampaignPage(appManagerHomePage.page);
-        // Setup: Get or create audience and site
-        const audienceId = await audienceManagementHelper.getRandomAudienceId();
-        const siteName = 'All Employees';
-        const siteId = await siteManagementHelper.getSiteIdWithName(siteName);
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
           url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
           linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
-          recipient: SocialCampaignRecipient.AUDIENCE,
-          audienceId: audienceId,
+          recipient: SocialCampaignRecipient.EVERYONE,
         };
 
         // Create campaign via API
@@ -328,7 +319,6 @@ test.describe(
           message: campaignOptions.message,
           url: campaignOptions.url,
           recipient: campaignOptions.recipient,
-          audienceId: campaignOptions.audienceId,
         });
         campaignId = createdCampaign.campaignId;
         socialCampaignPage.loadPage();
