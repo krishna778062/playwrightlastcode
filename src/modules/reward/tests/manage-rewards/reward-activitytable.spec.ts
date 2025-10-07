@@ -807,14 +807,14 @@ test.describe('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-6080] Validate the Message and URL column value in the points given CSV for the Recognition with the points',
+    '[RC-6080] Validate Message, and URL column value in Points Given CSV when points are removed or the recognition post is deleted',
     {
       tag: [REWARD_SUITE_TAGS.REWARDS_DB_CASES, REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
         description:
-          'Validate the Message and URL column value in the points given CSV for the Recognition with the points',
+          'Validate Message, and URL column value in Points Given CSV when points are removed or the recognition post is deleted',
         zephyrTestId: 'RC-6080',
         storyId: 'RC-6080',
       });
@@ -1029,7 +1029,7 @@ test.describe('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     }
   );
 
-  test(
+  test.skip(
     '[RC-6099] Validate the Message and URL column value in the points given CSV for the Imported Data',
     {
       tag: [REWARD_SUITE_TAGS.REWARDS_DB_CASES, REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1],

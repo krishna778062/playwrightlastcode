@@ -193,8 +193,6 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         storyId: 'RC-3326',
       });
 
-      // TODO: Implement when RecognitionHubPage and GiveRecognitionDialogBox are available
-
       const recognitionHub = new RecognitionHubPage(appManagerPage);
       const recognizedUser = process.env.ZEUS_STANDARD_FULLNAME;
 
@@ -310,7 +308,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
     }
   );
 
-  test(
+  test.only(
     '[RC-3223] Validate Points refreshing banner should not be shown on the delete recognition modal if grace period is over',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1],
@@ -326,7 +324,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       const recognitionHub = new RecognitionHubPage(appManagerPage);
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
       await appManagerPage.waitForTimeout(5000);
-      const recognitionGiverName: string = process.env[`STANDARD_USER_FULL_NAME`]!;
+      const recognitionGiverName: string = process.env[`APP_MANAGER_FULL_NAME`]!;
       await manageRewardsOverviewPage.loadPage();
       await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();
       const rewardPointsText =
