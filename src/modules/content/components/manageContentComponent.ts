@@ -476,4 +476,9 @@ export class ManageContentComponent extends BaseComponent {
       });
     });
   }
+  async applyButtonShouldBeDisabled(): Promise<void> {
+    await test.step('Checking if the apply button is disabled', async () => {
+      await this.verifier.verifyTheElementIsDisabled(this.applyButton);
+    });
+  }
 }
