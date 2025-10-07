@@ -12,7 +12,7 @@ import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constant
 import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
 import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recognition-hub-page';
 
-test.describe.only('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
+test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
   let tenantCode: string;
 
   test.beforeEach(async ({ appManagerPage }) => {
@@ -210,12 +210,12 @@ test.describe.only('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB]
       const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
       await executeQuery(resultAsFailed.replace('tenantCode', tenantCode));
 
-      // Validate the Delete recognition can not rollback the points
+      // Validate the Delete recognition can not roll back the points
       await appManagerPage.reload();
       await recognitionHub.visitRecognitionHub();
       await recognitionHub.clickOnTheFirstPostMoreOption('Delete');
 
-      // Validate the Delete recognition and revoke points is disabled in dialog box
+      // Validate the Delete recognition and revoke points is disabled in the dialog box
       await recognitionHub.deleteRecognitionDialogBoxContainer.waitFor({ state: 'visible' });
       await expect(recognitionHub.deleteRecognitionDialogBoxTitle).toHaveText('Delete recognition');
       await expect(recognitionHub.deleteRecognitionWithRevokePoints).toBeDisabled();
@@ -264,6 +264,7 @@ test.describe.only('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB]
 
       // Validate the Peer award outer ring, reward point pill, tooltip icon
       await recognitionHub.visitRecognitionHub();
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
         rewardOptionText,
@@ -272,6 +273,7 @@ test.describe.only('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB]
 
       // Disable the Rewards and Check the points are not visible
       await manageRewardsPage.loadPage();
+      await manageRewardsPage.verifyThePageIsLoaded();
       await manageRewardsPage.disableTheRewards();
       await recognitionHub.visitRecognitionHub();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
@@ -282,6 +284,7 @@ test.describe.only('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB]
 
       // Enable the Rewards again
       await manageRewardsPage.loadPage();
+      await manageRewardsPage.verifyThePageIsLoaded();
       await manageRewardsPage.enableTheRewards();
       await recognitionHub.visitRecognitionHub();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
@@ -292,7 +295,7 @@ test.describe.only('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB]
     }
   );
 
-  test.only(
+  test(
     '[RC-3223] Validate Points refreshing banner should not be shown on the delete recognition modal if grace period is over',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1],

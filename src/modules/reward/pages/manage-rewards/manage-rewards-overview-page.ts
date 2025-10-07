@@ -1,5 +1,4 @@
 import { expect, Locator, Page, Response, test } from '@playwright/test';
-import { RecognitionHubPage } from '@rewards/pages/recognition-hub/recognition-hub-page';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
@@ -432,6 +431,8 @@ export class ManageRewardsOverviewPage extends BasePage {
         await expect(this.viewRecognitionDropdown).toBeVisible();
         await expect(this.viewRecognitionDropdownText).toHaveText('View recognition');
         await this.viewRecognitionDropdownLink.click();
+        // Import RecognitionHubPage dynamically to avoid circular dependencies
+        const { RecognitionHubPage } = await import('@modules/reward/pages/recognition-hub/recognition-hub-page');
         const recognitionHub = new RecognitionHubPage(this.page);
         await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'visible', timeout: 25000 });
         break;
