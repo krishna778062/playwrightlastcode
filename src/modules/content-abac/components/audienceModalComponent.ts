@@ -7,7 +7,6 @@ export class AudienceModalComponent extends BaseComponent {
   readonly allOrganizationToggle: Locator;
   readonly allOrganizationMessage: Locator;
   readonly openParentContainer: Locator;
-  readonly selectingAudienceGroup: Locator;
   readonly clickingOnDoneButton: Locator;
 
   constructor(readonly page: Page) {
@@ -16,11 +15,6 @@ export class AudienceModalComponent extends BaseComponent {
     this.allOrganizationToggle = page.getByRole('switch', { name: 'All organization' });
     this.allOrganizationMessage = page.getByText("You've selected 'All organization'");
     this.openParentContainer = page.getByTestId('i-arrowRight').first();
-    this.selectingAudienceGroup = page
-      .locator(
-        '.FirstColumn-module-firstColumnNameSectionContainer___CHCQ6.FirstColumn-module-firstColumnNameSectionContainerInsidePicker___W7fG6 > .FirstColumn-module-firstColumnNameContainer___qPuUp > .FirstColumn-module-checkboxContainer___cVWLA > .CheckboxInput-module__wrapper__6OBBL > .u-ignoreLegacyStyle'
-      )
-      .first();
     this.clickingOnDoneButton = page.getByRole('button', { name: 'Done' });
   }
 
@@ -51,7 +45,9 @@ export class AudienceModalComponent extends BaseComponent {
   async selectingAudience(): Promise<void> {
     await test.step('Selecting audience', async () => {
       await this.clickOnElement(this.openParentContainer);
-      await this.clickOnElement(this.selectingAudienceGroup);
+      await this.page.keyboard.press('Tab');
+      await this.page.keyboard.press('Tab');
+      await this.page.keyboard.press('Space');
       await this.clickOnElement(this.clickingOnDoneButton);
     });
   }
