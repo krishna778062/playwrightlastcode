@@ -338,5 +338,62 @@ test.describe(
         manualCleanupNeeded = true;
       }
     );
+
+    test(
+      'In Zeus Verify App Manager able to delete the expired Social Campaign(Audience)',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-10526', '@Social_Campaign_Expire'],
+      },
+      async ({ appManagerHomePage, socialCampaignHelper, audienceManagementHelper }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify App Manager able to delete the expired Social Campaign',
+          zephyrTestId: 'CONT-14899',
+          storyId: 'CONT-14899',
+        });
+        socialCampaignPage = new SocialCampaignPage(socialCampaignManagerHomePage.page);
+
+        await socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.EXPIRED);
+        const campaignData = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_BLOG,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_BLOG,
+          recipient: SocialCampaignRecipient.AUDIENCE,
+        };
+
+        // Create or get a test audience for the campaign
+        const audienceId = await audienceManagementHelper.getRandomAudienceId();
+
+        // Create campaign via API
+        const createdCampaign = await socialCampaignHelper.createCampaign({
+          message: campaignData.message,
+          url: campaignData.url,
+          recipient: campaignData.recipient,
+          audienceId: audienceId,
+        });
+
+        campaignId = createdCampaign.campaignId;
+
+        await socialCampaignPage.loadPage();
+
+        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignData.linkText);
+        await socialCampaignPage.actions.clickCampaignOptions();
+
+        await socialCampaignPage.actions.clickExpireCampaignButton();
+
+        await socialCampaignPage.actions.confirmExpireCampaign();
+        await socialCampaignPage.assertions.verifyToastMessage('Expired social campaign successfully');
+        await socialCampaignPage.assertions.verifyCampaignNotInLatest(campaignData.linkText);
+
+        await socialCampaignPage.actions.clickExpiredLink();
+
+        await socialCampaignPage.assertions.verifyCampaignInExpired(campaignData.linkText);
+
+        await socialCampaignPage.actions.clickCampaignOptions();
+        await socialCampaignPage.actions.clickDeleteCampaignButton();
+        await socialCampaignPage.actions.confirmDeleteCampaign();
+        await socialCampaignPage.assertions.verifyToastMessage('Deleted social campaign successfully');
+        await socialCampaignPage.assertions.verifyCampaignNotInExpired(campaignData.linkText);
+      }
+    );
   }
 );
