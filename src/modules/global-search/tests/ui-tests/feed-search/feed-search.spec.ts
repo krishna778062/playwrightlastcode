@@ -39,7 +39,7 @@ test.describe(
     test(
       `Verify Feed Search results for a new home ${testData.content}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {

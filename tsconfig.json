@@ -9,6 +9,7 @@
       "@types/*": ["./src/core/types/*"],
       "@modules/*": ["./src/modules/*"],
       "@chat/*": ["./src/modules/chat/*"],
+      "@data-engineering/*": ["./src/modules/data-engineering/*"],
       "@chat-helpers/*": ["./src/modules/chat/helpers/*"],
       "@chat-pages/*": ["./src/modules/chat/pages/*"],
       "@chat-components/*": ["./src/modules/chat/pages/components/*"],

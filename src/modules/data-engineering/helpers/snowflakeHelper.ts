@@ -1,4 +1,4 @@
-import { SnowflakeService } from '../api/services/SnowflakeService';
+import { SnowflakeService } from '@data-engineering/api/services/SnowflakeService';
 
 /**
  * Helper class for interacting with Snowflake using the SnowflakeService.

@@ -227,4 +227,50 @@ export class FeedManagementHelper {
       return responseBody;
     });
   }
+
+  /**
+   * Enables Q&A feature by getting current app config and updating it with isQuestionAnswerEnabled: true
+   * This preserves all other existing settings while ensuring Q&A is always enabled
+   * @returns Promise with the API response
+   */
+  async enableQuestionAnswer() {
+    return await test.step('Enable Question & Answer feature', async () => {
+      // Get current app configuration
+      const currentConfig = await this.appManagerApiClient.getFeedManagementService().getAppConfig();
+
+      console.log('Current Q&A status:', currentConfig.result.isQuestionAnswerEnabled);
+
+      // Prepare update payload with all current values except isQuestionAnswerEnabled
+      const updatePayload = {
+        appName: currentConfig.result.appName,
+        automatedTranslationEnabled: currentConfig.result.automatedTranslationEnabled,
+        availableContentTypes: currentConfig.result.availableContentTypes,
+        addToCalendar: currentConfig.result.addToCalendar,
+        feedbackRecipients: currentConfig.result.feedbackRecipients,
+        enableSmsNotifications: currentConfig.result.enableSmsNotifications,
+        enablePushNotificationMobile: currentConfig.result.enablePushNotificationMobile,
+        shareFeedback: currentConfig.result.shareFeedback,
+        socialCampaignsPolicyUrl: currentConfig.result.socialCampaignsPolicyUrl,
+        selectedLanguages: currentConfig.result.selectedLanguages.ids,
+        orgChartEnabled: currentConfig.result.orgChartEnabled,
+        isSmartWritingEnabled: currentConfig.result.isSmartWritingEnabled,
+        isSmartAnswerEnabled: currentConfig.result.isSmartAnswerEnabled,
+        isContentAiSummaryEnabled: currentConfig.result.isContentAiSummaryEnabled,
+        isMultilingualModelEnabled: currentConfig.result.isMultilingualModelEnabled,
+        calendarOffice365Enabled: currentConfig.result.calendarOffice365Enabled,
+        calendarOffice365Url: currentConfig.result.calendarOffice365Url,
+        isContentFeaturePromotionEnabled: currentConfig.result.isContentFeaturePromotionEnabled,
+        isQuestionAnswerEnabled: true, // Always set to true
+        isNewsletterTranslationEnabled: currentConfig.result.isNewsletterTranslationEnabled,
+      };
+
+      // Update app configuration
+      const response = await this.appManagerApiClient.getFeedManagementService().updateAppConfig(updatePayload);
+
+      const responseBody = await response.json();
+      console.log('Q&A enabled successfully. Response:', JSON.stringify(responseBody, null, 2));
+
+      return responseBody;
+    });
+  }
 }
