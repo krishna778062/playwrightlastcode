@@ -11,6 +11,7 @@ export class HeroMetricsComponent extends BaseComponent {
   readonly getMetricByTitle: (title: string) => Locator;
   readonly getMetricValueByTitle: (title: string) => Locator;
   readonly getMetricBySubTitle: (subTitle: string) => Locator;
+  readonly getMetricByColumnTitle: (metricTitle: string) => Promise<Locator[]>;
 
   constructor(page: Page) {
     super(page);
@@ -26,6 +27,15 @@ export class HeroMetricsComponent extends BaseComponent {
 
     this.getMetricBySubTitle = (subTitle: string) =>
       this.page.locator('[id="_thoughtspot-embed"]').contentFrame().getByRole('heading', { name: subTitle });
+
+    this.getMetricByColumnTitle = async (metricTitle: string) => {
+      const frame = this.page.locator('[id="_thoughtspot-embed"]').contentFrame();
+      const heading = frame.getByRole('heading', { name: metricTitle });
+      return await heading
+        .locator('xpath=ancestor::div[contains(@class,"module__verticalLayoutContainer")]/following-sibling::div')
+        .locator('div[class*="module__colHeaderText"]')
+        .all();
+    };
   }
 
   /**
@@ -76,6 +86,35 @@ export class HeroMetricsComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(subTitleElement, {
         assertionMessage: `${subTitle} metric sub title should be visible`,
       });
+    });
+  }
+
+  async verifyColumnTitleIsVisible(metricTitle: string, columnTitles: string[]): Promise<void> {
+    await test.step(`Verify ${columnTitles} column title is visible`, async () => {
+      const columnTitleElements = await this.getMetricByColumnTitle(metricTitle);
+      expect(columnTitleElements.length, `${metricTitle} should have ${columnTitles.length} column titles`).toBe(
+        columnTitles.length
+      );
+      for (let i = 0; i < columnTitleElements.length; i++) {
+        const columnTitleElement = columnTitleElements[i].getByText(columnTitles[i], { exact: true });
+        await this.verifier.verifyTheElementIsVisible(columnTitleElement, {
+          assertionMessage: `${columnTitles[i]} column title should be visible`,
+        });
+      }
+    });
+  }
+
+  async scrollToAnswer(metricTitle: string): Promise<void> {
+    await test.step(`Scroll to ${metricTitle} answer`, async () => {
+      const answerElement = this.getMetricByTitle(metricTitle);
+      await answerElement.scrollIntoViewIfNeeded();
+    });
+  }
+
+  async verifySocialCampaignShareDataIsCorrect(): Promise<void> {
+    await test.step(`Verify social campaign share data is correct`, async () => {
+      const socialCampaignShareData = await this.getMetricByColumnTitle('Social campaign share distribution');
+      expect(socialCampaignShareData.length, `Social campaign share data should have 3 columns`).toBe(3);
     });
   }
 }

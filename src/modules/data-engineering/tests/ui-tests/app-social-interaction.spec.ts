@@ -110,6 +110,43 @@ test.describe(
         }
       );
     }
+
+    test.only(
+      'TS To verify the answer of Social campaign shares in Social Interaction dashboard',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION],
+      },
+      async ({ openAppAnalytics, page }) => {
+        await openAppAnalytics();
+
+        const socialInteractionPage = new SocialInteractionPage(page);
+        await socialInteractionPage.navigateToSocialInteraction();
+
+        tagTest(test.info(), {
+          description: 'This verified the answer of Social campaign shares in Social Interaction dashboard',
+          zephyrTestId: 'DE-26021',
+          storyId: 'DE-25761',
+        });
+
+        await PageHelper.waitForLoadingToComplete(page);
+
+        await socialInteractionPage.verifyMetricTitleIsVisible('Social campaign share distribution');
+        await socialInteractionPage.verifyMetricSubTitleIsVisible(
+          'Breakdown of social campaign shares across different platforms'
+        );
+        await socialInteractionPage.scrollToAnswer('Social campaign share distribution');
+        await PageHelper.pause(page, 10000);
+        await socialInteractionPage.verifyColumnTitleIsVisible('Social campaign share distribution', [
+          'Social platform',
+          'Share coun',
+          'Platform share contribution (%)',
+        ]);
+        await socialInteractionPage.verifySocialCampaignShareDataIsCorrect();
+        const dbCount = await getMetricData('SocialInteractionSql.Social_Campaign_Shares');
+        console.log(`DB Social campaign share distribution: ${dbCount}`);
+        expect(numericValue, `${metricData.title} UI (${numericValue}) should equal DB (${dbCount})`).toBe(dbCount);
+      }
+    );
   }
 );
 

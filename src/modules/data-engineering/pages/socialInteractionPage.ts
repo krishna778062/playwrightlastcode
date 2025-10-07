@@ -67,4 +67,16 @@ export class SocialInteractionPage extends BasePage {
   async verifyMetricHasValidValue(metricTitle: string): Promise<void> {
     await this.heroMetrics.verifyMetricHasValidValue(metricTitle);
   }
+
+  async verifyColumnTitleIsVisible(metricTitle: string, columnTitles: string[]): Promise<void> {
+    await this.heroMetrics.verifyColumnTitleIsVisible(metricTitle, columnTitles);
+  }
+
+  async scrollToAnswer(metricTitle: string): Promise<void> {
+    await this.heroMetrics.scrollToAnswer(metricTitle);
+  }
+
+  async verifySocialCampaignShareDataIsCorrect(): Promise<void> {
+    await this.heroMetrics.verifySocialCampaignShareDataIsCorrect();
+  }
 }

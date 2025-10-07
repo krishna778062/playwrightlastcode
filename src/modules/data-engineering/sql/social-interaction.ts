@@ -46,4 +46,22 @@ and sc.is_campaign_active = true
 and sc.is_deleted = false
 and sc.campaign_created_on between CONCAT(DATEADD(DAY, -daysToSubtract, CURRENT_DATE()), ' 00:00:00') AND CONCAT(CURRENT_DATE(), ' 23:59:59');
     `,
+
+  Social_Campaign_Shares: `
+select sum(case when scs.external_application_code in ('EA001','EA002','EA003') then 1 else 0 end) as TOTAL_SHARE,
+sum(case when scs.external_application_code = 'EA001' then 1 else 0 end) as FACEBOOK_SHARE,
+sum(case when scs.external_application_code = 'EA002' then 1 else 0 end) as LINKEDIN_SHARE,
+sum(case when scs.external_application_code = 'EA003' then 1 else 0 end) as TWITTER_SHARE,
+round((FACEBOOK_SHARE/TOTAL_SHARE) * 100,1) as FACEBOOK_PERCENT,
+round((LINKEDIN_SHARE/TOTAL_SHARE) * 100,1) as LINKEDIN_PERCENT,
+round((TWITTER_SHARE/TOTAL_SHARE) * 100,1) as TWITTER_PERCENT
+from udl.social_campaign as sc
+left join udl.social_campaign_share as scs
+on sc.code = scs.social_campaign_code
+where sc.tenant_code = 'orgId'
+and sc.is_campaign_active = true
+and sc.is_deleted = false
+and scs.is_deleted = false
+and sc.campaign_created_on between CONCAT(DATEADD(DAY, -daysToSubtract, CURRENT_DATE()), ' 00:00:00') AND CONCAT(CURRENT_DATE(), ' 23:59:59');
+    `,
 };
