@@ -62,6 +62,13 @@ export class ManageQRPage extends BasePage {
   readonly contentPageQRIcon: Locator;
   readonly promoteContentQRPage: Locator;
   readonly firstContentHeader: Locator;
+  readonly qrCodesAddedHeader: Locator;
+  readonly tableNameHeader: Locator;
+  readonly tableCreatedByHeader: Locator;
+  readonly tableGeneratedOnHeader: Locator;
+  readonly tableValidTillHeader: Locator;
+  readonly tableStatusHeader: Locator;
+  readonly tableActionsHeader: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_QR_PAGE);
@@ -126,6 +133,13 @@ export class ManageQRPage extends BasePage {
     this.contentPageQRIcon = page.getByTestId('i-qr');
     this.promoteContentQRPage = page.getByRole('heading', { name: 'Promote content via QR' });
     this.firstContentHeader = page.locator('.ManageContentListItem').first().locator('h2 a');
+    this.qrCodesAddedHeader = page.getByRole('heading', { name: 'QR codes added' });
+    this.tableNameHeader = page.locator('th').filter({ hasText: 'Name' });
+    this.tableCreatedByHeader = page.locator('th').filter({ hasText: 'Created by' });
+    this.tableGeneratedOnHeader = page.locator('th').filter({ hasText: 'Generated on' });
+    this.tableValidTillHeader = page.locator('th').filter({ hasText: 'Valid till' });
+    this.tableStatusHeader = page.locator('th').filter({ hasText: 'Status' });
+    this.tableActionsHeader = page.locator('th').filter({ hasText: 'Actions' });
   }
 
   async clickOnManage() {
@@ -700,6 +714,99 @@ export class ManageQRPage extends BasePage {
   async validateQRName(qrName: string): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.qrNameHeaderLocator.filter({ hasText: qrName.trim() }).first(), {
       assertionMessage: `QR with name "${qrName}" should be visible on first list item`,
+    });
+  }
+
+  async verifyAddQRButton(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.addQRButton, {
+      assertionMessage: 'Add QR button should be visible on Manage QR page',
+    });
+  }
+
+  async verifySearchQRTextbox(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.searchQRTextbox, {
+      assertionMessage: 'Search QR textbox should be visible',
+    });
+  }
+
+  async verifySearchButton(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.searchButton, {
+      assertionMessage: 'Search button should be visible',
+    });
+  }
+
+  async verifyFilterButton(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.filterQRButton, {
+      assertionMessage: 'Filter button should be visible',
+    });
+  }
+  async verifyQRCodesAddedHeaderText(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.qrCodesAddedHeader, {
+      assertionMessage: 'QR codes added header should be visible',
+    });
+  }
+
+  async verifyTableHeaders(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.tableNameHeader, {
+      assertionMessage: 'Name column header should be visible',
+    });
+
+    await this.verifier.verifyTheElementIsVisible(this.tableCreatedByHeader, {
+      assertionMessage: 'Created by column header should be visible',
+    });
+
+    await this.verifier.verifyTheElementIsVisible(this.tableGeneratedOnHeader, {
+      assertionMessage: 'Generated on column header should be visible',
+    });
+
+    await this.verifier.verifyTheElementIsVisible(this.tableValidTillHeader, {
+      assertionMessage: 'Valid till column header should be visible',
+    });
+
+    await this.verifier.verifyTheElementIsVisible(this.tableStatusHeader, {
+      assertionMessage: 'Status column header should be visible',
+    });
+
+    await this.verifier.verifyTheElementIsVisible(this.tableActionsHeader, {
+      assertionMessage: 'Actions column header should be visible',
+    });
+  }
+
+  async verifyQRActionIcons(): Promise<void> {
+    await test.step('Verify action icons (View, Download, More options) are visible for QR codes', async () => {
+      await this.qrListRows.first().waitFor({ state: 'visible', timeout: 10000 });
+
+      const qrRows = await this.qrListRows.count();
+
+      if (qrRows === 0) {
+        console.log('No QR codes found on the page');
+        return;
+      }
+
+      console.log(`Found ${qrRows} QR code rows. Verifying action icons...`);
+
+      for (let i = 0; i < qrRows; i++) {
+        const currentRow = this.qrListRows.nth(i);
+
+        if (i === 0) {
+          continue;
+        }
+
+        const viewIcon = currentRow.getByLabel('View', { exact: true });
+        await this.verifier.verifyTheElementIsVisible(viewIcon, {
+          assertionMessage: `View icon should be visible for QR row ${i}`,
+        });
+
+        const downloadIcon = currentRow.getByLabel('Download');
+        await this.verifier.verifyTheElementIsVisible(downloadIcon, {
+          assertionMessage: `Download icon should be visible for QR row ${i}`,
+        });
+
+        const moreOptionsIcon = currentRow.getByLabel('More options');
+        await this.verifier.verifyTheElementIsVisible(moreOptionsIcon, {
+          assertionMessage: `More options icon should be visible for QR row ${i}`,
+        });
+      }
     });
   }
 }
