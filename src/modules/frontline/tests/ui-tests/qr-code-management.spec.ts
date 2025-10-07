@@ -348,7 +348,7 @@ test(
   }
 );
 
-test.only(
+test(
   '[FL-996] Verify table headers and QR action icons (View, Download, More options) on the Manage QR page',
   {
     tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
