@@ -58,6 +58,7 @@ export const API_ENDPOINTS = {
     manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
     membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,
     unfeature: (siteId: string) => `/v1/content/sites/${siteId}/featured?action=unfeature`,
+    siteDetails: (siteId: string) => `/v1/content/sites/${siteId}`,
   },
 
   content: {
@@ -101,6 +102,8 @@ export const API_ENDPOINTS = {
   },
   appConfig: {
     governance: '/v1/account/appConfig/app.setup.governance',
+    general: '/v1/account/appConfig/app',
+    appConfig: '/v1/account/appConfig',
   },
   apps: {
     settings: '/v1/account/apps-links-settings',
@@ -117,6 +120,7 @@ export const API_ENDPOINTS = {
     create: '/v1/promotions/w/qrcodes',
     contentList: '/v1/content/sites/content/list',
     delete: (qrCodeId: string) => `/v1/promotions/w/qrcodes/${qrCodeId}`,
+    list: (pageSize: number) => `/v1/promotions/r/qrcodes?pagesize=${pageSize}`,
   },
   integrations: {
     tiles: '/v1/tiles',

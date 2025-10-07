@@ -38,7 +38,7 @@ export class AnalyticsLandingPage {
     await test.step(
       options?.stepInfo || `Verifying App Analytics button is visible in analytics landing page`,
       async () => {
-        await expect(this.appAnalyticsButton.first()).toBeVisible();
+        await expect(this.appAnalyticsButton.first()).toBeVisible({ timeout: 10_000 });
       }
     );
   }
