@@ -12,15 +12,22 @@ export interface IAddCampaignPageActions {
   enterCampaignUrl: (url: string, linkText: string) => Promise<void>;
   clickCreateCampaignButton: () => Promise<void>;
   AddCampaignAndCreate: (options: SocialCampaignOptions) => Promise<string>;
+  uncheckNetwork: (networkName: string) => Promise<void>;
 }
 
-export class AddCampaignPage extends BasePage implements IAddCampaignPageActions {
+export interface IAddCampaignPageAssertions {
+  verifyErrorMessagePresence: (errorMessage: string) => Promise<void>;
+}
+
+export class AddCampaignPage extends BasePage implements IAddCampaignPageActions, IAddCampaignPageAssertions {
   readonly addCampaignButton: Locator;
   readonly audienceOption: Locator;
   readonly campaignMessageInput: Locator;
   readonly campaignUrlInput: Locator;
   readonly createCampaignButton: Locator;
   private getHeadingByText: (text: string) => Locator;
+  private getNetworkCheckbox: (networkName: string) => Locator;
+  private errorLocator: (errorMessage: string) => Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.ADD_SOCIAL_CAMPAIGNS);
@@ -30,9 +37,15 @@ export class AddCampaignPage extends BasePage implements IAddCampaignPageActions
     this.campaignUrlInput = page.locator('input#url');
     this.getHeadingByText = (text: string) => page.locator(`h2:has-text("${text}")`);
     this.createCampaignButton = page.locator('span:has-text("Create campaign")');
+    this.getNetworkCheckbox = (networkName: string) => page.locator(`label:text("${networkName}")`);
+    this.errorLocator = (errorMessage: string) => this.page.locator(`text="${errorMessage}"`);
   }
 
   get actions(): IAddCampaignPageActions {
+    return this;
+  }
+
+  get assertions(): IAddCampaignPageAssertions {
     return this;
   }
 
@@ -56,12 +69,28 @@ export class AddCampaignPage extends BasePage implements IAddCampaignPageActions
     });
   }
 
-  async enterCampaignUrl(url: string, linkText: string): Promise<void> {
+  async enterCampaignUrl(url: string, linkText?: string): Promise<void> {
     await test.step(`Enter campaign URL: ${url}`, async () => {
-      await this.fillInElement(this.campaignUrlInput, url);
-      await this.verifier.verifyTheElementIsVisible(this.getHeadingByText(linkText), {
-        assertionMessage: `Heading with text "${linkText}" should be visible`,
-      });
+      // Fill in URL and wait for metadata to load
+      await this.performActionAndWaitForResponse(
+        async () => {
+          await this.fillInElement(this.campaignUrlInput, url);
+          await this.page.waitForTimeout(3000);
+        },
+        response =>
+          response.url().includes(API_ENDPOINTS.socialCampaign.metadata) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 10_000,
+        }
+      );
+
+      if (linkText) {
+        await this.verifier.verifyTheElementIsVisible(this.getHeadingByText(linkText), {
+          assertionMessage: `Heading with text "${linkText}" should be visible`,
+        });
+      }
     });
   }
 
@@ -121,6 +150,20 @@ export class AddCampaignPage extends BasePage implements IAddCampaignPageActions
         }
       );
       return campaignResponse;
+    });
+  }
+
+  async uncheckNetwork(networkName: string): Promise<void> {
+    await test.step(`Uncheck ${networkName} network`, async () => {
+      await this.clickOnElement(this.getNetworkCheckbox(networkName));
+    });
+  }
+
+  async verifyErrorMessagePresence(errorMessage: string): Promise<void> {
+    await test.step(`Verify error message: "${errorMessage}"`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.errorLocator(errorMessage), {
+        assertionMessage: `Error message "${errorMessage}" should be visible`,
+      });
     });
   }
 }
