@@ -259,7 +259,6 @@ test(
     await manageQRPage.verifyManagePage();
     const qrListData = await qrManagementService.getListOfQRCodes();
     const originalCount = qrListData.count;
-    console.log(`Original QR count from API: ${originalCount}`);
     await manageQRPage.clickOnFilter();
     await manageQRPage.verifyFilterHeaderText();
     await manageQRPage.selectAppPromotionTypeFilter();

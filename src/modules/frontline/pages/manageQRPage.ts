@@ -109,7 +109,7 @@ export class ManageQRPage extends BasePage {
     this.filterResetButton = page.getByRole('button', { name: 'Reset all' });
     this.expiredQRToggle = page.getByRole('switch');
     this.qrListRows = page.getByRole('row');
-    this.tillDateNA = page.getByRole('heading', { name: 'N/A' });
+    this.tillDateNA = page.locator('//h4[aria-label="N/A"]');
   }
 
   async clickOnManage() {
