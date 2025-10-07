@@ -24,6 +24,7 @@ export class MessageCardComponent extends MessageBaseComponent {
   readonly unPinMessageButtonFromMessageActionsMenu: Locator;
   readonly unPinMessageConfirmationPrompt: Locator;
   readonly unPinnedToastMessage: Locator;
+  readonly getPinnedMessage: (message: string) => Locator;
 
   constructor(page: Page, focusedMessageContainer: Locator) {
     super(page, focusedMessageContainer);
@@ -52,15 +53,8 @@ export class MessageCardComponent extends MessageBaseComponent {
     this.unPinMessageButtonFromMessageActionsMenu = this.page.getByTestId('unpinMessageButton');
     this.unPinMessageConfirmationPrompt = this.page.getByTestId('unpin-message-button');
     this.unPinnedToastMessage = this.page.locator("(//div[@role='alert']//p[text()='Message un-pinned'])[1]");
-  }
-
-  /**
-   * Gets the pinned message locator with dynamic message text
-   * @param message - The message text to locate in the pinned message
-   * @returns Locator for the pinned message with the specified text
-   */
-  getPinnedMessage(message: string): Locator {
-    return this.page.locator("//div[@class='Base_pinnedMessage__8q6MM']").locator(`//p[text()='${message}']`);
+    this.getPinnedMessage = (message: string) =>
+      this.page.locator("//div[@class='Base_pinnedMessage__8q6MM']").locator(`//p[text()='${message}']`);
   }
 
   /**
