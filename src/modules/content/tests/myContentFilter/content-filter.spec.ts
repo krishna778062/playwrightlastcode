@@ -2,8 +2,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { ApplicationSettingsPage } from '../../pages/applicationscreenPage';
 import { ManageContentPage } from '../../pages/manageContentPage';
-import { ApplicationScreenPage } from '../../pages/manageFeaturesPage';
 
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
@@ -18,11 +18,11 @@ test.describe(
   },
   () => {}
 );
-let manageFeaturesPage: ApplicationScreenPage;
+let manageFeaturesPage: ApplicationSettingsPage;
 let homePage: NewUxHomePage;
 let manageContentPage: ManageContentPage;
 test.beforeEach(async ({ appManagerHomePage }) => {
-  manageFeaturesPage = new ApplicationScreenPage(appManagerHomePage.page);
+  manageFeaturesPage = new ApplicationSettingsPage(appManagerHomePage.page);
   homePage = new NewUxHomePage(appManagerHomePage.page);
   manageContentPage = new ManageContentPage(appManagerHomePage.page);
 });

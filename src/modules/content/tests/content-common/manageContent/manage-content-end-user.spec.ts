@@ -5,7 +5,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { ApplicationScreenPage } from '@/src/modules/content/pages/applicationscreenPage';
+import { ApplicationSettingsPage } from '@/src/modules/content/pages/applicationscreenPage';
 import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 
@@ -15,12 +15,12 @@ test.describe(
     tag: [ContentSuiteTags.MANAGE_CONTENT],
   },
   () => {
-    let manageFeaturePage: ApplicationScreenPage;
+    let manageFeaturePage: ApplicationSettingsPage;
     let manageContentPage: ManageContentPage;
     let homePage: NewUxHomePage;
     test.beforeEach(async ({ standardUserHomePage }) => {
       await standardUserHomePage.verifyThePageIsLoaded();
-      manageFeaturePage = new ApplicationScreenPage(standardUserHomePage.page);
+      manageFeaturePage = new ApplicationSettingsPage(standardUserHomePage.page);
       manageContentPage = new ManageContentPage(standardUserHomePage.page);
       homePage = new NewUxHomePage(standardUserHomePage.page);
     });

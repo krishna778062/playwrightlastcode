@@ -1,11 +1,16 @@
 import { Page, test } from '@playwright/test';
 
+import { SideNavBarComponent } from '@/src/core/components/sideNavBarComponent';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
 import { ManageSitesComponent } from '@/src/modules/content/components/manageSitesComponent';
-
+import { UpdateSiteCategoryComponent } from '@/src/modules/content/components/updateSiteCategoryComponent';
 export interface IManageSiteActions {
   clickOnSite: () => Promise<void>;
+  clickOnUpdateCategory: () => Promise<void>;
+  clickOnCancelOption: () => Promise<void>;
+  clickOnSites: () => Promise<void>;
+  updatingCategoryToUncategorized: (categoryName: string) => Promise<void>;
 }
 
 export interface IManageSiteAssertions {
@@ -17,11 +22,18 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly contentTab = this.page.locator(
     'a[href*="/content"], button:has-text("Content"), [data-testid="content-tab"]'
   );
+  readonly ellipses = this.page.locator('[aria-label="Category option"]').first();
+  readonly clickOnUpdateCategoryOption = this.page.getByRole('button', { name: 'Update category' });
+
   private manageSitesComponent: ManageSitesComponent;
+  private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
+  private sideNavBarComponent: SideNavBarComponent;
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId));
     this.manageSitesComponent = new ManageSitesComponent(page);
+    this.updateSiteCategoryComponent = new UpdateSiteCategoryComponent(page);
+    this.sideNavBarComponent = new SideNavBarComponent(page);
     this.clickOnSite = this.clickOnSite.bind(this);
   }
 
@@ -45,5 +57,26 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       await this.manageSitesComponent.clickOnSite.press('Tab');
       await this.manageSitesComponent.clickOnSite.press('Enter');
     });
+  }
+
+  async clickOnUpdateCategory(): Promise<void> {
+    await test.step('Clicking on update category', async () => {
+      await this.hoverOverElementInJavaScript(this.ellipses);
+      await this.clickOnElement(this.clickOnUpdateCategoryOption);
+    });
+  }
+
+  async clickOnCancelOption(): Promise<void> {
+    await this.updateSiteCategoryComponent.clickOnCancelOption();
+  }
+
+  async clickOnSites(): Promise<void> {
+    await test.step('Clicking on sites', async () => {
+      await this.clickOnElement(this.sideNavBarComponent.sitesButton);
+    });
+  }
+
+  async updatingCategoryToUncategorized(categoryName: string): Promise<void> {
+    await this.updateSiteCategoryComponent.updatingCategoryToUncategorized(categoryName);
   }
 }

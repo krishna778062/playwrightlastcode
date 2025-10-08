@@ -3,13 +3,13 @@ import { PageContentType } from '@content/constants/pageContentType';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentFeatureTags, ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
-import { ApplicationScreenPage } from '@content/pages/applicationscreenPage';
+import { ApplicationSettingsPage } from '@content/pages/applicationscreenPage';
 import { ContentPreviewPage } from '@content/pages/contentPreviewPage';
 import { EditPagePage } from '@content/pages/editPagePage';
 import { GovernanceScreenPage } from '@content/pages/governanceScreenPage';
 import { ManageApplicationPage } from '@content/pages/manageApplicationPage';
 import { ManageContentPage } from '@content/pages/manageContentPage';
-import { ApplicationScreenPage as ManageFeature } from '@content/pages/manageFeaturesPage';
+import { ManageFeaturesPage as ManageFeature } from '@content/pages/manageFeaturesPage';
 import { ManageSitePage } from '@content/pages/manageSitePage';
 import { PageCreationPage } from '@content/pages/pageCreationPage';
 import { SiteDetailsPage } from '@content/pages/siteDetailsPage';
@@ -36,7 +36,7 @@ test.describe(
     let siteDashboardPage: SiteDashboardPage;
     let manualCleanupNeeded = false;
     let homePage: NewUxHomePage;
-    let applicationscreen: ApplicationScreenPage;
+    let applicationscreen: ApplicationSettingsPage;
     let manageFeaturePage: ManageFeature;
     let manageApplicationPage: ManageApplicationPage;
     let governanceScreenPage: GovernanceScreenPage;
@@ -59,7 +59,7 @@ test.describe(
 
         // Initialize additional page objects for the moved test cases
         homePage = new NewUxHomePage(appManagersPage);
-        applicationscreen = new ApplicationScreenPage(appManagersPage);
+        applicationscreen = new ApplicationSettingsPage(appManagersPage);
         manageFeaturePage = new ManageFeature(appManagersPage);
         manageApplicationPage = new ManageApplicationPage(appManagersPage);
         governanceScreenPage = new GovernanceScreenPage(appManagersPage);

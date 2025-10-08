@@ -8,16 +8,16 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { ApplicationScreenPage } from '@/src/modules/content/pages/applicationscreenPage';
+import { ApplicationSettingsPage } from '@/src/modules/content/pages/applicationscreenPage';
 import { ManageTopicsPage } from '@/src/modules/content/pages/manageTopicsPage';
 test.describe('Edit Topic', () => {
   let homePage: NewUxHomePage;
-  let applicationScreenPage: ApplicationScreenPage;
+  let applicationScreenPage: ApplicationSettingsPage;
   let manageTopicsPage: ManageTopicsPage;
 
   test.beforeEach('Setup for edit topic test', async ({ appManagersPage }) => {
     homePage = new NewUxHomePage(appManagersPage);
-    applicationScreenPage = new ApplicationScreenPage(appManagersPage);
+    applicationScreenPage = new ApplicationSettingsPage(appManagersPage);
     manageTopicsPage = new ManageTopicsPage(appManagersPage);
   });
 

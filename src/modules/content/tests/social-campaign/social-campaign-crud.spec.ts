@@ -3,7 +3,7 @@ import { expect } from '@playwright/test';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentFeatureTags, ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
-import { ApplicationScreenPage } from '@content/pages/applicationscreenPage';
+import { ApplicationSettingsPage } from '@content/pages/applicationscreenPage';
 import { GovernanceScreenPage } from '@content/pages/governanceScreenPage';
 import { ManageApplicationPage } from '@content/pages/manageApplicationPage';
 import { SocialCampaignPage } from '@content/pages/socialCampaignPage';

@@ -6,12 +6,15 @@ import { tagTest } from '@core/utils/testDecorator';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { ApplicationScreenPage } from '@/src/modules/content/pages/applicationscreenPage';
+import { ApplicationSettingsPage } from '@/src/modules/content/pages/applicationscreenPage';
 import { FeedPage } from '@/src/modules/content/pages/feedPage';
 import { HomeFeedPage } from '@/src/modules/content/pages/manageApplicationDefaultHomeFeedPage';
 import { DefaultScreenPage } from '@/src/modules/content/pages/manageApplicationDefaultScreenPage';
 import { ManageApplicationPage } from '@/src/modules/content/pages/manageApplicationPage';
 import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
+import { ManageFeaturesPage } from '@/src/modules/content/pages/manageFeaturesPage';
+import { ManageSitePage } from '@/src/modules/content/pages/manageSitePage';
+import { SiteDetailsPage } from '@/src/modules/content/pages/siteDetailsPage';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
@@ -21,23 +24,27 @@ test.describe(
     tag: [ContentSuiteTags.MANAGE_CONTENT],
   },
   () => {
-    let manageFeaturesPage: ApplicationScreenPage;
+    let manageFeaturesPage: ManageFeaturesPage;
     let manageContentPage: ManageContentPage;
     let homePage: NewUxHomePage;
-    let applicationScreenPage: ApplicationScreenPage;
+    let applicationScreenPage: ApplicationSettingsPage;
     let manageApplicationPage: ManageApplicationPage;
     let defaultScreenPage: DefaultScreenPage;
     let homeFeedPage: HomeFeedPage;
+    let manageSitePage: ManageSitePage;
+    let siteDetailsPage: SiteDetailsPage;
 
     test.beforeEach(async ({ appManagerHomePage }) => {
       await appManagerHomePage.verifyThePageIsLoaded();
-      manageFeaturesPage = new ApplicationScreenPage(appManagerHomePage.page);
+      manageFeaturesPage = new ManageFeaturesPage(appManagerHomePage.page);
       manageContentPage = new ManageContentPage(appManagerHomePage.page);
       homePage = new NewUxHomePage(appManagerHomePage.page);
-      applicationScreenPage = new ApplicationScreenPage(appManagerHomePage.page);
+      applicationScreenPage = new ApplicationSettingsPage(appManagerHomePage.page);
       manageApplicationPage = new ManageApplicationPage(appManagerHomePage.page);
       defaultScreenPage = new DefaultScreenPage(appManagerHomePage.page);
       homeFeedPage = new HomeFeedPage(appManagerHomePage.page);
+      manageSitePage = new ManageSitePage(appManagerHomePage.page, '');
+      siteDetailsPage = new SiteDetailsPage(appManagerHomePage.page, '');
     });
 
     test.afterEach(async ({ page }) => {
@@ -251,6 +258,30 @@ test.describe(
           await standardUserFeedPage.actions.selectPostsToMe();
           await standardUserFeedPage.actions.selectPostDate();
         });
+      }
+    );
+    test(
+      'To verify the site update category option in manage site user drop down sites',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.UPDATE_CATEGORY],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'To verify the site update category option in manage site user drop down sites',
+          zephyrTestId: 'CONT-26056',
+          storyId: 'CONT-26056',
+        });
+        await homePage.actions.clickOnManageFeature();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageSitePage.actions.clickOnUpdateCategory();
+        await manageSitePage.actions.clickOnCancelOption();
+        await manageSitePage.actions.clickOnSite();
+        await siteDetailsPage.assertions.validatingCategory();
+        await manageSitePage.actions.clickOnSites();
+        await manageSitePage.actions.clickOnUpdateCategory();
+        await manageSitePage.actions.updatingCategoryToUncategorized('Uncategorized');
+        await manageSitePage.actions.clickOnSite();
+        await siteDetailsPage.assertions.validatingCategoryToUncategorized();
       }
     );
   }

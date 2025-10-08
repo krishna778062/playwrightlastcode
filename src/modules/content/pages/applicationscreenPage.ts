@@ -22,7 +22,7 @@ export interface IApplicationScreenPageActions {
 
 export interface IFeaturedSiteAssertions {}
 
-export class ApplicationScreenPage extends BasePage implements IApplicationScreenPageActions {
+export class ApplicationSettingsPage extends BasePage implements IApplicationScreenPageActions {
   private sideNavBarComponent: SideNavBarComponent;
   private applicationSettingsComponent: ApplicationSettingsComponent;
   actions: any;

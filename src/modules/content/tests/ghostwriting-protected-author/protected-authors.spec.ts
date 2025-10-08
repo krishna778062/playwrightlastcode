@@ -8,19 +8,19 @@ import { tagTest } from '@core/utils/testDecorator';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { ApplicationScreenPage } from '@/src/modules/content/pages/applicationscreenPage';
+import { ApplicationSettingsPage } from '@/src/modules/content/pages/applicationscreenPage';
 import { ManageApplicationPage } from '@/src/modules/content/pages/manageApplicationPage';
 import { PrivilegesScreenPage } from '@/src/modules/content/pages/privilegesScreenPage';
 
 test.describe('Protected Authors', () => {
-  let applicationScreen: ApplicationScreenPage;
+  let applicationScreen: ApplicationSettingsPage;
   let homePage: NewUxHomePage;
   let manageApplicationPage: ManageApplicationPage;
   let privilegesScreenPage: PrivilegesScreenPage;
   let baseActionUtil: BaseActionUtil;
 
   test.beforeEach('Setup for protected authors test', async ({ appManagersPage }) => {
-    applicationScreen = new ApplicationScreenPage(appManagersPage);
+    applicationScreen = new ApplicationSettingsPage(appManagersPage);
     homePage = new NewUxHomePage(appManagersPage);
     manageApplicationPage = new ManageApplicationPage(appManagersPage);
     privilegesScreenPage = new PrivilegesScreenPage(appManagersPage);

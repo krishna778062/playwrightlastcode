@@ -118,7 +118,7 @@ export class ListFeedComponent extends BaseComponent {
     this.submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
     this.replyEditor = this.page.getByRole('textbox', { name: 'You are in the content editor' });
     this.replyShowMoreButton = this.page.getByTestId('replyContent').getByRole('button', { name: 'Show more' });
-    this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
+    this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
     this.postsToMe = page.getByLabel('Show', { exact: true }).locator('option').filter({ hasText: 'Posts to me' });
     this.postDate = page.getByLabel('Sort by').locator('option').filter({ hasText: 'Post date' });
@@ -372,17 +372,17 @@ export class ListFeedComponent extends BaseComponent {
 
   async selectPostsToMe(): Promise<void> {
     await test.step('Select posts to me', async () => {
-      await this.clickOnElement(this.postsIFollow);
-      await this.page.getByLabel('Show', { exact: true }).focus();
-      await this.clickOnElement(this.postsToMe);
+      // await this.clickOnElement(this.postsIFollow);
+      await this.page.keyboard.press('P');
+      await this.page.keyboard.press('Enter');
     });
   }
 
   async selectPostDate(): Promise<void> {
     await test.step('Select post date', async () => {
-      await this.clickOnElement(this.sortByRecentActivity);
-      await this.page.getByLabel('Sort by', { exact: true }).focus();
-      await this.clickOnElement(this.postDate);
+      // await this.clickOnElement(this.sortByRecentActivity);
+      await this.page.keyboard.press('R');
+      await this.page.keyboard.press('Enter');
     });
   }
 }
