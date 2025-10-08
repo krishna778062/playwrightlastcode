@@ -220,32 +220,27 @@ export class OktaGroupComponent extends BaseComponent {
   }
 
   async verifyAudienceNameIsVisible(audienceName: string): Promise<void> {
-    await test.step(`Verify audience name '${audienceName}' is visible`, async () => {
-      let attempts = 0;
-      const maxAttempts = 2;
-      while (attempts < maxAttempts) {
+    await test.step(`Verify audience '${audienceName}' is visible`, async () => {
+      const VISIBLE_TIMEOUT = 5_000;
+      const maxAttempts = 3;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
           await expect(
             this.audienceName(audienceName),
-            `expecting audience name '${audienceName}' to be visible (attempt ${attempts + 1})`
-          ).toBeVisible({ timeout: 5000 });
+            `Expect audience '${audienceName}' to be visible (attempt ${attempt}/${maxAttempts})`
+          ).toBeVisible({ timeout: VISIBLE_TIMEOUT });
           return;
         } catch {
-          attempts++;
-          if (attempts < maxAttempts) {
-            console.log(
-              `Audience name '${audienceName}' not visible, reloading page (attempt ${attempts}/${maxAttempts - 1})...`
-            );
-            await this.page.reload();
-            await this.page.waitForTimeout(2000);
-          } else {
-            await expect(
-              this.audienceName(audienceName),
-              `expecting audience name '${audienceName}' to be visible after ${maxAttempts - 1} reloads`
-            ).toBeVisible();
-          }
+          if (attempt === maxAttempts) break;
+          test.info().annotations.push({
+            type: 'info',
+            description: `'${audienceName}' not visible, reloading (attempt ${attempt}/${maxAttempts})...`,
+          });
+          await this.page.reload();
+          await this.page.waitForLoadState('domcontentloaded');
         }
       }
+      throw new Error(`Audience '${audienceName}' not visible after ${maxAttempts - 1} reload(s).`);
     });
   }
 
