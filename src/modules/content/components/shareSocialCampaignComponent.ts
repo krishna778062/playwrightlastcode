@@ -29,7 +29,7 @@ export class ShareSocialCampaignComponent
     this.siteNameInput = page.locator('div[id*="listbox"]');
     this.shareButton = page.getByRole('dialog').getByRole('button', { name: 'Share' });
     this.shareOptionDropdown = page.getByLabel('Post in');
-    this.enterSiteNameInput = page.locator("div:has-text('Search site')").locator('.. input');
+    this.enterSiteNameInput = page.locator('div:has-text("Select site") + div >> input');
   }
 
   get actions(): IShareSocialCampaignComponentActions {
@@ -54,7 +54,7 @@ export class ShareSocialCampaignComponent
 
   async enterSiteName(siteName: string): Promise<void> {
     await test.step(`Enter site name: ${siteName}`, async () => {
-      // Click on the listbox option with the site name
+      await this.clickOnElement(this.enterSiteNameInput);
       await this.fillInElement(this.enterSiteNameInput, siteName);
       await this.clickOnElement(this.siteNameInput.locator(`text="${siteName}"`).first());
     });
