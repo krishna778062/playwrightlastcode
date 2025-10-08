@@ -33,8 +33,8 @@ test.describe(
       },
       async ({ homeDashboard, tileManagementHelper }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24130',
-          storyId: 'INT-23049',
+          zephyrTestId: 'INT-14532',
+          storyId: 'INT-13648',
         });
 
         createdTileTitle = `Outlook Calendar apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -61,8 +61,8 @@ test.describe(
       },
       async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24182',
-          storyId: 'INT-23049',
+          zephyrTestId: 'INT-28327',
+          storyId: 'INT-13648',
         });
 
         createdTileTitle = `Outlook calendar apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -96,8 +96,8 @@ test.describe(
       },
       async ({ homeDashboard, tileManagementHelper }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24049',
-          storyId: 'INT-23629',
+          zephyrTestId: 'INT-14448',
+          storyId: 'INT-13649',
         });
         createdTileTitle = `Display upcoming events outlook calendar apptile ${faker.string.alphanumeric({ length: 6 })}`;
 
@@ -119,8 +119,8 @@ test.describe(
       },
       async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24182',
-          storyId: 'INT-23049',
+          zephyrTestId: 'INT-14447',
+          storyId: 'INT-13649',
         });
 
         createdTileTitle = `Outlook calendar apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -148,8 +148,8 @@ test.describe(
       },
       async ({ homeDashboard, tileManagementHelper }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24049',
-          storyId: 'INT-23629',
+          zephyrTestId: 'INT-14444',
+          storyId: 'INT-13649',
         });
         createdTileTitle = `Display upcoming events ${faker.string.alphanumeric({ length: 6 })}`;
         await tileManagementHelper.createIntegrationAppTile(
@@ -169,8 +169,8 @@ test.describe(
       },
       async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24182',
-          storyId: 'INT-23049',
+          zephyrTestId: 'INT-14536',
+          storyId: 'INT-13649',
         });
 
         createdTileTitle = `Outlook calendar apptile ${faker.string.alphanumeric({ length: 6 })}`;
