@@ -179,9 +179,9 @@ test.describe(
         // Share campaign to site feed
         await socialCampaignPage.actions.clickCampaignOptions();
         await socialCampaignPage.actions.clickShareToFeedButton();
+        await socialCampaignPage.actions.enterShareDescription(description);
         await socialCampaignPage.actions.selectShareOptionAsSiteFeed();
         await socialCampaignPage.actions.enterSiteName(siteName);
-        await socialCampaignPage.actions.enterShareDescription(description);
         await socialCampaignPage.actions.clickShareButton();
         await socialCampaignPage.assertions.verifyToastMessage('Shared social campaign successfully');
 
@@ -519,9 +519,9 @@ test.describe(
         // Share campaign to site feed
         await socialCampaignPage.actions.clickCampaignOptions();
         await socialCampaignPage.actions.clickShareToFeedButton();
+        await socialCampaignPage.actions.enterShareDescription(description);
         await socialCampaignPage.actions.selectShareOptionAsSiteFeed();
         await socialCampaignPage.actions.enterSiteName(siteName);
-        await socialCampaignPage.actions.enterShareDescription(description);
         await socialCampaignPage.actions.clickShareButton();
         await socialCampaignPage.assertions.verifyToastMessage('Shared social campaign successfully');
 

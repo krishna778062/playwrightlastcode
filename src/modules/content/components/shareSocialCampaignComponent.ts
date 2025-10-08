@@ -54,7 +54,7 @@ export class ShareSocialCampaignComponent
 
   async enterSiteName(siteName: string): Promise<void> {
     await test.step(`Enter site name: ${siteName}`, async () => {
-      // Click on the listbox option with the site name
+      await this.clickOnElement(this.enterSiteNameInput);
       await this.fillInElement(this.enterSiteNameInput, siteName);
       await this.clickOnElement(this.siteNameInput.locator(`text="${siteName}"`).first());
     });
