@@ -117,7 +117,7 @@ test.describe(
     test(
       'TS To verify the answer of Social campaign shares in Social Interaction dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, DataEngineeringTestSuite.SOCIAL_INTERACTION],
       },
       async ({ openAppAnalytics, page }) => {
         tagTest(test.info(), {
