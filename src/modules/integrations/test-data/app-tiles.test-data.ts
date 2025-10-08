@@ -99,6 +99,7 @@ export const REDIRECT_URLS = {
   DOCUSIGN: 'https://account-d.docusign.com/',
   UKG_WFM: 'https://kcfn01-cfn08-ath01.cfn.mykronos.com/',
   MONDAY_DOT_COM: 'https://clydenoronha48s-team.monday.com/',
+  DOCEBO: 'https://simpplr.docebosaas.com/',
 } as const;
 
 /**
