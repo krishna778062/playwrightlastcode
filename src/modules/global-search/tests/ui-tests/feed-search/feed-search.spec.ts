@@ -18,15 +18,15 @@ test.describe(
     let currentAuthorName: string;
     let feedResponse: any;
 
-    test.beforeEach(async ({ feedManagementHelper, publicSite }, testInfo) => {
+    test.beforeEach(async ({ appManagerFixture, publicSite }, testInfo) => {
       // Create feed based on test title
       if (testInfo.title.includes('site')) {
-        feedResponse = await feedManagementHelper.createFeed({
+        feedResponse = await appManagerFixture.feedManagementHelper.createFeed({
           scope: 'site',
           siteId: publicSite.siteId,
         });
       } else {
-        feedResponse = await feedManagementHelper.createFeed({
+        feedResponse = await appManagerFixture.feedManagementHelper.createFeed({
           scope: 'public',
         });
       }
@@ -41,14 +41,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-13079',
           storyId: 'SEN-12843',
         });
 
-        await appManagerHomePage.verifyThePageIsLoaded();
-        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(currentFeedName, {
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(currentFeedName, {
           stepInfo: `Searching with term "${currentFeedName}" and intent is to find the content`,
         });
 
@@ -67,14 +67,14 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19281',
         });
 
-        await appManagerHomePage.verifyThePageIsLoaded();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
         // Search for the feed
-        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(currentFeedName, {
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(currentFeedName, {
           stepInfo: `Searching with term "${currentFeedName}" to verify feed appears in search results`,
         });
 
@@ -101,14 +101,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper, publicSite }) => {
+      async ({ appManagerFixture, publicSite }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-13079',
           storyId: 'SEN-12844',
         });
 
-        await appManagerHomePage.verifyThePageIsLoaded();
-        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(currentFeedName, {
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(currentFeedName, {
           stepInfo: `Searching with term "${currentFeedName}" and intent is to find the site feed content`,
         });
 

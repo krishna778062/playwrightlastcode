@@ -15,7 +15,7 @@ test.describe(
     let linkName: string;
     let linkUrl: string;
 
-    test.beforeEach('Setting up the test environment for link search', async ({ linkManagementService }) => {
+    test.beforeEach('Setting up the test environment for link search', async ({ appManagerFixture }) => {
       try {
         // Generate unique test data to avoid conflicts in parallel execution
         const linkDetails = generateUniqueLinkTestData();
@@ -23,7 +23,7 @@ test.describe(
         linkUrl = linkDetails.testLink.url;
 
         // Append unique link to existing settings using service
-        await linkManagementService.addExternalLink(linkDetails.testLink);
+        await appManagerFixture.linkManagementService.addExternalLink(linkDetails.testLink);
         console.log(`Added unique link: ${linkName}`);
 
         console.log('Successfully added a link ');
@@ -33,9 +33,9 @@ test.describe(
       }
     });
 
-    test.afterEach('Tearing down the test environment for link search', async ({ linkManagementService }) => {
+    test.afterEach('Tearing down the test environment for link search', async ({ appManagerFixture }) => {
       try {
-        await linkManagementService.removeExternalLink(linkName);
+        await appManagerFixture.linkManagementService.removeExternalLink(linkName);
         console.log(`Removed unique external link: ${linkName}`);
       } catch (error) {
         console.warn('Failed to clean up test environment:', error);
@@ -47,14 +47,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-16516',
         });
 
-        await appManagerHomePage.verifyThePageIsLoaded();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
         // Search for the unique link
-        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(linkName, {
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(linkName, {
           stepInfo: `Searching for unique link "${linkName}"`,
         });
 

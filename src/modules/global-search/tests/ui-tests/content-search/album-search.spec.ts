@@ -23,8 +23,8 @@ test.describe(
 
     test.beforeAll(
       `Setting up the test environment for album search by creating site and album content`,
-      async ({ contentManagementHelper, publicSite }) => {
-        const albumDetails = await contentManagementHelper.createAlbum({
+      async ({ appManagerFixture, publicSite }) => {
+        const albumDetails = await appManagerFixture.contentManagementHelper.createAlbum({
           siteId: publicSite.siteId,
           imageName: 'beach.jpg',
           options: {
@@ -43,9 +43,9 @@ test.describe(
 
     test.afterAll(
       `Cleaning up the test environment by deleting the created album content`,
-      async ({ contentManagementHelper }) => {
+      async ({ appManagerFixture }) => {
         if (contentId) {
-          await contentManagementHelper.deleteContent(siteId, contentId);
+          await appManagerFixture.contentManagementHelper.deleteContent(siteId, contentId);
           console.log(`Deleted album "${albumName}" with ID: ${contentId}`);
         }
       }
@@ -56,15 +56,15 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-12410',
           storyId: 'SEN-12297',
         });
 
         // 5. UI Search for the album
-        await appManagerHomePage.verifyThePageIsLoaded();
-        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(albumName, {
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(albumName, {
           stepInfo: `Searching with term "${albumName}" and intent is to find the content`,
         });
 
@@ -87,14 +87,14 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19196',
         });
 
         // Search for the album
-        await appManagerHomePage.verifyThePageIsLoaded();
-        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(albumName, {
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(albumName, {
           stepInfo: `Searching with term "${albumName}" to verify album appears in search results`,
         });
 
@@ -135,20 +135,20 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19288',
         });
 
         // Type in search input
-        await appManagerHomePage.verifyThePageIsLoaded();
-        const topNavBarComponent = appManagerUINavigationHelper.topNavBarComponent;
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const topNavBarComponent = appManagerFixture.navigationHelper.topNavBarComponent;
         await topNavBarComponent.typeInSearchBarInput(albumName, {
           stepInfo: `Typing "${albumName}" in search input`,
         });
 
         // Wait for autocomplete to appear first
-        const resultList = new ResultListingComponent(appManagerHomePage.page);
+        const resultList = new ResultListingComponent(appManagerFixture.page);
         await resultList.waitForAndVerifyAutocompleteListIsDisplayed();
 
         // Then get specific autocomplete item

@@ -21,9 +21,9 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
       let fileId: string;
       let authorName: string;
 
-      test.beforeEach('Site and File Setup', async ({ intranetFileHelper, publicSite }) => {
+      test.beforeEach('Site and File Setup', async ({ appManagerFixture, publicSite }) => {
         // Use API-based upload method (faster and more reliable)
-        const intranetResult = await intranetFileHelper.uploadFileViaApi({
+        const intranetResult = await appManagerFixture.intranetFileHelper.uploadFileViaApi({
           siteId: publicSite.siteId,
           siteName: publicSite.siteName,
           filePath: `src/modules/global-search/test-data/${fileType.originalFileName}`,
@@ -42,14 +42,14 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
         },
-        async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+        async ({ appManagerFixture }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-12433',
             storyId: 'SEN-12296',
           });
 
-          await appManagerHomePage.verifyThePageIsLoaded();
-          const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(uploadedFileName, {
+          await appManagerFixture.homePage.verifyThePageIsLoaded();
+          const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(uploadedFileName, {
             stepInfo: `Searching with term "${uploadedFileName}" and intent is to find the file`,
           });
 
@@ -70,14 +70,14 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
         {
           tag: [TestPriority.P1, TestGroupType.REGRESSION],
         },
-        async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+        async ({ appManagerFixture }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-19283',
           });
 
-          await appManagerHomePage.verifyThePageIsLoaded();
+          await appManagerFixture.homePage.verifyThePageIsLoaded();
           // Search for the file
-          const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(uploadedFileName, {
+          const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(uploadedFileName, {
             stepInfo: `Searching with term "${uploadedFileName}" to verify file appears in search results`,
           });
 
@@ -155,17 +155,17 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE],
         },
-        async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+        async ({ appManagerFixture }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-19290',
           });
 
           // Type in search input
-          await appManagerUINavigationHelper.topNavBarComponent.typeInSearchBarInput(uploadedFileName, {
+          await appManagerFixture.navigationHelper.topNavBarComponent.typeInSearchBarInput(uploadedFileName, {
             stepInfo: `Typing "${uploadedFileName}" in search input`,
           });
 
-          const resultList = new ResultListingComponent(appManagerHomePage.page);
+          const resultList = new ResultListingComponent(appManagerFixture.page);
           await resultList.waitForAndVerifyAutocompleteListIsDisplayed();
 
           const fileResult = resultList.getAutocompleteItemByName(uploadedFileName);

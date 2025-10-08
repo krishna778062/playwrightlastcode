@@ -34,7 +34,7 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
         },
-        async ({ appManagerHomePage, appManagerUINavigationHelper, tileManagementHelper, tileCleanupTracker }) => {
+        async ({ appManagerFixture, tileCleanupTracker }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-12408',
             storyId: 'SEN-12305',
@@ -42,7 +42,7 @@ test.describe(
 
           // Create tile using the service directly
           const testData = getLinkTileSearchTestData();
-          const tileResponse = await tileManagementHelper.tileManagementService.createTile(
+          const tileResponse = await appManagerFixture.tileManagementHelper.tileManagementService.createTile(
             newSiteId,
             testData.tileTitle,
             numberOfLinks,
@@ -51,8 +51,8 @@ test.describe(
 
           const tileId = tileResponse.result.id;
           const tileTitle = testData.tileTitle;
-          await appManagerHomePage.verifyThePageIsLoaded();
-          const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(tileTitle, {
+          await appManagerFixture.homePage.verifyThePageIsLoaded();
+          const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(tileTitle, {
             stepInfo: `Searching for tile "${tileTitle}" created with ID: ${tileId}`,
           });
 
@@ -82,14 +82,14 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper, tileManagementHelper, tileCleanupTracker }) => {
+      async ({ appManagerFixture, tileCleanupTracker }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19284',
         });
 
         // Create tile using the service directly
         const testData = getLinkTileSearchTestData();
-        const tileResponse = await tileManagementHelper.tileManagementService.createTile(
+        const tileResponse = await appManagerFixture.tileManagementHelper.tileManagementService.createTile(
           newSiteId,
           testData.tileTitle,
           2,
@@ -98,9 +98,9 @@ test.describe(
 
         const tileId = tileResponse.result.id;
         const tileTitle = testData.tileTitle;
-        await appManagerHomePage.verifyThePageIsLoaded();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
         // Search for the tile
-        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(tileTitle, {
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(tileTitle, {
           stepInfo: `Searching with term "${tileTitle}" to verify tile appears in search results`,
         });
 
@@ -145,20 +145,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
-      async ({
-        tileCleanupTracker,
-        tileManagementHelper,
-        appManagerUINavigationHelper,
-        appManagerUserPage,
-        appManagerHomePage,
-      }) => {
+      async ({ tileCleanupTracker, appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19440',
         });
 
         // Create tile using the service directly
         const testData = getLinkTileSearchTestData();
-        const tileResponse = await tileManagementHelper.tileManagementService.createTile(
+        const tileResponse = await appManagerFixture.tileManagementHelper.tileManagementService.createTile(
           newSiteId,
           testData.tileTitle,
           2,
@@ -167,14 +161,14 @@ test.describe(
 
         const tileId = tileResponse.result.id;
         const tileTitle = testData.tileTitle;
-        await appManagerHomePage.verifyThePageIsLoaded();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
 
         // Type in search input
-        await appManagerUINavigationHelper.topNavBarComponent.typeInSearchBarInput(tileTitle, {
+        await appManagerFixture.navigationHelper.topNavBarComponent.typeInSearchBarInput(tileTitle, {
           stepInfo: `Typing "${tileTitle}" in search input`,
         });
 
-        const resultList = new ResultListingComponent(appManagerUserPage);
+        const resultList = new ResultListingComponent(appManagerFixture.page);
         await resultList.waitForAndVerifyAutocompleteListIsDisplayed();
 
         const tileResult = resultList.getAutocompleteItemByName(tileTitle);

@@ -53,14 +53,14 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
         },
-        async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+        async ({ appManagerFixture }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-12408',
             storyId: 'SEN-12305',
           });
 
-          await appManagerHomePage.verifyThePageIsLoaded();
-          const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(newSiteName, {
+          await appManagerFixture.homePage.verifyThePageIsLoaded();
+          const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(newSiteName, {
             stepInfo: `Searching with term "${newSiteName} and intent is to find the site"`,
           });
 
@@ -91,14 +91,14 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
         {
           tag: [TestPriority.P1, TestGroupType.REGRESSION],
         },
-        async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+        async ({ appManagerFixture }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-19193',
           });
 
-          await appManagerHomePage.verifyThePageIsLoaded();
+          await appManagerFixture.homePage.verifyThePageIsLoaded();
           // First perform the search to get to the results page
-          const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(newSiteName, {
+          const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(newSiteName, {
             stepInfo: `Searching with term "${newSiteName}" to verify site appears in search results`,
           });
 
@@ -130,20 +130,20 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
         },
-        async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+        async ({ appManagerFixture }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-19285',
           });
 
           // Type in search input
-          await appManagerHomePage.verifyThePageIsLoaded();
-          const topNavBarComponent = appManagerUINavigationHelper.topNavBarComponent;
+          await appManagerFixture.homePage.verifyThePageIsLoaded();
+          const topNavBarComponent = appManagerFixture.navigationHelper.topNavBarComponent;
           await topNavBarComponent.typeInSearchBarInput(newSiteName, {
             stepInfo: `Typing "${newSiteName}" in search input`,
           });
 
           // Wait for autocomplete to appear first
-          const resultList = new ResultListingComponent(appManagerHomePage.page);
+          const resultList = new ResultListingComponent(appManagerFixture.page);
           await resultList.waitForAndVerifyAutocompleteListIsDisplayed(
             topNavBarComponent.globalSearchInputBox,
             newSiteName

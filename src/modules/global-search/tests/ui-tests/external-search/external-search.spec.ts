@@ -16,7 +16,7 @@ test.describe(
     let expectedProviderOrder: ExternalSearch['provider'][];
     let searchTerm: string;
 
-    test.beforeEach('Setup External Search Configuration', async ({ externalSearchManagementService }) => {
+    test.beforeEach('Setup External Search Configuration', async ({ appManagerFixture }) => {
       // Generate unique test data to avoid conflicts in parallel execution
       const testData = generateUniqueExternalSearchTestData();
       expectedProviderOrder = testData.expectedProviderOrder;
@@ -25,7 +25,7 @@ test.describe(
       // Setup external search configuration directly
       await test.step('Setup External Search Configuration', async () => {
         await test.step(`Configure ${testData.providers.length} unique external search providers`, async () => {
-          await externalSearchManagementService.updateExternalSearchConfig(testData.providers);
+          await appManagerFixture.externalSearchManagementService.updateExternalSearchConfig(testData.providers);
         });
       });
     });
@@ -35,14 +35,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-15167',
           storyId: 'SEN-14964',
         });
 
-        await appManagerHomePage.verifyThePageIsLoaded();
-        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(searchTerm, {
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(searchTerm, {
           stepInfo: `Searching with term "${searchTerm}" to verify external search links`,
         });
 

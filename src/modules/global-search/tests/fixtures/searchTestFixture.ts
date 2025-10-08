@@ -14,156 +14,112 @@ import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileMan
 import { ExternalSearchManagementService } from '@/src/modules/global-search/apis/services/ExternalSearchManagementService';
 import { IntranetFileHelper } from '@/src/modules/global-search/ui/helpers/intranetFileHelper';
 
+// API-only fixture type for API helpers and services
+export interface SearchApiFixture {
+  apiContext: APIRequestContext;
+  contentManagementHelper: ContentManagementHelper;
+  feedManagementHelper: FeedManagementHelper;
+  siteManagementHelper: SiteManagementHelper;
+  tileManagementHelper: TileManagementHelper;
+  appManagementService: AppsManagementService;
+  linkManagementService: LinkManagementService;
+  externalSearchManagementService: ExternalSearchManagementService;
+}
+
+// UI-only fixture type for browser and page components
+export interface SearchUiFixture {
+  browserContext: BrowserContext;
+  page: Page;
+  homePage: NewHomePage;
+  navigationHelper: NavigationHelper;
+  intranetFileHelper: IntranetFileHelper;
+}
+
+// Combined user fixture type that extends both API and UI fixtures
+export interface SearchUserFixture extends SearchApiFixture, SearchUiFixture {}
+
+// Helper function to create API-only fixtures using existing API contexts
+async function createSearchApiFixture(apiContext: APIRequestContext): Promise<SearchApiFixture> {
+  const contentManagementHelper = new ContentManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
+  const feedManagementHelper = new FeedManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
+  const siteManagementHelper = new SiteManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
+  const tileManagementHelper = new TileManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
+  const appManagementService = new AppsManagementService(apiContext, getEnvConfig().apiBaseUrl);
+  const linkManagementService = new LinkManagementService(apiContext, getEnvConfig().apiBaseUrl);
+  const externalSearchManagementService = new ExternalSearchManagementService(apiContext, getEnvConfig().apiBaseUrl);
+
+  return {
+    apiContext,
+    contentManagementHelper,
+    feedManagementHelper,
+    siteManagementHelper,
+    tileManagementHelper,
+    appManagementService,
+    linkManagementService,
+    externalSearchManagementService,
+  };
+}
+
+// Helper function to create UI-only fixtures
+async function createSearchUiFixture(browser: any, apiContext: APIRequestContext): Promise<SearchUiFixture> {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  await LoginHelper.loginWithPassword(page, {
+    email: getEnvConfig().appManagerEmail,
+    password: getEnvConfig().appManagerPassword,
+  });
+
+  const homePage = new NewHomePage(page);
+  await homePage.verifyThePageIsLoaded();
+
+  const navigationHelper = new NavigationHelper(page);
+  const intranetFileHelper = new IntranetFileHelper(apiContext, getEnvConfig().apiBaseUrl, page);
+
+  return {
+    browserContext: context,
+    page,
+    homePage,
+    navigationHelper,
+    intranetFileHelper,
+  };
+}
+
 export const searchTestFixtures = test.extend<
   {
-    appManagerBrowserContext: BrowserContext;
-    appManagerUserPage: Page;
-    appManagerUINavigationHelper: NavigationHelper;
-    appManagerHomePage: NewHomePage;
-    contentManagementHelper: ContentManagementHelper;
-    feedManagementHelper: FeedManagementHelper;
-    intranetFileHelper: IntranetFileHelper;
-    tileManagementHelper: TileManagementHelper;
-    appManagementService: AppsManagementService;
-    linkManagementService: LinkManagementService;
-    externalSearchManagementService: ExternalSearchManagementService;
+    // API-only fixtures - fast, no browser overhead
+    appManagerApiFixture: SearchApiFixture;
+
+    // UI-only fixtures - browser and page components
+    appManagerUiFixture: SearchUiFixture;
+
+    // Combined user fixtures - complete entry points with all helpers and services
+    appManagerFixture: SearchUserFixture;
+
+    // Special fixtures for search tests
     tileCleanupTracker: { tiles: Array<{ tileId: string; siteId: string }> };
   },
   {
+    // Worker-scoped fixtures
     appManagerApiContext: APIRequestContext;
     siteManagementHelper: SiteManagementHelper;
     publicSite: { siteName: string; siteId: string };
   }
 >({
+  // Worker-scoped API context - shared across all tests in worker
   appManagerApiContext: [
     async ({}, use) => {
-      const appManagerApiContext = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
-        email: getEnvConfig().appManagerEmail,
-        password: getEnvConfig().appManagerPassword,
-      });
-      await use(appManagerApiContext);
-      await appManagerApiContext.dispose();
-    },
-    { scope: 'worker' },
-  ],
-  appManagerBrowserContext: [
-    async ({ browser }, use) => {
-      const context = await browser.newContext();
-      const page = await context.newPage();
-      await LoginHelper.loginWithPassword(page, {
+      const context = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
         email: getEnvConfig().appManagerEmail,
         password: getEnvConfig().appManagerPassword,
       });
       await use(context);
-      await context.close();
+      await context.dispose();
     },
-    { scope: 'test' },
-  ],
-  appManagerUserPage: [
-    async ({ appManagerBrowserContext }, use, _workerInfo) => {
-      const page = await appManagerBrowserContext.newPage();
-      await use(page);
-      await page.close();
-    },
-    { scope: 'test' },
-  ],
-  appManagerUINavigationHelper: [
-    async ({ appManagerUserPage }, use, _workerInfo) => {
-      const appManagerUINavigationHelper = new NavigationHelper(appManagerUserPage);
-      await use(appManagerUINavigationHelper);
-    },
-    { scope: 'test' },
-  ],
-  appManagerHomePage: [
-    async ({ appManagerUserPage }, use, _workerInfo) => {
-      const appManagerHomePage = new NewHomePage(appManagerUserPage);
-      await appManagerHomePage.loadPage();
-      await appManagerHomePage.verifyThePageIsLoaded();
-      await use(appManagerHomePage);
-    },
-    { scope: 'test' },
+    { scope: 'worker' },
   ],
 
-  appManagementService: [
-    async ({ appManagerApiContext }, use) => {
-      const appManagementService = new AppsManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
-      await use(appManagementService);
-    },
-    { scope: 'test' },
-  ],
-  externalSearchManagementService: [
-    async ({ appManagerApiContext }, use) => {
-      const externalSearchManagementService = new ExternalSearchManagementService(
-        appManagerApiContext,
-        getEnvConfig().apiBaseUrl
-      );
-      await use(externalSearchManagementService);
-    },
-    { scope: 'test' },
-  ],
-  linkManagementService: [
-    async ({ appManagerApiContext }, use) => {
-      const linkManagementService = new LinkManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
-      await use(linkManagementService);
-    },
-    { scope: 'test' },
-  ],
-  contentManagementHelper: [
-    async ({ appManagerApiContext }, use) => {
-      const contentManagementHelper = new ContentManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
-      await use(contentManagementHelper);
-      // Note: Cleanup is handled manually in test afterAll hooks
-    },
-    { scope: 'test' },
-  ],
-  feedManagementHelper: [
-    async ({ appManagerApiContext }, use) => {
-      const feedManagementHelper = new FeedManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
-      await use(feedManagementHelper);
-      await feedManagementHelper.cleanup();
-    },
-    { scope: 'test' },
-  ],
-  intranetFileHelper: [
-    async ({ appManagerApiContext, appManagerUserPage }, use) => {
-      const intranetFileHelper = new IntranetFileHelper(
-        appManagerApiContext,
-        getEnvConfig().apiBaseUrl,
-        appManagerUserPage
-      );
-      await use(intranetFileHelper);
-      await intranetFileHelper.cleanup();
-    },
-    { scope: 'test' },
-  ],
-
-  tileManagementHelper: [
-    async ({ appManagerApiContext }, use) => {
-      const tileManagementHelper = new TileManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
-      await use(tileManagementHelper);
-      await tileManagementHelper.cleanup();
-    },
-    { scope: 'test' },
-  ],
-
-  tileCleanupTracker: [
-    async ({ tileManagementHelper }, use) => {
-      const tileCleanupTracker = { tiles: [] as Array<{ tileId: string; siteId: string }> };
-
-      await use(tileCleanupTracker);
-
-      // Cleanup all tracked tiles
-      for (const { tileId, siteId } of tileCleanupTracker.tiles) {
-        try {
-          await tileManagementHelper.tileManagementService.deleteTile(siteId, tileId);
-          console.log(`Successfully deleted tile: ${tileId}`);
-        } catch (error) {
-          console.warn(`Failed to delete tile ${tileId}:`, error);
-        }
-      }
-    },
-    { scope: 'test' },
-  ],
+  // Worker-scoped site management helper - shared across all tests in worker
   siteManagementHelper: [
     async ({ appManagerApiContext }, use) => {
       const siteManagementHelper = new SiteManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
@@ -172,6 +128,8 @@ export const searchTestFixtures = test.extend<
     },
     { scope: 'worker' },
   ],
+
+  // Worker-scoped public site - one site per worker to reduce unnecessary site creation
   publicSite: [
     async ({ siteManagementHelper }, use, workerInfo) => {
       console.log(`🔧 Creating publicSite fixture for worker ${workerInfo.workerIndex}`);
@@ -201,5 +159,68 @@ export const searchTestFixtures = test.extend<
       );
     },
     { scope: 'worker' },
+  ],
+
+  // API-only fixtures - fast, no browser overhead, using worker-scoped contexts
+  appManagerApiFixture: [
+    async ({ appManagerApiContext }, use) => {
+      const fixture = await createSearchApiFixture(appManagerApiContext);
+      await use(fixture);
+
+      // Cleanup helpers that have cleanup methods
+      try {
+        await fixture.feedManagementHelper.cleanup();
+        await fixture.tileManagementHelper.cleanup();
+      } catch (error) {
+        console.warn('App manager API fixture cleanup failed:', error);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  // UI-only fixtures - browser and page components
+  appManagerUiFixture: [
+    async ({ browser, appManagerApiContext }, use) => {
+      const fixture = await createSearchUiFixture(browser, appManagerApiContext);
+      await use(fixture);
+
+      // Cleanup helpers that have cleanup methods
+      try {
+        await fixture.intranetFileHelper.cleanup();
+      } catch (error) {
+        console.warn('App manager UI fixture cleanup failed:', error);
+      }
+
+      await fixture.browserContext.close();
+    },
+    { scope: 'test' },
+  ],
+
+  // Combined user fixtures - complete entry points
+  appManagerFixture: [
+    async ({ appManagerUiFixture, appManagerApiFixture }, use) => {
+      await use({ ...appManagerUiFixture, ...appManagerApiFixture });
+    },
+    { scope: 'test' },
+  ],
+
+  // Special fixture for tile cleanup tracking
+  tileCleanupTracker: [
+    async ({ appManagerApiFixture }, use) => {
+      const tileCleanupTracker = { tiles: [] as Array<{ tileId: string; siteId: string }> };
+
+      await use(tileCleanupTracker);
+
+      // Cleanup all tracked tiles
+      for (const { tileId, siteId } of tileCleanupTracker.tiles) {
+        try {
+          await appManagerApiFixture.tileManagementHelper.tileManagementService.deleteTile(siteId, tileId);
+          console.log(`Successfully deleted tile: ${tileId}`);
+        } catch (error) {
+          console.warn(`Failed to delete tile ${tileId}:`, error);
+        }
+      }
+    },
+    { scope: 'test' },
   ],
 });

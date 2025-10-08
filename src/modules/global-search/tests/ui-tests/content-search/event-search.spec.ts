@@ -24,8 +24,8 @@ test.describe(
 
     test.beforeAll(
       `Setting up the test environment for event search by creating event content in common public site`,
-      async ({ contentManagementHelper, publicSite }) => {
-        const eventDetails = await contentManagementHelper.createEvent({
+      async ({ appManagerFixture, publicSite }) => {
+        const eventDetails = await appManagerFixture.contentManagementHelper.createEvent({
           siteId: publicSite.siteId,
           contentInfo: {
             contentType: testData.content,
@@ -46,9 +46,9 @@ test.describe(
 
     test.afterAll(
       `Cleaning up the test environment by deleting the created event content`,
-      async ({ contentManagementHelper }) => {
+      async ({ appManagerFixture }) => {
         if (contentId) {
-          await contentManagementHelper.deleteContent(siteId, contentId);
+          await appManagerFixture.contentManagementHelper.deleteContent(siteId, contentId);
           console.log(`Deleted event "${eventName}" with ID: ${contentId}`);
         }
       }
@@ -59,15 +59,15 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-12462',
           storyId: 'SEN-12298',
         });
 
         // 4. UI Search for the event
-        await appManagerHomePage.verifyThePageIsLoaded();
-        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(eventName, {
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(eventName, {
           stepInfo: `Searching with term "${eventName}" and intent is to find the event`,
         });
 
@@ -90,14 +90,14 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19195',
         });
 
-        await appManagerHomePage.verifyThePageIsLoaded();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
         // Search for the event
-        const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(eventName, {
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(eventName, {
           stepInfo: `Searching with term "${eventName}" to verify event appears in search results`,
         });
 
@@ -141,19 +141,19 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19287',
         });
 
-        await appManagerHomePage.verifyThePageIsLoaded();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
         // Type in search input
-        const topNavBarComponent = appManagerUINavigationHelper.topNavBarComponent;
+        const topNavBarComponent = appManagerFixture.navigationHelper.topNavBarComponent;
         await topNavBarComponent.typeInSearchBarInput(eventName, {
           stepInfo: `Typing "${eventName}" in search input`,
         });
 
-        const resultList = new ResultListingComponent(appManagerHomePage.page);
+        const resultList = new ResultListingComponent(appManagerFixture.page);
         await resultList.waitForAndVerifyAutocompleteListIsDisplayed();
 
         // Then get specific autocomplete item

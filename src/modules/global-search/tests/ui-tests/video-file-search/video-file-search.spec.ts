@@ -23,9 +23,9 @@ for (const fileType of testData.fileTypes) {
       let siteId: string;
       let siteName: string;
 
-      test.beforeEach('Site and File Setup', async ({ intranetFileHelper, publicSite }) => {
+      test.beforeEach('Site and File Setup', async ({ appManagerFixture, publicSite }) => {
         // Use the shared public site and upload video file using the new method
-        const videoResult = await intranetFileHelper.uploadFileToExistingSite({
+        const videoResult = await appManagerFixture.intranetFileHelper.uploadFileToExistingSite({
           siteId: publicSite.siteId,
           siteName: publicSite.siteName,
           filePath: `src/modules/global-search/test-data/${fileType.fileName}`,
@@ -44,13 +44,13 @@ for (const fileType of testData.fileTypes) {
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE],
         },
-        async ({ appManagerUINavigationHelper }) => {
+        async ({ appManagerFixture }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-15731',
             storyId: 'SEN-12300',
           });
 
-          const globalSearchResultPage = await appManagerUINavigationHelper.searchForTerm(uploadedFileName, {
+          const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(uploadedFileName, {
             stepInfo: `Searching with term "${uploadedFileName}" and intent is to find the file`,
           });
 
