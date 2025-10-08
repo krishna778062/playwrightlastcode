@@ -1,3 +1,5 @@
+import { expect } from '@playwright/test';
+
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentFeatureTags, ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
@@ -9,9 +11,11 @@ import { SOCIAL_CAMPAIGN_TEST_DATA } from '@content/test-data/social-campaign.te
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
-import { SocialCampaignRecipient } from '@core/types/social-campaign.types';
+import { SocialCampaignFilter, SocialCampaignRecipient, SocialCampaignStatus } from '@core/types/social-campaign.types';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
+
+import { SiteDashboardPage } from '../../pages/siteDashboardPage';
 
 test.describe(
   `Social Campaign functionality`,
@@ -23,17 +27,16 @@ test.describe(
     let manualCleanupNeeded: boolean = false;
     let campaignId: string;
 
-    test.beforeEach(async ({ socialCampaignManagerHomePage, socialCampaignHelper }) => {
-      socialCampaignPage = new SocialCampaignPage(socialCampaignManagerHomePage.page);
-      //clean up all the campaigns
-      await socialCampaignHelper.deleteAllCampaigns();
+    test.beforeEach(async ({ socialCampaignHelper }) => {
       // Reset cleanup flag for each test
+      //clean up all the campaigns
+      await socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
       manualCleanupNeeded = false;
     });
 
     test.afterEach(async ({ socialCampaignHelper }) => {
       if (manualCleanupNeeded && campaignId) {
-        await socialCampaignHelper.deleteAllCampaigns();
+        await socialCampaignHelper.deleteCampaign(campaignId);
       }
     });
 
@@ -42,7 +45,8 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33728', '@Social_Campaign_Add_Edit_Delete'],
       },
-      async ({ socialCampaignManagerHomePage }) => {
+      async ({ socialCampaignManagerHomePage, socialCampaignHelper, socialCampaignManagerPage }) => {
+        socialCampaignPage = new SocialCampaignPage(socialCampaignManagerPage);
         tagTest(test.info(), {
           description:
             'Zeus | Social Campaign | Verify SC Manager able to create and delete Social Campaign for Everyone',
@@ -50,13 +54,10 @@ test.describe(
           storyId: 'CONT-33728',
         });
 
-        // And Click on Social campaigns section
         await socialCampaignManagerHomePage.actions.clickOnSocialCampaigns();
-
-        // Click on Add campaign button
         await socialCampaignPage.actions.clickAddCampaignButton();
 
-        // When Create and post social campaign using wrapper function
+        // Create and post social campaign using wrapper function
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
           url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
@@ -66,17 +67,153 @@ test.describe(
 
         // When Add Campaign and Create
         campaignId = await socialCampaignPage.actions.AddCampaignAndCreate(campaignOptions);
-
-        // And Verify link is displayed using the returned link text
+        await socialCampaignPage.assertions.verifyToastMessage('Created social campaign successfully');
         await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
-
-        // And Click on "Popular" link
         await socialCampaignPage.actions.clickPopularLink();
-
-        // Then Verify link is displayed using the campaign result
         await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
         manualCleanupNeeded = true;
+      }
+    );
+
+    test(
+      'In Zeus Verify SC Manager able to delete the expired Social Campaign(Audience)',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-10526', '@Social_Campaign_Expire'],
+      },
+      async ({ socialCampaignManagerHomePage, socialCampaignHelper, audienceManagementHelper }) => {
+        tagTest(test.info(), {
+          description: 'Zeus | Social Campaign | Verify End User can view and expire social campaign',
+          zephyrTestId: 'CONT-10526',
+          storyId: 'CONT-10526',
+        });
+        socialCampaignPage = new SocialCampaignPage(socialCampaignManagerHomePage.page);
+
+        await socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.EXPIRED);
+        const campaignData = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_BLOG,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_BLOG,
+          recipient: SocialCampaignRecipient.AUDIENCE,
+        };
+
+        // Create or get a test audience for the campaign
+        const audienceId = await audienceManagementHelper.getRandomAudienceId();
+
+        // Create campaign via API
+        const createdCampaign = await socialCampaignHelper.createCampaign({
+          message: campaignData.message,
+          url: campaignData.url,
+          recipient: campaignData.recipient,
+          audienceId: audienceId,
+        });
+
+        campaignId = createdCampaign.campaignId;
+
+        await socialCampaignPage.loadPage();
+
+        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignData.linkText);
+        await socialCampaignPage.actions.clickCampaignOptions();
+
+        await socialCampaignPage.actions.clickExpireCampaignButton();
+
+        await socialCampaignPage.actions.confirmExpireCampaign();
+        await socialCampaignPage.assertions.verifyToastMessage('Expired social campaign successfully');
+        await socialCampaignPage.assertions.verifyCampaignNotInLatest(campaignData.linkText);
+
+        await socialCampaignPage.actions.clickExpiredLink();
+
+        await socialCampaignPage.assertions.verifyCampaignInExpired(campaignData.linkText);
+
+        await socialCampaignPage.actions.clickCampaignOptions();
+        await socialCampaignPage.actions.clickDeleteCampaignButton();
+        await socialCampaignPage.actions.confirmDeleteCampaign();
+        await socialCampaignPage.assertions.verifyToastMessage('Deleted social campaign successfully');
+        await socialCampaignPage.assertions.verifyCampaignNotInExpired(campaignData.linkText);
+      }
+    );
+
+    test(
+      'Verify App Manager able to share Social Campaign(Audience) to Site feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-10518'],
+      },
+      async ({ appManagerHomePage, socialCampaignHelper, audienceManagementHelper, siteManagementHelper }) => {
+        tagTest(test.info(), {
+          description: 'Verify App Manager able to share Social Campaign(Audience) to Site feed',
+          zephyrTestId: 'CONT-10518',
+          storyId: 'CONT-10518',
+        });
+
+        socialCampaignPage = new SocialCampaignPage(appManagerHomePage.page);
+        // Setup: Get or create audience and site
+        const audienceId = await audienceManagementHelper.getRandomAudienceId();
+        const siteName = 'All Employees';
+        const siteId = await siteManagementHelper.getSiteIdWithName(siteName);
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
+          recipient: SocialCampaignRecipient.AUDIENCE,
+          audienceId: audienceId,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+          audienceId: campaignOptions.audienceId,
+        });
+        campaignId = createdCampaign.campaignId;
+        socialCampaignPage.loadPage();
+        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+
+        const description = TestDataGenerator.generateRandomString();
+        // Share campaign to site feed
+        await socialCampaignPage.actions.clickCampaignOptions();
+        await socialCampaignPage.actions.clickShareToFeedButton();
+        await socialCampaignPage.actions.selectShareOptionAsSiteFeed();
+        await socialCampaignPage.actions.enterShareDescription(description);
+        await socialCampaignPage.actions.enterSiteName(siteName);
+        await socialCampaignPage.actions.clickShareButton();
+
+        const siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.actions.clickOnFeedLink();
+        await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
+        manualCleanupNeeded = true;
+      }
+    );
+
+    test(
+      'In Zeus Verify error messages on creating social campaign without required details',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19603', '@Social_Campaign_Validation'],
+      },
+      async ({ appManagerHomePage, appManagersPage }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify error messages on creating social campaign without required details',
+          zephyrTestId: 'CONT-19603',
+          storyId: 'CONT-19603',
+        });
+
+        // Create social campaign page instance
+        const socialCampaignPage = new SocialCampaignPage(appManagersPage);
+
+        // Navigate to social campaigns and add campaign
+        await socialCampaignPage.loadPage();
+        await socialCampaignPage.actions.clickAddCampaignButton();
+        await socialCampaignPage.actions.enterCampaignUrl(SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE_2);
+        await socialCampaignPage.actions.uncheckNetwork('X');
+        await socialCampaignPage.actions.uncheckNetwork('Facebook');
+        await socialCampaignPage.actions.uncheckNetwork('LinkedIn');
+        await socialCampaignPage.actions.clickCreateCampaignButton();
+        await socialCampaignPage.assertions.verifyErrorMessagePresence('You must select at least one social network');
+        await socialCampaignPage.assertions.verifyErrorMessagePresence(
+          'Suggested campaign message is a required field is a required field'
+        );
       }
     );
   }
