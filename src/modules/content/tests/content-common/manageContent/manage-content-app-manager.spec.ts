@@ -3,11 +3,14 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ApplicationScreenPage } from '../../pages/manageFeaturesPage';
-
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { ApplicationScreenPage } from '@/src/modules/content/pages/applicationscreenPage';
+import { FeedPage } from '@/src/modules/content/pages/feedPage';
+import { HomeFeedPage } from '@/src/modules/content/pages/manageApplicationDefaultHomeFeedPage';
+import { DefaultScreenPage } from '@/src/modules/content/pages/manageApplicationDefaultScreenPage';
+import { ManageApplicationPage } from '@/src/modules/content/pages/manageApplicationPage';
 import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
@@ -21,12 +24,20 @@ test.describe(
     let manageFeaturesPage: ApplicationScreenPage;
     let manageContentPage: ManageContentPage;
     let homePage: NewUxHomePage;
+    let applicationScreenPage: ApplicationScreenPage;
+    let manageApplicationPage: ManageApplicationPage;
+    let defaultScreenPage: DefaultScreenPage;
+    let homeFeedPage: HomeFeedPage;
 
     test.beforeEach(async ({ appManagerHomePage }) => {
       await appManagerHomePage.verifyThePageIsLoaded();
       manageFeaturesPage = new ApplicationScreenPage(appManagerHomePage.page);
       manageContentPage = new ManageContentPage(appManagerHomePage.page);
       homePage = new NewUxHomePage(appManagerHomePage.page);
+      applicationScreenPage = new ApplicationScreenPage(appManagerHomePage.page);
+      manageApplicationPage = new ManageApplicationPage(appManagerHomePage.page);
+      defaultScreenPage = new DefaultScreenPage(appManagerHomePage.page);
+      homeFeedPage = new HomeFeedPage(appManagerHomePage.page);
     });
 
     test.afterEach(async ({ page }) => {
@@ -208,6 +219,38 @@ test.describe(
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectCreatedNewestOption();
+      }
+    );
+    test(
+      'In Zeus Verify Default filters (Posts I follow and Recent Activity) are applied for Home Feed for New users',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.HOME_FEED],
+      },
+      async ({ standardUserHomePage }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify Default filters (Posts I follow and Recent Activity) are applied for Home Feed for New users',
+          zephyrTestId: 'CONT-29493',
+          storyId: 'CONT-29493',
+        });
+        await homePage.actions.clickOnApplicationSettings();
+        await applicationScreenPage.actions.clickOnApplication();
+        await manageApplicationPage.actions.clickOnDefaults();
+        await defaultScreenPage.actions.clickOnHomeFeed();
+        await homeFeedPage.actions.selectingPostsIFollow();
+        await homeFeedPage.actions.recentActivity();
+
+        // Verify with standard user in parallel browser context
+        await test.step('Verify home feed defaults for standard user', async () => {
+          await standardUserHomePage.verifyThePageIsLoaded();
+          const standardUserFeedPage = new FeedPage(standardUserHomePage.page);
+          console.log('Successfully logged in as standard user');
+          console.log('Verifying home feed defaults are applied for standard user');
+          await standardUserFeedPage.assertions.verifyPostsIFollow();
+          await standardUserFeedPage.assertions.verifySortByRecentActivity();
+          await standardUserFeedPage.actions.selectPostsToMe();
+          await standardUserFeedPage.actions.selectPostDate();
+        });
       }
     );
   }

@@ -62,6 +62,8 @@ export interface IChatActions {
   ) => Promise<void>;
   editAndUpdateMessage: (message: string, editedMessage: string, options?: { stepInfo?: string }) => Promise<void>;
   editAndCancelMessage: (message: string, options?: { stepInfo?: string }) => Promise<void>;
+  pinSentMessage: (message: string, options?: { stepInfo?: string }) => Promise<void>;
+  unPinMessage: (message: string, options?: { stepInfo?: string }) => Promise<void>;
 }
 
 export interface IChatAssertions {
@@ -84,9 +86,11 @@ export interface IChatAssertions {
     senderName: string,
     options?: { stepInfo?: string }
   ) => Promise<void>;
+  verifyEmojiMessageisVisible: (message: string, options?: { stepInfo?: string }) => Promise<void>;
   verifyMessageActionsNotVisible: (message: string, options?: { stepInfo?: string }) => Promise<void>;
   verifyMessageActionsIsVisible: (message: string, options?: { stepInfo?: string }) => Promise<void>;
   verifyEditMessageOptionNotVisible: (message: string, options?: { stepInfo?: string }) => Promise<void>;
+  verifyPinnedMessage: (message: string, options?: { stepInfo?: string }) => Promise<void>;
 }
 
 export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAssertions {
@@ -524,6 +528,14 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
     });
   }
 
+  async unPinMessage(message: string, options?: { stepInfo?: string }) {
+    await test.step(options?.stepInfo ?? `Deleting message ${message}`, async () => {
+      const messageItem =
+        await this.getConversationWindowComponent().getFocusedMessageCardFromListOfChatMessages(message);
+      await messageItem.unPinMessageFromPinnedMessage();
+    });
+  }
+
   async verifyMessageActionsNotVisible(message: string, options?: { stepInfo?: string }) {
     await test.step(
       options?.stepInfo ?? `Verifying message actions are not visible for message ${message}`,
@@ -567,6 +579,22 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
       const messageItem =
         await this.getConversationWindowComponent().getDeletedOrLastMessageCardFromListOfChatMessages();
       await messageItem.editAndCancelMessage();
+    });
+  }
+
+  async pinSentMessage(message: string, options?: { stepInfo?: string }) {
+    await test.step(options?.stepInfo ?? `Pinning the sent message ${message}`, async () => {
+      const messageItem =
+        await this.getConversationWindowComponent().getDeletedOrLastMessageCardFromListOfChatMessages();
+      await messageItem.pinSentMessage();
+    });
+  }
+
+  async verifyPinnedMessage(message: string, options?: { stepInfo?: string }) {
+    await test.step(options?.stepInfo ?? `Pinning the sent message ${message}`, async () => {
+      const messageItem =
+        await this.getConversationWindowComponent().getDeletedOrLastMessageCardFromListOfChatMessages();
+      await messageItem.verifyPinnedMessageIsVisible(message);
     });
   }
 
@@ -726,6 +754,15 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
       const messageItem = this.page.locator(`article[data-message-id='${messageID}']`);
       await expect(messageItem, `expecting message item to be deleted`).toBeVisible();
     });
+  }
+
+  async verifyEmojiMessageisVisible(message: string, options?: { stepInfo?: string }) {
+    await test.step(
+      options?.stepInfo ?? `Verifying edit message option are not visible for message ${message}`,
+      async () => {
+        await this.getConversationWindowComponent().verifySentEmojiMessageVisible(message);
+      }
+    );
   }
 
   async verifyMessageIsPresentInMentionsSection(

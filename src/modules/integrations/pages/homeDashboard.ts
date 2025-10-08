@@ -454,4 +454,11 @@ export class HomeDashboard {
   async verifyMondayDotComContentStructure(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyMondayDotComTileContentStructure(tileTitle);
   }
+  /**
+   * Verify Docebo tile content structure with task records
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDoceboContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyDoceboTileContentStructure(tileTitle);
+  }
 }

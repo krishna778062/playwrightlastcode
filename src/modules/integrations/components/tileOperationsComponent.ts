@@ -58,6 +58,10 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly taskTitle: Locator;
   readonly statusTag: Locator;
   readonly MondayLastUpdatedPattern: RegExp;
+  readonly doceboImage: Locator;
+  readonly courseId: RegExp;
+  readonly courseStatus: Locator;
+  readonly courseType: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -84,6 +88,9 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.showMoreButton = page.getByRole('button', { name: 'Show more' });
     this.visibleRowsContainer = page.locator('[data-testid="container"][aria-hidden="false"]');
     this.docuSignImage = page.locator('img[src*="docusign"]');
+    this.doceboImage = page.locator('img[src*="docebo"]');
+    this.courseStatus = page.locator('span', { hasText: /In progress|Completed|Enrolled/ });
+    this.courseType = page.locator('span', { hasText: /E-learning|Classroom/ });
     // Regex patterns for text matching
     this.prNumberPattern = /^#\d+/;
     this.createdAgoPattern = /^Created\s+.*\s+ago$/;
@@ -101,6 +108,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.balanceText = page.getByText(/Balance: \d+(\.\d+)? hours/).first();
     this.fromPattern = /From/;
     this.sentPattern = /Sent \d+ days? ago/;
+    this.courseId = /^[A-Z]-/;
+
     // Schedule tile locators
     this.scheduleContainer = page
       .locator('[data-testid="container"]')
@@ -209,10 +218,13 @@ export class TileOperationsComponent extends BaseAppTileComponent {
    * Verify status tag is shown in tile
    */
   async verifyStatusTag(tileTitle: string, status: string): Promise<void> {
-    await test.step(`Verify ${status} status is shown for ${tileTitle}`, async () => {
+    await test.step(`Verify ${status} for ${tileTitle}`, async () => {
       const tile = this.getTile(tileTitle);
-      const statusTag = this.getTagElement(tile).filter({ hasText: status });
-      await expect(statusTag).toBeVisible();
+      await expect(tile).toBeVisible({ timeout: 5_000 });
+      const tags = this.getTagElement(tile).getByText(status, { exact: true });
+      await expect(tags.first(), `Status "${status}" should be visible for "${tileTitle}"`).toBeVisible({
+        timeout: 5_000,
+      });
     });
   }
 
@@ -532,6 +544,33 @@ export class TileOperationsComponent extends BaseAppTileComponent {
         'Last updated text should be visible'
       ).toBeVisible();
       await expect(firstTask.getByTestId('divider'), 'Divider should be visible').toBeVisible();
+    });
+  }
+  /**
+   * Verify DocuSign tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDoceboTileContentStructure(tileTitle: string): Promise<void> {
+    await test.step(`Verify Docebo tile content structure for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Docebo tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+      // Verify added Tile data
+      await expect(tile.locator(this.doceboImage), 'Docebo image should be visible in tile').toBeVisible();
+      // Get task records and verify at least one exists
+      const containers = tile.locator(this.container);
+      const count = await containers.count();
+      await expect(count, 'At least one container should be present in Docebo tile').toBeGreaterThan(0);
+      // Verify first record has all required elements
+      const firstRecord = containers.first();
+      await expect(
+        firstRecord.getByText(this.courseId).first(),
+        'CourseId should be visible in the first record'
+      ).toBeVisible();
+      await expect(
+        firstRecord.locator(this.courseStatus).first(),
+        'Course Status should be visible in tile'
+      ).toBeVisible();
+      await expect(firstRecord.locator(this.courseType).first(), 'Course Type should be visible in tile').toBeVisible();
     });
   }
 }
