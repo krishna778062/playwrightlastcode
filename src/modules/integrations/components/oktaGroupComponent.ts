@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 export class OktaGroupComponent extends BaseComponent {
   readonly oktaLink: () => Locator;
@@ -21,7 +22,6 @@ export class OktaGroupComponent extends BaseComponent {
   readonly audiencesTable: () => Locator;
   readonly audienceName: (name: string) => Locator;
   readonly audienceCreatedBy: (createdBy: string) => Locator;
-  readonly audiencesMenuItem: () => Locator;
   readonly audienceTypeDropdown: () => Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
@@ -45,7 +45,13 @@ export class OktaGroupComponent extends BaseComponent {
         .filter({ hasText: groupText })
         .getByTestId(/clear-button/);
     this.confirmButton = () => this.rootLocator.getByRole('button', { name: 'Confirm' });
-    this.selectAudiencesButton = (text: string) => this.rootLocator.locator('label').filter({ hasText: text }).nth(1);
+    this.selectAudiencesButton = (text: string) =>
+      this.rootLocator
+        .locator('label')
+        .filter({ hasText: text })
+        .locator('span')
+        .getByText(text, { exact: true })
+        .first();
     this.audiencesTable = () => this.rootLocator.locator('table.Table');
     this.audienceName = (name: string) =>
       this.audiencesTable()
@@ -58,7 +64,6 @@ export class OktaGroupComponent extends BaseComponent {
         .filter({ hasText: createdBy })
         .locator('td')
         .nth(3);
-    this.audiencesMenuItem = () => this.rootLocator.getByRole('menuitem', { name: 'Audiences' });
     this.audienceTypeDropdown = () => this.rootLocator.getByTestId('overlay').getByTestId('SelectInput');
   }
 
@@ -197,13 +202,8 @@ export class OktaGroupComponent extends BaseComponent {
 
   async clickOnAudiencesButton(text: string): Promise<void> {
     await test.step(`Click on Create Audiences button: ${text}`, async () => {
+      await this.page.waitForTimeout(10000);
       await this.selectAudiencesButton(text).click();
-    });
-  }
-
-  async clickOnAudiencesMenuItem(): Promise<void> {
-    await test.step('Click on Audiences menu item and wait for page load', async () => {
-      await this.audiencesMenuItem().click();
     });
   }
 
@@ -213,12 +213,34 @@ export class OktaGroupComponent extends BaseComponent {
     });
   }
 
+  async navigateToAudiencesPage(): Promise<void> {
+    await test.step('Navigate to Audiences page', async () => {
+      await this.page.goto(PAGE_ENDPOINTS.AUDIENCE_PAGE, { waitUntil: 'domcontentloaded' });
+    });
+  }
+
   async verifyAudienceNameIsVisible(audienceName: string): Promise<void> {
-    await test.step(`Verify audience name '${audienceName}' is visible`, async () => {
-      await expect(
-        this.audienceName(audienceName),
-        `expecting audience name '${audienceName}' to be visible`
-      ).toBeVisible();
+    await test.step(`Verify audience '${audienceName}' is visible`, async () => {
+      const VISIBLE_TIMEOUT = 5_000;
+      const maxAttempts = 3;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          await expect(
+            this.audienceName(audienceName),
+            `Expect audience '${audienceName}' to be visible (attempt ${attempt}/${maxAttempts})`
+          ).toBeVisible({ timeout: VISIBLE_TIMEOUT });
+          return;
+        } catch {
+          if (attempt === maxAttempts) break;
+          test.info().annotations.push({
+            type: 'info',
+            description: `'${audienceName}' not visible, reloading (attempt ${attempt}/${maxAttempts})...`,
+          });
+          await this.page.reload();
+          await this.page.waitForLoadState('domcontentloaded');
+        }
+      }
+      throw new Error(`Audience '${audienceName}' not visible after ${maxAttempts - 1} reload(s).`);
     });
   }
 

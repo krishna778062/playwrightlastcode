@@ -1,6 +1,12 @@
-import { expect, Page, test } from '@playwright/test';
+import { expect, Locator, Page, Response, test } from '@playwright/test';
 
-import { CreateFeedPostComponent, FeedPostOptions, FeedPostResult } from '@content/components/createFeedPostComponent';
+import {
+  CreateFeedPostComponent,
+  FeedPostApiResponse,
+  FeedPostOptions,
+  FeedPostResult,
+} from '@content/components/createFeedPostComponent';
+import { CreateQuestionComponent, QuestionOptions, QuestionResult } from '@content/components/createQuestionComponent';
 import { FilePreviewComponent } from '@content/components/filePreviewComponent';
 import { ListFeedComponent } from '@content/components/listFeedComponent';
 import { BasePage } from '@core/pages/basePage';
@@ -13,6 +19,7 @@ export { FeedPostOptions, FeedPostResult };
 export interface IFeedActions {
   // High-level user flows
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
+  createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
   deletePost: (postText: string) => Promise<void>;
   // Content creation flow
@@ -45,6 +52,13 @@ export interface IFeedActions {
   addReplyToPost: (replyText: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
   clickOnDeleteReplyButton: () => Promise<void>;
+  selectPostsToMe: () => Promise<void>;
+  selectPostDate: () => Promise<void>;
+  clickShareThoughtsButton: () => Promise<void>;
+  enterQuestionTitle: (title: string) => Promise<void>;
+  clickAskQuestionButton: () => Promise<string>;
+  clickQuestionButton: () => Promise<void>;
+  editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -60,18 +74,28 @@ export interface IFeedAssertions {
   verifyVersionImageIsDisplayed: (fileId: string) => Promise<void>;
   verifyVersionNumber: (expectedVersionNumber: string) => Promise<void>;
   verifyToastMessage: (message: string) => Promise<void>;
+  verifyPostsIFollow: () => Promise<void>;
+  verifySortByRecentActivity: () => Promise<void>;
+  verifyAskQuestionButtonIsNotDisabled: () => Promise<void>;
+  verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
+  verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
   private createFeedPostComponent: CreateFeedPostComponent;
   private listFeedComponent: ListFeedComponent;
   private filePreviewComponent: FilePreviewComponent;
+  private createQuestionComponent: CreateQuestionComponent;
+  readonly shareThoughtsButton: Locator;
 
   constructor(page: Page, feedId?: string) {
     super(page, feedId ? PAGE_ENDPOINTS.getFeedPage(feedId) : '');
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
+    this.createQuestionComponent = new CreateQuestionComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
     this.filePreviewComponent = new FilePreviewComponent(page);
+    // Share thoughts section
+    this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
   }
 
   get actions(): IFeedActions {
@@ -86,12 +110,20 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    * Verifies that the feed page is loaded by checking if share thoughts button is visible
    */
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.createFeedPostComponent.verifyThePageIsLoaded();
+    await test.step('Verify feed page is loaded', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.shareThoughtsButton, {
+        assertionMessage: 'Share thoughts button should be visible on feed page',
+      });
+    });
   }
 
   // High-level user flow methods
   async createAndPost(options: FeedPostOptions): Promise<FeedPostResult> {
     return await this.createFeedPostComponent.createAndPost(options);
+  }
+
+  async createAndPostQuestion(options: QuestionOptions): Promise<QuestionResult> {
+    return await this.createQuestionComponent.createAndPostQuestion(options);
   }
 
   async editPost(currentText: string, newText: string): Promise<void> {
@@ -283,5 +315,66 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyReplyIsNotVisible(replyText: string): Promise<void> {
     await this.listFeedComponent.verifyReplyIsNotVisible(replyText);
+  }
+
+  async verifyPostsIFollow(): Promise<void> {
+    await this.listFeedComponent.verifyPostsIFollow();
+  }
+
+  async verifySortByRecentActivity(): Promise<void> {
+    await this.listFeedComponent.verifySortByRecentActivity();
+  }
+
+  async selectPostsToMe(): Promise<void> {
+    await this.listFeedComponent.selectPostsToMe();
+  }
+
+  async selectPostDate(): Promise<void> {
+    await this.listFeedComponent.selectPostDate();
+  }
+  /**
+   * Clicks the share thoughts button to open post editor
+   */
+  async clickShareThoughtsButton(): Promise<void> {
+    await test.step('Click on Share your thoughts button', async () => {
+      await this.clickOnElement(this.shareThoughtsButton);
+    });
+  }
+
+  async enterQuestionTitle(title: string): Promise<void> {
+    await this.createQuestionComponent.enterQuestionTitle(title);
+  }
+
+  async verifyAskQuestionButtonIsNotDisabled(): Promise<void> {
+    await this.createQuestionComponent.verifyAskQuestionButtonIsNotDisabled();
+  }
+
+  async clickAskQuestionButton(): Promise<string> {
+    // Publish the page
+    const postResponse = await this.createQuestionComponent.clickAskQuestionButton();
+
+    //json body
+    const feedResponseBody = (await postResponse.json()) as FeedPostApiResponse;
+
+    //fetch the page id from the response
+    const postId = feedResponseBody.result.feedId;
+    console.log('postId', postId);
+    return postId;
+  }
+
+  async verifyQuestionCreatedSuccessfully(questionTitle: string): Promise<void> {
+    await this.createQuestionComponent.verifyQuestionCreatedSuccessfully(questionTitle);
+  }
+
+  async clickQuestionButton(): Promise<void> {
+    await this.createFeedPostComponent.clickQuestionButton();
+  }
+
+  async editQuestion(questionTitle: string, newTitle: string): Promise<void> {
+    await this.createQuestionComponent.editQuestion(questionTitle, newTitle);
+  }
+
+  async verifyCampaignLinkDisplayed(linkText: string, description: string): Promise<void> {
+    await this.listFeedComponent.verifyCampaignLinkDisplayed(linkText, description);
   }
 }

@@ -82,6 +82,8 @@ export const APP_NAMES = {
   AIRTABLE: 'Airtable',
   FRESHSERVICE: 'Freshservice',
   GITHUB: 'GitHub',
+  BAMBOOHR: 'BambooHR',
+  SAP_SUCCESSFACTORS: 'SAPSuccessFactors',
 } as const;
 
 /**
@@ -113,6 +115,11 @@ export const EXPENSIFY_CREDS = {
   USER_ID: 'aa_tushar_roy_simpplr_com',
   USER_SECRET: '1cb6b45720674f10558719c18a17947937fd4723',
 } as const;
+
+/**
+ * UKG Pro instance URL for testing
+ */
+export const UKG_PRO_INSTANCE_URL = 'https://et19.ultipro.com/' as const;
 
 /**
  * Status values for different app tiles

@@ -68,12 +68,49 @@ export class TileManagementHelper {
     return Array.isArray(json?.result?.listOfItems) ? json.result.listOfItems : [];
   }
 
+  /**
+   * Create an app tile with the given title, ID, and connector ID
+   * @param tileTitle - The title of the tile
+   * @param tileId - The ID of the tile
+   * @param connectorId - The ID of the connector
+   */
   async createIntegrationAppTile(tileTitle: string, tileId: string, connectorId: string): Promise<void> {
     await test.step(`Create app tile: ${tileTitle}`, async () => {
       await this.appManagerApiClient.getTileManagementService().createIntegrationAppTile({
         tileInstanceName: tileTitle,
         tileId,
         connectorId,
+      });
+
+      // Wait for tile to be available in API before returning
+      if (this.page) {
+        await waitUntilTilePresentInApi(this.page, tileTitle);
+      }
+    });
+  }
+
+  /**
+   * Create an app tile with the given title, ID, connector ID, and configuration parameters
+   * @param tileTitle - The title of the tile
+   * @param tileId - The ID of the tile
+   * @param connectorId - The ID of the connector
+   * @param config - Configuration object with scheduleUrl for UKG WFM, timePeriod for ServiceNow, instanceUrl for UKG Pro, or boardId for Monday.com
+   */
+  async createIntegrationAppTileWithSettings(
+    tileTitle: string,
+    tileId: string,
+    connectorId: string,
+    config: { scheduleUrl?: string; timePeriod?: string; instanceUrl?: string; boardId?: string }
+  ): Promise<void> {
+    await test.step(`Create app tile with configured settings: ${tileTitle}`, async () => {
+      await this.appManagerApiClient.getTileManagementService().createIntegrationAppTileWithSettings({
+        tileInstanceName: tileTitle,
+        tileId,
+        connectorId,
+        scheduleUrl: config.scheduleUrl,
+        timePeriod: config.timePeriod,
+        instanceUrl: config.instanceUrl,
+        boardId: config.boardId,
       });
 
       // Wait for tile to be available in API before returning

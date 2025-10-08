@@ -8,6 +8,7 @@ import { PageCreationPage } from '@content/pages/pageCreationPage';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
+import { ListFeedComponent } from '@/src/modules/content/components/listFeedComponent';
 import { SiteDashboardComponent } from '@/src/modules/content/components/siteDashboardComponent';
 
 export interface ISiteDashboardActions {
@@ -25,9 +26,11 @@ export interface ISiteDashboardAssertions {
   verifyDashboardUrl: (siteId: string) => Promise<void>;
   verifySiteCreatedSuccessfully: (siteName: string) => Promise<void>;
   verifyCategoryCreatedSuccessfully: (categoryName: string) => Promise<void>;
+  verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BasePage implements ISiteDashboardActions, ISiteDashboardAssertions {
+  private listFeedComponent: ListFeedComponent;
   readonly addContentButton = this.page.locator("button[title='Add content']");
   readonly manageSiteButton = this.page.locator("button[title='Manage site'], a[href*='/manage']");
   readonly siteNameHeading = (siteName: string) => this.page.locator('h1').filter({ hasText: siteName });
@@ -42,10 +45,13 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
   readonly siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
   readonly feedSection = this.page.locator('div[class*="Feed-module"]');
   readonly feedLink = this.page.locator('a:has-text("eed")');
+  readonly feedLinkWithDescription = (description: string) => this.page.locator('p').filter({ hasText: description });
+  readonly sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
     this.siteDashboardComponent = new SiteDashboardComponent(page);
+    this.listFeedComponent = new ListFeedComponent(page);
     this.verfiyFeedSection = this.verfiyFeedSection.bind(this);
     this.addContentModal = new AddContentModalComponent(page);
   }
@@ -213,5 +219,9 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
     await test.step('Click on feed link', async () => {
       await this.clickOnElement(this.feedLink);
     });
+  }
+
+  async verifyCampaignLinkDisplayed(linkText: string, description: string): Promise<void> {
+    return await this.listFeedComponent.verifyCampaignLinkDisplayed(linkText, description);
   }
 }

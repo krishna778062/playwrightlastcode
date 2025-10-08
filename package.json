@@ -25,7 +25,7 @@
     "test:content:smoke": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts --grep=@smoke",
     "test:content-abac": "cross-env MODULE_NAME=content-abac npx playwright test --config=src/modules/content-abac/playwright.content-abac.config.ts",
     "test:reward": "cross-env TEST_ENV=test MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts",
-    "test:reward:test": "cross-env MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts",
+    "test:reward:test": "cross-env TEST_ENV=test MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts",
     "test:reward:qa": "cross-env MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts",
     "test:module": "./scripts/test-module.sh",
     "test:interactive": "ts-node scripts/interactive-test.ts",
@@ -36,12 +36,11 @@
     "generate-report:custom": "node convert-report.js",
     "serve-report": "npm run generate-report && concurrently \"npm run start-report-server\" \"sleep 1 && OPEN_REPORT=true node convert-report.js\"",
     "serve-report:custom": "npm run generate-report:custom && concurrently \"npm run start-report-server\" \"sleep 1 && OPEN_REPORT=true npm run generate-report:custom\"",
-    "test:de:dev": "MODULE_NAME=data-engineering TEST_ENV=dev npx playwright test src/modules/data-engineering/tests/ui-tests/analytics.spec.ts --config=src/modules/data-engineering/playwright.data-engineering.config.ts --project=data-engineering-chromium",
-    "test:de": "MODULE_NAME=data-engineering npx playwright test src/modules/data-engineering/tests/ui-tests/analytics.spec.ts --config=src/modules/data-engineering/playwright.data-engineering.config.ts --project=data-engineering-chromium",
+    "test:de": "cross-env MODULE_NAME=data-engineering npx playwright test --config=src/modules/data-engineering/playwright.data-engineering.config.ts --project=data-engineering-chromium",
     "report:postgres": "node reporting/enhanced-pg-reporter.mjs",
-    "test:integrations": "playwright test --config=src/modules/integrations/playwright.integrations.config.ts",
-    "test:integrations:p0": "playwright test --config=src/modules/integrations/playwright.integrations.config.ts --grep=@P0",
-    "test:integrations:smoke": "playwright test --config=src/modules/integrations/playwright.integrations.config.ts --grep=@smoke"
+    "test:integrations": "MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations.config.ts",
+    "test:integrations:p0": "MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations.config.ts --grep=@P0",
+    "test:integrations:smoke": "MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations.config.ts --grep=@smoke"
   },
   "keywords": [],
   "author": "",
@@ -87,6 +86,7 @@
     "jsonwebtoken": "^9.0.2",
     "nanoid": "^5.1.5",
     "pg": "^8.16.3",
+    "playwright": "^1.55.1",
     "snowflake-sdk": "^2.1.3"
   },
   "lint-staged": {

@@ -16,6 +16,15 @@ export class MessageCardComponent extends MessageBaseComponent {
   readonly replyThreadComponentContainer: Locator;
   readonly deleteMessageConfirmationPrompt: Locator;
   readonly deleteButtonOnDeleteMessageConfirmationPrompt: Locator;
+  readonly editMessageButtonFromMessageActionsMenu: Locator;
+  readonly updateMessageButtonFromMessageActionsMenu: Locator;
+  readonly cancelMessageButtonFromMessageEditBox: Locator;
+  readonly pinMessageButtonFromMessageActionsMenu: Locator;
+  readonly pinnedToastMessage: Locator;
+  readonly unPinMessageButtonFromMessageActionsMenu: Locator;
+  readonly unPinMessageConfirmationPrompt: Locator;
+  readonly unPinnedToastMessage: Locator;
+  readonly getPinnedMessage: (message: string) => Locator;
 
   constructor(page: Page, focusedMessageContainer: Locator) {
     super(page, focusedMessageContainer);
@@ -36,6 +45,16 @@ export class MessageCardComponent extends MessageBaseComponent {
       .filter({ hasText: 'This action cannot be undone' });
     this.deleteButtonOnDeleteMessageConfirmationPrompt =
       this.deleteMessageConfirmationPrompt.getByTestId('delete-message-button');
+    this.editMessageButtonFromMessageActionsMenu = this.page.getByTestId('editMessageButton');
+    this.updateMessageButtonFromMessageActionsMenu = this.page.getByTestId('editUpdateButton');
+    this.cancelMessageButtonFromMessageEditBox = this.page.getByTestId('editCancelButton');
+    this.pinMessageButtonFromMessageActionsMenu = this.page.getByTestId('pinMessageButton');
+    this.pinnedToastMessage = this.page.locator("(//div[@role='alert']//p[text()='Message pinned'])[1]");
+    this.unPinMessageButtonFromMessageActionsMenu = this.page.getByTestId('unpinMessageButton');
+    this.unPinMessageConfirmationPrompt = this.page.getByTestId('unpin-message-button');
+    this.unPinnedToastMessage = this.page.locator("(//div[@role='alert']//p[text()='Message un-pinned'])[1]");
+    this.getPinnedMessage = (message: string) =>
+      this.page.locator("//div[@class='Base_pinnedMessage__8q6MM']").locator(`//p[text()='${message}']`);
   }
 
   /**
@@ -53,11 +72,109 @@ export class MessageCardComponent extends MessageBaseComponent {
   async deleteMessage(): Promise<void> {
     await test.step(`Deleting the message`, async () => {
       await this.openMessageActionsMenuFromThreeDots();
-      await this.clickOnElement(this.deleteMessageButtonFromMessageActionsMenu);
+      await this.clickByInjectingJavaScript(this.deleteMessageButtonFromMessageActionsMenu);
       await this.verifier.verifyTheElementIsVisible(this.deleteMessageConfirmationPrompt, {
         assertionMessage: 'expecting delete message confirmation prompt to be visible',
       });
       await this.clickOnElement(this.deleteButtonOnDeleteMessageConfirmationPrompt);
+    });
+  }
+
+  async unPinMessageFromPinnedMessage(): Promise<void> {
+    await test.step(`Deleting the message`, async () => {
+      await this.openMessageActionsMenuFromThreeDots();
+      await this.clickOnElement(this.unPinMessageButtonFromMessageActionsMenu);
+      await this.clickOnElement(this.unPinMessageConfirmationPrompt);
+      await this.verifier.verifyTheElementIsVisible(this.unPinnedToastMessage, {
+        assertionMessage: 'expecting unpinned toast message to be visible',
+      });
+    });
+  }
+
+  async verifyMessageActionsNotVisibleToUser(): Promise<void> {
+    await test.step(`Verifying message actions are not visible`, async () => {
+      await this.messageContainer.hover();
+      await this.verifier.verifyTheElementIsNotVisible(this.messageActionsContainer, {
+        assertionMessage: 'expecting message actions container to be not visible',
+      });
+      await this.verifier.verifyTheElementIsNotVisible(this.emojiPickerButton, {
+        assertionMessage: 'expecting emoji picker button to be not visible',
+      });
+      await this.verifier.verifyTheElementIsNotVisible(this.threeDotsButtonToOpenMessageActionsMenu, {
+        assertionMessage: 'expecting three dots button to be not visible',
+      });
+    });
+  }
+
+  async verifyEditMessageOptionNotVisibleToUser(): Promise<void> {
+    await test.step(`Verifying edit message option is not visible`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.messageContainer, {
+        assertionMessage: 'expecting message container to be visible',
+      });
+      await this.messageContainer.hover();
+      await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu);
+      await this.verifier.verifyTheElementIsNotVisible(this.editMessageButtonFromMessageActionsMenu, {
+        assertionMessage: 'expecting edit message button to be not visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.replyInThreadButton);
+    });
+  }
+
+  async verifyMessageActionsIsVisibleToUser(): Promise<void> {
+    await test.step(`Verifying message actions are not visible`, async () => {
+      await this.messageContainer.hover();
+      await this.verifier.verifyTheElementIsVisible(this.messageActionsContainer, {
+        assertionMessage: 'expecting message actions container to be not visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.emojiPickerButton, {
+        assertionMessage: 'expecting emoji picker button to be not visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.threeDotsButtonToOpenMessageActionsMenu, {
+        assertionMessage: 'expecting three dots button to be not visible',
+      });
+    });
+  }
+
+  async editAndUpdateMessage(message: string, editedMessage: string): Promise<void> {
+    await test.step(`Editing and updating the message`, async () => {
+      await this.messageContainer.hover();
+      await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu);
+      await this.clickOnElement(this.editMessageButtonFromMessageActionsMenu);
+      const messageEditor = this.page.getByLabel(message).getByTestId('tiptap-content');
+      await messageEditor.click();
+      // Clear and fill with new content
+      const contentEditor = this.page.getByLabel(message).getByLabel('You are in the content editor');
+      await contentEditor.fill(editedMessage);
+      await this.clickOnElement(this.updateMessageButtonFromMessageActionsMenu);
+    });
+  }
+
+  async editAndCancelMessage(): Promise<void> {
+    await test.step(`Editing and updating the message`, async () => {
+      await this.messageContainer.hover();
+      await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu);
+      await this.clickOnElement(this.editMessageButtonFromMessageActionsMenu);
+      await this.verifier.verifyTheElementIsVisible(this.cancelMessageButtonFromMessageEditBox, {
+        assertionMessage: 'expecting cancel message button to be visible',
+      });
+      await this.clickOnElement(this.cancelMessageButtonFromMessageEditBox);
+    });
+  }
+
+  async pinSentMessage(): Promise<void> {
+    await test.step(`Pinning the sent message`, async () => {
+      await this.openMessageActionsMenuFrom3Dots();
+      await this.clickOnElement(this.pinMessageButtonFromMessageActionsMenu);
+      await this.verifier.verifyTheElementIsVisible(this.pinnedToastMessage, {
+        assertionMessage: 'expecting pinned toast message to be visible',
+      });
+    });
+  }
+  async verifyPinnedMessageIsVisible(message: string): Promise<void> {
+    await test.step(`Verifying the pinned message`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getPinnedMessage(message), {
+        assertionMessage: 'expecting pinned message to be visible',
+      });
     });
   }
 
