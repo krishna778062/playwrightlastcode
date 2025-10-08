@@ -22,6 +22,12 @@ export enum SocialCampaignNetwork {
   TWITTER = 'tw',
 }
 
+export enum SocialCampaignNetworkUI {
+  FACEBOOK = 'Facebook',
+  LINKEDIN = 'LinkedIn',
+  TWITTER = 'X',
+}
+
 export enum SocialCampaignFilter {
   LATEST = 'latest',
   EXPIRED = 'expired',
@@ -33,7 +39,9 @@ export interface SocialCampaignOptions {
   url: string;
   linkText: string;
   recipient?: SocialCampaignRecipient;
-  networks?: SocialCampaignNetwork[];
+  networks?: SocialCampaignNetworkUI[];
+  audienceId?: string;
+  audienceDetails?: { name: string; description: string; audienceId: string; audienceCount: string | number };
 }
 
 export interface SocialCampaign {

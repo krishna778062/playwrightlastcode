@@ -103,16 +103,16 @@ export class OktaGroupPage extends BasePage {
     return this.oktaGroupComponent.verifyAudienceCreatedByIsVisible(createdBy);
   }
 
-  async clickOnAudiencesMenuItem(): Promise<void> {
-    return this.oktaGroupComponent.clickOnAudiencesMenuItem();
-  }
-
   async verifyAudienceNameIsNotVisible(audienceName: string): Promise<void> {
     return this.oktaGroupComponent.verifyAudienceNameIsNotVisible(audienceName);
   }
 
   async navigateBack(): Promise<void> {
     return this.oktaGroupComponent.navigateBack();
+  }
+
+  async navigateToAudiencesPage(): Promise<void> {
+    return this.oktaGroupComponent.navigateToAudiencesPage();
   }
 
   async verifyGroupType(): Promise<void> {

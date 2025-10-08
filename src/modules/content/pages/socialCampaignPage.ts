@@ -4,7 +4,7 @@ import { ListOfSocialCampaignComponent } from '@content/components/listOfSocialC
 import { ShareSocialCampaignComponent } from '@content/components/shareSocialCampaignComponent';
 import { AddCampaignPage } from '@content/pages/addCampaignPage';
 import { BasePage } from '@core/pages/basePage';
-import { SocialCampaignOptions } from '@core/types/social-campaign.types';
+import { SocialCampaignNetworkUI, SocialCampaignOptions } from '@core/types/social-campaign.types';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
@@ -13,6 +13,7 @@ export interface ISocialCampaignPageActions {
   clickPopularLink: () => Promise<void>;
   AddCampaignAndCreate: (options: SocialCampaignOptions) => Promise<string>;
   clickAddCampaignButton: () => Promise<void>;
+  enterAudienceName: (audienceName: string) => Promise<void>;
   clickCampaignOptions: () => Promise<void>;
   clickExpireCampaignButton: () => Promise<void>;
   confirmExpireCampaign: () => Promise<void>;
@@ -28,6 +29,8 @@ export interface ISocialCampaignPageActions {
   enterCampaignUrl: (url: string, linkText?: string) => Promise<void>;
   uncheckNetwork: (networkName: string) => Promise<void>;
   clickCreateCampaignButton: () => Promise<void>;
+  selectNetworks: (networks: SocialCampaignNetworkUI[]) => Promise<void>;
+  selectMemberAsAudience: () => Promise<void>;
 }
 
 export interface ISocialCampaignPageAssertions {
@@ -37,6 +40,20 @@ export interface ISocialCampaignPageAssertions {
   verifyCampaignInExpired: (linkText: string) => Promise<void>;
   verifyToastMessage: (message: string) => Promise<void>;
   verifyErrorMessagePresence: (errorMessage: string) => Promise<void>;
+  verifyAudienceNameAndDescription: (
+    audienceCount: string | number,
+    description: string,
+    name: string
+  ) => Promise<void>;
+  verifyAudienceNameAndNoDescription: (
+    audienceCount: string | number,
+    description: string,
+    name: string
+  ) => Promise<void>;
+  verifyAddCampaignButtonIsNotVisible: () => Promise<void>;
+  verifyExpireTabNotVisible: () => Promise<void>;
+  verifyExpireCampaignButtonIsNotVisible: () => Promise<void>;
+  verifyDeleteCampaignButtonIsNotVisible: () => Promise<void>;
 }
 
 export class SocialCampaignPage extends BasePage implements ISocialCampaignPageActions, ISocialCampaignPageAssertions {
@@ -80,6 +97,10 @@ export class SocialCampaignPage extends BasePage implements ISocialCampaignPageA
     await test.step('Click Add campaign button', async () => {
       await this.clickOnElement(this.addCampaignButton);
     });
+  }
+
+  async enterAudienceName(audienceName: string): Promise<void> {
+    return await this.addCampaignPage.enterAudienceName(audienceName);
   }
 
   async removeAllExistingCampaigns(): Promise<void> {
@@ -192,5 +213,57 @@ export class SocialCampaignPage extends BasePage implements ISocialCampaignPageA
 
   async verifyErrorMessagePresence(errorMessage: string): Promise<void> {
     return await this.addCampaignPage.verifyErrorMessagePresence(errorMessage);
+  }
+
+  async selectNetworks(networks: SocialCampaignNetworkUI[]): Promise<void> {
+    return await this.addCampaignPage.selectNetworks(networks);
+  }
+
+  async verifyAudienceNameDisplayed(audienceName: string): Promise<void> {
+    return await this.addCampaignPage.verifyAudienceNameDisplayed(audienceName);
+  }
+
+  async verifyAudienceNameAndDescription(
+    audienceCount: string | number,
+    description: string,
+    name: string
+  ): Promise<void> {
+    return await this.addCampaignPage.verifyAudienceNameAndDescription(audienceCount, description, name);
+  }
+
+  async verifyAudienceNameAndNoDescription(
+    audienceCount: string | number,
+    description: string,
+    name: string
+  ): Promise<void> {
+    return await this.addCampaignPage.verifyAudienceNameAndNoDescription(audienceCount, description, name);
+  }
+
+  async selectMemberAsAudience(): Promise<void> {
+    return await this.addCampaignPage.actions.selectMemberAsAudience();
+  }
+
+  async verifyAddCampaignButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify Add Campaign button is not visible to end user', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.addCampaignButton, {
+        assertionMessage: 'Add Campaign button should not be visible to end user',
+      });
+    });
+  }
+
+  async verifyExpireTabNotVisible(): Promise<void> {
+    await test.step('Verify Expired tab is not visible to end user', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.expiredLink, {
+        assertionMessage: 'Expired tab should not be visible to end user',
+      });
+    });
+  }
+
+  async verifyExpireCampaignButtonIsNotVisible(): Promise<void> {
+    return await this.listOfSocialCampaignComponent.verifyExpireCampaignButtonIsNotVisible();
+  }
+
+  async verifyDeleteCampaignButtonIsNotVisible(): Promise<void> {
+    return await this.listOfSocialCampaignComponent.verifyDeleteCampaignButtonIsNotVisible();
   }
 }
