@@ -52,6 +52,8 @@ export interface IFeedActions {
   addReplyToPost: (replyText: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
   clickOnDeleteReplyButton: () => Promise<void>;
+  selectPostsToMe: () => Promise<void>;
+  selectPostDate: () => Promise<void>;
   clickShareThoughtsButton: () => Promise<void>;
   enterQuestionTitle: (title: string) => Promise<void>;
   clickAskQuestionButton: () => Promise<string>;
@@ -72,6 +74,8 @@ export interface IFeedAssertions {
   verifyVersionImageIsDisplayed: (fileId: string) => Promise<void>;
   verifyVersionNumber: (expectedVersionNumber: string) => Promise<void>;
   verifyToastMessage: (message: string) => Promise<void>;
+  verifyPostsIFollow: () => Promise<void>;
+  verifySortByRecentActivity: () => Promise<void>;
   verifyAskQuestionButtonIsNotDisabled: () => Promise<void>;
   verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
   verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
@@ -313,6 +317,21 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifyReplyIsNotVisible(replyText);
   }
 
+  async verifyPostsIFollow(): Promise<void> {
+    await this.listFeedComponent.verifyPostsIFollow();
+  }
+
+  async verifySortByRecentActivity(): Promise<void> {
+    await this.listFeedComponent.verifySortByRecentActivity();
+  }
+
+  async selectPostsToMe(): Promise<void> {
+    await this.listFeedComponent.selectPostsToMe();
+  }
+
+  async selectPostDate(): Promise<void> {
+    await this.listFeedComponent.selectPostDate();
+  }
   /**
    * Clicks the share thoughts button to open post editor
    */
