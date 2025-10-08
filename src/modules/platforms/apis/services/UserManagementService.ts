@@ -388,17 +388,12 @@ export class UserManagementService implements IUserManagementOperations {
             verificationQuestionField: options?.verificationQuestionField || '',
             verificationQuestionValue: options?.verificationQuestionValue || '',
           });
-          const profileQuestionsVerifyResponseJson =
-            await this.httpClient.parseResponse<any>(profileQuestionsVerifyResponse);
-          console.log('profileQuestionsVerifyResponse: ' + JSON.stringify(profileQuestionsVerifyResponseJson, null, 2));
           expect(
             profileQuestionsVerifyResponse.status(),
             `Verification questions for user with login identifier ${loginIdentifier} has been set`
           ).toBe(200);
         }
         const setPasswordResponse = await this.setPasswordDuringRegistration(token);
-        const setPasswordResponseJson = await this.httpClient.parseResponse<any>(setPasswordResponse);
-        console.log('setPasswordResponse: ' + JSON.stringify(setPasswordResponseJson, null, 2));
         expect(setPasswordResponse.status(), `Password has been set for the user`).toBe(201);
         token = await this.getToken(setPasswordResponse);
         const csrfid = await this.getCsrfid(setPasswordResponse);
@@ -407,8 +402,6 @@ export class UserManagementService implements IUserManagementOperations {
           `token=${token}; csrfid=${csrfid}`,
           csrfid
         );
-        const securityQuestionsResponseJson = await this.httpClient.parseResponse<any>(securityQuestionsResponse);
-        console.log('securityQuestionsResponse: ' + JSON.stringify(securityQuestionsResponseJson, null, 2));
         expect(securityQuestionsResponse.status(), `Security questions have been set for the user`).toBe(201);
       }
     });

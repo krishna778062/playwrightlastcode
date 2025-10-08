@@ -207,7 +207,7 @@ for (const testData of feedTestData) {
         {
           tag: [TestPriority.P1, TestGroupType.REGRESSION, `@${testData.storyId}`],
         },
-        async ({ appManagerHomePage, feedManagementHelper }) => {
+        async ({}) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.storyId,

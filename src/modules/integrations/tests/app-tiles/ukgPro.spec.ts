@@ -145,7 +145,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, siteManagementHelper, appManagerApiContext }) => {
+      async ({ siteDashboard, siteManagementHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: ['INT-21087'],
           storyId: 'INT-20795',
@@ -178,7 +178,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, siteManagementHelper, appManagerApiContext }) => {
+      async ({ siteDashboard, siteManagementHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-21088',
           storyId: 'INT-20795',

@@ -88,7 +88,6 @@ test.describe(
         async ({
           standardUserHomePage,
           appManagerHomePage,
-          siteManagementHelper,
           appManagerApiContext,
           standardUserUINavigationHelper,
           appManagerUINavigationHelper,
@@ -120,7 +119,7 @@ test.describe(
           );
 
           // Create and submit the page
-          const { pageId, siteId, peopleId, peopleName } =
+          const { pageId, siteId, peopleName } =
             await pageCreationPage.actions.createAndSubmitPage(pageCreationOptions);
 
           // Store IDs for cleanup

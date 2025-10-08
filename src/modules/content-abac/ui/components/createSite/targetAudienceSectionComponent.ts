@@ -260,6 +260,7 @@ export class TargetAudienceSectionComponent extends BaseComponent {
           return true;
         }
       } catch (error) {
+        console.log('Error finding audience via category expansion:', error);
         continue;
       }
     }
@@ -307,10 +308,12 @@ export class TargetAudienceSectionComponent extends BaseComponent {
               }
             }
           } catch (error) {
+            console.log('Error finding audience via category expansion:', error);
             continue;
           }
         }
       } catch (error) {
+        console.log('Error finding audience via category expansion:', error);
         continue;
       }
     }

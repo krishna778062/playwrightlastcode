@@ -543,11 +543,7 @@ export class AccessControlGroupsPage extends BasePage {
         }
       }
     }
-    console.log('<<<<<<<<<<<<<<allTextContents>>>>>>>>>>>\n');
-    console.log(allTextContents);
     sortedTextContents = await this.sortOntheBasisOfSortOrder(allTextContents, sortingOrder);
-    console.log('<<<<<<<<<<<<<<sortedTextContents>>>>>>>>>>>\n');
-    console.log(sortedTextContents);
     expect(sortedTextContents).toEqual(allTextContents);
   }
 

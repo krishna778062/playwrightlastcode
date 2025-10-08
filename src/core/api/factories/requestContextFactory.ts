@@ -11,7 +11,6 @@ export class RequestContextFactory {
       password: string;
     }
   ): Promise<APIRequestContext> {
-    console.log(tenantUrl);
     return AuthHelper.getLoggedInApiClient(tenantUrl, creds);
   }
 

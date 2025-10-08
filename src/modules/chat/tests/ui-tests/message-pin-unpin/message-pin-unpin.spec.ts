@@ -1,5 +1,3 @@
-import { expect } from '@playwright/test';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
@@ -23,7 +21,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ multiUserChatTestHelper, chatPages, user1Page }) => {
+      async ({ multiUserChatTestHelper, chatPages }) => {
         tagTest(test.info(), {
           description: 'Verify that user can pin their sent message in direct chat and view pinned messages',
           zephyrTestId: 'CHAT-2900',
@@ -75,7 +73,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SMOKE],
       },
-      async ({ multiUserChatTestHelper, chatPages, user2Page }) => {
+      async ({ multiUserChatTestHelper, chatPages }) => {
         tagTest(test.info(), {
           description: 'Verify that users can pin messages sent by other users in direct chat conversation',
           zephyrTestId: 'CHAT-2901',
@@ -140,7 +138,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ multiUserChatTestHelper, chatPages, user1Page }) => {
+      async ({ multiUserChatTestHelper, chatPages }) => {
         tagTest(test.info(), {
           description: 'Verify that user can pin their sent message in group chat and both users can see it',
           zephyrTestId: 'CHAT-3000',

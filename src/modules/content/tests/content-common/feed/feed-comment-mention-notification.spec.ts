@@ -19,7 +19,6 @@ test.describe(
   () => {
     let createdPostText: string;
     let createdPostId: string;
-    let commentText: string;
     let siteManagerInfo: { userId: string; fullName: string };
     let endUserInfo: { userId: string; fullName: string };
 
@@ -54,13 +53,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-30438'],
       },
-      async ({
-        appManagerApiContext,
-        standardUserApiContext,
-        siteManagerHomePage,
-        feedManagementHelper,
-        siteManagerUINavigationHelper,
-      }) => {
+      async ({ standardUserApiContext, siteManagerHomePage, feedManagementHelper, siteManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           description:
             'Verify that User gets notified when it is getting mentioned in the reply of the comment of any post',
@@ -75,10 +68,6 @@ test.describe(
           withAttachment: false,
           waitForSearchIndex: false,
         });
-        const identityManagementHelper = new IdentityManagementHelper(
-          appManagerApiContext,
-          getContentConfigFromCache().tenant.apiBaseUrl
-        );
         createdPostText = feedTestData.text;
 
         // Create feed using API (more reliable than UI)

@@ -46,7 +46,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.EVENT_CREATION],
       },
-      async ({ appManagerHomePage, appManagersPage, siteManagementHelper, appManagerUINavigationHelper }) => {
+      async ({ appManagerHomePage, appManagersPage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           description: 'Event Content Add attach file with all the Mandatory fields',
           zephyrTestId: 'CONT-10824',

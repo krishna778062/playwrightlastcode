@@ -86,14 +86,11 @@ export class IdentityManagementHelper {
    */
   async getUserInfoByEmail(email: string): Promise<{ userId: string; fullName: string; user: Person }> {
     const peopleListResponse = await this.identityService.getListOfPeople(email);
-    console.log(`People list response: ${JSON.stringify(peopleListResponse)}`);
     const user = peopleListResponse.result.listOfItems.find(item => item.email === email);
-    console.log(`User: ${JSON.stringify(user)}`);
     if (!user) {
       throw new Error(`Failed to get user info for email: ${email}`);
     }
     const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-    console.log('fullName', fullName);
     return {
       userId: user.user_id,
       fullName,

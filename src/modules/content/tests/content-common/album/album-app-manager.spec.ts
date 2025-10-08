@@ -56,7 +56,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper, appManagersPage, siteManagementHelper }) => {
+      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           description:
             'Verify admin is able to create and publish a new album with all fields populated from home page',

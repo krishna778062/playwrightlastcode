@@ -116,14 +116,12 @@ export class SiteManagementService implements ISiteManagementOperations {
         isContentSubmissionsEnabled: payload.isContentSubmissionsEnabled,
       };
 
-      console.log('site management service API payload:', JSON.stringify(apiPayload, null, 2));
       const response = await this.httpClient.post(API_ENDPOINTS.site.url, {
         data: {
           data: apiPayload,
         },
       });
       const siteJson = await response.json();
-      console.log('Full JSON Response:', JSON.stringify(siteJson, null, 2));
       if (siteJson.status !== 'success' || !siteJson.result?.siteId) {
         throw new Error(`Site creation failed. Response: ${JSON.stringify(siteJson)}`);
       }
@@ -192,7 +190,6 @@ export class SiteManagementService implements ISiteManagementOperations {
           },
         });
         const json = await response.json();
-        console.log('JSON response:', JSON.stringify(json, null, 2));
         file = json.result.listOfItems.find((item: any) => item.title === fileName);
         expect(file).toBeDefined();
       }).toPass({
@@ -232,7 +229,6 @@ export class SiteManagementService implements ISiteManagementOperations {
           },
         });
         const json = await response.json();
-        console.log('Full search API response:', JSON.stringify(json, null, 2));
         file = json.result.listOfItems.find((item: any) => item.title === fileName);
         expect(file).toBeDefined();
       }).toPass({
@@ -320,14 +316,11 @@ export class SiteManagementService implements ISiteManagementOperations {
         payload.permission = permission;
       }
 
-      console.log('Site membership payload:', JSON.stringify(payload, null, 2));
-
       const response = await this.httpClient.post(API_ENDPOINTS.site.manageMembers(siteId), {
         data: payload,
       });
 
       const json = await response.json();
-      console.log('Site membership response:', JSON.stringify(json, null, 2));
 
       if (!response.ok()) {
         throw new Error(
@@ -354,7 +347,6 @@ export class SiteManagementService implements ISiteManagementOperations {
       });
 
       const json = await response.json();
-      console.log(`Site access update response:`, JSON.stringify(json, null, 2));
 
       if (!response.ok()) {
         throw new Error(
@@ -427,7 +419,6 @@ export class SiteManagementService implements ISiteManagementOperations {
       });
 
       const responseBody = await response.json();
-      console.log('Site details response:', JSON.stringify(responseBody, null, 2));
 
       if (!response.ok()) {
         throw new Error(`Failed to get site details for ${siteId}. Status: ${response.status()}`);

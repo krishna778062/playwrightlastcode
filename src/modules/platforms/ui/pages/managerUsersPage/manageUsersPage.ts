@@ -93,7 +93,7 @@ export class ManageUsersPage extends BasePage {
               await this.clickOnElement(this.manageUsersMenuOptions.filter({ hasText: optionName }));
               await expect(this.firstNameInputBox).toBeVisible();
             } catch (e) {
-              console.log(`Couldn't click on ${optionName} button`);
+              console.log(`Couldn't click on ${optionName} button due to ${e}`);
               await this.clickOnElement(this.manageUsersMenuOptions.filter({ hasText: optionName }), {
                 timeout: options?.timeout ?? 10_000,
                 force: true,
@@ -106,7 +106,7 @@ export class ManageUsersPage extends BasePage {
               await this.clickOnElement(this.manageUsersMenuOptions.filter({ hasText: optionName }));
               await expect(this.primaryRoleInputBox).toBeVisible();
             } catch (e) {
-              console.log(`Couldn't click on ${optionName} button`);
+              console.log(`Couldn't click on ${optionName} button due to ${e}`);
               await this.clickOnElement(this.manageUsersMenuOptions.filter({ hasText: optionName }), {
                 timeout: options?.timeout ?? 10_000,
                 force: true,

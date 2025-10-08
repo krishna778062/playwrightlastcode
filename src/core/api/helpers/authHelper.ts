@@ -19,7 +19,6 @@ export class AuthHelper {
 
       const headers = await this.extractAuthHeaders(tmpContext);
       const storageState = await tmpContext.storageState();
-      console.log('storageState', storageState);
       return await this.createAuthenticatedAPIContext(headers, storageState);
     } finally {
       await tmpContext.dispose();
@@ -43,7 +42,6 @@ export class AuthHelper {
 
       const headers = await this.extractAuthHeaders(tmpContext);
       const storageState = await tmpContext.storageState();
-      console.log('storageState', storageState);
       return await this.createAuthenticatedBrowserContext(browser, headers, storageState);
     } finally {
       await tmpContext.dispose();
@@ -74,8 +72,6 @@ export class AuthHelper {
       data: { password },
       headers: { 'x-smtip-tsid': token },
     });
-
-    console.log('response headers', response.headers());
 
     if (!response.ok()) {
       throw new Error('Login failed');
