@@ -95,7 +95,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   test(
     '[RC-3327] Validate if "gift points" toggle button is disabled on recognition modal when Allowances are refreshing',
     {
-      tag: [REWARD_SUITE_TAGS.REWARDS_DB_CASES, TestGroupType.REGRESSION, TestPriority.P1, TestGroupType.SMOKE],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, TestPriority.P2],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -119,7 +119,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   test(
     "[RC-3328] Verify if user's point(points to give) balance is 0 when allowances are refreshing",
     {
-      tag: [REWARD_SUITE_TAGS.REWARDS_DB_CASES, TestGroupType.REGRESSION, TestPriority.P1, TestGroupType.SMOKE],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, TestPriority.P2],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -149,7 +149,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   test(
     '[RC-3417] Verify the Gift points toggle button is disabled when Allowances are refreshing.',
     {
-      tag: [REWARD_SUITE_TAGS.REWARDS_DB_CASES, TestGroupType.REGRESSION, TestPriority.P1, TestGroupType.SMOKE],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, TestPriority.P2],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -183,7 +183,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   test(
     '[RC-3326] Validate if user is able to Delete recognition with points rollback when Allowances are refreshing',
     {
-      tag: [REWARD_SUITE_TAGS.REWARDS_DB_CASES, TestGroupType.REGRESSION, TestPriority.P1, TestGroupType.SMOKE],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, TestPriority.P2],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {

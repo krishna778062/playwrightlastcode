@@ -13,16 +13,16 @@ import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constant
 import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
 import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recognition-hub-page';
 
-test.describe('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
+test.describe.only('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test.beforeEach(async ({ appManagerPage }) => {
     const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
     await manageRewardsOverviewPage.enableTheRewardsAndPeerGiftingIfDisabled();
   });
 
-  test(
+  test.only(
     '[RC-3004] Validate Rewards Activity table if there is no activity',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -139,7 +139,12 @@ test.describe('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     '[RC-3264] Validate if Total count for entries in activity table matching number of entries, on reward overview page.',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [
+        REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE,
+        REWARD_FEATURE_TAGS.POINTS_GIVEN_ACTIVITY,
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+      ],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -799,7 +804,7 @@ test.describe('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     '[RC-6080] Validate Message, and URL column value in Points Given CSV when points are removed or the recognition post is deleted',
     {
-      tag: [REWARD_SUITE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P1],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P2],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -925,7 +930,7 @@ test.describe('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     '[RC-6082] Validate the Message and URL column value in the points given CSV for the Recognition with the points',
     {
-      tag: [REWARD_SUITE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P1],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P2],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -1022,7 +1027,7 @@ test.describe('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test.skip(
     '[RC-6099] Validate the Message and URL column value in the points given CSV for the Imported Data',
     {
-      tag: [REWARD_SUITE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P1],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P2],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {

@@ -62,7 +62,13 @@ test.describe('Manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     '[RC-3329] Validate if allowances summary shows 0 points when allowances are refreshing.',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARD_OVERVIEW, TestGroupType.REGRESSION, TestPriority.P1],
+      tag: [
+        REWARD_FEATURE_TAGS.REWARD_OVERVIEW,
+        REWARD_FEATURE_TAGS.REWARDS_DB_CASES,
+        REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH,
+        TestGroupType.REGRESSION,
+        TestPriority.P2,
+      ],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {

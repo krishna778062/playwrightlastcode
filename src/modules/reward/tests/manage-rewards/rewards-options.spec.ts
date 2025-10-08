@@ -5,15 +5,15 @@ import { RewardsStore } from '@rewards/pages/reward-store/reward-store';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-import { REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
+import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
 import { RewardOptionsPage } from '@modules/reward/pages/manage-rewards/reward-options-page';
 
-test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () => {
+test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test(
     'A - Verify Reward options only visible to App managers',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION],
+      tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -34,7 +34,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
   test(
     'B - Verify Reward options only visible to recognition managers',
     {
-      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
     async ({ recoManagerPage }) => {
       tagTest(test.info(), {
@@ -55,7 +55,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
   test(
     'Verify Reward options not visible to user other than recognition managers',
     {
-      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
     async ({ standardUserPage }) => {
       tagTest(test.info(), {
@@ -74,7 +74,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
   test(
     'Validate search box on rewards option page',
     {
-      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
     async ({ recoManagerPage }) => {
       tagTest(test.info(), {
@@ -102,7 +102,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
   for (const giftCard of giftCards) {
     test(
       `Gift card should ${giftCard.visibility === 'Active' ? 'be visible' : 'not be visible'} when set to ${giftCard.visibility}`,
-      { tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE] },
+      { tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE] },
       async ({ recoManagerPage }) => {
         tagTest(test.info(), {
           description: `RC-5565, RC-5376 - Gift card should ${giftCard.visibility === 'Active' ? 'be visible' : 'not be visible'} when set to ${giftCard.visibility}`,
