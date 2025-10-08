@@ -761,7 +761,6 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
       options?.stepInfo ?? `Verifying edit message option are not visible for message ${message}`,
       async () => {
         await this.getConversationWindowComponent().verifySentEmojiMessageVisible(message);
-        // await messageItem.verifyEditMessageOptionNotVisibleToUser();
       }
     );
   }

@@ -8,7 +8,7 @@ import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
 
 test.describe('Verifying emoji message in the editor', { tag: [TestPriority.P2] }, () => {
-  test.only('Send message with first 4 emojis from emoji picker', async ({ appManagerHomePage }) => {
+  test('Send message with first 4 emojis from emoji picker', async ({ appManagerHomePage }) => {
     tagTest(test.info(), {
       description: 'User selects first 4 emojis from emoji picker and sends message',
       priority: TestPriority.P2,
