@@ -20,6 +20,10 @@ export class ListFeedComponent extends BaseComponent {
   readonly submitReplyButton: Locator;
   readonly replyEditor: Locator;
   readonly replyShowMoreButton: Locator;
+  readonly postsIFollow: Locator;
+  readonly sortByRecentActivity: Locator;
+  readonly postsToMe: Locator;
+  readonly postDate: Locator;
 
   // Dynamic locator functions
   /**
