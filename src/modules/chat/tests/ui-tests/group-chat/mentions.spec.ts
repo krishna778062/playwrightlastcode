@@ -6,7 +6,7 @@ import { ChatTestUser } from '@chat/types/chat-test.type';
 
 import { ChatAppPage } from '@/src/modules/chat/ui/pages/chatPage/chatPage';
 
-test.describe.only('Group Chat Mentions', { tag: [CHAT_SUITE_TAGS.GROUP_CHAT] }, () => {
+test.describe('Group Chat Mentions', { tag: [CHAT_SUITE_TAGS.GROUP_CHAT] }, () => {
   let user1: ChatTestUser;
   let user2: ChatTestUser;
   let user1ChatPage: ChatAppPage;
