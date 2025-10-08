@@ -3,7 +3,7 @@ import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
+import { REWARD_FEATURE_TAGS } from '@modules/reward/constants/testTags';
 import { RewardsStore } from '@modules/reward/pages/reward-store/reward-store';
 
 test.describe('Rewards Variable Gift Card Redemption', { tag: [REWARD_FEATURE_TAGS.REWARD_STORE] }, () => {

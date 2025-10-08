@@ -15,12 +15,7 @@ test.describe('Rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.RE
   test(
     '[RC-3267] Verify the resend reward status when order date is more than 90 days old',
     {
-      tag: [
-        REWARD_SUITE_TAGS.REGRESSION_TEST,
-        TestPriority.P0,
-        TestGroupType.SMOKE,
-        REWARD_FEATURE_TAGS.REWARD_ORDERS_RESEND,
-      ],
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, REWARD_FEATURE_TAGS.REWARD_ORDERS_RESEND],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -43,12 +38,7 @@ test.describe('Rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.RE
   test(
     '[RC-3245] Validate Resend reward dialogue on order history Resending',
     {
-      tag: [
-        REWARD_SUITE_TAGS.REGRESSION_TEST,
-        TestPriority.P0,
-        TestGroupType.SMOKE,
-        REWARD_FEATURE_TAGS.REWARD_ORDERS_RESEND,
-      ],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARD_ORDERS_RESEND],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -73,12 +63,7 @@ test.describe('Rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.RE
   test(
     '[RC-3242] Validate order history resending using secondary email address',
     {
-      tag: [
-        REWARD_SUITE_TAGS.REGRESSION_TEST,
-        TestPriority.P0,
-        TestGroupType.SMOKE,
-        REWARD_FEATURE_TAGS.REWARD_ORDERS_RESEND,
-      ],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARD_ORDERS_RESEND],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -104,12 +89,7 @@ test.describe('Rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.RE
   test(
     '[RC-3244] Validate(form validation) if both email address field contains same value on resend reward dialogue',
     {
-      tag: [
-        REWARD_SUITE_TAGS.REGRESSION_TEST,
-        TestPriority.P0,
-        TestGroupType.SMOKE,
-        REWARD_FEATURE_TAGS.REWARD_ORDERS_RESEND,
-      ],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARD_ORDERS_RESEND],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
