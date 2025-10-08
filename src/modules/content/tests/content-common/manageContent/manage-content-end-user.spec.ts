@@ -16,9 +16,9 @@ test.describe(
   () => {
     let manageFeaturePage: ManageFeaturesPage;
     let manageContentPage: ManageContentPage;
-    test.beforeEach(async ({ standardUserPage }) => {
-      manageFeaturePage = new ManageFeaturesPage(standardUserPage);
-      manageContentPage = new ManageContentPage(standardUserPage);
+    test.beforeEach(async ({ standardUserFixture }) => {
+      manageFeaturePage = new ManageFeaturesPage(standardUserFixture.page);
+      manageContentPage = new ManageContentPage(standardUserFixture.page);
     });
 
     test(
@@ -26,7 +26,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ standardUserHomePage, standardUserUINavigationHelper }) => {
+      async ({ standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'Login as End User who is Site Owner/Manager of any site',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
@@ -34,8 +34,8 @@ test.describe(
           storyId: 'CONT-25055',
         });
         const title = MANAGE_CONTENT_TEST_DATA.TITLE;
-        await standardUserHomePage.verifyThePageIsLoaded();
-        await standardUserUINavigationHelper.openManageFeatureSectionInSideBar();
+        await standardUserFixture.homePage.verifyThePageIsLoaded();
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnContentCard();
         await manageContentPage.actions.writeRandomTextInSearchBar(title);
         await manageContentPage.actions.clickSearchIcon();

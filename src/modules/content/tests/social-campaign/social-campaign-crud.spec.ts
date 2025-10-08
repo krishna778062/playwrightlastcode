@@ -26,16 +26,16 @@ test.describe(
     let campaignId: string;
     let feedPage: FeedPage;
 
-    test.beforeEach(async ({ socialCampaignHelper }) => {
+    test.beforeEach(async ({ socialCampaignManagerFixture }) => {
       // Reset cleanup flag for each test
       //clean up all the campaigns
-      await socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
+      await socialCampaignManagerFixture.socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
       manualCleanupNeeded = false;
     });
 
-    test.afterEach(async ({ socialCampaignHelper }) => {
+    test.afterEach(async ({ socialCampaignManagerFixture }) => {
       if (manualCleanupNeeded && campaignId) {
-        await socialCampaignHelper.deleteCampaign(campaignId);
+        await socialCampaignManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
       }
     });
 
@@ -44,13 +44,8 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33728', '@Social_Campaign_Add_Edit_Delete'],
       },
-      async ({
-        socialCampaignManagerHomePage,
-        socialCampaignManagerUINavigationHelper,
-        socialCampaignManagerPage,
-        socialCampaignHelper,
-      }) => {
-        socialCampaignPage = new SocialCampaignPage(socialCampaignManagerPage);
+      async ({ socialCampaignManagerFixture }) => {
+        socialCampaignPage = new SocialCampaignPage(socialCampaignManagerFixture.page);
         tagTest(test.info(), {
           description:
             'Zeus | Social Campaign | Verify SC Manager able to create and delete Social Campaign for Everyone',
@@ -58,7 +53,7 @@ test.describe(
           storyId: 'CONT-33728',
         });
 
-        await socialCampaignManagerUINavigationHelper.clickOnSocialCampaigns();
+        await socialCampaignManagerFixture.navigationHelper.clickOnSocialCampaigns();
         await socialCampaignPage.actions.clickAddCampaignButton();
 
         // Create and post social campaign using wrapper function
@@ -85,15 +80,15 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-10526', '@Social_Campaign_Expire'],
       },
-      async ({ socialCampaignManagerHomePage, socialCampaignHelper, audienceManagementHelper }) => {
+      async ({ socialCampaignManagerFixture, appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Zeus | Social Campaign | Verify End User can view and expire social campaign',
           zephyrTestId: 'CONT-10526',
           storyId: 'CONT-10526',
         });
-        socialCampaignPage = new SocialCampaignPage(socialCampaignManagerHomePage.page);
+        socialCampaignPage = new SocialCampaignPage(socialCampaignManagerFixture.page);
 
-        await socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.EXPIRED);
+        await appManagerFixture.socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.EXPIRED);
         const campaignData = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
           url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_BLOG,
@@ -102,10 +97,10 @@ test.describe(
         };
 
         // Create or get a test audience for the campaign
-        const audienceId = await audienceManagementHelper.getRandomAudienceId();
+        const audienceId = await appManagerFixture.audienceManagementHelper.getRandomAudienceId();
 
         // Create campaign via API
-        const createdCampaign = await socialCampaignHelper.createCampaign({
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
           message: campaignData.message,
           url: campaignData.url,
           recipient: campaignData.recipient,
@@ -142,16 +137,16 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-10518'],
       },
-      async ({ appManagerHomePage, socialCampaignHelper, siteManagementHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify App Manager able to share Social Campaign to Site feed',
           zephyrTestId: 'CONT-10518',
           storyId: 'CONT-10518',
         });
 
-        socialCampaignPage = new SocialCampaignPage(appManagerHomePage.page);
+        socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
         const siteName = 'All Employees';
-        const siteId = await siteManagementHelper.getSiteIdWithName(siteName);
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
@@ -161,7 +156,7 @@ test.describe(
         };
 
         // Create campaign via API
-        const createdCampaign = await socialCampaignHelper.createCampaign({
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
           message: campaignOptions.message,
           url: campaignOptions.url,
           recipient: campaignOptions.recipient,
@@ -180,7 +175,7 @@ test.describe(
         await socialCampaignPage.actions.clickShareButton();
         await socialCampaignPage.assertions.verifyToastMessage('Shared social campaign successfully');
 
-        const siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnFeedLink();
         await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
@@ -193,7 +188,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19603', '@Social_Campaign_Validation'],
       },
-      async ({ appManagersPage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'In Zeus Verify error messages on creating social campaign without required details',
           zephyrTestId: 'CONT-19603',
@@ -201,7 +196,7 @@ test.describe(
         });
 
         // Create social campaign page instance
-        const socialCampaignPage = new SocialCampaignPage(appManagersPage);
+        const socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
 
         // Navigate to social campaigns and add campaign
         await socialCampaignPage.loadPage();
@@ -223,7 +218,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19604', '@Social_Campaign_Creation'],
       },
-      async ({ appManagersPage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'In Zeus Verify user able to create social campaign for selected(Twitter) social network',
           zephyrTestId: 'CONT-19604',
@@ -231,7 +226,7 @@ test.describe(
         });
 
         // Create social campaign page instance
-        const socialCampaignPage = new SocialCampaignPage(appManagersPage);
+        const socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
         await socialCampaignPage.loadPage();
         await socialCampaignPage.actions.clickAddCampaignButton();
 
@@ -256,7 +251,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-33857', '@Social_Campaign_Audience'],
       },
-      async ({ appManagersPage, audienceManagementHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify Audience Description Is Not Displayed When Not Present',
           zephyrTestId: 'CONT-33857',
@@ -264,14 +259,16 @@ test.describe(
         });
 
         // Create social campaign page instance
-        const socialCampaignPage = new SocialCampaignPage(appManagersPage);
+        const socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
 
         // Navigate to social campaigns and add campaign
         await socialCampaignPage.loadPage();
         await socialCampaignPage.actions.clickAddCampaignButton();
 
-        const audienceDetailsWithDescription = await audienceManagementHelper.getAudienceWithDescription();
-        const audienceDetailsWithNoDescription = await audienceManagementHelper.getAudienceWithNoDescription();
+        const audienceDetailsWithDescription =
+          await appManagerFixture.audienceManagementHelper.getAudienceWithDescription();
+        const audienceDetailsWithNoDescription =
+          await appManagerFixture.audienceManagementHelper.getAudienceWithNoDescription();
 
         await socialCampaignPage.actions.selectMemberAsAudience();
         await socialCampaignPage.actions.enterAudienceName(audienceDetailsWithDescription.name);
@@ -294,14 +291,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-10515'],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper, socialCampaignHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify App Manager able to share Social Campaign to Home Feed',
           zephyrTestId: 'CONT-10515',
           storyId: 'CONT-10515',
         });
 
-        socialCampaignPage = new SocialCampaignPage(appManagerHomePage.page);
+        socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
@@ -311,7 +308,7 @@ test.describe(
         };
 
         // Create campaign via API
-        const createdCampaign = await socialCampaignHelper.createCampaign({
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
           message: campaignOptions.message,
           url: campaignOptions.url,
           recipient: campaignOptions.recipient,
@@ -326,8 +323,8 @@ test.describe(
         await socialCampaignPage.actions.enterShareDescription(description);
         await socialCampaignPage.actions.clickShareButton();
         await socialCampaignPage.assertions.verifyToastMessage('Shared social campaign successfully');
-        await appManagerUINavigationHelper.clickOnGlobalFeed();
-        feedPage = new FeedPage(appManagerHomePage.page);
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        feedPage = new FeedPage(appManagerFixture.page);
         await feedPage.verifyThePageIsLoaded();
         await feedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
         manualCleanupNeeded = true;
@@ -339,15 +336,15 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-14899', '@Social_Campaign_Expire'],
       },
-      async ({ appManagerHomePage, socialCampaignHelper, audienceManagementHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'In Zeus Verify App Manager able to delete the expired Social Campaign',
           zephyrTestId: 'CONT-14899',
           storyId: 'CONT-14899',
         });
-        socialCampaignPage = new SocialCampaignPage(appManagerHomePage.page);
+        socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
 
-        await socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.EXPIRED);
+        await appManagerFixture.socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.EXPIRED);
         const campaignData = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
           url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_BLOG,
@@ -356,10 +353,10 @@ test.describe(
         };
 
         // Create or get a test audience for the campaign
-        const audienceId = await audienceManagementHelper.getRandomAudienceId();
+        const audienceId = await appManagerFixture.audienceManagementHelper.getRandomAudienceId();
 
         // Create campaign via API
-        const createdCampaign = await socialCampaignHelper.createCampaign({
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
           message: campaignData.message,
           url: campaignData.url,
           recipient: campaignData.recipient,
@@ -396,7 +393,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-14906', '@Social_Campaign_End_User_Restrictions'],
       },
-      async ({ endUserHomePage, socialCampaignHelper }) => {
+      async ({ standardUserFixture, appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'In Zeus Verify End User should not be able to share Social Campaign to Home Carousel delete and expire Campaign',
@@ -412,13 +409,13 @@ test.describe(
           recipient: SocialCampaignRecipient.EVERYONE,
         };
 
-        await socialCampaignHelper.createCampaign({
+        await appManagerFixture.socialCampaignHelper.createCampaign({
           message: campaignData.message,
           url: campaignData.url,
           recipient: campaignData.recipient,
         });
 
-        const endUserSocialCampaignPage = new SocialCampaignPage(endUserHomePage.page);
+        const endUserSocialCampaignPage = new SocialCampaignPage(standardUserFixture.page);
         await endUserSocialCampaignPage.loadPage();
 
         // Verify campaign is visible to end user
@@ -436,14 +433,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26718'],
       },
-      async ({ standardUserHomePage, socialCampaignHelper, standardUserUINavigationHelper }) => {
+      async ({ standardUserFixture, appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify App Manager able to share Social Campaign to Home Feed',
           zephyrTestId: 'CONT-26718',
           storyId: 'CONT-26718',
         });
 
-        socialCampaignPage = new SocialCampaignPage(standardUserHomePage.page);
+        socialCampaignPage = new SocialCampaignPage(standardUserFixture.page);
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
@@ -453,7 +450,7 @@ test.describe(
         };
 
         // Create campaign via API
-        const createdCampaign = await socialCampaignHelper.createCampaign({
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
           message: campaignOptions.message,
           url: campaignOptions.url,
           recipient: campaignOptions.recipient,
@@ -469,8 +466,8 @@ test.describe(
         await socialCampaignPage.actions.clickShareButton();
         await socialCampaignPage.assertions.verifyToastMessage('Shared social campaign successfully');
 
-        await standardUserUINavigationHelper.clickOnGlobalFeed();
-        feedPage = new FeedPage(standardUserHomePage.page);
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        feedPage = new FeedPage(standardUserFixture.page);
         await feedPage.verifyThePageIsLoaded();
         await feedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
       }
@@ -481,7 +478,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26719'],
       },
-      async ({ endUserHomePage, socialCampaignHelper, siteManagementHelper }) => {
+      async ({ standardUserFixture, appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'In Zeus Verify Standard User is able to Share a Social Campaign with a message to a Public Site using Post in SITE FEED option',
@@ -489,9 +486,9 @@ test.describe(
           storyId: 'CONT-26719',
         });
 
-        socialCampaignPage = new SocialCampaignPage(endUserHomePage.page);
+        socialCampaignPage = new SocialCampaignPage(standardUserFixture.page);
         const siteName = 'All Employees';
-        const siteId = await siteManagementHelper.getSiteIdWithName(siteName);
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
@@ -501,7 +498,7 @@ test.describe(
         };
 
         // Create campaign via API
-        const createdCampaign = await socialCampaignHelper.createCampaign({
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
           message: campaignOptions.message,
           url: campaignOptions.url,
           recipient: campaignOptions.recipient,
@@ -520,7 +517,7 @@ test.describe(
         await socialCampaignPage.actions.clickShareButton();
         await socialCampaignPage.assertions.verifyToastMessage('Shared social campaign successfully');
 
-        const siteDashboardPage = new SiteDashboardPage(endUserHomePage.page, siteId);
+        const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnFeedLink();
         await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);

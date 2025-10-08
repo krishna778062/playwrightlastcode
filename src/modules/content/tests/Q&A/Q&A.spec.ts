@@ -17,17 +17,19 @@ test.describe(
   () => {
     let feedPage: FeedPage;
     let createdPostId: string = '';
-    test.beforeEach(async ({ feedManagementHelper }) => {
+    test.beforeEach(async ({ appManagerFixture }) => {
       // Configure app governance settings and enable timeline comment post(feed)
-      await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
-      await feedManagementHelper.enableQuestionAnswer();
+      await appManagerFixture.feedManagementHelper.configureAppGovernance({
+        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+      });
+      await appManagerFixture.feedManagementHelper.enableQuestionAnswer();
     });
 
-    test.afterEach(async ({ feedManagementHelper }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
       // Cleanup: Delete post using API if test failed and post still exists
-      if (createdPostId && feedManagementHelper) {
+      if (createdPostId && appManagerFixture.feedManagementHelper) {
         try {
-          await feedManagementHelper.deleteFeed(createdPostId);
+          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
         } catch (error) {
           console.log('Failed to cleanup feed via API:', error);
         }
@@ -41,16 +43,16 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-38778'],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'AM | Home Q&A | Create, Edit with only Title of the question',
           zephyrTestId: 'CONT-38778',
           storyId: 'CONT-38778',
         });
 
-        await appManagerUINavigationHelper.clickOnGlobalFeed();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
 
-        feedPage = new FeedPage(appManagerHomePage.page);
+        feedPage = new FeedPage(appManagerFixture.page);
         await feedPage.verifyThePageIsLoaded();
         // And Click "Question"
         await feedPage.actions.clickShareThoughtsButton();

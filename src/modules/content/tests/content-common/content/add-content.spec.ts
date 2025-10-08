@@ -29,11 +29,11 @@ test.describe(
     let userId: string = '';
     let roleId: string = '';
 
-    test.afterEach('Cleanup after test', async ({ identityManagementHelper }) => {
+    test.afterEach('Cleanup after test', async ({ appManagerFixture }) => {
       // Cleanup: Remove the assigned role (runs even if test fails)
       if (typeof userId !== 'undefined' && typeof roleId !== 'undefined') {
         try {
-          await identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], false);
+          await appManagerFixture.identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], false);
           console.log('Successfully removed assigned role during cleanup');
         } catch (error) {
           console.warn('Failed to remove assigned role during cleanup:', error);
@@ -46,12 +46,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-30521'],
       },
-      async ({
-        standardUserHomePage,
-        identityManagementHelper,
-        siteManagementHelper,
-        standardUserUINavigationHelper,
-      }) => {
+      async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'Verify Unlisted site manager Add content scenarios',
           zephyrTestId: 'CONT-30521',
@@ -60,21 +55,21 @@ test.describe(
 
         // Login with standard user and assign Unlisted Sites Manager role
         const userEmail = users.endUser.email;
-        const peopleInfo = await identityManagementHelper.getUserInfoByEmail(userEmail);
+        const peopleInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(userEmail);
         userId = peopleInfo.userId;
 
         // Get and assign Unlisted Sites Manager role
-        roleId = await identityManagementHelper.getListOfRoles(Roles.UNLISTED_SITES_MANAGER);
-        await identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
+        roleId = await appManagerFixture.identityManagementHelper.getListOfRoles(Roles.UNLISTED_SITES_MANAGER);
+        await appManagerFixture.identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
 
-        const siteDetails = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
+        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
           waitForSearchIndex: true,
           hasPages: true,
         });
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.name;
-        await standardUserHomePage.verifyThePageIsLoaded();
-        pageCreationPage = (await standardUserUINavigationHelper.openCreateContentPageForContentType(
+        await standardUserFixture.homePage.verifyThePageIsLoaded();
+        pageCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           siteName
         )) as PageCreationPage;
@@ -95,7 +90,7 @@ test.describe(
 
         // Initialize preview page and handle the promotion
         contentPreviewPage = new ContentPreviewPage(
-          standardUserHomePage.page,
+          standardUserFixture.page,
           siteIdToPublishPage,
           publishedPageId,
           ContentType.PAGE
@@ -115,19 +110,21 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39680'],
       },
-      async ({ appManagerHomePage, siteManagementHelper, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify Application Manager Add content scenarios',
           zephyrTestId: 'CONT-39680',
           storyId: 'CONT-39680',
         });
 
-        const siteDetails = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, { hasPages: true });
+        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
+          hasPages: true,
+        });
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.name;
         console.log('siteName :   ', siteName);
-        await appManagerHomePage.verifyThePageIsLoaded();
-        pageCreationPage = (await appManagerUINavigationHelper.openCreateContentPageForContentType(
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        pageCreationPage = (await appManagerFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           siteName
         )) as PageCreationPage;
@@ -148,7 +145,7 @@ test.describe(
 
         // Initialize preview page and handle the promotion
         contentPreviewPage = new ContentPreviewPage(
-          appManagerHomePage.page,
+          appManagerFixture.page,
           siteIdToPublishPage,
           publishedPageId,
           ContentType.PAGE
@@ -168,7 +165,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39774'],
       },
-      async ({ appManagerHomePage, siteManagementHelper, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify the app Manager can add content when content submission is disabled at site level',
           zephyrTestId: 'CONT-39774',
@@ -176,11 +173,14 @@ test.describe(
         });
 
         // Create site with content submission disabled
-        const siteDetails = await siteManagementHelper.getSiteByIdWithContentSubmissions(SITE_TYPES.UNLISTED, false);
+        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByIdWithContentSubmissions(
+          SITE_TYPES.UNLISTED,
+          false
+        );
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.siteName;
-        await appManagerHomePage.verifyThePageIsLoaded();
-        pageCreationPage = (await appManagerUINavigationHelper.openCreateContentPageForContentType(
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        pageCreationPage = (await appManagerFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           siteName
         )) as PageCreationPage;
@@ -201,7 +201,7 @@ test.describe(
 
         // Initialize preview page and handle the promotion
         contentPreviewPage = new ContentPreviewPage(
-          appManagerHomePage.page,
+          appManagerFixture.page,
           siteIdToPublishPage,
           publishedPageId,
           ContentType.PAGE
@@ -221,12 +221,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39775'],
       },
-      async ({
-        standardUserHomePage,
-        siteManagementHelper,
-        identityManagementHelper,
-        standardUserUINavigationHelper,
-      }) => {
+      async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'Verify the app Manager can add content when content submission is disabled at site level',
           zephyrTestId: 'CONT-39775',
@@ -235,22 +230,25 @@ test.describe(
 
         // Login with standard user and assign Unlisted Sites Manager role
         const userEmail = users.endUser.email;
-        const peopleInfo = await identityManagementHelper.getUserInfoByEmail(userEmail);
+        const peopleInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(userEmail);
         userId = peopleInfo.userId;
 
         // Get and assign Unlisted Sites Manager role
-        roleId = await identityManagementHelper.getListOfRoles(Roles.UNLISTED_SITES_MANAGER);
-        await identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
+        roleId = await appManagerFixture.identityManagementHelper.getListOfRoles(Roles.UNLISTED_SITES_MANAGER);
+        await appManagerFixture.identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
 
         // Create site with content submission disabled
 
-        const siteDetails = await siteManagementHelper.getSiteByIdWithContentSubmissions(SITE_TYPES.UNLISTED, false);
+        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByIdWithContentSubmissions(
+          SITE_TYPES.UNLISTED,
+          false
+        );
 
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.siteName;
 
-        await standardUserHomePage.verifyThePageIsLoaded();
-        pageCreationPage = (await standardUserUINavigationHelper.openCreateContentPageForContentType(
+        await standardUserFixture.homePage.verifyThePageIsLoaded();
+        pageCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           siteName
         )) as PageCreationPage;
@@ -271,7 +269,7 @@ test.describe(
 
         // Initialize preview page and handle the promotion
         contentPreviewPage = new ContentPreviewPage(
-          standardUserHomePage.page,
+          standardUserFixture.page,
           siteIdToPublishPage,
           publishedPageId,
           ContentType.PAGE
@@ -292,7 +290,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39777'],
       },
-      async ({ appManagerHomePage, siteManagementHelper, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify the app Manager can add content when content submission is disabled at site level',
           zephyrTestId: 'CONT-39777',
@@ -300,14 +298,14 @@ test.describe(
         });
 
         // Create site with content submission disabled
-        const siteDetails = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
+        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
           hasPages: false,
           waitForSearchIndex: true,
         });
         const siteName = siteDetails.name;
 
-        await appManagerHomePage.verifyThePageIsLoaded();
-        addContentModal = await appManagerUINavigationHelper.openAddContentModal(ContentType.PAGE);
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        addContentModal = await appManagerFixture.navigationHelper.openAddContentModal(ContentType.PAGE);
 
         await addContentModal.selectSiteToAddContentFromDropdown(siteName);
 
@@ -320,12 +318,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39780'],
       },
-      async ({
-        standardUserHomePage,
-        siteManagementHelper,
-        identityManagementHelper,
-        standardUserUINavigationHelper,
-      }) => {
+      async ({ standardUserFixture, appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify the app Manager can add content when content submission is disabled at site level',
           zephyrTestId: 'CONT-39780',
@@ -334,28 +327,26 @@ test.describe(
 
         // Login with standard user and assign Unlisted Sites Manager role
         const userEmail = users.endUser.email;
-        const peopleInfo = await identityManagementHelper.getUserInfoByEmail(userEmail);
+        const peopleInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(userEmail);
         userId = peopleInfo.userId;
 
         // Get and assign Unlisted Sites Manager role
-        roleId = await identityManagementHelper.getListOfRoles(Roles.UNLISTED_SITES_MANAGER);
-        await identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
+        roleId = await appManagerFixture.identityManagementHelper.getListOfRoles(Roles.UNLISTED_SITES_MANAGER);
+        await appManagerFixture.identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
 
         // Create site with content submission disabled
-        await siteManagementHelper.createUnlistedSite({
+        await appManagerFixture.siteManagementHelper.createUnlistedSite({
           hasPages: false,
           waitForSearchIndex: true,
         });
-        const siteDetails = await siteManagementHelper.getSiteByIdWithContentSubmissions(SITE_TYPES.UNLISTED, false);
-
-        addContentModal = await standardUserUINavigationHelper.openAddContentModal(ContentType.PAGE);
-
-        await standardUserHomePage.verifyThePageIsLoaded();
-        await standardUserUINavigationHelper.verifyErrorMessageWhenContentSubmissionIsDisabled(
+        await appManagerFixture.siteManagementHelper.getSiteByIdWithContentSubmissions(SITE_TYPES.UNLISTED, false);
+        await standardUserFixture.homePage.verifyThePageIsLoaded();
+        addContentModal = await standardUserFixture.navigationHelper.openAddContentModal(ContentType.PAGE);
+        await standardUserFixture.navigationHelper.verifyErrorMessageWhenContentSubmissionIsDisabled(
           addContentModal,
           ContentType.PAGE
         );
-        await identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], false);
+        await appManagerFixture.identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], false);
       }
     );
   }

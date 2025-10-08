@@ -17,16 +17,16 @@ test.describe('Site Category Validation', { tag: ['@content-management', '@site-
   let siteCategoriesPage: SiteCategoriesPage;
   let createdCategoryName: string;
 
-  test.beforeEach(async ({ appManagersPage }) => {
-    siteCategoriesPage = new SiteCategoriesPage(appManagersPage);
+  test.beforeEach(async ({ appManagerFixture }) => {
+    siteCategoriesPage = new SiteCategoriesPage(appManagerFixture.page);
     await siteCategoriesPage.loadPage({ timeout: 40000 });
   });
 
-  test.afterEach(async ({ siteManagementService }) => {
+  test.afterEach(async ({ appManagerFixture }) => {
     // Cleanup: Delete created category using API
     if (createdCategoryName) {
       try {
-        await siteManagementService.deleteCategory(createdCategoryName);
+        await appManagerFixture.siteManagementHelper.siteManagementService.deleteCategory(createdCategoryName);
         console.log(`API cleanup completed for category: ${createdCategoryName.substring(0, 30)}...`);
       } catch (error) {
         console.log(`API cleanup failed for category: ${error}`);

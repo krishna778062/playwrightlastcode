@@ -16,11 +16,11 @@ test.describe(
       {
         tag: [TestPriority.P1, `@PEOPLE_DIRECTORY`, `@people-directory`],
       },
-      async ({ appManagerPage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-17684'],
         });
-        const peopleDirectoryPage = new PeopleDirectoryPage(appManagerPage);
+        const peopleDirectoryPage = new PeopleDirectoryPage(appManagerFixture.page);
         await peopleDirectoryPage.loadPage();
         await peopleDirectoryPage.verifyThePageIsLoaded();
         await peopleDirectoryPage.navigatePeopleDirectory();

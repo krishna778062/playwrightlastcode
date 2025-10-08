@@ -18,9 +18,9 @@ test.describe(
     let manageFeaturesPage: ManageFeaturesPage;
     let manageContentPage: ManageContentPage;
 
-    test.beforeEach(async ({ appManagersPage }) => {
-      manageFeaturesPage = new ManageFeaturesPage(appManagersPage);
-      manageContentPage = new ManageContentPage(appManagersPage);
+    test.beforeEach(async ({ appManagerFixture }) => {
+      manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
+      manageContentPage = new ManageContentPage(appManagerFixture.page);
     });
 
     test(
@@ -28,7 +28,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify "Nothing to show here" message appears when searching non-existing content and clicking X restores filtered results',
@@ -38,8 +38,8 @@ test.describe(
         });
 
         const title = MANAGE_CONTENT_TEST_DATA.TITLE;
-        await appManagerHomePage.verifyThePageIsLoaded();
-        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.writeRandomTextInSearchBar(title);
         await manageContentPage.actions.clickSearchIcon();
@@ -54,7 +54,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ siteManagementHelper, appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify bulk actions functionality including publish, unpublish, move, delete, and validate operations in My Content Screen',
@@ -62,8 +62,8 @@ test.describe(
           zephyrTestId: 'CONT-20952',
           storyId: 'CONT-20952',
         });
-        await appManagerHomePage.verifyThePageIsLoaded();
-        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickOnFirstContentButton();
         await manageContentPage.actions.clickOnSelectActionDropdown();
@@ -75,7 +75,7 @@ test.describe(
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnMoveButton();
         await manageContentPage.actions.selectMoveApplyButton();
-        const site = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
+        const site = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
         await manageContentPage.actions.moveContentSearchBar(site?.name || '');
         await manageContentPage.actions.siteListSelecting();
         await manageContentPage.actions.selectPageCategoryIfVisible();
@@ -96,15 +96,15 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify content publish and unpublish options are available and functional in My Content Screen',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20951',
           storyId: 'CONT-20951',
         });
-        await appManagerHomePage.verifyThePageIsLoaded();
-        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.addPublishContentFilter();
         await manageContentPage.actions.clickOnFirstDropDownOption();
@@ -117,14 +117,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify delete modal functionality with cancel and delete button operations for content removal',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20946',
           storyId: 'CONT-20946',
         });
-        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.addPublishContentFilter();
         await manageContentPage.actions.clickOnFirstDropDownOption();
@@ -138,7 +138,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify various UI elements including image container, author name, site name, and status stamps in My Content screen ',
@@ -146,8 +146,8 @@ test.describe(
           zephyrTestId: 'CONT-20945',
           storyId: 'CONT-20945',
         });
-        await appManagerHomePage.verifyThePageIsLoaded();
-        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.assertions.verifyImageContainer();
         await manageContentPage.assertions.authorNameShouldBeVisible();
@@ -165,22 +165,22 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ siteManagementHelper, appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify site filter functionality and search capabilities in My Content screen',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20944',
           storyId: 'CONT-20944',
         });
-        await appManagerHomePage.verifyThePageIsLoaded();
-        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
-        const publicSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const publicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
         let publicNewOneSite = publicSite;
         if (publicSite === null) {
-          await siteManagementHelper.createSite({ accessType: SITE_TYPES.PUBLIC });
-          publicNewOneSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+          await appManagerFixture.siteManagementHelper.createSite({ accessType: SITE_TYPES.PUBLIC });
+          publicNewOneSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
         }
         await manageContentPage.actions.clickSiteSearchBar(publicSite?.name || publicNewOneSite?.name || '');
         await manageContentPage.actions.selectSiteSearchBarOption();
@@ -193,15 +193,15 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify created Newest sorting filter functionality in My Contents screen',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20943',
           storyId: 'CONT-20943',
         });
-        await appManagerHomePage.verifyThePageIsLoaded();
-        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectCreatedNewestOption();

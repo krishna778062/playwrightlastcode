@@ -27,20 +27,20 @@ test.describe('Site Creation', { tag: ['@content', '@site-creation'] }, () => {
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE, '@random-category'],
     },
-    async ({ appManagerHomePage, siteManagementHelper, appManagerUINavigationHelper }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: 'CONT-20912',
         storyId: 'CONT-20912',
         description: 'Verify admin is able to create a new site with random category via UI',
         customTags: ['@random-category'],
       });
-      await appManagerHomePage.verifyThePageIsLoaded();
+      await appManagerFixture.homePage.verifyThePageIsLoaded();
 
       // Step 1: Navigate to Sites section from side bar
-      await appManagerUINavigationHelper.sideNavBarComponent.clickOnSites();
+      await appManagerFixture.navigationHelper.sideNavBarComponent.clickOnSites();
 
       // Step 2: Initialize sites list page and verify it's loaded
-      sitesListPage = new SitesListPage(appManagerHomePage.page);
+      sitesListPage = new SitesListPage(appManagerFixture.page);
       await sitesListPage.verifyThePageIsLoaded();
 
       // Step 3: Click Add Site button to open site creation page
@@ -50,14 +50,14 @@ test.describe('Site Creation', { tag: ['@content', '@site-creation'] }, () => {
       await siteCreationPage.actions.createSiteWithRandomCategory(createdSiteName, createdCategoryName);
 
       // Step 5: Wait for navigation to site dashboard and initialize SiteDashboardPage
-      await appManagerHomePage.page.waitForTimeout(3000);
+      await appManagerFixture.page.waitForTimeout(3000);
       // Note: We need to extract site ID from URL or response to properly initialize SiteDashboardPage
       // For now, we'll use a placeholder approach - this should be improved to get actual site ID
-      const currentUrl = appManagerHomePage.page.url();
+      const currentUrl = appManagerFixture.page.url();
       const siteIdMatch = currentUrl.match(/\/sites\/([^\/]+)/);
       const siteId = siteIdMatch ? siteIdMatch[1] : 'placeholder';
 
-      siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteId);
+      siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
 
       // Step 6: Verify category was created successfully (click on category link in header)
       await siteDashboardPage.assertions.verifyCategoryCreatedSuccessfully(createdCategoryName);

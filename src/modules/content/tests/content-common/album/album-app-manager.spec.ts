@@ -22,29 +22,26 @@ test.describe(
     let publishedAlbumId: string;
     let manualCleanupNeeded = false;
 
-    test.beforeEach(
-      'Setting up the test environment for album creation',
-      async ({ appManagerHomePage, appManagersPage }) => {
-        // Create home page instance and verify it's loaded
-        await appManagerHomePage.verifyThePageIsLoaded();
+    test.beforeEach('Setting up the test environment for album creation', async ({ appManagerFixture }) => {
+      // Create home page instance and verify it's loaded
+      await appManagerFixture.homePage.verifyThePageIsLoaded();
 
-        // Initialize preview page
-        contentPreviewPage = new ContentPreviewPage(
-          appManagersPage,
-          siteIdToPublishAlbum,
-          publishedAlbumId,
-          ContentType.ALBUM
-        );
+      // Initialize preview page
+      contentPreviewPage = new ContentPreviewPage(
+        appManagerFixture.page,
+        siteIdToPublishAlbum,
+        publishedAlbumId,
+        ContentType.ALBUM
+      );
 
-        // Reset cleanup flag for each test
-        manualCleanupNeeded = false;
-      }
-    );
+      // Reset cleanup flag for each test
+      manualCleanupNeeded = false;
+    });
 
-    test.afterEach(async ({ contentManagementHelper }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
       // Only cleanup manually if needed (for UI-only tests)
       if (manualCleanupNeeded && publishedAlbumId && siteIdToPublishAlbum) {
-        await contentManagementHelper.deleteContent(siteIdToPublishAlbum, publishedAlbumId);
+        await appManagerFixture.contentManagementHelper.deleteContent(siteIdToPublishAlbum, publishedAlbumId);
         console.log('Manual cleanup completed for album:', publishedAlbumId);
       } else {
         console.log('No album was published, hence skipping the deletion');
@@ -56,7 +53,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify admin is able to create and publish a new album with all fields populated from home page',
@@ -64,9 +61,8 @@ test.describe(
           storyId: 'CONT-11065',
         });
 
-        // Navigate to album creation page
-        await appManagerHomePage.verifyThePageIsLoaded();
-        albumCreationPage = (await appManagerUINavigationHelper.openCreateContentPageForContentType(
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        albumCreationPage = (await appManagerFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.ALBUM
         )) as AlbumCreationPage;
 

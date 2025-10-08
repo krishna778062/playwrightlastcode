@@ -46,32 +46,33 @@ test.describe(
 
     test.beforeEach(
       'Setting up the test environment for page creation by opening page creation page from home page',
-      async ({ appManagersPage }) => {
+      async ({ appManagerFixture }) => {
         // Create home page instance and navigate to page creation
         contentPreviewPage = new ContentPreviewPage(
-          appManagersPage,
+          appManagerFixture.page,
           siteIdToPublishPage,
           publishedPageId,
           ContentType.PAGE
         );
 
         // Initialize additional page objects for the moved test cases
-        applicationscreen = new ApplicationScreenPage(appManagersPage);
-        manageFeaturePage = new ManageFeature(appManagersPage);
-        manageApplicationPage = new ManageApplicationPage(appManagersPage);
-        governanceScreenPage = new GovernanceScreenPage(appManagersPage);
-        manageContentPage = new ManageContentPage(appManagersPage);
-        manageSitePage = new ManageSitePage(appManagersPage, '');
-        siteDetailsPage = new SiteDetailsPage(appManagersPage, '');
-        editPagePage = new EditPagePage(appManagersPage);
-        siteDashboardPage = new SiteDashboardPage(appManagersPage, '');
+        applicationscreen = new ApplicationScreenPage(appManagerFixture.page);
+        manageFeaturePage = new ManageFeature(appManagerFixture.page);
+        manageApplicationPage = new ManageApplicationPage(appManagerFixture.page);
+        governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
+        manageContentPage = new ManageContentPage(appManagerFixture.page);
+        manageSitePage = new ManageSitePage(appManagerFixture.page, '');
+        siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, '');
+        editPagePage = new EditPagePage(appManagerFixture.page);
+        siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, '');
 
         // Reset cleanup flag for each test
         manualCleanupNeeded = false;
       }
     );
 
-    test.afterEach(async ({ contentManagementHelper }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
+      const contentManagementHelper = appManagerFixture.contentManagementHelper;
       // Only cleanup manually if needed (for UI-only tests)
       if (manualCleanupNeeded && publishedPageId && siteIdToPublishPage) {
         await contentManagementHelper.deleteContent(siteIdToPublishPage, publishedPageId);
@@ -92,14 +93,14 @@ test.describe(
           '@CONT-11635',
         ],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify admin is able to publish a new page created with cover image from home page',
           zephyrTestId: 'CONT-11635',
           storyId: 'CONT-11635',
         });
-        await appManagerHomePage.verifyThePageIsLoaded();
-        pageCreationPage = (await appManagerUINavigationHelper.openCreateContentPageForContentType(
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        pageCreationPage = (await appManagerFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE
         )) as PageCreationPage;
 
@@ -140,14 +141,16 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE, ContentSuiteTags.PAGE_CREATION],
       },
-      async ({ siteManagementHelper, appManagersPage, siteManagementService }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify admin is able to publish a new page created with cover image from site dashboard',
           zephyrTestId: 'CONT-39089',
           storyId: 'CONT-39089',
         });
-        const category = await siteManagementService.getCategoryId(SITE_TEST_DATA[0].category);
-        createdSite = await siteManagementHelper.createPublicSite({
+        const category = await appManagerFixture.siteManagementHelper.siteManagementService.getCategoryId(
+          SITE_TEST_DATA[0].category
+        );
+        createdSite = await appManagerFixture.siteManagementHelper.createPublicSite({
           category,
           overrides: { access: SITE_TEST_DATA[0].siteType },
         });
@@ -156,7 +159,7 @@ test.describe(
         // Store the site ID for page publishing
         siteIdToPublishPage = createdSite.siteId;
         // Navigate from site dashboard to page creation
-        siteDashboardPage = new SiteDashboardPage(appManagersPage, siteIdToPublishPage);
+        siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteIdToPublishPage);
 
         //flow
         await siteDashboardPage.loadPage();
@@ -193,29 +196,29 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VERIFY_COMMENTS_AND_FEEDS],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify feed and comment should not be displayed when feed and comments are disabled app level',
           zephyrTestId: 'CONT-26613',
           storyId: 'CONT-26613',
         });
-        await appManagerHomePage.verifyThePageIsLoaded();
-        await appManagerUINavigationHelper.openApplicationSettings();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openApplicationSettings();
         await applicationscreen.actions.clickOnApplication();
         await manageApplicationPage.actions.clickOnGovernance();
         await governanceScreenPage.actions.clickOnTimeline();
         await governanceScreenPage.actions.clickOnSave();
-        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnContentCard();
         await manageContentPage.actions.clickOnContent();
         await contentPreviewPage.actions.checkCommentOption();
-        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnSitesCard();
         await manageSitePage.actions.clickOnSite();
         await siteDetailsPage.actions.ViewSite();
         await siteDashboardPage.actions.verfiyFeedSection();
-        await appManagerUINavigationHelper.clickOnHomeButton();
-        await appManagerUINavigationHelper.clickOnFeedSideMenu();
+        await appManagerFixture.navigationHelper.clickOnHomeButton();
+        await appManagerFixture.navigationHelper.clickOnFeedSideMenu();
         await siteDashboardPage.actions.verfiyFeedSection();
       }
     );

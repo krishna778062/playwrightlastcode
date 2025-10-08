@@ -13,7 +13,6 @@ import { contentTestFixture as test } from '@/src/modules/content/fixtures/conte
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
-// import { SiteDashboardPage } from '@/src/modules/content/ui/pages/siteDashboardPage';
 
 interface SiteDetails {
   siteId: string;
@@ -139,120 +138,126 @@ for (const testData of feedTestData) {
       let feedTestDataGenerated: any;
       let fileId: string;
 
-      test.beforeEach(
-        'Setup test environment and data creation',
-        async ({ appManagerHomePage, contentManagementHelper, siteManagementHelper, feedManagementHelper }) => {
-          // Configure app governance settings and enable timeline comment post(feed)
-          await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
-          // Initialize feed page
-          appManagerFeedPage = new FeedPage(appManagerHomePage.page);
-          const resources = await getPrerequisiteData({ siteManagementHelper, contentManagementHelper }, testData);
+      test.beforeEach('Setup test environment and data creation', async ({ appManagerFixture }) => {
+        // Configure app governance settings and enable timeline comment post(feed)
+        await appManagerFixture.feedManagementHelper.configureAppGovernance({
+          feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+        });
+        // Initialize feed page
+        appManagerFeedPage = new FeedPage(appManagerFixture.page);
+        const resources = await getPrerequisiteData(
+          {
+            siteManagementHelper: appManagerFixture.siteManagementHelper,
+            contentManagementHelper: appManagerFixture.contentManagementHelper,
+          },
+          testData
+        );
 
-          // Assign created resources
-          if (resources.siteId) {
-            siteDetails = {
-              siteId: resources.siteId,
-              siteName: '',
-              categoryId: '',
-              categoryName: '',
-              access: '',
-            };
-          }
-          if (resources.contentId) {
-            siteDetails = {
-              siteId: resources.siteId,
-              siteName: '',
-              categoryId: '',
-              categoryName: '',
-              access: '',
-            };
-            pageDetails = {
-              contentId: resources.contentId,
-              siteId: resources.siteId,
-              pageName: '',
-              authorName: '',
-              contentDescription: '',
-            };
-          }
-
-          // Generate feed data based on feed type
-          switch (testData.feedType) {
-            case 'Home Feed': {
-              feedTestDataGenerated = TestDataGenerator.generateFeed({
-                scope: 'public',
-                siteId: undefined,
-                withAttachment: testData.hasAttachment,
-                fileName: testData.fileName,
-                fileSize: testData.fileSize,
-                mimeType: testData.mimeType,
-                filePath: testData.filePath,
-                waitForSearchIndex: false,
-              });
-              break;
-            }
-
-            case 'Site Feed': {
-              feedTestDataGenerated = TestDataGenerator.generateFeed({
-                scope: 'site',
-                siteId: siteDetails.siteId,
-                withAttachment: testData.hasAttachment,
-                fileName: testData.fileName,
-                fileSize: testData.fileSize,
-                mimeType: testData.mimeType,
-                filePath: testData.filePath,
-                waitForSearchIndex: false,
-              });
-              break;
-            }
-
-            case 'Content Feed': {
-              feedTestDataGenerated = TestDataGenerator.generateFeed({
-                scope: 'site',
-                siteId: siteDetails.siteId,
-                contentId: pageDetails.contentId,
-                withAttachment: testData.hasAttachment,
-                fileName: testData.fileName,
-                fileSize: testData.fileSize,
-                mimeType: testData.mimeType,
-                filePath: testData.filePath,
-                waitForSearchIndex: false,
-              });
-              break;
-            }
-
-            default:
-              throw new Error(`Unknown feed type: ${testData.feedType}`);
-          }
-
-          // Create feed via API
-          feedResponse = await feedManagementHelper.createFeed(feedTestDataGenerated);
-          createdPostText = feedTestDataGenerated.text;
-          createdPostId = feedResponse.result.feedId;
-          fileId = feedResponse.result.listOfFiles[0].fileId;
-
-          console.log(`Created feed with attachment via API: ${feedResponse.result.feedId}`);
-
-          // Navigate to feed URL
-          if (testData.feedType === 'Content Feed') {
-            contentPreviewPage = new ContentPreviewPage(
-              appManagerHomePage.page,
-              siteDetails.siteId,
-              pageDetails.contentId,
-              ContentType.PAGE.toLowerCase()
-            );
-            await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
-          } else if (testData.feedType === 'Site Feed') {
-            siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteDetails.siteId);
-            await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
-            await siteDashboardPage.actions.clickOnFeedLink();
-          } else if (testData.feedType === 'Home Feed') {
-            await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
-          }
-          await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        // Assign created resources
+        if (resources.siteId) {
+          siteDetails = {
+            siteId: resources.siteId,
+            siteName: '',
+            categoryId: '',
+            categoryName: '',
+            access: '',
+          };
         }
-      );
+        if (resources.contentId) {
+          siteDetails = {
+            siteId: resources.siteId,
+            siteName: '',
+            categoryId: '',
+            categoryName: '',
+            access: '',
+          };
+          pageDetails = {
+            contentId: resources.contentId,
+            siteId: resources.siteId,
+            pageName: '',
+            authorName: '',
+            contentDescription: '',
+          };
+        }
 
-      test.afterEach('Cleanup created posts', async ({ feedManagementHelper }) => {
+        // Generate feed data based on feed type
+        switch (testData.feedType) {
+          case 'Home Feed': {
+            feedTestDataGenerated = TestDataGenerator.generateFeed({
+              scope: 'public',
+              siteId: undefined,
+              withAttachment: testData.hasAttachment,
+              fileName: testData.fileName,
+              fileSize: testData.fileSize,
+              mimeType: testData.mimeType,
+              filePath: testData.filePath,
+              waitForSearchIndex: false,
+            });
+            break;
+          }
+
+          case 'Site Feed': {
+            feedTestDataGenerated = TestDataGenerator.generateFeed({
+              scope: 'site',
+              siteId: siteDetails.siteId,
+              withAttachment: testData.hasAttachment,
+              fileName: testData.fileName,
+              fileSize: testData.fileSize,
+              mimeType: testData.mimeType,
+              filePath: testData.filePath,
+              waitForSearchIndex: false,
+            });
+            break;
+          }
+
+          case 'Content Feed': {
+            feedTestDataGenerated = TestDataGenerator.generateFeed({
+              scope: 'site',
+              siteId: siteDetails.siteId,
+              contentId: pageDetails.contentId,
+              withAttachment: testData.hasAttachment,
+              fileName: testData.fileName,
+              fileSize: testData.fileSize,
+              mimeType: testData.mimeType,
+              filePath: testData.filePath,
+              waitForSearchIndex: false,
+            });
+            break;
+          }
+
+          default:
+            throw new Error(`Unknown feed type: ${testData.feedType}`);
+        }
+
+        // Create feed via API
+        feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestDataGenerated);
+        createdPostText = feedTestDataGenerated.text;
+        createdPostId = feedResponse.result.feedId;
+        fileId = feedResponse.result.listOfFiles[0].fileId;
+
+        console.log(`Created feed with attachment via API: ${feedResponse.result.feedId}`);
+
+        // Navigate to feed URL
+        if (testData.feedType === 'Content Feed') {
+          contentPreviewPage = new ContentPreviewPage(
+            appManagerFixture.page,
+            siteDetails.siteId,
+            pageDetails.contentId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+        } else if (testData.feedType === 'Site Feed') {
+          siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.actions.clickOnFeedLink();
+        } else if (testData.feedType === 'Home Feed') {
+          await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
+        }
+        await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+      });
+
+      test.afterEach('Cleanup created posts', async ({ appManagerFixture }) => {
+        const feedManagementHelper = appManagerFixture.feedManagementHelper;
         if (createdPostId) {
           await feedManagementHelper.deleteFeed(createdPostId);
           createdPostId = '';

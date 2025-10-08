@@ -559,6 +559,13 @@ export class SiteManagementHelper {
       waitForSearchIndex?: boolean;
     }
   ): Promise<{ siteId: string; name: string }> {
+    // Defensive check to ensure accessType is a string
+    if (typeof accessType !== 'string') {
+      throw new Error(
+        `Expected accessType to be a string, but received: ${typeof accessType}. Value: ${JSON.stringify(accessType)}`
+      );
+    }
+
     const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
     let siteDetails = siteListResponse.result.listOfItems.find(site => site.isActive === true);
     let siteId: string | undefined, siteName: string | undefined;

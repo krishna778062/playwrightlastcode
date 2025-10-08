@@ -8,7 +8,7 @@ import { tagTest } from '@/src/core/utils/testDecorator';
 
 test.describe('Send Message', { tag: [TestPriority.P2, CHAT_SUITE_TAGS.USER_CHAT] }, () => {
   for (const data of messageTestData) {
-    test(`Scenario: ${data.testName}`, async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+    test(`Scenario: ${data.testName}`, async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: data.description,
         zephyrTestId: data.testId || 'CHAT-2179',
@@ -17,9 +17,7 @@ test.describe('Send Message', { tag: [TestPriority.P2, CHAT_SUITE_TAGS.USER_CHAT
 
       // Generate dynamic message
       const message = typeof data.message === 'function' ? data.message() : data.message;
-
-      await appManagerHomePage.verifyThePageIsLoaded();
-      const chatAppPage = await appManagerUINavigationHelper.navigateToChatPageViaTopNavBar();
+      const chatAppPage = await appManagerFixture.navigationHelper.navigateToChatPageViaTopNavBar();
       await chatAppPage.actions.openDirectMessageWithUser(CONSTANT_DATA.USER_NAME_1);
       await chatAppPage.sendMessage(message);
 

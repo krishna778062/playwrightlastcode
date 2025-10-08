@@ -1,5 +1,3 @@
-import { expect, Page } from '@playwright/test';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
@@ -15,10 +13,10 @@ test.describe('Protected Authors', () => {
   let manageApplicationPage: ManageApplicationPage;
   let privilegesScreenPage: PrivilegesScreenPage;
 
-  test.beforeEach('Setup for protected authors test', async ({ appManagersPage }) => {
-    applicationScreen = new ApplicationScreenPage(appManagersPage);
-    manageApplicationPage = new ManageApplicationPage(appManagersPage);
-    privilegesScreenPage = new PrivilegesScreenPage(appManagersPage);
+  test.beforeEach('Setup for protected authors test', async ({ appManagerFixture }) => {
+    applicationScreen = new ApplicationScreenPage(appManagerFixture.page);
+    manageApplicationPage = new ManageApplicationPage(appManagerFixture.page);
+    privilegesScreenPage = new PrivilegesScreenPage(appManagerFixture.page);
   });
 
   test.afterEach(async ({}) => {});
@@ -27,16 +25,18 @@ test.describe('Protected Authors', () => {
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.ADD_USERS_TO_AUTHOR],
     },
-    async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description:
           'Verify As an application manager, I should be able to add the users to protected authors - authors list',
         zephyrTestId: 'CONT-32768',
         storyId: 'CONT-32768',
       });
-      const loggedInUserName = await appManagerHomePage.getCurrentLoggedInUserName('Get current logged-in user name');
-      await appManagerHomePage.verifyThePageIsLoaded();
-      await appManagerUINavigationHelper.openApplicationSettings();
+      const loggedInUserName = await appManagerFixture.homePage.getCurrentLoggedInUserName(
+        'Get current logged-in user name'
+      );
+      await appManagerFixture.homePage.verifyThePageIsLoaded();
+      await appManagerFixture.navigationHelper.openApplicationSettings();
       await applicationScreen.actions.clickOnApplication();
       await manageApplicationPage.actions.clickOnPrivileges();
       await privilegesScreenPage.assertions.verifyProtectedAuthorsAuthorsFieldBarIsVisible();

@@ -24,7 +24,7 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
   };
   let siteFilesPage: SiteFilesPage;
   const testSiteName = `All Employees`;
-  test.beforeEach('Setup : Navigating to Site Files page', async ({ appManagersPage, siteManagementHelper }) => {
+  test.beforeEach('Setup : Navigating to Site Files page', async ({ appManagerFixture }) => {
     // Create random file copy
     const originalFilePath = `src/modules/content/test-data/static-files/documents/FilesPreview_BEHAVE_DOC_1_PDF.pdf`;
     const fileInfo = FileUtil.createRandomFileCopy(originalFilePath);
@@ -34,8 +34,8 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
       deleteByUI: true,
     };
     // Navigate to Site Files page
-    const siteId = await siteManagementHelper.getSiteIdWithName(testSiteName);
-    const siteManager = new SiteManager(appManagersPage, siteId);
+    const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(testSiteName);
+    const siteManager = new SiteManager(appManagerFixture.page, siteId);
     await siteManager.loadSite();
     siteFilesPage = (await siteManager.goToTab(SitePageTab.FilesTab)) as SiteFilesPage;
     await siteFilesPage.verifyThePageIsLoaded();

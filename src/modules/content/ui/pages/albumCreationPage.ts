@@ -196,7 +196,8 @@ export class AlbumCreationPage extends BasePage {
         35_000
       );
       const fileInput = this.fileInputGeneral.first();
-      const filePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', 'images', imageName);
+      const filePath = FileUtil.getFilePath(__dirname, '..', '..', 'test-data', 'static-files', 'images', imageName);
+      console.log('filePath: ', filePath);
       await this.addInputFiles(fileInput, filePath);
       //wait for all the requests to be completed
       await Promise.all(reqPromises);
@@ -238,7 +239,7 @@ export class AlbumCreationPage extends BasePage {
       // Determine folder based on file extension
       const fileExtension = fileName.split('.').pop()?.toLowerCase();
       const folder = ['docx', 'xlsx', 'pdf'].includes(fileExtension || '') ? 'excel' : 'images';
-      const filePath = FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', folder, fileName);
+      const filePath = FileUtil.getFilePath(__dirname, '..', '..', 'test-data', 'static-files', folder, fileName);
       await this.addInputFiles(this.addFromContainerInput, filePath);
 
       // Wait for the upload request to complete

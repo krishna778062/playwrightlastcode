@@ -15,9 +15,9 @@ test.describe(
   () => {
     let manageFeaturesPage: ApplicationScreenPage;
     let manageContentPage: ManageContentPage;
-    test.beforeEach(async ({ standardUserPage }) => {
-      manageFeaturesPage = new ApplicationScreenPage(standardUserPage);
-      manageContentPage = new ManageContentPage(standardUserPage);
+    test.beforeEach(async ({ standardUserFixture }) => {
+      manageFeaturesPage = new ApplicationScreenPage(standardUserFixture.page);
+      manageContentPage = new ManageContentPage(standardUserFixture.page);
     });
 
     test(
@@ -31,7 +31,7 @@ test.describe(
           '@CONT-25065',
         ],
       },
-      async ({ standardUserUINavigationHelper }) => {
+      async ({ standardUserFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify if end user does not select any option from bulk options apply button should be disabled',
@@ -40,7 +40,7 @@ test.describe(
           storyId: 'CONT-25065',
         });
 
-        await standardUserUINavigationHelper.openManageFeatureSectionInSideBar();
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickOnSelectAllButton();
         await manageContentPage.actions.applyButtonShouldBeDisabled();

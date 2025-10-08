@@ -14,12 +14,12 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
   test(
     'CSV Upload: Verify user can fill audience name, description, select category, upload CSV file, and create audience',
     { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
-    async ({ appManagerPage, audienceCategoryManagementHelper }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-33624', 'PS-33625', 'PS-33628'],
       });
 
-      const audiencePage = new AudiencePage(appManagerPage);
+      const audiencePage = new AudiencePage(appManagerFixture.page);
       const uniqueCategoryName = TestDataGenerator.generateCategoryName('CSV_TestCategory');
       const uniqueAudienceName = TestDataGenerator.generateAudienceName('CSV_TestAudience');
       const audienceDescription = TestDataGenerator.generateRandomString('CSV audience description');
@@ -27,7 +27,7 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
       await audiencePage.loadPage();
 
       // Step 1: Create category via API
-      await audienceCategoryManagementHelper.createCategory(uniqueCategoryName, {
+      await appManagerFixture.audienceCategoryManagementHelper.createCategory(uniqueCategoryName, {
         description: 'Category created via API for CSV test',
       });
 
@@ -58,12 +58,12 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
   test(
     'CSV Upload Error Validation: Verify error messages for missing name, invalid CSV format, and download example CSV',
     { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-33632', 'PS-33630', 'PS-33629', 'PS-33627'],
       });
 
-      const audiencePage = new AudiencePage(appManagerPage);
+      const audiencePage = new AudiencePage(appManagerFixture.page);
 
       await audiencePage.loadPage();
 
@@ -97,12 +97,12 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
   test(
     'CSV Upload: Verify blank CSV file validation error',
     { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-33633'],
       });
 
-      const audiencePage = new AudiencePage(appManagerPage);
+      const audiencePage = new AudiencePage(appManagerFixture.page);
 
       await audiencePage.loadPage();
       await audiencePage.openCreateAudienceWithCsvModal();
@@ -122,12 +122,12 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
   test(
     'CSV Upload: Verify user can add new category during CSV upload process',
     { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
-    async ({ appManagerPage, audienceCategoryManagementHelper, identityManagementHelper }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-33626'],
       });
 
-      const audiencePage = new AudiencePage(appManagerPage);
+      const audiencePage = new AudiencePage(appManagerFixture.page);
       const uniqueAudienceName = TestDataGenerator.generateAudienceName('CSV_NewCategoryTest');
       const newCategoryName = TestDataGenerator.generateCategoryName('CSV_CreatedCategory');
       const audienceDescription = TestDataGenerator.generateRandomString('CSV audience with new category');
@@ -157,11 +157,14 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
       await audiencePage.page.waitForTimeout(3000);
 
       // Step 8: Verify new category was created using API
-      const categoryId = await identityManagementHelper.identityService.getCategoryId(newCategoryName, 100);
+      const categoryId = await appManagerFixture.identityManagementHelper.identityService.getCategoryId(
+        newCategoryName,
+        100
+      );
       expect(categoryId, `Category "${newCategoryName}" should be created during CSV upload`).toBeTruthy();
 
       // Step 9: Register the existing category for cleanup (don't create duplicate)
-      audienceCategoryManagementHelper.registerCategoryForCleanup(categoryId, newCategoryName);
+      appManagerFixture.audienceCategoryManagementHelper.registerCategoryForCleanup(categoryId, newCategoryName);
     }
   );
 });

@@ -11,14 +11,14 @@ test.describe('Create new message button visibility', { tag: [CHAT_SUITE_TAGS.DI
     {
       tag: [TestPriority.P2, TestGroupType.SMOKE],
     },
-    async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'To verify create new message and create new group button',
         zephyrTestId: 'CHAT-2179',
         storyId: 'CHAT-2179',
       });
-      await appManagerHomePage.verifyThePageIsLoaded();
-      const chatAppPage = await appManagerUINavigationHelper.navigateToChatPageViaTopNavBar();
+      await appManagerFixture.homePage.verifyThePageIsLoaded();
+      const chatAppPage = await appManagerFixture.navigationHelper.navigateToChatPageViaTopNavBar();
       await chatAppPage.getInboxSideBarComponent().clickOnCreateNewMessageIcon();
       await chatAppPage.getInboxSideBarComponent().verifyCreateNewMessageDropDownOptionIsVisible();
       await chatAppPage.getInboxSideBarComponent().verifyCreateNewGroupDropDownOptionIsVisible();

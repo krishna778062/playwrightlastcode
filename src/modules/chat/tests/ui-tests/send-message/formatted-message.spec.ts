@@ -9,7 +9,7 @@ import { tagTest } from '@/src/core/utils/testDecorator';
 
 test.describe('Select format then send message', { tag: [TestPriority.P2] }, () => {
   for (const data of formattedMessageTestData) {
-    test(`Scenario: ${data.testName}`, async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+    test(`Scenario: ${data.testName}`, async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: data.testId,
         storyId: data.storyId,
@@ -31,8 +31,7 @@ test.describe('Select format then send message', { tag: [TestPriority.P2] }, () 
         usesOrderList: data.usesOrderList,
       };
 
-      await appManagerHomePage.verifyThePageIsLoaded();
-      const chatAppPage = await appManagerUINavigationHelper.navigateToChatPageViaTopNavBar();
+      const chatAppPage = await appManagerFixture.navigationHelper.navigateToChatPageViaTopNavBar();
       await chatAppPage.actions.openDirectMessageWithUser(CONSTANT_DATA.USER_NAME_1);
 
       // Send formatted message using chatAppPage method

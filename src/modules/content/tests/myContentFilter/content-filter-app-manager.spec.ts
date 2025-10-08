@@ -18,9 +18,9 @@ test.describe(
     let manageFeaturesPage: ApplicationScreenPage;
     let manageContentPage: ManageContentPage;
 
-    test.beforeEach(async ({ appManagersPage }) => {
-      manageFeaturesPage = new ApplicationScreenPage(appManagersPage);
-      manageContentPage = new ManageContentPage(appManagersPage);
+    test.beforeEach(async ({ appManagerFixture }) => {
+      manageFeaturesPage = new ApplicationScreenPage(appManagerFixture.page);
+      manageContentPage = new ManageContentPage(appManagerFixture.page);
     });
 
     test(
@@ -34,15 +34,17 @@ test.describe(
           '@CONT-33059',
         ],
       },
-      async ({ contentManagementHelper, siteManagementHelper, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify published status for scheduled page by app manager',
           customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
           zephyrTestId: 'CONT-33059',
           storyId: 'CONT-33059',
         });
-        const siteInfo = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, { hasPages: true });
-        const pageInfo = await contentManagementHelper.createPage({
+        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
+          hasPages: true,
+        });
+        const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
           options: {
@@ -50,7 +52,7 @@ test.describe(
             publishTo: getTomorrowDateIsoString(),
           },
         });
-        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectCreatedNewestOption();
@@ -64,7 +66,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25065'],
       },
-      async ({ appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify if Application Manager does not select any option from bulk options apply button should be disabled',
@@ -72,7 +74,7 @@ test.describe(
           zephyrTestId: 'CONT-25065',
           storyId: 'CONT-25065',
         });
-        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickOnSelectAllButton();
         await manageContentPage.actions.applyButtonShouldBeDisabled();

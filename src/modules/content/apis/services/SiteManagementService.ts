@@ -308,12 +308,12 @@ export class SiteManagementService implements ISiteManagementOperations {
     return await test.step(`Making user ${userId} a content manager for site ${siteId}`, async () => {
       const payload: any = {
         userId: userId,
-        action: action,
+        action: action.toString(), // Convert enum to string
       };
 
-      // Only include permission for ADD operations, not for REMOVE
-      if (action === SiteMembershipAction.ADD) {
-        payload.permission = permission;
+      // Include permission for ADD and SET_PERMISSION operations, not for REMOVE
+      if (action === SiteMembershipAction.ADD || action === SiteMembershipAction.SET_PERMISSION) {
+        payload.permission = permission.toString(); // Convert enum to string
       }
 
       const response = await this.httpClient.post(API_ENDPOINTS.site.manageMembers(siteId), {

@@ -18,22 +18,24 @@ test.describe(
     let createdPostText: string;
     let createdPostId: string = '';
 
-    test.beforeEach(async ({ standardUserHomePage, feedManagementHelper, standardUserUINavigationHelper }) => {
+    test.beforeEach(async ({ standardUserFixture, appManagerFixture }) => {
       // Configure app governance settings and enable timeline comment post(feed)
-      await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
+      await appManagerFixture.feedManagementHelper.configureAppGovernance({
+        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+      });
 
-      await standardUserHomePage.verifyThePageIsLoaded();
-      await standardUserUINavigationHelper.clickOnGlobalFeed();
+      await standardUserFixture.homePage.verifyThePageIsLoaded();
+      await standardUserFixture.navigationHelper.clickOnGlobalFeed();
 
-      feedPage = new FeedPage(standardUserHomePage.page);
+      feedPage = new FeedPage(standardUserFixture.page);
       await feedPage.verifyThePageIsLoaded();
     });
 
-    test.afterEach(async ({ feedManagementHelper }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
       // Cleanup: Delete post using API if test failed and post still exists
-      if (createdPostId && feedManagementHelper) {
+      if (createdPostId && appManagerFixture.feedManagementHelper) {
         try {
-          await feedManagementHelper.deleteFeed(createdPostId);
+          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
         } catch (error) {
           console.log('Failed to cleanup feed via API:', error);
         }

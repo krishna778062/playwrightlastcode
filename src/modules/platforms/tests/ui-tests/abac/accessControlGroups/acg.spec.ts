@@ -33,12 +33,14 @@ test.describe(
     const categoryId: string[] = [];
     let createAudienceParams: audienceCreationParams;
 
-    test.beforeEach(async ({ identityManagementHelper }) => {
+    test.beforeEach(async ({ appManagerFixture }) => {
       categoryToCreate = TestDataGenerator.generateCategoryName('ABAC_Target_Category');
       audienceToCreate.push(TestDataGenerator.generateCategoryName('ABAC_Target_Audience'));
       audienceToCreate.push(TestDataGenerator.generateCategoryName('ABAC_Target_Audience_Secondary'));
 
-      categoryId.push(await identityManagementHelper.identityService.createCategory(categoryToCreate));
+      categoryId.push(
+        await appManagerFixture.identityManagementHelper.identityService.createCategory(categoryToCreate)
+      );
       createAudienceParams = {
         audienceName: audienceToCreate[0],
         categoryId: categoryId[0],
@@ -46,23 +48,27 @@ test.describe(
         operator: AUDIENCE_API_OPERATORS.CONTAINS,
         value: 'something',
       };
-      audienceId.push(await identityManagementHelper.identityService.createAudience(createAudienceParams));
+      audienceId.push(
+        await appManagerFixture.identityManagementHelper.identityService.createAudience(createAudienceParams)
+      );
       createAudienceParams.audienceName = audienceToCreate[1];
-      audienceId.push(await identityManagementHelper.identityService.createAudience(createAudienceParams));
+      audienceId.push(
+        await appManagerFixture.identityManagementHelper.identityService.createAudience(createAudienceParams)
+      );
     });
 
-    test.afterEach(async ({ identityManagementHelper }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
       //delete the acg if it exists
       while (acgName.length > 0) {
-        await identityManagementHelper.identityService.deleteACGByName(acgName.pop() as string);
+        await appManagerFixture.identityManagementHelper.identityService.deleteACGByName(acgName.pop() as string);
       }
       //delete the audiences if it exists
       while (audienceId.length > 0) {
-        await identityManagementHelper.identityService.deleteAudience(audienceId.pop() as string);
+        await appManagerFixture.identityManagementHelper.identityService.deleteAudience(audienceId.pop() as string);
       }
       //delete the category if it exists
       while (categoryId.length > 0) {
-        await identityManagementHelper.identityService.deleteCategoryById(categoryId.pop() as string);
+        await appManagerFixture.identityManagementHelper.identityService.deleteCategoryById(categoryId.pop() as string);
       }
     });
 
@@ -76,17 +82,17 @@ test.describe(
       {
         tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
-      async ({ appManagerPage, identityManagementHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-29969', 'PS-29972', 'PS-32216'],
         });
-        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerFixture.page);
         // Test Scenario(s)
         await accessControlGroupsPage.loadPage();
         //after these actions are done, we will wait for the api call to be completed
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
         await accessControlGroupsPage.verifyACGStatus(acgName[0], ACG_STATUS.ACTIVE);
-        await identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
+        await appManagerFixture.identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
           'Access control group was successfully updated'
         );
@@ -100,11 +106,11 @@ test.describe(
       {
         tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
-      async ({ appManagerPage, identityManagementHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'PS-32216',
         });
-        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerFixture.page);
         // Test Scenario - Verify that status of the ACG should be displayed as Inactive immediately after creation
         await accessControlGroupsPage.loadPage();
         acgName.push(
@@ -113,7 +119,7 @@ test.describe(
           })
         );
         await accessControlGroupsPage.verifyACGStatus(acgName[0], ACG_STATUS.INACTIVE);
-        await identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
+        await appManagerFixture.identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
           'Access control group was successfully updated'
         );
@@ -127,16 +133,16 @@ test.describe(
       {
         tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
-      async ({ userManagerPage, identityManagementHelper }) => {
+      async ({ userManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-33248', 'PS-33250'],
         });
-        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(userManagerPage);
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(userManagerFixture.page);
         // Test Scenario
         await accessControlGroupsPage.loadPage();
         //after these actions are done, we will wait for the api call to be completed
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
-        await identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
+        await appManagerApiFixture.identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
           'Access control group was successfully updated'
         );
@@ -150,14 +156,12 @@ test.describe(
       {
         tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-31188'],
         });
-        // Test Scenario
-        await appManagerHomePage.verifyThePageIsLoaded();
-        await appManagerUINavigationHelper.openApplicationSettings();
-        await appManagerUINavigationHelper.verifyRolesButtonVisibility(false);
+        await appManagerFixture.navigationHelper.openApplicationSettings();
+        await appManagerFixture.navigationHelper.verifyRolesButtonVisibility(false);
       }
     );
 
@@ -166,13 +170,13 @@ test.describe(
       {
         tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-31189'],
         });
         // Test Scenario
-        await appManagerHomePage.goToUrl('manage/roles');
-        await appManagerHomePage.verifyPageNotFoundVisibility();
+        await appManagerFixture.page.goto('manage/roles');
+        await appManagerFixture.homePage.verifyPageNotFoundVisibility();
       }
     );
 
@@ -181,12 +185,12 @@ test.describe(
       {
         tag: [TestPriority.P0, `@ABAC`],
       },
-      async ({ appManagerPage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify that the feature list displayed under Feature owners tab should be unique',
           zephyrTestId: 'PS-32997',
         });
-        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
+        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
         // Navigate to Feature owners page
         await featureOwnersPage.loadPage();
         // Click "Show more" button to load additional features for uniqueness testing
@@ -208,12 +212,12 @@ test.describe(
       {
         tag: [TestPriority.P0, `@ABAC`],
       },
-      async ({ appManagerPage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify search functionality with invalid string shows no results found message',
           zephyrTestId: 'PS-32965',
         });
-        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
+        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
         // Navigate to Feature owners page
         await featureOwnersPage.loadPage();
         // Test search functionality with invalid string
@@ -227,12 +231,12 @@ test.describe(
       {
         tag: [TestPriority.P1, `@ABAC`],
       },
-      async ({ appManagerPage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify that clicking on owners count should trigger a popup displaying user info',
           zephyrTestId: 'PS-32884',
         });
-        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
+        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
         // Navigate to Feature owners page
         await featureOwnersPage.loadPage();
         // Click on owner count button for the first available feature and get the count value
@@ -247,12 +251,12 @@ test.describe(
       {
         tag: [TestPriority.P1, `@ABAC`],
       },
-      async ({ appManagerPage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify that a warning popup is displayed before edit Access control group popup',
           zephyrTestId: 'PS-31321',
         });
-        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerFixture.page);
         // Navigate to Access Control Groups page
         await accessControlGroupsPage.loadPage();
         // Click on menu for any ACG
@@ -269,13 +273,13 @@ test.describe(
       {
         tag: [TestPriority.P1, `@ABAC`],
       },
-      async ({ appManagerPage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify that user should be able to change managers from managers screen while editing them during ACG creation flow',
           zephyrTestId: 'PS-30956',
         });
-        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerFixture.page);
         await accessControlGroupsPage.loadPage();
         await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
         await accessControlGroupsPage.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
@@ -310,16 +314,16 @@ test.describe(
       {
         tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
-      async ({ appManagerPage, identityManagementHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-32210'],
         });
-        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerFixture.page);
         // Pre-requisite
         await accessControlGroupsPage.loadPage();
         // Create an ACG with target audiecne only
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
-        await identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
+        await appManagerFixture.identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
           'Access control group was successfully updated'
         );
@@ -344,22 +348,22 @@ test.describe(
       {
         tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
-      async ({ appManagerPage, identityManagementHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-32212'],
         });
-        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerFixture.page);
         await accessControlGroupsPage.loadPage();
         // Prerequisite
         // Create an ACG with target audiecne only
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
-        await identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
+        await appManagerFixture.identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
           'Access control group was successfully updated'
         );
         await accessControlGroupsPage.dismissTheToastMessage();
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[1]));
-        await identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[1]);
+        await appManagerFixture.identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[1]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
           'Access control group was successfully updated'
         );
@@ -387,7 +391,7 @@ test.describe(
       {
         tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
-      async ({ appManagerPage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: [
             'PS-31013',
@@ -400,7 +404,7 @@ test.describe(
             'PS-31007',
           ],
         });
-        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerFixture.page);
         // Test Scenario
         await accessControlGroupsPage.loadPage();
         await accessControlGroupsPage.verifyColumnIsDisplayed(ACG_COLUMNS.NAME);
@@ -427,11 +431,11 @@ test.describe(
       {
         tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
       },
-      async ({ appManagerPage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-35732', 'PS-35733', 'PS-35734', 'PS-35735', 'PS-35736'],
         });
-        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerFixture.page);
         // Test Scenario
         await accessControlGroupsPage.loadPage();
         await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.NAME);

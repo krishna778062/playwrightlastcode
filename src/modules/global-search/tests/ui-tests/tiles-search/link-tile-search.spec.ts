@@ -145,7 +145,13 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
-      async ({ tileCleanupTracker, tileManagementHelper, appManagerUINavigationHelper, appManagerUserPage }) => {
+      async ({
+        tileCleanupTracker,
+        tileManagementHelper,
+        appManagerUINavigationHelper,
+        appManagerUserPage,
+        appManagerHomePage,
+      }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19440',
         });
@@ -161,6 +167,7 @@ test.describe(
 
         const tileId = tileResponse.result.id;
         const tileTitle = testData.tileTitle;
+        await appManagerHomePage.verifyThePageIsLoaded();
 
         // Type in search input
         await appManagerUINavigationHelper.topNavBarComponent.typeInSearchBarInput(tileTitle, {

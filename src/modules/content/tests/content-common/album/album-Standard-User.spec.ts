@@ -51,29 +51,26 @@ test.describe(
     let siteIdToPublishAlbum: string;
     let manualCleanupNeeded = false;
 
-    test.beforeEach(
-      'Setting up the test environment for album creation',
-      async ({ standardUserHomePage, standardUserPage }) => {
-        // Create home page instance and verify it's loaded
-        await standardUserHomePage.verifyThePageIsLoaded();
+    test.beforeEach('Setting up the test environment for album creation', async ({ standardUserFixture }) => {
+      // Create home page instance and verify it's loaded
+      await standardUserFixture.homePage.verifyThePageIsLoaded();
 
-        // Initialize preview page
-        contentPreviewPageStandardUser = new ContentPreviewPage(
-          standardUserPage,
-          siteIdToPublishAlbum,
-          publishedAlbumId,
-          ContentType.ALBUM
-        );
+      // Initialize preview page
+      contentPreviewPageStandardUser = new ContentPreviewPage(
+        standardUserFixture.page,
+        siteIdToPublishAlbum,
+        publishedAlbumId,
+        ContentType.ALBUM
+      );
 
-        // Reset cleanup flag for each test
-        manualCleanupNeeded = false;
-      }
-    );
+      // Reset cleanup flag for each test
+      manualCleanupNeeded = false;
+    });
 
-    test.afterEach(async ({ contentManagementHelper }) => {
+    test.afterEach(async ({ standardUserFixture }) => {
       // Only cleanup manually if needed (for UI-only tests)
       if (manualCleanupNeeded && publishedAlbumId && siteIdToPublishAlbum) {
-        await contentManagementHelper.deleteContent(siteIdToPublishAlbum, publishedAlbumId);
+        await standardUserFixture.contentManagementHelper.deleteContent(siteIdToPublishAlbum, publishedAlbumId);
         console.log('Manual cleanup completed for album:', publishedAlbumId);
       } else {
         console.log('No album was published, hence skipping the deletion');
@@ -86,13 +83,7 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
         },
-        async ({
-          standardUserHomePage,
-          appManagerHomePage,
-          appManagerApiContext,
-          standardUserUINavigationHelper,
-          appManagerUINavigationHelper,
-        }) => {
+        async ({ standardUserFixture, appManagerFixture, appManagerApiContext }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
@@ -101,15 +92,15 @@ test.describe(
 
           // Initialize preview page
           contentPreviewPageAppManager = new ContentPreviewPage(
-            appManagerHomePage.page,
+            appManagerFixture.page,
             siteIdToPublishAlbum,
             publishedAlbumId,
             ContentType.ALBUM
           );
 
           // Navigate to album creation by standard user
-          await standardUserHomePage.verifyThePageIsLoaded();
-          albumCreationPage = (await standardUserUINavigationHelper.openCreateContentPageForContentType(
+          await standardUserFixture.homePage.verifyThePageIsLoaded();
+          albumCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
             ContentType.ALBUM
           )) as AlbumCreationPage;
 
@@ -138,9 +129,9 @@ test.describe(
 
           await contentPreviewPageStandardUser.assertions.verifyContentStatus('Pending');
 
-          await appManagerHomePage.page.reload();
+          await appManagerFixture.page.reload();
           // Handle notification and perform action (approve/reject)
-          const notificationComponentAppManager = await appManagerUINavigationHelper.clickOnBellIcon({
+          const notificationComponentAppManager = await appManagerFixture.navigationHelper.clickOnBellIcon({
             stepInfo: 'Application Manager clicking on bell icon to view notifications',
           });
           const notificationMessage =
@@ -157,8 +148,8 @@ test.describe(
             testData.actionSuccessMessage
           );
 
-          await standardUserHomePage.page.reload();
-          const notificationMessageStandardUser = await standardUserUINavigationHelper.clickOnBellIcon({
+          await standardUserFixture.page.reload();
+          const notificationMessageStandardUser = await standardUserFixture.navigationHelper.clickOnBellIcon({
             stepInfo: 'Standard user clicking on bell icon to view notifications',
           });
           const identityManagementHelper = new IdentityManagementHelper(

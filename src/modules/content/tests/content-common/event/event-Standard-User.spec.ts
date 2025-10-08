@@ -27,29 +27,26 @@ test.describe(
     let siteIdToPublishEvent: string;
     let manualCleanupNeeded = false;
 
-    test.beforeEach(
-      'Setting up the test environment for event creation',
-      async ({ standardUserHomePage, standardUserPage }) => {
-        // Create home page instance and verify it's loaded
-        await standardUserHomePage.verifyThePageIsLoaded();
+    test.beforeEach('Setting up the test environment for event creation', async ({ standardUserFixture }) => {
+      // Create home page instance and verify it's loaded
+      await standardUserFixture.homePage.verifyThePageIsLoaded();
 
-        // Initialize preview page
-        contentPreviewPageStandardUser = new ContentPreviewPage(
-          standardUserPage,
-          siteIdToPublishEvent,
-          publishedEventId,
-          ContentType.EVENT
-        );
+      // Initialize preview page
+      contentPreviewPageStandardUser = new ContentPreviewPage(
+        standardUserFixture.page,
+        siteIdToPublishEvent,
+        publishedEventId,
+        ContentType.EVENT
+      );
 
-        // Reset cleanup flag for each test
-        manualCleanupNeeded = false;
-      }
-    );
+      // Reset cleanup flag for each test
+      manualCleanupNeeded = false;
+    });
 
-    test.afterEach(async ({ contentManagementHelper }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
       // Only cleanup manually if needed (for UI-only tests)
       if (manualCleanupNeeded && publishedEventId && siteIdToPublishEvent) {
-        await contentManagementHelper.deleteContent(siteIdToPublishEvent, publishedEventId);
+        await appManagerFixture.contentManagementHelper.deleteContent(siteIdToPublishEvent, publishedEventId);
         console.log('Manual cleanup completed for event:', publishedEventId);
       } else {
         console.log('No event was published, hence skipping the deletion');
@@ -86,14 +83,7 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.EVENT_CREATION],
         },
-        async ({
-          standardUserHomePage,
-          appManagerHomePage,
-          siteManagementHelper,
-          appManagerApiContext,
-          standardUserUINavigationHelper,
-          appManagerUINavigationHelper,
-        }) => {
+        async ({ appManagerFixture, standardUserFixture, appManagerApiContext }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
@@ -102,15 +92,15 @@ test.describe(
 
           // Initialize preview page for app manager
           contentPreviewPageAppManager = new ContentPreviewPage(
-            appManagerHomePage.page,
+            appManagerFixture.page,
             siteIdToPublishEvent,
             publishedEventId,
             ContentType.EVENT
           );
-          await standardUserHomePage.verifyThePageIsLoaded();
+          await standardUserFixture.homePage.verifyThePageIsLoaded();
 
           // Navigate to event creation by standard user
-          eventCreationPage = (await standardUserUINavigationHelper.openCreateContentPageForContentType(
+          eventCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
             ContentType.EVENT
           )) as EventCreationPage;
 
@@ -136,9 +126,9 @@ test.describe(
 
           await contentPreviewPageStandardUser.assertions.verifyContentStatus('Pending');
 
-          await appManagerHomePage.page.reload();
+          await appManagerFixture.page.reload();
           // Handle notification and perform action (approve/reject)
-          const notificationComponentAppManager = await appManagerUINavigationHelper.clickOnBellIcon({
+          const notificationComponentAppManager = await appManagerFixture.navigationHelper.clickOnBellIcon({
             stepInfo: 'Application Manager clicking on bell icon to view notifications',
           });
           const notificationMessage =
@@ -155,8 +145,8 @@ test.describe(
             testData.actionSuccessMessage
           );
 
-          await standardUserHomePage.page.reload();
-          const notificationMessageStandardUser = await standardUserUINavigationHelper.clickOnBellIcon({
+          await standardUserFixture.page.reload();
+          const notificationMessageStandardUser = await standardUserFixture.navigationHelper.clickOnBellIcon({
             stepInfo: 'Standard user clicking on bell icon to view notifications',
           });
           const identityManagementHelper = new IdentityManagementHelper(

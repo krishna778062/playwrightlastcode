@@ -14,11 +14,11 @@ test.describe(
     let createdSite: any;
     let featureSites: { siteId: string; name: string }[] = [];
 
-    test.afterEach(async ({ siteManagementHelper }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
       if (featureSites.length > 0) {
         for (const site of featureSites) {
           try {
-            await siteManagementHelper.makeSiteUnFeatured(site.siteId);
+            await appManagerFixture.siteManagementHelper.makeSiteUnFeatured(site.siteId);
             console.log(`Successfully unfeatured site: ${site.name}`);
           } catch (error) {
             console.warn(`Failed to unfeature site ${site.name}:`, error);
@@ -33,20 +33,20 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage, siteManagementHelper, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Test featured sites navigation from home dashboard to site dashboard',
           zephyrTestId: 'CONT-20911',
           storyId: 'CONT-20911',
         });
 
-        createdSite = await siteManagementHelper.createPublicSite({
+        createdSite = await appManagerFixture.siteManagementHelper.createPublicSite({
           overrides: { access: SITE_TEST_DATA[0].siteType },
         });
         console.log(`Created site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
 
-        await appManagerHomePage.verifyThePageIsLoaded();
-        const featuredSitePage = await appManagerUINavigationHelper.clickOnFeaturedSitesTab();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const featuredSitePage = await appManagerFixture.navigationHelper.clickOnFeaturedSitesTab();
         await featuredSitePage.actions.clickOnAddUpdateFeaturedSiteButton();
 
         // Step 1: Search and add the created site to featured
@@ -79,17 +79,18 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-27919'],
       },
-      async ({ appManagerHomePage, siteManagementHelper, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Shuffling sites from feature modal list',
           zephyrTestId: 'CONT-27919',
           storyId: 'CONT-27919',
         });
-        await appManagerHomePage.verifyThePageIsLoaded();
-        const featuredSitePage = await appManagerUINavigationHelper.clickOnFeaturedSitesTab();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const featuredSitePage = await appManagerFixture.navigationHelper.clickOnFeaturedSitesTab();
         await featuredSitePage.actions.clickOnAddUpdateFeaturedSiteButton();
 
-        const unFeaturedSites: { siteId: string; name: string }[] = await siteManagementHelper.getUnFeaturedSites();
+        const unFeaturedSites: { siteId: string; name: string }[] =
+          await appManagerFixture.siteManagementHelper.getUnFeaturedSites();
         for (const site of unFeaturedSites) {
           await featuredSitePage.actions.addSiteToFeatured(site.name);
           featureSites.push(site); // Add the entire site object to the array

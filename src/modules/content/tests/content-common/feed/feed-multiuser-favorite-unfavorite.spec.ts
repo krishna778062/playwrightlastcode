@@ -48,6 +48,7 @@ test.describe(
           __dirname,
           '..',
           '..',
+          '..',
           'test-data',
           'static-files',
           'images',
@@ -59,35 +60,30 @@ test.describe(
 
     test.beforeEach(
       'Setup test environment and create feed',
-      async ({
-        appManagerHomePage,
-        standardUserHomePage,
-        siteManagerHomePage,
-        appManagerApiContext,
-        siteManagementHelper,
-        feedManagementHelper,
-      }) => {
+      async ({ appManagerFixture, standardUserFixture, siteManagerFixture }) => {
         // Configure app governance settings and enable timeline comment post(feed)
-        await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
+        await appManagerFixture.feedManagementHelper.configureAppGovernance({
+          feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+        });
 
         // Initialize feed pages for different user roles
-        appManagerFeedPage = new FeedPage(appManagerHomePage.page);
-        standardUserFeedPage = new FeedPage(standardUserHomePage.page);
-        siteManagerFeedPage = new FeedPage(siteManagerHomePage.page);
+        appManagerFeedPage = new FeedPage(appManagerFixture.page);
+        standardUserFeedPage = new FeedPage(standardUserFixture.page);
+        siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
 
         // Setup user and site
         const identityManagementHelper = new IdentityManagementHelper(
-          appManagerApiContext,
+          appManagerFixture.apiContext,
           getContentConfigFromCache().tenant.apiBaseUrl
         );
         const endUserInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
 
-        createdSite = await siteManagementHelper.createPublicSite({
+        createdSite = await appManagerFixture.siteManagementHelper.createPublicSite({
           waitForSearchIndex: false,
         });
 
         // update user as a content manager of the site
-        await siteManagementHelper.updateUserSiteMembershipWithRole({
+        await appManagerFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
           siteId: createdSite.siteId,
           userId: endUserInfo.userId,
           role: SitePermission.CONTENT_MANAGER,
@@ -102,7 +98,7 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, '@' + testData.storyId],
         },
-        async ({ feedManagementHelper }) => {
+        async ({ appManagerFixture }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.storyId,
@@ -130,7 +126,7 @@ test.describe(
           createdPostText = feedTestData.text;
 
           // Create feed based on test data
-          const feedResponse = await feedManagementHelper.createFeed(feedTestData);
+          const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestData);
           console.log(`Created feed via Helper: ${feedResponse.result.feedId}`);
 
           // Store created post ID for cleanup

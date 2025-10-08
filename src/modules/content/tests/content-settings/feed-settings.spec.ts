@@ -43,90 +43,85 @@ test.describe(
     let siteDetailsPage: SiteDetailsPage;
     let editPagePage: EditPagePage;
 
-    test.beforeEach(
-      'Setting up the test environment for page creation using API',
-      async ({
-        appManagersPage,
-        siteManagementHelper,
-        feedManagementHelper,
-        contentManagementHelper,
-        siteManagementService,
-      }) => {
-        // Configure app governance
-        // await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
+    test.beforeEach('Setting up the test environment for page creation using API', async ({ appManagerFixture }) => {
+      // Configure app governance
+      // await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
 
-        try {
-          await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
-        } catch (error) {
-          console.warn('Failed to configure app governance, continuing with test:', error);
-          // Optionally skip the governance step if it's not critical
-        }
-
-        // Create site using API
-        const category = await siteManagementService.getCategoryId(SITE_TEST_DATA[0].category);
-        createdSite = await siteManagementHelper.createPublicSite({
-          category,
-          overrides: { access: SITE_TEST_DATA[0].siteType },
+      try {
+        await appManagerFixture.feedManagementHelper.configureAppGovernance({
+          feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
         });
-        console.log(`Created site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
-
-        // Store the site ID for page publishing
-        siteIdToPublishPage = createdSite.siteId;
-
-        // Create page using API instead of UI
-        const pageCreationOptions = TestDataGenerator.generatePage(
-          PageContentType.NEWS,
-          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
-          'Uncategorized'
-        );
-
-        // Use API to create and publish the page
-        const createdPage = await contentManagementHelper.createPage({
-          siteId: siteIdToPublishPage,
-          contentInfo: {
-            contentType: 'page',
-            contentSubType: 'news',
-          },
-          options: {
-            pageName: pageCreationOptions.title,
-            contentDescription: pageCreationOptions.description,
-            waitForSearchIndex: false,
-          },
-        });
-
-        // Store page ID for cleanup
-        publishedPageId = createdPage.contentId;
-        manualCleanupNeeded = true;
-
-        // Initialize content preview page
-        contentPreviewPage = new ContentPreviewPage(
-          appManagersPage,
-          createdSite.siteId,
-          publishedPageId,
-          ContentType.PAGE
-        );
-
-        // Initialize additional page objects for the test cases
-        applicationscreen = new ApplicationScreenPage(appManagersPage);
-        manageFeaturePage = new ManageFeature(appManagersPage);
-        manageApplicationPage = new ManageApplicationPage(appManagersPage);
-        governanceScreenPage = new GovernanceScreenPage(appManagersPage);
-        manageContentPage = new ManageContentPage(appManagersPage);
-        manageSitePage = new ManageSitePage(appManagersPage, '');
-        siteDetailsPage = new SiteDetailsPage(appManagersPage, '');
-        editPagePage = new EditPagePage(appManagersPage);
-        siteDashboardPage = new SiteDashboardPage(appManagersPage, '');
-
-        console.log(
-          `Created page: ${pageCreationOptions.title} with ID: ${publishedPageId} in site: ${siteIdToPublishPage}`
-        );
+      } catch (error) {
+        console.warn('Failed to configure app governance, continuing with test:', error);
+        // Optionally skip the governance step if it's not critical
       }
-    );
 
-    test.afterEach(async ({ contentManagementHelper }) => {
+      // Create site using API
+      const category = await appManagerFixture.siteManagementHelper.siteManagementService.getCategoryId(
+        SITE_TEST_DATA[0].category
+      );
+      createdSite = await appManagerFixture.siteManagementHelper.createPublicSite({
+        category,
+        overrides: { access: SITE_TEST_DATA[0].siteType },
+      });
+      console.log(`Created site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
+
+      // Store the site ID for page publishing
+      siteIdToPublishPage = createdSite.siteId;
+
+      // Create page using API instead of UI
+      const pageCreationOptions = TestDataGenerator.generatePage(
+        PageContentType.NEWS,
+        CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
+        'Uncategorized'
+      );
+
+      // Use API to create and publish the page
+      const createdPage = await appManagerFixture.contentManagementHelper.createPage({
+        siteId: siteIdToPublishPage,
+        contentInfo: {
+          contentType: 'page',
+          contentSubType: 'news',
+        },
+        options: {
+          pageName: pageCreationOptions.title,
+          contentDescription: pageCreationOptions.description,
+          waitForSearchIndex: false,
+        },
+      });
+
+      // Store page ID for cleanup
+      publishedPageId = createdPage.contentId;
+      manualCleanupNeeded = true;
+
+      // Initialize content preview page
+      contentPreviewPage = new ContentPreviewPage(
+        appManagerFixture.page,
+        createdSite.siteId,
+        publishedPageId,
+        ContentType.PAGE
+      );
+
+      // Initialize additional page objects for the test cases
+      applicationscreen = new ApplicationScreenPage(appManagerFixture.page);
+      manageFeaturePage = new ManageFeature(appManagerFixture.page);
+      manageApplicationPage = new ManageApplicationPage(appManagerFixture.page);
+      governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
+      manageContentPage = new ManageContentPage(appManagerFixture.page);
+      manageSitePage = new ManageSitePage(appManagerFixture.page, '');
+      siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, '');
+      editPagePage = new EditPagePage(appManagerFixture.page);
+      siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, '');
+
+      console.log(
+        `Created page: ${pageCreationOptions.title} with ID: ${publishedPageId} in site: ${siteIdToPublishPage}`
+      );
+    });
+
+    test.afterEach(async ({ appManagerFixture }) => {
       // Only cleanup manually if needed (for UI-only tests)
       if (manualCleanupNeeded && publishedPageId && siteIdToPublishPage) {
-        await contentManagementHelper.deleteContent(siteIdToPublishPage, publishedPageId);
+        await appManagerFixture.contentManagementHelper.deleteContent(siteIdToPublishPage, publishedPageId);
         console.log('Manual cleanup completed for page:', publishedPageId);
       } else {
         console.log('No page was published, hence skipping the deletion');
@@ -138,30 +133,30 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VERIFY_COMMENTS_AND_FEEDS],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify feed and comment should not be displayed when feed and comments are disabled app level',
           zephyrTestId: 'CONT-26613',
           storyId: 'CONT-26613',
         });
         // Create home page instance
-        await appManagerHomePage.verifyThePageIsLoaded();
-        await appManagerUINavigationHelper.openApplicationSettings();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openApplicationSettings();
         await applicationscreen.actions.clickOnApplication();
         await manageApplicationPage.actions.clickOnGovernance();
         await governanceScreenPage.actions.clickOnTimeline();
         await governanceScreenPage.actions.clickOnSave();
-        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnContentCard();
         await manageContentPage.actions.clickOnContent();
         await contentPreviewPage.actions.checkCommentOption();
-        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnSitesCard();
         await manageSitePage.actions.clickOnSite();
         await siteDetailsPage.actions.ViewSite();
         await siteDashboardPage.actions.verfiyFeedSection();
-        await appManagerUINavigationHelper.clickOnHomeButton();
-        await appManagerUINavigationHelper.clickOnFeedSideMenu();
+        await appManagerFixture.navigationHelper.clickOnHomeButton();
+        await appManagerFixture.navigationHelper.clickOnFeedSideMenu();
         await siteDashboardPage.actions.verfiyFeedSection();
       }
     );
@@ -171,14 +166,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VALIDATION_REQUIRED_BAR_STATE],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Zeus: Edit the validation Expired Content and Cancel',
           zephyrTestId: 'CONT-36069',
           storyId: 'CONT-36069',
         });
-        await appManagerHomePage.verifyThePageIsLoaded();
-        await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnContentCard();
         await manageContentPage.actions.clickOnViewAllButton();
         await manageContentPage.actions.verifyingValidationRequiredBarState();

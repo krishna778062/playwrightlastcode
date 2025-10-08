@@ -46,18 +46,18 @@ test.describe(
     let createdSiteName: string;
     let manualCleanupNeeded = false;
 
-    test.beforeEach('Setting up the test environment for site creation', async ({ appManagerHomePage }) => {
+    test.beforeEach('Setting up the test environment for site creation', async ({ appManagerFixture }) => {
       // Create home page instance and verify it's loaded
-      await appManagerHomePage.verifyThePageIsLoaded();
+      await appManagerFixture.homePage.verifyThePageIsLoaded();
 
       // Reset cleanup flag for each test
       manualCleanupNeeded = false;
     });
 
-    test.afterEach('Site Clean up', async ({ siteManagementService }) => {
+    test.afterEach('Site Clean up', async ({ appManagerFixture }) => {
       // Only cleanup manually if needed (for UI-only tests)
       if (manualCleanupNeeded && createdSiteId) {
-        await siteManagementService.deactivateSite(createdSiteId);
+        await appManagerFixture.siteManagementHelper.siteManagementService.deactivateSite(createdSiteId);
         console.log('Manual cleanup completed for site:', createdSiteId);
       } else {
         console.log('No site was created, hence skipping the deletion');
@@ -75,14 +75,14 @@ test.describe(
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.SITE_CREATION],
         },
-        async ({ appManagerHomePage, appManagersPage, siteManagementHelper, appManagerUINavigationHelper }) => {
+        async ({ appManagerFixture }) => {
           tagTest(test.info(), {
             description: siteData.description,
             zephyrTestId: siteData.zephyrTestId,
             storyId: siteData.storyId,
           });
 
-          siteCreationPage = (await appManagerUINavigationHelper.openSiteCreationForm(false)) as SiteCreationPage;
+          siteCreationPage = (await appManagerFixture.navigationHelper.openSiteCreationForm(false)) as SiteCreationPage;
 
           // STEP 2: Generate site data using TestDataGenerator
           const siteCreationOptions = TestDataGenerator.generateSite(siteData.siteType);
@@ -92,7 +92,7 @@ test.describe(
           // STEP 3: Create and publish the site
           const { siteDashboard, siteId } = await siteCreationPage.actions.addSite(
             siteCreationOptions,
-            siteManagementHelper
+            appManagerFixture.siteManagementHelper
           );
 
           // Store IDs for cleanup

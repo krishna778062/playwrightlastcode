@@ -150,19 +150,14 @@ for (const testData of feedTestData) {
 
       test.beforeEach(
         'Setup test environment and data creation',
-        async ({
-          appManagerHomePage,
-          appManagerApiContext,
-          contentManagementHelper,
-          siteManagementHelper,
-          feedManagementHelper,
-          appManagerUINavigationHelper,
-        }) => {
+        async ({ appManagerFixture, appManagerApiContext }) => {
           // Configure app governance settings and enable timeline comment post(feed)
-          await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
+          await appManagerFixture.feedManagementHelper.configureAppGovernance({
+            feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+          });
 
           // Initialize feed page
-          appManagerFeedPage = new FeedPage(appManagerHomePage.page);
+          appManagerFeedPage = new FeedPage(appManagerFixture.page);
           identityManagementHelper = new IdentityManagementHelper(
             appManagerApiContext,
             getContentConfigFromCache().tenant.apiBaseUrl
@@ -176,7 +171,11 @@ for (const testData of feedTestData) {
               fetchPublicSite: true,
               fetchPrivateSite: true,
             },
-            { identityManagementHelper, siteManagementHelper, contentManagementHelper }
+            {
+              identityManagementHelper,
+              siteManagementHelper: appManagerFixture.siteManagementHelper,
+              contentManagementHelper: appManagerFixture.contentManagementHelper,
+            }
           );
 
           // Set data for test use via API calls
@@ -193,19 +192,25 @@ for (const testData of feedTestData) {
             ];
 
           // Get prerequisite data based on feed type
-          const resources = await getPrerequisiteData({ siteManagementHelper, contentManagementHelper }, testData);
+          const resources = await getPrerequisiteData(
+            {
+              siteManagementHelper: appManagerFixture.siteManagementHelper,
+              contentManagementHelper: appManagerFixture.contentManagementHelper,
+            },
+            testData
+          );
 
           // Navigate to appropriate feed type
           if (testData.feedType === 'Home Feed') {
-            await appManagerHomePage.verifyThePageIsLoaded();
-            await appManagerUINavigationHelper.clickOnGlobalFeed();
+            await appManagerFixture.homePage.verifyThePageIsLoaded();
+            await appManagerFixture.navigationHelper.clickOnGlobalFeed();
           } else if (testData.feedType === 'Site Feed') {
-            const siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, resources.siteId);
+            const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, resources.siteId);
             await siteDashboardPage.loadPage();
             await siteDashboardPage.actions.clickOnFeedLink();
           } else if (testData.feedType === 'Content Feed') {
             const contentPreviewPage = new ContentPreviewPage(
-              appManagerHomePage.page,
+              appManagerFixture.page,
               resources.siteId,
               resources.contentId,
               ContentType.PAGE.toLowerCase()

@@ -12,7 +12,6 @@ import { contentTestFixture as test } from '@/src/modules/content/fixtures/conte
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
-// import { SiteDashboardPage } from '@/src/modules/content/ui/pages/siteDashboardPage';
 
 interface FeedResponse {
   result: {
@@ -47,7 +46,7 @@ async function getPrerequisiteData(
 
   // Create site only once, even if both createSite and createPage are true
   if (testData.feedType === 'Site Feed') {
-    const siteResult = await helpers.siteManagementHelper.getSiteByAccessType({ accessType: 'public' });
+    const siteResult = await helpers.siteManagementHelper.getSiteByAccessType('public');
     resources.siteId = siteResult;
   }
 
@@ -110,94 +109,99 @@ for (const testData of feedTestData) {
       let replyText: string;
       let contentPreviewPage: ContentPreviewPage;
 
-      test.beforeEach(
-        'Setup test environment and data creation',
-        async ({ appManagerHomePage, contentManagementHelper, siteManagementHelper, feedManagementHelper }) => {
-          // Configure app governance settings and enable timeline comment post(feed)
-          await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
-          // Initialize feed page
-          appManagerFeedPage = new FeedPage(appManagerHomePage.page);
-          const resources = await getPrerequisiteData({ siteManagementHelper, contentManagementHelper }, testData);
+      test.beforeEach('Setup test environment and data creation', async ({ appManagerFixture }) => {
+        // Configure app governance settings and enable timeline comment post(feed)
+        await appManagerFixture.feedManagementHelper.configureAppGovernance({
+          feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+        });
+        // Initialize feed page
+        appManagerFeedPage = new FeedPage(appManagerFixture.page);
+        const resources = await getPrerequisiteData(
+          {
+            siteManagementHelper: appManagerFixture.siteManagementHelper,
+            contentManagementHelper: appManagerFixture.contentManagementHelper,
+          },
+          testData
+        );
 
-          // Assign created resources
-          if (resources.siteId) {
-            siteId = resources.siteId;
-          }
-          if (resources.contentId) {
-            siteId = resources.siteId;
-            contentId = resources.contentId;
-          }
-
-          console.log('spec siteId: ', siteId);
-          console.log('spec contentId: ', contentId);
-
-          // Generate feed data based on feed type
-          switch (testData.feedType) {
-            case 'Home Feed': {
-              feedTestDataGenerated = TestDataGenerator.generateFeed({
-                scope: 'public',
-                siteId: undefined,
-                withAttachment: testData.hasAttachment,
-                waitForSearchIndex: testData.waitForSearchIndex,
-              });
-              break;
-            }
-
-            case 'Site Feed': {
-              feedTestDataGenerated = TestDataGenerator.generateFeed({
-                scope: 'site',
-                siteId: siteId,
-                withAttachment: testData.hasAttachment,
-                waitForSearchIndex: testData.waitForSearchIndex,
-              });
-              break;
-            }
-
-            case 'Content Feed': {
-              feedTestDataGenerated = TestDataGenerator.generateFeed({
-                scope: 'site',
-                siteId: siteId,
-                contentId: contentId,
-                withAttachment: testData.hasAttachment,
-                waitForSearchIndex: testData.waitForSearchIndex,
-              });
-              break;
-            }
-
-            default:
-              throw new Error(`Unknown feed type: ${testData.feedType}`);
-          }
-          // Create feed via API
-          feedResponse = await feedManagementHelper.createFeed(feedTestDataGenerated);
-          createdPostText = feedTestDataGenerated.text;
-          createdPostId = feedResponse.result.feedId;
-          // Generate reply text
-          replyText = TestDataGenerator.generateRandomText('Reply to feed post', 3, true);
-          console.log(`Created feed via API: ${feedResponse.result.feedId}`);
-
-          // Navigate to feed URL
-          if (testData.feedType === 'Content Feed') {
-            contentPreviewPage = new ContentPreviewPage(
-              appManagerHomePage.page,
-              siteId,
-              contentId,
-              ContentType.PAGE.toLowerCase()
-            );
-            await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
-          } else if (testData.feedType === 'Site Feed') {
-            siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteId);
-            await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
-            await siteDashboardPage.actions.clickOnFeedLink();
-          } else if (testData.feedType === 'Home Feed') {
-            await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
-          }
-          //await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        // Assign created resources
+        if (resources.siteId) {
+          siteId = resources.siteId;
         }
-      );
+        if (resources.contentId) {
+          siteId = resources.siteId;
+          contentId = resources.contentId;
+        }
 
-      test.afterEach('Cleanup created posts', async ({ feedManagementHelper }) => {
+        console.log('spec siteId: ', siteId);
+        console.log('spec contentId: ', contentId);
+
+        // Generate feed data based on feed type
+        switch (testData.feedType) {
+          case 'Home Feed': {
+            feedTestDataGenerated = TestDataGenerator.generateFeed({
+              scope: 'public',
+              siteId: undefined,
+              withAttachment: testData.hasAttachment,
+              waitForSearchIndex: testData.waitForSearchIndex,
+            });
+            break;
+          }
+
+          case 'Site Feed': {
+            feedTestDataGenerated = TestDataGenerator.generateFeed({
+              scope: 'site',
+              siteId: siteId,
+              withAttachment: testData.hasAttachment,
+              waitForSearchIndex: testData.waitForSearchIndex,
+            });
+            break;
+          }
+
+          case 'Content Feed': {
+            feedTestDataGenerated = TestDataGenerator.generateFeed({
+              scope: 'site',
+              siteId: siteId,
+              contentId: contentId,
+              withAttachment: testData.hasAttachment,
+              waitForSearchIndex: testData.waitForSearchIndex,
+            });
+            break;
+          }
+
+          default:
+            throw new Error(`Unknown feed type: ${testData.feedType}`);
+        }
+        // Create feed via API
+        feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestDataGenerated);
+        createdPostText = feedTestDataGenerated.text;
+        createdPostId = feedResponse.result.feedId;
+        // Generate reply text
+        replyText = TestDataGenerator.generateRandomText('Reply to feed post', 3, true);
+        console.log(`Created feed via API: ${feedResponse.result.feedId}`);
+
+        // Navigate to feed URL
+        if (testData.feedType === 'Content Feed') {
+          contentPreviewPage = new ContentPreviewPage(
+            appManagerFixture.page,
+            siteId,
+            contentId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+        } else if (testData.feedType === 'Site Feed') {
+          siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.actions.clickOnFeedLink();
+        } else if (testData.feedType === 'Home Feed') {
+          await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
+        }
+        //await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+      });
+
+      test.afterEach('Cleanup created posts', async ({ appManagerFixture }) => {
         if (createdPostId) {
-          await feedManagementHelper.deleteFeed(createdPostId);
+          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
           createdPostId = '';
         }
       });

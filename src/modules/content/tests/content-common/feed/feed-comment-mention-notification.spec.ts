@@ -22,9 +22,11 @@ test.describe(
     let siteManagerInfo: { userId: string; fullName: string };
     let endUserInfo: { userId: string; fullName: string };
 
-    test.beforeEach('Setup test environment', async ({ appManagerApiContext, feedManagementHelper }) => {
+    test.beforeEach('Setup test environment', async ({ appManagerApiContext, appManagerFixture }) => {
       // Configure app governance settings and enable timeline comment post(feed)
-      await feedManagementHelper.configureAppGovernance({ feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE });
+      await appManagerFixture.feedManagementHelper.configureAppGovernance({
+        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+      });
 
       // Get user information for mentions (optimized single API calls)
       const identityManagementHelper = new IdentityManagementHelper(
@@ -41,9 +43,9 @@ test.describe(
       siteManagerInfo = { userId: siteManagerData.userId, fullName: siteManagerData.fullName };
     });
 
-    test.afterEach('Cleanup created posts', async ({ feedManagementHelper }) => {
+    test.afterEach('Cleanup created posts', async ({ appManagerFixture }) => {
       if (createdPostId) {
-        await feedManagementHelper.deleteFeed(createdPostId);
+        await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
         createdPostId = '';
       }
     });
@@ -53,7 +55,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-30438'],
       },
-      async ({ standardUserApiContext, siteManagerHomePage, feedManagementHelper, siteManagerUINavigationHelper }) => {
+      async ({ appManagerFixture, siteManagerFixture, standardUserApiContext }) => {
         tagTest(test.info(), {
           description:
             'Verify that User gets notified when it is getting mentioned in the reply of the comment of any post',
@@ -71,7 +73,7 @@ test.describe(
         createdPostText = feedTestData.text;
 
         // Create feed using API (more reliable than UI)
-        const feedResponse = await feedManagementHelper.createFeed(feedTestData);
+        const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestData);
 
         createdPostId = feedResponse.result.feedId;
         console.log(`Created feed post via API: ${createdPostId} with text: "${createdPostText}"`);
@@ -90,16 +92,13 @@ test.describe(
         console.log(`Added reply via API with mention: "${replyData.replyText}"`);
 
         //SiteManager clicking on bell icon to view notifications
-        await siteManagerHomePage.verifyThePageIsLoaded();
-        const notificationComponentSiteManager = await siteManagerUINavigationHelper.clickOnBellIcon({
+        await siteManagerFixture.homePage.verifyThePageIsLoaded();
+        const notificationComponentSiteManager = await siteManagerFixture.navigationHelper.clickOnBellIcon({
           stepInfo: 'Application Manager clicking on bell icon to view notifications',
         });
-
         const activityNotificationPage = await notificationComponentSiteManager.actions.clickOnViewAllNotifications();
-
         // Verify notification message for mention in reply
         const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${replyData.replyText}"`;
-
         await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
       }
     );

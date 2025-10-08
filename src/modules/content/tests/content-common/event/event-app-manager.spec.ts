@@ -23,18 +23,18 @@ test.describe(
     let publishedEventId: string;
     let manualCleanupNeeded = false;
 
-    test.beforeEach('Setting up the test environment for event creation', async ({ appManagerHomePage }) => {
+    test.beforeEach('Setting up the test environment for event creation', async ({ appManagerFixture }) => {
       // Create home page instance and verify it's loaded
-      await appManagerHomePage.verifyThePageIsLoaded();
+      await appManagerFixture.homePage.verifyThePageIsLoaded();
 
       // Reset cleanup flag for each test
       manualCleanupNeeded = false;
     });
 
-    test.afterEach(async ({ contentManagementHelper }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
       // Only cleanup manually if needed (for UI-only tests)
       if (manualCleanupNeeded && publishedEventId && siteIdToPublishEvent) {
-        await contentManagementHelper.deleteContent(siteIdToPublishEvent, publishedEventId);
+        await appManagerFixture.contentManagementHelper.deleteContent(siteIdToPublishEvent, publishedEventId);
         console.log('Manual cleanup completed for event:', publishedEventId);
       } else {
         console.log('No event was published, hence skipping the deletion');
@@ -46,19 +46,19 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.EVENT_CREATION],
       },
-      async ({ appManagerHomePage, appManagersPage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Event Content Add attach file with all the Mandatory fields',
           zephyrTestId: 'CONT-10824',
           storyId: 'CONT-10824',
         });
 
-        await appManagerHomePage.verifyThePageIsLoaded();
-        eventCreationPage = (await appManagerUINavigationHelper.openCreateContentPageForContentType(
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        eventCreationPage = (await appManagerFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.EVENT
         )) as EventCreationPage;
         contentPreviewPage = new ContentPreviewPage(
-          appManagersPage,
+          appManagerFixture.page,
           siteIdToPublishEvent,
           publishedEventId,
           ContentType.EVENT
