@@ -6,8 +6,6 @@ import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
 import { getEnvConfig } from '../..';
 
 export abstract class BasePage extends BaseActionUtil {
-  // readonly topNavBarComponent: TopNavBarComponent;
-  // readonly sideNavBarComponent: SideNavBarComponent;
   readonly verifier: BaseVerificationUtil;
   readonly pageUrl: string;
   readonly isNewUxEnabled: boolean;
@@ -22,17 +20,6 @@ export abstract class BasePage extends BaseActionUtil {
   get expect() {
     return expect;
   }
-
-  // get getTopNavBarComponent() {
-  //   return this.topNavBarComponent;
-  // }
-
-  // get getSideNavBarComponent() {
-  //   if (this.isNewUxEnabled) {
-  //     return this.sideNavBarComponent;
-  //   }
-  //   throw new Error('Side navigation bar component is not available in old UX');
-  // }
 
   get url() {
     if (this.pageUrl === '') {
@@ -108,6 +95,4 @@ export abstract class BasePage extends BaseActionUtil {
       ).toBeVisible();
     });
   }
-
-  //nav bar methods
 }

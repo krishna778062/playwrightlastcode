@@ -308,7 +308,6 @@ export class SiteManagementHelper {
         console.warn(`Failed to deactivate site ${siteName} (${siteId}):`, error);
       }
     }
-
     // Clear the tracking arrays
     this.sites = [];
     this.siteMembers = [];

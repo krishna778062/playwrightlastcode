@@ -183,7 +183,6 @@ export class ContentManagementService implements IContentManagementServices {
           ...overrides.category,
         },
       };
-      console.log('content payload: ', payload);
       const response = await this.httpClient.post(
         API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.publish,
         {
@@ -213,7 +212,6 @@ export class ContentManagementService implements IContentManagementServices {
       );
 
       const json = await response.json();
-      console.log('content JSON Response:', JSON.stringify(json, null, 2));
       if (json.status !== 'success' || !json.result?.id) {
         throw new Error(`Page creation failed. Response: ${JSON.stringify(json)}`);
       }

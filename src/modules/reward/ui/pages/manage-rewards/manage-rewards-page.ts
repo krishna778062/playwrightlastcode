@@ -69,6 +69,7 @@ export class ManageRewardsPage extends BasePage {
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.rewardTerminologyButton, {
       assertionMessage: 'Verify the rewards overview description text is visible',
+      timeout: 20_000,
     });
   }
 

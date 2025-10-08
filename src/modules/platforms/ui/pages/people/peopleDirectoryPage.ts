@@ -36,7 +36,7 @@ export class PeopleDirectoryPage extends BasePage {
 
   // Verify that the Home page is loaded
   async verifyThePageIsLoaded(): Promise<void> {
-    await test.step('Verifying the home page is loaded', async () => {
+    await test.step('Verifying the people directory page is loaded', async () => {
       await expect(this.userMode, 'expecting User Mode to be visible').toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
       });

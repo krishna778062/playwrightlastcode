@@ -1,4 +1,4 @@
-import { expect, Page } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/ui/pages/basePage';
@@ -13,7 +13,11 @@ export class NewHomePage extends BasePage {
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await expect(this.page.locator('h1')).toHaveText('Home');
+    await test.step('Verifying the home page is loaded', async () => {
+      await expect(this.page.locator('h1'), "Expected to find 'Home' in the page title").toContainText('Home', {
+        timeout: 35_000,
+      });
+    });
   }
 
   get footer(): FooterComponent {

@@ -14,7 +14,7 @@ import { AddContentModalComponent } from '@/src/modules/content/ui/components/ad
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { PageCreationPage } from '@/src/modules/content/ui/pages/pageCreationPage';
 
-test.describe.only(
+test.describe(
   '@AddContent - Add content on unlisted site',
   {
     tag: [ContentTestSuite.ADD_CONTENT_ON_UNLISTED_SITE],

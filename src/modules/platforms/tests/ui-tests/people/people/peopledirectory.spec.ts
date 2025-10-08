@@ -21,6 +21,7 @@ test.describe(
           zephyrTestId: ['PS-17684'],
         });
         const peopleDirectoryPage = new PeopleDirectoryPage(appManagerPage);
+        await peopleDirectoryPage.loadPage();
         await peopleDirectoryPage.verifyThePageIsLoaded();
         await peopleDirectoryPage.navigatePeopleDirectory();
         await peopleDirectoryPage.validateFilters();

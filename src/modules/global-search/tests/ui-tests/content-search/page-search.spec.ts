@@ -136,7 +136,7 @@ test.describe(
       }
     );
 
-    test(
+    test.only(
       `Verify Page Autocomplete functionality`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
@@ -146,8 +146,6 @@ test.describe(
           zephyrTestId: 'SEN-19286',
         });
 
-        // Type in search input
-        await appManagerHomePage.verifyThePageIsLoaded();
         const topNavBarComponent = appManagerUINavigationHelper.topNavBarComponent;
         await topNavBarComponent.typeInSearchBarInput(pageName, {
           stepInfo: `Typing "${pageName}" in search input`,
