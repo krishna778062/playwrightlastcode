@@ -620,5 +620,96 @@ test.describe(
         ]);
       }
     );
+
+    test(
+      'In Zeus Verify User is able to view Shared Expired Social Campaign Feed Post',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26799'],
+      },
+      async ({ socialCampaignManagerHomePage, socialCampaignHelper, appManagerHomePage, endUserHomePage }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify User is able to view Shared Expired Social Campaign Feed Post',
+          zephyrTestId: 'CONT-26799',
+          storyId: 'CONT-26799',
+        });
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+        });
+        campaignId = createdCampaign.campaignId;
+
+        const description = TestDataGenerator.generateRandomString();
+        await socialCampaignHelper.shareCampaignToFollowersFeed(campaignId, description);
+        // Load pages and navigate to feeds in parallel
+        await Promise.all([
+          appManagerHomePage.loadPage(),
+          socialCampaignManagerHomePage.loadPage(),
+          endUserHomePage.loadPage(),
+        ]);
+
+        await Promise.all([
+          appManagerHomePage.actions.clickOnGlobalFeed(),
+          socialCampaignManagerHomePage.actions.clickOnGlobalFeed(),
+          endUserHomePage.actions.clickOnGlobalFeed(),
+        ]);
+
+        const appManagerFeedPage = new FeedPage(appManagerHomePage.page);
+        const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerHomePage.page);
+        const endUserFeedPage = new FeedPage(endUserHomePage.page);
+
+        await Promise.all([
+          appManagerFeedPage.verifyThePageIsLoaded(),
+          socialCampaignManagerFeedPage.verifyThePageIsLoaded(),
+          endUserFeedPage.verifyThePageIsLoaded(),
+        ]);
+
+        // Verify campaign is displayed in both feeds
+        await Promise.all([
+          appManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          appManagerFeedPage.assertions.verifySocialCampaignShareButtonIsVisible(description),
+          socialCampaignManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          socialCampaignManagerFeedPage.assertions.verifySocialCampaignShareButtonIsVisible(description),
+          endUserFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          endUserFeedPage.assertions.verifySocialCampaignShareButtonIsVisible(description),
+        ]);
+
+        // Delete campaign
+        await socialCampaignHelper.expireCampaign(campaignId);
+
+        // Load pages and navigate to feeds in parallel
+        await Promise.all([
+          appManagerHomePage.loadPage(),
+          socialCampaignManagerHomePage.loadPage(),
+          endUserHomePage.loadPage(),
+        ]);
+
+        await Promise.all([
+          appManagerHomePage.actions.clickOnGlobalFeed(),
+          socialCampaignManagerHomePage.actions.clickOnGlobalFeed(),
+          endUserHomePage.actions.clickOnGlobalFeed(),
+        ]);
+
+        // Verify campaign is no longer displayed in both feeds
+        await Promise.all([
+          appManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          appManagerFeedPage.assertions.verifySocialCampaignShareButtonIsNotVisible(description),
+          socialCampaignManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          socialCampaignManagerFeedPage.assertions.verifySocialCampaignShareButtonIsNotVisible(description),
+          endUserFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          endUserFeedPage.assertions.verifySocialCampaignShareButtonIsNotVisible(description),
+        ]);
+      }
+    );
   }
 );
