@@ -26,12 +26,7 @@ test.describe('Manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     '[RC-3095] Validate Budget Exceeded Warnings on reward overview page',
     {
-      tag: [
-        REWARD_FEATURE_TAGS.REWARD_OVERVIEW,
-        REWARD_SUITE_TAGS.REGRESSION_TEST,
-        TestPriority.P0,
-        TestGroupType.SMOKE,
-      ],
+      tag: [REWARD_FEATURE_TAGS.REWARD_OVERVIEW, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -67,7 +62,7 @@ test.describe('Manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     '[RC-3329] Validate if allowances summary shows 0 points when allowances are refreshing.',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARD_OVERVIEW, REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1],
+      tag: [REWARD_FEATURE_TAGS.REWARD_OVERVIEW, TestGroupType.REGRESSION, TestPriority.P1],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -108,12 +103,7 @@ test.describe('Manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     '[RC-2192] Validate rewards overview tab page',
     {
-      tag: [
-        REWARD_FEATURE_TAGS.REWARD_OVERVIEW,
-        REWARD_SUITE_TAGS.REGRESSION_TEST,
-        TestPriority.P0,
-        TestGroupType.SMOKE,
-      ],
+      tag: [REWARD_FEATURE_TAGS.REWARD_OVERVIEW, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -199,12 +189,7 @@ test.describe('Manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     '[RC-5419] Validate on navigating to rewards tab & all its sub tabs one by one, rewards api is called for once only',
     {
-      tag: [
-        REWARD_FEATURE_TAGS.REWARD_OVERVIEW,
-        REWARD_SUITE_TAGS.REGRESSION_TEST,
-        TestPriority.P0,
-        TestGroupType.SMOKE,
-      ],
+      tag: [REWARD_FEATURE_TAGS.REWARD_OVERVIEW, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {
@@ -262,12 +247,7 @@ test.describe('Manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     '[RC-3094] Validate tooltips on Rewards Overview Points Balance summary tile component',
     {
-      tag: [
-        REWARD_FEATURE_TAGS.REWARD_OVERVIEW,
-        REWARD_SUITE_TAGS.REGRESSION_TEST,
-        TestPriority.P0,
-        TestGroupType.SMOKE,
-      ],
+      tag: [REWARD_FEATURE_TAGS.REWARD_OVERVIEW, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
     async ({ appManagerPage }) => {
       tagTest(test.info(), {

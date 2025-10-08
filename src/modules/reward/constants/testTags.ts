@@ -10,10 +10,10 @@ export enum REWARD_FEATURE_TAGS {
   CREATE_RECOGNITION_WITH_POINTS = '@create-recognition-with-points',
   RECOGNITION_NOTIFICATION_CHECK = '@reward-point-notification-check',
   RECOGNITION_POINT_LABELING = '@reward-point-element-in-post',
+  REWARDS_ACTIVITY_TABLE = '@rewards-activity-table',
 }
 
 export enum REWARD_SUITE_TAGS {
-  REGRESSION_TEST = '@regression-test',
   MANAGE_REWARD = '@manage-reward',
   REWARD_OPTIONS = '@reward-options',
   REWARD_STORE = '@reward-store',
