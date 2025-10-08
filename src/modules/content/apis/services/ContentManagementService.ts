@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker';
 import { APIRequestContext, expect, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
@@ -5,7 +6,6 @@ import {
   AlbumCreationPayload,
   ContentListResponse,
   EventCreationPayload,
-  PageCreationPayload,
   TopicListResponse,
 } from '@core/types/contentManagement.types';
 
@@ -29,12 +29,21 @@ const defaultBaseContentPayload = {
   isNewTiptap: false,
 };
 
-const defaultPageContentPayload: PageCreationPayload = {
-  ...defaultBaseContentPayload,
-  contentSubType: 'news',
-  category: { id: '', name: '' },
-  body: '{"type":"doc","content":[{"type":"paragraph","attrs":{"Paragraphclass":"","textAlign":"left","indent":null},"content":[{"type":"text","text":"tesr"}]}],"hasInlineImages":true}',
-  bodyHtml: '<p>tesr123</p>',
+const defaultPageContentPayload = () => {
+  const contentText = faker.lorem.sentence();
+  return {
+    ...defaultBaseContentPayload,
+    contentSubType: 'news',
+    category: { id: '', name: '' },
+    body: `{"type":"doc","content":[{"type":"paragraph","attrs":{"indentation":0,"textAlign":"left","className":"","data-sw-sid":null},"content":[{"type":"text","text":"${contentText}"}]}]}`,
+    bodyHtml: `<p indentation="0" textAlign="left" class="">${contentText}</p>`,
+    language: 'en-US',
+    // Optional scheduling fields
+    publishTo: undefined as string | undefined,
+    listOfInlineVideos: undefined as any[] | undefined,
+    readTimeInMin: undefined as number | undefined,
+    targetAudience: undefined as any[] | undefined,
+  };
 };
 
 const defaultEventContentPayload: EventCreationPayload = {
@@ -164,13 +173,13 @@ export class ContentManagementService implements IContentManagementServices {
    * @param overrides - Page content overrides.
    * @returns The created page's ID.
    */
-  async addNewPageContent(siteId: string, overrides: Partial<typeof defaultPageContentPayload> = {}) {
+  async addNewPageContent(siteId: string, overrides: Partial<ReturnType<typeof defaultPageContentPayload>> = {}) {
     return await test.step('Publishing page content via API post request', async () => {
       const payload = {
-        ...defaultPageContentPayload,
+        ...defaultPageContentPayload(),
         ...overrides,
         category: {
-          ...defaultPageContentPayload.category,
+          ...defaultPageContentPayload().category,
           ...overrides.category,
         },
       };
@@ -197,9 +206,12 @@ export class ContentManagementService implements IContentManagementServices {
             },
             contentType: payload.contentType,
             isNewTiptap: payload.isNewTiptap,
+            ...(payload.publishAt && { publishAt: payload.publishAt }),
+            ...(payload.publishTo && { publishTo: payload.publishTo }),
           },
         }
       );
+
       const json = await response.json();
       console.log('content JSON Response:', JSON.stringify(json, null, 2));
       if (json.status !== 'success' || !json.result?.id) {
@@ -208,6 +220,9 @@ export class ContentManagementService implements IContentManagementServices {
       return {
         pageId: json.result.id,
         authorName: json.result.authoredBy?.name,
+        publishAt: json.result.publishAt,
+        publishTo: json.result.publishTo,
+        isScheduled: json.result.isScheduled,
       };
     });
   }

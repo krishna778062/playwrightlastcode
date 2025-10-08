@@ -8,7 +8,7 @@ import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 
-export type UserType = 'appManager' | 'endUser';
+export type UserType = 'appManager' | 'endUser' | 'promotionManager';
 
 export const users = {
   appManager: {
@@ -19,15 +19,27 @@ export const users = {
     email: process.env.END_USER_USERNAME || '',
     password: process.env.END_USER_PASSWORD || '',
   },
+  promotionManager: {
+    email: process.env.PROMOTION_MANAGER_USERNAME || '',
+    password: process.env.PROMOTION_MANAGER_PASSWORD || '',
+  },
 };
 
 export const frontlineTestFixture = test.extend<
   {
+    // App manager browser context, Request Context + page
     appManagerBrowserContext: BrowserContext;
     appManagersPage: Page;
     appManagerHomePage: NewHomePage;
     appManagerUINavigationHelper: NavigationHelper;
 
+    // Promotion manager browser context, Request Context + page
+    promotionManagerContext: BrowserContext;
+    promotionManagersPage: Page;
+    promotionManagerHomePage: NewHomePage;
+    promotionManagerUINavigationHelper: NavigationHelper;
+
+    // End user browser context, Request Context + page
     endUserBrowserContext: BrowserContext;
     endUsersPage: Page;
     endUserHomePage: NewHomePage;
@@ -69,6 +81,46 @@ export const frontlineTestFixture = test.extend<
       });
       await use(context);
       await context.close();
+    },
+    { scope: 'test' },
+  ],
+  promotionManagerContext: [
+    async ({ browser }, use) => {
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      const promotionManagerHomePage = await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().promotionManagerEmail!,
+        password: getEnvConfig().promotionManagerPassword!,
+      });
+      await promotionManagerHomePage.verifyThePageIsLoaded();
+      await use(context);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+  promotionManagersPage: [
+    async ({ promotionManagerContext }, use) => {
+      const page = await promotionManagerContext.newPage();
+      await use(page);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+
+  promotionManagerUINavigationHelper: [
+    async ({ promotionManagerHomePage }, use) => {
+      const promotionManagerUINavigationHelper = new NavigationHelper(promotionManagerHomePage.page);
+      await use(promotionManagerUINavigationHelper);
+    },
+    { scope: 'test' },
+  ],
+
+  promotionManagerHomePage: [
+    async ({ promotionManagersPage }, use) => {
+      const homePage = new NewHomePage(promotionManagersPage);
+      await homePage.loadPage();
+      await homePage.verifyThePageIsLoaded();
+      await use(homePage);
     },
     { scope: 'test' },
   ],

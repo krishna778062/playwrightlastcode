@@ -33,7 +33,7 @@ test.describe(
     test(
       'To verify that external search is displaying correctly and responsive in Workplace Search',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
       async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
         tagTest(test.info(), {

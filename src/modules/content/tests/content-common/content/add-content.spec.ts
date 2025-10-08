@@ -176,10 +176,7 @@ test.describe.only(
         });
 
         // Create site with content submission disabled
-        const siteDetails = await siteManagementHelper.createUnlistedSite({
-          isContentSubmissionsEnabled: false,
-          waitForSearchIndex: true,
-        });
+        const siteDetails = await siteManagementHelper.getSiteByIdWithContentSubmissions(SITE_TYPES.UNLISTED, false);
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.siteName;
         await appManagerHomePage.verifyThePageIsLoaded();
@@ -246,10 +243,9 @@ test.describe.only(
         await identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
 
         // Create site with content submission disabled
-        const siteDetails = await siteManagementHelper.createUnlistedSite({
-          isContentSubmissionsEnabled: false,
-          waitForSearchIndex: true,
-        });
+
+        const siteDetails = await siteManagementHelper.getSiteByIdWithContentSubmissions(SITE_TYPES.UNLISTED, false);
+
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.siteName;
 
@@ -350,6 +346,7 @@ test.describe.only(
           hasPages: false,
           waitForSearchIndex: true,
         });
+        const siteDetails = await siteManagementHelper.getSiteByIdWithContentSubmissions(SITE_TYPES.UNLISTED, false);
 
         addContentModal = await standardUserUINavigationHelper.openAddContentModal(ContentType.PAGE);
 

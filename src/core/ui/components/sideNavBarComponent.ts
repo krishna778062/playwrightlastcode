@@ -40,6 +40,10 @@ export class SideNavBarComponent extends BaseComponent {
   readonly manageSubscriptionsButton: Locator;
   readonly manageUsersButton: Locator;
 
+  //social campaigns section
+  readonly socialCampaignsElement: Locator;
+  readonly moreElement: Locator;
+
   constructor(page: Page) {
     super(page);
     this.createSection = page.locator('span', { hasText: 'Create' });
@@ -72,6 +76,9 @@ export class SideNavBarComponent extends BaseComponent {
     this.manageRolesButton = page.getByRole('menuitem', { name: 'Roles', exact: true });
     this.manageSubscriptionsButton = page.getByRole('menuitem', { name: 'Subscriptions', exact: true });
     this.manageUsersButton = page.getByRole('menuitem', { name: 'Users', exact: true });
+
+    this.socialCampaignsElement = page.locator('p', { hasText: 'Social campaigns' });
+    this.moreElement = page.locator('p', { hasText: 'More' });
   }
 
   /**

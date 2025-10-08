@@ -61,6 +61,8 @@ export interface ContentTenantConfig {
   siteManagerPassword: string;
   newUxEnabled: boolean;
   orgId: string;
+  socialCampaignManagerEmail: string;
+  socialCampaignManagerPassword: string;
 }
 
 // App-level configuration (same for all tenants/environments)
@@ -83,6 +85,8 @@ export const config = {
       siteManagerPassword: 'simpplr001',
       newUxEnabled: true,
       orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'sonali.gupta+2@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
     },
     uat: {
       tenantName: 'Content Primary',
@@ -96,6 +100,8 @@ export const config = {
       siteManagerPassword: 'simpplr001',
       newUxEnabled: true,
       orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'sonali.gupta+2@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
     },
   },
   contentSettings: {
@@ -111,6 +117,8 @@ export const config = {
       siteManagerPassword: 'simpplr001',
       newUxEnabled: true,
       orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'sonali.gupta+2@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
     },
     uat: {
       tenantName: 'Content Settings',
@@ -124,6 +132,8 @@ export const config = {
       siteManagerPassword: 'simpplr001',
       newUxEnabled: true,
       orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'sonali.gupta+2@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
     },
   },
   appConfig: {

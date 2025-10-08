@@ -9,6 +9,7 @@ import {
   TILE_NUMBER_OF_LINKS,
 } from '@/src/modules/global-search/test-data/link-tile-search.test-data';
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
+import { ResultListingComponent } from '@/src/modules/global-search/ui/components/resultsListComponent';
 
 test.describe(
   `Test Global Search - Link Tile Search functionality`,
@@ -31,7 +32,7 @@ test.describe(
       test(
         `Verify Link Tile Search results for a new link tile with ${numberOfLinks} links`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
         },
         async ({ appManagerHomePage, appManagerUINavigationHelper, tileManagementHelper, tileCleanupTracker }) => {
           tagTest(test.info(), {
@@ -135,6 +136,46 @@ test.describe(
         await tileResult.verifyTileTitleIsDisplayed();
 
         // Track tile for automatic cleanup
+        tileCleanupTracker.tiles.push({ tileId, siteId: newSiteId });
+      }
+    );
+
+    test(
+      `Verify Site Link Tile Autocomplete functionality`,
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+      },
+      async ({ tileCleanupTracker, tileManagementHelper, appManagerUINavigationHelper, appManagerUserPage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-19440',
+        });
+
+        // Create tile using the service directly
+        const testData = getLinkTileSearchTestData();
+        const tileResponse = await tileManagementHelper.tileManagementService.createTile(
+          newSiteId,
+          testData.tileTitle,
+          2,
+          PREDEFINED_LINKS
+        );
+
+        const tileId = tileResponse.result.id;
+        const tileTitle = testData.tileTitle;
+
+        // Type in search input
+        await appManagerUINavigationHelper.topNavBarComponent.typeInSearchBarInput(tileTitle, {
+          stepInfo: `Typing "${tileTitle}" in search input`,
+        });
+
+        const resultList = new ResultListingComponent(appManagerUserPage);
+        await resultList.waitForAndVerifyAutocompleteListIsDisplayed();
+
+        const tileResult = resultList.getAutocompleteItemByName(tileTitle);
+
+        await tileResult.verifyAutocompleteItemData(tileTitle, 'Tiles');
+
+        await tileResult.verifyAutocompleteNavigationToTitleLink(tileId, tileTitle, 'Tiles');
+
         tileCleanupTracker.tiles.push({ tileId, siteId: newSiteId });
       }
     );

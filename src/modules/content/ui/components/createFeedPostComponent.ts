@@ -40,7 +40,6 @@ export interface ICreateFeedPostActions {
     topicName: string;
     userName: string;
   }) => Promise<void>;
-  clickShareThoughtsButton: () => Promise<void>;
   createPost: (text: string) => Promise<void>;
   uploadFiles: (files: string[]) => Promise<void>;
   removeAttachedFile: (index?: number) => Promise<void>;
@@ -59,9 +58,8 @@ export class CreateFeedPostComponent
   extends BaseComponent
   implements ICreateFeedPostActions, ICreateFeedPostAssertions
 {
-  // Share thoughts section
-  readonly shareThoughtsButton = this.page.getByRole('button', { name: 'Share your thoughts' });
   readonly feedEditor = this.page.locator("div[aria-describedby='content-description']");
+  readonly questionButton = this.page.locator("button:has-text('Question')");
   readonly fileUploadInput = this.page.locator("input[type='file']");
   readonly attachedFiles = this.page.locator("div[class='FileItem-name']");
   readonly deleteFileIcon = this.page.locator("button[class*='delete']");
@@ -126,7 +124,7 @@ export class CreateFeedPostComponent
    */
   async verifyThePageIsLoaded(): Promise<void> {
     await this.page.waitForLoadState('domcontentloaded');
-    await this.verifier.verifyTheElementIsVisible(this.shareThoughtsButton);
+    await this.verifier.verifyTheElementIsVisible(this.feedEditor);
   }
 
   /**
@@ -136,9 +134,6 @@ export class CreateFeedPostComponent
    */
   async createAndPost(options: FeedPostOptions): Promise<FeedPostResult> {
     return await test.step(`Creating and publishing feed post with text: ${options.text}`, async () => {
-      // Open editor
-      await this.clickShareThoughtsButton();
-
       // Add post content
       await this.createPost(options.text);
 
@@ -208,15 +203,6 @@ export class CreateFeedPostComponent
       await this.addUserNameMention(userName);
       await this.clickUpdateButton();
       // Note: Post verification should be done at test/page level to avoid duplication
-    });
-  }
-
-  /**
-   * Clicks the share thoughts button to open post editor
-   */
-  async clickShareThoughtsButton(): Promise<void> {
-    await test.step('Click on Share your thoughts button', async () => {
-      await this.clickOnElement(this.shareThoughtsButton);
     });
   }
 
@@ -420,9 +406,6 @@ export class CreateFeedPostComponent
   }): Promise<FeedPostResult> {
     const { text: title, userName, topicName, siteName, embedUrl } = params;
     return await test.step(`Creating feed post with user mention "${userName}" and topic mention "${topicName}"`, async () => {
-      // Open editor
-      await this.clickShareThoughtsButton();
-
       const topicName2 = faker.company.name();
       // Add post content
       await this.createPost(title);
@@ -450,6 +433,12 @@ export class CreateFeedPostComponent
         attachmentCount: 0,
         postId,
       };
+    });
+  }
+
+  async clickQuestionButton(): Promise<void> {
+    await test.step('Click question button', async () => {
+      await this.clickOnElement(this.questionButton);
     });
   }
 }

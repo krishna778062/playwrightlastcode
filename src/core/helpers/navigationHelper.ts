@@ -224,4 +224,21 @@ export class NavigationHelper {
       return addContentModal;
     });
   }
+
+  /**
+   * Clicks on the social campaigns link in the side navigation bar
+   * @param options - The options for the step
+   */
+  async clickOnSocialCampaigns(): Promise<void> {
+    await test.step('Clicking on social campaigns', async () => {
+      // Check if Social campaigns is directly visible
+      try {
+        await this.sideNavBarComponent.socialCampaignsElement.click();
+      } catch (error) {
+        console.log('DEBUG: Error clicking on social campaigns', error);
+        console.log('DEBUG: Social campaigns is not visible, clicking on more to expand the menu');
+        await this.sideNavBarComponent.moreElement.click();
+      }
+    });
+  }
 }

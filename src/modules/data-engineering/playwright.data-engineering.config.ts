@@ -4,8 +4,11 @@ import path from 'path';
 import baseConfig from '../../../playwright.base.config';
 import { PROJECT_ROOT } from '../../core/constants/paths';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
+
 export default defineConfig({
   ...baseConfig,
+  timeout: TIMEOUTS.VERY_VERY_LONG,
   name: 'Data Engineering UI Automation',
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'data-engineering', 'tests'),
   testIgnore: '**/api-tests/**',

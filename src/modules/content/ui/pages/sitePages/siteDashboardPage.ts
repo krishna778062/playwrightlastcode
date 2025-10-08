@@ -2,6 +2,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseSitePage } from '@content/ui/pages/sitePages/baseSite';
 
+import { ListFeedComponent } from '../../components/listFeedComponent';
 import { SiteDashboardComponent } from '../../components/siteDashboardComponent';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
@@ -15,16 +16,19 @@ export interface ISiteDashboardAssertions {
   verifyDashboardUrl: (siteId: string) => Promise<void>;
   verifySiteCreatedSuccessfully: (siteName: string) => Promise<void>;
   verifyCategoryCreatedSuccessfully: (categoryName: string) => Promise<void>;
+  verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
   // Locators for site and category verification
-  readonly categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
-  readonly categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
-  readonly siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
-  readonly siteDashboardComponent: SiteDashboardComponent;
-
+  readonly categoryLink: (categoryName: string) => Locator;
+  readonly categoryHeading: (categoryName: string) => Locator;
+  readonly siteLink: (siteName: string) => Locator;
   readonly feedLink: Locator;
+
+  // Components
+  readonly listFeedComponent: ListFeedComponent;
+  readonly siteDashboardComponent: SiteDashboardComponent;
   // Actions
   get actions(): ISiteDashboardActions {
     return this;
@@ -33,7 +37,11 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   constructor(page: Page, siteId: string) {
     super(page, siteId);
     this.siteDashboardComponent = new SiteDashboardComponent(page);
+    this.listFeedComponent = new ListFeedComponent(page);
     this.feedLink = this.page.locator('a:has-text("eed")');
+    this.categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
+    this.categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
+    this.siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
   }
   /**
    * Verifies that site was created successfully by checking if site link is visible
@@ -107,5 +115,9 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     await test.step('Click on feed link', async () => {
       await this.clickOnElement(this.feedLink);
     });
+  }
+
+  async verifyCampaignLinkDisplayed(linkText: string, description: string): Promise<void> {
+    await this.listFeedComponent.verifyCampaignLinkDisplayed(linkText, description);
   }
 }

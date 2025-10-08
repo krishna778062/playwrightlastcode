@@ -27,6 +27,8 @@ test.describe('Select format then send message', { tag: [TestPriority.P2] }, () 
         usesItalic: data.usesItalic,
         usesUnderline: data.usesUnderline,
         usesStrikethrough: data.usesStrikethrough,
+        usesBulletList: data.usesBulletList,
+        usesOrderList: data.usesOrderList,
       };
 
       await appManagerHomePage.verifyThePageIsLoaded();

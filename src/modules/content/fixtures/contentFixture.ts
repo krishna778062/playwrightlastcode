@@ -1,5 +1,8 @@
 import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
+import { AudienceManagementHelper } from '../apis/helpers/audienceManagementHelper';
+import { SocialCampaignHelper } from '../apis/helpers/socialCampaignHelper';
+
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
@@ -29,15 +32,27 @@ export const users = {
     email: getContentTenantConfigFromCache().siteManagerEmail || '',
     password: getContentTenantConfigFromCache().siteManagerPassword || '',
   },
+  socialCampaignManager: {
+    email: getContentTenantConfigFromCache().socialCampaignManagerEmail || '',
+    password: getContentTenantConfigFromCache().socialCampaignManagerPassword || '',
+  },
 } as const;
 
 export const contentTestFixture = test.extend<
   {
     // App manager browser context, Request Context + page
     appManagerBrowserContext: BrowserContext;
-    appManagersPage: Page;
-    appManagerHomePage: NewHomePage;
     appManagerUINavigationHelper: NavigationHelper;
+    // Browser contexts
+    appManagerContext: BrowserContext;
+    standardUserContext: BrowserContext;
+    siteManagerContext: BrowserContext;
+
+    // Authenticated pages
+    appManagerHomePage: NewHomePage;
+    appManagersPage: Page;
+    endUserContext: BrowserContext;
+
     // Helpers and services
     siteManagementHelper: SiteManagementHelper;
     contentManagementHelper: ContentManagementHelper;
@@ -45,6 +60,8 @@ export const contentTestFixture = test.extend<
     standardUserFeedManagementHelper: FeedManagementHelper;
     identityManagementHelper: IdentityManagementHelper;
     siteManagementService: SiteManagementService;
+    socialCampaignHelper: SocialCampaignHelper;
+    audienceManagementHelper: AudienceManagementHelper;
 
     // End user browser context, Request Context + page
     standardUserBrowserContext: BrowserContext;
@@ -57,6 +74,12 @@ export const contentTestFixture = test.extend<
     siteManagerPage: Page;
     siteManagerHomePage: NewHomePage;
     siteManagerUINavigationHelper: NavigationHelper;
+
+    // Social campaign manager browser context, Request Context + page
+    socialCampaignManagerBrowserContext: BrowserContext;
+    socialCampaignManagerPage: Page;
+    socialCampaignManagerHomePage: NewHomePage;
+    socialCampaignManagerUINavigationHelper: NavigationHelper;
 
     // Authenticated pages
     endUserHomePage: NewHomePage;
@@ -105,21 +128,6 @@ export const contentTestFixture = test.extend<
   // Browser contexts - isolated per test
   appManagerBrowserContext: [
     async ({ browser }, use) => {
-      // const page = await context.newPage();
-      // await LoginHelper.loginWithPassword(page, {
-      //   email: getEnvConfig().appManagerEmail,
-      //   password: getEnvConfig().appManagerPassword,
-      // });
-      // const appManagerHomePage = getEnvConfig().newUxEnabled ? new NewUxHomePage(page) : new OldUxHomePage(page);
-      // // await appManagerHomePage.verifyThePageIsLoaded();
-      // await use(context);
-      // await page.close();
-      // await context.close();
-      // const context = await AuthHelper.getLoggedInBrowserContext(
-      //   browser,
-      //   getContentTenantConfigFromCache().apiBaseUrl,
-      //   users.appManager
-      // );
       const context = await browser.newContext();
       const page = await context.newPage();
       await LoginHelper.loginWithPassword(page, {
@@ -159,12 +167,6 @@ export const contentTestFixture = test.extend<
 
   standardUserBrowserContext: [
     async ({ browser }, use) => {
-      // const context = await browser.newContext({
-      //   permissions: ['camera', 'microphone', 'notifications'],
-      //   // Optimize context creation
-      //   ignoreHTTPSErrors: true,
-      //   // viewport: { width: 1920, height: 1080 },
-      // });
       const context = await browser.newContext();
       const page = await context.newPage();
       await LoginHelper.loginWithPassword(page, {
@@ -242,6 +244,44 @@ export const contentTestFixture = test.extend<
     { scope: 'test' },
   ],
 
+  socialCampaignManagerBrowserContext: [
+    async ({ browser }, use) => {
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      await LoginHelper.loginWithPassword(page, {
+        email: users.socialCampaignManager.email,
+        password: users.socialCampaignManager.password,
+      });
+      await use(context);
+      await context?.close();
+    },
+    { scope: 'test' },
+  ],
+  socialCampaignManagerPage: [
+    async ({ socialCampaignManagerBrowserContext }, use) => {
+      const page = await socialCampaignManagerBrowserContext.newPage();
+      await use(page);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+  socialCampaignManagerHomePage: [
+    async ({ socialCampaignManagerPage }, use) => {
+      const homePage = new NewHomePage(socialCampaignManagerPage);
+      await homePage.loadPage();
+      await homePage.verifyThePageIsLoaded();
+      await use(homePage);
+    },
+    { scope: 'test' },
+  ],
+  socialCampaignManagerUINavigationHelper: [
+    async ({ socialCampaignManagerHomePage }, use, _workerInfo) => {
+      const socialCampaignManagerUINavigationHelper = new NavigationHelper(socialCampaignManagerHomePage.page);
+      await use(socialCampaignManagerUINavigationHelper);
+    },
+    { scope: 'test' },
+  ],
+
   siteManagementService: [
     async ({ appManagerApiContext }, use) => {
       const siteManagementService = new SiteManagementService(
@@ -313,11 +353,26 @@ export const contentTestFixture = test.extend<
     },
     { scope: 'test' },
   ],
+  audienceManagementHelper: [
+    async ({ appManagerApiContext }, use) => {
+      const helper = new AudienceManagementHelper(appManagerApiContext, getContentTenantConfigFromCache().apiBaseUrl);
+      await use(helper);
+    },
+    { scope: 'test' },
+  ],
 
   identityManagementHelper: [
     async ({ appManagerApiContext }, use) => {
       const helper = new IdentityManagementHelper(appManagerApiContext, getContentTenantConfigFromCache().apiBaseUrl);
 
+      await use(helper);
+    },
+    { scope: 'test' },
+  ],
+
+  socialCampaignHelper: [
+    async ({ appManagerApiContext }, use) => {
+      const helper = new SocialCampaignHelper(appManagerApiContext, getContentTenantConfigFromCache().apiBaseUrl);
       await use(helper);
     },
     { scope: 'test' },

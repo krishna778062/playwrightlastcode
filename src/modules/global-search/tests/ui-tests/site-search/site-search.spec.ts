@@ -51,7 +51,7 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
       test(
         `Verify Site Search results for a new ${testData.siteType} site in category "${testData.category}"`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
         },
         async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
           tagTest(test.info(), {
@@ -128,7 +128,7 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
       test(
         `Verify Site Autocomplete functionality for a ${testData.siteType} site"`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
         },
         async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
           tagTest(test.info(), {

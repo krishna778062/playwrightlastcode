@@ -1,7 +1,9 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { ManageRewardsPage } from '@rewards/ui/pages/manage-rewards/manage-rewards-page';
+import { RewardsDialogBox } from '@rewards/ui/pages/reward-store/rewards-dialog-box';
 
-import { PAGE_ENDPOINTS, PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants';
-import { BasePage } from '@core/ui';
+import { PAGE_ENDPOINTS, PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
+import { BasePage } from '@core/ui/pages/basePage';
 
 export class RewardsStore extends BasePage {
   readonly rewardStorePageNotFound: Locator;
@@ -31,6 +33,11 @@ export class RewardsStore extends BasePage {
   readonly giftCardImages: Locator;
   readonly giftCardLabel: Locator;
   readonly giftCardPointAmount: Locator;
+  readonly orderHistoryPanel: Locator;
+  readonly orderHistoryPanelRewardName: Locator;
+  readonly orderHistoryPanelRewardImage: Locator;
+  readonly orderHistoryPanelRewardResendButton: Locator;
+  readonly rewardsDialogBox: RewardsDialogBox;
 
   /**
    * This is a rewards store class that contains locators and methods for the rewards store page.
@@ -63,11 +70,24 @@ export class RewardsStore extends BasePage {
     this.resetButton = page.getByRole('button', { name: 'Reset' });
     this.legalTermText = page.locator('div[class*="Typography-module__secondary"]');
     // Gift card
-    this.giftCardItems = page.locator('[class*="UI_listItem"]');
+    this.giftCardItems = page.locator('[class*="UI_listItem"][aria-label*="Redeem"]');
     this.giftCardNames = this.giftCardItems.locator('[class*="UI_brandName"]');
     this.giftCardImages = this.giftCardItems.locator('[class*="UI_image--"]');
     this.giftCardLabel = this.giftCardItems.locator('[class*="Distribute-module__apart"] p').nth(0);
     this.giftCardPointAmount = this.giftCardItems.locator('[class*="Distribute-module__apart"] p').nth(1);
+
+    // Order history locators
+    this.orderHistoryPanel = page.locator('[class*="OrderHistory_container"] ul li');
+    this.orderHistoryPanelRewardName = this.orderHistoryPanel.locator(
+      '[class*="OrderHistory_brandImage"]+div h2:nth-child(1)'
+    );
+    this.orderHistoryPanelRewardImage = this.orderHistoryPanel.locator('[class*="OrderHistory_brandImage"]');
+    this.orderHistoryPanelRewardResendButton = this.orderHistoryPanel.locator(
+      '[class*="OrderHistory_buttonContainer"] button'
+    );
+
+    // Dialog box
+    this.rewardsDialogBox = new RewardsDialogBox(page);
   }
 
   /**
@@ -121,5 +141,163 @@ export class RewardsStore extends BasePage {
       assertionMessage: 'Verify the Reward name is visible in the search results',
     });
     await expect(this.giftCardNames.first()).toContainText(giftCardName);
+  }
+
+  async clickOnTheNthGiftCard(n: number) {
+    await this.verifier.verifyTheElementIsVisible(this.giftCardItems.last(), {
+      assertionMessage: ' Verify the gift card items are visible in the search results',
+    });
+    await this.giftCardItems.nth(n - 1).click();
+  }
+
+  async visitTheOrderHistory() {
+    await this.clickOnElement(this.orderHistoryTab, {
+      stepInfo: 'Clicking on order history tab',
+    });
+  }
+
+  async enableTheRewardStoreAndPeerGiftingIfDisabled() {
+    const manageRewardsPage = new ManageRewardsPage(this.page);
+
+    await manageRewardsPage.loadPage();
+    await manageRewardsPage.verifyThePageIsLoaded();
+
+    // Enable rewards if disabled
+    const isRewardsEnabled = await manageRewardsPage.verifier.isTheElementVisible(
+      manageRewardsPage.enableRewardsButton,
+      { timeout: 5000 }
+    );
+    if (isRewardsEnabled) {
+      await manageRewardsPage.clickOnElement(manageRewardsPage.enableRewardsButton, {
+        stepInfo: 'Enabling rewards if disabled',
+      });
+      await manageRewardsPage.verifyToastMessage('Rewards enabled');
+    }
+
+    await this.visit();
+  }
+
+  async selectAndRedeemGiftCard(giftCardName: string) {
+    await this.searchForGiftCard(giftCardName);
+    await this.clickOnTheNthGiftCard(1);
+    await this.rewardsDialogBox.clickOnTheCheckoutButton();
+    await this.rewardsDialogBox.enterTheConfirmEmail();
+    await this.rewardsDialogBox.checkTheTermsAndConditionCheckbox();
+    await this.verifier.verifyTheElementIsEnabled(this.rewardsDialogBox.confirmOrder);
+    await this.rewardsDialogBox.clickOnConfirmOrder();
+  }
+
+  async validateSuccessMessage(heading: string, descriptions: string[]) {
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.successOrderLogo);
+    await this.verifier.verifyElementHasText(this.rewardsDialogBox.successOrderHeading, heading);
+    if (descriptions.length === 1) {
+      await this.verifier.verifyElementHasText(this.rewardsDialogBox.successOrderDescription, descriptions[0]);
+    } else {
+      await this.verifier.verifyElementHasText(this.rewardsDialogBox.successOrderDescription.first(), descriptions[0]);
+      await this.verifier.verifyElementHasText(this.rewardsDialogBox.successOrderDescription.last(), descriptions[1]);
+    }
+    await this.rewardsDialogBox.closeTheSuccessDialogBox();
+  }
+
+  async redeemAndValidate({
+    tab,
+    giftCard,
+    successMessage,
+    additionalMessages = [],
+  }: {
+    tab: any;
+    giftCard: string;
+    successMessage: string;
+    additionalMessages?: string[];
+  }) {
+    if (tab) {
+      await this.clickOnElement(tab, {
+        stepInfo: `Clicking on ${tab} tab`,
+      });
+    }
+    await this.selectAndRedeemGiftCard(giftCard);
+    await this.validateSuccessMessage(successMessage, additionalMessages);
+    await this.visitTheOrderHistory();
+    await this.page.reload({ waitUntil: 'domcontentloaded' });
+    await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanel.first(), {
+      timeout: 10000,
+      assertionMessage: ' Verify the order history panel is visible',
+    });
+    await this.verifier.verifyElementContainsText(this.orderHistoryPanelRewardName.first(), giftCard, {
+      timeout: 10000,
+      assertionMessage: ' Verify the reward name in the order history panel',
+    });
+    await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardImage.first());
+    await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardResendButton.first());
+  }
+
+  async mockTheAvailablePoints(pointToSpend: number) {
+    // Get next month's first day
+    const now = new Date();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const refreshingAt = nextMonth.toISOString();
+
+    await this.page.route('**/recognition/rewards/users/**/wallet', route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          result: {
+            gifting: {
+              pendingIn: 0,
+              available: 0,
+              refreshingAt: refreshingAt,
+            },
+            redeemable: {
+              pendingIn: 0,
+              available: Number(pointToSpend),
+            },
+            redeemed: {
+              pendingIn: 0,
+              available: 0,
+            },
+          },
+        }),
+      })
+    );
+    await this.page.reload();
+  }
+
+  async verifyErrorScenario(giftCardName: string, mockPoints: number, inputAmount: number, expectedError: string) {
+    await this.mockTheAvailablePoints(mockPoints);
+    await this.searchForGiftCard(giftCardName);
+    await this.clickOnTheNthGiftCard(1);
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.container);
+    await this.verifier.verifyElementContainsText(this.rewardsDialogBox.title, giftCardName);
+    await this.fillInElement(this.rewardsDialogBox.rewardAmountInputBox, String(inputAmount), {
+      stepInfo: 'Filling reward amount input box',
+    });
+    await this.rewardsDialogBox.rewardAmountInputBox.blur();
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.rewardBalanceError);
+    await this.verifier.verifyElementHasText(this.rewardsDialogBox.rewardBalanceError, expectedError);
+    await this.clickOnElement(this.rewardsDialogBox.closeButton, {
+      stepInfo: 'Clicking on close button',
+    });
+  }
+
+  async verifyInsufficientFundsError(giftCardName: string, mockPoints: number) {
+    await this.mockTheAvailablePoints(mockPoints);
+    await this.searchForGiftCard(giftCardName);
+    await this.clickOnTheNthGiftCard(1);
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.container);
+    await this.verifier.verifyElementContainsText(this.rewardsDialogBox.title, giftCardName);
+    const availableAmountText = await this.rewardsDialogBox.rewardAmountsAvailablePoints.textContent();
+    const availablePoints = availableAmountText
+      ? Number(availableAmountText.match(/\d{1,3}(?:,\d{3})*|\d+/)?.[0]?.replace(/,/g, '') || '0')
+      : 0;
+    await this.fillInElement(this.rewardsDialogBox.rewardAmountInputBox, String(availablePoints + 5), {
+      stepInfo: 'Filling reward amount input box',
+    });
+    await this.rewardsDialogBox.rewardAmountInputBox.blur();
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.rewardBalanceError);
+    await this.verifier.verifyElementHasText(this.rewardsDialogBox.rewardBalanceError, 'Insufficient funds.');
+    await this.clickOnElement(this.rewardsDialogBox.closeButton, {
+      stepInfo: 'Clicking on close button',
+    });
   }
 }

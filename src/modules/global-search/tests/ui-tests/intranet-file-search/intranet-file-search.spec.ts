@@ -6,6 +6,7 @@ import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/tes
 import { INTRANET_FILE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/intranet-file-search.test-data';
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
 import { IntranetFileListComponent } from '@/src/modules/global-search/ui/components/intranetFileListComponent';
+import { ResultListingComponent } from '@/src/modules/global-search/ui/components/resultsListComponent';
 
 for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
   test.describe(
@@ -39,7 +40,7 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
       test(
         `Verify search results for a new intranet file of type ${fileType.type}`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
         },
         async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
           tagTest(test.info(), {
@@ -146,6 +147,32 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
             siteId,
             fileId,
           });
+        }
+      );
+
+      test(
+        `Verify Intranet File Autocomplete functionality for ${fileType.type}`,
+        {
+          tag: [TestPriority.P0, TestGroupType.SMOKE],
+        },
+        async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+          tagTest(test.info(), {
+            zephyrTestId: 'SEN-19290',
+          });
+
+          // Type in search input
+          await appManagerUINavigationHelper.topNavBarComponent.typeInSearchBarInput(uploadedFileName, {
+            stepInfo: `Typing "${uploadedFileName}" in search input`,
+          });
+
+          const resultList = new ResultListingComponent(appManagerHomePage.page);
+          await resultList.waitForAndVerifyAutocompleteListIsDisplayed();
+
+          const fileResult = resultList.getAutocompleteItemByName(uploadedFileName);
+
+          await fileResult.verifyAutocompleteItemData(uploadedFileName, fileType.label);
+
+          await fileResult.verifyAutocompleteNavigationToTitleLink(fileId, uploadedFileName, fileType.label);
         }
       );
     }

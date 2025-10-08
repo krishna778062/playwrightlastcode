@@ -94,7 +94,7 @@ async function getPrerequisiteData(
 
   // Create site only once, even if both createSite and createPage are true
   if (testData.feedType === 'Site Feed') {
-    const siteResult = await helpers.siteManagementHelper.getSiteWithAccessType({ accessType: 'public' });
+    const siteResult = await helpers.siteManagementHelper.getSiteByAccessType({ accessType: 'public' });
     resources.siteId = siteResult;
   }
 
@@ -231,6 +231,7 @@ for (const testData of feedTestData) {
           const embeedUrl = `https://www.youtube.com/watch?v=F_77M3ZZ1z8`;
 
           // Step 1: Create post with mentions
+          await appManagerFeedPage.actions.clickShareThoughtsButton();
           const postResult = await appManagerFeedPage.actions.createfeedWithMentionUserNameAndTopic({
             text: initialPostText,
             userName: fullName,

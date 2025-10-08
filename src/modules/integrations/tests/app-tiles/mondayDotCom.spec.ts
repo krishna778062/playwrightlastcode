@@ -7,19 +7,20 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { UI_ACTIONS } from '../../constants/common';
-
+import { UI_ACTIONS } from '@/src/modules/integrations/constants/common';
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { CONNECTOR_IDS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 test.describe(
-  'DocuSign App Tiles Integration',
+  'Monday.com App Tiles Integration',
   {
-    tag: [IntegrationsSuiteTags.DOCUSIGN, IntegrationsSuiteTags.ABSOLUTE],
+    tag: [IntegrationsSuiteTags.MONDAY_DOT_COM, IntegrationsSuiteTags.ABSOLUTE],
   },
   () => {
-    const AppName = 'Docusign';
-    const tileName = 'Display Docusign signature requests';
+    const AppName = 'Monday.com';
+    const tileName = 'Display tasks';
+    const BoardId = '1989305217';
+    const BoardIdOption = 'Board ID';
     let createdTileTitle: string | undefined = undefined;
 
     test.afterEach(async ({ homeDashboard, tileManagementHelper }) => {
@@ -31,7 +32,7 @@ test.describe(
     });
 
     test(
-      'verify app/site manager is able to edit Display Docusign signature requests App tile  on Home dashboard',
+      'verify app/site manager is able to edit Display tasks App tile  on Home dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -43,13 +44,14 @@ test.describe(
         });
 
         // Use homeDashboard from fixture
-        createdTileTitle = `DocuSign report ${faker.string.alphanumeric({ length: 6 })}`;
+        createdTileTitle = `Monday.com tasks ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Add and edit tile
-        await tileManagementHelper.createIntegrationAppTile(
+        await tileManagementHelper.createIntegrationAppTileWithSettings(
           createdTileTitle,
-          TILE_IDS.DOCUSIGN_SIGNATURES,
-          CONNECTOR_IDS.DOCUSIGN
+          TILE_IDS.MONDAY_DOT_COM_DISPLAY_TASKS,
+          CONNECTOR_IDS.MONDAY_DOT_COM,
+          { boardId: BoardId }
         );
         await homeDashboard.isTilePresent(createdTileTitle);
         await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
@@ -62,7 +64,7 @@ test.describe(
     );
 
     test(
-      'verify app/site manager is able to edit Display Docusign signature requests App tile  on Site dashboard',
+      'verify app/site manager is able to edit Display tasks App tile  on Site dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -73,7 +75,7 @@ test.describe(
         });
 
         //Generate a random tile title
-        createdTileTitle = `DocuSign report ${faker.string.alphanumeric({ length: 6 })}`;
+        createdTileTitle = `Monday.com tasks ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
         const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
@@ -81,7 +83,14 @@ test.describe(
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         // Add, edit, and remove tile
-        await siteDashboard.addTile(createdTileTitle, AppName, tileName, UI_ACTIONS.ADD_TO_SITE);
+        await siteDashboard.addTileWithUrlField(
+          createdTileTitle,
+          AppName,
+          tileName,
+          BoardIdOption,
+          BoardId,
+          UI_ACTIONS.ADD_TO_SITE
+        );
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
         await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
@@ -95,7 +104,7 @@ test.describe(
     );
 
     test(
-      'verify "Display Docusign signature requests" details are visible on home dashboard',
+      'verify "Display tasks" details are visible on home dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -106,23 +115,24 @@ test.describe(
         });
 
         //Generate a random tile title
-        createdTileTitle = `DocuSign report ${faker.string.alphanumeric({ length: 6 })}`;
+        createdTileTitle = `Monday.com tasks ${faker.string.alphanumeric({ length: 6 })}`;
 
         //add and verify tile
-        await tileManagementHelper.createIntegrationAppTile(
+        await tileManagementHelper.createIntegrationAppTileWithSettings(
           createdTileTitle,
-          TILE_IDS.DOCUSIGN_SIGNATURES,
-          CONNECTOR_IDS.DOCUSIGN
+          TILE_IDS.MONDAY_DOT_COM_DISPLAY_TASKS,
+          CONNECTOR_IDS.MONDAY_DOT_COM,
+          { boardId: BoardId }
         );
         await homeDashboard.isTilePresent(createdTileTitle);
 
         // Verify tile content structure
-        await homeDashboard.verifyDocuSignContentStructure(createdTileTitle);
-        await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.DOCUSIGN);
+        await homeDashboard.verifyMondayDotComContentStructure(createdTileTitle);
+        await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.MONDAY_DOT_COM);
       }
     );
     test(
-      'verify "Display Docusign signature requests" details are visible on site dashboard',
+      'verify "Display tasks" details are visible on site dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
@@ -133,7 +143,7 @@ test.describe(
         });
 
         //Generate a random tile title
-        createdTileTitle = `DocuSign report ${faker.string.alphanumeric({ length: 6 })}`;
+        createdTileTitle = `Monday.com tasks ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
         const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
@@ -141,13 +151,20 @@ test.describe(
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         // Add and verify tile
-        await siteDashboard.addTile(createdTileTitle, AppName, tileName, UI_ACTIONS.ADD_TO_SITE);
+        await siteDashboard.addTileWithUrlField(
+          createdTileTitle,
+          AppName,
+          tileName,
+          BoardIdOption,
+          BoardId,
+          UI_ACTIONS.ADD_TO_SITE
+        );
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await siteDashboard.isTilePresent(createdTileTitle);
 
         // Verify tile content structure
-        await siteDashboard.verifyDocuSignContentStructure(createdTileTitle);
-        await siteDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.DOCUSIGN);
+        await siteDashboard.verifyMondayDotComContentStructure(createdTileTitle);
+        await siteDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.MONDAY_DOT_COM);
         await siteDashboard.removeTile(createdTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         createdTileTitle = undefined;

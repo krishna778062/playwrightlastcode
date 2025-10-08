@@ -133,12 +133,18 @@ export class ContentManagementHelper {
    * Creates a new page in an existing site
    * @param siteId - The ID of the existing site
    * @param contentInfo - The content type information
-   * @param options - Optional configuration object with pageName and contentDescription
+   * @param options - Optional configuration object with pageName, contentDescription, publishAt, and publishTo
    */
   async createPage(params: {
     siteId: string;
     contentInfo: { contentType: string; contentSubType: string };
-    options?: { pageName?: string; contentDescription?: string; waitForSearchIndex?: boolean };
+    options?: {
+      pageName?: string;
+      contentDescription?: string;
+      waitForSearchIndex?: boolean;
+      publishAt?: string;
+      publishTo?: string;
+    };
   }) {
     const { siteId, contentInfo, options = {} } = params;
     const pageCategory = await this.contentManagementService.getPageCategoryID(siteId);
@@ -155,6 +161,8 @@ export class ContentManagementHelper {
       },
       contentType: contentInfo.contentType,
       contentSubType: contentInfo.contentSubType,
+      ...(options.publishAt && { publishAt: options.publishAt }),
+      ...(options.publishTo && { publishTo: options.publishTo }),
     });
 
     if (options.waitForSearchIndex) {
@@ -170,10 +178,20 @@ export class ContentManagementHelper {
       pageName: finalPageName,
       authorName: pageResult.authorName,
       contentDescription: finalContentDescription,
+      publishAt: pageResult.publishAt,
+      publishTo: pageResult.publishTo,
+      isScheduled: pageResult.isScheduled,
     };
     this.content.push({ siteId, contentId: pageResult.pageId });
     return { ...createdContent };
   }
+
+  /**
+   * Creates a new scheduled page in an existing site
+   * @param siteId - The ID of the existing site
+   * @param contentInfo - The content type information
+   * @param options - Optional configuration object with pageName, contentDescription, publishAt, and publishTo
+   */
 
   /**
    * Creates a new event in an existing site

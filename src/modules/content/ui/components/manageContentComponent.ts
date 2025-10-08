@@ -2,7 +2,6 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
-import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 
 export class ManageContentComponent extends BaseComponent {
   readonly searchBar: Locator;
@@ -51,6 +50,7 @@ export class ManageContentComponent extends BaseComponent {
   readonly statusField: Locator;
   readonly selectPublishOption: Locator;
   readonly crossButton: Locator;
+  readonly scheduledTag: Locator;
   constructor(page: Page) {
     super(page);
     this.searchBar = page.locator("[aria-label='Search…']");
@@ -92,6 +92,7 @@ export class ManageContentComponent extends BaseComponent {
     this.siteName = page.locator(`[class="meta-link"]`).last();
     this.sortByButton = page.locator(`[name="sortBy"]`);
     this.statusField = page.locator('[name="status"]');
+
     this.pageCategorySelectorDropdown = page
       .locator('div')
       .filter({ hasText: /^Select a page category…$/ })
@@ -111,8 +112,12 @@ export class ManageContentComponent extends BaseComponent {
     this.clickOnCancelButton = page.getByRole('button', { name: 'Cancel' });
     this.selectPublishOption = page.getByLabel('Status:');
     this.crossButton = page.getByRole('button', { name: 'Dismiss' }).first();
+    this.scheduledTag = page.locator('[class="StampList"]:has-text("SCHEDULED")').first();
   }
 
+  getPageName(pageName: string): Locator {
+    return this.page.locator(`[aria-label="${pageName}"]`).first();
+  }
   async clickSearchBar(): Promise<void> {
     await test.step(`Clicking on the search bar`, async () => {
       await this.clickOnElement(this.searchBar);
@@ -222,6 +227,11 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
+  async scheduledTagShouldBeVisible(): Promise<void> {
+    await test.step(`Checking if the scheduled tag is visible`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.scheduledTag);
+    });
+  }
   async clickOnCrossButton(): Promise<void> {
     await test.step(`Clicking on the cross button`, async () => {
       await this.clickOnElement(this.crossButton);
@@ -445,6 +455,28 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.statusField);
       await this.selectPublishOption.selectOption('Published');
       await this.clickFilterButton();
+    });
+  }
+  async scheduledTagVisibleInManageContent(): Promise<void> {
+    await test.step('Checking if the scheduled tag is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.scheduledTag, {
+        assertionMessage: 'Scheduled tag should be visible',
+      });
+    });
+  }
+  async checkContentDetailsVisibility(pageName: string): Promise<void> {
+    await test.step('Checking if the content details are visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.scheduledTag, {
+        assertionMessage: 'Scheduled tag should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.getPageName(pageName), {
+        assertionMessage: 'Content details should be visible',
+      });
+    });
+  }
+  async applyButtonShouldBeDisabled(): Promise<void> {
+    await test.step('Checking if the apply button is disabled', async () => {
+      await this.verifier.verifyTheElementIsDisabled(this.applyButton);
     });
   }
 }

@@ -1,12 +1,13 @@
 import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
+import { SiteManagementHelper } from '@content/apis/helpers/siteManagementHelper';
+import { TileManagementHelper } from '@content/apis/helpers/tileManagementHelper';
 import { LoginHelper } from '@core/helpers/loginHelper';
+import { UserCredentials } from '@core/types/test.types';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
-import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
-import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileManagementHelper';
 
 export type UserType = 'appManager' | 'endUser';
 
@@ -133,3 +134,42 @@ export const multiUserTileFixture = test.extend<
     { scope: 'test' },
   ],
 });
+
+/**
+ * Generic multi-user fixture that allows custom admin and end user credentials
+ * @param adminCredentials - Custom credentials for the admin user
+ * @param endUserCredentials - Custom credentials for the end user
+ * @returns Extended fixture with custom admin and end user login
+ */
+export function createCustomMultiUserFixture(adminCredentials: UserCredentials, endUserCredentials: UserCredentials) {
+  return multiUserTileFixture.extend({
+    adminPage: [
+      async ({ browser }, use) => {
+        const adminContext = await browser.newContext({ recordVideo: { dir: 'test-results/videos/' } });
+        const adminPage = await adminContext.newPage();
+
+        await test.step(`Logging in Custom Admin User`, async () => {
+          await LoginHelper.loginWithPassword(adminPage, adminCredentials);
+        });
+
+        await use(adminPage);
+        await adminContext.close();
+      },
+      { scope: 'test' },
+    ],
+    endUserPage: [
+      async ({ browser }, use) => {
+        const endUserContext = await browser.newContext({ recordVideo: { dir: 'test-results/videos/' } });
+        const endUserPage = await endUserContext.newPage();
+
+        await test.step(`Logging in Custom End User`, async () => {
+          await LoginHelper.loginWithPassword(endUserPage, endUserCredentials);
+        });
+
+        await use(endUserPage);
+        await endUserContext.close();
+      },
+      { scope: 'test' },
+    ],
+  });
+}

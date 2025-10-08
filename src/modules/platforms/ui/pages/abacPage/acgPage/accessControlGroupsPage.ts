@@ -64,7 +64,8 @@ export class AccessControlGroupsPage extends BasePage {
     this.acgSearchField = page.locator('#search');
     this.acgCheckBoxes = page.locator("[type='checkbox']");
     this.acgAudiencesName = page.locator('[class*="NameWithDescription"] p');
-    this.acgMenuOptions = page.locator('[aria-haspopup="menu"]');
+    this.acgRecords = page.locator('[data-testid*="dataGridRow"]');
+    this.acgMenuOptions = this.acgRecords.locator('[aria-haspopup="menu"]');
     this.acgDeleteButton = page.locator("text='Delete'");
     this.acgEditButton = page
       .locator('[class*="DropdownMenu-module__DropdownMenuItemLabel"]')
@@ -81,7 +82,6 @@ export class AccessControlGroupsPage extends BasePage {
     this.acgRecordsElement = page.locator('[data-testid*="dataGridRow"]');
     this.createACGModal = new AccessControlGroupModalComponent(page, 'create');
     this.editACGModal = new AccessControlGroupModalComponent(page, 'edit');
-    this.acgRecords = page.locator('[data-testid*="dataGridRow"]');
     this.confirmEditACGModal = new ConfirmEditAccessControlGroupModalComponent(page);
     this.clearButtonOnSearchInputBox = page.locator('[aria-label="Clear"]');
     this.acgColumns = page.locator('[class*="Cell-module__isHeader"]');

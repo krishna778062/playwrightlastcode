@@ -95,13 +95,13 @@ export class TileManagementHelper {
    * @param tileTitle - The title of the tile
    * @param tileId - The ID of the tile
    * @param connectorId - The ID of the connector
-   * @param config - Configuration object with scheduleUrl for UKG WFM, timePeriod for ServiceNow, or instanceUrl for UKG Pro
+   * @param config - Configuration object with scheduleUrl for UKG WFM, timePeriod for ServiceNow, instanceUrl for UKG Pro, or boardId for Monday.com
    */
   async createIntegrationAppTileWithSettings(
     tileTitle: string,
     tileId: string,
     connectorId: string,
-    config: { scheduleUrl?: string; timePeriod?: string; instanceUrl?: string }
+    config: { scheduleUrl?: string; timePeriod?: string; instanceUrl?: string; boardId?: string }
   ): Promise<void> {
     await test.step(`Create app tile with configured settings: ${tileTitle}`, async () => {
       await this.tileManagementService.createIntegrationAppTileWithSettings({
@@ -111,6 +111,7 @@ export class TileManagementHelper {
         scheduleUrl: config.scheduleUrl,
         timePeriod: config.timePeriod,
         instanceUrl: config.instanceUrl,
+        boardId: config.boardId,
       });
     });
   }
