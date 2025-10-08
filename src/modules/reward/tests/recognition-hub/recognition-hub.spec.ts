@@ -308,7 +308,7 @@ test.describe('Recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
     }
   );
 
-  test.only(
+  test(
     '[RC-3223] Validate Points refreshing banner should not be shown on the delete recognition modal if grace period is over',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P1],
