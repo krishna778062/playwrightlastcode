@@ -13,6 +13,8 @@ export interface IListOfSocialCampaignComponentAssertions {
   verifyCampaignNotInLatest: (linkText: string) => Promise<void>;
   verifyCampaignInExpired: (linkText: string) => Promise<void>;
   verifyCampaignNotInExpired: (linkText: string) => Promise<void>;
+  verifyExpireCampaignButtonIsNotVisible: () => Promise<void>;
+  verifyDeleteCampaignButtonIsNotVisible: () => Promise<void>;
 }
 
 export class ListOfSocialCampaignComponent
@@ -124,6 +126,22 @@ export class ListOfSocialCampaignComponent
   async clickShareToFeedButton(): Promise<void> {
     await test.step('Click Share to feed button', async () => {
       await this.clickOnElement(this.shareToFeedButton);
+    });
+  }
+
+  async verifyExpireCampaignButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify Expire Campaign button is not visible to end user', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.expireCampaignButton, {
+        assertionMessage: 'Expire Campaign button should not be visible to end user',
+      });
+    });
+  }
+
+  async verifyDeleteCampaignButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify Delete Campaign button is not visible to end user', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.deleteCampaignButton, {
+        assertionMessage: 'Delete Campaign button should not be visible to end user',
+      });
     });
   }
 }

@@ -8,6 +8,7 @@ import { PageCreationPage } from '@content/pages/pageCreationPage';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
+import { ListFeedComponent } from '@/src/modules/content/components/listFeedComponent';
 import { SiteDashboardComponent } from '@/src/modules/content/components/siteDashboardComponent';
 
 export interface ISiteDashboardActions {
@@ -29,6 +30,7 @@ export interface ISiteDashboardAssertions {
 }
 
 export class SiteDashboardPage extends BasePage implements ISiteDashboardActions, ISiteDashboardAssertions {
+  private listFeedComponent: ListFeedComponent;
   readonly addContentButton = this.page.locator("button[title='Add content']");
   readonly manageSiteButton = this.page.locator("button[title='Manage site'], a[href*='/manage']");
   readonly siteNameHeading = (siteName: string) => this.page.locator('h1').filter({ hasText: siteName });
@@ -49,6 +51,7 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
     this.siteDashboardComponent = new SiteDashboardComponent(page);
+    this.listFeedComponent = new ListFeedComponent(page);
     this.verfiyFeedSection = this.verfiyFeedSection.bind(this);
     this.addContentModal = new AddContentModalComponent(page);
   }
@@ -219,13 +222,6 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
   }
 
   async verifyCampaignLinkDisplayed(linkText: string, description: string): Promise<void> {
-    await test.step(`Verify campaign link "${linkText}" is displayed`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.feedLinkWithDescription(description), {
-        assertionMessage: `Shared Description "${description}" should be visible`,
-      });
-      await this.verifier.verifyTheElementIsVisible(this.sharefeedLink(linkText), {
-        assertionMessage: `Campaign link "${linkText}" should be visible`,
-      });
-    });
+    return await this.listFeedComponent.verifyCampaignLinkDisplayed(linkText, description);
   }
 }
