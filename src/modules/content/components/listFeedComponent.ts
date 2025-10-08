@@ -372,17 +372,17 @@ export class ListFeedComponent extends BaseComponent {
 
   async selectPostsToMe(): Promise<void> {
     await test.step('Select posts to me', async () => {
-      // await this.clickOnElement(this.postsIFollow);
-      await this.page.keyboard.press('P');
-      await this.page.keyboard.press('Enter');
+      await this.clickOnElement(this.postsIFollow);
+      await this.page.getByLabel('Show', { exact: true }).focus();
+      await this.clickOnElement(this.postsToMe);
     });
   }
 
   async selectPostDate(): Promise<void> {
     await test.step('Select post date', async () => {
-      // await this.clickOnElement(this.sortByRecentActivity);
-      await this.page.keyboard.press('R');
-      await this.page.keyboard.press('Enter');
+      await this.clickOnElement(this.sortByRecentActivity);
+      await this.page.getByLabel('Sort by', { exact: true }).focus();
+      await this.clickOnElement(this.postDate);
     });
   }
 }
