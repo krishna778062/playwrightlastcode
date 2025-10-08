@@ -218,10 +218,13 @@ export class TileOperationsComponent extends BaseAppTileComponent {
    * Verify status tag is shown in tile
    */
   async verifyStatusTag(tileTitle: string, status: string): Promise<void> {
-    await test.step(`Verify ${status} status is shown for ${tileTitle}`, async () => {
+    await test.step(`Verify ${status} for ${tileTitle}`, async () => {
       const tile = this.getTile(tileTitle);
-      const statusTag = this.getTagElement(tile).filter({ hasText: status });
-      await expect(statusTag).toBeVisible();
+      await expect(tile).toBeVisible({ timeout: 5_000 });
+      const tags = this.getTagElement(tile).getByText(status, { exact: true });
+      await expect(tags.first(), `Status "${status}" should be visible for "${tileTitle}"`).toBeVisible({
+        timeout: 5_000,
+      });
     });
   }
 

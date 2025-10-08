@@ -25,6 +25,7 @@ export class ChatEditorComponent extends BaseComponent {
   readonly strikethroughButton: Locator;
   readonly bulletListButton: Locator;
   readonly orderListButton: Locator;
+  readonly emojiButton: Locator;
   readonly linkButton: Locator;
   readonly linkTextBox: Locator;
   readonly linkTextfield: Locator;
@@ -34,6 +35,11 @@ export class ChatEditorComponent extends BaseComponent {
   readonly linkErrorMessage: Locator;
   readonly textErrorMessage: Locator;
 
+  //emoji picker
+  readonly emojiPickerContainer: Locator;
+  readonly emojiSearchInput: Locator;
+  readonly emojiSearchResults: Locator;
+
   //actions buttons
   readonly addMediaAttachmentButton: Locator;
   readonly recordAudioButton: Locator;
@@ -42,6 +48,7 @@ export class ChatEditorComponent extends BaseComponent {
 
   //attachements
   readonly attachementsContainer: Locator;
+
   constructor(
     page: Page,
     protected readonly chatEditorComponentContainer: Locator
@@ -62,6 +69,7 @@ export class ChatEditorComponent extends BaseComponent {
     this.strikethroughButton = this.toolbarContainer.getByLabel('Strikethrough');
     this.bulletListButton = this.toolbarContainer.getByLabel('Bulleted list');
     this.orderListButton = this.toolbarContainer.getByLabel('Ordered list');
+    this.emojiButton = this.toolbarContainer.getByLabel('Emoji');
     this.linkButton = this.toolbarContainer.getByLabel('Open Insert link options');
     this.linkTextBox = this.page.locator('#text');
     this.linkUrlBox = this.page.locator('#url');
@@ -73,6 +81,11 @@ export class ChatEditorComponent extends BaseComponent {
     this.textErrorMessage = this.page.getByText('Please fill out this field');
 
     this.insertButton = this.page.locator('button[type="submit"]');
+
+    //emoji picker
+    this.emojiPickerContainer = this.page.locator('[aria-label="Choose an Emoji"]');
+    this.emojiSearchInput = this.page.locator('input[placeholder="Search for an emoji…"]');
+    this.emojiSearchResults = this.page.locator(`//div[contains(@class,'emojiPicker')]//button`);
 
     //action buttons on editor footer
     this.addMediaAttachmentButton = this.chatEditorComponentContainer.getByLabel('Choose files');
@@ -320,6 +333,26 @@ export class ChatEditorComponent extends BaseComponent {
         assertionMessage: 'Please fill out this field',
       });
     }
+  }
+
+  /**
+   * Selects emojis from the emoji picker
+   * @param emojiCount - Number of emojis to select sequentially
+   */
+  async selectEmojisFromPicker(emojiCount: number): Promise<void> {
+    await test.step(`Selecting ${emojiCount} emojis from picker`, async () => {
+      for (let i = 1; i <= emojiCount; i++) {
+        await this.clickOnElement(this.emojiButton);
+        await this.verifier.verifyTheElementIsVisible(this.emojiPickerContainer);
+
+        const emojiButtons = this.emojiPickerContainer.locator(
+          `//div[@aria-label='People section' or @aria-label='']/..//button[${i}]`
+        );
+        await emojiButtons.click();
+
+        await this.verifier.verifyTheElementIsNotVisible(this.emojiPickerContainer);
+      }
+    });
   }
 
   /**

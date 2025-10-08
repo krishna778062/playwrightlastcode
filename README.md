@@ -706,12 +706,10 @@ If you prefer to create modules manually:
    - `qa.env`
    - `uat.env`
    - etc.
-
 4. **Choose Page Architecture**: Select the appropriate page class pattern based on complexity:
    - **Simple modules**: Use single class pattern with inline methods
    - **Complex modules**: Use base class inheritance pattern
    - **Multiple UX variants**: Use interface inheritance hierarchy
-
 5. **Add Playwright Config**: Create `src/modules/<your-module>/playwright.<your-module>.config.ts` extending the base config.
 
 6. **Register Shared Logic**: Add any shared logic to `src/core` if it could be reused by other modules.
