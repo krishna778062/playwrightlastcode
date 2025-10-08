@@ -16,15 +16,6 @@ export class AudienceManagementHelper {
   }
 
   /**
-   * Gets list of audiences
-   * @param size - Number of audiences to fetch (default: 16)
-   * @returns Promise<AudienceListResponse>
-   */
-  async getAudienceList(size: number = 16) {
-    return await this.audienceManagementService.getAudienceList(size);
-  }
-
-  /**
    * Gets all audiences with default size
    * @param size - Number of audiences to fetch (default: 16)
    * @returns Promise<AudienceListResponse>
@@ -97,5 +88,62 @@ export class AudienceManagementHelper {
    */
   async createAudience(request: CreateAudienceRequest): Promise<CreateAudienceResponse> {
     return await this.audienceManagementService.createAudience(request);
+  }
+
+  /**
+   * Deletes an audience by ID
+   * @param audienceId - ID of the audience to delete
+   * @returns Promise<void>
+   */
+  async deleteAudience(audienceId: string): Promise<void> {
+    // Note: This would need to be implemented in AudienceManagementService
+    // For now, we'll just log that cleanup is needed
+    console.log(`Audience ${audienceId} cleanup needed - delete method not implemented yet`);
+  }
+
+  /**
+   * Gets an audience name that has no description
+   * @returns Promise<string> - Audience name
+   */
+  async getAudienceWithDescription(): Promise<{
+    name: string;
+    description: string;
+    audienceId: string;
+    audienceCount: string | number;
+  }> {
+    const response = await this.audienceManagementService.getAudienceList();
+    const audience = response.result.listOfItems.find(audience => audience.description !== null);
+    if (!audience) {
+      throw new Error('No audience with no description found');
+    }
+    return {
+      name: audience.name,
+      description: audience.description || '',
+      audienceId: audience.audienceId,
+      audienceCount: audience.audienceCount || 0,
+    };
+  }
+
+  /**
+   * Gets an audience name that has no description
+   * @returns Promise<string> - Audience name
+   */
+  async getAudienceWithNoDescription(): Promise<{
+    name: string;
+    description: string;
+    audienceId: string;
+    audienceCount: string | number;
+  }> {
+    const response = await this.audienceManagementService.getAudienceList();
+    const audience = response.result.listOfItems.find(audience => audience.description === null);
+    if (!audience) {
+      throw new Error('No audience with description found');
+    }
+    return {
+      name: audience.name,
+      description: audience.description || '',
+      audienceId: audience.audienceId,
+      audienceCount: audience.audienceCount || 0,
+    };
   }
 }

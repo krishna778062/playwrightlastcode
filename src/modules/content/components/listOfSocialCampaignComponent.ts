@@ -13,6 +13,8 @@ export interface IListOfSocialCampaignComponentAssertions {
   verifyCampaignNotInLatest: (linkText: string) => Promise<void>;
   verifyCampaignInExpired: (linkText: string) => Promise<void>;
   verifyCampaignNotInExpired: (linkText: string) => Promise<void>;
+  verifyExpireCampaignButtonIsNotVisible: () => Promise<void>;
+  verifyDeleteCampaignButtonIsNotVisible: () => Promise<void>;
 }
 
 export class ListOfSocialCampaignComponent
@@ -26,14 +28,14 @@ export class ListOfSocialCampaignComponent
   readonly campaignCount: Locator;
   readonly deleteCampaignButton: Locator;
   readonly confirmDeleteButton: Locator;
-  readonly categoryOptionsButton: Locator;
+  readonly shareToFeedButton: Locator;
 
   constructor(page: Page) {
     super(page);
     this.linkByText = (linkText: string) => page.locator('a', { hasText: linkText });
     this.campaignOptionsButton = page.locator('button.ImageOptions-button').first();
-    this.categoryOptionsButton = page.locator('Category option').first();
     this.expireCampaignButton = page.locator('button:has-text("Expire campaign")');
+    this.shareToFeedButton = page.locator('button:has-text("Share to feed")');
     this.confirmExpireButton = page.locator('span:has-text("Expire")');
     this.campaignCount = page.locator('[data-testid="campaign-count"]');
     this.deleteCampaignButton = page.locator('button:has-text("Delete campaign")');
@@ -59,6 +61,9 @@ export class ListOfSocialCampaignComponent
   async clickCampaignOptions(): Promise<void> {
     await test.step('Click options for campaign', async () => {
       await this.hoverOverElementInJavaScript(this.campaignOptionsButton);
+      await this.verifier.verifyTheElementIsVisible(this.campaignOptionsButton, {
+        assertionMessage: `Campaign options button should be visible`,
+      });
       await this.clickByInjectingJavaScript(this.campaignOptionsButton);
     });
   }
@@ -118,10 +123,24 @@ export class ListOfSocialCampaignComponent
     });
   }
 
-  async verifyToastMessage(message: string): Promise<void> {
-    await test.step(`Verify toast message: "${message}"`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.toastMessages.filter({ hasText: message }), {
-        assertionMessage: `Verify toast message: "${message}"`,
+  async clickShareToFeedButton(): Promise<void> {
+    await test.step('Click Share to feed button', async () => {
+      await this.clickOnElement(this.shareToFeedButton);
+    });
+  }
+
+  async verifyExpireCampaignButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify Expire Campaign button is not visible to end user', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.expireCampaignButton, {
+        assertionMessage: 'Expire Campaign button should not be visible to end user',
+      });
+    });
+  }
+
+  async verifyDeleteCampaignButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify Delete Campaign button is not visible to end user', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.deleteCampaignButton, {
+        assertionMessage: 'Delete Campaign button should not be visible to end user',
       });
     });
   }

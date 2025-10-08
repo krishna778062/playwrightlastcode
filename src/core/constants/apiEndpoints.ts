@@ -98,6 +98,7 @@ export const API_ENDPOINTS = {
     update: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
     delete: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
     updateStatus: (campaignId: string) => `/v1/socialcampaigns/${campaignId}/status`,
+    metadata: '/v1/content/oembed/metadata',
   },
   appConfig: {
     governance: '/v1/account/appConfig/app.setup.governance',
@@ -119,6 +120,7 @@ export const API_ENDPOINTS = {
     create: '/v1/promotions/w/qrcodes',
     contentList: '/v1/content/sites/content/list',
     delete: (qrCodeId: string) => `/v1/promotions/w/qrcodes/${qrCodeId}`,
+    list: (pageSize: number) => `/v1/promotions/r/qrcodes?pagesize=${pageSize}`,
   },
   integrations: {
     tiles: '/v1/tiles',

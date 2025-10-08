@@ -20,10 +20,6 @@ export class ListFeedComponent extends BaseComponent {
   readonly submitReplyButton: Locator;
   readonly replyEditor: Locator;
   readonly replyShowMoreButton: Locator;
-  readonly postsIFollow: Locator;
-  readonly sortByRecentActivity: Locator;
-  readonly postsToMe: Locator;
-  readonly postDate: Locator;
 
   // Dynamic locator functions
   /**
@@ -355,34 +351,6 @@ export class ListFeedComponent extends BaseComponent {
   async clickOnInfoIcon(fileId: string): Promise<void> {
     await test.step(`Click on info icon for fileId: ${fileId}`, async () => {
       await this.clickOnElement(this.infoIcon);
-    });
-  }
-
-  async verifyPostsIFollow(): Promise<void> {
-    await test.step('Verify posts i follow', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.postsIFollow);
-    });
-  }
-
-  async verifySortByRecentActivity(): Promise<void> {
-    await test.step('Verify sort by recent activity', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.sortByRecentActivity);
-    });
-  }
-
-  async selectPostsToMe(): Promise<void> {
-    await test.step('Select posts to me', async () => {
-      await this.clickOnElement(this.postsIFollow);
-      await this.page.getByLabel('Show', { exact: true }).focus();
-      await this.clickOnElement(this.postsToMe);
-    });
-  }
-
-  async selectPostDate(): Promise<void> {
-    await test.step('Select post date', async () => {
-      await this.clickOnElement(this.sortByRecentActivity);
-      await this.page.getByLabel('Sort by', { exact: true }).focus();
-      await this.clickOnElement(this.postDate);
     });
   }
 }
