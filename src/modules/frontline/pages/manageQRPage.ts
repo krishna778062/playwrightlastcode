@@ -1,11 +1,19 @@
 import { PopupType } from '@frontline/constants/popupType';
+import { QR_CONSTANTS } from '@frontline/constants/qrConstants';
 import { expect, Locator, Page, test } from '@playwright/test';
 import { addDays, format } from 'date-fns';
+import * as fs from 'fs';
+import { Jimp } from 'jimp';
+import jsQR from 'jsqr';
+import * as path from 'path';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { ContentType } from '@core/constants/contentTypes';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
+import { FileUtil } from '@core/utils/fileUtil';
+import { PlaywrightAction, PlaywrightErrorHandler } from '@core/utils/playwrightErrorHandler';
 
 export class ManageQRPage extends BasePage {
   readonly manageLink: Locator;
@@ -69,6 +77,12 @@ export class ManageQRPage extends BasePage {
   readonly tableValidTillHeader: Locator;
   readonly tableStatusHeader: Locator;
   readonly tableActionsHeader: Locator;
+  readonly downloadQRButton: Locator;
+  readonly downloadPDFMenu: Locator;
+  readonly downloadQROnly: Locator;
+  readonly contentPageHeader: Locator;
+  readonly promoteContentQRHeading: Locator;
+  private downloadedFilePath: string = '';
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_QR_PAGE);
@@ -131,7 +145,7 @@ export class ManageQRPage extends BasePage {
     this.inactiveFilterCheckBox = page.locator('#status_disabled');
     this.inactiveQR = page.locator('//tbody//button[@role="switch"]');
     this.contentPageQRIcon = page.getByTestId('i-qr');
-    this.promoteContentQRPage = page.getByRole('heading', { name: 'Promote content via QR' });
+    this.promoteContentQRPage = page.locator("h2:has-text('Promote content via QR')");
     this.firstContentHeader = page.locator('.ManageContentListItem').first().locator('h2 a');
     this.qrCodesAddedHeader = page.getByRole('heading', { name: 'QR codes added' });
     this.tableNameHeader = page.locator('th').filter({ hasText: 'Name' });
@@ -140,6 +154,11 @@ export class ManageQRPage extends BasePage {
     this.tableValidTillHeader = page.locator('th').filter({ hasText: 'Valid till' });
     this.tableStatusHeader = page.locator('th').filter({ hasText: 'Status' });
     this.tableActionsHeader = page.locator('th').filter({ hasText: 'Actions' });
+    this.downloadQRButton = page.locator("//button[text()='Download QR']");
+    this.downloadPDFMenu = page.getByRole('menuitem', { name: 'Download PDF' });
+    this.downloadQROnly = page.getByRole('menuitem', { name: 'Download QR code only' });
+    this.contentPageHeader = page.locator('.Hero-eventInner');
+    this.promoteContentQRHeading = page.locator("h2:has-text('Promote content via QR')");
   }
 
   async clickOnManage() {
@@ -807,6 +826,175 @@ export class ManageQRPage extends BasePage {
           assertionMessage: `More options icon should be visible for QR row ${i}`,
         });
       }
+    });
+  }
+
+  async verifyDownloadOptionsAreVisible(): Promise<void> {
+    await test.step('Verify download options are visible', async () => {
+      await expect(this.downloadPDFMenu).toBeVisible();
+      await expect(this.downloadQROnly).toBeVisible();
+    });
+  }
+
+  async clickOnDownloadQROnlyOption(): Promise<void> {
+    await test.step('Click on download QR only option', async () => {
+      await this.downloadQROnly.click();
+    });
+  }
+
+  async downloadQRImage(): Promise<string> {
+    return await test.step('Download QR image', async () => {
+      // Create download directory using FileUtil
+      const downloadDir = path.join(process.cwd(), QR_CONSTANTS.DOWNLOAD_DIR);
+      FileUtil.createDir(downloadDir);
+
+      try {
+        const result = await this.downloadFileWithCleanup(() => this.downloadQROnly.click(), {
+          stepInfo: 'Download QR image',
+          cleanup: false, // Keep file for QR scanning
+          timeout: TIMEOUTS.MEDIUM,
+        });
+
+        // Verify file type and existence
+        if (!result.filename.endsWith('.png')) {
+          throw new Error(`Expected .png file, got: ${result.filename}`);
+        }
+
+        if (!FileUtil.fileExists(result.downloadPath)) {
+          throw new Error(`Downloaded file not found: ${result.downloadPath}`);
+        }
+
+        this.downloadedFilePath = result.downloadPath;
+        console.log(`QR image downloaded successfully: ${result.filename}`);
+        return result.downloadPath;
+      } catch (error) {
+        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.DOWNLOAD, 'QR image');
+      }
+    });
+  }
+
+  async verifyPromoteContentModalIsClosed(): Promise<void> {
+    await test.step('Verify promote content modal is closed', async () => {
+      await expect(this.promoteContentQRHeading).not.toBeVisible();
+      await expect(this.contentPageHeader).toBeVisible();
+    });
+  }
+
+  async verifyQRNameFieldIsPrefilled(expectedQRName: string): Promise<void> {
+    await test.step('Verify QR name field is prefilled with expected value', async () => {
+      await this.qrNameField.waitFor();
+      const currentValue = await this.qrNameField.inputValue();
+      expect(currentValue).toBe(expectedQRName);
+    });
+  }
+
+  async clickOnDownloadQRButton(): Promise<void> {
+    await test.step('Click on Download QR button', async () => {
+      await this.clickOnElement(this.downloadQRButton, {
+        stepInfo: 'Click on Download QR button',
+      });
+    });
+  }
+
+  async clickOnDownloadPDFOption(): Promise<void> {
+    await test.step('Click on Download PDF option', async () => {
+      await this.clickOnElement(this.downloadPDFMenu, {
+        stepInfo: 'Click on Download PDF option',
+      });
+    });
+  }
+
+  async downloadPDF(): Promise<string> {
+    return await test.step('Download QR PDF', async () => {
+      // Create download directory using FileUtil
+      const downloadDir = path.join(process.cwd(), QR_CONSTANTS.DOWNLOAD_DIR);
+      FileUtil.createDir(downloadDir);
+
+      try {
+        const result = await this.downloadFileWithCleanup(() => this.downloadPDFMenu.click(), {
+          stepInfo: 'Download QR PDF',
+          cleanup: false, // Keep file for potential QR scanning
+          timeout: TIMEOUTS.MEDIUM,
+        });
+
+        // Verify file type and existence
+        if (!result.filename.endsWith('.pdf')) {
+          throw new Error(`Expected .pdf file, got: ${result.filename}`);
+        }
+
+        if (!FileUtil.fileExists(result.downloadPath)) {
+          throw new Error(`Downloaded PDF not found: ${result.downloadPath}`);
+        }
+
+        console.log(`QR PDF downloaded successfully: ${result.filename}`);
+        return result.downloadPath;
+      } catch (error) {
+        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.DOWNLOAD, 'QR PDF');
+      }
+    });
+  }
+
+  async verifySaveAndVisitDashboardButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify Save and Visit Dashboard button is not visible', async () => {
+      await expect(this.saveAndVisitDashboardBtn).not.toBeVisible();
+    });
+  }
+
+  async verifyDownloadQRButtonIsVisible(): Promise<void> {
+    await test.step('Verify Download QR button is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.downloadQRButton, {
+        assertionMessage: 'Download QR button should be visible',
+      });
+    });
+  }
+
+  async scanQRCode(imagePath: string): Promise<string> {
+    return await test.step('Scan QR code from image', async () => {
+      try {
+        // Verify file exists using FileUtil
+        if (!FileUtil.fileExists(imagePath)) {
+          throw new Error(`QR code image not found: ${imagePath}`);
+        }
+
+        // Read and process image
+        const image = await Jimp.read(imagePath);
+        const { width, height, data } = image.bitmap;
+
+        // Decode QR code using jsQR
+        const qr = jsQR(new Uint8ClampedArray(data), width, height);
+
+        if (!qr || !qr.data) {
+          throw new Error('No QR code found in the image');
+        }
+
+        console.log(`QR code content extracted: ${qr.data}`);
+        return qr.data;
+      } catch (error) {
+        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.SCAN, 'QR code');
+      }
+    });
+  }
+
+  async openScannedQRCodeLinkInNewTab(qrContent: string): Promise<Page> {
+    return await test.step('Open scanned QR code link in new tab', async () => {
+      const newPage = await this.page.context().newPage();
+      await newPage.goto(qrContent);
+      return newPage;
+    });
+  }
+
+  async verifyContentPageIsOpenedSuccessfully(page: Page): Promise<void> {
+    await test.step('Verify content page is opened successfully', async () => {
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
+
+      const title = await page.title();
+      const url = page.url();
+
+      console.log(`Content page opened with title: ${title}`);
+      console.log(`Content page URL: ${url}`);
+
+      // Check if we have a valid title or if the URL indicates we're on the right page
+      expect(title || url.includes('content') || url.includes('promotion')).toBeTruthy();
     });
   }
 }
