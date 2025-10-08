@@ -1,8 +1,9 @@
+import { ALERT_NOTIFICATION_MESSAGES } from '@alert-notification-constants/messageRepo';
 import { AlertNotificationSuiteTags } from '@alert-notification-constants/testTags';
 import { test } from '@alert-notification-fixtures/fixtures';
-import { NotificationTestWorkflows } from '@alert-notification-helpers/testWorkflows';
+import { NotificationWorkflow } from '@alert-notification-pages/notificationWorkflow';
 import { SubjectCustomLinePage } from '@alert-notification-pages/subjectCustomLinePage';
-import { TEST_EMAILS } from '@alert-notification-test-data/notification-customization.test-data';
+import { TEMPLATE_TYPES, TEST_EMAILS } from '@alert-notification-test-data/notification-customization.test-data';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -14,11 +15,11 @@ test.describe(
     tag: [AlertNotificationSuiteTags.ALERT_NOTIFICATION, AlertNotificationSuiteTags.SUBJECT_CUSTOMIZATION],
   },
   () => {
-    let workflows: NotificationTestWorkflows;
+    let workflow: NotificationWorkflow;
 
     test.beforeEach(async ({ appManager }) => {
       const subjectCustomLinePage = new SubjectCustomLinePage(appManager);
-      workflows = new NotificationTestWorkflows(subjectCustomLinePage, appManager);
+      workflow = new NotificationWorkflow(appManager, subjectCustomLinePage);
     });
 
     test(
@@ -27,17 +28,11 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async () => {
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-1',
-          storyId: 'INT-1',
-        });
-
-        await workflows.navigateToNotificationCustomization();
-
-        const englishSubject = await workflows.createMustReadWithFrenchTranslation();
-
-        await workflows.saveAndVerifyCreation(englishSubject);
-        await workflows.deleteBySubject(englishSubject);
+        tagTest(test.info(), { zephyrTestId: 'INT-28326', storyId: 'INT-1' });
+        await workflow.navigateToNotificationCustomization();
+        const englishSubject = await workflow.createMustReadWithFrenchTranslation();
+        await workflow.saveAndVerifyCreation(englishSubject);
+        await workflow.deleteBySubject(englishSubject);
       }
     );
 
@@ -47,17 +42,13 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async () => {
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-27666',
-          storyId: 'INT-2',
-        });
-
-        await workflows.navigateToNotificationCustomization();
-        await workflows.selectTemplate('mustRead');
-        await workflows.verifySubjectLineLabels();
-        await workflows.testCancelAction();
-        await workflows.testValidInput('mustRead');
-        await workflows.testEmptyInputValidation('mustRead');
+        tagTest(test.info(), { zephyrTestId: 'INT-27666', storyId: 'INT-24252' });
+        await workflow.navigateToNotificationCustomization();
+        await workflow.selectTemplate(TEMPLATE_TYPES.MUST_READ);
+        await workflow.verifySubjectLineLabels();
+        await workflow.testCancelAction();
+        await workflow.testValidInput(TEMPLATE_TYPES.MUST_READ);
+        await workflow.testEmptyInputValidation(TEMPLATE_TYPES.MUST_READ);
       }
     );
 
@@ -67,17 +58,13 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async () => {
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-27667',
-          storyId: 'INT-3',
-        });
-
-        await workflows.navigateToNotificationCustomization();
-        await workflows.selectTemplate('follow');
-        await workflows.verifySubjectLineLabels();
-        await workflows.testCancelAction();
-        await workflows.testValidInput('follow');
-        await workflows.testEmptyInputValidation('follow');
+        tagTest(test.info(), { zephyrTestId: 'INT-27667', storyId: 'INT-24252' });
+        await workflow.navigateToNotificationCustomization();
+        await workflow.selectTemplate(TEMPLATE_TYPES.FOLLOW);
+        await workflow.verifySubjectLineLabels();
+        await workflow.testCancelAction();
+        await workflow.testValidInput(TEMPLATE_TYPES.FOLLOW);
+        await workflow.testEmptyInputValidation(TEMPLATE_TYPES.FOLLOW);
       }
     );
 
@@ -87,17 +74,13 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async () => {
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-27665',
-          storyId: 'INT-4',
-        });
-
-        await workflows.navigateToNotificationCustomization();
-        await workflows.selectTemplate('alerts');
-        await workflows.verifySubjectLineLabels();
-        await workflows.testCancelAction();
-        await workflows.testValidInput('alerts');
-        await workflows.testEmptyInputValidation('alerts');
+        tagTest(test.info(), { zephyrTestId: 'INT-27665', storyId: 'INT-24252' });
+        await workflow.navigateToNotificationCustomization();
+        await workflow.selectTemplate(TEMPLATE_TYPES.ALERTS);
+        await workflow.verifySubjectLineLabels();
+        await workflow.testCancelAction();
+        await workflow.testValidInput(TEMPLATE_TYPES.ALERTS);
+        await workflow.testEmptyInputValidation(TEMPLATE_TYPES.ALERTS);
       }
     );
 
@@ -107,15 +90,11 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async () => {
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-27660',
-          storyId: 'INT-5',
-        });
-
-        await workflows.navigateToNotificationCustomization();
-        await workflows.selectTemplate('mustRead');
-        await workflows.verifySubjectLineLabels();
-        await workflows.testTranslationFallback();
+        tagTest(test.info(), { zephyrTestId: 'INT-27660', storyId: 'INT-24252' });
+        await workflow.navigateToNotificationCustomization();
+        await workflow.selectTemplate(TEMPLATE_TYPES.MUST_READ);
+        await workflow.verifySubjectLineLabels();
+        await workflow.testTranslationFallback();
       }
     );
 
@@ -125,24 +104,26 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async () => {
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-27649',
-          storyId: 'INT-6',
-        });
-
-        await workflows.navigateToNotificationCustomization();
-        await workflows.selectTemplate('mustRead');
-        await workflows.testSendYourselfFlow();
+        tagTest(test.info(), { zephyrTestId: 'INT-27649', storyId: 'IINT-24252' });
+        await workflow.navigateToNotificationCustomization();
+        await workflow.selectTemplate(TEMPLATE_TYPES.MUST_READ);
+        await workflow.testInvalidEmailFlow();
+        await workflow.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.INVALID_EMAIL_ERROR);
+        await workflow.testValidEmailFlow();
+        await workflow.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.TEST_EMAIL_SENT_SUCCESS);
       }
     );
     test(
       'Admin can send a single test email to multiple recipients separated by commas',
-      { tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE] },
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
       async () => {
-        tagTest(test.info(), { zephyrTestId: 'INT-27671', storyId: 'INT-7' });
-        await workflows.navigateToNotificationCustomization();
-        await workflows.selectTemplate('mustRead');
-        await workflows.testSendYourselfMultipleRecipients(TEST_EMAILS.MULTI_VALID_CSV);
+        tagTest(test.info(), { zephyrTestId: 'INT-27671', storyId: 'INT-24252' });
+        await workflow.navigateToNotificationCustomization();
+        await workflow.selectTemplate(TEMPLATE_TYPES.MUST_READ);
+        await workflow.testSendYourselfMultipleRecipients(TEST_EMAILS.MULTI_VALID_CSV);
+        await workflow.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.TEST_EMAIL_SENT_SUCCESS);
       }
     );
   }

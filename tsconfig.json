@@ -30,7 +30,7 @@
       "@alert-notification/*": ["./src/modules/alert-notification/*"],
       "@alert-notification-fixtures/*": ["./src/modules/alert-notification/fixtures/*"],
       "@alert-notification-pages/*": ["./src/modules/alert-notification/pages/*"],
-      "@alert-notification-helpers/*": ["./src/modules/alert-notification/helpers/*"],
+      "@alert-notification-components/*": ["./src/modules/alert-notification/components/*"],
       "@alert-notification-tests/*": ["./src/modules/alert-notification/tests/*"],
       "@alert-notification-env/*": ["./src/modules/alert-notification/env/*"],
       "@alert-notification-constants/*": ["./src/modules/alert-notification/constants/*"],

@@ -20,6 +20,15 @@ const TEST_IDS = {
   DATA_GRID_ROW: 'dataGridRow-',
 } as const;
 
+// Stepper step constants
+export const STEPPER_STEPS = {
+  SELECT_NOTIFICATION: 'SELECT_NOTIFICATION',
+  OVERRIDE_AND_CONFIRMATION: 'OVERRIDE_AND_CONFIRMATION',
+  MANAGE_TRANSLATIONS: 'MANAGE_TRANSLATIONS',
+} as const;
+
+export type StepperStep = (typeof STEPPER_STEPS)[keyof typeof STEPPER_STEPS];
+
 /**
  * Centralized test data for notification customization
  * Provides consistent test data across all test cases
@@ -115,8 +124,14 @@ export const RADIO_VALUES = {
 // Centralized email test data for this module
 export const TEST_EMAILS = {
   SINGLE_VALID: 'qa.manager@simpplr.com',
-  MULTI_VALID_CSV: 'qa.manager@simpplr.com, qa.manager+1@simpplr.com, qa.manager+2@simpplr.com',
+  SINGLE_INVALID: 'adafadfaf',
+  MULTI_VALID_CSV: 'kr.manager@gmail.com, qa.manager+1@simpplr.com, qa.manager+2@simpplr.com',
 } as const;
 
-// Centralized email test data to avoid hardcoding in specs
-// Duplicate removed
+// Template type constants to avoid hardcoding in test cases
+export const TEMPLATE_TYPES = {
+  MUST_READ: 'mustRead',
+  FOLLOW: 'follow',
+  ALERTS: 'alerts',
+} as const;
+export type TemplateType = (typeof TEMPLATE_TYPES)[keyof typeof TEMPLATE_TYPES];

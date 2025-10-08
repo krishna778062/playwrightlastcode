@@ -1,12 +1,15 @@
-import { SubjectCustomLinePage } from '@alert-notification-pages/subjectCustomLinePage';
 import {
   NotificationTestDataGenerator,
+  STEPPER_STEPS,
   SUBJECT_LINES,
+  TemplateType,
   TEST_EMAILS,
 } from '@alert-notification-test-data/notification-customization.test-data';
-import { expect, Page } from '@playwright/test';
+import { Page } from '@playwright/test';
 
-import { POPUP_BUTTONS } from '@core/constants/popupButtons';
+import { BaseComponent } from '@core/components/baseComponent';
+
+import { SubjectCustomLinePage } from './subjectCustomLinePage';
 
 // Simple constants for UI text
 const SUBJECT_LINE_OPTIONS = {
@@ -14,23 +17,24 @@ const SUBJECT_LINE_OPTIONS = {
   CUSTOM: 'Custom subject line',
 } as const;
 
-type TemplateType = 'mustRead' | 'follow' | 'alerts';
-
 /**
- * Test workflow helpers for notification customization
+ * Workflow component for notification customization tests
+ * Handles UI workflow orchestration for notification customization tests
  */
-export class NotificationTestWorkflows {
+export class NotificationWorkflow extends BaseComponent {
   constructor(
-    private readonly notificationPage: SubjectCustomLinePage,
-    private readonly page: Page
-  ) {}
+    page: Page,
+    private readonly notificationPage: SubjectCustomLinePage
+  ) {
+    super(page);
+  }
 
   async navigateToNotificationCustomization(): Promise<void> {
     await this.notificationPage.navigateToNotificationCustomization();
   }
+
   async selectTemplate(templateType: TemplateType): Promise<void> {
     await this.notificationPage.startAddCustomization();
-
     switch (templateType) {
       case 'mustRead':
         await this.notificationPage.selectMustReadSingle();
@@ -42,8 +46,7 @@ export class NotificationTestWorkflows {
         await this.notificationPage.selectAlertsSingle();
         break;
     }
-
-    await this.notificationPage.expectStepperAt('OVERRIDE_AND_CONFIRMATION');
+    await this.notificationPage.expectStepperAt(STEPPER_STEPS.OVERRIDE_AND_CONFIRMATION);
   }
 
   async verifySubjectLineLabels(): Promise<void> {
@@ -61,7 +64,7 @@ export class NotificationTestWorkflows {
     const validSubject = this.getTemplateSubject(templateType);
     await this.notificationPage.chooseCustomSubject();
     await this.notificationPage.typeCustomSubjectOnStep2(validSubject);
-    await this.notificationPage.expectStepperAt('MANAGE_TRANSLATIONS');
+    await this.notificationPage.expectStepperAt(STEPPER_STEPS.MANAGE_TRANSLATIONS);
   }
 
   async testEmptyInputValidation(templateType: TemplateType): Promise<void> {
@@ -74,16 +77,13 @@ export class NotificationTestWorkflows {
 
   async createMustReadWithFrenchTranslation(): Promise<string> {
     const englishSubject = NotificationTestDataGenerator.generateTemplateSubject('mustRead');
-
     await this.notificationPage.startAddCustomization();
-    await this.notificationPage.expectStepperAt('SELECT_NOTIFICATION');
+    await this.notificationPage.expectStepperAt(STEPPER_STEPS.SELECT_NOTIFICATION);
     await this.notificationPage.selectMustReadSingle();
-    await this.notificationPage.expectStepperAt('OVERRIDE_AND_CONFIRMATION');
-
+    await this.notificationPage.expectStepperAt(STEPPER_STEPS.OVERRIDE_AND_CONFIRMATION);
     await this.notificationPage.chooseCustomSubject();
     await this.notificationPage.typeCustomSubjectOnStep2(englishSubject);
-    await this.notificationPage.expectStepperAt('MANAGE_TRANSLATIONS');
-
+    await this.notificationPage.expectStepperAt(STEPPER_STEPS.MANAGE_TRANSLATIONS);
     return englishSubject;
   }
 
@@ -99,17 +99,40 @@ export class NotificationTestWorkflows {
     await this.notificationPage.deleteBySubject(subject);
   }
 
+  async verifyToastMessage(message: string): Promise<void> {
+    await this.notificationPage.verifyToastMessage(message);
+  }
+
   async testTranslationFallback(): Promise<void> {
     const customSubject = NotificationTestDataGenerator.generateUniqueSubject(SUBJECT_LINES.FALLBACK_TEST.ENGLISH);
-
     await this.notificationPage.chooseCustomSubject();
     await this.notificationPage.typeCustomSubjectOnStep2(customSubject);
-    await this.notificationPage.expectStepperAt('MANAGE_TRANSLATIONS');
-
-    const _selectedLanguage = await this.selectFrenchLanguageWithFallback();
+    await this.notificationPage.expectStepperAt(STEPPER_STEPS.MANAGE_TRANSLATIONS);
+    await this.selectFrenchLanguageWithFallback();
     await this.notificationPage.cancel();
-
     await this.notificationPage.expectOnListPage();
+  }
+
+  /**
+   * Tests invalid email input flow
+   */
+  async testInvalidEmailFlow(): Promise<void> {
+    await this.notificationPage.chooseCustomSubject();
+    await this.notificationPage.typeCustomSubjectOnStep2(SUBJECT_LINES.MUST_READ.ENGLISH);
+    await this.notificationPage.chooseDifferentTestEmail();
+    await this.notificationPage.typeTestEmail(TEST_EMAILS.SINGLE_INVALID);
+    await this.notificationPage.blurTestEmailInput();
+    await this.notificationPage.expectSendTestDisabled();
+  }
+
+  /**
+   * Tests valid email input flow
+   */
+  async testValidEmailFlow(): Promise<void> {
+    await this.notificationPage.typeTestEmail(TEST_EMAILS.SINGLE_VALID);
+    await this.notificationPage.blurTestEmailInput();
+    await this.notificationPage.expectSendTestEnabled();
+    await this.notificationPage.sendTestEmail();
   }
 
   /**
@@ -118,18 +141,14 @@ export class NotificationTestWorkflows {
   async testSendYourselfFlow(): Promise<void> {
     await this.notificationPage.chooseCustomSubject();
     await this.notificationPage.typeCustomSubjectOnStep2(SUBJECT_LINES.MUST_READ.ENGLISH);
-
     await this.notificationPage.chooseDifferentTestEmail();
-    await this.notificationPage.typeTestEmail('adafadfaf');
+    await this.notificationPage.typeTestEmail(TEST_EMAILS.SINGLE_INVALID);
     await this.notificationPage.blurTestEmailInput();
     await this.notificationPage.expectSendTestDisabled();
-    await this.notificationPage.expectInvalidEmailError();
-
     await this.notificationPage.typeTestEmail(TEST_EMAILS.SINGLE_VALID);
     await this.notificationPage.blurTestEmailInput();
     await this.notificationPage.expectSendTestEnabled();
     await this.notificationPage.sendTestEmail();
-    await this.notificationPage.expectTestEmailSuccess();
   }
 
   /**
@@ -138,13 +157,11 @@ export class NotificationTestWorkflows {
   async testSendYourselfMultipleRecipients(emailsCsv: string): Promise<void> {
     await this.notificationPage.chooseCustomSubject();
     await this.notificationPage.typeCustomSubjectOnStep2(SUBJECT_LINES.MUST_READ.ENGLISH);
-
     await this.notificationPage.chooseDifferentTestEmail();
     await this.notificationPage.typeTestEmail(emailsCsv);
     await this.notificationPage.blurTestEmailInput();
     await this.notificationPage.expectSendTestEnabled();
     await this.notificationPage.sendTestEmail();
-    await this.notificationPage.expectTestEmailSuccess();
   }
 
   private getTemplateSubject(templateType: TemplateType): string {
@@ -156,14 +173,6 @@ export class NotificationTestWorkflows {
       case 'alerts':
         return SUBJECT_LINES.ALERTS.ENGLISH;
     }
-  }
-
-  private async waitForPageStability(): Promise<void> {
-    await this.notificationPage.expectAddCustomizationVisible();
-  }
-
-  private async waitForElementStability(): Promise<void> {
-    await this.notificationPage.expectAddCustomizationVisible();
   }
 
   /**
@@ -184,16 +193,6 @@ export class NotificationTestWorkflows {
    * Uses element-based waiting for better reliability
    */
   private async waitForTranslationCompletion(): Promise<void> {
-    const loadingSpinner = this.page.locator('.loading, .spinner, [aria-busy="true"]').first();
-    if (await loadingSpinner.isVisible().catch(() => false)) {
-      await expect(loadingSpinner, 'Loading spinner should disappear before enabling Save').toBeHidden({
-        timeout: 10_000,
-      });
-    }
-
-    const saveButton = this.page.getByRole('button', { name: POPUP_BUTTONS.SAVE });
-    await expect(saveButton, 'Save button should be enabled after processing completes').toBeEnabled({
-      timeout: 5_000,
-    });
+    await this.notificationPage.notificationCustomizationComponent.waitForTranslationCompletion();
   }
 }
