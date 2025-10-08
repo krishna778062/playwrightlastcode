@@ -362,4 +362,16 @@ export class ListFeedComponent extends BaseComponent {
       });
     });
   }
+
+  async verifyCampaignLinkNotDisplayed(linkText: string, description: string): Promise<void> {
+    await test.step(`Verify campaign link "${linkText}" is not displayed`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.feedLinkWithDescription(description), {
+        assertionMessage: `Shared Description "${description}" should not be visible`,
+      });
+
+      await this.verifier.verifyTheElementIsNotVisible(this.sharefeedLink(linkText), {
+        assertionMessage: `Campaign link "${linkText}" should not be visible`,
+      });
+    });
+  }
 }

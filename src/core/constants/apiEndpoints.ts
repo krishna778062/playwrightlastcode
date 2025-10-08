@@ -98,6 +98,8 @@ export const API_ENDPOINTS = {
     update: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
     delete: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
     updateStatus: (campaignId: string) => `/v1/socialcampaigns/${campaignId}/status`,
+    shareToFeed: (campaignId: string, sharedWith: string) =>
+      `/v1/socialcampaigns/${campaignId}/share/feed/${sharedWith}`,
     metadata: '/v1/content/oembed/metadata',
   },
   appConfig: {

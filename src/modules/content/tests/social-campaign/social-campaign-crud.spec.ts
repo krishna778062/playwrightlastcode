@@ -17,6 +17,7 @@ import {
   SocialCampaignNetworkUI,
   SocialCampaignOptions,
   SocialCampaignRecipient,
+  SocialCampaignSharedWith,
   SocialCampaignStatus,
 } from '@core/types/social-campaign.types';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
@@ -529,6 +530,69 @@ test.describe(
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnFeedLink();
         await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
+      }
+    );
+
+    test(
+      'In Zeus Verify User is unable to view Shared SC Feed Post when SC is Deleted',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26800'],
+      },
+      async ({ endUserHomePage, socialCampaignHelper, appManagerHomePage }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify User is unable to view Shared SC Feed Post when SC is Deleted',
+          zephyrTestId: 'CONT-26800',
+          storyId: 'CONT-26800',
+        });
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+        });
+        campaignId = createdCampaign.campaignId;
+
+        const description = TestDataGenerator.generateRandomString();
+        await socialCampaignHelper.shareCampaignToFollowersFeed(campaignId, description);
+        // Load pages and navigate to feeds in parallel
+        await Promise.all([appManagerHomePage.loadPage(), endUserHomePage.loadPage()]);
+
+        await Promise.all([
+          appManagerHomePage.actions.clickOnGlobalFeed(),
+          endUserHomePage.actions.clickOnGlobalFeed(),
+        ]);
+
+        const appManagerFeedPage = new FeedPage(appManagerHomePage.page);
+        const standardUserFeedPage = new FeedPage(endUserHomePage.page);
+
+        await Promise.all([appManagerFeedPage.verifyThePageIsLoaded(), standardUserFeedPage.verifyThePageIsLoaded()]);
+
+        // Verify campaign is displayed in both feeds
+        await Promise.all([
+          appManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          standardUserFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+        ]);
+
+        // Delete campaign
+        await socialCampaignHelper.deleteCampaign(campaignId);
+
+        // Reload pages in parallel
+        await Promise.all([appManagerHomePage.loadPage(), endUserHomePage.loadPage()]);
+
+        // Verify campaign is no longer displayed in both feeds
+        await Promise.all([
+          appManagerFeedPage.assertions.verifyCampaignLinkNotDisplayed(campaignOptions.linkText, description),
+          standardUserFeedPage.assertions.verifyCampaignLinkNotDisplayed(campaignOptions.linkText, description),
+        ]);
       }
     );
   }

@@ -9,6 +9,8 @@ import {
   SocialCampaignFilter,
   SocialCampaignNetwork,
   SocialCampaignRecipient,
+  SocialCampaignSharedWith,
+  SocialCampaignShareRequest,
 } from '@/src/core/types/social-campaign.types';
 import { SOCIAL_CAMPAIGN_TEST_DATA } from '@/src/modules/content/test-data/social-campaign.test-data';
 
@@ -336,5 +338,60 @@ export class SocialCampaignHelper {
   async getCampaignsCanShareToHomeCarousel(): Promise<SocialCampaign[]> {
     const allCampaigns = await this.getAllCampaignsFromAPI();
     return allCampaigns.filter(campaign => campaign.canShareToHomeCarousel === true);
+  }
+
+  /**
+   * Shares a social campaign to feed
+   * @param campaignId - The campaign ID
+   * @param shareData - The share data including text, HTML, and sharedWith parameter
+   * @returns Promise<any> - The share response
+   */
+  async shareCampaignToFeed(campaignId: string, shareData: SocialCampaignShareRequest): Promise<any> {
+    return await test.step(`Sharing social campaign to feed: ${campaignId}`, async () => {
+      console.log(`Sharing campaign ${campaignId} to ${shareData.sharedWith}`);
+      const response = await this.getSocialCampaignService().shareCampaignToFeed(campaignId, shareData);
+      return response;
+    });
+  }
+
+  /**
+   * Shares a social campaign to followers feed
+   * @param campaignId - The campaign ID
+   * @param description - The description text to post
+   * @param siteId - Optional site ID for site-specific sharing
+   * @returns Promise<any> - The share response
+   */
+  async shareCampaignToFollowersFeed(campaignId: string, description: string): Promise<any> {
+    const textToPost = `{"type":"doc","content":[{"type":"paragraph","attrs":{"className":"","data-sw-sid":null},"content":[{"type":"text","text":"${description}"}]}]}`;
+    const bodyHtml = `<p>${description}</p>`;
+
+    const shareData: SocialCampaignShareRequest = {
+      textToPost,
+      bodyHtml,
+      isNewTiptap: true,
+      sharedWith: SocialCampaignSharedWith.FOLLOWERS,
+    };
+    return this.shareCampaignToFeed(campaignId, shareData);
+  }
+
+  /**
+   * Shares a social campaign to site feed
+   * @param campaignId - The campaign ID
+   * @param description - The description text to post
+   * @param siteId - Site ID for site-specific sharing
+   * @returns Promise<any> - The share response
+   */
+  async shareCampaignToSiteFeed(campaignId: string, description: string, siteId: string): Promise<any> {
+    const textToPost = `{"type":"doc","content":[{"type":"paragraph","attrs":{"className":"","data-sw-sid":null},"content":[{"type":"text","text":"${description}"}]}]}`;
+    const bodyHtml = `<p>${description}</p>`;
+
+    const shareData: SocialCampaignShareRequest = {
+      textToPost,
+      bodyHtml,
+      isNewTiptap: true,
+      sharedWith: SocialCampaignSharedWith.SITE,
+      siteId,
+    };
+    return this.shareCampaignToFeed(campaignId, shareData);
   }
 }

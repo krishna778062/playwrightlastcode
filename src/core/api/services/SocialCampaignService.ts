@@ -13,6 +13,9 @@ import {
   SocialCampaignListResponse,
   SocialCampaignNetwork,
   SocialCampaignRecipient,
+  SocialCampaignSharedWith,
+  SocialCampaignShareRequest,
+  SocialCampaignShareResponse,
   SocialCampaignStatusUpdateRequest,
   SocialCampaignStatusUpdateResponse,
 } from '@core/types/social-campaign.types';
@@ -140,6 +143,24 @@ export class SocialCampaignService extends BaseApiClient {
   async deactivateCampaign(campaignId: string): Promise<SocialCampaignStatusUpdateResponse> {
     return await test.step(`Deactivating social campaign: ${campaignId}`, async () => {
       return this.updateCampaignStatus(campaignId, SocialCampaignAction.DEACTIVATE);
+    });
+  }
+
+  /**
+   * Shares a social campaign to feed
+   * @param campaignId - The campaign ID
+   * @param shareData - The share data including text, HTML, and sharedWith parameter
+   * @returns Promise<SocialCampaignShareResponse>
+   */
+  async shareCampaignToFeed(
+    campaignId: string,
+    shareData: SocialCampaignShareRequest
+  ): Promise<SocialCampaignShareResponse> {
+    return await test.step(`Sharing social campaign to feed: ${campaignId}`, async () => {
+      const response = await this.post(API_ENDPOINTS.socialCampaign.shareToFeed(campaignId, shareData.sharedWith), {
+        data: shareData,
+      });
+      return (await response.json()) as SocialCampaignShareResponse;
     });
   }
 }
