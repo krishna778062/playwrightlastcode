@@ -3,15 +3,11 @@ import { expect, Page, test } from '@playwright/test';
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
 
-import { getEnvConfig } from '../..';
-
 export abstract class BasePage extends BaseActionUtil {
   readonly verifier: BaseVerificationUtil;
   readonly pageUrl: string;
-  readonly isNewUxEnabled: boolean;
   constructor(page: Page, pageUrl?: string) {
     super(page);
-    this.isNewUxEnabled = getEnvConfig().newUxEnabled;
     this.verifier = new BaseVerificationUtil(page);
     this.pageUrl = pageUrl || '';
   }

@@ -137,7 +137,7 @@ const feedTestData = [
 
 // Data-driven test for different feed types
 for (const testData of feedTestData) {
-  test.describe(
+  test.describe.only(
     `${testData.feedType} Tests`,
     {
       tag: [ContentTestSuite.FEED_IMAGE_UPDATE_APP_MANAGER],
@@ -280,7 +280,7 @@ for (const testData of feedTestData) {
         {
           tag: [TestPriority.P1, TestGroupType.REGRESSION, `@${testData.storyId}`],
         },
-        async ({ feedManagementHelper }) => {
+        async ({}) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.storyId,

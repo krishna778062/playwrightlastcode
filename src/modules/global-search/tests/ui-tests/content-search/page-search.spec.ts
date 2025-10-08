@@ -136,7 +136,7 @@ test.describe(
       }
     );
 
-    test.only(
+    test(
       `Verify Page Autocomplete functionality`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],

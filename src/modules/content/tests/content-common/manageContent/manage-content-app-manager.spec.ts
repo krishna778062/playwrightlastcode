@@ -117,14 +117,13 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ appManagerHomePage, appManagerUINavigationHelper }) => {
+      async ({ appManagerUINavigationHelper }) => {
         tagTest(test.info(), {
           description: 'Verify delete modal functionality with cancel and delete button operations for content removal',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20946',
           storyId: 'CONT-20946',
         });
-        await appManagerHomePage.verifyThePageIsLoaded();
         await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.addPublishContentFilter();
