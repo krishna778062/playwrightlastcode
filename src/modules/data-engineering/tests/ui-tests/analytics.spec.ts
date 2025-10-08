@@ -1,9 +1,9 @@
+import { AnalyticsBasePage } from '@data-engineering/pages/analyticsBasePage';
+
 import { TestGroupType } from '@core/constants/testType';
 
 import { test } from '../../fixtures/loginFixture';
-import { AnalyticsLandingPage } from '../../pages/analyticsLandingPage';
 
-import { SideNavBarComponent } from '@/src/core/components/sideNavBarComponent';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { tagTest } from '@/src/core/utils/testDecorator';
@@ -29,8 +29,9 @@ test.describe(
         await loginAs('appManager');
 
         const homepage = new NewUxHomePage(page);
-        const analyticsLandingPage = await homepage.getSideNavBarComponent().clickOnAnalyticsButton();
-        await analyticsLandingPage.verifyAllAnalyticsOptionsAreVisible();
+        const analyticsBasePage = new AnalyticsBasePage(page);
+        await homepage.getSideNavBarComponent().clickOnAnalyticsButton();
+        await analyticsBasePage.verifyAllAnalyticsOptionsAreVisible();
       }
     );
 

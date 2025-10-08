@@ -1,16 +1,26 @@
+import { AnalyticsBaseComponent } from '@data-engineering/components/analyticsBaseComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
+import { BasePage } from '@/src/core/pages/basePage';
 import type { TestOptions } from '@/src/core/types/test.types';
 
-export class AnalyticsLandingPage {
+export class AnalyticsBasePage extends BasePage {
   readonly appAnalyticsButton: Locator;
   readonly recognitionAnalyticsButton: Locator;
   readonly campaignAnalyticsButton: Locator;
+  readonly analyticsBaseComponent: AnalyticsBaseComponent;
 
-  constructor(page: Page) {
+  constructor(page: Page, pageUrl?: string) {
+    super(page, pageUrl);
     this.appAnalyticsButton = page.getByRole('button', { name: 'App', exact: true });
     this.recognitionAnalyticsButton = page.getByRole('button', { name: 'Recognition' });
     this.campaignAnalyticsButton = page.getByRole('button', { name: 'Campaigns' });
+    this.analyticsBaseComponent = new AnalyticsBaseComponent(page);
+  }
+
+  async verifyThePageIsLoaded(): Promise<void> {
+    await this.verifyAllAnalyticsOptionsAreVisible();
   }
 
   async clickOnAppAnalyticsButton(options?: TestOptions) {
@@ -38,7 +48,7 @@ export class AnalyticsLandingPage {
     await test.step(
       options?.stepInfo || `Verifying App Analytics button is visible in analytics landing page`,
       async () => {
-        await expect(this.appAnalyticsButton.first()).toBeVisible({ timeout: 10_000 });
+        await expect(this.appAnalyticsButton.first()).toBeVisible({ timeout: TIMEOUTS.SHORT });
       }
     );
   }
@@ -65,5 +75,25 @@ export class AnalyticsLandingPage {
     await this.verifyAppAnalyticsButtonIsVisible(options);
     await this.verifyRecognitionAnalyticsButtonIsVisible(options);
     await this.verifyCampaignAnalyticsButtonIsVisible(options);
+  }
+
+  async verifyTableColumnHeaderTextIsVisible(metricTitle: string, columnTitles: string[]): Promise<void> {
+    await this.analyticsBaseComponent.verifyTableColumnHeaderTextIsVisible(metricTitle, columnTitles);
+  }
+
+  async scrollToAnswer(metricTitle: string): Promise<void> {
+    await this.analyticsBaseComponent.scrollToAnswer(metricTitle);
+  }
+
+  async verifyAnswerTitleIsVisible(metricTitle: string): Promise<void> {
+    await this.analyticsBaseComponent.verifyAnswerTitleIsVisible(metricTitle);
+  }
+
+  async verifyAnswerSubTitleIsVisible(metricSubTitle: string): Promise<void> {
+    await this.analyticsBaseComponent.verifyAnswerSubTitleIsVisible(metricSubTitle);
+  }
+
+  async verifyLowFilterResultMessageIsVisible(title: string): Promise<void> {
+    await this.analyticsBaseComponent.verifyNoDataMessageIsVisible(title);
   }
 }

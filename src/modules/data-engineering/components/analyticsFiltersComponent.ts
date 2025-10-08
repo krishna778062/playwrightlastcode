@@ -26,10 +26,9 @@ export class AnalyticsFiltersComponent extends BaseComponent {
 
   constructor(page: Page) {
     super(page);
-    this.filterGroup = (label: string) => this.page.getByRole('button', { name: label, exact: true }).first();
+    this.filterGroup = (label: string) => this.page.getByText(label, { exact: true });
     this.filterDialog = this.page.locator('[id*="tippy"]');
-    this.filterOptionByText = (text: string) =>
-      this.filterDialog.getByRole('option', { name: text, exact: true }).first();
+    this.filterOptionByText = (filterName: string) => this.page.getByText(filterName, { exact: true });
     this.filterApplyButton = this.page.getByRole('button', { name: 'Apply' }).first();
     this.filterClearAllButton = this.page.getByRole('button', { name: 'Clear' }).first();
   }

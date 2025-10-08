@@ -1,10 +1,9 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { BasePage } from '@/src/core/pages/basePage';
 import { AnalyticsFiltersComponent } from '@/src/modules/data-engineering/components/analyticsFiltersComponent';
-import { AnalyticsLandingPage } from '@/src/modules/data-engineering/pages/analyticsLandingPage';
+import { AnalyticsBasePage } from '@/src/modules/data-engineering/pages/analyticsBasePage';
 
-export class AppAdoptionPage extends BasePage {
+export class AppAdoptionPage extends AnalyticsBasePage {
   readonly filters: AnalyticsFiltersComponent;
   readonly adoptionTab: Locator;
   /**
@@ -40,8 +39,7 @@ export class AppAdoptionPage extends BasePage {
    */
   async navigateToAppAdoption(): Promise<void> {
     await test.step('Navigate: SideNav > Analytics > App > Adoption', async () => {
-      const landing = new AnalyticsLandingPage(this.page);
-      await landing.clickOnAppAnalyticsButton();
+      await this.clickOnAppAnalyticsButton();
       await this.clickOnAdoptionTab();
     });
   }

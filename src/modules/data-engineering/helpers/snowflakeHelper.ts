@@ -88,4 +88,26 @@ export class SnowflakeHelper {
     await helper.destroy();
     return result;
   }
+
+  /**
+   * Executes a SQL query with parameter replacement and returns the first result.
+   * Connects, executes, and disconnects automatically.
+   *
+   * @param sql - The raw SQL query string with placeholders.
+   * @param replacements - Object containing key-value pairs for replacement.
+   * @returns Promise resolving to the first result row, or null if no results.
+   */
+  static async runQueryWithReplacements<T = any>(
+    sql: string,
+    replacements: Record<string, string | number>
+  ): Promise<T[]> {
+    let processedSql = sql;
+    for (const [key, value] of Object.entries(replacements)) {
+      const placeholder = `{${key}}`;
+      const replacement = typeof value === 'string' ? `${value}` : String(value);
+      processedSql = processedSql.replace(new RegExp(placeholder, 'g'), replacement);
+    }
+    console.log(processedSql);
+    return this.runQuery(processedSql);
+  }
 }

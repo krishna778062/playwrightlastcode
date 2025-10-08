@@ -1,10 +1,8 @@
+import { AnalyticsFiltersComponent } from '@data-engineering/components/analyticsFiltersComponent';
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
 import { expect, test } from '@data-engineering/fixtures/analyticsFixture';
-import { DateHelper } from '@data-engineering/helpers/dateHelper';
 import { PageHelper } from '@data-engineering/helpers/pageHelper';
-import { SnowflakeHelper } from '@data-engineering/helpers/snowflakeHelper';
 import { SocialInteractionPage } from '@data-engineering/pages/socialInteractionPage';
-import { SocialInteractionSql } from '@data-engineering/sql/social-interaction';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -12,8 +10,10 @@ import { tagTest } from '@core/utils/testDecorator';
 
 /**
  * This test suite validates the Social Interaction dashboard
- * using a data-driven approach
+ * by verifying the data in the UI and the DB for various interaction metrics and social campaign share distribution
  */
+
+const orgId: string = process.env.ORG_ID || '';
 
 const HERO_METRICS_DATA = [
   {
@@ -79,31 +79,34 @@ test.describe(
           tag: [TestPriority.P0, TestGroupType.REGRESSION],
         },
         async ({ openAppAnalytics, page }) => {
-          await openAppAnalytics();
-
-          const socialInteractionPage = new SocialInteractionPage(page);
-
-          await socialInteractionPage.navigateToSocialInteraction();
-
           tagTest(test.info(), {
             description: metricData.description,
             zephyrTestId: metricData.zephyrTestId,
             storyId: metricData.storyId,
           });
 
-          // Wait for the loading state to disappear before proceeding
+          const socialInteractionPage = new SocialInteractionPage(page);
+          const analyticsFiltersComponent = new AnalyticsFiltersComponent(page);
+          const timePeriod = 'Last 36 months';
+
+          await openAppAnalytics();
+          await socialInteractionPage.navigateToSocialInteraction();
           await PageHelper.waitForLoadingToComplete(page);
+
+          await analyticsFiltersComponent.openFilter('Period');
+          await analyticsFiltersComponent.selectOption(timePeriod);
+
           //UI validation
-          await socialInteractionPage.verifyMetricTitleIsVisible(metricData.title);
-          await socialInteractionPage.verifyMetricSubTitleIsVisible(metricData.subTitle);
+          await socialInteractionPage.verifyAnswerTitleIsVisible(metricData.title);
+          await socialInteractionPage.verifyAnswerSubTitleIsVisible(metricData.subTitle);
 
           //Data sanity validation
-          const metricValue = await socialInteractionPage.getMetricValue(metricData.title);
+          const metricValue = await socialInteractionPage.getHeroMetricValue(metricData.title);
           console.log(`${metricData.title}: ${metricValue}`);
-          await socialInteractionPage.verifyMetricHasValidValue(metricData.title);
+          await socialInteractionPage.verifyHeroMetricHasValidValue(metricData.title);
 
           //DB validation
-          const dbCount = await getMetricData(metricData.query);
+          const dbCount = await socialInteractionPage.getHeroMetricDataFromDB(metricData.query, orgId, timePeriod);
           console.log(`DB ${metricData.title}: ${dbCount}`);
           const numericValue = parseInt(metricValue.replace(/,/g, ''));
           expect(numericValue, `${metricData.title} UI (${numericValue}) should equal DB (${dbCount})`).toBe(dbCount);
@@ -111,64 +114,53 @@ test.describe(
       );
     }
 
-    test.only(
+    test(
       'TS To verify the answer of Social campaign shares in Social Interaction dashboard',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION],
       },
       async ({ openAppAnalytics, page }) => {
-        await openAppAnalytics();
-
-        const socialInteractionPage = new SocialInteractionPage(page);
-        await socialInteractionPage.navigateToSocialInteraction();
-
         tagTest(test.info(), {
-          description: 'This verified the answer of Social campaign shares in Social Interaction dashboard',
+          description: 'This verifies the answer of Social campaign shares in Social Interaction dashboard',
           zephyrTestId: 'DE-26021',
           storyId: 'DE-25761',
         });
 
+        const socialInteractionPage = new SocialInteractionPage(page);
+        const analyticsFiltersComponent = new AnalyticsFiltersComponent(page);
+        const timePeriod = 'Last 36 months';
+
+        await openAppAnalytics();
+        await socialInteractionPage.navigateToSocialInteraction();
         await PageHelper.waitForLoadingToComplete(page);
 
-        await socialInteractionPage.verifyMetricTitleIsVisible('Social campaign share distribution');
-        await socialInteractionPage.verifyMetricSubTitleIsVisible(
-          'Breakdown of social campaign shares across different platforms'
-        );
+        await analyticsFiltersComponent.openFilter('Period');
+        await analyticsFiltersComponent.selectOption(timePeriod);
         await socialInteractionPage.scrollToAnswer('Social campaign share distribution');
         await PageHelper.pause(page, 10000);
-        await socialInteractionPage.verifyColumnTitleIsVisible('Social campaign share distribution', [
-          'Social platform',
-          'Share coun',
-          'Platform share contribution (%)',
-        ]);
-        await socialInteractionPage.verifySocialCampaignShareDataIsCorrect();
-        const dbCount = await getMetricData('SocialInteractionSql.Social_Campaign_Shares');
-        console.log(`DB Social campaign share distribution: ${dbCount}`);
-        expect(numericValue, `${metricData.title} UI (${numericValue}) should equal DB (${dbCount})`).toBe(dbCount);
+        await socialInteractionPage.verifyAnswerTitleIsVisible('Social campaign share distribution');
+        await socialInteractionPage.verifyAnswerSubTitleIsVisible(
+          'Breakdown of social campaign shares across different platforms'
+        );
+
+        const dbResult = await socialInteractionPage.getSocialCampaignShareData(
+          'SocialInteractionSql.Social_Campaign_Shares',
+          orgId,
+          timePeriod
+        );
+        if (!(await socialInteractionPage.isCampaignShareDataAvailable(dbResult))) {
+          await socialInteractionPage.verifyLowFilterResultMessageIsVisible('Social campaign share distribution');
+        } else {
+          await socialInteractionPage.verifySocialCampaignShareNumberOfColumnsIsCorrect();
+          await socialInteractionPage.verifyTableColumnHeaderTextIsVisible('Social campaign share distribution', [
+            'Social platform',
+            'Share count',
+            'Platform share contribution (%)',
+          ]);
+
+          await socialInteractionPage.verifySocialCampaignShareDataMatchesWithUDL(dbResult);
+        }
       }
     );
   }
 );
-
-async function getMetricData(query: string) {
-  const sqlKey = query.split('.').pop() as keyof typeof SocialInteractionSql;
-  const rawSql = SocialInteractionSql[sqlKey];
-  if (!rawSql) {
-    throw new Error(`SQL not found for key: ${String(sqlKey)}`);
-  }
-
-  const orgId = process.env.ORG_ID;
-  if (!orgId) {
-    throw new Error('ORG_ID env variable must be defined for DB validation');
-  }
-
-  const sql = rawSql
-    .replace(/'orgId'/g, `'${orgId}'`)
-    .replace(/daysToSubtract/g, String(DateHelper.getPeriodDays('Last 30 days')));
-
-  const dbCountRaw = await SnowflakeHelper.runQuery(sql);
-  const dbRaw = Object.values(dbCountRaw[0])[0];
-  const dbCount = typeof dbRaw === 'string' ? parseInt(dbRaw, 10) : Number(dbRaw);
-
-  return dbCount;
-}

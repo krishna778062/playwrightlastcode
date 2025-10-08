@@ -3,7 +3,6 @@ import { text } from 'stream/consumers';
 
 import { BaseComponent } from '@/src/core/components/baseComponent';
 import type { TestOptions } from '@/src/core/types/test.types';
-import { AnalyticsLandingPage } from '@/src/modules/data-engineering/pages/analyticsLandingPage';
 
 export class SideNavBarComponent extends BaseComponent {
   readonly createSection: Locator;
@@ -57,11 +56,10 @@ export class SideNavBarComponent extends BaseComponent {
     });
   }
 
-  async clickOnAnalyticsButton(options?: TestOptions): Promise<AnalyticsLandingPage> {
+  async clickOnAnalyticsButton(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `Clicking Analytics button in side navigation`, async () => {
       await this.clickOnElement(this.analyticsButton);
     });
-    return new AnalyticsLandingPage(this.page);
   }
 
   async verifyAnalyticsButtonVisibility(visible: boolean, options?: TestOptions): Promise<void> {
