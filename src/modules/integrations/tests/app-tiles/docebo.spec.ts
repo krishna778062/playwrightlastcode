@@ -95,7 +95,7 @@ test.describe(
     test(
       'verify UI layout for pending learning courses from Docebo on a tile',
       {
-        tag: [TestPriority.P4, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ homeDashboard, tileManagementHelper }) => {
         tagTest(test.info(), {
@@ -117,6 +117,38 @@ test.describe(
         // Verify tile content structure
         await homeDashboard.verifyDoceboContentStructure(createdTileTitle);
         await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.DOCEBO);
+      }
+    );
+    test(
+      'Verify UI layout for pending learning courses from Docebo on a tile on Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28328',
+          storyId: 'INT-24422',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add and verify tile
+        await siteDashboard.addTile(createdTileTitle, AppName, tileName, UI_ACTIONS.ADD_TO_SITE);
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+
+        // Verify tile content structure
+        await siteDashboard.verifyDoceboContentStructure(createdTileTitle);
+        await siteDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.DOCEBO);
+        await siteDashboard.removeTile(createdTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
       }
     );
   }

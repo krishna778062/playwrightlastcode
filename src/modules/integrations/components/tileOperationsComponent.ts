@@ -60,7 +60,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly MondayLastUpdatedPattern: RegExp;
   readonly doceboImage: Locator;
   readonly courseId: RegExp;
-  readonly courseName: Locator;
+  readonly courseStatus: Locator;
   readonly courseType: Locator;
 
   constructor(page: Page) {
@@ -89,8 +89,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.visibleRowsContainer = page.locator('[data-testid="container"][aria-hidden="false"]');
     this.docuSignImage = page.locator('img[src*="docusign"]');
     this.doceboImage = page.locator('img[src*="docebo"]');
-    this.courseName = page.getByText('Enrolled');
-    this.courseType = page.getByText('E-learning');
+    this.courseStatus = page.locator('span', { hasText: /In progress|Completed|Enrolled/ });
+    this.courseType = page.locator('span', { hasText: /E-learning|Classroom/ });
     // Regex patterns for text matching
     this.prNumberPattern = /^#\d+/;
     this.createdAgoPattern = /^Created\s+.*\s+ago$/;
@@ -108,7 +108,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.balanceText = page.getByText(/Balance: \d+(\.\d+)? hours/).first();
     this.fromPattern = /From/;
     this.sentPattern = /Sent \d+ days? ago/;
-    this.courseId = /^E-/;
+    this.courseId = /^[A-Z]-/;
 
     // Schedule tile locators
     this.scheduleContainer = page
@@ -563,8 +563,11 @@ export class TileOperationsComponent extends BaseAppTileComponent {
         firstRecord.getByText(this.courseId).first(),
         'CourseId should be visible in the first record'
       ).toBeVisible();
-      await expect(tile.locator(this.courseName), 'Course Name should be visible in tile').toBeVisible();
-      await expect(tile.locator(this.courseType), 'Course Type should be visible in tile').toBeVisible();
+      await expect(
+        firstRecord.locator(this.courseStatus).first(),
+        'Course Status should be visible in tile'
+      ).toBeVisible();
+      await expect(firstRecord.locator(this.courseType).first(), 'Course Type should be visible in tile').toBeVisible();
     });
   }
 }
