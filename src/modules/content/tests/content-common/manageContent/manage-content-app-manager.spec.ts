@@ -3,9 +3,15 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { NewHomePage } from '@/src/core';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
+import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationscreenPage';
+import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { HomeFeedPage } from '@/src/modules/content/ui/pages/manageApplicationDefaultHomeFeedPage';
+import { DefaultScreenPage } from '@/src/modules/content/ui/pages/manageApplicationDefaultScreenPage';
+import { ManageApplicationPage } from '@/src/modules/content/ui/pages/manageApplicationPage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
@@ -17,10 +23,20 @@ test.describe(
   () => {
     let manageFeaturesPage: ManageFeaturesPage;
     let manageContentPage: ManageContentPage;
+    let homePage: NewHomePage;
+    let applicationScreenPage: ApplicationScreenPage;
+    let manageApplicationPage: ManageApplicationPage;
+    let defaultScreenPage: DefaultScreenPage;
+    let homeFeedPage: HomeFeedPage;
 
     test.beforeEach(async ({ appManagerFixture }) => {
+      await appManagerFixture.homePage.verifyThePageIsLoaded();
       manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
       manageContentPage = new ManageContentPage(appManagerFixture.page);
+      applicationScreenPage = new ApplicationScreenPage(appManagerFixture.page);
+      manageApplicationPage = new ManageApplicationPage(appManagerFixture.page);
+      defaultScreenPage = new DefaultScreenPage(appManagerFixture.page);
+      homeFeedPage = new HomeFeedPage(appManagerFixture.page);
     });
 
     test(
@@ -205,6 +221,38 @@ test.describe(
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectCreatedNewestOption();
+      }
+    );
+    test(
+      'In Zeus Verify Default filters (Posts I follow and Recent Activity) are applied for Home Feed for New users',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.HOME_FEED],
+      },
+      async ({ standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify Default filters (Posts I follow and Recent Activity) are applied for Home Feed for New users',
+          zephyrTestId: 'CONT-29493',
+          storyId: 'CONT-29493',
+        });
+        await standardUserFixture.navigationHelper.openApplicationSettings();
+        await applicationScreenPage.actions.clickOnApplication();
+        await manageApplicationPage.actions.clickOnDefaults();
+        await defaultScreenPage.actions.clickOnHomeFeed();
+        await homeFeedPage.actions.selectingPostsIFollow();
+        await homeFeedPage.actions.recentActivity();
+
+        // Verify with standard user in parallel browser context
+        await test.step('Verify home feed defaults for standard user', async () => {
+          await standardUserFixture.homePage.verifyThePageIsLoaded();
+          const standardUserFeedPage = new FeedPage(standardUserFixture.page);
+          console.log('Successfully logged in as standard user');
+          console.log('Verifying home feed defaults are applied for standard user');
+          await standardUserFeedPage.assertions.verifyPostsIFollow();
+          await standardUserFeedPage.assertions.verifySortByRecentActivity();
+          await standardUserFeedPage.actions.selectPostsToMe();
+          await standardUserFeedPage.actions.selectPostDate();
+        });
       }
     );
   }

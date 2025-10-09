@@ -7,14 +7,17 @@ import { ProtectedAuthorsComponent } from '@/src/modules/content/ui/components/p
 
 export interface IPrivilegesScreenPageActions {
   fillProtectedAuthorsAuthorsFieldBarWithLoggedInUser: (value: string) => Promise<void>;
+  fillProtectedAuthorsAllowlistFieldBarWithLoggedInUser: (value: string) => Promise<void>;
   clickOnSave: () => Promise<void>;
   clickOnCrossUserFromAuthorList: () => Promise<void>;
+  clickOnCrossAllowlistUser: () => Promise<void>;
 }
 
 export interface IPrivilegesScreenPageAssertions {
   verifyProtectedAuthorsAuthorsFieldBarIsVisible: () => Promise<void>;
   verifyProtectedAuthorsAllowlistFieldBarIsVisible: () => Promise<void>;
   verifyTheChangesConfirmationToastMessageIsVisible: () => Promise<void>;
+  verifyAddedUserGotRemovedFromList: (userName: string) => Promise<void>;
 }
 export class PrivilegesScreenPage extends BasePage {
   private protectedAuthorsComponent: ProtectedAuthorsComponent;
@@ -54,6 +57,10 @@ export class PrivilegesScreenPage extends BasePage {
     await this.protectedAuthorsComponent.fillProtectedAuthorsAuthorsFieldBarWithLoggedInUser(value);
   }
 
+  async fillProtectedAuthorsAllowlistFieldBarWithLoggedInUser(value: string): Promise<void> {
+    await this.protectedAuthorsComponent.fillProtectedAuthorsAllowlistFieldBarWithLoggedInUser(value);
+  }
+
   async clickOnSave(): Promise<void> {
     await test.step('Clicking on save', async () => {
       await this.clickOnElement(this.clickOnSaveButton);
@@ -71,10 +78,18 @@ export class PrivilegesScreenPage extends BasePage {
     await this.protectedAuthorsComponent.clickOnCrossUser();
   }
 
+  async clickOnCrossAllowlistUser(): Promise<void> {
+    await this.protectedAuthorsComponent.clickOnCrossUser();
+  }
+
   async reloadScreen(): Promise<void> {
     await test.step('Reload the privileges screen', async () => {
       await this.page.reload({ waitUntil: 'domcontentloaded' });
       await this.page.waitForLoadState('domcontentloaded');
     });
+  }
+
+  async verifyAddedUserGotRemovedFromList(userName: string): Promise<void> {
+    await this.protectedAuthorsComponent.verifyAddedUserGotRemovedFromList(userName);
   }
 }

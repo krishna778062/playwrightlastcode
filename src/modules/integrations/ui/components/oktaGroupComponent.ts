@@ -1,5 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export class OktaGroupComponent extends BaseComponent {
@@ -21,8 +22,6 @@ export class OktaGroupComponent extends BaseComponent {
   readonly audiencesTable: () => Locator;
   readonly audienceName: (name: string) => Locator;
   readonly audienceCreatedBy: (createdBy: string) => Locator;
-  readonly audiencesMenuItem: () => Locator;
-  readonly applicationSettingsButton: () => Locator;
   readonly audienceTypeDropdown: () => Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
@@ -65,9 +64,6 @@ export class OktaGroupComponent extends BaseComponent {
         .filter({ hasText: createdBy })
         .locator('td')
         .nth(3);
-    this.audiencesMenuItem = () => this.rootLocator.getByTestId('main-nav-item').filter({ hasText: 'Audiences' });
-    this.applicationSettingsButton = () =>
-      this.rootLocator.getByRole('menuitem', { name: 'Application settings' }).first();
     this.audienceTypeDropdown = () => this.rootLocator.getByTestId('overlay').getByTestId('SelectInput');
   }
 
@@ -211,36 +207,40 @@ export class OktaGroupComponent extends BaseComponent {
     });
   }
 
-  async clickOnAudiencesMenuItem(): Promise<void> {
-    await test.step('Click on Audiences menu item and wait for page load', async () => {
-      await expect(this.applicationSettingsButton(), 'expecting Audiences setting button to be visible').toBeVisible();
-      const button = this.applicationSettingsButton();
-      await button.hover();
-      await this.audiencesMenuItem().click();
-    });
-  }
-
   async navigateBack(): Promise<void> {
     await test.step('Navigate back to previous page', async () => {
       await this.page.goBack();
     });
   }
 
+  async navigateToAudiencesPage(): Promise<void> {
+    await test.step('Navigate to Audiences page', async () => {
+      await this.page.goto(PAGE_ENDPOINTS.AUDIENCE_PAGE, { waitUntil: 'domcontentloaded' });
+    });
+  }
+
   async verifyAudienceNameIsVisible(audienceName: string): Promise<void> {
-    await test.step(`Verify audience name '${audienceName}' is visible`, async () => {
-      try {
-        await expect(
-          this.audienceName(audienceName),
-          `expecting audience name '${audienceName}' to be visible`
-        ).toBeVisible({ timeout: 5000 });
-      } catch {
-        console.log(`Audience name '${audienceName}' not visible, reloading page once...`);
-        await this.page.reload();
-        await expect(
-          this.audienceName(audienceName),
-          `expecting audience name '${audienceName}' to be visible after reload`
-        ).toBeVisible();
+    await test.step(`Verify audience '${audienceName}' is visible`, async () => {
+      const VISIBLE_TIMEOUT = 5_000;
+      const maxAttempts = 3;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          await expect(
+            this.audienceName(audienceName),
+            `Expect audience '${audienceName}' to be visible (attempt ${attempt}/${maxAttempts})`
+          ).toBeVisible({ timeout: VISIBLE_TIMEOUT });
+          return;
+        } catch {
+          if (attempt === maxAttempts) break;
+          test.info().annotations.push({
+            type: 'info',
+            description: `'${audienceName}' not visible, reloading (attempt ${attempt}/${maxAttempts})...`,
+          });
+          await this.page.reload();
+          await this.page.waitForLoadState('domcontentloaded');
+        }
       }
+      throw new Error(`Audience '${audienceName}' not visible after ${maxAttempts - 1} reload(s).`);
     });
   }
 

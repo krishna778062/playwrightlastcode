@@ -228,14 +228,14 @@ test.describe(
         await oktaGroup.clickOnConfirmButton();
         await oktaGroup.clickOnOktaGroupOption(OKTA_GROUP.GROUP_OPTION);
         await oktaGroup.clickOnSelectOktaGroupButton(OKTA_GROUP.GROUP_BUTTON);
-        await oktaGroup.clickOnSelectOktaGroup(OKTA_GROUP.GROUP_NAME1);
+        await oktaGroup.clickOnSelectOktaGroup(OKTA_GROUP.GROUP_NAME2);
         await oktaGroup.clickOnDoneButton(ActionType.Done);
         await oktaGroup.clickOnCreateAudiencesButton(OKTA_GROUP.CREATE_AUDIENCES);
         await oktaGroup.clickOnSaveButton();
         await oktaGroup.verifyErrorMessage(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
         await appManagerPage.reload();
-        await oktaGroup.clickOnAudiencesMenuItem();
-        await oktaGroup.verifyAudienceNameIsVisible(OKTA_GROUP.GROUP_NAME1);
+        await oktaGroup.navigateToAudiencesPage();
+        await oktaGroup.verifyAudienceNameIsVisible(OKTA_GROUP.GROUP_NAME2);
         await oktaGroup.verifyAudienceCreatedByIsVisible(OKTA_GROUP.CREATED_BY);
         await oktaGroup.navigateBack();
       }
@@ -265,7 +265,7 @@ test.describe(
         await oktaGroup.clickOnCreateAudiencesButton(OKTA_GROUP.DO_NOT_CREATE_AUDIENCES);
         await oktaGroup.clickOnSaveButton();
         await appManagerPage.reload();
-        await oktaGroup.clickOnAudiencesMenuItem();
+        await oktaGroup.navigateToAudiencesPage();
         await oktaGroup.verifyAudienceNameIsNotVisible(OKTA_GROUP.GROUP_NAME1);
         await oktaGroup.navigateBack();
       }

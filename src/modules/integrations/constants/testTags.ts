@@ -15,6 +15,7 @@ export enum IntegrationsSuiteTags {
   DOCUSIGN = '@docuSignAppTiles',
   DOCEBO = '@doceboAppTiles',
   MONDAY_DOT_COM = '@mondayDotComAppTiles',
+  OUTLOOK_CALENDAR_APPTILES = '@outlookCalendarAppTiles',
 }
 
 export enum IntegrationsFeatureTags {
@@ -44,6 +45,7 @@ export const TEST_TAGS = {
   UKG_WFM: IntegrationsSuiteTags.UKG_WFM,
   UKG_PRO: IntegrationsSuiteTags.UKG_PRO,
   GOOGLE_CALENDAR_APPTILES: IntegrationsSuiteTags.GOOGLE_CALENDAR_APPTILES,
+  OUTLOOK_CALENDAR_APPTILES: IntegrationsSuiteTags.OUTLOOK_CALENDAR_APPTILES,
   DOCUSIGN: IntegrationsSuiteTags.DOCUSIGN,
   MONDAY_DOT_COM: IntegrationsSuiteTags.MONDAY_DOT_COM,
 } as const;

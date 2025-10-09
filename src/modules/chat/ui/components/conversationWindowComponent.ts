@@ -305,6 +305,18 @@ export class ConversationWindowComponent extends BaseComponent {
     });
   }
 
+  async verifySentEmojiMessageVisible(messageText: string) {
+    await test.step(`Getting focused message object from list of chat messages`, async () => {
+      const lastMessage = this.listChatMessagesComponent.last();
+      const fetchedMessageText = await lastMessage.locator('section').locator('p').textContent();
+
+      await this.verifier.verifyElementHasText(lastMessage.locator('section').locator('p'), messageText, {
+        timeout: 10000,
+        assertionMessage: 'Message text should match exactly',
+      });
+    });
+  }
+
   async verifyMessageIsNotPresentInListOfChatMessages(
     message: string,
     options?: {

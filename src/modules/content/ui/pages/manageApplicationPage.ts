@@ -7,6 +7,7 @@ import { ManageApplicationComponent } from '@/src/modules/content/ui/components/
 export interface IManageApplicationPageActions {
   clickOnGovernance: () => Promise<void>;
   clickOnPrivileges: () => Promise<void>;
+  clickOnDefaults: () => Promise<void>;
 }
 
 export interface IManageApplicationPageAssertions {}
@@ -43,6 +44,12 @@ export class ManageApplicationPage extends BasePage {
   async clickOnPrivileges(): Promise<void> {
     await test.step('Clicking on privileges', async () => {
       await this.clickOnElement(this.manageApplicationComponent.clickingOnPrivileges);
+    });
+  }
+
+  async clickOnDefaults(): Promise<void> {
+    await test.step('Clicking on defaults', async () => {
+      await this.clickOnElement(this.manageApplicationComponent.clickingOnDefaults);
     });
   }
 }
