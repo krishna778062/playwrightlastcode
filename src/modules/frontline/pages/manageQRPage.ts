@@ -1,5 +1,5 @@
 import { PopupType } from '@frontline/constants/popupType';
-import { QR_CONSTANTS } from '@frontline/constants/qrConstants';
+import { QR_CONSTANTS, QR_MESSAGES } from '@frontline/constants/qrConstants';
 import { expect, Locator, Page, test } from '@playwright/test';
 import { addDays, format } from 'date-fns';
 import * as fs from 'fs';
@@ -82,6 +82,11 @@ export class ManageQRPage extends BasePage {
   readonly downloadQROnly: Locator;
   readonly contentPageHeader: Locator;
   readonly promoteContentQRHeading: Locator;
+  readonly editMenuItem: Locator;
+  readonly editContentQRHeader: Locator;
+  readonly addContentDescription: Locator;
+  readonly contentSearchBoxText: Locator;
+  readonly updatedSuccessMessage: Locator;
   private downloadedFilePath: string = '';
 
   constructor(page: Page) {
@@ -95,7 +100,7 @@ export class ManageQRPage extends BasePage {
     this.eyeIcon = page.getByTestId('preview-button');
     this.saveAndVisitDashboardBtn = page.getByRole('button', { name: 'Save and visit dashboard' });
     this.qrNameField = page.getByRole('textbox', { name: 'QR name*' });
-    this.descriptionField = page.getByTestId('tiptap-content').getByRole('paragraph');
+    this.descriptionField = page.getByRole('textbox', { name: 'You are in the content editor' });
     this.promoteMobileAppPageHeading = page.getByText('Promote mobile app via QR');
     this.manageQRPageHeading = page.getByText('Manage QR');
     this.imageQROnPreview = page.getByRole('img', { name: "You're previewing the QR code" }).first();
@@ -159,6 +164,11 @@ export class ManageQRPage extends BasePage {
     this.downloadQROnly = page.getByRole('menuitem', { name: 'Download QR code only' });
     this.contentPageHeader = page.locator('.Hero-eventInner');
     this.promoteContentQRHeading = page.locator("h2:has-text('Promote content via QR')");
+    this.editMenuItem = page.getByRole('menuitem', { name: 'Edit' });
+    this.editContentQRHeader = page.getByRole('heading', { name: 'Edit content QR' });
+    this.addContentDescription = page.getByRole('heading').locator('xpath=following-sibling::p');
+    this.contentSearchBoxText = page.getByText(QR_MESSAGES.CONTENT_SEARCH_BOX_TEXT);
+    this.updatedSuccessMessage = page.getByText(QR_MESSAGES.SUCCESSFULLY_UPDATED_QR_CODE);
   }
 
   async clickOnManage() {
@@ -348,8 +358,7 @@ export class ManageQRPage extends BasePage {
   }
 
   async validateToogleText() {
-    const expectedText =
-      'QR codes promoting the mobile app cannot be marked disabled as they are directly mapped with App/Play store links.';
+    const expectedText = QR_MESSAGES.TOGGLE_POPUP_TEXT;
     await this.verifier.verifyTheElementIsVisible(this.togglePopup, {
       assertionMessage: `Toggle popup should display text: ${expectedText}`,
     });
@@ -995,6 +1004,87 @@ export class ManageQRPage extends BasePage {
 
       // Check if we have a valid title or if the URL indicates we're on the right page
       expect(title || url.includes('content') || url.includes('promotion')).toBeTruthy();
+    });
+  }
+
+  async clickOnEdit(): Promise<void> {
+    await this.clickOnElement(this.editMenuItem, {
+      stepInfo: 'Click on Edit menu item',
+    });
+  }
+
+  async verifyEditContentQRHeader(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.editContentQRHeader, {
+      assertionMessage: 'Edit content QR header should be visible',
+    });
+  }
+
+  async verifyAddContentDescription(): Promise<void> {
+    const expectedText = QR_MESSAGES.ADD_CONTENT_DESCRIPTION;
+    await this.verifier.verifyTheElementIsVisible(this.addContentDescription, {
+      assertionMessage: 'Add content description should be visible',
+    });
+    await this.verifier.verifyElementHasText(this.addContentDescription, expectedText, {
+      assertionMessage: 'Add content description should have correct text',
+    });
+  }
+
+  async verifyContentSearchBoxText(): Promise<void> {
+    const expectedText = QR_MESSAGES.CONTENT_SEARCH_BOX_TEXT;
+    await this.verifier.verifyTheElementIsVisible(this.contentSearchBoxText, {
+      assertionMessage: 'Content search box text should be visible',
+    });
+    await this.verifier.verifyElementHasText(this.contentSearchBoxText, expectedText, {
+      assertionMessage: 'Content search box text should have correct text',
+    });
+  }
+
+  async verifyUpdatedDescriptionOnListing(qrName: string, updatedDescription: string): Promise<void> {
+    await test.step(`Verify updated description is showing for QR: ${qrName}`, async () => {
+      // Find the QR row by name first, then verify the updated description within that row
+      const qrRow = this.page.locator('tr').filter({ hasText: qrName });
+      const descriptionLocator = qrRow.locator('.QRListing-module-truncateText___QW_kR', {
+        hasText: updatedDescription,
+      });
+
+      await this.verifier.verifyTheElementIsVisible(descriptionLocator, {
+        assertionMessage: `Updated description "${updatedDescription}" should be visible in QR listing for QR: ${qrName}`,
+      });
+    });
+  }
+
+  async verifyUpdatedContentsOnEditPage(updatedDescription: string): Promise<void> {
+    await test.step('Verify updated contents are showing on the Edit content QR page', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.editContentQRHeader, {
+        assertionMessage: 'Edit content QR header should be visible',
+      });
+
+      await this.clickOnNextButton();
+      await this.verifyPromoteContentPageHeading();
+
+      await this.verifier.waitUntilElementIsVisible(this.descriptionField, {
+        timeout: 10000,
+        stepInfo: 'Wait for description field to be visible',
+      });
+      await this.verifier.verifyElementContainsText(this.descriptionField, updatedDescription, {
+        assertionMessage: 'Description field should contain updated description',
+      });
+    });
+  }
+
+  async verifyUpdatedSuccessMessage(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.updatedSuccessMessage, {
+      assertionMessage: 'Success message for QR update should be visible',
+    });
+  }
+
+  async verifyPagesAfterEdit(): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(this.listOfPagesSelected, {
+      timeout: 10000,
+      stepInfo: 'Wait for selected pages to be visible',
+    });
+    await this.verifier.verifyCountOfElementsIsEqualTo(this.listOfPagesSelected, 2, {
+      assertionMessage: 'Should have exactly 2 selected pages after edit',
     });
   }
 }
