@@ -586,6 +586,12 @@ test.describe(
           endUserFeedPage.verifyThePageIsLoaded(),
         ]);
 
+        await Promise.all([
+          appManagerFeedPage.actions.clickOnShowOption('All posts'),
+          socialCampaignManagerFeedPage.actions.clickOnShowOption('All posts'),
+          endUserFeedPage.actions.clickOnShowOption('All posts'),
+        ]);
+
         // Verify campaign is displayed in both feeds
         await Promise.all([
           appManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
@@ -664,6 +670,12 @@ test.describe(
           endUserHomePage.actions.clickOnGlobalFeed(),
         ]);
 
+        await Promise.all([
+          appManagerHomePage.actions.clickOnGlobalFeed(),
+          socialCampaignManagerHomePage.actions.clickOnGlobalFeed(),
+          endUserHomePage.actions.clickOnGlobalFeed(),
+        ]);
+
         const appManagerFeedPage = new FeedPage(appManagerHomePage.page);
         const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerHomePage.page);
         const endUserFeedPage = new FeedPage(endUserHomePage.page);
@@ -672,6 +684,12 @@ test.describe(
           appManagerFeedPage.verifyThePageIsLoaded(),
           socialCampaignManagerFeedPage.verifyThePageIsLoaded(),
           endUserFeedPage.verifyThePageIsLoaded(),
+        ]);
+
+        await Promise.all([
+          appManagerFeedPage.actions.clickOnShowOption('All posts'),
+          socialCampaignManagerFeedPage.actions.clickOnShowOption('All posts'),
+          endUserFeedPage.actions.clickOnShowOption('All posts'),
         ]);
 
         // Verify campaign is displayed in both feeds
@@ -709,6 +727,56 @@ test.describe(
           endUserFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
           endUserFeedPage.assertions.verifySocialCampaignShareButtonIsNotVisible(description),
         ]);
+      }
+    );
+
+    test(
+      'In Zeus Verify App Manager able to add and remove Social Campaign to Site Carousel and remove when deleted',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14905'],
+      },
+      async ({ appManagerHomePage, socialCampaignHelper, siteManagementHelper }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
+          zephyrTestId: 'CONT-14905',
+          storyId: 'CONT-14905',
+        });
+
+        const siteName = 'All Employees';
+        const siteId = await siteManagementHelper.getSiteIdWithName(siteName);
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+        });
+        campaignId = createdCampaign.campaignId;
+
+        //remove all the carousel items from the site
+        await siteManagementHelper.getAndRemoveAllCarouselItems(siteId);
+
+        const siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.actions.clickOnEditDashboard();
+        await siteDashboardPage.actions.clickOnEditCarousel();
+        await siteDashboardPage.actions.enterSearchCarouselInput(campaignOptions.linkText);
+        await siteDashboardPage.actions.selectCarouselItem(campaignOptions.linkText);
+        await siteDashboardPage.assertions.verifySocalCampaignInCarouselModal(campaignOptions.linkText);
+        await appManagerHomePage.page.pause();
+        await siteDashboardPage.actions.clickDoneButton();
+        await siteDashboardPage.assertions.verifySocalCampaignInCarouselItem(campaignOptions.linkText);
+        // Delete campaign
+        await socialCampaignHelper.deleteCampaign(campaignId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.assertions.verifySocalCampaignIsNotInCarouselItem(campaignOptions.linkText);
       }
     );
   }

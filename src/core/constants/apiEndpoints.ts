@@ -59,6 +59,9 @@ export const API_ENDPOINTS = {
     membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,
     unfeature: (siteId: string) => `/v1/content/sites/${siteId}/featured?action=unfeature`,
     siteDetails: (siteId: string) => `/v1/content/sites/${siteId}`,
+    carouselItems: (siteId: string) => `/v1/content/sites/${siteId}/carousel/items/list`,
+    deleteCarouselItem: (siteId: string, carouselItemId: string) =>
+      `/v1/content/sites/${siteId}/carousel/items/${carouselItemId}`,
   },
 
   content: {

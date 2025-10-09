@@ -430,4 +430,55 @@ export class SiteManagementService extends BaseApiClient implements ISiteManagem
       return responseBody;
     });
   }
+
+  /**
+   * Gets the carousel items list for a specific site
+   * @param siteId - The site ID to retrieve carousel items for
+   * @returns Promise containing the carousel items response
+   */
+  async getSiteCarouselItems(siteId: string): Promise<any> {
+    return await test.step(`Getting carousel items for site ID: ${siteId}`, async () => {
+      const response = await this.post(API_ENDPOINTS.site.carouselItems(siteId), {
+        data: {
+          siteId: siteId,
+        },
+      });
+
+      const responseBody = await response.json();
+      console.log('Carousel items response:', JSON.stringify(responseBody, null, 2));
+
+      if (!response.ok()) {
+        throw new Error(`Failed to get carousel items for ${siteId}. Status: ${response.status()}`);
+      }
+
+      return responseBody;
+    });
+  }
+
+  /**
+   * Deletes a carousel item from a specific site
+   * @param siteId - The site ID containing the carousel item
+   * @param carouselItemId - The carousel item ID to delete
+   * @returns Promise containing the delete response
+   */
+  async deleteSiteCarouselItem(siteId: string, carouselItemId: string): Promise<any> {
+    return await test.step(`Deleting carousel item ${carouselItemId} from site ${siteId}`, async () => {
+      const response = await this.delete(API_ENDPOINTS.site.deleteCarouselItem(siteId, carouselItemId));
+
+      const responseBody = await response.json();
+      console.log('Delete carousel item response:', JSON.stringify(responseBody, null, 2));
+
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to delete carousel item ${carouselItemId} from site ${siteId}. Status: ${response.status()}`
+        );
+      }
+
+      if (responseBody.status !== 'success') {
+        throw new Error(`Delete carousel item failed. Response: ${JSON.stringify(responseBody)}`);
+      }
+
+      return responseBody;
+    });
+  }
 }

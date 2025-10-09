@@ -383,4 +383,12 @@ export class ListFeedComponent extends BaseComponent {
       });
     });
   }
+
+  async verifySocialCampaignShareButtonIsVisible(description: string): Promise<void> {
+    await test.step('Verify share button is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.shareSocialCampaignButton(description), {
+        assertionMessage: 'Share button should be visible',
+      });
+    });
+  }
 }

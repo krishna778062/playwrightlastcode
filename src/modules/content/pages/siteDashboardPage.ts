@@ -8,6 +8,9 @@ import { PageCreationPage } from '@content/pages/pageCreationPage';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
+import { CarouselComponent } from '../components/carouselComponent';
+
+import { EditBarComponent } from '@/src/modules/content/components/editBarComponent';
 import { ListFeedComponent } from '@/src/modules/content/components/listFeedComponent';
 import { SiteDashboardComponent } from '@/src/modules/content/components/siteDashboardComponent';
 
@@ -18,6 +21,12 @@ export interface ISiteDashboardActions {
   navigateToManageSite: () => Promise<void>;
   verfiyFeedSection: () => Promise<void>;
   clickOnFeedLink: () => Promise<void>;
+  clickOnEditCarousel: () => Promise<void>;
+  clickOnAddTile: () => Promise<void>;
+  clickOnEditDashboard: () => Promise<void>;
+  enterSearchCarouselInput: (text: string) => Promise<void>;
+  selectCarouselItem: (text: string) => Promise<void>;
+  clickDoneButton: () => Promise<void>;
 }
 
 export interface ISiteDashboardAssertions {
@@ -27,16 +36,21 @@ export interface ISiteDashboardAssertions {
   verifySiteCreatedSuccessfully: (siteName: string) => Promise<void>;
   verifyCategoryCreatedSuccessfully: (categoryName: string) => Promise<void>;
   verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
+  verifySocalCampaignInCarouselModal: (text: string) => Promise<void>;
+  verifySocalCampaignInCarouselItem: (text: string) => Promise<void>;
+  verifySocalCampaignIsNotInCarouselItem: (text: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BasePage implements ISiteDashboardActions, ISiteDashboardAssertions {
   private listFeedComponent: ListFeedComponent;
+  private editbarComponent: EditBarComponent;
   readonly addContentButton = this.page.locator("button[title='Add content']");
   readonly manageSiteButton = this.page.locator("button[title='Manage site'], a[href*='/manage']");
   readonly siteNameHeading = (siteName: string) => this.page.locator('h1').filter({ hasText: siteName });
   readonly addContentModal: AddContentModalComponent;
   readonly successMessage = (message: string) =>
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
+  readonly carouselComponent: CarouselComponent;
   private siteDashboardComponent: SiteDashboardComponent;
 
   // Locators for site and category verification
@@ -47,13 +61,17 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
   readonly feedLink = this.page.locator('a:has-text("eed")');
   readonly feedLinkWithDescription = (description: string) => this.page.locator('p').filter({ hasText: description });
   readonly sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
+  readonly editDashboardButton = this.page.locator('div[data-title="Edit dashboard"]');
+  readonly carouselItemText = (text: string) => this.page.locator('div').filter({ hasText: text });
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
     this.siteDashboardComponent = new SiteDashboardComponent(page);
+    this.editbarComponent = new EditBarComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
     this.verfiyFeedSection = this.verfiyFeedSection.bind(this);
     this.addContentModal = new AddContentModalComponent(page);
+    this.carouselComponent = new CarouselComponent(page);
   }
 
   // Actions
@@ -223,5 +241,43 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
 
   async verifyCampaignLinkDisplayed(linkText: string, description: string): Promise<void> {
     return await this.listFeedComponent.verifyCampaignLinkDisplayed(linkText, description);
+  }
+
+  async clickOnEditCarousel(): Promise<void> {
+    return this.editbarComponent.clickEditCarousel();
+  }
+
+  async clickOnEditDashboard(): Promise<void> {
+    await test.step('Click on edit dashboard', async () => {
+      await this.clickOnElement(this.editDashboardButton);
+    });
+  }
+
+  async clickOnAddTile(): Promise<void> {
+    return this.editbarComponent.clickOnAddTile();
+  }
+
+  async verifySocalCampaignInCarouselItem(text: string): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.carouselItemText(text));
+  }
+
+  async verifySocalCampaignIsNotInCarouselItem(text: string): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.carouselItemText(text));
+  }
+
+  async verifySocalCampaignInCarouselModal(text: string): Promise<void> {
+    return this.carouselComponent.verifyCarouselItem(text);
+  }
+
+  async clickDoneButton(): Promise<void> {
+    return this.carouselComponent.clickDoneButton();
+  }
+
+  async enterSearchCarouselInput(text: string): Promise<void> {
+    return this.carouselComponent.getSearchCarouselInput(text);
+  }
+
+  async selectCarouselItem(text: string): Promise<void> {
+    return this.carouselComponent.selectCarouselItem(text);
   }
 }
