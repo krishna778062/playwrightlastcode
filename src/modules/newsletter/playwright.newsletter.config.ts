@@ -18,7 +18,7 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'Reward',
+      name: 'Newsletter',
       use: {
         headless: !!process.env.CI,
         ...devices['Desktop Chrome'],

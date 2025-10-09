@@ -4,7 +4,6 @@ import { PAGE_ENDPOINTS as newsletterEndpoints, PAGE_ENDPOINTS } from '@core/con
 import { BasePage } from '@core/pages/basePage';
 
 export class NewsletterHomePagePage extends BasePage {
-  private readonly searchInput: Locator;
   readonly newsletterContainer: Locator;
   readonly newsletterHeaderContainer: Locator;
   readonly newsletterContainerBody: Locator;
@@ -17,13 +16,8 @@ export class NewsletterHomePagePage extends BasePage {
 
   //Newsletter Container Body
   readonly searchContainer: Locator;
-  //readonly searchInput: Locator;
+  readonly searchInput: Locator;
   readonly searchButton: Locator;
-
-  //Newsletter Filter
-  readonly searchFilter: Locator;
-  //readonly searchInput: Locator;
-  readonly searchFilterButton: Locator;
   readonly searchClearButton: Locator;
 
   //newsletter template
@@ -43,21 +37,16 @@ export class NewsletterHomePagePage extends BasePage {
     this.newsletterCreateDropdown = this.newsletterCreateButton.locator('[class*="Dropdown-module__button"]');
     this.newsletterCreateDropdownItem = this.newsletterCreateDropdown.locator('[class*="Dropdown-module__item"]');
     this.searchContainer = this.page.locator('div[class*="TextInput-module__wrapper"]');
-    this.searchInput = this.page.locator('input#search');
-    this.searchButton = this.page.getByRole('button', { name: 'Search' });
-    this.searchFilter = this.searchContainer.locator('div[class*="TextInput-module__adornments"]');
-    this.searchFilterButton = this.searchFilter.locator('button[aria-label="Search"]');
-    this.searchClearButton = this.searchFilter.locator('button[aria-label="Clear"]');
+    this.searchInput = this.searchContainer.getByRole('textbox', { name: 'search' });
+    this.searchClearButton = this.searchContainer.locator('button[aria-label="Clear"]');
+    this.searchButton = this.searchContainer.getByRole('button', { name: 'Search' });
+
     this.newsletterBlankTemplate = this.page.locator(
       '[data-testid="thumbnail-item-wrapper"]:has-text("Blank Template")'
     );
     this.newsletterCreateActionButton = this.page.getByRole('group').getByText('Create', { exact: true });
     this.newsletterNameInput = this.page.locator('#name');
     this.nextButton = this.page.getByRole('button', { name: 'Next' });
-  }
-
-  async loadPage(): Promise<void> {
-    await this.page.goto(newsletterEndpoints.MANAGE_NEWSLETTER_PAGE);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -69,11 +58,36 @@ export class NewsletterHomePagePage extends BasePage {
   }
 
   async createNewsletter(newsletterName: string): Promise<void> {
-    await this.newsletterCreateActionButton.click({ force: true, timeout: 45000 });
-    await this.newsletterNameInput.type(newsletterName);
-    await this.nextButton.click();
+    await this.clickOnElement(this.newsletterCreateActionButton, {
+      timeout: 45000,
+      stepInfo: 'Clicking on the Next button',
+    });
+    await this.fillInElement(this.newsletterNameInput, newsletterName, {
+      stepInfo: `Entering the ${newsletterName}`,
+    });
+    await this.clickOnElement(this.nextButton, {
+      stepInfo: 'Clicking on the Next button',
+    });
     await this.verifier.waitUntilElementIsVisible(this.newsletterBlankTemplate);
-    await this.newsletterBlankTemplate.click();
-    await this.nextButton.click();
+    await this.clickOnElement(this.newsletterBlankTemplate, {
+      stepInfo: 'Clicking on the Template button',
+    });
+    await this.clickOnElement(this.nextButton, {
+      stepInfo: 'Clicking on the Next button',
+    });
+  }
+
+  async validateHeaders() {
+    //Heading, Create Button, Create Button Dropdown, Dropdown options
+    // all 4 Tabs
+  }
+
+  async validateSearchAndFilter() {
+    // Search, input box, clear button, search button
+  }
+
+  async validateNewsletterTable() {
+    // Table, table headers, sortable headers, table with data, table without data, hr line (seperator .DataGrid-module__emptyWrapper__ukW4t {
+    //     border-top: 1px solid var(--color-border-light);)
   }
 }
