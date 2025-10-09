@@ -40,7 +40,15 @@ export class UkgSyncComponents extends BaseComponent {
 
   async verifyScheduledSourcesCheckBox(name: string): Promise<void> {
     const checkbox = this.scheduledSourcesCheckbox(name);
-    await checkbox.click();
+    const status = await checkbox.isChecked();
+    if (status) {
+      await checkbox.click();
+      await this.spanText('Save').click();
+      await checkbox.click();
+    } else {
+      await checkbox.click();
+      console.log('Checkbox is already unchecked');
+    }
   }
 
   async clearInputField(source: string, username: string, password: string, url: string, key: string): Promise<void> {
