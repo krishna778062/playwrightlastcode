@@ -10,9 +10,9 @@ import { AUDIENCE_TEST_DATA } from '../../../test-data/audience-test-data';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { AudiencePage } from '@/src/modules/platforms/ui/pages/abacPage/acgPage/audiencePage';
 
-test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestSuite.AUDIENCE_CSV] }, () => {
+test.describe('audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestSuite.AUDIENCE_CSV] }, () => {
   test(
-    'CSV Upload: Verify user can fill audience name, description, select category, upload CSV file, and create audience',
+    'cSV Upload: Verify user can fill audience name, description, select category, upload CSV file, and create audience',
     { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -56,7 +56,7 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
   );
 
   test(
-    'CSV Upload Error Validation: Verify error messages for missing name, invalid CSV format, and download example CSV',
+    'cSV Upload Error Validation: Verify error messages for missing name, invalid CSV format, and download example CSV',
     { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -95,7 +95,7 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
   );
 
   test(
-    'CSV Upload: Verify blank CSV file validation error',
+    'cSV Upload: Verify blank CSV file validation error',
     { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -120,7 +120,7 @@ test.describe('Audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
   );
 
   test(
-    'CSV Upload: Verify user can add new category during CSV upload process',
+    'cSV Upload: Verify user can add new category during CSV upload process',
     { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {

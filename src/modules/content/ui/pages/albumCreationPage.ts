@@ -190,9 +190,9 @@ export class AlbumCreationPage extends BasePage {
       const reqPromises = [];
       reqPromises.push(
         this.page.waitForResponse(
-          response => response.url().includes('X-Amz-SignedHeaders=host') && response.request().method() === 'PUT'
-        ),
-        35_000
+          response => response.url().includes('X-Amz-SignedHeaders=host') && response.request().method() === 'PUT',
+          { timeout: 35_000 }
+        )
       );
       const fileInput = this.fileInputGeneral.first();
       console.log('filePath: ', imagePath);
@@ -229,9 +229,9 @@ export class AlbumCreationPage extends BasePage {
       const reqPromises = [];
       reqPromises.push(
         this.page.waitForResponse(
-          response => response.url().includes('X-Amz-SignedHeaders=host') && response.request().method() === 'PUT'
-        ),
-        35_000
+          response => response.url().includes('X-Amz-SignedHeaders=host') && response.request().method() === 'PUT',
+          { timeout: 35_000 }
+        )
       );
 
       await this.addInputFiles(this.addFromContainerInput, filePath);

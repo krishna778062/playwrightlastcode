@@ -15,7 +15,7 @@ import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
 test.describe(
-  'Monday.com App Tiles Multi-user Tests',
+  'monday.com App Tiles Multi-user Tests',
   {
     tag: [IntegrationsSuiteTags.MONDAY_DOT_COM, IntegrationsSuiteTags.ABSOLUTE],
   },

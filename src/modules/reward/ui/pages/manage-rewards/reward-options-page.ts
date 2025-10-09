@@ -2,6 +2,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS, PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants';
 import { BasePage } from '@core/ui';
+import { log } from '@core/utils';
 
 export class RewardOptionsPage extends BasePage {
   readonly rewardsOptionsContainer: Locator;
@@ -179,7 +180,7 @@ export class RewardOptionsPage extends BasePage {
       try {
         await expect(menuItems.first(), `expecting menu item to be visible`).toBeVisible({ timeout: 2_000 });
       } catch (error) {
-        console.log('Retry click: Menu item is not visible, clicking on the action button again');
+        log.error('Retry click: Menu item is not visible, clicking on the action button again', error);
         await this.clickOnElement(this.rewardsOptionsTableRowActionButton.last(), {
           stepInfo: 'Clicking on the action button again as the menu item is not visible',
         });

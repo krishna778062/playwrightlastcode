@@ -23,7 +23,7 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 test.describe(
-  `Page Creation by Application Manager`,
+  `page Creation by Application Manager`,
   {
     tag: [ContentTestSuite.PAGE_APP_MANAGER, ContentSuiteTags.PAGE_CREATION],
   },
@@ -83,7 +83,7 @@ test.describe(
     });
 
     test(
-      'Verify admin is able to publish a new page created with cover image from home page',
+      'verify admin is able to publish a new page created with cover image from home page',
       {
         tag: [
           TestPriority.P0,
@@ -137,7 +137,7 @@ test.describe(
       }
     );
     test(
-      'Verify admin is able to publish a new page created with cover image from site dashboard',
+      'verify admin is able to publish a new page created with cover image from site dashboard',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE, ContentSuiteTags.PAGE_CREATION],
       },
@@ -198,7 +198,7 @@ test.describe(
     );
 
     test(
-      'Verify feed and comment should not be displayed when feed and comments are disabled app level',
+      'verify feed and comment should not be displayed when feed and comments are disabled app level',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VERIFY_COMMENTS_AND_FEEDS],
       },

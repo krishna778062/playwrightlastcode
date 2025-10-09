@@ -13,7 +13,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 
 test.describe(
-  `Album Creation by Application Manager`,
+  `album Creation by Application Manager`,
   {
     tag: [ContentTestSuite.ALBUM_APP_MANAGER, ContentSuiteTags.ALBUM_CREATION],
   },
@@ -51,7 +51,7 @@ test.describe(
     });
 
     test(
-      'Create Album with all the fields populated from home page',
+      'create Album with all the fields populated from home page',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
       },

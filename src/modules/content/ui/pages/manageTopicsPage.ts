@@ -1,4 +1,4 @@
-import { Locator, Page, Response, test } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/ui/pages/basePage';
 import { BaseActionUtil } from '@core/utils/baseActionUtil';

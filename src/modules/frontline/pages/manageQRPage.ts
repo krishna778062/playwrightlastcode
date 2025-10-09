@@ -962,7 +962,7 @@ export class ManageQRPage extends BasePage {
         // Decode QR code using jsQR
         const qr = jsQR(new Uint8ClampedArray(data), width, height);
 
-        if (!qr || !qr.data) {
+        if (!qr?.data) {
           throw new Error('No QR code found in the image');
         }
 

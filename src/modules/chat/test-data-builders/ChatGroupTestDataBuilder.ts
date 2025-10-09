@@ -1,7 +1,6 @@
 import { APIRequestContext, test } from '@playwright/test';
 
 import { CreateChatGroupParams } from '@chat/types/chat.type';
-import { Roles } from '@core/constants/roles';
 import { UserTestDataBuilder } from '@core/test-data-builders/UserTestDataBuilder';
 import { User } from '@core/types/user.type';
 

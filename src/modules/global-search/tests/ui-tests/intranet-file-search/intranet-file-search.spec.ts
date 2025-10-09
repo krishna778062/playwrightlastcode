@@ -10,7 +10,7 @@ import { ResultListingComponent } from '@/src/modules/global-search/ui/component
 
 for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
   test.describe(
-    'Global Search - Intranet File Search functionality',
+    'global Search - Intranet File Search functionality',
     {
       tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.FILE_SEARCH],
     },

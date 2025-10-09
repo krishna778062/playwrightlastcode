@@ -12,7 +12,7 @@ import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { CONNECTOR_IDS, REDIRECT_URLS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 test.describe(
-  'UKG WFM App Tiles Integration',
+  'uKG WFM App Tiles Integration',
   {
     tag: [IntegrationsSuiteTags.UKG_WFM, IntegrationsSuiteTags.ABSOLUTE],
   },

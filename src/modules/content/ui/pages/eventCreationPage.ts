@@ -4,7 +4,6 @@ import { EventCreationResponse } from '@content/apis/types/eventCreationResponse
 import { AttachementUploaderComponent } from '@content/ui/components/attachementUploader';
 import { ImageCropperComponent } from '@content/ui/components/imageCropper';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
-import { FileUtil } from '@core/utils/fileUtil';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
 

@@ -8,7 +8,7 @@ import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fi
 
 for (const fileType of testData.fileTypes) {
   test.describe(
-    'Global Search - Video File Search functionality',
+    'global Search - Video File Search functionality',
     {
       tag: [
         GlobalSearchSuiteTags.GLOBAL_SEARCH,

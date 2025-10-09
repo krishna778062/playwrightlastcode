@@ -4,7 +4,6 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { CategoryModalComponent } from '@/src/modules/platforms/ui/components/categoryModal';
 import { CsvAudienceModule } from '@/src/modules/platforms/ui/components/csvAudienceModule';
 
@@ -398,7 +397,7 @@ export class AudiencePage extends BasePage {
 
   // Remove description for a category
   async removeDescriptionForAudienceCategory(categoryName: string, removedDescriptionText: string): Promise<void> {
-    await test.step(`Remove description for "${categoryName}" and verify absence in list`, async () => {
+    await test.step(`Remove description "${removedDescriptionText}" for "${categoryName}" and verify absence in list`, async () => {
       await this.openEditCategoryModal(categoryName);
 
       // Remove description in Edit modal

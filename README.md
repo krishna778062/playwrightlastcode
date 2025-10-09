@@ -998,6 +998,114 @@ If you prefer to create modules manually:
 - [ts-node](https://www.npmjs.com/package/ts-node) for direct TypeScript execution
 - [cross-env](https://www.npmjs.com/package/cross-env) for cross-platform environment variables
 
+## Logging
+
+The framework includes a structured logging system that replaces `console.log` statements with better debugging capabilities.
+
+### Quick Start
+
+```typescript
+import { log } from '@core/utils';
+
+// Simple usage - file path automatically shows which module
+log.info('User login successful', { userId: '12345' });
+log.debug('Processing data', { dataSize: data.length });
+log.warn('Configuration missing', { configFile: 'app.json' });
+log.error('API request failed', error, { endpoint: '/api/users' });
+```
+
+### Log Levels
+
+- **`debug`**: Detailed debugging info (variable values, step-by-step execution)
+- **`info`**: General information (user actions, successful operations)
+- **`warn`**: Potential issues (missing optional config, deprecated features)
+- **`error`**: Error events (API failures, validation errors)
+
+### Output Format
+
+**Console Output:**
+
+```
+14:32:15 ℹ️ loginHelper.ts:45 User login successful {"userId":"12345"}
+14:32:16 ❌ apiClient.ts:78 API request failed {"endpoint":"/api/users","status":500}
+```
+
+**File Output (CI/Test environments):**
+
+```
+2024-01-15 14:32:15 ℹ️ loginHelper.ts:45 User login successful {"userId":"12345"}
+2024-01-15 14:32:16 ❌ apiClient.ts:78 API request failed {"endpoint":"/api/users","status":500}
+```
+
+### Migration from console.log
+
+```typescript
+// Before
+console.log('Test started');
+console.error('Test failed:', error);
+
+// After - Super simple!
+import { log } from '@core/utils';
+
+log.info('Test started');
+log.error('Test failed', error);
+```
+
+### Log Level Control
+
+Control log verbosity using environment variables or programmatically:
+
+**Environment Variables:**
+
+```bash
+# Set log level via environment variable
+LOG_LEVEL=debug npm test
+LOG_LEVEL=warn npm run test:chat
+LOG_LEVEL=silent npm run test:content
+```
+
+**Programmatic Control:**
+
+```typescript
+import { logControl } from '@core/utils';
+
+// Set log level programmatically
+logControl.setLevel('warn');
+logControl.debug(); // Set to debug
+logControl.silent(); // Set to silent
+
+// Check current level
+console.log('Current log level:', logControl.getLevel());
+
+// Access available levels
+console.log('Available levels:', logControl.levels);
+```
+
+**Available Log Levels:**
+
+- **`silent`**: No logs at all
+- **`error`**: Only error messages
+- **`warn`**: Warnings and errors
+- **`info`**: Info, warnings, and errors (default for tests)
+- **`debug`**: All logs (most verbose, default for development)
+
+**Automatic Environment Detection:**
+
+- **Development**: `debug` (most verbose)
+- **Test Environment**: `info` (moderate verbosity)
+- **CI**: `warn` (less verbose)
+- **Production**: `error` (minimal logs)
+
+### Benefits
+
+- ✅ **File name & line numbers** for easy debugging
+- ✅ **Automatic module detection** via file path (`src/modules/chat/...`)
+- ✅ **Structured data** with context information
+- ✅ **Environment-aware** (console for dev, files for CI)
+- ✅ **Configurable verbosity** via environment variables
+- ✅ **Super simple API** - just import `log` and use it
+- ✅ **Single log file** - all logs in `logs/app.log` for easy debugging
+
 ## Best Practices for Writing Tests
 
 ### 1. Choose the Right Fixture Type

@@ -11,7 +11,7 @@ import { SiteListComponent } from '@/src/modules/global-search/ui/components/sit
 
 for (const testData of SITE_SEARCH_TEST_DATA) {
   test.describe(
-    `Global Search - Site Search`,
+    `global Search - Site Search`,
     {
       tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.SITE_SEARCH],
     },

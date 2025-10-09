@@ -8,7 +8,7 @@ import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicatio
 import { ManageApplicationPage } from '@/src/modules/content/ui/pages/manageApplicationPage';
 import { PrivilegesScreenPage } from '@/src/modules/content/ui/pages/privilegesScreenPage';
 
-test.describe('Protected Authors', () => {
+test.describe('protected Authors', () => {
   let applicationScreen: ApplicationScreenPage;
   let manageApplicationPage: ManageApplicationPage;
   let privilegesScreenPage: PrivilegesScreenPage;
@@ -22,7 +22,7 @@ test.describe('Protected Authors', () => {
   test.afterEach(async ({}) => {});
 
   test(
-    'Verify As an application manager, I should be able to add the users to protected authors - authors list)',
+    'verify As an application manager, I should be able to add the users to protected authors - authors list)',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.ADD_USERS_TO_AUTHOR],
     },
@@ -53,7 +53,7 @@ test.describe('Protected Authors', () => {
   );
 
   test(
-    'Verify As an application manager, I should be able to add the users to protected authors - allow list)',
+    'verify As an application manager, I should be able to add the users to protected authors - allow list)',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.ADD_USERS_TO_ALLOWLIST],
     },

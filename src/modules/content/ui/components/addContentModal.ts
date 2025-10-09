@@ -245,13 +245,13 @@ export class AddContentModalComponent extends BaseComponent {
     // If from site page, do nothing (already on specific site)
     switch (contentOption) {
       case ContentType.PAGE:
-        this.clickOnElement(this.pageContentTypeLabel);
+        await this.clickOnElement(this.pageContentTypeLabel);
         break;
       case ContentType.ALBUM:
-        this.clickOnElement(this.albumContentTypeLabel);
+        await this.clickOnElement(this.albumContentTypeLabel);
         break;
       case ContentType.EVENT:
-        this.clickOnElement(this.eventContentTypeLabel);
+        await this.clickOnElement(this.eventContentTypeLabel);
         break;
       default:
         throw new Error(`Invalid content type: ${contentOption}`);

@@ -21,7 +21,7 @@ test.describe(
     });
 
     test(
-      'Verify if end user does not select any option from bulk options apply button should be disabled',
+      'verify if end user does not select any option from bulk options apply button should be disabled',
       {
         tag: [
           TestPriority.P0,

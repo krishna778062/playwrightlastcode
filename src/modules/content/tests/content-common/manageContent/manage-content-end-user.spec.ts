@@ -22,7 +22,7 @@ test.describe(
     });
 
     test(
-      'Verify "Nothing to show here" should come when user searches non-existing content and on clicking x all results should come based on relevant filters - End User',
+      'verify "Nothing to show here" should come when user searches non-existing content and on clicking x all results should come based on relevant filters - End User',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },

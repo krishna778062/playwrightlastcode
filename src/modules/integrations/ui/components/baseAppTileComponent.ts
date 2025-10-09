@@ -177,7 +177,7 @@ export class BaseAppTileComponent extends BaseComponent {
       const itemHeadings = tile.getByRole('heading', { level: 3 });
       await expect(itemHeadings.first()).toBeVisible({ timeout: 10_000 });
       const headings = (await itemHeadings.allTextContents()).map(t => t.trim()).filter(Boolean);
-      await expect(headings).toEqual([...headings].sort((a, b) => a.localeCompare(b)));
+      expect(headings).toEqual([...headings].sort((a, b) => a.localeCompare(b)));
     });
   }
 

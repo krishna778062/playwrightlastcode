@@ -7,7 +7,7 @@ import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import CONSTANT_DATA from '@/src/modules/chat/constants/constantData';
 
-test.describe('Verifying invalid link msg in the editor', { tag: [TestPriority.P2] }, () => {
+test.describe('verifying invalid link msg in the editor', { tag: [TestPriority.P2] }, () => {
   test(`(invalid link msg visible in the editor)`, async ({ appManagerFixture }) => {
     const chatAppPage = await appManagerFixture.navigationHelper.navigateToChatPageViaTopNavBar();
     await chatAppPage.actions.openDirectMessageWithUser(CONSTANT_DATA.USER_NAME_1);
@@ -51,7 +51,7 @@ test.describe('Verifying invalid link msg in the editor', { tag: [TestPriority.P
   });
 });
 
-test.describe('Verifying empty text msg in the editor', { tag: [TestPriority.P2] }, () => {
+test.describe('verifying empty text msg in the editor', { tag: [TestPriority.P2] }, () => {
   test(`(Empty text box validation message visible in the editor)`, async ({ appManagerFixture }) => {
     const chatAppPage = await appManagerFixture.navigationHelper.navigateToChatPageViaTopNavBar();
     await chatAppPage.actions.openDirectMessageWithUser(CONSTANT_DATA.USER_NAME_1);
@@ -67,7 +67,7 @@ test.describe('Verifying empty text msg in the editor', { tag: [TestPriority.P2]
   });
 });
 
-test.describe('Verifying valid link insertion in the editor', { tag: [TestPriority.P2] }, () => {
+test.describe('verifying valid link insertion in the editor', { tag: [TestPriority.P2] }, () => {
   test(`(valid link with proper URL format inserted in the editor)`, async ({ appManagerFixture }) => {
     const chatAppPage = await appManagerFixture.navigationHelper.navigateToChatPageViaTopNavBar();
     await chatAppPage.actions.openDirectMessageWithUser(CONSTANT_DATA.USER_NAME_1);
