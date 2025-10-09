@@ -93,7 +93,7 @@ async function getPrerequisiteData(
 
   // Create site only once, even if both createSite and createPage are true
   if (testData.feedType === 'Site Feed') {
-    const siteResult = await helpers.siteManagementHelper.getSiteWithAccessType({ accessType: 'public' });
+    const siteResult = await helpers.siteManagementHelper.getSiteByAccessType({ accessType: 'public' });
     resources.siteId = siteResult;
   }
 

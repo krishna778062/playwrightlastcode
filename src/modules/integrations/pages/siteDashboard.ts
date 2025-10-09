@@ -222,4 +222,57 @@ export class SiteDashboard {
   async verifyDocuSignContentStructure(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyDocuSignTileContentStructure(tileTitle);
   }
+
+  /**
+   * Complete workflow to add an app tile
+   */
+  async addTileWithUrlField(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    fieldName: string,
+    url: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.appTileComponent.clickEditDashboard();
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
+      await this.appTileComponent.selectAppTile(appName);
+      await this.appTileComponent.selectTile(tileName);
+      await this.appTileComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
+      await this.appTileComponent.setTileTitle(tileTitle);
+      await this.appTileComponent.inputFieldByName(fieldName, url);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
+
+  /**
+   * Verify UKG Pro tile metadata including pay periods, received dates, and links
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyUKGProTileMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyUKGProTileMetadata(tileTitle);
+  }
+  async verifyScheduleTileMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyScheduleTileMetadata(tileTitle);
+  }
+  async clickShowAllAndVerifyRedirect(tileTitle: string, expectedUrl: string): Promise<void> {
+    await this.tileOperationsComponent.clickShowAllAndVerifyRedirect(tileTitle, expectedUrl);
+  }
+
+  /**
+   * Verify Monday.com tile content structure with task records
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyMondayDotComContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyMondayDotComTileContentStructure(tileTitle);
+  }
+  /**
+   * Verify DocuSign tile content structure with task records
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyDoceboContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyDoceboTileContentStructure(tileTitle);
+  }
 }

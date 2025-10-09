@@ -6,4 +6,5 @@ export enum Modules {
   INTEGRATIONS = 'integrations',
   FRONTLINE = 'frontline',
   ALERT_NOTIFICATION = 'alert-notification',
+  DATA_ENGINEERING = 'data-engineering',
 }

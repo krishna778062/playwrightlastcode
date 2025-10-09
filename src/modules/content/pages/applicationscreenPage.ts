@@ -17,6 +17,7 @@ import { ApplicationSettingsComponent } from '@/src/modules/content/components/a
 
 export interface IApplicationScreenPageActions {
   clickOnApplication: () => Promise<void>;
+  clickOnTopics: () => Promise<void>;
 }
 
 export interface IFeaturedSiteAssertions {}
@@ -31,6 +32,7 @@ export class ApplicationScreenPage extends BasePage implements IApplicationScree
     this.applicationSettingsComponent = new ApplicationSettingsComponent(page);
     this.actions = {
       clickOnApplication: this.clickOnApplication.bind(this),
+      clickOnTopics: this.clickOnTopics.bind(this),
     };
   }
 
@@ -45,6 +47,12 @@ export class ApplicationScreenPage extends BasePage implements IApplicationScree
   async clickOnApplication(): Promise<void> {
     await test.step('Clicking on application', async () => {
       await this.clickOnElement(this.applicationSettingsComponent.clickOnApplication);
+    });
+  }
+
+  async clickOnTopics(): Promise<void> {
+    await test.step('Clicking on topics', async () => {
+      await this.clickOnElement(this.applicationSettingsComponent.clickOnTopics);
     });
   }
 }

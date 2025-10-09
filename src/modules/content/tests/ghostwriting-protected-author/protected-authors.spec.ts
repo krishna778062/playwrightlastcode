@@ -28,6 +28,7 @@ test.describe('Protected Authors', () => {
   });
 
   test.afterEach(async ({}) => {});
+
   test(
     'Verify As an application manager, I should be able to add the users to protected authors - authors list)',
     {
@@ -53,6 +54,35 @@ test.describe('Protected Authors', () => {
       await privilegesScreenPage.actions.clickOnSave();
       await privilegesScreenPage.assertions.verifyTheChangesConfirmationToastMessageIsVisible();
       await privilegesScreenPage.reloadScreen();
+    }
+  );
+
+  test(
+    'Verify As an application manager, I should be able to add the users to protected authors - allow list)',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.ADD_USERS_TO_ALLOWLIST],
+    },
+    async ({ page }) => {
+      tagTest(test.info(), {
+        description:
+          'Verify As an application manager, I should be able to add the users to protected authors - allow list',
+        zephyrTestId: 'CONT-32769',
+        storyId: 'CONT-32769',
+      });
+      const loggedInUserName = await baseActionUtil.getCurrentLoggedInUserName('Get current logged-in user name');
+      await homePage.actions.navigateToApplication();
+      await applicationScreen.actions.clickOnApplication();
+      await manageApplicationPage.actions.clickOnPrivileges();
+      await privilegesScreenPage.assertions.verifyProtectedAuthorsAuthorsFieldBarIsVisible();
+      await privilegesScreenPage.assertions.verifyProtectedAuthorsAllowlistFieldBarIsVisible();
+      await privilegesScreenPage.actions.fillProtectedAuthorsAllowlistFieldBarWithLoggedInUser(loggedInUserName);
+      await privilegesScreenPage.actions.clickOnSave();
+      await privilegesScreenPage.assertions.verifyTheChangesConfirmationToastMessageIsVisible();
+      await privilegesScreenPage.actions.clickOnCrossAllowlistUser();
+      await privilegesScreenPage.actions.clickOnSave();
+      await privilegesScreenPage.assertions.verifyTheChangesConfirmationToastMessageIsVisible();
+      await privilegesScreenPage.reloadScreen();
+      await privilegesScreenPage.verifyAddedUserGotRemovedFromList(loggedInUserName);
     }
   );
 });
