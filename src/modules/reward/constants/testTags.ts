@@ -19,6 +19,7 @@ export enum REWARD_FEATURE_TAGS {
   CREATE_RECOGNITION_WITH_POINTS = '@create-recognition-with-points',
   RECOGNITION_NOTIFICATION_CHECK = '@reward-point-notification-check',
   RECOGNITION_POINT_LABELING = '@reward-point-element-in-post',
+  RECOGNITION_EDIT_POINTS = '@edit-points',
 
   // Reward Store Related Tags
   REWARD_OPTIONS = '@reward-options',

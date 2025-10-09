@@ -372,7 +372,7 @@ export class RecognitionHubPage extends BasePage {
   }
 
   /**
-   * Setup the multiple gifting options
+   * Set up the multiple gifting options
    */
   async setupTheMultipleGiftingOptions(): Promise<number[]> {
     const input_values = [1, 2, 3, 4, 5, 6, 7];
@@ -383,8 +383,14 @@ export class RecognitionHubPage extends BasePage {
     await rewardGiftingOptions.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/options');
 
     const existingValue = await rewardGiftingOptions.getTheExistingValueInGiftingOptions();
-    const rewardOption =
-      Math.floor(Math.random() * (Number(availablePoints?.replace(',', '')) - 7 - Number(existingValue))) + 7;
+    let rewardOption: number;
+    do {
+      rewardOption =
+        Math.floor(Math.random() * (Number(availablePoints?.replace(',', '')) - 7 - Number(existingValue))) + 7;
+    } while (
+      input_values.includes(Number(rewardOption)) ||
+      String(existingValue).split(',').includes(String(rewardOption))
+    );
     input_values.push(Number(rewardOption));
 
     await rewardGiftingOptions.enterTheAmountAndValidateNoError(String(input_values));

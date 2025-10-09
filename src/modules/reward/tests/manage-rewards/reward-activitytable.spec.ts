@@ -13,13 +13,13 @@ import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constant
 import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
 import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recognition-hub-page';
 
-test.describe.only('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
+test.describe('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test.beforeEach(async ({ appManagerPage }) => {
     const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
     await manageRewardsOverviewPage.enableTheRewardsAndPeerGiftingIfDisabled();
   });
 
-  test.only(
+  test(
     '[RC-3004] Validate Rewards Activity table if there is no activity',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
