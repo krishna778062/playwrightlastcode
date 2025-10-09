@@ -7,11 +7,11 @@ import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class UkgSyncComponents extends BaseComponent {
   protected userSyncingDropdown(option?: string): Locator {
-    return this.page.locator(`select[id="${option}"]`);
+    return this.page.locator(`select[id="${option}"]`).locator('..');
   }
 
   protected scheduledSourcesCheckbox(name: string): Locator {
-    return this.page.getByText(`${name}`).locator('xpath=ancestor::div[2]//input');
+    return this.page.getByText(`${name}`).locator('..').locator('..').getByRole('checkbox').first();
   }
 
   protected inputField(source: string, field: string): Locator {
@@ -39,12 +39,8 @@ export class UkgSyncComponents extends BaseComponent {
   }
 
   async verifyScheduledSourcesCheckBox(name: string): Promise<void> {
-    const actual: string = (await this.scheduledSourcesCheckbox(name).getAttribute('value')) ?? '';
-    if (actual.includes('false')) {
-      await this.scheduledSourcesCheckbox(name).click();
-    } else {
-      console.log('Already checked');
-    }
+    const checkbox = this.scheduledSourcesCheckbox(name);
+    await checkbox.click();
   }
 
   async clearInputField(source: string, username: string, password: string, url: string, key: string): Promise<void> {
@@ -77,7 +73,7 @@ export class UkgSyncComponents extends BaseComponent {
 
   async verifyVisibility(name: string): Promise<void> {
     await this.userSyncingDropdown(SYNCING.SYNC_DROPDOWN).click();
-    const optionElement = await this.syncDropdown(name);
+    const optionElement = (await this.syncDropdown(name)).nth(1);
     expect(optionElement, `${name} is visible`).not.toBeVisible();
   }
 
@@ -106,7 +102,7 @@ export class UkgSyncComponents extends BaseComponent {
   }
 
   async selectSyncOptions(name: string): Promise<void> {
-    await this.optionValue(name).click();
+    await this.optionText(name).nth(1).click();
   }
 
   async verifyDetailsCheckBoxVisibility(name: string): Promise<void> {

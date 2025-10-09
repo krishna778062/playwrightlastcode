@@ -23,12 +23,12 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ page, homeDashboard }) => {
-        void homeDashboard;
+      async ({ appManagerPage }) => {
+        void appManagerPage;
         tagTest(test.info(), {
           zephyrTestId: 'INT-7614',
         });
-        ukgSyncPage = new UkgSyncPage(page);
+        ukgSyncPage = new UkgSyncPage(appManagerPage);
         await ukgSyncPage.navigateToPeopleDataPage();
         await ukgSyncPage.verifyScheduledSourcesCheckBox(SYNCING.UKG_PRO);
         await ukgSyncPage.clearInputField(
@@ -54,12 +54,12 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ page, homeDashboard }) => {
-        void homeDashboard;
+      async ({ appManagerPage }) => {
+        void appManagerPage;
         tagTest(test.info(), {
           zephyrTestId: 'INT-4060',
         });
-        ukgSyncPage = new UkgSyncPage(page);
+        ukgSyncPage = new UkgSyncPage(appManagerPage);
         await ukgSyncPage.navigateToPeopleDataPage();
         await ukgSyncPage.verifyScheduledSourcesCheckBox(SYNCING.UKG_PRO);
         await ukgSyncPage.addUkgConnectionDetails(
@@ -70,7 +70,7 @@ test.describe(
           SYNCING.KEY
         );
         await ukgSyncPage.clickOnButton(UI_ACTIONS.SAVE);
-        await ukgSyncPage.verifyToastMessage(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
+        await ukgSyncPage.verifyToastMessageIsVisibleWithText(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
         await ukgSyncPage.navigateToUserSyncingProvisioningPage();
         await ukgSyncPage.selectDropdown(SYNCING.SYNC_DROPDOWN);
         await ukgSyncPage.verifyVisibility(SYNCING.UKG_PRO);
@@ -85,12 +85,12 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ page, homeDashboard }) => {
-        void homeDashboard;
+      async ({ appManagerPage }) => {
+        void appManagerPage;
         tagTest(test.info(), {
           zephyrTestId: 'INT-15305',
         });
-        ukgSyncPage = new UkgSyncPage(page);
+        ukgSyncPage = new UkgSyncPage(appManagerPage);
         await ukgSyncPage.navigateToPeopleDataPage();
         await ukgSyncPage.verifyScheduledSourcesCheckBox(SYNCING.UKG_PRO);
         await ukgSyncPage.addUkgConnectionDetails(
@@ -101,11 +101,11 @@ test.describe(
           SYNCING.KEY
         );
         await ukgSyncPage.clickOnButton(UI_ACTIONS.SAVE);
-        await ukgSyncPage.verifyToastMessage(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
+        await ukgSyncPage.verifyToastMessageIsVisibleWithText(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
         await ukgSyncPage.navigateToUserSyncingProvisioningPage();
         await ukgSyncPage.selectDropdown(SYNCING.SYNC_DROPDOWN);
         await ukgSyncPage.verifyVisibility(SYNCING.UKG_PRO_SYNCING);
-        await ukgSyncPage.selectSyncOptions(SYNCING.UKG_PRO_SYNCING);
+        await ukgSyncPage.selectSyncOptions(SYNCING.UKG_PRO);
         await ukgSyncPage.verifyDetailsCheckBoxVisibility(SYNCING.PAY_CURRENCY);
         await ukgSyncPage.verifyDetailsCheckBoxVisibility(SYNCING.FIRST_NAME);
         await ukgSyncPage.selectDetailsSyncCheckBox(SYNCING.FIRST_NAME, SYNCING.PREFERRED_NAME);
