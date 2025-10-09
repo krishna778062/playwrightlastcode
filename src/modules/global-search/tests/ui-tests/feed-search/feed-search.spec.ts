@@ -124,7 +124,7 @@ test.describe(
         const feedResultItem =
           await globalSearchResultPage.getFeedResultItemExactlyMatchingTheSearchTerm(currentFeedName);
         const feedListComponent = new FeedListComponent(feedResultItem.page, feedResultItem.rootLocator);
-        await feedListComponent.verifyNavigationToFeedLink(publicSite.siteId, publicSite.siteName);
+        await feedListComponent.verifyNavigationWithSiteLink(publicSite.siteId, publicSite.siteName);
       }
     );
   }
