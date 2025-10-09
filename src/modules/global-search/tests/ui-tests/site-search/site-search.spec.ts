@@ -20,7 +20,7 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
       let newSiteName: string;
       let categoryObj: { categoryId: string; name: string };
 
-      test.beforeAll(
+      test.beforeEach(
         `Setting up the test environment for site search by creating new site of type ${testData.siteType}`,
         async ({ publicSite, siteManagementHelper }) => {
           if (testData.siteType === SITE_TYPES.PUBLIC) {

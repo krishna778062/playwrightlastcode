@@ -22,7 +22,7 @@ test.describe(
     let pageName: string;
     let authorName: string;
 
-    test.beforeAll(
+    test.beforeEach(
       `Setting up the test environment for page search by creating page content in common public site`,
       async ({ appManagerFixture, publicSite }) => {
         const pageDetails = await appManagerFixture.contentManagementHelper.createPage({
@@ -45,7 +45,7 @@ test.describe(
       }
     );
 
-    test.afterAll(
+    test.afterEach(
       `Cleaning up the test environment by deleting the created page content`,
       async ({ appManagerFixture }) => {
         if (contentId) {

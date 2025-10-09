@@ -22,7 +22,7 @@ test.describe(
     let eventName: string;
     let authorName: string;
 
-    test.beforeAll(
+    test.beforeEach(
       `Setting up the test environment for event search by creating event content in common public site`,
       async ({ appManagerFixture, publicSite }) => {
         const eventDetails = await appManagerFixture.contentManagementHelper.createEvent({
@@ -44,7 +44,7 @@ test.describe(
       }
     );
 
-    test.afterAll(
+    test.afterEach(
       `Cleaning up the test environment by deleting the created event content`,
       async ({ appManagerFixture }) => {
         if (contentId) {

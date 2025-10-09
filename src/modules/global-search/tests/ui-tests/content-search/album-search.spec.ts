@@ -21,7 +21,7 @@ test.describe(
     let albumName: string;
     let authorName: string;
 
-    test.beforeAll(
+    test.beforeEach(
       `Setting up the test environment for album search by creating site and album content`,
       async ({ appManagerFixture, publicSite }) => {
         const albumDetails = await appManagerFixture.contentManagementHelper.createAlbum({
@@ -41,7 +41,7 @@ test.describe(
       }
     );
 
-    test.afterAll(
+    test.afterEach(
       `Cleaning up the test environment by deleting the created album content`,
       async ({ appManagerFixture }) => {
         if (contentId) {
