@@ -27,6 +27,7 @@ export enum ContentFeatureTags {
   HOME_FEED = '@home-feed',
   MANAGE_TOPICS = '@manage-topics',
   EDIT_TOPICS = '@edit-topics',
+  SEARCH_TOPICS = '@search-topics',
   CONT_38912 = '@cont-38912',
   MANAGE_SITE = '@manage-site',
   MY_CONTENT_FILTER = '@my-content-filter',

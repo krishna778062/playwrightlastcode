@@ -255,8 +255,8 @@ test.describe(
           console.log('Verifying home feed defaults are applied for standard user');
           await standardUserFeedPage.assertions.verifyPostsIFollow();
           await standardUserFeedPage.assertions.verifySortByRecentActivity();
-          await standardUserFeedPage.actions.selectPostsToMe();
-          await standardUserFeedPage.actions.selectPostDate();
+          await standardUserFeedPage.actions.clickOnShowOption('toMe');
+          await standardUserFeedPage.actions.clickOnSortByOption('createdAt');
         });
       }
     );

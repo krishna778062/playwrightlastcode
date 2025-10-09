@@ -46,4 +46,28 @@ test.describe('Edit Topic', () => {
       await manageTopicsPage.assertions.verifyErroToastMessage();
     }
   );
+  test(
+    'To verify search topics',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.SEARCH_TOPICS],
+    },
+    async ({ page }) => {
+      tagTest(test.info(), {
+        description: 'To verify search topics',
+        zephyrTestId: 'CONT-21059',
+        storyId: 'CONT-21059',
+      });
+      await homePage.actions.navigateToApplication();
+      await applicationScreenPage.actions.clickOnTopics();
+      await manageTopicsPage.actions.clickOnAddTopic();
+      const topicName = faker.lorem.words(2);
+      await manageTopicsPage.actions.fillTopicName(topicName);
+      await manageTopicsPage.actions.clickOnAddButton();
+      await manageTopicsPage.assertions.verifyToastMessage('Created topic successfully');
+      await manageTopicsPage.actions.searchingTopicInSearchBar(topicName);
+      await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(topicName);
+      await manageTopicsPage.actions.searchingTopicInSearchBar(`${topicName}--__`);
+      await manageTopicsPage.assertions.verifyingNothingToShowHereText();
+    }
+  );
 });
