@@ -1,5 +1,3 @@
-import { getEnvVar } from '@core/utils/getEnvConfig';
-
 export interface OutlookCalendarEvent {
   id?: string;
   subject?: string;
@@ -30,80 +28,44 @@ export interface OutlookCalendarEvent {
   }>;
 }
 
-export interface OutlookCalendarConfig {
-  clientId: string;
-  clientSecret: string;
-  refreshToken: string;
-}
-
 export class OutlookCalendarHelper {
-  private static readonly MICROSOFT_TOKEN_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/token';
   private static readonly GRAPH_API_BASE = 'https://graph.microsoft.com/v1.0';
 
-  private config: OutlookCalendarConfig;
   private accessToken: string | null = null;
   private tokenExpiryTime: number = 0;
-
-  constructor(userType: 'APP_MANAGER' | 'END_USER' = 'APP_MANAGER') {
-    const prefix = userType === 'APP_MANAGER' ? 'OUTLOOK' : 'END_USER_OUTLOOK';
-
-    this.config = {
-      clientId: getEnvVar(`${prefix}_CLIENT_ID`, true)!,
-      clientSecret: getEnvVar(`${prefix}_CLIENT_SECRET`, true)!,
-      refreshToken: getEnvVar(`${prefix}_REFRESH_TOKEN`, true)!,
-    };
-
-    // Debug logging to verify tokens are loaded correctly
-    console.log(`🔧 Outlook Calendar Config for ${userType}:`);
-    console.log(`   Client ID: ${this.config.clientId}`);
-    console.log(`   Client Secret: ${this.config.clientSecret?.substring(0, 10)}...`);
-    console.log(`   Refresh Token: ${this.config.refreshToken?.substring(0, 50)}...`);
-  }
 
   async getAccessToken(): Promise<string> {
     // Return cached token if still valid
     if (this.accessToken && Date.now() < this.tokenExpiryTime) {
-      console.log(`🔑 Using cached Outlook Calendar access token`);
       return this.accessToken;
     }
+    const res = await fetch(
+      'https://login.microsoftonline.com/5453c757-2f8c-44c5-b46d-0ba5595986ca/oauth2/v2.0/token',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: 'eefb9abf-901e-458c-ba08-33c1f4851e03',
+          grant_type: 'refresh_token',
+          refresh_token:
+            '1.AXwAV8dTVIwvxUS0bQulWVmGyr-a--4ekIxFuggzwfSFHgPMADl8AA.BQABAwEAAAADAOz_BQD0_1GOnFxGNJWSGL10oPq62pi675hUzAbLx0pPPRLAaZ63QGOq4-qXE3GMCWlb1eyvAKGGXFqIAxEoNbFZ9yWXkLBI_acAjPamjh6yPKfIYdFalpgboo75PbHv4BgAx28nyRRPoZWW7pJ6MjCION1tfndBlnYz-ylFWPMpE_vy3c8gIm4z8v16DUXUpAU6T-kvrUnwMw89eJKPBJbAu_hwdhlvAvJy6utWdeK6xg1TBj1c5__maIBz0xkB1wjyG6_mNlY7aM0ASZPZhjG5cv9lrbcr6aDpm_pXZmx2nT6G9WbOxeUDxsLx1h4Pd62qn5LDwflfZbJzkMeiwsjtRkqJ0W-A-0psIZHKX47hvQ5nx90bW7UkuRvlXzZ4X_QlPMDTuYr0TiG21QuBCm1nixiLqBBJbZhd84kGNJJRvPLKMU7DpKIko7dYAP1L4l1ocu6Dilvso7vvg95maHpAsl50tGm2-7kQ1xs08aI1mjzsLCMXILeiggI_D_uNvlt_fenESqtUjL6kq3eMnp9OC6cZQvlzQlO5A60JTIcPgQnG6oXxk_A-WWtUVDo-zSljCXjkEr0zzCodBONChqmK2sR4pEfJ1PZuN8Kmc_-w76jzTOI_nxSC4XJBuA7O0kbMpdrl56xcnt1Yk_QJvnUU8f7bq56GZ7a2Mc-5Zw4PEIbLL8fnPh8SkpAp_D-DT7VbLXDCnyCtHw270zZPSNQnU-uIYjFBJpQxsGsrTRj7tLbhfi-eFBcxWq5qp7PRyvqdZTtMi6siK4nhtm_QsMKbUEqBsEjsv-HSjPIyGH5roQRNXNWcQRqRzPhhYfNq2VZTpts5WKftoKwD2j0-hSOCUIRV6QX4fNRimWmrUJXb2VBGNBwdJHUNnhLLAMeTLeteGhRakt3gCYff2ZxGloO_x7SoanS9l4HhPEunNCrWRvyp6iGjf5Fj8jcZAGH36hCtPHSN85CY72jdVpxaQ8VWHJHaMsIcXUbZzPGmnblBlVHTzHdlb_29pT8nFf_Dbot9L3NCbrzFzg1pUrrR-6uOPk_ZYIl1nVhTP0MEfHrZQGI1Co9sa2fmR6uGUiNebb1YsvmrA1BqiONKCJAVg9u_Rtx2XZ_l__lyPie4YJPbLRg8GZ1bSY2pq8EFySWtvqV41h4Afx4g0WWHMVPX2x3TwW5j9TYLk9GX1safu9yAGQOErZ9SfGXuK0bdvTo4Jg_zlG0OuVijxm7pFwMbws26jgBOcJmr2Qs-gw8MCV7T6gT74Wmtrrq-YlDwd9luvwFixG4jQUDRyoIeceh4mtF1pfMUzF4S1CmyTlaNwvnEr5NYls9OACeoIQRkFuC5UqWq2BJHYXxfnJ_Tp_Xz3vL-1g1XmPFQhroTRc3qsn8QVTJ0-iLRnOJhJ3d84SO-pdl_0mJqcWhDBsG_bYw',
+          client_secret: 'f.H8Q~rkwZvmh4a7F2YBLOIyVBrT3CMK4tKdpcL-',
+          redirect_uri: 'https://localhost:3000/auth/callback',
+          scope: 'offline_access Calendars.ReadWrite',
+        }),
+      }
+    );
 
-    // Check if we have a direct access token in environment (for testing)
-    const directAccessToken = getEnvVar('OUTLOOK_ACCESS_TOKEN', false);
-    if (directAccessToken) {
-      console.log(`🔑 Using direct Outlook Calendar access token from environment`);
-      this.accessToken = directAccessToken;
-      this.tokenExpiryTime = Date.now() + 3600 * 1000; // 1 hour from now
-      return this.accessToken;
-    }
+    const data: any = await res.json();
 
-    console.log(`🔄 Refreshing Outlook Calendar access token...`);
-    console.log(`🔧 Using Client ID: ${this.config.clientId}`);
-    console.log(`🔧 Using Refresh Token (first 50 chars): ${this.config.refreshToken.substring(0, 50)}...`);
-
-    const body = new URLSearchParams({
-      grant_type: 'refresh_token',
-      client_id: this.config.clientId,
-      client_secret: this.config.clientSecret,
-      refresh_token: this.config.refreshToken,
-      // Don't specify scope - use the original scope from the refresh token
-    });
-
-    const res = await fetch(OutlookCalendarHelper.MICROSOFT_TOKEN_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString(),
-    });
-
-    const data = await res.json();
     if (!res.ok) {
-      console.error(`❌ Outlook token exchange failed:`, data);
-      throw new Error(`Outlook token exchange failed: ${JSON.stringify(data)}`);
+      console.error(`❌ Outlook token refresh failed:`, data);
+      throw new Error(`Outlook token refresh failed: ${JSON.stringify(data)}`);
     }
 
-    // Cache the token with 1 minute buffer before expiry
+    // Cache the new token with 5 minute buffer before expiry
     this.accessToken = data.access_token;
-    this.tokenExpiryTime = Date.now() + data.expires_in * 1000 - 60000;
-    console.log(`✅ Successfully obtained Outlook Calendar access token`);
+    this.tokenExpiryTime = Date.now() + data.expires_in * 1000 - 300000; // 5 min buffer
 
     return this.accessToken!;
   }
@@ -140,9 +102,6 @@ export class OutlookCalendarHelper {
       $orderby: 'start/dateTime',
     });
 
-    console.log(`🔍 Searching Outlook Calendar for events containing: "${eventTitle}"`);
-
-    // Use /me/events for primary calendar or /me/calendars/{id}/events for specific calendar
     const endpoint =
       calendarId === 'primary'
         ? `/me/events?${params}`
@@ -151,18 +110,9 @@ export class OutlookCalendarHelper {
     const data = await this.makeRequest(endpoint);
     const events = data.value || [];
 
-    console.log(`📅 Found ${events.length} total events in calendar`);
     const matchingEvents = events.filter(
       (event: any) => event.subject && event.subject.includes(eventTitle)
     ) as OutlookCalendarEvent[];
-
-    console.log(`🎯 Found ${matchingEvents.length} events matching "${eventTitle}"`);
-    if (matchingEvents.length > 0) {
-      console.log(
-        `✅ Matching events:`,
-        matchingEvents.map(e => ({ id: e.id, subject: e.subject }))
-      );
-    }
 
     return matchingEvents;
   }
@@ -173,9 +123,6 @@ export class OutlookCalendarHelper {
     email: string,
     status: 'accepted' | 'declined' | 'tentativelyAccepted'
   ): Promise<any> {
-    // For Outlook, we need to respond to the event invitation
-    const responseEndpoint = `/me/events/${eventId}/accept`;
-
     let endpoint: string;
     const body: any = {};
 
@@ -298,163 +245,89 @@ export class OutlookCalendarHelper {
       attempts: maxAttempts,
     };
   }
-}
 
-export const createAppManagerOutlookCalendarHelper = () => new OutlookCalendarHelper('APP_MANAGER');
-export const createEndUserOutlookCalendarHelper = () => new OutlookCalendarHelper('END_USER');
-
-export const getOutlookAccessToken = async (): Promise<string> => {
-  const helper = createAppManagerOutlookCalendarHelper();
-  return helper.getAccessToken();
-};
-
-export const getEndUserOutlookAccessToken = async (): Promise<string> => {
-  const helper = createEndUserOutlookCalendarHelper();
-  return helper.getAccessToken();
-};
-
-export const findEventOnOutlookCalendar = async (
-  eventTitle: string,
-  accessToken: string,
-  calendarId = 'primary'
-): Promise<OutlookCalendarEvent[]> => {
-  const helper = createAppManagerOutlookCalendarHelper();
-  return helper.findEvents(eventTitle, calendarId);
-};
-
-export const rsvpOutlookEvent = async (
-  accessToken: string,
-  calendarId: string,
-  eventId: string,
-  email: string,
-  status: 'accepted' | 'declined' | 'tentativelyAccepted'
-) => {
-  // Note: accessToken parameter is ignored for backward compatibility
-  // The helper manages its own tokens
-  const helper = createAppManagerOutlookCalendarHelper();
-  return helper.rsvpToEvent(calendarId, eventId, email, status);
-};
-
-export const verifyOutlookEventSyncWithRetry = async (
-  eventTitle: string,
-  accessToken: string,
-  options: {
-    maxAttempts?: number;
-    retryDelayMs?: number;
-    calendarId?: string;
-    waitFunction?: (ms: number) => Promise<void>;
-    expectFound?: boolean;
-  } = {}
-): Promise<{ found: boolean; event?: OutlookCalendarEvent; attempts: number }> => {
-  // Note: accessToken parameter is ignored for backward compatibility
-  // The helper manages its own tokens
-  const helper = createAppManagerOutlookCalendarHelper();
-  return helper.verifyEventSyncWithRetry(eventTitle, options);
-};
-
-export const verifyEventDetailsInOutlookCalendar = async (
-  eventTitle: string,
-  expectedDetails: {
-    title?: string;
-    description?: string;
-    location?: string;
-  },
-  accessToken: string,
-  options: {
-    maxAttempts?: number;
-    retryDelayMs?: number;
-    calendarId?: string;
-    waitFunction?: (ms: number) => Promise<void>;
-  } = {}
-): Promise<{
-  found: boolean;
-  detailsMatched: boolean;
-  event?: OutlookCalendarEvent;
-  attempts: number;
-  mismatches?: string[];
-}> => {
-  // Note: accessToken parameter is ignored for backward compatibility
-  // The helper manages its own tokens
-  const helper = createAppManagerOutlookCalendarHelper();
-  return helper.verifyEventDetailsWithRetry(eventTitle, expectedDetails, options);
-};
-
-// Event configuration assertion functions for Outlook
-export function assertOutlookEventSyncConfiguration(
-  eventResult: any,
-  expectedConfig: {
-    enabled: boolean;
-    destination: string;
-    emailEnabled: boolean;
-    invitees: string;
-    syncStatus?: string;
-  }
-): void {
-  const { expect } = require('@playwright/test');
-
-  expect(eventResult.eventSyncDetails, 'Event sync details should be defined').toBeDefined();
-  expect(eventResult.eventSyncDetails.enabled, 'Event sync should be enabled as expected').toBe(expectedConfig.enabled);
-  expect(eventResult.eventSyncDetails.destination, 'Event sync destination should match expected').toBe(
-    expectedConfig.destination
-  );
-  expect(eventResult.eventSyncDetails.emailEnabled, 'Email invitation should be enabled as expected').toBe(
-    expectedConfig.emailEnabled
-  );
-  expect(eventResult.eventSyncDetails.invitees, 'Event sync invitees should match expected').toBe(
-    expectedConfig.invitees
-  );
-
-  if (expectedConfig.syncStatus) {
-    expect(eventResult.eventSyncDetails.syncStatus, 'Sync status should match expected').toBe(
-      expectedConfig.syncStatus
-    );
-  }
-}
-
-export function assertOutlookRsvpConfiguration(
-  eventResult: any,
-  expectedConfig: {
-    hasRsvp: boolean;
-    hasMaybeOption?: boolean;
-    noteLabel?: string | null;
-  }
-): void {
-  const { expect } = require('@playwright/test');
-
-  expect(eventResult.hasRsvp, 'Event should have RSVP as expected').toBe(expectedConfig.hasRsvp);
-
-  if (expectedConfig.hasRsvp) {
-    expect(eventResult.rsvpDetails, 'RSVP details should be defined when RSVP is enabled').toBeDefined();
-
-    if (expectedConfig.hasMaybeOption !== undefined) {
-      expect(eventResult.rsvpDetails.hasMaybeOption, 'RSVP maybe option should match expected').toBe(
-        expectedConfig.hasMaybeOption
-      );
-    }
-
-    if (expectedConfig.noteLabel !== undefined) {
-      expect(eventResult.rsvpDetails.noteLabel, 'RSVP note label should match expected').toBe(expectedConfig.noteLabel);
-    }
-  }
-}
-
-export function assertCompleteOutlookEventConfiguration(
-  eventResult: any,
-  config: {
-    eventSync: {
+  static assertEventSyncConfiguration(
+    eventResult: any,
+    expectedConfig: {
       enabled: boolean;
       destination: string;
       emailEnabled: boolean;
       invitees: string;
       syncStatus?: string;
-    };
-    rsvp: {
+    }
+  ): void {
+    const { expect } = require('@playwright/test');
+
+    expect(eventResult.eventSyncDetails, 'Event sync details should be defined').toBeDefined();
+    expect(eventResult.eventSyncDetails.enabled, 'Event sync should be enabled as expected').toBe(
+      expectedConfig.enabled
+    );
+    expect(eventResult.eventSyncDetails.destination, 'Event sync destination should match expected').toBe(
+      expectedConfig.destination
+    );
+    expect(eventResult.eventSyncDetails.emailEnabled, 'Email invitation should be enabled as expected').toBe(
+      expectedConfig.emailEnabled
+    );
+    expect(eventResult.eventSyncDetails.invitees, 'Event sync invitees should match expected').toBe(
+      expectedConfig.invitees
+    );
+
+    if (expectedConfig.syncStatus) {
+      expect(eventResult.eventSyncDetails.syncStatus, 'Sync status should match expected').toBe(
+        expectedConfig.syncStatus
+      );
+    }
+  }
+
+  static assertRsvpConfiguration(
+    eventResult: any,
+    expectedConfig: {
       hasRsvp: boolean;
       hasMaybeOption?: boolean;
       noteLabel?: string | null;
-    };
+    }
+  ): void {
+    const { expect } = require('@playwright/test');
+
+    expect(eventResult.hasRsvp, 'Event should have RSVP as expected').toBe(expectedConfig.hasRsvp);
+
+    if (expectedConfig.hasRsvp) {
+      expect(eventResult.rsvpDetails, 'RSVP details should be defined when RSVP is enabled').toBeDefined();
+
+      if (expectedConfig.hasMaybeOption !== undefined) {
+        expect(eventResult.rsvpDetails.hasMaybeOption, 'RSVP maybe option should match expected').toBe(
+          expectedConfig.hasMaybeOption
+        );
+      }
+
+      if (expectedConfig.noteLabel !== undefined) {
+        expect(eventResult.rsvpDetails.noteLabel, 'RSVP note label should match expected').toBe(
+          expectedConfig.noteLabel
+        );
+      }
+    }
   }
-): void {
-  assertOutlookEventSyncConfiguration(eventResult, config.eventSync);
-  assertOutlookRsvpConfiguration(eventResult, config.rsvp);
+
+  static assertCompleteEventConfiguration(
+    eventResult: any,
+    config: {
+      eventSync: {
+        enabled: boolean;
+        destination: string;
+        emailEnabled: boolean;
+        invitees: string;
+        syncStatus?: string;
+      };
+      rsvp: {
+        hasRsvp: boolean;
+        hasMaybeOption?: boolean;
+        noteLabel?: string | null;
+      };
+    }
+  ): void {
+    OutlookCalendarHelper.assertEventSyncConfiguration(eventResult, config.eventSync);
+    OutlookCalendarHelper.assertRsvpConfiguration(eventResult, config.rsvp);
+  }
 }
+
+export const createAppManagerOutlookCalendarHelper = () => new OutlookCalendarHelper();
