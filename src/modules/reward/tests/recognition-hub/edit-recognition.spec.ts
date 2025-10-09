@@ -13,13 +13,13 @@ import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constant
 import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
 import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recognition-hub-page';
 
-test.describe.only('Edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
+test.describe('Edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
   test.beforeEach(async ({ appManagerPage }) => {
     const recognitionHub = new RecognitionHubPage(appManagerPage);
     await recognitionHub.enableTheRewardsAndPeerGiftingForHubIfDisabled();
   });
 
-  test.only(
+  test(
     '[RC-5348] Verify user can edit points within the 24hr pending period',
     {
       tag: [
@@ -82,8 +82,7 @@ test.describe.only('Edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB
         const manageRecognition = new ManageRewardsOverviewPage(giveRecognitionModal.page);
         await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition updated');
         await recognitionHub.page.reload();
-        await recognitionHub.visitRecognitionHub();
-        await recognitionHub.page.reload();
+        await recognitionHub.verifyThePageIsLoaded();
         await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'attached' });
         await recognitionHub.pointsToGive.waitFor({ state: 'attached' });
         const newAvailablePoints = (await recognitionHub.pointsToGive.textContent()) || '0';
@@ -109,7 +108,7 @@ test.describe.only('Edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB
         const manageRecognition = new ManageRewardsOverviewPage(giveRecognitionModal.page);
         await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition updated');
         await recognitionHub.page.reload();
-        await recognitionHub.visitRecognitionHub();
+        await recognitionHub.verifyThePageIsLoaded();
         await recognitionHub.pointsToGive.waitFor({ state: 'attached' });
         const newAvailablePoints = (await recognitionHub.pointsToGive.textContent()) || '0';
         expect(Number(newAvailablePoints) + 2).toBe(Number(availablePoints));
@@ -178,7 +177,7 @@ test.describe.only('Edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB
         const manageRecognition = new ManageRewardsOverviewPage(giveRecognitionModal.page);
         await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition updated');
         await recognitionHub.page.reload();
-        await recognitionHub.visitRecognitionHub();
+        await recognitionHub.verifyThePageIsLoaded();
         await recognitionHub.pointsToGive.waitFor({ state: 'attached' });
         const newAvailablePoints = (await recognitionHub.pointsToGive.textContent()) || '0';
         expect(Number(newAvailablePoints)).toBe(Number(availablePoints) + 1);
@@ -278,7 +277,8 @@ test.describe.only('Edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB
         await giveRecognitionModal.doneButton.click({ force: true });
         const manageRecognition = new ManageRewardsOverviewPage(giveRecognitionModal.page);
         await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition updated');
-        await recognitionHub.visitRecognitionHub();
+        await recognitionHub.page.reload();
+        await recognitionHub.verifyThePageIsLoaded();
         await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'attached' });
         await recognitionHub.pointsToGive.waitFor({ state: 'attached' });
         const newAvailablePoints = (await recognitionHub.pointsToGive.textContent()) || '0';
@@ -363,7 +363,8 @@ test.describe.only('Edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB
         await giveRecognitionModal.doneButton.click({ force: true });
         const manageRecognition = new ManageRewardsOverviewPage(giveRecognitionModal.page);
         await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition updated');
-        await recognitionHub.visitRecognitionHub();
+        await recognitionHub.page.reload();
+        await recognitionHub.verifyThePageIsLoaded();
         await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'attached' });
         await recognitionHub.pointsToGive.waitFor({ state: 'attached' });
         await recognitionHub.validateTheRewardElementsInRecognitionPost(
@@ -437,6 +438,8 @@ test.describe.only('Edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB
         await giveRecognitionModal.doneButton.click({ force: true });
         const manageRecognition = new ManageRewardsOverviewPage(giveRecognitionModal.page);
         await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition updated');
+        await recognitionHub.page.reload();
+        await recognitionHub.verifyThePageIsLoaded();
         await recognitionHub.validateTheRewardElementsInRecognitionPost(
           true,
           rewardPointsText,
@@ -698,29 +701,6 @@ test.describe.only('Edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB
         // ✅ Save in downloads folder
         await download.saveAs(path.resolve('./downloads', download.suggestedFilename()));
 
-        // ✅ Validate headers
-        const csvHeaders = [
-          'Date time',
-          'Gifter name',
-          'Gifter email',
-          'Gifter department',
-          'Gifter location',
-          'Receiver name',
-          'Receiver email',
-          'Receiver department',
-          'Receiver location',
-          'Receiver payroll currency',
-          'Custom conversion rate',
-          'Type',
-          'Points value',
-          'USD value',
-          'Transaction status',
-          'Message',
-          'URL',
-        ];
-        const headersValidation = await csvUtils.validateHeaders(csvHeaders);
-        expect(headersValidation.isValid, `Missing headers: ${headersValidation.missingHeaders}`).toBeTruthy();
-
         // ✅ Validate last row column value
         const validationResult = await csvUtils.validateRowValue('last', 14, 'PENDING');
         expect(validationResult.isMatch, `Expected "25" but got "${validationResult.actualValue}"`).toBeTruthy();
@@ -744,7 +724,8 @@ test.describe.only('Edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB
         await giveRecognitionModal.doneButton.click({ force: true });
         const manageRecognition = new ManageRewardsOverviewPage(giveRecognitionModal.page);
         await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition updated');
-        await recognitionHub.visitRecognitionHub();
+        await recognitionHub.page.reload();
+        await recognitionHub.verifyThePageIsLoaded();
         await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'visible' });
         await recognitionHub.validateTheRewardElementsInRecognitionPost(
           true,

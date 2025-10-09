@@ -6,6 +6,8 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import baseConfig from '../../../playwright.base.config';
 
+const { deviceScaleFactor, ...desktopChromeNoScale } = devices['Desktop Chrome'];
+
 export default defineConfig({
   ...baseConfig,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'reward', 'tests'),
@@ -19,19 +21,20 @@ export default defineConfig({
     {
       name: 'Reward',
       use: {
-        headless: !!process.env.CI,
-        ...devices['Desktop Chrome'],
-        baseURL: getEnvConfig().frontendBaseUrl,
-        viewport: { width: 1920, height: 1080 },
+        ...desktopChromeNoScale,
+        headless: false,
+        viewport: null,
         launchOptions: {
           args: [
-            '--disable-gpu', // Disable GPU acceleration
-            '--no-sandbox', // Disable sandbox
-            '--disable-dev-shm-usage', // Disable /dev/shm usage
-            '--use-fake-ui-for-media-stream', // Use fake UI for media stream
-            '--use-fake-device-for-media-stream', // Use fake device for media stream
+            '--start-maximized',
+            '--disable-gpu',
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
+            '--use-fake-ui-for-media-stream',
+            '--use-fake-device-for-media-stream',
           ],
         },
+        baseURL: getEnvConfig().frontendBaseUrl,
       },
     },
   ],

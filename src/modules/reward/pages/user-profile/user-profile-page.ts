@@ -4,24 +4,20 @@ import { TopNavBarComponent } from '@core/components/topNavBarComponent';
 import { BasePage } from '@core/pages/basePage';
 
 export class UserProfilePage extends BasePage {
-  mockAppConfigLanguage(page: Page, arg1: number) {
-    throw new Error('Method not implemented.');
-  }
-  restoreAppConfigMock(page: Page) {
-    throw new Error('Method not implemented.');
-  }
   // Components
   readonly topNavBarComponent: TopNavBarComponent;
 
   // User profile page locators
+  readonly userProfileRecognitionAndRewardContainer: Locator;
   readonly rewardIcons: Locator;
   readonly pointsToGiveValue: Locator;
   readonly pointsToRedeemValue: Locator;
   readonly pointsRefreshingText: Locator;
   readonly viewOrderButton: Locator;
-  readonly allowanceRefreshing: Locator;
   readonly allowanceRefreshingInfoIcon: Locator;
   readonly allowanceRefreshingInfoIconTooltipText: Locator;
+  private pointsToGiveContainer: Locator;
+  private pointsToRedeemContainer: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -30,16 +26,25 @@ export class UserProfilePage extends BasePage {
     this.topNavBarComponent = new TopNavBarComponent(page);
 
     // User profile page locators
-    this.rewardIcons = page.locator('[class*="UserProfile_rewardIcons"]');
-    this.pointsToGiveValue = page.locator('[class*="UserProfile_pointsToGiveValue"]');
-    this.pointsToRedeemValue = page.locator('[class*="UserProfile_pointsToRedeemValue"]');
-    this.pointsRefreshingText = page.locator('[class*="UserProfile_pointsRefreshingText"]');
-    this.viewOrderButton = page.locator('[class*="UserProfile_viewOrderButton"]');
-    this.allowanceRefreshing = page.locator('[class*="UserProfile_allowanceRefreshing"]');
-    this.allowanceRefreshingInfoIcon = page.locator('[class*="UserProfile_allowanceRefreshingInfoIcon"]');
-    this.allowanceRefreshingInfoIconTooltipText = page.locator(
-      '[class*="UserProfile_allowanceRefreshingInfoIconTooltipText"]'
+
+    this.userProfileRecognitionAndRewardContainer = page.locator('[class*="UserRecognition_container"]');
+    this.rewardIcons = this.userProfileRecognitionAndRewardContainer.locator('div[class*="RewardsWallet_icon"]');
+    this.pointsToGiveContainer = this.userProfileRecognitionAndRewardContainer
+      .locator('[class*="RewardsWallet_item"]')
+      .nth(0);
+    this.pointsToGiveValue = this.pointsToGiveContainer.locator('div[class*="RewardsWallet_details"] > p');
+    this.pointsToRedeemContainer = this.userProfileRecognitionAndRewardContainer
+      .locator('[class*="RewardsWallet_item"]')
+      .nth(1);
+    this.pointsToRedeemValue = this.pointsToRedeemContainer.locator('div[class*="RewardsWallet_details"] > p');
+    this.pointsRefreshingText = this.userProfileRecognitionAndRewardContainer
+      .locator('[class*="RewardsWallet_item"] p[class*="Typography-module__secondary"]')
+      .nth(1);
+    this.viewOrderButton = this.userProfileRecognitionAndRewardContainer.locator('a[href*="/order-history"]');
+    this.allowanceRefreshingInfoIcon = this.userProfileRecognitionAndRewardContainer.locator(
+      'button[aria-label="Allowance refreshing information"]'
     );
+    this.allowanceRefreshingInfoIconTooltipText = page.locator('div[id*="tippy"]>div>p');
   }
 
   /**
@@ -60,10 +65,10 @@ export class UserProfilePage extends BasePage {
    * Navigates to the current user's profile page
    */
   async navigateToCurrentUserProfile(): Promise<void> {
-    await this.topNavBarComponent.clickOnElement(this.topNavBarComponent.profileSettingsButton);
-    // This would need to be implemented based on the actual UI flow
-    // For now. we'll navigate directly to a profile URL
-    await this.page.goto('/profile');
+    await this.topNavBarComponent.profileSettingsButton.waitFor({ state: 'visible', timeout: 25000 });
+    await this.topNavBarComponent.profileSettingsButton.click();
+    await this.topNavBarComponent.viewProfileButton.waitFor({ state: 'visible' });
+    await this.topNavBarComponent.viewProfileButton.click();
   }
 
   /**
@@ -175,10 +180,10 @@ export class UserProfilePage extends BasePage {
    * Validate allowance refreshing tooltip
    */
   async validateAllowanceRefreshingTooltip(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.allowanceRefreshing);
+    await this.pointsRefreshingText.scrollIntoViewIfNeeded();
+    await this.verifier.verifyTheElementIsVisible(this.pointsRefreshingText);
     await this.verifier.verifyTheElementIsVisible(this.allowanceRefreshingInfoIcon);
     await this.clickOnElement(this.allowanceRefreshingInfoIcon);
-    await this.verifier.verifyTheElementIsVisible(this.allowanceRefreshingInfoIconTooltipText);
     await this.verifier.verifyElementHasText(
       this.allowanceRefreshingInfoIconTooltipText,
       'Your monthly allowance is refreshing and will be available soon'

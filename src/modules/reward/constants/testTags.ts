@@ -2,6 +2,7 @@ export enum REWARD_SUITE_TAGS {
   MANAGE_REWARD = '@manage-reward',
   REWARD_STORE = '@reward-store',
   RECOGNITION_HUB = '@recognition-hub',
+  USER_PROFILE = '@user-profile',
 }
 
 export enum REWARD_FEATURE_TAGS {

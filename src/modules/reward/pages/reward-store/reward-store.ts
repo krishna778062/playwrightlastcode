@@ -202,7 +202,8 @@ export class RewardsStore extends BasePage {
           res.status() === 200 &&
           res.request().method() === 'GET'
       ),
-      this.visit(), // action that triggers API
+      this.visit(),
+      this.verifyThePageIsLoaded(), // action that triggers API
     ]);
     const body = await apiResponse.json();
     const isRewardEnabled = body.rewardConfig?.enabled;
@@ -287,6 +288,23 @@ export class RewardsStore extends BasePage {
     await this.rewardsDialogBox.checkTheTermsAndConditionCheckbox();
     await this.verifier.verifyTheElementIsEnabled(this.rewardsDialogBox.confirmOrder);
     await this.rewardsDialogBox.clickOnConfirmOrder();
+  }
+
+  /**
+   * Checkout gift card for interruption testing
+   */
+  async checkOutTheGiftCardForInterruption(giftCardName: string): Promise<void> {
+    await this.searchForGiftCard(giftCardName);
+    await this.clickOnTheNthGiftCard(1);
+    await this.rewardsDialogBox.clickOnTheCheckoutButton();
+    await this.rewardsDialogBox.enterTheConfirmEmail();
+    await this.rewardsDialogBox.checkTheTermsAndConditionCheckbox();
+    await Promise.all([
+      await this.page.route('**/recognition/redemption/rewards/redeem', route => {
+        route.abort(); // Simulates network interruption
+      }),
+      this.rewardsDialogBox.confirmOrder.click(),
+    ]);
   }
 
   async validateSuccessMessage(heading: string, descriptions: string[]) {
@@ -607,6 +625,9 @@ export class RewardsStore extends BasePage {
   async selectCountryAndRedeemGiftCard(countryName: string, giftCardName: string): Promise<void> {
     await this.selectCountry(countryName);
     await this.selectAndRedeemGiftCard(giftCardName);
+    await this.validateSuccessMessage('Your reward has been sent', [
+      'Please check your email inbox for your reward details',
+    ]);
   }
 
   /**
@@ -626,7 +647,7 @@ export class RewardsStore extends BasePage {
    */
   async redeemGiftCardWithFailure(countryName: string, giftCardName: string): Promise<void> {
     await this.selectCountry(countryName);
-    await this.selectAndRedeemGiftCard(giftCardName);
+    await this.checkOutTheGiftCardForInterruption(giftCardName);
   }
 
   /**
@@ -782,23 +803,6 @@ export class RewardsStore extends BasePage {
    */
   cards(name: string): Locator {
     return this.page.getByRole('button', { name: `Redeem ${name}` });
-  }
-
-  /**
-   * Checkout gift card for interruption testing
-   */
-  async checkOutTheGiftCardForInterruption(giftCardName: string): Promise<void> {
-    await this.searchForGiftCard(giftCardName);
-    await this.clickOnTheNthGiftCard(1);
-    await this.rewardsDialogBox.clickOnTheCheckoutButton();
-    await this.rewardsDialogBox.enterTheConfirmEmail();
-    await this.rewardsDialogBox.checkTheTermsAndConditionCheckbox();
-    await Promise.all([
-      this.page.route('**/recognition/redemption/rewards/redeem', route => {
-        route.abort(); // Simulates network interruption
-      }),
-      this.rewardsDialogBox.confirmOrder.click(),
-    ]);
   }
 
   /**

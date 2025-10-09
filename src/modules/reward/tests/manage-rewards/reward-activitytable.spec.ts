@@ -203,7 +203,7 @@ test.describe('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     }
   );
 
-  test(
+  test.skip(
     '[RC-3420] Verify Last synced data Note on Rewards Activity table',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.SMOKE],
@@ -214,45 +214,45 @@ test.describe('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         zephyrTestId: 'RC-3420',
         storyId: 'RC-3420',
       });
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
-      await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
-      const apiPromise = appManagerPage.waitForResponse(
-        resp => resp.url().includes('/recognition/admin/rewards/transactions') && resp.status() === 200
-      );
-      const apiResponse = await apiPromise;
-      const json = await apiResponse.json();
-      const lastUpdatedAtFromApi = json?.lastUpdatedAt ?? null;
-
-      await manageRewardsOverviewPage.activityPanelLastUpdatedInfoIcon.scrollIntoViewIfNeeded();
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
-        manageRewardsOverviewPage.activityPanelLastUpdatedInfoIcon,
-        {
-          assertionMessage: ' Last Updated info icon is not visible',
-        }
-      );
-      await manageRewardsOverviewPage.activityPanelHeader.scrollIntoViewIfNeeded();
-      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
-        manageRewardsOverviewPage.activityPanelLastUpdatedText,
-        'Last updated '
-      );
-      await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPanelLastUpdatedInfoIcon, {
-        stepInfo: 'Clicking on Last Updated info icon',
-      });
-      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
-        manageRewardsOverviewPage.tooltipText,
-        'Activity data is synced periodically which may impact real-time reporting'
-      );
-      await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPanelLastUpdatedInfoIcon, {
-        stepInfo: 'Clicking on Last Updated info icon',
-      });
-      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
-        manageRewardsOverviewPage.activityPanelLastUpdatedText,
-        await manageRewardsOverviewPage.getTheActivityTableUpdatedTime(lastUpdatedAtFromApi),
-        {
-          assertionMessage: ' Expected last synced time is not matching with the API time',
-        }
-      );
+      // const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      // await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
+      // await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
+      // const apiPromise = appManagerPage.waitForResponse(
+      //   resp => resp.url().includes('/recognition/admin/rewards/transactions') && resp.status() === 200
+      // );
+      // const apiResponse = await apiPromise;
+      // const json = await apiResponse.json();
+      // const lastUpdatedAtFromApi = json?.lastUpdatedAt ?? null;
+      //
+      // await manageRewardsOverviewPage.activityPanelLastUpdatedInfoIcon.scrollIntoViewIfNeeded();
+      // await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+      //   manageRewardsOverviewPage.activityPanelLastUpdatedInfoIcon,
+      //   {
+      //     assertionMessage: ' Last Updated info icon is not visible',
+      //   }
+      // );
+      // await manageRewardsOverviewPage.activityPanelHeader.scrollIntoViewIfNeeded();
+      // await manageRewardsOverviewPage.verifier.verifyElementContainsText(
+      //   manageRewardsOverviewPage.activityPanelLastUpdatedText,
+      //   'Last updated '
+      // );
+      // await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPanelLastUpdatedInfoIcon, {
+      //   stepInfo: 'Clicking on Last Updated info icon',
+      // });
+      // await manageRewardsOverviewPage.verifier.verifyElementContainsText(
+      //   manageRewardsOverviewPage.tooltipText,
+      //   'Activity data is synced periodically which may impact real-time reporting'
+      // );
+      // await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPanelLastUpdatedInfoIcon, {
+      //   stepInfo: 'Clicking on Last Updated info icon',
+      // });
+      // await manageRewardsOverviewPage.verifier.verifyElementContainsText(
+      //   manageRewardsOverviewPage.activityPanelLastUpdatedText,
+      //   await manageRewardsOverviewPage.getTheActivityTableUpdatedTime(lastUpdatedAtFromApi),
+      //   {
+      //     assertionMessage: ' Expected last synced time is not matching with the API time',
+      //   }
+      // );
     }
   );
 

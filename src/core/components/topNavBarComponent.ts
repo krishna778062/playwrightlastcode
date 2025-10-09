@@ -4,6 +4,7 @@ import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class TopNavBarComponent extends BaseComponent {
   readonly profileSettingsButton: Locator;
+  readonly viewProfileButton: Locator;
   readonly messageButton: Locator;
   readonly seeAllMessagesButton: Locator;
   readonly globalSearchInputBox: Locator;
@@ -13,7 +14,7 @@ export class TopNavBarComponent extends BaseComponent {
   constructor(page: Page) {
     super(page);
     this.profileSettingsButton = this.page.getByLabel('Profile settings');
-
+    this.viewProfileButton = this.page.getByLabel('View profile');
     this.messageButton = this.page.getByRole('button', { name: 'Messaging' });
     this.seeAllMessagesButton = this.page.getByText('See all messages');
     this.globalSearchInputBox = this.page.locator('input[aria-label*=Search]');

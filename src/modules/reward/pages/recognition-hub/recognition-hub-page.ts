@@ -1,4 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { getQuery } from '@rewards/utils/dbQuery';
+import { executeQuery } from '@rewards/utils/dbUtils';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
@@ -621,9 +623,6 @@ export class RecognitionHubPage extends BasePage {
    * Enable distribution allowance as failed
    */
   async enableDistributionAllowanceAsFailed(): Promise<void> {
-    const { getQuery } = await import('@rewards/utils/dbQuery');
-    const { executeQuery } = await import('@rewards/utils/dbUtils');
-
     const tenantCode = await this.page.evaluate(() => {
       return (window as any).Simpplr?.Settings?.organizationId;
     });
