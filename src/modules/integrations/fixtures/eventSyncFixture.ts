@@ -11,14 +11,68 @@ import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/cont
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { UserManagementService } from '@/src/modules/platforms/apis/services/UserManagementService';
 
-export type IntegrationsEventFixtures = {
-  appManagerBrowserContext: BrowserContext;
-  appManagerPage: Page;
-  appManagerHomePage: NewHomePage;
-  appManagerUINavigationHelper: NavigationHelper;
+// API-only fixture type for API helpers and services
+export interface EventSyncApiFixture {
+  apiContext: APIRequestContext;
   siteManagementHelper: SiteManagementHelper;
   contentManagementHelper: ContentManagementHelper;
   userManagementService: UserManagementService;
+}
+
+// UI-only fixture type for browser and page components
+export interface EventSyncUiFixture {
+  browserContext: BrowserContext;
+  page: Page;
+  homePage: NewHomePage;
+  navigationHelper: NavigationHelper;
+}
+
+// Combined user fixture type that extends both API and UI fixtures
+export interface EventSyncUserFixture extends EventSyncApiFixture, EventSyncUiFixture {}
+
+// Helper function to create API-only fixtures using existing API contexts
+async function createEventSyncApiFixture(apiContext: APIRequestContext): Promise<EventSyncApiFixture> {
+  const siteManagementHelper = new SiteManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
+  const contentManagementHelper = new ContentManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
+  const userManagementService = new UserManagementService(apiContext, getEnvConfig().apiBaseUrl);
+
+  return {
+    apiContext,
+    siteManagementHelper,
+    contentManagementHelper,
+    userManagementService,
+  };
+}
+
+// Helper function to create UI-only fixtures
+async function createEventSyncUiFixture(browser: any): Promise<EventSyncUiFixture> {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  await LoginHelper.loginWithPassword(page, {
+    email: getEnvConfig().appManagerEmail,
+    password: getEnvConfig().appManagerPassword,
+  });
+
+  const homePage = new NewHomePage(page);
+  await homePage.loadPage();
+  await homePage.verifyThePageIsLoaded();
+
+  const navigationHelper = new NavigationHelper(page);
+
+  return {
+    browserContext: context,
+    page,
+    homePage,
+    navigationHelper,
+  };
+}
+
+// Legacy type definitions for backward compatibility
+export type IntegrationsEventFixtures = {
+  appManagerApiFixture: EventSyncApiFixture;
+  appManagerUiFixture: EventSyncUiFixture;
+  appManagerFixture: EventSyncUserFixture;
   testSiteName: string;
 };
 
@@ -27,82 +81,63 @@ export type IntegrationsEventWorkerFixtures = {
 };
 
 export const integrationsEventFixture = base.extend<IntegrationsEventFixtures, IntegrationsEventWorkerFixtures>({
+  // Worker-scoped API context - shared across all tests in worker
   appManagerApiContext: [
     async ({}, use) => {
-      const appManagerApiContext = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
-        email: getEnvConfig().appManagerEmail,
-        password: getEnvConfig().appManagerPassword,
-      });
-      await use(appManagerApiContext);
-      await appManagerApiContext.dispose();
-    },
-    { scope: 'worker' },
-  ],
-
-  siteManagementHelper: [
-    async ({ appManagerApiContext }, use) => {
-      const siteManagementHelper = new SiteManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
-      await use(siteManagementHelper);
-      await siteManagementHelper.cleanup();
-    },
-    { scope: 'test' },
-  ],
-  userManagementService: [
-    async ({ appManagerApiContext }, use) => {
-      const userManagementService = new UserManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
-      await use(userManagementService);
-    },
-    { scope: 'test' },
-  ],
-  appManagerBrowserContext: [
-    async ({ browser }, use) => {
-      const context = await browser.newContext();
-      const page = await context.newPage();
-      await LoginHelper.loginWithPassword(page, {
+      const context = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
         email: getEnvConfig().appManagerEmail,
         password: getEnvConfig().appManagerPassword,
       });
       await use(context);
-      await context.close();
+      await context.dispose();
+    },
+    { scope: 'worker' },
+  ],
+
+  // API-only fixtures - fast, no browser overhead, using worker-scoped contexts
+  appManagerApiFixture: [
+    async ({ appManagerApiContext }, use) => {
+      const fixture = await createEventSyncApiFixture(appManagerApiContext);
+      await use(fixture);
+
+      // Cleanup helpers that have cleanup methods
+      try {
+        await fixture.siteManagementHelper.cleanup();
+        await fixture.contentManagementHelper.cleanup();
+      } catch (error) {
+        console.warn('App manager API fixture cleanup failed:', error);
+      }
     },
     { scope: 'test' },
   ],
 
-  appManagerPage: [
-    async ({ appManagerBrowserContext }, use) => {
-      const page = await appManagerBrowserContext.newPage();
-      await use(page);
-      await page.close();
+  // UI-only fixtures - browser and page components
+  appManagerUiFixture: [
+    async ({ browser }, use) => {
+      const fixture = await createEventSyncUiFixture(browser);
+      await use(fixture);
+      await fixture.browserContext.close();
     },
     { scope: 'test' },
   ],
 
-  appManagerUINavigationHelper: [
-    async ({ appManagerPage }, use, _workerInfo) => {
-      const appManagerUINavigationHelper = new NavigationHelper(appManagerPage);
-      await use(appManagerUINavigationHelper);
+  // Combined user fixtures - complete entry points
+  appManagerFixture: [
+    async ({ appManagerUiFixture, appManagerApiFixture }, use) => {
+      await use({ ...appManagerUiFixture, ...appManagerApiFixture });
     },
     { scope: 'test' },
   ],
 
-  appManagerHomePage: [
-    async ({ appManagerPage }, use) => {
-      // Login and get HomePage instance for event creation
-      const appManagerHomePage = new NewHomePage(appManagerPage);
-      await appManagerHomePage.loadPage();
-      await appManagerHomePage.verifyThePageIsLoaded();
-      await use(appManagerHomePage);
-    },
-    { scope: 'test' },
-  ],
-
+  // Special fixture for event testing - creates dedicated test site per test
   testSiteName: [
-    async ({ siteManagementHelper }, use) => {
+    async ({ appManagerApiFixture }, use) => {
       let createdSiteName = '';
       try {
         console.log('Creating dedicated test site for event creation...');
-        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
-        const testSite = await siteManagementHelper.createPublicSite({
+        const category =
+          await appManagerApiFixture.siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const testSite = await appManagerApiFixture.siteManagementHelper.createPublicSite({
           category,
           siteName: `Event Test Site ${faker.string.alphanumeric({ length: 6 })}`,
         });
@@ -114,15 +149,6 @@ export const integrationsEventFixture = base.extend<IntegrationsEventFixtures, I
         console.error('Failed to create test site:', error);
         await use(createdSiteName);
       }
-    },
-    { scope: 'test' },
-  ],
-
-  contentManagementHelper: [
-    async ({ appManagerApiContext }, use) => {
-      const contentManagementHelper = new ContentManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
-      await use(contentManagementHelper);
-      await contentManagementHelper.cleanup();
     },
     { scope: 'test' },
   ],

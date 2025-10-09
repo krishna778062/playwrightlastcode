@@ -29,7 +29,8 @@ test.describe(
 
     let createdTileTitle: string | undefined = undefined;
 
-    test.afterEach(async ({ tileManagementHelper, homeDashboard }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
+      const { tileManagementHelper, homeDashboard } = appManagerFixture;
       if (createdTileTitle) {
         await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
@@ -42,7 +43,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: ['INT-21114', 'INT-21086'],
           storyId: 'INT-20795',
@@ -69,7 +71,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: ['INT-21137', 'INT-21151'],
           storyId: 'INT-20795',
@@ -95,7 +98,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: ['INT-21085', 'INT-21084'],
           storyId: 'INT-20795',
@@ -122,7 +126,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: ['INT-21134', 'INT-21133'],
           storyId: 'INT-20795',
@@ -145,7 +150,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, siteManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: ['INT-21087'],
           storyId: 'INT-20795',
@@ -178,7 +184,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, siteManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-21088',
           storyId: 'INT-20795',
@@ -205,7 +212,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, siteManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-28183',
           storyId: 'INT-20795',
@@ -240,7 +248,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, siteManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-28184',
           storyId: 'INT-20795',

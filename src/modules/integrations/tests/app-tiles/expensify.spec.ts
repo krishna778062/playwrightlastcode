@@ -38,7 +38,8 @@ test.describe(
       await LoginHelper.loginWithPassword(page, expensifyUser);
     });
 
-    test.afterEach(async ({ page, tileManagementHelper }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
+      const { page, tileManagementHelper } = appManagerFixture;
       if (createdTileTitle) {
         const homeDashboard = new HomeDashboard(page, tileManagementHelper);
         await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
@@ -52,7 +53,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ page, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { page, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24799',
           storyId: 'INT-24430',
@@ -82,7 +84,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ page, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { page, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24798',
           storyId: 'INT-24423',
@@ -110,7 +113,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ page, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { page, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24785',
           storyId: 'INT-24423',
@@ -138,7 +142,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ page, siteManagementHelper, appManagerApiContext }) => {
+      async ({ appManagerFixture }) => {
+        const { page, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24782',
           storyId: 'INT-24423',

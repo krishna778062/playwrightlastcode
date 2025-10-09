@@ -17,13 +17,14 @@ test.describe(
     tag: [IntegrationsSuiteTags.GAMMA, GammaIntegrationsFeatureTags.AD_GROUP],
   },
   () => {
-    test.beforeEach(async ({ appManagerPage }) => {
-      adGroup = new AdGroupPage(appManagerPage);
+    test.beforeEach(async ({ appManagerFixture }) => {
+      adGroup = new AdGroupPage(appManagerFixture.page);
       await adGroup.loadPage();
       await adGroup.verifyThePageIsLoaded();
       await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
       await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
     });
+
     test(
       'verify that Select Active Directory groups option is visible in Zeus',
       {
@@ -93,7 +94,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
-      async ({ appManagerPage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-5577',
           storyId: 'INT-5282',
@@ -105,7 +106,7 @@ test.describe(
         await adGroup.clickOnSubmitButton(ActionType.Save);
         await adGroup.clickOnDoNotUseADGroupsButton(AD_GROUP.DO_NOT_USE_AD_GROUPS);
         await adGroup.clickOnSubmitButton(ActionType.Save);
-        await appManagerPage.reload();
+        await appManagerFixture.page.reload();
         await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
         await adGroup.verifyMicrosoftEntraButtonCount(2);
         await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
