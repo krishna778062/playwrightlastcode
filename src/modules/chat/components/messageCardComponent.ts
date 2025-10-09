@@ -71,7 +71,7 @@ export class MessageCardComponent extends MessageBaseComponent {
 
   async deleteMessage(): Promise<void> {
     await test.step(`Deleting the message`, async () => {
-      await this.openMessageActionsMenuFromThreeDots();
+      await this.openMessageActionsMenuFrom3Dots();
       await this.clickByInjectingJavaScript(this.deleteMessageButtonFromMessageActionsMenu);
       await this.verifier.verifyTheElementIsVisible(this.deleteMessageConfirmationPrompt, {
         assertionMessage: 'expecting delete message confirmation prompt to be visible',
@@ -81,8 +81,8 @@ export class MessageCardComponent extends MessageBaseComponent {
   }
 
   async unPinMessageFromPinnedMessage(): Promise<void> {
-    await test.step(`Deleting the message`, async () => {
-      await this.openMessageActionsMenuFromThreeDots();
+    await test.step(`Unpinning the message`, async () => {
+      await this.openMessageActionsMenuFrom3Dots();
       await this.clickOnElement(this.unPinMessageButtonFromMessageActionsMenu);
       await this.clickOnElement(this.unPinMessageConfirmationPrompt);
       await this.verifier.verifyTheElementIsVisible(this.unPinnedToastMessage, {
