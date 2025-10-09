@@ -34,7 +34,9 @@ test.describe(
     const managersAudienceToCreate: string[] = [];
     const adminsAudienceToCreate: string[] = [];
     const categoryId: string[] = [];
-    const createAudienceParams: audienceCreationParams[] = [];
+    const createTargetAudienceParams: audienceCreationParams[] = [];
+    const createManagersAudienceParams: audienceCreationParams[] = [];
+    const createAdminsAudienceParams: audienceCreationParams[] = [];
     const targetAudienceUser: User[] = [];
     const managersAudienceUser: User[] = [];
     const adminsAudienceUser: User[] = [];
@@ -98,41 +100,46 @@ test.describe(
       await appManagerApiClient.getUserManagementService().waitForUserToBeAddedInIdentity(adminsAudienceUser[0].emp);
 
       categoryId.push(await appManagerApiClient.getIdentityService().createCategory(categoryToCreate));
-      createAudienceParams[0] = {
+
+      createTargetAudienceParams[0] = {
         audienceName: targetAudienceToCreate[0],
         categoryId: categoryId[0],
         attribute: AUDIENCE_API_ATTRIBUTES.USER_ID,
         operator: AUDIENCE_API_OPERATORS.IS,
         value: targetAudienceUserId[0],
       };
-      audienceId.push(await appManagerApiClient.getIdentityService().createAudience(createAudienceParams[0]));
 
-      createAudienceParams[1] = {
+      createTargetAudienceParams[1] = {
         audienceName: targetAudienceToCreate[1],
         categoryId: categoryId[0],
         attribute: AUDIENCE_API_ATTRIBUTES.USER_ID,
         operator: AUDIENCE_API_OPERATORS.IS,
         value: targetAudienceUserId[1],
       };
-      audienceId.push(await appManagerApiClient.getIdentityService().createAudience(createAudienceParams[1]));
 
-      createAudienceParams[2] = {
+      createManagersAudienceParams[0] = {
         audienceName: managersAudienceToCreate[0],
         categoryId: categoryId[0],
         attribute: AUDIENCE_API_ATTRIBUTES.USER_ID,
         operator: AUDIENCE_API_OPERATORS.IS,
         value: managersAudienceUserId[0],
       };
-      audienceId.push(await appManagerApiClient.getIdentityService().createAudience(createAudienceParams[2]));
 
-      createAudienceParams[3] = {
+      createAdminsAudienceParams[0] = {
         audienceName: adminsAudienceToCreate[0],
         categoryId: categoryId[0],
         attribute: AUDIENCE_API_ATTRIBUTES.USER_ID,
         operator: AUDIENCE_API_OPERATORS.IS,
         value: adminsAudienceUserId[0],
       };
-      audienceId.push(await appManagerApiClient.getIdentityService().createAudience(createAudienceParams[3]));
+
+      audienceId.push(await appManagerApiClient.getIdentityService().createAudience(createTargetAudienceParams[0]));
+
+      audienceId.push(await appManagerApiClient.getIdentityService().createAudience(createTargetAudienceParams[1]));
+
+      audienceId.push(await appManagerApiClient.getIdentityService().createAudience(createManagersAudienceParams[0]));
+
+      audienceId.push(await appManagerApiClient.getIdentityService().createAudience(createAdminsAudienceParams[0]));
     });
 
     test.afterEach(async ({ appManagerApiClient }) => {
@@ -164,7 +171,7 @@ test.describe(
     test(
       'Verify that single ACG can be created and deleted without any issue',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -219,7 +226,7 @@ test.describe(
     test(
       'Verify that status of the ACG should be displayed as Active or Inactive immediately after creation',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -273,7 +280,7 @@ test.describe(
     test(
       'Verify that user manager should have access for ACG creation',
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ userManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -416,7 +423,7 @@ test.describe(
     test(
       'Verify that user should be able to change managers from managers screen while editing them during ACG creation flow',
       {
-        tag: [TestPriority.P1, `@ABAC`],
+        tag: [TestPriority.P1, `@ABAC`, `@this-one`],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
@@ -427,13 +434,13 @@ test.describe(
         const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
         await accessControlGroupsPage.loadPage();
         await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
-        await accessControlGroupsPage.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
-        await accessControlGroupsPage.clickOnButtonWithName('Next');
-        await accessControlGroupsPage.clickOnButtonWithName('Browse');
+        await accessControlGroupsPage.selectSingleFeatureToAddToControlGroupForSingleACG(ACGFeature.ALERTS);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
         await accessControlGroupsPage.searchForValues(targetAudienceToCreate[0]);
         await accessControlGroupsPage.clickOnAudience(targetAudienceToCreate[0]);
-        await accessControlGroupsPage.clickOnButtonWithName('Done');
-        await accessControlGroupsPage.clickOnButtonWithName('Next');
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
 
         // Select Manager and Admin users for the ACG
         await accessControlGroupsPage.browseSelectUserAndProceed('Admin', 'Manager');
@@ -443,7 +450,7 @@ test.describe(
         await accessControlGroupsPage.clickOnEditManagerButton();
         await accessControlGroupsPage.clickOnAddUsersButton();
         await accessControlGroupsPage.searchAndSelectUserWithEnter('Admin');
-        await accessControlGroupsPage.clickOnButtonWithName('Done');
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
         await accessControlGroupsPage.clickOnUpdateButton();
 
         // Click edit manager button again to verify the added users
@@ -457,7 +464,7 @@ test.describe(
     test(
       'Verify that duplicate acg error is displayed on attempting to create ACG with same features and target audiences',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -475,7 +482,7 @@ test.describe(
         await accessControlGroupsPage.dismissTheToastMessage();
         // Test Scenario
         await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
-        await accessControlGroupsPage.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
+        await accessControlGroupsPage.selectSingleFeatureToAddToControlGroupForSingleACG(ACGFeature.ALERTS);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
         await accessControlGroupsPage.searchForValues(targetAudienceToCreate[0]);
@@ -491,7 +498,7 @@ test.describe(
     test(
       'Verify that duplicate acg error is displayed on editing ACG to match anothers features and target audiences',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
@@ -594,7 +601,7 @@ test.describe(
     test(
       'Verify that the user should be redirected to the feature selection screen on clicking edit icon for the same at summary screen during ACG creation',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
@@ -605,7 +612,7 @@ test.describe(
         // Prerequisite
         // Create an ACG with target audiecne only
         await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
-        await accessControlGroupsPage.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
+        await accessControlGroupsPage.selectSingleFeatureToAddToControlGroupForSingleACG(ACGFeature.ALERTS);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
         await accessControlGroupsPage.searchForValues(targetAudienceToCreate[0]);

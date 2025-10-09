@@ -142,7 +142,7 @@ export class AccessControlGroupsPage extends BasePage {
    * @param featureName - The ACG feature to click (e.g., ACGFeature.ALERTS).
    * @param options - Optional parameters for clicking on the element.
    */
-  async selectFeatureToAddToControlGroup(
+  async selectSingleFeatureToAddToControlGroupForSingleACG(
     featureName: ACGFeature,
     options?: { stepInfo?: string; timeout?: number }
   ): Promise<void> {
@@ -406,7 +406,7 @@ export class AccessControlGroupsPage extends BasePage {
     }
     return await test.step(`Creating ACG with target audience as ${targetAudienceName}  and status as ${options?.acgStatus ?? this.acgDefaultStatus} only`, async () => {
       await this.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
-      await this.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
+      await this.selectSingleFeatureToAddToControlGroupForSingleACG(ACGFeature.ALERTS);
       await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
       await this.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
       await this.searchForValues(targetAudienceName);
@@ -648,54 +648,16 @@ export class AccessControlGroupsPage extends BasePage {
     return await test.step(`Creating ACG with target audience(s): ${acgCreationParams.targetAudience}, manager user(s): ${acgCreationParams.managerUser}, manager audience(s): ${acgCreationParams.managerAudience}, admin user(s): ${acgCreationParams.adminUser}, admin audience(s): ${acgCreationParams.adminAudience} and status as ${currACGStatus}`, async () => {
       let acgName: string;
       await this.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
-      await this.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
+      await this.selectSingleFeatureToAddToControlGroupForSingleACG(ACGFeature.ALERTS);
       await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
-      await this.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
-      for (const targetAudience of acgCreationParams.targetAudience) {
-        await this.searchForValues(targetAudience);
-        await this.clickOnAudience(targetAudience);
-      }
-      await this.clickOnButtonWithName(POPUP_BUTTONS.DONE);
-      await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
+      // Add Target Audiences
+      await this.addTargetAudiences(acgCreationParams);
 
-      if (acgCreationParams.managerUser.length > 0) {
-        for (const managerUser of acgCreationParams.managerUser) {
-          await this.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
-          await this.searchForValues(managerUser);
-          await this.clickOnAudience(managerUser);
-        }
-        await this.clickOnButtonWithName(POPUP_BUTTONS.DONE);
-      }
-      if (acgCreationParams.managerAudience.length > 0) {
-        for (const managerAudience of acgCreationParams.managerAudience) {
-          await this.createACGModal.clickOnButton(POPUP_BUTTONS.ADD_AUDIENCE);
-          await this.searchForValues(managerAudience);
-          await this.clickOnAudience(managerAudience);
-        }
-        await this.clickOnButtonWithName(POPUP_BUTTONS.DONE);
-        await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
-      } else {
-        await this.clickOnButtonWithName(POPUP_BUTTONS.SKIP);
-      }
+      // Add Managers
+      await this.addManagers(acgCreationParams);
 
-      if (acgCreationParams.adminUser.length > 0) {
-        for (const adminUser of acgCreationParams.adminUser) {
-          await this.searchForValues(adminUser);
-          await this.clickOnAudience(adminUser);
-        }
-        await this.clickOnButtonWithName(POPUP_BUTTONS.DONE);
-      }
-      if (acgCreationParams.adminAudience.length > 0) {
-        for (const adminAudience of acgCreationParams.adminAudience) {
-          await this.createACGModal.clickOnButton(POPUP_BUTTONS.ADD_AUDIENCE);
-          await this.searchForValues(adminAudience);
-          await this.clickOnAudience(adminAudience);
-        }
-        await this.clickOnButtonWithName(POPUP_BUTTONS.DONE);
-        await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
-      } else {
-        await this.clickOnButtonWithName(POPUP_BUTTONS.SKIP);
-      }
+      // Add Admins
+      await this.addAdmins(acgCreationParams);
 
       acgName = await this.getACGName();
       console.log(`ACG name is ${acgName}`);
@@ -705,5 +667,70 @@ export class AccessControlGroupsPage extends BasePage {
       await this.dismissTheToastMessage();
       return acgName;
     });
+  }
+
+  /**
+   * Adds Target audiences to the ACG.
+   * @param acgCreationParams - Parameters for adding audiences to the ACG.
+   */
+  async addTargetAudiences(acgCreationParams: ACGCreationParams): Promise<void> {
+    await this.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
+    for (const targetAudience of acgCreationParams.targetAudience) {
+      await this.searchForValues(targetAudience);
+      await this.clickOnAudience(targetAudience);
+    }
+    await this.clickOnButtonWithName(POPUP_BUTTONS.DONE);
+    await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
+  }
+
+  /**
+   * Adds Managers to the ACG.
+   * @param acgCreationParams - Parameters for adding managers to the ACG.
+   */
+  async addManagers(acgCreationParams: ACGCreationParams): Promise<void> {
+    if (acgCreationParams.managerUser.length > 0) {
+      for (const managerUser of acgCreationParams.managerUser) {
+        await this.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
+        await this.searchForValues(managerUser);
+        await this.clickOnAudience(managerUser);
+      }
+      await this.clickOnButtonWithName(POPUP_BUTTONS.DONE);
+    }
+    if (acgCreationParams.managerAudience.length > 0) {
+      for (const managerAudience of acgCreationParams.managerAudience) {
+        await this.createACGModal.clickOnButton(POPUP_BUTTONS.ADD_AUDIENCE);
+        await this.searchForValues(managerAudience);
+        await this.clickOnAudience(managerAudience);
+      }
+      await this.clickOnButtonWithName(POPUP_BUTTONS.DONE);
+      await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
+    } else {
+      await this.clickOnButtonWithName(POPUP_BUTTONS.SKIP);
+    }
+  }
+
+  /**
+   * Adds Admins to the ACG.
+   * @param acgCreationParams - Parameters for adding admins to the ACG.
+   */
+  async addAdmins(acgCreationParams: ACGCreationParams): Promise<void> {
+    if (acgCreationParams.adminUser.length > 0) {
+      for (const adminUser of acgCreationParams.adminUser) {
+        await this.searchForValues(adminUser);
+        await this.clickOnAudience(adminUser);
+      }
+      await this.clickOnButtonWithName(POPUP_BUTTONS.DONE);
+    }
+    if (acgCreationParams.adminAudience.length > 0) {
+      for (const adminAudience of acgCreationParams.adminAudience) {
+        await this.createACGModal.clickOnButton(POPUP_BUTTONS.ADD_AUDIENCE);
+        await this.searchForValues(adminAudience);
+        await this.clickOnAudience(adminAudience);
+      }
+      await this.clickOnButtonWithName(POPUP_BUTTONS.DONE);
+      await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
+    } else {
+      await this.clickOnButtonWithName(POPUP_BUTTONS.SKIP);
+    }
   }
 }
