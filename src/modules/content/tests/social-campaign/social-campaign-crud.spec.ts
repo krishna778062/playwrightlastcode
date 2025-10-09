@@ -779,5 +779,50 @@ test.describe(
         await siteDashboardPage.assertions.verifySocalCampaignIsNotInCarouselItem(campaignOptions.linkText);
       }
     );
+
+    test(
+      'In Zeus Verify App Manager able to share Social Campaign to Site Feed and unable to share to SN when expired',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14903'],
+      },
+      async ({ appManagerHomePage, socialCampaignHelper, siteManagementHelper }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
+          zephyrTestId: 'CONT-14903',
+          storyId: 'CONT-14903',
+        });
+
+        const siteName = 'All Employees';
+        const siteId = await siteManagementHelper.getSiteIdWithName(siteName);
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+        });
+        campaignId = createdCampaign.campaignId;
+
+        const description = TestDataGenerator.generateRandomString();
+        await socialCampaignHelper.shareCampaignToSiteFeed(campaignId, description, siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.actions.clickOnFeedLink();
+        await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
+
+        // Expire campaign
+        await socialCampaignHelper.expireCampaign(campaignId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
+        await siteDashboardPage.assertions.verifySocialCampaignShareButtonIsNotVisible(description);
+      }
+    );
   }
 );

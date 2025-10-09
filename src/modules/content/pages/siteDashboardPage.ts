@@ -39,6 +39,7 @@ export interface ISiteDashboardAssertions {
   verifySocalCampaignInCarouselModal: (text: string) => Promise<void>;
   verifySocalCampaignInCarouselItem: (text: string) => Promise<void>;
   verifySocalCampaignIsNotInCarouselItem: (text: string) => Promise<void>;
+  verifySocialCampaignShareButtonIsNotVisible: (description: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BasePage implements ISiteDashboardActions, ISiteDashboardAssertions {
@@ -279,5 +280,9 @@ export class SiteDashboardPage extends BasePage implements ISiteDashboardActions
 
   async selectCarouselItem(text: string): Promise<void> {
     return this.carouselComponent.selectCarouselItem(text);
+  }
+
+  async verifySocialCampaignShareButtonIsNotVisible(description: string): Promise<void> {
+    return this.listFeedComponent.verifySocialCampaignShareButtonIsNotVisible(description);
   }
 }
