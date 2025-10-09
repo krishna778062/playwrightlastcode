@@ -11,6 +11,7 @@ export const CONNECTOR_IDS = {
   UKG_WFM: '460b431c-41f2-4d7e-9610-33892b73336d',
   UKG_PRO: '4e342748-5371-4f02-b21e-86fda7cbde1d',
   GOOGLE_CALENDAR: '86c5fd0a-0137-4618-8aac-ae862e09164d',
+  OUTLOOK_CALENDAR: 'e05a33db-46b5-4e17-b230-3c229ee3ce83',
   DOCUSIGN: 'e7926584-1a7b-47a5-b8a1-c59f0701df39',
   DOCEBO: 'db7f4f18-16e7-443b-9d72-ae68d146e854',
   MONDAY_DOT_COM: '46cae9fc-78b9-4f30-916d-ccd6d8eff802',
@@ -32,6 +33,7 @@ export const TILE_IDS = {
   UKG_PRO_DISPLAY_RECENT_PAYSTUBS: '297398ea-9827-4b94-97a4-82a101446ba9',
   UKG_PRO_DISPLAY_TIMEOFF_BALANCE: 'aca631d6-dd7e-4cae-a174-fa80a01faa5e',
   GOOGLE_CAL_DISPLAY_UPCOMING_EVENTS: 'b260c182-199e-4293-a21e-f5ca976fff36',
+  OUTLOOK_CAL_DISPLAY_UPCOMING_EVENTS: 'fb854aba-5484-4b72-8caa-28af67a55576',
   DISPLAY_DOCUSIGN_SIGNATURE_REQUESTS: 'c9368b20-00c3-40d7-b08e-20bc48be72ac',
   DISPLAY_LEARNING_COURSES: 'addf843b-06a7-498b-a471-8895fcaf47a7',
   MONDAY_DOT_COM_DISPLAY_TASKS: 'cf77a6cf-ed45-4b69-951a-dfd36d374fba',
@@ -93,9 +95,11 @@ export const REDIRECT_URLS = {
   AIRTABLE: 'https://airtable.com/',
   UKG_PRO: 'https://et19.ultipro.com/',
   GOOGLE_CALENDAR: 'https://workspace.google.com/',
+  OUTLOOK_CALENDAR: 'https://login.microsoftonline.com/',
   DOCUSIGN: 'https://account-d.docusign.com/',
   UKG_WFM: 'https://kcfn01-cfn08-ath01.cfn.mykronos.com/',
   MONDAY_DOT_COM: 'https://clydenoronha48s-team.monday.com/',
+  DOCEBO: 'https://simpplr.docebosaas.com/',
 } as const;
 
 /**
