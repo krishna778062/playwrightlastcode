@@ -232,7 +232,7 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
 
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-          await this.page.waitForTimeout(3000);
+          await this.page.waitForTimeout(attempt * 1000);
           await this.attendingCountLocator.waitFor({ state: 'visible', timeout: 10000 });
 
           const attendingCountText = await this.attendingCountLocator.textContent();

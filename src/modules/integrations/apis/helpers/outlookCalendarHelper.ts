@@ -39,17 +39,28 @@ export class OutlookCalendarHelper {
     if (this.accessToken && Date.now() < this.tokenExpiryTime) {
       return this.accessToken;
     }
+
+    // Get credentials from environment variables
+    const clientId = process.env.OUTLOOK_CLIENT_ID;
+    const clientSecret = process.env.OUTLOOK_CLIENT_SECRET;
+    const refreshToken = process.env.OUTLOOK_REFRESH_TOKEN;
+
+    if (!clientId || !clientSecret || !refreshToken) {
+      throw new Error(
+        '❌ Missing required Outlook Calendar environment variables: OUTLOOK_CLIENT_ID, OUTLOOK_CLIENT_SECRET, OUTLOOK_REFRESH_TOKEN'
+      );
+    }
+
     const res = await fetch(
       'https://login.microsoftonline.com/5453c757-2f8c-44c5-b46d-0ba5595986ca/oauth2/v2.0/token',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-          client_id: 'eefb9abf-901e-458c-ba08-33c1f4851e03',
+          client_id: clientId,
           grant_type: 'refresh_token',
-          refresh_token:
-            '1.AXwAV8dTVIwvxUS0bQulWVmGyr-a--4ekIxFuggzwfSFHgPMADl8AA.BQABAwEAAAADAOz_BQD0_1GOnFxGNJWSGL10oPq62pi675hUzAbLx0pPPRLAaZ63QGOq4-qXE3GMCWlb1eyvAKGGXFqIAxEoNbFZ9yWXkLBI_acAjPamjh6yPKfIYdFalpgboo75PbHv4BgAx28nyRRPoZWW7pJ6MjCION1tfndBlnYz-ylFWPMpE_vy3c8gIm4z8v16DUXUpAU6T-kvrUnwMw89eJKPBJbAu_hwdhlvAvJy6utWdeK6xg1TBj1c5__maIBz0xkB1wjyG6_mNlY7aM0ASZPZhjG5cv9lrbcr6aDpm_pXZmx2nT6G9WbOxeUDxsLx1h4Pd62qn5LDwflfZbJzkMeiwsjtRkqJ0W-A-0psIZHKX47hvQ5nx90bW7UkuRvlXzZ4X_QlPMDTuYr0TiG21QuBCm1nixiLqBBJbZhd84kGNJJRvPLKMU7DpKIko7dYAP1L4l1ocu6Dilvso7vvg95maHpAsl50tGm2-7kQ1xs08aI1mjzsLCMXILeiggI_D_uNvlt_fenESqtUjL6kq3eMnp9OC6cZQvlzQlO5A60JTIcPgQnG6oXxk_A-WWtUVDo-zSljCXjkEr0zzCodBONChqmK2sR4pEfJ1PZuN8Kmc_-w76jzTOI_nxSC4XJBuA7O0kbMpdrl56xcnt1Yk_QJvnUU8f7bq56GZ7a2Mc-5Zw4PEIbLL8fnPh8SkpAp_D-DT7VbLXDCnyCtHw270zZPSNQnU-uIYjFBJpQxsGsrTRj7tLbhfi-eFBcxWq5qp7PRyvqdZTtMi6siK4nhtm_QsMKbUEqBsEjsv-HSjPIyGH5roQRNXNWcQRqRzPhhYfNq2VZTpts5WKftoKwD2j0-hSOCUIRV6QX4fNRimWmrUJXb2VBGNBwdJHUNnhLLAMeTLeteGhRakt3gCYff2ZxGloO_x7SoanS9l4HhPEunNCrWRvyp6iGjf5Fj8jcZAGH36hCtPHSN85CY72jdVpxaQ8VWHJHaMsIcXUbZzPGmnblBlVHTzHdlb_29pT8nFf_Dbot9L3NCbrzFzg1pUrrR-6uOPk_ZYIl1nVhTP0MEfHrZQGI1Co9sa2fmR6uGUiNebb1YsvmrA1BqiONKCJAVg9u_Rtx2XZ_l__lyPie4YJPbLRg8GZ1bSY2pq8EFySWtvqV41h4Afx4g0WWHMVPX2x3TwW5j9TYLk9GX1safu9yAGQOErZ9SfGXuK0bdvTo4Jg_zlG0OuVijxm7pFwMbws26jgBOcJmr2Qs-gw8MCV7T6gT74Wmtrrq-YlDwd9luvwFixG4jQUDRyoIeceh4mtF1pfMUzF4S1CmyTlaNwvnEr5NYls9OACeoIQRkFuC5UqWq2BJHYXxfnJ_Tp_Xz3vL-1g1XmPFQhroTRc3qsn8QVTJ0-iLRnOJhJ3d84SO-pdl_0mJqcWhDBsG_bYw',
-          client_secret: 'f.H8Q~rkwZvmh4a7F2YBLOIyVBrT3CMK4tKdpcL-',
+          refresh_token: refreshToken,
+          client_secret: clientSecret,
           redirect_uri: 'https://localhost:3000/auth/callback',
           scope: 'offline_access Calendars.ReadWrite',
         }),
@@ -157,11 +168,16 @@ export class OutlookCalendarHelper {
   ): Promise<{ found: boolean; event?: OutlookCalendarEvent; attempts: number }> {
     const { maxAttempts = 8, retryDelayMs = 10000, calendarId = 'primary', expectFound = true } = options;
 
+    console.log(`[Outlook Calendar] Searching "${eventTitle}" - expect ${expectFound ? 'found' : 'NOT found'}`);
+
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const matchingEvents = await this.findEvents(eventTitle, calendarId);
       const eventFound = matchingEvents.length > 0;
 
+      console.log(`[Outlook Calendar] Attempt ${attempt}/${maxAttempts}: ${eventFound ? 'Found' : 'Not found'}`);
+
       if (eventFound === expectFound) {
+        console.log(`[Outlook Calendar] ✅ SUCCESS after ${attempt} attempts`);
         return {
           found: eventFound,
           event: eventFound ? matchingEvents[0] : undefined,
@@ -174,6 +190,7 @@ export class OutlookCalendarHelper {
       }
     }
 
+    console.log(`[Outlook Calendar] ❌ FAILED after ${maxAttempts} attempts`);
     return { found: !expectFound, attempts: maxAttempts };
   }
 
@@ -198,8 +215,14 @@ export class OutlookCalendarHelper {
   }> {
     const { maxAttempts = 8, retryDelayMs = 10000, calendarId = 'primary' } = options;
 
+    console.log(`[Outlook Calendar] Verifying details for "${eventTitle}"`);
+
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const matchingEvents = await this.findEvents(eventTitle, calendarId);
+
+      console.log(
+        `[Outlook Calendar] Attempt ${attempt}/${maxAttempts}: ${matchingEvents.length > 0 ? 'Found event' : 'No event'}`
+      );
 
       if (matchingEvents.length > 0) {
         const foundEvent = matchingEvents[0];
@@ -225,12 +248,15 @@ export class OutlookCalendarHelper {
         }
 
         if (mismatches.length === 0) {
+          console.log(`[Outlook Calendar] ✅ All details match after ${attempt} attempts`);
           return {
             found: true,
             detailsMatched: true,
             event: foundEvent,
             attempts: attempt,
           };
+        } else {
+          console.log(`[Outlook Calendar] Details mismatch: ${mismatches.length} issues`);
         }
       }
 
@@ -239,6 +265,7 @@ export class OutlookCalendarHelper {
       }
     }
 
+    console.log(`[Outlook Calendar] ❌ Details verification failed after ${maxAttempts} attempts`);
     return {
       found: false,
       detailsMatched: false,
