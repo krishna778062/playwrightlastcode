@@ -124,7 +124,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ siteDashboard, siteManagementHelper }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28328',
           storyId: 'INT-24422',
@@ -134,7 +134,7 @@ test.describe(
         createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 

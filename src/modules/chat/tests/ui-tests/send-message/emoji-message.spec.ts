@@ -1,5 +1,3 @@
-import { expect } from '@playwright/test';
-
 import CONSTANT_DATA from '../../../constants/constantData';
 import { chatTestFixture as test } from '../../../fixtures/chatFixture';
 
@@ -8,7 +6,7 @@ import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
 
 test.describe('Verifying emoji message in the editor', { tag: [TestPriority.P2] }, () => {
-  test('Send message with first 4 emojis from emoji picker', async ({ appManagerHomePage }) => {
+  test('Send message with first 4 emojis from emoji picker', async ({ appManagerFixture }) => {
     tagTest(test.info(), {
       description: 'User selects first 4 emojis from emoji picker and sends message',
       priority: TestPriority.P2,
@@ -17,7 +15,7 @@ test.describe('Verifying emoji message in the editor', { tag: [TestPriority.P2] 
       storyId: 'CHAT-2306',
     });
 
-    const chatAppPage = await appManagerHomePage.navigateToChatPageViaTopNavBar();
+    const chatAppPage = await appManagerFixture.navigationHelper.navigateToChatPageViaTopNavBar();
     await chatAppPage.actions.openDirectMessageWithUser(CONSTANT_DATA.USER_NAME_1);
 
     const chatEditor = chatAppPage.conversationWindow.getChatEditorComponent();
@@ -34,7 +32,7 @@ test.describe('Verifying emoji message in the editor', { tag: [TestPriority.P2] 
     await chatAppPage.assertions.verifyEmojiMessageisVisible(emojiInsideEditor ?? '');
   });
 
-  test('Send text message with emojis', async ({ appManagerHomePage }) => {
+  test('Send text message with emojis', async ({ appManagerFixture }) => {
     tagTest(test.info(), {
       description: 'User types text, adds emojis, and sends message',
       priority: TestPriority.P2,
@@ -43,7 +41,7 @@ test.describe('Verifying emoji message in the editor', { tag: [TestPriority.P2] 
       storyId: 'CHAT-2307',
     });
 
-    const chatAppPage = await appManagerHomePage.navigateToChatPageViaTopNavBar();
+    const chatAppPage = await appManagerFixture.navigationHelper.navigateToChatPageViaTopNavBar();
     await chatAppPage.actions.openDirectMessageWithUser(CONSTANT_DATA.USER_NAME_1);
 
     const chatEditor = chatAppPage.conversationWindow.getChatEditorComponent();
@@ -63,7 +61,7 @@ test.describe('Verifying emoji message in the editor', { tag: [TestPriority.P2] 
     await chatAppPage.assertions.verifyEmojiMessageisVisible(emojiwithextinsideEditor ?? '');
   });
 
-  test('Send message with emojis from search input', async ({ appManagerHomePage }) => {
+  test('Send message with emojis from search input', async ({ appManagerFixture }) => {
     tagTest(test.info(), {
       description: 'User searched a emoji, adds emojis, and sends message',
       priority: TestPriority.P2,
@@ -72,7 +70,7 @@ test.describe('Verifying emoji message in the editor', { tag: [TestPriority.P2] 
       storyId: 'CHAT-2308',
     });
 
-    const chatAppPage = await appManagerHomePage.navigateToChatPageViaTopNavBar();
+    const chatAppPage = await appManagerFixture.navigationHelper.navigateToChatPageViaTopNavBar();
     await chatAppPage.actions.openDirectMessageWithUser(CONSTANT_DATA.USER_NAME_1);
 
     const chatEditor = chatAppPage.conversationWindow.getChatEditorComponent();

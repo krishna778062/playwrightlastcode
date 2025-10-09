@@ -57,15 +57,17 @@ test.describe('Protected Authors', () => {
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.ADD_USERS_TO_ALLOWLIST],
     },
-    async ({ page }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description:
           'Verify As an application manager, I should be able to add the users to protected authors - allow list',
         zephyrTestId: 'CONT-32769',
         storyId: 'CONT-32769',
       });
-      const loggedInUserName = await baseActionUtil.getCurrentLoggedInUserName('Get current logged-in user name');
-      await homePage.actions.navigateToApplication();
+      const loggedInUserName = await appManagerFixture.homePage.getCurrentLoggedInUserName(
+        'Get current logged-in user name'
+      );
+      await appManagerFixture.navigationHelper.openApplicationSettings();
       await applicationScreen.actions.clickOnApplication();
       await manageApplicationPage.actions.clickOnPrivileges();
       await privilegesScreenPage.assertions.verifyProtectedAuthorsAuthorsFieldBarIsVisible();
