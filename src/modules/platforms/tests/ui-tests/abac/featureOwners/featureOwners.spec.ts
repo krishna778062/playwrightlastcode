@@ -149,7 +149,7 @@ test.describe(
         },
         async ({ userManagerFixture, appManagerApiFixture }) => {
           tagTest(test.info(), {
-            zephyrTestId: ['PS-33255', 'PS-33090', 'PS-33089'],
+            zephyrTestId: ['PS-33255', 'PS-33090', 'PS-33089', `PS-32972`, `PS-32973`],
           });
           const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerFixture.page);
           // Test Scenario

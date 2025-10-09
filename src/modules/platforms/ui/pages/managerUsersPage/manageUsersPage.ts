@@ -1,7 +1,9 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { BasePage } from '@core/ui/pages/basePage';
+import { ManageUsersFilter } from '@platforms/ui/components/manageUsersFilter';
+
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { BasePage } from '@/src/core/ui/pages/basePage';
 
 export enum MUOptions {
   EDIT_USER = 'Edit user',
@@ -22,6 +24,9 @@ export class ManageUsersPage extends BasePage {
   readonly manageUsersMenuOptions: Locator;
   readonly firstNameInputBox: Locator;
   readonly primaryRoleInputBox: Locator;
+  readonly filterButton: Locator;
+
+  manageUsersFilter: ManageUsersFilter;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.MANAGE_USERS_PAGE) {
     super(page, pageUrl);
@@ -33,6 +38,8 @@ export class ManageUsersPage extends BasePage {
     this.manageUsersMenuOptions = page.locator('[class*="DropdownMenu-module__DropdownMenu"] button');
     this.firstNameInputBox = page.locator('#firstName');
     this.primaryRoleInputBox = page.locator('select#role');
+    this.manageUsersFilter = new ManageUsersFilter(page);
+    this.filterButton = page.getByRole('button', { name: 'Filters' });
   }
 
   // To verify that the manage users page is loaded
@@ -130,6 +137,31 @@ export class ManageUsersPage extends BasePage {
       await this.primaryRoleInputBox.selectOption(newRoleName);
       await this.clickOnButtonWithName('Update');
       await this.verifyToastMessageIsVisibleWithText('Role updated');
+    });
+  }
+
+  /**
+   * Clicks on the filter button.
+   */
+  async clickOnFilterButton(): Promise<void> {
+    await test.step(`Clicking on the filter button`, async () => {
+      await this.clickOnElement(this.filterButton);
+    });
+  }
+
+  /**
+   * Verifies the values of primary roles columns.
+   * @param value - The value that needs to be verified.
+   */
+  async verifyPrimaryRoleValues(value: string): Promise<void> {
+    await test.step(`Verifying primary role values`, async () => {
+      const primaryRoleValues: string[] = [];
+      await this.verifyThePageIsLoaded();
+      const count = await this.manageUsersPageElements.count();
+      for (let i = 0; i < count; i++) {
+        primaryRoleValues.push((await this.manageUsersPageElements.nth(i).locator('p').nth(1).textContent()) ?? '');
+      }
+      expect(primaryRoleValues.every(val => val === value)).toBeTruthy();
     });
   }
 }

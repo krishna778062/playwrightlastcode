@@ -71,7 +71,7 @@ export class UserManagementService implements IUserManagementOperations {
    * @param role - The role of the user
    * @param options - department - The department of the user
    */
-  async addUserIfNotAddedAlready(user: User, role: Roles, options?: { department: string }): Promise<void> {
+  async addUserIfNotAddedAlready(user: User, role: Roles, options?: { department: string }): Promise<string> {
     let data: any;
     let loginIdentifier: any;
     const roleId = await this.identityService.fetchRoleId(role);
@@ -119,11 +119,14 @@ export class UserManagementService implements IUserManagementOperations {
     }
 
     if (!(await this.checkUserPresence(loginIdentifier))) {
-      await this.httpClient.post(API_ENDPOINTS.appManagement.users.add, {
+      const response = await this.httpClient.post(API_ENDPOINTS.appManagement.users.add, {
         data: data,
       });
+      const responseJson = await this.httpClient.parseResponse<AddUserResponse>(response);
+      return responseJson.user_id;
     } else {
       console.log(`User with loginIdentifier ${loginIdentifier} already exist in the tenant`);
+      return '';
     }
   }
 
