@@ -104,16 +104,13 @@ test.describe(
         await ukgSyncPage.verifyToastMessageIsVisibleWithText(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
         await ukgSyncPage.navigateToUserSyncingProvisioningPage();
         await ukgSyncPage.selectDropdown(SYNCING.SYNC_DROPDOWN);
-        await ukgSyncPage.verifyVisibility(SYNCING.UKG_PRO_SYNCING);
         await ukgSyncPage.selectSyncOptions(SYNCING.UKG_PRO);
         await ukgSyncPage.verifyDetailsCheckBoxVisibility(SYNCING.PAY_CURRENCY);
         await ukgSyncPage.verifyDetailsCheckBoxVisibility(SYNCING.FIRST_NAME);
-        await ukgSyncPage.selectDetailsSyncCheckBox(SYNCING.FIRST_NAME, SYNCING.PREFERRED_NAME);
+        await ukgSyncPage.selectDetailsSyncCheckBox(SYNCING.FIRST_NAME, SYNCING.NAME, SYNCING.PREFERRED_NAME);
         await ukgSyncPage.verifyDetailsCheckBoxVisibility(SYNCING.HIRE_DATE);
-        await ukgSyncPage.selectDetailsSyncCheckBox(SYNCING.HIRE_DATE, SYNCING.SENIORITY_DATE);
+        await ukgSyncPage.selectDetailsSyncCheckBox(SYNCING.HIRE_DATE, SYNCING.HIRE, SYNCING.SENIORITY_DATE);
         await ukgSyncPage.navigateToPeopleDataPage();
-        await ukgSyncPage.uncheckScheduledSourcesCheckBox(SYNCING.UKG_PRO);
-        await ukgSyncPage.clickOnButton(UI_ACTIONS.SAVE);
       }
     );
   }

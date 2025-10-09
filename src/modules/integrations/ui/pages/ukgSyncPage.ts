@@ -82,8 +82,8 @@ export class UkgSyncPage extends BasePage {
     await this.ukgSyncComponents.verifyDetailsCheckBoxVisibility(name);
   }
 
-  async selectDetailsSyncCheckBox(source: string, name: string): Promise<void> {
-    await this.ukgSyncComponents.selectDetailsSyncCheckBox(source, name);
+  async selectDetailsSyncCheckBox(source: string, sync: string, name: string): Promise<void> {
+    await this.ukgSyncComponents.selectDetailsSyncCheckBox(source, sync, name);
   }
 
   async uncheckScheduledSourcesCheckBox(name: string): Promise<void> {

@@ -118,4 +118,6 @@ export const SYNCING = {
   HIRE_DATE: 'Hire date',
   SENIORITY_DATE: 'Seniority Date',
   PREFERRED_NAME: 'Preferred Name',
+  NAME: 'First Name',
+  HIRE: 'Hire Date',
 } as const;

@@ -1,4 +1,4 @@
-import { UKG_CREDS } from '@integrations/test-data/ukg-sync.test-data';
+import { UKG_CREDS } from '@integrations/test-data/gamma-data-file';
 import { expect, Locator, Page } from '@playwright/test';
 
 import { SYNCING } from '../constants/common';
@@ -6,6 +6,14 @@ import { SYNCING } from '../constants/common';
 import { BaseComponent } from '@/src/core/components/baseComponent';
 
 export class UkgSyncComponents extends BaseComponent {
+  readonly syncSourceDropdown: () => Locator;
+  readonly syncCheckBox: (text: string) => Locator;
+
+  constructor(page: Page, rootLocator?: Locator) {
+    super(page, rootLocator);
+    this.syncSourceDropdown = () => this.rootLocator.locator('#syncSource');
+    this.syncCheckBox = (text: string) => this.rootLocator.locator(`option:has-text("${text}")`).locator('..');
+  }
   protected userSyncingDropdown(option?: string): Locator {
     return this.page.locator(`select[id="${option}"]`).locator('..');
   }
@@ -31,10 +39,10 @@ export class UkgSyncComponents extends BaseComponent {
   }
 
   protected syncDetailsCheckBox(option: string): Locator {
-    return this.page.getByText(`${option}`).locator('..').locator('..').getByRole('combobox');
+    return this.page.getByText(`${option}`).locator('..').locator('..').locator('input');
   }
 
-  async syncDropdown(option: string): Promise<Locator> {
+  protected syncDropdown(option: string): Locator {
     return this.rootLocator.getByRole('option', { name: option });
   }
 
@@ -110,16 +118,16 @@ export class UkgSyncComponents extends BaseComponent {
   }
 
   async selectSyncOptions(name: string): Promise<void> {
-    await this.optionText(name).nth(1).click();
+    await this.syncSourceDropdown().selectOption(name);
   }
 
   async verifyDetailsCheckBoxVisibility(name: string): Promise<void> {
     await expect(this.spanText(name), 'Detail checkbox option not visible').toBeVisible();
   }
 
-  async selectDetailsSyncCheckBox(source: string, name: string): Promise<void> {
-    await this.syncDetailsCheckBox(source).click();
-    await this.optionText(name).click();
+  async selectDetailsSyncCheckBox(source: string, sync: string, name: string): Promise<void> {
+    await this.syncDetailsCheckBox(source).nth(2).click();
+    await this.syncCheckBox(sync).selectOption(name);
   }
 
   async uncheckScheduledSourcesCheckBox(name: string): Promise<void> {
