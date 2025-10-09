@@ -1,5 +1,3 @@
-import { expect } from '@playwright/test';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
@@ -13,17 +11,17 @@ import { CHAT_SUITE_TAGS } from '../../../constants/testTags';
  * Tests message pinning functionality in direct messages and group chats
  */
 test.describe(
-  'Message Pinning Tests - Direct Message',
+  'message Pinning Tests - Direct Message',
   {
     tag: [CHAT_SUITE_TAGS.DIRECT_MESSAGE],
   },
   () => {
     test(
-      'Message Pinning: Verify user can pin and view their sent message in direct chat',
+      'message Pinning: Verify user can pin and view their sent message in direct chat',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ multiUserChatTestHelper, chatPages, user1Page }) => {
+      async ({ multiUserChatTestHelper, chatPages }) => {
         tagTest(test.info(), {
           description: 'Verify that user can pin their sent message in direct chat and view pinned messages',
           zephyrTestId: 'CHAT-2900',
@@ -71,11 +69,11 @@ test.describe(
     );
 
     test(
-      'Message Pinning: Verify user can pin messages sent by other users in direct chat',
+      'message Pinning: Verify user can pin messages sent by other users in direct chat',
       {
         tag: [TestPriority.P1, TestGroupType.SMOKE],
       },
-      async ({ multiUserChatTestHelper, chatPages, user2Page }) => {
+      async ({ multiUserChatTestHelper, chatPages }) => {
         tagTest(test.info(), {
           description: 'Verify that users can pin messages sent by other users in direct chat conversation',
           zephyrTestId: 'CHAT-2901',
@@ -130,17 +128,17 @@ test.describe(
  * Tests message pinning functionality in group conversations
  */
 test.describe(
-  'Message Pinning Tests - Group Chat',
+  'message Pinning Tests - Group Chat',
   {
     tag: [CHAT_SUITE_TAGS.GROUP_CHAT],
   },
   () => {
     test(
-      'Message Pinning: Verify user can pin and view their sent message in group chat',
+      'message Pinning: Verify user can pin and view their sent message in group chat',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ multiUserChatTestHelper, chatPages, user1Page }) => {
+      async ({ multiUserChatTestHelper, chatPages }) => {
         tagTest(test.info(), {
           description: 'Verify that user can pin their sent message in group chat and both users can see it',
           zephyrTestId: 'CHAT-3000',
