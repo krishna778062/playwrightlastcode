@@ -8,6 +8,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { FileUtil } from '@/src/core/utils/fileUtil';
+
 test.describe(
   '@FeedPost',
   {
@@ -64,10 +66,30 @@ test.describe(
         // Note: Post can also be created via API using:
         // const { postResult: apiPostResult, postId } = await feedManagerService.createPost({ text: initialPostText });
         feedPage.actions.clickShareThoughtsButton();
+        const imagePath = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
+          FEED_TEST_DATA.ATTACHMENTS.IMAGE
+        );
+        const documentPath = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'excel',
+          FEED_TEST_DATA.ATTACHMENTS.DOCUMENT
+        );
         const postResult = await feedPage.actions.createAndPost({
           text: initialPostText,
           attachments: {
-            files: ['images/' + FEED_TEST_DATA.ATTACHMENTS.IMAGE, 'excel/' + FEED_TEST_DATA.ATTACHMENTS.DOCUMENT],
+            files: [imagePath, documentPath],
           },
         });
 

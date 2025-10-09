@@ -9,7 +9,8 @@ export class FeatureSiteComponent extends BaseComponent {
     .locator("xpath=following-sibling::div/input[not(@type='hidden')]");
   readonly addButton = this.page.getByRole('button', { name: 'Add', exact: true });
   readonly doneButton = this.page.getByRole('button', { name: 'Done' });
-  readonly getSiteFromDropdown = (siteName: string) => this.page.locator(`div[id*="listbox"] :text("${siteName}")`);
+  readonly getSiteFromDropdown = (siteName: string) =>
+    this.page.getByRole('menuitem').getByLabel(siteName, { exact: true });
   readonly siteListingItemByName = (siteName: string) =>
     this.page.locator(`div[class*="ListingItem-module"] p:text("${siteName}")`);
   readonly siteListingItemByIndex = (index: number) =>

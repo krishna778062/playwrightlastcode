@@ -218,13 +218,13 @@ export class CreateFeedPostComponent
 
   /**
    * Uploads files to the post
-   * @param files - Array of file paths to upload
+   * @param filePaths - Array of file paths to upload
    */
-  async uploadFiles(files: string[]): Promise<void> {
+  async uploadFiles(filePaths: string[]): Promise<void> {
     await test.step('Upload files to feed post', async () => {
       // Setup request promises for upload requests
       const responsePromises = [];
-      for (let i = 0; i < files.length; i++) {
+      for (let i = 0; i < filePaths.length; i++) {
         const responsePromise = this.page.waitForResponse(
           response =>
             response.request().url().includes('X-Amz-SignedHeaders=host') &&
@@ -234,10 +234,9 @@ export class CreateFeedPostComponent
         );
         responsePromises.push(responsePromise);
       }
-      const filePaths = files.map(file => FileUtil.getFilePath(__dirname, '..', 'test-data', 'static-files', file));
       await this.fileUploadInput.setInputFiles(filePaths);
       await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
-      await expect(this.attachedFiles).toHaveCount(files.length);
+      await expect(this.attachedFiles).toHaveCount(filePaths.length);
 
       // Wait for all upload requests to complete
       await Promise.all(responsePromises);

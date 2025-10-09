@@ -67,10 +67,10 @@ test.describe(
       manualCleanupNeeded = false;
     });
 
-    test.afterEach(async ({ standardUserFixture }) => {
+    test.afterEach(async ({ appManagerApiFixture }) => {
       // Only cleanup manually if needed (for UI-only tests)
       if (manualCleanupNeeded && publishedPageId && siteIdToPublishPage) {
-        await standardUserFixture.contentManagementHelper.deleteContent(siteIdToPublishPage, publishedPageId);
+        await appManagerApiFixture.contentManagementHelper.deleteContent(siteIdToPublishPage, publishedPageId);
         console.log('Manual cleanup completed for page:', publishedPageId);
       } else {
         console.log('No page was published, hence skipping the deletion');

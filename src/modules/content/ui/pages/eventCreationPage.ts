@@ -180,8 +180,7 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
       );
       responsePromises.push(responsePromise);
 
-      const imagePath = FileUtil.getFilePath(__dirname, '..', '..', 'test-data', 'static-files', 'images', fileName);
-      await this.coverImageUploader.uploadAttachment(imagePath);
+      await this.coverImageUploader.uploadAttachment(fileName);
 
       // Handle crop options
       if (options?.widescreenCropOption) {
