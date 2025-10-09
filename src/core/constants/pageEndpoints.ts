@@ -39,7 +39,9 @@ export const PAGE_ENDPOINTS = {
   getFeedPage: (feedId: string) => `/feed/${feedId}`,
   APPLICATION_SETTINGS: 'manage/app/setup/general',
   GOVERNANCE_SCREEN: 'manage/app/setup/governance',
+  MANAGE_TOPICS_SCREEN: 'manage/topics',
   PRIVILEGES_SCREEN: 'manage/app/setup/privileges',
+  DEFAULT_SCREEN: 'manage/app/defaults/email-notifications',
   MANAGE_FEATURE: 'manage-features',
   MANAGE_CONTENT: 'manage/content',
   MANAGE_CONTENT_APPLY_API: '/manage',
@@ -48,6 +50,7 @@ export const PAGE_ENDPOINTS = {
 
   MANAGE_SITE_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
   SITE_DETAILS_PAGE: (siteId: string) => PAGE_ENDPOINTS.getSiteDashboardPage(siteId),
+  ADD_SITE_SCREEN_PAGE: '/manage/sites/add?nextLinkTo=/manage/sites',
   SITE_CATEGORIES_PAGE: '/manage/site-categories',
   PAGE_CREATION_PAGE: '/site/:siteId/page/:pageId',
   ALBUM_CREATION_PAGE: '/site/:siteId/album/:albumId',
@@ -65,4 +68,10 @@ export const PAGE_ENDPOINTS = {
 
   // Alert Notification pages
   NOTIFICATION_CUSTOMIZATION_PAGE: '/manage/app/defaults/notification-customization',
+
+  //analytics pages
+  ANALYTICS_PAGE: '/analytics-landing',
+  APP_ANALYTICS_PAGE: '/analytics',
+  SOCIAL_CAMPAIGNS_PAGE: '/campaigns/latest',
+  ADD_SOCIAL_CAMPAIGNS: '/campaigns/add',
 };

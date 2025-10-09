@@ -9,7 +9,7 @@ import { QRManagementService } from '@/src/core/api/services/QRManagementService
 import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
-export type UserType = 'appManager' | 'endUser';
+export type UserType = 'appManager' | 'endUser' | 'promotionManager';
 
 export const users = {
   appManager: {
@@ -20,16 +20,23 @@ export const users = {
     email: process.env.END_USER_USERNAME || '',
     password: process.env.END_USER_PASSWORD || '',
   },
+  promotionManager: {
+    email: process.env.PROMOTION_MANAGER_USERNAME || '',
+    password: process.env.PROMOTION_MANAGER_PASSWORD || '',
+  },
 };
 
 export const frontlineTestFixture = test.extend<
   {
     appManagerContext: BrowserContext;
     endUserContext: BrowserContext;
+    promotionManagerContext: BrowserContext;
     appManagerHomePage: NewUxHomePage | OldUxHomePage;
     endUserHomePage: NewUxHomePage | OldUxHomePage;
+    promotionManagerHomePage: NewUxHomePage | OldUxHomePage;
     appManagersPage: Page;
     endUsersPage: Page;
+    promotionManagersPage: Page;
     loginAs: (userType: UserType) => Promise<void>;
   },
   {
@@ -110,6 +117,33 @@ export const frontlineTestFixture = test.extend<
   endUsersPage: [
     async ({ endUserHomePage }, use, workerInfo) => {
       await use(endUserHomePage.page);
+    },
+    { scope: 'test' },
+  ],
+  promotionManagerContext: [
+    async ({ browser }, use, workerInfo) => {
+      const context = await browser.newContext();
+      await use(context);
+      await context?.close();
+    },
+    { scope: 'test' },
+  ],
+  promotionManagerHomePage: [
+    async ({ promotionManagerContext }, use, workerInfo) => {
+      const page = await promotionManagerContext.newPage();
+      const promotionManagerHomePage = await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().promotionManagerEmail!,
+        password: getEnvConfig().promotionManagerPassword!,
+      });
+      await promotionManagerHomePage.verifyThePageIsLoaded();
+      await use(promotionManagerHomePage);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+  promotionManagersPage: [
+    async ({ promotionManagerHomePage }, use, workerInfo) => {
+      await use(promotionManagerHomePage.page);
     },
     { scope: 'test' },
   ],

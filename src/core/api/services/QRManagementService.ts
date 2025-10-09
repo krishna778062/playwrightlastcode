@@ -11,8 +11,18 @@ export class QRManagementService extends BaseApiClient implements IQRManagementO
   deleteQRByName(qrName: string): Promise<void> {
     throw new Error('Method not implemented.');
   }
-  getListOfQRCodes(): Promise<any> {
-    throw new Error('Method not implemented.');
+  async getListOfQRCodes(pageSize: number = 16): Promise<{ count: number; qrCodes: any[] }> {
+    let result: { count: number; qrCodes: any[] } = { count: 0, qrCodes: [] };
+    await test.step(`Get list of QR codes with page size: ${pageSize}`, async () => {
+      const response = await this.get(API_ENDPOINTS.qr.list(pageSize));
+      expect(response.status()).toBe(200);
+      const json = await response.json();
+      result = {
+        count: json.result.count,
+        qrCodes: json.result.qrCodes,
+      };
+    });
+    return result;
   }
   isQRCodeExists(qrName: string): Promise<boolean> {
     throw new Error('Method not implemented.');

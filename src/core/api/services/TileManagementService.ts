@@ -118,6 +118,7 @@ export class TileManagementService extends BaseApiClient implements ITileManagem
     scheduleUrl?: string;
     timePeriod?: string;
     instanceUrl?: string;
+    boardId?: string;
   }): Promise<TileCreationResult> {
     // Get the template to get proper request schema
     const templateRes = await this.get(API_ENDPOINTS.integrations.tilesByConnector(args.connectorId));
@@ -148,6 +149,24 @@ export class TileManagementService extends BaseApiClient implements ITileManagem
     // Update the request schema to set definedBy to "author" for app manager defined
     const updatedRequestSchema = {
       ...sanitizedSchema,
+      body:
+        // Handle Monday.com board ID parameter (body array)
+        rawSchema.body?.map((param: any) => {
+          const isBoardParameter =
+            param.name?.toLowerCase().includes('board') ||
+            param.id?.toLowerCase().includes('board') ||
+            param.name?.toLowerCase() === 'board';
+
+          if (args.boardId && isBoardParameter) {
+            return {
+              ...param,
+              definedBy: 'author',
+              presetValue: args.boardId,
+              value: args.boardId,
+            };
+          }
+          return param;
+        }) || [],
       parameters:
         sanitizedSchema.parameters?.map((param: any) => {
           // Handle UKG WFM schedule URL parameter
