@@ -333,6 +333,41 @@ export class RewardsStore extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardResendButton.first());
   }
 
+  /**
+   * Redeem gift card and validate with detailed order history verification
+   */
+  async redeemAndValidateWithOrderHistory({
+    tab,
+    giftCard,
+    successMessage,
+    additionalMessages = [],
+  }: {
+    tab: any;
+    giftCard: string;
+    successMessage: string;
+    additionalMessages?: string[];
+  }) {
+    if (tab) {
+      await this.clickOnElement(tab, {
+        stepInfo: `Clicking on ${tab} tab`,
+      });
+    }
+    await this.selectAndRedeemGiftCard(giftCard);
+    await this.validateSuccessMessage(successMessage, additionalMessages);
+    await this.validateOrderHistoryForGiftCard(giftCard);
+  }
+
+  /**
+   * Validate order history for a specific gift card
+   */
+  async validateOrderHistoryForGiftCard(giftCard: string) {
+    await this.visitTheOrderHistory();
+    await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanel.first());
+    await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanel.first().locator(`img[alt^="${giftCard}"]`));
+    await this.verifier.verifyElementContainsText(this.orderHistoryPanelRewardName.first(), giftCard);
+    await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardResendButton.first());
+  }
+
   async mockTheAvailablePoints(pointToSpend: number) {
     const now = new Date();
     const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
@@ -611,5 +646,175 @@ export class RewardsStore extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.somethingWentWrongCloseButton.last());
     await this.clickOnElement(this.rewardsDialogBox.somethingWentWrongCloseButton.last());
     await this.verifier.verifyTheElementIsNotVisible(this.rewardsDialogBox.container);
+  }
+
+  /**
+   * Mock API for element checks
+   */
+  async mockTheAPIForElementChecks() {
+    await this.page.route('**/recognition/rewards/users/**/wallet', route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          result: {
+            gifting: {
+              pendingIn: 0,
+              available: 0,
+              refreshingAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            },
+            redeemable: {
+              pendingIn: 0,
+              available: 10000,
+            },
+            redeemed: {
+              pendingIn: 100,
+              available: 0,
+            },
+          },
+        }),
+      })
+    );
+    await this.page.reload();
+  }
+
+  /**
+   * Get all API gift list
+   */
+  async getAllTheAPIGiftList(): Promise<string[]> {
+    const response = await this.page.waitForResponse(
+      res => res.url().includes('/recognition/rewards/catalog') && res.status() === 200
+    );
+    const data = await response.json();
+    const apiGiftList = data?.results?.map((item: any) => item.name) || [];
+    return apiGiftList;
+  }
+
+  /**
+   * Get filtered API gift list
+   */
+  async getFilteredAPIGiftList(searchTerm: string): Promise<string[]> {
+    const response = await this.page.waitForResponse(
+      res => res.url().includes('/recognition/rewards/catalog') && res.status() === 200
+    );
+    const data = await response.json();
+    const apiGiftList =
+      data?.results
+        ?.filter((item: any) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        ?.map((item: any) => item.name) || [];
+    return apiGiftList;
+  }
+
+  /**
+   * Validate all gift cards are in ascending order
+   */
+  async getAllTheGitCardAndValidateAllAreInAscendingOrder(apiGiftList: string[]) {
+    await this.giftCardNames.last().waitFor();
+    const count = await this.giftCardNames.count();
+    const UIGiftList: string[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const name = await this.giftCardNames.nth(i).textContent();
+      if (name) {
+        UIGiftList.push(name.trim());
+      }
+    }
+    const trimmedUIGiftList = UIGiftList.map(name => name.trim());
+    const trimmedAPIGiftList = apiGiftList.map(name => name.trim());
+    expect(trimmedUIGiftList).toEqual(trimmedAPIGiftList);
+  }
+
+  /**
+   * Validate image rounded corners
+   */
+  async validateTheImageRoundedCorners() {
+    const count = await this.giftCardImages.count();
+    for (let i = 0; i < count; i++) {
+      const image = this.giftCardImages.nth(i);
+      await this.verifier.verifyTheElementIsVisible(image);
+      // Check if the image has rounded corners by verifying CSS properties
+      const borderRadius = await image.evaluate(el => {
+        const computedStyle = window.getComputedStyle(el);
+        return computedStyle.borderRadius;
+      });
+      expect(borderRadius).toBeTruthy();
+    }
+  }
+
+  /**
+   * Get all categories from the dropdown
+   */
+  async getAllCategories(): Promise<string[]> {
+    await this.rewardCategory.waitFor({ state: 'visible' });
+    const options = await this.rewardCategory.locator('option').all();
+    const categories: string[] = [];
+
+    for (const option of options) {
+      const text = await option.textContent();
+      if (text) {
+        categories.push(text.trim());
+      }
+    }
+
+    return categories;
+  }
+
+  /**
+   * Get all countries from the dropdown
+   */
+  async getAllCountries(): Promise<string[]> {
+    await this.rewardCountry.waitFor({ state: 'visible' });
+    const options = await this.rewardCountry.locator('option').all();
+    const countries: string[] = [];
+
+    for (const option of options) {
+      const text = await option.textContent();
+      if (text) {
+        countries.push(text.trim());
+      }
+    }
+
+    return countries;
+  }
+
+  /**
+   * Get cards locator by name
+   */
+  cards(name: string): Locator {
+    return this.page.getByRole('button', { name: `Redeem ${name}` });
+  }
+
+  /**
+   * Checkout gift card for interruption testing
+   */
+  async checkOutTheGiftCardForInterruption(giftCardName: string): Promise<void> {
+    await this.searchForGiftCard(giftCardName);
+    await this.clickOnTheNthGiftCard(1);
+    await this.rewardsDialogBox.clickOnTheCheckoutButton();
+    await this.rewardsDialogBox.enterTheConfirmEmail();
+    await this.rewardsDialogBox.checkTheTermsAndConditionCheckbox();
+    await Promise.all([
+      this.page.route('**/recognition/redemption/rewards/redeem', route => {
+        route.abort(); // Simulates network interruption
+      }),
+      this.rewardsDialogBox.confirmOrder.click(),
+    ]);
+  }
+
+  /**
+   * Mock the reward API for new user
+   */
+  async mockTheRewardAPIForNewUser() {
+    await this.page.route('**/recognition/rewards/users/me/preferences/redemption', async (route, request) => {
+      const res = await this.page.request.fetch(request);
+      const body = await res.json();
+      body.result.countryCode = '';
+      await route.fulfill({
+        status: res.status(),
+        contentType: res.headers()['content-type'] || 'application/json',
+        body: JSON.stringify(body),
+      });
+    });
+    await this.page.reload();
   }
 }

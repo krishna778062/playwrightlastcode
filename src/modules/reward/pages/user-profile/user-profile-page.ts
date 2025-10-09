@@ -4,6 +4,12 @@ import { TopNavBarComponent } from '@core/components/topNavBarComponent';
 import { BasePage } from '@core/pages/basePage';
 
 export class UserProfilePage extends BasePage {
+  mockAppConfigLanguage(page: Page, arg1: number) {
+    throw new Error('Method not implemented.');
+  }
+  restoreAppConfigMock(page: Page) {
+    throw new Error('Method not implemented.');
+  }
   // Components
   readonly topNavBarComponent: TopNavBarComponent;
 

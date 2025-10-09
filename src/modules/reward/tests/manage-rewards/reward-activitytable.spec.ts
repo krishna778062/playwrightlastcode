@@ -1104,4 +1104,25 @@ test.describe('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       fs.unlinkSync(csvUtils.getLatestCSV());
     }
   );
+
+  test(
+    '[RC-3021] Validate Rewards Overview Activity Table for points redeemed',
+    {
+      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
+    },
+    async ({ appManagerPage }) => {
+      tagTest(test.info(), {
+        description: 'Validate Rewards Overview Activity Table for points redeemed',
+        zephyrTestId: 'RC-3021',
+        storyId: 'RC-3021',
+      });
+      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerPage);
+
+      // Redeem gift card and validate activity table
+      await manageRewardsPage.redeemGiftCardAndValidateActivityTable('Amazon');
+
+      // Verify the activity table for the gift card
+      await manageRewardsPage.verifyTheActivityTableForGiftCard();
+    }
+  );
 });
