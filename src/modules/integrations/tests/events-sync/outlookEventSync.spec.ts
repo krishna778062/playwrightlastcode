@@ -6,14 +6,13 @@ import { TestGroupType } from '@core/constants/testType';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { EventSyncDestination } from '@/src/core/types/contentManagement.types';
 import { EventDetailPage } from '@/src/modules/content/pages/eventDetailPage';
 import { IntegrationsFeatureTags, IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
 import { integrationsEventFixture as test } from '@/src/modules/integrations/fixtures/eventSyncFixture';
 import {
-  assertCompleteEventConfiguration,
-  createCalendarHelper,
-} from '@/src/modules/integrations/helpers/calendarHelper';
+  assertCompleteOutlookEventConfiguration,
+  createAppManagerOutlookCalendarHelper,
+} from '@/src/modules/integrations/helpers/outlookCalendarHelper';
 import {
   createOutlookEventPayload,
   EXPECTED_OUTLOOK_EVENT_SYNC_CONFIG,
@@ -67,10 +66,10 @@ test.describe(
           .getContentManagementService()
           .addNewEventContent(siteId, eventPayload);
 
-        assertCompleteEventConfiguration(eventResult, EXPECTED_OUTLOOK_EVENT_SYNC_CONFIG);
+        assertCompleteOutlookEventConfiguration(eventResult, EXPECTED_OUTLOOK_EVENT_SYNC_CONFIG);
 
-        // Verify initial sync to Outlook Calendar using generic helper
-        const appManagerCalendarHelper = createCalendarHelper(EventSyncDestination.OUTLOOK_CALENDAR, 'APP_MANAGER');
+        // Verify initial sync to Outlook Calendar
+        const appManagerCalendarHelper = createAppManagerOutlookCalendarHelper();
         const verificationResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
         const outlookEventId =
