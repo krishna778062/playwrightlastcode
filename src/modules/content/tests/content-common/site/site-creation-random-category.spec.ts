@@ -8,7 +8,7 @@ import { contentTestFixture as test } from '@/src/modules/content/fixtures/conte
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SitesListPage } from '@/src/modules/content/ui/pages/sitesListPage';
 
-test.describe('Site Creation', { tag: ['@content', '@site-creation'] }, () => {
+test.describe('site Creation', { tag: ['@content', '@site-creation'] }, () => {
   let sitesListPage: SitesListPage;
   let siteCreationPage: SiteCreationPage;
   let siteDashboardPage: SiteDashboardPage;
@@ -23,7 +23,7 @@ test.describe('Site Creation', { tag: ['@content', '@site-creation'] }, () => {
   });
 
   test(
-    'Verify admin is able to create a new site with random category via UI',
+    'verify admin is able to create a new site with random category via UI',
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE, '@random-category'],
     },

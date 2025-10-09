@@ -51,7 +51,7 @@ test.describe(
     });
 
     test(
-      'Verify that User gets notified when it is getting mentioned in the reply of the comment of any post',
+      'verify that User gets notified when it is getting mentioned in the reply of the comment of any post',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-30438'],
       },

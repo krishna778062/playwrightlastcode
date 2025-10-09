@@ -7,9 +7,9 @@ import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constant
 
 import { ManageRewardsPage } from '../../ui/pages/manage-rewards/manage-rewards-page';
 
-test.describe('Enable Rewards flow', () => {
+test.describe('enable Rewards flow', () => {
   test(
-    'Validate Enable rewards flow',
+    'validate Enable rewards flow',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, REWARD_FEATURE_TAGS.ENABLE_REWARD, TestPriority.P0, TestGroupType.SMOKE],
     },

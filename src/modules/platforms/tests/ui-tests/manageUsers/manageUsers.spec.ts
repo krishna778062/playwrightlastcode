@@ -7,7 +7,7 @@ import { TestSuite } from '@/src/core/constants/testSuite';
 import { ManageUsersPage } from '@/src/modules/platforms/ui/pages/managerUsersPage/manageUsersPage';
 
 test.describe(
-  'ACG Testcases',
+  'aCG Testcases',
   {
     tag: [TestSuite.ABAC],
   },
@@ -19,7 +19,7 @@ test.describe(
     });
 
     test(
-      'Verify that selecting values from Primary roles attribute in filters of manage users page should update the user list accordingly',
+      'verify that selecting values from Primary roles attribute in filters of manage users page should update the user list accordingly',
       {
         tag: [TestPriority.P0, `@manageUsers`, `@ABAC`, `@acg`],
       },

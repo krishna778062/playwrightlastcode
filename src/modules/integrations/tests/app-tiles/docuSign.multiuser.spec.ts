@@ -14,7 +14,7 @@ import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
 test.describe(
-  'DocuSign App Tiles Multi-user Tests',
+  'docuSign App Tiles Multi-user Tests',
   {
     tag: [IntegrationsSuiteTags.DOCUSIGN, IntegrationsSuiteTags.ABSOLUTE],
   },

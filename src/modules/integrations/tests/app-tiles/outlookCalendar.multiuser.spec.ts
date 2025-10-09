@@ -14,7 +14,7 @@ import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
 test.describe(
-  'Google Calendar App Tiles Multi-user Tests',
+  'google Calendar App Tiles Multi-user Tests',
   {
     tag: [IntegrationsSuiteTags.OUTLOOK_CALENDAR_APPTILES, IntegrationsSuiteTags.ABSOLUTE],
   },

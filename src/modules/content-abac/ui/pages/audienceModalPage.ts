@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { Page } from '@playwright/test';
 
 import { BasePage } from '@core/ui/pages/basePage';
 

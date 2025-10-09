@@ -9,7 +9,7 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 test.describe(
-  'Feature: QR Code Management',
+  'feature: QR Code Management',
   {
     tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.QR_CODE],
   },
@@ -31,7 +31,7 @@ test.describe(
     });
 
     test(
-      'Scenario: Verify creation of app promotion QR',
+      'scenario: Verify creation of app promotion QR',
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
       },
@@ -64,7 +64,7 @@ test.describe(
     );
 
     test(
-      'Scenario: Verify delete app promotion QR code',
+      'scenario: Verify delete app promotion QR code',
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
       },
@@ -86,7 +86,7 @@ test.describe(
     );
 
     test(
-      'Scenario: Verify delete content QR code',
+      'scenario: Verify delete content QR code',
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
       },
@@ -108,7 +108,7 @@ test.describe(
     );
 
     test(
-      'Scenario: Verify creation of content QR',
+      'scenario: Verify creation of content QR',
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
       },

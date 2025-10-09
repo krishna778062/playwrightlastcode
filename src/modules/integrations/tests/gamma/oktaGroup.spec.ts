@@ -183,7 +183,7 @@ test.describe(
     );
 
     test(
-      'Verify that user is able select create audience. , Verify that user is able select "do not create audience',
+      'verify that user is able select create audience. , Verify that user is able select "do not create audience',
       {
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
       },

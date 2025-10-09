@@ -116,9 +116,7 @@ export class GoogleCalendarHelper {
     const events = data.items || [];
 
     console.log(`📅 Found ${events.length} total events in calendar`);
-    const matchingEvents = events.filter(
-      (event: any) => event.summary && event.summary.includes(eventTitle)
-    ) as GoogleCalendarEvent[];
+    const matchingEvents = events.filter((event: any) => event.summary?.includes(eventTitle)) as GoogleCalendarEvent[];
 
     console.log(`🎯 Found ${matchingEvents.length} events matching "${eventTitle}"`);
     if (matchingEvents.length > 0) {

@@ -38,7 +38,7 @@ test.describe(
     });
 
     test(
-      'AM | Home Q&A | Create, Edit with only Title of the question',
+      'aM | Home Q&A | Create, Edit with only Title of the question',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-38778'],
       },

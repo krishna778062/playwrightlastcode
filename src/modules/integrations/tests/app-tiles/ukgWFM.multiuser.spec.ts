@@ -15,7 +15,7 @@ import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
 test.describe(
-  'UKG Pro App Tiles Multi-user Tests',
+  'uKG Pro App Tiles Multi-user Tests',
   {
     tag: [IntegrationsSuiteTags.UKG_WFM, IntegrationsSuiteTags.ABSOLUTE, IntegrationsFeatureTags.MULTI_USER],
   },

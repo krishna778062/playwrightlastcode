@@ -10,7 +10,7 @@ import { ContentListComponent } from '@/src/modules/global-search/ui/components/
 import { ResultListingComponent } from '@/src/modules/global-search/ui/components/resultsListComponent';
 
 test.describe(
-  'Global Search- Album Search functionality',
+  'global Search- Album Search functionality',
   {
     tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.CONTENT_SEARCH],
   },
@@ -83,7 +83,7 @@ test.describe(
     );
 
     test(
-      `Verify Album Search results with sidebar filter`,
+      `verify Album Search results with sidebar filter`,
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
@@ -131,7 +131,7 @@ test.describe(
     );
 
     test(
-      `Verify Album Autocomplete functionality`,
+      `verify Album Autocomplete functionality`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },

@@ -13,7 +13,7 @@ import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { CONNECTOR_IDS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 test.describe(
-  'DocuSign App Tiles Integration',
+  'docuSign App Tiles Integration',
   {
     tag: [IntegrationsSuiteTags.DOCUSIGN, IntegrationsSuiteTags.ABSOLUTE],
   },

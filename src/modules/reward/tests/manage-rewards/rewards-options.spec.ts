@@ -10,9 +10,9 @@ import { ManageRewardsPage } from '@/src/modules/reward/ui/pages/manage-rewards/
 import { RewardOptionsPage } from '@/src/modules/reward/ui/pages/manage-rewards/reward-options-page';
 import { RewardsStore } from '@/src/modules/reward/ui/pages/reward-store/reward-store';
 
-test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () => {
+test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () => {
   test(
-    'A - Verify Reward options only visible to App managers',
+    'a - Verify Reward options only visible to App managers',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -33,7 +33,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
   );
 
   test(
-    'B - Verify Reward options only visible to recognition managers',
+    'b - Verify Reward options only visible to recognition managers',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -54,7 +54,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
   );
 
   test(
-    'Verify Reward options not visible to user other than recognition managers',
+    'verify Reward options not visible to user other than recognition managers',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -73,7 +73,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.REWARD_OPTIONS] }, () 
   );
 
   test(
-    'Validate search box on rewards option page',
+    'validate search box on rewards option page',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],
     },

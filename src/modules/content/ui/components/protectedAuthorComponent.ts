@@ -1,7 +1,6 @@
 import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
-import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 
 export class ProtectedAuthorsComponent extends BaseComponent {
   readonly protectedAuthorsAuthors: Locator;

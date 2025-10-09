@@ -3,7 +3,6 @@ import { expect, Locator, Page, Response, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
-import { FileUtil } from '@core/utils/fileUtil';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 

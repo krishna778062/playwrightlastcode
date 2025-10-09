@@ -1,4 +1,4 @@
-import { Locator, Page, Response, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { ListOfSocialCampaignComponent } from '@content/ui/components/listOfSocialCampaignComponent';
 import { ShareSocialCampaignComponent } from '@content/ui/components/shareSocialCampaignComponent';

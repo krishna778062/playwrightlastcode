@@ -653,7 +653,7 @@ export class SiteManagementHelper {
         return siteDetails;
       } else {
         if (accessType === SITE_TYPES.UNLISTED) {
-          this.createUnlistedSite({
+          await this.createUnlistedSite({
             siteName: siteDetails.name,
             category: siteDetails.category,
             overrides: {
@@ -662,7 +662,7 @@ export class SiteManagementHelper {
             waitForSearchIndex: true,
           });
         } else if (accessType === SITE_TYPES.PRIVATE) {
-          this.createPrivateSite({
+          await this.createPrivateSite({
             siteName: siteDetails.name,
             category: siteDetails.category,
             overrides: {
@@ -671,7 +671,7 @@ export class SiteManagementHelper {
             waitForSearchIndex: true,
           });
         } else if (accessType === SITE_TYPES.PUBLIC) {
-          this.createPublicSite({
+          await this.createPublicSite({
             siteName: siteDetails.name,
             category: siteDetails.category,
             overrides: {

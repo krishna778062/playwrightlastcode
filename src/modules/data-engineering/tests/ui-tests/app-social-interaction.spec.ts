@@ -67,7 +67,7 @@ const HERO_METRICS_DATA = [
 ] as const;
 
 test.describe(
-  'Social Interaction Dashboard',
+  'social Interaction Dashboard',
   {
     tag: [DataEngineeringTestSuite.SOCIAL_INTERACTION],
   },

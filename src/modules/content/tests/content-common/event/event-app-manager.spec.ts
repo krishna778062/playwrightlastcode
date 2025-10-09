@@ -43,7 +43,7 @@ test.describe(
     });
 
     test(
-      'Event Content Add attach file with all the Mandatory fields',
+      'event Content Add attach file with all the Mandatory fields',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.EVENT_CREATION],
       },

@@ -288,7 +288,7 @@ export class RewardsStore extends BasePage {
     await this.verifier.verifyElementContainsText(this.rewardsDialogBox.title, giftCardName);
     const availableAmountText = await this.rewardsDialogBox.rewardAmountsAvailablePoints.textContent();
     const availablePoints = availableAmountText
-      ? Number(availableAmountText.match(/\d{1,3}(?:,\d{3})*|\d+/)?.[0]?.replace(/,/g, '') || '0')
+      ? Number(availableAmountText.match(/\d{1,3}(?:,\d{3})*|\d+/)?.[0]?.replace(/,/g, '') ?? '0')
       : 0;
     await this.fillInElement(this.rewardsDialogBox.rewardAmountInputBox, String(availablePoints + 5), {
       stepInfo: 'Filling reward amount input box',

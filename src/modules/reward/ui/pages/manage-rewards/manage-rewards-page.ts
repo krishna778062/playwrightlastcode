@@ -46,7 +46,7 @@ export class ManageRewardsPage extends BasePage {
       this.page.waitForResponse(resp => apiUrlPattern.test(resp.url()) && resp.status() === 200, {
         timeout: TIMEOUTS.SHORT,
       }),
-      await this.page.goto(rewardsEndpoint.MANAGE_REWARDS_PAGE),
+      this.page.goto(rewardsEndpoint.MANAGE_REWARDS_PAGE),
     ]);
     this.harnessFlagResponse = response;
   }

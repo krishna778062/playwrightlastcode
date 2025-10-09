@@ -10,7 +10,7 @@ import { ContentListComponent } from '@/src/modules/global-search/ui/components/
 import { ResultListingComponent } from '@/src/modules/global-search/ui/components/resultsListComponent';
 
 test.describe(
-  'Global Search - Page Search functionality',
+  'global Search - Page Search functionality',
   {
     tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.CONTENT_SEARCH],
   },
@@ -87,7 +87,7 @@ test.describe(
     );
 
     test(
-      `Verify Page Search results with sidebar filter`,
+      `verify Page Search results with sidebar filter`,
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
@@ -137,7 +137,7 @@ test.describe(
     );
 
     test(
-      `Verify Page Autocomplete functionality`,
+      `verify Page Autocomplete functionality`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },

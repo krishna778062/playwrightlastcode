@@ -8,7 +8,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { ChatAppPage } from '@/src/modules/chat/ui/pages/chatPage/chatPage';
 
-test.describe('Direct Message between multiple users', { tag: [CHAT_SUITE_TAGS.DIRECT_MESSAGE] }, () => {
+test.describe('direct Message between multiple users', { tag: [CHAT_SUITE_TAGS.DIRECT_MESSAGE] }, () => {
   let user1: ChatTestUser;
   let user2: ChatTestUser;
   let user1ChatPage: ChatAppPage;
@@ -25,7 +25,7 @@ test.describe('Direct Message between multiple users', { tag: [CHAT_SUITE_TAGS.D
   );
 
   test(
-    'Verify that user 1 can open direct message with user 2 and they both are able to send message to each other',
+    'verify that user 1 can open direct message with user 2 and they both are able to send message to each other',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE],
     },

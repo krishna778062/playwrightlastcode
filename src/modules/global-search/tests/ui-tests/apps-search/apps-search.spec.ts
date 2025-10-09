@@ -7,7 +7,7 @@ import { generateUniqueTestData } from '@/src/modules/global-search/test-data/ap
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
 
 test.describe(
-  'Test Global Search - Apps Search functionality',
+  'test Global Search - Apps Search functionality',
   {
     tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.APPS_SEARCH],
   },
@@ -58,7 +58,7 @@ test.describe(
     });
 
     test(
-      'Verify Apps Search results for a new app',
+      'verify Apps Search results for a new app',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },

@@ -16,7 +16,7 @@ import { FileUtil } from '@/src/core/utils/fileUtil';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
-  `Event Creation by Standard user  and Approval/Rejection by Application Manager`,
+  `event Creation by Standard user  and Approval/Rejection by Application Manager`,
   {
     tag: [ContentTestSuite.EVENT_STANDARD_USER, ContentSuiteTags.EVENT_CREATION],
   },

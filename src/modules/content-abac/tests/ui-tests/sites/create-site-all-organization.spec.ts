@@ -18,7 +18,7 @@ import { SiteCreationPageAbac } from '@/src/modules/content-abac/ui/pages/siteCr
  * Then on cleanup, we will deactivate the site using app manager api client
  */
 
-test.describe('Site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_CREATION] }, () => {
+test.describe('site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_CREATION] }, () => {
   let siteId: string | undefined;
   const SITE_TEST_DATA = [
     {
@@ -92,7 +92,7 @@ test.describe('Site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
   }
 
   test(
-    'Verify UI shows Add target audience section when All Org is removed',
+    'verify UI shows Add target audience section when All Org is removed',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.ADD_TARGET_AUDIENCE],
     },

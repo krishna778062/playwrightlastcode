@@ -8,7 +8,7 @@ import { contentAbacTestFixture as test } from '@/src/modules/content-abac/fixtu
 import { SITE_CREATION_TEST_DATA } from '@/src/modules/content-abac/test-data/create-site.test-data';
 import { SiteCreationPageAbac } from '@/src/modules/content-abac/ui/pages/siteCreationPageAbac';
 
-test.describe('Site Creation by Application Manager', { tag: [ContentFeatureTags.ADD_SITE] }, () => {
+test.describe('site Creation by Application Manager', { tag: [ContentFeatureTags.ADD_SITE] }, () => {
   let siteId: string | undefined;
 
   test.afterEach('Site Clean up', async ({ siteManagementService }) => {
@@ -18,7 +18,7 @@ test.describe('Site Creation by Application Manager', { tag: [ContentFeatureTags
   });
 
   test(
-    `Verify user is able to create a PUBLIC site with a specific audience (ABAC)`,
+    `verify user is able to create a PUBLIC site with a specific audience (ABAC)`,
     {
       tag: [ContentSuiteTags.CREATE_SITE, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -63,7 +63,7 @@ test.describe('Site Creation by Application Manager', { tag: [ContentFeatureTags
   );
 
   test(
-    `Verify user is able to create a PRIVATE site with a specific audience`,
+    `verify user is able to create a PRIVATE site with a specific audience`,
     {
       tag: [ContentSuiteTags.CREATE_SITE, TestPriority.P0, TestGroupType.REGRESSION],
     },

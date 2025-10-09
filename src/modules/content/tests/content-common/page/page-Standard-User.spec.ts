@@ -39,7 +39,7 @@ const PAGE_APPROVAL_TEST_DATA = [
 ] as const;
 
 test.describe(
-  `Page Creation by Standard user  and Approval/Rejection by Application Manager`,
+  `page Creation by Standard user  and Approval/Rejection by Application Manager`,
   {
     tag: [ContentTestSuite.PAGE_STANDARD_USER],
   },

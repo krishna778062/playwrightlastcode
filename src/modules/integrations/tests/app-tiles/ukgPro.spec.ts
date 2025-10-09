@@ -16,7 +16,7 @@ import {
 } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 test.describe(
-  'UKG PRO App Tiles Integration',
+  'uKG PRO App Tiles Integration',
   {
     tag: [IntegrationsSuiteTags.UKG_PRO, IntegrationsSuiteTags.ABSOLUTE],
   },

@@ -7,7 +7,7 @@ import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fi
 import { FeedListComponent } from '@/src/modules/global-search/ui/components/feedListComponent';
 
 test.describe(
-  'Global Search - Feed Search functionality',
+  'global Search - Feed Search functionality',
   {
     tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.FEED_SEARCH],
   },
@@ -63,7 +63,7 @@ test.describe(
     );
 
     test(
-      `Verify Feed Search results with sidebar filter`,
+      `verify Feed Search results with sidebar filter`,
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
