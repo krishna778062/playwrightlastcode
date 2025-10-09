@@ -14,7 +14,6 @@ export class NotificationCustomizationComponent extends BaseComponent {
   readonly defaultsTab: Locator;
   readonly notificationCustomizationTab: Locator;
   readonly addCustomizationLink: Locator;
-  readonly pageHeading: Locator;
   readonly searchInput: Locator;
   readonly mustReadButton: Locator;
   readonly mustReadRadio: Locator;
@@ -23,27 +22,16 @@ export class NotificationCustomizationComponent extends BaseComponent {
   readonly alertsButton: Locator;
   readonly alertsRadio: Locator;
   readonly nextButton: Locator;
-  readonly cancelButton: Locator;
   readonly customSubjectRadio: Locator;
   readonly customSubjectTextarea: Locator;
   readonly languageButton: Locator;
-  readonly manualTranslationsSwitch: Locator;
   readonly loadingSpinner: Locator;
   readonly saveButton: Locator;
   readonly moreButton: Locator;
-  readonly deleteButton: Locator;
   readonly differentEmailRadio: Locator;
   readonly testEmailInput: Locator;
   readonly sendTestButton: Locator;
   readonly tableRows: Locator;
-  readonly activeStepButton: Locator;
-  readonly menuItems: Locator;
-  readonly customSubjectTextareaFallback: Locator;
-  readonly translationTextarea: Locator;
-  readonly menuContainer: Locator;
-  readonly bodyContainer: Locator;
-  readonly deleteActionButton: Locator;
-  readonly alertRegion: Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
@@ -58,7 +46,6 @@ export class NotificationCustomizationComponent extends BaseComponent {
     this.addCustomizationLink = this.rootLocator
       .getByRole('link', { name: 'Add customization' })
       .or(this.rootLocator.locator('a[href*="notifications-customization"]').filter({ hasText: 'Add customization' }));
-    this.pageHeading = this.rootLocator.getByRole('heading', { name: /notification (customization|overrides)/i });
     this.searchInput = this.rootLocator
       .getByPlaceholder('Search')
       .or(this.rootLocator.getByRole('textbox', { name: /search/i }))
@@ -70,59 +57,44 @@ export class NotificationCustomizationComponent extends BaseComponent {
     this.alertsButton = this.rootLocator.getByRole('button', { name: 'Alerts Get notified if an' });
     this.alertsRadio = this.rootLocator.getByRole('radio', { name: 'New Alert - {{message}}' });
     this.nextButton = this.rootLocator.getByRole('button', { name: 'Next' });
-    this.cancelButton = this.rootLocator.getByRole('button', { name: 'Cancel' });
     this.customSubjectRadio = this.rootLocator.getByRole('radio', { name: /Custom subject line/i });
     this.customSubjectTextarea = this.rootLocator.locator('textarea[name="customValue"], #customSubjectTextarea');
     this.loadingSpinner = this.rootLocator.locator('.loading, .spinner, [aria-busy="true"]').first();
     this.saveButton = this.rootLocator.getByRole('button', { name: POPUP_BUTTONS.SAVE });
     this.languageButton = this.rootLocator.getByRole('button', { name: /Language.*Open/i });
-    this.manualTranslationsSwitch = this.rootLocator.getByRole('switch', { name: /manual translations/i });
     this.moreButton = this.rootLocator.getByRole('button', { name: /^More$/i });
-    this.deleteButton = this.rootLocator.getByRole('button', { name: /^Delete$/i });
     this.differentEmailRadio = this.rootLocator.getByRole('radio', { name: 'Different email address' });
     this.testEmailInput = this.rootLocator.getByRole('textbox', { name: 'Enter your email address here' });
     this.sendTestButton = this.rootLocator.getByRole('button', { name: 'Send test' });
     this.tableRows = this.rootLocator.locator('tr[data-testid*="dataGridRow-"]');
-    this.activeStepButton = this.rootLocator.locator('[aria-current="step"]');
-    this.menuItems = this.rootLocator.locator('[role="menuitem"]');
-    this.customSubjectTextareaFallback = this.rootLocator.locator(
-      '#customSubjectTextarea, textarea[name="customValue"]'
-    );
-    this.translationTextarea = this.rootLocator.locator('textarea[name="translationValue"]');
-    this.menuContainer = this.rootLocator.locator('[role="menu"]');
-    this.bodyContainer = this.rootLocator.locator('body');
-    this.deleteActionButton = this.rootLocator.getByRole('menuitem', { name: 'Delete' });
-    this.alertRegion = this.rootLocator.getByRole('alert');
+  }
+
+  async clickButton(buttonName: string, step?: string, timeout = 30_000): Promise<void> {
+    const stepName = step || `Click ${buttonName}`;
+    await test.step(stepName, async () => {
+      const button = this.page.getByRole('button', { name: buttonName });
+      await this.clickOnElement(button, { timeout });
+    });
   }
 
   async navigateToApplicationSettings(): Promise<void> {
-    await test.step('Navigate to Application Settings', async () => {
-      await this.clickOnElement(this.applicationSettingsMenuItem);
-    });
+    await this.clickOnElement(this.applicationSettingsMenuItem);
   }
 
   async navigateToApplicationTab(): Promise<void> {
-    await test.step('Navigate to Application tab', async () => {
-      await this.clickOnElement(this.applicationButton);
-    });
+    await this.clickButton('Application');
   }
 
   async navigateToDefaultsTab(): Promise<void> {
-    await test.step('Navigate to Defaults tab', async () => {
-      await this.clickOnElement(this.defaultsTab);
-    });
+    await this.clickOnElement(this.defaultsTab);
   }
 
   async navigateToNotificationCustomizationTab(): Promise<void> {
-    await test.step('Navigate to Notification customization tab', async () => {
-      await this.clickOnElement(this.notificationCustomizationTab);
-    });
+    await this.clickOnElement(this.notificationCustomizationTab);
   }
 
   async startAddCustomization(): Promise<void> {
-    await test.step('Start add customization flow', async () => {
-      await this.clickOnElement(this.addCustomizationLink);
-    });
+    await this.clickOnElement(this.addCustomizationLink);
   }
 
   async expectAddCustomizationVisible(): Promise<void> {
@@ -144,7 +116,7 @@ export class NotificationCustomizationComponent extends BaseComponent {
       await this.clickOnElement(this.mustReadButton);
       await this.mustReadRadio.waitFor({ state: 'visible' });
       await this.clickOnElement(this.mustReadRadio);
-      await this.clickOnElement(this.nextButton);
+      await this.clickButton('Next');
     });
   }
 
@@ -153,7 +125,7 @@ export class NotificationCustomizationComponent extends BaseComponent {
       await this.clickOnElement(this.followButton.first());
       await this.followRadio.first().waitFor({ state: 'visible' });
       await this.clickOnElement(this.followRadio.first());
-      await this.clickOnElement(this.nextButton);
+      await this.clickButton('Next');
     });
   }
 
@@ -162,26 +134,20 @@ export class NotificationCustomizationComponent extends BaseComponent {
       await this.clickOnElement(this.alertsButton);
       await this.alertsRadio.waitFor({ state: 'visible' });
       await this.clickOnElement(this.alertsRadio);
-      await this.clickOnElement(this.nextButton);
+      await this.clickButton('Next');
     });
   }
 
   async clickNext(): Promise<void> {
-    await test.step('Click Next button', async () => {
-      await this.clickOnElement(this.nextButton);
-    });
+    await this.clickButton('Next');
   }
 
   async cancel(): Promise<void> {
-    await test.step('Cancel customization', async () => {
-      await this.clickOnElement(this.cancelButton);
-    });
+    await this.clickButton('Cancel');
   }
 
   async chooseCustomSubject(): Promise<void> {
-    await test.step('Choose custom subject line', async () => {
-      await this.clickOnElement(this.customSubjectRadio);
-    });
+    await this.clickOnElement(this.customSubjectRadio);
   }
 
   async typeCustomSubjectOnStep2(subject: string): Promise<void> {
@@ -212,16 +178,12 @@ export class NotificationCustomizationComponent extends BaseComponent {
   }
 
   async save(): Promise<void> {
-    await test.step('Save customization', async () => {
-      await this.clickOnElement(this.saveButton);
-    });
+    await this.clickButton('Save');
   }
 
   // Test email methods
   async chooseDifferentTestEmail(): Promise<void> {
-    await test.step('Choose different test email', async () => {
-      await this.clickOnElement(this.differentEmailRadio);
-    });
+    await this.clickOnElement(this.differentEmailRadio);
   }
 
   async typeTestEmail(email: string): Promise<void> {
@@ -237,9 +199,7 @@ export class NotificationCustomizationComponent extends BaseComponent {
   }
 
   async sendTestEmail(): Promise<void> {
-    await test.step('Send test email', async () => {
-      await this.clickOnElement(this.sendTestButton);
-    });
+    await this.clickButton('Send test');
   }
 
   async expectSendTestDisabled(): Promise<void> {
@@ -256,24 +216,34 @@ export class NotificationCustomizationComponent extends BaseComponent {
 
   // Toast verification methods
   async expectSavedToast(): Promise<void> {
-    await this.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.CUSTOMIZATION_SAVED);
+    await test.step('Expect saved toast message', async () => {
+      await this.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.CUSTOMIZATION_SAVED);
+    });
   }
 
   async expectDeletedToast(): Promise<void> {
-    await this.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.CUSTOMIZATION_DELETED);
+    await test.step('Expect deleted toast message', async () => {
+      await this.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.CUSTOMIZATION_DELETED);
+    });
   }
 
   async expectTestEmailSuccess(): Promise<void> {
-    await this.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.CUSTOM_EMAIL_SUBJECT_TEST_SENT);
+    await test.step('Expect test email success ', async () => {
+      await this.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.CUSTOM_EMAIL_SUBJECT_TEST_SENT);
+    });
   }
 
   async expectInvalidEmailError(): Promise<void> {
-    await this.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.INVALID_EMAIL_ERROR);
+    await test.step('Expect invalid email', async () => {
+      await this.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.INVALID_EMAIL_ERROR);
+    });
   }
 
   async verifyToastMessage(message: string): Promise<void> {
-    const specificAlert = this.rootLocator.getByRole('alert').filter({ hasText: message }).first();
-    await expect(specificAlert, `Toast should contain: ${message}`).toBeVisible({ timeout: 15_000 });
+    await test.step(`Verify toast message: ${message}`, async () => {
+      const specificAlert = this.rootLocator.getByRole('alert').filter({ hasText: message }).first();
+      await expect(specificAlert, `Toast should contain: ${message}`).toBeVisible({ timeout: 15_000 });
+    });
   }
 
   // Table and row methods

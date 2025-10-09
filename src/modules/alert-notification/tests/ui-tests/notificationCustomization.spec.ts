@@ -1,6 +1,6 @@
 import { ALERT_NOTIFICATION_MESSAGES } from '@alert-notification-constants/messageRepo';
 import { AlertNotificationSuiteTags } from '@alert-notification-constants/testTags';
-import { test } from '@alert-notification-fixtures/fixtures';
+import { appManagerFixture as test } from '@alert-notification-fixtures/fixtures';
 import { NotificationWorkflow } from '@alert-notification-pages/notificationWorkflow';
 import { SubjectCustomLinePage } from '@alert-notification-pages/subjectCustomLinePage';
 import { TEMPLATE_TYPES, TEST_EMAILS } from '@alert-notification-test-data/notification-customization.test-data';
@@ -20,6 +20,7 @@ test.describe(
     test.beforeEach(async ({ appManager }) => {
       const subjectCustomLinePage = new SubjectCustomLinePage(appManager);
       workflow = new NotificationWorkflow(appManager, subjectCustomLinePage);
+      await workflow.navigateToNotificationCustomization();
     });
 
     test(
@@ -29,7 +30,6 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), { zephyrTestId: 'INT-28326', storyId: 'INT-1' });
-        await workflow.navigateToNotificationCustomization();
         const englishSubject = await workflow.createMustReadWithFrenchTranslation();
         await workflow.saveAndVerifyCreation(englishSubject);
         await workflow.deleteBySubject(englishSubject);
@@ -43,7 +43,6 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), { zephyrTestId: 'INT-27666', storyId: 'INT-24252' });
-        await workflow.navigateToNotificationCustomization();
         await workflow.selectTemplate(TEMPLATE_TYPES.MUST_READ);
         await workflow.verifySubjectLineLabels();
         await workflow.testCancelAction();
@@ -59,7 +58,6 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), { zephyrTestId: 'INT-27667', storyId: 'INT-24252' });
-        await workflow.navigateToNotificationCustomization();
         await workflow.selectTemplate(TEMPLATE_TYPES.FOLLOW);
         await workflow.verifySubjectLineLabels();
         await workflow.testCancelAction();
@@ -75,7 +73,6 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), { zephyrTestId: 'INT-27665', storyId: 'INT-24252' });
-        await workflow.navigateToNotificationCustomization();
         await workflow.selectTemplate(TEMPLATE_TYPES.ALERTS);
         await workflow.verifySubjectLineLabels();
         await workflow.testCancelAction();
@@ -91,7 +88,6 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), { zephyrTestId: 'INT-27660', storyId: 'INT-24252' });
-        await workflow.navigateToNotificationCustomization();
         await workflow.selectTemplate(TEMPLATE_TYPES.MUST_READ);
         await workflow.verifySubjectLineLabels();
         await workflow.testTranslationFallback();
@@ -105,7 +101,6 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), { zephyrTestId: 'INT-27649', storyId: 'IINT-24252' });
-        await workflow.navigateToNotificationCustomization();
         await workflow.selectTemplate(TEMPLATE_TYPES.MUST_READ);
         await workflow.testInvalidEmailFlow();
         await workflow.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.INVALID_EMAIL_ERROR);
@@ -120,7 +115,6 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), { zephyrTestId: 'INT-27671', storyId: 'INT-24252' });
-        await workflow.navigateToNotificationCustomization();
         await workflow.selectTemplate(TEMPLATE_TYPES.MUST_READ);
         await workflow.testSendYourselfMultipleRecipients(TEST_EMAILS.MULTI_VALID_CSV);
         await workflow.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.TEST_EMAIL_SENT_SUCCESS);
