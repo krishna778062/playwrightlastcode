@@ -42,7 +42,7 @@ test.describe(
       }
     });
 
-    test.only(
+    test(
       'Verify the Unlisted Sites Manager is able to add content from home dashboard on any unlisted site',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-30521'],
