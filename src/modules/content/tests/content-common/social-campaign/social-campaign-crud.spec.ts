@@ -1,6 +1,8 @@
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
 import { SOCIAL_CAMPAIGN_TEST_DATA } from '@content/test-data/social-campaign.test-data';
+import { FeedPage } from '@content/ui/pages/feedPage';
+import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage';
 import { SocialCampaignPage } from '@content/ui/pages/socialCampaignPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -11,9 +13,6 @@ import {
 } from '@core/types/social-campaign.types';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
-
-import { FeedPage } from '../../ui/pages/feedPage';
-import { SiteDashboardPage } from '../../ui/pages/sitePages/siteDashboardPage';
 
 test.describe(
   `Social Campaign functionality`,

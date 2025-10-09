@@ -1,10 +1,9 @@
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-
-import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
