@@ -21,7 +21,8 @@ test.describe(
     const tileName = 'Display learning courses';
     let createdTileTitle: string | undefined = undefined;
 
-    test.afterEach(async ({ homeDashboard, tileManagementHelper }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
+      const { homeDashboard, tileManagementHelper } = appManagerFixture;
       if (createdTileTitle) {
         await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
@@ -35,7 +36,8 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
 
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: ['INT-24660,INT-24671'],
           storyId: 'INT-24422',
@@ -65,7 +67,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: ['INT-24661,INT-24670'],
           storyId: 'INT-24422',
@@ -75,7 +78,7 @@ test.describe(
         createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -97,7 +100,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: ['INT-24676,INT-24677'],
           storyId: 'INT-24422',
@@ -124,7 +128,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-28328',
           storyId: 'INT-24422',
@@ -134,7 +139,7 @@ test.describe(
         createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 

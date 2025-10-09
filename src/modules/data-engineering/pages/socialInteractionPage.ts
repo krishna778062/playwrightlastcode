@@ -1,7 +1,7 @@
 import { Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
-import { BasePage } from '@/src/core/pages/basePage';
+import { BasePage } from '@/src/core/ui/pages/basePage';
 import { HeroMetricsComponent } from '@/src/modules/data-engineering/components/heroMetricsComponent';
 
 export class SocialInteractionPage extends BasePage {

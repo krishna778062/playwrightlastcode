@@ -3,9 +3,8 @@ import { tagTest } from '@core/utils/testDecorator';
 import { FILTER_ATTRIBUTES, PRIMARY_ROLES_VALUES } from '@platforms/constants/ManageUsers';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 
-import { ManageUsersPage } from '../../../pages/managerUsersPage/manageUsersPage';
-
 import { TestSuite } from '@/src/core/constants/testSuite';
+import { ManageUsersPage } from '@/src/modules/platforms/ui/pages/managerUsersPage/manageUsersPage';
 
 test.describe(
   'ACG Testcases',
@@ -14,8 +13,8 @@ test.describe(
   },
   () => {
     let manageUsersPage: ManageUsersPage;
-    test.beforeEach(async ({ appManagerPage }) => {
-      manageUsersPage = new ManageUsersPage(appManagerPage);
+    test.beforeEach(async ({ appManagerFixture }) => {
+      manageUsersPage = new ManageUsersPage(appManagerFixture.page);
       await manageUsersPage.loadPage();
     });
 

@@ -18,7 +18,8 @@ test.describe(
   () => {
     let createdTileTitle: string | undefined = undefined;
 
-    test.afterEach(async ({ tileManagementHelper, homeDashboard }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
+      const { tileManagementHelper, homeDashboard } = appManagerFixture;
       if (createdTileTitle) {
         await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
@@ -31,7 +32,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24130',
           storyId: 'INT-23049',
@@ -59,7 +61,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24182',
           storyId: 'INT-23049',
@@ -67,7 +70,7 @@ test.describe(
 
         createdTileTitle = `Google calendar apptile ${faker.string.alphanumeric({ length: 6 })}`;
 
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -94,7 +97,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24049',
           storyId: 'INT-23629',
@@ -117,7 +121,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24182',
           storyId: 'INT-23049',
@@ -125,7 +130,7 @@ test.describe(
 
         createdTileTitle = `Google calendar apptile ${faker.string.alphanumeric({ length: 6 })}`;
 
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -146,7 +151,8 @@ test.describe(
       {
         tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24049',
           storyId: 'INT-23629',
@@ -167,14 +173,15 @@ test.describe(
       {
         tag: [TestPriority.P2, TestGroupType.SANITY],
       },
-      async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24182',
           storyId: 'INT-23049',
         });
 
         createdTileTitle = `Google calendar apptile ${faker.string.alphanumeric({ length: 6 })}`;
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
         await siteDashboard.addTile(

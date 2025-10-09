@@ -4,7 +4,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
-import { ManageRewardsPage } from '@modules/reward/pages/manage-rewards/manage-rewards-page';
+
+import { ManageRewardsPage } from '../../ui/pages/manage-rewards/manage-rewards-page';
 
 test.describe('Enable Rewards flow', () => {
   test(

@@ -10,14 +10,14 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { FIELD_NAMES, UI_ACTIONS } from '@/src/modules/integrations/constants/common';
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
-import { HomeDashboard } from '@/src/modules/integrations/pages/homeDashboard';
-import { SiteDashboard } from '@/src/modules/integrations/pages/siteDashboard';
 import {
   CONNECTOR_IDS,
   REDIRECT_URLS,
   STATUS_VALUES,
   TILE_IDS,
 } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
+import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
 const expensifyUser: UserCredentials = {
   email: process.env.QA_SYSTEM_ADMIN_USERNAME!,
@@ -38,7 +38,8 @@ test.describe(
       await LoginHelper.loginWithPassword(page, expensifyUser);
     });
 
-    test.afterEach(async ({ page, tileManagementHelper }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
+      const { page, tileManagementHelper } = appManagerFixture;
       if (createdTileTitle) {
         const homeDashboard = new HomeDashboard(page, tileManagementHelper);
         await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
@@ -52,7 +53,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ page, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { page, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24799',
           storyId: 'INT-24430',
@@ -82,7 +84,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ page, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { page, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24798',
           storyId: 'INT-24423',
@@ -110,7 +113,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ page, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { page, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24785',
           storyId: 'INT-24423',
@@ -138,7 +142,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ page, siteManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerFixture }) => {
+        const { page, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24782',
           storyId: 'INT-24423',
@@ -151,7 +156,7 @@ test.describe(
         createdTileTitle = `Expensify report ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
