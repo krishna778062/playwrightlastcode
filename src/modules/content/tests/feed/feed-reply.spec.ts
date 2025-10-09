@@ -46,8 +46,8 @@ async function getPrerequisiteData(
 
   // Create site only once, even if both createSite and createPage are true
   if (testData.feedType === 'Site Feed') {
-    const siteResult = await helpers.siteManagementHelper.getSiteByAccessType({ accessType: 'public' });
-    resources.siteId = siteResult;
+    const siteResult = await helpers.siteManagementHelper.getSiteByAccessType('public');
+    resources.siteId = siteResult.siteId; // Extract just the siteId string
   }
 
   if (testData.feedType === 'Content Feed') {
@@ -206,15 +206,12 @@ for (const testData of feedTestData) {
         {
           tag: [TestPriority.P1, TestGroupType.REGRESSION, `@${testData.storyId}`],
         },
-        async ({ appManagerHomePage, feedManagementHelper }) => {
+        async ({ appManagerHomePage }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.storyId,
             storyId: testData.storyId,
           });
-
-          await appManagerHomePage.page.pause();
-          await appManagerFeedPage.page.pause();
           // Add reply to the feed post
           await appManagerFeedPage.actions.addReplyToPost(replyText);
 

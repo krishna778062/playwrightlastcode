@@ -66,7 +66,7 @@ test.describe(
           waitForSearchIndex: false,
         });
         const identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
-        createdPostText = feedTestData.text;
+        createdPostText = feedTestData.text.length > 25 ? feedTestData.text.substring(0, 25) : feedTestData.text;
 
         // Create feed using API (more reliable than UI)
         const feedResponse = await feedManagementHelper.createFeed(feedTestData);

@@ -824,5 +824,87 @@ test.describe(
         await siteDashboardPage.assertions.verifySocialCampaignShareButtonIsNotVisible(description);
       }
     );
+
+    test(
+      'In Zeus Verify App Manager able to add and remove Social Campaign to Home Carousel and remove when expired',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14904'],
+      },
+      async ({ appManagerHomePage, socialCampaignHelper, siteManagementHelper }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
+          zephyrTestId: 'CONT-14904',
+          storyId: 'CONT-14904',
+        });
+
+        const siteName = 'All Employees';
+        const siteId = await siteManagementHelper.getSiteIdWithName(siteName);
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+        });
+        campaignId = createdCampaign.campaignId;
+
+        //remove all the carousel items from the site
+        await siteManagementHelper.getAndRemoveAllCarouselItems(siteId);
+
+        const siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.actions.clickOnEditDashboard();
+        await siteDashboardPage.actions.clickOnEditCarousel();
+        await siteDashboardPage.actions.enterSearchCarouselInput(campaignOptions.linkText);
+        await siteDashboardPage.actions.selectCarouselItem(campaignOptions.linkText);
+        await siteDashboardPage.assertions.verifySocalCampaignInCarouselModal(campaignOptions.linkText);
+        await appManagerHomePage.page.pause();
+        await siteDashboardPage.actions.clickDoneButton();
+        await siteDashboardPage.assertions.verifySocalCampaignInCarouselItem(campaignOptions.linkText);
+        // expire campaign
+        await socialCampaignHelper.expireCampaign(campaignId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.assertions.verifySocalCampaignIsNotInCarouselItem(campaignOptions.linkText);
+      }
+    );
+
+    test(
+      'In Zeus Verify App Manager able to create latest and popular and Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14904'],
+      },
+      async ({ appManagerHomePage, socialCampaignHelper, siteManagementHelper }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify App Manager able to create latest and popular and Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
+          zephyrTestId: 'CONT-14904',
+          storyId: 'CONT-14904',
+        });
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+        });
+        campaignId = createdCampaign.campaignId;
+        await appManagerHomePage.loadPage();
+      }
+    );
   }
 );
