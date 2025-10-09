@@ -10,9 +10,9 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { waitUntilTilePresentInApi } from '@/src/modules/integrations/api/helpers/tileApiHelpers';
-import { HomeDashboard } from '@/src/modules/integrations/pages/homeDashboard';
-import { SiteDashboard } from '@/src/modules/integrations/pages/siteDashboard';
+import { waitUntilTilePresentInApi } from '@/src/modules/integrations/apis/helpers/tileApiHelpers';
+import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
+import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
 test.describe(
   'UKG Pro App Tiles Multi-user Tests',
@@ -73,7 +73,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient }) => {
+      async ({ adminPage, endUserPage, siteManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
           zephyrTestId: 'INT-28163',
           storyId: 'INT-20795',
@@ -85,7 +85,7 @@ test.describe(
         const siteDashboard = new SiteDashboard(adminPage);
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -138,7 +138,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient }) => {
+      async ({ adminPage, endUserPage, siteManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
           zephyrTestId: 'INT-28164',
           storyId: 'INT-20795',
@@ -150,7 +150,7 @@ test.describe(
         const siteDashboard = new SiteDashboard(adminPage);
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 

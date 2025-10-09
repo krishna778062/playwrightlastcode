@@ -22,7 +22,7 @@ test.describe(
           password: getEnvConfig().appManagerPassword,
         });
         await homePage.verifyThePageIsLoaded();
-        await homePage.getFooterComponent().verifyNavigationOfPrivacyPolicyLink();
+        await homePage.footer.verifyNavigationOfPrivacyPolicyLink();
       }
     );
   }

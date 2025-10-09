@@ -1,13 +1,17 @@
 import { ALERT_NOTIFICATION_MESSAGES } from '@alert-notification-constants/messageRepo';
 import { AlertNotificationSuiteTags } from '@alert-notification-constants/testTags';
-import { appManagerFixture as test } from '@alert-notification-fixtures/fixtures';
-import { NotificationWorkflow } from '@alert-notification-pages/notificationWorkflow';
-import { SubjectCustomLinePage } from '@alert-notification-pages/subjectCustomLinePage';
-import { TEMPLATE_TYPES, TEST_EMAILS } from '@alert-notification-test-data/notification-customization.test-data';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
+
+import { appManagerFixture as test } from '@/src/modules/alert-notification/tests/fixtures/fixtures';
+import {
+  TEMPLATE_TYPES,
+  TEST_EMAILS,
+} from '@/src/modules/alert-notification/tests/test-data/notification-customization.test-data';
+import { NotificationWorkflow } from '@/src/modules/alert-notification/ui/pages/notificationWorkflow';
+import { SubjectCustomLinePage } from '@/src/modules/alert-notification/ui/pages/subjectCustomLinePage';
 
 test.describe(
   '[Alert Notification] Subject custom line – full suite',

@@ -1,8 +1,7 @@
 import { PopupType } from '@frontline/constants/popupType';
 import { QR_CONSTANTS } from '@frontline/constants/qrConstants';
 import { expect, Locator, Page, test } from '@playwright/test';
-import { addDays, format } from 'date-fns';
-import * as fs from 'fs';
+import { addDays } from 'date-fns';
 import { Jimp } from 'jimp';
 import jsQR from 'jsqr';
 import * as path from 'path';
@@ -11,7 +10,7 @@ import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { ContentType } from '@core/constants/contentTypes';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
-import { BasePage } from '@core/pages/basePage';
+import { BasePage } from '@core/ui/pages/basePage';
 import { FileUtil } from '@core/utils/fileUtil';
 import { PlaywrightAction, PlaywrightErrorHandler } from '@core/utils/playwrightErrorHandler';
 

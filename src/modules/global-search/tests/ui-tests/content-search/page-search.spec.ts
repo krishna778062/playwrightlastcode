@@ -3,11 +3,11 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentType } from '@/src/core/constants/contentTypes';
-import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
-import { ResultListingComponent } from '@/src/modules/global-search/components/resultsListComponent';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { PAGE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
+import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
+import { ContentListComponent } from '@/src/modules/global-search/ui/components/contentListComponent';
+import { ResultListingComponent } from '@/src/modules/global-search/ui/components/resultsListComponent';
 
 test.describe(
   'Global Search - Page Search functionality',
@@ -22,10 +22,10 @@ test.describe(
     let pageName: string;
     let authorName: string;
 
-    test.beforeAll(
+    test.beforeEach(
       `Setting up the test environment for page search by creating page content in common public site`,
-      async ({ contentManagementHelper, publicSite }) => {
-        const pageDetails = await contentManagementHelper.createPage({
+      async ({ appManagerFixture, publicSite }) => {
+        const pageDetails = await appManagerFixture.contentManagementHelper.createPage({
           siteId: publicSite.siteId,
           contentInfo: {
             contentType: testData.content,
@@ -45,11 +45,11 @@ test.describe(
       }
     );
 
-    test.afterAll(
+    test.afterEach(
       `Cleaning up the test environment by deleting the created page content`,
-      async ({ contentManagementHelper }) => {
+      async ({ appManagerFixture }) => {
         if (contentId) {
-          await contentManagementHelper.deleteContent(siteId, contentId);
+          await appManagerFixture.contentManagementHelper.deleteContent(siteId, contentId);
           console.log(`Deleted page "${pageName}" with ID: ${contentId}`);
         }
       }
@@ -60,14 +60,15 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-12432',
           storyId: 'SEN-12295',
         });
 
         // 4. UI Search for the page
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(pageName, {
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(pageName, {
           stepInfo: `Searching with term "${pageName}" and intent is to find the content`,
         });
 
@@ -90,13 +91,14 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19194',
         });
 
         // Search for the page
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(pageName, {
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(pageName, {
           stepInfo: `Searching with term "${pageName}" to verify page appears in search results`,
         });
 
@@ -139,18 +141,18 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19286',
         });
 
-        // Type in search input
-        await appManagerHomePage.topNavBarComponent.typeInSearchBarInput(pageName, {
+        const topNavBarComponent = appManagerFixture.navigationHelper.topNavBarComponent;
+        await topNavBarComponent.typeInSearchBarInput(pageName, {
           stepInfo: `Typing "${pageName}" in search input`,
         });
 
         // Wait for autocomplete to appear first
-        const resultList = new ResultListingComponent(appManagerHomePage.page);
+        const resultList = new ResultListingComponent(appManagerFixture.page);
         await resultList.waitForAndVerifyAutocompleteListIsDisplayed();
         const pageResult = resultList.getAutocompleteItemByName(pageName);
 

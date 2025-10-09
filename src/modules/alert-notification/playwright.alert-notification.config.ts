@@ -9,8 +9,7 @@ import baseConfig from '@/playwright.base.config';
 
 export default defineConfig({
   ...baseConfig,
-  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'alert-notification', 'tests'),
-  testIgnore: '**/api-tests/**',
+  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'alert-notification', 'tests', 'ui-tests'),
   workers: process.env.CI ? 2 : 4,
   timeout: 180_000,
   expect: {

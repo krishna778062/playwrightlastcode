@@ -3,7 +3,6 @@ import { expect } from '@playwright/test';
 import { TestPriority } from '@core/constants/testPriority';
 import { tagTest } from '@core/utils/testDecorator';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
-import { FeatureOwnersPage } from '@platforms/pages/abacPage/featureOwnersPage/featureOwnersPage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { Roles, RolesId } from '@/src/core/constants/roles';
@@ -13,6 +12,7 @@ import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { IdentityUserSearchResponse, User } from '@/src/core/types/user.type';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { FEATURE_OWNERS_MENU_OPTIONS } from '@/src/modules/platforms/constants/featureOwnersMenuOptions';
+import { FeatureOwnersPage } from '@/src/modules/platforms/ui/pages/abacPage/featureOwnersPage/featureOwnersPage';
 
 test.describe(
   'Feature Owners Testcases',
@@ -28,7 +28,7 @@ test.describe(
     let user2: User;
     let user3: User;
 
-    test.beforeEach(async ({ appManagerApiClient }) => {
+    test.beforeEach(async ({ appManagerApiFixture }) => {
       user1 = TestDataGenerator.generateUserWithEmp({
         first_name: 'Aaman Temp',
         last_name: `Standard User${Date.now()}`,
@@ -53,35 +53,35 @@ test.describe(
       loginIdentifier1 = user1.emp;
       loginIdentifier2 = user2.emp;
       loginIdentifier3 = user3.emp;
-      await appManagerApiClient.getUserManagementService().addUserIfNotAddedAlready(user1, Roles.END_USER);
-      await appManagerApiClient.getUserManagementService().waitForUserToBeAddedInIdentity(loginIdentifier1);
-      await appManagerApiClient.getUserManagementService().addUserIfNotAddedAlready(user2, Roles.APPLICATION_MANAGER);
-      await appManagerApiClient.getUserManagementService().waitForUserToBeAddedInIdentity(loginIdentifier2);
-      await appManagerApiClient.getUserManagementService().addUserIfNotAddedAlready(user3, Roles.APPLICATION_MANAGER);
-      await appManagerApiClient.getUserManagementService().waitForUserToBeAddedInIdentity(loginIdentifier3);
+      await appManagerApiFixture.userManagementService.addUserIfNotAddedAlready(user1, Roles.END_USER);
+      await appManagerApiFixture.userManagementService.waitForUserToBeAddedInIdentity(loginIdentifier1);
+      await appManagerApiFixture.userManagementService.addUserIfNotAddedAlready(user2, Roles.APPLICATION_MANAGER);
+      await appManagerApiFixture.userManagementService.waitForUserToBeAddedInIdentity(loginIdentifier2);
+      await appManagerApiFixture.userManagementService.addUserIfNotAddedAlready(user3, Roles.APPLICATION_MANAGER);
+      await appManagerApiFixture.userManagementService.waitForUserToBeAddedInIdentity(loginIdentifier3);
     });
 
-    test.afterEach(async ({ appManagerApiClient }) => {
+    test.afterEach(async ({ appManagerApiFixture }) => {
       //deactivate user with the given login Identifiers if exists
       console.log(`loginIdentifier1: ${loginIdentifier1}`);
       if (loginIdentifier1 != undefined) {
         // Cleanup
-        const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier1);
-        await appManagerApiClient.getUserManagementService().updateUserStatus(userId, USER_STATUS.INACTIVE);
+        const userId = await appManagerApiFixture.userManagementService.getUserId(loginIdentifier1);
+        await appManagerApiFixture.userManagementService.updateUserStatus(userId, USER_STATUS.INACTIVE);
       }
 
       console.log(`loginIdentifier2: ${loginIdentifier2}`);
       if (loginIdentifier2 != undefined) {
         // Cleanup
-        const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier2);
-        await appManagerApiClient.getUserManagementService().updateUserStatus(userId, USER_STATUS.INACTIVE);
+        const userId = await appManagerApiFixture.userManagementService.getUserId(loginIdentifier2);
+        await appManagerApiFixture.userManagementService.updateUserStatus(userId, USER_STATUS.INACTIVE);
       }
 
       console.log(`loginIdentifier3: ${loginIdentifier3}`);
       if (loginIdentifier3 != undefined) {
         // Cleanup
-        const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier3);
-        await appManagerApiClient.getUserManagementService().updateUserStatus(userId, USER_STATUS.INACTIVE);
+        const userId = await appManagerApiFixture.userManagementService.getUserId(loginIdentifier3);
+        await appManagerApiFixture.userManagementService.updateUserStatus(userId, USER_STATUS.INACTIVE);
       }
     });
 
@@ -93,12 +93,12 @@ test.describe(
         {
           tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
         },
-        async ({ userManagerPage, userManagerApiClient }) => {
+        async ({ userManagerFixture, appManagerApiFixture }) => {
           let usersWithAppManagerTag: string[] = [];
           tagTest(test.info(), {
             zephyrTestId: 'PS-33254',
           });
-          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerPage);
+          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerFixture.page);
 
           await featureOwnersPage.loadPage();
           await featureOwnersPage.searchForFeature(feature);
@@ -110,9 +110,8 @@ test.describe(
           // Iterate the above list and check if the users are app manager through api
           while (usersWithAppManagerTag.length > 0) {
             const userWithAppManagerTag: string = usersWithAppManagerTag.pop() as string;
-            const userDetailsJson: IdentityUserSearchResponse = await userManagerApiClient
-              .getUserManagementService()
-              .getUserDetailsFromUserSearchList(userWithAppManagerTag);
+            const userDetailsJson: IdentityUserSearchResponse =
+              await appManagerApiFixture.userManagementService.getUserDetailsFromUserSearchList(userWithAppManagerTag);
             expect(userDetailsJson.result.listOfItems[0].roles).toEqual(Roles.APPLICATION_MANAGER);
           }
         }
@@ -123,11 +122,11 @@ test.describe(
         {
           tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
         },
-        async ({ userManagerPage }) => {
+        async ({ userManagerFixture }) => {
           tagTest(test.info(), {
             zephyrTestId: ['PS-33252', 'PS-33251', 'PS-33493'],
           });
-          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerPage);
+          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerFixture.page);
 
           await featureOwnersPage.loadPage();
 
@@ -148,11 +147,11 @@ test.describe(
         {
           tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
         },
-        async ({ userManagerPage, appManagerApiClient }) => {
+        async ({ userManagerFixture, appManagerApiFixture }) => {
           tagTest(test.info(), {
             zephyrTestId: ['PS-33255', 'PS-33090', 'PS-33089', `PS-32972`, `PS-32973`],
           });
-          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerPage);
+          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerFixture.page);
           // Test Scenario
           await featureOwnersPage.loadPage();
           await featureOwnersPage.searchForFeature(feature);
@@ -162,9 +161,9 @@ test.describe(
           await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           // Verify that user is displayed with App manager tag
           await featureOwnersPage.verifyFeatureOwnerIsDisplayedWithAppManagerTag(user2.username);
-          await appManagerApiClient
-            .getUserManagementService()
-            .updatePrimaryRole(loginIdentifier2, RolesId.END_USER, { abac: true });
+          await appManagerApiFixture.userManagementService.updatePrimaryRole(loginIdentifier2, RolesId.END_USER, {
+            abac: true,
+          });
           await featureOwnersPage.reloadPage();
           await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           // Verify that user is not displayed in the feature owner list
@@ -177,11 +176,11 @@ test.describe(
         {
           tag: [TestPriority.P0, `@ABAC`, `@feature-owners`],
         },
-        async ({ appManagerPage, appManagerApiClient }) => {
+        async ({ appManagerFixture }) => {
           tagTest(test.info(), {
             zephyrTestId: ['PS-33069'],
           });
-          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
+          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
 
           // Test Scenario
           await featureOwnersPage.loadPage();
@@ -190,8 +189,8 @@ test.describe(
           // Verify that user is displayed with App manager tag
           await featureOwnersPage.verifyFeatureOwnerIsDisplayedWithAppManagerTag(user2.username);
           // changing status of the App manager to Inactive
-          const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier2);
-          await appManagerApiClient.getUserManagementService().updateUserStatus(userId, USER_STATUS.INACTIVE);
+          const userId = await appManagerFixture.userManagementService.getUserId(loginIdentifier2);
+          await appManagerFixture.userManagementService.updateUserStatus(userId, USER_STATUS.INACTIVE);
           await featureOwnersPage.reloadPage();
           await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           // Verify that user is not displayed in the feature owners list after changing the status to inactive
@@ -204,11 +203,11 @@ test.describe(
         {
           tag: [TestPriority.P0, `@ABAC`, `@feature-owners`],
         },
-        async ({ appManagerPage, appManagerApiClient }) => {
+        async ({ appManagerFixture }) => {
           tagTest(test.info(), {
             zephyrTestId: ['PS-35600'],
           });
-          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
+          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
 
           // Test Scenario
           await featureOwnersPage.loadPage();
@@ -217,8 +216,8 @@ test.describe(
           // Verify that user is displayed with App manager tag
           await featureOwnersPage.verifyFeatureOwnerIsDisplayedWithAppManagerTag(user3.username);
           // changing status of the App manager to Frozen
-          const userId = await appManagerApiClient.getUserManagementService().getUserId(loginIdentifier3);
-          await appManagerApiClient.getUserManagementService().updateUserStatus(userId, USER_STATUS.FROZEN);
+          const userId = await appManagerFixture.userManagementService.getUserId(loginIdentifier3);
+          await appManagerFixture.userManagementService.updateUserStatus(userId, USER_STATUS.FROZEN);
           await featureOwnersPage.reloadPage();
           await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           // Verify that user is not displayed in the feature owners list after changing the status to frozen
@@ -231,12 +230,11 @@ test.describe(
         {
           tag: [TestPriority.P1, `@ABAC`, `@featureOwners`],
         },
-        async ({ appManagerPage }) => {
+        async ({ appManagerFixture }) => {
           tagTest(test.info(), {
             zephyrTestId: ['PS-32975'],
           });
-          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerPage);
-
+          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
           await featureOwnersPage.loadPage();
 
           await featureOwnersPage.searchForFeature(feature);
@@ -256,11 +254,11 @@ test.describe(
         {
           tag: [TestPriority.P1, `@ABAC`, `@featureOwners`],
         },
-        async ({ browser, appManagerApiClient }) => {
+        async ({ appManagerFixture, browser }) => {
           tagTest(test.info(), {
             zephyrTestId: ['PS-32482'],
           });
-          await appManagerApiClient.getUserManagementService().registerUser(loginIdentifier2, {
+          await appManagerFixture.userManagementService.registerUser(loginIdentifier2, {
             verificationQuestionField: 'department',
             verificationQuestionValue: 'Product',
             password: 'Simp@1234',
@@ -275,16 +273,15 @@ test.describe(
           const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(page);
           await featureOwnersPage.loadPage();
           await featureOwnersPage.verifyThePageIsLoaded();
-          await appManagerApiClient
-            .getUserManagementService()
-            .updatePrimaryRole(loginIdentifier2, RolesId.END_USER, { abac: true });
-          await appManagerApiClient
-            .getUserManagementService()
-            .waitForUserRoleToSync(loginIdentifier2, RolesId.END_USER);
+          await appManagerFixture.userManagementService.updatePrimaryRole(loginIdentifier2, RolesId.END_USER, {
+            abac: true,
+          });
+          await appManagerFixture.userManagementService.waitForUserRoleToSync(loginIdentifier2, RolesId.END_USER);
           try {
             await featureOwnersPage.goToUrl(PAGE_ENDPOINTS.FEATURE_OWNERS);
             await featureOwnersPage.verifyAccessDeniedPageVisibility();
           } catch (e) {
+            console.log(`Error in going to feature owners page: ${e}`);
             await featureOwnersPage.goToUrl(PAGE_ENDPOINTS.FEATURE_OWNERS);
           }
           await featureOwnersPage.verifyAccessDeniedPageVisibility();

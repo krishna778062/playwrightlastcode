@@ -112,7 +112,7 @@ test.describe(
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
       },
-      async ({ appManagerHomePage, qrManagementService }) => {
+      async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
           description: 'Verify creation of content QR',
           zephyrTestId: 'FL-427',
