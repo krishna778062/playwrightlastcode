@@ -1,11 +1,9 @@
 export enum NEWSLETTER_FEATURE_TAGS {
-  // Add your feature-specific tags here
-  // Example: FEATURE_A = '@feature-a',
+  NEWSLETTER_HOME_PAGE = '@newsletter-home-page',
 }
 
 export enum NEWSLETTER_SUITE_TAGS {
-  // Add your test suite tags here
-  // Example: SMOKE = '@smoke',
+  NEWSLETTER = '@newsletter',
 }
 
 export const NEWSLETTER_TEST_TAGS = [
