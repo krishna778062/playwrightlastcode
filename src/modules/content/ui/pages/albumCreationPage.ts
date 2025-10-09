@@ -7,14 +7,13 @@ import { ImageCropperComponent } from '@content/ui/components/imageCropper';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { FileUtil } from '@/src/core/utils/fileUtil';
 
 export interface AlbumCreationOptions {
   title: string;
   description: string;
-  images?: string[];
+  images?: string[]; // Full file paths to image files
   videoUrl?: string;
-  attachments?: string[];
+  attachments?: string[]; // Full file paths to attachment files
   openAlbum?: boolean;
   topics?: string[];
   category?: string;
@@ -186,8 +185,8 @@ export class AlbumCreationPage extends BasePage {
     });
   }
 
-  async uploadImage(imageName: string): Promise<void> {
-    await test.step(`Upload image and wait for upload api response: ${imageName}`, async () => {
+  async uploadImage(imagePath: string): Promise<void> {
+    await test.step(`Upload image and wait for upload api response: ${imagePath}`, async () => {
       const reqPromises = [];
       reqPromises.push(
         this.page.waitForResponse(
@@ -196,9 +195,8 @@ export class AlbumCreationPage extends BasePage {
         35_000
       );
       const fileInput = this.fileInputGeneral.first();
-      const filePath = FileUtil.getFilePath(__dirname, '..', '..', 'test-data', 'static-files', 'images', imageName);
-      console.log('filePath: ', filePath);
-      await this.addInputFiles(fileInput, filePath);
+      console.log('filePath: ', imagePath);
+      await this.addInputFiles(fileInput, imagePath);
       //wait for all the requests to be completed
       await Promise.all(reqPromises);
     });
@@ -225,8 +223,8 @@ export class AlbumCreationPage extends BasePage {
     });
   }
 
-  async uploadAttachment(fileName: string): Promise<void> {
-    await test.step(`Upload attachment: ${fileName}`, async () => {
+  async uploadAttachment(filePath: string): Promise<void> {
+    await test.step(`Upload attachment: ${filePath}`, async () => {
       // Setup request promise for attachment upload
       const reqPromises = [];
       reqPromises.push(
@@ -236,10 +234,6 @@ export class AlbumCreationPage extends BasePage {
         35_000
       );
 
-      // Determine folder based on file extension
-      const fileExtension = fileName.split('.').pop()?.toLowerCase();
-      const folder = ['docx', 'xlsx', 'pdf'].includes(fileExtension || '') ? 'excel' : 'images';
-      const filePath = FileUtil.getFilePath(__dirname, '..', '..', 'test-data', 'static-files', folder, fileName);
       await this.addInputFiles(this.addFromContainerInput, filePath);
 
       // Wait for the upload request to complete

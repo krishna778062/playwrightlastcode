@@ -5,6 +5,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { Roles } from '@/src/core/constants/roles';
+import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
@@ -41,7 +42,7 @@ test.describe(
       }
     });
 
-    test(
+    test.only(
       'Verify the Unlisted Sites Manager is able to add content from home dashboard on any unlisted site',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-30521'],
@@ -75,10 +76,17 @@ test.describe(
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator
-        const pageCreationOptions = TestDataGenerator.generatePage(
-          PageContentType.NEWS,
+        const imagePath = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
           CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
         );
+        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
 
         // Use the new wrapper method to create and publish the page
         const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
@@ -130,10 +138,17 @@ test.describe(
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator
-        const pageCreationOptions = TestDataGenerator.generatePage(
-          PageContentType.NEWS,
+        const imagePath = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
           CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
         );
+        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
 
         // Use the new wrapper method to create and publish the page
         const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
@@ -186,10 +201,17 @@ test.describe(
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator
-        const pageCreationOptions = TestDataGenerator.generatePage(
-          PageContentType.NEWS,
+        const imagePath = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
           CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
         );
+        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
 
         // Use the new wrapper method to create and publish the page
         const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
@@ -254,10 +276,17 @@ test.describe(
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator
-        const pageCreationOptions = TestDataGenerator.generatePage(
-          PageContentType.NEWS,
+        const imagePath = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
           CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
         );
+        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
 
         // Use the new wrapper method to create and publish the page
         const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);

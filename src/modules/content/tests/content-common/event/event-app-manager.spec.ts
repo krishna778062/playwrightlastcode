@@ -9,6 +9,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { FileUtil } from '@/src/core/utils/fileUtil';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 
 test.describe(
@@ -65,9 +66,17 @@ test.describe(
         );
 
         // Generate event data using TestDataGenerator
-        const eventCreationOptions = TestDataGenerator.generateEvent(
+        const imagePath = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
           CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
         );
+        const eventCreationOptions = TestDataGenerator.generateEvent(imagePath);
 
         // Create and publish the event
         const { eventId, siteId } = await eventCreationPage.actions.createAndPublishEvent(eventCreationOptions);

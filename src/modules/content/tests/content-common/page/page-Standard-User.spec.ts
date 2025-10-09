@@ -13,6 +13,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { getContentConfigFromCache } from '../../../config/contentConfig';
 
+import { FileUtil } from '@/src/core/utils/fileUtil';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 // Test data for approve/reject scenarios
@@ -103,11 +104,17 @@ test.describe(
           )) as PageCreationPage;
 
           // Generate page data using TestDataGenerator
-          const pageCreationOptions = TestDataGenerator.generatePage(
-            PageContentType.NEWS,
-            CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
-            'uncategorized'
+          const imagePath = FileUtil.getFilePath(
+            __dirname,
+            '..',
+            '..',
+            '..',
+            'test-data',
+            'static-files',
+            'images',
+            CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
           );
+          const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'uncategorized');
 
           // Create and submit the page
           const { pageId, siteId, peopleName } =

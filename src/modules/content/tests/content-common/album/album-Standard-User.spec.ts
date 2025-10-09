@@ -12,6 +12,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { getContentConfigFromCache } from '../../../config/contentConfig';
 
+import { FileUtil } from '@/src/core/utils/fileUtil';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 // Test data for approve/reject scenarios
@@ -105,9 +106,29 @@ test.describe(
           )) as AlbumCreationPage;
 
           // Generate album data using TestDataGenerator
+          const imagePath = FileUtil.getFilePath(
+            __dirname,
+            '..',
+            '..',
+            '..',
+            'test-data',
+            'static-files',
+            'images',
+            CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
+          );
+          const attachmentPath = FileUtil.getFilePath(
+            __dirname,
+            '..',
+            '..',
+            '..',
+            'test-data',
+            'static-files',
+            'excel',
+            'sample.docx'
+          );
           const albumCreationOptions = TestDataGenerator.generateAlbum(
-            CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
-            'sample.docx',
+            imagePath,
+            attachmentPath,
             'https://youtu.be/4vLyqzOr14g',
             true
           );

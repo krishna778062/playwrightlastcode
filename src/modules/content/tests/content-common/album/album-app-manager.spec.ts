@@ -10,6 +10,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { FileUtil } from '@/src/core/utils/fileUtil';
+
 test.describe(
   `Album Creation by Application Manager`,
   {
@@ -67,9 +69,29 @@ test.describe(
         )) as AlbumCreationPage;
 
         // Generate album data using TestDataGenerator
+        const imagePath = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
+          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
+        );
+        const attachmentPath = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'excel',
+          'sample.docx'
+        );
         const albumCreationOptions = TestDataGenerator.generateAlbum(
-          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
-          'sample.docx',
+          imagePath,
+          attachmentPath,
           'https://youtu.be/4vLyqzOr14g',
           true
         );

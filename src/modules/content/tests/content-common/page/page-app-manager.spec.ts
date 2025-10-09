@@ -166,11 +166,17 @@ test.describe(
         pageCreationPage = await siteDashboardPage.navigateToPageCreation();
 
         // Generate page data using TestDataGenerator
-        const pageCreationOptions = TestDataGenerator.generatePage(
-          PageContentType.NEWS,
-          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName,
-          'uncategorized'
+        const imagePath = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
+          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
         );
+        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'uncategorized');
 
         // Use the new wrapper method to create and publish the page
         const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);

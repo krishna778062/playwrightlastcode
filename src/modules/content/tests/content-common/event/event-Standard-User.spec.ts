@@ -12,6 +12,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { getContentConfigFromCache } from '../../../config/contentConfig';
 
+import { FileUtil } from '@/src/core/utils/fileUtil';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
@@ -105,9 +106,17 @@ test.describe(
           )) as EventCreationPage;
 
           // Generate event data using TestDataGenerator
-          const eventCreationOptions = TestDataGenerator.generateEvent(
+          const imagePath = FileUtil.getFilePath(
+            __dirname,
+            '..',
+            '..',
+            '..',
+            'test-data',
+            'static-files',
+            'images',
             CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
           );
+          const eventCreationOptions = TestDataGenerator.generateEvent(imagePath);
 
           // Create and submit the event
           const { eventId, siteId, peopleId, peopleName } =

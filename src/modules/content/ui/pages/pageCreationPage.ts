@@ -31,7 +31,7 @@ export interface PageCreationOptions {
 
 export interface IPageCreationActions {
   uploadCoverImage: (
-    fileName: string,
+    imagePath: string,
     options?: { widescreenCropOption?: boolean; squareCropOption?: boolean }
   ) => Promise<void>;
   fillPageDetails: (options: {
@@ -112,7 +112,8 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     this.descriptionInput = page.locator("div[aria-label='Page content']");
     this.contentTypeCheckbox = (type: string) => page.locator('label:has(span)', { hasText: type });
     this.submitButton = page.locator('span').filter({ hasText: 'Submit for approval' });
-    this.addCategoryFromList = (categoryText: string) => page.locator(`div[role='listbox'] >> text=${categoryText}`);
+    this.addCategoryFromList = (categoryText: string) =>
+      page.getByRole('listbox').locator('.Panel-item').filter({ hasText: categoryText });
     this.successMessage = (message: string) => page.locator(`text=${message}`);
     this.contentTitleHeading = (title: string) => page.locator(`h1:has-text("${title}")`);
 
@@ -141,7 +142,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
    * Uploads a cover image to the page creation page
    * It calls uploadAttachment from attachementUploader component
    * and then clicks on next button twice to go to the image cropper page
-   * @param imagePath - The name of the file to upload
+   * @param imagePath - The full path to the image file to upload
    */
   async uploadCoverImage(
     imagePath: string,
@@ -198,8 +199,9 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       // Handle category selection
       await this.clickOnElement(this.categoryDropdown);
       await this.fillInElement(this.categoryDropdown, options.category);
-      await this.clickOnElement(this.addCategoryFromList(options.category));
-
+      await this.verifier.verifyTheElementIsVisible(this.addCategoryFromList(options.category));
+      await this.page.keyboard.press('Enter');
+      // await this.clickOnElement(this.addCategoryFromList(options.category));
       await this.clickOnElement(this.contentTypeCheckbox(options.contentType));
     });
   }
