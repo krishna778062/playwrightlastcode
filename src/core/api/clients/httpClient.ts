@@ -1,63 +1,57 @@
 import { APIRequestContext, APIResponse } from '@playwright/test';
 
-import { ApiError } from '@core/api/apiError';
+import { ApiError } from '@/src/core/api/errors/apiError';
 import {
   DeleteRequestOptions,
   GetRequestOptions,
   PatchRequestOptions,
   PostRequestOptions,
   PutRequestOptions,
-  RequestOptionsBase,
   ValidateResponseOptions,
-} from '@core/types';
-
-import { getInternalBackendUrl } from '@/src/core/utils/urlUtils';
+} from '@/src/core/types/http.type';
 
 export class HttpClient {
   readonly context: APIRequestContext;
   readonly baseUrl: string;
 
-  constructor(context: APIRequestContext, baseUrl?: string) {
+  constructor(context: APIRequestContext, baseUrl: string) {
     this.context = context;
-    this.baseUrl = baseUrl || process.env.API_BASE_URL || '';
-    if (!this.baseUrl) {
-      throw new Error('BaseUrl must be provided either through constructor or API_BASE_URL environment variable');
-    }
+    this.baseUrl = baseUrl;
   }
 
-  protected getUrl(endpoint: string, options?: RequestOptionsBase): string {
-    const baseUrl = options?.useInternalBackendUrl
-      ? getInternalBackendUrl(process.env.FRONTEND_BASE_URL!)
-      : this.baseUrl;
-    return `${baseUrl}${endpoint}`;
+  protected getUrl(endpoint: string): string {
+    //if the endpoint already has http or https, then we need to add the baseUrl to it
+    if (endpoint.startsWith('http') || endpoint.startsWith('https')) {
+      return endpoint;
+    }
+    //if the endpoint does not have / then append it to the baseUrl
+    if (!endpoint.startsWith('/')) {
+      endpoint = `/${endpoint}`;
+    }
+    return `${this.baseUrl}${endpoint}`;
   }
 
   async get(endpoint: string, options?: GetRequestOptions): Promise<APIResponse> {
-    const { useInternalBackendUrl, ...requestOptions } = options || {};
-    return this.context.get(this.getUrl(endpoint, { useInternalBackendUrl }), requestOptions);
+    return this.context.get(this.getUrl(endpoint), options);
   }
 
   async post(endpoint: string, options?: PostRequestOptions): Promise<APIResponse> {
-    const { useInternalBackendUrl, ...requestOptions } = options || {};
-    return this.context.post(this.getUrl(endpoint, { useInternalBackendUrl }), requestOptions);
+    return this.context.post(this.getUrl(endpoint), options);
   }
 
   async put(endpoint: string, options?: PutRequestOptions): Promise<APIResponse> {
-    const { useInternalBackendUrl, ...requestOptions } = options || {};
-    return this.context.put(this.getUrl(endpoint, { useInternalBackendUrl }), requestOptions);
+    return this.context.put(this.getUrl(endpoint), options);
   }
 
   async delete(endpoint: string, options?: DeleteRequestOptions): Promise<APIResponse> {
-    const { useInternalBackendUrl, ...requestOptions } = options || {};
-    return this.context.delete(this.getUrl(endpoint, { useInternalBackendUrl }), requestOptions);
+    return this.context.delete(this.getUrl(endpoint), options);
   }
 
   async patch(endpoint: string, options?: PatchRequestOptions): Promise<APIResponse> {
-    const { useInternalBackendUrl, ...requestOptions } = options || {};
-    return this.context.patch(this.getUrl(endpoint, { useInternalBackendUrl }), requestOptions);
+    return this.context.patch(this.getUrl(endpoint), options);
   }
 
-  protected async validateResponse(response: APIResponse, options: ValidateResponseOptions = {}): Promise<void> {
+  public async validateResponse(response: APIResponse, options: ValidateResponseOptions = {}): Promise<void> {
     const {
       expectedStatusCodes = [200, 201, 204],
       allowEmptyResponse = true,
@@ -88,7 +82,7 @@ export class HttpClient {
     }
   }
 
-  protected async parseResponse<T>(response: APIResponse, validationOptions?: ValidateResponseOptions): Promise<T> {
+  public async parseResponse<T>(response: APIResponse, validationOptions?: ValidateResponseOptions): Promise<T> {
     await this.validateResponse(response, validationOptions);
     return response.json() as T;
   }
