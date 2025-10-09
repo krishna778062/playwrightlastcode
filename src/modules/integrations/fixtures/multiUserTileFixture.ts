@@ -59,11 +59,6 @@ export const multiUserTileFixture = test.extend<
   appManagerBrowserContext: [
     async ({ browser }, use) => {
       const context = await browser.newContext();
-      const page = await context.newPage();
-      await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().appManagerEmail,
-        password: getEnvConfig().appManagerPassword,
-      });
       await use(context);
       await context.close();
     },
@@ -73,6 +68,10 @@ export const multiUserTileFixture = test.extend<
   adminPage: [
     async ({ appManagerBrowserContext }, use) => {
       const page = await appManagerBrowserContext.newPage();
+      await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
+      });
       await use(page);
       await page.close();
     },
@@ -89,8 +88,6 @@ export const multiUserTileFixture = test.extend<
   endUserBrowserContext: [
     async ({ browser }, use) => {
       const context = await browser.newContext();
-      const page = await context.newPage();
-      await LoginHelper.loginWithPassword(page, users.endUser);
       await use(context);
       await context.close();
     },
@@ -100,6 +97,7 @@ export const multiUserTileFixture = test.extend<
   endUserPage: [
     async ({ endUserBrowserContext }, use) => {
       const page = await endUserBrowserContext.newPage();
+      await LoginHelper.loginWithPassword(page, users.endUser);
       await use(page);
       await page.close();
     },
