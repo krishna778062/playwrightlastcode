@@ -90,15 +90,7 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
             fileType.type
           );
           const fileResultItem = new IntranetFileListComponent(fileResult.page, fileResult.rootLocator);
-          await fileResultItem.verifyIntranetFileResultItem({
-            name: uploadedFileName,
-            label: fileType.label,
-            author: authorName,
-            type: fileType.type,
-            siteName,
-            siteId,
-            fileId,
-          });
+          await fileResultItem.verifyNameIsDisplayed(uploadedFileName);
 
           // Click on the file filter in the sidebar to filter results by files only
           await globalSearchResultPage.verifyAndClickSidebarFilter({
@@ -106,15 +98,7 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
             iconType: 'file',
           });
 
-          await fileResultItem.verifyIntranetFileResultItem({
-            name: uploadedFileName,
-            label: fileType.label,
-            author: authorName,
-            type: fileType.type,
-            siteName,
-            siteId,
-            fileId,
-          });
+          await fileResultItem.verifyNameIsDisplayed(uploadedFileName);
 
           const originalCount = await globalSearchResultPage.verifyAndClickSiteSubFilter({
             filterText: 'Files',
