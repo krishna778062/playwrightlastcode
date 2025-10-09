@@ -14,6 +14,7 @@ import {
 import { IdentityService } from './IdentityService';
 
 import { HttpClient } from '@/src/core/api/clients/httpClient';
+import { getInternalBackendUrl } from '@/src/core/utils/urlUtils';
 import { IUserManagementOperations } from '@/src/modules/platforms/apis/interfaces/IUserManagementOperations';
 import { PLATFORM_API_ENDPOINTS as API_ENDPOINTS } from '@/src/modules/platforms/apis/platformApiEndpoints';
 
@@ -29,7 +30,10 @@ export class UserManagementService implements IUserManagementOperations {
   private defaultLocaleId: number = 1;
   private defaultDepartment: string = 'Product';
 
-  constructor(context: APIRequestContext, baseUrl: string) {
+  constructor(
+    context: APIRequestContext,
+    readonly baseUrl: string
+  ) {
     this.httpClient = new HttpClient(context, baseUrl);
     this.identityService = new IdentityService(context, baseUrl);
   }
@@ -201,18 +205,22 @@ export class UserManagementService implements IUserManagementOperations {
     const roleId = await this.identityService.fetchRoleId(Roles.END_USER);
 
     await test.step(`Activate user ${firstName} ${lastName}`, async () => {
-      const response = await this.httpClient.post(`/v1/identity/internal/accounts/users/${userId}/password`, {
-        data: {
-          password: password,
-        },
-        headers: {
-          'x-smtip-tid': process.env.ORG_ID!,
-          'x-smtip-uid': userId,
-          'x-smtip-tenant-user-role': roleId.toString(),
-        },
-        useInternalBackendUrl: true,
-        timeout: 50_000,
-      });
+      const internalBackendUrl = getInternalBackendUrl(this.baseUrl);
+      console.log('Info: To activate user, we are using the internal backend url: ', internalBackendUrl);
+      const response = await this.httpClient.post(
+        `${internalBackendUrl}/v1/identity/internal/accounts/users/${userId}/password`,
+        {
+          data: {
+            password: password,
+          },
+          headers: {
+            'x-smtip-tid': process.env.ORG_ID!,
+            'x-smtip-uid': userId,
+            'x-smtip-tenant-user-role': roleId.toString(),
+          },
+          timeout: 50_000,
+        }
+      );
       await this.httpClient.validateResponse(response);
     });
   }
