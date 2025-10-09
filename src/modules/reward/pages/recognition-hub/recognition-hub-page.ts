@@ -608,4 +608,57 @@ export class RecognitionHubPage extends BasePage {
     await this.clickOnElement(this.deleteRecognitionDialogBoxDeleteButton);
     await expect(this.deleteRecognitionDialogBoxContainer).not.toBeVisible();
   }
+
+  /**
+   * Navigate to recognition hub and validate allowance refreshing
+   */
+  async navigateToRecognitionHubAndValidateAllowanceRefreshing(): Promise<void> {
+    await this.visitRecognitionHub();
+    await this.rewardRecognitionFirstPost.waitFor({ state: 'visible', timeout: 15000 });
+  }
+
+  /**
+   * Enable distribution allowance as failed
+   */
+  async enableDistributionAllowanceAsFailed(): Promise<void> {
+    const { getQuery } = await import('@rewards/utils/dbQuery');
+    const { executeQuery } = await import('@rewards/utils/dbUtils');
+
+    const tenantCode = await this.page.evaluate(() => {
+      return (window as any).Simpplr?.Settings?.organizationId;
+    });
+    const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
+    await executeQuery(resultAsFailed.replace('tenantCode', tenantCode));
+  }
+
+  /**
+   * Validate allowance refreshing tooltip in recognition hub
+   */
+  async validateAllowanceRefreshingTooltipInRecognitionHub(): Promise<void> {
+    await this.page.reload();
+    await this.visitRecognitionHub();
+    await this.verifier.verifyTheElementIsVisible(this.allowanceRefreshing);
+    await this.verifier.verifyTheElementIsVisible(this.allowanceRefreshingInfoIcon);
+    await this.clickOnElement(this.allowanceRefreshingInfoIcon);
+    await this.verifier.verifyTheElementIsVisible(this.allowanceRefreshingInfoIconTooltipText);
+    await this.verifier.verifyElementHasText(
+      this.allowanceRefreshingInfoIconTooltipText,
+      'Your monthly allowance is refreshing and will be available soon'
+    );
+    await this.allowanceRefreshingInfoIcon.click({ force: true });
+  }
+
+  /**
+   * Disable distribution allowance as success
+   */
+  async disableDistributionAllowanceAsSuccess(): Promise<void> {
+    const { getQuery } = await import('@rewards/utils/dbQuery');
+    const { executeQuery } = await import('@rewards/utils/dbUtils');
+
+    const tenantCode = await this.page.evaluate(() => {
+      return (window as any).Simpplr?.Settings?.organizationId;
+    });
+    const resultAsSuccess = getQuery('setDistributionAllowanceAsSuccess');
+    await executeQuery(resultAsSuccess.replace('tenantCode', tenantCode));
+  }
 }

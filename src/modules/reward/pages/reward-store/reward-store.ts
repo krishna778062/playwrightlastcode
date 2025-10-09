@@ -526,4 +526,90 @@ export class RewardsStore extends BasePage {
   async validateTheResentConfirmation() {
     await this.verifyToastMessageIsVisibleWithText('Reward sent successfully');
   }
+
+  /**
+   * Login as app manager and navigate to rewards store
+   */
+  async loginAsAppManagerAndNavigateToRewardsStore(): Promise<void> {
+    await this.loadPage();
+    await this.verifier.verifyTheElementIsVisible(this.header);
+    await this.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
+  }
+
+  /**
+   * Login as recognition user and navigate to rewards store
+   */
+  async loginAsRecognitionUserAndNavigateToRewardsStore(): Promise<void> {
+    const { LoginHelper } = await import('@core/helpers/loginHelper');
+    await LoginHelper.logoutByNavigatingToLogoutPage(this.page);
+    await LoginHelper.loginWithPassword(this.page, {
+      email: process.env.RECOGNITION_USER_USERNAME!,
+      password: process.env.RECOGNITION_USER_PASSWORD!,
+    });
+    await this.loadPage();
+    await this.verifier.verifyTheElementIsVisible(this.header);
+    await this.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
+  }
+
+  /**
+   * Login as standard user and navigate to rewards store
+   */
+  async loginAsStandardUserAndNavigateToRewardsStore(): Promise<void> {
+    const { LoginHelper } = await import('@core/helpers/loginHelper');
+    await LoginHelper.logoutByNavigatingToLogoutPage(this.page);
+    await LoginHelper.loginWithPassword(this.page, {
+      email: process.env.STANDARD_USER_USERNAME!,
+      password: process.env.STANDARD_USER_PASSWORD!,
+    });
+    await this.loadPage();
+    await this.verifier.verifyTheElementIsVisible(this.header);
+    await this.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
+  }
+
+  /**
+   * Select country and redeem gift card
+   */
+  async selectCountryAndRedeemGiftCard(countryName: string, giftCardName: string): Promise<void> {
+    await this.selectCountry(countryName);
+    await this.selectAndRedeemGiftCard(giftCardName);
+  }
+
+  /**
+   * Navigate to user profile and validate view orders functionality
+   */
+  async navigateToUserProfileAndValidateViewOrders(userProfilePage: any): Promise<void> {
+    await userProfilePage.navigateToCurrentUserProfile();
+    await userProfilePage.validateTheViewOrderButton();
+    await userProfilePage.clickOnTheViewOrders();
+    await this.verifier.verifyTheElementIsVisible(this.header);
+    await this.verifier.waitUntilPageHasNavigatedTo('/rewards-store/order-history');
+    await this.validateTheOrderHistoryElements();
+  }
+
+  /**
+   * Redeem gift card with failure scenario
+   */
+  async redeemGiftCardWithFailure(countryName: string, giftCardName: string): Promise<void> {
+    await this.selectCountry(countryName);
+    await this.selectAndRedeemGiftCard(giftCardName);
+  }
+
+  /**
+   * Validate redemption failure dialog
+   */
+  async validateRedemptionFailure(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.container);
+    await this.verifier.verifyElementHasText(this.rewardsDialogBox.somethingWentWrongTitle, 'Something went wrong');
+    await this.verifier.verifyElementHasText(
+      this.rewardsDialogBox.somethingWentWrongDescription1,
+      'There was an error processing your order. Please try again later.'
+    );
+    await this.verifier.verifyElementHasText(
+      this.rewardsDialogBox.somethingWentWrongDescription2,
+      'You have not been charged any points.'
+    );
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.somethingWentWrongCloseButton.last());
+    await this.clickOnElement(this.rewardsDialogBox.somethingWentWrongCloseButton.last());
+    await this.verifier.verifyTheElementIsNotVisible(this.rewardsDialogBox.container);
+  }
 }
