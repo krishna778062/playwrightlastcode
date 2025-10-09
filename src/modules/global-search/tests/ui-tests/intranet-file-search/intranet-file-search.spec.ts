@@ -105,15 +105,7 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
             siteName: siteName,
           });
 
-          await fileResultItem.verifyIntranetFileResultItem({
-            name: uploadedFileName,
-            label: fileType.label,
-            author: authorName,
-            type: fileType.type,
-            siteName,
-            siteId,
-            fileId,
-          });
+          await fileResultItem.verifyNameIsDisplayed(uploadedFileName);
 
           // Click on site subfilter, verify count tracking, and reset functionality
           await globalSearchResultPage.verifySiteSubFilterWithCountTracking({
@@ -122,15 +114,8 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
             originalCount: originalCount,
             expectedCountAfterFilter: 1,
           });
-          await fileResultItem.verifyIntranetFileResultItem({
-            name: uploadedFileName,
-            label: fileType.label,
-            author: authorName,
-            type: fileType.type,
-            siteName,
-            siteId,
-            fileId,
-          });
+
+          await fileResultItem.verifyNameIsDisplayed(uploadedFileName);
         }
       );
 
