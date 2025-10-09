@@ -54,6 +54,7 @@ test.describe(
         const endUserHomeDashboard = new HomeDashboard(endUserPage, tileManagementHelper);
         await waitUntilTilePresentInApi(endUserPage, createdTileTitle);
         await endUserHomeDashboard.reloadAndVerifyTilePresent(createdTileTitle);
+        await adminHomeDashboard.verifyDoceboContentStructure(createdTileTitle);
       }
     );
 
@@ -85,6 +86,7 @@ test.describe(
         await endUserSiteDashboard.navigateToSite(createdSite.siteId);
         await waitUntilTilePresentInApi(endUserPage, createdTileTitle);
         await endUserSiteDashboard.isTilePresent(createdTileTitle);
+        await endUserSiteDashboard.verifyDoceboContentStructure(createdTileTitle);
         await siteDashboard.removeTile(createdTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         createdTileTitle = undefined;
       }
