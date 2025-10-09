@@ -7,4 +7,6 @@ export enum POPUP_BUTTONS {
   SKIP = 'Skip',
   SAVE = 'Save',
   SAVE_AND_ACTIVATE = 'Save and activate',
+  ADD_AUDIENCE = 'Add audience',
+  UPDATE = 'Update',
 }
