@@ -3,13 +3,11 @@ import { TestGroupType } from '@core/constants/testType';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ManageSitePage } from '../../pages/manageSitePage';
-
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { FeaturedSitePage } from '@/src/modules/content/pages/featuredSitePage';
 import { ApplicationScreenPage } from '@/src/modules/content/pages/manageFeaturesPage';
+import { ManageSitePage } from '@/src/modules/content/pages/manageSitePage';
 import { SiteCategoriesPage } from '@/src/modules/content/pages/siteCategoriesPage';
 import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
@@ -23,7 +21,6 @@ test.describe(
   () => {
     let manageSitePage: ManageSitePage;
     let siteManagementHelper: SiteManagementHelper;
-    let featuredSitePage: FeaturedSitePage;
     let manageFeaturesPage: ApplicationScreenPage;
     let siteCategoriesPage: SiteCategoriesPage;
     let siteDashboardPage: SiteDashboardPage;
@@ -32,7 +29,6 @@ test.describe(
       siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
       const siteInfo = await siteManagementHelper.getSiteWithCoverImageAndAuthorNameAndStartDate();
       manageSitePage = new ManageSitePage(appManagerHomePage.page, siteInfo.siteId);
-      featuredSitePage = new FeaturedSitePage(appManagerHomePage.page);
       manageFeaturesPage = new ApplicationScreenPage(appManagerHomePage.page);
       siteCategoriesPage = new SiteCategoriesPage(appManagerHomePage.page);
       siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteInfo.siteId);
@@ -73,7 +69,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE],
       },
-      async ({ appManagerHomePage, contentManagementHelper }) => {
+      async ({ appManagerHomePage, contentManagementHelper: _contentManagementHelper }) => {
         tagTest(test.info(), {
           description: 'Verify different sites can share same page category name d',
           customTags: [ContentFeatureTags.MANAGE_SITE],
@@ -111,5 +107,42 @@ test.describe(
         await manageSitePage.assertions.checkTheError();
       }
     );
-  }
+
+  test.only(
+    'To verify the favourite people from manage site people',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, ContentFeatureTags.MANAGE_SITE],
+    },
+    async ({  }) => {
+      tagTest(test.info(), {
+        description: 'To verify the favourite people from manage site people',
+        customTags: [ContentFeatureTags.MANAGE_SITE],
+        zephyrTestId: 'CONT-24178',
+        storyId: 'CONT-24178',
+      });
+
+      const siteInfo = await siteManagementHelper.getSiteWithCoverImageAndAuthorNameAndStartDate();
+      const creatingSite = await siteManagementHelper.getSiteWithMembers(siteInfo.siteId);
+      await siteDashboardPage.assertions.verifySiteDashboardLoadedWithSiteID(creatingSite.site.siteId);
+      await manageSitePage.actions.clickOnAboutTab();
+      await manageSitePage.actions.clickOnTheMembersTab();    
+     const membersName =  await siteManagementHelper.getMembersNameFromList(creatingSite.site.siteId);
+     await manageSitePage.actions.hoverOnMembersName(membersName.membersName[0]);
+     await manageSitePage.assertions.checkIsUserMarkedAsFavorite();
+     await manageSitePage.assertions.markAsFavoriteAndCheckRGBColor(membersName.membersName[0]);
+     await manageSitePage.actions.clickOnTheFavouriteTabs();
+     await manageSitePage.assertions.clickOnPeppleTab();
+     await manageSitePage.assertions.checkMarkedAsFavoriteInPeopleList(membersName.membersName[0]);
+     await manageSitePage.actions.hoverOnMembersName(membersName.membersName[0]);
+     await manageSitePage.actions.markAsUnfavorite(membersName.membersName[0]);
+     await siteDashboardPage.assertions.verifySiteDashboardLoadedWithSiteID(creatingSite.site.siteId);
+     await manageSitePage.actions.clickOnTheAboutTab();
+     await manageSitePage.actions.clickOnTheMemberButtonInAboutTab();
+     await manageSitePage.assertions.checkMarkedAsFavoriteInPeopleListShouldNotBeVisible(membersName.membersName[0]);
+
+
+    }
+  );
+}
 );
+

@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { Page, test, expect } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
@@ -7,18 +7,32 @@ import { ManageSitesComponent } from '@/src/modules/content/ui/components/manage
 export interface IManageSiteActions {
   clickOnSite: () => Promise<void>;
   clickOnContentButton: () => Promise<void>;
-  searchEventInSearchBar: (eventName: string) => Promise<void>;
+  clickOnAboutTab: () => Promise<void>;
+  clickOnTheMembersTab: () => Promise<void>;
+  hoverOnMembersName: (membersName: string) => Promise<void>;
+  clickOnTheFavouriteTabs: () => Promise<void>;
+  markAsUnfavorite: (membersName: string) => Promise<void>;
+  clickOnTheMemberButtonInAboutTab: () => Promise<void>;
+  clickOnTheAboutTab: () => Promise<void>;
   clickOnTheManageSiteButton: () => Promise<void>;
   clickOnThePageCategoryButton: () => Promise<void>;
+  searchEventInSearchBar: (eventName: string) => Promise<void>;
+
+
+
 }
 
 export interface IManageSiteAssertions {
+  checkIsUserMarkedAsFavorite: () => Promise<void>;
+  clickOnPeppleTab: () => Promise<void>;
   verifyCoverImageIsVisible: () => Promise<void>;
   verifyEventsTabMatchesApiDate: (startsAt: string) => Promise<void>;
   checkAlbumCoverImageIsVisible: () => Promise<void>;
   checkAuthorNameIsDisplayed: (authorName: string) => Promise<void>;
-  clickOnThePageCategoryButton: () => Promise<void>;
   checkTheError: () => Promise<void>;
+  markAsFavoriteAndCheckRGBColor: (membersName: string) => Promise<void>;
+  checkMarkedAsFavoriteInPeopleList: (membersName: string) => Promise<void>;
+  checkMarkedAsFavoriteInPeopleListShouldNotBeVisible: (membersName: string) => Promise<void>;
   // Add assertions as needed
 }
 
@@ -56,6 +70,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       await this.manageSitesComponent.clickOnSite.press('Enter');
     });
   }
+
   async verifyCoverImageIsVisible(): Promise<void> {
     await test.step('Verify cover image is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.manageSitesComponent.coverImage, {
@@ -141,6 +156,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
     return hasCalendarFormat || hasDatePattern;
   }
+
   async checkAlbumCoverImageIsVisible(): Promise<void> {
     await test.step('Check album cover image is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.manageSitesComponent.albumCoverImage, {
@@ -156,20 +172,141 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       });
     });
   }
+
   async clickOnTheManageSiteButton(): Promise<void> {
     await test.step('Click on the manage site button', async () => {
       await this.clickOnElement(this.manageSitesComponent.clickOnTheManageSiteButton);
     });
   }
+
   async clickOnThePageCategoryButton(): Promise<void> {
     await test.step('Click on the page category button', async () => {
       await this.clickOnElement(this.manageSitesComponent.clickOnPageCategory);
     });
   }
+
   async checkTheError(): Promise<void> {
     await test.step('Check the error', async () => {
       await this.verifier.verifyTheElementIsVisible(this.manageSitesComponent.checkTheError, {
         assertionMessage: 'The error should be visible',
+      });
+    });
+  }
+
+  async clickOnAboutTab(): Promise<void> {
+    await test.step('Click on the about tab', async () => {
+      await this.clickOnElement(this.manageSitesComponent.clickOnAboutTab);
+    });
+  }
+
+  async clickOnTheMembersTab(): Promise<void> {
+    await test.step('Click on the members tab', async () => {
+      await this.clickOnElement(this.manageSitesComponent.clickOnTheMembersTab);
+    });
+  }
+
+  async hoverOnMembersName(membersName: string): Promise<void> {
+    await test.step('Hover on the members name', async () => {
+      await this.manageSitesComponent.getMembersNameByLabel(membersName).hover();
+    });
+  }
+
+  async markAsFavoriteAndCheckRGBColor(membersName: string): Promise<void> {
+      const publishResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.manageSitesComponent.clickOnStartIcon),
+        response =>
+          response.url().includes(PAGE_ENDPOINTS.IDENTITY_FAVOURITES) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+          {
+            timeout: 20_000,
+          }
+        );
+        await publishResponse.finished();
+      
+      const favoriteButton = this.manageSitesComponent.getFavoriteButtonForUser(membersName);
+      
+      // Target the SVG path specifically
+      const svgPath = favoriteButton.locator('svg path');
+      
+      // Debug: Log the actual fill color
+      const fillColor = await svgPath.evaluate(el => 
+        window.getComputedStyle(el).fill
+      );
+      console.log('Actual SVG fill color:', fillColor);
+      
+      await expect(svgPath).toHaveCSS('fill', 'rgb(207, 130, 7)');
+    }
+    
+
+
+  async checkIsUserMarkedAsFavorite(): Promise<void> {
+    await test.step('Check is user marked as favorite', async () => {
+      if (await this.verifier.verifyTheElementIsVisible(this.manageSitesComponent.clickOnAlreadyStarIcon)) {
+        const publishResponse = await this.performActionAndWaitForResponse(
+          () => this.clickOnElement(this.manageSitesComponent.clickOnStartIcon),
+          response =>
+            response.url().includes(PAGE_ENDPOINTS.IDENTITY_FAVOURITES) &&
+            response.request().method() === 'POST' &&
+            response.status() === 200,
+          {
+            timeout: 20_000,
+          }
+        );
+        await publishResponse.finished();       
+      } else {
+
+
+console.log('The user is not marked as favorite');
+
+          
+      }
+    });
+  }
+
+  async clickOnTheFavouriteTabs(): Promise<void> {
+    await test.step('Click on the favourite tabs', async () => {
+      await this.clickOnElement(this.manageSitesComponent.clickOnFavouriteTabs);
+
+    });
+  }
+
+  async clickOnPeppleTab(): Promise<void> {
+    await test.step('Click on the pepple tab', async () => {
+      await this.clickOnElement(this.manageSitesComponent.clickOnPeppleTab);
+    });
+  }
+
+  async checkMarkedAsFavoriteInPeopleList(membersName: string): Promise<void> {
+    await test.step('Check marked as favorite in people list', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.manageSitesComponent.getMembersListInPeopleTab(membersName), {
+        assertionMessage: 'The user should be marked as favorite',
+      });
+    });
+  }
+
+  async markAsUnfavorite(membersName: string): Promise<void> {
+    await test.step('Mark as unfaverite', async () => {
+      await this.clickOnElement(this.manageSitesComponent.getFavoriteButtonForUser(membersName));
+    });
+  }
+
+  async clickOnTheAboutTab(): Promise<void> {
+    await test.step('Click on the about tab', async () => {
+      await this.clickOnElement(this.manageSitesComponent.clickOnAboutTab);
+    });
+  }
+
+  async clickOnTheMemberButtonInAboutTab(): Promise<void> {
+    await test.step('Click on the member button in about tab', async () => {
+      await this.clickOnElement(this.manageSitesComponent.clickOnTheMemberButtonInAboutTab);
+    });
+  }
+
+  async checkMarkedAsFavoriteInPeopleListShouldNotBeVisible(membersName: string): Promise<void> {
+    await test.step('Check marked as favorite in people list should not be visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.manageSitesComponent.getMembersListInPeopleTab(membersName), {
+        assertionMessage: 'The user should not be marked as favorite',
       });
     });
   }

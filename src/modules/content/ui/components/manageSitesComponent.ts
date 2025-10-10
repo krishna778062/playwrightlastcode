@@ -13,6 +13,13 @@ export class ManageSitesComponent extends BaseComponent {
   readonly clickOnTheManageSiteButton: Locator;
   readonly clickOnPageCategory: Locator;
   readonly checkTheError: Locator;
+  readonly clickOnAboutTab: Locator;
+  readonly clickOnTheMembersTab: Locator;
+  readonly clickOnStartIcon: Locator;
+  readonly clickOnFavouriteTabs: Locator;
+  readonly clickOnPeppleTab: Locator;
+  readonly clickOnTheMemberButtonInAboutTab: Locator;
+  readonly clickOnAlreadyStarIcon: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -26,9 +33,29 @@ export class ManageSitesComponent extends BaseComponent {
     this.clickOnTheManageSiteButton = page.getByRole('link', { name: 'Manage site' });
     this.clickOnPageCategory = page.getByRole('tab', { name: 'Page categories' });
     this.checkTheError = page.locator('p', { hasText: 'Duplicate page category name' });
+    this.clickOnAboutTab = page.getByRole('tab', { name: 'About' });
+    this.clickOnTheMembersTab = page.getByRole('tab', { name: 'Members' });
+    this.clickOnStartIcon = page.getByRole('button', { name: 'Favorite this user' });
+    this.clickOnAlreadyStarIcon = page.getByRole('button', { name: 'Unfavorite this user' })
+    this.clickOnFavouriteTabs = page.getByRole('menuitem', { name: 'Favorites Favorites' });
+  
+    this.clickOnPeppleTab = page.getByRole('tab', { name: 'People' });
+    this.clickOnTheMemberButtonInAboutTab = page.locator(`[role="tab"][id="member"]`);
   }
 
   getAuthorNameByLabel(authorName: string): Locator {
     return this.page.locator(`[aria-label="${authorName}"]`).first();
+  }
+
+  getMembersNameByLabel(membersName: string): Locator {
+    return this.page.locator(`[aria-label="${membersName}"]`);
+  }
+
+  getMembersListInPeopleTab(membersName: string): Locator {
+    return this.page.getByRole('link', { name: membersName });
+  }
+
+  getFavoriteButtonForUser(membersName: string): Locator {
+    return this.page.getByRole('listitem').filter({ hasText: membersName }).getByRole('button', { name: 'Favorite this user' });
   }
 }

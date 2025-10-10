@@ -404,6 +404,16 @@ export class SiteManagementHelper {
     return await this.appManagerApiClient.getSiteManagementService().getListOfSites(defaultOptions);
   }
 
+  async getMemberList(options?: { size?: number; filter?: string; page?: number; siteId?: string; nextPageToken?: number; sortBy?: string }) {
+    const defaultOptions = {
+      size: 1000,
+      filter: options?.filter || 'active',
+      page: 0,
+      ...options,
+    };
+    return await this.appManagerApiClient.getSiteManagementService().getMemberList(defaultOptions);
+  }
+
   /**
    * Gets 2 sites that are not in the featured sites list
    * @param count - Number of non-featured sites to return (default: 2)
@@ -587,6 +597,9 @@ export class SiteManagementHelper {
     return { siteId: siteId, name: siteName };
   }
 
+
+
+
   async getSiteWithCoverImageAndAuthorNameAndStartDate(): Promise<{
     siteId: string;
     authorName?: string;
@@ -652,7 +665,6 @@ export class SiteManagementHelper {
    * @param site - Site object to check
    * @returns Boolean indicating if the site has a valid coverImage
    */
-
   /**
    * Ensures user is a member of the site with the specified role
    * First checks if user is already a member, if not adds them, then assigns the role
@@ -693,5 +705,53 @@ export class SiteManagementHelper {
    */
   async getSiteMembershipList(siteId: string, options?: { size?: number; type?: string }): Promise<any> {
     return await this.appManagerApiClient.getSiteManagementService().getSiteMembershipList(siteId, options);
+  }
+
+  /**
+   * Gets a site with its members
+   * @param siteId - The site ID
+   * @param options - Optional parameters for the membership list request
+   * @returns Promise containing the site details and its members
+   */
+  async getSiteWithMembers(siteId: string, options?: { size?: number; type?: string }): Promise<{
+    site: any;
+    members: any;
+  }> {
+    return await test.step(`Getting site ${siteId} with its members`, async () => {
+      // Get site details
+      const siteResponse = await this.appManagerApiClient
+        .getSiteManagementService()
+        .get(`${PAGE_ENDPOINTS.CONTENT_SITES}/${siteId}`);
+      const siteDetails = await siteResponse.json();
+
+      // Get site members
+      const membersResponse = await this.getSiteMembershipList(siteId, options);
+
+      return {
+        site: siteDetails.result,
+        members: membersResponse.result,
+      };
+    });
+  }
+
+  /**
+   * Gets member names from the site membership list
+   * @param siteId - The site ID
+   * @param options - Optional parameters for the membership list request
+   * @returns Promise containing the member names
+   */
+  async getMembersNameFromList(siteId: string, options?: { size?: number; type?: string }): Promise<{
+    membersName: string[];
+  }> {
+    return await test.step(`Getting member names from site ${siteId}`, async () => {
+      const membersResponse = await this.getSiteMembershipList(siteId, options);
+      const members = membersResponse.result?.listOfItems || [];
+      
+      const membersName = members.map((member: any) => member.name || member.displayName || member.email);
+      
+      return {
+        membersName,
+      };
+    });
   }
 }

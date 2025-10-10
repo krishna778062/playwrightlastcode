@@ -21,6 +21,7 @@ export const PAGE_ENDPOINTS = {
   LOGOUT: '/logout',
   CONTENT_SITES: '/v1/content/sites',
   CONTENT_SITES_CONTENT_LIST: '/v1/content/sites/content/list',
+  IDENTITY_FAVOURITES: '/v1/identity/favourites',
 
   // abac pages
   AUDIENCE_PAGE: '/audiences/org',
