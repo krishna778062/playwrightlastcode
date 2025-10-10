@@ -9,6 +9,9 @@ import { tagTest } from '@core/utils/testDecorator';
 import { IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
 import { integrationsFixture as test } from '@/src/modules/integrations/fixtures/integrationsFixture';
 import { CONNECTOR_IDS, REDIRECT_URLS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import { TEST_EMAIL } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import { CustomAppTilesPage } from '@/src/modules/integrations/ui/pages/customAppTilesPage';
+import { ExternalAppProvider, ExternalAppsPage } from '@/src/modules/integrations/ui/pages/externalAppsPage';
 
 test.describe(
   'outlook Calendar App Tiles Integration',
@@ -19,7 +22,7 @@ test.describe(
     let createdTileTitle: string | undefined = undefined;
 
     test.afterEach(async ({ appManagerFixture }) => {
-      const { tileManagementHelper, homeDashboard } = appManagerFixture;
+      const { homeDashboard, tileManagementHelper } = appManagerFixture;
       if (createdTileTitle) {
         await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
@@ -33,7 +36,7 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerFixture }) => {
-        const { tileManagementHelper, homeDashboard } = appManagerFixture;
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-14532',
           storyId: 'INT-13648',
@@ -193,6 +196,64 @@ test.describe(
         await siteDashboard.isTilePresent(createdTileTitle);
         await siteDashboard.verifyShowMoreBehavior(createdTileTitle);
         createdTileTitle = undefined;
+      }
+    );
+    test(
+      'verify add tile modal for outlook calendar apptile on home dashboard',
+      {
+        tag: [TestPriority.P3],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28358',
+          storyId: 'INT-13648',
+        });
+        const customAppTilesPage = new CustomAppTilesPage(homeDashboard.page);
+        const externalAppsPage = new ExternalAppsPage(homeDashboard.page);
+        await homeDashboard.openAddAppTileModal(ExternalAppProvider.OUTLOOK_CALENDAR);
+        await homeDashboard.verifyConnectionMessage(
+          'Users will need to connect their ' + ExternalAppProvider.OUTLOOK_CALENDAR + ' accounts',
+          { connectedEmail: TEST_EMAIL.OUTLOOK_CALENDAR }
+        );
+        await customAppTilesPage.verifyButtonIsDisabled(
+          customAppTilesPage.addToHomeButton,
+          'Add to home button should be disabled'
+        );
+        await homeDashboard.clickMySettings();
+        await externalAppsPage.verifyThePageIsLoaded();
+        await externalAppsPage.isIntegrationConnected(ExternalAppProvider.OUTLOOK_CALENDAR);
+      }
+    );
+
+    test(
+      'verify add tile modal for outlook calendar apptile on site dashboard',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28359',
+          storyId: 'INT-13648',
+        });
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+        const customAppTilesPage = new CustomAppTilesPage(siteDashboard.page);
+        const externalAppsPage = new ExternalAppsPage(siteDashboard.page);
+        await siteDashboard.openAddAppTileModal(ExternalAppProvider.OUTLOOK_CALENDAR);
+        await siteDashboard.verifyConnectionMessage(
+          'Users will need to connect their ' + ExternalAppProvider.OUTLOOK_CALENDAR + ' accounts',
+          { connectedEmail: TEST_EMAIL.OUTLOOK_CALENDAR }
+        );
+        await customAppTilesPage.verifyButtonIsDisabled(
+          customAppTilesPage.addToSiteDashboardButton,
+          'Add to site dashboard button should be disabled'
+        );
+        await siteDashboard.clickMySettings();
+        await externalAppsPage.verifyThePageIsLoaded();
+        await externalAppsPage.isIntegrationConnected(ExternalAppProvider.OUTLOOK_CALENDAR);
       }
     );
   }

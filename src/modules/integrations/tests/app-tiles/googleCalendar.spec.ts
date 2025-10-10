@@ -9,6 +9,9 @@ import { tagTest } from '@core/utils/testDecorator';
 import { IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
 import { integrationsFixture as test } from '@/src/modules/integrations/fixtures/integrationsFixture';
 import { CONNECTOR_IDS, REDIRECT_URLS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import { TEST_EMAIL } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import { CustomAppTilesPage } from '@/src/modules/integrations/ui/pages/customAppTilesPage';
+import { ExternalAppProvider, ExternalAppsPage } from '@/src/modules/integrations/ui/pages/externalAppsPage';
 
 test.describe(
   'google Calendar App Tiles Integration',
@@ -19,7 +22,7 @@ test.describe(
     let createdTileTitle: string | undefined = undefined;
 
     test.afterEach(async ({ appManagerFixture }) => {
-      const { tileManagementHelper, homeDashboard } = appManagerFixture;
+      const { homeDashboard, tileManagementHelper } = appManagerFixture;
       if (createdTileTitle) {
         await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
@@ -35,8 +38,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24130',
-          storyId: 'INT-23049',
+          zephyrTestId: 'INT-14149',
+          storyId: 'INT-13643',
         });
 
         createdTileTitle = `Google Calendar apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -64,8 +67,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24182',
-          storyId: 'INT-23049',
+          zephyrTestId: 'INT-27996',
+          storyId: 'INT-13643',
         });
 
         createdTileTitle = `Google calendar apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -100,8 +103,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24049',
-          storyId: 'INT-23629',
+          zephyrTestId: 'INT-14109',
+          storyId: 'INT-13642',
         });
         createdTileTitle = `Display upcoming events ${faker.string.alphanumeric({ length: 6 })}`;
 
@@ -124,8 +127,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24182',
-          storyId: 'INT-23049',
+          zephyrTestId: 'INT-14152',
+          storyId: 'INT-13642',
         });
 
         createdTileTitle = `Google calendar apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -154,8 +157,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24049',
-          storyId: 'INT-23629',
+          zephyrTestId: 'INT-14088',
+          storyId: 'INT-13642',
         });
         createdTileTitle = `Display upcoming events ${faker.string.alphanumeric({ length: 6 })}`;
         await tileManagementHelper.createIntegrationAppTile(
@@ -176,8 +179,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24182',
-          storyId: 'INT-23049',
+          zephyrTestId: 'INT-14087',
+          storyId: 'INT-13642',
         });
 
         createdTileTitle = `Google calendar apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -193,6 +196,65 @@ test.describe(
         await siteDashboard.isTilePresent(createdTileTitle);
         await siteDashboard.verifyShowMoreBehavior(createdTileTitle);
         createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify add tile modal for google calendar apptile on home dashboard',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28356',
+          storyId: 'INT-13643',
+        });
+        const customAppTilesPage = new CustomAppTilesPage(homeDashboard.page);
+        const externalAppsPage = new ExternalAppsPage(homeDashboard.page);
+        await homeDashboard.openAddAppTileModal(ExternalAppProvider.GOOGLE_CALENDAR);
+        await homeDashboard.verifyConnectionMessage(
+          'Users will need to connect their ' + ExternalAppProvider.GOOGLE_CALENDAR + ' accounts',
+          { connectedEmail: TEST_EMAIL.GOOGLE_CALENDAR }
+        );
+        await customAppTilesPage.verifyButtonIsDisabled(
+          customAppTilesPage.addToHomeButton,
+          'Add to home button should be disabled'
+        );
+        await homeDashboard.clickMySettings();
+        await externalAppsPage.verifyThePageIsLoaded();
+        await externalAppsPage.isIntegrationConnected(ExternalAppProvider.GOOGLE_CALENDAR);
+      }
+    );
+
+    test(
+      'verify add tile modal for google calendar apptile on site dashboard',
+      {
+        tag: [TestPriority.P3],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28357',
+          storyId: 'INT-13643',
+        });
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+        const customAppTilesPage = new CustomAppTilesPage(siteDashboard.page);
+        const externalAppsPage = new ExternalAppsPage(siteDashboard.page);
+        await siteDashboard.openAddAppTileModal(ExternalAppProvider.GOOGLE_CALENDAR);
+        await siteDashboard.verifyConnectionMessage(
+          'Users will need to connect their ' + ExternalAppProvider.GOOGLE_CALENDAR + ' accounts',
+          { connectedEmail: TEST_EMAIL.GOOGLE_CALENDAR }
+        );
+        await customAppTilesPage.verifyButtonIsDisabled(
+          customAppTilesPage.addToSiteDashboardButton,
+          'Add to site dashboard button should be disabled'
+        );
+        await siteDashboard.clickMySettings();
+        await externalAppsPage.verifyThePageIsLoaded();
+        await externalAppsPage.isIntegrationConnected(ExternalAppProvider.GOOGLE_CALENDAR);
       }
     );
   }
