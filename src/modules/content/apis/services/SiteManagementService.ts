@@ -315,21 +315,6 @@ export class SiteManagementService implements ISiteManagementOperations {
     });
   }
 
-  async addPersonInSite(siteId: string, userId: string): Promise<any> {
-    return await test.step(`Adding person ${userId} in site ${siteId}`, async () => {
-      const payload = {
-        userId: userId,
-        action: 'addPeople',
-        permission: 'member',
-      };
-      const response = await this.post(API_ENDPOINTS.site.addPersonInSite(siteId), {
-        data: payload,
-      });
-      console.log('Site membership response:', JSON.stringify(response, null, 2));
-      return await response.json();
-    });
-  }
-
   /**
    * Makes a user a site content manager
    * @param siteId - The ID of the site
@@ -348,9 +333,11 @@ export class SiteManagementService implements ISiteManagementOperations {
         action: action.toString(), // Convert enum to string
       };
 
-      // Include permission for ADD and SET_PERMISSION operations, not for REMOVE
-      if (action === SiteMembershipAction.ADD || action === SiteMembershipAction.SET_PERMISSION) {
-        payload.permission = permission.toString(); // Convert enum to string
+      // Note: API only accepts 'member' permission for ADD action, other permissions need to be set separately
+      if (action === SiteMembershipAction.ADD) {
+        payload.permission = 'member'; // Always use 'member' for ADD action
+      } else if (action === SiteMembershipAction.SET_PERMISSION) {
+        payload.permission = permission;
       }
 
       const response = await this.httpClient.post(API_ENDPOINTS.site.manageMembers(siteId), {

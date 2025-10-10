@@ -56,12 +56,9 @@ export const API_ENDPOINTS = {
     updateAccess: '/v1/content/sites/attributes?attribute=access',
     listOfSites: '/v1/content/sites/list',
     listOfCategories: '/v1/content/siteCategories/list?unrestrictedOnly=true',
-    listOfSiteCategories: '/v1/content/siteCategories/list',
     manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
     membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,
     unfeature: (siteId: string) => `/v1/content/sites/${siteId}/featured?action=unfeature`,
-    siteDetails: (siteId: string) => `/v1/content/sites/${siteId}`,
-    addPersonInSite: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
   },
 
   content: {

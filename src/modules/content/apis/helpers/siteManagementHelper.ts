@@ -31,7 +31,7 @@ export class SiteManagementHelper {
   private sites: Site[] = [];
   private siteMembers: SiteMember[] = [];
 
-  constructor(private appManagerApiClient: AppManagerApiClient | StandardUserApiClient) {}
+  constructor(private appManagerApiClient: AppManagerApiClient) {}
 
   /**
    * Creates a new public site with default settings.
@@ -74,7 +74,7 @@ export class SiteManagementHelper {
     // Wait for site to appear in search results (optional)
     if (shouldWaitForSearchIndex) {
       await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
-        apiClient: this.appManagerApiClient as AppManagerApiClient,
+        apiClient: this.appManagerApiClient,
         searchTerm: finalSiteName,
         objectType: 'site',
       });
@@ -136,10 +136,6 @@ export class SiteManagementHelper {
       overrides: { ...overrides, access: 'private' },
       waitForSearchIndex,
     });
-  }
-
-  async addPersonInSite(siteId: string, userId: string): Promise<any> {
-    return await this.appManagerApiClient.getSiteManagementService().addPersonInSite(siteId, userId);
   }
 
   /**
@@ -627,10 +623,10 @@ export class SiteManagementHelper {
       isBroadcast?: boolean;
       waitForSearchIndex?: boolean;
     }
-  ): Promise<{ siteId: string; name: string }> {
+  ): Promise<{ siteId: string; name: string; authorName?: string }> {
     const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
     let siteDetails = siteListResponse.result.listOfItems.find(site => site.isActive === true);
-    let siteId: string | undefined, siteName: string | undefined;
+    let siteId: string | undefined, siteName: string | undefined, authorName: string | undefined;
 
     if (siteDetails) {
       // Check if the existing site matches the required options
@@ -662,62 +658,31 @@ export class SiteManagementHelper {
       throw new Error(`No site found or created with access type ${accessType}`);
     }
 
-    return { siteId, name: siteName };
+    return { siteId, name: siteName, authorName };
   }
 
-  async getSiteWithCoverImageAndAuthorNameAndStartDate(): Promise<{
+  async getSiteAuthorNameAndEventStartDate(): Promise<{
     siteId: string;
     authorName?: string;
     startsAt?: string;
     eventName?: string;
+    siteName?: string;
   }> {
     const siteListResponse = await this.getListOfSites();
 
     for (const site of siteListResponse.result.listOfItems) {
       // Get individual site details to check for coverImage and hasEvents
-      const response = await this.appManagerApiClient
-        .getSiteManagementService()
-        .get(`${PAGE_ENDPOINTS.CONTENT_SITES}/${site.siteId}`);
-      const siteDetails = await response.json();
-      if (
-        siteDetails.result.coverImage &&
-        siteDetails.result.hasEvents === true &&
-        siteDetails.result.hasAlbums === true
-      ) {
-        // Get content details for author name and event info
-        const contentResponse = await this.appManagerApiClient
-          .getSiteManagementService()
-          .post(PAGE_ENDPOINTS.CONTENT_SITES_CONTENT_LIST, {
-            data: {
-              status: 'published',
-              size: 18,
-              filter: 'latest',
-              siteId: site.siteId,
-            },
-          });
-        const contentData = await contentResponse.json();
-        const contentItems = contentData.result?.listOfItems || [];
-
-        let authorName: string | undefined;
-        let startsAt: string | undefined;
-        let eventName: string | undefined;
-
-        // Extract author and event information
-        for (const item of contentItems) {
-          if (!authorName && item.authoredBy?.name) {
-            authorName = item.authoredBy.name;
-          }
-          if (!startsAt && item.startsAt) {
-            startsAt = item.startsAt;
-            eventName = item.name || item.title;
-          }
-        }
-
+      const response = await this.appManagerApiClient.getContentManagementService().getContentList();
+      const content = await response.result.listOfItems.find(site => site.authoredBy?.name !== undefined);
+      const siteName = await response.result.listOfItems.find(site => site.site?.name !== undefined);
+      const startsAt = await response.result.listOfItems.find(site => site.startsAt !== undefined);
+      if (content) {
         return {
           siteId: site.siteId,
-          authorName,
-          startsAt,
-          eventName,
+          authorName: content.authoredBy?.name,
+          startsAt: startsAt?.startsAt,
+          eventName: content.title,
+          siteName: siteName?.site?.name,
         };
       }
     }
@@ -746,20 +711,45 @@ export class SiteManagementHelper {
     const membershipList = await this.getSiteMembershipList(siteId);
     const userMembership = membershipList.result?.listOfItems?.find((member: any) => member.peopleId === userId);
     const isUserMember = !!userMembership;
-    const isContentManager = userMembership?.permission === 'contentManager';
+    const hasCorrectRole = userMembership?.permission === role;
 
-    // If user is not a member, add them as a member first
+    // If user is not a member, add them as member first, then set the desired role
     if (!isUserMember) {
       console.log(`User ${userId} is not a member of site ${siteId}, adding as member first`);
       await this.makeUserSiteMembership(siteId, userId, SitePermission.MEMBER, SiteMembershipAction.ADD);
-      await this.makeUserSiteMembership(siteId, userId, role, SiteMembershipAction.SET_PERMISSION);
-    } else if (!isContentManager) {
-      console.log(`User ${userId} is a member but not a content manager, setting role to ${role}`);
-      await this.makeUserSiteMembership(siteId, userId, role, SiteMembershipAction.SET_PERMISSION);
+
+      // If the desired role is not member, set it separately
+      if (role !== SitePermission.MEMBER) {
+        console.log(`Setting user ${userId} role to ${role}`);
+        return await this.makeUserSiteMembership(siteId, userId, role, SiteMembershipAction.SET_PERMISSION);
+      }
+      return {
+        status: 'success',
+        message: 'User added successfully',
+        result: { userId, siteId, permission: role, action: SiteMembershipAction.ADD },
+      };
+    } else if (!hasCorrectRole) {
+      console.log(`User ${userId} is a member but has wrong role, updating to ${role}`);
+      // Try SET_PERMISSION first, if it fails, fall back to remove and re-add
+      try {
+        return await this.makeUserSiteMembership(siteId, userId, role, SiteMembershipAction.SET_PERMISSION);
+      } catch (error) {
+        console.log(`SET_PERMISSION failed, falling back to remove and re-add approach`);
+        await this.makeUserSiteMembership(siteId, userId, SitePermission.MEMBER, SiteMembershipAction.REMOVE);
+        await this.makeUserSiteMembership(siteId, userId, SitePermission.MEMBER, SiteMembershipAction.ADD);
+        if (role !== SitePermission.MEMBER) {
+          return await this.makeUserSiteMembership(siteId, userId, role, SiteMembershipAction.SET_PERMISSION);
+        }
+        return {
+          status: 'success',
+          message: 'User added successfully',
+          result: { userId, siteId, permission: role, action: SiteMembershipAction.ADD },
+        };
+      }
     } else {
-      console.log(`User ${userId} is already a content manager of site ${siteId}`);
+      console.log(`User ${userId} already has the correct role ${role} in site ${siteId}`);
+      return userMembership;
     }
-    return userMembership;
   }
 
   /**
@@ -801,8 +791,7 @@ export class SiteManagementHelper {
           site.name !== 'All Employees' &&
           site.access === access.charAt(0).toUpperCase() + access.slice(1).toLowerCase() &&
           site.isActive === true &&
-          site.isInMandatorySubscription === false &&
-          site.isOwner === false
+          site.isInMandatorySubscription === false
       );
 
       console.log(`Found site where user is member: ${siteDetails?.name} (${siteDetails?.siteId})`);

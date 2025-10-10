@@ -19,4 +19,16 @@ export const MANAGE_SITE_TEST_DATA = {
     description: 'Test page content for global search verification and validation',
     accessType: SITE_TYPES.PUBLIC,
   },
+  PAGE_NAME: {
+    NAME: `Test Page ${faker.person.firstName()}`,
+    generateUniqueName: () => `Test Page ${faker.person.firstName()}_${Date.now()}`,
+  },
+  ALBUM_NAME: {
+    NAME: `Test Album ${faker.person.firstName()}`,
+    generateUniqueName: () => `Test Album ${faker.person.firstName()}_${Date.now()}`,
+  },
+  EVENT_NAME: {
+    NAME: `Test Event ${faker.person.firstName()}`,
+    generateUniqueName: () => `Test Event ${faker.person.firstName()}_${Date.now()}`,
+  },
 };

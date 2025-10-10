@@ -1,13 +1,12 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
+import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { ApplicationScreenPage } from '@/src/modules/content/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/pages/manageSitePage';
-import { SiteCategoriesPage } from '@/src/modules/content/pages/siteCategoriesPage';
 import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
@@ -20,46 +19,14 @@ test.describe(
   () => {
     let manageSitePage: ManageSitePage;
     let siteManagementHelper: SiteManagementHelper;
-    let manageFeaturesPage: ApplicationScreenPage;
-    let siteCategoriesPage: SiteCategoriesPage;
     let siteDashboardPage: SiteDashboardPage;
-    test.beforeEach(
-      async ({ standardUserHomePage, standardUserApiClient, appManagerApiClient, appManagerHomePage }) => {
-        await appManagerHomePage.verifyThePageIsLoaded();
-        siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
-        const siteNamePublic = MANAGE_SITE_TEST_DATA.SITE_NAME.generateUniqueName();
-        const siteNamePrivate = MANAGE_SITE_TEST_DATA.SITE_NAME.generateUniqueName();
-        const siteNameUnlisted = MANAGE_SITE_TEST_DATA.SITE_NAME.generateUniqueName();
-        const categoryID = await siteManagementHelper.getRandomCategoryId();
-        const site1 = await siteManagementHelper.createSiteWithMember(
-          process.env.END_USER_USERNAME!,
-          siteNamePublic,
-          categoryID,
-          SITE_TYPES.PUBLIC
-        );
-        await siteManagementHelper.addPersonInSite(site1.siteId, process.env.END_USER_USERID!);
-        const site2 = await siteManagementHelper.createSiteWithMember(
-          process.env.END_USER_USERNAME!,
-          siteNamePrivate,
-          categoryID,
-          SITE_TYPES.PRIVATE
-        );
-        await siteManagementHelper.addPersonInSite(site2.siteId, process.env.END_USER_USERID!);
-        const site3 = await siteManagementHelper.createSiteWithMember(
-          process.env.END_USER_USERNAME!,
-          siteNameUnlisted,
-          categoryID,
-          SITE_TYPES.UNLISTED
-        );
-        await siteManagementHelper.addPersonInSite(site3.siteId, process.env.END_USER_USERID!);
-        siteManagementHelper = new SiteManagementHelper(standardUserApiClient);
-        const siteInfo = await siteManagementHelper.getSiteWhichUserHasAlreadyMember(SITE_TYPES.PUBLIC);
-        manageSitePage = new ManageSitePage(standardUserHomePage.page, siteInfo.siteId);
-        manageFeaturesPage = new ApplicationScreenPage(standardUserHomePage.page);
-        siteCategoriesPage = new SiteCategoriesPage(standardUserHomePage.page);
-        siteDashboardPage = new SiteDashboardPage(standardUserHomePage.page, siteInfo.siteId);
-      }
-    );
+    test.beforeEach(async ({ standardUserHomePage, appManagerApiClient, appManagerHomePage }) => {
+      await appManagerHomePage.verifyThePageIsLoaded();
+      siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
+      const siteInfo = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+      manageSitePage = new ManageSitePage(standardUserHomePage.page, siteInfo.siteId);
+      siteDashboardPage = new SiteDashboardPage(standardUserHomePage.page, siteInfo.siteId);
+    });
 
     test.afterEach(async ({ page }) => {
       await page.close();
@@ -77,10 +44,85 @@ test.describe(
           storyId: 'CONT-29063',
         });
 
-        const siteInfo = await siteManagementHelper.getSiteWhichUserHasAlreadyMember(SITE_TYPES.PUBLIC);
-        await siteDashboardPage.assertions.verifySiteDashboardLoadedWithSiteID(siteInfo.siteId);
+        const siteNamePublic = MANAGE_SITE_TEST_DATA.SITE_NAME.generateUniqueName();
+        const categoryID = await siteManagementHelper.getRandomCategoryId();
+        const site1 = await siteManagementHelper.createSiteWithMember(
+          process.env.END_USER_USERNAME!,
+          siteNamePublic,
+          categoryID,
+          SITE_TYPES.PUBLIC
+        );
+        await siteManagementHelper.makeUserSiteMembership(
+          site1.siteId,
+          process.env.END_USER_USERID!,
+          SitePermission.MEMBER,
+          SiteMembershipAction.ADD
+        );
+        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(site1.siteId);
         await manageSitePage.actions.clickOntheMemberButton();
         await manageSitePage.assertions.clickOnLeaveButton();
+      }
+    );
+
+    test(
+      'To verify the UI of Manage site content - End User',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-23740'],
+      },
+      async ({ contentManagementHelper, siteManagementHelper, appManagerApiClient }) => {
+        tagTest(test.info(), {
+          description: 'To verify the UI of Manage site content - End User',
+          customTags: [ContentFeatureTags.MANAGE_SITE],
+          zephyrTestId: 'CONT-23740',
+          storyId: 'CONT-23740',
+        });
+
+        const siteInfo = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(siteInfo.siteId);
+        const appManagerSiteHelper = new SiteManagementHelper(appManagerApiClient);
+        await appManagerSiteHelper.updateUserSiteMembershipWithRole({
+          siteId: siteInfo.siteId,
+          userId: process.env.END_USER_USERID!,
+          role: SitePermission.CONTENT_MANAGER,
+        });
+        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(siteInfo.siteId);
+        await contentManagementHelper.createPage({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+          options: {
+            pageName: MANAGE_SITE_TEST_DATA.PAGE_NAME.generateUniqueName(),
+            contentDescription: 'Test Description',
+          },
+        });
+        await contentManagementHelper.createAlbum({
+          siteId: siteInfo.siteId,
+          imageName: 'beach.jpg',
+          options: {
+            albumName: MANAGE_SITE_TEST_DATA.ALBUM_NAME.generateUniqueName(),
+            contentDescription: 'Test Description',
+          },
+        });
+        await contentManagementHelper.createEvent({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'event' },
+          options: {
+            eventName: MANAGE_SITE_TEST_DATA.EVENT_NAME.generateUniqueName(),
+            contentDescription: 'Test Description',
+          },
+        });
+        await manageSitePage.actions.clickOnTheManageSiteButton();
+        await manageSitePage.assertions.verifyEventsTabImageIsDisplayed();
+        await manageSitePage.assertions.verifyAlbumTabImageIsDisplayed();
+        await manageSitePage.assertions.verifyPageTabImageIsDisplayed();
+        const siteAuthorNameAndEventStartDate = await siteManagementHelper.getSiteAuthorNameAndEventStartDate();
+        await manageSitePage.assertions.checkAuthorNameIsDisplayed(siteAuthorNameAndEventStartDate.authorName || '');
+        await manageSitePage.assertions.verifyEventsTabMatchesApiDate(siteAuthorNameAndEventStartDate.startsAt || '');
+
+        await appManagerSiteHelper.updateUserSiteMembershipWithRole({
+          siteId: siteInfo.siteId,
+          userId: process.env.END_USER_USERID!,
+          role: SitePermission.MEMBER,
+        });
       }
     );
 
@@ -97,8 +139,21 @@ test.describe(
           storyId: 'CONT-29063',
         });
 
-        const siteInfo = await siteManagementHelper.getSiteWhichUserHasAlreadyMember(SITE_TYPES.PRIVATE);
-        await siteDashboardPage.assertions.verifySiteDashboardLoadedWithSiteID(siteInfo.siteId);
+        const siteNamePrivate = MANAGE_SITE_TEST_DATA.SITE_NAME.generateUniqueName();
+        const categoryID = await siteManagementHelper.getRandomCategoryId();
+        const site1 = await siteManagementHelper.createSiteWithMember(
+          process.env.END_USER_USERNAME!,
+          siteNamePrivate,
+          categoryID,
+          SITE_TYPES.PRIVATE
+        );
+        await siteManagementHelper.makeUserSiteMembership(
+          site1.siteId,
+          process.env.END_USER_USERID!,
+          SitePermission.MEMBER,
+          SiteMembershipAction.ADD
+        );
+        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(site1.siteId);
         await manageSitePage.actions.clickOntheMemberButton();
         await manageSitePage.assertions.clickOnLeaveButton();
       }
@@ -117,8 +172,21 @@ test.describe(
           storyId: 'CONT-29063',
         });
 
-        const siteInfo = await siteManagementHelper.getSiteWhichUserHasAlreadyMember(SITE_TYPES.UNLISTED);
-        await siteDashboardPage.assertions.verifySiteDashboardLoadedWithSiteID(siteInfo.siteId);
+        const siteNameUnlisted = MANAGE_SITE_TEST_DATA.SITE_NAME.generateUniqueName();
+        const categoryID = await siteManagementHelper.getRandomCategoryId();
+        const site1 = await siteManagementHelper.createSiteWithMember(
+          process.env.END_USER_USERNAME!,
+          siteNameUnlisted,
+          categoryID,
+          SITE_TYPES.UNLISTED
+        );
+        await siteManagementHelper.makeUserSiteMembership(
+          site1.siteId,
+          process.env.END_USER_USERID!,
+          SitePermission.MEMBER,
+          SiteMembershipAction.ADD
+        );
+        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(site1.siteId);
         await manageSitePage.actions.clickOntheMemberButton();
         await manageSitePage.assertions.clickOnLeaveButton();
       }

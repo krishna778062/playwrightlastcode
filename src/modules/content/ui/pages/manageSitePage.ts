@@ -19,6 +19,7 @@ export interface IManageSiteActions {
   clickOnThePageCategoryButton: () => Promise<void>;
   searchEventInSearchBar: (eventName: string) => Promise<void>;
   clickOntheMemberButton: () => Promise<void>;
+  clickOnInsideContentButton: () => Promise<void>;
 }
 
 export interface IManageSiteAssertions {
@@ -33,6 +34,9 @@ export interface IManageSiteAssertions {
   checkMarkedAsFavoriteInPeopleList: (membersName: string) => Promise<void>;
   checkMarkedAsFavoriteInPeopleListShouldNotBeVisible: (membersName: string) => Promise<void>;
   clickOnLeaveButton: () => Promise<void>;
+  verifyEventsTabImageIsDisplayed: () => Promise<void>;
+  verifyAlbumTabImageIsDisplayed: () => Promise<void>;
+  verifyPageTabImageIsDisplayed: () => Promise<void>;
   // Add assertions as needed
 }
 
@@ -98,21 +102,31 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
         assertionMessage: 'Events tab should be visible',
       });
 
-      const eventsTabText = await this.manageSitesComponent.eventsTab.innerText();
+      const eventsTabText = await this.manageSitesComponent.eventsTab.allTextContents();
+      console.log('Events tab text:', eventsTabText);
+      console.log('Starts at date:', startsAt);
       const { month, day } = this.parseStartsAtDate(startsAt);
 
-      if (!this.doesTextMatchDate(eventsTabText, month, day)) {
+      if (!this.doesTextMatchDate(eventsTabText[0], month, day)) {
         throw new Error(
           `Events tab text does not match API date.\n` +
             `API startsAt: ${startsAt} (${month} ${day})\n` +
-            `Events tab text: "${eventsTabText}"`
+            `Events tab text: "${eventsTabText[0]}"`
         );
       }
     });
   }
 
   private parseStartsAtDate(startsAt: string): { month: string; day: string } {
+    if (!startsAt || startsAt.trim() === '') {
+      throw new Error(`Invalid startsAt date: "${startsAt}"`);
+    }
+
     const date = new Date(startsAt);
+    if (isNaN(date.getTime())) {
+      throw new Error(`Invalid date format: "${startsAt}"`);
+    }
+
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const month = monthNames[date.getMonth()];
     const day = date.getDate().toString();
@@ -123,6 +137,11 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     const cleanText = text.trim().replace(/[\s\u200C\u200D\uFEFF\u00A0\u2000-\u200F\u2028-\u202F\u205F\u3000]+/g, ' ');
     const lowerText = cleanText.toLowerCase();
     const lowerMonth = expectedMonth.toLowerCase();
+
+    console.log(`🔍 Matching: "${text}" | Expected: ${expectedMonth}${expectedDay}`);
+    console.log(`📝 Clean text: "${cleanText}" -> "${lowerText}"`);
+    console.log(`✅ Month "${lowerMonth}": ${lowerText.includes(lowerMonth)}`);
+    console.log(`✅ Day "${expectedDay}": ${cleanText.includes(expectedDay)}`);
 
     return lowerText.includes(lowerMonth) && cleanText.includes(expectedDay);
   }
@@ -165,9 +184,9 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     });
   }
 
-  async checkAuthorNameIsDisplayed(authorName: string): Promise<void> {
+  async checkAuthorNameIsDisplayed(authorName: string | undefined): Promise<void> {
     await test.step('Check author name is displayed', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.manageSitesComponent.getAuthorNameByLabel(authorName), {
+      await this.verifier.verifyTheElementIsVisible(this.manageSitesComponent.getAuthorNameByLabel(authorName || ''), {
         assertionMessage: `Author name '${authorName}' should be visible`,
       });
     });
@@ -314,6 +333,36 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   async clickOnLeaveButton(): Promise<void> {
     await test.step('Click on the leave button', async () => {
       await this.clickOnElement(this.manageSitesComponent.clickOnLeaveButton);
+    });
+  }
+
+  async clickOnInsideContentButton(): Promise<void> {
+    await test.step('Click on the manage content button', async () => {
+      await this.clickOnElement(this.manageSitesComponent.clickOnInsideContentButton);
+    });
+  }
+
+  async verifyEventsTabImageIsDisplayed(): Promise<void> {
+    await test.step('Verify events tab image is displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.manageSitesComponent.eventsTabImage, {
+        assertionMessage: 'Events tab image should be visible',
+      });
+    });
+  }
+
+  async verifyAlbumTabImageIsDisplayed(): Promise<void> {
+    await test.step('Verify album tab image is displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.manageSitesComponent.albumTabImage, {
+        assertionMessage: 'Album tab image should be visible',
+      });
+    });
+  }
+
+  async verifyPageTabImageIsDisplayed(): Promise<void> {
+    await test.step('Verify page tab image is displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.manageSitesComponent.pageTabImage, {
+        assertionMessage: 'Page tab image should be visible',
+      });
     });
   }
 }
