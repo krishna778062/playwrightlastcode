@@ -3,7 +3,7 @@ import {
   TimeOffCategoryConfig,
   TimeOffRequestTileComponent,
 } from '@integrations-components/timeOffRequestTileComponent';
-import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
+import { IntegrationsSuiteTags, TEST_TAGS } from '@integrations-constants/testTags';
 import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
 
 import { TestPriority } from '@core/constants/testPriority';
@@ -381,6 +381,30 @@ test.describe(
         const sickConfig: TimeOffCategoryConfig = { unit: 'hours', amountPerDay: 8 };
         const expectedTotalHours = workingDays * 8; // 3 working days * 8 hours = 24 hours
         await leaveForm.verifyAmountValues(workingDays, expectedTotalHours, sickConfig, false);
+      }
+    );
+    test(
+      'verify show more behaviour for display bambooHR tasks apptile on home dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-21607',
+          storyId: 'INT-22854',
+        });
+        createdTileTitle = `Display Time Off Balance ${faker.string.alphanumeric({ length: 6 })}`;
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.BAMBOOHR_DISPLAY_TIMEOFF_BALANCE,
+          CONNECTOR_IDS.BAMBOOHR
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // Verify first 4 time off requests and then click on show more button and verify all time off requests are displayed
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
       }
     );
   }
