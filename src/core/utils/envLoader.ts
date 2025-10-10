@@ -15,6 +15,10 @@ export function loadEnvVariablesForGivenModule(envName: Environments, moduleName
     PROJECT_ROOT,
     `src/modules/${moduleName}/env/googleCalendarSecrets.env`
   );
+  const outlookCalendarSecretsPath = path.resolve(
+    PROJECT_ROOT,
+    `src/modules/${moduleName}/env/outlookCalendarSecrets.env`
+  );
   const githubSecretsPath = path.resolve(PROJECT_ROOT, 'githubSecrets.json');
 
   // Load main environment file first
@@ -36,6 +40,12 @@ export function loadEnvVariablesForGivenModule(envName: Environments, moduleName
         'END_USER_GOOGLE_CALENDAR_CLIENT_ID',
         'END_USER_GOOGLE_CALENDAR_CLIENT_SECRET',
         'END_USER_GOOGLE_CALENDAR_REFRESH_TOKEN',
+        'OUTLOOK_CLIENT_ID',
+        'OUTLOOK_CLIENT_SECRET',
+        'OUTLOOK_REFRESH_TOKEN',
+        'END_USER_OUTLOOK_CLIENT_ID',
+        'END_USER_OUTLOOK_CLIENT_SECRET',
+        'END_USER_OUTLOOK_REFRESH_TOKEN',
       ];
 
       for (const key of requiredKeys) {
@@ -50,5 +60,10 @@ export function loadEnvVariablesForGivenModule(envName: Environments, moduleName
   // Load Google Calendar secrets file if it exists (for local development)
   else if (FileUtil.fileExists(googleCalendarSecretsPath)) {
     dotenv.config({ path: googleCalendarSecretsPath, override: true });
+  }
+
+  // Load Outlook Calendar secrets file if it exists (for local development)
+  if (FileUtil.fileExists(outlookCalendarSecretsPath)) {
+    dotenv.config({ path: outlookCalendarSecretsPath, override: true });
   }
 }
