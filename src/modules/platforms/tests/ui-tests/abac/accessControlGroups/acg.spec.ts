@@ -20,7 +20,7 @@ import { User } from '@/src/core/types/user.type';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 
 test.describe(
-  'ACG Testcases',
+  'aCG Testcases',
   {
     tag: [TestSuite.ABAC],
   },
@@ -173,7 +173,7 @@ test.describe(
      * and we will be using that name to delete the acg
      */
     test(
-      'Verify that single ACG can be created and deleted without any issue',
+      'verify that single ACG can be created and deleted without any issue',
       {
         tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
@@ -229,7 +229,7 @@ test.describe(
     );
 
     test(
-      'Verify that status of the ACG should be displayed as Active or Inactive immediately after creation',
+      'verify that status of the ACG should be displayed as Active or Inactive immediately after creation',
       {
         tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
@@ -284,7 +284,7 @@ test.describe(
     );
 
     test(
-      'Verify that user manager should have access for ACG creation',
+      'verify that user manager should have access for ACG creation',
       {
         tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
@@ -307,7 +307,7 @@ test.describe(
     );
 
     test(
-      `Verify that Roles option should not be displayed under Manage section in menu option`,
+      `verify that Roles option should not be displayed under Manage section in menu option`,
       {
         tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
@@ -322,7 +322,7 @@ test.describe(
     );
 
     test(
-      `Verify that redirecting to "manage/roles" url should display page not found screen`,
+      `verify that redirecting to "manage/roles" url should display page not found screen`,
       {
         tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
@@ -337,7 +337,7 @@ test.describe(
     );
 
     test(
-      'Verify that the feature list displayed under Feature owners tab should be unique',
+      'verify that the feature list displayed under Feature owners tab should be unique',
       {
         tag: [TestPriority.P0, `@ABAC`],
       },
@@ -364,7 +364,7 @@ test.describe(
     );
 
     test(
-      'Verify search functionality with invalid string shows no results found message',
+      'verify search functionality with invalid string shows no results found message',
       {
         tag: [TestPriority.P0, `@ABAC`],
       },
@@ -383,7 +383,7 @@ test.describe(
     );
 
     test(
-      'Verify that clicking on owners count should trigger a popup displaying user info',
+      'verify that clicking on owners count should trigger a popup displaying user info',
       {
         tag: [TestPriority.P1, `@ABAC`],
       },
@@ -403,7 +403,7 @@ test.describe(
     );
 
     test(
-      'Verify that a warning popup is displayed before edit Access control group popup',
+      'verify that a warning popup is displayed before edit Access control group popup',
       {
         tag: [TestPriority.P1, `@ABAC`],
       },
@@ -425,7 +425,7 @@ test.describe(
     );
 
     test(
-      'Verify that user should be able to change managers from managers screen while editing them during ACG creation flow',
+      'verify that user should be able to change managers from managers screen while editing them during ACG creation flow',
       {
         tag: [TestPriority.P1, `@ABAC`],
       },
@@ -466,7 +466,7 @@ test.describe(
     );
 
     test(
-      'Verify that duplicate acg error is displayed on attempting to create ACG with same features and target audiences',
+      'verify that duplicate acg error is displayed on attempting to create ACG with same features and target audiences',
       {
         tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
@@ -500,7 +500,7 @@ test.describe(
     );
 
     test(
-      'Verify that duplicate acg error is displayed on editing ACG to match anothers features and target audiences',
+      'verify that duplicate acg error is displayed on editing ACG to match anothers features and target audiences',
       {
         tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
@@ -543,7 +543,7 @@ test.describe(
     );
 
     test(
-      `Verify that Name column is displayed and is sortable at Access control groups page`,
+      `verify that Name column is displayed and is sortable at Access control groups page`,
       {
         tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
@@ -583,7 +583,7 @@ test.describe(
     );
 
     test(
-      `Verify the sorting functionality of Name column in access control groups page`,
+      `verify the sorting functionality of Name column in access control groups page`,
       {
         tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
@@ -603,7 +603,7 @@ test.describe(
     );
 
     test(
-      'Verify that the user should be redirected to the feature selection screen on clicking edit icon for the same at summary screen during ACG creation',
+      'verify that the user should be redirected to the feature selection screen on clicking edit icon for the same at summary screen during ACG creation',
       {
         tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },

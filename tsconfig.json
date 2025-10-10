@@ -5,6 +5,8 @@
       "@/*": ["./*"],
       "@core/*": ["./src/core/*"],
       "@core/ui/*": ["./src/core/ui/*"],
+      "@core/components/*": ["./src/core/ui/components/*"],
+      "@core/pages/*": ["./src/core/ui/pages/*"],
       "@core/ui/components/*": ["./src/core/ui/components/*"],
       "@core/components/*": ["./src/core/ui/components/*"],
       "@core/pages/*": ["./src/core/ui/pages/*"],

@@ -9,6 +9,7 @@ import { EditWarningPopupComponent } from '@platforms/ui/components/editWarningP
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { changeDateFormatToYYYYMMDD } from '@/src/core/utils/dateUtil';
+import { log } from '@/src/core/utils/logger';
 import { POPUP_BUTTONS } from '@/src/modules/platforms/constants/popupButtons';
 import { AccessControlGroupModalComponent } from '@/src/modules/platforms/ui/components/accessControlGroupModal';
 import { ConfirmEditAccessControlGroupModalComponent } from '@/src/modules/platforms/ui/components/confirmEditAccessControlGroupModal';
@@ -498,7 +499,8 @@ export class AccessControlGroupsPage extends BasePage {
     try {
       sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
       expect(sortingOrder).not.toBeNull();
-    } catch (_e) {
+    } catch (error) {
+      log.error('Error getting sorting order', error);
       await test.step(`Waiting for sorting order to be visible`, async () => {
         await this.page.waitForTimeout(1000);
       });
@@ -513,7 +515,8 @@ export class AccessControlGroupsPage extends BasePage {
     try {
       sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
       expect(sortingOrder).not.toBeNull();
-    } catch (_e) {
+    } catch (error) {
+      log.error('Error getting sorting order', error);
       await test.step(`Waiting for sorting order to be visible`, async () => {
         await this.page.waitForTimeout(1000);
       });

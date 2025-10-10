@@ -15,7 +15,7 @@ import { FEATURE_OWNERS_MENU_OPTIONS } from '@/src/modules/platforms/constants/f
 import { FeatureOwnersPage } from '@/src/modules/platforms/ui/pages/abacPage/featureOwnersPage/featureOwnersPage';
 
 test.describe(
-  'Feature Owners Testcases',
+  'feature Owners Testcases',
   {
     tag: [TestSuite.ABAC],
   },

@@ -7,7 +7,7 @@ import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
 
-test.describe('Select format then send message', { tag: [TestPriority.P2] }, () => {
+test.describe('select format then send message', { tag: [TestPriority.P2] }, () => {
   for (const data of formattedMessageTestData) {
     test(`Scenario: ${data.testName}`, async ({ appManagerFixture }) => {
       tagTest(test.info(), {

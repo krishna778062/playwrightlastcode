@@ -25,19 +25,19 @@ import {
 import { UserManagementService } from '@/src/modules/platforms/apis/services/UserManagementService';
 
 test.describe(
-  'Event Sync Integration Tests',
+  'event Sync Integration Tests',
   {
     tag: [IntegrationsSuiteTags.INTEGRATIONS, IntegrationsFeatureTags.EVENT_SYNC, IntegrationsSuiteTags.PHOENIX],
   },
   () => {
     test(
-      'Test 2-Way RSVP Sync: Simpplr ↔ Google Calendar',
+      '2-Way RSVP Sync: Simpplr ↔ Google Calendar',
       {
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -104,13 +104,13 @@ test.describe(
     );
 
     test(
-      'Delete Event and Verify Removal from Google Calendar',
+      'delete Event and Verify Removal from Google Calendar',
       {
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -181,13 +181,13 @@ test.describe(
     );
 
     test(
-      'Unpublish Event, Verify Removal from Google Calendar, then Republish and Verify Sync',
+      'unpublish Event, Verify Removal from Google Calendar, then Republish and Verify Sync',
       {
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -260,13 +260,13 @@ test.describe(
     );
 
     test(
-      'Edit Event and Verify Updates Sync to Google Calendar',
+      'edit Event and Verify Updates Sync to Google Calendar',
       {
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -344,13 +344,13 @@ test.describe(
     );
 
     test(
-      'Site Deactivation/Reactivation and Google Calendar Event Sync Verification',
+      'site Deactivation/Reactivation and Google Calendar Event Sync Verification',
       {
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -414,13 +414,13 @@ test.describe(
     );
 
     test(
-      'Toggle Event Sync Off/On and Verify Google Calendar Sync Behavior',
+      'toggle Event Sync Off/On and Verify Google Calendar Sync Behavior',
       {
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -494,13 +494,13 @@ test.describe(
     );
 
     test(
-      'Add End User as Site Member after event creation and Verify Event Sync to End User Calendar',
+      'add End User as Site Member after event creation and Verify Event Sync to End User Calendar',
       {
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -571,13 +571,13 @@ test.describe(
     );
 
     test(
-      'Add End User as Site Member before event creation, Create Event, Verify Sync, Remove Member, Verify Event Removal',
+      'add End User as Site Member before event creation, Create Event, Verify Sync, Remove Member, Verify Event Removal',
       {
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -671,13 +671,13 @@ test.describe(
     );
 
     test(
-      'Non-Member RSVP to Public Site Event and Verify Google Calendar Sync',
+      'non-Member RSVP to Public Site Event and Verify Google Calendar Sync',
       {
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName, browser }) => {
@@ -769,13 +769,13 @@ test.describe(
     );
 
     test(
-      'Change Site from Public to Private and Verify Event Attendees Retention for Members',
+      'change Site from Public to Private and Verify Event Attendees Retention for Members',
       {
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {

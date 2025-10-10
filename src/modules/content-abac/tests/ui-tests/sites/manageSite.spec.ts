@@ -9,7 +9,7 @@ import { ManageFeaturesPage } from '@/src/modules/content-abac/ui/pages/manageFe
 import { ManageSitePage } from '@/src/modules/content-abac/ui/pages/manageSitePage';
 import { SiteDetailsPage } from '@/src/modules/content-abac/ui/pages/siteDetailsPage';
 
-test.describe('Manage Site Test Suite (ABAC)', { tag: [ContentSuiteTags.MANAGE_SITE] }, () => {
+test.describe('manage Site Test Suite (ABAC)', { tag: [ContentSuiteTags.MANAGE_SITE] }, () => {
   let homePage: NewHomePage;
   let manageFeaturePage: ManageFeaturesPage;
   let manageSitePage: ManageSitePage;
@@ -31,7 +31,7 @@ test.describe('Manage Site Test Suite (ABAC)', { tag: [ContentSuiteTags.MANAGE_S
   test.afterEach('Site Clean up', async ({ siteManagementService }) => {});
 
   test(
-    'Verify Warning Message Appears After Changing Target Audience',
+    'verify Warning Message Appears After Changing Target Audience',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.CONT_38912, '@CONT-38912'],
     },

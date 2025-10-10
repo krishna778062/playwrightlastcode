@@ -24,7 +24,7 @@ test.describe(
     });
 
     test(
-      'Verify published status for scheduled page by app manager',
+      'verify published status for scheduled page by app manager',
       {
         tag: [
           TestPriority.P0,
@@ -62,7 +62,7 @@ test.describe(
     );
 
     test(
-      'Verify if Application Manager does not select any option from bulk options apply button should be disabled',
+      'verify if Application Manager does not select any option from bulk options apply button should be disabled',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25065'],
       },

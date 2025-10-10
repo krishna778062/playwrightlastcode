@@ -12,7 +12,7 @@ import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fi
 import { ResultListingComponent } from '@/src/modules/global-search/ui/components/resultsListComponent';
 
 test.describe(
-  `Test Global Search - Link Tile Search functionality`,
+  `test Global Search - Link Tile Search functionality`,
   {
     tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.LINK_TILE_SEARCH],
   },
@@ -78,7 +78,7 @@ test.describe(
     });
 
     test(
-      `Verify Link Tile Search results with sidebar filter`,
+      `verify Link Tile Search results with sidebar filter`,
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
@@ -141,7 +141,7 @@ test.describe(
     );
 
     test(
-      `Verify Site Link Tile Autocomplete functionality`,
+      `verify Site Link Tile Autocomplete functionality`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },

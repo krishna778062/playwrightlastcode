@@ -23,7 +23,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
 
 test.describe(
-  `Page Creation by Application Manager`,
+  `page Creation by Application Manager`,
   {
     tag: [ContentTestSuite.PAGE_APP_MANAGER, ContentSuiteTags.PAGE_CREATION],
   },
@@ -129,7 +129,7 @@ test.describe(
     });
 
     test(
-      'Verify feed and comment should not be displayed when feed and comments are disabled app level',
+      'verify feed and comment should not be displayed when feed and comments are disabled app level',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VERIFY_COMMENTS_AND_FEEDS],
       },
@@ -162,7 +162,7 @@ test.describe(
     );
 
     test(
-      'Zeus: Edit the validation Expired Content and Cancel',
+      'zeus: Edit the validation Expired Content and Cancel',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VALIDATION_REQUIRED_BAR_STATE],
       },

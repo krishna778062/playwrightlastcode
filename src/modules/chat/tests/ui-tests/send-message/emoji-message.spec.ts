@@ -5,8 +5,8 @@ import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
 
-test.describe('Verifying emoji message in the editor', { tag: [TestPriority.P2] }, () => {
-  test('Send message with first 4 emojis from emoji picker', async ({ appManagerFixture }) => {
+test.describe('verifying emoji message in the editor', { tag: [TestPriority.P2] }, () => {
+  test('send message with first 4 emojis from emoji picker', async ({ appManagerFixture }) => {
     tagTest(test.info(), {
       description: 'User selects first 4 emojis from emoji picker and sends message',
       priority: TestPriority.P2,
@@ -32,7 +32,7 @@ test.describe('Verifying emoji message in the editor', { tag: [TestPriority.P2] 
     await chatAppPage.assertions.verifyEmojiMessageisVisible(emojiInsideEditor ?? '');
   });
 
-  test('Send text message with emojis', async ({ appManagerFixture }) => {
+  test('send text message with emojis', async ({ appManagerFixture }) => {
     tagTest(test.info(), {
       description: 'User types text, adds emojis, and sends message',
       priority: TestPriority.P2,
@@ -61,7 +61,7 @@ test.describe('Verifying emoji message in the editor', { tag: [TestPriority.P2] 
     await chatAppPage.assertions.verifyEmojiMessageisVisible(emojiwithextinsideEditor ?? '');
   });
 
-  test('Send message with emojis from search input', async ({ appManagerFixture }) => {
+  test('send message with emojis from search input', async ({ appManagerFixture }) => {
     tagTest(test.info(), {
       description: 'User searched a emoji, adds emojis, and sends message',
       priority: TestPriority.P2,

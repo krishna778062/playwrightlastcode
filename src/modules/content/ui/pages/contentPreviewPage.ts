@@ -112,7 +112,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
    * Clicks on the Approve and Publish button
    */
   async clickOnApproveOrRejectButton(action: string) {
-    this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForLoadState('domcontentloaded');
     await test.step(`Clicking on the Approve and Publish button`, async () => {
       await this.clickOnElement(this.approveOrRejectButton(action));
     });

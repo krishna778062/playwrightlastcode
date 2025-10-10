@@ -47,7 +47,7 @@ test.describe(
     });
 
     test(
-      'Verify user can create, edit and delete a feed post with attachments',
+      'verify user can create, edit and delete a feed post with attachments',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@attachments'],
       },
@@ -65,7 +65,7 @@ test.describe(
         // Step 1: Create a new post with multiple attachments via UI
         // Note: Post can also be created via API using:
         // const { postResult: apiPostResult, postId } = await feedManagerService.createPost({ text: initialPostText });
-        feedPage.actions.clickShareThoughtsButton();
+        await feedPage.actions.clickShareThoughtsButton();
         const imagePath = FileUtil.getFilePath(
           __dirname,
           '..',

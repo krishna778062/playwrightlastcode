@@ -15,7 +15,7 @@ import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { CONNECTOR_IDS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 test.describe(
-  'SAP SuccessFactors App Tiles Integration',
+  'sAP SuccessFactors App Tiles Integration',
   {
     tag: [IntegrationsSuiteTags.SAP_SUCCESSFACTORS, IntegrationsSuiteTags.ABSOLUTE],
   },

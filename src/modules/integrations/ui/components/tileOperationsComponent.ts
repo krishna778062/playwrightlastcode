@@ -326,8 +326,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
 
       // Get task records and verify at least one exists
       const containers = tile.locator(this.container);
-      const count = await containers.count();
-      await expect(count).toBeGreaterThan(0);
+      await expect(containers).toHaveCount(0);
 
       // Verify first record has all required elements
       const firstRecord = containers.first();
@@ -424,7 +423,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
 
       await expect(showMoreButton, 'Show More button should be visible').toBeVisible();
       const initialVisible = await rowsVisible.count();
-      await expect(initialVisible).toBeGreaterThanOrEqual(4);
+      expect(initialVisible).toBeGreaterThanOrEqual(4);
 
       await this.clickOnElement(showMoreButton);
       await expect.poll(async () => rowsVisible.count(), { timeout: 10_000 }).toBeGreaterThan(initialVisible);
@@ -443,7 +442,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       // Get task records and verify at least one exists
       const containers = tile.locator(this.container);
       const count = await containers.count();
-      await expect(count, 'At least one container should be present in DocuSign tile').toBeGreaterThan(0);
+      expect(count, 'At least one container should be present in DocuSign tile').toBeGreaterThan(0);
       // Verify first record has all required elements
       const firstRecord = containers.first();
       await expect(
@@ -526,8 +525,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
 
       // Check at least one task exists
       const taskContainers = tile.locator(this.loopContainer);
-      await expect(await taskContainers.count(), 'At least one task should be present').toBeGreaterThan(0);
-
+      const count = await taskContainers.count();
+      expect(count, 'At least one task should be present').toBeGreaterThan(0);
       // Verify first task structure
       const firstTask = taskContainers.first();
       const taskLink = firstTask
@@ -559,7 +558,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       // Get task records and verify at least one exists
       const containers = tile.locator(this.container);
       const count = await containers.count();
-      await expect(count, 'At least one container should be present in Docebo tile').toBeGreaterThan(0);
+      expect(count, 'At least one container should be present in Docebo tile').toBeGreaterThan(0);
       // Verify first record has all required elements
       const firstRecord = containers.first();
       await expect(

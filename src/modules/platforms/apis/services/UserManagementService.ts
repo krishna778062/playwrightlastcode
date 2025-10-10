@@ -271,7 +271,7 @@ export class UserManagementService implements IUserManagementOperations {
       const userInfoResponseJson: IdentityUserInfoResponse = await this.getUserInfo(userId);
 
       // Remove work_info_id from the work_info object
-      if (userInfoResponseJson.work_info && userInfoResponseJson.work_info.work_info_id) {
+      if (userInfoResponseJson.work_info?.work_info_id) {
         delete userInfoResponseJson.work_info.work_info_id;
       }
       if (options?.abac == true) {

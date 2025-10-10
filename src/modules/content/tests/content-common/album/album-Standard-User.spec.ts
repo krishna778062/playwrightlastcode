@@ -40,7 +40,7 @@ const ALBUM_APPROVAL_TEST_DATA = [
 ] as const;
 
 test.describe(
-  `Album Creation by Standard user  and Approval/Rejection by Application Manager`,
+  `album Creation by Standard user  and Approval/Rejection by Application Manager`,
   {
     tag: [ContentTestSuite.ALBUM_STANDARD_USER, ContentSuiteTags.ALBUM_CREATION],
   },

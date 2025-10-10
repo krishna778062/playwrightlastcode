@@ -13,7 +13,7 @@ const CATEGORY_NAME_LIMITS = {
 
 const test = contentTestFixture;
 
-test.describe('Site Category Validation', { tag: ['@content-management', '@site-categories'] }, () => {
+test.describe('site Category Validation', { tag: ['@content-management', '@site-categories'] }, () => {
   let siteCategoriesPage: SiteCategoriesPage;
   let createdCategoryName: string;
 
@@ -36,7 +36,7 @@ test.describe('Site Category Validation', { tag: ['@content-management', '@site-
   });
 
   test(
-    'Verify category name field validation and successful creation with maximum characters',
+    'verify category name field validation and successful creation with maximum characters',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE],
     },

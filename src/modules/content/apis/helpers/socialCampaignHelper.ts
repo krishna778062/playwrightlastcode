@@ -287,7 +287,7 @@ export class SocialCampaignHelper {
    */
   async getCampaignsByNetwork(network: SocialCampaignNetwork): Promise<SocialCampaign[]> {
     const allCampaigns = await this.getAllCampaignsFromAPI();
-    return allCampaigns.filter(campaign => campaign.networks && campaign.networks[network] !== undefined);
+    return allCampaigns.filter(campaign => campaign.networks?.[network] !== undefined);
   }
 
   /**

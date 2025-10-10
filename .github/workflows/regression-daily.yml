@@ -39,11 +39,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Create GitHub Secrets JSON
-        run: |
-          echo '${{ vars.GOOGLE_CALENDAR_SECRETS }}' > githubSecrets.json
-          echo "Created githubSecrets.json for CI environment"
-
       - name: set up Node.js
         uses: actions/setup-node@v3
         with:
