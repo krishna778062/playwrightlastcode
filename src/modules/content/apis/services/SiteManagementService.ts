@@ -435,7 +435,7 @@ export class SiteManagementService implements ISiteManagementOperations {
    */
   async getSiteCarouselItems(siteId: string): Promise<any> {
     return await test.step(`Getting carousel items for site ID: ${siteId}`, async () => {
-      const response = await this.post(API_ENDPOINTS.site.carouselItems(siteId), {
+      const response = await this.httpClient.post(API_ENDPOINTS.site.carouselItems(siteId), {
         data: {
           siteId: siteId,
         },
@@ -460,7 +460,7 @@ export class SiteManagementService implements ISiteManagementOperations {
    */
   async deleteSiteCarouselItem(siteId: string, carouselItemId: string): Promise<any> {
     return await test.step(`Deleting carousel item ${carouselItemId} from site ${siteId}`, async () => {
-      const response = await this.delete(API_ENDPOINTS.site.deleteCarouselItem(siteId, carouselItemId));
+      const response = await this.httpClient.delete(API_ENDPOINTS.site.deleteCarouselItem(siteId, carouselItemId));
 
       const responseBody = await response.json();
       console.log('Delete carousel item response:', JSON.stringify(responseBody, null, 2));

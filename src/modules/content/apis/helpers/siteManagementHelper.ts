@@ -696,7 +696,7 @@ export class SiteManagementHelper {
   async getAndRemoveAllCarouselItems(siteId: string): Promise<number> {
     return await test.step(`Getting and removing all carousel items from site: ${siteId}`, async () => {
       // Get the list of carousel items
-      const carouselResponse = await this.appManagerApiClient.getSiteManagementService().getSiteCarouselItems(siteId);
+      const carouselResponse = await this.siteManagementService.getSiteCarouselItems(siteId);
 
       if (!carouselResponse.result?.listOfItems?.length) {
         console.log(`No carousel items found for site ${siteId}`);
@@ -711,7 +711,7 @@ export class SiteManagementHelper {
       // Remove each carousel item
       for (const item of carouselItems) {
         try {
-          await this.appManagerApiClient.getSiteManagementService().deleteSiteCarouselItem(siteId, item.carouselItemId);
+          await this.siteManagementService.deleteSiteCarouselItem(siteId, item.carouselItemId);
           console.log(`Successfully removed carousel item: ${item.carouselItemId}`);
           removedCount++;
         } catch (error) {
@@ -732,7 +732,7 @@ export class SiteManagementHelper {
    */
   async getSiteCarouselItems(siteId: string): Promise<any> {
     return await test.step(`Getting carousel items for site: ${siteId}`, async () => {
-      return await this.appManagerApiClient.getSiteManagementService().getSiteCarouselItems(siteId);
+      return await this.siteManagementService.getSiteCarouselItems(siteId);
     });
   }
 
@@ -744,7 +744,7 @@ export class SiteManagementHelper {
    */
   async removeCarouselItem(siteId: string, carouselItemId: string): Promise<any> {
     return await test.step(`Removing carousel item ${carouselItemId} from site ${siteId}`, async () => {
-      return await this.appManagerApiClient.getSiteManagementService().deleteSiteCarouselItem(siteId, carouselItemId);
+      return await this.siteManagementService.deleteSiteCarouselItem(siteId, carouselItemId);
     });
   }
 }
