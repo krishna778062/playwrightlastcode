@@ -23,8 +23,8 @@ export enum IntegrationsFeatureTags {
   PERSONALIZATION = '@personalization',
   MULTI_USER = '@multi-user',
   EVENT_SYNC = '@EventSync',
-  GOOGLE_CALENDAR = '@google-calendar',
-  OUTLOOK_CALENDAR = '@outlook-calendar',
+  GOOGLE_CALENDAR_EVENTS_SYNC = '@google-calendar-eventsync',
+  OUTLOOK_CALENDAR_EVENTS_SYNC = '@outlook-calendar-eventsync',
 }
 
 export const TEST_TAGS = {
@@ -39,7 +39,8 @@ export const TEST_TAGS = {
   TILE_MANAGEMENT: IntegrationsFeatureTags.TILE_MANAGEMENT,
   MULTI_USER: IntegrationsFeatureTags.MULTI_USER,
   EVENT_SYNC: IntegrationsFeatureTags.EVENT_SYNC,
-  GOOGLE_CALENDAR: IntegrationsFeatureTags.GOOGLE_CALENDAR,
+  GOOGLE_CALENDAR_EVENTS_SYNC: IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
+  OUTLOOK_CALENDAR_EVENTS_SYNC: IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
   BAMBOOHR: IntegrationsSuiteTags.BAMBOOHR,
   SAP_SUCCESSFACTORS: IntegrationsSuiteTags.SAP_SUCCESSFACTORS,
   UKG_WFM: IntegrationsSuiteTags.UKG_WFM,

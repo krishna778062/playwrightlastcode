@@ -6,42 +6,49 @@ import { TestGroupType } from '@core/constants/testType';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { EventDetailPage } from '@/src/modules/content/pages/eventDetailPage';
-import { IntegrationsFeatureTags, IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
-import { integrationsEventFixture as test } from '@/src/modules/integrations/fixtures/eventSyncFixture';
+import { EventDetailPage } from '@/src/modules/content/ui/pages/eventDetailPage';
 import {
   createAppManagerOutlookCalendarHelper,
   OutlookCalendarHelper,
-} from '@/src/modules/integrations/helpers/outlookCalendarHelper';
+} from '@/src/modules/integrations/apis/helpers/outlookCalendarHelper';
+import { IntegrationsFeatureTags, IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
+import { integrationsEventFixture as test } from '@/src/modules/integrations/fixtures/eventSyncFixture';
 import {
   createOutlookEventPayload,
   EXPECTED_OUTLOOK_EVENT_SYNC_CONFIG,
   OUTLOOK_EVENT_CONFIGS,
 } from '@/src/modules/integrations/test-data/outlookEventSync.test-data';
+import { UserManagementService } from '@/src/modules/platforms/apis/services/UserManagementService';
 
 test.describe(
-  'Outlook Event Sync Integration Tests',
+  'outlook Event Sync Integration Tests',
   {
     tag: [IntegrationsSuiteTags.INTEGRATIONS, IntegrationsFeatureTags.EVENT_SYNC, IntegrationsSuiteTags.PHOENIX],
   },
   () => {
     test(
-      'Delete Event and Verify Removal from Outlook Calendar',
+      'delete Event and Verify Removal from Outlook Calendar',
       {
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.OUTLOOK_CALENDAR,
+          IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
         ],
       },
-      async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper }) => {
+      async ({ appManagerFixture, testSiteName }) => {
         tagTest(test.info(), {
           description: 'Test event deletion sync to Outlook Calendar',
           zephyrTestId: 'INT-OUTLOOK-DELETE-001',
         });
 
-        const sitesResponse = await siteManagementHelper.getListOfSites();
+        const userManagementService = new UserManagementService(
+          appManagerFixture.apiContext,
+          getEnvConfig().apiBaseUrl
+        );
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
+        const sitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites();
         const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
 
         if (!testSite) {
@@ -52,9 +59,6 @@ test.describe(
 
         const eventTitle = `${OUTLOOK_EVENT_CONFIGS.DELETE_TEST.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
-        const appManagerEmail = getEnvConfig().appManagerEmail;
-        const organizerId = await appManagerApiClient.getUserManagementService().getUserId(appManagerEmail);
-
         const eventPayload = createOutlookEventPayload({
           title: eventTitle,
           description: OUTLOOK_EVENT_CONFIGS.DELETE_TEST.description,
@@ -62,9 +66,10 @@ test.describe(
           organizerId,
         });
 
-        const eventResult = await appManagerApiClient
-          .getContentManagementService()
-          .addNewEventContent(siteId, eventPayload);
+        const eventResult = await appManagerFixture.contentManagementHelper.contentManagementService.addNewEventContent(
+          siteId,
+          eventPayload
+        );
 
         OutlookCalendarHelper.assertCompleteEventConfiguration(eventResult, EXPECTED_OUTLOOK_EVENT_SYNC_CONFIG);
 
@@ -79,7 +84,7 @@ test.describe(
           throw new Error(`Outlook Calendar event not found for "${eventTitle}" - cannot perform deletion sync test`);
         }
 
-        const eventDetailPage = new EventDetailPage(appManagerHomePage.page, siteId, eventResult.eventId);
+        const eventDetailPage = new EventDetailPage(appManagerFixture.page, siteId, eventResult.eventId);
         await eventDetailPage.loadPage();
         await eventDetailPage.assertions.verifyThePageIsLoaded();
         await eventDetailPage.assertions.verifyEventTitle(eventTitle);
@@ -100,23 +105,30 @@ test.describe(
     );
 
     test(
-      'Edit Event and Verify Updates Sync to Outlook Calendar',
+      'edit Event and Verify Updates Sync to Outlook Calendar',
       {
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.OUTLOOK_CALENDAR,
+          IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
         ],
       },
-      async ({ appManagerApiClient, appManagerHomePage, testSiteName, siteManagementHelper }) => {
+      async ({ appManagerFixture, testSiteName }) => {
         test.setTimeout(300000);
         tagTest(test.info(), {
           description: 'Test event edit sync with Outlook Calendar',
           zephyrTestId: 'INT-OUTLOOK-EDIT-001',
         });
 
-        const sitesResponse = await siteManagementHelper.getListOfSites();
+        const userManagementService = new UserManagementService(
+          appManagerFixture.apiContext,
+          getEnvConfig().apiBaseUrl
+        );
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
+
+        const sitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites();
         const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
 
         if (!testSite) {
@@ -127,9 +139,6 @@ test.describe(
 
         const originalEventTitle = `${OUTLOOK_EVENT_CONFIGS.EDIT_TEST.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
-        const appManagerEmail = getEnvConfig().appManagerEmail;
-        const organizerId = await appManagerApiClient.getUserManagementService().getUserId(appManagerEmail);
-
         const eventPayload = createOutlookEventPayload({
           title: originalEventTitle,
           description: OUTLOOK_EVENT_CONFIGS.EDIT_TEST.description,
@@ -137,16 +146,17 @@ test.describe(
           organizerId,
         });
 
-        const eventResult = await appManagerApiClient
-          .getContentManagementService()
-          .addNewEventContent(siteId, eventPayload);
+        const eventResult = await appManagerFixture.contentManagementHelper.contentManagementService.addNewEventContent(
+          siteId,
+          eventPayload
+        );
 
         OutlookCalendarHelper.assertCompleteEventConfiguration(eventResult, EXPECTED_OUTLOOK_EVENT_SYNC_CONFIG);
 
         const appManagerCalendarHelper = createAppManagerOutlookCalendarHelper();
         await appManagerCalendarHelper.verifyEventSyncWithRetry(originalEventTitle);
 
-        const eventDetailPage = new EventDetailPage(appManagerHomePage.page, siteId, eventResult.eventId);
+        const eventDetailPage = new EventDetailPage(appManagerFixture.page, siteId, eventResult.eventId);
         await eventDetailPage.loadPage();
         await eventDetailPage.assertions.verifyThePageIsLoaded();
         await eventDetailPage.assertions.verifyEventTitle(originalEventTitle);
@@ -175,24 +185,32 @@ test.describe(
     );
 
     test(
-      'Site Deactivation/Reactivation and Outlook Calendar Event Sync Verification',
+      'site Deactivation/Reactivation and Outlook Calendar Event Sync Verification',
       {
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.OUTLOOK_CALENDAR,
+          IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
         ],
       },
-      async ({ appManagerApiClient, appManagerHomePage, siteManagementHelper }) => {
+      async ({ appManagerFixture, testSiteName }) => {
         test.setTimeout(360000);
         tagTest(test.info(), {
           description: 'Test site deactivation/reactivation impact on Outlook Calendar event sync',
           zephyrTestId: 'INT-OUTLOOK-SITE-001',
         });
 
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
-        const dedicatedTestSite = await siteManagementHelper.createPublicSite({
+        const userManagementService = new UserManagementService(
+          appManagerFixture.apiContext,
+          getEnvConfig().apiBaseUrl
+        );
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
+
+        const category =
+          await appManagerFixture.siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const dedicatedTestSite = await appManagerFixture.siteManagementHelper.createPublicSite({
           category,
           siteName: `Outlook Site Deactivation Test ${faker.string.alphanumeric({ length: 6 })}`,
         });
@@ -201,9 +219,6 @@ test.describe(
 
         const eventTitle = `${OUTLOOK_EVENT_CONFIGS.SITE_DEACTIVATION.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
-        const appManagerEmail = getEnvConfig().appManagerEmail;
-        const organizerId = await appManagerApiClient.getUserManagementService().getUserId(appManagerEmail);
-
         const eventPayload = createOutlookEventPayload({
           title: eventTitle,
           description: OUTLOOK_EVENT_CONFIGS.SITE_DEACTIVATION.description,
@@ -211,9 +226,10 @@ test.describe(
           organizerId,
         });
 
-        const eventResult = await appManagerApiClient
-          .getContentManagementService()
-          .addNewEventContent(siteId, eventPayload);
+        const eventResult = await appManagerFixture.contentManagementHelper.contentManagementService.addNewEventContent(
+          siteId,
+          eventPayload
+        );
 
         OutlookCalendarHelper.assertCompleteEventConfiguration(eventResult, EXPECTED_OUTLOOK_EVENT_SYNC_CONFIG);
 
@@ -221,8 +237,8 @@ test.describe(
         await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
         // STEP 1: Deactivate the site
-        await appManagerApiClient.getSiteManagementService().deactivateSite(siteId);
-        await appManagerHomePage.page.waitForTimeout(20000);
+        await appManagerFixture.siteManagementHelper.siteManagementService.deactivateSite(siteId);
+        await appManagerFixture.page.waitForTimeout(20000);
 
         // Verify event removal from Outlook Calendar after site deactivation
         await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
@@ -230,8 +246,8 @@ test.describe(
         });
 
         // STEP 2: Reactivate the site
-        await appManagerApiClient.getSiteManagementService().activateSite(siteId);
-        await appManagerHomePage.page.waitForTimeout(25000);
+        await appManagerFixture.siteManagementHelper.siteManagementService.activateSite(siteId);
+        await appManagerFixture.page.waitForTimeout(25000);
 
         // Verify event reappears in Outlook Calendar after site reactivation
         await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
