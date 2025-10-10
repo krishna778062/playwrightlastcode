@@ -1,4 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { getQuery } from '@rewards/utils/dbQuery';
+import { executeQuery } from '@rewards/utils/dbUtils';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
@@ -372,7 +374,7 @@ export class RecognitionHubPage extends BasePage {
   }
 
   /**
-   * Setup the multiple gifting options
+   * Set up the multiple gifting options
    */
   async setupTheMultipleGiftingOptions(): Promise<number[]> {
     const input_values = [1, 2, 3, 4, 5, 6, 7];
@@ -383,8 +385,14 @@ export class RecognitionHubPage extends BasePage {
     await rewardGiftingOptions.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/options');
 
     const existingValue = await rewardGiftingOptions.getTheExistingValueInGiftingOptions();
-    const rewardOption =
-      Math.floor(Math.random() * (Number(availablePoints?.replace(',', '')) - 7 - Number(existingValue))) + 7;
+    let rewardOption: number;
+    do {
+      rewardOption =
+        Math.floor(Math.random() * (Number(availablePoints?.replace(',', '')) - 7 - Number(existingValue))) + 7;
+    } while (
+      input_values.includes(Number(rewardOption)) ||
+      String(existingValue).split(',').includes(String(rewardOption))
+    );
     input_values.push(Number(rewardOption));
 
     await rewardGiftingOptions.enterTheAmountAndValidateNoError(String(input_values));
@@ -601,5 +609,55 @@ export class RecognitionHubPage extends BasePage {
     await expect(this.deleteRecognitionDialogBoxDeleteButton).toBeEnabled();
     await this.clickOnElement(this.deleteRecognitionDialogBoxDeleteButton);
     await expect(this.deleteRecognitionDialogBoxContainer).not.toBeVisible();
+  }
+
+  /**
+   * Navigate to recognition hub and validate allowance refreshing
+   */
+  async navigateToRecognitionHubAndValidateAllowanceRefreshing(): Promise<void> {
+    await this.visitRecognitionHub();
+    await this.rewardRecognitionFirstPost.waitFor({ state: 'visible', timeout: 15000 });
+  }
+
+  /**
+   * Enable distribution allowance as failed
+   */
+  async enableDistributionAllowanceAsFailed(): Promise<void> {
+    const tenantCode = await this.page.evaluate(() => {
+      return (window as any).Simpplr?.Settings?.organizationId;
+    });
+    const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
+    await executeQuery(resultAsFailed.replace('tenantCode', tenantCode));
+  }
+
+  /**
+   * Validate allowance refreshing tooltip in recognition hub
+   */
+  async validateAllowanceRefreshingTooltipInRecognitionHub(): Promise<void> {
+    await this.page.reload();
+    await this.visitRecognitionHub();
+    await this.verifier.verifyTheElementIsVisible(this.allowanceRefreshing);
+    await this.verifier.verifyTheElementIsVisible(this.allowanceRefreshingInfoIcon);
+    await this.clickOnElement(this.allowanceRefreshingInfoIcon);
+    await this.verifier.verifyTheElementIsVisible(this.allowanceRefreshingInfoIconTooltipText);
+    await this.verifier.verifyElementHasText(
+      this.allowanceRefreshingInfoIconTooltipText,
+      'Your monthly allowance is refreshing and will be available soon'
+    );
+    await this.allowanceRefreshingInfoIcon.click({ force: true });
+  }
+
+  /**
+   * Disable distribution allowance as success
+   */
+  async disableDistributionAllowanceAsSuccess(): Promise<void> {
+    const { getQuery } = await import('@rewards/utils/dbQuery');
+    const { executeQuery } = await import('@rewards/utils/dbUtils');
+
+    const tenantCode = await this.page.evaluate(() => {
+      return (window as any).Simpplr?.Settings?.organizationId;
+    });
+    const resultAsSuccess = getQuery('setDistributionAllowanceAsSuccess');
+    await executeQuery(resultAsSuccess.replace('tenantCode', tenantCode));
   }
 }

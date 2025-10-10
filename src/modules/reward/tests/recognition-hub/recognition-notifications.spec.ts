@@ -11,7 +11,7 @@ import { GiveRecognitionDialogBox } from '@modules/reward/components/recognition
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recognition-hub-page';
 
-test.describe('Recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
+test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
   test(
     '[RC-2619] Validate system notifications on rewards and recognition',
     {

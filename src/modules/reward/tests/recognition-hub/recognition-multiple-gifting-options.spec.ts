@@ -8,7 +8,7 @@ import { GiveRecognitionDialogBox } from '@modules/reward/components/recognition
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recognition-hub-page';
 
-test.describe('Multiple Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
+test.describe('multiple Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
   test.beforeEach(async ({ appManagerPage }) => {
     const recognitionHub = new RecognitionHubPage(appManagerPage);
     await recognitionHub.enableTheRewardsAndPeerGiftingForHubIfDisabled();

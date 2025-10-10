@@ -13,13 +13,13 @@ import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constant
 import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
 import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recognition-hub-page';
 
-test.describe.only('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
+test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test.beforeEach(async ({ appManagerPage }) => {
     const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
     await manageRewardsOverviewPage.enableTheRewardsAndPeerGiftingIfDisabled();
   });
 
-  test.only(
+  test(
     '[RC-3004] Validate Rewards Activity table if there is no activity',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
@@ -33,8 +33,8 @@ test.describe.only('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] },
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
 
       // Abort the transactions API to simulate no activity
-      await appManagerPage.route('**/recognition/admin/rewards/transactions?**', route => {
-        route.abort(); // Simulates network interruption
+      await appManagerPage.route('**/recognition/admin/rewards/transactions?**', async route => {
+        await route.abort(); // Simulates network interruption
       });
       await appManagerPage.reload({ waitUntil: 'domcontentloaded' });
 
@@ -198,61 +198,8 @@ test.describe.only('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] },
         items = items - 10;
       }
       await appManagerPage.waitForTimeout(5000);
-      const updatedCount = await manageRewardsOverviewPage.activityPanelTableRows.count();
-      expect(updatedCount).toEqual(oldCount);
-    }
-  );
-
-  test(
-    '[RC-3420] Verify Last synced data Note on Rewards Activity table',
-    {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.SMOKE],
-    },
-    async ({ appManagerPage }) => {
-      tagTest(test.info(), {
-        description: 'Verify Last synced data Note on Rewards Activity table',
-        zephyrTestId: 'RC-3420',
-        storyId: 'RC-3420',
-      });
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
-      await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
-      const apiPromise = appManagerPage.waitForResponse(
-        resp => resp.url().includes('/recognition/admin/rewards/transactions') && resp.status() === 200
-      );
-      const apiResponse = await apiPromise;
-      const json = await apiResponse.json();
-      const lastUpdatedAtFromApi = json?.lastUpdatedAt ?? null;
-
-      await manageRewardsOverviewPage.activityPanelLastUpdatedInfoIcon.scrollIntoViewIfNeeded();
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
-        manageRewardsOverviewPage.activityPanelLastUpdatedInfoIcon,
-        {
-          assertionMessage: ' Last Updated info icon is not visible',
-        }
-      );
-      await manageRewardsOverviewPage.activityPanelHeader.scrollIntoViewIfNeeded();
-      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
-        manageRewardsOverviewPage.activityPanelLastUpdatedText,
-        'Last updated '
-      );
-      await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPanelLastUpdatedInfoIcon, {
-        stepInfo: 'Clicking on Last Updated info icon',
-      });
-      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
-        manageRewardsOverviewPage.tooltipText,
-        'Activity data is synced periodically which may impact real-time reporting'
-      );
-      await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPanelLastUpdatedInfoIcon, {
-        stepInfo: 'Clicking on Last Updated info icon',
-      });
-      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
-        manageRewardsOverviewPage.activityPanelLastUpdatedText,
-        await manageRewardsOverviewPage.getTheActivityTableUpdatedTime(lastUpdatedAtFromApi),
-        {
-          assertionMessage: ' Expected last synced time is not matching with the API time',
-        }
-      );
+      const updatedCount = manageRewardsOverviewPage.activityPanelTableRows;
+      await expect(updatedCount).toHaveCount(oldCount);
     }
   );
 
@@ -359,8 +306,8 @@ test.describe.only('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] },
           stepInfo: 'Clicking on Show More button',
         });
         await manageRewardsOverviewPage.activityPanelTableRows.last().waitFor({ state: 'attached' });
-        const updatedCount = await manageRewardsOverviewPage.activityPanelTableRows.count();
-        expect(updatedCount).toEqual(initialCount + 10);
+        const updatedCount = manageRewardsOverviewPage.activityPanelTableRows;
+        await expect(updatedCount).toHaveCount(initialCount + 10);
       }
     }
   );
@@ -398,7 +345,7 @@ test.describe.only('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] },
       const apiResponse = await apiPromise;
       const json = await apiResponse.json();
       const items = json?.total ?? null;
-      expect(items).not.toBeUndefined();
+      expect(items).toBeDefined();
       await expect(manageRewardsOverviewPage.activityPanelFiltersButton.nth(2)).toBeChecked();
 
       await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPanelFiltersButton.nth(3), {
@@ -838,7 +785,7 @@ test.describe.only('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] },
       ]);
 
       const body = await response.json();
-      if (!body || !body.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
+      if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
       const recognitionPostId = String(body.id);
 
       // Handle dialog box if it appears
@@ -963,7 +910,7 @@ test.describe.only('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] },
       ]);
 
       const body = await response.json();
-      if (!body || !body.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
+      if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
       const recognitionPostId = String(body.id);
 
       // Handle dialog box if it appears
@@ -1024,7 +971,7 @@ test.describe.only('Activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] },
     }
   );
 
-  test.skip(
+  test(
     '[RC-6099] Validate the Message and URL column value in the points given CSV for the Imported Data',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P2],

@@ -202,7 +202,8 @@ export class RewardsStore extends BasePage {
           res.status() === 200 &&
           res.request().method() === 'GET'
       ),
-      this.visit(), // action that triggers API
+      this.visit(),
+      this.verifyThePageIsLoaded(), // action that triggers API
     ]);
     const body = await apiResponse.json();
     const isRewardEnabled = body.rewardConfig?.enabled;
@@ -289,6 +290,23 @@ export class RewardsStore extends BasePage {
     await this.rewardsDialogBox.clickOnConfirmOrder();
   }
 
+  /**
+   * Checkout gift card for interruption testing
+   */
+  async checkOutTheGiftCardForInterruption(giftCardName: string): Promise<void> {
+    await this.searchForGiftCard(giftCardName);
+    await this.clickOnTheNthGiftCard(1);
+    await this.rewardsDialogBox.clickOnTheCheckoutButton();
+    await this.rewardsDialogBox.enterTheConfirmEmail();
+    await this.rewardsDialogBox.checkTheTermsAndConditionCheckbox();
+    await Promise.all([
+      this.page.route('**/recognition/redemption/rewards/redeem', async route => {
+        await route.abort(); // Simulates network interruption
+      }),
+      this.rewardsDialogBox.confirmOrder.click(),
+    ]);
+  }
+
   async validateSuccessMessage(heading: string, descriptions: string[]) {
     await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.successOrderLogo);
     await this.verifier.verifyElementHasText(this.rewardsDialogBox.successOrderHeading, heading);
@@ -330,6 +348,41 @@ export class RewardsStore extends BasePage {
       assertionMessage: ' Verify the reward name in the order history panel',
     });
     await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardImage.first());
+    await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardResendButton.first());
+  }
+
+  /**
+   * Redeem gift card and validate with detailed order history verification
+   */
+  async redeemAndValidateWithOrderHistory({
+    tab,
+    giftCard,
+    successMessage,
+    additionalMessages = [],
+  }: {
+    tab: any;
+    giftCard: string;
+    successMessage: string;
+    additionalMessages?: string[];
+  }) {
+    if (tab) {
+      await this.clickOnElement(tab, {
+        stepInfo: `Clicking on ${tab} tab`,
+      });
+    }
+    await this.selectAndRedeemGiftCard(giftCard);
+    await this.validateSuccessMessage(successMessage, additionalMessages);
+    await this.validateOrderHistoryForGiftCard(giftCard);
+  }
+
+  /**
+   * Validate order history for a specific gift card
+   */
+  async validateOrderHistoryForGiftCard(giftCard: string) {
+    await this.visitTheOrderHistory();
+    await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanel.first());
+    await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanel.first().locator(`img[alt^="${giftCard}"]`));
+    await this.verifier.verifyElementContainsText(this.orderHistoryPanelRewardName.first(), giftCard);
     await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardResendButton.first());
   }
 
@@ -389,7 +442,7 @@ export class RewardsStore extends BasePage {
     await this.verifier.verifyElementContainsText(this.rewardsDialogBox.title, giftCardName);
     const availableAmountText = await this.rewardsDialogBox.rewardAmountsAvailablePoints.textContent();
     const availablePoints = availableAmountText
-      ? Number(availableAmountText.match(/\d{1,3}(?:,\d{3})*|\d+/)?.[0]?.replace(/,/g, '') ?? '0')
+      ? Number(availableAmountText.match(/\d{1,3}(?:,\d{3})*|\d+/)?.[0]?.replace(/,/g, '') || '0')
       : 0;
     await this.fillInElement(this.rewardsDialogBox.rewardAmountInputBox, String(availablePoints + 5), {
       stepInfo: 'Filling reward amount input box',
@@ -525,5 +578,247 @@ export class RewardsStore extends BasePage {
 
   async validateTheResentConfirmation() {
     await this.verifyToastMessageIsVisibleWithText('Reward sent successfully');
+  }
+
+  /**
+   * Login as app manager and navigate to rewards store
+   */
+  async loginAsAppManagerAndNavigateToRewardsStore(): Promise<void> {
+    await this.loadPage();
+    await this.verifier.verifyTheElementIsVisible(this.header);
+    await this.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
+  }
+
+  /**
+   * Login as recognition user and navigate to rewards store
+   */
+  async loginAsRecognitionUserAndNavigateToRewardsStore(): Promise<void> {
+    const { LoginHelper } = await import('@core/helpers/loginHelper');
+    await LoginHelper.logoutByNavigatingToLogoutPage(this.page);
+    await LoginHelper.loginWithPassword(this.page, {
+      email: process.env.RECOGNITION_USER_USERNAME!,
+      password: process.env.RECOGNITION_USER_PASSWORD!,
+    });
+    await this.loadPage();
+    await this.verifier.verifyTheElementIsVisible(this.header);
+    await this.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
+  }
+
+  /**
+   * Login as standard user and navigate to rewards store
+   */
+  async loginAsStandardUserAndNavigateToRewardsStore(): Promise<void> {
+    const { LoginHelper } = await import('@core/helpers/loginHelper');
+    await LoginHelper.logoutByNavigatingToLogoutPage(this.page);
+    await LoginHelper.loginWithPassword(this.page, {
+      email: process.env.STANDARD_USER_USERNAME!,
+      password: process.env.STANDARD_USER_PASSWORD!,
+    });
+    await this.loadPage();
+    await this.verifier.verifyTheElementIsVisible(this.header);
+    await this.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
+  }
+
+  /**
+   * Select country and redeem gift card
+   */
+  async selectCountryAndRedeemGiftCard(countryName: string, giftCardName: string): Promise<void> {
+    await this.selectCountry(countryName);
+    await this.selectAndRedeemGiftCard(giftCardName);
+    await this.validateSuccessMessage('Your reward has been sent', [
+      'Please check your email inbox for your reward details',
+    ]);
+  }
+
+  /**
+   * Navigate to user profile and validate view orders functionality
+   */
+  async navigateToUserProfileAndValidateViewOrders(userProfilePage: any): Promise<void> {
+    await userProfilePage.navigateToCurrentUserProfile();
+    await userProfilePage.validateTheViewOrderButton();
+    await userProfilePage.clickOnTheViewOrders();
+    await this.verifier.verifyTheElementIsVisible(this.header);
+    await this.verifier.waitUntilPageHasNavigatedTo('/rewards-store/order-history');
+    await this.validateTheOrderHistoryElements();
+  }
+
+  /**
+   * Redeem gift card with failure scenario
+   */
+  async redeemGiftCardWithFailure(countryName: string, giftCardName: string): Promise<void> {
+    await this.selectCountry(countryName);
+    await this.checkOutTheGiftCardForInterruption(giftCardName);
+  }
+
+  /**
+   * Validate redemption failure dialog
+   */
+  async validateRedemptionFailure(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.container);
+    await this.verifier.verifyElementHasText(this.rewardsDialogBox.somethingWentWrongTitle, 'Something went wrong');
+    await this.verifier.verifyElementHasText(
+      this.rewardsDialogBox.somethingWentWrongDescription1,
+      'There was an error processing your order. Please try again later.'
+    );
+    await this.verifier.verifyElementHasText(
+      this.rewardsDialogBox.somethingWentWrongDescription2,
+      'You have not been charged any points.'
+    );
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.somethingWentWrongCloseButton.last());
+    await this.clickOnElement(this.rewardsDialogBox.somethingWentWrongCloseButton.last());
+    await this.verifier.verifyTheElementIsNotVisible(this.rewardsDialogBox.container);
+  }
+
+  /**
+   * Mock API for element checks
+   */
+  async mockTheAPIForElementChecks() {
+    await this.page.route('**/recognition/rewards/users/**/wallet', route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          result: {
+            gifting: {
+              pendingIn: 0,
+              available: 0,
+              refreshingAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            },
+            redeemable: {
+              pendingIn: 0,
+              available: 10000,
+            },
+            redeemed: {
+              pendingIn: 100,
+              available: 0,
+            },
+          },
+        }),
+      })
+    );
+    await this.page.reload();
+  }
+
+  /**
+   * Get all API gift list
+   */
+  async getAllTheAPIGiftList(): Promise<string[]> {
+    const response = await this.page.waitForResponse(
+      res => res.url().includes('/recognition/rewards/catalog') && res.status() === 200
+    );
+    const data = await response.json();
+    const apiGiftList = data?.results?.map((item: any) => item.name) || [];
+    return apiGiftList;
+  }
+
+  /**
+   * Get filtered API gift list
+   */
+  async getFilteredAPIGiftList(searchTerm: string): Promise<string[]> {
+    const response = await this.page.waitForResponse(
+      res => res.url().includes('/recognition/rewards/catalog') && res.status() === 200
+    );
+    const data = await response.json();
+    const apiGiftList =
+      data?.results
+        ?.filter((item: any) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        ?.map((item: any) => item.name) || [];
+    return apiGiftList;
+  }
+
+  /**
+   * Validate all gift cards are in ascending order
+   */
+  async getAllTheGitCardAndValidateAllAreInAscendingOrder(apiGiftList: string[]) {
+    await this.giftCardNames.last().waitFor();
+    const count = await this.giftCardNames.count();
+    const UIGiftList: string[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const name = await this.giftCardNames.nth(i).textContent();
+      if (name) {
+        UIGiftList.push(name.trim());
+      }
+    }
+    const trimmedUIGiftList = UIGiftList.map(name => name.trim());
+    const trimmedAPIGiftList = apiGiftList.map(name => name.trim());
+    expect(trimmedUIGiftList).toEqual(trimmedAPIGiftList);
+  }
+
+  /**
+   * Validate image rounded corners
+   */
+  async validateTheImageRoundedCorners() {
+    const count = await this.giftCardImages.count();
+    for (let i = 0; i < count; i++) {
+      const image = this.giftCardImages.nth(i);
+      await this.verifier.verifyTheElementIsVisible(image);
+      // Check if the image has rounded corners by verifying CSS properties
+      const borderRadius = await image.evaluate(el => {
+        const computedStyle = window.getComputedStyle(el);
+        return computedStyle.borderRadius;
+      });
+      expect(borderRadius).toBeTruthy();
+    }
+  }
+
+  /**
+   * Get all categories from the dropdown
+   */
+  async getAllCategories(): Promise<string[]> {
+    await this.rewardCategory.waitFor({ state: 'visible' });
+    const options = await this.rewardCategory.locator('option').all();
+    const categories: string[] = [];
+
+    for (const option of options) {
+      const text = await option.textContent();
+      if (text) {
+        categories.push(text.trim());
+      }
+    }
+
+    return categories;
+  }
+
+  /**
+   * Get all countries from the dropdown
+   */
+  async getAllCountries(): Promise<string[]> {
+    await this.rewardCountry.waitFor({ state: 'visible' });
+    const options = await this.rewardCountry.locator('option').all();
+    const countries: string[] = [];
+
+    for (const option of options) {
+      const text = await option.textContent();
+      if (text) {
+        countries.push(text.trim());
+      }
+    }
+
+    return countries;
+  }
+
+  /**
+   * Get cards locator by name
+   */
+  cards(name: string): Locator {
+    return this.page.getByRole('button', { name: `Redeem ${name}` });
+  }
+
+  /**
+   * Mock the reward API for new user
+   */
+  async mockTheRewardAPIForNewUser() {
+    await this.page.route('**/recognition/rewards/users/me/preferences/redemption', async (route, request) => {
+      const res = await this.page.request.fetch(request);
+      const body = await res.json();
+      body.result.countryCode = '';
+      await route.fulfill({
+        status: res.status(),
+        contentType: res.headers()['content-type'] || 'application/json',
+        body: JSON.stringify(body),
+      });
+    });
+    await this.page.reload();
   }
 }

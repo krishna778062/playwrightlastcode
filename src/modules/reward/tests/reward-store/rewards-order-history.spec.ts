@@ -1,11 +1,10 @@
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { RewardsStore } from '@rewards/pages/reward-store/reward-store';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
-
-import { RewardsStore } from '../../ui/pages/reward-store/reward-store';
 
 test.describe('rewards order history', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => {
   test.beforeEach(async ({ appManagerPage }) => {

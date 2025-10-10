@@ -1,15 +1,13 @@
 import { expect } from '@playwright/test';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { RewardOptionsPage } from '@rewards/pages/manage-rewards/reward-options-page';
+import { RewardsStore } from '@rewards/pages/reward-store/reward-store';
 
 import { TestGroupType } from '@core/constants';
 import { TestPriority } from '@core/constants';
 import { tagTest } from '@core/utils';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
-import { RewardOptionsPage } from '@modules/reward/pages/manage-rewards/reward-options-page';
-
-import { RewardOptionsPage } from '@/src/modules/reward/ui/pages/manage-rewards/reward-options-page';
-import { RewardsStore } from '@/src/modules/reward/ui/pages/reward-store/reward-store';
 
 test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test(

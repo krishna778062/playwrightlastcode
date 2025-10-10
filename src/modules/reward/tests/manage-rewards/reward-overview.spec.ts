@@ -9,7 +9,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
 
-test.describe('Manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
+test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   const rewardsTerminologyHeadings = ['Reward points', 'Peer gifting', 'Allowance', 'User wallet'];
   const rewardsTerminologyDescriptions = [
     'The digital currency used to reward users in recognition. Reward points can be redeemed for digital goods in the rewards store.',
