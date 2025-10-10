@@ -1,101 +1,191 @@
-import { BrowserContext, Page, test } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
+import { RequestContextFactory } from '@core/api/factories/requestContextFactory';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
-import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
-import { UserManagerApiClient } from '@/src/core/api/clients/userManagerApiClient';
-import { ApiClientFactory } from '@/src/core/api/factories/apiClientFactory';
-import { AudienceCategoryManagementHelper } from '@/src/core/helpers/audienceCategoryManagementHelper';
-import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
+import { AudienceCategoryManagementHelper, IdentityManagementHelper } from '../apis/helpers';
+import { UserManagementService } from '../apis/services/UserManagementService';
 
-export const platformTestFixture = test.extend<{
-  appManagerHomePage: NewUxHomePage | OldUxHomePage;
-  userManagerHomePage: NewUxHomePage | OldUxHomePage;
-  appManagerPage: Page;
-  userManagerPage: Page;
-  userManagerContext: BrowserContext;
-  appManagerApiClient: AppManagerApiClient;
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
+
+// API-only fixture type for API helpers and services
+export interface PlatformApiFixture {
+  apiContext: APIRequestContext;
   audienceCategoryManagementHelper: AudienceCategoryManagementHelper;
-  userManagerApiClient: UserManagerApiClient;
-}>({
-  appManagerHomePage: [
-    async ({ page }, use) => {
-      const adminHomePage = await LoginHelper.loginWithPassword(page, {
+  identityManagementHelper: IdentityManagementHelper;
+  userManagementService: UserManagementService;
+}
+
+// UI-only fixture type for browser and page components
+export interface PlatformUiFixture {
+  browserContext: BrowserContext;
+  page: Page;
+  homePage: NewHomePage;
+  navigationHelper: NavigationHelper;
+}
+
+// Combined user fixture type that extends both API and UI fixtures
+export interface PlatformUserFixture extends PlatformApiFixture, PlatformUiFixture {}
+
+export type PlatformUserType = 'appManager' | 'userManager';
+
+export const platformUsers = {
+  appManager: {
+    email: getEnvConfig().appManagerEmail,
+    password: getEnvConfig().appManagerPassword,
+  },
+  userManager: {
+    email: getEnvConfig().userManagerEmail!,
+    password: getEnvConfig().appManagerPassword,
+  },
+};
+
+// Helper function to create API-only fixtures using existing API contexts
+async function createPlatformApiFixture(apiContext: APIRequestContext): Promise<PlatformApiFixture> {
+  const audienceCategoryManagementHelper = new AudienceCategoryManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
+  const identityManagementHelper = new IdentityManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
+  const userManagementService = new UserManagementService(apiContext, getEnvConfig().apiBaseUrl);
+
+  return {
+    apiContext,
+    audienceCategoryManagementHelper,
+    identityManagementHelper,
+    userManagementService,
+  };
+}
+
+// Helper function to create UI-only fixtures
+async function createPlatformUiFixture(browser: any, userType: PlatformUserType): Promise<PlatformUiFixture> {
+  const user = platformUsers[userType];
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  await LoginHelper.loginWithPassword(page, {
+    email: user.email,
+    password: user.password,
+  });
+
+  const homePage = new NewHomePage(page);
+  await homePage.verifyThePageIsLoaded();
+
+  const navigationHelper = new NavigationHelper(page);
+
+  return {
+    browserContext: context,
+    page,
+    homePage,
+    navigationHelper,
+  };
+}
+
+export const platformTestFixture = test.extend<
+  {
+    // API-only fixtures - fast, no browser overhead
+    appManagerApiFixture: PlatformApiFixture;
+    userManagerApiFixture: PlatformApiFixture;
+
+    // UI-only fixtures - browser and page components
+    appManagerUiFixture: PlatformUiFixture;
+    userManagerUiFixture: PlatformUiFixture;
+
+    // Combined user fixtures - complete entry points with all helpers and services
+    appManagerFixture: PlatformUserFixture;
+    userManagerFixture: PlatformUserFixture;
+  },
+  {
+    // Worker-scoped fixtures
+    appManagerApiContext: APIRequestContext;
+    userManagerApiContext: APIRequestContext;
+  }
+>({
+  // Worker-scoped API contexts - shared across all tests in worker
+  appManagerApiContext: [
+    async ({}, use) => {
+      const context = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
         email: getEnvConfig().appManagerEmail,
         password: getEnvConfig().appManagerPassword,
       });
-      await adminHomePage.verifyThePageIsLoaded();
-      await use(adminHomePage);
-
-      // Logout after each test case using this fixture
-      await LoginHelper.logoutByNavigatingToLogoutPage(adminHomePage.page);
+      await use(context);
+      await context.dispose();
     },
-    { scope: 'test' },
+    { scope: 'worker' },
   ],
 
-  appManagerPage: [
-    async ({ appManagerHomePage }, use) => {
-      await use(appManagerHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-
-  userManagerContext: [
-    async ({ browser }, use) => {
-      const userManagerContext = await browser.newContext();
-      await use(userManagerContext);
-      await userManagerContext?.close();
-    },
-    { scope: 'test' },
-  ],
-
-  userManagerPage: [
-    async ({ userManagerContext }, use) => {
-      const page = await userManagerContext.newPage();
-      const uMHomePage = await LoginHelper.loginWithPassword(page, {
+  userManagerApiContext: [
+    async ({}, use) => {
+      const context = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
         email: getEnvConfig().userManagerEmail!,
         password: getEnvConfig().appManagerPassword,
       });
-      await uMHomePage.verifyThePageIsLoaded();
-      await use(page);
+      await use(context);
+      await context.dispose();
+    },
+    { scope: 'worker' },
+  ],
 
-      // Logout after each test case using this fixture
-      await LoginHelper.logoutByNavigatingToLogoutPage(uMHomePage.page);
+  // API-only fixtures - fast, no browser overhead, using worker-scoped contexts
+  appManagerApiFixture: [
+    async ({ appManagerApiContext }, use) => {
+      const fixture = await createPlatformApiFixture(appManagerApiContext);
+      await use(fixture);
+
+      // Cleanup helpers that have cleanup methods
+      try {
+        await fixture.audienceCategoryManagementHelper.cleanup();
+      } catch (error) {
+        console.warn('App manager API fixture cleanup failed:', error);
+      }
     },
     { scope: 'test' },
   ],
 
-  appManagerApiClient: [
-    async ({ appManagerPage }, use) => {
-      const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-        type: 'cookies',
-        page: appManagerPage,
-        baseUrl: getEnvConfig().apiBaseUrl,
-      });
-      await use(appManagerApiClient);
+  userManagerApiFixture: [
+    async ({ userManagerApiContext }, use) => {
+      const fixture = await createPlatformApiFixture(userManagerApiContext);
+      await use(fixture);
+
+      // Cleanup helpers that have cleanup methods
+      try {
+        await fixture.audienceCategoryManagementHelper.cleanup();
+      } catch (error) {
+        console.warn('User manager API fixture cleanup failed:', error);
+      }
     },
     { scope: 'test' },
   ],
 
-  audienceCategoryManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const audienceCategoryManagementHelper = new AudienceCategoryManagementHelper(appManagerApiClient);
-      await use(audienceCategoryManagementHelper);
-      await audienceCategoryManagementHelper.cleanup();
+  // UI-only fixtures - browser and page components
+  appManagerUiFixture: [
+    async ({ browser }, use) => {
+      const fixture = await createPlatformUiFixture(browser, 'appManager');
+      await use(fixture);
+      await fixture.browserContext.close();
     },
     { scope: 'test' },
   ],
 
-  userManagerApiClient: [
-    async ({ userManagerPage }, use) => {
-      const userManagerApiClient = await ApiClientFactory.createClient(UserManagerApiClient, {
-        type: 'cookies',
-        page: userManagerPage,
-        baseUrl: getEnvConfig().apiBaseUrl,
-      });
-      await use(userManagerApiClient);
+  userManagerUiFixture: [
+    async ({ browser }, use) => {
+      const fixture = await createPlatformUiFixture(browser, 'userManager');
+      await use(fixture);
+      await fixture.browserContext.close();
+    },
+    { scope: 'test' },
+  ],
+
+  // Combined user fixtures - complete entry points
+  appManagerFixture: [
+    async ({ appManagerUiFixture, appManagerApiFixture }, use) => {
+      await use({ ...appManagerUiFixture, ...appManagerApiFixture });
+    },
+    { scope: 'test' },
+  ],
+
+  userManagerFixture: [
+    async ({ userManagerUiFixture, userManagerApiFixture }, use) => {
+      await use({ ...userManagerUiFixture, ...userManagerApiFixture });
     },
     { scope: 'test' },
   ],

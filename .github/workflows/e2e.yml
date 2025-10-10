@@ -14,6 +14,7 @@ on:
           - 'global-search'
           - 'reward'
           - 'content'
+          - 'content-settings'
           - 'de'
           - 'content-abac'
           - 'frontline'
@@ -80,10 +81,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Create GitHub Secrets JSON
+      - name: Create Calendar Secrets JSON
         run: |
-          echo '${{ vars.GOOGLE_CALENDAR_SECRETS }}' > githubSecrets.json
-          echo "✅ Created githubSecrets.json for CI environment"
+          echo '${{ vars.CALENDAR_SECRETS }}' > githubSecrets.json
+          echo "✅ Created githubSecrets.json with Google and Outlook Calendar credentials for CI environment"
 
       - name: set up Node.js
         uses: actions/setup-node@v3
@@ -127,10 +128,7 @@ jobs:
             echo "Running all tests without filters"
             npm run test:${{ inputs.module_name || 'chat' }} -- --workers=${{ inputs.workers }}
           else
-            GREP_REGEX=""
-            for tag in "${ALL_TAGS[@]}"; do
-              GREP_REGEX="${GREP_REGEX}(?=.*${tag})"
-            done
+            GREP_REGEX=$(IFS='|'; echo "${ALL_TAGS[*]}")
             echo "Running tests with grep filter: $GREP_REGEX"
             npm run test:${{ inputs.module_name || 'chat' }} -- --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
           fi

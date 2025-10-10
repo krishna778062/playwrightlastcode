@@ -1,6 +1,6 @@
 export enum EventSyncDestination {
   GOOGLE_CALENDAR = 'googlecalendar',
-  OUTLOOK_CALENDAR = 'outlookcalendar',
+  OUTLOOK_CALENDAR = 'outlook',
 }
 
 export enum EventSyncInvitees {

@@ -316,6 +316,223 @@ The workflow will:
 - **types/**: Shared TypeScript types (e.g., user, group, API types).
 - **constants/**: Shared constants (e.g., environment names, timeouts, paths).
 
+### Playwright Fixture Architecture
+
+The framework uses an optimized Playwright fixture pattern that eliminates code duplication while providing flexible, reusable test fixtures. This architecture separates concerns between API-only, UI-only, and combined fixtures for maximum efficiency.
+
+#### Core Principles
+
+1. **Separation of Concerns**: API fixtures (fast, no browser overhead) vs UI fixtures (browser + page components)
+2. **Worker-Scoped Optimization**: Shared resources (API contexts, sites) across all tests in a worker
+3. **Dependency Injection**: Simple composition of API and UI fixtures for combined functionality
+4. **Zero Duplication**: Single source of truth for each fixture type with reusable helper functions
+
+#### Fixture Types
+
+**Worker-Scoped Fixtures (Shared Resources):**
+
+- `*ApiContext` - API request contexts shared across all tests in worker
+- `siteManagementHelper` - Site management helper shared across worker
+- `publicSite` - One site per worker to reduce unnecessary site creation
+
+**API-Only Fixtures (Fast, No Browser Overhead):**
+
+- `*ApiFixture` - All API helpers and services for fast API-only tests
+- Perfect for setup/teardown, data preparation, or pure API testing
+
+**UI-Only Fixtures (Browser Components):**
+
+- `*UiFixture` - Browser context, page, home page, navigation helper
+- Contains browser-specific components without API overhead
+
+**Combined Fixtures (Complete Entry Points):**
+
+- `*Fixture` - Full API + UI fixtures using dependency injection
+- Backward compatible with existing test patterns
+
+#### Implementation Pattern
+
+```typescript
+// 1. Define clean interfaces
+export interface ModuleApiFixture {
+  apiContext: APIRequestContext;
+  helper1: Helper1;
+  helper2: Helper2;
+  service1: Service1;
+}
+
+export interface ModuleUiFixture {
+  browserContext: BrowserContext;
+  page: Page;
+  homePage: NewHomePage;
+  navigationHelper: NavigationHelper;
+}
+
+export interface ModuleUserFixture extends ModuleApiFixture, ModuleUiFixture {}
+
+// 2. Create reusable helper functions
+async function createModuleApiFixture(apiContext: APIRequestContext): Promise<ModuleApiFixture> {
+  const helper1 = new Helper1(apiContext, getEnvConfig().apiBaseUrl);
+  const helper2 = new Helper2(apiContext, getEnvConfig().apiBaseUrl);
+  const service1 = new Service1(apiContext, getEnvConfig().apiBaseUrl);
+
+  return { apiContext, helper1, helper2, service1 };
+}
+
+async function createModuleUiFixture(browser: any, userType: UserType): Promise<ModuleUiFixture> {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  await LoginHelper.loginWithPassword(page, {
+    email: getEnvConfig()[`${userType}Email`],
+    password: getEnvConfig()[`${userType}Password`],
+  });
+
+  const homePage = new NewHomePage(page);
+  await homePage.loadPage();
+  await homePage.verifyThePageIsLoaded();
+
+  const navigationHelper = new NavigationHelper(page);
+
+  return { browserContext: context, page, homePage, navigationHelper };
+}
+
+// 3. Define fixtures with dependency injection
+export const moduleTestFixture = test.extend<
+  {
+    // API-only fixtures
+    appManagerApiFixture: ModuleApiFixture;
+    standardUserApiFixture: ModuleApiFixture;
+
+    // UI-only fixtures
+    appManagerUiFixture: ModuleUiFixture;
+    standardUserUiFixture: ModuleUiFixture;
+
+    // Combined fixtures
+    appManagerFixture: ModuleUserFixture;
+    standardUserFixture: ModuleUserFixture;
+  },
+  {
+    // Worker-scoped fixtures
+    appManagerApiContext: APIRequestContext;
+    standardUserApiContext: APIRequestContext;
+  }
+>({
+  // Worker-scoped API contexts
+  appManagerApiContext: [
+    async ({}, use) => {
+      const context = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
+        email: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
+      });
+      await use(context);
+      await context.dispose();
+    },
+    { scope: 'worker' },
+  ],
+
+  // API-only fixtures using worker-scoped contexts
+  appManagerApiFixture: [
+    async ({ appManagerApiContext }, use) => {
+      const fixture = await createModuleApiFixture(appManagerApiContext);
+      await use(fixture);
+
+      // Centralized cleanup
+      try {
+        await fixture.helper1.cleanup();
+        await fixture.helper2.cleanup();
+      } catch (error) {
+        console.warn('API fixture cleanup failed:', error);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  // UI-only fixtures
+  appManagerUiFixture: [
+    async ({ browser }, use) => {
+      const fixture = await createModuleUiFixture(browser, 'appManager');
+      await use(fixture);
+      await fixture.browserContext.close();
+    },
+    { scope: 'test' },
+  ],
+
+  // Combined fixtures using dependency injection
+  appManagerFixture: [
+    async ({ appManagerUiFixture, appManagerApiFixture }, use) => {
+      await use({ ...appManagerUiFixture, ...appManagerApiFixture });
+    },
+    { scope: 'test' },
+  ],
+});
+```
+
+#### Usage Examples
+
+```typescript
+// API-only test (fastest)
+test('API setup test', async ({ appManagerApiFixture, publicSite }) => {
+  await appManagerApiFixture.helper1.createData({ siteId: publicSite.siteId });
+  // Uses shared publicSite from worker
+});
+
+// UI-only test
+test('UI navigation test', async ({ appManagerUiFixture }) => {
+  await appManagerUiFixture.homePage.navigateToFeature();
+});
+
+// Full integration test
+test('Complete workflow', async ({ appManagerFixture, publicSite }) => {
+  // Setup via API
+  await appManagerFixture.helper1.createData({ siteId: publicSite.siteId });
+
+  // Verify via UI
+  await appManagerFixture.homePage.navigateToFeature();
+  await appManagerFixture.navigationHelper.verifyDataExists();
+});
+
+// Special worker-scoped optimizations
+test('Site creation test', async ({ appManagerApiFixture, publicSite }) => {
+  // Uses the same publicSite across all tests in worker
+  // Reduces unnecessary site creation
+});
+```
+
+#### Benefits
+
+1. **Performance**: API-only fixtures run faster without browser overhead
+2. **Resource Efficiency**: Worker-scoped fixtures reduce redundant operations
+3. **Maintainability**: Single source of truth for each fixture type
+4. **Flexibility**: Mix and match API/UI fixtures based on test needs
+5. **Type Safety**: Clear interfaces for each fixture type
+6. **Backward Compatibility**: Combined fixtures maintain existing test patterns
+
+#### Migration Guide
+
+**Before (Legacy Pattern):**
+
+```typescript
+// Multiple individual fixtures with duplication
+appManagerBrowserContext: [...],
+appManagerPage: [...],
+appManagerNavigationHelper: [...],
+appManagerHomePage: [...],
+siteManagementHelper: [...],
+contentManagementHelper: [...],
+```
+
+**After (Optimized Pattern):**
+
+```typescript
+// Clean, reusable fixtures
+appManagerApiFixture: [...],      // All API helpers/services
+appManagerUiFixture: [...],       // All UI components
+appManagerFixture: [...],         // Combined via dependency injection
+```
+
+This architecture has been implemented across all modules (`content`, `chat`, `platforms`, `global-search`) and provides a consistent, maintainable foundation for test fixtures.
+
 ### Modules (`src/modules/<module>`)
 
 Each module (e.g., `chat`) contains its own APIs, pages, components, and tests.
@@ -703,22 +920,63 @@ If you prefer to create modules manually:
    ```
 
 3. **Create Environment Files**: Add environment-specific config files in `src/modules/<your-module>/env/`:
-
    - `qa.env`
    - `uat.env`
    - etc.
 
 4. **Choose Page Architecture**: Select the appropriate page class pattern based on complexity:
-
    - **Simple modules**: Use single class pattern with inline methods
    - **Complex modules**: Use base class inheritance pattern
    - **Multiple UX variants**: Use interface inheritance hierarchy
 
-5. **Add Playwright Config**: Create `src/modules/<your-module>/playwright.<your-module>.config.ts` extending the base config.
+5. **Implement Optimized Fixtures**: Follow the fixture architecture pattern:
 
-6. **Register Shared Logic**: Add any shared logic to `src/core` if it could be reused by other modules.
+   ```typescript
+   // Create interfaces for your module
+   export interface YourModuleApiFixture {
+     apiContext: APIRequestContext;
+     yourHelper: YourHelper;
+     yourService: YourService;
+   }
 
-7. **Test the Integration**: The interactive test runner will automatically discover your new module and its tags!
+   export interface YourModuleUiFixture {
+     browserContext: BrowserContext;
+     page: Page;
+     homePage: NewHomePage;
+     navigationHelper: NavigationHelper;
+   }
+
+   export interface YourModuleUserFixture extends YourModuleApiFixture, YourModuleUiFixture {}
+
+   // Create helper functions
+   async function createYourModuleApiFixture(apiContext: APIRequestContext): Promise<YourModuleApiFixture> {
+     // Implementation
+   }
+
+   async function createYourModuleUiFixture(browser: any, userType: UserType): Promise<YourModuleUiFixture> {
+     // Implementation
+   }
+
+   // Define fixtures with dependency injection
+   export const yourModuleTestFixture = test.extend<
+     {
+       appManagerApiFixture: YourModuleApiFixture;
+       appManagerUiFixture: YourModuleUiFixture;
+       appManagerFixture: YourModuleUserFixture;
+     },
+     {
+       appManagerApiContext: APIRequestContext;
+     }
+   >({
+     // Implementation following the pattern
+   });
+   ```
+
+6. **Add Playwright Config**: Create `src/modules/<your-module>/playwright.<your-module>.config.ts` extending the base config.
+
+7. **Register Shared Logic**: Add any shared logic to `src/core` if it could be reused by other modules.
+
+8. **Test the Integration**: The interactive test runner will automatically discover your new module and its tags!
 
 ## Contributing
 
@@ -740,9 +998,157 @@ If you prefer to create modules manually:
 - [ts-node](https://www.npmjs.com/package/ts-node) for direct TypeScript execution
 - [cross-env](https://www.npmjs.com/package/cross-env) for cross-platform environment variables
 
+## Logging
+
+The framework includes a structured logging system that replaces `console.log` statements with better debugging capabilities.
+
+### Quick Start
+
+```typescript
+import { log } from '@core/utils';
+
+// Simple usage - file path automatically shows which module
+log.info('User login successful', { userId: '12345' });
+log.debug('Processing data', { dataSize: data.length });
+log.warn('Configuration missing', { configFile: 'app.json' });
+log.error('API request failed', error, { endpoint: '/api/users' });
+```
+
+### Log Levels
+
+- **`debug`**: Detailed debugging info (variable values, step-by-step execution)
+- **`info`**: General information (user actions, successful operations)
+- **`warn`**: Potential issues (missing optional config, deprecated features)
+- **`error`**: Error events (API failures, validation errors)
+
+### Output Format
+
+**Console Output:**
+
+```
+14:32:15 ℹ️ loginHelper.ts:45 User login successful {"userId":"12345"}
+14:32:16 ❌ apiClient.ts:78 API request failed {"endpoint":"/api/users","status":500}
+```
+
+**File Output (CI/Test environments):**
+
+```
+2024-01-15 14:32:15 ℹ️ loginHelper.ts:45 User login successful {"userId":"12345"}
+2024-01-15 14:32:16 ❌ apiClient.ts:78 API request failed {"endpoint":"/api/users","status":500}
+```
+
+### Migration from console.log
+
+```typescript
+// Before
+console.log('Test started');
+console.error('Test failed:', error);
+
+// After - Super simple!
+import { log } from '@core/utils';
+
+log.info('Test started');
+log.error('Test failed', error);
+```
+
+### Log Level Control
+
+Control log verbosity using environment variables or programmatically:
+
+**Environment Variables:**
+
+```bash
+# Set log level via environment variable
+LOG_LEVEL=debug npm test
+LOG_LEVEL=warn npm run test:chat
+LOG_LEVEL=silent npm run test:content
+```
+
+**Programmatic Control:**
+
+```typescript
+import { logControl } from '@core/utils';
+
+// Set log level programmatically
+logControl.setLevel('warn');
+logControl.debug(); // Set to debug
+logControl.silent(); // Set to silent
+
+// Check current level
+console.log('Current log level:', logControl.getLevel());
+
+// Access available levels
+console.log('Available levels:', logControl.levels);
+```
+
+**Available Log Levels:**
+
+- **`silent`**: No logs at all
+- **`error`**: Only error messages
+- **`warn`**: Warnings and errors
+- **`info`**: Info, warnings, and errors (default for tests)
+- **`debug`**: All logs (most verbose, default for development)
+
+**Automatic Environment Detection:**
+
+- **Development**: `debug` (most verbose)
+- **Test Environment**: `info` (moderate verbosity)
+- **CI**: `warn` (less verbose)
+- **Production**: `error` (minimal logs)
+
+### Benefits
+
+- ✅ **File name & line numbers** for easy debugging
+- ✅ **Automatic module detection** via file path (`src/modules/chat/...`)
+- ✅ **Structured data** with context information
+- ✅ **Environment-aware** (console for dev, files for CI)
+- ✅ **Configurable verbosity** via environment variables
+- ✅ **Super simple API** - just import `log` and use it
+- ✅ **Single log file** - all logs in `logs/app.log` for easy debugging
+
 ## Best Practices for Writing Tests
 
-### 1. Add Test Metadata
+### 1. Choose the Right Fixture Type
+
+Select the appropriate fixture based on your test needs:
+
+- **API-Only Tests**: Use `*ApiFixture` for fast setup/teardown, data preparation, or pure API testing
+- **UI-Only Tests**: Use `*UiFixture` for navigation, UI interactions without API overhead
+- **Integration Tests**: Use `*Fixture` (combined) for complete end-to-end workflows
+- **Worker-Scoped Resources**: Leverage `publicSite` and shared contexts for efficiency
+
+**Example:**
+
+```typescript
+// Fast API-only test
+test('Setup test data', async ({ appManagerApiFixture, publicSite }) => {
+  await appManagerApiFixture.contentManagementHelper.createContent({
+    siteId: publicSite.siteId,
+    title: 'Test Content',
+  });
+});
+
+// UI-only test
+test('Navigation test', async ({ appManagerUiFixture }) => {
+  await appManagerUiFixture.homePage.navigateToContent();
+  await appManagerUiFixture.navigationHelper.verifyPageLoaded();
+});
+
+// Full integration test
+test('Complete workflow', async ({ appManagerFixture, publicSite }) => {
+  // Setup via API
+  await appManagerFixture.contentManagementHelper.createContent({
+    siteId: publicSite.siteId,
+    title: 'Test Content',
+  });
+
+  // Verify via UI
+  await appManagerFixture.homePage.navigateToContent();
+  await appManagerFixture.navigationHelper.verifyContentExists('Test Content');
+});
+```
+
+### 2. Add Test Metadata
 
 Always annotate your test cases with relevant metadata for traceability and reporting. Use the `tagTest` utility from `@core/utils/testDecorator` to add:
 
@@ -767,7 +1173,7 @@ test('My test case', async () => {
 });
 ```
 
-### 2. Categorize Tests with Tags
+### 3. Categorize Tests with Tags
 
 Use enums/constants to tag your tests for filtering and reporting:
 
@@ -816,7 +1222,32 @@ await chatPage.conversationWindow.getChatEditorComponent().inputTextBox.fill('Ad
 - As patterns emerge and code is duplicated, move common logic into inline methods with proper interface grouping.
 - This keeps the codebase lean and avoids unnecessary abstraction.
 
-### 5. Full Example
+### 5. Leverage Worker-Scoped Optimizations
+
+Take advantage of worker-scoped fixtures to reduce redundant operations:
+
+- **Shared Sites**: Use `publicSite` fixture for tests that need a site but don't require specific site properties
+- **API Contexts**: Worker-scoped API contexts reduce authentication overhead
+- **Resource Cleanup**: Centralized cleanup in worker-scoped fixtures
+
+**Example:**
+
+```typescript
+// Efficient: Uses shared site across all tests in worker
+test('Test 1', async ({ appManagerApiFixture, publicSite }) => {
+  await appManagerApiFixture.contentManagementHelper.createContent({
+    siteId: publicSite.siteId, // Same site used across worker
+  });
+});
+
+test('Test 2', async ({ appManagerApiFixture, publicSite }) => {
+  await appManagerApiFixture.feedManagementHelper.createFeed({
+    siteId: publicSite.siteId, // Same site, no new creation needed
+  });
+});
+```
+
+### 6. Full Example
 
 This example from `user-chat.spec.ts` demonstrates the framework's design patterns. The test is readable and high-level, calling inline methods from the page class.
 
@@ -896,6 +1327,35 @@ test.describe('Direct Message between multiple users', { tag: ['@direct-message'
 ```
 
 ---
+
+## 🚀 Recent Framework Improvements
+
+### Optimized Fixture Architecture
+
+The framework has been significantly enhanced with a new fixture architecture that eliminates code duplication and improves performance:
+
+- **Zero Duplication**: Single source of truth for each fixture type
+- **Performance Boost**: API-only fixtures run faster without browser overhead
+- **Resource Efficiency**: Worker-scoped fixtures reduce redundant operations
+- **Type Safety**: Clear interfaces for each fixture type
+- **Backward Compatibility**: Existing tests continue to work seamlessly
+
+### Modules Updated
+
+The optimized fixture pattern has been implemented across all major modules:
+
+- ✅ **Content Module** (`contentFixture.ts`) - Complete refactor with API/UI separation
+- ✅ **Chat Module** (`chatFixture.ts`) - Optimized with dependency injection
+- ✅ **Platforms Module** (`platformFixture.ts`) - Streamlined fixture structure
+- ✅ **Global Search Module** (`searchTestFixture.ts`) - Preserved worker-scoped site optimization
+
+### Key Benefits
+
+1. **Faster Test Execution**: API-only fixtures eliminate browser startup overhead
+2. **Reduced Resource Usage**: Worker-scoped fixtures share expensive resources
+3. **Better Maintainability**: Single helper functions eliminate duplication
+4. **Improved Developer Experience**: Clear fixture types with full TypeScript support
+5. **Scalable Architecture**: Easy to extend and add new user types
 
 For more details, refer to the codebase and module-specific files. Contributions and suggestions are welcome!
 

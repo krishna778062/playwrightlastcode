@@ -3,13 +3,17 @@ import { expect, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '../../constants/apiEndpoints';
 import { App, AppsSettingsPayload, AppsSettingsResponse } from '../../types/app.type';
+import { HttpClient } from '../clients/httpClient';
 
-import { BaseApiClient } from '@/src/core/api/clients/baseApiClient';
 import { IAppsManagementOperations } from '@/src/core/api/interfaces/IAppsManagementOperations';
 
-export class AppsManagementService extends BaseApiClient implements IAppsManagementOperations {
-  constructor(context: APIRequestContext, baseUrl?: string) {
-    super(context, baseUrl);
+export class AppsManagementService implements IAppsManagementOperations {
+  private httpClient: HttpClient;
+  constructor(
+    readonly context: APIRequestContext,
+    readonly baseUrl: string
+  ) {
+    this.httpClient = new HttpClient(context, baseUrl);
   }
 
   /**
@@ -17,7 +21,7 @@ export class AppsManagementService extends BaseApiClient implements IAppsManagem
    * @returns The current apps settings
    */
   async getAppsSettings(): Promise<AppsSettingsResponse> {
-    const response = await this.get(API_ENDPOINTS.apps.settings);
+    const response = await this.httpClient.get(API_ENDPOINTS.apps.settings);
     return response.json();
   }
 
@@ -27,7 +31,7 @@ export class AppsManagementService extends BaseApiClient implements IAppsManagem
    * @returns The updated apps settings response
    */
   async updateAppsSettings(payload: AppsSettingsPayload): Promise<AppsSettingsResponse> {
-    const response = await this.put(API_ENDPOINTS.apps.settings, {
+    const response = await this.httpClient.put(API_ENDPOINTS.apps.settings, {
       data: payload,
     });
     return response.json();
@@ -81,7 +85,7 @@ export class AppsManagementService extends BaseApiClient implements IAppsManagem
    * @returns The launchpad apps list response
    */
   async getLaunchpadAppsList(): Promise<any> {
-    const response = await this.post(API_ENDPOINTS.apps.list);
+    const response = await this.httpClient.post(API_ENDPOINTS.apps.list);
     return response.json();
   }
 

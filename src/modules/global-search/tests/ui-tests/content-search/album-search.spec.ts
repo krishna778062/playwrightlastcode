@@ -3,13 +3,14 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentType } from '@/src/core/constants/contentTypes';
-import { ContentListComponent } from '@/src/modules/global-search/components/contentListComponent';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { ALBUM_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/content-search.test-data';
+import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
+import { ContentListComponent } from '@/src/modules/global-search/ui/components/contentListComponent';
+import { ResultListingComponent } from '@/src/modules/global-search/ui/components/resultsListComponent';
 
 test.describe(
-  'Global Search- Album Search functionality',
+  'global Search- Album Search functionality',
   {
     tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.CONTENT_SEARCH],
   },
@@ -20,10 +21,10 @@ test.describe(
     let albumName: string;
     let authorName: string;
 
-    test.beforeAll(
+    test.beforeEach(
       `Setting up the test environment for album search by creating site and album content`,
-      async ({ contentManagementHelper, publicSite }) => {
-        const albumDetails = await contentManagementHelper.createAlbum({
+      async ({ appManagerFixture, publicSite }) => {
+        const albumDetails = await appManagerFixture.contentManagementHelper.createAlbum({
           siteId: publicSite.siteId,
           imageName: 'beach.jpg',
           options: {
@@ -40,11 +41,11 @@ test.describe(
       }
     );
 
-    test.afterAll(
+    test.afterEach(
       `Cleaning up the test environment by deleting the created album content`,
-      async ({ contentManagementHelper }) => {
+      async ({ appManagerFixture }) => {
         if (contentId) {
-          await contentManagementHelper.deleteContent(siteId, contentId);
+          await appManagerFixture.contentManagementHelper.deleteContent(siteId, contentId);
           console.log(`Deleted album "${albumName}" with ID: ${contentId}`);
         }
       }
@@ -53,16 +54,17 @@ test.describe(
     test(
       `Verify Content Search results for a new ${ALBUM_SEARCH_TEST_DATA.content}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-12410',
           storyId: 'SEN-12297',
         });
 
         // 5. UI Search for the album
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(albumName, {
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(albumName, {
           stepInfo: `Searching with term "${albumName}" and intent is to find the content`,
         });
 
@@ -81,17 +83,18 @@ test.describe(
     );
 
     test(
-      `Verify Album Search results with sidebar filter`,
+      `verify Album Search results with sidebar filter`,
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19196',
         });
 
         // Search for the album
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(albumName, {
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(albumName, {
           stepInfo: `Searching with term "${albumName}" to verify album appears in search results`,
         });
 
@@ -124,6 +127,38 @@ test.describe(
           expectedCountAfterFilter: 1, // Should show only 1 result (the album we created)
         });
         await albumResultItem.verifyNameIsDisplayed(albumName);
+      }
+    );
+
+    test(
+      `verify Album Autocomplete functionality`,
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-19288',
+        });
+
+        // Type in search input
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const topNavBarComponent = appManagerFixture.navigationHelper.topNavBarComponent;
+        await topNavBarComponent.typeInSearchBarInput(albumName, {
+          stepInfo: `Typing "${albumName}" in search input`,
+        });
+
+        // Wait for autocomplete to appear first
+        const resultList = new ResultListingComponent(appManagerFixture.page);
+        await resultList.waitForAndVerifyAutocompleteListIsDisplayed();
+
+        // Then get specific autocomplete item
+        const albumResult = resultList.getAutocompleteItemByName(albumName);
+
+        // Verify all autocomplete item data in one comprehensive method
+        await albumResult.verifyAutocompleteItemData(albumName, ContentType.Album);
+
+        // Click on the autocomplete item and verify navigation
+        await albumResult.verifyAutocompleteNavigationToTitleLink(contentId, albumName, ALBUM_SEARCH_TEST_DATA.label);
       }
     );
   }

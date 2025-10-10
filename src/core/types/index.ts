@@ -1,14 +1,12 @@
-// User related types
-export * from './user.type';
-
-// Group and Chat related types
-export * from './group.type';
-
-// Audience related types
+export * from './app.type';
 export * from './audience.type';
-
-// HTTP client related types
-export * from './http.type';
-
-// Feed related types
+export * from './contentManagement.types';
+export * from './externalSearch.type';
 export * from './feed.type';
+export * from './feedManagement.types';
+export * from './group.type';
+export * from './http.type';
+export * from './people.type';
+export * from './siteManagement.types';
+export * from './test.types';
+export * from './user.type';

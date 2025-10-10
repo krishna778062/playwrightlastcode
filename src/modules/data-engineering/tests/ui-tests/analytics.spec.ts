@@ -1,22 +1,21 @@
 import { TestGroupType } from '@core/constants/testType';
 
 import { test } from '../../fixtures/loginFixture';
-import { AnalyticsLandingPage } from '../../pages/analyticsLandingPage';
 
-import { SideNavBarComponent } from '@/src/core/components/sideNavBarComponent';
 import { TestPriority } from '@/src/core/constants/testPriority';
-import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { tagTest } from '@/src/core/utils/testDecorator';
 import { DataEngineeringTestSuite } from '@/src/modules/data-engineering/constants/testSuite';
 
 test.describe(
-  'Analytics Dashboard Visibility',
+  'analytics Dashboard Visibility',
   {
     tag: [DataEngineeringTestSuite.ANALYTICS],
   },
   () => {
     test(
-      'To verify that analytics button is visible in side navigation to App manager',
+      'to verify that analytics button is visible in side navigation to App manager',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
@@ -28,14 +27,16 @@ test.describe(
 
         await loginAs('appManager');
 
-        const homepage = new NewUxHomePage(page);
-        const analyticsLandingPage = await homepage.getSideNavBarComponent().clickOnAnalyticsButton();
+        const homepage = new NewHomePage(page);
+        await homepage.verifyThePageIsLoaded();
+        const appManagerUINavigationHelper = new NavigationHelper(page);
+        const analyticsLandingPage = await appManagerUINavigationHelper.sideNavBarComponent.clickOnAnalyticsButton();
         await analyticsLandingPage.verifyAllAnalyticsOptionsAreVisible();
       }
     );
 
     test(
-      'To verify that analytics button is not visible in side navigation to Standard User',
+      'to verify that analytics button is not visible in side navigation to Standard User',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
@@ -46,9 +47,10 @@ test.describe(
         });
 
         await loginAs('standardUser');
-
-        const homepage = new NewUxHomePage(page);
-        await homepage.getSideNavBarComponent().verifyAnalyticsButtonVisibility(false);
+        const homepage = new NewHomePage(page);
+        await homepage.verifyThePageIsLoaded();
+        const appManagerUINavigationHelper = new NavigationHelper(page);
+        await appManagerUINavigationHelper.sideNavBarComponent.verifyAnalyticsButtonVisibility(false);
       }
     );
   }

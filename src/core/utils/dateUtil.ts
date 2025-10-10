@@ -82,3 +82,89 @@ export function changeDateFormatToYYYYMMDD(dateToBeFormatted: string): string {
 
   return `${year}-${month}-${day}`;
 }
+
+/**
+ * Checks if a given date falls on a weekend (Saturday or Sunday)
+ * @param {Date} date - The date to check
+ * @returns {boolean} True if the date is a weekend, false otherwise
+ */
+export function isWeekend(date: Date): boolean {
+  const dayOfWeek = date.getDay();
+  return dayOfWeek === 0 || dayOfWeek === 6; // Sunday = 0, Saturday = 6
+}
+
+/**
+ * Gets the next working day from a given date (skips weekends)
+ * @param {Date} startDate - The starting date
+ * @returns {Date} The next working day
+ */
+export function getNextWorkingDay(startDate: Date): Date {
+  // Create a new date object to avoid mutating the original
+  const result = new Date(startDate.getTime());
+  result.setDate(result.getDate() + 1);
+
+  while (isWeekend(result)) {
+    result.setDate(result.getDate() + 1);
+  }
+  return result;
+}
+
+/**
+ * Adds a specified number of working days to a given date (skips weekends)
+ * @param {Date} startDate - The starting date
+ * @param {number} workingDaysToAdd - Number of working days to add
+ * @returns {Date} The resulting date after adding working days
+ */
+export function addWorkingDays(startDate: Date, workingDaysToAdd: number): Date {
+  // Create a new date object to avoid mutating the original
+  const result = new Date(startDate.getTime());
+  let addedDays = 0;
+
+  while (addedDays < workingDaysToAdd) {
+    result.setDate(result.getDate() + 1);
+    if (!isWeekend(result)) {
+      addedDays++;
+    }
+  }
+  return result;
+}
+
+/**
+ * Formats a date for date picker aria-label (e.g., "Mon Sep 16 2025")
+ * @param {Date} date - The date to format
+ * @returns {string} Formatted date string for aria-label
+ */
+export function formatDateForAriaLabel(date: Date): string {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: '2-digit',
+    year: 'numeric',
+  });
+  return formatter
+    .format(date)
+    .replace(/,/g, '')
+    .replace(/\u00A0/g, ' ');
+}
+
+/**
+ * Formats a date for display in date inputs (e.g., "Sep 16, 2025")
+ * @param {Date} date - The date to format
+ * @returns {string} Formatted date string for display
+ */
+export function formatDateForDisplay(date: Date): string {
+  // Validate the date object
+  if (!date || isNaN(date.getTime())) {
+    throw new Error(`Invalid date object: ${date}`);
+  }
+
+  // for consistent local time formatting
+  const month = date.toLocaleDateString('en-US', {
+    month: 'short',
+    localeMatcher: 'best fit',
+  });
+  const day = date.getDate();
+  const year = date.getFullYear();
+
+  return `${month} ${day}, ${year}`;
+}
