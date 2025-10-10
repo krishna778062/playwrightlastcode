@@ -404,7 +404,14 @@ export class SiteManagementHelper {
     return await this.appManagerApiClient.getSiteManagementService().getListOfSites(defaultOptions);
   }
 
-  async getMemberList(options?: { size?: number; filter?: string; page?: number; siteId?: string; nextPageToken?: number; sortBy?: string }) {
+  async getMemberList(options?: {
+    size?: number;
+    filter?: string;
+    page?: number;
+    siteId?: string;
+    nextPageToken?: number;
+    sortBy?: string;
+  }) {
     const defaultOptions = {
       size: 1000,
       filter: options?.filter || 'active',
@@ -597,9 +604,6 @@ export class SiteManagementHelper {
     return { siteId: siteId, name: siteName };
   }
 
-
-
-
   async getSiteWithCoverImageAndAuthorNameAndStartDate(): Promise<{
     siteId: string;
     authorName?: string;
@@ -713,7 +717,10 @@ export class SiteManagementHelper {
    * @param options - Optional parameters for the membership list request
    * @returns Promise containing the site details and its members
    */
-  async getSiteWithMembers(siteId: string, options?: { size?: number; type?: string }): Promise<{
+  async getSiteWithMembers(
+    siteId: string,
+    options?: { size?: number; type?: string }
+  ): Promise<{
     site: any;
     members: any;
   }> {
@@ -740,15 +747,18 @@ export class SiteManagementHelper {
    * @param options - Optional parameters for the membership list request
    * @returns Promise containing the member names
    */
-  async getMembersNameFromList(siteId: string, options?: { size?: number; type?: string }): Promise<{
+  async getMembersNameFromList(
+    siteId: string,
+    options?: { size?: number; type?: string }
+  ): Promise<{
     membersName: string[];
   }> {
     return await test.step(`Getting member names from site ${siteId}`, async () => {
       const membersResponse = await this.getSiteMembershipList(siteId, options);
       const members = membersResponse.result?.listOfItems || [];
-      
+
       const membersName = members.map((member: any) => member.name || member.displayName || member.email);
-      
+
       return {
         membersName,
       };

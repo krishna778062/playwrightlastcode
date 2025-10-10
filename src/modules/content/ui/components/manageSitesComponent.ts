@@ -36,9 +36,9 @@ export class ManageSitesComponent extends BaseComponent {
     this.clickOnAboutTab = page.getByRole('tab', { name: 'About' });
     this.clickOnTheMembersTab = page.getByRole('tab', { name: 'Members' });
     this.clickOnStartIcon = page.getByRole('button', { name: 'Favorite this user' });
-    this.clickOnAlreadyStarIcon = page.getByRole('button', { name: 'Unfavorite this user' })
+    this.clickOnAlreadyStarIcon = page.getByRole('button', { name: 'Unfavorite this user' });
     this.clickOnFavouriteTabs = page.getByRole('menuitem', { name: 'Favorites Favorites' });
-  
+
     this.clickOnPeppleTab = page.getByRole('tab', { name: 'People' });
     this.clickOnTheMemberButtonInAboutTab = page.locator(`[role="tab"][id="member"]`);
   }
@@ -56,6 +56,9 @@ export class ManageSitesComponent extends BaseComponent {
   }
 
   getFavoriteButtonForUser(membersName: string): Locator {
-    return this.page.getByRole('listitem').filter({ hasText: membersName }).getByRole('button', { name: 'Favorite this user' });
+    return this.page
+      .getByRole('listitem')
+      .filter({ hasText: membersName })
+      .getByRole('button', { name: 'Favorite this user' });
   }
 }

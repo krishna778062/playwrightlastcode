@@ -383,14 +383,21 @@ export class SiteManagementService implements ISiteManagementOperations {
     });
   }
 
-  async   getMemberList(options?: { size?: number; filter?: string; page?: number; siteId?: string; nextPageToken?: number; sortBy?: string }): Promise<any> {
+  async getMemberList(options?: {
+    size?: number;
+    filter?: string;
+    page?: number;
+    siteId?: string;
+    nextPageToken?: number;
+    sortBy?: string;
+  }): Promise<any> {
     return await test.step(`Getting member list using API`, async () => {
       const response = await this.post(API_ENDPOINTS.site.membershipList(options?.siteId || ''), {
         data: {
           size: options?.size || 16,
           nextPageToken: options?.nextPageToken || 0,
           type: 'members', // Required property for the API
-          sortBy:'first_name',
+          sortBy: 'first_name',
         },
       });
       return await response.json();

@@ -108,41 +108,38 @@ test.describe(
       }
     );
 
-  test(
-    'To verify the favourite people from manage site people',
-    {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, ContentFeatureTags.MANAGE_SITE],
-    },
-    async ({  }) => {
-      tagTest(test.info(), {
-        description: 'To verify the favourite people from manage site people',
-        customTags: [ContentFeatureTags.MANAGE_SITE],
-        zephyrTestId: 'CONT-24178',
-        storyId: 'CONT-24178',
-      });
+    test(
+      'To verify the favourite people from manage site people',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, ContentFeatureTags.MANAGE_SITE],
+      },
+      async ({}) => {
+        tagTest(test.info(), {
+          description: 'To verify the favourite people from manage site people',
+          customTags: [ContentFeatureTags.MANAGE_SITE],
+          zephyrTestId: 'CONT-24178',
+          storyId: 'CONT-24178',
+        });
 
-      const siteInfo = await siteManagementHelper.getSiteWithCoverImageAndAuthorNameAndStartDate();
-      const creatingSite = await siteManagementHelper.getSiteWithMembers(siteInfo.siteId);
-      await siteDashboardPage.assertions.verifySiteDashboardLoadedWithSiteID(creatingSite.site.siteId);
-      await manageSitePage.actions.clickOnAboutTab();
-      await manageSitePage.actions.clickOnTheMembersTab();    
-     const membersName =  await siteManagementHelper.getMembersNameFromList(creatingSite.site.siteId);
-     await manageSitePage.actions.hoverOnMembersName(membersName.membersName[0]);
-     await manageSitePage.assertions.checkIsUserMarkedAsFavorite();
-     await manageSitePage.assertions.markAsFavoriteAndCheckRGBColor(membersName.membersName[0]);
-     await manageSitePage.actions.clickOnTheFavouriteTabs();
-     await manageSitePage.assertions.clickOnPeppleTab();
-     await manageSitePage.assertions.checkMarkedAsFavoriteInPeopleList(membersName.membersName[0]);
-     await manageSitePage.actions.hoverOnMembersName(membersName.membersName[0]);
-     await manageSitePage.actions.markAsUnfavorite(membersName.membersName[0]);
-     await siteDashboardPage.assertions.verifySiteDashboardLoadedWithSiteID(creatingSite.site.siteId);
-     await manageSitePage.actions.clickOnTheAboutTab();
-     await manageSitePage.actions.clickOnTheMemberButtonInAboutTab();
-     await manageSitePage.assertions.checkMarkedAsFavoriteInPeopleListShouldNotBeVisible(membersName.membersName[0]);
-
-
-    }
-  );
-}
+        const siteInfo = await siteManagementHelper.getSiteWithCoverImageAndAuthorNameAndStartDate();
+        const creatingSite = await siteManagementHelper.getSiteWithMembers(siteInfo.siteId);
+        await siteDashboardPage.assertions.verifySiteDashboardLoadedWithSiteID(creatingSite.site.siteId);
+        await manageSitePage.actions.clickOnAboutTab();
+        await manageSitePage.actions.clickOnTheMembersTab();
+        const membersName = await siteManagementHelper.getMembersNameFromList(creatingSite.site.siteId);
+        await manageSitePage.actions.hoverOnMembersName(membersName.membersName[0]);
+        await manageSitePage.assertions.checkIsUserMarkedAsFavorite();
+        await manageSitePage.assertions.markAsFavoriteAndCheckRGBColor(membersName.membersName[0]);
+        await manageSitePage.actions.clickOnTheFavouriteTabs();
+        await manageSitePage.assertions.clickOnPeppleTab();
+        await manageSitePage.assertions.checkMarkedAsFavoriteInPeopleList(membersName.membersName[0]);
+        await manageSitePage.actions.hoverOnMembersName(membersName.membersName[0]);
+        await manageSitePage.actions.markAsUnfavorite(membersName.membersName[0]);
+        await siteDashboardPage.assertions.verifySiteDashboardLoadedWithSiteID(creatingSite.site.siteId);
+        await manageSitePage.actions.clickOnTheAboutTab();
+        await manageSitePage.actions.clickOnTheMemberButtonInAboutTab();
+        await manageSitePage.assertions.checkMarkedAsFavoriteInPeopleListShouldNotBeVisible(membersName.membersName[0]);
+      }
+    );
+  }
 );
-
