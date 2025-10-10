@@ -19,11 +19,7 @@ test.describe(
   () => {
     let manageSiteStandardUserPage: ManageSitePage;
     let identityManagementHelper: IdentityManagementHelper;
-    let siteDashboardPage: SiteDashboardPage;
-    test.beforeEach(async ({ standardUserHomePage, siteManagementHelper, appManagerApiClient }) => {
-      const siteInfo = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-      manageSiteStandardUserPage = new ManageSitePage(standardUserHomePage.page, siteInfo.siteId);
-      siteDashboardPage = new SiteDashboardPage(standardUserHomePage.page, siteInfo.siteId);
+    test.beforeEach(async ({ appManagerApiClient }) => {
       identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
     });
 
@@ -35,7 +31,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, ContentFeatureTags.MANAGE_SITE],
       },
-      async ({ siteManagementHelper }) => {
+      async ({ siteManagementHelper, standardUserHomePage }) => {
         tagTest(test.info(), {
           description: 'To verify the favourite people from manage site people',
           customTags: [ContentFeatureTags.MANAGE_SITE],
@@ -51,7 +47,6 @@ test.describe(
           categoryID,
           SITE_TYPES.PUBLIC
         );
-
         const endUserInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
         await siteManagementHelper.makeUserSiteMembership(
           publicSite.siteId,
@@ -59,7 +54,9 @@ test.describe(
           SitePermission.MEMBER,
           SiteMembershipAction.ADD
         );
-        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(publicSite.siteId);
+        const newSiteDashboard = new SiteDashboardPage(standardUserHomePage.page, publicSite.siteId);
+        await newSiteDashboard.loadPage();
+        manageSiteStandardUserPage = new ManageSitePage(standardUserHomePage.page, publicSite.siteId);
         await manageSiteStandardUserPage.actions.clickOntheMemberButton();
         await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
       }
@@ -70,7 +67,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-23740'],
       },
-      async ({ contentManagementHelper, siteManagementHelper, identityManagementHelper }) => {
+      async ({ contentManagementHelper, siteManagementHelper, identityManagementHelper, standardUserHomePage }) => {
         tagTest(test.info(), {
           description: 'To verify the UI of Manage site content - End User',
           customTags: [ContentFeatureTags.MANAGE_SITE],
@@ -79,14 +76,17 @@ test.describe(
         });
 
         const siteInfo = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(siteInfo.siteId);
+        const newFirstSiteDashboard = new SiteDashboardPage(standardUserHomePage.page, siteInfo.siteId);
+        await newFirstSiteDashboard.loadPage();
         const endUserInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
         await siteManagementHelper.updateUserSiteMembershipWithRole({
           siteId: siteInfo.siteId,
           userId: endUserInfo.userId,
           role: SitePermission.CONTENT_MANAGER,
         });
-        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(siteInfo.siteId);
+        const newSiteDashboard = new SiteDashboardPage(standardUserHomePage.page, siteInfo.siteId);
+        await newSiteDashboard.loadPage();
+        manageSiteStandardUserPage = new ManageSitePage(standardUserHomePage.page, siteInfo.siteId);
         await contentManagementHelper.createPage({
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
@@ -136,7 +136,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, ContentFeatureTags.MANAGE_SITE],
       },
-      async ({ siteManagementHelper }) => {
+      async ({ siteManagementHelper, standardUserHomePage }) => {
         tagTest(test.info(), {
           description: 'To verify the user is Site Content Manager of Private site',
           customTags: [ContentFeatureTags.MANAGE_SITE],
@@ -159,7 +159,9 @@ test.describe(
           SitePermission.MEMBER,
           SiteMembershipAction.ADD
         );
-        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(privateSite.siteId);
+        const newSiteDashboard = new SiteDashboardPage(standardUserHomePage.page, privateSite.siteId);
+        await newSiteDashboard.loadPage();
+        manageSiteStandardUserPage = new ManageSitePage(standardUserHomePage.page, privateSite.siteId);
         await manageSiteStandardUserPage.actions.clickOntheMemberButton();
         await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
       }
@@ -170,7 +172,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, ContentFeatureTags.MANAGE_SITE],
       },
-      async ({ siteManagementHelper }) => {
+      async ({ siteManagementHelper, standardUserHomePage, appManagerApiClient }) => {
         tagTest(test.info(), {
           description: 'To verify the user is Site Content Manager of Unlisted site',
           customTags: [ContentFeatureTags.MANAGE_SITE],
@@ -187,13 +189,17 @@ test.describe(
           SITE_TYPES.UNLISTED
         );
         const endUserInfoUnlisted = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-        await siteManagementHelper.makeUserSiteMembership(
-          unlistedSite.siteId,
-          endUserInfoUnlisted.userId,
-          SitePermission.MEMBER,
-          SiteMembershipAction.ADD
-        );
-        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(unlistedSite.siteId);
+        await appManagerApiClient
+          .getSiteManagementService()
+          .makeUserSiteMembership(
+            unlistedSite.siteId,
+            endUserInfoUnlisted.userId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.ADD
+          );
+        const newSiteDashboard = new SiteDashboardPage(standardUserHomePage.page, unlistedSite.siteId);
+        await newSiteDashboard.loadPage();
+        manageSiteStandardUserPage = new ManageSitePage(standardUserHomePage.page, unlistedSite.siteId);
         await manageSiteStandardUserPage.actions.clickOntheMemberButton();
         await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
       }

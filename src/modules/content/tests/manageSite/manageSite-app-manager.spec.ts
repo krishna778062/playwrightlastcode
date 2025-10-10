@@ -41,7 +41,7 @@ test.describe(
       },
       async ({ appManagerHomePage, contentManagementHelper: _contentManagementHelper }) => {
         tagTest(test.info(), {
-          description: 'Verify different sites can share same page category name d',
+          description: 'Verify different sites can share same page category name',
           customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-24601',
           storyId: 'CONT-24601',
@@ -51,7 +51,8 @@ test.describe(
           SITE_TYPES.PUBLIC,
           siteNameFirstPublicSite
         );
-        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(creatingSiteFirstPublicSite.siteId);
+        const newSiteDashboard = new SiteDashboardPage(appManagerHomePage.page, creatingSiteFirstPublicSite.siteId);
+        await newSiteDashboard.loadPage();
         const manageSitePageFirstPublicSite = new ManageSitePage(
           appManagerHomePage.page,
           creatingSiteFirstPublicSite.siteId
@@ -65,7 +66,8 @@ test.describe(
           SITE_TYPES.PUBLIC,
           siteNameSecondPublicSite
         );
-        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(creatingSiteSecondPublicSite.siteId);
+        const newSecondDashboard = new SiteDashboardPage(appManagerHomePage.page, creatingSiteSecondPublicSite.siteId);
+        await newSecondDashboard.loadPage();
         const manageSitePageSecondPublicSite = new ManageSitePage(
           appManagerHomePage.page,
           creatingSiteSecondPublicSite.siteId
@@ -78,7 +80,8 @@ test.describe(
           SITE_TYPES.PUBLIC,
           siteNameThirdPublicSite
         );
-        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(creatingSiteThirdPublicSite.siteId);
+        const newThirdDashboard = new SiteDashboardPage(appManagerHomePage.page, creatingSiteThirdPublicSite.siteId);
+        await newThirdDashboard.loadPage();
         const manageSitePageThirdPublicSite = new ManageSitePage(
           appManagerHomePage.page,
           creatingSiteThirdPublicSite.siteId
@@ -97,7 +100,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, ContentFeatureTags.MANAGE_SITE],
       },
-      async ({}) => {
+      async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
           description: 'To verify the favourite people from manage site people',
           customTags: [ContentFeatureTags.MANAGE_SITE],
@@ -107,7 +110,8 @@ test.describe(
 
         const siteInfo = await siteManagementHelper.getSiteAuthorNameAndEventStartDate();
         const getMembershipList = await siteManagementHelper.getSiteWithMembers(siteInfo.siteId);
-        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(getMembershipList.site.siteId);
+        const newSiteDashboard = new SiteDashboardPage(appManagerHomePage.page, getMembershipList.site.siteId);
+        await newSiteDashboard.loadPage();
         await manageSitePageAppManagerSite.actions.clickOnAboutTab();
         await manageSitePageAppManagerSite.actions.clickOnTheMembersTab();
         const membersName = await siteManagementHelper.getMembersNameFromList(getMembershipList.site.siteId);
@@ -119,7 +123,8 @@ test.describe(
         await manageSitePageAppManagerSite.assertions.checkMarkedAsFavoriteInPeopleList(membersName.membersName[0]);
         await manageSitePageAppManagerSite.actions.hoverOnMembersName(membersName.membersName[0]);
         await manageSitePageAppManagerSite.actions.markAsUnfavorite(membersName.membersName[0]);
-        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(getMembershipList.site.siteId);
+        const newSecondSiteDashboard = new SiteDashboardPage(appManagerHomePage.page, getMembershipList.site.siteId);
+        await newSecondSiteDashboard.loadPage();
         await manageSitePageAppManagerSite.actions.clickOnTheAboutTab();
         await manageSitePageAppManagerSite.actions.clickOnTheMemberButtonInAboutTab();
         await manageSitePageAppManagerSite.assertions.checkMarkedAsFavoriteInPeopleListShouldNotBeVisible(
