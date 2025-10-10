@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { FooterComponent } from '@core/components/footerComponent';
 import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
@@ -75,6 +75,7 @@ export interface INewUxHomePageActions extends ICommonHomePageActions {
   clickOnHomeButton: () => Promise<void>;
   clickOnFeedSideMenu: () => Promise<void>;
   clickOnSocialCampaigns: () => Promise<void>;
+  clickOnManageDashboardCarousel: (options?: { stepInfo?: string }) => Promise<void>;
   openAddContentModal: (
     contentType: ContentType,
     siteName?: string,
@@ -87,12 +88,14 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
   readonly topNavBarComponent: TopNavBarComponent;
   readonly sideNavBarComponent: SideNavBarComponent;
   readonly footer: FooterComponent;
+  readonly manageDashboardCarouselButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.HOME_PAGE);
     this.topNavBarComponent = new TopNavBarComponent(page);
     this.sideNavBarComponent = new SideNavBarComponent(page);
     this.footer = new FooterComponent(page, this.page.locator('#site-footer'));
+    this.manageDashboardCarouselButton = page.getByRole('button', { name: 'Manage dashboard & carousel' });
   }
 
   getSideNavBarComponent(): SideNavBarComponent {
@@ -197,5 +200,15 @@ export abstract class BaseHomePage extends BasePage implements ICommonHomePageAc
     await chatNavigationComponent.clickOnSeeAllMessagesButton(options);
     await chatAppPage.verifyThePageIsLoaded();
     return chatAppPage;
+  }
+
+  /**
+   * Clicks on the "Manage dashboard & carousel" button
+   * @param options - The options for the step
+   */
+  async clickOnManageDashboardCarousel(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Clicking on Manage dashboard & carousel', async () => {
+      await this.clickOnElement(this.manageDashboardCarouselButton);
+    });
   }
 }

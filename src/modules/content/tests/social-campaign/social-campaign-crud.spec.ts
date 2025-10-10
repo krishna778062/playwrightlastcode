@@ -587,9 +587,9 @@ test.describe(
         ]);
 
         await Promise.all([
-          appManagerFeedPage.actions.clickOnShowOption('All posts'),
-          socialCampaignManagerFeedPage.actions.clickOnShowOption('All posts'),
-          endUserFeedPage.actions.clickOnShowOption('All posts'),
+          appManagerFeedPage.actions.clickOnShowOption('all'),
+          socialCampaignManagerFeedPage.actions.clickOnShowOption('all'),
+          endUserFeedPage.actions.clickOnShowOption('all'),
         ]);
 
         // Verify campaign is displayed in both feeds
@@ -687,9 +687,9 @@ test.describe(
         ]);
 
         await Promise.all([
-          appManagerFeedPage.actions.clickOnShowOption('All posts'),
-          socialCampaignManagerFeedPage.actions.clickOnShowOption('All posts'),
-          endUserFeedPage.actions.clickOnShowOption('All posts'),
+          appManagerFeedPage.actions.clickOnShowOption('all'),
+          socialCampaignManagerFeedPage.actions.clickOnShowOption('all'),
+          endUserFeedPage.actions.clickOnShowOption('all'),
         ]);
 
         // Verify campaign is displayed in both feeds
@@ -876,16 +876,16 @@ test.describe(
     );
 
     test(
-      'In Zeus Verify App Manager able to create latest and popular and Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
+      'In Zeus Verify App Manager able to create latest and popular Tile on Home Dashboard and SC removed from tile when it is deleted',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14904'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14900'],
       },
       async ({ appManagerHomePage, socialCampaignHelper, siteManagementHelper }) => {
         tagTest(test.info(), {
           description:
-            'In Zeus Verify App Manager able to create latest and popular and Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
-          zephyrTestId: 'CONT-14904',
-          storyId: 'CONT-14904',
+            'In Zeus Verify App Manager able to create latest and popular Tile on Home Dashboard and SC removed from tile when it is deleted',
+          zephyrTestId: 'CONT-14900',
+          storyId: 'CONT-14900',
         });
 
         // Create campaign with audience
