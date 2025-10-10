@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
+import { IntegrationsSuiteTags, TEST_TAGS } from '@integrations-constants/testTags';
 import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
 import { REDIRECT_URLS } from '@integrations-test-data/app-tiles.test-data';
 
@@ -156,6 +156,31 @@ test.describe(
         await siteDashboard.removeTile(createdTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify show more behaviour for display docuSign tasks apptile on home dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-25168',
+          storyId: 'INT-22854',
+        });
+        createdTileTitle = `Display DocuSign signature requests ${faker.string.alphanumeric({ length: 6 })}`;
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.DISPLAY_DOCUSIGN_SIGNATURE_REQUESTS,
+          CONNECTOR_IDS.DOCUSIGN
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // verify first 4 signature requests and then click on show more button and verify all signature requests are displayed
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
       }
     );
   }
