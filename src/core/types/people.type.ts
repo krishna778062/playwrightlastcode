@@ -2,7 +2,7 @@
  * Type definitions for People API responses
  */
 
-export interface TimezoneDetails {
+export interface PeopleTimezoneDetails {
   id: number;
   name: string;
 }
@@ -62,7 +62,7 @@ export interface Person {
   phone: string | null;
   phoneExtension: string | null;
   namePronunciation: string | null;
-  timezoneDetails: TimezoneDetails;
+  timezoneDetails: PeopleTimezoneDetails;
   imZoom: string | null;
   imSkype: string | null;
   imMicrosoftTeam: string | null;

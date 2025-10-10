@@ -155,4 +155,5 @@ async function createEmptyDirectories(targetDir: string) {
 }
 
 // Run the script
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 createModule();

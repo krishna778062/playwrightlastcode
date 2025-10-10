@@ -1,81 +1,116 @@
-import { BrowserContext, expect, Page, test } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
-import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
-import { ApiClientFactory } from '@/src/core/api/factories/apiClientFactory';
-import { IdentityService } from '@/src/core/api/services/IdentityService';
-import { SiteManagementService } from '@/src/core/api/services/SiteManagementService';
-import { FeedManagementHelper } from '@/src/core/helpers/feedManagementHelper';
+import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
-import { SiteAudienceHelper } from '@/src/core/helpers/siteAudienceHelper';
-import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
+import { FeedManagementHelper } from '@/src/modules/content/apis/helpers/feedManagementHelper';
+import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
+import { SiteAudienceHelper } from '@/src/modules/content-abac/apis/helpers/siteAudienceHelper';
 
-export const contentAbacTestFixture = test.extend<{
-  appManagerHomePage: NewUxHomePage | OldUxHomePage;
-  appManagerPage: Page;
-  appManagerApiClient: AppManagerApiClient;
-  endUserContext: BrowserContext;
-  endUserHomePage: NewUxHomePage | OldUxHomePage;
-  endUserPage: Page;
-  feedManagementHelper: FeedManagementHelper;
-  siteAudienceHelper: SiteAudienceHelper;
-  siteManagementService: SiteManagementService;
-}>({
-  appManagerHomePage: [
-    async ({ page }, use) => {
-      const adminHomePage = await LoginHelper.loginWithPassword(page, {
+export const contentAbacTestFixture = test.extend<
+  {
+    // App manager browser context, Request Context + page
+    appManagerBrowserContext: BrowserContext;
+    appManagerPage: Page;
+    appManagerHomePage: NewHomePage;
+    appManagerUINavigationHelper: NavigationHelper;
+
+    // End user browser context, Request Context + page
+    endUserContext: BrowserContext;
+    endUserPage: Page;
+    endUserHomePage: NewHomePage;
+    endUserUINavigationHelper: NavigationHelper;
+
+    // Services and helpers for app manager
+    feedManagementHelper: FeedManagementHelper;
+    siteManagementService: SiteManagementService;
+    siteAudienceHelper: SiteAudienceHelper;
+  },
+  {
+    appManagerApiContext: APIRequestContext;
+  }
+>({
+  appManagerApiContext: [
+    async ({}, use) => {
+      const appManagerApiContext = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
         email: getEnvConfig().appManagerEmail,
         password: getEnvConfig().appManagerPassword,
       });
-      await adminHomePage.verifyThePageIsLoaded();
-      await use(adminHomePage);
+      await use(appManagerApiContext);
+      await appManagerApiContext.dispose();
+    },
+    { scope: 'worker' },
+  ],
+
+  appManagerBrowserContext: [
+    async ({ browser }, use) => {
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      await LoginHelper.loginWithPassword(page, {
+        email: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
+      });
+      await use(context);
+      await context.close();
     },
     { scope: 'test' },
   ],
 
   appManagerPage: [
-    async ({ appManagerHomePage }, use) => {
-      await use(appManagerHomePage.page);
+    async ({ appManagerBrowserContext }, use) => {
+      const page = await appManagerBrowserContext.newPage();
+      await use(page);
+      await page.close();
     },
     { scope: 'test' },
   ],
 
-  appManagerApiClient: [
+  appManagerHomePage: [
     async ({ appManagerPage }, use) => {
-      // Use cookie-based authentication (more reliable)
-      const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-        type: 'cookies',
-        page: appManagerPage,
-        baseUrl: getEnvConfig().apiBaseUrl,
-      });
-      await use(appManagerApiClient);
+      const appManagerHomePage = new NewHomePage(appManagerPage);
+      await appManagerHomePage.loadPage();
+      await appManagerHomePage.verifyThePageIsLoaded();
+      await use(appManagerHomePage);
+    },
+    { scope: 'test' },
+  ],
+  appManagerUINavigationHelper: [
+    async ({ appManagerPage }, use, _workerInfo) => {
+      const appManagerUINavigationHelper = new NavigationHelper(appManagerPage);
+      await use(appManagerUINavigationHelper);
     },
     { scope: 'test' },
   ],
 
   siteManagementService: [
-    async ({ appManagerApiClient }, use) => {
-      const siteManagementService = new SiteManagementService(appManagerApiClient.context);
+    async ({ appManagerApiContext }, use) => {
+      const siteManagementService = new SiteManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
       await use(siteManagementService);
+    },
+    { scope: 'test' },
+  ],
+
+  siteAudienceHelper: [
+    async ({ appManagerApiContext }, use) => {
+      const siteAudienceHelper = new SiteAudienceHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
+      await use(siteAudienceHelper);
     },
     { scope: 'test' },
   ],
 
   // Services and helpers - with proper cleanup
   feedManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
+    async ({ appManagerApiContext }, use) => {
+      const feedManagementHelper = new FeedManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
       await use(feedManagementHelper);
-    },
-    { scope: 'test' },
-  ],
-
-  siteAudienceHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const identity = new IdentityService(appManagerApiClient.context, getEnvConfig().apiBaseUrl);
-      const siteAudienceHelper = new SiteAudienceHelper(identity);
-      await use(siteAudienceHelper);
+      // Ensure cleanup happens even if test fails
+      try {
+        await feedManagementHelper.cleanup();
+      } catch (error) {
+        console.warn('Feed management helper cleanup failed:', error);
+      }
     },
     { scope: 'test' },
   ],
@@ -83,29 +118,41 @@ export const contentAbacTestFixture = test.extend<{
   endUserContext: [
     async ({ browser }, use) => {
       const context = await browser.newContext();
-      await use(context);
-    },
-    { scope: 'test' },
-  ],
-
-  endUserHomePage: [
-    async ({ endUserContext }, use) => {
-      const page = await endUserContext.newPage();
+      const page = await context.newPage();
       const { endUserEmail, endUserPassword } = getEnvConfig();
       if (!endUserEmail || !endUserPassword) throw new Error('Missing END_USER creds in env');
-      const endUserHomePage = await LoginHelper.loginWithPassword(page, {
+      await LoginHelper.loginWithPassword(page, {
         email: endUserEmail,
         password: endUserPassword,
       });
-      await endUserHomePage.verifyThePageIsLoaded();
-      await use(endUserHomePage);
+      await use(context);
+      await context.close();
     },
     { scope: 'test' },
   ],
 
   endUserPage: [
-    async ({ endUserHomePage }, use) => {
-      await use(endUserHomePage.page);
+    async ({ endUserContext }, use) => {
+      const page = await endUserContext.newPage();
+      await use(page);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+
+  endUserHomePage: [
+    async ({ endUserPage }, use) => {
+      const endUserHomePage = new NewHomePage(endUserPage);
+      await endUserHomePage.loadPage();
+      await endUserHomePage.verifyThePageIsLoaded();
+      await use(endUserHomePage);
+    },
+    { scope: 'test' },
+  ],
+  endUserUINavigationHelper: [
+    async ({ endUserPage }, use, _workerInfo) => {
+      const endUserUINavigationHelper = new NavigationHelper(endUserPage);
+      await use(endUserUINavigationHelper);
     },
     { scope: 'test' },
   ],

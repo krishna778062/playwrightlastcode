@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
 import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
+import { REDIRECT_URLS } from '@integrations-test-data/app-tiles.test-data';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -11,7 +12,7 @@ import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { CONNECTOR_IDS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 test.describe(
-  'Docebo App Tiles Integration',
+  'docebo App Tiles Integration',
   {
     tag: [IntegrationsSuiteTags.DOCEBO, IntegrationsSuiteTags.ABSOLUTE],
   },
@@ -20,7 +21,8 @@ test.describe(
     const tileName = 'Display learning courses';
     let createdTileTitle: string | undefined = undefined;
 
-    test.afterEach(async ({ homeDashboard, tileManagementHelper }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
+      const { homeDashboard, tileManagementHelper } = appManagerFixture;
       if (createdTileTitle) {
         await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
@@ -34,9 +36,10 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
 
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24660',
+          zephyrTestId: ['INT-24660,INT-24671'],
           storyId: 'INT-24422',
         });
 
@@ -60,13 +63,14 @@ test.describe(
     );
 
     test(
-      'Verify users should be able to display pending learning courses from Docebo on a tile on Site dashboard',
+      'verify users should be able to display pending learning courses from Docebo on a tile on Site dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24661',
+          zephyrTestId: ['INT-24661,INT-24670'],
           storyId: 'INT-24422',
         });
 
@@ -74,7 +78,7 @@ test.describe(
         createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -87,6 +91,67 @@ test.describe(
         await siteDashboard.isTilePresent(updatedTileTitle);
         createdTileTitle = updatedTileTitle;
         await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+    test(
+      'verify UI layout for pending learning courses from Docebo on a tile',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-24676,INT-24677'],
+          storyId: 'INT-24422',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Docebo reportt ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add and verify tile
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.DISPLAY_LEARNING_COURSES,
+          CONNECTOR_IDS.DOCEBO
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // Verify tile content structure
+        await homeDashboard.verifyDoceboContentStructure(createdTileTitle);
+        await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.DOCEBO);
+      }
+    );
+    test(
+      'verify UI layout for pending learning courses from Docebo on a tile on Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28328',
+          storyId: 'INT-24422',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add and verify tile
+        await siteDashboard.addTile(createdTileTitle, AppName, tileName, UI_ACTIONS.ADD_TO_SITE);
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+
+        // Verify tile content structure
+        await siteDashboard.verifyDoceboContentStructure(createdTileTitle);
+        await siteDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.DOCEBO);
+        await siteDashboard.removeTile(createdTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         createdTileTitle = undefined;
       }
