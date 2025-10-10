@@ -67,7 +67,7 @@ const HERO_METRICS_DATA = [
 ] as const;
 
 test.describe(
-  'Social Interaction Dashboard',
+  'social Interaction Dashboard',
   {
     tag: [DataEngineeringTestSuite.SOCIAL_INTERACTION],
   },
@@ -115,7 +115,7 @@ test.describe(
     }
 
     test(
-      'TS To verify the answer of Social campaign shares in Social Interaction dashboard',
+      'tS To verify the answer of Social campaign shares in Social Interaction dashboard',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION],
       },

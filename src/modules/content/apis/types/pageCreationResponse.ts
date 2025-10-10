@@ -1,3 +1,8 @@
+import { AuthorInfo } from './autherInfo';
+import { CategoryInfo } from './categoryInfo';
+import { SiteInfo } from './siteInfo';
+import { UsefulContent } from './userFulContent';
+
 export interface PageCreationResponse {
   status: string;
   result: PageCreationResult;
@@ -72,52 +77,6 @@ export interface PageCreationResult {
   manualTransEnabled: boolean;
   templateId: string;
   isQuestionAnswerEnabled: boolean;
-}
-
-export interface UsefulContent {
-  hasUserRated: boolean;
-  canViewHistory: boolean;
-}
-
-export interface SiteInfo {
-  siteId: string;
-  name: string;
-  isPublic: boolean;
-  isPrivate: boolean;
-  isMember: boolean;
-  isManager: boolean;
-  isListed: boolean;
-  isContentManager: boolean;
-  isActive: boolean;
-  img: string;
-  access: string;
-  isFeatured: boolean;
-  isQuestionAnswerEnabled: boolean;
-}
-
-export interface CategoryInfo {
-  site: Record<string, any>;
-  name: string;
-  id: string;
-  categoryId: string;
-  authoredBy: Record<string, any>;
-}
-
-export interface AuthorInfo {
-  peopleId: string;
-  name: string;
-  mediumPhotoUrl: string | null;
-  location: string | null;
-  lastName: string;
-  isProtectedAuthor: boolean;
-  isFollowing: boolean;
-  isActive: boolean;
-  img: string | null;
-  id: string;
-  firstName: string;
-  email: string;
-  country: string | null;
-  canFollow: boolean;
 }
 
 export interface ImageFile {

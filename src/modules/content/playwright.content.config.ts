@@ -3,13 +3,17 @@ import { defineConfig } from '@playwright/test';
 import path from 'path';
 
 import { PROJECT_ROOT } from '@core/constants/paths';
-import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import baseConfig from '../../../playwright.base.config';
 
+import { getContentTenantConfigFromCache, initializeContentConfig } from './config/contentConfig';
+
+// Initialize config for contentSettings tenant at config load time
+initializeContentConfig('primary');
+
 export default defineConfig({
   ...baseConfig,
-  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'content', 'tests'),
+  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'content', 'tests', 'content-common'),
   testIgnore: '**/api-tests/**',
   workers: process.env.CI ? 2 : 4,
   timeout: 180_000,
@@ -18,12 +22,12 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'content-chromium',
+      name: 'content-common-chromium',
       use: {
         headless: process.env.CI ? true : false,
         video: 'off',
         ...devices['Desktop Chrome'],
-        baseURL: getEnvConfig().frontendBaseUrl,
+        baseURL: getContentTenantConfigFromCache().frontendBaseUrl,
         permissions: ['camera', 'microphone', 'notifications'],
         launchOptions: {
           args: ['--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage', '--enable-notifications'],

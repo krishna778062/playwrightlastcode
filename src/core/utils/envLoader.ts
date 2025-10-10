@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 import { Environments } from '@core/constants/environments';
+import { log } from '@core/utils';
 
 import { PROJECT_ROOT } from '../constants/paths';
 
@@ -43,7 +44,7 @@ export function loadEnvVariablesForGivenModule(envName: Environments, moduleName
         }
       }
     } catch (error) {
-      console.error('Failed to parse GitHub secrets JSON:', error);
+      log.error('Failed to parse GitHub secrets JSON', error, { module: 'envLoader' });
     }
   }
   // Load Google Calendar secrets file if it exists (for local development)

@@ -1,6 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '@/src/core/components/baseComponent';
+import { BaseComponent } from '@core/components/baseComponent';
 
 export class AnalyticsBaseComponent extends BaseComponent {
   readonly getAnswerTitle: (title: string) => Locator;

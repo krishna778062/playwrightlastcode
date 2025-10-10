@@ -2,8 +2,8 @@ import { AnalyticsBaseComponent } from '@data-engineering/components/analyticsBa
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
-import { BasePage } from '@/src/core/pages/basePage';
 import type { TestOptions } from '@/src/core/types/test.types';
+import { BasePage } from '@/src/core/ui/pages/basePage';
 
 export class AnalyticsBasePage extends BasePage {
   readonly appAnalyticsButton: Locator;

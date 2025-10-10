@@ -3,9 +3,9 @@ import { faker } from '@faker-js/faker';
 import { User } from '@core/types/user.type';
 
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
-import { AlbumCreationOptions } from '@/src/modules/content/pages/albumCreationPage';
-import { EventCreationOptions } from '@/src/modules/content/pages/eventCreationPage';
-import { PageCreationOptions } from '@/src/modules/content/pages/pageCreationPage';
+import { AlbumCreationOptions } from '@/src/modules/content/ui/pages/albumCreationPage';
+import { EventCreationOptions } from '@/src/modules/content/ui/pages/eventCreationPage';
+import { PageCreationOptions } from '@/src/modules/content/ui/pages/pageCreationPage';
 
 export class TestDataGenerator {
   /**
@@ -274,14 +274,14 @@ export class TestDataGenerator {
   /**
    * Generates a random page with realistic data
    * @param contentType Content type for the page
-   * @param fileName Cover image file name
+   * @param imagePath Cover image file path
    * @param category Optional category for the page (if empty string generates random category)
    * @param overrides Optional properties to override in the generated page
    * @returns A PageCreationOptions object with random realistic data
    */
   static generatePage(
     contentType: PageContentType,
-    fileName: string,
+    imagePath: string,
     category?: string,
     overrides?: Partial<PageCreationOptions>
   ): PageCreationOptions {
@@ -294,7 +294,7 @@ export class TestDataGenerator {
       category: finalCategory,
       contentType: contentType,
       coverImage: {
-        fileName,
+        imagePath,
         cropOptions: {
           widescreen: false,
           square: false,

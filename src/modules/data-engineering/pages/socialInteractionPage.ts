@@ -1,9 +1,8 @@
+import { HeroMetricsComponent } from '@data-engineering/components/heroMetricsComponent';
+import { DateHelper } from '@data-engineering/helpers/dateHelper';
+import { SnowflakeHelper } from '@data-engineering/helpers/snowflakeHelper';
+import { SocialInteractionSql } from '@data-engineering/sql/social-interaction';
 import { expect, Locator, Page, test } from '@playwright/test';
-
-import { HeroMetricsComponent } from '../components/heroMetricsComponent';
-import { DateHelper } from '../helpers/dateHelper';
-import { SnowflakeHelper } from '../helpers/snowflakeHelper';
-import { SocialInteractionSql } from '../sql/social-interaction';
 
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { AnalyticsBasePage } from '@/src/modules/data-engineering/pages/analyticsBasePage';

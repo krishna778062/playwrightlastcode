@@ -1,6 +1,5 @@
+import { AnalyticsBaseComponent } from '@data-engineering/components/analyticsBaseComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
-
-import { AnalyticsBaseComponent } from './analyticsBaseComponent';
 
 export class HeroMetricsComponent extends AnalyticsBaseComponent {
   readonly getMetricValueByTitle: (title: string) => Locator;

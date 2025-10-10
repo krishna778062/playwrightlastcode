@@ -2,7 +2,7 @@ import type { UserType } from '@data-engineering/fixtures/loginFixture';
 import { test as base } from '@data-engineering/fixtures/loginFixture';
 import { expect } from '@playwright/test';
 
-import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
+import { SideNavBarComponent } from '@core/ui/components/sideNavBarComponent';
 
 import { AnalyticsBasePage } from '@/src/modules/data-engineering/pages/analyticsBasePage';
 

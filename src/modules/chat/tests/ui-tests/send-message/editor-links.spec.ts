@@ -1,19 +1,15 @@
 import { expect } from '@playwright/test';
 
-import { FormattingOptions } from '../../../components/chatEditorComponent';
-import CONSTANT_DATA from '../../../constants/constantData';
 import { chatTestFixture as test } from '../../../fixtures/chatFixture';
-import { formattedMessageTestData, selectThenFormatTestData } from '../../../test-data/formatted-message-test-data';
 
 //import { LinkTestDataGenerator } from '../../../test-data/linkTestDataGenerator';
 import { TestPriority } from '@/src/core/constants/testPriority';
-import { TestGroupType } from '@/src/core/constants/testType';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
-import { tagTest } from '@/src/core/utils/testDecorator';
+import CONSTANT_DATA from '@/src/modules/chat/constants/constantData';
 
-test.describe('Verifying invalid link msg in the editor', { tag: [TestPriority.P2] }, () => {
-  test(`(invalid link msg visible in the editor)`, async ({ appManagerHomePage }) => {
-    const chatAppPage = await appManagerHomePage.navigateToChatPageViaTopNavBar();
+test.describe('verifying invalid link msg in the editor', { tag: [TestPriority.P2] }, () => {
+  test(`(invalid link msg visible in the editor)`, async ({ appManagerFixture }) => {
+    const chatAppPage = await appManagerFixture.navigationHelper.navigateToChatPageViaTopNavBar();
     await chatAppPage.actions.openDirectMessageWithUser(CONSTANT_DATA.USER_NAME_1);
 
     await chatAppPage.conversationWindow.getChatEditorComponent().linkButton.click();
@@ -31,8 +27,8 @@ test.describe('Verifying invalid link msg in the editor', { tag: [TestPriority.P
     await chatAppPage.conversationWindow.getChatEditorComponent().verifyInsertLinkErrorMessages('link');
   });
 
-  test(`(invalid link msg with random text visible in the editor)`, async ({ appManagerHomePage }) => {
-    const chatAppPage = await appManagerHomePage.navigateToChatPageViaTopNavBar();
+  test(`(invalid link msg with random text visible in the editor)`, async ({ appManagerFixture }) => {
+    const chatAppPage = await appManagerFixture.navigationHelper.navigateToChatPageViaTopNavBar();
     await chatAppPage.actions.openDirectMessageWithUser(CONSTANT_DATA.USER_NAME_1);
 
     await chatAppPage.conversationWindow.getChatEditorComponent().linkButton.click();
@@ -55,9 +51,9 @@ test.describe('Verifying invalid link msg in the editor', { tag: [TestPriority.P
   });
 });
 
-test.describe('Verifying empty text msg in the editor', { tag: [TestPriority.P2] }, () => {
-  test(`(Empty text box validation message visible in the editor)`, async ({ appManagerHomePage }) => {
-    const chatAppPage = await appManagerHomePage.navigateToChatPageViaTopNavBar();
+test.describe('verifying empty text msg in the editor', { tag: [TestPriority.P2] }, () => {
+  test(`(Empty text box validation message visible in the editor)`, async ({ appManagerFixture }) => {
+    const chatAppPage = await appManagerFixture.navigationHelper.navigateToChatPageViaTopNavBar();
     await chatAppPage.actions.openDirectMessageWithUser(CONSTANT_DATA.USER_NAME_1);
 
     await chatAppPage.conversationWindow.getChatEditorComponent().linkButton.click();
@@ -71,9 +67,9 @@ test.describe('Verifying empty text msg in the editor', { tag: [TestPriority.P2]
   });
 });
 
-test.describe('Verifying valid link insertion in the editor', { tag: [TestPriority.P2] }, () => {
-  test(`(valid link with proper URL format inserted in the editor)`, async ({ appManagerHomePage }) => {
-    const chatAppPage = await appManagerHomePage.navigateToChatPageViaTopNavBar();
+test.describe('verifying valid link insertion in the editor', { tag: [TestPriority.P2] }, () => {
+  test(`(valid link with proper URL format inserted in the editor)`, async ({ appManagerFixture }) => {
+    const chatAppPage = await appManagerFixture.navigationHelper.navigateToChatPageViaTopNavBar();
     await chatAppPage.actions.openDirectMessageWithUser(CONSTANT_DATA.USER_NAME_1);
 
     await chatAppPage.conversationWindow.getChatEditorComponent().linkButton.click();

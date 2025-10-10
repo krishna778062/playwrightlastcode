@@ -11,14 +11,15 @@ import { integrationsFixture as test } from '@/src/modules/integrations/fixtures
 import { CONNECTOR_IDS, REDIRECT_URLS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 test.describe(
-  'Outlook Calendar App Tiles Integration',
+  'outlook Calendar App Tiles Integration',
   {
     tag: [IntegrationsSuiteTags.OUTLOOK_CALENDAR_APPTILES, IntegrationsSuiteTags.ABSOLUTE],
   },
   () => {
     let createdTileTitle: string | undefined = undefined;
 
-    test.afterEach(async ({ tileManagementHelper, homeDashboard }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
+      const { tileManagementHelper, homeDashboard } = appManagerFixture;
       if (createdTileTitle) {
         await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
@@ -31,7 +32,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { tileManagementHelper, homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-14532',
           storyId: 'INT-13648',
@@ -59,7 +61,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-28327',
           storyId: 'INT-13648',
@@ -67,7 +70,7 @@ test.describe(
 
         createdTileTitle = `Outlook calendar apptile ${faker.string.alphanumeric({ length: 6 })}`;
 
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -94,7 +97,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-14448',
           storyId: 'INT-13649',
@@ -117,7 +121,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-14447',
           storyId: 'INT-13649',
@@ -125,7 +130,7 @@ test.describe(
 
         createdTileTitle = `Outlook calendar apptile ${faker.string.alphanumeric({ length: 6 })}`;
 
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -146,7 +151,8 @@ test.describe(
       {
         tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-14444',
           storyId: 'INT-13649',
@@ -167,14 +173,15 @@ test.describe(
       {
         tag: [TestPriority.P2, TestGroupType.SANITY],
       },
-      async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-14536',
           storyId: 'INT-13649',
         });
 
         createdTileTitle = `Outlook calendar apptile ${faker.string.alphanumeric({ length: 6 })}`;
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
         await siteDashboard.addTile(
