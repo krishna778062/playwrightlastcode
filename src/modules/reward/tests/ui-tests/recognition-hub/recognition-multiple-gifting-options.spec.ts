@@ -1,16 +1,16 @@
 import { expect } from '@playwright/test';
+import { GiveRecognitionDialogBox } from '@rewards/components/recognition/give-recognition-dialog-box';
+import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { RecognitionHubPage } from '@rewards/pages/recognition-hub/recognition-hub-page';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-import { GiveRecognitionDialogBox } from '@modules/reward/components/recognition/give-recognition-dialog-box';
-import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
-import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recognition-hub-page';
 
 test.describe('multiple Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
-  test.beforeEach(async ({ appManagerPage }) => {
-    const recognitionHub = new RecognitionHubPage(appManagerPage);
+  test.beforeEach(async ({ appManagerFixture }) => {
+    const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
     await recognitionHub.enableTheRewardsAndPeerGiftingForHubIfDisabled();
   });
 
@@ -19,13 +19,13 @@ test.describe('multiple Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_
     {
       tag: [REWARD_FEATURE_TAGS.CREATE_RECOGNITION_WITH_POINTS, TestGroupType.REGRESSION, TestPriority.P0],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify multiple gifting option using Single Recipient & Multiple Recipient',
         zephyrTestId: 'RC-2835',
         storyId: 'RC-2835',
       });
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       let input_values: number[];
       const existingOptions = await recognitionHub.visitRecognitionHub();
       if (existingOptions.length < 2) {
@@ -55,7 +55,7 @@ test.describe('multiple Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_
 
       // Validate the updated points in the Recognize button without any error message
       const index = 2;
-      const giveRecognitionDialogBox = new GiveRecognitionDialogBox(appManagerPage);
+      const giveRecognitionDialogBox = new GiveRecognitionDialogBox(appManagerFixture.page);
       await expect(giveRecognitionDialogBox.giftingPointsPrivacyInfoIcon).toBeVisible();
       await giveRecognitionDialogBox.giftingPointsPrivacyInfoIcon.click({ force: true });
       await expect(giveRecognitionDialogBox.giftingPointsPrivacyTooltipText).toBeVisible();
@@ -86,14 +86,14 @@ test.describe('multiple Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify Minimum N points required',
         zephyrTestId: 'RC-2835-B',
         storyId: 'RC-2835',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.mockTheWalletPoints(Number(0), 100, 1000);
       await recognitionHub.clickOnGiveRecognition();

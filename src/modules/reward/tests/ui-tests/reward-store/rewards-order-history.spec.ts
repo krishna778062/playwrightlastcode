@@ -1,14 +1,14 @@
+import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { RewardsStore } from '@rewards/pages/reward-store/reward-store';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 
 test.describe('rewards order history', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => {
-  test.beforeEach(async ({ appManagerPage }) => {
-    const rewardsStore = new RewardsStore(appManagerPage);
+  test.beforeEach(async ({ appManagerFixture }) => {
+    const rewardsStore = new RewardsStore(appManagerFixture.page);
     await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
   });
 
@@ -22,13 +22,13 @@ test.describe('rewards order history', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate reward value of rewards on Order History page',
         zephyrTestId: 'RC-3538',
         storyId: 'RC-3538',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
 
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
       await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);

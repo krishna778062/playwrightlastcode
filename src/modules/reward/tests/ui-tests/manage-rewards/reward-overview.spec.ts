@@ -1,13 +1,13 @@
 import { expect } from '@playwright/test';
+import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { ManageRewardsOverviewPage } from '@rewards/pages/manage-rewards/manage-rewards-overview-page';
 import { getQuery } from '@rewards/utils/dbQuery';
 import { executeQuery } from '@rewards/utils/dbUtils';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
-import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
 
 test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   const rewardsTerminologyHeadings = ['Reward points', 'Peer gifting', 'Allowance', 'User wallet'];
@@ -18,8 +18,8 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     'The balance of reward points a user has received that can be redeemed for rewards.',
   ];
 
-  test.beforeEach(async ({ appManagerPage }) => {
-    const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+  test.beforeEach(async ({ appManagerFixture }) => {
+    const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
     await manageRewardsOverviewPage.enableTheRewardsAndPeerGiftingIfDisabled();
   });
 
@@ -28,13 +28,13 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OVERVIEW, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate Budget Exceeded Warnings on reward overview page',
         zephyrTestId: 'RC-3095',
         storyId: 'RC-3095',
       });
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsOverviewPage.verifyThePageIsLoaded();
       await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
       await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
@@ -70,15 +70,15 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         TestPriority.P2,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate if allowances summary shows 0 points when allowances are refreshing.',
         zephyrTestId: 'RC-3329',
         storyId: 'RC-3329',
       });
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsOverviewPage.verifyThePageIsLoaded();
-      const tenantCode = await appManagerPage.evaluate(() => {
+      const tenantCode = await appManagerFixture.page.evaluate(() => {
         return (window as any).Simpplr?.Settings?.accountId;
       });
       const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
@@ -111,13 +111,13 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OVERVIEW, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate rewards overview tab page',
         zephyrTestId: 'RC-2192',
         storyId: 'RC-2192',
       });
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsOverviewPage.verifyThePageIsLoaded();
       await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
       await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
@@ -197,24 +197,24 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OVERVIEW, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description:
           'Validate on navigating to rewards tab & all its sub tabs one by one, rewards api is called for once only',
         zephyrTestId: 'RC-5419',
         storyId: 'RC-5419',
       });
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const rewardsApi = '**/recognition/admin/rewards';
       const calls: string[] = [];
-      await appManagerPage.route(rewardsApi, async route => {
+      await appManagerFixture.page.route(rewardsApi, async route => {
         calls.push(route.request().url());
         await route.continue();
       });
 
       const expectSingleApiCall = async () => {
         // Wait for a short time to ensure no additional calls are made
-        await appManagerPage.waitForTimeout(2000);
+        await appManagerFixture.page.waitForTimeout(2000);
         if (calls.length !== 1) {
           throw new Error(`Expected 1 API call, but got ${calls.length}`);
         }
@@ -222,27 +222,30 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       };
 
       // STEP 1: Navigate to Rewards tab
-      await appManagerPage.goto('/manage/recognition/rewards');
+      await appManagerFixture.page.goto('/manage/recognition/rewards');
       await manageRewardsOverviewPage.verifyThePageIsLoaded();
       await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
       await expectSingleApiCall();
 
       // STEP 2: Reload page
-      await appManagerPage.reload();
-      await manageRewardsOverviewPage.verifier.verifyElementHasText(appManagerPage.locator('h1'), 'Recognition');
+      await appManagerFixture.page.reload();
+      await manageRewardsOverviewPage.verifier.verifyElementHasText(
+        appManagerFixture.page.locator('h1'),
+        'Recognition'
+      );
       await expectSingleApiCall();
 
       // STEP 3: Navigate through sub-tabs
       const subTabs = ['Overview', 'Reward options', 'Currency conversions', 'Disable rewards'];
 
       for (const tab of subTabs) {
-        await appManagerPage.getByRole('tab', { name: tab }).click();
+        await appManagerFixture.page.getByRole('tab', { name: tab }).click();
         await manageRewardsOverviewPage.verifier.verifyElementHasAttribute(
-          appManagerPage.getByRole('tab', { name: tab }),
+          appManagerFixture.page.getByRole('tab', { name: tab }),
           'aria-selected',
           'true'
         );
-        await appManagerPage.waitForTimeout(500); // small wait to catch unexpected calls
+        await appManagerFixture.page.waitForTimeout(500); // small wait to catch unexpected calls
         if (calls.length !== 0) {
           throw new Error(`Expected no new API calls for ${tab} tab, but got ${calls.length}`);
         }
@@ -255,13 +258,13 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OVERVIEW, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate tooltips on Rewards Overview Points Balance summary tile component',
         zephyrTestId: 'RC-3094',
         storyId: 'RC-3094',
       });
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsOverviewPage.verifyThePageIsLoaded();
       await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
       await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);

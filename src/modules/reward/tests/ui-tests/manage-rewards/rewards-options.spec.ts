@@ -1,13 +1,12 @@
 import { expect } from '@playwright/test';
+import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { ManageRewardsOverviewPage } from '@rewards/pages/manage-rewards/manage-rewards-overview-page';
 import { RewardOptionsPage } from '@rewards/pages/manage-rewards/reward-options-page';
 import { RewardsStore } from '@rewards/pages/reward-store/reward-store';
 
-import { TestGroupType } from '@core/constants';
-import { TestPriority } from '@core/constants';
+import { TestGroupType, TestPriority } from '@core/constants';
 import { tagTest } from '@core/utils';
-import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
-import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
 
 test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test(
@@ -15,18 +14,18 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify Reward options only visible to App managers',
         zephyrTestId: 'RC-5371',
         storyId: 'RC-5251',
       });
-      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerPage);
+      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsPage.loadPageWithHarness();
       await manageRewardsPage.verifyThePageIsLoaded();
       const rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
       expect(rewardOptionsIsVisible).toBeTruthy();
-      const rewardOptionsPage = new RewardOptionsPage(appManagerPage);
+      const rewardOptionsPage = new RewardOptionsPage(appManagerFixture.page);
       await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(true);
     }
   );
@@ -36,18 +35,18 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ recoManagerPage }) => {
+    async ({ recoManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify Reward options only visible to recognition managers',
         zephyrTestId: 'RC-5371',
         storyId: 'RC-5251',
       });
-      const manageRewardsPage = new ManageRewardsOverviewPage(recoManagerPage);
+      const manageRewardsPage = new ManageRewardsOverviewPage(recoManagerFixture.page);
       await manageRewardsPage.loadPageWithHarness();
       await manageRewardsPage.verifyThePageIsLoaded();
       const rewardOptionsIsVisible = await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options');
       expect(rewardOptionsIsVisible).toBeTruthy();
-      const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
+      const rewardOptionsPage = new RewardOptionsPage(recoManagerFixture.page);
       await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(true);
     }
   );
@@ -57,13 +56,13 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ standardUserPage }) => {
+    async ({ standardUserFixture }) => {
       tagTest(test.info(), {
         description: 'Verify Reward options not visible to user other than recognition managers',
         zephyrTestId: 'RC-5374',
         storyId: 'RC-5251',
       });
-      const manageRewardsPage = new ManageRewardsOverviewPage(standardUserPage);
+      const manageRewardsPage = new ManageRewardsOverviewPage(standardUserFixture.page);
       const rewardIsEnabled = await manageRewardsPage.hasManageRecognitionPermission();
       await manageRewardsPage.loadPageWithHarness();
       expect(rewardIsEnabled).toBeFalsy();
@@ -76,13 +75,13 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ recoManagerPage }) => {
+    async ({ recoManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate search box on rewards option page',
         zephyrTestId: 'RC-5386',
         storyId: 'RC-5251',
       });
-      const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
+      const rewardOptionsPage = new RewardOptionsPage(recoManagerFixture.page);
 
       await rewardOptionsPage.loadPage();
       await rewardOptionsPage.performSearchAndValidate('Amazon', true);
@@ -103,15 +102,15 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     test(
       `Gift card should ${giftCard.visibility === 'Active' ? 'be visible' : 'not be visible'} when set to ${giftCard.visibility}`,
       { tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE] },
-      async ({ recoManagerPage }) => {
+      async ({ recoManagerFixture }) => {
         tagTest(test.info(), {
           description: `RC-5565, RC-5376 - Gift card should ${giftCard.visibility === 'Active' ? 'be visible' : 'not be visible'} when set to ${giftCard.visibility}`,
           zephyrTestId: giftCard.visibility === 'Active' ? 'RC-5565' : 'RC-5376',
           storyId: 'RC-5251',
         });
-        const manageRewardsPage = new ManageRewardsOverviewPage(recoManagerPage);
-        const rewardOptionsPage = new RewardOptionsPage(recoManagerPage);
-        const rewardsStorePage = new RewardsStore(recoManagerPage);
+        const manageRewardsPage = new ManageRewardsOverviewPage(recoManagerFixture.page);
+        const rewardOptionsPage = new RewardOptionsPage(recoManagerFixture.page);
+        const rewardsStorePage = new RewardsStore(recoManagerFixture.page);
 
         await manageRewardsPage.loadPage();
         await manageRewardsPage.verifyThePageIsLoaded();

@@ -1,15 +1,15 @@
 import { expect } from '@playwright/test';
+import { DialogBox } from '@rewards/components/common/dialog-box';
+import { Notifications } from '@rewards/components/common/notifications';
+import { GiveRecognitionDialogBox } from '@rewards/components/recognition/give-recognition-dialog-box';
+import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { RecognitionHubPage } from '@rewards/pages/recognition-hub/recognition-hub-page';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { tagTest } from '@core/utils/testDecorator';
-import { DialogBox } from '@modules/reward/components/common/dialog-box';
-import { Notifications } from '@modules/reward/components/common/notifications';
-import { GiveRecognitionDialogBox } from '@modules/reward/components/recognition/give-recognition-dialog-box';
-import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
-import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recognition-hub-page';
 
 test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
   test(
@@ -17,14 +17,14 @@ test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNI
     {
       tag: [REWARD_FEATURE_TAGS.RECOGNITION_NOTIFICATION_CHECK, TestPriority.P0, TestGroupType.REGRESSION],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate system notifications on rewards and recognition',
         zephyrTestId: 'RC-2619',
         storyId: 'RC-2619',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       await recognitionHub.enableTheRewardsAndPeerGiftingForHubIfDisabled();
       const recognizedUser = process.env.STANDARD_USER_FULL_NAME!;
       const existingOptions = await recognitionHub.visitRecognitionHub();
@@ -33,14 +33,14 @@ test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNI
       }
       await recognitionHub.clickOnGiveRecognition();
 
-      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(recognizedUser);
       const recognitionAward = await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
       await giveRecognitionModal.enterTheRecognitionMessage('Test Message' + Math.floor(Math.random() * 1000));
       const rewardPointsText = await giveRecognitionModal.giftThePoints(1);
       await giveRecognitionModal.recognizeButton.click({ force: true });
 
-      const dialogBox = new DialogBox(appManagerPage);
+      const dialogBox = new DialogBox(appManagerFixture.page);
       if (
         await recognitionHub.verifier.verifyTheElementIsVisible(dialogBox.container, {
           timeout: 3000,
@@ -59,16 +59,15 @@ test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNI
       );
 
       // Login with the standard user and check the recognition post with points
-      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
-      await LoginHelper.loginWithPassword(appManagerPage, {
+      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
+      await LoginHelper.loginWithPassword(appManagerFixture.page, {
         email: process.env.STANDARD_USER_USERNAME!,
         password: process.env.STANDARD_USER_PASSWORD!,
       });
 
       // Validate the Recognition with points Notification and redirection to post
-      let notifications = new Notifications(appManagerPage);
+      let notifications = new Notifications(appManagerFixture.page);
       await notifications.siteHeader.waitFor({ state: 'attached' });
-      await appManagerPage.waitForTimeout(5000);
       await notifications.navigateToRecentActivityNotifications();
       const firstNotificationText = await notifications.getNotificationText();
       expect(firstNotificationText).toContain(
@@ -76,7 +75,7 @@ test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNI
       );
       await notifications.notificationListItem.first().click();
 
-      const recognitionHubStandard = new RecognitionHubPage(appManagerPage);
+      const recognitionHubStandard = new RecognitionHubPage(appManagerFixture.page);
       await recognitionHubStandard.verifier.verifyTheElementIsVisible(
         recognitionHubStandard.rewardRecognitionFirstPost
       );
@@ -89,15 +88,14 @@ test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNI
       );
 
       // Login with the standard user and check the recognition post with points
-      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
-      await LoginHelper.loginWithPassword(appManagerPage, {
+      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
+      await LoginHelper.loginWithPassword(appManagerFixture.page, {
         email: process.env.RECOGNITION_USER_USERNAME!,
         password: process.env.RECOGNITION_USER_PASSWORD!,
       });
 
-      notifications = new Notifications(appManagerPage);
+      notifications = new Notifications(appManagerFixture.page);
       await notifications.siteHeader.waitFor({ state: 'attached' });
-      await appManagerPage.waitForTimeout(5000);
       await notifications.navigateToRecentActivityNotifications();
       const firstNotificationTextForRecognitionUser = await notifications.getNotificationText();
       expect(firstNotificationTextForRecognitionUser).toContain(
@@ -105,7 +103,7 @@ test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNI
       );
       await notifications.notificationListItem.first().click();
 
-      const recognitionHubRecoUser = new RecognitionHubPage(appManagerPage);
+      const recognitionHubRecoUser = new RecognitionHubPage(appManagerFixture.page);
       await recognitionHubRecoUser.verifier.verifyTheElementIsVisible(
         recognitionHubRecoUser.rewardRecognitionFirstPost
       );

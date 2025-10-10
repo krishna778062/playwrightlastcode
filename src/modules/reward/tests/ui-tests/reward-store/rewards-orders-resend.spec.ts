@@ -1,14 +1,14 @@
+import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { RewardsStore } from '@rewards/pages/reward-store/reward-store';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
-import { RewardsStore } from '@modules/reward/pages/reward-store/reward-store';
 
 test.describe('rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => {
-  test.beforeEach(async ({ appManagerPage }) => {
-    const rewardsStore = new RewardsStore(appManagerPage);
+  test.beforeEach(async ({ appManagerFixture }) => {
+    const rewardsStore = new RewardsStore(appManagerFixture.page);
     await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
   });
 
@@ -23,13 +23,13 @@ test.describe('rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.RE
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify the resend reward status when order date is more than 90 days old',
         zephyrTestId: 'RC-3267',
         storyId: 'RC-3267',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
       await rewardsStore.visitTheOrderHistory();
       await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
       await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.orderHistoryPanel.first());
@@ -52,13 +52,13 @@ test.describe('rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.RE
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate Resend reward dialogue on order history Resending',
         zephyrTestId: 'RC-3245',
         storyId: 'RC-3245',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
       await rewardsStore.visitTheOrderHistory();
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/order-history');
       await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
@@ -83,13 +83,13 @@ test.describe('rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.RE
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate order history resending using secondary email address',
         zephyrTestId: 'RC-3242',
         storyId: 'RC-3242',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
       await rewardsStore.loadPage();
       await rewardsStore.visitTheOrderHistory();
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/order-history');
@@ -115,14 +115,14 @@ test.describe('rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.RE
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description:
           'Validate(form validation) if both email address field contains same value on resend reward dialogue',
         zephyrTestId: 'RC-3244',
         storyId: 'RC-3244',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
       await rewardsStore.loadPage();
       await rewardsStore.visitTheOrderHistory();
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/order-history');

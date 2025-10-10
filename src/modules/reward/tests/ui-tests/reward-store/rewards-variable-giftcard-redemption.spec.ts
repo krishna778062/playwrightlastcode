@@ -1,14 +1,14 @@
+import { REWARD_FEATURE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { RewardsStore } from '@rewards/pages/reward-store/reward-store';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-import { REWARD_FEATURE_TAGS } from '@modules/reward/constants/testTags';
 
 test.describe('rewards Variable Gift Card Redemption', { tag: [REWARD_FEATURE_TAGS.REWARD_STORE] }, () => {
-  test.beforeEach(async ({ appManagerPage }) => {
-    const rewardsStore = new RewardsStore(appManagerPage);
+  test.beforeEach(async ({ appManagerFixture }) => {
+    const rewardsStore = new RewardsStore(appManagerFixture.page);
     await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
   });
 
@@ -17,13 +17,13 @@ test.describe('rewards Variable Gift Card Redemption', { tag: [REWARD_FEATURE_TA
     {
       tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate Variable amount gift card redemptions',
         zephyrTestId: 'RC-3227',
         storyId: 'RC-3227',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
       const giftCardName = 'Airbnb';
       let limits: number[] = [];
 

@@ -1,10 +1,10 @@
+import { REWARD_FEATURE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { ManageRewardsOverviewPage } from '@rewards/pages/manage-rewards/manage-rewards-overview-page';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-import { REWARD_FEATURE_TAGS } from '@modules/reward/constants/testTags';
-import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
 
 test.describe('enable Rewards flow', () => {
   test(
@@ -12,13 +12,13 @@ test.describe('enable Rewards flow', () => {
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.ENABLE_REWARD, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate Enable rewards flow',
         zephyrTestId: 'RC-3014',
         storyId: 'RC-3014',
       });
-      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerPage);
+      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsPage.loadPageWithHarness();
       await manageRewardsPage.verifyThePageIsLoaded();
 

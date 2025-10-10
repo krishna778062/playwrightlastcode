@@ -1,5 +1,10 @@
 import { expect } from '@playwright/test';
+import { DialogBox } from '@rewards/components/common/dialog-box';
+import { GiveRecognitionDialogBox } from '@rewards/components/recognition/give-recognition-dialog-box';
+import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { ManageRewardsOverviewPage } from '@rewards/pages/manage-rewards/manage-rewards-overview-page';
+import { RecognitionHubPage } from '@rewards/pages/recognition-hub/recognition-hub-page';
 import fs from 'fs';
 import path from 'path';
 
@@ -7,15 +12,10 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { CSVUtils } from '@core/utils/csvUtils';
 import { tagTest } from '@core/utils/testDecorator';
-import { DialogBox } from '@modules/reward/components/common/dialog-box';
-import { GiveRecognitionDialogBox } from '@modules/reward/components/recognition/give-recognition-dialog-box';
-import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
-import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
-import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recognition-hub-page';
 
 test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
-  test.beforeEach(async ({ appManagerPage }) => {
-    const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+  test.beforeEach(async ({ appManagerFixture }) => {
+    const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
     await manageRewardsOverviewPage.enableTheRewardsAndPeerGiftingIfDisabled();
   });
 
@@ -24,19 +24,19 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate Rewards Activity table if there is no activity',
         zephyrTestId: 'RC-3004',
         storyId: 'RC-3004',
       });
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
 
       // Abort the transactions API to simulate no activity
-      await appManagerPage.route('**/recognition/admin/rewards/transactions?**', async route => {
+      await appManagerFixture.page.route('**/recognition/admin/rewards/transactions?**', async route => {
         await route.abort(); // Simulates network interruption
       });
-      await appManagerPage.reload({ waitUntil: 'domcontentloaded' });
+      await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
 
       // Navigate to the Activity table
       await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
@@ -146,18 +146,18 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description:
           'Validate if Total count for entries in activity table matching number of entries, on reward overview page.',
         zephyrTestId: 'RC-3264',
         storyId: 'RC-3264',
       });
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       let items: any;
 
       // Navigate to the Activity table
-      const apiPromise = appManagerPage.waitForResponse(
+      const apiPromise = appManagerFixture.page.waitForResponse(
         resp => resp.url().includes('/recognition/admin/rewards/transactions') && resp.status() === 200
       );
 
@@ -197,7 +197,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeAttached();
         items = items - 10;
       }
-      await appManagerPage.waitForTimeout(5000);
+      await appManagerFixture.page.waitForTimeout(5000);
       const updatedCount = manageRewardsOverviewPage.activityPanelTableRows;
       await expect(updatedCount).toHaveCount(oldCount);
     }
@@ -208,14 +208,14 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate Pending Recognition activity in Rewards Activity table',
         zephyrTestId: 'RC-3421',
         storyId: 'RC-3421',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const rewardOptionIndex = 3;
       const existingOptions = await recognitionHub.visitRecognitionHub();
       if (existingOptions.length < 2) {
@@ -224,7 +224,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Visit the Recognition Hub and give one recognition
       await recognitionHub.clickOnGiveRecognition();
-      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       const rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
         0,
         1,
@@ -241,12 +241,12 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Validate the new Entry in the Downloaded CSV file
       const csvUtils = new CSVUtils('./downloads');
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsOverviewPage.loadPage();
 
       // Trigger and capture download
       const [download] = await Promise.all([
-        appManagerPage.waitForEvent('download'),
+        appManagerFixture.page.waitForEvent('download'),
         manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
           stepInfo: 'Clicking on Download CSV button',
         }),
@@ -263,16 +263,16 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate show more button on Points redeemed activity table',
         zephyrTestId: 'RC-5711',
         storyId: 'RC-5711',
       });
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
 
       // Navigate to the Activity table
-      const apiPromise = appManagerPage.waitForResponse(
+      const apiPromise = appManagerFixture.page.waitForResponse(
         resp => resp.url().includes('/recognition/admin/rewards/transactions') && resp.status() === 200
       );
 
@@ -317,13 +317,13 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate filter on Rewards activity table for points redeemed',
         zephyrTestId: 'RC-5712',
         storyId: 'RC-5712',
       });
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
         manageRewardsOverviewPage.activityContainer.last(),
         { timeout: 15000, stepInfo: 'Wait for activity container' }
@@ -338,7 +338,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
         manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()
       );
-      const apiPromise = appManagerPage.waitForResponse(
+      const apiPromise = appManagerFixture.page.waitForResponse(
         resp =>
           resp.url().includes('&category=REDEMPTION&size=10&skip=0&dir=desc&sort=createdAt') && resp.status() === 200
       );
@@ -352,7 +352,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         stepInfo: 'Clicking on 3M filter',
         force: true,
       });
-      const apiPromise3M = appManagerPage.waitForResponse(
+      const apiPromise3M = appManagerFixture.page.waitForResponse(
         resp =>
           resp.url().includes('&category=REDEMPTION&size=10&skip=0&dir=desc&sort=createdAt') && resp.status() === 200
       );
@@ -369,7 +369,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         stepInfo: 'Clicking on 12M filter',
         force: true,
       });
-      const apiPromise12M = appManagerPage.waitForResponse(
+      const apiPromise12M = appManagerFixture.page.waitForResponse(
         resp =>
           resp.url().includes('&category=REDEMPTION&size=10&skip=0&dir=desc&sort=createdAt') && resp.status() === 200
       );
@@ -443,13 +443,13 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       {
         tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0],
       },
-      async ({ appManagerPage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: testTitle,
           zephyrTestId: testId,
           storyId: testId,
         });
-        const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+        const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
         const csvUtils = new CSVUtils('./downloads');
         await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeAttached();
         if (testTitle.includes('points redeemed')) {
@@ -460,7 +460,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
           await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeAttached();
         }
         const [download] = await Promise.all([
-          appManagerPage.waitForEvent('download'),
+          appManagerFixture.page.waitForEvent('download'),
           manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
             stepInfo: 'Clicking on Download CSV button',
           }),
@@ -484,13 +484,13 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.REGRESSION, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate removal sorting of reward name from Activity table of Points Redeemed',
         zephyrTestId: 'RC-3563',
         storyId: 'RC-3563',
       });
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsOverviewPage.verifyThePageIsLoaded();
       await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
       await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
@@ -659,13 +659,13 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.REGRESSION, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate Rewards Overview Activity Table for points Given',
         zephyrTestId: 'RC-3031',
         storyId: 'RC-3031',
       });
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsOverviewPage.verifyThePageIsLoaded();
       await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
       await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
@@ -699,7 +699,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       while (await manageRewardsOverviewPage.verifier.isTheElementVisible(showMoreButton)) {
         // Intercept the next transaction API call
         const [response] = await Promise.all([
-          appManagerPage.waitForResponse(
+          appManagerFixture.page.waitForResponse(
             res => res.url().includes('/recognition/admin/rewards/transactions') && res.status() === 200
           ),
           showMoreButton.click(),
@@ -740,8 +740,8 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         stepInfo: 'Clicking on View Recognition link',
       });
       await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo(getTheRecognitionUrl || '');
-      await appManagerPage.locator('[data-testid="awardeeNames_"]').waitFor({ state: 'visible' });
-      const awardeeNames = await appManagerPage.locator('[data-testid="awardeeNames_"]').textContent();
+      await appManagerFixture.page.locator('[data-testid="awardeeNames_"]').waitFor({ state: 'visible' });
+      const awardeeNames = await appManagerFixture.page.locator('[data-testid="awardeeNames_"]').textContent();
       if (!awardeeNames?.includes(receiverName || '')) {
         throw new Error(`Expected awardee name to contain ${receiverName}, but got ${awardeeNames}`);
       }
@@ -753,7 +753,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P2],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description:
           'Validate Message, and URL column value in Points Given CSV when points are removed or the recognition post is deleted',
@@ -761,8 +761,8 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         storyId: 'RC-6080',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const recognizedUser = process.env.STANDARD_USER_FULL_NAME || 'aishma enduser';
 
       // Visit the Recognition Hub and give one recognition
@@ -772,7 +772,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       }
 
       await recognitionHub.clickOnGiveRecognition();
-      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(recognizedUser);
       await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
       const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
@@ -780,7 +780,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const rewardPointsText = await giveRecognitionModal.giftThePoints(1);
 
       const [response] = await Promise.all([
-        appManagerPage.waitForResponse(resp => resp.url().includes('/recognition/create')),
+        appManagerFixture.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
         giveRecognitionModal.recognizeButton.click({ force: true }),
       ]);
 
@@ -789,7 +789,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const recognitionPostId = String(body.id);
 
       // Handle dialog box if it appears
-      const dialogBox = new DialogBox(appManagerPage);
+      const dialogBox = new DialogBox(appManagerFixture.page);
       if (await dialogBox.container.isVisible()) {
         await dialogBox.container.waitFor({ state: 'visible' });
         await dialogBox.skipButton.click();
@@ -808,7 +808,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await manageRewardsOverviewPage.loadPage();
 
       const [download] = await Promise.all([
-        appManagerPage.waitForEvent('download'),
+        appManagerFixture.page.waitForEvent('download'),
         manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
           stepInfo: 'Clicking on Download CSV button',
         }),
@@ -838,7 +838,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       ).toBeTruthy();
 
       fs.unlinkSync(csvUtils.getLatestCSV());
-      await appManagerPage.goto(`${appURL}/recognition/recognition/${recognitionPostId}`);
+      await appManagerFixture.page.goto(`${appURL}/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
         rewardPointsText,
@@ -850,7 +850,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Validate the new Entry in the Downloaded CSV file after deletion
       const [downloadAfterDelete] = await Promise.all([
-        appManagerPage.waitForEvent('download'),
+        appManagerFixture.page.waitForEvent('download'),
         manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
           stepInfo: 'Clicking on Download CSV button after deletion',
         }),
@@ -869,7 +869,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       expect(validationResult.isMatch, `Expected "deleted" but got "${validationResult.actualValue}"`).toBeTruthy();
 
       fs.unlinkSync(csvUtils.getLatestCSV());
-      await appManagerPage.goto(`${appURL}/recognition/recognition/${recognitionPostId}`);
+      await appManagerFixture.page.goto(`${appURL}/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.validateTheRecognitionPostIsDeleted();
     }
   );
@@ -879,7 +879,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P2],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description:
           'Validate the Message and URL column value in the points given CSV for the Recognition with the points',
@@ -887,8 +887,8 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         storyId: 'RC-6082',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const recognizedUser = process.env.STANDARD_USER_FULL_NAME || 'aishma enduser';
 
       const existingOptions = await recognitionHub.visitRecognitionHub();
@@ -897,7 +897,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       }
 
       await recognitionHub.clickOnGiveRecognition();
-      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(recognizedUser);
       await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
       const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
@@ -905,7 +905,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const rewardPointsText = await giveRecognitionModal.giftThePoints(1);
 
       const [response] = await Promise.all([
-        appManagerPage.waitForResponse(resp => resp.url().includes('/recognition/create')),
+        appManagerFixture.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
         giveRecognitionModal.recognizeButton.click({ force: true }),
       ]);
 
@@ -914,7 +914,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const recognitionPostId = String(body.id);
 
       // Handle dialog box if it appears
-      const dialogBox = new DialogBox(appManagerPage);
+      const dialogBox = new DialogBox(appManagerFixture.page);
       if (await dialogBox.container.isVisible()) {
         await dialogBox.container.waitFor({ state: 'visible' });
         await dialogBox.skipButton.click();
@@ -933,7 +933,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await manageRewardsOverviewPage.loadPage();
 
       const [download] = await Promise.all([
-        appManagerPage.waitForEvent('download'),
+        appManagerFixture.page.waitForEvent('download'),
         manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
           stepInfo: 'Clicking on Download CSV button',
         }),
@@ -961,7 +961,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       ).toBeTruthy();
 
       fs.unlinkSync(csvUtils.getLatestCSV());
-      await appManagerPage.goto(`${appURL}/recognition/recognition/${recognitionPostId}`);
+      await appManagerFixture.page.goto(`${appURL}/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
         rewardPointsText,
@@ -976,14 +976,14 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P2],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate the Message and URL column value in the points given CSV for the Imported Data',
         zephyrTestId: 'RC-6099',
         storyId: 'RC-6099',
       });
 
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
 
       // Trigger the Reward Data Seeding
       await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
@@ -998,7 +998,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       );
 
       // Get tenant code from the page
-      const tenantCode = await appManagerPage.evaluate(() => {
+      const tenantCode = await appManagerFixture.page.evaluate(() => {
         return (window as any).Simpplr?.Settings?.accountId;
       });
 
@@ -1007,20 +1007,20 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       }
 
       // Execute database query to update allowance job record
-      const { getQuery } = await import('@modules/reward/utils/dbQuery');
-      const { executeQuery } = await import('@modules/reward/utils/dbUtils');
+      const { getQuery } = await import('@rewards/utils/dbQuery');
+      const { executeQuery } = await import('@rewards/utils/dbUtils');
 
       const resultAsSuccess = getQuery('setTheLatestCreatedDateFromAllowanceJobRecord');
       await executeQuery(resultAsSuccess.replace(/tenantCode/g, tenantCode));
 
       // Navigate to distribute allowances page
-      await appManagerPage.goto('/manage/recognition/seed');
-      await appManagerPage.waitForTimeout(15000);
+      await appManagerFixture.page.goto('/manage/recognition/seed');
+      await appManagerFixture.page.waitForTimeout(15000);
 
       // Validate the new Entry in the Downloaded CSV file
       const csvUtils = new CSVUtils('./downloads');
       await manageRewardsOverviewPage.loadPage();
-      await appManagerPage.reload();
+      await appManagerFixture.page.reload();
 
       await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
         manageRewardsOverviewPage.activityContainer.last(),
@@ -1035,7 +1035,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       });
 
       const [download] = await Promise.all([
-        appManagerPage.waitForEvent('download'),
+        appManagerFixture.page.waitForEvent('download'),
         manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
           stepInfo: 'Clicking on Download CSV button',
         }),

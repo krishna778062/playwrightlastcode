@@ -1,11 +1,11 @@
 import { expect, Locator, Page, Response, test } from '@playwright/test';
 import path from 'path';
 
-import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
-import { TIMEOUTS } from '@core/constants/timeouts';
-import { BasePage } from '@core/pages/basePage';
-import { CSVUtils } from '@core/utils/csvUtils';
-import { RewardsPeerGifting } from '@modules/reward/components/manage-rewards/rewards-peer-gifting';
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
+import { BasePage } from '@/src/core/ui/pages/basePage';
+import { CSVUtils } from '@/src/core/utils/csvUtils';
+import { RewardsPeerGifting } from '@/src/modules/reward/components/manage-rewards/rewards-peer-gifting';
 
 export class ManageRewardsOverviewPage extends BasePage {
   // Components
@@ -434,7 +434,7 @@ export class ManageRewardsOverviewPage extends BasePage {
         await expect(this.viewRecognitionDropdownText).toHaveText('View recognition');
         await this.viewRecognitionDropdownLink.click();
         // Import RecognitionHubPage dynamically to avoid circular dependencies
-        const { RecognitionHubPage } = await import('@modules/reward/pages/recognition-hub/recognition-hub-page');
+        const { RecognitionHubPage } = await import('@/src/modules/reward/pages/recognition-hub/recognition-hub-page');
         const recognitionHub = new RecognitionHubPage(this.page);
         await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'visible', timeout: 25000 });
         break;
@@ -533,7 +533,7 @@ export class ManageRewardsOverviewPage extends BasePage {
    */
   async redeemGiftCardAndValidateActivityTable(giftCardName: string): Promise<void> {
     // Import RewardsStore to access its methods
-    const { RewardsStore } = await import('@modules/reward/pages/reward-store/reward-store');
+    const { RewardsStore } = await import('@/src/modules/reward/pages/reward-store/reward-store');
     const rewardsStore = new RewardsStore(this.page);
 
     // Navigate to rewards store and validate

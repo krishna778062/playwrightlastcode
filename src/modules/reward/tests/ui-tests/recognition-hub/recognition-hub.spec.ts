@@ -1,5 +1,10 @@
 import { expect } from '@playwright/test';
+import { DialogBox } from '@rewards/components/common/dialog-box';
+import { GiveRecognitionDialogBox } from '@rewards/components/recognition/give-recognition-dialog-box';
+import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { ManageRewardsOverviewPage } from '@rewards/pages/manage-rewards/manage-rewards-overview-page';
+import { RecognitionHubPage } from '@rewards/pages/recognition-hub/recognition-hub-page';
 import { getQuery } from '@rewards/utils/dbQuery';
 import { executeQuery } from '@rewards/utils/dbUtils';
 
@@ -7,21 +12,16 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { tagTest } from '@core/utils/testDecorator';
-import { DialogBox } from '@modules/reward/components/common/dialog-box';
-import { GiveRecognitionDialogBox } from '@modules/reward/components/recognition/give-recognition-dialog-box';
-import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
-import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
-import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recognition-hub-page';
 
 test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
   let tenantCode: string;
 
-  test.beforeEach(async ({ appManagerPage }) => {
-    const recognitionHub = new RecognitionHubPage(appManagerPage);
+  test.beforeEach(async ({ appManagerFixture }) => {
+    const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
     await recognitionHub.enableTheRewardsAndPeerGiftingForHubIfDisabled();
 
     // Get tenant code
-    tenantCode = await appManagerPage.evaluate(() => {
+    tenantCode = await appManagerFixture.page.evaluate(() => {
       return (window as any).Simpplr?.Settings?.accountId;
     });
   });
@@ -31,14 +31,14 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
     {
       tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate adding the points pill to the recognition post',
         zephyrTestId: 'RC-2717',
         storyId: 'RC-2717',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const rewardOptionIndex = 3;
 
       // Visit the Recognition Hub and give one recognition
@@ -47,7 +47,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         await recognitionHub.setupTheMultipleGiftingOptions();
       }
       await recognitionHub.clickOnGiveRecognition();
-      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       const rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
         0,
         process.env.STANDARD_USER_FULL_NAME,
@@ -64,8 +64,8 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       );
 
       // Login with the standard user and check the recognition post with points
-      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
-      await LoginHelper.loginWithPassword(appManagerPage, {
+      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
+      await LoginHelper.loginWithPassword(appManagerFixture.page, {
         email: process.env.STANDARD_USER_USERNAME!,
         password: process.env.STANDARD_USER_PASSWORD!,
       });
@@ -77,8 +77,8 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       );
 
       // Login with the recognition user and check the recognition post with points
-      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
-      await LoginHelper.loginWithPassword(appManagerPage, {
+      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
+      await LoginHelper.loginWithPassword(appManagerFixture.page, {
         email: process.env.RECOGNITION_USER_USERNAME!,
         password: process.env.RECOGNITION_USER_PASSWORD!,
       });
@@ -97,17 +97,17 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, TestPriority.P2],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description:
           'Validate if "gift points" toggle button is disabled on recognition modal when Allowances are refreshing',
         zephyrTestId: 'RC-3327',
         storyId: 'RC-3327',
       });
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
       await executeQuery(resultAsFailed.replace('tenantCode', tenantCode));
-      await appManagerPage.reload();
+      await appManagerFixture.page.reload();
       await recognitionHub.visitRecognitionHub();
       await recognitionHub.clickOnGiveRecognition();
       await recognitionHub.checkTheGiftingOptionsAre(false);
@@ -121,14 +121,14 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, TestPriority.P2],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: "Verify if user's point(points to give) balance is 0 when allowances are refreshing",
         zephyrTestId: 'RC-3328',
         storyId: 'RC-3328',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
 
       // Enable the distribution using DB
       const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
@@ -151,21 +151,21 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, TestPriority.P2],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify the Gift points toggle button is disabled when Allowances are refreshing.',
         zephyrTestId: 'RC-3417',
         storyId: 'RC-3417',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
 
       // Enable the distribution using DB
       const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
       await executeQuery(resultAsFailed.replace('tenantCode', tenantCode));
 
       // Mock the Reward config API and enable the Distributing allowance
-      await appManagerPage.reload();
+      await appManagerFixture.page.reload();
       await recognitionHub.visitRecognitionHub();
 
       // Click on Give recognition button
@@ -185,7 +185,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, TestPriority.P2],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description:
           'Validate if user is able to Delete recognition with points rollback when Allowances are refreshing',
@@ -193,7 +193,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         storyId: 'RC-3326',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const recognizedUser = process.env.ZEUS_STANDARD_FULLNAME;
 
       // Disable the distribution
@@ -206,14 +206,14 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         await recognitionHub.setupTheMultipleGiftingOptions();
       }
       await recognitionHub.clickOnGiveRecognition();
-      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(recognizedUser);
       await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
       await giveRecognitionModal.enterTheRecognitionMessage('Test Message' + Math.floor(Math.random() * 1000));
       await giveRecognitionModal.giftThePoints(1);
       await giveRecognitionModal.recognizeButton.click({ force: true });
 
-      const shareModal = new DialogBox(appManagerPage);
+      const shareModal = new DialogBox(appManagerFixture.page);
       if (await shareModal.container.isVisible()) {
         await shareModal.skipButton.click();
         await expect(shareModal.container).not.toBeVisible();
@@ -224,7 +224,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       await executeQuery(resultAsFailed.replace('tenantCode', tenantCode));
 
       // Validate the Delete recognition can not roll back the points
-      await appManagerPage.reload();
+      await appManagerFixture.page.reload();
       await recognitionHub.visitRecognitionHub();
       await recognitionHub.clickOnTheFirstPostMoreOption('Delete');
 
@@ -250,15 +250,15 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate rewards points are not shown on posts when rewards is disabled.',
         zephyrTestId: 'RC-3099',
         storyId: 'RC-3099',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
-      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const rewardOptionIndex = 3;
 
       // Visit the Recognition Hub and give one recognition
@@ -267,7 +267,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         await recognitionHub.setupTheMultipleGiftingOptions();
       }
       await recognitionHub.clickOnGiveRecognition();
-      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       const rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
         0,
         process.env.ZEUS_RECOGNITION_FULLNAME,
@@ -313,7 +313,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestGroupType.REGRESSION, TestPriority.P0],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description:
           'Validate Points refreshing banner should not be shown on the delete recognition modal if grace period is over',
@@ -321,9 +321,9 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         storyId: 'RC-3223',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerPage);
-      await appManagerPage.waitForTimeout(5000);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      await appManagerFixture.page.waitForTimeout(5000);
       const recognitionGiverName: string = process.env[`APP_MANAGER_FULL_NAME`]!;
       await manageRewardsOverviewPage.loadPage();
       await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();
@@ -349,14 +349,14 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         await recognitionHub.setupTheMultipleGiftingOptions();
       }
       await recognitionHub.clickOnGiveRecognition();
-      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(recognizedUser);
       await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
       await giveRecognitionModal.enterTheRecognitionMessage('Test Message' + Math.floor(Math.random() * 1000));
       const rewardPointsTextNew = await giveRecognitionModal.giftThePoints(1);
       await giveRecognitionModal.recognizeButton.click({ force: true });
 
-      const dialogBox = new DialogBox(appManagerPage);
+      const dialogBox = new DialogBox(appManagerFixture.page);
       if (await dialogBox.container.isVisible()) {
         await dialogBox.skipButton.click();
         await expect(dialogBox.container).not.toBeVisible();

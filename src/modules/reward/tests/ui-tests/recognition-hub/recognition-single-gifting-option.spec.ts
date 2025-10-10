@@ -1,15 +1,15 @@
 import { expect } from '@playwright/test';
+import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { RecognitionHubPage } from '@rewards/pages/recognition-hub/recognition-hub-page';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
-import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recognition-hub-page';
 
 test.describe('single Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
-  test.beforeEach(async ({ appManagerPage }) => {
-    const recognitionHub = new RecognitionHubPage(appManagerPage);
+  test.beforeEach(async ({ appManagerFixture }) => {
+    const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
     await recognitionHub.enableTheRewardsAndPeerGiftingForHubIfDisabled();
   });
 
@@ -23,14 +23,14 @@ test.describe('single Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HU
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify for single gifting option and multiple recipients',
         zephyrTestId: 'RC-2837',
         storyId: 'RC-2837',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const userCount = 3;
       await recognitionHub.visitRecognitionHub();
       await recognitionHub.verifyThePageIsLoaded();
@@ -58,13 +58,13 @@ test.describe('single Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HU
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate single gifting option/value',
         zephyrTestId: 'RC-2720',
         storyId: 'RC-2720',
       });
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const userCount = 3;
       await recognitionHub.visitRecognitionHub();
       await recognitionHub.verifyThePageIsLoaded();
