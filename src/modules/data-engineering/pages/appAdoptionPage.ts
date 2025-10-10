@@ -1,6 +1,6 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { BasePage } from '@/src/core/pages/basePage';
+import { BasePage } from '@/src/core/ui/pages/basePage';
 import { AnalyticsFiltersComponent } from '@/src/modules/data-engineering/components/analyticsFiltersComponent';
 import { AnalyticsLandingPage } from '@/src/modules/data-engineering/pages/analyticsLandingPage';
 
