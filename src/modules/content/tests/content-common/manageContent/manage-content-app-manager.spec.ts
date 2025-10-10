@@ -1,18 +1,18 @@
-import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { ManageFeaturesPage } from '@content/ui/pages/manageFeaturesPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
+import { NewHomePage } from '@/src/core';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { ApplicationScreenPage } from '@/src/modules/content/pages/applicationscreenPage';
-import { FeedPage } from '@/src/modules/content/pages/feedPage';
-import { HomeFeedPage } from '@/src/modules/content/pages/manageApplicationDefaultHomeFeedPage';
-import { DefaultScreenPage } from '@/src/modules/content/pages/manageApplicationDefaultScreenPage';
-import { ManageApplicationPage } from '@/src/modules/content/pages/manageApplicationPage';
-import { ManageContentPage } from '@/src/modules/content/pages/manageContentPage';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
+import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationscreenPage';
+import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { HomeFeedPage } from '@/src/modules/content/ui/pages/manageApplicationDefaultHomeFeedPage';
+import { DefaultScreenPage } from '@/src/modules/content/ui/pages/manageApplicationDefaultScreenPage';
+import { ManageApplicationPage } from '@/src/modules/content/ui/pages/manageApplicationPage';
+import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
@@ -21,34 +21,30 @@ test.describe(
     tag: [ContentSuiteTags.MANAGE_CONTENT],
   },
   () => {
-    let manageFeaturesPage: ApplicationScreenPage;
+    let manageFeaturesPage: ManageFeaturesPage;
     let manageContentPage: ManageContentPage;
-    let homePage: NewUxHomePage;
+    let homePage: NewHomePage;
     let applicationScreenPage: ApplicationScreenPage;
     let manageApplicationPage: ManageApplicationPage;
     let defaultScreenPage: DefaultScreenPage;
     let homeFeedPage: HomeFeedPage;
 
-    test.beforeEach(async ({ appManagerHomePage }) => {
-      await appManagerHomePage.verifyThePageIsLoaded();
-      manageFeaturesPage = new ApplicationScreenPage(appManagerHomePage.page);
-      manageContentPage = new ManageContentPage(appManagerHomePage.page);
-      homePage = new NewUxHomePage(appManagerHomePage.page);
-      applicationScreenPage = new ApplicationScreenPage(appManagerHomePage.page);
-      manageApplicationPage = new ManageApplicationPage(appManagerHomePage.page);
-      defaultScreenPage = new DefaultScreenPage(appManagerHomePage.page);
-      homeFeedPage = new HomeFeedPage(appManagerHomePage.page);
+    test.beforeEach(async ({ appManagerFixture }) => {
+      await appManagerFixture.homePage.verifyThePageIsLoaded();
+      manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
+      manageContentPage = new ManageContentPage(appManagerFixture.page);
+      applicationScreenPage = new ApplicationScreenPage(appManagerFixture.page);
+      manageApplicationPage = new ManageApplicationPage(appManagerFixture.page);
+      defaultScreenPage = new DefaultScreenPage(appManagerFixture.page);
+      homeFeedPage = new HomeFeedPage(appManagerFixture.page);
     });
 
-    test.afterEach(async ({ page }) => {
-      await page.close();
-    });
     test(
-      'Verify "Nothing to show here" should come when user searches non-existing content and on clicking x all results should come based on relevant filters',
+      'verify "Nothing to show here" should come when user searches non-existing content and on clicking x all results should come based on relevant filters',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async () => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify "Nothing to show here" message appears when searching non-existing content and clicking X restores filtered results',
@@ -58,7 +54,8 @@ test.describe(
         });
 
         const title = MANAGE_CONTENT_TEST_DATA.TITLE;
-        await homePage.actions.clickOnManageFeature();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.writeRandomTextInSearchBar(title);
         await manageContentPage.actions.clickSearchIcon();
@@ -69,11 +66,11 @@ test.describe(
     );
 
     test(
-      'Verify Bulk actions Functionality in My Content Screen',
+      'verify Bulk actions Functionality in My Content Screen',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ siteManagementHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify bulk actions functionality including publish, unpublish, move, delete, and validate operations in My Content Screen',
@@ -81,7 +78,8 @@ test.describe(
           zephyrTestId: 'CONT-20952',
           storyId: 'CONT-20952',
         });
-        await homePage.actions.clickOnManageFeature();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickOnFirstContentButton();
         await manageContentPage.actions.clickOnSelectActionDropdown();
@@ -93,7 +91,7 @@ test.describe(
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnMoveButton();
         await manageContentPage.actions.selectMoveApplyButton();
-        const site = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
+        const site = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
         await manageContentPage.actions.moveContentSearchBar(site?.name || '');
         await manageContentPage.actions.siteListSelecting();
         await manageContentPage.actions.selectPageCategoryIfVisible();
@@ -110,18 +108,19 @@ test.describe(
     );
 
     test(
-      'Verify content publish and unpublish option in My Content Screen',
+      'verify content publish and unpublish option in My Content Screen',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async () => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify content publish and unpublish options are available and functional in My Content Screen',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20951',
           storyId: 'CONT-20951',
         });
-        await homePage.actions.clickOnManageFeature();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.addPublishContentFilter();
         await manageContentPage.actions.clickOnFirstDropDownOption();
@@ -130,18 +129,18 @@ test.describe(
     );
 
     test(
-      'Verify Delete Modal Cancel and Delete Button of Content from My Content Screen',
+      'verify Delete Modal Cancel and Delete Button of Content from My Content Screen',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async () => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify delete modal functionality with cancel and delete button operations for content removal',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20946',
           storyId: 'CONT-20946',
         });
-        await homePage.actions.clickOnManageFeature();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.addPublishContentFilter();
         await manageContentPage.actions.clickOnFirstDropDownOption();
@@ -151,11 +150,11 @@ test.describe(
     );
 
     test(
-      'Verification of various aspects of My Content screen',
+      'verification of various aspects of My Content screen',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async () => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify various UI elements including image container, author name, site name, and status stamps in My Content screen ',
@@ -163,7 +162,8 @@ test.describe(
           zephyrTestId: 'CONT-20945',
           storyId: 'CONT-20945',
         });
-        await homePage.actions.clickOnManageFeature();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.assertions.verifyImageContainer();
         await manageContentPage.assertions.authorNameShouldBeVisible();
@@ -177,25 +177,26 @@ test.describe(
     );
 
     test(
-      'Verify Site Filter in My Content screen',
+      'verify Site Filter in My Content screen',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async ({ siteManagementHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify site filter functionality and search capabilities in My Content screen',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20944',
           storyId: 'CONT-20944',
         });
-        await homePage.actions.clickOnManageFeature();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
-        const publicSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const publicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
         let publicNewOneSite = publicSite;
         if (publicSite === null) {
-          await siteManagementHelper.createSite({ accessType: SITE_TYPES.PUBLIC });
-          publicNewOneSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+          await appManagerFixture.siteManagementHelper.createSite({ accessType: SITE_TYPES.PUBLIC });
+          publicNewOneSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
         }
         await manageContentPage.actions.clickSiteSearchBar(publicSite?.name || publicNewOneSite?.name || '');
         await manageContentPage.actions.selectSiteSearchBarOption();
@@ -204,36 +205,37 @@ test.describe(
     );
 
     test(
-      'Verify created Newest Filter in My Content screen',
+      'verify created Newest Filter in My Content screen',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
-      async () => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify created Newest sorting filter functionality in My Contents screen',
           customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20943',
           storyId: 'CONT-20943',
         });
-        await homePage.actions.clickOnManageFeature();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectCreatedNewestOption();
       }
     );
     test(
-      'In Zeus Verify Default filters (Posts I follow and Recent Activity) are applied for Home Feed for New users',
+      'in Zeus Verify Default filters (Posts I follow and Recent Activity) are applied for Home Feed for New users',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.HOME_FEED],
       },
-      async ({ standardUserHomePage }) => {
+      async ({ standardUserFixture }) => {
         tagTest(test.info(), {
           description:
             'In Zeus Verify Default filters (Posts I follow and Recent Activity) are applied for Home Feed for New users',
           zephyrTestId: 'CONT-29493',
           storyId: 'CONT-29493',
         });
-        await homePage.actions.clickOnApplicationSettings();
+        await standardUserFixture.navigationHelper.openApplicationSettings();
         await applicationScreenPage.actions.clickOnApplication();
         await manageApplicationPage.actions.clickOnDefaults();
         await defaultScreenPage.actions.clickOnHomeFeed();
@@ -242,8 +244,8 @@ test.describe(
 
         // Verify with standard user in parallel browser context
         await test.step('Verify home feed defaults for standard user', async () => {
-          await standardUserHomePage.verifyThePageIsLoaded();
-          const standardUserFeedPage = new FeedPage(standardUserHomePage.page);
+          await standardUserFixture.homePage.verifyThePageIsLoaded();
+          const standardUserFeedPage = new FeedPage(standardUserFixture.page);
           console.log('Successfully logged in as standard user');
           console.log('Verifying home feed defaults are applied for standard user');
           await standardUserFeedPage.assertions.verifyPostsIFollow();

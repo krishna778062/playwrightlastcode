@@ -1,16 +1,15 @@
-import { BrowserContext, Page, test } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
-import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
-
-import { ApiClientFactory } from '../../../core/api/factories/apiClientFactory';
-import { Roles } from '../../../core/constants/roles';
-import { getEnvConfig } from '../../../core/utils/getEnvConfig';
-import { TestDataGenerator } from '../../../core/utils/testDataGenerator';
 import { MultiUserChatTestHelper } from '../helpers/multiUserChatTestHelper';
 import { ChatGroupTestDataBuilder } from '../test-data-builders/ChatGroupTestDataBuilder';
 import { ChatTestUser } from '../types/chat-test.type';
 
+import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
+import { Roles } from '@/src/core/constants/roles';
 import { BrowserFactory } from '@/src/core/utils/browserFactory';
+import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
+import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { UserManagementService } from '@/src/modules/platforms/apis/services/UserManagementService';
 
 /**
  * This fixture should be used for tests that are related to group chats
@@ -29,37 +28,39 @@ export const groupChatTestFixture = test.extend<
     user2Page: Page;
   },
   {
-    appManagerApiClient: AppManagerApiClient;
+    appManagerApiContext: APIRequestContext;
+    userManagementService: UserManagementService;
     endUsersForChat: ChatTestUser[];
     loggedInContexts: { [key: string]: BrowserContext };
   }
 >({
-  appManagerApiClient: [
-    async ({}, use, workerInfo) => {
-      console.log(`INFO: Setting up app manager client for worker => `, workerInfo.workerIndex);
-      const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-        type: 'credentials',
-        credentials: {
-          username: getEnvConfig().appManagerEmail,
-          password: getEnvConfig().appManagerPassword,
-        },
-        baseUrl: getEnvConfig().apiBaseUrl,
+  appManagerApiContext: [
+    async ({}, use) => {
+      const appManagerApiContext = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
+        email: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
       });
-      await use(appManagerApiClient);
+      await use(appManagerApiContext);
+      await appManagerApiContext.dispose();
+    },
+    { scope: 'worker' },
+  ],
+  userManagementService: [
+    async ({ appManagerApiContext }, use) => {
+      const userManagementService = new UserManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
+      await use(userManagementService);
     },
     { scope: 'worker' },
   ],
   endUsersForChat: [
-    async ({ appManagerApiClient }, use) => {
-      const chatGroupTestDataBuilder = new ChatGroupTestDataBuilder(appManagerApiClient);
+    async ({ appManagerApiContext, userManagementService }, use) => {
+      const chatGroupTestDataBuilder = new ChatGroupTestDataBuilder(appManagerApiContext, getEnvConfig().apiBaseUrl);
       const userBuilder = chatGroupTestDataBuilder.getUserBuilder();
       const endUsers = await userBuilder.addUsersToSystem(2, Roles.END_USER, 'Simpplr@2025');
       const usersWithChatIds: ChatTestUser[] = await Promise.all(
         endUsers.map(async user => ({
           ...user,
-          chatUserId: await appManagerApiClient
-            .getUserManagementService()
-            .getChatUserId(user.first_name, user.last_name),
+          chatUserId: await userManagementService.getChatUserId(user.first_name, user.last_name),
         }))
       );
       await use(usersWithChatIds);
@@ -77,8 +78,8 @@ export const groupChatTestFixture = test.extend<
     { scope: 'worker' },
   ],
   groupName: [
-    async ({ appManagerApiClient, endUsersForChat }, use) => {
-      const chatGroupTestDataBuilder = new ChatGroupTestDataBuilder(appManagerApiClient);
+    async ({ appManagerApiContext, endUsersForChat }, use) => {
+      const chatGroupTestDataBuilder = new ChatGroupTestDataBuilder(appManagerApiContext, getEnvConfig().apiBaseUrl);
       const groupName = TestDataGenerator.generateGroupName();
       const chatTestUserIds = endUsersForChat.map(user => user.chatUserId);
       const group = await chatGroupTestDataBuilder.createChatGroup(groupName, chatTestUserIds, {

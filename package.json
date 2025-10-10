@@ -21,6 +21,7 @@
     "test:global-search:smoke": "cross-env MODULE_NAME=global-search npx playwright test --config=src/modules/global-search/playwright.global-search.config.ts --grep=@smoke",
     "test:frontline": "cross-env MODULE_NAME=frontline npx playwright test --config=src/modules/frontline/playwright.frontline.config.ts",
     "test:content": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts",
+    "test:content-settings": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content-settings.config.ts",
     "test:content:P0": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts --grep=@P0",
     "test:content:smoke": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts --grep=@smoke",
     "test:content-abac": "cross-env MODULE_NAME=content-abac npx playwright test --config=src/modules/content-abac/playwright.content-abac.config.ts",
@@ -85,12 +86,15 @@
     "crypto": "^1.0.1",
     "date-fns": "^4.1.0",
     "dotenv": "^16.6.1",
+    "eslint-plugin-playwright": "^2.2.2",
+    "eslint-plugin-unused-imports": "^4.2.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "nanoid": "^5.1.5",
     "pg": "^8.16.3",
     "playwright": "^1.55.1",
-    "snowflake-sdk": "^2.1.3"
+    "snowflake-sdk": "^2.1.3",
+    "winston": "^3.18.3"
   },
   "lint-staged": {
     "*.{ts,js}": [

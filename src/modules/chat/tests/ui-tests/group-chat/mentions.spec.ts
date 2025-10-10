@@ -1,12 +1,12 @@
-import { expect, Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 import { CHAT_SUITE_TAGS } from '@chat/constants/testTags';
 import { groupChatTestFixture as test } from '@chat/fixtures/groupChatFixture';
 import { ChatTestUser } from '@chat/types/chat-test.type';
 
-import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
+import { ChatAppPage } from '@/src/modules/chat/ui/pages/chatPage/chatPage';
 
-test.describe('Group Chat Mentions', { tag: [CHAT_SUITE_TAGS.GROUP_CHAT] }, () => {
+test.describe('group Chat Mentions', { tag: [CHAT_SUITE_TAGS.GROUP_CHAT] }, () => {
   let user1: ChatTestUser;
   let user2: ChatTestUser;
   let user1ChatPage: ChatAppPage;

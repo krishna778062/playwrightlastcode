@@ -29,7 +29,8 @@ test.describe(
 
     let createdTileTitle: string | undefined = undefined;
 
-    test.afterEach(async ({ tileManagementHelper, homeDashboard }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
+      const { tileManagementHelper, homeDashboard } = appManagerFixture;
       if (createdTileTitle) {
         await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
@@ -42,7 +43,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23138',
           storyId: 'INT-22854',
@@ -69,7 +71,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-21575',
           storyId: 'INT-22854',
@@ -79,7 +82,7 @@ test.describe(
         createdTileTitle = `Display Time Off Balance ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -102,7 +105,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, homeDashboard, siteManagementHelper } = appManagerFixture;
         void homeDashboard;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23137',
@@ -113,7 +117,7 @@ test.describe(
         createdTileTitle = `Apply for Time Off ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -136,7 +140,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-21608',
           storyId: 'INT-22854',
@@ -157,7 +162,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23138',
           storyId: 'INT-22854',
@@ -183,7 +189,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper, appManagerPage }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23143',
           storyId: 'INT-22854',
@@ -199,7 +206,7 @@ test.describe(
           CONNECTOR_IDS.BAMBOOHR
         );
         await homeDashboard.isTilePresent(createdTileTitle);
-        const leaveForm = new TimeOffRequestTileComponent(appManagerPage);
+        const leaveForm = new TimeOffRequestTileComponent(appManagerFixture.page);
         const workingDays = 2;
 
         // Verify all required fields are present
@@ -224,7 +231,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient, appManagerPage }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, homeDashboard, siteManagementHelper } = appManagerFixture;
         void homeDashboard;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23132',
@@ -236,14 +244,14 @@ test.describe(
         const comments = faker.lorem.sentence();
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         // Add, edit, and remove tile
         await siteDashboard.addTile(createdTileTitle, AppName, ApplyForTimeOff, UI_ACTIONS.ADD_TO_SITE);
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
-        const leaveForm = new TimeOffRequestTileComponent(appManagerPage);
+        const leaveForm = new TimeOffRequestTileComponent(appManagerFixture.page);
         const workingDays = 2;
 
         // Verify all required fields are present
@@ -271,7 +279,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, homeDashboard, siteManagementHelper } = appManagerFixture;
         void homeDashboard;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23139',
@@ -282,7 +291,7 @@ test.describe(
         createdTileTitle = `Display Time Off Balance ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -305,7 +314,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, homeDashboard, siteManagementHelper } = appManagerFixture;
         void homeDashboard;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23131',
@@ -316,7 +326,7 @@ test.describe(
         createdTileTitle = `Display Time Off Balance ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -335,7 +345,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper, appManagerPage }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23140',
           storyId: 'INT-22854',
@@ -350,7 +361,7 @@ test.describe(
           CONNECTOR_IDS.BAMBOOHR
         );
         await homeDashboard.isTilePresent(createdTileTitle);
-        const leaveForm = new TimeOffRequestTileComponent(appManagerPage);
+        const leaveForm = new TimeOffRequestTileComponent(appManagerFixture.page);
         const workingDays = 3;
 
         // Verify all required fields are present
