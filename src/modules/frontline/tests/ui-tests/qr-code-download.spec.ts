@@ -41,30 +41,30 @@ test.describe(
           storyId: 'FL-434',
         });
 
-        //const qrName = TestDataGenerator.generateQRName('Content QR');
+        const qrName = TestDataGenerator.generateQRName('Content QR');
         const manageQRPage = new ManageQRPage(endUserHomePage.page);
 
-        // await manageQRPage.openContent();
-        // await manageQRPage.clickOnQRIcon();
-        // await manageQRPage.verifyPromoteContentPageHeading();
-        // await manageQRPage.fillQRName(qrName);
-        // await manageQRPage.verifySaveAndVisitDashboardButtonIsNotVisible();
-        // await manageQRPage.verifyDownloadQRButtonIsVisible();
-        // await manageQRPage.clickOnDownloadQRButton();
-        // await manageQRPage.verifyDownloadOptionsAreVisible();
-        // const qrImagePath = await manageQRPage.downloadQRImage();
-        // downloadedFiles.push(qrImagePath);
-        // await manageQRPage.verifyPromoteContentModalIsClosed();
-        // const qrContent = await manageQRPage.scanQRCode(qrImagePath);
-        // const newPage = await manageQRPage.openScannedQRCodeLinkInNewTab(qrContent);
-        // await manageQRPage.verifyContentPageIsOpenedSuccessfully(newPage);
-        // await manageQRPage.clickOnQRIcon();
-        // await manageQRPage.verifyPromoteContentPageHeading();
-        // await manageQRPage.verifyQRNameFieldIsPrefilled(qrName);
-        // await manageQRPage.clickOnDownloadQRButton();
-        // const pdfPath = await manageQRPage.downloadPDF();
-        // downloadedFiles.push(pdfPath);
-        // await manageQRPage.verifyPromoteContentModalIsClosed();
+        await manageQRPage.openContent();
+        await manageQRPage.clickOnQRIcon();
+        await manageQRPage.verifyPromoteContentPageHeading();
+        await manageQRPage.fillQRName(qrName);
+        await manageQRPage.verifySaveAndVisitDashboardButtonIsNotVisible();
+        await manageQRPage.verifyDownloadQRButtonIsVisible();
+        await manageQRPage.clickOnDownloadQRButton();
+        await manageQRPage.verifyDownloadOptionsAreVisible();
+        const qrImagePath = await manageQRPage.downloadQRImage();
+        downloadedFiles.push(qrImagePath);
+        await manageQRPage.verifyPromoteContentModalIsClosed();
+        const qrContent = await manageQRPage.scanQRCode(qrImagePath);
+        const newPage = await manageQRPage.openScannedQRCodeLinkInNewTab(qrContent);
+        await manageQRPage.verifyContentPageIsOpenedSuccessfully(newPage);
+        await manageQRPage.clickOnQRIcon();
+        await manageQRPage.verifyPromoteContentPageHeading();
+        await manageQRPage.verifyQRNameFieldIsPrefilled(qrName);
+        await manageQRPage.clickOnDownloadQRButton();
+        const pdfPath = await manageQRPage.downloadPDF();
+        downloadedFiles.push(pdfPath);
+        await manageQRPage.verifyPromoteContentModalIsClosed();
       }
     );
   }
