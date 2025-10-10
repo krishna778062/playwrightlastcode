@@ -20,6 +20,8 @@ export class ManageSitesComponent extends BaseComponent {
   readonly clickOnPeppleTab: Locator;
   readonly clickOnTheMemberButtonInAboutTab: Locator;
   readonly clickOnAlreadyStarIcon: Locator;
+  readonly clickOnTheMemberButton: Locator;
+  readonly clickOnLeaveButton: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -41,6 +43,8 @@ export class ManageSitesComponent extends BaseComponent {
 
     this.clickOnPeppleTab = page.getByRole('tab', { name: 'People' });
     this.clickOnTheMemberButtonInAboutTab = page.locator(`[role="tab"][id="member"]`);
+    this.clickOnTheMemberButton = page.getByRole('button', { name: 'Member' });
+    this.clickOnLeaveButton = page.getByRole('button', { name: 'Leave' });
   }
 
   getAuthorNameByLabel(authorName: string): Locator {

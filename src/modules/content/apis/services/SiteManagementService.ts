@@ -269,6 +269,28 @@ export class SiteManagementService implements ISiteManagementOperations {
     });
   }
 
+  async getSiteAsMembers(options: { size?: number; sortBy?: string } = {}): Promise<SiteListResponse> {
+    return await test.step('Getting list of sites via API', async () => {
+      const defaultOptions = {
+        filter: 'member',
+        size: options.size || 16,
+        sortBy: options.sortBy || 'alphabetical',
+      };
+
+      const response = await this.post(API_ENDPOINTS.site.listOfSites, {
+        data: defaultOptions,
+      });
+
+      const json = await response.json();
+
+      if (json.status !== 'success') {
+        throw new Error(`Failed to get sites list. Status: ${json.status}`);
+      }
+
+      return json;
+    });
+  }
+
   /**
    * Unfeatures a site (removes it from featured sites)
    * @param siteId - The ID of the site to unfeature
@@ -290,6 +312,21 @@ export class SiteManagementService implements ISiteManagementOperations {
 
       console.log(`Successfully unfeatured site: ${siteId}`);
       return json;
+    });
+  }
+
+  async addPersonInSite(siteId: string, userId: string): Promise<any> {
+    return await test.step(`Adding person ${userId} in site ${siteId}`, async () => {
+      const payload = {
+        userId: userId,
+        action: 'addPeople',
+        permission: 'member',
+      };
+      const response = await this.post(API_ENDPOINTS.site.addPersonInSite(siteId), {
+        data: payload,
+      });
+      console.log('Site membership response:', JSON.stringify(response, null, 2));
+      return await response.json();
     });
   }
 
@@ -380,6 +417,20 @@ export class SiteManagementService implements ISiteManagementOperations {
         console.log(`Failed to delete category "${categoryName}" via API: ${error}`);
         throw error;
       }
+    });
+  }
+
+  async getListOfCategories(options: { size?: number; sortBy?: string } = {}): Promise<any> {
+    return await test.step('Getting list of categories via API', async () => {
+      const defaultOptions = {
+        includeSites: false,
+        size: 10000,
+        sortBy: 'alphabetical',
+      };
+      const response = await this.post(API_ENDPOINTS.site.listOfCategories, {
+        data: defaultOptions,
+      });
+      return await response.json();
     });
   }
 

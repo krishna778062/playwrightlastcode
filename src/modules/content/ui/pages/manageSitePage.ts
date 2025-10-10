@@ -18,6 +18,7 @@ export interface IManageSiteActions {
   clickOnTheManageSiteButton: () => Promise<void>;
   clickOnThePageCategoryButton: () => Promise<void>;
   searchEventInSearchBar: (eventName: string) => Promise<void>;
+  clickOntheMemberButton: () => Promise<void>;
 }
 
 export interface IManageSiteAssertions {
@@ -31,6 +32,7 @@ export interface IManageSiteAssertions {
   markAsFavoriteAndCheckRGBColor: (membersName: string) => Promise<void>;
   checkMarkedAsFavoriteInPeopleList: (membersName: string) => Promise<void>;
   checkMarkedAsFavoriteInPeopleListShouldNotBeVisible: (membersName: string) => Promise<void>;
+  clickOnLeaveButton: () => Promise<void>;
   // Add assertions as needed
 }
 
@@ -300,6 +302,18 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
           assertionMessage: 'The user should not be marked as favorite',
         }
       );
+    });
+  }
+
+  async clickOntheMemberButton(): Promise<void> {
+    await test.step('Click on the member button', async () => {
+      await this.clickOnElement(this.manageSitesComponent.clickOnTheMemberButton);
+    });
+  }
+
+  async clickOnLeaveButton(): Promise<void> {
+    await test.step('Click on the leave button', async () => {
+      await this.clickOnElement(this.manageSitesComponent.clickOnLeaveButton);
     });
   }
 }

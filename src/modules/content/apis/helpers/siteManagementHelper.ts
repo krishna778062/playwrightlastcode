@@ -1,6 +1,7 @@
 import { test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
+import { StandardUserApiClient } from '@/src/core/api/clients/standardUserApiClient';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import {
@@ -14,6 +15,11 @@ import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 interface Site {
   siteId: string;
   siteName: string;
+  accessType?: string;
+  isMember?: boolean;
+  isActive?: boolean;
+  name?: string;
+  [key: string]: any; // Allow additional properties
 }
 
 interface SiteMember {
@@ -25,7 +31,7 @@ export class SiteManagementHelper {
   private sites: Site[] = [];
   private siteMembers: SiteMember[] = [];
 
-  constructor(private appManagerApiClient: AppManagerApiClient) {}
+  constructor(private appManagerApiClient: AppManagerApiClient | StandardUserApiClient) {}
 
   /**
    * Creates a new public site with default settings.
@@ -68,7 +74,7 @@ export class SiteManagementHelper {
     // Wait for site to appear in search results (optional)
     if (shouldWaitForSearchIndex) {
       await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
-        apiClient: this.appManagerApiClient,
+        apiClient: this.appManagerApiClient as AppManagerApiClient,
         searchTerm: finalSiteName,
         objectType: 'site',
       });
@@ -130,6 +136,10 @@ export class SiteManagementHelper {
       overrides: { ...overrides, access: 'private' },
       waitForSearchIndex,
     });
+  }
+
+  async addPersonInSite(siteId: string, userId: string): Promise<any> {
+    return await this.appManagerApiClient.getSiteManagementService().addPersonInSite(siteId, userId);
   }
 
   /**
@@ -267,6 +277,48 @@ export class SiteManagementHelper {
   }
 
   /**
+   * Creates a site and adds a specific user as a member
+   * @param memberEmail - The email of the user to add as a member
+   * @param siteName - Optional custom site name
+   * @param category - The site category object
+   * @param siteAccess - The access level of the site (default: 'public')
+   * @returns An object containing site details and member information
+   */
+  async createSiteAndAddMember(
+    memberEmail: string,
+    siteName?: string,
+    category?: { name: string; categoryId: string },
+    siteAccess: 'public' | 'private' | 'unlisted' = 'public'
+  ) {
+    // Create the site based on access type
+    let site;
+    switch (siteAccess) {
+      case 'private':
+        site = await this.createPrivateSite({ siteName, category });
+        break;
+      case 'unlisted':
+        site = await this.createUnlistedSite({ siteName, category });
+        break;
+      default:
+        site = await this._createSiteBaseMethod({ siteName, category });
+    }
+
+    // Add the user as a member to the site
+    try {
+      await this.makeUserSiteMembership(site.siteId, memberEmail, SitePermission.MEMBER, SiteMembershipAction.ADD);
+      console.log(`Successfully added ${memberEmail} as member to site ${site.siteName}`);
+    } catch (error) {
+      console.warn(`Failed to add ${memberEmail} as member to site ${site.siteName}:`, error);
+    }
+
+    return {
+      ...site,
+      memberEmail,
+      memberRole: 'member',
+    };
+  }
+
+  /**
    * Gets a random site from the created sites.
    * @returns A random site from the sites created by this helper, or null if no sites exist.
    */
@@ -310,6 +362,13 @@ export class SiteManagementHelper {
    */
   getSiteCount(): number {
     return this.sites.length;
+  }
+
+  async getRandomCategoryId(): Promise<{ categoryId: string; name: string }> {
+    const categoryResponse = await this.appManagerApiClient.getSiteManagementService().getListOfCategories();
+    const categoryList = categoryResponse.result.listOfItems;
+    const randomIndex = Math.floor(Math.random() * categoryList.length);
+    return categoryList[randomIndex];
   }
 
   /**
@@ -598,10 +657,12 @@ export class SiteManagementHelper {
       siteId = createdSite.siteId;
       siteName = createdSite.siteName;
     }
-    if (!siteName) {
-      throw new Error(`No site name found with access type ${accessType}`);
+
+    if (!siteId || !siteName) {
+      throw new Error(`No site found or created with access type ${accessType}`);
     }
-    return { siteId: siteId, name: siteName };
+
+    return { siteId, name: siteName };
   }
 
   async getSiteWithCoverImageAndAuthorNameAndStartDate(): Promise<{
@@ -711,6 +772,55 @@ export class SiteManagementHelper {
     return await this.appManagerApiClient.getSiteManagementService().getSiteMembershipList(siteId, options);
   }
 
+  async getSiteWhichUserHasAlreadyMember(access: string): Promise<{
+    siteId: string;
+    name: string;
+    access: string;
+  }> {
+    try {
+      const siteResponse = await this.appManagerApiClient.getSiteManagementService().getSiteAsMembers();
+
+      console.log('siteResponse', siteResponse);
+      console.log('Looking for accessType:', access.toLowerCase());
+
+      // Debug: log first few sites to understand structure
+      const firstFewSites = siteResponse.result.listOfItems.slice(0, 3);
+      console.log(
+        'First few sites:',
+        firstFewSites.map((site: any) => ({
+          name: site.name,
+          access: site.access,
+          isMember: site.isMember,
+          isActive: site.isActive,
+        }))
+      );
+
+      const siteDetails: any = siteResponse.result.listOfItems.find(
+        (site: any) =>
+          site.isMember === true &&
+          site.name !== 'All Employees' &&
+          site.access === access.charAt(0).toUpperCase() + access.slice(1).toLowerCase() &&
+          site.isActive === true &&
+          site.isInMandatorySubscription === false &&
+          site.isOwner === false
+      );
+
+      console.log(`Found site where user is member: ${siteDetails?.name} (${siteDetails?.siteId})`);
+
+      if (!siteDetails) {
+        throw new Error(`No active sites found where user is a member with access type: ${access}`);
+      }
+
+      return {
+        siteId: siteDetails.siteId,
+        name: siteDetails.name,
+        access: siteDetails.access,
+      };
+    } catch (error) {
+      console.error(`Error in getSiteWhichUserHasAlreadyMember for access type ${access}:`, error);
+      throw error;
+    }
+  }
   /**
    * Gets a site with its members
    * @param siteId - The site ID
