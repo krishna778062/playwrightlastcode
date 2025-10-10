@@ -1,16 +1,14 @@
-import { APIRequestContext, test } from '@playwright/test';
+import { test } from '@playwright/test';
 
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import {
   SiteCreationPayload,
   SiteMembershipAction,
   SiteMembershipResponse,
   SitePermission,
 } from '@/src/core/types/siteManagement.types';
-import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
-import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
-import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 interface Site {
@@ -26,16 +24,8 @@ interface SiteMember {
 export class SiteManagementHelper {
   private sites: Site[] = [];
   private siteMembers: SiteMember[] = [];
-  readonly siteManagementService: SiteManagementService;
-  readonly appManagerApiClient: AppManagerApiClient;
 
-  constructor(
-    readonly apiRequestContext: APIRequestContext,
-    readonly baseUrl: string
-  ) {
-    this.siteManagementService = new SiteManagementService(apiRequestContext, baseUrl);
-    this.appManagerApiClient = new AppManagerApiClient(apiRequestContext, baseUrl);
-  }
+  constructor(private appManagerApiClient: AppManagerApiClient) {}
 
   /**
    * Creates a new public site with default settings.
@@ -60,10 +50,10 @@ export class SiteManagementHelper {
     // Get category if not provided
     let categoryObj = category;
     if (!categoryObj) {
-      categoryObj = await this.siteManagementService.getCategoryId(SITE_TEST_DATA[0].category);
+      categoryObj = await this.appManagerApiClient.getSiteManagementService().getCategoryId(SITE_TEST_DATA[0].category);
     }
 
-    const siteResult = await this.siteManagementService.addNewSite({
+    const siteResult = await this.appManagerApiClient.getSiteManagementService().addNewSite({
       access: 'public',
       name: finalSiteName,
       category: {
@@ -78,7 +68,7 @@ export class SiteManagementHelper {
     // Wait for site to appear in search results (optional)
     if (shouldWaitForSearchIndex) {
       await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
-        apiClient: this.siteManagementService.httpClient,
+        apiClient: this.appManagerApiClient,
         searchTerm: finalSiteName,
         objectType: 'site',
       });
@@ -186,7 +176,6 @@ export class SiteManagementHelper {
     category?: { name: string; categoryId: string };
     overrides?: Partial<SiteCreationPayload>;
     accessType: SITE_TYPES;
-    waitForSearchIndex?: boolean;
   }) {
     switch (options.accessType) {
       case SITE_TYPES.PUBLIC:
@@ -194,21 +183,18 @@ export class SiteManagementHelper {
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
-          waitForSearchIndex: options.waitForSearchIndex,
         });
       case SITE_TYPES.PRIVATE:
         return await this.createPrivateSite({
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
-          waitForSearchIndex: options.waitForSearchIndex,
         });
       case SITE_TYPES.UNLISTED:
         return await this.createUnlistedSite({
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
-          waitForSearchIndex: options.waitForSearchIndex,
         });
       default:
         throw new Error(`Invalid access type: ${options.accessType}`);
@@ -306,12 +292,13 @@ export class SiteManagementHelper {
     // Deactivate all sites
     for (const { siteId, siteName } of this.sites) {
       try {
-        await this.siteManagementService.deactivateSite(siteId);
+        await this.appManagerApiClient.getSiteManagementService().deactivateSite(siteId);
         console.log(`Deactivated site ${siteName} (${siteId})`);
       } catch (error) {
         console.warn(`Failed to deactivate site ${siteName} (${siteId}):`, error);
       }
     }
+
     // Clear the tracking arrays
     this.sites = [];
     this.siteMembers = [];
@@ -351,7 +338,7 @@ export class SiteManagementHelper {
     }
   ): Promise<string> {
     // Get the list of sites
-    const sitesResponse = await this.siteManagementService.getListOfSites({
+    const sitesResponse = await this.appManagerApiClient.getSiteManagementService().getListOfSites({
       size: 1000, // Get a large number to ensure we find the site if it exists
       canManage: true,
       filter: 'active',
@@ -387,7 +374,9 @@ export class SiteManagementHelper {
     permission: SitePermission,
     action: SiteMembershipAction
   ): Promise<SiteMembershipResponse> {
-    const result = await this.siteManagementService.makeUserSiteMembership(siteId, userId, permission, action);
+    const result = await this.appManagerApiClient
+      .getSiteManagementService()
+      .makeUserSiteMembership(siteId, userId, permission, action);
 
     // Track the member for potential cleanup (optional)
     this.siteMembers.push({
@@ -412,7 +401,7 @@ export class SiteManagementHelper {
       ...options,
     };
 
-    return await this.siteManagementService.getListOfSites(defaultOptions);
+    return await this.appManagerApiClient.getSiteManagementService().getListOfSites(defaultOptions);
   }
 
   /**
@@ -470,7 +459,7 @@ export class SiteManagementHelper {
    * @returns Promise containing the response
    */
   async makeSiteUnFeatured(siteId: string): Promise<any> {
-    return await this.siteManagementService.unfeatureSite(siteId);
+    return await this.appManagerApiClient.getSiteManagementService().unfeatureSite(siteId);
   }
 
   /**
@@ -563,13 +552,6 @@ export class SiteManagementHelper {
       waitForSearchIndex?: boolean;
     }
   ): Promise<{ siteId: string; name: string }> {
-    // Defensive check to ensure accessType is a string
-    if (typeof accessType !== 'string') {
-      throw new Error(
-        `Expected accessType to be a string, but received: ${typeof accessType}. Value: ${JSON.stringify(accessType)}`
-      );
-    }
-
     const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
     let siteDetails = siteListResponse.result.listOfItems.find(site => site.isActive === true);
     let siteId: string | undefined, siteName: string | undefined;
@@ -710,51 +692,6 @@ export class SiteManagementHelper {
    * @returns Promise containing the membership list response
    */
   async getSiteMembershipList(siteId: string, options?: { size?: number; type?: string }): Promise<any> {
-    return await this.siteManagementService.getSiteMembershipList(siteId, options);
-  }
-
-  async getSiteByIdWithContentSubmissions(accessType: string, isContentSubmissionsEnabled: boolean): Promise<any> {
-    const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
-    if (siteListResponse.result.listOfItems.length) {
-      const siteDetails = await this.siteManagementService.getSiteDetails(
-        siteListResponse.result.listOfItems[0].siteId
-      );
-      if (siteDetails.isContentSubmissionsEnabled === isContentSubmissionsEnabled) {
-        return siteDetails;
-      } else {
-        if (accessType === SITE_TYPES.UNLISTED) {
-          await this.createUnlistedSite({
-            siteName: siteDetails.name,
-            category: siteDetails.category,
-            overrides: {
-              isContentSubmissionsEnabled: isContentSubmissionsEnabled,
-            },
-            waitForSearchIndex: true,
-          });
-        } else if (accessType === SITE_TYPES.PRIVATE) {
-          await this.createPrivateSite({
-            siteName: siteDetails.name,
-            category: siteDetails.category,
-            overrides: {
-              isContentSubmissionsEnabled: isContentSubmissionsEnabled,
-            },
-            waitForSearchIndex: true,
-          });
-        } else if (accessType === SITE_TYPES.PUBLIC) {
-          await this.createPublicSite({
-            siteName: siteDetails.name,
-            category: siteDetails.category,
-            overrides: {
-              isContentSubmissionsEnabled: isContentSubmissionsEnabled,
-            },
-            waitForSearchIndex: true,
-          });
-        }
-        return siteDetails;
-      }
-    }
-    return siteListResponse.result.listOfItems.find(
-      site => site.isContentSubmissionsEnabled === isContentSubmissionsEnabled
-    );
+    return await this.appManagerApiClient.getSiteManagementService().getSiteMembershipList(siteId, options);
   }
 }
