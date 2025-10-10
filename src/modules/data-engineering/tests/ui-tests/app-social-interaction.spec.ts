@@ -115,7 +115,7 @@ test.describe(
     }
 
     test(
-      'tS To verify the answer of Social campaign shares in Social Interaction dashboard',
+      'tS To verify the answer of social campaign shares in social interaction dashboard',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION],
       },

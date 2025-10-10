@@ -1,4 +1,5 @@
 import { test } from '@data-engineering/fixtures/loginFixture';
+import { AnalyticsBasePage } from '@data-engineering/pages/analyticsBasePage';
 
 import { TestGroupType } from '@core/constants/testType';
 
@@ -28,10 +29,11 @@ test.describe(
         await loginAs('appManager');
 
         const homepage = new NewHomePage(page);
+        const analyticsBasePage = new AnalyticsBasePage(page);
         await homepage.verifyThePageIsLoaded();
         const appManagerUINavigationHelper = new NavigationHelper(page);
-        const analyticsLandingPage = await appManagerUINavigationHelper.sideNavBarComponent.clickOnAnalyticsButton();
-        await analyticsLandingPage.verifyAllAnalyticsOptionsAreVisible();
+        await appManagerUINavigationHelper.sideNavBarComponent.clickOnAnalyticsButton();
+        await analyticsBasePage.verifyAllAnalyticsOptionsAreVisible();
       }
     );
 
