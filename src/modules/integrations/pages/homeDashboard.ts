@@ -1,4 +1,5 @@
 import { DASHBOARD_BUTTONS, FIELD_NAMES, ORGANIZATION_SETTINGS } from '@integrations/constants/common';
+import { ExternalAppProvider } from '@integrations/pages/externalAppsPage';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { TileOperationsComponent } from '@integrations-components/tileOperationsComponent';
 import { TimeOffRequestTileComponent } from '@integrations-components/timeOffRequestTileComponent';
@@ -6,7 +7,6 @@ import { AIRTABLE_TILE } from '@integrations-test-data/app-tiles.test-data';
 import { expect, Page, test } from '@playwright/test';
 
 import { TileManagementHelper } from '@core/helpers/tileManagementHelper';
-
 class AppTileComponent extends BaseAppTileComponent {
   constructor(page: Page) {
     super(page);
@@ -51,6 +51,58 @@ export class HomeDashboard {
     await test.step('Verify home dashboard page is loaded', async () => {
       await this.page.waitForLoadState('domcontentloaded');
       await expect(this.page).toHaveTitle(/.*Dashboard.*/);
+    });
+  }
+
+  /**
+   * Verify the Add tile modal for a given external app provider
+   */
+  async openAddAppTileModal(provider: ExternalAppProvider | string): Promise<void> {
+    const normalizeProviderName = (name: string): string => {
+      const candidate = name.trim().toLowerCase();
+      if (candidate === 'outlook calendar' || candidate === 'microsoft outlook calendar') {
+        return ExternalAppProvider.OUTLOOK_CALENDAR;
+      }
+      return name;
+    };
+    const normalizedProvider = normalizeProviderName(String(provider));
+    await test.step(`Open Add ${normalizedProvider} tile modal`, async () => {
+      await this.appTileComponent.clickEditDashboard();
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
+      await this.appTileComponent.selectAppTile(normalizedProvider);
+
+      // Verify the "Add Google Calendar tile" dialog is visible
+      const modalTitlePattern = new RegExp(`Add ${normalizedProvider} tile`, 'i');
+      await expect(this.page.getByRole('dialog', { name: modalTitlePattern })).toBeVisible({ timeout: 10_000 });
+      await expect(this.appTileComponent.tileTypeCombobox).toBeVisible({ timeout: 10_000 });
+    });
+  }
+
+  /**
+   * Verify the connection helper text in the Add tile modal for a given external app provider
+   */
+  async verifyConnectionMessage(expectedConnectionText: string, options: { connectedEmail: string }): Promise<void> {
+    const { connectedEmail } = options;
+    await test.step('Verify connection message in Add tile modal', async () => {
+      const helperText = this.page.getByText(expectedConnectionText, { exact: false });
+      await expect(helperText).toBeVisible({ timeout: 10_000 });
+
+      // Verify the label 'Connected as' and the connected email are visible (independently)
+      await expect(
+        this.appTileComponent.dialog.getByText(new RegExp(`Connected as\\s+${escape(connectedEmail)}`, 'i'))
+      ).toBeVisible({ timeout: 10_000 });
+    });
+  }
+
+  /**
+   * Click the 'My settings' link in the Add tile modal
+   */
+  async clickMySettings(): Promise<void> {
+    await test.step("Click 'My settings' link in Add tile modal", async () => {
+      const mySettingsLink = this.appTileComponent.dialog.getByRole('link', { name: 'My settings', exact: true });
+      await expect(mySettingsLink).toBeVisible({ timeout: 10_000 });
+      await mySettingsLink.click();
     });
   }
 
@@ -387,7 +439,7 @@ export class HomeDashboard {
   }
 
   /**
-   * Verify Show more behaviour for apptile
+   * Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
    */
   async verifyShowMoreBehavior(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyShowMoreBehavior(tileTitle);
