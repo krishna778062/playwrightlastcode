@@ -16,6 +16,9 @@ export enum IntegrationsSuiteTags {
   DOCEBO = '@doceboAppTiles',
   MONDAY_DOT_COM = '@mondayDotComAppTiles',
   OUTLOOK_CALENDAR_APPTILES = '@outlookCalendarAppTiles',
+  CUSTOM_APP_TILES = '@customAppTiles',
+  SHOW_MORE = '@showMore',
+  PERSONALIZATION = '@personalization',
 }
 
 export enum IntegrationsFeatureTags {
@@ -49,6 +52,10 @@ export const TEST_TAGS = {
   OUTLOOK_CALENDAR_APPTILES: IntegrationsSuiteTags.OUTLOOK_CALENDAR_APPTILES,
   DOCUSIGN: IntegrationsSuiteTags.DOCUSIGN,
   MONDAY_DOT_COM: IntegrationsSuiteTags.MONDAY_DOT_COM,
+  DOCEBO: IntegrationsSuiteTags.DOCEBO,
+  CUSTOM_APP_TILES: IntegrationsSuiteTags.CUSTOM_APP_TILES,
+  SHOW_MORE: IntegrationsSuiteTags.SHOW_MORE,
+  PERSONALIZATION: IntegrationsSuiteTags.PERSONALIZATION,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {
