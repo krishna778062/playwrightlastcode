@@ -158,8 +158,8 @@ export const frontlineTestFixture = test.extend<
       const context = await browser.newContext();
       const page = await context.newPage();
       await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().appManagerEmail,
-        password: getEnvConfig().appManagerPassword,
+        email: getEnvConfig().endUserEmail!,
+        password: getEnvConfig().endUserPassword!,
       });
       await use(context);
       await context.close();
