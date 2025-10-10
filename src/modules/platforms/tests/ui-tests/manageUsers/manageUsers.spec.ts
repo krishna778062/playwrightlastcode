@@ -3,24 +3,23 @@ import { tagTest } from '@core/utils/testDecorator';
 import { FILTER_ATTRIBUTES, PRIMARY_ROLES_VALUES } from '@platforms/constants/ManageUsers';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 
-import { ManageUsersPage } from '../../../pages/managerUsersPage/manageUsersPage';
-
 import { TestSuite } from '@/src/core/constants/testSuite';
+import { ManageUsersPage } from '@/src/modules/platforms/ui/pages/managerUsersPage/manageUsersPage';
 
 test.describe(
-  'ACG Testcases',
+  'aCG Testcases',
   {
     tag: [TestSuite.ABAC],
   },
   () => {
     let manageUsersPage: ManageUsersPage;
-    test.beforeEach(async ({ appManagerPage }) => {
-      manageUsersPage = new ManageUsersPage(appManagerPage);
+    test.beforeEach(async ({ appManagerFixture }) => {
+      manageUsersPage = new ManageUsersPage(appManagerFixture.page);
       await manageUsersPage.loadPage();
     });
 
     test(
-      'Verify that selecting values from Primary roles attribute in filters of manage users page should update the user list accordingly',
+      'verify that selecting values from Primary roles attribute in filters of manage users page should update the user list accordingly',
       {
         tag: [TestPriority.P0, `@manageUsers`, `@ABAC`, `@acg`],
       },
