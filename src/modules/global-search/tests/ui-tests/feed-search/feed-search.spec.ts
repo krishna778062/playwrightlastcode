@@ -1,13 +1,13 @@
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
-import { FeedListComponent } from '@/src/modules/global-search/components/feedListComponent';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { FEED_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/feed-search.test-data';
+import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
+import { FeedListComponent } from '@/src/modules/global-search/ui/components/feedListComponent';
 
 test.describe(
-  'Global Search - Feed Search functionality',
+  'global Search - Feed Search functionality',
   {
     tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.FEED_SEARCH],
   },
@@ -18,15 +18,15 @@ test.describe(
     let currentAuthorName: string;
     let feedResponse: any;
 
-    test.beforeEach(async ({ feedManagementHelper, publicSite }, testInfo) => {
+    test.beforeEach(async ({ appManagerFixture, publicSite }, testInfo) => {
       // Create feed based on test title
       if (testInfo.title.includes('site')) {
-        feedResponse = await feedManagementHelper.createFeed({
+        feedResponse = await appManagerFixture.feedManagementHelper.createFeed({
           scope: 'site',
           siteId: publicSite.siteId,
         });
       } else {
-        feedResponse = await feedManagementHelper.createFeed({
+        feedResponse = await appManagerFixture.feedManagementHelper.createFeed({
           scope: 'public',
         });
       }
@@ -41,13 +41,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-13079',
           storyId: 'SEN-12843',
         });
 
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(currentFeedName, {
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(currentFeedName, {
           stepInfo: `Searching with term "${currentFeedName}" and intent is to find the content`,
         });
 
@@ -62,17 +63,18 @@ test.describe(
     );
 
     test(
-      `Verify Feed Search results with sidebar filter`,
+      `verify Feed Search results with sidebar filter`,
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19281',
         });
 
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
         // Search for the feed
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(currentFeedName, {
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(currentFeedName, {
           stepInfo: `Searching with term "${currentFeedName}" to verify feed appears in search results`,
         });
 
@@ -99,13 +101,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
-      async ({ appManagerHomePage, publicSite }) => {
+      async ({ appManagerFixture, publicSite }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-13079',
           storyId: 'SEN-12844',
         });
 
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(currentFeedName, {
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(currentFeedName, {
           stepInfo: `Searching with term "${currentFeedName}" and intent is to find the site feed content`,
         });
 

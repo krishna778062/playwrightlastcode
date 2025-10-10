@@ -3,7 +3,7 @@ import { test as base } from '@data-engineering/fixtures/loginFixture';
 import { AnalyticsLandingPage } from '@data-engineering/pages/analyticsLandingPage';
 import { expect } from '@playwright/test';
 
-import { SideNavBarComponent } from '@core/components/sideNavBarComponent';
+import { SideNavBarComponent } from '@core/ui/components/sideNavBarComponent';
 
 export const test = base.extend<{
   openAppAnalytics: (userType?: UserType) => Promise<void>;

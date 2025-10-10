@@ -1,5 +1,4 @@
 import { faker } from '@faker-js/faker';
-import { createAirtableTileViaApi } from '@integrations-api/helpers/tileApiHelpers';
 import { UI_ACTIONS } from '@integrations-constants/common';
 import { MESSAGES } from '@integrations-constants/messageRepo';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
@@ -10,6 +9,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { createAirtableTileViaApi } from '@/src/modules/integrations/apis/helpers/tileApiHelpers';
+
 test.describe(
   'airtable App Tiles Integration',
   {
@@ -18,7 +19,8 @@ test.describe(
   () => {
     let createdTileTitle: string | undefined = undefined;
 
-    test.afterEach(async ({ homeDashboard, tileManagementHelper }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
+      const { homeDashboard, tileManagementHelper } = appManagerFixture;
       if (createdTileTitle) {
         await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
@@ -31,7 +33,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24188',
           storyId: 'INT-23049',
@@ -56,7 +59,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, appManagerPage }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24130',
           storyId: 'INT-23049',
@@ -66,7 +70,7 @@ test.describe(
         createdTileTitle = `Airtable content calendar ${faker.string.alphanumeric({ length: 6 })}`;
 
         //add,edit,verify
-        await createAirtableTileViaApi(appManagerPage, { tileInstanceName: createdTileTitle });
+        await createAirtableTileViaApi(appManagerFixture.apiContext, { tileInstanceName: createdTileTitle });
         await homeDashboard.reloadAndVerifyTilePresent(createdTileTitle);
         await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
@@ -82,7 +86,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, homeDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24182',
           storyId: 'INT-23049',
@@ -92,7 +97,7 @@ test.describe(
         createdTileTitle = `Airtable content calendar ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -118,7 +123,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ homeDashboard, appManagerPage }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24189',
           storyId: 'INT-23049',
@@ -128,7 +134,7 @@ test.describe(
         createdTileTitle = `Airtable task records ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Add tile and verify content structure
-        await createAirtableTileViaApi(appManagerPage, { tileInstanceName: createdTileTitle });
+        await createAirtableTileViaApi(appManagerFixture.apiContext, { tileInstanceName: createdTileTitle });
         await homeDashboard.isTilePresent(createdTileTitle);
 
         // Verify tile content structure

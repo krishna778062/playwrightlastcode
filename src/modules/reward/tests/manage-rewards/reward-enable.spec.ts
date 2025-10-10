@@ -6,9 +6,9 @@ import { tagTest } from '@core/utils/testDecorator';
 import { REWARD_FEATURE_TAGS } from '@modules/reward/constants/testTags';
 import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
 
-test.describe('Enable Rewards flow', () => {
+test.describe('enable Rewards flow', () => {
   test(
-    'Validate Enable rewards flow',
+    'validate Enable rewards flow',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.ENABLE_REWARD, TestPriority.P0, TestGroupType.SMOKE],
     },

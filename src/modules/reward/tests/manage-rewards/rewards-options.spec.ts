@@ -1,17 +1,19 @@
 import { expect } from '@playwright/test';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
-import { RewardsStore } from '@rewards/pages/reward-store/reward-store';
 
-import { TestPriority } from '@core/constants/testPriority';
-import { TestGroupType } from '@core/constants/testType';
-import { tagTest } from '@core/utils/testDecorator';
+import { TestGroupType } from '@core/constants';
+import { TestPriority } from '@core/constants';
+import { tagTest } from '@core/utils';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
 import { RewardOptionsPage } from '@modules/reward/pages/manage-rewards/reward-options-page';
 
-test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
+import { RewardOptionsPage } from '@/src/modules/reward/ui/pages/manage-rewards/reward-options-page';
+import { RewardsStore } from '@/src/modules/reward/ui/pages/reward-store/reward-store';
+
+test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test(
-    'A - Verify Reward options only visible to App managers',
+    'a - Verify Reward options only visible to App managers',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION],
     },
@@ -32,7 +34,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    'B - Verify Reward options only visible to recognition managers',
+    'b - Verify Reward options only visible to recognition managers',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -53,7 +55,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    'Verify Reward options not visible to user other than recognition managers',
+    'verify Reward options not visible to user other than recognition managers',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -72,7 +74,7 @@ test.describe('Reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    'Validate search box on rewards option page',
+    'validate search box on rewards option page',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },

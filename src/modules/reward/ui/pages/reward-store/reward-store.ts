@@ -1,0 +1,529 @@
+import { expect, Locator, Page, test } from '@playwright/test';
+import fs from 'fs';
+import path from 'path';
+
+import { PAGE_ENDPOINTS, PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
+import { BasePage } from '@core/pages/basePage';
+import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
+import { RewardsDialogBox } from '@modules/reward/pages/reward-store/rewards-dialog-box';
+
+export class RewardsStore extends BasePage {
+  readonly rewardStorePageNotFound: Locator;
+  readonly header: Locator;
+  readonly pointsBalanceContainer: Locator;
+  readonly pointToSpend: Locator;
+  readonly pointToSpendText: Locator;
+  readonly pendingPoints: Locator;
+  readonly pointsBalanceIcon: Locator;
+  readonly giftCardsTab: Locator;
+  readonly prepaidCardsTab: Locator;
+  readonly charityDonationsTab: Locator;
+  readonly orderHistoryTab: Locator;
+  readonly searchField: Locator;
+  readonly searchButton: Locator;
+  readonly rewardCategory: Locator;
+  readonly rewardCountry: Locator;
+  readonly firstTimeCountrySelectDropdown: Locator;
+  readonly orderHistorySearchField: Locator;
+  readonly noRewardsFoundHeading: Locator;
+  readonly noRewardsFoundText: Locator;
+  readonly giftCardCount: Locator;
+  readonly resetButton: Locator;
+  readonly legalTermText: Locator;
+  readonly giftCardItems: Locator;
+  readonly giftCardNames: Locator;
+  readonly giftCardImages: Locator;
+  readonly giftCardLabel: Locator;
+  readonly giftCardPointAmount: Locator;
+  readonly orderHistoryPanel: Locator;
+  readonly orderHistoryPanelRewardName: Locator;
+  readonly orderHistoryPanelRewardImage: Locator;
+  readonly orderHistoryPanelRewardResendButton: Locator;
+  readonly orderHistoryPanelRewardPrimaryEmail: Locator;
+  readonly disabledResendButton: Locator;
+  readonly resendOrderTooltip: Locator;
+  readonly resentRewardDialog: Locator;
+  readonly resentRewardDialogBoxEmailInput: Locator;
+  readonly resentRewardDialogBoxConfirmEmailInput: Locator;
+  readonly resentRewardDialogBoxEmailLabel: Locator;
+  readonly resentRewardDialogBoxConfirmEmailLabel: Locator;
+  readonly resentRewardDialogBoxDescription: Locator;
+  readonly resentRewardDialogBoxHeading: Locator;
+  readonly resentRewardDialogBoxCancel: Locator;
+  readonly resentRewardDialogBoxResend: Locator;
+  readonly resentRewardInvalidEmailError: Locator;
+  readonly resentRewardDoNotMatchEmailError: Locator;
+  readonly rewardsDialogBox: RewardsDialogBox;
+
+  /**
+   * This is a rewards store class that contains locators and methods for the rewards store page.
+   */
+  constructor(page: Page) {
+    super(page, PAGE_ENDPOINTS.REWARD_STORE_PAGE);
+    // Locators for the rewards store page
+    this.rewardStorePageNotFound = page.locator('[data-testid="no-results"]');
+    this.header = page.getByRole('heading', { name: 'Rewards store' });
+    this.pointsBalanceContainer = page.locator('[class*="PageHeader_container"] > div[class*="PageHeader_container"]');
+    this.pointsBalanceIcon = this.pointsBalanceContainer.locator('div[class^="PageHeader_icon"]');
+    this.pointToSpend = this.pointsBalanceContainer.locator('[class*="PageHeader_details"] p').nth(0);
+    this.pointToSpendText = this.pointsBalanceContainer.locator('[class*="PageHeader_details"] p').nth(1);
+    this.pendingPoints = this.pointsBalanceContainer.locator('[class*="PageHeader_details"] p').nth(2);
+    this.giftCardsTab = page.getByRole('tab', { name: 'Gift cards' });
+    this.prepaidCardsTab = page.getByRole('tab', { name: 'Prepaid cards' });
+    this.charityDonationsTab = page.getByRole('tab', { name: 'Charity donations' });
+    this.orderHistoryTab = page.getByRole('tab', { name: 'Order history' });
+    this.searchField = page.locator('#q');
+    this.searchButton = page.locator('[class^="UI_searchBar"] button[aria-label="Search"]');
+    this.rewardCategory = page.locator('#categoryId');
+    this.rewardCountry = page.locator('#countryCode');
+    this.firstTimeCountrySelectDropdown = page.locator(
+      '//div[text()="Select country…"]//following-sibling::div//input'
+    );
+    this.orderHistorySearchField = page.getByRole('textbox', { name: 'orders…' });
+    this.noRewardsFoundHeading = page.getByRole('heading', { name: 'No rewards found' });
+    this.noRewardsFoundText = page.getByText('Sorry, we couldn’t find any');
+    this.giftCardCount = page.locator('[class*="UI_gridContainer"] > div > p');
+    this.resetButton = page.getByRole('button', { name: 'Reset' });
+    this.legalTermText = page.locator('div[class*="Typography-module__secondary"]');
+    // Gift card
+    this.giftCardItems = page.locator('[class*="UI_listItem"][aria-label*="Redeem"]');
+    this.giftCardNames = this.giftCardItems.locator('[class*="UI_brandName"]');
+    this.giftCardImages = this.giftCardItems.locator('[class*="UI_image--"]');
+    this.giftCardLabel = this.giftCardItems.locator('[class*="Distribute-module__apart"] p').nth(0);
+    this.giftCardPointAmount = this.giftCardItems.locator('[class*="Distribute-module__apart"] p').nth(1);
+
+    // Order history locators
+    this.orderHistoryPanel = page.locator('[class*="OrderHistory_container"] ul li');
+    this.orderHistoryPanelRewardName = this.orderHistoryPanel.locator(
+      '[class*="OrderHistory_brandImage"]+div h2:nth-child(1)'
+    );
+    this.orderHistoryPanelRewardImage = this.orderHistoryPanel.locator('[class*="OrderHistory_brandImage"]');
+    this.orderHistoryPanelRewardResendButton = this.orderHistoryPanel.locator(
+      '[class*="OrderHistory_buttonContainer"] button'
+    );
+    this.orderHistoryPanelRewardPrimaryEmail = this.orderHistoryPanel.locator('div div[class*="OrderHistory_email"]');
+    this.disabledResendButton = this.orderHistoryPanelRewardResendButton.filter({ hasText: 'Resend' });
+    this.resendOrderTooltip = page.locator('[role="tooltip"]');
+    this.resentRewardDialog = page.locator('[role="dialog"]');
+    this.resentRewardDialogBoxEmailInput = this.resentRewardDialog.locator('[id="email"]');
+    this.resentRewardDialogBoxConfirmEmailInput = this.resentRewardDialog.locator('[id="confirmEmail"]');
+    this.resentRewardDialogBoxEmailLabel = this.resentRewardDialog.locator('label[for*="email"]');
+    this.resentRewardDialogBoxConfirmEmailLabel = this.resentRewardDialog.locator('label[for*="confirm"]');
+    this.resentRewardDialogBoxDescription = this.resentRewardDialog.locator('p[class*="Typography-module__paragraph"]');
+    this.resentRewardDialogBoxHeading = this.resentRewardDialog.locator('h2[class*="Typography-module__heading"]');
+    this.resentRewardDialogBoxCancel = this.resentRewardDialog.getByRole('button', { name: 'Cancel' });
+    this.resentRewardDialogBoxResend = this.resentRewardDialog.getByRole('button', { name: 'Resend' });
+    this.resentRewardInvalidEmailError = this.resentRewardDialog
+      .locator('[class*="Field-module__error"]')
+      .filter({ hasText: 'This is not a valid email address' });
+    this.resentRewardDoNotMatchEmailError = this.resentRewardDialog
+      .locator('[class*="Field-module__error"]')
+      .filter({ hasText: 'Emails do not match' });
+
+    // Dialog box
+    this.rewardsDialogBox = new RewardsDialogBox(page);
+  }
+
+  /**
+   * Navigates to the rewards store page.
+   * @returns {Promise<void>}
+   */
+  async visit(): Promise<void> {
+    await test.step('Navigate to the rewards store page via URL', async () => {
+      await this.page.goto(rewardsEndpoint.REWARD_STORE_PAGE);
+    });
+  }
+
+  async selectDropdownByLabel(locator: Locator, optionTextLabel: string) {
+    await locator.selectOption(optionTextLabel);
+  }
+
+  async searchForGiftCard(searchTerm: string) {
+    await this.searchField.waitFor({ state: 'visible', timeout: 15000 });
+    await this.searchField.fill(''); // clear any previous input
+    await this.searchField.fill(searchTerm);
+    await this.searchButton.click({ force: true });
+  }
+
+  async selectCountry(countryName: string) {
+    await this.selectDropdownByLabel(this.rewardCountry, countryName);
+    await this.giftCardNames.last().waitFor({ state: 'visible', timeout: 20000 });
+    const selectedOption = await this.rewardCountry.locator('option:checked').textContent();
+    console.log('selected country:', selectedOption);
+  }
+
+  verifyThePageIsLoaded(): Promise<void> {
+    return Promise.resolve(undefined);
+  }
+
+  async verifyGiftCardVisibility(giftCardName: string, visibility: 'Active' | 'Inactive') {
+    if (visibility === 'Active') {
+      await this.verifyGiftCardVisible(giftCardName);
+    } else {
+      await this.verifyGiftCardNotVisible();
+    }
+  }
+
+  async verifyGiftCardNotVisible() {
+    await this.verifier.verifyTheElementIsVisible(this.noRewardsFoundHeading, {
+      assertionMessage: 'Verify the Gift card is not visible in the search results',
+    });
+  }
+
+  async verifyGiftCardVisible(giftCardName: string) {
+    await this.verifier.verifyTheElementIsVisible(this.giftCardNames.first(), {
+      assertionMessage: 'Verify the Reward name is visible in the search results',
+    });
+    await expect(this.giftCardNames.first()).toContainText(giftCardName);
+  }
+
+  async clickOnTheNthGiftCard(n: number) {
+    await this.verifier.verifyTheElementIsVisible(this.giftCardItems.last(), {
+      assertionMessage: ' Verify the gift card items are visible in the search results',
+    });
+    await this.giftCardItems.nth(n - 1).click();
+  }
+
+  async visitTheOrderHistory() {
+    await this.clickOnElement(this.orderHistoryTab, {
+      stepInfo: 'Clicking on order history tab',
+    });
+  }
+
+  /**
+   * Enable rewards and peer gifting if disabled,
+   * This method checks the current state via API and enables both features if needed
+   */
+  async enableTheRewardStoreAndPeerGiftingIfDisabled() {
+    const [apiResponse] = await Promise.all([
+      this.page.waitForResponse(
+        res =>
+          res.url().includes('/recognition/v1/tenant/config') &&
+          res.status() === 200 &&
+          res.request().method() === 'GET'
+      ),
+      this.visit(), // action that triggers API
+    ]);
+    const body = await apiResponse.json();
+    const isRewardEnabled = body.rewardConfig?.enabled;
+    const isPeerGiftingEnabled = body.rewardConfig?.peerGiftingEnabled;
+    console.log(
+      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingEnabled}`
+    );
+    await this.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingEnabled);
+    await this.visit();
+  }
+
+  /**
+   * Check and enable rewards and peer gifting based on current state
+   */
+  private async checkTheRewardsIsEnabled(isRewardEnabled: boolean, isPeerGiftingEnabled: boolean): Promise<void> {
+    const manageRewardsPage = new ManageRewardsOverviewPage(this.page);
+
+    if (!isRewardEnabled && !isPeerGiftingEnabled) {
+      // Both disabled: Enable peer gifting first, then rewards
+      await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
+
+      // Enable peer gifting
+      const isPeerGiftingToggleOff = await manageRewardsPage.peerGifting.peerGiftingToggleSwitch.isChecked();
+      if (!isPeerGiftingToggleOff) {
+        await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
+          stepInfo: 'Enabling peer gifting toggle',
+        });
+      }
+      await manageRewardsPage.peerGifting.saveButton.waitFor({ state: 'attached', timeout: 15000 });
+      await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
+        stepInfo: 'Clicking save button',
+      });
+      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
+
+      // Now enable rewards
+      await manageRewardsPage.loadPage();
+      await manageRewardsPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.enableRewardsButton, {
+        stepInfo: 'Enabling rewards',
+      });
+      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards enabled');
+      await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Rewards overview');
+    } else if (!isRewardEnabled && isPeerGiftingEnabled) {
+      // Only rewards disabled: Enable rewards directly
+      await manageRewardsPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.enableRewardsButton, {
+        stepInfo: 'Enabling rewards',
+      });
+      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards enabled');
+      await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Rewards overview');
+    } else if (isRewardEnabled && !isPeerGiftingEnabled) {
+      // Only peer gifting disabled: Enable peer gifting
+      await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
+
+      const isPeerGiftingToggleOff = await manageRewardsPage.peerGifting.peerGiftingToggleSwitch.isChecked();
+      if (!isPeerGiftingToggleOff) {
+        await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
+          stepInfo: 'Enabling peer gifting toggle',
+        });
+      }
+      await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
+        stepInfo: 'Clicking save button',
+      });
+      await manageRewardsPage.peerGifting.selectThePeerGiftingEnableType('Immediately');
+      await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.grantAllowancesConfirmButton, {
+        stepInfo: 'Confirming grant allowances',
+      });
+      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
+    } else if (isRewardEnabled && isPeerGiftingEnabled) {
+      // Both are already enabled, do nothing
+      console.log('Reward and Peer Gifting are already enabled.');
+    }
+  }
+
+  async selectAndRedeemGiftCard(giftCardName: string) {
+    await this.searchForGiftCard(giftCardName);
+    await this.clickOnTheNthGiftCard(1);
+    await this.rewardsDialogBox.clickOnTheCheckoutButton();
+    await this.rewardsDialogBox.enterTheConfirmEmail();
+    await this.rewardsDialogBox.checkTheTermsAndConditionCheckbox();
+    await this.verifier.verifyTheElementIsEnabled(this.rewardsDialogBox.confirmOrder);
+    await this.rewardsDialogBox.clickOnConfirmOrder();
+  }
+
+  async validateSuccessMessage(heading: string, descriptions: string[]) {
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.successOrderLogo);
+    await this.verifier.verifyElementHasText(this.rewardsDialogBox.successOrderHeading, heading);
+    if (descriptions.length === 1) {
+      await this.verifier.verifyElementHasText(this.rewardsDialogBox.successOrderDescription, descriptions[0]);
+    } else {
+      await this.verifier.verifyElementHasText(this.rewardsDialogBox.successOrderDescription.first(), descriptions[0]);
+      await this.verifier.verifyElementHasText(this.rewardsDialogBox.successOrderDescription.last(), descriptions[1]);
+    }
+    await this.rewardsDialogBox.closeTheSuccessDialogBox();
+  }
+
+  async redeemAndValidate({
+    tab,
+    giftCard,
+    successMessage,
+    additionalMessages = [],
+  }: {
+    tab: any;
+    giftCard: string;
+    successMessage: string;
+    additionalMessages?: string[];
+  }) {
+    if (tab) {
+      await this.clickOnElement(tab, {
+        stepInfo: `Clicking on ${tab} tab`,
+      });
+    }
+    await this.selectAndRedeemGiftCard(giftCard);
+    await this.validateSuccessMessage(successMessage, additionalMessages);
+    await this.visitTheOrderHistory();
+    await this.page.reload({ waitUntil: 'domcontentloaded' });
+    await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanel.first(), {
+      timeout: 10000,
+      assertionMessage: ' Verify the order history panel is visible',
+    });
+    await this.verifier.verifyElementContainsText(this.orderHistoryPanelRewardName.first(), giftCard, {
+      timeout: 10000,
+      assertionMessage: ' Verify the reward name in the order history panel',
+    });
+    await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardImage.first());
+    await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardResendButton.first());
+  }
+
+  async mockTheAvailablePoints(pointToSpend: number) {
+    const now = new Date();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const refreshingAt = nextMonth.toISOString();
+
+    await this.page.route('**/recognition/rewards/users/**/wallet', route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          result: {
+            gifting: {
+              pendingIn: 0,
+              available: 0,
+              refreshingAt: refreshingAt,
+            },
+            redeemable: {
+              pendingIn: 0,
+              available: Number(pointToSpend),
+            },
+            redeemed: {
+              pendingIn: 0,
+              available: 0,
+            },
+          },
+        }),
+      })
+    );
+    await this.page.reload();
+  }
+
+  async verifyErrorScenario(giftCardName: string, mockPoints: number, inputAmount: number, expectedError: string) {
+    await this.mockTheAvailablePoints(mockPoints);
+    await this.searchForGiftCard(giftCardName);
+    await this.clickOnTheNthGiftCard(1);
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.container);
+    await this.verifier.verifyElementContainsText(this.rewardsDialogBox.title, giftCardName);
+    await this.fillInElement(this.rewardsDialogBox.rewardAmountInputBox, String(inputAmount), {
+      stepInfo: 'Filling reward amount input box',
+    });
+    await this.rewardsDialogBox.rewardAmountInputBox.blur();
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.rewardBalanceError);
+    await this.verifier.verifyElementHasText(this.rewardsDialogBox.rewardBalanceError, expectedError);
+    await this.clickOnElement(this.rewardsDialogBox.closeButton, {
+      stepInfo: 'Clicking on close button',
+    });
+  }
+
+  async verifyInsufficientFundsError(giftCardName: string, mockPoints: number) {
+    await this.mockTheAvailablePoints(mockPoints);
+    await this.searchForGiftCard(giftCardName);
+    await this.clickOnTheNthGiftCard(1);
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.container);
+    await this.verifier.verifyElementContainsText(this.rewardsDialogBox.title, giftCardName);
+    const availableAmountText = await this.rewardsDialogBox.rewardAmountsAvailablePoints.textContent();
+    const availablePoints = availableAmountText
+      ? Number(availableAmountText.match(/\d{1,3}(?:,\d{3})*|\d+/)?.[0]?.replace(/,/g, '') ?? '0')
+      : 0;
+    await this.fillInElement(this.rewardsDialogBox.rewardAmountInputBox, String(availablePoints + 5), {
+      stepInfo: 'Filling reward amount input box',
+    });
+    await this.rewardsDialogBox.rewardAmountInputBox.blur();
+    await this.verifier.verifyTheElementIsVisible(this.rewardsDialogBox.rewardBalanceError);
+    await this.verifier.verifyElementHasText(this.rewardsDialogBox.rewardBalanceError, 'Insufficient funds.');
+    await this.clickOnElement(this.rewardsDialogBox.closeButton, {
+      stepInfo: 'Clicking on close button',
+    });
+  }
+
+  async mockTheOrderAPIResponse() {
+    await this.page.route('**/recognition/redemption/orders*', async route => {
+      const fixture = await fs.promises.readFile(path.join(__dirname, '..', '..', 'fixtures', 'orders.json'), 'utf8');
+      const data = JSON.parse(fixture);
+      data.results[0].createdAt = new Date(Date.now() - 95 * 24 * 60 * 60 * 1000).toISOString();
+      data.results[0].canResend = false;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(data),
+      });
+    });
+  }
+
+  /**
+   * Step 5: Validate the tooltip text for orders older than 90 days
+   */
+  async validateTheOrderResendForMoreThan90Days() {
+    await this.verifier.verifyTheElementIsVisible(this.disabledResendButton.first(), {
+      assertionMessage: ' Verify the disabled resend button is visible ',
+    });
+    await this.disabledResendButton.first().hover({ force: true });
+    await this.resendOrderTooltip.waitFor({ state: 'visible', timeout: 5000 });
+    await this.verifier.verifyTheElementIsVisible(this.resendOrderTooltip);
+    await this.verifier.verifyElementHasText(
+      this.resendOrderTooltip,
+      'Rewards can only be resent within 90 days of your order date'
+    );
+  }
+
+  async validateTheOrderHistoryElements() {
+    await this.verifier.verifyTheElementIsVisible(this.orderHistorySearchField);
+    const counts = await this.orderHistoryPanel.count();
+    expect(counts).toBeGreaterThanOrEqual(1);
+
+    for (let i = 0; i < counts; i++) {
+      await this.orderHistoryPanelRewardName.nth(i).scrollIntoViewIfNeeded();
+      await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardName.nth(i));
+      await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardImage.nth(i));
+      await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardResendButton.nth(i));
+    }
+  }
+
+  async clickOnTheResendButton(number: number) {
+    await this.orderHistoryPanelRewardResendButton.nth(number - 1).waitFor({ state: 'visible', timeout: 10000 });
+    await this.clickOnElement(this.orderHistoryPanelRewardResendButton.nth(number - 1), {
+      stepInfo: `Clicking on the ${number} indexed Resend order button`,
+    });
+  }
+
+  async validateTheResendDialogElements() {
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialog);
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxResend);
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxDescription);
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxEmailLabel);
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxConfirmEmailLabel);
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxEmailInput);
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxConfirmEmailInput);
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxCancel);
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxResend);
+    await this.verifier.verifyTheElementIsDisabled(this.resentRewardDialogBoxResend);
+  }
+
+  async clickOnTheCancelButtonInResendReward() {
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDialogBoxCancel);
+    await this.verifier.verifyTheElementIsEnabled(this.resentRewardDialogBoxCancel);
+    await this.clickOnElement(this.resentRewardDialogBoxCancel, {
+      stepInfo: 'Clicking on cancel button in resend reward dialog',
+    });
+    await this.verifier.verifyTheElementIsNotVisible(this.resentRewardDialog);
+  }
+
+  async enterAllTheDetailsAndClickOnResend(email: string) {
+    const inputValue = await this.resentRewardDialogBoxEmailInput.inputValue();
+
+    // Enter invalid email and validate error
+    await this.fillInElement(this.resentRewardDialogBoxEmailInput, `${inputValue}@REWARDS`, {
+      stepInfo: 'Entering invalid email',
+    });
+    await this.resentRewardDialogBoxConfirmEmailInput.click({ force: true });
+    await this.verifier.verifyElementHasText(this.resentRewardInvalidEmailError, 'This is not a valid email address');
+    await this.verifier.verifyTheElementIsDisabled(this.resentRewardDialogBoxResend);
+
+    // Enter different email in confirm field and validate error
+    await this.fillInElement(this.resentRewardDialogBoxConfirmEmailInput, 'sonu.kumar@simpplr.com', {
+      stepInfo: 'Entering different email in confirm field',
+    });
+    await this.resentRewardDialogBoxEmailInput.click({ force: true });
+    await this.verifier.verifyTheElementIsVisible(this.resentRewardDoNotMatchEmailError);
+    await this.verifier.verifyElementHasText(this.resentRewardDoNotMatchEmailError, 'Emails do not match');
+    await this.verifier.verifyTheElementIsDisabled(this.resentRewardDialogBoxResend);
+
+    // Enter valid email and enable resend button
+    if (email === 'primary') {
+      await this.fillInElement(this.resentRewardDialogBoxEmailInput, inputValue, {
+        stepInfo: 'Entering primary email',
+      });
+      await this.resentRewardDialogBoxEmailInput.blur();
+      await this.fillInElement(this.resentRewardDialogBoxConfirmEmailInput, inputValue, {
+        stepInfo: 'Confirming primary email',
+      });
+      await this.resentRewardDialogBoxConfirmEmailInput.blur();
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        throw new Error(`Invalid email format: ${email}`);
+      }
+      await this.fillInElement(this.resentRewardDialogBoxEmailInput, email, {
+        stepInfo: 'Entering custom email',
+      });
+      await this.fillInElement(this.resentRewardDialogBoxConfirmEmailInput, email, {
+        stepInfo: 'Confirming custom email',
+      });
+      await this.resentRewardDialogBoxConfirmEmailInput.blur();
+    }
+    await this.verifier.verifyTheElementIsEnabled(this.resentRewardDialogBoxResend);
+    await this.clickOnElement(this.resentRewardDialogBoxResend, {
+      stepInfo: 'Clicking on resend button',
+    });
+  }
+
+  async validateTheResentConfirmation() {
+    await this.verifyToastMessageIsVisibleWithText('Reward sent successfully');
+  }
+}
