@@ -1,8 +1,6 @@
 import { test } from '@playwright/test';
 
 import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
-import { StandardUserApiClient } from '@/src/core/api/clients/standardUserApiClient';
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
 import {
   SiteCreationPayload,
@@ -473,7 +471,9 @@ export class SiteManagementHelper {
       page: 0,
       ...options,
     };
-    return await this.appManagerApiClient.getSiteManagementService().getMemberList(defaultOptions);
+    return await this.appManagerApiClient
+      .getSiteManagementService()
+      .getSiteMembershipList(options?.siteId || '', defaultOptions);
   }
 
   /**
@@ -676,9 +676,11 @@ export class SiteManagementHelper {
       const content = await response.result.listOfItems.find(site => site.authoredBy?.name !== undefined);
       const siteName = await response.result.listOfItems.find(site => site.site?.name !== undefined);
       const startsAt = await response.result.listOfItems.find(site => site.startsAt !== undefined);
+      const siteId = await response.result.listOfItems.find(site => site.site?.siteId !== undefined);
+
       if (content) {
         return {
-          siteId: site.siteId,
+          siteId: siteId?.site?.siteId || '',
           authorName: content.authoredBy?.name,
           startsAt: startsAt?.startsAt,
           eventName: content.title,
@@ -752,6 +754,26 @@ export class SiteManagementHelper {
     }
   }
 
+  async getSiteWithMembers(
+    siteId: string,
+    options?: { size?: number; type?: string }
+  ): Promise<{
+    site: any;
+    members: any;
+  }> {
+    return await test.step(`Getting site ${siteId} with its members`, async () => {
+      // Get site details
+      const siteDetails = await this.appManagerApiClient.getMultipleSiteManagementService().getSiteDetails(siteId);
+      // Get site members
+      const membersResponse = await this.getSiteMembershipList(siteId, options);
+
+      return {
+        site: siteDetails.result,
+        members: membersResponse.result,
+      };
+    });
+  }
+
   /**
    * Gets the membership list for a site
    * @param siteId - The site ID
@@ -762,83 +784,12 @@ export class SiteManagementHelper {
     return await this.appManagerApiClient.getSiteManagementService().getSiteMembershipList(siteId, options);
   }
 
-  async getSiteWhichUserHasAlreadyMember(access: string): Promise<{
-    siteId: string;
-    name: string;
-    access: string;
-  }> {
-    try {
-      const siteResponse = await this.appManagerApiClient.getSiteManagementService().getSiteAsMembers();
-
-      console.log('siteResponse', siteResponse);
-      console.log('Looking for accessType:', access.toLowerCase());
-
-      // Debug: log first few sites to understand structure
-      const firstFewSites = siteResponse.result.listOfItems.slice(0, 3);
-      console.log(
-        'First few sites:',
-        firstFewSites.map((site: any) => ({
-          name: site.name,
-          access: site.access,
-          isMember: site.isMember,
-          isActive: site.isActive,
-        }))
-      );
-
-      const siteDetails: any = siteResponse.result.listOfItems.find(
-        (site: any) =>
-          site.isMember === true &&
-          site.name !== 'All Employees' &&
-          site.access === access.charAt(0).toUpperCase() + access.slice(1).toLowerCase() &&
-          site.isActive === true &&
-          site.isInMandatorySubscription === false
-      );
-
-      console.log(`Found site where user is member: ${siteDetails?.name} (${siteDetails?.siteId})`);
-
-      if (!siteDetails) {
-        throw new Error(`No active sites found where user is a member with access type: ${access}`);
-      }
-
-      return {
-        siteId: siteDetails.siteId,
-        name: siteDetails.name,
-        access: siteDetails.access,
-      };
-    } catch (error) {
-      console.error(`Error in getSiteWhichUserHasAlreadyMember for access type ${access}:`, error);
-      throw error;
-    }
-  }
   /**
    * Gets a site with its members
    * @param siteId - The site ID
    * @param options - Optional parameters for the membership list request
    * @returns Promise containing the site details and its members
    */
-  async getSiteWithMembers(
-    siteId: string,
-    options?: { size?: number; type?: string }
-  ): Promise<{
-    site: any;
-    members: any;
-  }> {
-    return await test.step(`Getting site ${siteId} with its members`, async () => {
-      // Get site details
-      const siteResponse = await this.appManagerApiClient
-        .getSiteManagementService()
-        .get(`${PAGE_ENDPOINTS.CONTENT_SITES}/${siteId}`);
-      const siteDetails = await siteResponse.json();
-
-      // Get site members
-      const membersResponse = await this.getSiteMembershipList(siteId, options);
-
-      return {
-        site: siteDetails.result,
-        members: membersResponse.result,
-      };
-    });
-  }
 
   /**
    * Gets member names from the site membership list

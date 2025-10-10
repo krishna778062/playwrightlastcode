@@ -253,32 +253,11 @@ export class SiteManagementService implements ISiteManagementOperations {
         size: options.size || 1000,
         canManage: options.canManage !== undefined ? options.canManage : true,
         filter: options.filter || 'active',
-      };
-
-      const response = await this.httpClient.post(API_ENDPOINTS.site.listOfSites, {
-        data: payload,
-      });
-
-      const json = await response.json();
-
-      if (json.status !== 'success') {
-        throw new Error(`Failed to get sites list. Status: ${json.status}`);
-      }
-
-      return json;
-    });
-  }
-
-  async getSiteAsMembers(options: { size?: number; sortBy?: string } = {}): Promise<SiteListResponse> {
-    return await test.step('Getting list of sites via API', async () => {
-      const defaultOptions = {
-        filter: 'member',
-        size: options.size || 16,
         sortBy: options.sortBy || 'alphabetical',
       };
 
       const response = await this.post(API_ENDPOINTS.site.listOfSites, {
-        data: defaultOptions,
+        data: payload,
       });
 
       const json = await response.json();
@@ -421,23 +400,9 @@ export class SiteManagementService implements ISiteManagementOperations {
     });
   }
 
-  async getMemberList(options?: {
-    size?: number;
-    filter?: string;
-    page?: number;
-    siteId?: string;
-    nextPageToken?: number;
-    sortBy?: string;
-  }): Promise<any> {
-    return await test.step(`Getting member list using API`, async () => {
-      const response = await this.post(API_ENDPOINTS.site.membershipList(options?.siteId || ''), {
-        data: {
-          size: options?.size || 16,
-          nextPageToken: options?.nextPageToken || 0,
-          type: 'members', // Required property for the API
-          sortBy: 'first_name',
-        },
-      });
+  async getSiteDetails(siteId: string): Promise<any> {
+    return await test.step(`Getting site details for site ${siteId}`, async () => {
+      const response = await this.get(`${API_ENDPOINTS.site.url}/${siteId}`);
       return await response.json();
     });
   }
@@ -448,11 +413,17 @@ export class SiteManagementService implements ISiteManagementOperations {
    * @param options - Optional parameters for the membership list request
    * @returns Promise containing the membership list response
    */
-  async getSiteMembershipList(siteId: string, options?: { size?: number; type?: string }): Promise<any> {
+  async getSiteMembershipList(
+    siteId: string,
+    options?: { size?: number; type?: string; nextPageToken?: number }
+  ): Promise<any> {
     return await test.step(`Getting membership list for site ${siteId}`, async () => {
       const defaultOptions = {
         size: 16,
         type: 'members',
+        sortBy: 'first_name',
+        nextPageToken: options?.nextPageToken || 0,
+
         ...options,
       };
 

@@ -1,11 +1,11 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitePage } from '@/src/modules/content/pages/manageSitePage';
 import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
@@ -17,26 +17,25 @@ test.describe(
     tag: [ContentSuiteTags.MANAGE_SITE],
   },
   () => {
-    let manageSitePage: ManageSitePage;
-    let siteManagementHelper: SiteManagementHelper;
+    let manageSiteStandardUserPage: ManageSitePage;
+    let identityManagementHelper: IdentityManagementHelper;
     let siteDashboardPage: SiteDashboardPage;
-    test.beforeEach(async ({ standardUserHomePage, appManagerApiClient, appManagerHomePage }) => {
-      await appManagerHomePage.verifyThePageIsLoaded();
-      siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
+    test.beforeEach(async ({ standardUserHomePage, siteManagementHelper, appManagerApiClient }) => {
       const siteInfo = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-      manageSitePage = new ManageSitePage(standardUserHomePage.page, siteInfo.siteId);
+      manageSiteStandardUserPage = new ManageSitePage(standardUserHomePage.page, siteInfo.siteId);
       siteDashboardPage = new SiteDashboardPage(standardUserHomePage.page, siteInfo.siteId);
+      identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
     });
 
     test.afterEach(async ({ page }) => {
       await page.close();
     });
     test(
-      'Login as Admin/Standard User where user is Site Content Manager of Public site "Site A"',
+      'Login as Standard User where user is Site Content Manager of Public site',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, ContentFeatureTags.MANAGE_SITE],
       },
-      async ({}) => {
+      async ({ siteManagementHelper }) => {
         tagTest(test.info(), {
           description: 'To verify the favourite people from manage site people',
           customTags: [ContentFeatureTags.MANAGE_SITE],
@@ -46,21 +45,23 @@ test.describe(
 
         const siteNamePublic = MANAGE_SITE_TEST_DATA.SITE_NAME.generateUniqueName();
         const categoryID = await siteManagementHelper.getRandomCategoryId();
-        const site1 = await siteManagementHelper.createSiteWithMember(
+        const publicSite = await siteManagementHelper.createSiteWithMember(
           process.env.END_USER_USERNAME!,
           siteNamePublic,
           categoryID,
           SITE_TYPES.PUBLIC
         );
+
+        const endUserInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
         await siteManagementHelper.makeUserSiteMembership(
-          site1.siteId,
-          process.env.END_USER_USERID!,
+          publicSite.siteId,
+          endUserInfo.userId,
           SitePermission.MEMBER,
           SiteMembershipAction.ADD
         );
-        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(site1.siteId);
-        await manageSitePage.actions.clickOntheMemberButton();
-        await manageSitePage.assertions.clickOnLeaveButton();
+        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(publicSite.siteId);
+        await manageSiteStandardUserPage.actions.clickOntheMemberButton();
+        await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
       }
     );
 
@@ -69,7 +70,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-23740'],
       },
-      async ({ contentManagementHelper, siteManagementHelper, appManagerApiClient }) => {
+      async ({ contentManagementHelper, siteManagementHelper, identityManagementHelper }) => {
         tagTest(test.info(), {
           description: 'To verify the UI of Manage site content - End User',
           customTags: [ContentFeatureTags.MANAGE_SITE],
@@ -79,10 +80,10 @@ test.describe(
 
         const siteInfo = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
         await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(siteInfo.siteId);
-        const appManagerSiteHelper = new SiteManagementHelper(appManagerApiClient);
-        await appManagerSiteHelper.updateUserSiteMembershipWithRole({
+        const endUserInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        await siteManagementHelper.updateUserSiteMembershipWithRole({
           siteId: siteInfo.siteId,
-          userId: process.env.END_USER_USERID!,
+          userId: endUserInfo.userId,
           role: SitePermission.CONTENT_MANAGER,
         });
         await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(siteInfo.siteId);
@@ -110,30 +111,34 @@ test.describe(
             contentDescription: 'Test Description',
           },
         });
-        await manageSitePage.actions.clickOnTheManageSiteButton();
-        await manageSitePage.assertions.verifyEventsTabImageIsDisplayed();
-        await manageSitePage.assertions.verifyAlbumTabImageIsDisplayed();
-        await manageSitePage.assertions.verifyPageTabImageIsDisplayed();
+        await manageSiteStandardUserPage.actions.clickOnTheManageSiteButton();
+        await manageSiteStandardUserPage.assertions.verifyEventsTabImageIsDisplayed();
+        await manageSiteStandardUserPage.assertions.verifyAlbumTabImageIsDisplayed();
+        await manageSiteStandardUserPage.assertions.verifyPageTabImageIsDisplayed();
         const siteAuthorNameAndEventStartDate = await siteManagementHelper.getSiteAuthorNameAndEventStartDate();
-        await manageSitePage.assertions.checkAuthorNameIsDisplayed(siteAuthorNameAndEventStartDate.authorName || '');
-        await manageSitePage.assertions.verifyEventsTabMatchesApiDate(siteAuthorNameAndEventStartDate.startsAt || '');
+        await manageSiteStandardUserPage.assertions.checkAuthorNameIsDisplayed(
+          siteAuthorNameAndEventStartDate.authorName || ''
+        );
+        await manageSiteStandardUserPage.assertions.verifyEventsTabMatchesApiDate(
+          siteAuthorNameAndEventStartDate.startsAt || ''
+        );
 
-        await appManagerSiteHelper.updateUserSiteMembershipWithRole({
+        await siteManagementHelper.updateUserSiteMembershipWithRole({
           siteId: siteInfo.siteId,
-          userId: process.env.END_USER_USERID!,
+          userId: endUserInfo.userId,
           role: SitePermission.MEMBER,
         });
       }
     );
 
     test(
-      'Login as Admin/Standard User where user is Site Content Manager of Private site "Site A"',
+      'Login as Standard User where user is Site Content Manager of Private site',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, ContentFeatureTags.MANAGE_SITE],
       },
-      async ({}) => {
+      async ({ siteManagementHelper }) => {
         tagTest(test.info(), {
-          description: 'To verify the favourite people from manage site people',
+          description: 'To verify the user is Site Content Manager of Private site',
           customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-29063',
           storyId: 'CONT-29063',
@@ -141,32 +146,33 @@ test.describe(
 
         const siteNamePrivate = MANAGE_SITE_TEST_DATA.SITE_NAME.generateUniqueName();
         const categoryID = await siteManagementHelper.getRandomCategoryId();
-        const site1 = await siteManagementHelper.createSiteWithMember(
-          process.env.END_USER_USERNAME!,
+        const privateSite = await siteManagementHelper.createSiteWithMember(
+          users.endUser.email,
           siteNamePrivate,
           categoryID,
           SITE_TYPES.PRIVATE
         );
+        const endUserInfoPrivate = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
         await siteManagementHelper.makeUserSiteMembership(
-          site1.siteId,
-          process.env.END_USER_USERID!,
+          privateSite.siteId,
+          endUserInfoPrivate.userId,
           SitePermission.MEMBER,
           SiteMembershipAction.ADD
         );
-        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(site1.siteId);
-        await manageSitePage.actions.clickOntheMemberButton();
-        await manageSitePage.assertions.clickOnLeaveButton();
+        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(privateSite.siteId);
+        await manageSiteStandardUserPage.actions.clickOntheMemberButton();
+        await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
       }
     );
 
     test(
-      'Login as Admin/Standard User where user is Site Content Manager of Unlisted site "Site A"',
+      'Login as Standard User where user is Site Content Manager of Unlisted site',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, ContentFeatureTags.MANAGE_SITE],
       },
-      async ({}) => {
+      async ({ siteManagementHelper }) => {
         tagTest(test.info(), {
-          description: 'To verify the favourite people from manage site people',
+          description: 'To verify the user is Site Content Manager of Unlisted site',
           customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-29063',
           storyId: 'CONT-29063',
@@ -174,21 +180,22 @@ test.describe(
 
         const siteNameUnlisted = MANAGE_SITE_TEST_DATA.SITE_NAME.generateUniqueName();
         const categoryID = await siteManagementHelper.getRandomCategoryId();
-        const site1 = await siteManagementHelper.createSiteWithMember(
-          process.env.END_USER_USERNAME!,
+        const unlistedSite = await siteManagementHelper.createSiteWithMember(
+          users.endUser.email,
           siteNameUnlisted,
           categoryID,
           SITE_TYPES.UNLISTED
         );
+        const endUserInfoUnlisted = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
         await siteManagementHelper.makeUserSiteMembership(
-          site1.siteId,
-          process.env.END_USER_USERID!,
+          unlistedSite.siteId,
+          endUserInfoUnlisted.userId,
           SitePermission.MEMBER,
           SiteMembershipAction.ADD
         );
-        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(site1.siteId);
-        await manageSitePage.actions.clickOntheMemberButton();
-        await manageSitePage.assertions.clickOnLeaveButton();
+        await siteDashboardPage.assertions.verifySiteDashboardNavigationWithSiteID(unlistedSite.siteId);
+        await manageSiteStandardUserPage.actions.clickOntheMemberButton();
+        await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
       }
     );
   }

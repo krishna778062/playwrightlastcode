@@ -31,4 +31,8 @@ export const MANAGE_SITE_TEST_DATA = {
     NAME: `Test Event ${faker.person.firstName()}`,
     generateUniqueName: () => `Test Event ${faker.person.firstName()}_${Date.now()}`,
   },
+  MONTH_NAMES: {
+    MONTH_NAMES: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    MONTH_NAMES_LOWER: ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'],
+  },
 };

@@ -1,13 +1,14 @@
 import { Page, test } from '@playwright/test';
 import { expect } from '@playwright/test';
 
+import { MANAGE_SITE_TEST_DATA } from '../test-data/manage-site-test-data';
+
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 
 export interface IManageSiteActions {
   clickOnSite: () => Promise<void>;
-  clickOnContentButton: () => Promise<void>;
   clickOnAboutTab: () => Promise<void>;
   clickOnTheMembersTab: () => Promise<void>;
   hoverOnMembersName: (membersName: string) => Promise<void>;
@@ -25,9 +26,7 @@ export interface IManageSiteActions {
 export interface IManageSiteAssertions {
   checkIsUserMarkedAsFavorite: () => Promise<void>;
   clickOnPeppleTab: () => Promise<void>;
-  verifyCoverImageIsVisible: () => Promise<void>;
   verifyEventsTabMatchesApiDate: (startsAt: string) => Promise<void>;
-  checkAlbumCoverImageIsVisible: () => Promise<void>;
   checkAuthorNameIsDisplayed: (authorName: string) => Promise<void>;
   checkTheError: () => Promise<void>;
   markAsFavoriteAndCheckRGBColor: (membersName: string) => Promise<void>;
@@ -75,20 +74,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     });
   }
 
-  async verifyCoverImageIsVisible(): Promise<void> {
-    await test.step('Verify cover image is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.manageSitesComponent.coverImage, {
-        assertionMessage: 'Cover image should be visible',
-      });
-    });
-  }
-
-  async clickOnContentButton(): Promise<void> {
-    await test.step('Clicking on content button', async () => {
-      await this.clickOnElement(this.contentTab);
-    });
-  }
-
   async searchEventInSearchBar(eventName: string): Promise<void> {
     await test.step('Searching event in search bar', async () => {
       await this.typeInElement(this.manageSitesComponent.searchEventInSearchBar, eventName);
@@ -127,7 +112,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       throw new Error(`Invalid date format: "${startsAt}"`);
     }
 
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthNames = MANAGE_SITE_TEST_DATA.MONTH_NAMES.MONTH_NAMES;
     const month = monthNames[date.getMonth()];
     const day = date.getDate().toString();
     return { month, day };
@@ -144,44 +129,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     console.log(`✅ Day "${expectedDay}": ${cleanText.includes(expectedDay)}`);
 
     return lowerText.includes(lowerMonth) && cleanText.includes(expectedDay);
-  }
-
-  private hasDateAndMonthVisible(text: string | null): boolean {
-    if (!text) return false;
-
-    // Clean the text and remove any invisible characters
-    const cleanText = text.trim().replace(/[\s\u200C\u200D\uFEFF\u00A0\u2000-\u200F\u2028-\u202F\u205F\u3000]+/g, ' ');
-    if (!cleanText) return false;
-
-    // Check for month abbreviations
-    const monthAbbreviations = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-
-    const textLower = cleanText.toLowerCase();
-    const hasMonth = monthAbbreviations.some(month => textLower.includes(month));
-
-    // Check for date numbers (1-31)
-    const hasDateNumber = /\b([1-9]|[12][0-9]|3[01])\b/.test(cleanText);
-
-    // Additional patterns for various date formats
-    const datePatterns = [
-      /\d{1,2}\/\d{1,2}\/\d{2,4}/, // MM/DD/YYYY or DD/MM/YYYY
-      /\d{1,2}-\d{1,2}-\d{2,4}/, // MM-DD-YYYY or DD-MM-YYYY
-      /\d{4}-\d{1,2}-\d{1,2}/, // YYYY-MM-DD
-      /\b\d{1,2}(st|nd|rd|th)\b/, // 1st, 2nd, 3rd, 4th etc.
-    ];
-
-    const hasDatePattern = datePatterns.some(pattern => pattern.test(cleanText));
-    const hasCalendarFormat = hasMonth && hasDateNumber;
-
-    return hasCalendarFormat || hasDatePattern;
-  }
-
-  async checkAlbumCoverImageIsVisible(): Promise<void> {
-    await test.step('Check album cover image is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.manageSitesComponent.albumCoverImage, {
-        assertionMessage: 'Album cover image should be visible',
-      });
-    });
   }
 
   async checkAuthorNameIsDisplayed(authorName: string | undefined): Promise<void> {
@@ -257,7 +204,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
   async checkIsUserMarkedAsFavorite(): Promise<void> {
     await test.step('Check is user marked as favorite', async () => {
-      if (await this.verifier.verifyTheElementIsVisible(this.manageSitesComponent.clickOnAlreadyStarIcon)) {
+      if (await this.verifier.isTheElementVisible(this.manageSitesComponent.clickOnAlreadyStarIcon)) {
         const publishResponse = await this.performActionAndWaitForResponse(
           () => this.clickOnElement(this.manageSitesComponent.clickOnStartIcon),
           response =>
@@ -296,7 +243,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   }
 
   async markAsUnfavorite(membersName: string): Promise<void> {
-    await test.step('Mark as unfaverite', async () => {
+    await test.step('Mark as Favorite', async () => {
       await this.clickOnElement(this.manageSitesComponent.getFavoriteButtonForUser(membersName));
     });
   }
