@@ -341,15 +341,10 @@ export class NotificationCustomizationComponent extends BaseComponent {
   }
 
   async countItems(): Promise<number> {
-    return await test.step('Count table items', async () => {
-      try {
-        const r = this.tableRows;
-        await r.first().waitFor({ timeout: 2_000 });
-        return await r.count();
-      } catch {
-        return 0;
-      }
-    });
+    //before count => await this.locator.count()
+    //delete item
+    //verify count  is count - 1
+    // await expect(this.locator).tohavecount(previouscount - 1)
   }
 
   /**

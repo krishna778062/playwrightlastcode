@@ -1,128 +1,78 @@
-import { ALERT_NOTIFICATION_MESSAGES } from '@alert-notification-constants/messageRepo';
 import { AlertNotificationSuiteTags } from '@alert-notification-constants/testTags';
 
-import { TestPriority } from '@core/constants/testPriority';
-import { TestGroupType } from '@core/constants/testType';
-import { tagTest } from '@core/utils/testDecorator';
+import { NotificationFeatures } from '../../ui/components/selectNotificationStep';
+import {
+  CustomizationNotificationSteps,
+  NotificationCustomizationPage,
+} from '../../ui/pages/notificationCustomizationPage';
+import { SUBJECT_LINES } from '../test-data/notification-customization.test-data';
 
 import { appManagerFixture as test } from '@/src/modules/alert-notification/tests/fixtures/fixtures';
-import {
-  TEMPLATE_TYPES,
-  TEST_EMAILS,
-} from '@/src/modules/alert-notification/tests/test-data/notification-customization.test-data';
-import { NotificationWorkflow } from '@/src/modules/alert-notification/ui/pages/notificationWorkflow';
-import { SubjectCustomLinePage } from '@/src/modules/alert-notification/ui/pages/subjectCustomLinePage';
 
 test.describe(
-  '[Alert Notification] Subject custom line – full suite',
+  '[Alert Notification] Subject custom line - full suite',
   {
     tag: [AlertNotificationSuiteTags.ALERT_NOTIFICATION, AlertNotificationSuiteTags.SUBJECT_CUSTOMIZATION],
   },
   () => {
-    let workflow: NotificationWorkflow;
+    let notificationCustomizationPage: NotificationCustomizationPage;
 
-    test.beforeEach(async ({ appManager }) => {
-      const subjectCustomLinePage = new SubjectCustomLinePage(appManager);
-      workflow = new NotificationWorkflow(appManager, subjectCustomLinePage);
-      await workflow.navigateToNotificationCustomization();
+    test.beforeEach(async ({ appManagerNavigationHelper }) => {
+      const emailNotificationAppSettingsPage =
+        await appManagerNavigationHelper.navigateToEmailNotificationSettingsPageViaSideNavBar();
+      notificationCustomizationPage = await emailNotificationAppSettingsPage.openNotificationCustomizationTab();
     });
 
-    test(
-      'Admin creates Must Read notification with French translation, verifies creation, and deletes customization',
-      {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
-      },
-      async () => {
-        tagTest(test.info(), { zephyrTestId: 'INT-28326', storyId: 'INT-1' });
-        const englishSubject = await workflow.createMustReadWithFrenchTranslation();
-        await workflow.saveAndVerifyCreation(englishSubject);
-        await workflow.deleteBySubject(englishSubject);
-      }
-    );
+    test('TC001 - Verify app manager is able to customize must read with default subject line', async () => {
+      await notificationCustomizationPage.clickOnAddCustomizationButton();
+      //select must read feature from the add customization step
+      await notificationCustomizationPage.verifyUserIsOnStep(CustomizationNotificationSteps.SELECT_NOTIFICATION);
+      await notificationCustomizationPage.selectNotificationStep.selectTemplateForFeature(
+        NotificationFeatures.MUST_READS,
+        "A 'must read' requires your attention"
+      );
+      //click on next button
+      await notificationCustomizationPage.clickOnNextButton();
 
-    test(
-      'Admin validates Must Read template UI labels, cancel functionality, and input validation rules',
-      {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
-      },
-      async () => {
-        tagTest(test.info(), { zephyrTestId: 'INT-27666', storyId: 'INT-24252' });
-        await workflow.selectTemplate(TEMPLATE_TYPES.MUST_READ);
-        await workflow.verifySubjectLineLabels();
-        await workflow.testCancelAction();
-        await workflow.testValidInput(TEMPLATE_TYPES.MUST_READ);
-        await workflow.testEmptyInputValidation(TEMPLATE_TYPES.MUST_READ);
-      }
-    );
+      //now verify user is on the select subject line step
+      await notificationCustomizationPage.verifyUserIsOnStep(CustomizationNotificationSteps.SELECT_SUBJECT_LINE);
 
-    test(
-      'Admin validates Follow template shows same UI behavior as Must Read template',
-      {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
-      },
-      async () => {
-        tagTest(test.info(), { zephyrTestId: 'INT-27667', storyId: 'INT-24252' });
-        await workflow.selectTemplate(TEMPLATE_TYPES.FOLLOW);
-        await workflow.verifySubjectLineLabels();
-        await workflow.testCancelAction();
-        await workflow.testValidInput(TEMPLATE_TYPES.FOLLOW);
-        await workflow.testEmptyInputValidation(TEMPLATE_TYPES.FOLLOW);
-      }
-    );
+      //verify the default subject line is selected
+      await notificationCustomizationPage.subjectLineCustomizationComponent.verifyDefaultSubjectLineIsSelected();
+      //click on next button
+      await notificationCustomizationPage.clickOnSaveButton();
+    });
 
-    test(
-      'Admin validates Alerts template shows consistent UI behavior with other notification types',
-      {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
-      },
-      async () => {
-        tagTest(test.info(), { zephyrTestId: 'INT-27665', storyId: 'INT-24252' });
-        await workflow.selectTemplate(TEMPLATE_TYPES.ALERTS);
-        await workflow.verifySubjectLineLabels();
-        await workflow.testCancelAction();
-        await workflow.testValidInput(TEMPLATE_TYPES.ALERTS);
-        await workflow.testEmptyInputValidation(TEMPLATE_TYPES.ALERTS);
-      }
-    );
+    test('TC002 - Verify app manager is able to customize must read with custom subject line', async () => {
+      const customSubjectLine = SUBJECT_LINES.MUST_READ.ENGLISH_EDITED;
+      await notificationCustomizationPage.clickOnAddCustomizationButton();
+      //select must read feature from the add customization step
+      await notificationCustomizationPage.verifyUserIsOnStep(CustomizationNotificationSteps.SELECT_NOTIFICATION);
+      await notificationCustomizationPage.selectNotificationStep.selectTemplateForFeature(
+        NotificationFeatures.MUST_READS,
+        "{{count}} 'must read' requires your attention"
+      );
+      //click on next button
+      await notificationCustomizationPage.clickOnNextButton();
 
-    test(
-      'Admin verifies translation fallback behavior when manual translation is disabled for Must Read template',
-      {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
-      },
-      async () => {
-        tagTest(test.info(), { zephyrTestId: 'INT-27660', storyId: 'INT-24252' });
-        await workflow.selectTemplate(TEMPLATE_TYPES.MUST_READ);
-        await workflow.verifySubjectLineLabels();
-        await workflow.testTranslationFallback();
-      }
-    );
+      //now verify user is on the select subject line step
+      await notificationCustomizationPage.verifyUserIsOnStep(CustomizationNotificationSteps.SELECT_SUBJECT_LINE);
 
-    test(
-      'Admin creates custom subject and validates invalid/valid test email behavior',
-      {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
-      },
-      async () => {
-        tagTest(test.info(), { zephyrTestId: 'INT-27649', storyId: 'IINT-24252' });
-        await workflow.selectTemplate(TEMPLATE_TYPES.MUST_READ);
-        await workflow.testInvalidEmailFlow();
-        await workflow.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.INVALID_EMAIL_ERROR);
-        await workflow.testValidEmailFlow();
-        await workflow.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.TEST_EMAIL_SENT_SUCCESS);
-      }
-    );
-    test(
-      'Admin can send a single test email to multiple recipients separated by commas',
-      {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
-      },
-      async () => {
-        tagTest(test.info(), { zephyrTestId: 'INT-27671', storyId: 'INT-24252' });
-        await workflow.selectTemplate(TEMPLATE_TYPES.MUST_READ);
-        await workflow.testSendYourselfMultipleRecipients(TEST_EMAILS.MULTI_VALID_CSV);
-        await workflow.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.TEST_EMAIL_SENT_SUCCESS);
-      }
-    );
+      //verify the default subject line is selected
+      await notificationCustomizationPage.subjectLineCustomizationComponent.verifyDefaultSubjectLineIsSelected();
+
+      //click on custom subject line option
+      await notificationCustomizationPage.subjectLineCustomizationComponent.clickOnCustomSubjectLineOption();
+      //fill in the custom subject line
+      await notificationCustomizationPage.subjectLineCustomizationComponent.fillCustomSubjectLine(customSubjectLine);
+      //click on next button
+      await notificationCustomizationPage.clickOnNextButton();
+
+      //now verify user is on the manage translations step
+      await notificationCustomizationPage.verifyUserIsOnStep(CustomizationNotificationSteps.MANAGE_TRANSLATIONS);
+
+      //click on save button
+      await notificationCustomizationPage.clickOnSaveButton();
+    });
   }
 );
