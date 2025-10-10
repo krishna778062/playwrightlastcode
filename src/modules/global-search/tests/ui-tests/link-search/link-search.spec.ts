@@ -7,7 +7,7 @@ import { generateUniqueLinkTestData } from '@/src/modules/global-search/test-dat
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
 
 test.describe(
-  'Test Global Search - Link Search functionality',
+  'test Global Search - Link Search functionality',
   {
     tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.LINK_SEARCH],
   },
@@ -43,7 +43,7 @@ test.describe(
     });
 
     test(
-      'Verify Link Search results for a new external link',
+      'verify Link Search results for a new external link',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },

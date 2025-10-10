@@ -38,7 +38,7 @@ const SITE_TEST_DATA = [
 ] as const;
 
 test.describe(
-  'Site Creation by Application Manager',
+  'site Creation by Application Manager',
   { tag: [ContentTestSuite.SITE_APP_MANAGER, ContentSuiteTags.SITE_CREATION] },
   () => {
     let siteCreationPage: ContentSiteCreationPage;

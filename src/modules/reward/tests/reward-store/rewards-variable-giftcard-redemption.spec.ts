@@ -7,7 +7,7 @@ import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constant
 
 import { RewardsStore } from '../../ui/pages/reward-store/reward-store';
 
-test.describe('Rewards Variable Gift Card Redemption', { tag: [REWARD_FEATURE_TAGS.REWARD_STORE] }, () => {
+test.describe('rewards Variable Gift Card Redemption', { tag: [REWARD_FEATURE_TAGS.REWARD_STORE] }, () => {
   test.beforeEach(async ({ appManagerPage }) => {
     const rewardsStore = new RewardsStore(appManagerPage);
     await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();

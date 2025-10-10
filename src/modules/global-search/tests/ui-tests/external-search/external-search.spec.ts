@@ -8,7 +8,7 @@ import { generateUniqueExternalSearchTestData } from '@/src/modules/global-searc
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
 
 test.describe(
-  'Global Search - To verify External Search links',
+  'global Search - To verify External Search links',
   {
     tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.EXTERNAL_SEARCH],
   },
@@ -31,7 +31,7 @@ test.describe(
     });
 
     test(
-      'To verify that external search is displaying correctly and responsive in Workplace Search',
+      'to verify that external search is displaying correctly and responsive in Workplace Search',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },

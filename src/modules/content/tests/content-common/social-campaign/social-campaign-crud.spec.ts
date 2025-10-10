@@ -15,7 +15,7 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 test.describe(
-  `Social Campaign functionality`,
+  `social Campaign functionality`,
   {
     tag: [ContentTestSuite.SOCIAL_CAMPAIGN],
   },
@@ -39,7 +39,7 @@ test.describe(
     });
 
     test(
-      'Zeus | Social Campaign | Verify SC Manager able to create and delete Social Campaign for Everyone',
+      'zeus | Social Campaign | Verify SC Manager able to create and delete Social Campaign for Everyone',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33728', '@Social_Campaign_Add_Edit_Delete'],
       },
@@ -75,7 +75,7 @@ test.describe(
     );
 
     test(
-      'In Zeus Verify SC Manager able to delete the expired Social Campaign(Audience)',
+      'in Zeus Verify SC Manager able to delete the expired Social Campaign(Audience)',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-10526', '@Social_Campaign_Expire'],
       },
@@ -132,7 +132,7 @@ test.describe(
     );
 
     test(
-      'Verify App Manager able to share Social Campaign(Audience) to Site feed',
+      'verify App Manager able to share Social Campaign(Audience) to Site feed',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-10518'],
       },
@@ -161,7 +161,7 @@ test.describe(
           recipient: campaignOptions.recipient,
         });
         campaignId = createdCampaign.campaignId;
-        socialCampaignPage.loadPage();
+        await socialCampaignPage.loadPage();
         await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
         const description = TestDataGenerator.generateRandomString();
@@ -183,7 +183,7 @@ test.describe(
     );
 
     test(
-      'In Zeus Verify error messages on creating social campaign without required details',
+      'in Zeus Verify error messages on creating social campaign without required details',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19603', '@Social_Campaign_Validation'],
       },
@@ -213,7 +213,7 @@ test.describe(
     );
 
     test(
-      'In Zeus Verify user able to create social campaign for selected(Twitter) social network',
+      'in Zeus Verify user able to create social campaign for selected(Twitter) social network',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19604', '@Social_Campaign_Creation'],
       },
@@ -246,7 +246,7 @@ test.describe(
     );
 
     test(
-      'Verify Audience Description Is Not Displayed When Not Present',
+      'verify Audience Description Is Not Displayed When Not Present',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-33857', '@Social_Campaign_Audience'],
       },
@@ -286,7 +286,7 @@ test.describe(
     );
 
     test(
-      'Verify App Manager able to share Social Campaign to Home Feed',
+      'verify App Manager able to share Social Campaign to Home Feed',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-10515'],
       },
@@ -313,7 +313,7 @@ test.describe(
           recipient: campaignOptions.recipient,
         });
         campaignId = createdCampaign.campaignId;
-        socialCampaignPage.loadPage();
+        await socialCampaignPage.loadPage();
         await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
         const description = TestDataGenerator.generateRandomString();
@@ -331,7 +331,7 @@ test.describe(
     );
 
     test(
-      'In Zeus Verify App Manager able to delete the expired Social Campaign(Audience)',
+      'in Zeus Verify App Manager able to delete the expired Social Campaign(Audience)',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-14899', '@Social_Campaign_Expire'],
       },
@@ -388,7 +388,7 @@ test.describe(
     );
 
     test(
-      'In Zeus Verify End User should not be able to share Social Campaign to Home Carousel delete and expire Campaign',
+      'in Zeus Verify End User should not be able to share Social Campaign to Home Carousel delete and expire Campaign',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-14906', '@Social_Campaign_End_User_Restrictions'],
       },
@@ -428,7 +428,7 @@ test.describe(
     );
 
     test(
-      'In Zeus Verify Standard User is able to Share a Social Campaign with a message using Post in HOME FEED option',
+      'in Zeus Verify Standard User is able to Share a Social Campaign with a message using Post in HOME FEED option',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26718'],
       },
@@ -455,7 +455,7 @@ test.describe(
           recipient: campaignOptions.recipient,
         });
         campaignId = createdCampaign.campaignId;
-        socialCampaignPage.loadPage();
+        await socialCampaignPage.loadPage();
         await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
         const description = TestDataGenerator.generateRandomString();
@@ -473,7 +473,7 @@ test.describe(
     );
 
     test(
-      'In Zeus Verify Standard User is able to Share a Social Campaign with a message to a Public Site using Post in SITE FEED option',
+      'in Zeus Verify Standard User is able to Share a Social Campaign with a message to a Public Site using Post in SITE FEED option',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26719'],
       },
@@ -503,7 +503,7 @@ test.describe(
           recipient: campaignOptions.recipient,
         });
         campaignId = createdCampaign.campaignId;
-        socialCampaignPage.loadPage();
+        await socialCampaignPage.loadPage();
         await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
         const description = TestDataGenerator.generateRandomString();

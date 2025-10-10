@@ -14,13 +14,13 @@ import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
 test.describe(
-  'docuSign App Tiles Multi-user Tests',
+  'docebo App Tiles Multi-user Tests',
   {
-    tag: [IntegrationsSuiteTags.DOCUSIGN, IntegrationsSuiteTags.ABSOLUTE],
+    tag: [IntegrationsSuiteTags.DOCEBO, IntegrationsSuiteTags.ABSOLUTE],
   },
   () => {
-    const AppName = 'Docusign';
-    const tileName = 'Display Docusign signature requests';
+    const AppName = 'Docebo';
+    const tileName = 'Display learning courses';
     let createdTileTitle: string | undefined = undefined;
 
     multiUserTileFixture.afterEach(async ({ adminPage, tileManagementHelper }) => {
@@ -33,18 +33,18 @@ test.describe(
     });
 
     multiUserTileFixture(
-      'verify the "Display Docusign signature requests" tile is visible to end users after it has been added by the App Manager',
+      'verify the "Docebo App" tile is visible to end users after it has been added by the App Manager',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-25165',
-          storyId: 'INT-24586',
+          zephyrTestId: 'INT-28268',
+          storyId: 'INT-24422',
         });
 
         //Generate a random tile title
-        createdTileTitle = `DocuSign report ${faker.string.alphanumeric({ length: 6 })}`;
+        createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Add tile, verify by both users, then remove
         const adminHomeDashboard = new HomeDashboard(adminPage, tileManagementHelper);
@@ -54,22 +54,23 @@ test.describe(
         const endUserHomeDashboard = new HomeDashboard(endUserPage, tileManagementHelper);
         await waitUntilTilePresentInApi(endUserPage, createdTileTitle);
         await endUserHomeDashboard.reloadAndVerifyTilePresent(createdTileTitle);
+        await adminHomeDashboard.verifyDoceboContentStructure(createdTileTitle);
       }
     );
 
     multiUserTileFixture(
-      'Verify the "Display Docusign signature requests" tile is visible to end users on site dashboard',
+      'verify the "Docebo App" tile is visible to end users on Site Dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-25162',
-          storyId: 'INT-24586',
+          zephyrTestId: 'INT-28270',
+          storyId: 'INT-24422',
         });
 
         //Generate a random tile title
-        createdTileTitle = `DocuSign report${faker.string.alphanumeric({ length: 6 })}`;
+        createdTileTitle = `Docebo report${faker.string.alphanumeric({ length: 6 })}`;
         const endUserSiteDashboard = new SiteDashboard(endUserPage);
         const siteDashboard = new SiteDashboard(adminPage, tileManagementHelper);
 
@@ -85,6 +86,7 @@ test.describe(
         await endUserSiteDashboard.navigateToSite(createdSite.siteId);
         await waitUntilTilePresentInApi(endUserPage, createdTileTitle);
         await endUserSiteDashboard.isTilePresent(createdTileTitle);
+        await endUserSiteDashboard.verifyDoceboContentStructure(createdTileTitle);
         await siteDashboard.removeTile(createdTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         createdTileTitle = undefined;
       }

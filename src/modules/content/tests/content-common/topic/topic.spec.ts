@@ -8,7 +8,7 @@ import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationscreenPage';
 import { ManageTopicsPage } from '@/src/modules/content/ui/pages/manageTopicsPage';
-test.describe('Edit Topic', () => {
+test.describe('edit Topic', () => {
   let applicationScreenPage: ApplicationScreenPage;
   let manageTopicsPage: ManageTopicsPage;
 
@@ -20,7 +20,7 @@ test.describe('Edit Topic', () => {
   test.afterEach(async ({}) => {});
 
   test(
-    'In Zeus to verify the Edit topic - negative scenario',
+    'in Zeus to verify the Edit topic - negative scenario',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.EDIT_TOPICS],
     },

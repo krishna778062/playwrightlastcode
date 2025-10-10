@@ -14,7 +14,7 @@ import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
 test.describe(
-  'SAP SuccessFactors App Tiles Multi-user Tests',
+  'sAP SuccessFactors App Tiles Multi-user Tests',
   {
     tag: [IntegrationsSuiteTags.SAP_SUCCESSFACTORS, IntegrationsSuiteTags.ABSOLUTE, IntegrationsFeatureTags.MULTI_USER],
   },

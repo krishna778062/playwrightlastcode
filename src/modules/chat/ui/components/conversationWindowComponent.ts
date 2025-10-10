@@ -259,7 +259,7 @@ export class ConversationWindowComponent extends BaseComponent {
 
   async getMessageItemFromChat(message: string, options?: { stepInfo?: string }): Promise<Locator> {
     await this.verifyMessageIsPresentInListOfChatMessages(message);
-    const lastMessage = await this.listChatMessagesComponent.last();
+    const lastMessage = this.listChatMessagesComponent.last();
     //fetch message
     const messageText = await lastMessage.locator('section').locator('p').textContent();
 

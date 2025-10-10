@@ -11,7 +11,7 @@ import { integrationsFixture as test } from '@/src/modules/integrations/fixtures
 import { CONNECTOR_IDS, REDIRECT_URLS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 test.describe(
-  'Outlook Calendar App Tiles Integration',
+  'outlook Calendar App Tiles Integration',
   {
     tag: [IntegrationsSuiteTags.OUTLOOK_CALENDAR_APPTILES, IntegrationsSuiteTags.ABSOLUTE],
   },

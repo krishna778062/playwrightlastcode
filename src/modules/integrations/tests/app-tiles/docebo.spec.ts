@@ -12,7 +12,7 @@ import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { CONNECTOR_IDS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 test.describe(
-  'Docebo App Tiles Integration',
+  'docebo App Tiles Integration',
   {
     tag: [IntegrationsSuiteTags.DOCEBO, IntegrationsSuiteTags.ABSOLUTE],
   },
@@ -63,7 +63,7 @@ test.describe(
     );
 
     test(
-      'Verify users should be able to display pending learning courses from Docebo on a tile on Site dashboard',
+      'verify users should be able to display pending learning courses from Docebo on a tile on Site dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -124,7 +124,7 @@ test.describe(
       }
     );
     test(
-      'Verify UI layout for pending learning courses from Docebo on a tile on Site Dashboard',
+      'verify UI layout for pending learning courses from Docebo on a tile on Site Dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },

@@ -11,13 +11,13 @@ import { CHAT_SUITE_TAGS } from '../../../constants/testTags';
  * Tests message pinning functionality in direct messages and group chats
  */
 test.describe(
-  'Message Pinning Tests - Direct Message',
+  'message Pinning Tests - Direct Message',
   {
     tag: [CHAT_SUITE_TAGS.DIRECT_MESSAGE],
   },
   () => {
     test(
-      'Message Pinning: Verify user can pin and view their sent message in direct chat',
+      'message Pinning: Verify user can pin and view their sent message in direct chat',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
@@ -69,7 +69,7 @@ test.describe(
     );
 
     test(
-      'Message Pinning: Verify user can pin messages sent by other users in direct chat',
+      'message Pinning: Verify user can pin messages sent by other users in direct chat',
       {
         tag: [TestPriority.P1, TestGroupType.SMOKE],
       },
@@ -128,13 +128,13 @@ test.describe(
  * Tests message pinning functionality in group conversations
  */
 test.describe(
-  'Message Pinning Tests - Group Chat',
+  'message Pinning Tests - Group Chat',
   {
     tag: [CHAT_SUITE_TAGS.GROUP_CHAT],
   },
   () => {
     test(
-      'Message Pinning: Verify user can pin and view their sent message in group chat',
+      'message Pinning: Verify user can pin and view their sent message in group chat',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },

@@ -10,13 +10,13 @@ import { DataEngineeringTestSuite } from '@/src/modules/data-engineering/constan
 import { AppAdoptionPage } from '@/src/modules/data-engineering/pages/appAdoptionPage';
 
 test.describe(
-  'App Adoption Dashboard',
+  'app Adoption Dashboard',
   {
     tag: [DataEngineeringTestSuite.ADOPTION],
   },
   () => {
     test(
-      'Verify Department, Location, Company name, People Category and Period filters',
+      'verify Department, Location, Company name, People Category and Period filters',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION],
       },

@@ -6,7 +6,7 @@ import { messageTestData } from '@chat/test-data/message-test-data';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { tagTest } from '@/src/core/utils/testDecorator';
 
-test.describe('Send Message', { tag: [TestPriority.P2, CHAT_SUITE_TAGS.USER_CHAT] }, () => {
+test.describe('send Message', { tag: [TestPriority.P2, CHAT_SUITE_TAGS.USER_CHAT] }, () => {
   for (const data of messageTestData) {
     test(`Scenario: ${data.testName}`, async ({ appManagerFixture }) => {
       tagTest(test.info(), {

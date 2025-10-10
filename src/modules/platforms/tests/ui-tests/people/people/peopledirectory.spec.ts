@@ -6,13 +6,13 @@ import { TestSuite } from '@/src/core/constants/testSuite';
 import { PeopleDirectoryPage } from '@/src/modules/platforms/ui/pages/people/peopleDirectoryPage';
 
 test.describe(
-  'People Directory Testcases',
+  'people Directory Testcases',
   {
     tag: [TestSuite.PEOPLE_DIRECTORY],
   },
   () => {
     test(
-      'Verify the presence of filter under filters field of people directory for custom user',
+      'verify the presence of filter under filters field of people directory for custom user',
       {
         tag: [TestPriority.P1, `@PEOPLE_DIRECTORY`, `@people-directory`],
       },

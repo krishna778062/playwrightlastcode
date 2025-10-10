@@ -40,7 +40,7 @@ test.describe(
     });
 
     test(
-      'Verify "Nothing to show here" should come when user searches non-existing content and on clicking x all results should come based on relevant filters',
+      'verify "Nothing to show here" should come when user searches non-existing content and on clicking x all results should come based on relevant filters',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
@@ -66,7 +66,7 @@ test.describe(
     );
 
     test(
-      'Verify Bulk actions Functionality in My Content Screen',
+      'verify Bulk actions Functionality in My Content Screen',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
@@ -108,7 +108,7 @@ test.describe(
     );
 
     test(
-      'Verify content publish and unpublish option in My Content Screen',
+      'verify content publish and unpublish option in My Content Screen',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
@@ -129,7 +129,7 @@ test.describe(
     );
 
     test(
-      'Verify Delete Modal Cancel and Delete Button of Content from My Content Screen',
+      'verify Delete Modal Cancel and Delete Button of Content from My Content Screen',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
@@ -150,7 +150,7 @@ test.describe(
     );
 
     test(
-      'Verification of various aspects of My Content screen',
+      'verification of various aspects of My Content screen',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
@@ -177,7 +177,7 @@ test.describe(
     );
 
     test(
-      'Verify Site Filter in My Content screen',
+      'verify Site Filter in My Content screen',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
@@ -205,7 +205,7 @@ test.describe(
     );
 
     test(
-      'Verify created Newest Filter in My Content screen',
+      'verify created Newest Filter in My Content screen',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
       },
@@ -224,7 +224,7 @@ test.describe(
       }
     );
     test(
-      'In Zeus Verify Default filters (Posts I follow and Recent Activity) are applied for Home Feed for New users',
+      'in Zeus Verify Default filters (Posts I follow and Recent Activity) are applied for Home Feed for New users',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.HOME_FEED],
       },

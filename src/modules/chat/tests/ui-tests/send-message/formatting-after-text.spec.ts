@@ -7,7 +7,7 @@ import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
 
-test.describe('Typing text message then select format and send it', { tag: [TestPriority.P2] }, () => {
+test.describe('typing text message then select format and send it', { tag: [TestPriority.P2] }, () => {
   // New test cases for select-then-format workflow
   for (const data of selectThenFormatTestData) {
     test(`Scenario: ${data.testName} (select then format)`, async ({ appManagerFixture }) => {

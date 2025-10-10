@@ -1,5 +1,3 @@
-import { PopupType } from '@frontline/constants/popupType';
-import { QR_SEARCH_TERMS } from '@frontline/constants/searchTerms';
 import { FrontlineFeatureTags, FrontlineSuiteTags } from '@frontline/constants/testTags';
 import { frontlineTestFixture as test } from '@frontline/fixtures/frontlineFixture';
 import { ManageQRPage } from '@frontline/pages/manageQRPage';
@@ -10,7 +8,7 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 test.describe(
-  'Feature: QR Code Download',
+  'feature: QR Code Download',
   {
     tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.QR_CODE],
   },
@@ -22,7 +20,7 @@ test.describe(
       for (const filePath of downloadedFiles) {
         if (filePath) {
           try {
-            await FileUtil.deleteTemporaryFile(filePath);
+            FileUtil.deleteTemporaryFile(filePath);
           } catch (error) {
             console.warn(`Cleanup failed for file: ${filePath}`, error);
           }
