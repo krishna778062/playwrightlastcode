@@ -1,8 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
-import { text } from 'stream/consumers';
 
-import { BaseComponent } from '@/src/core/components/baseComponent';
 import type { TestOptions } from '@/src/core/types/test.types';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { AnalyticsLandingPage } from '@/src/modules/data-engineering/pages/analyticsLandingPage';
 
 export class SideNavBarComponent extends BaseComponent {

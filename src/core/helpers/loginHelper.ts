@@ -1,12 +1,14 @@
 import { expect, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
-import { LoginPage } from '@core/pages/loginPage';
 import { UserCredentials } from '@core/types/test.types';
 
 import { PAGE_ENDPOINTS } from '../constants/pageEndpoints';
-import { NewUxHomePage } from '../pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '../pages/homePage/oldUxHomePage';
+import { NewHomePage } from '../ui/pages/newHomePage';
+
+// import { NewUxHomePage } from '../ui/pages/homePage/newUxHomePage';
+// import { OldUxHomePage } from '../ui/pages/homePage/oldUxHomePage';
+import { LoginPage } from '@/src/core/ui/pages/loginPage';
 
 export class LoginHelper {
   /**
@@ -16,7 +18,7 @@ export class LoginHelper {
    * @param options - Optional parameters for the login step.
    * @returns An instance of the HomePage.
    */
-  public static async loginWithPassword(page: Page, user: UserCredentials): Promise<OldUxHomePage | NewUxHomePage> {
+  public static async loginWithPassword(page: Page, user: UserCredentials): Promise<NewHomePage> {
     const loginPage = new LoginPage(page);
     await loginPage.loadPage({ stepInfo: `Loading login page for user ${user.email}` });
     const homePage = await loginPage.actions.performLogin(user.email, user.password!);

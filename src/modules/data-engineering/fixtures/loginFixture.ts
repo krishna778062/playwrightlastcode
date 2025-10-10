@@ -15,7 +15,9 @@ export const users = {
   },
 };
 
-export const test = base.extend<{ loginAs: (userType: UserType) => Promise<void> }>({
+export const test = base.extend<{
+  loginAs: (userType: UserType) => Promise<void>;
+}>({
   loginAs: async ({ page }, use) => {
     await use(async (userType: UserType) => {
       await LoginHelper.loginWithPassword(page, users[userType]);

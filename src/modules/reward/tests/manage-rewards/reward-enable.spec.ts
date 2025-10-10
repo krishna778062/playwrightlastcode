@@ -4,11 +4,12 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
-import { ManageRewardsPage } from '@modules/reward/pages/manage-rewards/manage-rewards-page';
 
-test.describe('Enable Rewards flow', () => {
+import { ManageRewardsPage } from '../../ui/pages/manage-rewards/manage-rewards-page';
+
+test.describe('enable Rewards flow', () => {
   test(
-    'Validate Enable rewards flow',
+    'validate Enable rewards flow',
     {
       tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, REWARD_FEATURE_TAGS.ENABLE_REWARD, TestPriority.P0, TestGroupType.SMOKE],
     },
