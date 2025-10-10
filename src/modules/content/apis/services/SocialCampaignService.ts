@@ -161,9 +161,12 @@ export class SocialCampaignService {
     shareData: SocialCampaignShareRequest
   ): Promise<SocialCampaignShareResponse> {
     return await test.step(`Sharing social campaign to feed: ${campaignId}`, async () => {
-      const response = await this.post(API_ENDPOINTS.socialCampaign.shareToFeed(campaignId, shareData.sharedWith), {
-        data: shareData,
-      });
+      const response = await this.httpClient.post(
+        API_ENDPOINTS.socialCampaign.shareToFeed(campaignId, shareData.sharedWith),
+        {
+          data: shareData,
+        }
+      );
       return (await response.json()) as SocialCampaignShareResponse;
     });
   }
