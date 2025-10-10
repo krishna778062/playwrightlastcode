@@ -306,13 +306,26 @@ export class SiteManagementService implements ISiteManagementOperations {
     permission: SitePermission = SitePermission.MEMBER,
     action: SiteMembershipAction = SiteMembershipAction.ADD
   ): Promise<SiteMembershipResponse> {
-    return await test.step(`Making user ${userId} a content manager for site ${siteId}`, async () => {
+    return await test.step(`Making user ${userId} a ${permission} for site ${siteId}`, async () => {
       const payload: any = {
         userId: userId,
         action: action.toString(), // Convert enum to string
       };
 
-      // Note: API only accepts 'member' permission for ADD action, other permissions need to be set separately
+      // Only check membership for ADD operations, not for SET_PERMISSION or REMOVE
+      if (action === SiteMembershipAction.ADD) {
+        const membershipList = await this.getSiteMembershipList(siteId);
+        if (membershipList.result?.listOfItems?.find((member: any) => member.peopleId === userId)) {
+          return {
+            status: 'success',
+            message: 'User is already a member',
+            result: { userId, siteId, permission, action },
+          };
+        }
+      }
+
+      // User is not a member - proceed with API call
+      // Include permission for ADD and SET_PERMISSION operations, not for REMOVE
       if (action === SiteMembershipAction.ADD) {
         payload.permission = 'member'; // Always use 'member' for ADD action
       } else if (action === SiteMembershipAction.SET_PERMISSION) {

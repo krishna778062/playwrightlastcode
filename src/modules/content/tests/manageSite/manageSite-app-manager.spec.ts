@@ -9,7 +9,7 @@ import { contentTestFixture as test } from '@/src/modules/content/fixtures/conte
 import { ManageSitePage } from '@/src/modules/content/pages/manageSitePage';
 import { SiteCategoriesPage } from '@/src/modules/content/pages/siteCategoriesPage';
 import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
-import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
+import { MANAGE_SITE_TEST_DATA as _MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
@@ -19,19 +19,56 @@ test.describe(
   },
   () => {
     let siteManagementHelper: SiteManagementHelper;
-    let manageSitePageAppManagerSite: ManageSitePage;
     let siteCategoriesPage: SiteCategoriesPage;
-    let siteDashboardPage: SiteDashboardPage;
+    let usedSiteIds: string[] = []; // Track used site IDs across tests
+
+    // Helper function to get a unique site that hasn't been used before
+    async function getUniqueSite(
+      accessType: string,
+      maxAttempts: number = 10
+    ): Promise<{ siteId: string; name: string; authorName?: string }> {
+      let attempts = 0;
+      let site;
+
+      while (attempts < maxAttempts) {
+        site = await siteManagementHelper.getSiteByAccessType(accessType);
+
+        if (!usedSiteIds.includes(site.siteId)) {
+          usedSiteIds.push(site.siteId);
+          console.log(`Using new unique site: ${site.name} (${site.siteId})`);
+          console.log(`Current used sites: ${usedSiteIds.join(', ')}`);
+          return site;
+        }
+
+        console.log(`Site ${site.siteId} already used, attempting to get another site...`);
+        attempts++;
+
+        // If we've tried many times with the same result, create a new site
+        if (attempts >= maxAttempts - 2) {
+          console.log(`Creating new site after ${attempts} attempts...`);
+          const newSite = await siteManagementHelper.createSiteByAccessType(accessType);
+          const siteWithName = { siteId: newSite.siteId, name: newSite.siteName };
+          usedSiteIds.push(siteWithName.siteId);
+          return siteWithName;
+        }
+      }
+
+      throw new Error(`Failed to get unique site after ${maxAttempts} attempts`);
+    }
+
     test.beforeEach(async ({ appManagerApiClient, appManagerHomePage }) => {
       await appManagerHomePage.verifyThePageIsLoaded();
       siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
-      const siteInfo = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-      manageSitePageAppManagerSite = new ManageSitePage(appManagerHomePage.page, siteInfo.siteId);
       siteCategoriesPage = new SiteCategoriesPage(appManagerHomePage.page);
-      siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteInfo.siteId);
+
+      // Clear used site IDs at the start of each test for fresh tracking
+      usedSiteIds = [];
+      console.log('Cleared used site IDs for new test');
     });
 
     test.afterEach(async ({ page }) => {
+      console.log(`Test completed. Total unique sites used: ${usedSiteIds.length}`);
+      console.log(`Site IDs used in this test: ${usedSiteIds.join(', ')}`);
       await page.close();
     });
     test(
@@ -46,42 +83,44 @@ test.describe(
           zephyrTestId: 'CONT-24601',
           storyId: 'CONT-24601',
         });
-        const siteNameFirstPublicSite = MANAGE_SITE_TEST_DATA.SITE_NAME.generateUniqueName();
-        const creatingSiteFirstPublicSite = await siteManagementHelper.createSiteByAccessType(
-          SITE_TYPES.PUBLIC,
-          siteNameFirstPublicSite
-        );
+
+        // Get first unique site
+        const creatingSiteFirstPublicSite = await getUniqueSite(SITE_TYPES.PUBLIC);
         const newSiteDashboard = new SiteDashboardPage(appManagerHomePage.page, creatingSiteFirstPublicSite.siteId);
         await newSiteDashboard.loadPage();
-        const manageSitePageFirstPublicSite = new ManageSitePage(
+        const firstManageSitePageAppManagerSite = new ManageSitePage(
           appManagerHomePage.page,
           creatingSiteFirstPublicSite.siteId
         );
-        await manageSitePageFirstPublicSite.actions.clickOnTheManageSiteButton();
-        await manageSitePageFirstPublicSite.actions.clickOnThePageCategoryButton();
+        await firstManageSitePageAppManagerSite.actions.clickOnTheManageSiteButton();
+        await firstManageSitePageAppManagerSite.actions.clickOnThePageCategoryButton();
         const categoryName = await TestDataGenerator.generateCategoryName();
         await siteCategoriesPage.actions.createCategoryWithName(categoryName);
-        const siteNameSecondPublicSite = MANAGE_SITE_TEST_DATA.SITE_NAME.generateUniqueName();
-        const creatingSiteSecondPublicSite = await siteManagementHelper.createSiteByAccessType(
-          SITE_TYPES.PUBLIC,
-          siteNameSecondPublicSite
-        );
+
+        // Get second unique site (different from first)
+        const creatingSiteSecondPublicSite = await getUniqueSite(SITE_TYPES.PUBLIC);
         const newSecondDashboard = new SiteDashboardPage(appManagerHomePage.page, creatingSiteSecondPublicSite.siteId);
         await newSecondDashboard.loadPage();
         const manageSitePageSecondPublicSite = new ManageSitePage(
           appManagerHomePage.page,
           creatingSiteSecondPublicSite.siteId
         );
-        await manageSitePageSecondPublicSite.actions.clickOnTheManageSiteButton();
-        await manageSitePageSecondPublicSite.actions.clickOnThePageCategoryButton();
-        await siteCategoriesPage.actions.createCategoryWithName(categoryName);
-        const siteNameThirdPublicSite = MANAGE_SITE_TEST_DATA.SITE_NAME.generateUniqueName();
-        const creatingSiteThirdPublicSite = await siteManagementHelper.createSiteByAccessType(
-          SITE_TYPES.PUBLIC,
-          siteNameThirdPublicSite
+        const secondManageSitePageAppManagerSite = new ManageSitePage(
+          appManagerHomePage.page,
+          creatingSiteSecondPublicSite.siteId
         );
+        await manageSitePageSecondPublicSite.actions.clickOnTheManageSiteButton();
+        await secondManageSitePageAppManagerSite.actions.clickOnThePageCategoryButton();
+        await siteCategoriesPage.actions.createCategoryWithName(categoryName);
+
+        // Get third unique site (different from first and second)
+        const creatingSiteThirdPublicSite = await getUniqueSite(SITE_TYPES.PUBLIC);
         const newThirdDashboard = new SiteDashboardPage(appManagerHomePage.page, creatingSiteThirdPublicSite.siteId);
         await newThirdDashboard.loadPage();
+        const thirdManageSitePageAppManagerSite = new ManageSitePage(
+          appManagerHomePage.page,
+          creatingSiteThirdPublicSite.siteId
+        );
         const manageSitePageThirdPublicSite = new ManageSitePage(
           appManagerHomePage.page,
           creatingSiteThirdPublicSite.siteId
@@ -91,7 +130,7 @@ test.describe(
         await siteCategoriesPage.actions.createCategoryWithName(categoryName);
         await manageSitePageThirdPublicSite.actions.clickOnThePageCategoryButton();
         await siteCategoriesPage.actions.createCategoryWithName(categoryName);
-        await manageSitePageAppManagerSite.assertions.checkTheError();
+        await thirdManageSitePageAppManagerSite.assertions.checkTheError();
       }
     );
 
@@ -116,8 +155,9 @@ test.describe(
 
         const siteInfo = await siteManagementHelper.getSiteAuthorNameAndEventStartDate();
         const getMembershipList = await siteManagementHelper.getSiteWithMembers(siteInfo.siteId);
-        const newSiteDashboard = new SiteDashboardPage(appManagerHomePage.page, getMembershipList.site.siteId);
+        const newSiteDashboard = new SiteDashboardPage(appManagerHomePage.page, siteInfo.siteId);
         await newSiteDashboard.loadPage();
+        const manageSitePageAppManagerSite = new ManageSitePage(appManagerHomePage.page, siteInfo.siteId);
         await manageSitePageAppManagerSite.actions.clickOnAboutTab();
         await manageSitePageAppManagerSite.actions.clickOnTheMembersTab();
         const membersName = await siteManagementHelper.getMembersNameFromList(getMembershipList.site.siteId);

@@ -52,7 +52,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.clickOnPeppleTab = page.getByRole('tab', { name: 'People' });
     this.clickOnTheMemberButtonInAboutTab = page.locator(`[role="tab"][id="member"]`);
     this.clickOnTheMemberButton = page.getByRole('button', { name: 'Member' });
-    this.clickOnLeaveButton = page.getByRole('button', { name: 'Leave' });
+    this.clickOnLeaveButton = page.getByRole('button', { name: 'Leave', exact: true });
     this.clickOnInsideContentButton = page.getByRole('tab', { name: 'Content' });
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();

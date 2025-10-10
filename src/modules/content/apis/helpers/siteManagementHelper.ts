@@ -427,15 +427,33 @@ export class SiteManagementHelper {
     permission: SitePermission,
     action: SiteMembershipAction
   ): Promise<SiteMembershipResponse> {
+    // Only check membership for ADD operations, not for SET_PERMISSION or REMOVE
+    if (action === SiteMembershipAction.ADD) {
+      const membershipList = await this.getSiteMembershipList(siteId);
+      const existingMember = membershipList.result?.listOfItems?.find((member: any) => member.peopleId === userId);
+
+      if (existingMember) {
+        console.log(`User ${userId} is already a member of site ${siteId}`);
+        return {
+          status: 'success',
+          message: 'User is already a member',
+          result: { userId, siteId, permission, action },
+        };
+      }
+    }
+
+    // Call the API for ADD, SET_PERMISSION, or REMOVE operations
     const result = await this.appManagerApiClient
       .getSiteManagementService()
       .makeUserSiteMembership(siteId, userId, permission, action);
 
-    // Track the member for potential cleanup (optional)
-    this.siteMembers.push({
-      siteId,
-      userEmail: userId, // Using userId as identifier since we don't have email here
-    });
+    // Track new members for potential cleanup (only for ADD operations)
+    if (action === SiteMembershipAction.ADD) {
+      this.siteMembers.push({
+        siteId,
+        userEmail: userId, // Using userId as identifier since we don't have email here
+      });
+    }
 
     return result;
   }
@@ -676,11 +694,11 @@ export class SiteManagementHelper {
       const content = await response.result.listOfItems.find(site => site.authoredBy?.name !== undefined);
       const siteName = await response.result.listOfItems.find(site => site.site?.name !== undefined);
       const startsAt = await response.result.listOfItems.find(site => site.startsAt !== undefined);
-      const siteId = await response.result.listOfItems.find(site => site.site?.siteId !== undefined);
+      const siteId = siteListResponse.result.listOfItems.find(site => site.siteId !== undefined);
 
       if (content) {
         return {
-          siteId: siteId?.site?.siteId || '',
+          siteId: siteId?.siteId || '',
           authorName: content.authoredBy?.name,
           startsAt: startsAt?.startsAt,
           eventName: content.title,

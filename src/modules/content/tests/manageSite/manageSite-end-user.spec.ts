@@ -45,15 +45,9 @@ test.describe(
           storyId: 'CONT-29063',
         });
 
-        const siteNamePublic = MANAGE_SITE_TEST_DATA.SITE_NAME.generateUniqueName();
-        const categoryID = await siteManagementHelper.getRandomCategoryId();
-        const publicSite = await siteManagementHelper.createSiteWithMember(
-          process.env.END_USER_USERNAME!,
-          siteNamePublic,
-          categoryID,
-          SITE_TYPES.PUBLIC
-        );
+        const publicSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
         const endUserInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+
         await siteManagementHelper.makeUserSiteMembership(
           publicSite.siteId,
           endUserInfo.userId,
@@ -82,8 +76,6 @@ test.describe(
         });
 
         const siteInfo = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        const newFirstSiteDashboard = new SiteDashboardPage(standardUserHomePage.page, siteInfo.siteId);
-        await newFirstSiteDashboard.loadPage();
         const endUserInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
         await siteManagementHelper.updateUserSiteMembershipWithRole({
           siteId: siteInfo.siteId,
@@ -156,14 +148,7 @@ test.describe(
           storyId: 'CONT-29063',
         });
 
-        const siteNamePrivate = MANAGE_SITE_TEST_DATA.SITE_NAME.generateUniqueName();
-        const categoryID = await siteManagementHelper.getRandomCategoryId();
-        const privateSite = await siteManagementHelper.createSiteWithMember(
-          users.endUser.email,
-          siteNamePrivate,
-          categoryID,
-          SITE_TYPES.PRIVATE
-        );
+        const privateSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
         const endUserInfoPrivate = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
         await siteManagementHelper.makeUserSiteMembership(
           privateSite.siteId,
@@ -198,14 +183,7 @@ test.describe(
           storyId: 'CONT-29063',
         });
 
-        const siteNameUnlisted = MANAGE_SITE_TEST_DATA.SITE_NAME.generateUniqueName();
-        const categoryID = await siteManagementHelper.getRandomCategoryId();
-        const unlistedSite = await siteManagementHelper.createSiteWithMember(
-          users.endUser.email,
-          siteNameUnlisted,
-          categoryID,
-          SITE_TYPES.UNLISTED
-        );
+        const unlistedSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED);
         const endUserInfoUnlisted = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
         await appManagerApiClient
           .getSiteManagementService()
