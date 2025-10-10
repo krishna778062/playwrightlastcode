@@ -154,10 +154,7 @@ export class IntranetFileListComponent extends ContentListComponent {
 
       // For video files (native_video provider), check if URL contains provider=native_video
       if (this.isVideoFile(fileType || '')) {
-        if (copiedUrl.includes('provider=native_video')) {
-          // This is expected for video files - URL should contain provider=native_video
-          console.log(`✅ Video file URL correctly contains "provider=native_video": ${copiedUrl}`);
-        } else {
+        if (!copiedUrl.includes('provider=native_video')) {
           throw new Error(`Video file URL should contain "provider=native_video". URL: ${copiedUrl}`);
         }
       } else {
