@@ -6,8 +6,10 @@
 import { AIRTABLE_TILE, CONNECTOR_IDS } from '@integrations/test-data/app-tiles.test-data';
 import { APIRequestContext, Page } from '@playwright/test';
 
+import { HttpClient } from '@core/api/clients/httpClient';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
+import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { TileCreationArgs, TileCreationResult, WaitOpts } from '@/src/modules/integrations/apis/types/tile.type';
 
@@ -70,7 +72,7 @@ export async function createAirtableTileViaApi(
 /**
  * Generic tile creation via API for any connector
  *
- * @param page - Playwright page object
+ * @param appManagerApiContext - API request context
  * @param args - Tile creation arguments
  * @returns Promise resolving to tile creation result
  */
@@ -78,10 +80,11 @@ export async function createTileViaApi(
   appManagerApiContext: APIRequestContext,
   args: TileCreationArgs
 ): Promise<TileCreationResult> {
+  // Create HTTP client with proper authentication
+  const httpClient = new HttpClient(appManagerApiContext, getEnvConfig().apiBaseUrl);
+
   // Get first template for connector
-  const templateResponse = await appManagerApiContext.get(
-    API_ENDPOINTS.integrations.tilesByConnector(args.connectorId)
-  );
+  const templateResponse = await httpClient.get(API_ENDPOINTS.integrations.tilesByConnector(args.connectorId));
   if (!templateResponse.ok()) {
     const message = await templateResponse.text();
     throw new Error(
@@ -187,13 +190,10 @@ export async function createTileViaApi(
   });
 
   // Use enriched schema only (no fallback)
-  const createResponse = await appManagerApiContext.post(
-    API_ENDPOINTS.integrations.createTileInstance(template.tileId),
-    {
-      data: buildData(enrichedRequestSchema),
-      timeout: TIMEOUTS.VERY_LONG,
-    }
-  );
+  const createResponse = await httpClient.post(API_ENDPOINTS.integrations.createTileInstance(template.tileId), {
+    data: buildData(enrichedRequestSchema),
+    timeout: TIMEOUTS.VERY_LONG,
+  });
 
   if (!createResponse.ok()) {
     const errorText = await createResponse.text();
