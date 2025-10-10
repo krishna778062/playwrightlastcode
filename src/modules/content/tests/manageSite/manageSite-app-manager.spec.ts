@@ -155,8 +155,8 @@ test.describe(
 
         const siteInfo = await siteManagementHelper.getSiteAuthorNameAndEventStartDate();
         const getMembershipList = await siteManagementHelper.getSiteWithMembers(siteInfo.siteId);
-        const newSiteDashboard = new SiteDashboardPage(appManagerHomePage.page, siteInfo.siteId);
-        await newSiteDashboard.loadPage();
+        const siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteInfo.siteId);
+        await siteDashboardPage.loadPage();
         const manageSitePageAppManagerSite = new ManageSitePage(appManagerHomePage.page, siteInfo.siteId);
         await manageSitePageAppManagerSite.actions.clickOnAboutTab();
         await manageSitePageAppManagerSite.actions.clickOnTheMembersTab();
@@ -169,8 +169,8 @@ test.describe(
         await manageSitePageAppManagerSite.assertions.checkMarkedAsFavoriteInPeopleList(membersName.membersName[0]);
         await manageSitePageAppManagerSite.actions.hoverOnMembersName(membersName.membersName[0]);
         await manageSitePageAppManagerSite.actions.markAsUnfavorite(membersName.membersName[0]);
-        const newSecondSiteDashboard = new SiteDashboardPage(appManagerHomePage.page, getMembershipList.site.siteId);
-        await newSecondSiteDashboard.loadPage();
+        const memberSiteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, getMembershipList.site.siteId);
+        await memberSiteDashboardPage.loadPage();
         await manageSitePageAppManagerSite.actions.clickOnTheAboutTab();
         await manageSitePageAppManagerSite.actions.clickOnTheMemberButtonInAboutTab();
         await manageSitePageAppManagerSite.assertions.checkMarkedAsFavoriteInPeopleListShouldNotBeVisible(

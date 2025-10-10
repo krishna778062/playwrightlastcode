@@ -35,4 +35,7 @@ export const MANAGE_SITE_TEST_DATA = {
     MONTH_NAMES: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
     MONTH_NAMES_LOWER: ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'],
   },
+  DESCRIPTION: {
+    DESCRIPTION: `Description ${faker.lorem.paragraph()}`,
+  },
 };

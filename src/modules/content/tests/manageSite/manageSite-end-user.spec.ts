@@ -74,6 +74,7 @@ test.describe(
           zephyrTestId: 'CONT-23740',
           storyId: 'CONT-23740',
         });
+        const randDomDescription = MANAGE_SITE_TEST_DATA.DESCRIPTION.DESCRIPTION;
 
         const siteInfo = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
         const endUserInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
@@ -90,7 +91,7 @@ test.describe(
           contentInfo: { contentType: 'page', contentSubType: 'news' },
           options: {
             pageName: MANAGE_SITE_TEST_DATA.PAGE_NAME.generateUniqueName(),
-            contentDescription: 'Test Description',
+            contentDescription: randDomDescription,
           },
         });
         await contentManagementHelper.createAlbum({
@@ -98,7 +99,7 @@ test.describe(
           imageName: 'beach.jpg',
           options: {
             albumName: MANAGE_SITE_TEST_DATA.ALBUM_NAME.generateUniqueName(),
-            contentDescription: 'Test Description',
+            contentDescription: randDomDescription,
           },
         });
         await contentManagementHelper.createEvent({
@@ -106,7 +107,7 @@ test.describe(
           contentInfo: { contentType: 'event' },
           options: {
             eventName: MANAGE_SITE_TEST_DATA.EVENT_NAME.generateUniqueName(),
-            contentDescription: 'Test Description',
+            contentDescription: randDomDescription,
           },
         });
         await manageSiteStandardUserPage.actions.clickOnTheManageSiteButton();
