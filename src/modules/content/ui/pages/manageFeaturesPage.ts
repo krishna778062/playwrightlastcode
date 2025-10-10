@@ -10,8 +10,6 @@ export interface IManageFeaturesPageActions {
   clickOnSitesCard: () => Promise<void>;
 }
 
-export interface IFeaturedSiteAssertions {}
-
 export class ManageFeaturesPage extends BasePage {
   private sideNavBarComponent: SideNavBarComponent;
   private manageFeatureComponent: ManageFeatureComponent;

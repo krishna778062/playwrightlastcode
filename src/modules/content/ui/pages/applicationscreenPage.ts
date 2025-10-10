@@ -11,8 +11,6 @@ export interface IApplicationScreenPageActions {
   clickOnTopics: () => Promise<void>;
 }
 
-export interface IFeaturedSiteAssertions {}
-
 export class ApplicationScreenPage extends BasePage implements IApplicationScreenPageActions {
   private sideNavBarComponent: SideNavBarComponent;
   private applicationSettingsComponent: ApplicationSettingsComponent;
