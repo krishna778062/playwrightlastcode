@@ -23,7 +23,7 @@ test.describe(
       notificationCustomizationPage = await emailNotificationAppSettingsPage.openNotificationCustomizationTab();
     });
 
-    test('TC001 - Verify app manager is able to customize must read with default subject line', async () => {
+    test('tc001 - verify app manager is able to customize must read with default subject line', async () => {
       await notificationCustomizationPage.clickOnAddCustomizationButton();
       //select must read feature from the add customization step
       await notificationCustomizationPage.verifyUserIsOnStep(CustomizationNotificationSteps.SELECT_NOTIFICATION);
@@ -43,7 +43,7 @@ test.describe(
       await notificationCustomizationPage.clickOnSaveButton();
     });
 
-    test('TC002 - Verify app manager is able to customize must read with custom subject line', async () => {
+    test('tc002 - verify app manager is able to customize must read with custom subject line', async () => {
       const customSubjectLine = SUBJECT_LINES.MUST_READ.ENGLISH_EDITED;
       await notificationCustomizationPage.clickOnAddCustomizationButton();
       //select must read feature from the add customization step
