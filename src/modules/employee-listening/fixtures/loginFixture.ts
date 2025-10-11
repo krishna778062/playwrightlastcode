@@ -1,4 +1,4 @@
-import { test as base } from '@playwright/test';
+import { BrowserContext, Page, test as base } from '@playwright/test';
 
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 
@@ -15,10 +15,21 @@ export const users = {
   },
 };
 
-export const test = base.extend<{ loginAs: (userType: UserType) => Promise<void> }>({
-  loginAs: async ({ page }, use) => {
-    await use(async (userType: UserType) => {
-      await LoginHelper.loginWithPassword(page, users[userType]);
-    });
-  },
+export const test = base.extend<{ appManagerPage: Page; appManagerContext: BrowserContext }>({
+  appManagerContext: [
+    async ({ browser }, use) => {
+      const context = await browser.newContext();
+      await use(context);
+      await context?.close();
+    },
+    { scope: 'test' },
+  ],
+  appManagerPage: [
+    async ({ appManagerContext }, use) => {
+      const page = await appManagerContext.newPage();
+      const appManagerHomePage = await LoginHelper.loginWithPassword(page, users.appManager);
+      await use(appManagerHomePage.page);
+    },
+    { scope: 'test' },
+  ],
 });
