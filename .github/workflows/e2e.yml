@@ -19,6 +19,7 @@ on:
           - 'content-abac'
           - 'frontline'
           - 'integrations'
+          - 'alert-notification'
       priority_filter:
         description: 'Select test cases by priority'
         required: true
@@ -81,10 +82,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Create GitHub Secrets JSON
+      - name: Create Calendar Secrets JSON
         run: |
-          echo '${{ vars.GOOGLE_CALENDAR_SECRETS }}' > githubSecrets.json
-          echo "✅ Created githubSecrets.json for CI environment"
+          echo '${{ vars.CALENDAR_SECRETS }}' > githubSecrets.json
+          echo "✅ Created githubSecrets.json with Google and Outlook Calendar credentials for CI environment"
 
       - name: set up Node.js
         uses: actions/setup-node@v3

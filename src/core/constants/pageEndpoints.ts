@@ -69,6 +69,9 @@ export const PAGE_ENDPOINTS = {
   EVENTS_PAGE: '/people/:userId/calendar',
   CUSTOM_APP_TILES_PAGE: '/manage/custom-app-tiles',
 
+  // Alert Notification pages
+  NOTIFICATION_CUSTOMIZATION_PAGE: '/manage/app/defaults/notification-customization',
+  EMAIL_NOTIFICATION_APP_SETTINGS_PAGE: '/manage/app/defaults/email-notifications',
   //analytics pages
   ANALYTICS_PAGE: '/analytics-landing',
   APP_ANALYTICS_PAGE: '/analytics',
