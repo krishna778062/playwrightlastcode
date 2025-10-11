@@ -253,10 +253,9 @@ export class SiteManagementService implements ISiteManagementOperations {
         size: options.size || 1000,
         canManage: options.canManage !== undefined ? options.canManage : true,
         filter: options.filter || 'active',
-        sortBy: options.sortBy || 'alphabetical',
       };
 
-      const response = await this.post(API_ENDPOINTS.site.listOfSites, {
+      const response = await this.httpClient.post(API_ENDPOINTS.site.listOfSites, {
         data: payload,
       });
 
@@ -306,30 +305,15 @@ export class SiteManagementService implements ISiteManagementOperations {
     permission: SitePermission = SitePermission.MEMBER,
     action: SiteMembershipAction = SiteMembershipAction.ADD
   ): Promise<SiteMembershipResponse> {
-    return await test.step(`Making user ${userId} a ${permission} for site ${siteId}`, async () => {
+    return await test.step(`Making user ${userId} a content manager for site ${siteId}`, async () => {
       const payload: any = {
         userId: userId,
         action: action.toString(), // Convert enum to string
       };
 
-      // Only check membership for ADD operations, not for SET_PERMISSION or REMOVE
-      if (action === SiteMembershipAction.ADD) {
-        const membershipList = await this.getSiteMembershipList(siteId);
-        if (membershipList.result?.listOfItems?.find((member: any) => member.peopleId === userId)) {
-          return {
-            status: 'success',
-            message: 'User is already a member',
-            result: { userId, siteId, permission, action },
-          };
-        }
-      }
-
-      // User is not a member - proceed with API call
       // Include permission for ADD and SET_PERMISSION operations, not for REMOVE
-      if (action === SiteMembershipAction.ADD) {
-        payload.permission = 'member'; // Always use 'member' for ADD action
-      } else if (action === SiteMembershipAction.SET_PERMISSION) {
-        payload.permission = permission;
+      if (action === SiteMembershipAction.ADD || action === SiteMembershipAction.SET_PERMISSION) {
+        payload.permission = permission.toString(); // Convert enum to string
       }
 
       const response = await this.httpClient.post(API_ENDPOINTS.site.manageMembers(siteId), {
@@ -406,16 +390,9 @@ export class SiteManagementService implements ISiteManagementOperations {
         size: 10000,
         sortBy: 'alphabetical',
       };
-      const response = await this.post(API_ENDPOINTS.site.listOfCategories, {
+      const response = await this.httpClient.post(API_ENDPOINTS.site.listOfCategories, {
         data: defaultOptions,
       });
-      return await response.json();
-    });
-  }
-
-  async getContentSiteDetails(siteId: string): Promise<any> {
-    return await test.step(`Getting site details for site ${siteId}`, async () => {
-      const response = await this.get(`${API_ENDPOINTS.site.url}/${siteId}`);
       return await response.json();
     });
   }
@@ -426,17 +403,11 @@ export class SiteManagementService implements ISiteManagementOperations {
    * @param options - Optional parameters for the membership list request
    * @returns Promise containing the membership list response
    */
-  async getSiteMembershipList(
-    siteId: string,
-    options?: { size?: number; type?: string; nextPageToken?: number }
-  ): Promise<any> {
+  async getSiteMembershipList(siteId: string, options?: { size?: number; type?: string }): Promise<any> {
     return await test.step(`Getting membership list for site ${siteId}`, async () => {
       const defaultOptions = {
         size: 16,
         type: 'members',
-        sortBy: 'first_name',
-        nextPageToken: options?.nextPageToken || 0,
-
         ...options,
       };
 

@@ -1,13 +1,16 @@
-import { test } from '@playwright/test';
+import { APIRequestContext, test } from '@playwright/test';
 
-import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
-import { EnterpriseSearchHelper } from '@/src/core/helpers/enterpriseSearchHelper';
+import { ContentManagementService } from '../services/ContentManagementService';
+import { SiteManagementService } from '../services/SiteManagementService';
+
 import {
   SiteCreationPayload,
   SiteMembershipAction,
   SiteMembershipResponse,
   SitePermission,
 } from '@/src/core/types/siteManagement.types';
+import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
+import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 interface Site {
@@ -28,8 +31,16 @@ interface SiteMember {
 export class SiteManagementHelper {
   private sites: Site[] = [];
   private siteMembers: SiteMember[] = [];
+  private siteManagementService: SiteManagementService;
+  private contentManagementService: ContentManagementService;
 
-  constructor(private appManagerApiClient: AppManagerApiClient) {}
+  constructor(
+    private apiRequestContext: APIRequestContext,
+    baseUrl?: string
+  ) {
+    this.siteManagementService = new SiteManagementService(apiRequestContext, baseUrl || '');
+    this.contentManagementService = new ContentManagementService(apiRequestContext, baseUrl || '');
+  }
 
   /**
    * Creates a new public site with default settings.
@@ -54,15 +65,15 @@ export class SiteManagementHelper {
     // Get category if not provided
     let categoryObj = category;
     if (!categoryObj) {
-      categoryObj = await this.appManagerApiClient.getSiteManagementService().getCategoryId(SITE_TEST_DATA[0].category);
+      categoryObj = await this.siteManagementService.getCategoryId(SITE_TEST_DATA[0].category);
     }
 
-    const siteResult = await this.appManagerApiClient.getSiteManagementService().addNewSite({
+    const siteResult = await this.siteManagementService.addNewSite({
       access: 'public',
       name: finalSiteName,
       category: {
-        categoryId: categoryObj.categoryId,
-        name: categoryObj.name,
+        categoryId: categoryObj!.categoryId,
+        name: categoryObj!.name,
       },
       ...overrides,
     });
@@ -72,7 +83,7 @@ export class SiteManagementHelper {
     // Wait for site to appear in search results (optional)
     if (shouldWaitForSearchIndex) {
       await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
-        apiClient: this.appManagerApiClient,
+        apiClient: this.siteManagementService.httpClient,
         searchTerm: finalSiteName,
         objectType: 'site',
       });
@@ -338,7 +349,7 @@ export class SiteManagementHelper {
     // Deactivate all sites
     for (const { siteId, siteName } of this.sites) {
       try {
-        await this.appManagerApiClient.getSiteManagementService().deactivateSite(siteId);
+        await this.siteManagementService.deactivateSite(siteId);
         console.log(`Deactivated site ${siteName} (${siteId})`);
       } catch (error) {
         console.warn(`Failed to deactivate site ${siteName} (${siteId}):`, error);
@@ -359,7 +370,7 @@ export class SiteManagementHelper {
   }
 
   async getRandomCategoryId(): Promise<{ categoryId: string; name: string }> {
-    const categoryResponse = await this.appManagerApiClient.getSiteManagementService().getListOfCategories();
+    const categoryResponse = await this.siteManagementService.getListOfCategories();
     const categoryList = categoryResponse.result.listOfItems;
     const randomIndex = Math.floor(Math.random() * categoryList.length);
     return categoryList[randomIndex];
@@ -391,10 +402,10 @@ export class SiteManagementHelper {
     }
   ): Promise<string> {
     // Get the list of sites
-    const sitesResponse = await this.appManagerApiClient.getSiteManagementService().getListOfSites({
+    const sitesResponse = await this.siteManagementService.getListOfSites({
       size: 1000, // Get a large number to ensure we find the site if it exists
-      canManage: true,
-      filter: 'active',
+      filter: 'mySites',
+      sortBy: 'alphabetical',
     });
 
     // Search for the site by name
@@ -443,9 +454,7 @@ export class SiteManagementHelper {
     }
 
     // Call the API for ADD, SET_PERMISSION, or REMOVE operations
-    const result = await this.appManagerApiClient
-      .getSiteManagementService()
-      .makeUserSiteMembership(siteId, userId, permission, action);
+    const result = await this.siteManagementService.makeUserSiteMembership(siteId, userId, permission, action);
 
     // Track new members for potential cleanup (only for ADD operations)
     if (action === SiteMembershipAction.ADD) {
@@ -463,16 +472,15 @@ export class SiteManagementHelper {
    * @param options - Optional parameters for filtering sites
    * @returns Promise containing the sites response
    */
-  async getListOfSites(options?: { size?: number; canManage?: boolean; filter?: string; page?: number }) {
+  async getListOfSites(options?: { size?: number; filter?: string; sortBy?: string }) {
     const defaultOptions = {
-      size: 1000,
-      canManage: true,
-      filter: options?.filter || 'active',
-      page: 0,
+      size: options?.size || 16,
+      filter: options?.filter || 'mySites',
+      sortBy: options?.sortBy || 'alphabetical',
       ...options,
     };
 
-    return await this.appManagerApiClient.getSiteManagementService().getListOfSites(defaultOptions);
+    return await this.siteManagementService.getListOfSites(defaultOptions);
   }
 
   async getMemberList(options?: {
@@ -489,9 +497,7 @@ export class SiteManagementHelper {
       page: 0,
       ...options,
     };
-    return await this.appManagerApiClient
-      .getSiteManagementService()
-      .getSiteMembershipList(options?.siteId || '', defaultOptions);
+    return await this.siteManagementService.getSiteMembershipList(options?.siteId || '', defaultOptions);
   }
 
   /**
@@ -503,17 +509,17 @@ export class SiteManagementHelper {
     return await test.step(`Getting ${count} non-featured sites`, async () => {
       // Fetch both lists in parallel for better performance
       const [allSitesResponse, featuredSitesResponse] = await Promise.all([
-        this.getListOfSites({ filter: 'active', size: 1000 }),
+        this.getListOfSites({ filter: 'mySites', size: 1000 }),
         this.getListOfSites({ filter: 'featured', size: 1000 }),
       ]);
 
       // Early validation
-      if (!allSitesResponse.result?.listOfItems?.length) {
+      if (!allSitesResponse.result.listOfItems.length) {
         throw new Error('No active sites found');
       }
 
       // Create Set for O(1) lookup performance
-      const featuredSiteIds = new Set(featuredSitesResponse.result?.listOfItems?.map((site: any) => site.siteId) || []);
+      const featuredSiteIds = new Set(featuredSitesResponse.result.listOfItems.map((site: any) => site.siteId));
 
       // Single pass filtering and mapping for better performance
       const nonFeaturedSites: { siteId: string; name: string }[] = [];
@@ -549,7 +555,7 @@ export class SiteManagementHelper {
    * @returns Promise containing the response
    */
   async makeSiteUnFeatured(siteId: string): Promise<any> {
-    return await this.appManagerApiClient.getSiteManagementService().unfeatureSite(siteId);
+    return await this.siteManagementService.unfeatureSite(siteId);
   }
 
   /**
@@ -642,7 +648,7 @@ export class SiteManagementHelper {
       waitForSearchIndex?: boolean;
     }
   ): Promise<{ siteId: string; name: string; authorName?: string }> {
-    const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+    const siteListResponse = await this.getListOfSites({ filter: 'mySites' });
     let siteDetails = siteListResponse.result.listOfItems.find(site => site.isActive === true);
     let siteId: string | undefined, siteName: string | undefined, authorName: string | undefined;
 
@@ -654,8 +660,8 @@ export class SiteManagementHelper {
         (options?.hasAlbums === undefined || siteDetails.hasAlbums === options.hasAlbums);
 
       if (matchesRequirements) {
-        siteId = siteDetails?.siteId;
-        siteName = siteDetails?.name;
+        siteId = siteDetails.siteId;
+        siteName = siteDetails.name;
         console.log(`Using existing site: ${siteName} (${siteId}) that matches requirements`);
       } else {
         console.log(`Existing site doesn't match requirements, will create new site`);
@@ -688,21 +694,21 @@ export class SiteManagementHelper {
   }> {
     const siteListResponse = await this.getListOfSites();
 
-    for (const site of siteListResponse.result.listOfItems) {
+    for (const _site of siteListResponse.result.listOfItems) {
       // Get individual site details to check for coverImage and hasEvents
-      const response = await this.appManagerApiClient.getContentManagementService().getContentList();
-      const content = await response.result.listOfItems.find(site => site.authoredBy?.name !== undefined);
-      const siteName = await response.result.listOfItems.find(site => site.site?.name !== undefined);
-      const startsAt = await response.result.listOfItems.find(site => site.startsAt !== undefined);
-      const siteId = siteListResponse.result.listOfItems.find(site => site.siteId !== undefined);
+      const response = await this.contentManagementService.getContentList();
+      const content = response.result.listOfItems.find((item: any) => item.authoredBy?.name !== undefined);
+      const siteName = response.result.listOfItems.find((item: any) => item.site?.name !== undefined);
+      const startsAt = response.result.listOfItems.find((item: any) => item.startsAt !== undefined);
+      const siteId = siteListResponse.result.listOfItems.find((item: any) => item.siteId !== undefined);
 
       if (content) {
         return {
           siteId: siteId?.siteId || '',
-          authorName: content.authoredBy?.name,
+          authorName: content.authoredBy.name,
           startsAt: startsAt?.startsAt,
           eventName: content.title,
-          siteName: siteName?.site?.name,
+          siteName: siteName?.site.name,
         };
       }
     }
@@ -781,7 +787,7 @@ export class SiteManagementHelper {
   }> {
     return await test.step(`Getting site ${siteId} with its members`, async () => {
       // Get site details
-      const siteDetails = await this.appManagerApiClient.getSiteManagementService().getContentSiteDetails(siteId);
+      const siteDetails = await this.siteManagementService.getSiteDetails(siteId);
       // Get site members
       const membersResponse = await this.getSiteMembershipList(siteId, options);
 
@@ -799,7 +805,7 @@ export class SiteManagementHelper {
    * @returns Promise containing the membership list response
    */
   async getSiteMembershipList(siteId: string, options?: { size?: number; type?: string }): Promise<any> {
-    return await this.appManagerApiClient.getSiteManagementService().getSiteMembershipList(siteId, options);
+    return await this.siteManagementService.getSiteMembershipList(siteId, options);
   }
 
   /**
