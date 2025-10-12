@@ -38,9 +38,11 @@ export class AudiencePage extends BasePage {
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.AUDIENCE_PAGE) {
     super(page, pageUrl);
     const pageContainer = page.getByTestId('pageContainer-page');
-
     this.createAudienceButton = pageContainer.locator('button:has-text("Create")');
-    this.createDropdown = page.getByRole('button', { name: 'Open menu' });
+    this.createDropdown = page
+      .getByTestId('pageContainer-page')
+      .locator('header')
+      .getByRole('button', { name: 'Show more' });
     this.createAudience = page.locator('[role="menuitem"]:has-text("Create audience")');
     this.createCategory = page.locator('[role="menuitem"]:has-text("Create category")');
     this.createAudienceWithCSV = page.locator('[role="menuitem"]:has-text("Create audience with CSV")');
@@ -290,9 +292,7 @@ export class AudiencePage extends BasePage {
   // Generic method to open category dropdown menu and click on specific option
   async openCategoryDropdownAndClickOption(categoryName: string, optionText: string): Promise<void> {
     await test.step(`Open category dropdown for "${categoryName}" and click "${optionText}"`, async () => {
-      const showMoreButton = this.page.locator(
-        `//p[contains(text(),'${categoryName}')]/ancestor::div[@role='presentation']/following-sibling::div/following-sibling::div//button`
-      );
+      const showMoreButton = this.page.getByText('Show more');
 
       await this.verifier.verifyTheElementIsVisible(showMoreButton, {
         assertionMessage: `Verify Show more button is visible for category: ${categoryName}`,
