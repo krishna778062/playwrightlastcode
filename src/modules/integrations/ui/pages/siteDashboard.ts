@@ -4,7 +4,7 @@ import { ExternalAppProvider } from '@integrations/ui/pages/externalAppsPage';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { TileOperationsComponent } from '@integrations-components/tileOperationsComponent';
 import { TimeOffRequestTileComponent } from '@integrations-components/timeOffRequestTileComponent';
-import { expect, Page, test } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
@@ -90,47 +90,21 @@ export class SiteDashboard {
    * Open the Add tile modal for a given external app provider (pre-title state)
    */
   async openAddAppTileModal(provider: ExternalAppProvider | string): Promise<void> {
-    const normalizeProviderName = (name: string): string => {
-      const candidate = name.trim().toLowerCase();
-      if (candidate === 'outlook calendar' || candidate === 'microsoft outlook' || candidate === 'outlook') {
-        return ExternalAppProvider.OUTLOOK_CALENDAR;
-      }
-      return name;
-    };
-    const normalizedProvider = normalizeProviderName(String(provider));
-    await test.step(`Open Add ${normalizedProvider} tile modal`, async () => {
-      await this.appTileComponent.clickEditDashboard();
-      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
-      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
-      await this.appTileComponent.selectAppTile(normalizedProvider);
-
-      const modalTitlePattern = new RegExp(`Add ${normalizedProvider} tile`, 'i');
-      await expect(this.page.getByRole('dialog', { name: modalTitlePattern })).toBeVisible({ timeout: 10_000 });
-      await expect(this.appTileComponent.tileTypeCombobox).toBeVisible({ timeout: 10_000 });
-    });
+    await this.appTileComponent.openAddAppTileModal(String(provider));
   }
 
   /**
    * Verify the connection helper text and connected email in the Add tile modal
    */
   async verifyConnectionMessage(expectedConnectionText: string, options: { connectedEmail: string }): Promise<void> {
-    const { connectedEmail } = options;
-    await test.step('Verify connection message in Add tile modal', async () => {
-      const helperText = this.page.getByText(expectedConnectionText, { exact: false });
-      await expect(helperText).toBeVisible({ timeout: 10_000 });
-
-      await expect(
-        this.appTileComponent.dialog.getByText(new RegExp(`Connected as\\s+${escape(connectedEmail)}`, 'i'))
-      ).toBeVisible({ timeout: 10_000 });
-    });
+    await this.appTileComponent.verifyConnectionMessage(expectedConnectionText, options);
   }
 
+  /**
+   * Click the 'My settings' link in the Add tile modal
+   */
   async clickMySettings(): Promise<void> {
-    await test.step("Click 'My settings' link in Add tile modal", async () => {
-      const mySettingsLink = this.appTileComponent.dialog.getByRole('link', { name: 'My settings', exact: true });
-      await expect(mySettingsLink).toBeVisible({ timeout: 10_000 });
-      await mySettingsLink.click();
-    });
+    await this.appTileComponent.clickDialogLink('My settings');
   }
 
   /**
