@@ -220,23 +220,28 @@ export class SiteManagementService implements ISiteManagementOperations {
   async getVideoFileIdFromSearch(siteId: string, fileName: string): Promise<{ fileId: string; authorName: string }> {
     let file: any;
     await test.step(`Fetching video file id using search API for site: ${siteId} and file name: ${fileName}`, async () => {
-      await expect(async () => {
-        const response = await this.httpClient.post(API_ENDPOINTS.search.intranetFile, {
-          data: {
-            q: fileName,
-            site: siteId,
-            includeImages: true,
-          },
-        });
-        const json = await response.json();
-        file = json.result.listOfItems.find((item: any) => item.title === fileName);
-        expect(file).toBeDefined();
-      }).toPass({
-        intervals: [5_000, 10_000, 20_000, 40_000],
-        timeout: 60_000,
-      });
+      await expect(
+        async () => {
+          const response = await this.httpClient.post(API_ENDPOINTS.search.intranetFile, {
+            data: {
+              q: fileName,
+              site: siteId,
+              includeImages: true,
+            },
+          });
+          const responseBody = await response.json();
+          console.log('responseBody', responseBody);
+          // Find the specific file by checking the title field
+          file = responseBody.result?.listOfItems?.find((item: any) => item.item.title === fileName);
+          expect(file).toBeDefined();
+        },
+        {
+          message: `Video file "${fileName}" to appear in search results for site ${siteId}`,
+        }
+      ).toPass({ intervals: [10_000, 20_000, 40_000], timeout: 60_000 });
     });
-    return { fileId: file.fileId, authorName: file.owner.name };
+    console.log('fileID', file.item.fileId);
+    return { fileId: file.item.fileId, authorName: file.item.owner.name };
   }
 
   /**
