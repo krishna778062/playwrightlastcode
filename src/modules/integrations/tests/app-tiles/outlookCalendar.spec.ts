@@ -50,6 +50,7 @@ test.describe(
           CONNECTOR_IDS.OUTLOOK_CALENDAR
         );
 
+        //add, edit, verify
         await homeDashboard.isTilePresent(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
         await homeDashboard.editTile(createdTileTitle, updatedTileTitle);
@@ -77,6 +78,7 @@ test.describe(
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
+        //add, edit, verify
         await siteDashboard.addTile(
           createdTileTitle,
           'Outlook Calendar',
@@ -108,12 +110,15 @@ test.describe(
         });
         createdTileTitle = `Display upcoming events outlook calendar apptile ${faker.string.alphanumeric({ length: 6 })}`;
 
+        //add, verify
         await tileManagementHelper.createIntegrationAppTile(
           createdTileTitle,
           TILE_IDS.OUTLOOK_CAL_DISPLAY_UPCOMING_EVENTS,
           CONNECTOR_IDS.OUTLOOK_CALENDAR
         );
+
         await homeDashboard.isTilePresent(createdTileTitle);
+        //verify events UI and redirects
         await homeDashboard.verifyCalendarUpcomingEventsTileData(createdTileTitle);
         await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.OUTLOOK_CALENDAR);
       }
@@ -143,7 +148,16 @@ test.describe(
           'Display upcoming events',
           UI_ACTIONS.ADD_TO_SITE
         );
+
+        //add, verify
+        await siteDashboard.addTile(
+          createdTileTitle,
+          'Outlook Calendar',
+          'Display upcoming events',
+          UI_ACTIONS.ADD_TO_SITE
+        );
         await siteDashboard.isTilePresent(createdTileTitle);
+        //verify events UI
         await siteDashboard.verifyCalendarUpcomingEventsTileData(createdTileTitle);
         createdTileTitle = undefined;
       }
@@ -161,12 +175,14 @@ test.describe(
           storyId: 'INT-13649',
         });
         createdTileTitle = `Display upcoming events ${faker.string.alphanumeric({ length: 6 })}`;
+        //add, verify
         await tileManagementHelper.createIntegrationAppTile(
           createdTileTitle,
           TILE_IDS.OUTLOOK_CAL_DISPLAY_UPCOMING_EVENTS,
           CONNECTOR_IDS.OUTLOOK_CALENDAR
         );
         await homeDashboard.isTilePresent(createdTileTitle);
+        //Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
         await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
       }
     );
@@ -187,13 +203,17 @@ test.describe(
         const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
+
+        //add, verify
         await siteDashboard.addTile(
           createdTileTitle,
           'Outlook Calendar',
           'Display upcoming events',
           UI_ACTIONS.ADD_TO_SITE
         );
+
         await siteDashboard.isTilePresent(createdTileTitle);
+        //Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
         await siteDashboard.verifyShowMoreBehavior(createdTileTitle);
         createdTileTitle = undefined;
       }
@@ -209,6 +229,8 @@ test.describe(
           zephyrTestId: 'INT-28358',
           storyId: 'INT-13648',
         });
+
+        //add, verify
         const customAppTilesPage = new CustomAppTilesPage(homeDashboard.page);
         const externalAppsPage = new ExternalAppsPage(homeDashboard.page);
         await homeDashboard.openAddAppTileModal(ExternalAppProvider.OUTLOOK_CALENDAR);
@@ -216,12 +238,15 @@ test.describe(
           'Users will need to connect their ' + ExternalAppProvider.OUTLOOK_CALENDAR + ' accounts',
           { connectedEmail: TEST_EMAIL.OUTLOOK_CALENDAR }
         );
+        //Verify add to home button is disabled
         await customAppTilesPage.verifyButtonIsDisabled(
           customAppTilesPage.addToHomeButton,
           'Add to home button should be disabled'
         );
+        //Click on my settings and verify the page is loaded
         await homeDashboard.clickMySettings();
         await externalAppsPage.verifyThePageIsLoaded();
+        //Verify the integration is connected
         await externalAppsPage.isIntegrationConnected(ExternalAppProvider.OUTLOOK_CALENDAR);
       }
     );
@@ -240,6 +265,8 @@ test.describe(
         const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
+
+        //add, verify
         const customAppTilesPage = new CustomAppTilesPage(siteDashboard.page);
         const externalAppsPage = new ExternalAppsPage(siteDashboard.page);
         await siteDashboard.openAddAppTileModal(ExternalAppProvider.OUTLOOK_CALENDAR);
@@ -247,12 +274,15 @@ test.describe(
           'Users will need to connect their ' + ExternalAppProvider.OUTLOOK_CALENDAR + ' accounts',
           { connectedEmail: TEST_EMAIL.OUTLOOK_CALENDAR }
         );
+        //Verify add to site dashboard button is disabled
         await customAppTilesPage.verifyButtonIsDisabled(
           customAppTilesPage.addToSiteDashboardButton,
           'Add to site dashboard button should be disabled'
         );
+        //Click on my settings and verify the page is loaded
         await siteDashboard.clickMySettings();
         await externalAppsPage.verifyThePageIsLoaded();
+        //Verify the integration is connected
         await externalAppsPage.isIntegrationConnected(ExternalAppProvider.OUTLOOK_CALENDAR);
       }
     );
