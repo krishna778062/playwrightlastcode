@@ -34,6 +34,9 @@
 # Data Engineering Module
 /src/modules/data-engineering/ @prateek-sqa @dkSimpplr
 
+# Alert Notification Module
+/src/modules/alert-notification/ @prateek-sqa @krishnasingh7780 @ruhimirza-simpplr
+
 # Configuration and build files
 playwright.base.config.ts @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992
 *.config.ts @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992

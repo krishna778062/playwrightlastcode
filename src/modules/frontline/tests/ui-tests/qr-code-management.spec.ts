@@ -9,7 +9,7 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 test.describe(
-  'Feature: QR Code Management',
+  'feature: QR Code Management',
   {
     tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.QR_CODE],
   },
@@ -31,7 +31,7 @@ test.describe(
     });
 
     test(
-      'Scenario: Verify creation of app promotion QR',
+      'scenario: Verify creation of app promotion QR',
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
       },
@@ -64,7 +64,7 @@ test.describe(
     );
 
     test(
-      'Scenario: Verify delete app promotion QR code',
+      'scenario: Verify delete app promotion QR code',
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
       },
@@ -86,7 +86,7 @@ test.describe(
     );
 
     test(
-      'Scenario: Verify delete content QR code',
+      'scenario: Verify delete content QR code',
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
       },
@@ -108,11 +108,11 @@ test.describe(
     );
 
     test(
-      'Scenario: Verify creation of content QR',
+      'scenario: Verify creation of content QR',
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
       },
-      async ({ appManagerHomePage, qrManagementService }) => {
+      async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
           description: 'Verify creation of content QR',
           zephyrTestId: 'FL-427',
@@ -157,6 +157,55 @@ test.describe(
         await manageQRPage.clickOnManage();
         await manageQRPage.verifyQRCodeMenuVisible();
         qrDetails.qrCodeId = undefined;
+      }
+    );
+
+    test(
+      '[FL-429] Verify edit content QR code as adminUser',
+      {
+        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE],
+      },
+      async ({ appManagerHomePage, qrManagementService }) => {
+        tagTest(test.info(), {
+          description: 'Verify edit content QR code as adminUser',
+          zephyrTestId: 'FL-429',
+          storyId: 'FL-429',
+        });
+
+        qrDetails.qrName = TestDataGenerator.generateQRName('Content QR');
+        qrDetails.qrDescription = TestDataGenerator.generateQRDescription('Content QR');
+        const updatedDescription = TestDataGenerator.generateQRDescription('Updated Content QR');
+        const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+
+        await qrManagementService.createQR('Content', qrDetails.qrName, qrDetails.qrDescription);
+        const qrList = await qrManagementService.getListOfQRCodes();
+        const createdQR = qrList.qrCodes.find(qr => qr.name === qrDetails.qrName);
+        qrDetails.qrCodeId = createdQR?.qrCodeId;
+
+        await manageQRPage.loadPage();
+        await manageQRPage.verifyManagePage();
+        await manageQRPage.verifyQRName(qrDetails.qrName);
+
+        await manageQRPage.clickOnThreeDots(qrDetails.qrName);
+        await manageQRPage.clickOnEdit();
+
+        await manageQRPage.verifyEditContentQRHeader();
+        await manageQRPage.verifyAddContentDescription();
+        await manageQRPage.verifyContentSearchBoxText();
+
+        await manageQRPage.enterAndSelectContent();
+        await manageQRPage.clickOnNextButton();
+        await manageQRPage.verifyPromoteContentPageHeading();
+
+        await manageQRPage.fillDescription(updatedDescription);
+        await manageQRPage.clickSaveAndVisit();
+        await manageQRPage.verifyManagePage();
+
+        await manageQRPage.verifyUpdatedDescriptionOnListing(qrDetails.qrName, updatedDescription);
+
+        await manageQRPage.clickOnThreeDots(qrDetails.qrName);
+        await manageQRPage.clickOnEdit();
+        await manageQRPage.verifyPagesAfterEdit();
       }
     );
   }

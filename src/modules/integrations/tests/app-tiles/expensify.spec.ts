@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
+import { IntegrationsSuiteTags, TEST_TAGS } from '@integrations-constants/testTags';
 import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
 
 import { TestPriority } from '@core/constants/testPriority';
@@ -10,14 +10,14 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { FIELD_NAMES, UI_ACTIONS } from '@/src/modules/integrations/constants/common';
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
-import { HomeDashboard } from '@/src/modules/integrations/pages/homeDashboard';
-import { SiteDashboard } from '@/src/modules/integrations/pages/siteDashboard';
 import {
   CONNECTOR_IDS,
   REDIRECT_URLS,
   STATUS_VALUES,
   TILE_IDS,
 } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
+import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
 const expensifyUser: UserCredentials = {
   email: process.env.QA_SYSTEM_ADMIN_USERNAME!,
@@ -38,7 +38,8 @@ test.describe(
       await LoginHelper.loginWithPassword(page, expensifyUser);
     });
 
-    test.afterEach(async ({ page, tileManagementHelper }) => {
+    test.afterEach(async ({ page, appManagerApiFixture }) => {
+      const { tileManagementHelper } = appManagerApiFixture;
       if (createdTileTitle) {
         const homeDashboard = new HomeDashboard(page, tileManagementHelper);
         await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
@@ -52,7 +53,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ page, tileManagementHelper }) => {
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24799',
           storyId: 'INT-24430',
@@ -82,7 +84,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ page, tileManagementHelper }) => {
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24798',
           storyId: 'INT-24423',
@@ -110,7 +113,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ page, tileManagementHelper }) => {
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24785',
           storyId: 'INT-24423',
@@ -136,9 +140,10 @@ test.describe(
     test(
       'verify site manager is able to edit and remove an Expensify tile on Site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ page, siteManagementHelper, appManagerApiClient }) => {
+      async ({ page, appManagerApiFixture }) => {
+        const { siteManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24782',
           storyId: 'INT-24423',
@@ -151,7 +156,7 @@ test.describe(
         createdTileTitle = `Expensify report ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -168,6 +173,61 @@ test.describe(
         await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify show more behaviour for display expensify tasks apptile on home dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
+      },
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-24784',
+          storyId: 'INT-23049',
+        });
+        createdTileTitle = `Display expensify tasks ${faker.string.alphanumeric({ length: 6 })}`;
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
+
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.EXPENSIFY_REPORT,
+          CONNECTOR_IDS.EXPENSIFY
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // Verify first 4 expensify reports and then click on show more button and verify all expensify reports are displayed
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+      }
+    );
+
+    test(
+      'verify Personalize button is visible when clicked on Show more',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE, TEST_TAGS.PERSONALIZATION],
+      },
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28332',
+          storyId: 'INT-23049',
+        });
+        createdTileTitle = `Display expensify tasks ${faker.string.alphanumeric({ length: 6 })}`;
+        //add,personalize,edit,verify
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
+        await homeDashboard.addTilewithPersonalizeExpensify(
+          createdTileTitle,
+          AppName,
+          tileName,
+          UI_ACTIONS.ADD_TO_HOME
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // Verify first 4 expensify reports and then click on show more button and verify all expensify reports are displayed
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+        await homeDashboard.verifyPersonalizeVisible(createdTileTitle);
       }
     );
   }
