@@ -67,6 +67,8 @@ export const PAGE_ENDPOINTS = {
   DOMAIN_NAMES_PAGE: '/manage/app/integrations/domains',
   EVENTS_PAGE: '/people/:userId/calendar',
   CUSTOM_APP_TILES_PAGE: '/manage/custom-app-tiles',
+  SUPPORT_TICKETING_PAGE: '/manage/app/integrations/support',
+  SERVICE_NOW_TICKETS_PAGE: '/servicenow',
 
   // Alert Notification pages
   NOTIFICATION_CUSTOMIZATION_PAGE: '/manage/app/defaults/notification-customization',
