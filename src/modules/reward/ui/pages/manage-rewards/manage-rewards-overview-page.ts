@@ -1,12 +1,11 @@
 import { expect, Locator, Page, Response, test } from '@playwright/test';
-import { RewardsPeerGifting } from '@rewards/ui/components/manage-rewards/rewards-peer-gifting';
+import { RewardsPeerGifting } from '@rewards-components/manage-rewards/rewards-peer-gifting';
 import path from 'path';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 import { CSVUtils } from '@core/utils/csvUtils';
-import { RewardsPeerGifting } from '@modules/reward/components/manage-rewards/rewards-peer-gifting';
 
 export class ManageRewardsOverviewPage extends BasePage {
   // Components
@@ -535,83 +534,6 @@ export class ManageRewardsOverviewPage extends BasePage {
   async redeemGiftCardAndValidateActivityTable(giftCardName: string): Promise<void> {
     // Import RewardsStore to access its methods
     const { RewardsStore } = await import('@rewards/ui/pages/reward-store/reward-store');
-    const rewardsStore = new RewardsStore(this.page);
-
-    // Navigate to rewards store and validate
-    await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
-    await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
-    await rewardsStore.selectDropdownByLabel(rewardsStore.rewardCountry, 'United States');
-
-    // Redeem regular gift card and validate success
-    await rewardsStore.redeemAndValidate({
-      tab: null,
-      giftCard: giftCardName,
-      successMessage: 'Your reward has been sent',
-      additionalMessages: ['Please check your email inbox for your reward details'],
-    });
-
-    // Navigate to manage rewards and validate activity table
-    await this.loadPage();
-    await this.activityContainer.last().waitFor({ state: 'visible', timeout: 15000 });
-    await this.clickOnElement(this.activityPointsRedeemTable, {
-      stepInfo: 'Clicking on points redeem table',
-    });
-    await this.verifier.verifyTheElementIsVisible(this.activityPanelTableViewRecognitionItems.last());
-  }
-
-  async verifyTheActivityTableForGiftCard(): Promise<void> {
-    // Validate CSV download and content
-    const csvUtils = new CSVUtils('./downloads');
-    await test.step('Validate the new Entry in the Downloaded CSV file:', async () => {
-      // Trigger and capture download
-      const [download] = await Promise.all([
-        this.page.waitForEvent('download'),
-        this.clickOnElement(this.activityTableDownloadCSVButton, {
-          stepInfo: 'Clicking on Download CSV button',
-        }),
-      ]);
-
-      // Save in downloads folder
-      await download.saveAs(path.resolve('./downloads', download.suggestedFilename()));
-
-      // Validate headers
-      const csvHeaders = [
-        'Date time',
-        'Redeemer name',
-        'Redeemer email',
-        'Redeemer department',
-        'Redeemer location',
-        'Redeemer payroll currency',
-        'Reward class',
-        'Reward type',
-        'Reward category',
-        'Reward',
-        'Reward currency',
-        'Reward value',
-        'Exchange rate',
-        'USD value',
-        'Point cost',
-        'Reward email',
-        'Transaction status',
-      ];
-      const headersValidation = await csvUtils.validateHeaders(csvHeaders);
-      expect(headersValidation.isValid, `Missing headers: ${headersValidation.missingHeaders}`).toBeTruthy();
-
-      // Validate last row column value
-      const validationResult = await csvUtils.validateRowValue('last', 16, 'APPROVED');
-      expect(validationResult.isMatch, `Expected "APPROVED" but got "${validationResult.actualValue}"`).toBeTruthy();
-      // Remove the downloaded CSV file after validation
-      const fs = await import('fs');
-      fs.unlinkSync(csvUtils.getLatestCSV());
-    });
-  }
-
-  /**
-   * Redeem gift card and validate activity table for CSV testing
-   */
-  async redeemGiftCardAndValidateActivityTable(giftCardName: string): Promise<void> {
-    // Import RewardsStore to access its methods
-    const { RewardsStore } = await import('@modules/reward/pages/reward-store/reward-store');
     const rewardsStore = new RewardsStore(this.page);
 
     // Navigate to rewards store and validate
