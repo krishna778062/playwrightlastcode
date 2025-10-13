@@ -42,7 +42,7 @@ export class AudiencePage extends BasePage {
     this.createDropdown = page
       .getByTestId('pageContainer-page')
       .locator('header')
-      .getByRole('button', { name: 'Show more' });
+      .locator('button[aria-label="Show more"]');
     this.createAudience = page.locator('[role="menuitem"]:has-text("Create audience")');
     this.createCategory = page.locator('[role="menuitem"]:has-text("Create category")');
     this.createAudienceWithCSV = page.locator('[role="menuitem"]:has-text("Create audience with CSV")');
@@ -240,45 +240,40 @@ export class AudiencePage extends BasePage {
   // Verify all three options are present in category dropdown menu (Add Audience, Edit category, Delete category)
   async verifyAllCategoryOptionsArePresent(categoryName: string): Promise<void> {
     await test.step('Verify all three options are present in category dropdown menu', async () => {
-      await this._openCategoryDropdown(categoryName);
+      // Find the specific Show more button for this category using a more robust approach
+      const showMoreButton = this.page.locator(
+        `//p[text()='${categoryName}']/ancestor::div[contains(@class, 'Grid-module-gridRow')]//button[@aria-label='Show more']`
+      );
+
+      await this.verifier.verifyTheElementIsVisible(showMoreButton, {
+        assertionMessage: `Verify Show more button is visible for category: ${categoryName}`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      // Hover and click the Show more button to open the dropdown
+      await showMoreButton.hover();
+      await this.page.waitForTimeout(500);
+      await showMoreButton.click({ force: true });
+
+      // Wait for the dropdown menu to appear
+      await this.page.waitForSelector('[role="menu"]', { timeout: 5000 });
+
+      // Verify the dropdown options
       await this._verifyDropdownOptions();
     });
   }
 
-  // Open category dropdown menu
-  private async _openCategoryDropdown(categoryName: string): Promise<void> {
-    const showMoreButton = this.page.locator(
-      `//p[contains(text(),'${categoryName}')]/ancestor::div[@role='presentation']/following-sibling::div/following-sibling::div//button`
-    );
-
-    await this.verifier.verifyTheElementIsVisible(showMoreButton, {
-      assertionMessage: `Verify Show more button is visible for category: ${categoryName}`,
-      timeout: TIMEOUTS.MEDIUM,
-    });
-
-    await this.clickOnElement(showMoreButton, {
-      stepInfo: `Click on Show more button for category: ${categoryName}`,
-      timeout: 10_000,
-    });
-
-    await this.page.waitForTimeout(1000);
-  }
-
   // Verify all expected dropdown options are present
   private async _verifyDropdownOptions(): Promise<void> {
-    const expectedOptions = ['Add Audience', 'Edit category', 'Delete category'];
-    console.log('Verifying category dropdown options...');
+    const expectedOptions = ['Add audience', 'Edit category', 'Delete category'];
 
     for (const option of expectedOptions) {
-      const optionLocator = this.page.getByText(option);
+      const optionLocator = this.page.locator('[role="menuitem"]').filter({ hasText: option });
       await this.verifier.verifyTheElementIsVisible(optionLocator, {
         assertionMessage: `Verify "${option}" option is visible in dropdown menu`,
         timeout: TIMEOUTS.SHORT,
       });
-      console.log(`✅ Found option: "${option}"`);
     }
-
-    console.log('✅ All three required options are present in the category dropdown menu');
   }
 
   // Close any open dropdown by clicking elsewhere on the page
@@ -292,17 +287,23 @@ export class AudiencePage extends BasePage {
   // Generic method to open category dropdown menu and click on specific option
   async openCategoryDropdownAndClickOption(categoryName: string, optionText: string): Promise<void> {
     await test.step(`Open category dropdown for "${categoryName}" and click "${optionText}"`, async () => {
-      const showMoreButton = this.page.getByText('Show more');
+      // Find the specific Show more button for this category using the same approach as verifyAllCategoryOptionsArePresent
+      const showMoreButton = this.page.locator(
+        `//p[text()='${categoryName}']/ancestor::div[contains(@class, 'Grid-module-gridRow')]//button[@aria-label='Show more']`
+      );
 
       await this.verifier.verifyTheElementIsVisible(showMoreButton, {
         assertionMessage: `Verify Show more button is visible for category: ${categoryName}`,
         timeout: TIMEOUTS.MEDIUM,
       });
 
-      await this.clickOnElement(showMoreButton, {
-        stepInfo: `Click on Show more button for category: ${categoryName}`,
-        timeout: 10_000,
-      });
+      // Hover and click the Show more button to open the dropdown
+      await showMoreButton.hover();
+      await this.page.waitForTimeout(500);
+      await showMoreButton.click({ force: true });
+
+      // Wait for the dropdown menu to appear
+      await this.page.waitForSelector('[role="menu"]', { timeout: 5000 });
 
       // Click the parent menuitem element instead of the text element
       const menuItemLocator = this.page.locator('[role="menuitem"]').filter({ hasText: optionText });
