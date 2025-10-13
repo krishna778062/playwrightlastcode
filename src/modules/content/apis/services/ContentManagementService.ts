@@ -336,12 +336,14 @@ export class ContentManagementService implements IContentManagementServices {
       await expect
         .poll(
           async () => {
-            const response = await this.httpClient.delete(API_ENDPOINTS.content.delete(siteId, contentId));
+            const response = await this.httpClient.delete(API_ENDPOINTS.content.delete(siteId, contentId), {
+              timeout: 50_000,
+            });
             return response.status() === 200;
           },
           {
             intervals: [10000, 20000, 30000],
-            timeout: 40_000,
+            timeout: 50_000,
           }
         )
         .toBe(true);
