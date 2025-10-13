@@ -1,8 +1,8 @@
 import { expect } from '@playwright/test';
-import { GiveRecognitionDialogBox } from '@rewards/components/recognition/give-recognition-dialog-box';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
-import { RecognitionHubPage } from '@rewards/pages/recognition-hub/recognition-hub-page';
+import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
+import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';

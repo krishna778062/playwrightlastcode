@@ -1,8 +1,8 @@
 import { expect, Locator, Page } from '@playwright/test';
+import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import Error from 'es-errors';
 
 import { BasePage } from '@core/pages/basePage';
-import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
 
 export class RewardGiftingOptionsPage extends BasePage {
   private giftingOptionsContainer: Locator;

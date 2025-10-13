@@ -1,13 +1,13 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 import { getQuery } from '@rewards/utils/dbQuery';
-import { executeQuery } from '@rewards/utils/dbUtils';
+import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
+import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
+import { RewardGiftingOptionsPage } from '@rewards-pages/manage-rewards/reward-gifting-options-page';
+import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
-import { GiveRecognitionDialogBox } from '@modules/reward/components/recognition/give-recognition-dialog-box';
-import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
-import { RewardGiftingOptionsPage } from '@modules/reward/pages/manage-rewards/reward-gifting-options-page';
-import { RewardsStore } from '@modules/reward/pages/reward-store/reward-store';
+import { executeQuery } from '@core/utils/dbUtils';
 
 export class RecognitionHubPage extends BasePage {
   readonly header: Locator;
@@ -627,7 +627,7 @@ export class RecognitionHubPage extends BasePage {
       return (window as any).Simpplr?.Settings?.organizationId;
     });
     const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
-    await executeQuery(resultAsFailed.replace('tenantCode', tenantCode));
+    await executeQuery(resultAsFailed.replace('tenantCode', tenantCode), 'reward');
   }
 
   /**
@@ -652,12 +652,12 @@ export class RecognitionHubPage extends BasePage {
    */
   async disableDistributionAllowanceAsSuccess(): Promise<void> {
     const { getQuery } = await import('@rewards/utils/dbQuery');
-    const { executeQuery } = await import('@rewards/utils/dbUtils');
+    const { executeQuery } = await import('@core/utils/dbUtils');
 
     const tenantCode = await this.page.evaluate(() => {
       return (window as any).Simpplr?.Settings?.organizationId;
     });
     const resultAsSuccess = getQuery('setDistributionAllowanceAsSuccess');
-    await executeQuery(resultAsSuccess.replace('tenantCode', tenantCode));
+    await executeQuery(resultAsSuccess.replace('tenantCode', tenantCode), 'reward');
   }
 }

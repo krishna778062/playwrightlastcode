@@ -1,9 +1,8 @@
 import { expect } from '@playwright/test';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
-import { ManageRewardsOverviewPage } from '@rewards/pages/manage-rewards/manage-rewards-overview-page';
-import { getQuery } from '@rewards/utils/dbQuery';
-import { executeQuery } from '@rewards/utils/dbUtils';
+import { TestDbScenarios } from '@rewards/utils/testDatabaseHelper';
+import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -81,8 +80,8 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const tenantCode = await appManagerFixture.page.evaluate(() => {
         return (window as any).Simpplr?.Settings?.accountId;
       });
-      const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
-      await executeQuery(resultAsFailed.replace('tenantCode', tenantCode));
+      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
+      await manageRewardsOverviewPage.reloadPage();
       await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
       await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
       await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
@@ -101,8 +100,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         manageRewardsOverviewPage.tooltipText,
         'Allowances are currently refreshing'
       );
-      const resultAsSuccess = getQuery('setDistributionAllowanceAsSuccess');
-      await executeQuery(resultAsSuccess.replace('tenantCode', tenantCode));
+      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
     }
   );
 
@@ -207,14 +205,14 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const rewardsApi = '**/recognition/admin/rewards';
       const calls: string[] = [];
-      await appManagerFixture.page.route(rewardsApi, async route => {
+      await manageRewardsOverviewPage.page.route(rewardsApi, async route => {
         calls.push(route.request().url());
         await route.continue();
       });
 
       const expectSingleApiCall = async () => {
         // Wait for a short time to ensure no additional calls are made
-        await appManagerFixture.page.waitForTimeout(2000);
+        await manageRewardsOverviewPage.page.waitForTimeout(2000);
         if (calls.length !== 1) {
           throw new Error(`Expected 1 API call, but got ${calls.length}`);
         }
@@ -222,17 +220,14 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       };
 
       // STEP 1: Navigate to Rewards tab
-      await appManagerFixture.page.goto('/manage/recognition/rewards');
+      await manageRewardsOverviewPage.loadPage();
       await manageRewardsOverviewPage.verifyThePageIsLoaded();
       await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
       await expectSingleApiCall();
 
       // STEP 2: Reload page
-      await appManagerFixture.page.reload();
-      await manageRewardsOverviewPage.verifier.verifyElementHasText(
-        appManagerFixture.page.locator('h1'),
-        'Recognition'
-      );
+      await manageRewardsOverviewPage.page.reload();
+      await manageRewardsOverviewPage.verifyThePageIsLoaded();
       await expectSingleApiCall();
 
       // STEP 3: Navigate through sub-tabs
@@ -245,7 +240,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
           'aria-selected',
           'true'
         );
-        await appManagerFixture.page.waitForTimeout(500); // small wait to catch unexpected calls
+        await manageRewardsOverviewPage.page.waitForTimeout(500); // small wait to catch unexpected calls
         if (calls.length !== 0) {
           throw new Error(`Expected no new API calls for ${tab} tab, but got ${calls.length}`);
         }

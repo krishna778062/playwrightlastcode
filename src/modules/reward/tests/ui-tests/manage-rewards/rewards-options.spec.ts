@@ -1,9 +1,9 @@
 import { expect } from '@playwright/test';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
-import { ManageRewardsOverviewPage } from '@rewards/pages/manage-rewards/manage-rewards-overview-page';
-import { RewardOptionsPage } from '@rewards/pages/manage-rewards/reward-options-page';
-import { RewardsStore } from '@rewards/pages/reward-store/reward-store';
+import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
+import { RewardOptionsPage } from '@rewards-pages/manage-rewards/reward-options-page';
+import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 
 import { TestGroupType, TestPriority } from '@core/constants';
 import { tagTest } from '@core/utils';

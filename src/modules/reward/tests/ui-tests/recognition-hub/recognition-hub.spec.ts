@@ -1,12 +1,11 @@
 import { expect } from '@playwright/test';
-import { DialogBox } from '@rewards/components/common/dialog-box';
-import { GiveRecognitionDialogBox } from '@rewards/components/recognition/give-recognition-dialog-box';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
-import { ManageRewardsOverviewPage } from '@rewards/pages/manage-rewards/manage-rewards-overview-page';
-import { RecognitionHubPage } from '@rewards/pages/recognition-hub/recognition-hub-page';
-import { getQuery } from '@rewards/utils/dbQuery';
-import { executeQuery } from '@rewards/utils/dbUtils';
+import { TestDbScenarios } from '@rewards/utils/testDatabaseHelper';
+import { DialogBox } from '@rewards-components/common/dialog-box';
+import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
+import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
+import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -105,14 +104,20 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         storyId: 'RC-3327',
       });
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
-      const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
-      await executeQuery(resultAsFailed.replace('tenantCode', tenantCode));
-      await appManagerFixture.page.reload();
       await recognitionHub.visitRecognitionHub();
+      await recognitionHub.verifyThePageIsLoaded();
+
+      // Set distribution allowance as failed using test helper
+      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
+
+      await recognitionHub.reloadPage();
+      await recognitionHub.visitRecognitionHub();
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.clickOnGiveRecognition();
       await recognitionHub.checkTheGiftingOptionsAre(false);
-      const resultAsSuccess = getQuery('setDistributionAllowanceAsSuccess');
-      await executeQuery(resultAsSuccess.replace('tenantCode', tenantCode));
+
+      // Set distribution allowance as success using test helper
+      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
     }
   );
 
@@ -130,9 +135,8 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
 
-      // Enable the distribution using DB
-      const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
-      await executeQuery(resultAsFailed.replace('tenantCode', tenantCode));
+      // Enable the distribution using test helper
+      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
 
       // Mock the Reward config API and enable the Distributing allowance
       await recognitionHub.visitRecognitionHub();
@@ -141,8 +145,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       await recognitionHub.checkThePointsToGive(0);
 
       // Disable the distribution
-      const resultAsSuccess = getQuery('setDistributionAllowanceAsSuccess');
-      await executeQuery(resultAsSuccess.replace('tenantCode', tenantCode));
+      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
     }
   );
 
@@ -160,9 +163,8 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
 
-      // Enable the distribution using DB
-      const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
-      await executeQuery(resultAsFailed.replace('tenantCode', tenantCode));
+      // Enable the distribution using test helper
+      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
 
       // Mock the Reward config API and enable the Distributing allowance
       await appManagerFixture.page.reload();
@@ -175,8 +177,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       await recognitionHub.checkTheGiftingOptionsAre(false);
 
       // Disable the distribution
-      const resultAsSuccess = getQuery('setDistributionAllowanceAsSuccess');
-      await executeQuery(resultAsSuccess.replace('tenantCode', tenantCode));
+      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
     }
   );
 
@@ -197,8 +198,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       const recognizedUser = process.env.ZEUS_STANDARD_FULLNAME;
 
       // Disable the distribution
-      const resultAsSuccess = getQuery('setDistributionAllowanceAsSuccess');
-      await executeQuery(resultAsSuccess.replace('tenantCode', tenantCode));
+      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
 
       // Visit the Recognition Hub and give one recognition
       const existingOptions = await recognitionHub.visitRecognitionHub();
@@ -220,8 +220,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       }
 
       // Enable the distribution
-      const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
-      await executeQuery(resultAsFailed.replace('tenantCode', tenantCode));
+      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
 
       // Validate the Delete recognition can not roll back the points
       await appManagerFixture.page.reload();
@@ -236,7 +235,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       await expect(recognitionHub.deleteRecognitionDialogBoxContainer).not.toBeVisible();
 
       // Disable the distribution
-      await executeQuery(resultAsSuccess.replace('tenantCode', tenantCode));
+      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
     }
   );
 
@@ -323,7 +322,6 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-      await appManagerFixture.page.waitForTimeout(5000);
       const recognitionGiverName: string = process.env[`APP_MANAGER_FULL_NAME`]!;
       await manageRewardsOverviewPage.loadPage();
       await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();

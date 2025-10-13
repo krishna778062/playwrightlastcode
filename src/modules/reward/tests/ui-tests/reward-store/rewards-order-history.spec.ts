@@ -1,6 +1,6 @@
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
-import { RewardsStore } from '@rewards/pages/reward-store/reward-store';
+import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';

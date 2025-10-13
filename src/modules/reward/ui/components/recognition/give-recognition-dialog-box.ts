@@ -1,7 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
-
-import { DialogBox } from '@modules/reward/components/common/dialog-box';
-import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
+import { DialogBox } from '@rewards-components/common/dialog-box';
+import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 
 export class GiveRecognitionDialogBox extends DialogBox {
   readonly profilePicture: Locator;

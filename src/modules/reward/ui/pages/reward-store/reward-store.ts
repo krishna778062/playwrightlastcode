@@ -1,11 +1,11 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
+import { RewardsDialogBox } from '@rewards-pages/reward-store/rewards-dialog-box';
 import fs from 'fs';
 import path from 'path';
 
 import { PAGE_ENDPOINTS, PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
-import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
-import { RewardsDialogBox } from '@modules/reward/pages/reward-store/rewards-dialog-box';
 
 export class RewardsStore extends BasePage {
   readonly rewardStorePageNotFound: Locator;

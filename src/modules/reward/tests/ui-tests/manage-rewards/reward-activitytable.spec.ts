@@ -1,10 +1,11 @@
 import { expect } from '@playwright/test';
-import { DialogBox } from '@rewards/components/common/dialog-box';
-import { GiveRecognitionDialogBox } from '@rewards/components/recognition/give-recognition-dialog-box';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
-import { ManageRewardsOverviewPage } from '@rewards/pages/manage-rewards/manage-rewards-overview-page';
-import { RecognitionHubPage } from '@rewards/pages/recognition-hub/recognition-hub-page';
+import { TestDbScenarios } from '@rewards/utils/testDatabaseHelper';
+import { DialogBox } from '@rewards-components/common/dialog-box';
+import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
+import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
+import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 import fs from 'fs';
 import path from 'path';
 
@@ -197,7 +198,9 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeAttached();
         items = items - 10;
       }
-      await appManagerFixture.page.waitForTimeout(5000);
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.activityPanelTableRows.last()
+      );
       const updatedCount = manageRewardsOverviewPage.activityPanelTableRows;
       await expect(updatedCount).toHaveCount(oldCount);
     }
@@ -751,7 +754,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     '[RC-6080] Validate Message, and URL column value in Points Given CSV when points are removed or the recognition post is deleted',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P2],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, REWARD_FEATURE_TAGS.REWARDS_CSV_CASES, TestPriority.P0],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -877,7 +880,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     '[RC-6082] Validate the Message and URL column value in the points given CSV for the Recognition with the points',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P2],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, REWARD_FEATURE_TAGS.REWARDS_CSV_CASES, TestPriority.P0],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -974,7 +977,12 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     '[RC-6099] Validate the Message and URL column value in the points given CSV for the Imported Data',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P2],
+      tag: [
+        REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE,
+        REWARD_FEATURE_TAGS.REWARDS_DB_CASES,
+        REWARD_FEATURE_TAGS.REWARDS_CSV_CASES,
+        TestPriority.P3,
+      ],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -1007,15 +1015,11 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       }
 
       // Execute database query to update allowance job record
-      const { getQuery } = await import('@rewards/utils/dbQuery');
-      const { executeQuery } = await import('@rewards/utils/dbUtils');
-
-      const resultAsSuccess = getQuery('setTheLatestCreatedDateFromAllowanceJobRecord');
-      await executeQuery(resultAsSuccess.replace(/tenantCode/g, tenantCode));
+      await TestDbScenarios.setupImportedData(tenantCode);
 
       // Navigate to distribute allowances page
-      await appManagerFixture.page.goto('/manage/recognition/seed');
-      await appManagerFixture.page.waitForTimeout(15000);
+      await manageRewardsOverviewPage.page.goto('/manage/recognition/seed');
+      await manageRewardsOverviewPage.page.waitForTimeout(15000);
 
       // Validate the new Entry in the Downloaded CSV file
       const csvUtils = new CSVUtils('./downloads');

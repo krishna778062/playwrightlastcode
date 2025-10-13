@@ -1,6 +1,6 @@
 import { REWARD_FEATURE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
-import { RewardsStore } from '@rewards/pages/reward-store/reward-store';
+import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -38,7 +38,7 @@ test.describe('rewards Variable Gift Card Redemption', { tag: [REWARD_FEATURE_TA
       await rewardsStore.verifier.verifyElementContainsText(rewardsStore.rewardsDialogBox.title, giftCardName);
       const limitText = await rewardsStore.rewardsDialogBox.rewardAmountsLimits.textContent();
       if (limitText) {
-        limits = limitText.match(/\d{1,3}(?:,\d{3})*|\d+/g)?.map(s => Number(s.replace(/,/g, ''))) || [];
+        limits = limitText.match(/\d{1,3}(?:,\d{3})*|\d+/g)?.map((s: string) => Number(s.replace(/,/g, ''))) || [];
       }
       await rewardsStore.clickOnElement(rewardsStore.rewardsDialogBox.closeButton, {
         stepInfo: 'Clicking on close button',
