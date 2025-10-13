@@ -145,7 +145,6 @@ test.describe(
         await applicationscreen.actions.clickOnApplication();
         await manageApplicationPage.actions.clickOnGovernance();
         await governanceScreenPage.actions.clickOnTimeline();
-        await governanceScreenPage.actions.clickOnSave();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnContentCard();
         await manageContentPage.actions.clickOnContent();

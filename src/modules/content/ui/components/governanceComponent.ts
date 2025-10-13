@@ -9,7 +9,7 @@ export class GovernanceComponent extends BaseComponent {
 
   constructor(readonly page: Page) {
     super(page);
-    this.clickOnTimeline = page.getByText('Timeline', { exact: true });
+    this.clickOnTimeline = page.locator('input[type="radio"][value="timeline"]');
     this.clickOnSave = page.getByRole('button', { name: 'Save' });
     this.timelineAndFeed = page.getByRole('heading', { name: 'Timeline & feed' });
   }

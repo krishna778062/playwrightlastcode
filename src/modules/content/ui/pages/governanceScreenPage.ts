@@ -18,7 +18,6 @@ export class GovernanceScreenPage extends BasePage {
     this.governanceComponent = new GovernanceComponent(page);
     this.actions = {
       clickOnTimeline: this.clickOnTimeline.bind(this),
-      clickOnSave: this.clickOnSave.bind(this),
     };
   }
 
@@ -32,12 +31,13 @@ export class GovernanceScreenPage extends BasePage {
 
   async clickOnTimeline(): Promise<void> {
     await test.step('Clicking on timeline', async () => {
+      const outerHTML = await this.governanceComponent.clickOnTimeline.evaluate(el => el.outerHTML);
+      const isChecked = outerHTML.includes('checked');
+      if (isChecked === true) {
+        console.log('Timeline is already checked');
+        return;
+      }
       await this.clickOnElement(this.governanceComponent.clickOnTimeline);
-    });
-  }
-
-  async clickOnSave(): Promise<void> {
-    await test.step('Clicking on save', async () => {
       await this.clickOnElement(this.governanceComponent.clickOnSave);
     });
   }
