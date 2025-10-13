@@ -77,7 +77,7 @@ test.describe(
     test(
       'shuffling sites from feature modal list',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-27919'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-27919'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
