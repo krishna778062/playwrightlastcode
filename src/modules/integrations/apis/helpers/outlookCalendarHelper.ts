@@ -121,9 +121,7 @@ export class OutlookCalendarHelper {
     const data = await this.makeRequest(endpoint);
     const events = data.value || [];
 
-    const matchingEvents = events.filter(
-      (event: any) => event.subject && event.subject.includes(eventTitle)
-    ) as OutlookCalendarEvent[];
+    const matchingEvents = events.filter((event: any) => event.subject?.includes(eventTitle)) as OutlookCalendarEvent[];
 
     return matchingEvents;
   }

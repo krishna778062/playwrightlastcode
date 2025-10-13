@@ -65,6 +65,10 @@ for (const fileType of testData.fileTypes) {
           });
         }
       );
+
+      test.afterEach('Cleanup uploaded files', async ({ appManagerFixture }) => {
+        await appManagerFixture.intranetFileHelper.cleanup();
+      });
     }
   );
 }
