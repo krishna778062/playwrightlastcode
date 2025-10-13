@@ -1,5 +1,8 @@
 import { expect } from '@playwright/test';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
+import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
+import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 import fs from 'fs';
 import path from 'path';
 
@@ -8,14 +11,11 @@ import { TestGroupType } from '@core/constants/testType';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { CSVUtils } from '@core/utils/csvUtils';
 import { tagTest } from '@core/utils/testDecorator';
-import { GiveRecognitionDialogBox } from '@modules/reward/components/recognition/give-recognition-dialog-box';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
-import { ManageRewardsOverviewPage } from '@modules/reward/pages/manage-rewards/manage-rewards-overview-page';
-import { RecognitionHubPage } from '@modules/reward/pages/recognition-hub/recognition-hub-page';
 
 test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
-  test.beforeEach(async ({ appManagerPage }) => {
-    const recognitionHub = new RecognitionHubPage(appManagerPage);
+  test.beforeEach(async ({ appManagerFixture }) => {
+    const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
     await recognitionHub.enableTheRewardsAndPeerGiftingForHubIfDisabled();
   });
 
@@ -29,14 +29,14 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify user can edit points within the 24hr pending period',
         zephyrTestId: 'RC-5348',
         storyId: 'RC-5348',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const rewardOptionIndex = 3;
       let rewardOptionText: string;
       let availablePoints: string;
@@ -47,7 +47,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
           await recognitionHub.setupTheMultipleGiftingOptions();
         }
         await recognitionHub.clickOnGiveRecognition();
-        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
           0,
           process.env.STANDARD_USER_FULL_NAME,
@@ -68,7 +68,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         await recognitionHub.visitRecognitionHub();
         await recognitionHub.pointsToGive.waitFor({ state: 'attached' });
         await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
-        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         await giveRecognitionModal.giftingOptionsContainerPill.last().waitFor({ state: 'visible' });
         const rewardPoints = 1;
         const rewardPointsText =
@@ -98,7 +98,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         await recognitionHub.visitRecognitionHub();
         await recognitionHub.pointsToGive.waitFor({ state: 'attached' });
         await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
-        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         const rewardPoints = 1;
         const rewardPointsText =
           (await giveRecognitionModal.giftingOptionsContainerPillText.nth(rewardPoints - 1).textContent()) || '';
@@ -131,14 +131,14 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify App manager can remove the given points within the 24hr pending period',
         zephyrTestId: 'RC-5704',
         storyId: 'RC-5704',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const rewardOptionIndex = 3;
       let rewardOptionText: string;
       let availablePoints: string;
@@ -149,7 +149,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
           await recognitionHub.setupTheMultipleGiftingOptions();
         }
         await recognitionHub.clickOnGiveRecognition();
-        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
           0,
           process.env.STANDARD_USER_FULL_NAME,
@@ -169,7 +169,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await test.step('Click on Edit and Remove points', async () => {
         await recognitionHub.visitRecognitionHub();
         await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
-        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         await giveRecognitionModal.giftingOptionsContainerPill.last().waitFor({ state: 'visible' });
         await giveRecognitionModal.giftingToggle.uncheck();
         await expect(giveRecognitionModal.doneButton).toBeEnabled();
@@ -223,14 +223,14 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify app manager can edit points within the 24hr pending period for multiple recipient',
         zephyrTestId: 'RC-5350',
         storyId: 'RC-5350',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const rewardOptionIndex = 3;
       let rewardOptionText: string;
       let availablePoints: string;
@@ -241,7 +241,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
           await recognitionHub.setupTheMultipleGiftingOptions();
         }
         await recognitionHub.clickOnGiveRecognition();
-        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
           0,
           process.env.STANDARD_USER_FULL_NAME,
@@ -260,11 +260,10 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       });
 
       await test.step('Click on Edit', async () => {
-        await recognitionHub.page.waitForTimeout(5000);
         await recognitionHub.visitRecognitionHub();
+        await recognitionHub.verifyThePageIsLoaded();
         await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
-        await recognitionHub.page.waitForTimeout(1000);
-        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         await giveRecognitionModal.giftingOptionsContainerPill.last().waitFor({ state: 'visible' });
         const rewardPoints = 1;
         const rewardPointsText =
@@ -273,7 +272,6 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
           await giveRecognitionModal.giftingOptionsContainerPill.nth(rewardPoints - 1).click({ force: true });
           await expect(giveRecognitionModal.giftingOptionsContainerPill.nth(rewardPoints - 1)).toBeChecked();
         }
-        await recognitionHub.page.waitForTimeout(2000);
         await giveRecognitionModal.doneButton.click({ force: true });
         const manageRecognition = new ManageRewardsOverviewPage(giveRecognitionModal.page);
         await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition updated');
@@ -302,14 +300,14 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify recognition manager can edit points within the 24hr pending period',
         zephyrTestId: 'RC-5351',
         storyId: 'RC-5351',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const rewardOptionIndex = 3;
       let rewardOptionText: string;
       let availablePoints: string;
@@ -320,7 +318,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
           await recognitionHub.setupTheMultipleGiftingOptions();
         }
         await recognitionHub.clickOnGiveRecognition();
-        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
           0,
           process.env.STANDARD_USER_FULL_NAME,
@@ -340,17 +338,15 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       });
 
       await test.step('Click on Edit', async () => {
-        await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
-        await LoginHelper.loginWithPassword(appManagerPage, {
+        await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
+        await LoginHelper.loginWithPassword(appManagerFixture.page, {
           email: process.env.RECOGNITION_USER_USERNAME!,
           password: process.env.RECOGNITION_USER_PASSWORD!,
         });
-        await recognitionHub.page.waitForTimeout(5000);
         await recognitionHub.visitRecognitionHub();
-        await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'attached' });
+        await recognitionHub.verifyThePageIsLoaded();
         await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
-        await recognitionHub.page.waitForTimeout(1000);
-        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         await giveRecognitionModal.giftingOptionsContainerPill.last().waitFor({ state: 'visible' });
         const rewardPoints = 4;
         const rewardPointsText =
@@ -386,20 +382,20 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify user can edit points within the 24hr pending period',
         zephyrTestId: 'RC-5354',
         storyId: 'RC-5354',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const rewardOptionIndex = 3;
       let rewardOptionText: string;
 
       await test.step('Navigate to Recognition Hub and Click on Give recognition Modal', async () => {
-        await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
-        await LoginHelper.loginWithPassword(appManagerPage, {
+        await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
+        await LoginHelper.loginWithPassword(appManagerFixture.page, {
           email: process.env.STANDARD_USER_USERNAME!,
           password: process.env.STANDARD_USER_PASSWORD!,
         });
@@ -408,7 +404,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await test.step('Visit the Recognition Hub and give one recognition', async () => {
         await recognitionHub.navigateToRecognitionHub();
         await recognitionHub.clickOnGiveRecognition();
-        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
           0,
           process.env.STANDARD_USER_FULL_NAME,
@@ -424,8 +420,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
 
       await test.step('Click on Edit', async () => {
         await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
-        await recognitionHub.page.waitForTimeout(1000);
-        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         await giveRecognitionModal.giftingOptionsContainerPill.last().waitFor({ state: 'visible' });
         const rewardPoints = 4;
         const rewardPointsText =
@@ -459,7 +454,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify app manager can not edit points after the 24hr pending period',
         zephyrTestId: 'RC-5349',
@@ -467,16 +462,16 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       });
 
       await test.step('Click on Edit for the Recognition post which is published 24 hrs earlier', async () => {
-        const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerPage);
+        const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerFixture.page);
         const recognitionGiverName = process.env[`APP_MANAGER_FULL_NAME`];
         await manageRecognitionPage.loadPage();
         await expect(manageRecognitionPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();
         const rewardPointsText = await manageRecognitionPage.openTheRecognitionCreatedBefore24Hrs(
           recognitionGiverName!
         );
-        const recognitionHub = new RecognitionHubPage(appManagerPage);
+        const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
         await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
-        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         await expect(giveRecognitionModal.giftingOptionsContainerPill).not.toBeVisible();
         await giveRecognitionModal.closeButton.click();
         await recognitionHub.validateTheRewardElementsInRecognitionPost(
@@ -498,7 +493,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify recognition manager can not edit points after 24hr period',
         zephyrTestId: 'RC-5353',
@@ -506,24 +501,22 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       });
 
       await test.step('Click on Edit for the Recognition post which is published 24 hrs earlier', async () => {
-        await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
-        await LoginHelper.loginWithPassword(appManagerPage, {
+        await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
+        await LoginHelper.loginWithPassword(appManagerFixture.page, {
           email: process.env.RECOGNITION_USER_USERNAME!,
           password: process.env.RECOGNITION_USER_PASSWORD!,
         });
-        const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerPage);
+        const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerFixture.page);
         const recognitionGiverName = process.env[`APP_MANAGER_FULL_NAME`];
         await manageRecognitionPage.loadPage();
         await expect(manageRecognitionPage.activityPanelTableRows.last()).toBeVisible();
         const rewardPointsText = await manageRecognitionPage.openTheRecognitionCreatedBefore24Hrs(
           recognitionGiverName!
         );
-        const recognitionHub = new RecognitionHubPage(appManagerPage);
+        const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
         await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
-        await recognitionHub.page.waitForTimeout(1000);
-        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         await expect(giveRecognitionModal.giftingOptionsContainerPill).not.toBeVisible();
-        await recognitionHub.page.waitForTimeout(1000);
         await giveRecognitionModal.closeButton.click({ force: true });
         await recognitionHub.validateTheRewardElementsInRecognitionPost(
           true,
@@ -544,7 +537,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify App manager can not remove given points after the 24hr pending period',
         zephyrTestId: 'RC-5705',
@@ -552,20 +545,18 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       });
 
       await test.step('Click on Edit for the Recognition post which is published 24 hrs earlier', async () => {
-        const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerPage);
-        const recognitionHub = new RecognitionHubPage(appManagerPage);
-        await recognitionHub.page.waitForTimeout(5000);
+        const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+        const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
         const recognitionGiverName = process.env[`APP_MANAGER_FULL_NAME`];
         await manageRecognitionPage.loadPage();
+        await manageRecognitionPage.verifyThePageIsLoaded();
         await expect(manageRecognitionPage.activityPanelTableRows.last()).toBeVisible();
         const rewardPointsText = await manageRecognitionPage.openTheRecognitionCreatedBefore24Hrs(
           recognitionGiverName!
         );
         await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
-        await recognitionHub.page.waitForTimeout(1000);
-        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         await expect(giveRecognitionModal.giftingOptionsContainerPill).not.toBeVisible();
-        await recognitionHub.page.waitForTimeout(1000);
         await giveRecognitionModal.closeButton.click({ force: true });
         await recognitionHub.validateTheRewardElementsInRecognitionPost(
           true,
@@ -586,7 +577,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify user can not edit points after the 24hr pending period',
         zephyrTestId: 'RC-5355',
@@ -594,26 +585,25 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       });
 
       await test.step('Click on Edit for the Recognition post which is published 24 hrs earlier', async () => {
-        const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerPage);
+        const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerFixture.page);
         let rewardPointsText: string;
-        await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
-        await LoginHelper.loginWithPassword(appManagerPage, {
+        await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
+        await LoginHelper.loginWithPassword(appManagerFixture.page, {
           email: process.env.RECOGNITION_USER_USERNAME!,
           password: process.env.RECOGNITION_USER_PASSWORD!,
         });
         await test.step('Click on Edit for the Recognition post which is published 24 hrs earlier', async () => {
-          const recognitionHub = new RecognitionHubPage(appManagerPage);
-          await recognitionHub.page.waitForTimeout(5000);
           const recognitionGiverName = process.env[`STANDARD_USER_FULL_NAME`];
           await manageRecognitionPage.loadPage();
+          await manageRecognitionPage.verifyThePageIsLoaded();
           await expect(manageRecognitionPage.activityPanelTableRows.last()).toBeVisible();
           rewardPointsText = await manageRecognitionPage.openTheRecognitionCreatedBefore24Hrs(recognitionGiverName!);
         });
         await test.step('Navigate to the Recognition Post, Login with Standard User and validate Can not edit Reward point', async () => {
-          const recognitionHub = new RecognitionHubPage(appManagerPage);
+          const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
           const currentUrl = recognitionHub.page.url();
-          await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
-          await LoginHelper.loginWithPassword(appManagerPage, {
+          await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
+          await LoginHelper.loginWithPassword(appManagerFixture.page, {
             email: process.env.STANDARD_USER_USERNAME!,
             password: process.env.STANDARD_USER_PASSWORD!,
           });
@@ -621,9 +611,9 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
           await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'visible', timeout: 25000 });
         });
         await test.step('Edit the Recognition and validate', async () => {
-          const recognitionHub = new RecognitionHubPage(appManagerPage);
+          const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
           await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
-          const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+          const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
           await expect(giveRecognitionModal.giftingOptionsContainerPill).not.toBeVisible();
           await giveRecognitionModal.closeButton.click();
           await recognitionHub.validateTheRewardElementsInRecognitionPost(
@@ -646,17 +636,17 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate status of transaction history when edit recognition with points within 24hr',
         zephyrTestId: 'RC-5629',
         storyId: 'RC-5629',
       });
 
-      const recognitionHub = new RecognitionHubPage(appManagerPage);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const rewardOptionIndex = 3;
       let rewardOptionText: string;
-      const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerPage);
+      const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerFixture.page);
 
       await test.step('Visit the Recognition Hub and give one recognition', async () => {
         const existingOptions = await recognitionHub.visitRecognitionHub();
@@ -664,7 +654,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
           await recognitionHub.setupTheMultipleGiftingOptions();
         }
         await recognitionHub.clickOnGiveRecognition();
-        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
           0,
           process.env.STANDARD_USER_FULL_NAME,
@@ -680,8 +670,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         );
       });
 
-      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
-      await LoginHelper.loginWithPassword(appManagerPage, {
+      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
+      await LoginHelper.loginWithPassword(appManagerFixture.page, {
         email: process.env.RECOGNITION_USER_USERNAME!,
         password: process.env.RECOGNITION_USER_PASSWORD!,
       });
@@ -710,8 +700,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await test.step('Edit the points for the last given Recognition post', async () => {
         await recognitionHub.visitRecognitionHub();
         await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
-        await recognitionHub.page.waitForTimeout(1000);
-        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerPage);
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         await giveRecognitionModal.giftingOptionsContainerPill.last().waitFor({ state: 'visible' });
         const rewardPoints = 4;
         const rewardPointsText =

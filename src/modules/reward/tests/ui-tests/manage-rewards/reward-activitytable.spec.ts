@@ -203,9 +203,6 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       );
       const updatedCount = manageRewardsOverviewPage.activityPanelTableRows;
       await expect(updatedCount).toHaveCount(oldCount);
-      await appManagerPage.waitForTimeout(5000);
-      const updatedCount = await manageRewardsOverviewPage.activityPanelTableRows.count();
-      expect(updatedCount).toEqual(oldCount);
     }
   );
 
@@ -1064,13 +1061,13 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate Rewards Overview Activity Table for points redeemed',
         zephyrTestId: 'RC-3021',
         storyId: 'RC-3021',
       });
-      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerPage);
+      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
 
       // Redeem gift card and validate activity table
       await manageRewardsPage.redeemGiftCardAndValidateActivityTable('Amazon');

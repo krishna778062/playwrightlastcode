@@ -1,16 +1,15 @@
 import { expect } from '@playwright/test';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 
-import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '../../constants/testTags';
-import { RewardsStore } from '../../pages/reward-store/reward-store';
-
-import { TestPriority } from '@/src/core/constants/testPriority';
-import { TestGroupType } from '@/src/core/constants/testType';
-import { tagTest } from '@/src/core/utils/testDecorator';
+import { TestPriority } from '@core/constants/testPriority';
+import { TestGroupType } from '@core/constants/testType';
+import { tagTest } from '@core/utils/testDecorator';
+import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 
 test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => {
-  test.beforeEach(async ({ appManagerPage }) => {
-    const rewardsStore = new RewardsStore(appManagerPage);
+  test.beforeEach(async ({ appManagerFixture }) => {
+    const rewardsStore = new RewardsStore(appManagerFixture.page);
     await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
   });
   test(
@@ -18,14 +17,14 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate if Categories option list on rewards store page is showing in Users set language',
         zephyrTestId: 'RC-3311',
         storyId: 'RC-3311',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
-      const { UserProfilePage } = await import('@modules/reward/pages/user-profile/user-profile-page');
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
+      const { UserProfilePage } = await import('@rewards-pages/user-profile/user-profile-page');
       const userProfile = new UserProfilePage(rewardsStore.page);
 
       // Open the Reward, and select the United States as country
@@ -131,17 +130,17 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: "Validate if location list on rewards store page is showing in User's set language",
         zephyrTestId: 'RC-3312',
         storyId: 'RC-3312',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
-      const { UserProfilePage } = await import('@modules/reward/pages/user-profile/user-profile-page');
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
+      const { UserProfilePage } = await import('@rewards-pages/user-profile/user-profile-page');
       const userProfile = new UserProfilePage(rewardsStore.page);
 
-      // Open the Reward, and select the United States as country
+      // Open the Reward, and select the United States as a country
       await rewardsStore.selectCountry('United States');
 
       // Set the Language as "French", Get All the countries in French language and validate

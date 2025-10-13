@@ -190,4 +190,41 @@ export class UserProfilePage extends BasePage {
     );
     await this.allowanceRefreshingInfoIcon.click({ force: true });
   }
+
+  /**
+   * Mock the basic-app-config API and reload the page with new language
+   */
+  async mockAppConfigLanguage(page: Page, langCode: number): Promise<void> {
+    await page.route('**/v2/account/basic-app-config', async route => {
+      const originalResponse = await route.fetch();
+      const body = await originalResponse.json();
+
+      if (body?.result?.language !== undefined) {
+        body.result.language = langCode;
+      } else {
+        console.warn('⚠️ Could not find result.language in response, leaving unchanged');
+      }
+      console.log(body);
+
+      await route.fulfill({
+        response: originalResponse,
+        body: JSON.stringify(body),
+        headers: {
+          ...originalResponse.headers(),
+          'content-type': 'application/json',
+        },
+      });
+    });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    console.log(`✅ Mocked language set to "${langCode}" and page reloaded.`);
+  }
+
+  /**
+   * Restore original behavior (disable API mocking)
+   */
+  async restoreAppConfigMock(page: Page): Promise<void> {
+    await page.unroute('**/v2/account/basic-app-config');
+    await page.reload();
+    console.log('✅ Restored API, mock disabled, page reloaded.');
+  }
 }

@@ -1,15 +1,15 @@
 import { expect } from '@playwright/test';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
-import { RewardsStore } from '@modules/reward/pages/reward-store/reward-store';
 
 test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => {
-  test.beforeEach(async ({ appManagerPage }) => {
-    const rewardsStore = new RewardsStore(appManagerPage);
+  test.beforeEach(async ({ appManagerFixture }) => {
+    const rewardsStore = new RewardsStore(appManagerFixture.page);
     await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
   });
 
@@ -18,13 +18,13 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify Category and location dropdown for the gift-cards tab',
         zephyrTestId: 'RC-2909',
         storyId: 'RC-2909',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
 
       // Navigate to rewards store and validate
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
@@ -65,13 +65,13 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate the spending component for the rewards store',
         zephyrTestId: 'RC-2829',
         storyId: 'RC-2829',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
 
       // Navigate to rewards store and validate
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
@@ -102,13 +102,13 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify if items are provided in ascending order, when user searching for rewards',
         zephyrTestId: 'RC-3054',
         storyId: 'RC-3054',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
 
       // Navigate to rewards store and validate
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
@@ -134,13 +134,13 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate Legal terms in the footer on Rewards Page',
         zephyrTestId: 'RC-2976',
         storyId: 'RC-2976',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
 
       // Navigate to rewards store and validate
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
@@ -165,13 +165,13 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate corners of the Reward store images',
         zephyrTestId: 'RC-3228',
         storyId: 'RC-3228',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
 
       // Navigate to rewards store and validate
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
@@ -199,13 +199,13 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate search Rewards on reward store page',
         zephyrTestId: 'RC-2857',
         storyId: 'RC-2857',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
 
       // Navigate to rewards store and validate
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
@@ -266,13 +266,13 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify the link to rewards store',
         zephyrTestId: 'RC-2833',
         storyId: 'RC-2833',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
 
       // Navigate to rewards store and validate
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
@@ -288,13 +288,13 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate Country selector dropdown for the rewards store',
         zephyrTestId: 'RC-3224',
         storyId: 'RC-3224',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
 
       // Navigate to rewards store and validate
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
@@ -344,13 +344,13 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify the country drop down when user visits rewards store for first time',
         zephyrTestId: 'RC-3121',
         storyId: 'RC-3121',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
 
       // Navigate to rewards store and validate
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
@@ -371,13 +371,13 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify total count for each category on reward store page along with Reset button',
         zephyrTestId: 'RC-2921',
         storyId: 'RC-2921',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
 
       // Navigate to rewards store and validate
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
@@ -421,13 +421,13 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify default value of user location in searching rewards',
         zephyrTestId: 'RC-3122',
         storyId: 'RC-3122',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
       const giftCardProductName = 'Amazon';
 
       // Login as User A and set the location to Canada

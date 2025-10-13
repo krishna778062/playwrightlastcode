@@ -1,15 +1,15 @@
 import { expect } from '@playwright/test';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
-import { RewardsStore } from '@modules/reward/pages/reward-store/reward-store';
 
 test.describe('rewards Success Dialog box message', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => {
-  test.beforeEach(async ({ appManagerPage }) => {
-    const rewardsStore = new RewardsStore(appManagerPage);
+  test.beforeEach(async ({ appManagerFixture }) => {
+    const rewardsStore = new RewardsStore(appManagerFixture.page);
     await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
   });
 
@@ -18,13 +18,13 @@ test.describe('rewards Success Dialog box message', { tag: [REWARD_SUITE_TAGS.RE
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate successful reward redemption based on type of reward',
         zephyrTestId: 'RC-3015',
         storyId: 'RC-3015',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
 
       // Navigate to rewards store and validate
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
@@ -62,13 +62,13 @@ test.describe('rewards Success Dialog box message', { tag: [REWARD_SUITE_TAGS.RE
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate Reward Order confirmation Dialog',
         zephyrTestId: 'RC-3001',
         storyId: 'RC-3001',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
       const giftCardName = 'Amazon';
 
       // Navigate to rewards store and validate
@@ -140,13 +140,13 @@ test.describe('rewards Success Dialog box message', { tag: [REWARD_SUITE_TAGS.RE
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify if a redemption of reward fails then points should be refunded',
         zephyrTestId: 'RC-3068',
         storyId: 'RC-3068',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
       let preExistingPoints: string, postExistingPoints: string;
 
       // Navigate to rewards store and validate
