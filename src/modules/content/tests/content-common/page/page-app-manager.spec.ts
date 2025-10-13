@@ -21,7 +21,7 @@ import { FileUtil } from '@core/utils/fileUtil';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationScreenPage';
+import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 
 test.describe(
   `page Creation by Application Manager`,

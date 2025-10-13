@@ -83,6 +83,8 @@ export interface IFeedAssertions {
   verifyAskQuestionButtonIsNotDisabled: () => Promise<void>;
   verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
   verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
+  verifyQuestionButtonIsNotVisible: () => Promise<void>;
+  verifyQuestionButtonIsVisible: () => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -380,5 +382,13 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyCampaignLinkDisplayed(linkText: string, description: string): Promise<void> {
     await this.listFeedComponent.verifyCampaignLinkDisplayed(linkText, description);
+  }
+
+  async verifyQuestionButtonIsNotVisible(): Promise<void> {
+    await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
+  }
+
+  async verifyQuestionButtonIsVisible(): Promise<void> {
+    await this.createFeedPostComponent.verifyQuestionButtonIsVisible();
   }
 }

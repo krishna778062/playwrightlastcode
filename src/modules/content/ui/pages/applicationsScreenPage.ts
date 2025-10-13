@@ -13,6 +13,9 @@ export class ApplicationScreenPage extends BasePage implements IApplicationScree
   readonly applicationButton: Locator;
   readonly topicsButton: Locator;
   readonly pageHeading: Locator;
+  readonly clickOnApplicationButton: Locator;
+  readonly disableQuestionAndAnswer: Locator;
+  readonly enableQuestionAndAnswer: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.APPLICATION_SETTINGS);
@@ -20,6 +23,10 @@ export class ApplicationScreenPage extends BasePage implements IApplicationScree
     this.applicationButton = page.getByRole('button', { name: 'Application' });
     this.pageHeading = page.getByRole('heading', { name: 'Application settings' });
     this.topicsButton = page.locator('[data-testid="landing-page-item"]:has-text("Topics")');
+    this.clickOnApplicationButton = page.getByRole('button', { name: 'Application' });
+    this.pageHeading = page.getByRole('heading', { name: 'Application settings' });
+    this.disableQuestionAndAnswer = page.locator('#isQuestionAnswerEnabled_false');
+    this.enableQuestionAndAnswer = page.locator('#isQuestionAnswerEnabled_true');
   }
 
   // Actions
@@ -44,6 +51,18 @@ export class ApplicationScreenPage extends BasePage implements IApplicationScree
   async clickOnTopics(): Promise<void> {
     await test.step('Clicking on topics', async () => {
       await this.clickOnElement(this.topicsButton);
+    });
+  }
+
+  async disableQuestionAndAnswerFeature(): Promise<void> {
+    await test.step('Disabling question and answer feature', async () => {
+      await this.clickOnElement(this.disableQuestionAndAnswer);
+    });
+  }
+
+  async enableQuestionAndAnswerFeature(): Promise<void> {
+    await test.step('Enabling question and answer feature', async () => {
+      await this.clickOnElement(this.enableQuestionAndAnswer);
     });
   }
 }

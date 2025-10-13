@@ -7,7 +7,7 @@ import { NewHomePage } from '@/src/core';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
-import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationScreenPage';
+import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { HomeFeedPage } from '@/src/modules/content/ui/pages/manageApplicationDefaultHomeFeedPage';
 import { DefaultScreenPage } from '@/src/modules/content/ui/pages/manageApplicationDefaultScreenPage';

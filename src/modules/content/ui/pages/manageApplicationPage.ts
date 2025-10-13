@@ -10,6 +10,8 @@ export interface IManageApplicationPageActions {
   clickOnDefaults: () => Promise<void>;
   clickOnIntegrations: () => Promise<void>;
   clickOnSave: () => Promise<void>;
+  disableQuestionAndAnswerFeature: () => Promise<void>;
+  enableQuestionAndAnswerFeature: () => Promise<void>;
 }
 
 export interface IManageApplicationPageAssertions {}
@@ -17,12 +19,16 @@ export class ManageApplicationPage extends BasePage {
   private manageApplicationComponent: ManageApplicationComponent;
   readonly integrationButton: Locator;
   readonly saveButton: Locator;
+  readonly disableQuestionAndAnswer: Locator;
+  readonly enableQuestionAndAnswer: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.APPLICATION_SETTINGS);
     this.manageApplicationComponent = new ManageApplicationComponent(page);
     this.integrationButton = page.getByRole('tab', { name: 'Integrations' });
     this.saveButton = page.getByRole('button', { name: 'Save' });
+    this.disableQuestionAndAnswer = page.locator('#isQuestionAnswerEnabled_false');
+    this.enableQuestionAndAnswer = page.locator('#isQuestionAnswerEnabled_true');
   }
 
   get actions(): IManageApplicationPageActions {
@@ -68,6 +74,18 @@ export class ManageApplicationPage extends BasePage {
   async clickOnSave(): Promise<void> {
     await test.step('Clicking on save', async () => {
       await this.clickOnElement(this.saveButton);
+    });
+  }
+
+  async disableQuestionAndAnswerFeature(): Promise<void> {
+    await test.step('Disabling question and answer feature', async () => {
+      await this.clickOnElement(this.disableQuestionAndAnswer);
+    });
+  }
+
+  async enableQuestionAndAnswerFeature(): Promise<void> {
+    await test.step('Enabling question and answer feature', async () => {
+      await this.clickOnElement(this.enableQuestionAndAnswer);
     });
   }
 }

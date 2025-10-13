@@ -4,7 +4,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationScreenPage';
+import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 import { ManageApplicationPage } from '@/src/modules/content/ui/pages/manageApplicationPage';
 import { PrivilegesScreenPage } from '@/src/modules/content/ui/pages/privilegesScreenPage';
 

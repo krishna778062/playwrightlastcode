@@ -16,7 +16,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
 
-import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationScreenPage';
+import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 
 test.describe(
   `feed settings using different tenant`,
