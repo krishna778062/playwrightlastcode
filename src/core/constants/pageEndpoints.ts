@@ -13,6 +13,7 @@ export const PAGE_ENDPOINTS = {
   REWARDS_OPTIONS_PAGE: '/manage/recognition/rewards/reward-options',
   REWARD_STORE_PAGE: '/rewards-store/gift-cards',
   REWARD_STORE_ORDER_HISTORY_PAGE: '/rewards-store/order-history',
+  RECOGNITION_HUB: '/recognition',
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
   MANAGE_USERS_PAGE: '/manage/users',
