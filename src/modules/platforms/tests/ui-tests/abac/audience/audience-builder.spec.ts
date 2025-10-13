@@ -1,14 +1,12 @@
-import { expect } from '@playwright/test';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { TestSuite } from '@core/constants/testSuite';
 import { tagTest } from '@core/utils/testDecorator';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AudienceBuilderPage } from '@platforms/ui/pages/abacPage/acgPage/audienceBuilderPage';
 
-test.describe('Audience Builder Filter Testcases', { tag: [TestSuite.AUDIENCE, TestSuite.ABAC] }, () => {
+test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, TestSuite.ABAC] }, () => {
   test(
-    'Filters under audience rule page',
+    'filters under audience rule page',
     { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
     async ({ appManagerUiFixture }) => {
       tagTest(test.info(), {
