@@ -24,6 +24,8 @@ export const UI_ACTIONS = {
   UPLOAD: 'Upload',
   ADD_TO_HOME: 'Add to home',
   ADD_TO_SITE: 'Add to site dashboard',
+  ENABLED: 'enabled',
+  DISABLED: 'disabled',
 } as const;
 
 export const DASHBOARD_BUTTONS = {

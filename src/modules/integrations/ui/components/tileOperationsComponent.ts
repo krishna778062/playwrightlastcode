@@ -573,4 +573,12 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await expect(firstRecord.locator(this.courseType).first(), 'Course Type should be visible in tile').toBeVisible();
     });
   }
+
+  async verifyButtonStatus(status: string, buttonName: string): Promise<void> {
+    await test.step(`Verify ${buttonName} button is ${status}`, async () => {
+      const locator = this.button(buttonName);
+      await expect(locator).toBeVisible();
+      status.toLowerCase() === 'enabled' ? await expect(locator).toBeEnabled() : await expect(locator).toBeDisabled();
+    });
+  }
 }

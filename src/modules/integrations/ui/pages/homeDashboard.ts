@@ -76,8 +76,8 @@ export class HomeDashboard extends BasePage {
   /**
    * Click the 'My settings' link in the Add tile modal
    */
-  async clickMySettings(): Promise<void> {
-    await this.appTileComponent.clickDialogLink('My settings');
+  async clickDialogLink(label: string): Promise<void> {
+    await this.appTileComponent.clickDialogLink(label);
   }
 
   /**
@@ -486,5 +486,12 @@ export class HomeDashboard extends BasePage {
    */
   async verifyDoceboContentStructure(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyDoceboTileContentStructure(tileTitle);
+  }
+
+  /**
+   * Verify button status using tile operations component
+   */
+  async verifyButtonStatus(status: string, buttonName: string): Promise<void> {
+    return this.tileOperationsComponent.verifyButtonStatus(status, buttonName);
   }
 }

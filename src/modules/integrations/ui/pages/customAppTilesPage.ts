@@ -32,9 +32,6 @@ export class CustomAppTilesPage extends BasePage {
   readonly tileTypeSelect: Locator;
   readonly appSelect: Locator;
   readonly apiActionSelect: Locator;
-  // Add tile modal footer button
-  readonly addToHomeButton: Locator;
-  readonly addToSiteDashboardButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.CUSTOM_APP_TILES_PAGE);
@@ -52,9 +49,6 @@ export class CustomAppTilesPage extends BasePage {
     this.tileTypeSelect = page.locator('#tileType');
     this.appSelect = page.locator('[aria-label="App"]');
     this.apiActionSelect = page.locator('[aria-label="API action"]');
-    // Add tile modal footer button
-    this.addToHomeButton = page.getByRole('button', { name: 'Add to home' });
-    this.addToSiteDashboardButton = page.getByRole('button', { name: 'Add to site dashboard' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -146,9 +140,9 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
-  async verifyButtonIsDisabled(locator: Locator, message: string): Promise<void> {
+  private async verifyButtonIsDisabled(locator: Locator, message: string): Promise<void> {
     await test.step(`Verify button is disabled: ${message}`, async () => {
-      await expect(locator, 'Button should be disabled').toBeDisabled();
+      await expect(locator).toBeDisabled();
     });
   }
 }

@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { UI_ACTIONS } from '@integrations-constants/common';
+import { ACTION_LABELS, UI_ACTIONS } from '@integrations-constants/common';
 import { MESSAGES } from '@integrations-constants/messageRepo';
 
 import { TestPriority } from '@core/constants/testPriority';
@@ -10,7 +10,6 @@ import { IntegrationsSuiteTags } from '@/src/modules/integrations/constants/test
 import { integrationsFixture as test } from '@/src/modules/integrations/fixtures/integrationsFixture';
 import { CONNECTOR_IDS, REDIRECT_URLS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 import { TEST_EMAIL } from '@/src/modules/integrations/test-data/app-tiles.test-data';
-import { CustomAppTilesPage } from '@/src/modules/integrations/ui/pages/customAppTilesPage';
 import { ExternalAppProvider, ExternalAppsPage } from '@/src/modules/integrations/ui/pages/externalAppsPage';
 
 test.describe(
@@ -224,7 +223,6 @@ test.describe(
         });
 
         //add, verify
-        const customAppTilesPage = new CustomAppTilesPage(homeDashboard.page);
         const externalAppsPage = new ExternalAppsPage(homeDashboard.page);
         await homeDashboard.openAddAppTileModal(ExternalAppProvider.GOOGLE_CALENDAR);
         //Verify connection message on add tile modal
@@ -233,12 +231,9 @@ test.describe(
           { connectedEmail: TEST_EMAIL.GOOGLE_CALENDAR }
         );
         //Verify add to home button is disabled
-        await customAppTilesPage.verifyButtonIsDisabled(
-          customAppTilesPage.addToHomeButton,
-          'Add to home button should be disabled'
-        );
+        await homeDashboard.verifyButtonStatus(UI_ACTIONS.DISABLED, UI_ACTIONS.ADD_TO_HOME);
         //Click on my settings and verify the page is loaded
-        await homeDashboard.clickMySettings();
+        await homeDashboard.clickDialogLink(ACTION_LABELS.MY_SETTINGS);
         await externalAppsPage.verifyThePageIsLoaded();
         //Verify the integration is connected
         await externalAppsPage.isIntegrationConnected(ExternalAppProvider.GOOGLE_CALENDAR);
@@ -261,7 +256,6 @@ test.describe(
         const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
-        const customAppTilesPage = new CustomAppTilesPage(siteDashboard.page);
         //Verify connection message on add tile modal
         const externalAppsPage = new ExternalAppsPage(siteDashboard.page);
         await siteDashboard.openAddAppTileModal(ExternalAppProvider.GOOGLE_CALENDAR);
@@ -270,12 +264,9 @@ test.describe(
           { connectedEmail: TEST_EMAIL.GOOGLE_CALENDAR }
         );
         //Verify add to site dashboard button is disabled
-        await customAppTilesPage.verifyButtonIsDisabled(
-          customAppTilesPage.addToSiteDashboardButton,
-          'Add to site dashboard button should be disabled'
-        );
+        await siteDashboard.verifyButtonStatus(UI_ACTIONS.DISABLED, UI_ACTIONS.ADD_TO_SITE);
         //Click on my settings and verify the page is loaded
-        await siteDashboard.clickMySettings();
+        await siteDashboard.clickDialogLink(ACTION_LABELS.MY_SETTINGS);
         await externalAppsPage.verifyThePageIsLoaded();
         //Verify the integration is connected
         await externalAppsPage.isIntegrationConnected(ExternalAppProvider.GOOGLE_CALENDAR);
