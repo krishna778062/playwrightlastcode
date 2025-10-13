@@ -5,7 +5,6 @@ import { ContentFeatureTags, ContentSuiteTags } from '@content/constants/testTag
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { SITE_TEST_DATA } from '@content/test-data/sites-create.test-data';
-import { ApplicationScreenPage } from '@content/ui/pages/applicationscreenPage';
 import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
 import { EditPagePage } from '@content/ui/pages/editPagePage';
 import { GovernanceScreenPage } from '@content/ui/pages/governanceScreenPage';
@@ -21,6 +20,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { FileUtil } from '@core/utils/fileUtil';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
+
+import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationScreenPage';
 
 test.describe(
   `page Creation by Application Manager`,

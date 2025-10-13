@@ -7,6 +7,7 @@ export const PAGE_ENDPOINTS = {
   SITES_LIST_PAGE: '/sites',
   SITE_PAGE: (siteId: string) => `/site/${siteId}/`,
   MANAGE_QR_PAGE: '/manage/promotions',
+  SOCIAL_CAMPAIGN_SETTING_PAGE: '/manage/app/integrations/campaigns',
 
   // Rewards pages
   MANAGE_REWARDS_PAGE: '/manage/recognition/rewards/overview',

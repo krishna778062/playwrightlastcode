@@ -1,10 +1,7 @@
-import { Page, test } from '@playwright/test';
-
-import { SideNavBarComponent } from '@core/ui/components/sideNavBarComponent';
+import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { ApplicationSettingsComponent } from '@/src/modules/content/ui/components/applicationSettingsComponent';
 
 export interface IApplicationScreenPageActions {
   clickOnApplication: () => Promise<void>;
@@ -12,22 +9,27 @@ export interface IApplicationScreenPageActions {
 }
 
 export class ApplicationScreenPage extends BasePage implements IApplicationScreenPageActions {
-  private sideNavBarComponent: SideNavBarComponent;
-  private applicationSettingsComponent: ApplicationSettingsComponent;
-  actions: any;
+  // Application Settings locators (moved from ApplicationSettingsComponent)
+  readonly applicationButton: Locator;
+  readonly topicsButton: Locator;
+  readonly pageHeading: Locator;
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.APPLICATION_SETTINGS);
-    this.sideNavBarComponent = new SideNavBarComponent(page);
-    this.applicationSettingsComponent = new ApplicationSettingsComponent(page);
-    this.actions = {
-      clickOnApplication: this.clickOnApplication.bind(this),
-      clickOnTopics: this.clickOnTopics.bind(this),
-    };
+    // Initialize Application Settings locators
+    this.applicationButton = page.getByRole('button', { name: 'Application' });
+    this.pageHeading = page.getByRole('heading', { name: 'Application settings' });
+    this.topicsButton = page.locator('[data-testid="landing-page-item"]:has-text("Topics")');
+  }
+
+  // Actions
+  get actions(): IApplicationScreenPageActions {
+    return this;
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify application settings page is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.applicationSettingsComponent.pageHeading, {
+      await this.verifier.verifyTheElementIsVisible(this.pageHeading, {
         assertionMessage: 'Application settings page should be visible',
       });
     });
@@ -35,13 +37,13 @@ export class ApplicationScreenPage extends BasePage implements IApplicationScree
 
   async clickOnApplication(): Promise<void> {
     await test.step('Clicking on application', async () => {
-      await this.clickOnElement(this.applicationSettingsComponent.clickOnApplication);
+      await this.clickOnElement(this.applicationButton);
     });
   }
 
   async clickOnTopics(): Promise<void> {
     await test.step('Clicking on topics', async () => {
-      await this.clickOnElement(this.applicationSettingsComponent.clickOnTopics);
+      await this.clickOnElement(this.topicsButton);
     });
   }
 }
