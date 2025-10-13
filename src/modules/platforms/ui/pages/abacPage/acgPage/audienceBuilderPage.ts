@@ -17,7 +17,7 @@ export class AudienceBuilderPage extends BasePage {
 
     // Page title/heading
     this.labelAudienceBuilder = pageContainer.locator('header h1').filter({ hasText: 'Audiences' });
-    
+
     // Filter elements
     this.filtersButton = pageContainer.getByRole('button', { name: 'filters' });
   }
@@ -39,11 +39,7 @@ export class AudienceBuilderPage extends BasePage {
    * @param assertionMessage - Custom assertion message
    * @param stepDescription - Optional custom step description
    */
-  async verifyElementVisibility(
-    element: Locator, 
-    assertionMessage: string, 
-    stepDescription?: string
-  ): Promise<void> {
+  async verifyElementVisibility(element: Locator, assertionMessage: string, stepDescription?: string): Promise<void> {
     const stepInfo = stepDescription || `Verify element is visible: ${assertionMessage}`;
     await test.step(stepInfo, async () => {
       await this.verifier.verifyTheElementIsVisible(element, {
@@ -57,13 +53,8 @@ export class AudienceBuilderPage extends BasePage {
    * Verify the presence of Filters button under audience rule page
    */
   async verifyFiltersButtonPresence(): Promise<void> {
-    await this.verifyElementVisibility(
-      this.filtersButton,
-      'Verify Filters button is visible on audience rule page'
-    );
+    await this.verifyElementVisibility(this.filtersButton, 'Verify Filters button is visible on audience rule page');
   }
-
-
 
   /**
    * Click on the Filters button
@@ -127,10 +118,7 @@ export class AudienceBuilderPage extends BasePage {
    */
   async verifyFilterOptionPresence(optionText: string): Promise<void> {
     const optionElement = this.getFilterOptionElement(optionText);
-    await this.verifyElementVisibility(
-      optionElement,
-      `Verify "${optionText}" filter option is visible`
-    );
+    await this.verifyElementVisibility(optionElement, `Verify "${optionText}" filter option is visible`);
   }
 
   /**
@@ -146,10 +134,7 @@ export class AudienceBuilderPage extends BasePage {
    */
   async verifyCloseButtonPresence(): Promise<void> {
     const closeButton = this.getCloseButton();
-    await this.verifyElementVisibility(
-      closeButton,
-      'Verify close button is visible in filters dialog'
-    );
+    await this.verifyElementVisibility(closeButton, 'Verify close button is visible in filters dialog');
   }
 
   /**
@@ -169,15 +154,11 @@ export class AudienceBuilderPage extends BasePage {
    */
   async verifyFiltersDialogClosed(): Promise<void> {
     await test.step('Verify filters dialog is closed', async () => {
-      await this.verifyElementVisibility(
-        this.filtersButton,
-        'Verify filters button is visible after closing dialog'
-      );
+      await this.verifyElementVisibility(this.filtersButton, 'Verify filters button is visible after closing dialog');
       const filterContainer = this.page.locator('xpath=//div[contains(@class, "Dialog-module__children")]');
       await expect(filterContainer, 'Verify filters dialog container is not visible').not.toBeVisible({
         timeout: TIMEOUTS.SHORT,
       });
     });
   }
-
 }

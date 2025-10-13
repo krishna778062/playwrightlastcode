@@ -53,7 +53,6 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
       // Test close button functionality
       await audienceBuilderPage.clickCloseButton();
       await audienceBuilderPage.verifyFiltersDialogClosed();
-
     }
   );
 });
