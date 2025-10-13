@@ -525,7 +525,7 @@ test.describe(
     test(
       'zeus | Social Campaign | Verify App Manager able to create and delete Social Campaign for Everyone',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-14898', '@Social_Campaign_Add_Delete'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-14898', '@Social_Campaign_Add_Delete'],
       },
       async ({ appManagerFixture }) => {
         socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
