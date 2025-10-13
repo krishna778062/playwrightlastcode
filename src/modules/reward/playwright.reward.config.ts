@@ -22,6 +22,7 @@ export default defineConfig({
         headless: !!process.env.CI,
         ...devices['Desktop Chrome'],
         baseURL: getEnvConfig().frontendBaseUrl,
+        viewport: { width: 1920, height: 1080 },
         launchOptions: {
           args: [
             '--disable-gpu', // Disable GPU acceleration

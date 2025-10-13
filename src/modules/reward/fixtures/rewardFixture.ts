@@ -1,139 +1,88 @@
-import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
+import { BrowserContext, Page, test } from '@playwright/test';
 
-import { LoginHelper } from '@core/helpers';
-import { getEnvConfig } from '@core/utils';
+import { LoginHelper } from '@core/helpers/loginHelper';
+import { NewHomePage } from '@core/pages/newHomePage';
+import { getEnvConfig } from '@core/utils/getEnvConfig';
 
-import { RequestContextFactory } from '@/src/core/api';
-import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
-import { ManageRewardsPage } from '@/src/modules/reward/ui/pages/manage-rewards/manage-rewards-page';
-import { RewardOptionsPage } from '@/src/modules/reward/ui/pages/manage-rewards/reward-options-page';
+// UI-only fixture type for browser and page components
+export interface RewardUiFixture {
+  browserContext: BrowserContext;
+  page: Page;
+  homePage: NewHomePage;
+}
 
-export const rewardTestFixture = test.extend<
-  {
-    //app manager browser context, request context, page
-    appManagerBrowserContext: BrowserContext;
-    appManagerHomePage: NewHomePage;
-    appManagerPage: Page;
+export type RewardUserType = 'appManager' | 'recoManager' | 'standardUser';
 
-    //recognition manager browser context, request context, page
-    recoManagerBrowserContext: BrowserContext;
-    recoManagerHomePage: NewHomePage;
-    recoManagerPage: Page;
-
-    //standard user browser context, request context, page
-    standardUserBrowserContext: BrowserContext;
-    standardUserPage: Page;
-    standardUserHomePage: NewHomePage;
-    manageRewardsPage: ManageRewardsPage;
-    rewardOptionsPage: RewardOptionsPage;
+export const rewardUsers = {
+  appManager: {
+    email: getEnvConfig().appManagerEmail,
+    password: getEnvConfig().appManagerPassword,
   },
-  {
-    appManagerApiContext: APIRequestContext; //worker scoped api context
-  }
->({
-  appManagerApiContext: [
-    async ({}, use) => {
-      const appManagerApiContext = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
-        email: getEnvConfig().appManagerEmail,
-        password: getEnvConfig().appManagerPassword,
-      });
-      await use(appManagerApiContext);
-      await appManagerApiContext.dispose();
-    },
-    { scope: 'worker' },
-  ],
-  appManagerBrowserContext: [
+  recoManager: {
+    email: process.env['RECOGNITION_USER_USERNAME'] || '',
+    password: process.env['RECOGNITION_USER_PASSWORD'] || '',
+  },
+  standardUser: {
+    email: process.env['STANDARD_USER_USERNAME'] || '',
+    password: process.env['STANDARD_USER_PASSWORD'] || '',
+  },
+} as const;
+
+// Helper function to create UI-only fixtures
+async function createRewardUiFixture(browser: any, userType: RewardUserType): Promise<RewardUiFixture> {
+  const user = rewardUsers[userType];
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  await LoginHelper.loginWithPassword(page, {
+    email: user.email,
+    password: user.password,
+  });
+
+  const homePage = new NewHomePage(page);
+  await homePage.verifyThePageIsLoaded();
+
+  return {
+    browserContext: context,
+    page,
+    homePage,
+  };
+}
+
+export const rewardTestFixture = test.extend<{
+  // UI-only fixtures - browser and page components
+  appManagerFixture: RewardUiFixture;
+  recoManagerFixture: RewardUiFixture;
+  standardUserFixture: RewardUiFixture;
+}>({
+  // UI-only fixtures - browser and page components
+  appManagerFixture: [
     async ({ browser }, use) => {
-      const context = await browser.newContext();
-      const page = await context.newPage();
-      await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().appManagerEmail,
-        password: getEnvConfig().appManagerPassword,
-      });
-      await use(context);
-      await context.close();
-    },
-    { scope: 'test' },
-  ],
-  appManagerPage: [
-    async ({ appManagerBrowserContext }, use) => {
-      const page = await appManagerBrowserContext.newPage();
-      await use(page);
-      await page.close();
-    },
-    { scope: 'test' },
-  ],
-  appManagerHomePage: [
-    async ({ appManagerPage }, use) => {
-      const appManagerHomePage = new NewHomePage(appManagerPage);
-      await appManagerHomePage.loadPage();
-      await appManagerHomePage.verifyThePageIsLoaded();
-      await use(appManagerHomePage);
+      const fixture = await createRewardUiFixture(browser, 'appManager');
+      await use(fixture);
+      await fixture.browserContext.close();
     },
     { scope: 'test' },
   ],
 
-  //recognition manager
-  recoManagerBrowserContext: [
+  recoManagerFixture: [
     async ({ browser }, use) => {
-      const context = await browser.newContext();
-      const page = await context.newPage();
-      await LoginHelper.loginWithPassword(page, {
-        email: process.env['RECOGNITION_USER_USERNAME']!,
-        password: process.env['RECOGNITION_USER_PASSWORD']!,
-      });
-      await use(context);
-      await context.close();
-    },
-    { scope: 'test' },
-  ],
-  recoManagerPage: [
-    async ({ recoManagerBrowserContext }, use) => {
-      const page = await recoManagerBrowserContext.newPage();
-      await use(page);
-      await page.close();
-    },
-    { scope: 'test' },
-  ],
-  recoManagerHomePage: [
-    async ({ recoManagerPage }, use) => {
-      const recognitionHomePage = new NewHomePage(recoManagerPage);
-      await recognitionHomePage.loadPage();
-      await recognitionHomePage.verifyThePageIsLoaded();
-      await use(recognitionHomePage);
+      const fixture = await createRewardUiFixture(browser, 'recoManager');
+      await use(fixture);
+      await fixture.browserContext.close();
     },
     { scope: 'test' },
   ],
 
-  //standard user
-  standardUserBrowserContext: [
+  standardUserFixture: [
     async ({ browser }, use) => {
-      const context = await browser.newContext();
-      const page = await context.newPage();
-      await LoginHelper.loginWithPassword(page, {
-        email: process.env['STANDARD_USER_USERNAME']!,
-        password: process.env['STANDARD_USER_PASSWORD']!,
-      });
-      await use(context);
-      await context.close();
-    },
-    { scope: 'test' },
-  ],
-  standardUserPage: [
-    async ({ standardUserBrowserContext }, use) => {
-      const page = await standardUserBrowserContext.newPage();
-      await use(page);
-      await page.close();
-    },
-    { scope: 'test' },
-  ],
-  standardUserHomePage: [
-    async ({ standardUserPage }, use) => {
-      const recognitionHomePage = new NewHomePage(standardUserPage);
-      await recognitionHomePage.loadPage();
-      await recognitionHomePage.verifyThePageIsLoaded();
-      await use(recognitionHomePage);
+      const fixture = await createRewardUiFixture(browser, 'standardUser');
+      await use(fixture);
+      await fixture.browserContext.close();
     },
     { scope: 'test' },
   ],
 });
+
+// Export commonly used types for better type safety
+export type RewardTestFixture = typeof rewardTestFixture;
