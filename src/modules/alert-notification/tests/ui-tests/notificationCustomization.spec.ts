@@ -33,14 +33,14 @@ test.describe(
     test(
       'tc001 - verify app manager is able to customize must read with default subject line',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-
       async () => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-1',
-          storyId: 'INT-123',
+          zephyrTestId: 'INT-27661',
+          storyId: 'INT-24252',
         });
+
         await notificationCustomizationPage.clickOnAddCustomizationButton();
         //select must read feature from the add customization step
         await notificationCustomizationPage.verifyUserIsOnStep(CustomizationNotificationSteps.SELECT_NOTIFICATION);
@@ -67,6 +67,10 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async () => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27666',
+          storyId: 'INT-24252',
+        });
         const customSubjectLine = NotificationTestDataGenerator.generateRandomSubject();
         await notificationCustomizationPage.clickOnAddCustomizationButton();
         //select must read feature from the add customization step
@@ -111,6 +115,10 @@ test.describe(
         tag: [TestPriority.P0, TestGroupType.SANITY],
       },
       async () => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27667',
+          storyId: 'INT-24252',
+        });
         await notificationCustomizationPage.clickOnAddCustomizationButton();
         //select must read feature from the add customization step
         await notificationCustomizationPage.verifyUserIsOnStep(CustomizationNotificationSteps.SELECT_NOTIFICATION);
@@ -165,6 +173,10 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async () => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27667',
+          storyId: 'INT-24252',
+        });
         await notificationCustomizationPage.clickOnAddCustomizationButton();
         //select follow feature from the add customization step
         await notificationCustomizationPage.verifyUserIsOnStep(CustomizationNotificationSteps.SELECT_NOTIFICATION);
@@ -219,6 +231,10 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async () => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27665',
+          storyId: 'INT-24252',
+        });
         await notificationCustomizationPage.clickOnAddCustomizationButton();
         //select alerts feature from the add customization step
         await notificationCustomizationPage.verifyUserIsOnStep(CustomizationNotificationSteps.SELECT_NOTIFICATION);
