@@ -871,6 +871,8 @@ test.describe(
           storyId: 'CONT-14900',
         });
 
+        const applicationManagerHomePage = appManagerFixture.homePage;
+
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
@@ -885,8 +887,17 @@ test.describe(
           url: campaignOptions.url,
           recipient: campaignOptions.recipient,
         });
+
+        const tileTitle = TestDataGenerator.generateRandomString();
         campaignId = createdCampaign.campaignId;
-        await appManagerFixture.homePage.loadPage();
+        await applicationManagerHomePage.loadPage();
+        await applicationManagerHomePage.actions.clickOnManageDashboardCarousel();
+        await applicationManagerHomePage.actions.clickOnAddTile();
+        await applicationManagerHomePage.actions.clickOnSocialCampaignTile(campaignOptions.linkText);
+        await applicationManagerHomePage.actions.enterTileTitle(tileTitle);
+        await applicationManagerHomePage.actions.clickAddToHomeButton();
+        await applicationManagerHomePage.assertions.verifyTileIsDisplayed(tileTitle);
+        await applicationManagerHomePage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
       }
     );
   }

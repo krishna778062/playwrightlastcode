@@ -10,6 +10,7 @@ export class AddTileComponent extends BaseComponent {
   readonly addToHomeButton: Locator;
   readonly customTab: Locator;
   readonly mentionNameFirst: Locator;
+  readonly tileTitleInput: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -21,6 +22,7 @@ export class AddTileComponent extends BaseComponent {
     this.addToHomeButton = page.getByRole('button', { name: 'Add to home' });
     this.customTab = page.getByRole('tab', { name: 'Custom' });
     this.mentionNameFirst = page.locator('.Mention-name > .u-textTruncate').first();
+    this.tileTitleInput = page.getByRole('textbox', { name: 'Tile title' });
   }
 
   async clickAddTileButton(): Promise<void> {
@@ -49,5 +51,11 @@ export class AddTileComponent extends BaseComponent {
 
   async clickMentionNameFirst(): Promise<void> {
     await this.clickOnElement(this.mentionNameFirst);
+  }
+
+  async setTileTitle(tileTitle: string): Promise<void> {
+    await this.clickOnElement(this.tileTitleInput);
+    await this.tileTitleInput.clear();
+    await this.fillInElement(this.tileTitleInput, tileTitle);
   }
 }
