@@ -14,6 +14,9 @@ export interface IManageApplicationPageActions {
   enableQuestionAndAnswerFeature: () => Promise<void>;
 }
 
+export interface IManageApplicationPageAssertions {
+  verifyToastMessage: (message: string) => Promise<void>;
+}
 export interface IManageApplicationPageAssertions {}
 export class ManageApplicationPage extends BasePage {
   private manageApplicationComponent: ManageApplicationComponent;
@@ -86,6 +89,12 @@ export class ManageApplicationPage extends BasePage {
   async enableQuestionAndAnswerFeature(): Promise<void> {
     await test.step('Enabling question and answer feature', async () => {
       await this.clickOnElement(this.enableQuestionAndAnswer);
+    });
+  }
+
+  async verifyToastMessage(message: string): Promise<void> {
+    await test.step('Verifying toast message', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.toastMessages.filter({ hasText: message }));
     });
   }
 }

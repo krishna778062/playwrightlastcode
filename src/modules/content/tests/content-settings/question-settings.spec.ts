@@ -41,6 +41,8 @@ test.describe(
         await governanceScreenPage.actions.clickOnTimelineFeedEnabled();
         await manageApplicationPage.loadPage();
         await manageApplicationPage.actions.disableQuestionAndAnswerFeature();
+        await manageApplicationPage.actions.clickOnSave();
+        await manageApplicationPage.assertions.verifyToastMessage('Saved changes successfully');
         await appManagerFixture.navigationHelper.clickOnHomeButton();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         feedPage = new FeedPage(appManagerFixture.page);
@@ -49,7 +51,9 @@ test.describe(
         await feedPage.assertions.verifyQuestionButtonIsNotVisible();
         await manageApplicationPage.loadPage();
         await manageApplicationPage.actions.enableQuestionAndAnswerFeature();
-        await appManagerFixture.navigationHelper.clickOnHomeButton();
+        await manageApplicationPage.actions.clickOnSave();
+        await manageApplicationPage.assertions.verifyToastMessage('Saved changes successfully');
+        await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         feedPage = new FeedPage(appManagerFixture.page);
         await feedPage.verifyThePageIsLoaded();
