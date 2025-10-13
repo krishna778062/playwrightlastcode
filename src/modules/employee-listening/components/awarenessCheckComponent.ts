@@ -2,13 +2,6 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/components/baseComponent';
 
-export interface AwarenessCheckQuestion {
-  question: string;
-  type: 'text' | 'multiple-choice' | 'yes-no';
-  options?: string[];
-  required?: boolean;
-}
-
 export class AwarenessCheckComponent extends BaseComponent {
   // Admin functionality locators
   readonly awarenessCheckToggle: Locator;

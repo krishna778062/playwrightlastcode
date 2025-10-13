@@ -14,12 +14,6 @@ export class ContentPreviewPage extends BaseContentPreviewPage {
     this.awarenessCheckComponent = new AwarenessCheckComponent(page);
     this.mustReadComponent = new MustReadComponent(page);
   }
-  /**
-   * Check if must read is visible on content preview
-   */
-  async isMustReadVisibleOnPreview(): Promise<boolean> {
-    return await this.mustReadComponent.isMustReadBannerVisible();
-  }
 
   /**
    * Configure must read from menu options
@@ -41,7 +35,6 @@ export class ContentPreviewPage extends BaseContentPreviewPage {
   async navigateToContentDetail(contentId: string, siteId: string): Promise<void> {
     const contentUrl = `${process.env.FRONTEND_BASE_URL || 'https://el.qa.simpplr.xyz'}/site/${siteId}/page/${contentId}`;
     await this.page.goto(contentUrl);
-    await this.page.waitForTimeout(4000);
 
     // Verify we're on the correct page and not redirected to login
     const currentUrl = this.page.url();
