@@ -138,3 +138,14 @@ export const TEST_EMAIL = {
   GOOGLE_CALENDAR: 'howard.nelson@simpplr.dev',
   OUTLOOK_CALENDAR: 'howard.nelson@smplrdev.onmicrosoft.com',
 };
+/**
+ * Data values for Docebo app tiles
+ */
+export const DOCEBO_VALUES = {
+  ENROLLMENT_STATUS: 'Enrollment status',
+  COURSE_TYPE: 'Course type',
+  ENROLLMENT_LEVEL: 'Enrollment level',
+  COMPLETED: 'Completed',
+  E_LEARNING: 'E-learning',
+  STUDENT: 'Student',
+} as const;
