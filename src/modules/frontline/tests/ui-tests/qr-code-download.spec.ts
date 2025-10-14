@@ -118,7 +118,7 @@ test.describe(
     test(
       '[FL-453] Verify content QR Enable Status',
       {
-        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE, '@meenakshi'],
+        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE],
       },
       async ({ appManagerHomePage, qrManagementService }) => {
         tagTest(test.info(), {
