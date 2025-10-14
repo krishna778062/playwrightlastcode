@@ -87,6 +87,8 @@ export interface IFeedAssertions {
   verifyCampaignLinkNotDisplayed: (linkText: string, description: string) => Promise<void>;
   verifySocialCampaignShareButtonIsNotVisible: (description: string) => Promise<void>;
   verifySocialCampaignShareButtonIsVisible: (description: string) => Promise<void>;
+  verifyQuestionButtonIsNotVisible: () => Promise<void>;
+  verifyQuestionButtonIsVisible: () => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -423,5 +425,13 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       // Click on select again to close dropdown
       await this.clickOnElement(this.feedFilterSelect);
     });
+  }
+
+  async verifyQuestionButtonIsNotVisible(): Promise<void> {
+    await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
+  }
+
+  async verifyQuestionButtonIsVisible(): Promise<void> {
+    await this.createFeedPostComponent.verifyQuestionButtonIsVisible();
   }
 }

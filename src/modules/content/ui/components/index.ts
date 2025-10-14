@@ -1,5 +1,4 @@
 export * from './addContentModal';
-export * from './applicationSettingsComponent';
 export * from './attachementUploader';
 export * from './contentDetailsComponent';
 export * from './contentEditor';
@@ -9,7 +8,6 @@ export * from './editPageComponent';
 export * from './featureSiteComponent';
 export * from './filePreviewComponent';
 export * from './filesPreviewModalComponent';
-export * from './governanceComponent';
 export * from './imageCropper';
 export * from './imageUploader';
 export * from './listFeedComponent';
