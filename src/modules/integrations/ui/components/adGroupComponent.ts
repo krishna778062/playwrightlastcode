@@ -1,4 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { AD_GROUP } from '@/src/modules/integrations/test-data/gamma-data-file';
 
