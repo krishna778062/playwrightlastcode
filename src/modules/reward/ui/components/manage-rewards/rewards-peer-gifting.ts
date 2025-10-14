@@ -51,6 +51,25 @@ export class RewardsPeerGifting extends BasePage {
       'label[for="peerGifting_grantAllowancesmonthBeginning"] input'
     );
     this.grantAllowancesConfirmButton = this.grantAllowancesDialog.locator('button:text("Confirm")');
+    this.grantAllowancesCancelButton = this.grantAllowancesDialog.locator('button:text("Cancel")');
+
+    // Error messages
+    this.addGiftingOptionsAndAllowancesError = page.locator(
+      'text="You need to add gifting options and allowances to enable peer gifting"'
+    );
+    this.addGiftingOptionsError = page.locator('text="You need to add gifting options to enable peer gifting"');
+    this.addAllowancesError = page.locator('text="You need to add allowances to enable peer gifting"');
+    this.giftingOptionsRequiredError = page.locator('[data-testid="gifting-options-required"]');
+    this.allowancesRequiredError = page.locator('[data-testid="allowances-required"]');
+
+    // Panels and status indicators
+    this.giftingOptionsPanel = page.locator('[data-testid="gifting-options-panel"]');
+    this.allowancePanel = page.locator('[data-testid="allowance-panel"]');
+    this.giftingOptionGreenTick = page.locator('[data-testid="gifting-options-green-tick"]');
+    this.allowanceGreenTick = page.locator('[data-testid="allowance-green-tick"]');
+    this.giftingOptionIcon = page.locator('[data-testid="gifting-options-icon"]');
+    this.AllowanceIcon = page.locator('[data-testid="allowance-icon"]');
+    this.grantAllowanceBoxDescription = page.locator('[data-testid="grant-allowance-description"]');
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -98,5 +117,49 @@ export class RewardsPeerGifting extends BasePage {
     await this.grantAllowancesConfirmButton.click();
     await this.verifyToastMessageIsVisibleWithText('Saved changes successfully');
     await this.goToUrl('/manage/recognition/rewards/overview');
+  }
+
+  // Additional locators for error messages and panels
+  readonly addGiftingOptionsAndAllowancesError: Locator;
+  readonly addGiftingOptionsError: Locator;
+  readonly addAllowancesError: Locator;
+  readonly giftingOptionsRequiredError: Locator;
+  readonly allowancesRequiredError: Locator;
+  readonly giftingOptionsPanel: Locator;
+  readonly allowancePanel: Locator;
+  readonly giftingOptionGreenTick: Locator;
+  readonly allowanceGreenTick: Locator;
+  readonly giftingOptionIcon: Locator;
+  readonly AllowanceIcon: Locator;
+  readonly grantAllowanceBoxDescription: Locator;
+  readonly grantAllowancesCancelButton: Locator;
+
+  /**
+   * Mock peer gifting API response
+   */
+  async mockThePeerGiftingApiResponse(
+    peerGiftingEnabled: boolean,
+    hasAllowances: boolean,
+    hasGiftingOptions: boolean
+  ): Promise<void> {
+    await this.page.route('**/recognition/admin/rewards/config/peer', async route => {
+      const mockResponse = {
+        peerGiftingEnabled,
+        hasAllowances,
+        hasGiftingOptions,
+      };
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockResponse),
+      });
+    });
+  }
+
+  /**
+   * Remove peer gifting API mock
+   */
+  async removePeerGiftingApiMock(): Promise<void> {
+    await this.page.unroute('**/recognition/admin/rewards/config/peer');
   }
 }

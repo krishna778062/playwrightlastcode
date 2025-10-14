@@ -695,7 +695,7 @@ export class RewardsStore extends BasePage {
               available: 10000,
             },
             redeemed: {
-              pendingIn: 100,
+              pendingIn: 0,
               available: 0,
             },
           },

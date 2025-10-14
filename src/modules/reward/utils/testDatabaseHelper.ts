@@ -39,6 +39,14 @@ export class TestDatabaseHelper {
   }
 
   /**
+   * get the record of users which currency is set to null
+   */
+  static async getTheUserCountWhichCurrencyIsNull(tenantCode: string): Promise<void> {
+    const resultAsSuccess = getQuery('getTheEmailOfUsersWhichCurrencyIsNull');
+    await executeQuery(resultAsSuccess.replace(/tenantCode/g, tenantCode), 'reward');
+  }
+
+  /**
    * Get a database instance for complex operations
    */
   static getDatabaseInstance(): Database {
@@ -103,5 +111,9 @@ export const TestDbScenarios = {
    */
   async setupImportedData(tenantCode: string): Promise<void> {
     await TestDatabaseHelper.setLatestCreatedDateFromAllowanceJobRecord(tenantCode);
+  },
+
+  async getAllTheUsersCountWhichHaveCurrencyAsNull(tenantCode: string): Promise<any> {
+    await TestDatabaseHelper.getTheUserCountWhichCurrencyIsNull(tenantCode);
   },
 };

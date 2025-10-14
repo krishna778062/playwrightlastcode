@@ -15,6 +15,9 @@ export enum REWARD_FEATURE_TAGS {
   REWARDS_ACTIVITY_TABLE = '@rewards-activity-table',
   POINTS_GIVEN_ACTIVITY = '@points-given',
   POINTS_REDEEMED_ACTIVITY = '@points-redeemed',
+  REWARDS_GIFTING_OPTIONS = '@rewards-gifting-options',
+  REWARDS_PEER_GIFTING = '@rewards-peer-gifting',
+  REWARDS_NOTIFICATIONS = '@rewards-notifications',
 
   // Recognition Hub Related Tags
   CREATE_RECOGNITION_WITH_POINTS = '@create-recognition-with-points',

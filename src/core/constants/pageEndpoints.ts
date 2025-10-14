@@ -11,6 +11,8 @@ export const PAGE_ENDPOINTS = {
   // Rewards pages
   MANAGE_REWARDS_PAGE: '/manage/recognition/rewards/overview',
   REWARDS_OPTIONS_PAGE: '/manage/recognition/rewards/reward-options',
+  REWARDS_GIFTING_OPTIONS_PAGE: '/manage/recognition/rewards/peer-gifting/options',
+  CURRENCY_CONVERSION_PAGE: '/manage/recognition/rewards/currency-conversions',
   REWARD_STORE_PAGE: '/rewards-store/gift-cards',
   REWARD_STORE_ORDER_HISTORY_PAGE: '/rewards-store/order-history',
   RECOGNITION_HUB: '/recognition',

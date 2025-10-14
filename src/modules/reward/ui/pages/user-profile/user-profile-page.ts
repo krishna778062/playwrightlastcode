@@ -45,6 +45,11 @@ export class UserProfilePage extends BasePage {
       'button[aria-label="Allowance refreshing information"]'
     );
     this.allowanceRefreshingInfoIconTooltipText = page.locator('div[id*="tippy"]>div>p');
+
+    // Notification settings locators
+    this.notificationSettingSaveButton = page.getByRole('button', { name: 'Save' });
+    this.recognitionNotificationToggle = page.locator('input[name="recognition_notifications"]');
+    this.rewardsNotificationToggle = page.locator('input[name="rewards_notifications"]');
   }
 
   /**
@@ -226,5 +231,43 @@ export class UserProfilePage extends BasePage {
     await page.unroute('**/v2/account/basic-app-config');
     await page.reload();
     console.log('✅ Restored API, mock disabled, page reloaded.');
+  }
+
+  // Notification settings locators
+  readonly notificationSettingSaveButton: Locator;
+  readonly recognitionNotificationToggle: Locator;
+  readonly rewardsNotificationToggle: Locator;
+
+  /**
+   * Navigate to current user profile notification settings
+   */
+  async navigateToCurrentUserProfileNotificationSetting(type: 'email' | 'browser' | 'mobile'): Promise<void> {
+    await this.navigateToCurrentUserProfile();
+    await this.page.goto(`/user/profile/notifications/${type}`);
+    await this.verifier.waitUntilPageHasNavigatedTo(`/user/profile/notifications/${type}`);
+  }
+
+  /**
+   * Set notification settings for recognition
+   */
+  async setTheNotificationSettingsForRecognition(enabled: boolean): Promise<void> {
+    const isChecked = await this.recognitionNotificationToggle.isChecked();
+    if (isChecked !== enabled) {
+      await this.clickOnElement(this.recognitionNotificationToggle, {
+        stepInfo: `Setting recognition notifications to ${enabled ? 'enabled' : 'disabled'}`,
+      });
+    }
+  }
+
+  /**
+   * Set notification settings for rewards
+   */
+  async setTheNotificationSettingsForRewards(enabled: boolean): Promise<void> {
+    const isChecked = await this.rewardsNotificationToggle.isChecked();
+    if (isChecked !== enabled) {
+      await this.clickOnElement(this.rewardsNotificationToggle, {
+        stepInfo: `Setting rewards notifications to ${enabled ? 'enabled' : 'disabled'}`,
+      });
+    }
   }
 }

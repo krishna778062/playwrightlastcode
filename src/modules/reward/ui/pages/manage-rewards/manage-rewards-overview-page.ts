@@ -106,6 +106,10 @@ export class ManageRewardsOverviewPage extends BasePage {
   private readonly confirmInput: Locator;
   private readonly confirmButton: Locator;
 
+  // Save button and toast messages
+  readonly saveButton: Locator;
+  readonly toastMessage: Locator;
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_REWARDS_PAGE);
 
@@ -267,6 +271,10 @@ export class ManageRewardsOverviewPage extends BasePage {
     this.dialogBox = this.page.locator('[role="dialog"]');
     this.confirmInput = this.dialogBox.locator('input[type="text"]');
     this.confirmButton = this.dialogBox.getByRole('button', { name: 'Disable' });
+
+    // Save button and toast messages
+    this.saveButton = this.page.getByRole('button', { name: 'Save' });
+    this.toastMessage = this.page.locator('div.Toastify__toast-body p');
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -655,5 +663,34 @@ export class ManageRewardsOverviewPage extends BasePage {
       const fs = await import('fs');
       fs.unlinkSync(csvUtils.getLatestCSV());
     });
+  }
+
+  /**
+   * Mock the wallets API response for testing disable rewards without unredeemed points
+   */
+  async mockTheWalletsApiResponse() {
+    await this.page.route('**/recognition/admin/rewards/analytics/wallets', route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ result: { pointAmount: 0, usersCount: 0 } }),
+      })
+    );
+    await this.page.reload();
+  }
+
+  /**
+   * Validate disable rewards for different languages
+   */
+  async disableRewardsForDifferentLanguage(confirmText: string, disableButton: boolean) {
+    const dialogBox = this.page.locator('[role="dialog"][data-state="open"]');
+    const inputBox = dialogBox.locator('input[type="text"]');
+    const confirmButton = dialogBox.getByRole('button').last();
+    const inputBoxError = dialogBox.locator('div[class*="Field-module__error"] p');
+
+    await inputBox.fill(confirmText);
+    await inputBox.blur();
+    disableButton ? await expect(confirmButton).toBeEnabled() : await expect(confirmButton).toBeDisabled();
+    disableButton ? await expect(inputBoxError).not.toBeVisible() : await expect(inputBoxError).toBeVisible();
   }
 }
