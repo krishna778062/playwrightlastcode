@@ -154,7 +154,7 @@ test.describe('audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
       await audiencePage.csvUploadModal.clickCreate();
 
       // Step 7: Wait for creation to complete and backend to process
-      await audiencePage.page.waitForTimeout(10000);
+      await audiencePage.page.waitForTimeout(3000);
 
       // Step 8: Verify new category was created using API
       const categoryId = await appManagerFixture.identityManagementHelper.identityService.getCategoryId(
