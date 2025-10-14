@@ -16,7 +16,7 @@ export enum ExternalAppCategory {
 
 export enum ExternalAppProvider {
   GOOGLE_CALENDAR = 'Google Calendar',
-  MICROSOFT_OUTLOOK = 'Microsoft Outlook Calendar',
+  OUTLOOK_CALENDAR = 'Outlook Calendar',
   BOX = 'Box',
   DROPBOX = 'Dropbox',
   GOOGLE_DRIVE = 'Google Drive',
