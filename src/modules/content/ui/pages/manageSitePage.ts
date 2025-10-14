@@ -12,6 +12,7 @@ export interface IManageSiteActions {
   clickOnCancelOption: () => Promise<void>;
   clickOnSites: () => Promise<void>;
   updatingCategoryToUncategorized: (categoryName: string) => Promise<void>;
+  searchForSite: (siteName: string) => Promise<void>;
 }
 
 export interface IManageSiteAssertions {
@@ -25,6 +26,8 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   );
   readonly ellipses = this.page.locator('[aria-label="Category option"]').first();
   readonly clickOnUpdateCategoryOption = this.page.getByRole('button', { name: 'Update category' });
+  readonly clickOnSearchBar = this.page.getByRole('textbox', { name: 'Search sites…' });
+  readonly clickingOnSearchButton = this.page.locator('[type="submit"][aria-label="Search"]');
 
   private manageSitesComponent: ManageSitesComponent;
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
@@ -79,5 +82,11 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
   async updatingCategoryToUncategorized(categoryName: string): Promise<void> {
     await this.updateSiteCategoryComponent.updatingCategoryToUncategorized(categoryName);
+  }
+
+  async searchForSite(siteName: string): Promise<void> {
+    await this.clickOnElement(this.clickOnSearchBar);
+    await this.page.getByPlaceholder('Search').nth(1).fill(siteName);
+    await this.clickOnElement(this.clickingOnSearchButton);
   }
 }

@@ -19,6 +19,7 @@ export enum ContentFeatureTags {
   NOTHING_TO_SHOW_HERE = '@nothing-to-show-here',
   MANAGE_CONTENT = '@manage-content',
   UPDATE_CATEGORY = '@update-category',
+  CONTENT_VALIDATE_OPTION = '@content-validate-option',
   VERIFY_COMMENTS_AND_FEEDS = '@verify-comments-and-feeds',
   VALIDATION_REQUIRED_BAR_STATE = '@validation-required-bar-state',
   ADD_USERS_TO_AUTHOR = '@add-users-to-author',

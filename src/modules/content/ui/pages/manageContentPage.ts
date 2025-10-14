@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
@@ -27,6 +27,7 @@ export interface IActions {
   verifyingValidationRequiredBarState: () => Promise<void>;
   clickOnCancel: () => Promise<void>;
   addPublishContentFilter: () => Promise<void>;
+  openContentDetailsPage: () => Promise<void>;
 }
 
 export interface IAssertions {
@@ -38,11 +39,14 @@ export interface IAssertions {
   verifySiteName: () => Promise<void>;
   verifySiteNameLink: () => Promise<void>;
   scheduledTagVisibleInManageContent: () => Promise<void>;
+  checkValidateOptionInBulkActions: () => Promise<void>;
 }
 
 export class ManageContentPage extends BasePage implements IActions, IAssertions {
   private manageContentComponent: ManageContentComponent;
-
+  readonly clickingOnCheckbox: Locator = this.page.locator('input[type="checkbox"][aria-label="Select"]').first();
+  readonly clickOnBulkOptions: Locator = this.page.locator('input[type="text"]#action');
+  readonly validateOption: Locator = this.page.getByText('Validate');
   static actions: any;
 
   constructor(page: Page) {
@@ -229,5 +233,20 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async applyButtonShouldBeDisabled(): Promise<void> {
     await this.manageContentComponent.applyButtonShouldBeDisabled();
+  }
+  async checkValidateOptionInBulkActions(): Promise<void> {
+    await this.clickOnElement(this.clickingOnCheckbox);
+    console.log('clicking on checkbox');
+    await this.clickOnElement(this.clickOnBulkOptions);
+    console.log('clicking on bulk options');
+    await this.verifier.verifyTheElementIsVisible(this.validateOption, {
+      assertionMessage: 'Validate option should be visible in bulk actions',
+    });
+    console.log('validate option should be visible in bulk actions');
+  }
+  async openContentDetailsPage(): Promise<void> {
+    await this.clickOnElement(this.clickingOnCheckbox);
+    await this.page.keyboard.press('Tab');
+    await this.page.keyboard.press('Enter');
   }
 }

@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker';
+
 import { ManageFeaturesPage } from '@content/ui/pages/manageFeaturesPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -8,6 +10,7 @@ import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/cons
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationscreenPage';
+import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { HomeFeedPage } from '@/src/modules/content/ui/pages/manageApplicationDefaultHomeFeedPage';
 import { DefaultScreenPage } from '@/src/modules/content/ui/pages/manageApplicationDefaultScreenPage';
@@ -15,6 +18,7 @@ import { ManageApplicationPage } from '@/src/modules/content/ui/pages/manageAppl
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
@@ -32,6 +36,8 @@ test.describe(
     let homeFeedPage: HomeFeedPage;
     let manageSitePage: ManageSitePage;
     let siteDetailsPage: SiteDetailsPage;
+    let siteDashboardPage: SiteDashboardPage;
+    let contentPreviewPage: ContentPreviewPage;
 
     test.beforeEach(async ({ appManagerFixture }) => {
       await appManagerFixture.homePage.verifyThePageIsLoaded();
@@ -44,6 +50,8 @@ test.describe(
       homePage = new NewHomePage(appManagerFixture.page);
       manageSitePage = new ManageSitePage(appManagerFixture.page, '');
       siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, '');
+      siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, '');
+      contentPreviewPage = new ContentPreviewPage(appManagerFixture.page);
     });
 
     test(
@@ -284,6 +292,59 @@ test.describe(
         await manageSitePage.actions.updatingCategoryToUncategorized('Uncategorized');
         await manageSitePage.actions.clickOnSite();
         await siteDetailsPage.assertions.validatingCategoryToUncategorized();
+      }
+    );
+    test(
+      'to verify validate option in content',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.CONTENT_VALIDATE_OPTION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify validate option in manage content',
+          zephyrTestId: 'CONT-33591',
+          storyId: 'CONT-33591',
+        });
+        // Get the "All Employees" site ID for API page creation
+        const allEmployeesSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+
+        // Generate random page name using faker
+        const randomPageName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Page`;
+
+        // Create page using API
+        const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
+          siteId: allEmployeesSiteId,
+          contentInfo: {
+            contentType: 'page',
+            contentSubType: 'knowledge',
+          },
+          options: {
+            pageName: randomPageName,
+            contentDescription: 'This is a test page description',
+            waitForSearchIndex: false,
+          },
+        });
+
+        console.log(
+          `Created page via API: Test Page Title with ID: ${pageInfo.contentId} and name ${pageInfo.pageName} in All Employees site: ${allEmployeesSiteId}`
+        );
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.writeRandomTextInSearchBar(randomPageName);
+        await manageContentPage.actions.clickSearchIcon();
+        await appManagerFixture.page.reload();
+        await manageContentPage.assertions.checkValidateOptionInBulkActions();
+        await manageContentPage.actions.openContentDetailsPage();
+        await contentPreviewPage.assertions.verifyValidateOptionOnContentPreviewPage();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageSitePage.actions.searchForSite('All Employees');
+        await manageSitePage.actions.clickOnSite();
+        await siteDetailsPage.actions.clickOnContentTab();
+        await siteDetailsPage.actions.typeContentInSearchBar(randomPageName);
+        await siteDetailsPage.actions.clickSearchIcon();
+        await siteDetailsPage.actions.openContentDetailsPage();
+        await contentPreviewPage.assertions.verifyValidateOptionOnContentPreviewPage();
       }
     );
   }

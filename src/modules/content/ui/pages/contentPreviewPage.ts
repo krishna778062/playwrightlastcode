@@ -18,6 +18,7 @@ export interface IContentPreviewPageAssertions {
   verifyContentStatus: (status: string) => Promise<void>;
   verifyContentIsInPublishedStatus: () => Promise<void>;
   verifyContentHasSubmitForApprovalButton: () => Promise<void>;
+  verifyValidateOptionOnContentPreviewPage: () => Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
@@ -48,6 +49,8 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   // Assertion locators
   readonly sendHistoryPopup = this.page.getByTestId('send-history-popup');
   readonly versionHistoryPopup = this.page.getByTestId('version-history-popup');
+  readonly ellipsisButton = this.page.locator('[aria-label="Category option"]').first();
+  readonly checkValidateOption = this.page.getByRole('button', { name: 'Validate' });
 
   // Page components
   readonly promotePageModal: PromotePageModal;
@@ -165,6 +168,15 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   async checkCommentOption(): Promise<void> {
     await test.step('Checking comment option', async () => {
       await this.contentDetailsComponent.checkCommentOption.isHidden();
+    });
+  }
+
+  async verifyValidateOptionOnContentPreviewPage(): Promise<void> {
+    await test.step('Verifying validate option on content preview page', async () => {
+      await this.hoverOverElementInJavaScript(this.ellipsisButton);
+      await this.verifier.verifyTheElementIsVisible(this.checkValidateOption, {
+        assertionMessage: 'Validate option should be visible on content preview page',
+      });
     });
   }
 }
