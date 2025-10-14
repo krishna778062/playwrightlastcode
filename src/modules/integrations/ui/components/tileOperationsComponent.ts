@@ -3,7 +3,7 @@ import { BaseAppTileComponent } from '@integrations-components/baseAppTileCompon
 import { expect, Locator, Page, test } from '@playwright/test';
 const DEFAULT_EVENT_TITLE = /^[\p{L}\p{N}\p{P}\p{S} ]{1,100}$/u;
 const DEFAULT_EVENT_DATE =
-  /(?!^)(?:[A-Z][a-z]{2},\s[A-Z][a-z]{2}\s(?:[1-9]|[12]\d|3[01]),\s\d{4}\sat\s(?:1[0-2]|0?\d):[0-5]\d(?:AM|PM)|Today\sat\s(?:1[0-2]|0?\d):[0-5]\d(?:AM|PM))/;
+  /(?:(?:[A-Z][a-z]{2},?\s)?[A-Z][a-z]{2}\s(?:[1-9]|[12]\d|3[01])(?:,\s\d{4})?(?:\s(?:at|to)\s(?:1[0-2]|0?\d):[0-5]\d(?:AM|PM))?(?:\s-\s[A-Z][a-z]{2}\s(?:[1-9]|[12]\d|3[01])(?:,\s\d{4})?)?)|(?:Today(?:\s(?:at|to)\s(?:1[0-2]|0?\d):[0-5]\d(?:AM|PM))?(?:\s-\s[A-Z][a-z]{2}\s(?:[1-9]|[12]\d|3[01])(?:,\s\d{4})?)?)/;
 
 export class TileOperationsComponent extends BaseAppTileComponent {
   readonly tagElement: Locator;
@@ -367,6 +367,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       }
     });
   }
+
   /**
    * Verify Calendar upcoming events tile data
    */
@@ -570,6 +571,14 @@ export class TileOperationsComponent extends BaseAppTileComponent {
         'Course Status should be visible in tile'
       ).toBeVisible();
       await expect(firstRecord.locator(this.courseType).first(), 'Course Type should be visible in tile').toBeVisible();
+    });
+  }
+
+  async verifyButtonStatus(status: string, buttonName: string): Promise<void> {
+    await test.step(`Verify ${buttonName} button is ${status}`, async () => {
+      const locator = this.button(buttonName);
+      await expect(locator).toBeVisible();
+      status.toLowerCase() === 'enabled' ? await expect(locator).toBeEnabled() : await expect(locator).toBeDisabled();
     });
   }
 }
