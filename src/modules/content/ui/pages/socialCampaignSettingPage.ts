@@ -5,6 +5,7 @@ import { BasePage } from '@core/ui/pages/basePage';
 
 export interface ISocialCampaignSettingPageActions {
   uncheckSocialCampaignCheckOutbox: () => Promise<void>;
+  checkSocialCampaignCheckOutbox: () => Promise<void>;
   clickOnFacebookCheckbox: () => Promise<void>;
   clickOnTwitterCheckbox: () => Promise<void>;
   clickOnLinkedinCheckbox: () => Promise<void>;
@@ -24,6 +25,7 @@ export class SocialCampaignSettingPage
   readonly facebookCheckbox: Locator;
   readonly twitterCheckbox: Locator;
   readonly linkedinCheckbox: Locator;
+  readonly saveButton: Locator;
   readonly confirmButton: Locator;
 
   constructor(page: Page) {
@@ -34,6 +36,7 @@ export class SocialCampaignSettingPage
     this.twitterCheckbox = page.locator('#twitterIntegrationEnabled');
     this.linkedinCheckbox = page.locator('#linkedinIntegrationEnabled');
     this.confirmButton = page.getByRole('button', { name: 'Confirm' });
+    this.saveButton = page.getByRole('button', { name: 'Save' });
   }
 
   get actions(): ISocialCampaignSettingPageActions {
@@ -57,6 +60,26 @@ export class SocialCampaignSettingPage
       const isChecked = await this.socialCampaignCheckOutbox.isChecked();
       if (isChecked) {
         await this.socialCampaignCheckOutbox.uncheck();
+        await this.clickOnElement(this.saveButton);
+        await this.verifier.verifyTheElementIsVisible(
+          this.toastMessages.filter({ hasText: 'Saved changes successfully' })
+        );
+      }
+    });
+  }
+
+  async checkSocialCampaignCheckOutbox(): Promise<void> {
+    await test.step('Clicking on social campaign check outbox', async () => {
+      const isChecked = await this.socialCampaignCheckOutbox.isChecked();
+      if (!isChecked) {
+        await this.socialCampaignCheckOutbox.check();
+        await this.clickOnFacebookCheckbox();
+        await this.clickOnTwitterCheckbox();
+        await this.clickOnLinkedinCheckbox();
+        await this.clickOnElement(this.saveButton);
+        await this.verifier.verifyTheElementIsVisible(
+          this.toastMessages.filter({ hasText: 'Saved changes successfully' })
+        );
       }
     });
   }

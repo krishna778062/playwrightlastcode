@@ -241,7 +241,33 @@ export class NavigationHelper {
         console.log('DEBUG: Error clicking on social campaigns', error);
         console.log('DEBUG: Social campaigns is not visible, clicking on more to expand the menu');
         await this.sideNavBarComponent.moreElement.click();
+        await this.sideNavBarComponent.socialCampaignsElement.click();
       }
+    });
+  }
+
+  async verifySocialCampaignsOptionIsVisible(): Promise<void> {
+    await test.step('Verifying social campaigns option is visible', async () => {
+      await this.sideNavBarComponent.verifier.verifyTheElementIsVisible(
+        this.sideNavBarComponent.socialCampaignsElement
+      );
+      if (await this.sideNavBarComponent.moreElement.isVisible()) {
+        await this.sideNavBarComponent.moreElement.click();
+      }
+      await this.sideNavBarComponent.verifier.verifyTheElementIsVisible(
+        this.sideNavBarComponent.socialCampaignsElement
+      );
+    });
+  }
+
+  async verifySocialCampaignsOptionIsNotVisible(): Promise<void> {
+    await test.step('Verifying social campaigns option is not visible', async () => {
+      if (await this.sideNavBarComponent.moreElement.isVisible()) {
+        await this.sideNavBarComponent.moreElement.click();
+      }
+      await this.sideNavBarComponent.verifier.verifyTheElementIsNotVisible(
+        this.sideNavBarComponent.socialCampaignsElement
+      );
     });
   }
 

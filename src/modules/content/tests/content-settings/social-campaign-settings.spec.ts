@@ -33,10 +33,14 @@ test.describe(
           storyId: 'CONT-14897',
         });
         await appManagerFixture.homePage.verifyThePageIsLoaded();
-
         await socialCampaignSettingPage.loadPage();
         await socialCampaignSettingPage.actions.uncheckSocialCampaignCheckOutbox();
-        await manageApplicationPage.actions.clickOnSave();
+        await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.navigationHelper.verifySocialCampaignsOptionIsNotVisible();
+        await socialCampaignSettingPage.loadPage();
+        await socialCampaignSettingPage.actions.checkSocialCampaignCheckOutbox();
+        await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.navigationHelper.verifySocialCampaignsOptionIsVisible();
       }
     );
   }

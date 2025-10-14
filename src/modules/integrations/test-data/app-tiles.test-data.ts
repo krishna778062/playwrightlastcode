@@ -133,3 +133,8 @@ export const STATUS_VALUES = {
   OPEN: 'Open',
   CLOSED: 'Closed',
 } as const;
+
+export const TEST_EMAIL = {
+  GOOGLE_CALENDAR: 'howard.nelson@simpplr.dev',
+  OUTLOOK_CALENDAR: 'howard.nelson@smplrdev.onmicrosoft.com',
+};
