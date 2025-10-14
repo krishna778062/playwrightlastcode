@@ -60,21 +60,9 @@ export class AwarenessCheckComponent extends BaseComponent {
    */
   async enableAwarenessCheck(): Promise<void> {
     await test.step('Enable Awareness Check functionality', async () => {
-      try {
-        if (await this.awarenessCheckToggle.isVisible()) {
-          const isChecked = await this.awarenessCheckToggle.isChecked();
-          if (!isChecked) {
-            await this.clickOnElement(this.awarenessCheckToggle, {
-              stepInfo: 'Click Awareness check checkbox to enable',
-            });
-          }
-        } else {
-          console.log('Awareness Check checkbox not found');
-        }
-      } catch (error) {
-        console.log(`Error enabling awareness check: ${error}`);
-        throw error;
-      }
+      await this.clickOnElement(this.awarenessCheckToggle, {
+        stepInfo: 'Click Awareness check checkbox to enable',
+      });
     });
   }
 
@@ -196,8 +184,6 @@ export class AwarenessCheckComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.mustReadSuccessMessage, {
         assertionMessage: 'Must read success message should be visible',
       });
-      await this.clickOnElement(this.dismissMustReadSuccessMessage, { force: true });
-      await this.page.waitForTimeout(2000);
     });
   }
 
