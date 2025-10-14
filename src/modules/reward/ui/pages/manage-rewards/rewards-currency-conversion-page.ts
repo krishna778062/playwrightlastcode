@@ -54,9 +54,9 @@ export class RewardsCurrencyConversionPage extends BasePage {
     this.currencyConversionExchangeRateUpdatedText = this.currencyConversionContainer.locator(
       'p[class*="Typography-module__secondary"]'
     );
-    this.csvDownloadButtonForUnsetCurrencyUsers = this.currencyConversionContainer.getByRole('button', {
-      name: 'Download CSV',
-    });
+    this.csvDownloadButtonForUnsetCurrencyUsers = this.currencyConversionContainer.locator(
+      '[aria-label="Download unassigned payroll currency user email CSV"]'
+    );
 
     // Dialog locators
     this.dialogHeading = page.locator('[role="dialog"] h2');
