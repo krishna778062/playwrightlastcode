@@ -37,7 +37,7 @@ test.describe(
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -110,7 +110,7 @@ test.describe(
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -187,7 +187,7 @@ test.describe(
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -266,7 +266,7 @@ test.describe(
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -350,7 +350,7 @@ test.describe(
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -420,7 +420,7 @@ test.describe(
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -500,7 +500,7 @@ test.describe(
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -577,7 +577,7 @@ test.describe(
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -677,7 +677,7 @@ test.describe(
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName, browser }) => {
@@ -775,7 +775,7 @@ test.describe(
           TestPriority.P0,
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
-          IntegrationsFeatureTags.GOOGLE_CALENDAR,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {

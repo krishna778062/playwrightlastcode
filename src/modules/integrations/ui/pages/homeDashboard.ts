@@ -1,4 +1,5 @@
 import { DASHBOARD_BUTTONS, FIELD_NAMES, ORGANIZATION_SETTINGS } from '@integrations/constants/common';
+import { ExternalAppProvider } from '@integrations/ui/pages/externalAppsPage';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { TileOperationsComponent } from '@integrations-components/tileOperationsComponent';
 import { TimeOffRequestTileComponent } from '@integrations-components/timeOffRequestTileComponent';
@@ -56,6 +57,27 @@ export class HomeDashboard extends BasePage {
       await this.page.getByRole('button', { name: 'Manage dashboard & carousel' }).waitFor({ state: 'visible' });
       // await expect(this.page).toHaveTitle(/.*Dashboard.*/);
     });
+  }
+
+  /**
+   * Verify the Add tile modal for a given external app provider
+   */
+  async openAddAppTileModal(provider: ExternalAppProvider | string): Promise<void> {
+    await this.appTileComponent.openAddAppTileModal(String(provider));
+  }
+
+  /**
+   * Verify the connection helper text in the Add tile modal for a given external app provider
+   */
+  async verifyConnectionMessage(expectedConnectionText: string, options: { connectedEmail: string }): Promise<void> {
+    await this.appTileComponent.verifyConnectionMessage(expectedConnectionText, options);
+  }
+
+  /**
+   * Click the 'My settings' link in the Add tile modal
+   */
+  async clickDialogLink(label: string): Promise<void> {
+    await this.appTileComponent.clickDialogLink(label);
   }
 
   /**
@@ -391,7 +413,7 @@ export class HomeDashboard extends BasePage {
   }
 
   /**
-   * Verify Show more behaviour for apptile
+   * Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
    */
   async verifyShowMoreBehavior(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyShowMoreBehavior(tileTitle);
@@ -464,5 +486,12 @@ export class HomeDashboard extends BasePage {
    */
   async verifyDoceboContentStructure(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyDoceboTileContentStructure(tileTitle);
+  }
+
+  /**
+   * Verify button status using tile operations component
+   */
+  async verifyButtonStatus(status: string, buttonName: string): Promise<void> {
+    return this.tileOperationsComponent.verifyButtonStatus(status, buttonName);
   }
 }

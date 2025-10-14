@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import { UI_ACTIONS } from '@integrations-constants/common';
 import { MESSAGES } from '@integrations-constants/messageRepo';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
+import { TEST_TAGS } from '@integrations-constants/testTags';
 import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
 import { AIRTABLE_TILE, REDIRECT_URLS } from '@integrations-test-data/app-tiles.test-data';
 
@@ -140,6 +141,49 @@ test.describe(
         // Verify tile content structure
         await homeDashboard.verifyAirtableTileContentStructure(createdTileTitle);
         await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.AIRTABLE);
+      }
+    );
+
+    test(
+      'verify show more behaviour for display airtable tasks apptile on home dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-24190',
+          storyId: 'INT-23049',
+        });
+        createdTileTitle = `Display airtable tasks ${faker.string.alphanumeric({ length: 6 })}`;
+        await createAirtableTileViaApi(appManagerFixture.apiContext, { tileInstanceName: createdTileTitle });
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+      }
+    );
+
+    test(
+      'verify Personalize button is visible when clicked on Show more',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE, TEST_TAGS.PERSONALIZATION],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-26380',
+          storyId: 'INT-23049',
+        });
+        createdTileTitle = `Display airtable tasks ${faker.string.alphanumeric({ length: 6 })}`;
+        //add,personalize,edit,verify
+        await homeDashboard.addAirtableTile(createdTileTitle, homeDashboard.config, UI_ACTIONS.ADD_TO_HOME);
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+        await homeDashboard.verifyPersonalizeVisible(createdTileTitle);
       }
     );
   }

@@ -1,30 +1,29 @@
+import { REWARD_FEATURE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
-
-import { RewardsStore } from '../../ui/pages/reward-store/reward-store';
 
 test.describe('rewards Variable Gift Card Redemption', { tag: [REWARD_FEATURE_TAGS.REWARD_STORE] }, () => {
-  test.beforeEach(async ({ appManagerPage }) => {
-    const rewardsStore = new RewardsStore(appManagerPage);
+  test.beforeEach(async ({ appManagerFixture }) => {
+    const rewardsStore = new RewardsStore(appManagerFixture.page);
     await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
   });
 
   test(
     '[RC-3227] Validate Variable amount gift card redemptions',
     {
-      tag: [REWARD_SUITE_TAGS.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
-    async ({ appManagerPage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate Variable amount gift card redemptions',
         zephyrTestId: 'RC-3227',
         storyId: 'RC-3227',
       });
-      const rewardsStore = new RewardsStore(appManagerPage);
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
       const giftCardName = 'Airbnb';
       let limits: number[] = [];
 
@@ -39,7 +38,7 @@ test.describe('rewards Variable Gift Card Redemption', { tag: [REWARD_FEATURE_TA
       await rewardsStore.verifier.verifyElementContainsText(rewardsStore.rewardsDialogBox.title, giftCardName);
       const limitText = await rewardsStore.rewardsDialogBox.rewardAmountsLimits.textContent();
       if (limitText) {
-        limits = limitText.match(/\d{1,3}(?:,\d{3})*|\d+/g)?.map(s => Number(s.replace(/,/g, ''))) || [];
+        limits = limitText.match(/\d{1,3}(?:,\d{3})*|\d+/g)?.map((s: string) => Number(s.replace(/,/g, ''))) || [];
       }
       await rewardsStore.clickOnElement(rewardsStore.rewardsDialogBox.closeButton, {
         stepInfo: 'Clicking on close button',
