@@ -1,15 +1,15 @@
 import { expect } from '@playwright/test';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
-import { TestDbScenarios } from '@rewards/utils/testDatabaseHelper';
+import { getQuery } from '@rewards/utils/dbQuery';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RewardsCurrencyConversionPage } from '@rewards-pages/manage-rewards/rewards-currency-conversion-page';
-import fs from 'fs';
 import path from 'path';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { CSVUtils } from '@core/utils/csvUtils';
+import { executeQuery } from '@core/utils/dbUtils';
 import { tagTest } from '@core/utils/testDecorator';
 
 test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
@@ -19,7 +19,7 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
 
   test.beforeEach(async ({ appManagerFixture }) => {
     const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-    await manageRewardsPage.loadPageWithHarness();
+    await manageRewardsPage.loadPage();
     await manageRewardsPage.verifyThePageIsLoaded();
     await manageRewardsPage.enableTheRewardsAndPeerGiftingIfDisabled();
 
@@ -130,43 +130,46 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
         storyId: 'RC-4590',
       });
 
+      // Navigate to Currency conversion
       const currencyConversionPage = new RewardsCurrencyConversionPage(appManagerFixture.page);
-      const csvUtils = new CSVUtils(path.resolve('./downloads'));
-
       await currencyConversionPage.loadPage();
-      await expect(appManagerFixture.page).toHaveURL('/manage/recognition/rewards/currency-conversions');
       await currencyConversionPage.verifyThePageIsLoaded();
+      await expect(appManagerFixture.page).toHaveURL('/manage/recognition/rewards/currency-conversions');
 
-      // Download CSV for users who have not set their currency
+      // Download the CSV
+      const csvUtils = new CSVUtils(path.resolve('./downloads'));
+      await currencyConversionPage.verifier.verifyTheElementIsVisible(
+        currencyConversionPage.csvDownloadButtonForUnsetCurrencyUsers
+      );
       const latestCsvPath = await currencyConversionPage.downloadCSVForUnsetCurrencyUsers();
 
-      // Validate DB result count matches CSV row count using TestDbScenarios pattern
-      const dbEmailsSet = await TestDbScenarios.getAllTheUsersCountWhichHaveCurrencyAsNull(tenantCode);
-      const csvCount = await csvUtils.getAllRecords();
-      expect(dbEmailsSet.size, 'DB row count should match CSV row count').toBe(csvCount.length);
+      // Match the DB count with the CSV count
+      const rawQuery = getQuery('getTheEmailOfUsersWhichCurrencyIsNull');
+      const queryToRun = rawQuery.replace(/tenantCode/g, tenantCode);
+      const dbRows: any[] = await executeQuery(queryToRun, 'reward');
+      const dbCount = dbRows.length;
+      const csvCount = await csvUtils.getRowCount();
+      expect(dbCount, 'DB row count should match CSV row count').toBe(csvCount);
 
-      // Validate all DB emails are present in CSV
-      if (!latestCsvPath || !fs.existsSync(latestCsvPath)) {
-        throw new Error('CSV file not found for validation: ' + latestCsvPath);
-      }
-
+      // Validate all the Records from CSV with DB
       const csvRows: Record<string, string>[] = await csvUtils.getAllRecords();
-
-      if (!csvRows || csvRows.length === 0) {
-        throw new Error('CSV is empty: ' + latestCsvPath);
-      }
-
+      //validate email header
       const headerKeys = Object.keys(csvRows[0]);
       const emailKey = headerKeys.find(h => h.toLowerCase().includes('email'));
       if (!emailKey) {
         throw new Error('Could not find an "email" column in CSV headers: ' + headerKeys.join(','));
       }
-
       const csvEmails = csvRows.map(r => (r[emailKey] ?? '').trim()).filter(Boolean);
       console.log('CSV emails count:', csvEmails.length);
 
-      // Convert Set to Array for comparison
-      const dbEmails = Array.from(dbEmailsSet);
+      //Get the DB data
+      const extractEmailFromRow = (row: Record<string, any>): string | null => {
+        if (!row) return null;
+        const key = Object.keys(row).find(k => k.toLowerCase().includes('email'));
+        return key ? String(row[key]).trim() : null;
+      };
+      const dbEmails = dbRows.map(extractEmailFromRow).filter((e): e is string => Boolean(e)); // type guard ensures e is string
+
       const csvSet = new Set(csvEmails.map(e => e.toLowerCase()));
       const missingEmails = dbEmails.filter(e => !csvSet.has(e.toLowerCase()));
 
