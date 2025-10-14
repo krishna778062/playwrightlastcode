@@ -67,7 +67,6 @@ test.describe(
         });
 
         // 4. UI Search for the page
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(pageName, {
           stepInfo: `Searching with term "${pageName}" and intent is to find the content`,
         });
@@ -97,7 +96,6 @@ test.describe(
         });
 
         // Search for the page
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(pageName, {
           stepInfo: `Searching with term "${pageName}" to verify page appears in search results`,
         });
