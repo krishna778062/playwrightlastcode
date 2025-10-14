@@ -19,6 +19,7 @@ on:
           - 'content-abac'
           - 'frontline'
           - 'integrations'
+          - 'alert-notification'
       priority_filter:
         description: 'Select test cases by priority'
         required: true
