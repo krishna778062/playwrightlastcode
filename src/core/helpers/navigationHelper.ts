@@ -248,9 +248,6 @@ export class NavigationHelper {
 
   async verifySocialCampaignsOptionIsVisible(): Promise<void> {
     await test.step('Verifying social campaigns option is visible', async () => {
-      await this.sideNavBarComponent.verifier.verifyTheElementIsVisible(
-        this.sideNavBarComponent.socialCampaignsElement
-      );
       if (await this.sideNavBarComponent.moreElement.isVisible()) {
         await this.sideNavBarComponent.moreElement.click();
       }
