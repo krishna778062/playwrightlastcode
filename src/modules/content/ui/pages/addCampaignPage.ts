@@ -99,19 +99,7 @@ export class AddCampaignPage extends BasePage implements IAddCampaignPageActions
   async enterCampaignUrl(url: string, linkText?: string): Promise<void> {
     await test.step(`Enter campaign URL: ${url}`, async () => {
       // Fill in URL and wait for metadata to load
-      await this.performActionAndWaitForResponse(
-        async () => {
-          await this.fillInElement(this.campaignUrlInput, url);
-          await this.page.waitForTimeout(3000);
-        },
-        response =>
-          response.url().includes(API_ENDPOINTS.socialCampaign.metadata) &&
-          response.request().method() === 'POST' &&
-          response.status() === 200,
-        {
-          timeout: 10_000,
-        }
-      );
+      await this.fillInElement(this.campaignUrlInput, url);
 
       if (linkText) {
         await this.verifier.verifyTheElementIsVisible(this.getHeadingByText(linkText), {

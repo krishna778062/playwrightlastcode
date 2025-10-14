@@ -1,5 +1,6 @@
 import { ACTION_LABELS, DASHBOARD_BUTTONS } from '@integrations/constants/common';
 import { AIRTABLE_TILE } from '@integrations/test-data/app-tiles.test-data';
+import { ExternalAppProvider } from '@integrations/ui/pages/externalAppsPage';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { TileOperationsComponent } from '@integrations-components/tileOperationsComponent';
 import { TimeOffRequestTileComponent } from '@integrations-components/timeOffRequestTileComponent';
@@ -12,7 +13,7 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
  * Provides common tile management and verification methods
  */
 export class SiteDashboard {
-  private page!: Page;
+  readonly page: Page;
   private appTileComponent!: BaseAppTileComponent;
   private airtableComponent!: BaseAppTileComponent;
   private timeOffRequestTileComponent!: TimeOffRequestTileComponent;
@@ -83,6 +84,27 @@ export class SiteDashboard {
     await this.page.reload({ waitUntil: 'domcontentloaded' });
     await this.verifyThePageIsLoaded();
     await this.airtableComponent.isTilePresent(tileTitle);
+  }
+
+  /**
+   * Open the Add tile modal for a given external app provider (pre-title state)
+   */
+  async openAddAppTileModal(provider: ExternalAppProvider | string): Promise<void> {
+    await this.appTileComponent.openAddAppTileModal(String(provider));
+  }
+
+  /**
+   * Verify the connection helper text and connected email in the Add tile modal
+   */
+  async verifyConnectionMessage(expectedConnectionText: string, options: { connectedEmail: string }): Promise<void> {
+    await this.appTileComponent.verifyConnectionMessage(expectedConnectionText, options);
+  }
+
+  /**
+   * Click the 'My settings' link in the Add tile modal
+   */
+  async clickDialogLink(label: string): Promise<void> {
+    await this.appTileComponent.clickDialogLink(label);
   }
 
   /**
@@ -274,5 +296,11 @@ export class SiteDashboard {
    */
   async verifyDoceboContentStructure(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyDoceboTileContentStructure(tileTitle);
+  }
+  /**
+   * Verify button status using tile operations component
+   */
+  async verifyButtonStatus(status: string, buttonName: string): Promise<void> {
+    return this.tileOperationsComponent.verifyButtonStatus(status, buttonName);
   }
 }
