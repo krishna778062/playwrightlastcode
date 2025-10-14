@@ -6,14 +6,15 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ServiceNowPage } from '../../ui/pages/serviceNowAppManagerPage';
-import { ServiceNowExternalAppsPage } from '../../ui/pages/serviceNowExternalAppPage';
-import { ServiceNowTicketsPage } from '../../ui/pages/serviceNowTicketsPage';
+import { ExternalAppProvider } from '@/src/modules/integrations/ui/pages/externalAppsPage';
+import { ExternalAppsPage } from '@/src/modules/integrations/ui/pages/externalAppsPage';
+import { ServiceNowTicketsPage } from '@/src/modules/integrations/ui/pages/serviceNowTicketsPage';
+import { SupportAndTicketingPage } from '@/src/modules/integrations/ui/pages/supportAndTicketingPage';
 
 test.describe(
   'service Now Multi-user Tests',
   {
-    tag: [IntegrationsSuiteTags.INTEGRATIONS, IntegrationsSuiteTags.PHOENIX],
+    tag: [IntegrationsSuiteTags.INTEGRATIONS, IntegrationsSuiteTags.PHOENIX, IntegrationsSuiteTags.SERVICENOW],
   },
   () => {
     multiUserTileFixture(
@@ -23,20 +24,18 @@ test.describe(
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-28271',
-          storyId: 'INT-13642',
+          zephyrTestId: ['INT-11132', 'INT-11131'],
+          storyId: 'INT-28224',
         });
 
-        const adminHomeDashboard = new ServiceNowPage(adminPage);
+        const adminHomeDashboard = new SupportAndTicketingPage(adminPage);
         await adminHomeDashboard.loadPage();
         await adminHomeDashboard.verifyThePageIsLoaded();
         await adminHomeDashboard.verifyServiceNowFieldsVisible();
-        const endUserServiceNow = new ServiceNowExternalAppsPage(endUserPage);
-        await endUserServiceNow.loadPage();
-        await endUserServiceNow.clickOnAvatar();
-        await endUserServiceNow.selectFromProfileMenu('My settings');
-        await endUserServiceNow.clickOnExternalAppsTab();
-        await endUserServiceNow.verifyServiceNowDisconnectButton();
+        const endUserServiceNow = new ExternalAppsPage(endUserPage);
+        await endUserServiceNow.navigateToExternalAppsPage();
+        await endUserServiceNow.verifyThePageIsLoaded();
+        await endUserServiceNow.isIntegrationConnected(ExternalAppProvider.SERVICENOW);
       }
     );
 
@@ -47,8 +46,8 @@ test.describe(
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-28271',
-          storyId: 'INT-13642',
+          zephyrTestId: ['INT-9702', 'INT-10615'],
+          storyId: 'INT-28224',
         });
 
         const adminHomeDashboard = new ServiceNowTicketsPage(adminPage);
@@ -70,8 +69,8 @@ test.describe(
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-28271',
-          storyId: 'INT-13642',
+          zephyrTestId: 'INT-10415',
+          storyId: 'INT-28224',
         });
 
         const adminHomeDashboard = new ServiceNowTicketsPage(adminPage);
@@ -95,8 +94,8 @@ test.describe(
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-28271',
-          storyId: 'INT-13642',
+          zephyrTestId: 'INT-11445',
+          storyId: 'INT-28224',
         });
 
         // Test sorting functionality with admin user
@@ -133,7 +132,7 @@ test.describe(
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
           zephyrTestId: 'INT-9976',
-          storyId: 'INT-13642',
+          storyId: 'INT-28224',
         });
 
         // Test sorting functionality with admin user

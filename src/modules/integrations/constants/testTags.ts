@@ -20,6 +20,7 @@ export enum IntegrationsSuiteTags {
   SHOW_MORE = '@showMore',
   PERSONALIZATION = '@personalization',
   ASANA = '@asanaAppTiles',
+  SERVICENOW = '@serviceNow',
 }
 
 export enum IntegrationsFeatureTags {
@@ -58,6 +59,7 @@ export const TEST_TAGS = {
   SHOW_MORE: IntegrationsSuiteTags.SHOW_MORE,
   PERSONALIZATION: IntegrationsSuiteTags.PERSONALIZATION,
   ASANA: IntegrationsSuiteTags.ASANA,
+  SERVICENOW: IntegrationsSuiteTags.SERVICENOW,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {

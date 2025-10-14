@@ -24,7 +24,7 @@ export class ServiceNowTicketsPage extends BasePage {
   readonly sortDropdown: Locator;
   readonly sortOptions: (optionText: string) => Locator;
   readonly ticketRows: Locator;
-
+  readonly ticketDateCells: Locator;
   // Status Messages (only what's used)
   readonly successMessage: Locator;
 
@@ -47,7 +47,7 @@ export class ServiceNowTicketsPage extends BasePage {
     this.sortDropdown = page.locator('[class*="SortDropdown"]');
     this.sortOptions = (optionText: string) => page.locator(`//*[contains(text(),"${optionText}")]`);
     this.ticketRows = page.locator('//tr[contains(@data-testid,"dataGridRow")]');
-
+    this.ticketDateCells = page.locator('//td[contains(@class,"Cell-module")]');
     // Status Messages (only what's used)
     this.successMessage = page.locator('//div[contains(@class,"success")]');
   }
@@ -114,16 +114,15 @@ export class ServiceNowTicketsPage extends BasePage {
   async clickSortDropdown(): Promise<void> {
     await test.step('Click sort dropdown', async () => {
       // Class-based selector
-      const sortElement = this.page.locator('[class*="SortDropdown"]');
-      await sortElement.waitFor({ state: 'visible' });
-      await this.clickOnElement(sortElement);
+      await this.sortDropdown.waitFor({ state: 'visible' });
+      await this.clickOnElement(this.sortDropdown);
     });
   }
 
   async selectSortOption(optionText: string): Promise<void> {
     await test.step(`Select sort option: ${optionText}`, async () => {
       await this.page.waitForTimeout(1000);
-      const option = this.page.locator(`//*[contains(text(),"${optionText}")]`).first();
+      const option = this.sortOptions(optionText).first();
       await this.clickOnElement(option);
       // Wait for sorting to apply
       await this.page.waitForTimeout(2000);
@@ -163,7 +162,7 @@ export class ServiceNowTicketsPage extends BasePage {
       const ticketDates: Date[] = [];
       for (const ticket of tickets) {
         // Look for date elements within each ticket
-        const dateElements = await ticket.locator('//td[contains(@class,"Cell-module")]').last().all();
+        const dateElements = await this.ticketDateCells.locator('[class*="Cell-module"]', { has: ticket }).last().all();
 
         if (dateElements.length > 0) {
           const dateText = await dateElements[0].textContent();
