@@ -63,6 +63,7 @@ export interface IFeedActions {
   clickAskQuestionButton: () => Promise<string>;
   clickQuestionButton: () => Promise<void>;
   editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
+  clickOnShowOption: (optionValue: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -83,6 +84,9 @@ export interface IFeedAssertions {
   verifyAskQuestionButtonIsNotDisabled: () => Promise<void>;
   verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
   verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
+  verifyCampaignLinkNotDisplayed: (linkText: string, description: string) => Promise<void>;
+  verifySocialCampaignShareButtonIsNotVisible: (description: string) => Promise<void>;
+  verifySocialCampaignShareButtonIsVisible: (description: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -91,6 +95,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   private filePreviewComponent: FilePreviewComponent;
   private createQuestionComponent: CreateQuestionComponent;
   readonly shareThoughtsButton: Locator;
+  readonly feedFilterSelect: Locator;
+  readonly optionLocator: Locator;
 
   constructor(page: Page, feedId?: string) {
     super(page, feedId ? PAGE_ENDPOINTS.getFeedPage(feedId) : '');
@@ -100,6 +106,9 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.filePreviewComponent = new FilePreviewComponent(page);
     // Share thoughts section
     this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
+    // Feed filter dropdown
+    this.feedFilterSelect = this.page.locator('select[id="feed_filter"]');
+    this.optionLocator = this.page.getByLabel('Show', { exact: true });
   }
 
   get actions(): IFeedActions {
@@ -380,5 +389,39 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyCampaignLinkDisplayed(linkText: string, description: string): Promise<void> {
     await this.listFeedComponent.verifyCampaignLinkDisplayed(linkText, description);
+  }
+
+  async verifyCampaignLinkNotDisplayed(linkText: string, description: string): Promise<void> {
+    await this.listFeedComponent.verifyCampaignLinkNotDisplayed(linkText, description);
+  }
+
+  async verifySocialCampaignShareButtonIsNotVisible(description: string): Promise<void> {
+    await this.listFeedComponent.verifySocialCampaignShareButtonIsNotVisible(description);
+  }
+
+  async verifySocialCampaignShareButtonIsVisible(description: string): Promise<void> {
+    await this.listFeedComponent.verifySocialCampaignShareButtonIsVisible(description);
+  }
+
+  /**
+   * Clicks on a specific option in the feed filter dropdown
+   * @param optionValue - The text value of the option to select
+   */
+  async clickOnShowOption(optionValue: string): Promise<void> {
+    await test.step(`Click on show option: ${optionValue}`, async () => {
+      // Wait for the select element to be present
+      await this.verifier.verifyTheElementIsVisible(this.feedFilterSelect, {
+        assertionMessage: 'Feed filter dropdown should be visible',
+      });
+
+      // Click on the select element to open dropdown
+      await this.clickOnElement(this.feedFilterSelect);
+
+      // Find and click the specific option
+      await this.optionLocator.selectOption(`${optionValue}`);
+
+      // Click on select again to close dropdown
+      await this.clickOnElement(this.feedFilterSelect);
+    });
   }
 }
