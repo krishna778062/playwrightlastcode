@@ -18,6 +18,16 @@ export class MustReadComponent extends BaseComponent {
     this.makeMustReadOption = this.page.getByRole('button', { name: "Make 'must read'" });
   }
 
+  async closeSurveyPrompt(): Promise<void> {
+    await test.step('Close survey prompt if present', async () => {
+      const surveyDialog = this.page.getByRole('dialog', { name: 'Survey participation prompt' });
+      const dismissButton = surveyDialog.getByLabel('Dismiss');
+
+      if (await dismissButton.isVisible({ timeout: 2000 })) {
+        await this.clickOnElement(dismissButton, { force: true });
+      }
+    });
+  }
   /**
    * Click on content three dots menu
    */
