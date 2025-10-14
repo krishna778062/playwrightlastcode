@@ -648,7 +648,7 @@ export class ManageQRPage extends BasePage {
     await test.step('Verify valid till date is N/A for all displayed QR codes', async () => {
       try {
         await this.tillDateNA.first().waitFor({ state: 'visible', timeout: 10000 });
-      } catch (error) {
+      } catch {
         console.log('No QR codes with N/A valid till date found');
         return;
       }
@@ -700,7 +700,7 @@ export class ManageQRPage extends BasePage {
     await test.step('Verify all inactive QR codes are displayed', async () => {
       try {
         await this.inactiveQR.first().waitFor({ state: 'visible', timeout: 10000 });
-      } catch (error) {
+      } catch {
         console.log('No QR codes found');
         return;
       }
@@ -1096,6 +1096,27 @@ export class ManageQRPage extends BasePage {
 
       await this.verifier.verifyElementHasAttribute(toggle, 'data-state', 'unchecked', {
         assertionMessage: `Toggle should have unchecked state for QR: ${qrName}`,
+      });
+    });
+  }
+
+  async verifyQRStatusIsEnabled(qrName: string): Promise<void> {
+    await test.step(`Verify QR status is enabled for "${qrName}"`, async () => {
+      const qrRow = this.qrRowByText.filter({ hasText: qrName });
+      const toggle = qrRow.locator(this.toggleSwitch);
+
+      await this.verifier.waitUntilElementIsVisible(toggle, {
+        timeout: 10000,
+        stepInfo: `Wait for toggle to be visible for QR: ${qrName}`,
+      });
+
+      // Verify toggle is enabled using multiple attributes
+      await this.verifier.verifyElementHasAttribute(toggle, 'aria-checked', 'true', {
+        assertionMessage: `Toggle should be enabled for QR: ${qrName}`,
+      });
+
+      await this.verifier.verifyElementHasAttribute(toggle, 'data-state', 'checked', {
+        assertionMessage: `Toggle should have checked state for QR: ${qrName}`,
       });
     });
   }
