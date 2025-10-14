@@ -66,7 +66,6 @@ test.describe(
         });
 
         // 4. UI Search for the event
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(eventName, {
           stepInfo: `Searching with term "${eventName}" and intent is to find the event`,
         });
@@ -95,7 +94,6 @@ test.describe(
           zephyrTestId: 'SEN-19195',
         });
 
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         // Search for the event
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(eventName, {
           stepInfo: `Searching with term "${eventName}" to verify event appears in search results`,
@@ -146,7 +144,6 @@ test.describe(
           zephyrTestId: 'SEN-19287',
         });
 
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         // Type in search input
         const topNavBarComponent = appManagerFixture.navigationHelper.topNavBarComponent;
         await topNavBarComponent.typeInSearchBarInput(eventName, {

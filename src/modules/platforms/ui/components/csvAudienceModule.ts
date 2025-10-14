@@ -70,11 +70,8 @@ export class CsvAudienceModule extends BaseComponent {
       stepInfo: `Type category name: ${categoryName}`,
     });
 
-    // Step 3: Click the filtered category option
-    const categoryOption = this.categoryOptions.filter({ hasText: categoryName });
-    await this.clickOnElement(categoryOption, {
-      stepInfo: `Select category: ${categoryName}`,
-    });
+    // Step 3: Click the category option using getByText with exact match
+    await this.page.getByText(categoryName, { exact: true }).click();
   }
 
   // Upload CSV file using framework's file upload method
