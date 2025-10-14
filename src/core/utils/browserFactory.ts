@@ -1,5 +1,4 @@
 import { Browser, BrowserContext, Page, test } from '@playwright/test';
-import { nanoid } from 'nanoid';
 import path from 'path';
 
 import { FileUtil } from '@/src/core/utils/fileUtil';
@@ -31,6 +30,7 @@ export class BrowserFactory {
     let videoDir: string | undefined;
 
     if (options?.recordVideo) {
+      const { nanoid } = await import('nanoid');
       const videoTempDir = path.join('videos', nanoid());
       FileUtil.createDir(videoTempDir);
       videoDir = videoTempDir;
@@ -61,6 +61,7 @@ export class BrowserFactory {
   public static async closePageGracefullyForUser(page: Page, userName?: string) {
     try {
       //THIS IS USED TO GENERATE A UNIQUE NAME FOR THE VIDEO FILE ATTACHMENT
+      const { nanoid } = await import('nanoid');
       const userNameToUse = userName ?? nanoid();
       const videoPath = await page.video()?.path();
       await page.close();

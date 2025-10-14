@@ -22,6 +22,7 @@ export class TopNavBarComponent extends BaseComponent {
   readonly notificationsButton: Locator;
 
   //profile settings section
+  readonly viewProfileButton: Locator;
   readonly profileSettingsButton: Locator;
 
   constructor(
@@ -51,6 +52,7 @@ export class TopNavBarComponent extends BaseComponent {
 
     //profile settings section
     this.profileSettingsButton = this.page.getByLabel('Profile settings');
+    this.viewProfileButton = this.page.getByLabel('View profile');
   }
 
   /**
