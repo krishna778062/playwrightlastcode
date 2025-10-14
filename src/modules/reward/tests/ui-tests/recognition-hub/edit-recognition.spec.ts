@@ -232,17 +232,15 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const rewardOptionIndex = 3;
-      let rewardOptionText: string;
-      let availablePoints: string;
-
       await test.step('Visit the Recognition Hub and give one recognition', async () => {
         const existingOptions = await recognitionHub.visitRecognitionHub();
+        const availablePoints = await recognitionHub.pointsToGive.textContent();
         if (existingOptions.length < 2) {
           await recognitionHub.setupTheMultipleGiftingOptions();
         }
         await recognitionHub.clickOnGiveRecognition();
         const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
-        rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
+        const rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
           0,
           process.env.STANDARD_USER_FULL_NAME,
           'Test Message' + Math.floor(Math.random() * 1000),
@@ -262,6 +260,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await test.step('Click on Edit', async () => {
         await recognitionHub.visitRecognitionHub();
         await recognitionHub.verifyThePageIsLoaded();
+        const availablePoints = await recognitionHub.pointsToGive.textContent();
         await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
         const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         await giveRecognitionModal.giftingOptionsContainerPill.last().waitFor({ state: 'visible' });
