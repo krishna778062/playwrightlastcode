@@ -41,7 +41,6 @@ test.describe(
           storyId: 'SEN-14964',
         });
 
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(searchTerm, {
           stepInfo: `Searching with term "${searchTerm}" to verify external search links`,
         });
