@@ -19,7 +19,7 @@ test.describe(
     multiUserTileFixture(
       'Verify Service Now External Apps Page',
       {
-        tag: [TestPriority.P4, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -43,7 +43,7 @@ test.describe(
     multiUserTileFixture(
       'Verify New Ticket button is visible on Service Now Tickets Page and Ticket creation can be cancelled',
       {
-        tag: [TestPriority.P4, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -66,7 +66,7 @@ test.describe(
     multiUserTileFixture(
       'Verify Ticket creation can be done successfully',
       {
-        tag: [TestPriority.P4, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -91,7 +91,7 @@ test.describe(
     multiUserTileFixture(
       'Verify ServiceNow tickets Sorting by Last updated, newest',
       {
-        tag: [TestPriority.P4, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -128,7 +128,7 @@ test.describe(
     multiUserTileFixture(
       'Verify ServiceNow tickets Sorting by Last updated, oldest',
       {
-        tag: [TestPriority.P4, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
