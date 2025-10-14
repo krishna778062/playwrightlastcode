@@ -24,10 +24,7 @@ test.describe(
     let loginIdentifier1: string;
     let loginIdentifier2: string;
     let loginIdentifier3: string;
-    const features: string[] = [
-      'Application settings',
-      //  'Audiences', 'Branding', 'Users'
-    ];
+    const features: string[] = ['Application settings', 'Audiences', 'Branding', 'Users'];
     let user1: User;
     let user2: User;
     let user3: User;
