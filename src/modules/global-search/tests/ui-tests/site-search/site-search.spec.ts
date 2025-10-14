@@ -59,7 +59,6 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
             storyId: 'SEN-12305',
           });
 
-          await appManagerFixture.homePage.verifyThePageIsLoaded();
           const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(newSiteName, {
             stepInfo: `Searching with term "${newSiteName} and intent is to find the site"`,
           });
@@ -96,7 +95,6 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
             zephyrTestId: 'SEN-19193',
           });
 
-          await appManagerFixture.homePage.verifyThePageIsLoaded();
           // First perform the search to get to the results page
           const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(newSiteName, {
             stepInfo: `Searching with term "${newSiteName}" to verify site appears in search results`,
@@ -136,7 +134,6 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
           });
 
           // Type in search input
-          await appManagerFixture.homePage.verifyThePageIsLoaded();
           const topNavBarComponent = appManagerFixture.navigationHelper.topNavBarComponent;
           await topNavBarComponent.typeInSearchBarInput(newSiteName, {
             stepInfo: `Typing "${newSiteName}" in search input`,
