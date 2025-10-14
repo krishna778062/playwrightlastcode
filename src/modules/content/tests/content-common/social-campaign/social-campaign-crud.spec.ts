@@ -910,7 +910,7 @@ test.describe(
         socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
         tagTest(test.info(), {
           description:
-            'Zeus | Social Campaign | Verify SC Manager able to create and delete Social Campaign for Everyone',
+            'Zeus | Social Campaign | Verify App Manager able to create and delete Social Campaign for Everyone',
           zephyrTestId: 'CONT-14898',
           storyId: 'CONT-14898',
         });
