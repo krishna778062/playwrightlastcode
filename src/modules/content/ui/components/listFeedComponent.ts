@@ -25,7 +25,8 @@ export class ListFeedComponent extends BaseComponent {
   readonly postDate: Locator;
   readonly feedLinkWithDescription = (description: string) => this.page.locator('p').filter({ hasText: description });
   readonly sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
-
+  readonly shareSocialCampaignButton = (description: string) =>
+    this.page.locator(`xpath=//p[text()='${description}']/../../..//span[text()='Share']`);
   // Dynamic locator functions
   /**
    * Gets a locator for the post text content
@@ -394,6 +395,34 @@ export class ListFeedComponent extends BaseComponent {
       });
       await this.verifier.verifyTheElementIsVisible(this.sharefeedLink(linkText), {
         assertionMessage: `Campaign link "${linkText}" should be visible`,
+      });
+    });
+  }
+
+  async verifyCampaignLinkNotDisplayed(linkText: string, description: string): Promise<void> {
+    await test.step(`Verify campaign link "${linkText}" is not displayed`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.feedLinkWithDescription(description), {
+        assertionMessage: `Shared Description "${description}" should not be visible`,
+      });
+
+      await this.verifier.verifyTheElementIsNotVisible(this.sharefeedLink(linkText), {
+        assertionMessage: `Campaign link "${linkText}" should not be visible`,
+      });
+    });
+  }
+
+  async verifySocialCampaignShareButtonIsNotVisible(description: string): Promise<void> {
+    await test.step('Verify share button is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.shareSocialCampaignButton(description), {
+        assertionMessage: 'Share button should not be visible',
+      });
+    });
+  }
+
+  async verifySocialCampaignShareButtonIsVisible(description: string): Promise<void> {
+    await test.step('Verify share button is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.shareSocialCampaignButton(description), {
+        assertionMessage: 'Share button should be visible',
       });
     });
   }

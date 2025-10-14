@@ -248,6 +248,38 @@ export class BaseVerificationUtil {
   }
 
   /**
+   * Verifies that an input element's value matches the expected text.
+   * @param locator - The Playwright Locator for the input element
+   * @param text - The expected value of the input
+   * @param options - Optional configuration
+   *   - timeout: Time to wait for the assertion
+   *   - assertionMessage: Custom error message
+   */
+  async verifyTextOfInputElement(
+    locator: Locator,
+    text: string,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await this.verifyTheElementIsVisible(locator);
+      const inputValue = await locator.inputValue({ timeout: options?.timeout });
+      expect(
+        inputValue,
+        options?.assertionMessage ?? `Expected input value to be '${text}', but got '${inputValue}'`
+      ).toBe(text);
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Input element value does not match.\n${error}`
+      );
+    }
+  }
+
+  /**
    * Verifies that the element has text
    * @param locator - The locator to verify
    * @param text - The text to verify
