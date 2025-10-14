@@ -109,22 +109,13 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
         storyId: 'RC-3054',
       });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
-
-      // Navigate to rewards store and validate
-      await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
-      await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
-
       const initialApiGiftList = await rewardsStore.getAllTheAPIGiftList();
-
-      // Validate gift cards are shown in ascending order initially
       await rewardsStore.getAllTheGitCardAndValidateAllAreInAscendingOrder(initialApiGiftList);
 
-      // Search for Amazon in the search field
+      // Start waiting for the search API response before performing the search
+      const filteredApiGiftListPromise = rewardsStore.getFilteredAPIGiftList('Amazon');
       await rewardsStore.searchForGiftCard('Amazon');
-
-      const filteredApiGiftList = await rewardsStore.getFilteredAPIGiftList('Amazon');
-
-      // Validate gift cards are shown in ascending order after filtering with Amazon
+      const filteredApiGiftList = await filteredApiGiftListPromise;
       await rewardsStore.getAllTheGitCardAndValidateAllAreInAscendingOrder(filteredApiGiftList);
     }
   );
@@ -172,21 +163,14 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
         storyId: 'RC-3228',
       });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
-
-      // Navigate to rewards store and validate
+      await rewardsStore.loadPage();
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
       await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
-
-      // Check reward images corner
       await rewardsStore.validateTheImageRoundedCorners();
-
-      // Click on Prepaid cards tab & verify images corner
       await rewardsStore.clickOnElement(rewardsStore.prepaidCardsTab, {
         stepInfo: 'Clicking on prepaid cards tab',
       });
       await rewardsStore.validateTheImageRoundedCorners();
-
-      // Click on Charity donations tab & verify image corners
       await rewardsStore.clickOnElement(rewardsStore.charityDonationsTab, {
         stepInfo: 'Clicking on charity donations tab',
       });
@@ -390,13 +374,13 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
       await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.searchField);
       await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.rewardCategory);
 
-      // Click on 'All Categories' dropdown and verify total count for each category
+      // Click on 'All Categories' dropdown and verify the total count for each category
       const initialGiftCardCount = await rewardsStore.giftCardCount.textContent();
       await rewardsStore.selectDropdownByLabel(rewardsStore.rewardCategory, 'Fashion');
       const newGiftCardCount = await rewardsStore.giftCardCount.textContent();
       expect(initialGiftCardCount).not.toMatch(newGiftCardCount || '');
 
-      // Click on Reset link and verify it
+      // Click on the Reset link and verify it
       await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.resetButton);
       await rewardsStore.resetButton.click();
       const resetGiftCardCount = await rewardsStore.giftCardCount.textContent();

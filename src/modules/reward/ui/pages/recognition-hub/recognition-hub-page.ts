@@ -1,5 +1,4 @@
 import { expect, Locator, Page, test } from '@playwright/test';
-import { getQuery } from '@rewards/utils/dbQuery';
 import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RewardGiftingOptionsPage } from '@rewards-pages/manage-rewards/reward-gifting-options-page';
@@ -161,12 +160,6 @@ export class RecognitionHubPage extends BasePage {
 
       // Wait a bit for the response to be captured
       await this.page.waitForTimeout(2000);
-
-      // Check if we captured the data successfully
-      if (responseError) {
-        console.warn('Failed to capture API response data:', responseError);
-        return [];
-      }
 
       if (!capturedData) {
         console.warn('No API response data captured, returning empty array');
@@ -448,75 +441,65 @@ export class RecognitionHubPage extends BasePage {
    * This method checks the current state via API and enables both features if needed
    */
   async enableTheRewardsAndPeerGiftingForHubIfDisabled(): Promise<void> {
-    try {
-      // Set up response interception to capture the data
-      let capturedData: any = null;
-      let responseError: Error | null = null;
+    const [apiResponse] = await Promise.all([
+      this.page.waitForResponse(
+        res =>
+          res.url().includes('/recognition/v1/tenant/config') &&
+          res.status() === 200 &&
+          res.request().method() === 'GET'
+      ),
+      this.visitRecognitionHub(), // action that triggers API
+      this.verifyThePageIsLoaded(),
+    ]);
+    console.log('Status:', apiResponse.status(), 'URL:', apiResponse.url());
+    const body = await apiResponse.json();
+    console.log(`/recognition/v1/tenant/config Response is:\n${JSON.stringify(body, null, 2)}`);
+    const isRewardEnabled = body.rewardConfig?.enabled;
+    const isPeerGiftingDisabled = body.rewardConfig?.peerGiftingEnabled;
+    console.log(
+      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
+    );
+    const manageRewardsPage = new ManageRewardsOverviewPage(this.page);
+    await manageRewardsPage.loadPage();
+    await this.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
+    await this.visitRecognitionHub();
+    await this.verifyThePageIsLoaded();
+  }
 
-      // Intercept the API response before making the request
-      this.page.on('response', async response => {
-        if (response.url().includes('/recognition/v1/tenant/config') && response.status() === 200) {
-          try {
-            capturedData = await response.json();
-          } catch (error) {
-            responseError = error as Error;
-            console.error('Error capturing API response:', error);
-          }
-        }
-      });
-
-      // Navigate to recognition hub
-      await this.navigateToRecognitionHub();
-      await this.verifyThePageIsLoaded();
-
-      // Wait a bit for the response to be captured
-      await this.page.waitForTimeout(2000);
-
-      // Check if we captured the data successfully
-      if (responseError) {
-        console.warn('Failed to capture API response data:', responseError);
-        console.log('Falling back to simple navigation without API validation');
-        await this.visitRecognitionHub();
-        return;
-      }
-
-      if (!capturedData) {
-        console.warn('No API response data captured, falling back to simple navigation');
-        await this.visitRecognitionHub();
-        return;
-      }
-
-      const isRewardEnabled = capturedData?.rewardConfig?.enabled;
-      const isPeerGiftingEnabled = capturedData?.rewardConfig?.peerGiftingEnabled;
-
-      console.log(
-        `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingEnabled}`
-      );
-
-      // Only proceed with enabling if either is disabled
-      if (!isRewardEnabled || !isPeerGiftingEnabled) {
-        const manageRewardsPage = new ManageRewardsOverviewPage(this.page);
-        await manageRewardsPage.loadPage();
-        await this.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingEnabled);
-      }
-
-      await this.visitRecognitionHub();
-    } catch (error) {
-      console.error('Error in enableTheRewardsAndPeerGiftingForHubIfDisabled:', error);
-      // Fallback: just navigate to recognition hub without API checks
-      console.log('Falling back to simple navigation without API validation');
-      await this.visitRecognitionHub();
-    }
+  /**
+   * Enable rewards and peer gifting if disabled (for Recognition Hub context)
+   * This method checks the current state via API and enables both features if needed
+   */
+  async enableTheRewardsInAndPeerGiftingIfDisabled(): Promise<void> {
+    const [apiResponse] = await Promise.all([
+      this.page.waitForResponse(
+        res =>
+          res.url().includes('/recognition/v1/tenant/config') &&
+          res.status() === 200 &&
+          res.request().method() === 'GET'
+      ),
+      this.visitRecognitionHub(), // action that triggers API
+    ]);
+    console.log('Status:', apiResponse.status(), 'URL:', apiResponse.url());
+    const body = await apiResponse.json();
+    console.log(`/recognition/v1/tenant/config Response is:\n${JSON.stringify(body, null, 2)}`);
+    const isRewardEnabled = body.rewardConfig?.enabled;
+    const isPeerGiftingDisabled = body.rewardConfig?.peerGiftingEnabled;
+    console.log(
+      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
+    );
+    const manageRewardsPage = new ManageRewardsOverviewPage(this.page);
+    await manageRewardsPage.loadPage();
+    await this.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
+    await this.visitRecognitionHub();
   }
 
   /**
    * Check and enable rewards and peer gifting based on current state
    */
-  private async checkTheRewardsIsEnabled(isRewardEnabled: boolean, isPeerGiftingEnabled: boolean): Promise<void> {
+  private async checkTheRewardsIsEnabled(isRewardEnabled: boolean, isPeerGiftingDisabled: boolean): Promise<void> {
     const manageRewardsPage = new ManageRewardsOverviewPage(this.page);
-
-    if (!isRewardEnabled && !isPeerGiftingEnabled) {
-      // Both disabled: Enable peer gifting first, then rewards
+    if (!isRewardEnabled && !isPeerGiftingDisabled) {
       await manageRewardsPage.peerGifting.loadPage();
       await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
 
@@ -541,16 +524,15 @@ export class RecognitionHubPage extends BasePage {
       });
       await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards enabled');
       await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Rewards overview');
-    } else if (!isRewardEnabled && isPeerGiftingEnabled) {
-      // Only rewards disabled: Enable rewards directly
+    } else if (!isRewardEnabled && isPeerGiftingDisabled) {
+      // Directly enable Rewards
       await manageRewardsPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
       await manageRewardsPage.clickOnElement(manageRewardsPage.enableRewardsButton, {
         stepInfo: 'Enabling rewards',
       });
       await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards enabled');
       await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Rewards overview');
-    } else if (isRewardEnabled && !isPeerGiftingEnabled) {
-      // Only peer gifting disabled: Enable peer gifting
+    } else if (isRewardEnabled && !isPeerGiftingDisabled) {
       await manageRewardsPage.peerGifting.loadPage();
       await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
 
@@ -568,9 +550,9 @@ export class RecognitionHubPage extends BasePage {
         stepInfo: 'Confirming grant allowances',
       });
       await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
-    } else if (isRewardEnabled && isPeerGiftingEnabled) {
+    } else if (isRewardEnabled && isPeerGiftingDisabled) {
       // Both are already enabled, do nothing
-      console.log('Reward and Peer Gifting are already enabled.');
+      console.log('Reward and Gifting is enabled.');
     }
   }
 
@@ -622,56 +604,9 @@ export class RecognitionHubPage extends BasePage {
    * Enable distribution allowance as failed
    */
   async enableDistributionAllowanceAsFailed(): Promise<void> {
-    const tenantCode = await this.page.evaluate(() => {
-      return (window as any).Simpplr?.Settings?.organizationId;
-    });
-    const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
-    await executeQuery(resultAsFailed.replace('tenantCode', tenantCode));
-  }
-
-  /**
-   * Validate allowance refreshing tooltip in recognition hub
-   */
-  async validateAllowanceRefreshingTooltipInRecognitionHub(): Promise<void> {
-    await this.page.reload();
-    await this.visitRecognitionHub();
-    await this.verifier.verifyTheElementIsVisible(this.allowanceRefreshing);
-    await this.verifier.verifyTheElementIsVisible(this.allowanceRefreshingInfoIcon);
-    await this.clickOnElement(this.allowanceRefreshingInfoIcon);
-    await this.verifier.verifyTheElementIsVisible(this.allowanceRefreshingInfoIconTooltipText);
-    await this.verifier.verifyElementHasText(
-      this.allowanceRefreshingInfoIconTooltipText,
-      'Your monthly allowance is refreshing and will be available soon'
-    );
-    await this.allowanceRefreshingInfoIcon.click({ force: true });
-  }
-
-  /**
-   * Disable distribution allowance as success
-   */
-  async disableDistributionAllowanceAsSuccess(): Promise<void> {
     const { getQuery } = await import('@rewards/utils/dbQuery');
-    const { executeQuery } = await import('@rewards/utils/dbUtils');
+    const { executeQuery } = await import('@core/utils/dbUtils');
 
-    const tenantCode = await this.page.evaluate(() => {
-      return (window as any).Simpplr?.Settings?.organizationId;
-    });
-    const resultAsSuccess = getQuery('setDistributionAllowanceAsSuccess');
-    await executeQuery(resultAsSuccess.replace('tenantCode', tenantCode));
-  }
-
-  /**
-   * Navigate to recognition hub and validate allowance refreshing
-   */
-  async navigateToRecognitionHubAndValidateAllowanceRefreshing(): Promise<void> {
-    await this.visitRecognitionHub();
-    await this.rewardRecognitionFirstPost.waitFor({ state: 'visible', timeout: 15000 });
-  }
-
-  /**
-   * Enable distribution allowance as failed
-   */
-  async enableDistributionAllowanceAsFailed(): Promise<void> {
     const tenantCode = await this.page.evaluate(() => {
       return (window as any).Simpplr?.Settings?.organizationId;
     });

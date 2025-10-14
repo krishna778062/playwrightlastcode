@@ -1,6 +1,6 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '@/src/core/components/baseComponent';
+import { BaseComponent } from '@core/components/baseComponent';
 
 export class TopNavBarComponent extends BaseComponent {
   readonly profileSettingsButton: Locator;

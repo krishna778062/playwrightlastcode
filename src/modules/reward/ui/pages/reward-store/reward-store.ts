@@ -152,8 +152,11 @@ export class RewardsStore extends BasePage {
     console.log('selected country:', selectedOption);
   }
 
-  verifyThePageIsLoaded(): Promise<void> {
-    return Promise.resolve(undefined);
+  async verifyThePageIsLoaded(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.giftCardNames.last(), {
+      timeout: 30000,
+      assertionMessage: 'Gift card page is loaded.',
+    });
   }
 
   async verifyGiftCardVisibility(giftCardName: string, visibility: 'Active' | 'Inactive') {
@@ -202,27 +205,31 @@ export class RewardsStore extends BasePage {
           res.status() === 200 &&
           res.request().method() === 'GET'
       ),
-      this.visit(),
-      this.verifyThePageIsLoaded(), // action that triggers API
+      this.visit(), // action that triggers API
+      this.verifyThePageIsLoaded(),
     ]);
     const body = await apiResponse.json();
     const isRewardEnabled = body.rewardConfig?.enabled;
-    const isPeerGiftingEnabled = body.rewardConfig?.peerGiftingEnabled;
+    const isPeerGiftingDisabled = body.rewardConfig?.peerGiftingEnabled;
     console.log(
-      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingEnabled}`
+      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
     );
-    await this.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingEnabled);
-    await this.visit();
+    if (!isRewardEnabled || !isPeerGiftingDisabled) {
+      const manageRewardsPage = new ManageRewardsOverviewPage(this.page);
+      await manageRewardsPage.loadPage();
+      await manageRewardsPage.verifyThePageIsLoaded();
+      await this.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
+      await this.visit();
+      await this.verifyThePageIsLoaded();
+    }
   }
 
   /**
    * Check and enable rewards and peer gifting based on current state
    */
-  private async checkTheRewardsIsEnabled(isRewardEnabled: boolean, isPeerGiftingEnabled: boolean): Promise<void> {
+  private async checkTheRewardsIsEnabled(isRewardEnabled: boolean, isPeerGiftingDisabled: boolean): Promise<void> {
     const manageRewardsPage = new ManageRewardsOverviewPage(this.page);
-
-    if (!isRewardEnabled && !isPeerGiftingEnabled) {
-      // Both disabled: Enable peer gifting first, then rewards
+    if (!isRewardEnabled && !isPeerGiftingDisabled) {
       await manageRewardsPage.peerGifting.loadPage();
       await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
 
@@ -247,16 +254,15 @@ export class RewardsStore extends BasePage {
       });
       await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards enabled');
       await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Rewards overview');
-    } else if (!isRewardEnabled && isPeerGiftingEnabled) {
-      // Only rewards disabled: Enable rewards directly
+    } else if (!isRewardEnabled && isPeerGiftingDisabled) {
+      // Directly enable Rewards
       await manageRewardsPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
       await manageRewardsPage.clickOnElement(manageRewardsPage.enableRewardsButton, {
         stepInfo: 'Enabling rewards',
       });
       await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards enabled');
       await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Rewards overview');
-    } else if (isRewardEnabled && !isPeerGiftingEnabled) {
-      // Only peer gifting disabled: Enable peer gifting
+    } else if (isRewardEnabled && !isPeerGiftingDisabled) {
       await manageRewardsPage.peerGifting.loadPage();
       await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
 
@@ -274,9 +280,9 @@ export class RewardsStore extends BasePage {
         stepInfo: 'Confirming grant allowances',
       });
       await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
-    } else if (isRewardEnabled && isPeerGiftingEnabled) {
+    } else if (isRewardEnabled && isPeerGiftingDisabled) {
       // Both are already enabled, do nothing
-      console.log('Reward and Peer Gifting are already enabled.');
+      console.log('Reward and Gifting is enabled.');
     }
   }
 
@@ -685,7 +691,7 @@ export class RewardsStore extends BasePage {
               refreshingAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
             },
             redeemable: {
-              pendingIn: 0,
+              pendingIn: 100,
               available: 10000,
             },
             redeemed: {
@@ -703,27 +709,33 @@ export class RewardsStore extends BasePage {
    * Get all API gift list
    */
   async getAllTheAPIGiftList(): Promise<string[]> {
-    const response = await this.page.waitForResponse(
-      res => res.url().includes('/recognition/rewards/catalog') && res.status() === 200
-    );
+    // Wait for the API response and navigate to the page
+    const [response] = await Promise.all([
+      this.page.waitForResponse(
+        res => res.url().includes('/recognition/redemption/rewards/search') && res.status() === 200,
+        { timeout: 15000 }
+      ),
+      this.visit(), // navigation
+      this.verifyThePageIsLoaded(),
+    ]);
     const data = await response.json();
-    const apiGiftList = data?.results?.map((item: any) => item.name) || [];
-    return apiGiftList;
+    return data?.results?.map((item: any) => item?.brand?.brandName).filter((name: any) => name) || [];
   }
 
   /**
-   * Get filtered API gift list
+   * Get filtered API gift list - waits for search API response after search is performed
    */
   async getFilteredAPIGiftList(searchTerm: string): Promise<string[]> {
+    // Wait for the search API response that should be triggered by the search action
     const response = await this.page.waitForResponse(
-      res => res.url().includes('/recognition/rewards/catalog') && res.status() === 200
+      res =>
+        res.url().includes('/recognition/redemption/rewards/search') &&
+        res.url().includes(`q=${searchTerm}`) &&
+        res.status() === 200,
+      { timeout: 15000 }
     );
     const data = await response.json();
-    const apiGiftList =
-      data?.results
-        ?.filter((item: any) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
-        ?.map((item: any) => item.name) || [];
-    return apiGiftList;
+    return data?.results?.map((item: any) => item?.brand?.brandName).filter((name: any) => name) || [];
   }
 
   /**
@@ -741,7 +753,7 @@ export class RewardsStore extends BasePage {
       }
     }
     const trimmedUIGiftList = UIGiftList.map(name => name.trim());
-    const trimmedAPIGiftList = apiGiftList.map(name => name.trim());
+    const trimmedAPIGiftList = apiGiftList.filter(name => name).map(name => name.trim());
     expect(trimmedUIGiftList).toEqual(trimmedAPIGiftList);
   }
 
