@@ -5,6 +5,7 @@ export const PEOPLE_SEARCH_TEST_DATA = {
   searchTerm: 'Search User',
   firstName: 'Search',
   lastName: 'User',
+  label: 'People',
 
   /**
    * Fields to update for the user
@@ -17,6 +18,13 @@ export const PEOPLE_SEARCH_TEST_DATA = {
     city: 'Bengaluru',
     state: 'Karnataka',
     country: 'India',
+  },
+
+  /**
+   * Expertise data
+   */
+  expertise: {
+    name: `Automation_${Math.floor(Math.random() * 90000) + 10000}`, // Unique expertise name with 5 digits
   },
 
   /**

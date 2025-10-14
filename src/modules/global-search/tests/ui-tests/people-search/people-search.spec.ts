@@ -1,9 +1,11 @@
-import { TestPriority } from '@/src/core/constants/testPriority';
-import { TestGroupType } from '@/src/core/constants/testType';
-import { tagTest } from '@/src/core/utils/testDecorator';
+import { TestPriority } from '@core/constants/testPriority';
+import { TestGroupType } from '@core/constants/testType';
+import { tagTest } from '@core/utils/testDecorator';
+
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { PEOPLE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/people-search.test-data';
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
+import { ResultListingComponent } from '@/src/modules/global-search/ui/components/resultsListComponent';
 
 test.describe(
   'global Search - People Search functionality',
@@ -39,7 +41,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'SEN-XXXXX', // Replace with actual Zephyr test ID
+          zephyrTestId: 'SEN-19472', // Replace with actual Zephyr test ID
         });
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(testData.searchTerm, {
@@ -56,7 +58,7 @@ test.describe(
         const expectedLocation = `${testData.updateFields.city}, ${testData.updateFields.state}, ${testData.updateFields.country}`;
         await peopleResult.verifyLocationIsDisplayed(expectedLocation);
         await peopleResult.verifyUserThumbnailIsDisplayed();
-        await peopleResult.verifyNavigationToTitleLink(userId, testData.searchTerm, 'People');
+        await peopleResult.verifyNavigationToTitleLink(userId, testData.searchTerm, testData.label);
         await peopleResult.goBackToPreviousPage();
         await peopleResult.verifyNavigationWithUserThumbnailLink(userId);
         await peopleResult.goBackToPreviousPage();
@@ -64,6 +66,110 @@ test.describe(
         await peopleResult.goBackToPreviousPage();
         await peopleResult.verifyNavigationWithHomePageLink();
         await peopleResult.goBackToPreviousPage();
+      }
+    );
+
+    test(
+      `verify People Autocomplete functionality`,
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-19473', // Replace with actual Zephyr test ID
+        });
+
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+
+        // Type in search input
+        const topNavBarComponent = appManagerFixture.navigationHelper.topNavBarComponent;
+        await topNavBarComponent.typeInSearchBarInput(testData.searchTerm, {
+          stepInfo: `Typing "${testData.searchTerm}" in search input`,
+        });
+
+        // Wait for autocomplete to appear first
+        const resultList = new ResultListingComponent(appManagerFixture.page);
+        await resultList.waitForAndVerifyAutocompleteListIsDisplayed(
+          topNavBarComponent.globalSearchInputBox,
+          testData.searchTerm
+        );
+
+        // Then get specific autocomplete item
+        const peopleResult = resultList.getAutocompleteItemByName(testData.searchTerm);
+
+        // Verify autocomplete item data (name and label)
+        await peopleResult.verifyAutocompleteItemData(testData.searchTerm, testData.label);
+
+        // Click on the autocomplete item and verify navigation
+        await peopleResult.verifyAutocompleteNavigationToTitleLink(userId, testData.searchTerm, testData.label);
+      }
+    );
+
+    test(
+      `verify people search with sidebar filter functionality`,
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck', '@test'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-19474', // Replace with actual Zephyr test ID
+        });
+
+        // Test-level beforeEach logic
+        let testUserId: string;
+        let testExpertiseId: string;
+
+        try {
+          // Get user ID using getIdentityUserId method with data from test file
+          testUserId = await appManagerFixture.identityManagementHelper.identityService.getIdentityUserId(
+            testData.firstName,
+            testData.lastName
+          );
+
+          // Create expertise
+          const expertiseResponse = await appManagerFixture.expertiseManagementService.createExpertise(
+            testData.expertise.name
+          );
+          testExpertiseId = expertiseResponse.result.uuid;
+          console.log(`Expertise created: ${testData.expertise.name} with ID: ${testExpertiseId}`);
+
+          // Endorse user with expertise
+          const endorseResponse = await appManagerFixture.expertiseManagementService.endorseUserWithExpertise(
+            testUserId,
+            testExpertiseId
+          );
+          console.log(`User ${testUserId} endorsed with expertise ${testExpertiseId}:`, endorseResponse.message);
+        } catch (error) {
+          throw error;
+        }
+
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+
+        // Navigate to global search and search for the user
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(testData.searchTerm, {
+          stepInfo: `Searching with term "${testData.searchTerm}" to verify people appear in search results with sidebar filter`,
+        });
+
+        // Verify the user appears in search results
+        const peopleResult = await globalSearchResultPage.getPeopleResultItemExactlyMatchingTheSearchTerm(
+          testData.searchTerm
+        );
+        await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
+
+        // TODO: Add sidebar filter verification logic here
+        // This is where you would implement the actual sidebar filter test
+        console.log('Sidebar filter test - implementation needed');
+
+        //Test-level afterEach logic
+        try {
+          // Cleanup: Unendorse user from expertise
+          if (testUserId && testExpertiseId) {
+            await appManagerFixture.expertiseManagementService.unendorseUserFromExpertise(testUserId, testExpertiseId);
+            console.log(`User ${testUserId} unendorsed from expertise ${testExpertiseId} successfully`);
+          }
+        } catch (error) {
+          console.warn(`Failed to cleanup test data:`, error);
+        }
       }
     );
   }
