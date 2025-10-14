@@ -62,6 +62,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly courseId: RegExp;
   readonly courseStatus: Locator;
   readonly courseType: Locator;
+  readonly comboboxLocator: Locator;
+  readonly fieldDropdownLocator: (fieldName: string) => Locator;
 
   constructor(page: Page) {
     super(page);
@@ -126,6 +128,9 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.taskTitle = page.getByRole('heading', { level: 3 });
     this.statusTag = page.getByTestId('tag');
     this.MondayLastUpdatedPattern = /Last updated on/;
+    this.comboboxLocator = page.locator('[role="combobox"]');
+    this.fieldDropdownLocator = (fieldName: string) =>
+      page.locator(`//fieldset[@aria-label="${fieldName}"]//following-sibling::div//input[@role="combobox"]`);
   }
 
   /**
@@ -579,6 +584,37 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       const locator = this.button(buttonName);
       await expect(locator).toBeVisible();
       status.toLowerCase() === 'enabled' ? await expect(locator).toBeEnabled() : await expect(locator).toBeDisabled();
+    });
+  }
+  /**
+   * Verify Docebo report data shown in tile
+   */
+  async verifyDoceboReportData(tileTitle: string, EnrollmentStatus: string, CourseType: string): Promise<void> {
+    await test.step(`Verify ${EnrollmentStatus} and ${CourseType} for ${tileTitle}`, async () => {
+      const tile = this.getTile(tileTitle);
+      await expect(tile).toBeVisible({ timeout: 5_000 });
+      const tags = this.getTagElement(tile).getByText(EnrollmentStatus, { exact: true });
+      await expect(tags.first(), `Status "${EnrollmentStatus}" should be visible for "${tileTitle}"`).toBeVisible({
+        timeout: 5_000,
+      });
+      const tags2 = this.getTagElement(tile).getByText(CourseType, { exact: true });
+      await expect(tags2.first(), `Status "${CourseType}" should be visible for "${tileTitle}"`).toBeVisible({
+        timeout: 5_000,
+      });
+    });
+  }
+  async selectRadioOptionandValue(fieldName: string, radioOption: string, dropdownValue: string): Promise<void> {
+    await test.step(`Select ${radioOption} for ${fieldName} and choose ${dropdownValue}`, async () => {
+      // Select radio option
+      const field = this.group(fieldName);
+      const radio = field.getByLabel(radioOption);
+      await this.clickOnElement(radio);
+      // Click on the dropdown to open
+      const dropdown = this.fieldDropdownLocator(fieldName);
+      await this.clickOnElement(dropdown);
+      // Select the value from dropdown
+      const menuItem = this.menuitem(dropdownValue);
+      await this.clickOnElement(menuItem);
     });
   }
 }
