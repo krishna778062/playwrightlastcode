@@ -3,7 +3,7 @@ import { ExternalAppProvider } from '@integrations/ui/pages/externalAppsPage';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { TileOperationsComponent } from '@integrations-components/tileOperationsComponent';
 import { TimeOffRequestTileComponent } from '@integrations-components/timeOffRequestTileComponent';
-import { AIRTABLE_TILE } from '@integrations-test-data/app-tiles.test-data';
+import { AIRTABLE_TILE, DOCEBO_VALUES } from '@integrations-test-data/app-tiles.test-data';
 import { expect, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
@@ -493,5 +493,86 @@ export class HomeDashboard extends BasePage {
    */
   async verifyButtonStatus(status: string, buttonName: string): Promise<void> {
     return this.tileOperationsComponent.verifyButtonStatus(status, buttonName);
+  }
+  /**
+   * Complete workflow to add Docebo app tile
+   */
+  async addTilewithPersonalizeDocebo(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add Docebo tile: ${tileTitle}`, async () => {
+      await this.airtableComponent.clickEditDashboard();
+      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
+      await this.airtableComponent.selectAppTile(appName);
+      await this.airtableComponent.selectTile(tileName);
+      await this.airtableComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
+      await this.airtableComponent.setTileTitle(tileTitle);
+      await this.selectRadioOption(DOCEBO_VALUES.ENROLLMENT_STATUS, ORGANIZATION_SETTINGS.USER_DEFINED);
+      await this.selectRadioOption(DOCEBO_VALUES.COURSE_TYPE, ORGANIZATION_SETTINGS.USER_DEFINED);
+      await this.selectRadioOption(DOCEBO_VALUES.ENROLLMENT_LEVEL, ORGANIZATION_SETTINGS.USER_DEFINED);
+      await this.airtableComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
+  async PersonalizeTileDocebo(
+    tileTitle: string,
+    fieldName: string,
+    fieldValue: string,
+    fieldName2: string,
+    fieldValue2: string,
+    fieldName3: string,
+    fieldValue3: string
+  ): Promise<void> {
+    await test.step(`Personalize tile: ${tileTitle}`, async () => {
+      await this.appTileComponent.openPersonalizeOptions(tileTitle);
+      await this.selectFromDropdown(fieldName, fieldValue);
+      await this.selectFromDropdown(fieldName2, fieldValue2);
+      await this.selectFromDropdown(fieldName3, fieldValue3);
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.SAVE);
+    });
+  }
+  /**
+   * Verify Docebo report data  shown in tile
+   */
+  async verifyDoceboReportData(tileTitle: string, EnrollmentStatus: string, CourseType: string): Promise<void> {
+    await this.tileOperationsComponent.verifyDoceboReportData(tileTitle, EnrollmentStatus, CourseType);
+  }
+  /**
+   * Complete workflow to add Docebo app tile
+   */
+  async addTilewithAppManagerDefinedDocebo(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    destination: string,
+    fieldName: string,
+    fieldValue: string,
+    fieldName2: string,
+    fieldValue2: string,
+    fieldName3: string,
+    fieldValue3: string
+  ): Promise<void> {
+    await test.step(`Add Docebo tile: ${tileTitle}`, async () => {
+      await this.airtableComponent.clickEditDashboard();
+      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
+      await this.airtableComponent.selectAppTile(appName);
+      await this.airtableComponent.selectTile(tileName);
+      await this.airtableComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
+      await this.airtableComponent.setTileTitle(tileTitle);
+      await this.selectRadioOptionandValue(fieldName, ORGANIZATION_SETTINGS.APP_MANAGER_DEFINED, fieldValue);
+      await this.selectRadioOptionandValue(fieldName2, ORGANIZATION_SETTINGS.APP_MANAGER_DEFINED, fieldValue2);
+      await this.selectRadioOptionandValue(fieldName3, ORGANIZATION_SETTINGS.APP_MANAGER_DEFINED, fieldValue3);
+      await this.airtableComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
+  /**
+   * Select radio option and dropdown value using tile operations component
+   */
+  async selectRadioOptionandValue(fieldName: string, radioOption: string, dropdownValue: string): Promise<void> {
+    return this.tileOperationsComponent.selectRadioOptionandValue(fieldName, radioOption, dropdownValue);
   }
 }
