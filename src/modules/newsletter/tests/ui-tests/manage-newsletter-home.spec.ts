@@ -6,8 +6,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-test.describe.only('Newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] }, () => {
-  test.only(
+test.describe('Newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] }, () => {
+  test(
     'Validate the Manage Newslettter page UI',
     {
       tag: [
@@ -27,10 +27,8 @@ test.describe.only('Newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLET
       await newsletterHomePage.loadPage();
       await newsletterHomePage.verifyThePageIsLoaded();
       await newsletterHomePage.verifier.waitUntilPageHasNavigatedTo('/employee-newsletter');
-      // const newsletterName = `Test_Newsletter_`;
-      // await newsletterHomePage.createNewsletter(newsletterName);
       await newsletterHomePage.validateHeaders();
-      //await newsletterHomePage.validateSearchAndFilter();
+      await newsletterHomePage.validateSearchAndFilter();
       await newsletterHomePage.validateNewsletterTable();
     }
   );
@@ -55,7 +53,7 @@ test.describe.only('Newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLET
       await newsletterHomePage.loadPage();
       await newsletterHomePage.verifyThePageIsLoaded();
       await newsletterHomePage.verifier.waitUntilPageHasNavigatedTo('/employee-newsletter');
-      const newsletterName = `Test_Newsletter_`;
+      const newsletterName = `Test_Newsletter_${Date.now()}`;
       await newsletterHomePage.createNewsletter(newsletterName);
     }
   );
