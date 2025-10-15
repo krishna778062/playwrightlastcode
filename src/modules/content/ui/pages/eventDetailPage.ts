@@ -2,6 +2,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
+import { EventSyncDestination } from '@/src/core/types/contentManagement.types';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { EventCreationPage } from '@/src/modules/content/ui/pages/eventCreationPage';
 
@@ -17,7 +18,7 @@ export interface IEventDetailActions {
   unpublishEvent: () => Promise<void>;
   publishEvent: () => Promise<void>;
   editEvent: (options: { title?: string; description?: string; location?: string }) => Promise<void>;
-  toggleEventSync: (enable: boolean) => Promise<void>;
+  toggleEventSync: (enable: boolean, destination?: EventSyncDestination) => Promise<void>;
 }
 
 export interface IEventDetailAssertions {
@@ -49,6 +50,8 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
   readonly editButtonLocator: Locator;
   readonly eventSyncToggleLocator: Locator;
   readonly removeSyncButtonLocator: Locator;
+  readonly eventSyncGoogleCalendarLabelLocator: Locator;
+  readonly eventSyncOutlookCalendarLabelLocator: Locator;
 
   constructor(page: Page, siteId: string, eventId: string) {
     super(page, PAGE_ENDPOINTS.getContentPreviewPage(siteId, eventId, 'event'));
@@ -69,6 +72,12 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
     this.editButtonLocator = page.getByRole('button', { name: 'Edit' });
     this.eventSyncToggleLocator = page.getByRole('switch');
     this.removeSyncButtonLocator = page.getByRole('button', { name: 'Remove sync' });
+    this.eventSyncGoogleCalendarLabelLocator = page.locator(
+      '//label[@for="eventSync_destinationgooglecalendar" and @title="Google Calendar sync"]'
+    );
+    this.eventSyncOutlookCalendarLabelLocator = page.locator(
+      '//label[@for="eventSync_destinationoutlook" and @title="Outlook Calendar sync"]'
+    );
   }
 
   get actions(): IEventDetailActions {
@@ -123,7 +132,7 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
   async unpublishEvent(): Promise<void> {
     await test.step('Unpublish event via three dots menu', async () => {
       await this.threeDotsMenuLocator.click({ force: true });
-
+      await expect(this.unpublishButtonLocator).toBeVisible({ timeout: 10000 });
       if (await this.unpublishButtonLocator.isVisible()) {
         await this.unpublishButtonLocator.click({ force: true });
       } else {
@@ -172,7 +181,7 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
   /**
    * Toggles event sync on/off
    */
-  async toggleEventSync(enable: boolean): Promise<void> {
+  async toggleEventSync(enable: boolean, destination?: EventSyncDestination): Promise<void> {
     await test.step(`${enable ? 'Enable' : 'Disable'} event sync`, async () => {
       await this.editButtonLocator.click();
       await this.page.waitForLoadState('domcontentloaded');
@@ -189,6 +198,14 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
           await this.removeSyncButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
           if (await this.removeSyncButtonLocator.isVisible()) {
             await this.removeSyncButtonLocator.click({ force: true });
+          }
+        }
+
+        if (destination) {
+          if (destination === EventSyncDestination.GOOGLE_CALENDAR) {
+            await this.eventSyncGoogleCalendarLabelLocator.click({ force: true });
+          } else {
+            await this.eventSyncOutlookCalendarLabelLocator.click({ force: true });
           }
         }
       }

@@ -1,3 +1,4 @@
+/* eslint-disable simple-import-sort/imports */
 import { faker } from '@faker-js/faker';
 import {
   assertCompleteEventConfiguration,
@@ -13,16 +14,18 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { IntegrationsFeatureTags, IntegrationsSuiteTags } from '../../constants/testTags';
+import { ExternalAppProvider, ExternalAppsPage } from '../../ui/pages/externalAppsPage';
 
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { SiteMembershipAction, SitePermission } from '@/src/core/types/siteManagement.types';
 import { EventDetailPage, RsvpOption } from '@/src/modules/content/ui/pages/eventDetailPage';
 import {
-  createEventPayload,
-  EVENT_CONFIGS,
-  EXPECTED_EVENT_SYNC_CONFIG,
-} from '@/src/modules/integrations/test-data/eventSync.test-data';
+  createGoogleEventPayload as createEventPayload,
+  GOOGLE_EVENT_CONFIGS as EVENT_CONFIGS,
+  EXPECTED_GOOGLE_EVENT_SYNC_CONFIG as EXPECTED_EVENT_SYNC_CONFIG,
+} from '@/src/modules/integrations/test-data/calendarEventSync.test-data';
 import { UserManagementService } from '@/src/modules/platforms/apis/services/UserManagementService';
+import { CalendarIntegrationHelper } from '../../apis/helpers/integrationHelper';
 
 test.describe(
   'event Sync Integration Tests',
@@ -86,11 +89,14 @@ test.describe(
 
         // Verify event sync to Google Calendar and extract event ID using new helper class
         const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
-        const verificationResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+        const authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
-        const googleEventId =
-          verificationResult.found && verificationResult.event ? verificationResult.event.id : undefined;
+        expect(
+          authorEventSyncResult.found,
+          `Event "${eventTitle}" should have been synced to Google Calendar for author`
+        ).toBe(true);
 
+        const googleEventId = authorEventSyncResult.event?.id;
         if (!googleEventId) {
           throw new Error(`Google Calendar event not found for "${eventTitle}" - cannot perform 2-way RSVP sync test`);
         }
@@ -153,6 +159,11 @@ test.describe(
         const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
         const verificationResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
+        expect(
+          verificationResult.found,
+          `Event "${eventTitle}" should have been synced to Google Calendar for author`
+        ).toBe(true);
+
         const googleEventId =
           verificationResult.found && verificationResult.event ? verificationResult.event.id : undefined;
 
@@ -165,6 +176,7 @@ test.describe(
         await eventDetailPage.assertions.verifyThePageIsLoaded();
         await eventDetailPage.assertions.verifyEventTitle(eventTitle);
 
+        // Delete event
         await eventDetailPage.actions.deleteEvent();
 
         // Verify event removal from Google Calendar using new helper
@@ -237,8 +249,10 @@ test.describe(
         await eventDetailPage.assertions.verifyThePageIsLoaded();
         await eventDetailPage.assertions.verifyEventTitle(eventTitle);
 
+        // Unpublish event
         await eventDetailPage.actions.unpublishEvent();
 
+        // Verify event is removed from Google Calendar after unpublishing
         const unpublishVerificationResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
           expectFound: false,
         });
@@ -248,8 +262,10 @@ test.describe(
           `Event "${eventTitle}" should have been removed from Google Calendar after unpublishing.`
         ).toBe(false);
 
+        // Re-Publish event
         await eventDetailPage.actions.publishEvent();
 
+        // Verify event is synced back to Google Calendar after republishing
         const republishVerificationResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
         expect(
@@ -310,7 +326,13 @@ test.describe(
         assertCompleteEventConfiguration(eventResult, EXPECTED_EVENT_SYNC_CONFIG);
 
         const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
-        await appManagerCalendarHelper.verifyEventSyncWithRetry(originalEventTitle);
+        const authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(originalEventTitle);
+
+        // Verify event is synced to Google Calendar for author
+        expect(
+          authorEventSyncResult.found,
+          `Event "${originalEventTitle}" should have been synced to Google Calendar for author`
+        ).toBe(true);
 
         // Navigate to event detail page and edit the event
         const eventDetailPage = new EventDetailPage(appManagerFixture.page, siteId, eventResult.eventId);
@@ -323,6 +345,7 @@ test.describe(
         const updatedEventDescription = 'UPDATED event description after editing';
         const updatedEventLocation = 'UPDATED Test Location';
 
+        // Edit event
         await eventDetailPage.actions.editEvent({
           title: updatedEventTitle,
           description: updatedEventDescription,
@@ -353,7 +376,7 @@ test.describe(
           IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
         ],
       },
-      async ({ appManagerFixture, testSiteName }) => {
+      async ({ appManagerFixture }) => {
         test.setTimeout(360000);
         tagTest(test.info(), {
           description: 'Test site deactivation/reactivation impact on Google Calendar event sync',
@@ -393,23 +416,37 @@ test.describe(
         assertCompleteEventConfiguration(eventResult, EXPECTED_EVENT_SYNC_CONFIG);
 
         const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
-        await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+        const authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+
+        // Verify event is synced to Google Calendar for author
+        expect(
+          authorEventSyncResult.found,
+          `Event "${eventTitle}" should have been synced to Google Calendar for author`
+        ).toBe(true);
 
         // STEP 1: Deactivate the site
         await appManagerFixture.siteManagementHelper.siteManagementService.deactivateSite(siteId);
-        await appManagerFixture.page.waitForTimeout(20000);
 
         // Verify event removal from Google Calendar after site deactivation
-        await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
+        const deactivationEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
           expectFound: false,
         });
 
+        expect(
+          deactivationEventSyncResult.found,
+          `Event "${eventTitle}" should have been removed from Google Calendar after site deactivation.`
+        ).toBe(false);
+
         // STEP 2: Reactivate the site
         await appManagerFixture.siteManagementHelper.siteManagementService.activateSite(siteId);
-        await appManagerFixture.page.waitForTimeout(25000);
 
         // Verify event reappears in Google Calendar after site reactivation
-        await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+        const reactivationEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+
+        expect(
+          reactivationEventSyncResult.found,
+          `Event "${eventTitle}" should have been synced to Google Calendar after site reactivation.`
+        ).toBe(true);
       }
     );
 
@@ -464,13 +501,20 @@ test.describe(
         assertCompleteEventConfiguration(eventResult, EXPECTED_EVENT_SYNC_CONFIG);
 
         const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
-        await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+        const authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+
+        // Verify event is synced to Google Calendar for author
+        expect(
+          authorEventSyncResult.found,
+          `Event "${eventTitle}" should have been synced to Google Calendar for author`
+        ).toBe(true);
 
         const eventDetailPage = new EventDetailPage(appManagerFixture.page, siteId, eventResult.eventId);
         await eventDetailPage.loadPage();
         await eventDetailPage.assertions.verifyThePageIsLoaded();
         await eventDetailPage.assertions.verifyEventTitle(eventTitle);
 
+        // Disable event sync
         await eventDetailPage.actions.toggleEventSync(false);
 
         const disableSyncVerificationResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
@@ -482,6 +526,7 @@ test.describe(
           `Event "${eventTitle}" should have been removed from Google Calendar after disabling event sync.`
         ).toBe(false);
 
+        // Re-enable event sync
         await eventDetailPage.actions.toggleEventSync(true);
 
         const enableSyncVerificationResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
@@ -549,6 +594,7 @@ test.describe(
         // Get user ID for the end user email
         const endUserId = await userManagementService.getUserId(endUserEmail);
 
+        // Add end user as site member
         await appManagerFixture.siteManagementHelper.siteManagementService.makeUserSiteMembership(
           siteId,
           endUserId,
@@ -557,7 +603,12 @@ test.describe(
         );
 
         const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
-        await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+        const authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+
+        expect(
+          authorEventSyncResult.found,
+          `Event "${eventTitle}" should have been synced to Google Calendar for author`
+        ).toBe(true);
 
         const endUserCalendarHelper = createEndUserGoogleCalendarHelper();
         const endUserVerificationResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle);
@@ -762,7 +813,12 @@ test.describe(
         ).toBe(true);
 
         // Step 5: Verify App Manager calendar still has the event
-        await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+        const authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+
+        expect(
+          authorEventSyncResult.found,
+          `Event "${eventTitle}" should have been synced to Google Calendar for author`
+        ).toBe(true);
 
         await endUserContext.close();
       }
@@ -791,7 +847,7 @@ test.describe(
 
         const appManagerEmail = getEnvConfig().appManagerEmail;
         const organizerId = await appManagerFixture.userManagementService.getUserId(appManagerEmail);
-        // Step 1: Add end user as site member (while site is public)
+
         const sitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites();
         const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
 
@@ -840,8 +896,6 @@ test.describe(
         // Step 5: Change site from public to private
         await appManagerFixture.siteManagementHelper.siteManagementService.updateSiteAccess(siteId, 'private');
 
-        await appManagerFixture.page.waitForTimeout(10000);
-
         // Step 6: Verify event still exists in both calendars after site access change
         await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
         const postChangeEndUserVerification = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle);
@@ -851,6 +905,606 @@ test.describe(
           `Event "${eventTitle}" should remain in end user calendar after site changes from public to private because they are a site member. ` +
             `Site members should retain access to events even after site becomes private.`
         ).toBe(true);
+      }
+    );
+
+    test(
+      'author of the Event disconnects Google Calendar and Verify Event is removed from Google Calendar for both Author and End User and Reconnect Google Calendar and Verify Event is synced back to Google Calendar for both Author and End User',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          IntegrationsFeatureTags.EVENT_SYNC,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
+          '@disconnectGoogleCalendar',
+        ],
+      },
+      async ({ appManagerFixture, testSiteName }) => {
+        tagTest(test.info(), {
+          description:
+            'Test author of the Event disconnects Google Calendar and Verify Event is removed from Google Calendar for both Author and End User',
+          zephyrTestId: 'NT-27146, INT-27086',
+        });
+        const userManagementService = new UserManagementService(
+          appManagerFixture.apiContext,
+          getEnvConfig().apiBaseUrl
+        );
+
+        // Login as app manager
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
+        const sitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites();
+        const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
+
+        if (!testSite) {
+          throw new Error(`Test site "${testSiteName}" not found`);
+        }
+
+        const siteId = testSite.siteId;
+
+        // Add end user as site member
+        const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
+        const endUserId = await userManagementService.getUserId(endUserEmail);
+        await appManagerFixture.siteManagementHelper.siteManagementService.makeUserSiteMembership(
+          siteId,
+          endUserId,
+          SitePermission.MEMBER,
+          SiteMembershipAction.ADD
+        );
+
+        const eventTitle = `${EVENT_CONFIGS.RSVP_SYNC.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
+
+        const eventPayload = createEventPayload({
+          title: eventTitle,
+          description: EVENT_CONFIGS.RSVP_SYNC.description,
+          location: EVENT_CONFIGS.RSVP_SYNC.location,
+          organizerId,
+        });
+
+        const eventResult = await appManagerFixture.contentManagementHelper.contentManagementService.addNewEventContent(
+          siteId,
+          eventPayload
+        );
+
+        assertCompleteEventConfiguration(eventResult, EXPECTED_EVENT_SYNC_CONFIG);
+        const eventDetailPage = new EventDetailPage(appManagerFixture.page, siteId, eventResult.eventId);
+        await eventDetailPage.loadPage();
+        await eventDetailPage.assertions.verifyThePageIsLoaded();
+        await eventDetailPage.assertions.verifyEventTitle(eventTitle);
+        await eventDetailPage.assertions.verifyRsvpIndicators();
+
+        // Verify event sync to Google Calendar for both Author and End User
+        const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
+        const endUserCalendarHelper = createEndUserGoogleCalendarHelper();
+
+        let authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+        let endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+
+        expect(
+          authorEventSyncResult.found,
+          `Event "${eventTitle}" should have been synced to Google Calendar for author`
+        ).toBe(true);
+        expect(
+          endUserEventSyncResult.found,
+          `Event "${eventTitle}" should have been synced to Google Calendar for end user`
+        ).toBe(true);
+
+        // Disconnect Google Calendar for Author
+        const externalAppsPage = new ExternalAppsPage(appManagerFixture.page);
+        console.log('Navigating to external apps page');
+        await externalAppsPage.navigateToExternalAppsPage();
+        await externalAppsPage.verifyThePageIsLoaded();
+        console.log('Disconnecting Google Calendar from app manager');
+        await externalAppsPage.disconnectIntegration(ExternalAppProvider.GOOGLE_CALENDAR);
+
+        // Verify event is removed from Google Calendar for author and end user
+        authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
+          expectFound: false,
+        });
+        endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
+          expectFound: false,
+        });
+
+        expect(
+          authorEventSyncResult.found,
+          `Event "${eventTitle}" should have been removed from Google Calendar for author`
+        ).toBe(false);
+        expect(
+          endUserEventSyncResult.found,
+          `Event "${eventTitle}" should have been removed from Google Calendar for end user`
+        ).toBe(false);
+
+        console.log('Event is removed from Google Calendar for author and end user');
+
+        console.log('Reconnecting Google Calendar to app manager');
+        // Reconnect Google Calendar to app manager
+        await externalAppsPage.connectGoogleAccountIntegration(
+          ExternalAppProvider.GOOGLE_CALENDAR,
+          'howard.nelson@simpplr.dev',
+          'Simpplr@1220169'
+        );
+        await externalAppsPage.verifyThePageIsLoaded();
+
+        console.log('Verifying event is synced back to Google Calendar for author and end user');
+        // Verify event is synced back to Google Calendar for author and end user
+        authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+        endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+
+        expect(
+          authorEventSyncResult.found,
+          `Event "${eventTitle}" should have been synced back to Google Calendar for author`
+        ).toBe(true);
+        expect(
+          endUserEventSyncResult.found,
+          `Event "${eventTitle}" should have been synced back to Google Calendar for end user`
+        ).toBe(true);
+        console.log('Event is synced back to Google Calendar for author and end user');
+      }
+    );
+
+    test(
+      'disconnects Google Calendar from App Level and Verify Event is removed from Google Calendar for both Author and End User',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          IntegrationsFeatureTags.EVENT_SYNC,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
+        ],
+      },
+      async ({ appManagerFixture, testSiteName, browser }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27332',
+        });
+
+        let calendarIntegrationHelper: CalendarIntegrationHelper;
+        let externalAppsPage: ExternalAppsPage;
+        let isGoogleCalendarDisconnected = false;
+
+        const userManagementService = new UserManagementService(
+          appManagerFixture.apiContext,
+          getEnvConfig().apiBaseUrl
+        );
+
+        // Cleanup function to restore Google Calendar connection
+        const restoreGoogleCalendar = async () => {
+          try {
+            if (isGoogleCalendarDisconnected) {
+              // Re-enable Google Calendar at app level
+              await calendarIntegrationHelper.updateCalendarIntegrationConfig({
+                googleCalendarEnabled: true,
+                outlookEnabled: true,
+              });
+
+              // Reconnect Google Calendar at user level for author
+              if (!externalAppsPage) {
+                externalAppsPage = new ExternalAppsPage(appManagerFixture.page);
+                await externalAppsPage.navigateToExternalAppsPage();
+                await externalAppsPage.verifyThePageIsLoaded();
+              }
+
+              const isAuthorConnected = await externalAppsPage.getConnectionStatus(ExternalAppProvider.GOOGLE_CALENDAR);
+              if (!isAuthorConnected) {
+                await externalAppsPage.connectGoogleAccountIntegration(
+                  ExternalAppProvider.GOOGLE_CALENDAR,
+                  'howard.nelson@simpplr.dev',
+                  'Simpplr@1220169'
+                );
+              }
+
+              // Reconnect Google Calendar at user level for end user
+              const endUserContext = await browser.newContext();
+              const endUserPage = await endUserContext.newPage();
+              const endUserHomePage = await LoginHelper.loginWithPassword(endUserPage, {
+                email: process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com',
+                password: process.env.QA_SYSTEM_END_USER_PASSWORD || 'Simpplr@12345',
+              });
+              await endUserHomePage.verifyThePageIsLoaded();
+
+              const endUserExternalAppsPage = new ExternalAppsPage(endUserPage);
+              await endUserExternalAppsPage.navigateToExternalAppsPage();
+              await endUserExternalAppsPage.verifyThePageIsLoaded();
+
+              const isEndUserConnected = await endUserExternalAppsPage.getConnectionStatus(
+                ExternalAppProvider.GOOGLE_CALENDAR
+              );
+              if (!isEndUserConnected) {
+                await endUserExternalAppsPage.connectGoogleAccountIntegration(
+                  ExternalAppProvider.GOOGLE_CALENDAR,
+                  'craig.gordon@simpplr.dev',
+                  '_Simp_1234'
+                );
+              }
+
+              await endUserContext.close();
+
+              console.log('✅ Cleanup: Google Calendar connection restored successfully for author and end user');
+            }
+          } catch (error) {
+            console.error('❌ Cleanup: Failed to restore Google Calendar connection:', error);
+          }
+        };
+
+        try {
+          // Login as app manager
+          const appManagerEmail = getEnvConfig().appManagerEmail;
+          const organizerId = await userManagementService.getUserId(appManagerEmail);
+          const sitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites();
+          const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
+
+          if (!testSite) {
+            throw new Error(`Test site "${testSiteName}" not found`);
+          }
+
+          const siteId = testSite.siteId;
+
+          // Add end user as site member
+          const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
+          const endUserId = await userManagementService.getUserId(endUserEmail);
+          await appManagerFixture.siteManagementHelper.siteManagementService.makeUserSiteMembership(
+            siteId,
+            endUserId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.ADD
+          );
+
+          const eventTitle = `${EVENT_CONFIGS.RSVP_SYNC.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
+
+          const eventPayload = createEventPayload({
+            title: eventTitle,
+            description: EVENT_CONFIGS.RSVP_SYNC.description,
+            location: EVENT_CONFIGS.RSVP_SYNC.location,
+            organizerId,
+          });
+
+          const eventResult =
+            await appManagerFixture.contentManagementHelper.contentManagementService.addNewEventContent(
+              siteId,
+              eventPayload
+            );
+
+          assertCompleteEventConfiguration(eventResult, EXPECTED_EVENT_SYNC_CONFIG);
+          const eventDetailPage = new EventDetailPage(appManagerFixture.page, siteId, eventResult.eventId);
+          await eventDetailPage.loadPage();
+          await eventDetailPage.assertions.verifyThePageIsLoaded();
+          await eventDetailPage.assertions.verifyEventTitle(eventTitle);
+          await eventDetailPage.assertions.verifyRsvpIndicators();
+
+          // Verify event sync to Google Calendar for both Author and End User
+          const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
+          const endUserCalendarHelper = createEndUserGoogleCalendarHelper();
+
+          let authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+          let endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+
+          expect(
+            authorEventSyncResult.found,
+            `Event "${eventTitle}" should have been synced to Google Calendar for author`
+          ).toBe(true);
+          expect(
+            endUserEventSyncResult.found,
+            `Event "${eventTitle}" should have been synced to Google Calendar for end user`
+          ).toBe(true);
+
+          // Disconnect Google Calendar from app level
+          calendarIntegrationHelper = new CalendarIntegrationHelper(
+            appManagerFixture.apiContext,
+            getEnvConfig().apiBaseUrl
+          );
+          await calendarIntegrationHelper.updateCalendarIntegrationConfig({
+            googleCalendarEnabled: false,
+            outlookEnabled: true,
+          });
+
+          isGoogleCalendarDisconnected = true;
+
+          // Verify event is removed from Google Calendar for author and end user
+          authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
+            expectFound: false,
+          });
+          endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
+            expectFound: false,
+          });
+
+          expect(
+            authorEventSyncResult.found,
+            `Event "${eventTitle}" should have been removed from Google Calendar for author`
+          ).toBe(false);
+          expect(
+            endUserEventSyncResult.found,
+            `Event "${eventTitle}" should have been removed from Google Calendar for end user`
+          ).toBe(false);
+
+          // Reconnect Google Calendar to app manager
+          await calendarIntegrationHelper.updateCalendarIntegrationConfig({
+            googleCalendarEnabled: true,
+            outlookEnabled: true,
+          });
+
+          // Reconnect Google Calendar from user level for author
+          externalAppsPage = new ExternalAppsPage(appManagerFixture.page);
+          await externalAppsPage.navigateToExternalAppsPage();
+          await externalAppsPage.verifyThePageIsLoaded();
+          await externalAppsPage.connectGoogleAccountIntegration(
+            ExternalAppProvider.GOOGLE_CALENDAR,
+            'howard.nelson@simpplr.dev',
+            'Simpplr@1220169'
+          );
+          await externalAppsPage.verifyThePageIsLoaded();
+
+          // login as end user
+          const endUserContext = await browser.newContext();
+          const endUserPage = await endUserContext.newPage();
+          const endUserHomePage = await LoginHelper.loginWithPassword(endUserPage, {
+            email: endUserEmail,
+            password: process.env.QA_SYSTEM_END_USER_PASSWORD || 'Simpplr@12345',
+          });
+          await endUserHomePage.verifyThePageIsLoaded();
+
+          // navigate to end user external apps page
+          const endUserExternalAppsPage = new ExternalAppsPage(endUserPage);
+          await endUserExternalAppsPage.navigateToExternalAppsPage();
+          await endUserExternalAppsPage.verifyThePageIsLoaded();
+
+          // connect Google Calendar for user level for end user
+          await endUserExternalAppsPage.connectGoogleAccountIntegration(
+            ExternalAppProvider.GOOGLE_CALENDAR,
+            'craig.gordon@simpplr.dev',
+            '_Simp_1234'
+          );
+          await endUserExternalAppsPage.verifyThePageIsLoaded();
+
+          isGoogleCalendarDisconnected = false; // Successfully reconnected
+
+          // Verify event is synced back to Google Calendar for author and end user
+          authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+          endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+
+          expect(
+            authorEventSyncResult.found,
+            `Event "${eventTitle}" should have been synced back to Google Calendar for author`
+          ).toBe(true);
+          expect(
+            endUserEventSyncResult.found,
+            `Event "${eventTitle}" should have been synced back to Google Calendar for end user`
+          ).toBe(true);
+        } catch (error) {
+          console.error('❌ Test failed:', error);
+          throw error;
+        } finally {
+          // Always try to restore Google Calendar connection
+          await restoreGoogleCalendar();
+        }
+      }
+    );
+
+    test(
+      'removes Google Calendar domain and Verify Event is removed from Google Calendar for both Author and End User',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          IntegrationsFeatureTags.EVENT_SYNC,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
+        ],
+      },
+      async ({ appManagerFixture, testSiteName, browser }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27338, INT-27339',
+        });
+
+        let calendarIntegrationHelper: CalendarIntegrationHelper;
+        let externalAppsPage: ExternalAppsPage;
+        let isGoogleCalendarDisconnected = false;
+
+        const userManagementService = new UserManagementService(
+          appManagerFixture.apiContext,
+          getEnvConfig().apiBaseUrl
+        );
+
+        // Cleanup function to restore Google Calendar connection
+        const restoreGoogleCalendar = async () => {
+          try {
+            if (isGoogleCalendarDisconnected) {
+              // add Google Calendar domain to app level
+              await calendarIntegrationHelper.addIntegrationDomain('simpplr.dev');
+
+              // Reconnect Google Calendar at user level for author
+              if (!externalAppsPage) {
+                externalAppsPage = new ExternalAppsPage(appManagerFixture.page);
+                await externalAppsPage.navigateToExternalAppsPage();
+                await externalAppsPage.verifyThePageIsLoaded();
+              }
+
+              const isAuthorConnected = await externalAppsPage.getConnectionStatus(ExternalAppProvider.GOOGLE_CALENDAR);
+              if (!isAuthorConnected) {
+                await externalAppsPage.connectGoogleAccountIntegration(
+                  ExternalAppProvider.GOOGLE_CALENDAR,
+                  'howard.nelson@simpplr.dev',
+                  'Simpplr@1220169'
+                );
+              }
+
+              // Reconnect Google Calendar at user level for end user
+              const endUserContext = await browser.newContext();
+              const endUserPage = await endUserContext.newPage();
+              const endUserHomePage = await LoginHelper.loginWithPassword(endUserPage, {
+                email: process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com',
+                password: process.env.QA_SYSTEM_END_USER_PASSWORD || 'Simpplr@12345',
+              });
+              await endUserHomePage.verifyThePageIsLoaded();
+
+              const endUserExternalAppsPage = new ExternalAppsPage(endUserPage);
+              await endUserExternalAppsPage.navigateToExternalAppsPage();
+              await endUserExternalAppsPage.verifyThePageIsLoaded();
+
+              const isEndUserConnected = await endUserExternalAppsPage.getConnectionStatus(
+                ExternalAppProvider.GOOGLE_CALENDAR
+              );
+              if (!isEndUserConnected) {
+                await endUserExternalAppsPage.connectGoogleAccountIntegration(
+                  ExternalAppProvider.GOOGLE_CALENDAR,
+                  'craig.gordon@simpplr.dev',
+                  '_Simp_1234'
+                );
+              }
+
+              await endUserContext.close();
+            }
+          } catch (error) {
+            console.error('❌ Cleanup: Failed to restore Google Calendar connection:', error);
+          }
+        };
+
+        try {
+          // Login as app manager
+          const appManagerEmail = getEnvConfig().appManagerEmail;
+          const organizerId = await userManagementService.getUserId(appManagerEmail);
+          const sitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites();
+          const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
+
+          if (!testSite) {
+            throw new Error(`Test site "${testSiteName}" not found`);
+          }
+
+          const siteId = testSite.siteId;
+
+          // Add end user as site member
+          const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
+          const endUserId = await userManagementService.getUserId(endUserEmail);
+          await appManagerFixture.siteManagementHelper.siteManagementService.makeUserSiteMembership(
+            siteId,
+            endUserId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.ADD
+          );
+
+          const eventTitle = `${EVENT_CONFIGS.RSVP_SYNC.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
+
+          const eventPayload = createEventPayload({
+            title: eventTitle,
+            description: EVENT_CONFIGS.RSVP_SYNC.description,
+            location: EVENT_CONFIGS.RSVP_SYNC.location,
+            organizerId,
+          });
+
+          const eventResult =
+            await appManagerFixture.contentManagementHelper.contentManagementService.addNewEventContent(
+              siteId,
+              eventPayload
+            );
+
+          assertCompleteEventConfiguration(eventResult, EXPECTED_EVENT_SYNC_CONFIG);
+          const eventDetailPage = new EventDetailPage(appManagerFixture.page, siteId, eventResult.eventId);
+          await eventDetailPage.loadPage();
+          await eventDetailPage.assertions.verifyThePageIsLoaded();
+          await eventDetailPage.assertions.verifyEventTitle(eventTitle);
+          await eventDetailPage.assertions.verifyRsvpIndicators();
+
+          // Verify event sync to Google Calendar for both Author and End User
+          const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
+          const endUserCalendarHelper = createEndUserGoogleCalendarHelper();
+
+          let authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+          let endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+
+          expect(
+            authorEventSyncResult.found,
+            `Event "${eventTitle}" should have been synced to Google Calendar for author`
+          ).toBe(true);
+          expect(
+            endUserEventSyncResult.found,
+            `Event "${eventTitle}" should have been synced to Google Calendar for end user`
+          ).toBe(true);
+
+          // remove Google Calendar domain from app level
+          calendarIntegrationHelper = new CalendarIntegrationHelper(
+            appManagerFixture.apiContext,
+            getEnvConfig().apiBaseUrl
+          );
+          await calendarIntegrationHelper.removeIntegrationDomain('simpplr.dev');
+          console.log('Google Calendar domain is removed at app level');
+          isGoogleCalendarDisconnected = true;
+
+          // Verify event is removed from Google Calendar for author and end user
+          authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
+            expectFound: false,
+          });
+          endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
+            expectFound: false,
+          });
+
+          expect(
+            authorEventSyncResult.found,
+            `Event "${eventTitle}" should have been removed from Google Calendar for author`
+          ).toBe(false);
+          expect(
+            endUserEventSyncResult.found,
+            `Event "${eventTitle}" should have been removed from Google Calendar for end user`
+          ).toBe(false);
+
+          // add Google Calendar domain to app manager
+          await calendarIntegrationHelper.addIntegrationDomain('simpplr.dev');
+          console.log('Google Calendar domain is added at app level');
+          isGoogleCalendarDisconnected = false;
+
+          // Reconnect Google Calendar from user level for author
+          externalAppsPage = new ExternalAppsPage(appManagerFixture.page);
+          await externalAppsPage.navigateToExternalAppsPage();
+          await externalAppsPage.verifyThePageIsLoaded();
+          await externalAppsPage.connectGoogleAccountIntegration(
+            ExternalAppProvider.GOOGLE_CALENDAR,
+            'howard.nelson@simpplr.dev',
+            'Simpplr@1220169'
+          );
+          await externalAppsPage.verifyThePageIsLoaded();
+
+          // login as end user
+          const endUserContext = await browser.newContext();
+          const endUserPage = await endUserContext.newPage();
+          const endUserHomePage = await LoginHelper.loginWithPassword(endUserPage, {
+            email: endUserEmail,
+            password: process.env.QA_SYSTEM_END_USER_PASSWORD || 'Simpplr@12345',
+          });
+          await endUserHomePage.verifyThePageIsLoaded();
+
+          // navigate to end user external apps page
+          const endUserExternalAppsPage = new ExternalAppsPage(endUserPage);
+          await endUserExternalAppsPage.navigateToExternalAppsPage();
+          await endUserExternalAppsPage.verifyThePageIsLoaded();
+
+          // connect Google Calendar for user level for end user
+          await endUserExternalAppsPage.connectGoogleAccountIntegration(
+            ExternalAppProvider.GOOGLE_CALENDAR,
+            'craig.gordon@simpplr.dev',
+            '_Simp_1234'
+          );
+          await endUserExternalAppsPage.verifyThePageIsLoaded();
+
+          console.log('Google Calendar is connected at user level for author and end user');
+
+          isGoogleCalendarDisconnected = false; // Successfully reconnected
+
+          // Verify event is synced back to Google Calendar for author and end user
+          authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+          endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+
+          expect(
+            authorEventSyncResult.found,
+            `Event "${eventTitle}" should have been synced back to Google Calendar for author`
+          ).toBe(true);
+          expect(
+            endUserEventSyncResult.found,
+            `Event "${eventTitle}" should have been synced back to Google Calendar for end user`
+          ).toBe(true);
+          console.log('Event is synced back to Google Calendar for author and end user');
+        } catch (error) {
+          console.error('❌ Test failed:', error);
+          throw error;
+        } finally {
+          // Always try to restore Google Calendar connection
+          await restoreGoogleCalendar();
+        }
       }
     );
   }

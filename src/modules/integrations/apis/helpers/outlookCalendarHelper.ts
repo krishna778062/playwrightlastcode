@@ -33,6 +33,11 @@ export class OutlookCalendarHelper {
 
   private accessToken: string | null = null;
   private tokenExpiryTime: number = 0;
+  private credentialsPrefix: string = 'OUTLOOK'; // Default to app manager
+
+  constructor(credentialsPrefix: string = 'OUTLOOK') {
+    this.credentialsPrefix = credentialsPrefix;
+  }
 
   async getAccessToken(): Promise<string> {
     // Return cached token if still valid
@@ -41,13 +46,13 @@ export class OutlookCalendarHelper {
     }
 
     // Get credentials from environment variables
-    const clientId = process.env.OUTLOOK_CLIENT_ID;
-    const clientSecret = process.env.OUTLOOK_CLIENT_SECRET;
-    const refreshToken = process.env.OUTLOOK_REFRESH_TOKEN;
+    const clientId = process.env[`${this.credentialsPrefix}_CLIENT_ID`];
+    const clientSecret = process.env[`${this.credentialsPrefix}_CLIENT_SECRET`];
+    const refreshToken = process.env[`${this.credentialsPrefix}_REFRESH_TOKEN`];
 
     if (!clientId || !clientSecret || !refreshToken) {
       throw new Error(
-        '❌ Missing required Outlook Calendar environment variables: OUTLOOK_CLIENT_ID, OUTLOOK_CLIENT_SECRET, OUTLOOK_REFRESH_TOKEN'
+        `❌ Missing required Outlook Calendar environment variables: ${this.credentialsPrefix}_CLIENT_ID, ${this.credentialsPrefix}_CLIENT_SECRET, ${this.credentialsPrefix}_REFRESH_TOKEN`
       );
     }
 
@@ -121,7 +126,10 @@ export class OutlookCalendarHelper {
     const data = await this.makeRequest(endpoint);
     const events = data.value || [];
 
-    const matchingEvents = events.filter((event: any) => event.subject?.includes(eventTitle)) as OutlookCalendarEvent[];
+    // Filter out cancelled events - only include events that are NOT cancelled
+    const matchingEvents = events.filter(
+      (event: any) => event.subject?.includes(eventTitle) && event.isCancelled !== true
+    ) as OutlookCalendarEvent[];
 
     return matchingEvents;
   }
@@ -355,4 +363,6 @@ export class OutlookCalendarHelper {
   }
 }
 
-export const createAppManagerOutlookCalendarHelper = () => new OutlookCalendarHelper();
+export const createAppManagerOutlookCalendarHelper = () => new OutlookCalendarHelper('OUTLOOK');
+
+export const createEndUserOutlookCalendarHelper = () => new OutlookCalendarHelper('END_USER_OUTLOOK');
