@@ -1,7 +1,5 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { SideNavBarComponent } from '@core/ui/components/sideNavBarComponent';
-
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 
@@ -11,28 +9,29 @@ export interface IApplicationScreenPageActions {
 }
 
 export class ApplicationScreenPage extends BasePage implements IApplicationScreenPageActions {
-  private sideNavBarComponent: SideNavBarComponent;
-
-  // Application Settings locators moved from component
+  // Application Settings locators (moved from ApplicationSettingsComponent)
   readonly applicationButton: Locator;
   readonly topicsButton: Locator;
   readonly pageHeading: Locator;
-
-  actions: any;
+  readonly clickOnApplicationButton: Locator;
+  readonly disableQuestionAndAnswer: Locator;
+  readonly enableQuestionAndAnswer: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.APPLICATION_SETTINGS);
-    this.sideNavBarComponent = new SideNavBarComponent(page);
-
-    // Initialize locators directly in the page
+    // Initialize Application Settings locators
     this.applicationButton = page.getByRole('button', { name: 'Application' });
     this.pageHeading = page.getByRole('heading', { name: 'Application settings' });
     this.topicsButton = page.locator('[data-testid="landing-page-item"]:has-text("Topics")');
+    this.clickOnApplicationButton = page.getByRole('button', { name: 'Application' });
+    this.pageHeading = page.getByRole('heading', { name: 'Application settings' });
+    this.disableQuestionAndAnswer = page.locator('#isQuestionAnswerEnabled_false');
+    this.enableQuestionAndAnswer = page.locator('#isQuestionAnswerEnabled_true');
+  }
 
-    this.actions = {
-      clickOnApplication: this.clickOnApplication.bind(this),
-      clickOnTopics: this.clickOnTopics.bind(this),
-    };
+  // Actions
+  get actions(): IApplicationScreenPageActions {
+    return this;
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -52,6 +51,18 @@ export class ApplicationScreenPage extends BasePage implements IApplicationScree
   async clickOnTopics(): Promise<void> {
     await test.step('Clicking on topics', async () => {
       await this.clickOnElement(this.topicsButton);
+    });
+  }
+
+  async disableQuestionAndAnswerFeature(): Promise<void> {
+    await test.step('Disabling question and answer feature', async () => {
+      await this.clickOnElement(this.disableQuestionAndAnswer);
+    });
+  }
+
+  async enableQuestionAndAnswerFeature(): Promise<void> {
+    await test.step('Enabling question and answer feature', async () => {
+      await this.clickOnElement(this.enableQuestionAndAnswer);
     });
   }
 }
