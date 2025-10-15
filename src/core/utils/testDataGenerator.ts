@@ -3,9 +3,9 @@ import { faker } from '@faker-js/faker';
 import { User } from '@core/types/user.type';
 
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
-import { AlbumCreationOptions } from '@/src/modules/content/pages/albumCreationPage';
-import { EventCreationOptions } from '@/src/modules/content/pages/eventCreationPage';
-import { PageCreationOptions } from '@/src/modules/content/pages/pageCreationPage';
+import { AlbumCreationOptions } from '@/src/modules/content/ui/pages/albumCreationPage';
+import { EventCreationOptions } from '@/src/modules/content/ui/pages/eventCreationPage';
+import { PageCreationOptions } from '@/src/modules/content/ui/pages/pageCreationPage';
 
 export class TestDataGenerator {
   /**
@@ -261,7 +261,7 @@ export class TestDataGenerator {
   }
 
   // Helper function to generate test description with timestamp
-  static generateRandomString(prefix: string = 'Test description for category'): string {
+  static generateRandomString(prefix: string = 'Test String'): string {
     return `${prefix} created at ${new Date().toISOString()}`;
   }
 
@@ -272,16 +272,17 @@ export class TestDataGenerator {
   }
 
   /**
+   *
    * Generates a random page with realistic data
    * @param contentType Content type for the page
-   * @param fileName Cover image file name
+   * @param imagePath Cover image file path
    * @param category Optional category for the page (if empty string generates random category)
    * @param overrides Optional properties to override in the generated page
    * @returns A PageCreationOptions object with random realistic data
    */
   static generatePage(
     contentType: PageContentType,
-    fileName: string,
+    imagePath: string,
     category?: string,
     overrides?: Partial<PageCreationOptions>
   ): PageCreationOptions {
@@ -294,7 +295,7 @@ export class TestDataGenerator {
       category: finalCategory,
       contentType: contentType,
       coverImage: {
-        fileName,
+        imagePath,
         cropOptions: {
           widescreen: false,
           square: false,
@@ -645,6 +646,56 @@ export class TestDataGenerator {
       listOfAttachedFiles: [],
       ignoreToxic: false,
       replyText: `@${userName} ${text}`, // For UI verification
+    };
+  }
+
+  static generateValidLinkPair() {
+    return faker.internet.url();
+  }
+
+  /**
+   * Generates test data for social campaigns with customizable options
+   * @param options Configuration options for the social campaign
+   * @returns Object with social campaign creation parameters
+   *
+   * @example
+   * // Generate campaign for everyone with default settings
+   * const everyoneCampaign = TestDataGenerator.generateSocialCampaign({ recipient: 'everyone' });
+   *
+   * // Generate campaign for specific audience
+   * const audienceCampaign = TestDataGenerator.generateSocialCampaign({
+   *   recipient: 'audience',
+   *   audienceId: 'audience123'
+   * });
+   *
+   * // Generate campaign with custom message and URL
+   * const customCampaign = TestDataGenerator.generateSocialCampaign({
+   *   recipient: 'everyone',
+   *   message: 'Custom campaign message',
+   *   url: 'https://www.example.com',
+   *   networks: ['fb', 'ln']
+   * });
+   */
+  static generateSocialCampaign(
+    options: {
+      recipient?: 'everyone' | 'audience';
+      message?: string;
+      url?: string;
+      networks?: string[];
+      audienceId?: string;
+    } = {}
+  ) {
+    const { recipient = 'everyone', message, url, networks = ['fb', 'ln', 'tw'], audienceId } = options;
+
+    const timestamp = Date.now().toString().slice(-4);
+    const randomId = Math.random().toString(36).substring(2, 6);
+
+    return {
+      recipient,
+      message: message || `Test Social Campaign ${timestamp}_${randomId} - ${faker.company.buzzPhrase()}`,
+      url: url || faker.internet.url(),
+      networks,
+      ...(audienceId && { audienceId }),
     };
   }
 }

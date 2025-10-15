@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { LinkTilePayload } from '../../../core/types/tile.type';
+import { LinkTilePayload } from '../../integrations/apis/types/tile.type';
 
 export interface LinkTileSearchTestCase {
   dashboardId: string;
