@@ -1,8 +1,8 @@
 import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { BasePage } from '@/src/core/pages/basePage';
-import { PeopleTabComponent } from '@/src/modules/integrations/components/peopleTabComponent';
+import { BasePage } from '@/src/core/ui/pages/basePage';
+import { PeopleTabComponent } from '@/src/modules/integrations/ui/components/peopleTabComponent';
 
 export class PeopleTabPage extends BasePage {
   readonly userProvisioningHeading: Locator;

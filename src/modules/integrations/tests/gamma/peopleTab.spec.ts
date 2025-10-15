@@ -4,8 +4,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
 import { GammaIntegrationsFeatureTags, IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
 import { integrationsFixture as test } from '@/src/modules/integrations/fixtures/integrationsFixture';
-import { PeopleTabPage } from '@/src/modules/integrations/pages/peopleTabPage';
 import { PEOPLE_TAB } from '@/src/modules/integrations/test-data/gamma-data-file';
+import { PeopleTabPage } from '@/src/modules/integrations/ui/pages/peopleTabPage';
 
 let peopleTab: PeopleTabPage;
 
@@ -15,8 +15,8 @@ test.describe(
     tag: [IntegrationsSuiteTags.GAMMA, GammaIntegrationsFeatureTags.PEOPLE_TAB],
   },
   () => {
-    test.beforeEach(async ({ appManagerPage }) => {
-      peopleTab = new PeopleTabPage(appManagerPage);
+    test.beforeEach(async ({ appManagerFixture }) => {
+      peopleTab = new PeopleTabPage(appManagerFixture.page);
       await peopleTab.loadPage();
       await peopleTab.verifyThePageIsLoaded();
     });

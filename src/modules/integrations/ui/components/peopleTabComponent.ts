@@ -1,7 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '@/src/core/components/baseComponent';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { PEOPLE_TAB } from '@/src/modules/integrations/test-data/gamma-data-file';
 
 export class PeopleTabComponent extends BaseComponent {
