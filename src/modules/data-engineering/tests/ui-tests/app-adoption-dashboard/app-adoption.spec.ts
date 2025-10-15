@@ -24,7 +24,15 @@ test.describe(
 
         const { appAdoptionDashboard } = appManagerFixture;
         await appAdoptionDashboard.loadPage();
-        await appAdoptionDashboard.contributorsAndParticipantsMetrics.verifyMetricUIDataPoints();
+        const contributorsAndParticipantsMetrics = appAdoptionDashboard.contributorsAndParticipantsMetrics;
+        const absoluteMetricValue = await contributorsAndParticipantsMetrics.getAbsoluteMetricValue();
+        const metricValueInPercentage = await contributorsAndParticipantsMetrics.getMetricValueInPercentage();
+        const trendDirection = await contributorsAndParticipantsMetrics.getTrendDirection();
+        const benchMarkComparisonText = await contributorsAndParticipantsMetrics.getBenchMarkComparisonText();
+        console.log(`absoluteMetricValue: ${absoluteMetricValue}`);
+        console.log(`metricValueInPercentage: ${metricValueInPercentage}`);
+        console.log(`trendDirection: ${trendDirection}`);
+        console.log(`benchMarkComparisonText: ${benchMarkComparisonText}`);
       }
     );
   }

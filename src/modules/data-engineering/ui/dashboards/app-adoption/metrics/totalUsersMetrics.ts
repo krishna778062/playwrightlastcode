@@ -1,8 +1,8 @@
 import { FrameLocator, Page } from '@playwright/test';
 
-import { ChartBasedMetricComponent } from '../../../components/chartBasedMetricComponent';
+import { CustomHeroMetricComponent } from '../../../components/customHeroMetricComponent';
 
-export class TotalUsersMetrics extends ChartBasedMetricComponent {
+export class TotalUsersMetrics extends CustomHeroMetricComponent {
   constructor(page: Page, thoughtSpotIframe: FrameLocator) {
     super(page, thoughtSpotIframe, 'Total users');
   }

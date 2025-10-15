@@ -2,7 +2,13 @@ import { expect, FrameLocator, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
-export class ChartBasedMetricComponent extends BaseComponent {
+/**
+ * This is a custom component made by us
+ * which behaves like a hero metric component
+ * but it is not a hero metric component
+ * provided by thoughtspot
+ */
+export class CustomHeroMetricComponent extends BaseComponent {
   // Core metric elements
   readonly metricTitleLocator: Locator;
   readonly metricDescription: Locator;
@@ -27,7 +33,8 @@ export class ChartBasedMetricComponent extends BaseComponent {
     this.metricDescription = this.rootLocator.locator('span[role="heading"]').nth(1);
 
     // Chart iframe - handle nested iframe structure
-    this.chartIframe = this.rootLocator.locator('iframe[class*="chart-module__chartIframe"]').contentFrame();
+    // Use data-testid pattern that matches the actual DOM structure
+    this.chartIframe = this.rootLocator.locator('iframe[data-testid^="chart-app-"]').contentFrame();
   }
 
   // ==================== DATA EXTRACTION METHODS ====================

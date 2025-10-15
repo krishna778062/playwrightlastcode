@@ -2,12 +2,25 @@ import { expect, FrameLocator, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
+/**
+ * This is a Tabular Metrics Component
+ * which shows a tabular data
+ *  - header rows
+ *  - data rows
+ *
+ * Additional features
+ *  - sort button
+ *  - drill down
+ */
 export class TabluarMetricsComponent extends BaseComponent {
   readonly sortButton: Locator;
   readonly sortDirectionButton: (direction: 'Ascending' | 'Descending') => Locator;
   readonly drillDownButton: Locator;
   readonly drillDownOptionsMenu: Locator;
   readonly drillDownOption: (option: string) => Locator;
+
+  readonly headerRow: Locator;
+  readonly dataRow: Locator;
 
   constructor(
     page: Page,
@@ -20,6 +33,15 @@ export class TabluarMetricsComponent extends BaseComponent {
     });
 
     super(page, container);
+
+    /// table elements ///
+    this.headerRow = this.rootLocator
+      .getByRole('row')
+      .filter({ has: this.rootLocator.locator('[class*="ag-header-row"]') });
+
+    this.dataRow = this.rootLocator
+      .getByRole('row')
+      .filter({ hasNot: this.rootLocator.locator('[class*="ag-header-row"]') });
 
     this.sortButton = this.thoughtSpotIframe.getByRole('tab', { name: 'Sort' });
     this.sortDirectionButton = (direction: 'Ascending' | 'Descending') =>
@@ -311,6 +333,38 @@ export class TabluarMetricsComponent extends BaseComponent {
   }
 
   /**
+   * Gets a specific row's data as an object with column headers as keys
+   * @param rowIndex - Zero-based index of the data row (0 = first data row, 1 = second data row, etc.)
+   * @returns Object with column headers as keys and cell values as values
+   * @example
+   * // Get first data row: { 'Social platform': 'Twitter', 'Share count': '1', 'Platform share contribution (%)': '100.0%' }
+   * const firstRow = await table.getRowValuesAsObject(0);
+   */
+  async getRowValuesAsObjectForRowIndex(rowIndex: number): Promise<Record<string, string>> {
+    const headers = await this.getHeaders();
+    const rows = await this.rootLocator.getByRole('row').all();
+
+    // Skip header row (index 0) and get the data row
+    const dataRowIndex = rowIndex + 1; // +1 to skip header row
+
+    if (dataRowIndex >= rows.length) {
+      throw new Error(`Row at index ${rowIndex} not found. Table has ${rows.length - 1} data rows.`);
+    }
+
+    const targetRow = rows[dataRowIndex];
+
+    const cells = await targetRow.getByRole('gridcell').all();
+    const rowObject: Record<string, string> = {};
+
+    for (let i = 0; i < headers.length; i++) {
+      const cellText = await cells[i].textContent();
+      rowObject[headers[i]] = cellText?.trim() || '';
+    }
+
+    return rowObject;
+  }
+
+  /**
    * Drills down on a specific cell value
    * @param rowIdentifier - Object to identify the row (e.g., { column: 'Social platform', value: 'Twitter' })
    * @param targetColumn - The column to drill down on
@@ -335,6 +389,21 @@ export class TabluarMetricsComponent extends BaseComponent {
         timeout: 10_000,
         assertionMessage: `Drill down options menu should be visible`,
       });
+    });
+  }
+
+  /**** Verification methods ****/
+
+  async verifyRowCountIs(expectedCount: number): Promise<void> {
+    await test.step(`verify tabular data - row count is ${expectedCount}`, async () => {
+      await expect(this.dataRow, `expecting data row to have ${expectedCount} rows`).toHaveCount(expectedCount);
+    });
+  }
+
+  async verifyHeadersAre(expectedHeaders: string[]): Promise<void> {
+    await test.step(`verify tabular data - headers are ${expectedHeaders}`, async () => {
+      const actualHeaders = await this.getHeaders();
+      expect(actualHeaders).toEqual(expectedHeaders);
     });
   }
 }

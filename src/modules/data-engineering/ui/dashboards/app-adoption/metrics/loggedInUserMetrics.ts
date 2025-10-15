@@ -4,6 +4,6 @@ import { BenchmarkMetricComponent } from '../../../components/benchmarkMetricCom
 
 export class LoggedInUserMetrics extends BenchmarkMetricComponent {
   constructor(page: Page, thoughtSpotIframe: FrameLocator) {
-    super(page, thoughtSpotIframe, 'Logged in Users');
+    super(page, thoughtSpotIframe, 'Logged in users');
   }
 }

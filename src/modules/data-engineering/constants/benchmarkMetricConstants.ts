@@ -6,7 +6,6 @@
 export const TREND_DIRECTIONS = {
   UP: 'up',
   DOWN: 'down',
-  NEUTRAL: 'neutral',
 } as const;
 
 export const TREND_COLORS = {
@@ -28,5 +27,4 @@ export const TREND_ARROWS = {
 } as const;
 
 export type TrendDirection = (typeof TREND_DIRECTIONS)[keyof typeof TREND_DIRECTIONS];
-export type TrendColor = (typeof TREND_COLORS)[keyof typeof TREND_COLORS];
 export type BenchmarkLabel = (typeof BENCHMARK_LABELS)[keyof typeof BENCHMARK_LABELS];
