@@ -6,8 +6,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ExternalAppProvider } from '@/src/modules/integrations/ui/pages/externalAppsPage';
-import { ExternalAppsPage } from '@/src/modules/integrations/ui/pages/externalAppsPage';
+import { ExternalAppProvider, ExternalAppsPage } from '@/src/modules/integrations/ui/pages/externalAppsPage';
 import { ServiceNowTicketsPage } from '@/src/modules/integrations/ui/pages/serviceNowTicketsPage';
 import { SupportAndTicketingPage } from '@/src/modules/integrations/ui/pages/supportAndTicketingPage';
 
@@ -56,9 +55,10 @@ test.describe(
         const endUserServiceNow = new ServiceNowTicketsPage(endUserPage);
         await endUserServiceNow.loadPage();
         await endUserServiceNow.verifyThePageIsLoaded();
-        await endUserServiceNow.clickNewTicketButton();
-        await endUserServiceNow.verifyNewTicketOptionVisible();
-        await endUserServiceNow.clickCancelTicketCreationButton();
+        await endUserServiceNow.clickButton('New ticket');
+        await endUserServiceNow.verifyNewTicketOptionVisible(true);
+        await endUserServiceNow.clickButton('Cancel');
+        await endUserServiceNow.verifyNewTicketOptionVisible(false);
       }
     );
 
@@ -119,8 +119,7 @@ test.describe(
         await endUserServiceNowTicketsPage.sortByLastUpdatedNewest();
 
         // Verify sorting works for end user too (using unified function)
-        const isEndUserSortedCorrectly = await endUserServiceNowTicketsPage.verifyTicketSortingByDate('desc');
-        expect(isEndUserSortedCorrectly).toBeTruthy();
+        await endUserServiceNowTicketsPage.verifyTicketSortingByDate('desc');
       }
     );
 
@@ -156,8 +155,7 @@ test.describe(
         await endUserServiceNowTicketsPage.sortByLastUpdatedOldest();
 
         // Verify sorting works for end user too (using unified function for ascending order)
-        const isEndUserSortedCorrectly = await endUserServiceNowTicketsPage.verifyTicketSortingByDate('asc');
-        expect(isEndUserSortedCorrectly).toBeTruthy();
+        await endUserServiceNowTicketsPage.verifyTicketSortingByDate('asc');
       }
     );
   }

@@ -2,6 +2,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
+import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 
 /**
  * ServiceNowTicketsPage handles ServiceNow ticket creation and management functionality
@@ -25,31 +26,35 @@ export class ServiceNowTicketsPage extends BasePage {
   readonly sortOptions: (optionText: string) => Locator;
   readonly ticketRows: Locator;
   readonly ticketDateCells: Locator;
-  // Status Messages (only what's used)
-  readonly successMessage: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.SERVICE_NOW_TICKETS_PAGE);
 
     // Ticket Creation Elements
-    this.newTicketButton = page.locator('//button[contains(text(),"New ticket")]');
+    this.newTicketButton = page.getByRole('button', { name: /new ticket/i });
     this.newTicketOption = page.locator('//span[contains(text(),"New ticket")]');
-    this.createTicketButton = page.locator('//button[contains(text(),"Create ticket")]');
-    this.ticketCreationPanel = page.locator('//form[contains(@class,"ServiceNowNewTicketForm")]');
-    this.cancelTicketCreationButton = page.locator('//button[contains(text(),"Cancel")]');
+    this.createTicketButton = page.getByRole('button', { name: /Create ticket/i });
+    this.ticketCreationPanel = page.getByRole('form').or(page.locator('form[class*="ServiceNowNewTicketForm"]'));
+    this.cancelTicketCreationButton = page.getByText('Cancel');
 
     // Ticket Form Elements (only what's used)
-    this.ticketTitleField = page.locator('//input[@name="title"]');
-    this.ticketDescriptionField = page.locator('//textarea[@name="description"]');
-    this.ticketCategoryDropdown = page.locator('//input[@id="category"]');
+    this.ticketTitleField = page.getByRole('textbox', { name: /title/i });
+    this.ticketDescriptionField = page.getByRole('textbox', { name: /description/i });
+    this.ticketCategoryDropdown = page.getByRole('combobox', { name: /category/i });
 
     // Sorting Elements (only what's used)
     this.sortDropdown = page.locator('[class*="SortDropdown"]');
-    this.sortOptions = (optionText: string) => page.locator(`//*[contains(text(),"${optionText}")]`);
-    this.ticketRows = page.locator('//tr[contains(@data-testid,"dataGridRow")]');
-    this.ticketDateCells = page.locator('//td[contains(@class,"Cell-module")]');
-    // Status Messages (only what's used)
-    this.successMessage = page.locator('//div[contains(@class,"success")]');
+    this.sortOptions = (optionText: string) => page.getByText(optionText, { exact: false });
+    this.ticketRows = page.getByTestId(/dataGridRow/);
+    this.ticketDateCells = page.locator('td[class*="Cell-module"]');
+  }
+
+  async clickButton(buttonName: string, step?: string, timeout = 30_000): Promise<void> {
+    const stepName = step || `Click ${buttonName}`;
+    await test.step(stepName, async () => {
+      const button = this.page.getByRole('button', { name: buttonName }).first();
+      await this.clickOnElement(button, { timeout });
+    });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -69,12 +74,22 @@ export class ServiceNowTicketsPage extends BasePage {
     });
   }
 
-  async verifyNewTicketOptionVisible(): Promise<boolean> {
-    return await test.step('Verify New Ticket option is visible', async () => {
-      await this.newTicketOption.waitFor({ state: 'visible', timeout: 15000 });
-      const isVisible = await this.newTicketOption.isVisible();
-      await expect(this.newTicketOption).toBeVisible();
-      return isVisible;
+  async verifyNewTicketOptionVisible(shouldBeVisible: boolean = true): Promise<boolean> {
+    const action = shouldBeVisible ? 'visible' : 'hidden';
+    const stepName = `Verify New Ticket option is ${action}`;
+
+    return await test.step(stepName, async () => {
+      if (shouldBeVisible) {
+        await this.newTicketOption.waitFor({ state: 'visible', timeout: 15000 });
+        const isVisible = await this.newTicketOption.isVisible();
+        await expect(this.newTicketOption).toBeVisible();
+        return isVisible;
+      } else {
+        await this.newTicketOption.waitFor({ state: 'hidden', timeout: 15000 });
+        const isHidden = await this.newTicketOption.isHidden();
+        await expect(this.newTicketOption).toBeHidden();
+        return !isHidden;
+      }
     });
   }
 
@@ -88,7 +103,7 @@ export class ServiceNowTicketsPage extends BasePage {
 
   async createNewTicket(ticketData: { title: string; description: string; category?: string }): Promise<void> {
     await test.step(`Create new ticket: ${ticketData.title}`, async () => {
-      await this.clickNewTicketButton();
+      await this.clickButton('New ticket');
 
       // Wait for ticket creation form
       await this.ticketCreationPanel.waitFor({ state: 'visible' });
@@ -98,15 +113,14 @@ export class ServiceNowTicketsPage extends BasePage {
       await this.fillInElement(this.ticketDescriptionField, ticketData.description);
 
       // Submit the ticket
-      await this.clickOnElement(this.createTicketButton);
+      await this.clickButton('Create ticket');
     });
   }
 
   // Utility Methods
   async verifyTicketCreationSuccess(): Promise<void> {
     await test.step('Verify ticket creation was successful', async () => {
-      await this.successMessage.waitFor({ state: 'visible', timeout: 10000 });
-      await expect(this.successMessage).toBeVisible();
+      await this.verifyToastMessageIsVisibleWithText(MESSAGES.SNOW_TICKET_CREATION_MESSAGE);
     });
   }
 
@@ -124,8 +138,6 @@ export class ServiceNowTicketsPage extends BasePage {
       await this.page.waitForTimeout(1000);
       const option = this.sortOptions(optionText).first();
       await this.clickOnElement(option);
-      // Wait for sorting to apply
-      await this.page.waitForTimeout(2000);
     });
   }
 
@@ -161,17 +173,15 @@ export class ServiceNowTicketsPage extends BasePage {
       // Extract dates from tickets
       const ticketDates: Date[] = [];
       for (const ticket of tickets) {
-        // Look for date elements within each ticket
-        const dateElements = await this.ticketDateCells.locator('[class*="Cell-module"]', { has: ticket }).last().all();
+        // Look for date elements within each ticket (get last cell of each row)
+        const dateElement = ticket.locator('td').last();
 
-        if (dateElements.length > 0) {
-          const dateText = await dateElements[0].textContent();
-          if (dateText) {
-            // Try to parse the date
-            const parsedDate = new Date(dateText.trim());
-            if (!isNaN(parsedDate.getTime())) {
-              ticketDates.push(parsedDate);
-            }
+        const dateText = await dateElement.textContent();
+        if (dateText) {
+          // Try to parse the date
+          const parsedDate = new Date(dateText.trim());
+          if (!isNaN(parsedDate.getTime())) {
+            ticketDates.push(parsedDate);
           }
         }
       }
