@@ -62,7 +62,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
 
       const mustReadComponent = new MustReadComponent(appManagersPage);
 
-      await mustReadComponent.contentThreeDotsMenu.click();
+      await mustReadComponent.clickOnContentThreeDotsMenu();
 
       await mustReadComponent.selectMustReadFromMenuOptions();
 
@@ -102,7 +102,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
 
       const mustReadComponent = new MustReadComponent(appManagersPage);
 
-      await mustReadComponent.contentThreeDotsMenu.click();
+      await mustReadComponent.clickOnContentThreeDotsMenu();
 
       await mustReadComponent.selectMustReadFromMenuOptions();
 
@@ -142,7 +142,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
 
       const mustReadComponent = new MustReadComponent(appManagersPage);
 
-      await mustReadComponent.contentThreeDotsMenu.click();
+      await mustReadComponent.clickOnContentThreeDotsMenu();
 
       await mustReadComponent.selectMustReadFromMenuOptions();
 
@@ -197,7 +197,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
 
       const mustReadComponent = new MustReadComponent(appManagersPage);
 
-      await mustReadComponent.contentThreeDotsMenu.click();
+      await mustReadComponent.clickOnContentThreeDotsMenu();
 
       await mustReadComponent.selectMustReadFromMenuOptions();
 
