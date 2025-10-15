@@ -50,8 +50,8 @@ async function createEventSyncUiFixture(browser: any): Promise<EventSyncUiFixtur
   const page = await context.newPage();
 
   await LoginHelper.loginWithPassword(page, {
-    email: process.env.QA_SYSTEM_ADMIN_USERNAME || getEnvConfig().appManagerEmail,
-    password: process.env.QA_SYSTEM_ADMIN_PASSWORD || getEnvConfig().appManagerPassword,
+    email: getEnvConfig().appManagerEmail,
+    password: getEnvConfig().appManagerPassword,
   });
 
   const homePage = new NewHomePage(page);
@@ -85,8 +85,8 @@ export const integrationsEventFixture = base.extend<IntegrationsEventFixtures, I
   appManagerApiContext: [
     async ({}, use) => {
       const context = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
-        email: process.env.QA_SYSTEM_ADMIN_USERNAME || getEnvConfig().appManagerEmail,
-        password: process.env.QA_SYSTEM_ADMIN_PASSWORD || getEnvConfig().appManagerPassword,
+        email: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
       });
       await use(context);
       await context.dispose();
