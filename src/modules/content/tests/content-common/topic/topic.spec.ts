@@ -7,7 +7,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { NewHomePage } from '@/src/core';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationscreenPage';
+import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 import { ManageTopicsPage } from '@/src/modules/content/ui/pages/manageTopicsPage';
 test.describe('edit Topic', () => {
   let homePage: NewHomePage;

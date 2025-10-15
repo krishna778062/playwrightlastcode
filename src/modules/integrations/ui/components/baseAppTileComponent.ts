@@ -181,6 +181,58 @@ export class BaseAppTileComponent extends BaseComponent {
     });
   }
 
+  /**
+   * Open the Add <provider> tile modal from the dashboard
+   */
+  async openAddAppTileModal(provider: string): Promise<void> {
+    const normalizeProviderName = (name: string): string => {
+      const candidate = name.trim().toLowerCase();
+      if (candidate === 'outlook calendar' || candidate === 'microsoft outlook calendar') {
+        return 'Outlook Calendar';
+      }
+      return name;
+    };
+    const normalizedProvider = normalizeProviderName(String(provider));
+    await test.step(`Open Add ${normalizedProvider} tile modal`, async () => {
+      await this.clickEditDashboard();
+      await this.clickButton('Add tile');
+      await this.clickButton('App tiles');
+      await this.selectAppTile(normalizedProvider);
+
+      const modalTitlePattern = new RegExp(`Add ${normalizedProvider} tile`, 'i');
+      await expect(this.page.getByRole('dialog', { name: modalTitlePattern })).toBeVisible({ timeout: 10_000 });
+      await expect(this.tileTypeCombobox).toBeVisible({ timeout: 10_000 });
+    });
+  }
+
+  /**
+   * Verify the connection helper text and connected email in the Add tile modal
+   */
+  async verifyConnectionMessage(expectedConnectionText: string, options: { connectedEmail: string }): Promise<void> {
+    const { connectedEmail } = options;
+    await test.step('Verify connection message in Add tile modal', async () => {
+      const helperText = this.page.getByText(expectedConnectionText, { exact: false });
+      await expect(helperText).toBeVisible({ timeout: 10_000 });
+
+      await expect(
+        this.dialog.getByText(
+          new RegExp(`Connected as\\s+${connectedEmail.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')}`, 'i')
+        )
+      ).toBeVisible({ timeout: 10_000 });
+    });
+  }
+
+  /**
+   * Click a link inside the currently open dialog by its accessible name
+   */
+  async clickDialogLink(label: string): Promise<void> {
+    await test.step(`Click '${label}' link in dialog`, async () => {
+      const link = this.dialog.getByRole('link', { name: label, exact: true });
+      await expect(link).toBeVisible({ timeout: 10_000 });
+      await link.click();
+    });
+  }
+
   async isTilePresent(title: string): Promise<void> {
     await test.step(`Check tiles present with title '${title}'`, async () => {
       let tiles = await this.findTilesByTitle(title);

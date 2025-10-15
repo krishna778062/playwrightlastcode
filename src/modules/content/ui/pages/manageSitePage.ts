@@ -1,7 +1,7 @@
 import { Page, test } from '@playwright/test';
 
-import { SideNavBarComponent } from '@/src/core/components/sideNavBarComponent';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
