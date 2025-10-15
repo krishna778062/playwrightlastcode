@@ -17,6 +17,8 @@ import { tagTest } from '@core/utils/testDecorator';
 test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+    await manageRewardsOverviewPage.loadPageWithHarness();
+    await manageRewardsOverviewPage.verifyThePageIsLoaded();
     await manageRewardsOverviewPage.enableTheRewardsAndPeerGiftingIfDisabled();
   });
 
@@ -1019,7 +1021,6 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Navigate to distribute allowances page
       await manageRewardsOverviewPage.page.goto('/manage/recognition/seed');
-      await manageRewardsOverviewPage.page.waitForTimeout(15000);
 
       // Validate the new Entry in the Downloaded CSV file
       const csvUtils = new CSVUtils('./downloads');

@@ -122,10 +122,6 @@ export class RewardsIndividualAllowance extends BasePage {
     const addedIndividualUser = individualAllowanceContainer
       .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
       .first();
-    const removeAddedIndividualUser = individualAllowanceContainer
-      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
-      .last()
-      .locator('td button[aria-label*="Remove"]');
 
     let anyUserAdded: boolean;
     try {
@@ -158,7 +154,11 @@ export class RewardsIndividualAllowance extends BasePage {
         await dialogBox.container.locator('input[id="pointAmount"]').fill(String(amount));
         await expect(dialogBox.container.getByRole('button', { name: 'Add allowance' })).toBeEnabled();
         await dialogBox.container.getByRole('button', { name: 'Add allowance' }).click();
-        await this.removeAddedIndividualUser.click();
+        const removeAddedIndividualUser = individualAllowanceContainer
+          .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
+          .last()
+          .locator('td button[aria-label*="Remove"]');
+        await removeAddedIndividualUser.click();
       }
     }
   }
@@ -175,6 +175,14 @@ export class RewardsIndividualAllowance extends BasePage {
     );
     const value = await addedSpecificIndividualUser.inputValue();
     return Number(value);
+  }
+
+  async increaseTheIndividualAmountBy(amount: number): Promise<void> {
+    for (let i = 0; i < amount; i++) {
+      await this.clickOnElement(this.recentlyAddedPointAmountInputPlus, {
+        stepInfo: `Decreasing amount by 1 (${i + 1}/${amount})`,
+      });
+    }
   }
 
   async decreaseTheIndividualAmountBy(amount: number): Promise<void> {

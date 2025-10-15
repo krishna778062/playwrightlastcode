@@ -1,6 +1,8 @@
 import { Page, test } from '@playwright/test';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 
+import { PAGE_ENDPOINTS, TIMEOUTS } from '@/src/core';
+
 /**
  * Configuration options for enabling rewards and peer gifting
  */
@@ -31,14 +33,21 @@ export class RewardsEnabler {
    * @param options Configuration options for the specific context
    */
   async enableRewardsAndPeerGiftingIfDisabled(options: RewardsConfigOptions): Promise<void> {
-    const [apiResponse] = await Promise.all([
-      this.page.waitForResponse(
-        res => res.url().includes(options.apiEndpoint) && res.status() === 200 && res.request().method() === 'GET'
-      ),
-      this.page.waitForLoadState('domcontentloaded'),
-      options.triggerAction(), // action that triggers API
-    ]);
+    // const [apiResponse] = await Promise.all([
+    //   this.page.waitForResponse(
+    //     res => res.url().includes(options.apiEndpoint) && res.status() === 200 && res.request().method() === 'GET'
+    //   ),
+    //   this.page.waitForLoadState('domcontentloaded'),
+    //   options.triggerAction(), // action that triggers API
+    // ]);
 
+    const apiUrlPattern = new RegExp(`${options.apiEndpoint.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}(\\?.*)?$`);
+    const [apiResponse] = await Promise.all([
+      this.page.waitForResponse(resp => apiUrlPattern.test(resp.url()) && resp.status() === 200, {
+        timeout: TIMEOUTS.SHORT,
+      }),
+      this.page.goto(PAGE_ENDPOINTS.MANAGE_REWARDS_PAGE),
+    ]);
     console.log('Status:', apiResponse.status(), 'URL:', apiResponse.url());
     const body = await apiResponse.json();
     console.log(`${options.apiEndpoint} Response is:\n${JSON.stringify(body, null, 2)}`);
@@ -54,6 +63,7 @@ export class RewardsEnabler {
     // Apply conditional check if specified (for reward store)
     if (options.conditionalCheck && isRewardEnabled && isPeerGiftingDisabled) {
       console.log('Both rewards and peer gifting are already enabled, skipping enablement.');
+      await options.returnAction();
       return;
     }
 

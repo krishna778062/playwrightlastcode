@@ -52,7 +52,7 @@ export class TopNavBarComponent extends BaseComponent {
 
     //profile settings section
     this.profileSettingsButton = this.page.getByLabel('Profile settings');
-    this.viewProfileButton = this.page.getByLabel('View profile');
+    this.viewProfileButton = this.page.getByText('View profile');
   }
 
   /**

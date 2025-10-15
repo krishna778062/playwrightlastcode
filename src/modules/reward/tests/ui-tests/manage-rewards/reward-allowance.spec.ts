@@ -13,6 +13,8 @@ import { tagTest } from '@core/utils/testDecorator';
 test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+    await manageRewardsPage.loadPageWithHarness();
+    await manageRewardsPage.verifyThePageIsLoaded();
     await manageRewardsPage.enableTheRewardsAndPeerGiftingIfDisabled();
   });
 

@@ -206,9 +206,9 @@ export class RewardsStore extends BasePage {
       responsePath: { enabled: 'rewardConfig.enabled', peerGiftingEnabled: 'rewardConfig.peerGiftingEnabled' },
       triggerAction: async () => {
         // Navigate to manage rewards page to enable rewards
-        const manageRewards = new ManageRewardsOverviewPage(this.page);
-        await manageRewards.loadPage();
-        await manageRewards.verifyThePageIsLoaded();
+        const manageReward = new ManageRewardsOverviewPage(this.page);
+        await manageReward.loadPage();
+        await manageReward.verifyThePageIsLoaded();
       },
       returnAction: async () => {
         // Return to rewards store after enabling

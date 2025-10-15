@@ -43,8 +43,7 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
       });
       const rewardsStore = new RewardsStore(recoManagerFixture.page);
       const userProfilePage = new UserProfilePage(recoManagerFixture.page);
-      await rewardsStore.loadPage();
-      await rewardsStore.verifyThePageIsLoaded();
+      await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
       await rewardsStore.selectCountryAndRedeemGiftCard('United States', 'Amazon');
       await rewardsStore.navigateToUserProfileAndValidateViewOrders(userProfilePage);
     }
@@ -65,9 +64,7 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
 
       const rewardsStore = new RewardsStore(standardUserFixture.page);
       const userProfilePage = new UserProfilePage(standardUserFixture.page);
-      await rewardsStore.loadPage();
-      await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
-      await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
+      await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
       await rewardsStore.selectCountryAndRedeemGiftCard('United States', 'Amazon');
       await rewardsStore.navigateToUserProfileAndValidateViewOrders(userProfilePage);
     }
@@ -87,9 +84,7 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
 
       const rewardsStore = new RewardsStore(appManagerFixture.page);
       const userProfilePage = new UserProfilePage(appManagerFixture.page);
-      await rewardsStore.loadPage();
-      await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
-      await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
+      await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
       await userProfilePage.navigateToCurrentUserProfile();
       const walletData = await userProfilePage.navigateToUserProfileAndCaptureWalletData();
       await userProfilePage.validateWalletDataStructure(walletData);
@@ -111,7 +106,7 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
       });
 
       const rewardsStore = new RewardsStore(appManagerFixture.page);
-      await rewardsStore.loadPage();
+      await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
       await rewardsStore.redeemGiftCardWithFailure('United States', 'Amazon');
       await rewardsStore.validateRedemptionFailure();
     }
