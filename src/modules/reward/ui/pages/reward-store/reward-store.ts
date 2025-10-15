@@ -1,4 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { RewardsEnabler } from '@rewards/utils/rewards-enabler';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RewardsDialogBox } from '@rewards-pages/reward-store/rewards-dialog-box';
 import fs from 'fs';
@@ -54,12 +55,14 @@ export class RewardsStore extends BasePage {
   readonly resentRewardInvalidEmailError: Locator;
   readonly resentRewardDoNotMatchEmailError: Locator;
   readonly rewardsDialogBox: RewardsDialogBox;
+  private rewardsEnabler: RewardsEnabler;
 
   /**
    * This is a rewards store class that contains locators and methods for the rewards store page.
    */
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.REWARD_STORE_PAGE);
+    this.rewardsEnabler = new RewardsEnabler(page);
     // Locators for the rewards store page
     this.rewardStorePageNotFound = page.locator('[data-testid="no-results"]');
     this.header = page.getByRole('heading', { name: 'Rewards store' });
@@ -198,93 +201,22 @@ export class RewardsStore extends BasePage {
    * This method checks the current state via API and enables both features if needed
    */
   async enableTheRewardStoreAndPeerGiftingIfDisabled() {
-    const [apiResponse] = await Promise.all([
-      this.page.waitForResponse(
-        res =>
-          res.url().includes('/recognition/v1/tenant/config') &&
-          res.status() === 200 &&
-          res.request().method() === 'GET'
-      ),
-      this.page.waitForLoadState('domcontentloaded'),
-      this.visit(), // action that triggers API
-      this.verifyThePageIsLoaded(),
-    ]);
-    const body = await apiResponse.json();
-    const isRewardEnabled = body.rewardConfig?.enabled;
-    const isPeerGiftingDisabled = body.rewardConfig?.peerGiftingEnabled;
-    console.log(
-      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
-    );
-    if (!isRewardEnabled || !isPeerGiftingDisabled) {
-      const manageRewardsPage = new ManageRewardsOverviewPage(this.page);
-      await manageRewardsPage.loadPage();
-      await manageRewardsPage.verifyThePageIsLoaded();
-      await this.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
-      await this.visit();
-      await this.verifyThePageIsLoaded();
-    }
-  }
-
-  /**
-   * Check and enable rewards and peer gifting based on current state
-   */
-  private async checkTheRewardsIsEnabled(isRewardEnabled: boolean, isPeerGiftingDisabled: boolean): Promise<void> {
-    const manageRewardsPage = new ManageRewardsOverviewPage(this.page);
-    if (!isRewardEnabled && !isPeerGiftingDisabled) {
-      await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
-
-      // Enable peer gifting
-      const isPeerGiftingToggleOff = await manageRewardsPage.peerGifting.peerGiftingToggleSwitch.isChecked();
-      if (!isPeerGiftingToggleOff) {
-        await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
-          stepInfo: 'Enabling peer gifting toggle',
-        });
-      }
-      await manageRewardsPage.peerGifting.saveButton.waitFor({ state: 'attached', timeout: 15000 });
-      await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
-        stepInfo: 'Clicking save button',
-      });
-      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
-
-      // Now enable rewards
-      await manageRewardsPage.loadPage();
-      await manageRewardsPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
-      await manageRewardsPage.clickOnElement(manageRewardsPage.enableRewardsButton, {
-        stepInfo: 'Enabling rewards',
-      });
-      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards enabled');
-      await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Rewards overview');
-    } else if (!isRewardEnabled && isPeerGiftingDisabled) {
-      // Directly enable Rewards
-      await manageRewardsPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
-      await manageRewardsPage.clickOnElement(manageRewardsPage.enableRewardsButton, {
-        stepInfo: 'Enabling rewards',
-      });
-      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards enabled');
-      await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Rewards overview');
-    } else if (isRewardEnabled && !isPeerGiftingDisabled) {
-      await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
-
-      const isPeerGiftingToggleOff = await manageRewardsPage.peerGifting.peerGiftingToggleSwitch.isChecked();
-      if (!isPeerGiftingToggleOff) {
-        await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
-          stepInfo: 'Enabling peer gifting toggle',
-        });
-      }
-      await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
-        stepInfo: 'Clicking save button',
-      });
-      await manageRewardsPage.peerGifting.selectThePeerGiftingEnableType('Immediately');
-      await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.grantAllowancesConfirmButton, {
-        stepInfo: 'Confirming grant allowances',
-      });
-      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
-    } else if (isRewardEnabled && isPeerGiftingDisabled) {
-      // Both are already enabled, do nothing
-      console.log('Reward and Gifting is enabled.');
-    }
+    await this.rewardsEnabler.enableRewardsAndPeerGiftingIfDisabled({
+      apiEndpoint: '/recognition/v1/tenant/config',
+      responsePath: { enabled: 'rewardConfig.enabled', peerGiftingEnabled: 'rewardConfig.peerGiftingEnabled' },
+      triggerAction: async () => {
+        // Navigate to manage rewards page to enable rewards
+        const manageRewards = new ManageRewardsOverviewPage(this.page);
+        await manageRewards.loadPage();
+        await manageRewards.verifyThePageIsLoaded();
+      },
+      returnAction: async () => {
+        // Return to rewards store after enabling
+        await this.visit();
+        await this.verifyThePageIsLoaded();
+      },
+      conditionalCheck: true, // Only enable if needed
+    });
   }
 
   async selectAndRedeemGiftCard(giftCardName: string) {
