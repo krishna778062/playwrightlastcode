@@ -1,15 +1,14 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { ManageSitePage } from '@/src/modules/content/pages/manageSitePage';
-import { SiteCategoriesPage } from '@/src/modules/content/pages/siteCategoriesPage';
-import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
-import { MANAGE_SITE_TEST_DATA as _MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
+import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
+import { SiteCategoriesPage } from '@/src/modules/content/ui/pages/siteCategoriesPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
@@ -56,10 +55,10 @@ test.describe(
       throw new Error(`Failed to get unique site after ${maxAttempts} attempts`);
     }
 
-    test.beforeEach(async ({ appManagerApiClient, appManagerHomePage }) => {
-      await appManagerHomePage.verifyThePageIsLoaded();
-      siteManagementHelper = new SiteManagementHelper(appManagerApiClient);
-      siteCategoriesPage = new SiteCategoriesPage(appManagerHomePage.page);
+    test.beforeEach(async ({ appManagerApiFixture, appManagerFixture }) => {
+      await appManagerFixture.homePage.verifyThePageIsLoaded();
+      siteManagementHelper = new SiteManagementHelper(appManagerApiFixture.apiContext);
+      siteCategoriesPage = new SiteCategoriesPage(appManagerFixture.page);
 
       // Clear used site IDs at the start of each test for fresh tracking
       usedSiteIds = [];
@@ -72,11 +71,11 @@ test.describe(
       await page.close();
     });
     test(
-      'Verify different sites can share same page category name',
+      'verify different sites can share same page category name',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
       },
-      async ({ appManagerHomePage, contentManagementHelper: _contentManagementHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify different sites can share same page category name',
           customTags: [ContentFeatureTags.MANAGE_SITE],
@@ -86,27 +85,27 @@ test.describe(
 
         // Get first unique site
         const creatingSiteFirstPublicSite = await getUniqueSite(SITE_TYPES.PUBLIC);
-        const newSiteDashboard = new SiteDashboardPage(appManagerHomePage.page, creatingSiteFirstPublicSite.siteId);
+        const newSiteDashboard = new SiteDashboardPage(appManagerFixture.page, creatingSiteFirstPublicSite.siteId);
         await newSiteDashboard.loadPage();
         const firstManageSitePageAppManagerSite = new ManageSitePage(
-          appManagerHomePage.page,
+          appManagerFixture.page,
           creatingSiteFirstPublicSite.siteId
         );
         await firstManageSitePageAppManagerSite.actions.clickOnTheManageSiteButton();
         await firstManageSitePageAppManagerSite.actions.clickOnThePageCategoryButton();
-        const categoryName = await TestDataGenerator.generateCategoryName();
+        const categoryName = TestDataGenerator.generateCategoryName();
         await siteCategoriesPage.actions.createCategoryWithName(categoryName);
 
         // Get second unique site (different from first)
         const creatingSiteSecondPublicSite = await getUniqueSite(SITE_TYPES.PUBLIC);
-        const newSecondDashboard = new SiteDashboardPage(appManagerHomePage.page, creatingSiteSecondPublicSite.siteId);
+        const newSecondDashboard = new SiteDashboardPage(appManagerFixture.page, creatingSiteSecondPublicSite.siteId);
         await newSecondDashboard.loadPage();
         const manageSitePageSecondPublicSite = new ManageSitePage(
-          appManagerHomePage.page,
+          appManagerFixture.page,
           creatingSiteSecondPublicSite.siteId
         );
         const secondManageSitePageAppManagerSite = new ManageSitePage(
-          appManagerHomePage.page,
+          appManagerFixture.page,
           creatingSiteSecondPublicSite.siteId
         );
         await manageSitePageSecondPublicSite.actions.clickOnTheManageSiteButton();
@@ -115,14 +114,14 @@ test.describe(
 
         // Get third unique site (different from first and second)
         const creatingSiteThirdPublicSite = await getUniqueSite(SITE_TYPES.PUBLIC);
-        const newThirdDashboard = new SiteDashboardPage(appManagerHomePage.page, creatingSiteThirdPublicSite.siteId);
+        const newThirdDashboard = new SiteDashboardPage(appManagerFixture.page, creatingSiteThirdPublicSite.siteId);
         await newThirdDashboard.loadPage();
         const thirdManageSitePageAppManagerSite = new ManageSitePage(
-          appManagerHomePage.page,
+          appManagerFixture.page,
           creatingSiteThirdPublicSite.siteId
         );
         const manageSitePageThirdPublicSite = new ManageSitePage(
-          appManagerHomePage.page,
+          appManagerFixture.page,
           creatingSiteThirdPublicSite.siteId
         );
         await manageSitePageThirdPublicSite.actions.clickOnTheManageSiteButton();
@@ -135,7 +134,7 @@ test.describe(
     );
 
     test(
-      'To verify the favourite people from manage site people',
+      'to verify the favourite people from manage site people',
       {
         tag: [
           TestPriority.P0,
@@ -145,7 +144,7 @@ test.describe(
           '@CONT-29063',
         ],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'To verify the favourite people from manage site people',
           customTags: [ContentFeatureTags.MANAGE_SITE],
@@ -155,9 +154,9 @@ test.describe(
 
         const siteInfo = await siteManagementHelper.getSiteAuthorNameAndEventStartDate();
         const getMembershipList = await siteManagementHelper.getSiteWithMembers(siteInfo.siteId);
-        const siteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, siteInfo.siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
         await siteDashboardPage.loadPage();
-        const manageSitePageAppManagerSite = new ManageSitePage(appManagerHomePage.page, siteInfo.siteId);
+        const manageSitePageAppManagerSite = new ManageSitePage(appManagerFixture.page, siteInfo.siteId);
         await manageSitePageAppManagerSite.actions.clickOnAboutTab();
         await manageSitePageAppManagerSite.actions.clickOnTheMembersTab();
         const membersName = await siteManagementHelper.getMembersNameFromList(getMembershipList.site.siteId);
@@ -169,7 +168,7 @@ test.describe(
         await manageSitePageAppManagerSite.assertions.checkMarkedAsFavoriteInPeopleList(membersName.membersName[0]);
         await manageSitePageAppManagerSite.actions.hoverOnMembersName(membersName.membersName[0]);
         await manageSitePageAppManagerSite.actions.markAsUnfavorite(membersName.membersName[0]);
-        const memberSiteDashboardPage = new SiteDashboardPage(appManagerHomePage.page, getMembershipList.site.siteId);
+        const memberSiteDashboardPage = new SiteDashboardPage(appManagerFixture.page, getMembershipList.site.siteId);
         await memberSiteDashboardPage.loadPage();
         await manageSitePageAppManagerSite.actions.clickOnTheAboutTab();
         await manageSitePageAppManagerSite.actions.clickOnTheMemberButtonInAboutTab();

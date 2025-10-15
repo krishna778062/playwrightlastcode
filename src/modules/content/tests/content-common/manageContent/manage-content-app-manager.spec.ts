@@ -198,7 +198,7 @@ test.describe(
           await appManagerFixture.siteManagementHelper.createSite({ accessType: SITE_TYPES.PUBLIC });
           publicNewOneSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
         }
-        await manageContentPage.actions.clickSiteSearchBar(publicSite?.name || publicNewOneSite?.name || '');
+        await manageContentPage.actions.selectSiteSearchBar(publicSite?.name || publicNewOneSite?.name || '');
         await manageContentPage.actions.selectSiteSearchBarOption();
         await manageContentPage.assertions.verifySiteNameLink();
       }

@@ -3,13 +3,13 @@ import { TestGroupType } from '@core/constants/testType';
 import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { IdentityManagementHelper } from '@/src/core/helpers/identityManagementHelper';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
-import { ManageSitePage } from '@/src/modules/content/pages/manageSitePage';
-import { SiteDashboardPage } from '@/src/modules/content/pages/siteDashboardPage';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
+import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
+import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
   ContentSuiteTags.MANAGE_SITE,
@@ -19,15 +19,13 @@ test.describe(
   () => {
     let manageSiteStandardUserPage: ManageSitePage;
     let identityManagementHelper: IdentityManagementHelper;
-    test.beforeEach(async ({ appManagerApiClient }) => {
-      identityManagementHelper = new IdentityManagementHelper(appManagerApiClient);
-    });
+    test.beforeEach(async ({}) => {});
 
     test.afterEach(async ({ page }) => {
       await page.close();
     });
     test(
-      'Login as Standard User where user is Site Content Manager of Public site',
+      'login as Standard User where user is Site Content Manager of Public site',
       {
         tag: [
           TestPriority.P0,
@@ -37,7 +35,7 @@ test.describe(
           '@CONT-29063',
         ],
       },
-      async ({ siteManagementHelper, standardUserHomePage }) => {
+      async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'To verify the favourite people from manage site people',
           customTags: [ContentFeatureTags.MANAGE_SITE],
@@ -45,29 +43,29 @@ test.describe(
           storyId: 'CONT-29063',
         });
 
-        const publicSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        const endUserInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
 
-        await siteManagementHelper.makeUserSiteMembership(
+        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
           publicSite.siteId,
           endUserInfo.userId,
           SitePermission.MEMBER,
           SiteMembershipAction.ADD
         );
-        const newSiteDashboard = new SiteDashboardPage(standardUserHomePage.page, publicSite.siteId);
+        const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, publicSite.siteId);
         await newSiteDashboard.loadPage();
-        manageSiteStandardUserPage = new ManageSitePage(standardUserHomePage.page, publicSite.siteId);
+        manageSiteStandardUserPage = new ManageSitePage(standardUserFixture.page, publicSite.siteId);
         await manageSiteStandardUserPage.actions.clickOntheMemberButton();
         await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
       }
     );
 
     test(
-      'To verify the UI of Manage site content - End User',
+      'to verify the UI of Manage site content - End User',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
       },
-      async ({ contentManagementHelper, siteManagementHelper, identityManagementHelper, standardUserHomePage }) => {
+      async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'To verify the UI of Manage site content - End User',
           customTags: [ContentFeatureTags.MANAGE_SITE],
@@ -76,17 +74,17 @@ test.describe(
         });
         const randDomDescription = MANAGE_SITE_TEST_DATA.DESCRIPTION.DESCRIPTION;
 
-        const siteInfo = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
         const endUserInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-        await siteManagementHelper.updateUserSiteMembershipWithRole({
+        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
           siteId: siteInfo.siteId,
           userId: endUserInfo.userId,
           role: SitePermission.CONTENT_MANAGER,
         });
-        const newSiteDashboard = new SiteDashboardPage(standardUserHomePage.page, siteInfo.siteId);
+        const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, siteInfo.siteId);
         await newSiteDashboard.loadPage();
-        manageSiteStandardUserPage = new ManageSitePage(standardUserHomePage.page, siteInfo.siteId);
-        await contentManagementHelper.createPage({
+        manageSiteStandardUserPage = new ManageSitePage(standardUserFixture.page, siteInfo.siteId);
+        await appManagerApiFixture.contentManagementHelper.createPage({
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
           options: {
@@ -94,7 +92,7 @@ test.describe(
             contentDescription: randDomDescription,
           },
         });
-        await contentManagementHelper.createAlbum({
+        await appManagerApiFixture.contentManagementHelper.createAlbum({
           siteId: siteInfo.siteId,
           imageName: 'beach.jpg',
           options: {
@@ -102,7 +100,7 @@ test.describe(
             contentDescription: randDomDescription,
           },
         });
-        await contentManagementHelper.createEvent({
+        await appManagerApiFixture.contentManagementHelper.createEvent({
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'event' },
           options: {
@@ -114,7 +112,8 @@ test.describe(
         await manageSiteStandardUserPage.assertions.verifyEventsTabImageIsDisplayed();
         await manageSiteStandardUserPage.assertions.verifyAlbumTabImageIsDisplayed();
         await manageSiteStandardUserPage.assertions.verifyPageTabImageIsDisplayed();
-        const siteAuthorNameAndEventStartDate = await siteManagementHelper.getSiteAuthorNameAndEventStartDate();
+        const siteAuthorNameAndEventStartDate =
+          await appManagerApiFixture.siteManagementHelper.getSiteAuthorNameAndEventStartDate();
         await manageSiteStandardUserPage.assertions.checkAuthorNameIsDisplayed(
           siteAuthorNameAndEventStartDate.authorName || ''
         );
@@ -122,7 +121,7 @@ test.describe(
           siteAuthorNameAndEventStartDate.startsAt || ''
         );
 
-        await siteManagementHelper.updateUserSiteMembershipWithRole({
+        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
           siteId: siteInfo.siteId,
           userId: endUserInfo.userId,
           role: SitePermission.MEMBER,
@@ -131,7 +130,7 @@ test.describe(
     );
 
     test(
-      'Login as Standard User where user is Site Content Manager of Private site',
+      'login as Standard User where user is Site Content Manager of Private site',
       {
         tag: [
           TestPriority.P0,
@@ -141,7 +140,7 @@ test.describe(
           '@CONT-29063',
         ],
       },
-      async ({ siteManagementHelper, standardUserHomePage }) => {
+      async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'To verify the user is Site Content Manager of Private site',
           customTags: [ContentFeatureTags.MANAGE_SITE],
@@ -149,24 +148,24 @@ test.describe(
           storyId: 'CONT-29063',
         });
 
-        const privateSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
+        const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
         const endUserInfoPrivate = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-        await siteManagementHelper.makeUserSiteMembership(
+        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
           privateSite.siteId,
           endUserInfoPrivate.userId,
           SitePermission.MEMBER,
           SiteMembershipAction.ADD
         );
-        const newSiteDashboard = new SiteDashboardPage(standardUserHomePage.page, privateSite.siteId);
+        const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, privateSite.siteId);
         await newSiteDashboard.loadPage();
-        manageSiteStandardUserPage = new ManageSitePage(standardUserHomePage.page, privateSite.siteId);
+        manageSiteStandardUserPage = new ManageSitePage(standardUserFixture.page, privateSite.siteId);
         await manageSiteStandardUserPage.actions.clickOntheMemberButton();
         await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
       }
     );
 
     test(
-      'Login as Standard User where user is Site Content Manager of Unlisted site',
+      'login as Standard User where user is Site Content Manager of Unlisted site',
       {
         tag: [
           TestPriority.P0,
@@ -176,7 +175,7 @@ test.describe(
           '@CONT-29063',
         ],
       },
-      async ({ siteManagementHelper, standardUserHomePage, appManagerApiClient }) => {
+      async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'To verify the user is Site Content Manager of Unlisted site',
           customTags: [ContentFeatureTags.MANAGE_SITE],
@@ -184,19 +183,17 @@ test.describe(
           storyId: 'CONT-29063',
         });
 
-        const unlistedSite = await siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED);
+        const unlistedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED);
         const endUserInfoUnlisted = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-        await appManagerApiClient
-          .getSiteManagementService()
-          .makeUserSiteMembership(
-            unlistedSite.siteId,
-            endUserInfoUnlisted.userId,
-            SitePermission.MEMBER,
-            SiteMembershipAction.ADD
-          );
-        const newSiteDashboard = new SiteDashboardPage(standardUserHomePage.page, unlistedSite.siteId);
+        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+          unlistedSite.siteId,
+          endUserInfoUnlisted.userId,
+          SitePermission.MEMBER,
+          SiteMembershipAction.ADD
+        );
+        const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, unlistedSite.siteId);
         await newSiteDashboard.loadPage();
-        manageSiteStandardUserPage = new ManageSitePage(standardUserHomePage.page, unlistedSite.siteId);
+        manageSiteStandardUserPage = new ManageSitePage(standardUserFixture.page, unlistedSite.siteId);
         await manageSiteStandardUserPage.actions.clickOntheMemberButton();
         await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
       }

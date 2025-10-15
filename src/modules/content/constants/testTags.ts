@@ -11,6 +11,8 @@ export enum ContentSuiteTags {
   FEED_SETTINGS = '@feed-settings',
   QUESTION_SETTINGS = '@question-settings',
   SOCIAL_CAMPAIGN = '@social-campaign',
+  MY_CONTENT_FILTER = '@my-content-filter',
+  HOME_FEED = '@home-feed',
 }
 
 export enum ContentFeatureTags {
@@ -21,6 +23,8 @@ export enum ContentFeatureTags {
   VALIDATION_REQUIRED_BAR_STATE = '@validation-required-bar-state',
   ADD_USERS_TO_AUTHOR = '@add-users-to-author',
   MANAGE_SITE = '@manage-site',
+  MY_CONTENT_FILTER = '@my-content-filter',
+  HOME_FEED = '@home-feed',
 }
 
 export const ContentTestTags = [...Object.values(ContentSuiteTags), ...Object.values(ContentFeatureTags)] as const;

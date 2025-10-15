@@ -1,10 +1,8 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '@/src/core/ui/components/baseComponent';
-
-import { MANAGE_SITE_TEST_DATA } from '../test-data/manage-site-test-data';
-
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 
 export class ManageSitesComponent extends BaseComponent {
   readonly clickOnSite: Locator;

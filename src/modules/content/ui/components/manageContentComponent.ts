@@ -338,6 +338,13 @@ export class ManageContentComponent extends BaseComponent {
   async selectSiteSearchBar(siteName: string): Promise<void> {
     await test.step(`Selecting the site search bar`, async () => {});
   }
+
+  async selectTheStatusFilter(status: string): Promise<void> {
+    await test.step(`Selecting the status filter: ${status}`, async () => {
+      await this.clickOnElement(this.statusField);
+      await this.selectPublishOption.selectOption(status);
+    });
+  }
   async authorNameShouldBeVisible(): Promise<void> {
     await test.step(`Checking the author name should be visible`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.authorName);
@@ -477,6 +484,12 @@ export class ManageContentComponent extends BaseComponent {
   async applyButtonShouldBeDisabled(): Promise<void> {
     await test.step('Checking if the apply button is disabled', async () => {
       await this.verifier.verifyTheElementIsDisabled(this.applyButton);
+    });
+  }
+
+  async clickOnValidateApplyButton(): Promise<void> {
+    await test.step(`Clicking on validate apply button`, async () => {
+      await this.clickOnElement(this.applyButton);
     });
   }
 }

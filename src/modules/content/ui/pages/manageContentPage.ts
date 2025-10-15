@@ -15,7 +15,7 @@ export interface IActions {
   clickOnApplyButton: () => Promise<void>;
   clickOnPublishButton: () => Promise<void>;
   clickFilterButton: () => Promise<void>;
-  clickSiteSearchBar: (siteName: string) => Promise<void>;
+  selectSiteSearchBar: (siteName: string) => Promise<void>;
   clickOnTheSiteName: () => Promise<void>;
   clickSortByButton: () => Promise<void>;
   selectCreatedNewestOption: () => Promise<void>;
@@ -140,6 +140,9 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickOnValidateButton(): Promise<void> {
     await this.manageContentComponent.selectValidateButton();
   }
+  async clickOnValidateApplyButton(): Promise<void> {
+    await this.manageContentComponent.clickOnValidateApplyButton();
+  }
 
   async clickOnFirstDropDownOption(): Promise<void> {
     await this.manageContentComponent.selectFirstDropDownOption();
@@ -162,9 +165,13 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickFilterButton(): Promise<void> {
     await this.manageContentComponent.clickFilterButton();
   }
-  async clickSiteSearchBar(siteName: string): Promise<void> {
-    await this.manageContentComponent.clickSiteSearchBar(siteName);
+  async selectSiteSearchBar(siteName: string): Promise<void> {
+    await this.manageContentComponent.selectSiteSearchBar(siteName);
   }
+  async selectTheStatusFilter(status: string): Promise<void> {
+    await this.manageContentComponent.selectTheStatusFilter(status);
+  }
+
   async authorNameShouldBeVisible(): Promise<void> {
     await this.manageContentComponent.authorNameShouldBeVisible();
   }
