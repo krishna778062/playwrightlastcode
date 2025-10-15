@@ -4,7 +4,6 @@ import { ApplicationSettingsOption } from '../types/navigation.types';
 
 import type { TestOptions } from '@/src/core/types/test.types';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
-import { AnalyticsLandingPage } from '@/src/modules/data-engineering/pages/analyticsLandingPage';
 
 export class SideNavBarComponent extends BaseComponent {
   readonly createSection: Locator;
@@ -163,11 +162,10 @@ export class SideNavBarComponent extends BaseComponent {
    * Clicks on the Analytics button in the side navigation
    * @param options - The options for the step
    */
-  async clickOnAnalyticsButton(options?: TestOptions): Promise<AnalyticsLandingPage> {
+  async clickOnAnalyticsButton(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `side navbar: clicking Analytics button on side navbar`, async () => {
       await this.clickOnElement(this.analyticsButton);
     });
-    return new AnalyticsLandingPage(this.page);
   }
 
   /**
