@@ -115,7 +115,11 @@ if [ -n "$EXTRA_ARGS" ]; then
 fi
 
 # Special handling for frontline module with login-with-otp test
-if [ "$MODULE_NAME" == "frontline" ] && [ -n "$ENV_NAME" ] && [ "$ENV_NAME" != "qa2" ]; then
+# Apply when: module is frontline AND (no env specified OR env is not qa2)
+if [ "$MODULE_NAME" == "frontline" ] && [ "$ENV_NAME" != "qa2" ]; then
+    # Determine the environment for main tests (default to qa if not specified)
+    MAIN_ENV="${ENV_NAME:-qa}"
+    
     echo ""
     echo "================================================"
     echo "Special handling: login-with-otp.spec.ts will use qa2.env"
@@ -123,7 +127,7 @@ if [ "$MODULE_NAME" == "frontline" ] && [ -n "$ENV_NAME" ] && [ "$ENV_NAME" != "
     echo ""
     
     # Run all tests except login-with-otp on the specified environment
-    echo "Step 1: Running all tests except login-with-otp on $ENV_NAME environment..."
+    echo "Step 1: Running all tests except login-with-otp on $MAIN_ENV environment..."
     EXCLUDE_OTP_CMD="$CMD --grep-invert=\"login with otp\""
     echo "Running: $EXCLUDE_OTP_CMD"
     eval $EXCLUDE_OTP_CMD
