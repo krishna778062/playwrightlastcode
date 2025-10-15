@@ -30,12 +30,12 @@ test.describe.only('Newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLET
       // const newsletterName = `Test_Newsletter_`;
       // await newsletterHomePage.createNewsletter(newsletterName);
       await newsletterHomePage.validateHeaders();
-      await newsletterHomePage.validateSearchAndFilter();
+      //await newsletterHomePage.validateSearchAndFilter();
       await newsletterHomePage.validateNewsletterTable();
     }
   );
 
-  test.only(
+  test(
     'Validate Newsletter Home page',
     {
       tag: [

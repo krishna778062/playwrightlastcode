@@ -42,7 +42,9 @@
     "test:integrations": "MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations.config.ts",
     "test:integrations:p0": "MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations.config.ts --grep=@P0",
     "test:integrations:smoke": "MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations.config.ts --grep=@smoke",
-    "test:newsletter:test": "cross-env TEST_ENV=test MODULE_NAME=newsletter npx playwright test --config=src/modules/newsletter/playwright.newsletter.config.ts"
+    "test:newsletter:test": "cross-env TEST_ENV=test MODULE_NAME=newsletter npx playwright test --config=src/modules/newsletter/playwright.newsletter.config.ts",
+    "test:newsletter:qa": "cross-env MODULE_NAME=newsletter npx playwright test --config=src/modules/newsletter/playwright.newsletter.config.ts",
+    "test:newsletter": "cross-env MODULE_NAME=newsletter npx playwright test --config=src/modules/newsletter/playwright.newsletter.config.ts"
   },
   "keywords": [],
   "author": "",
