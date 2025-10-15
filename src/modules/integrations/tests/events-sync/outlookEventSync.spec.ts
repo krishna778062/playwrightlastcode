@@ -9,7 +9,6 @@ import { tagTest } from '@core/utils/testDecorator';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { EventSyncDestination } from '@/src/core/types/contentManagement.types';
 import { SiteMembershipAction, SitePermission } from '@/src/core/types/siteManagement.types';
-import { EventDetailPage, RsvpOption } from '@/src/modules/content/ui/pages/eventDetailPage';
 import {
   createAppManagerOutlookCalendarHelper,
   createEndUserOutlookCalendarHelper,
@@ -22,6 +21,7 @@ import {
   EXPECTED_OUTLOOK_EVENT_SYNC_CONFIG,
   OUTLOOK_EVENT_CONFIGS,
 } from '@/src/modules/integrations/test-data/calendarEventSync.test-data';
+import { EventDetailPage, RsvpOption } from '@/src/modules/integrations/ui/pages/eventDetailPage';
 import { UserManagementService } from '@/src/modules/platforms/apis/services/UserManagementService';
 
 test.describe(
@@ -43,7 +43,7 @@ test.describe(
       async ({ appManagerFixture, testSiteName }) => {
         tagTest(test.info(), {
           description: 'Test event deletion sync to Outlook Calendar',
-          zephyrTestId: 'INT-OUTLOOK-DELETE-001',
+          zephyrTestId: 'INT-27088',
         });
 
         const userManagementService = new UserManagementService(
@@ -81,11 +81,7 @@ test.describe(
         const appManagerCalendarHelper = createAppManagerOutlookCalendarHelper();
         const verificationResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
-        expect(
-          verificationResult.found,
-          `Event "${eventTitle}" should have been synced to Outlook Calendar (${appManagerEmail}) because event sync is enabled. ` +
-            `Event sync is configured for SITE_MEMBERS_FOLLOWERS but event was not found after ${verificationResult.attempts} verification attempts.`
-        ).toBe(true);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(verificationResult);
 
         const eventDetailPage = new EventDetailPage(appManagerFixture.page, siteId, eventResult.eventId);
         await eventDetailPage.loadPage();
@@ -100,11 +96,7 @@ test.describe(
           expectFound: false,
         });
 
-        expect(
-          deletionVerificationResult.found,
-          `Event "${eventTitle}" should have been removed from Outlook Calendar after deletion from Simpplr UI. ` +
-            `Event was verified as deleted from Simpplr but still exists in Outlook Calendar after ${deletionVerificationResult.attempts} verification attempts.`
-        ).toBe(false);
+        OutlookCalendarHelper.assertEventRemovedFromCalendar(deletionVerificationResult);
       }
     );
 
@@ -116,7 +108,6 @@ test.describe(
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
-          '@unpublishEvent',
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -162,11 +153,7 @@ test.describe(
         const authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
         // Verify event is synced to Outlook Calendar for author
-        expect(
-          authorEventSyncResult.found,
-          `Event "${eventTitle}" should have been synced to Outlook Calendar (${appManagerEmail}) because event sync is enabled. ` +
-            `Event sync is configured for SITE_MEMBERS_FOLLOWERS but event was not found after ${authorEventSyncResult.attempts} verification attempts.`
-        ).toBe(true);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(authorEventSyncResult);
 
         const eventDetailPage = new EventDetailPage(appManagerFixture.page, siteId, eventResult.eventId);
         await eventDetailPage.loadPage();
@@ -181,10 +168,7 @@ test.describe(
           expectFound: false,
         });
 
-        expect(
-          unpublishVerificationResult.found,
-          `Event "${eventTitle}" should have been removed from Outlook Calendar after unpublishing.`
-        ).toBe(false);
+        OutlookCalendarHelper.assertEventRemovedFromCalendar(unpublishVerificationResult);
 
         // Publish event
         await eventDetailPage.actions.publishEvent();
@@ -192,10 +176,7 @@ test.describe(
         // Verify event is synced back to Outlook Calendar after republishing
         const republishVerificationResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
-        expect(
-          republishVerificationResult.found,
-          `Event "${eventTitle}" should have been synced back to Outlook Calendar after republishing.`
-        ).toBe(true);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(republishVerificationResult);
       }
     );
 
@@ -251,11 +232,7 @@ test.describe(
         const appManagerCalendarHelper = createAppManagerOutlookCalendarHelper();
         const authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(originalEventTitle);
 
-        expect(
-          authorEventSyncResult.found,
-          `Event "${originalEventTitle}" should have been synced to Outlook Calendar (${appManagerEmail}) because event sync is enabled. ` +
-            `Event sync is configured for SITE_MEMBERS_FOLLOWERS but event was not found after ${authorEventSyncResult.attempts} verification attempts.`
-        ).toBe(true);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(authorEventSyncResult);
 
         const eventDetailPage = new EventDetailPage(appManagerFixture.page, siteId, eventResult.eventId);
         await eventDetailPage.loadPage();
@@ -345,10 +322,7 @@ test.describe(
           expectFound: false,
         });
 
-        expect(
-          deactivationEventSyncResult.found,
-          `Event "${eventTitle}" should have been removed from Outlook Calendar after site deactivation.`
-        ).toBe(false);
+        OutlookCalendarHelper.assertEventRemovedFromCalendar(deactivationEventSyncResult);
 
         // STEP 2: Reactivate the site
         await appManagerFixture.siteManagementHelper.siteManagementService.activateSite(siteId);
@@ -356,10 +330,7 @@ test.describe(
         // Verify event reappears in Outlook Calendar after site reactivation
         const reactivationEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
-        expect(
-          reactivationEventSyncResult.found,
-          `Event "${eventTitle}" should have been synced to Outlook Calendar after site reactivation.`
-        ).toBe(true);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(reactivationEventSyncResult);
       }
     );
 
@@ -416,11 +387,7 @@ test.describe(
         const appManagerCalendarHelper = createAppManagerOutlookCalendarHelper();
         const authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
-        expect(
-          authorEventSyncResult.found,
-          `Event "${eventTitle}" should have been synced to Outlook Calendar (${appManagerEmail}) because event sync is enabled. ` +
-            `Event sync is configured for SITE_MEMBERS_FOLLOWERS but event was not found after ${authorEventSyncResult.attempts} verification attempts.`
-        ).toBe(true);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(authorEventSyncResult);
 
         const eventDetailPage = new EventDetailPage(appManagerFixture.page, siteId, eventResult.eventId);
         await eventDetailPage.loadPage();
@@ -437,10 +404,7 @@ test.describe(
           expectFound: false,
         });
 
-        expect(
-          disableSyncVerificationResult.found,
-          `Event "${eventTitle}" should have been removed from Outlook Calendar after disabling event sync.`
-        ).toBe(false);
+        OutlookCalendarHelper.assertEventRemovedFromCalendar(disableSyncVerificationResult);
 
         // Re-enable event sync
         await eventDetailPage.actions.toggleEventSync(true, EventSyncDestination.OUTLOOK_CALENDAR);
@@ -450,10 +414,7 @@ test.describe(
           maxAttempts: 12,
         });
 
-        expect(
-          enableSyncVerificationResult.found,
-          `Event "${eventTitle}" should have been synced back to Outlook Calendar after re-enabling event sync.`
-        ).toBe(true);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(enableSyncVerificationResult);
       }
     );
 
@@ -493,8 +454,6 @@ test.describe(
 
         const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
 
-        const eventAuthorEmail = 'howard.nelson@smplrdev.onmicrosoft.com';
-
         // Create event with Outlook Calendar sync enabled first
         const eventTitle = `${OUTLOOK_EVENT_CONFIGS.END_USER_SYNC.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
@@ -514,11 +473,7 @@ test.describe(
         const appManagerCalendarHelper = createAppManagerOutlookCalendarHelper();
         const authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
-        expect(
-          authorEventSyncResult.found,
-          `Event "${eventTitle}" should have been synced to Outlook Calendar (${appManagerEmail}) because end user (${endUserEmail}) was added as a site member. ` +
-            `Event sync is configured for SITE_MEMBERS_FOLLOWERS but event was not found after ${authorEventSyncResult.attempts} verification attempts.`
-        ).toBe(true);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(authorEventSyncResult);
 
         // Get user ID for the end user email
         const endUserId = await userManagementService.getUserId(endUserEmail);
@@ -537,11 +492,7 @@ test.describe(
           retryDelayMs: 13000,
         });
 
-        expect(
-          endUserEventSyncResult.found,
-          `Event "${eventTitle}" should have been synced to Outlook Calendar (${eventAuthorEmail}) because end user (${endUserEmail}) was added as a site member. ` +
-            `Event sync is configured for SITE_MEMBERS_FOLLOWERS but event was not found after ${endUserEventSyncResult.attempts} verification attempts.`
-        ).toBe(true);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(endUserEventSyncResult);
       }
     );
 
@@ -582,8 +533,6 @@ test.describe(
         const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
         const endUserId = await userManagementService.getUserId(endUserEmail);
 
-        const eventAuthorEmail = 'howard.nelson@smplrdev.onmicrosoft.com';
-
         // Add end user as site member before creating event
         await appManagerFixture.siteManagementHelper.siteManagementService.makeUserSiteMembership(
           siteId,
@@ -606,16 +555,11 @@ test.describe(
           eventPayload
         );
 
-        console.log(`Verifying event sync to App Manager & End User calendars`);
         // Verify event appears in App Manager's calendar
         const appManagerCalendarHelper = createAppManagerOutlookCalendarHelper();
         const appManagerVerificationResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
-        expect(
-          appManagerVerificationResult.found,
-          `Event "${eventTitle}" should have been synced to Outlook Calendar (${appManagerEmail}) because end user (${endUserEmail}) was added as a site member. ` +
-            `Event sync is configured for SITE_MEMBERS_FOLLOWERS but event was not found after ${appManagerVerificationResult.attempts} verification attempts.`
-        ).toBe(true);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(appManagerVerificationResult);
 
         // Verify event appears in End User's Outlook Calendar (since they were already a site member)
         const endUserCalendarHelper = createEndUserOutlookCalendarHelper();
@@ -624,13 +568,8 @@ test.describe(
           retryDelayMs: 13000,
         });
 
-        expect(
-          initialVerificationResult.found,
-          `Event "${eventTitle}" should have been synced to Outlook Calendar (${eventAuthorEmail}) because end user (${endUserEmail}) was already a site member when event was created. ` +
-            `Event sync is configured for SITE_MEMBERS_FOLLOWERS but event was not found after ${initialVerificationResult.attempts} verification attempts.`
-        ).toBe(true);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(initialVerificationResult);
 
-        console.info(`Removing end user ${endUserEmail} from site membership`);
         // Remove end user from site membership
         await appManagerFixture.siteManagementHelper.siteManagementService.makeUserSiteMembership(
           siteId,
@@ -639,7 +578,6 @@ test.describe(
           SiteMembershipAction.REMOVE
         );
 
-        console.info(`Verifying event is removed from End User's Outlook Calendar`);
         // Verify event is removed from End User's Outlook Calendar
         const removalVerificationResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
           maxAttempts: 15,
@@ -647,20 +585,12 @@ test.describe(
           expectFound: false,
         });
 
-        expect(
-          removalVerificationResult.found,
-          `Event "${eventTitle}" should have been removed from Outlook Calendar (${eventAuthorEmail}) because end user (${endUserEmail}) was removed from site membership. ` +
-            `Event sync is configured for SITE_MEMBERS_FOLLOWERS but event was still found after ${removalVerificationResult.attempts} verification attempts.`
-        ).toBe(false);
+        OutlookCalendarHelper.assertEventRemovedFromCalendar(removalVerificationResult);
 
         // Verify event still exists in App Manager's calendar (should not be affected)
         const appManagerVerificationResult2 = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
-        expect(
-          appManagerVerificationResult2.found,
-          `Event "${eventTitle}" should have been synced to Outlook Calendar (${appManagerEmail}) because end user (${endUserEmail}) was added as a site member. ` +
-            `Event sync is configured for SITE_MEMBERS_FOLLOWERS but event was not found after ${appManagerVerificationResult2.attempts} verification attempts.`
-        ).toBe(true);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(appManagerVerificationResult2);
       }
     );
 
@@ -724,11 +654,7 @@ test.describe(
         const appManagerCalendarHelper = createAppManagerOutlookCalendarHelper();
         const authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
-        expect(
-          authorEventSyncResult.found,
-          `Event "${eventTitle}" should have been synced to Outlook Calendar (${appManagerEmail}) because event sync is enabled. ` +
-            `Event sync is configured for SITE_MEMBERS_FOLLOWERS but event was not found after ${authorEventSyncResult.attempts} verification attempts.`
-        ).toBe(true);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(authorEventSyncResult);
 
         const endUserCalendarHelper = createEndUserOutlookCalendarHelper();
         let endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
@@ -736,10 +662,7 @@ test.describe(
           retryDelayMs: 13000,
         });
 
-        expect(
-          endUserEventSyncResult.found,
-          `Event "${eventTitle}" should be in end user calendar before site access change`
-        ).toBe(true);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(endUserEventSyncResult);
 
         // Change site from public to private
         await appManagerFixture.siteManagementHelper.siteManagementService.updateSiteAccess(siteId, 'private');
@@ -748,11 +671,7 @@ test.describe(
         await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
         endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
-        expect(
-          endUserEventSyncResult.found,
-          `Event "${eventTitle}" should remain in end user calendar after site changes from public to private because they are a site member. ` +
-            `Site members should retain access to events even after site becomes private.`
-        ).toBe(true);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(endUserEventSyncResult);
       }
     );
 
@@ -792,8 +711,6 @@ test.describe(
         // End user from QA env who will RSVP as non-member
         const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
 
-        const eventAuthorEmail = 'howard.nelson@smplrdev.onmicrosoft.com';
-
         // Create second browser context for end user
         const endUserContext = await browser.newContext();
         const endUserPage = await endUserContext.newPage();
@@ -825,11 +742,7 @@ test.describe(
         const appManagerCalendarHelper = createAppManagerOutlookCalendarHelper();
         const authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
 
-        expect(
-          authorEventSyncResult.found,
-          `Event "${eventTitle}" should have been synced to Outlook Calendar (${appManagerEmail}) because event sync is enabled. ` +
-            `Event sync is configured for SITE_MEMBERS_FOLLOWERS but event was not found after ${authorEventSyncResult.attempts} verification attempts.`
-        ).toBe(true);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(authorEventSyncResult);
 
         // Navigate to event as End User (non-member) and RSVP
         const endUserEventDetailPage = new EventDetailPage(endUserHomePage.page, siteId, eventCreationResult.eventId);
@@ -848,11 +761,7 @@ test.describe(
           retryDelayMs: 13000,
         });
 
-        expect(
-          endUserEventSyncResult.found,
-          `Event "${eventTitle}" should have been synced to Outlook Calendar (${eventAuthorEmail}) because end user (${endUserEmail}) RSVPed "Yes" as a non-member to a public site event. ` +
-            `Non-member RSVP should trigger calendar sync but event was not found after ${endUserEventSyncResult.attempts} verification attempts.`
-        ).toBe(true);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(endUserEventSyncResult);
 
         await endUserContext.close();
       }

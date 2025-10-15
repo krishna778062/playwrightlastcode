@@ -1,5 +1,19 @@
 import { getEnvVar } from '@core/utils/getEnvConfig';
 
+/**
+ * Google Calendar Integration Credentials
+ */
+export const GOOGLE_CALENDAR_USERS = {
+  APP_MANAGER: {
+    email: 'howard.nelson@simpplr.dev',
+    password: 'Simpplr@1220169',
+  },
+  END_USER: {
+    email: 'craig.gordon@simpplr.dev',
+    password: '_Simp_1234',
+  },
+};
+
 export interface GoogleCalendarEvent {
   id?: string;
   summary?: string;
@@ -401,4 +415,14 @@ export function assertCompleteEventConfiguration(
 ): void {
   assertEventSyncConfiguration(eventResult, config.eventSync);
   assertRsvpConfiguration(eventResult, config.rsvp);
+}
+
+export function assertEventSyncedToCalendar(eventSyncResult: any): void {
+  const { expect } = require('@playwright/test');
+  expect(eventSyncResult.found, 'Event should have been synced to Google Calendar').toBe(true);
+}
+
+export function assertEventRemovedFromCalendar(eventSyncResult: any): void {
+  const { expect } = require('@playwright/test');
+  expect(eventSyncResult.found, 'Event should have been removed from Google Calendar').toBe(false);
 }

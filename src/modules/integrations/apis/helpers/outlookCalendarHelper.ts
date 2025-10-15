@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 export interface OutlookCalendarEvent {
   id?: string;
   subject?: string;
@@ -360,6 +361,14 @@ export class OutlookCalendarHelper {
   ): void {
     OutlookCalendarHelper.assertEventSyncConfiguration(eventResult, config.eventSync);
     OutlookCalendarHelper.assertRsvpConfiguration(eventResult, config.rsvp);
+  }
+
+  static assertEventSyncedToCalendar(eventSyncResult: any): void {
+    expect(eventSyncResult.found, 'Event should have been synced to Outlook Calendar').toBe(true);
+  }
+
+  static assertEventRemovedFromCalendar(eventSyncResult: any): void {
+    expect(eventSyncResult.found, 'Event should have been removed from Outlook Calendar').toBe(false);
   }
 }
 
