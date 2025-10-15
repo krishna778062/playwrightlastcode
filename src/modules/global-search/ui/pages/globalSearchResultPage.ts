@@ -446,6 +446,71 @@ export class GlobalSearchResultPage extends BasePage {
   }
 
   /**
+   * Verifies and clicks on department subfilter with department selection
+   * @param options - Options including filter text and department name
+   */
+  async verifyAndClickDepartmentSubFilter(options: {
+    filterText: string;
+    filterName: string;
+    departmentName: string;
+  }): Promise<number> {
+    return await this.getSidebarFilter(options).verifyAndClickDepartmentSubFilter(
+      options.filterName,
+      options.departmentName
+    );
+  }
+
+  /**
+   * Verifies and clicks on location subfilter with location selection
+   * @param options - Options including filter text and location name
+   */
+  async verifyAndClickLocationSubFilter(options: {
+    filterText: string;
+    filterName: string;
+    locationName: string;
+  }): Promise<number> {
+    return await this.getSidebarFilter(options).verifyAndClickLocationSubFilter(
+      options.filterName,
+      options.locationName
+    );
+  }
+
+  /**
+   * Verifies and clicks on expertise subfilter with expertise selection
+   * @param options - Options including filter text and expertise name
+   */
+  async verifyAndClickExpertiseSubFilter(options: {
+    filterText: string;
+    filterName: string;
+    expertiseName: string;
+  }): Promise<number> {
+    return await this.getSidebarFilter(options).verifyAndClickExpertiseSubFilter(
+      options.filterName,
+      options.expertiseName
+    );
+  }
+
+  /**
+   * Generic people subfilter with count tracking and reset functionality
+   * @param options - Options including filter text, filter name, original count, and expected count after filter
+   */
+  async verifyPeopleSubFilterWithCountTracking(options: {
+    filterText: string;
+    filterName: string;
+    originalCount: number;
+    expectedCountAfterFilter: number;
+    stepInfo?: string;
+  }): Promise<void> {
+    const subFilter = this.getSidebarFilter(options);
+    await subFilter.verifyPeopleSubFilterWithCountTracking({
+      filterName: options.filterName,
+      expectedCountAfterFilter: options.expectedCountAfterFilter,
+      originalCount: options.originalCount,
+      stepInfo: options.stepInfo,
+    });
+  }
+
+  /**
    * Dismisses survey popup if present
    */
   async dismissSurveyPopupIfPresent(): Promise<void> {

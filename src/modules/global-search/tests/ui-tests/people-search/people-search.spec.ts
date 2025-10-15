@@ -43,7 +43,6 @@ test.describe(
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19472', // Replace with actual Zephyr test ID
         });
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(testData.searchTerm, {
           stepInfo: `Searching with term "${testData.searchTerm}" to verify people appear in search results`,
         });
@@ -79,8 +78,6 @@ test.describe(
           zephyrTestId: 'SEN-19473', // Replace with actual Zephyr test ID
         });
 
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
-
         // Type in search input
         const topNavBarComponent = appManagerFixture.navigationHelper.topNavBarComponent;
         await topNavBarComponent.typeInSearchBarInput(testData.searchTerm, {
@@ -115,7 +112,6 @@ test.describe(
           zephyrTestId: 'SEN-19474', // Replace with actual Zephyr test ID
         });
 
-        // Test-level beforeEach logic
         let testUserId: string;
         let testExpertiseId: string;
 
@@ -143,8 +139,6 @@ test.describe(
           throw error;
         }
 
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
-
         // Navigate to global search and search for the user
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(testData.searchTerm, {
           stepInfo: `Searching with term "${testData.searchTerm}" to verify people appear in search results with sidebar filter`,
@@ -156,11 +150,67 @@ test.describe(
         );
         await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
 
-        // TODO: Add sidebar filter verification logic here
-        // This is where you would implement the actual sidebar filter test
-        console.log('Sidebar filter test - implementation needed');
+        await globalSearchResultPage.verifyAndClickSidebarFilter({
+          filterText: testData.label,
+          iconType: testData.label.toLowerCase(),
+        });
 
-        //Test-level afterEach logic
+        await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
+
+        // Test department filter with count tracking
+        const departmentOriginalCount = await globalSearchResultPage.verifyAndClickDepartmentSubFilter({
+          filterText: testData.label,
+          filterName: testData.peopleFilters.department,
+          departmentName: testData.updateFields.department,
+        });
+        await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
+
+        // Test location filter with count tracking
+        const locationOriginalCount = await globalSearchResultPage.verifyAndClickLocationSubFilter({
+          filterText: testData.label,
+          filterName: testData.peopleFilters.location,
+          locationName: testData.updateFields.location,
+        });
+        await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
+
+        // Test expertise filter with count tracking
+        const expertiseOriginalCount = await globalSearchResultPage.verifyAndClickExpertiseSubFilter({
+          filterText: testData.label,
+          filterName: testData.peopleFilters.expertise,
+          expertiseName: testData.expertise.name,
+        });
+        await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
+
+        // Verify department filter count tracking and reset
+        await globalSearchResultPage.verifyPeopleSubFilterWithCountTracking({
+          filterText: testData.label,
+          filterName: testData.peopleFilters.department,
+          originalCount: departmentOriginalCount,
+          expectedCountAfterFilter: 1,
+          stepInfo: `Verify ${testData.peopleFilters.department} filter count tracking and reset`,
+        });
+
+        // Verify location filter count tracking and reset
+        await globalSearchResultPage.verifyPeopleSubFilterWithCountTracking({
+          filterText: testData.label,
+          filterName: testData.peopleFilters.location,
+          originalCount: locationOriginalCount,
+          expectedCountAfterFilter: 1,
+          stepInfo: `Verify ${testData.peopleFilters.location} filter count tracking and reset`,
+        });
+
+        // Verify expertise filter count tracking and reset
+        await globalSearchResultPage.verifyPeopleSubFilterWithCountTracking({
+          filterText: testData.label,
+          filterName: testData.peopleFilters.expertise,
+          originalCount: expertiseOriginalCount,
+          expectedCountAfterFilter: 1,
+          stepInfo: `Verify ${testData.peopleFilters.expertise} filter count tracking and reset`,
+        });
+
+        await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
+
+        // Test-specific cleanup
         try {
           // Cleanup: Unendorse user from expertise
           if (testUserId && testExpertiseId) {

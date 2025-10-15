@@ -18,6 +18,7 @@ export const PEOPLE_SEARCH_TEST_DATA = {
     city: 'Bengaluru',
     state: 'Karnataka',
     country: 'India',
+    location: 'Bengaluru, Karnataka, India',
   },
 
   /**
@@ -25,6 +26,15 @@ export const PEOPLE_SEARCH_TEST_DATA = {
    */
   expertise: {
     name: `Automation_${Math.floor(Math.random() * 90000) + 10000}`, // Unique expertise name with 5 digits
+  },
+
+  /**
+   * People filter names
+   */
+  peopleFilters: {
+    department: 'Department',
+    location: 'Location',
+    expertise: 'Expertise',
   },
 
   /**
