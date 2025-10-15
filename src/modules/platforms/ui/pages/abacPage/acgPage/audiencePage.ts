@@ -35,15 +35,41 @@ export class AudiencePage extends BasePage {
   editCategoryModal: CategoryModalComponent;
   csvUploadModal: CsvAudienceModule;
 
+  // Audience create flow - class-level locators (CSS-first)
+  createAudienceDialog: Locator;
+  audienceNameInput: Locator;
+  addAudienceDescriptionButton: Locator;
+  audienceDescriptionInput: Locator;
+  selectParentTile: Locator;
+  audiencePickerDialog: Locator;
+  audiencePickerSearchBox: Locator;
+  audiencePickerDoneButton: Locator;
+  typeSelectInput: Locator;
+  adGroupSelectInput: Locator;
+  selectParentButton: Locator;
+  createAudienceBtn: Locator;
+
+  // Operator-related locators
+  operatorSelectInput: Locator;
+  operatorValueInput: Locator;
+  operatorValueDropdown: Locator;
+  operatorValueTestId: Locator;
+  operatorValuePlaceholder: Locator;
+
+  // Country-specific locators
+  countryValuesTextInput: Locator;
+
+  // Date-specific locators
+  dateButton: Locator;
+  startDateButton: Locator;
+  endDateButton: Locator;
+
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.AUDIENCE_PAGE) {
     super(page, pageUrl);
     const pageContainer = page.getByTestId('pageContainer-page');
     this.createAudienceButton = pageContainer.locator('button:has-text("Create")');
-    this.createDropdown = page
-      .getByTestId('pageContainer-page')
-      .locator('header')
-      .locator('button[aria-label="Show more"]');
-    this.createAudience = page.locator('[role="menuitem"]:has-text("Create audience")');
+    this.createDropdown = page.locator('header').locator('button[aria-label="Show more"]');
+    this.createAudience = page.getByRole('menuitem', { name: 'Create audience', exact: true });
     this.createCategory = page.locator('[role="menuitem"]:has-text("Create category")');
     this.createAudienceWithCSV = page.locator('[role="menuitem"]:has-text("Create audience with CSV")');
     this.labelAudience = page.getByTestId('pageContainer-page').locator('header h1').filter({ hasText: 'Audiences' });
@@ -54,6 +80,37 @@ export class AudiencePage extends BasePage {
     this.editCategoryDialog = page.locator('[role="dialog"]');
     this.editCategoryLabel = page.locator('h2:has-text("Edit category")');
     this.editCategoryModalSaveButton = page.getByRole('button', { name: 'Save' });
+
+    // Audience create flow - CSS selectors (scoped to Create Audience dialog)
+    this.createAudienceDialog = page.getByRole('dialog', { name: 'Create audience' });
+    this.audienceNameInput = page.getByRole('textbox', { name: 'Name*' });
+    this.addAudienceDescriptionButton = page.getByRole('button', { name: 'Add description' });
+    this.audienceDescriptionInput = page.getByRole('textbox', { name: 'Description' });
+    this.selectParentTile = this.createAudienceDialog.locator('div:has-text("Select parent")').first();
+    this.selectParentButton = page.getByRole('button').nth(2);
+    this.audiencePickerDialog = page.getByRole('dialog', { name: 'Audiences' });
+    this.audiencePickerSearchBox = this.audiencePickerDialog
+      .getByRole('textbox', { name: /search|filter|find/i })
+      .first();
+    this.audiencePickerDoneButton = page.getByRole('button', { name: 'Done' });
+    this.typeSelectInput = page.getByTestId('field-Type').getByTestId('SelectInput');
+    this.adGroupSelectInput = page.locator('#groups_0_subGroups_0_adGroup');
+    this.createAudienceBtn = page.getByRole('button', { name: 'Create' });
+
+    // Operator-related locators
+    this.operatorSelectInput = this.createAudienceDialog.locator('#groups_0_subGroups_0_operator');
+    this.operatorValueInput = this.createAudienceDialog.locator('#groups_0_subGroups_0_operatorValue');
+    this.operatorValueDropdown = page.locator('.css-19bb58m'); // For Microsoft Entra ID groups
+    this.operatorValueTestId = this.createAudienceDialog.locator('[data-testid="operator-value"]');
+    this.operatorValuePlaceholder = this.createAudienceDialog.locator('input[placeholder*="value" i]');
+
+    // Country-specific locators
+    this.countryValuesTextInput = this.createAudienceDialog.locator('#groups_0_subGroups_0_valuesText');
+
+    // Date-specific locators
+    this.dateButton = this.createAudienceDialog.getByRole('button', { name: 'Date*' });
+    this.startDateButton = this.createAudienceDialog.getByRole('button', { name: 'Start date*' });
+    this.endDateButton = this.createAudienceDialog.getByRole('button', { name: 'End date*' });
 
     this.addCategoryModal = new CategoryModalComponent(page, 'create');
     this.editCategoryModal = new CategoryModalComponent(page, 'edit');
@@ -425,6 +482,201 @@ export class AudiencePage extends BasePage {
   // Open CSV upload modal for creating audience with CSV
   async openCreateAudienceWithCsvModal(): Promise<void> {
     await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create audience with CSV');
+  }
+
+  // ========== AUDIENCE CREATE (FORM) METHODS ==========
+
+  /**
+   * Open the Create audience form from the page
+   */
+  async openCreateAudienceForm(): Promise<void> {
+    // Open dropdown then choose menu item to ensure dialog opens reliably
+    await this.clickOnElement(this.createDropdown, { stepInfo: 'Open Create dropdown' });
+    await this.clickOnElement(this.createAudience, { stepInfo: 'Click Create audience menu item' });
+    await expect(this.createAudienceDialog, 'expecting Create audience dialog to be visible').toBeVisible({
+      timeout: TIMEOUTS.MEDIUM,
+    });
+  }
+
+  // Open Create audience modal (API consistent with openCreateCategoryModal/openCreateAudienceWithCsvModal)
+  async openCreateAudienceModal(): Promise<void> {
+    await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create audience');
+    await expect(this.createAudienceDialog, 'expecting Create audience dialog to be visible').toBeVisible({
+      timeout: TIMEOUTS.MEDIUM,
+    });
+  }
+
+  /**
+   * Fill basic audience fields
+   */
+  async fillAudienceBasics(options: { name: string; description?: string }): Promise<void> {
+    const { name, description } = options;
+    await test.step('Fill audience name and optional description', async () => {
+      await this.fillInElement(this.audienceNameInput, name, { stepInfo: 'Fill audience name' });
+
+      if (description && description.trim().length > 0) {
+        await this.clickOnElement(this.addAudienceDescriptionButton, { stepInfo: 'Click Add description' });
+        await this.fillInElement(this.audienceDescriptionInput, description, { stepInfo: 'Fill audience description' });
+      }
+    });
+  }
+
+  /**
+   * Select a parent audience/category from the picker dialog
+   */
+  async selectParentAudienceByName(parentName: string): Promise<void> {
+    await test.step(`Select parent audience: ${parentName}`, async () => {
+      await this.clickOnElement(this.selectParentButton, { stepInfo: 'Open Select parent picker' });
+      await expect(this.audiencePickerDialog).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+
+      // Select the parent category directly from the list
+      const itemExact = this.audiencePickerDialog.getByText(parentName, { exact: true }).first();
+      await this.clickOnElement(itemExact, { stepInfo: `Choose parent: ${parentName}` });
+
+      await this.clickOnElement(this.audiencePickerDoneButton, { stepInfo: 'Confirm parent selection' });
+    });
+  }
+
+  /**
+   * Create audience with all details in one method
+   */
+  async createAudienceWithDetails(options: {
+    name: string;
+    description?: string;
+    parentCategoryName: string;
+    audienceType: string;
+    adGroup?: string;
+    operator?: string;
+  }): Promise<void> {
+    const { name, description, parentCategoryName, audienceType, adGroup, operator } = options;
+
+    await test.step('Create audience with all details', async () => {
+      await this.fillAudienceBasics({ name, description });
+      await this.selectParentAudienceByName(parentCategoryName);
+      await this.chooseAudienceType(audienceType);
+
+      // Only choose AD group if it's provided (not needed for Country attribute)
+      if (adGroup) {
+        await this.chooseAdGroup(adGroup);
+      }
+
+      // Handle operator selection and value only if operator is provided AND selected
+      if (operator) {
+        const operatorSelected = await this.chooseOperator(operator);
+        if (operatorSelected && operator !== 'ALL') {
+          // Use different value filling method based on attribute type
+          if (audienceType === 'country_name') {
+            await this.fillCountryOperatorValue();
+          } else if (audienceType === 'start_date') {
+            await this.fillDateOperatorValue();
+          } else {
+            await this.fillOperatorValue();
+          }
+        }
+      }
+
+      await this.createAudienceBtn.click();
+    });
+  }
+
+  /**
+   * Choose Type from the select input
+   */
+  async chooseAudienceType(typeLabel: string): Promise<void> {
+    await test.step(`Choose audience Type: ${typeLabel}`, async () => {
+      await this.typeSelectInput.selectOption({ label: typeLabel }).catch(async () => {
+        // Fallback to value if label select fails
+        await this.typeSelectInput.selectOption(typeLabel);
+      });
+    });
+  }
+
+  /**
+   * Choose AD group from the select input
+   */
+  async chooseAdGroup(optionLabelOrValue: string): Promise<void> {
+    await test.step(`Choose AD Group: ${optionLabelOrValue}`, async () => {
+      await this.adGroupSelectInput.selectOption({ label: optionLabelOrValue }).catch(async () => {
+        await this.adGroupSelectInput.selectOption(optionLabelOrValue);
+      });
+    });
+  }
+
+  /**
+   * Choose operator from the select input (only if visible)
+   */
+  async chooseOperator(operator: string): Promise<boolean> {
+    return await test.step(`Choose Operator: ${operator}`, async () => {
+      // Check if operator field is visible before trying to interact with it
+      const isOperatorFieldVisible = await this.operatorSelectInput.isVisible({ timeout: 3000 }).catch(() => false);
+
+      if (!isOperatorFieldVisible) {
+        console.log(`⚠️ Operator field is not visible. Skipping operator selection: ${operator}`);
+        return false;
+      }
+
+      // Select operator by value (IS, IS_NOT, ALL)
+      await this.operatorSelectInput.selectOption(operator);
+      console.log(`✅ Successfully selected operator: ${operator}`);
+      return true;
+    });
+  }
+
+  /**
+   * Fill operator value by selecting the first available option
+   */
+  async fillOperatorValue(): Promise<void> {
+    await test.step('Fill Operator Value', async () => {
+      // Try the standard locator first, then fallback to Microsoft Entra ID locator
+      const isStandardVisible = await this.operatorValueInput.isVisible({ timeout: 2000 }).catch(() => false);
+      const isDropdownVisible = await this.operatorValueDropdown.isVisible({ timeout: 2000 }).catch(() => false);
+
+      if (isStandardVisible) {
+        await this.operatorValueInput.click();
+      } else if (isDropdownVisible) {
+        await this.operatorValueDropdown.click();
+      } else {
+        console.log(`⚠️ Operator value field is not visible. Skipping operator value selection.`);
+        return;
+      }
+      // Wait for menu items to appear and select the first available option
+      await this.page.getByRole('menuitem').first().click();
+    });
+  }
+
+  /**
+   * Fill country operator value based on the operator type
+   */
+  async fillCountryOperatorValue(): Promise<void> {
+    await test.step('Fill Country Operator Value', async () => {
+      // Get the current operator value to determine the action
+      const currentOperator = await this.operatorSelectInput.inputValue();
+
+      if (currentOperator === 'IS' || currentOperator === 'IS_NOT') {
+        // For IS and IS_NOT, select from dropdown
+        await this.countryValuesTextInput.click();
+        await this.page.getByRole('menuitem', { name: 'India' }).waitFor({ state: 'visible' });
+        await this.page.getByRole('menuitem', { name: 'India' }).click();
+      } else if (
+        currentOperator === 'CONTAINS' ||
+        currentOperator === 'ENDS_WITH' ||
+        currentOperator === 'STARTS_WITH'
+      ) {
+        // For text-based operators, fill the input field
+        await this.countryValuesTextInput.click();
+        await this.countryValuesTextInput.fill('a'); // Fill with 'a' as per codegen
+      }
+    });
+  }
+
+  /**
+   * Fill date operator value - values are auto-populated, no action needed
+   */
+  async fillDateOperatorValue(): Promise<void> {
+    await test.step('Fill Date Operator Value', async () => {
+      // Date operator values are auto-populated, no manual filling required
+      console.log('✅ Date operator values are auto-populated, skipping manual value selection');
+    });
   }
 
   // ========== CONTEXTUAL LOCATOR METHODS ==========

@@ -402,12 +402,7 @@ export class IdentityService implements IIdentityAdminOperations {
           type: 'category',
           size: size,
           term: name,
-          selectedFields: [
-            {
-              key: 'audienceCategory',
-              value: [categoryid],
-            },
-          ],
+          parentCategoryId: categoryid,
         },
       });
       const responseJson = await this.httpClient.parseResponse<IdentityAudienceSearchResponse>(response);
@@ -440,6 +435,24 @@ export class IdentityService implements IIdentityAdminOperations {
   }
 
   /**
+   * Gets the appropriate fieldType for a given attribute
+   * @param attribute - The attribute name
+   * @returns - The appropriate fieldType
+   */
+  private getFieldTypeForAttribute(attribute: string): string {
+    // Okta group attributes
+    if (attribute === 'OKTA_GROUP' || attribute === 'okta_group') {
+      return 'oktaGroup';
+    }
+    // AD group attributes
+    if (attribute === 'AD_GROUP' || attribute === 'ad_group') {
+      return 'adGroup';
+    }
+    // Regular attributes (first_name, last_name, country_name, etc.)
+    return 'regular';
+  }
+
+  /**
    * Creates audience under the given category name
    * @param createAudienceParams - Object containing the audience name, category id, attribute, operator and value
    * @param options - Optional attributes
@@ -447,7 +460,7 @@ export class IdentityService implements IIdentityAdminOperations {
    */
   async createAudience(
     createAudienceParams: audienceCreationParams,
-    options?: { type: string; fieldType: string }
+    options?: { type: string; fieldType: string; sourceType?: string }
   ): Promise<string> {
     const isAudienceCreated = await this.isAudienceCreated(
       createAudienceParams.audienceName,
@@ -473,12 +486,13 @@ export class IdentityService implements IIdentityAdminOperations {
                       ],
                       attribute: createAudienceParams.attribute,
                       operator: createAudienceParams.operator,
-                      fieldType: options?.fieldType || 'regular',
+                      fieldType: options?.fieldType || this.getFieldTypeForAttribute(createAudienceParams.attribute),
                     },
                   ],
                 },
               ],
             },
+            sourceType: options?.sourceType || 'app_managed',
             categoryId: createAudienceParams.categoryId,
           },
         });
