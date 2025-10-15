@@ -13,6 +13,8 @@ export const ACTION_LABELS = {
   CONNECT_ACCOUNT: 'Connect account',
   DISCONNECT_ACCOUNT: 'Disconnect account',
   MY_SETTINGS: 'My settings',
+  MARK_COMPLETE: 'Mark complete',
+  COMPLETED: 'Completed',
 } as const;
 
 export const UI_ACTIONS = {
