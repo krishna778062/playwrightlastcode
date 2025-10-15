@@ -144,7 +144,7 @@ test.describe(
           '@CONT-29063',
         ],
       },
-      async ({ appManagerFixture }) => {
+      async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'To verify the favourite people from manage site people',
           customTags: [ContentFeatureTags.MANAGE_SITE],
@@ -152,8 +152,8 @@ test.describe(
           storyId: 'CONT-24178',
         });
 
-        const siteInfo = await siteManagementHelper.getSiteAuthorNameAndEventStartDate();
-        const getMembershipList = await siteManagementHelper.getSiteWithMembers(siteInfo.siteId);
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteAuthorNameAndEventStartDate();
+        const getMembershipList = await appManagerApiFixture.siteManagementHelper.getSiteWithMembers(siteInfo.siteId);
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
         await siteDashboardPage.loadPage();
         const manageSitePageAppManagerSite = new ManageSitePage(appManagerFixture.page, siteInfo.siteId);

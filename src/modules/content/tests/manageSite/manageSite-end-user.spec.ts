@@ -75,7 +75,7 @@ test.describe(
         const randDomDescription = MANAGE_SITE_TEST_DATA.DESCRIPTION.DESCRIPTION;
 
         const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        const endUserInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
           siteId: siteInfo.siteId,
           userId: endUserInfo.userId,
@@ -149,7 +149,9 @@ test.describe(
         });
 
         const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
-        const endUserInfoPrivate = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        const endUserInfoPrivate = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.endUser.email
+        );
         await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
           privateSite.siteId,
           endUserInfoPrivate.userId,
@@ -184,7 +186,9 @@ test.describe(
         });
 
         const unlistedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED);
-        const endUserInfoUnlisted = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        const endUserInfoUnlisted = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.endUser.email
+        );
         await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
           unlistedSite.siteId,
           endUserInfoUnlisted.userId,

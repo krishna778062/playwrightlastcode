@@ -31,7 +31,7 @@ interface SiteMember {
 export class SiteManagementHelper {
   private sites: Site[] = [];
   private siteMembers: SiteMember[] = [];
-  private siteManagementService: SiteManagementService;
+  readonly siteManagementService: SiteManagementService;
   private contentManagementService: ContentManagementService;
 
   constructor(
@@ -191,6 +191,7 @@ export class SiteManagementHelper {
     category?: { name: string; categoryId: string };
     overrides?: Partial<SiteCreationPayload>;
     accessType: SITE_TYPES;
+    waitForSearchIndex?: boolean;
   }) {
     switch (options.accessType) {
       case SITE_TYPES.PUBLIC:
