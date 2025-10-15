@@ -76,6 +76,7 @@ export class FeatureOwnerModalComponent extends BaseComponent {
       }
       await this.fillInElement(this.searchInputBox, userName);
       await this.page.keyboard.press('Enter');
+      // To do: Have to optimize and remove the sleep
       await this.sleep(1000);
     });
   }
