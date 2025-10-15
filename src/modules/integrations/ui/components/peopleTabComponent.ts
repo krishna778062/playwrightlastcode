@@ -42,7 +42,6 @@ export class PeopleTabComponent extends BaseComponent {
       await expect(this.tabLocator(text), `expecting '${text}' tab to be visible after click`).toBeVisible({
         timeout: 10000,
       });
-      await this.page.waitForLoadState('networkidle', { timeout: 10000 });
     });
   }
 
