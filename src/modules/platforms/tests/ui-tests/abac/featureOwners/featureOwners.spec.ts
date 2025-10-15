@@ -124,7 +124,7 @@ test.describe(
       test(
         `Verify that user manager should have access for editing ${feature} feature under feature owners tab`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`, `@this-one`],
+          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
         },
         async ({ userManagerFixture }) => {
           tagTest(test.info(), {
@@ -152,7 +152,7 @@ test.describe(
       test(
         `Verify that user manager should be able to remove Feature onwer access of any app manager from manage users page for ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`, `@this-one`],
+          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
         },
         async ({ userManagerFixture, appManagerApiFixture }) => {
           tagTest(test.info(), {
@@ -184,7 +184,7 @@ test.describe(
       test(
         `Verify that ${feature} feature owners access should be removed when the status of the user with app manager role is changed to inactive from manage users page`,
         {
-          tag: [TestPriority.P0, `@ABAC`, `@feature-owners`, `@this-one`],
+          tag: [TestPriority.P0, `@ABAC`, `@feature-owners`],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
@@ -213,7 +213,7 @@ test.describe(
       test(
         `Verify that ${feature} feature owners access should be removed when the status of the user with app manager role is changed to frozen from manage users page`,
         {
-          tag: [TestPriority.P0, `@ABAC`, `@feature-owners`, `@this-one`],
+          tag: [TestPriority.P0, `@ABAC`, `@feature-owners`],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
@@ -242,7 +242,7 @@ test.describe(
       test(
         `Verify that App manager should be able to add a user without app manager or user manager role as Feature owner for ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`, `@this-one`],
+          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
