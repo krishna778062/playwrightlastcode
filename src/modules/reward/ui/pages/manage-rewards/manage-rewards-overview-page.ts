@@ -334,6 +334,7 @@ export class ManageRewardsOverviewPage extends BasePage {
         res =>
           res.url().includes('/recognition/admin/rewards') && res.status() === 200 && res.request().method() === 'GET'
       ),
+      this.page.waitForLoadState('domcontentloaded'),
       this.loadPage(), // action that triggers API
       this.verifyThePageIsLoaded(),
     ]);

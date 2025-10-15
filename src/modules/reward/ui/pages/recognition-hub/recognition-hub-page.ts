@@ -138,7 +138,6 @@ export class RecognitionHubPage extends BasePage {
    */
   async visitRecognitionHub(): Promise<number[]> {
     try {
-      // Set up response interception to capture the data
       let capturedData: any = null;
       let responseError: Error | null = null;
 
@@ -149,7 +148,7 @@ export class RecognitionHubPage extends BasePage {
             capturedData = await response.json();
           } catch (error) {
             responseError = error as Error;
-            console.error('Error capturing API response:', error);
+            console.error('Error capturing API response:', responseError);
           }
         }
       });
@@ -448,6 +447,7 @@ export class RecognitionHubPage extends BasePage {
           res.status() === 200 &&
           res.request().method() === 'GET'
       ),
+      this.page.waitForLoadState('domcontentloaded'),
       this.visitRecognitionHub(), // action that triggers API
       this.verifyThePageIsLoaded(),
     ]);

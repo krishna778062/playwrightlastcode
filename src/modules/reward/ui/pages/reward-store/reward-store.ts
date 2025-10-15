@@ -205,6 +205,7 @@ export class RewardsStore extends BasePage {
           res.status() === 200 &&
           res.request().method() === 'GET'
       ),
+      this.page.waitForLoadState('domcontentloaded'),
       this.visit(), // action that triggers API
       this.verifyThePageIsLoaded(),
     ]);

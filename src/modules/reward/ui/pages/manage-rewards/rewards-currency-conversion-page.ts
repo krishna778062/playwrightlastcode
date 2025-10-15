@@ -271,20 +271,17 @@ export class RewardsCurrencyConversionPage extends BasePage {
    * Enable custom conversion and set value
    */
   async enableCustomConversionAndSetValue(currency: string, value: number): Promise<string> {
-    const preValue = await this.getConversionValue(currency);
     await this.validateCustomConversionStates(currency, true, true);
     await this.toggleCustomConversion(currency, true);
     await this.validateCustomConversionStates(currency, false, true);
     await this.setCustomConversionValue(currency, value);
-    const newValue = await this.getConversionValue(currency);
-    return newValue;
+    return await this.getConversionValue(currency);
   }
 
   /**
    * Disable custom conversion
    */
   async disableCustomConversion(currency: string): Promise<string> {
-    const preValue = await this.getConversionValue(currency);
     await this.validateCustomConversionStates(currency, false, true);
 
     const toggleButton = this.page.locator(`//td[contains(text(),"${currency}")]/../td//button[@role="switch"]`);
@@ -292,9 +289,7 @@ export class RewardsCurrencyConversionPage extends BasePage {
       await this.toggleCustomConversion(currency, false);
       await this.validateCustomConversionStates(currency, true, true);
     }
-
-    const newValue = await this.getConversionValue(currency);
-    return newValue;
+    return await this.getConversionValue(currency);
   }
 
   /**
