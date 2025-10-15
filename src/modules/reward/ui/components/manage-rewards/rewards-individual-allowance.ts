@@ -1,4 +1,5 @@
-import { Locator, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
+import { DialogBox } from '@rewards-components/common/dialog-box';
 
 import { BasePage } from '@core/ui/pages/basePage';
 
@@ -143,33 +144,37 @@ export class RewardsIndividualAllowance extends BasePage {
     } else {
       const currentValue = await this.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       if (currentValue !== amount) {
-        await this.fillInElement(this.individualRecentlyAddedPointAmountInputBox, String(amount), {
+        await this.fillInElement(this.recentlyAddedPointAmountInputBox, String(amount), {
           stepInfo: 'Filling amount in recently added input',
         });
       } else {
-        await this.clickOnElement(this.addIndividualButton, {
-          stepInfo: 'Clicking add individual button',
-        });
-        // Dialog handling would go here
-        await this.clickOnElement(removeAddedIndividualUser, {
-          stepInfo: 'Removing added individual user',
-        });
+        await this.addIndividualButton.click();
+        const dialogBox = new DialogBox(this.page);
+        await expect(dialogBox.title).toHaveText('Add individual allowance');
+        await expect(dialogBox.dialogCancelButton).toBeVisible();
+        await dialogBox.container.locator('input').last().waitFor({ state: 'visible' });
+        await dialogBox.container.locator('input').first().click();
+        await dialogBox.container.locator('[role="menuitem"]:not([aria-disabled="true"])').first().click();
+        await dialogBox.container.locator('input[id="pointAmount"]').fill(String(amount));
+        await expect(dialogBox.container.getByRole('button', { name: 'Add allowance' })).toBeEnabled();
+        await dialogBox.container.getByRole('button', { name: 'Add allowance' }).click();
+        await this.removeAddedIndividualUser.click();
       }
     }
   }
 
-  async getTheCurrentAmountForLatestAddedUserInIndividualAllowance(): Promise<number> {
-    await this.individualRecentlyAddedPointAmountInputBox.waitFor({ state: 'attached' });
-    const value = await this.individualRecentlyAddedPointAmountInputBox.inputValue();
+  async getTheCurrentAmountForLatestAddedUserInIndividualAllowance() {
+    await this.recentlyAddedPointAmountInputBox.waitFor({ state: 'attached' });
+    const value = await this.recentlyAddedPointAmountInputBox.inputValue();
     return Number(value);
   }
 
-  async increaseTheIndividualAmountBy(amount: number): Promise<void> {
-    for (let i = 0; i < amount; i++) {
-      await this.clickOnElement(this.recentlyAddedPointAmountInputPlus, {
-        stepInfo: `Increasing amount by 1 (${i + 1}/${amount})`,
-      });
-    }
+  async getTheCurrentAmountForUserInIndividualAllowance(userName: string) {
+    const addedSpecificIndividualUser = this.individualAllowanceContainer.locator(
+      `//tr[contains(@data-testid,"dataGridRow")]//div[contains(@class,"IndividualAllowances_userName")]//p[text()="${userName}"]//ancestor::tr//input[@type="number"]`
+    );
+    const value = await addedSpecificIndividualUser.inputValue();
+    return Number(value);
   }
 
   async decreaseTheIndividualAmountBy(amount: number): Promise<void> {
