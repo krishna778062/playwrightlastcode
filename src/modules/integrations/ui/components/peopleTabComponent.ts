@@ -24,19 +24,16 @@ export class PeopleTabComponent extends BaseComponent {
     this.bambooHRCheckbox = () => this.rootLocator.locator('#Merge_3_selected');
     this.workdayCheckbox = () => this.rootLocator.locator('#Workday_selected');
     this.fieldLabel = (fieldName: string) => this.rootLocator.getByText(fieldName, { exact: true });
-    this.fieldEditableCheckbox = (fieldName: string) =>
-      this.rootLocator.locator(
-        `li:has(.provisionSyncDisplay__labelText:has-text("${fieldName}")) .provisionSyncDisplay__editable input[type="checkbox"]`
-      );
-    this.fieldDisplayCheckbox = (fieldName: string) =>
-      this.rootLocator.locator(
-        `li:has(.provisionSyncDisplay__labelText:has-text("${fieldName}")) .provisionSyncDisplay__display input[type="checkbox"]`
-      );
-    this.fieldSyncingCheckbox = (fieldName: string) =>
-      this.rootLocator.locator(
-        `li:has(.provisionSyncDisplay__labelText:has-text("${fieldName}")) .provisionSyncDisplay__syncing input[type="checkbox"]`
-      );
+    this.fieldEditableCheckbox = (fieldName: string) => this.getFieldCheckbox(fieldName, 'editable');
+    this.fieldDisplayCheckbox = (fieldName: string) => this.getFieldCheckbox(fieldName, 'display');
+    this.fieldSyncingCheckbox = (fieldName: string) => this.getFieldCheckbox(fieldName, 'syncing');
     this.saveButton = () => this.rootLocator.getByRole('button', { name: 'Save' });
+  }
+
+  private getFieldCheckbox(fieldName: string, columnType: 'editable' | 'display' | 'syncing'): Locator {
+    return this.rootLocator.locator(
+      `li:has(.provisionSyncDisplay__labelText:has-text("${fieldName}")) .provisionSyncDisplay__${columnType} input[type="checkbox"]`
+    );
   }
 
   async clickOnTab(text: string): Promise<void> {
