@@ -25,6 +25,7 @@ test.describe(
     let manualCleanupNeeded: boolean = false;
     let campaignId: string;
     let feedPage: FeedPage;
+    let tileId: string;
 
     test.beforeEach(async ({ socialCampaignManagerFixture }) => {
       // Reset cleanup flag for each test
@@ -36,6 +37,10 @@ test.describe(
     test.afterEach(async ({ socialCampaignManagerFixture }) => {
       if (manualCleanupNeeded && campaignId) {
         await socialCampaignManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
+      }
+
+      if (tileId) {
+        await socialCampaignManagerFixture.tileManagementHelper.deleteContentTile(tileId);
       }
     });
 
@@ -893,11 +898,63 @@ test.describe(
         await applicationManagerHomePage.loadPage();
         await applicationManagerHomePage.actions.clickOnManageDashboardCarousel();
         await applicationManagerHomePage.actions.clickOnAddTile();
-        await applicationManagerHomePage.actions.clickOnSocialCampaignTile(campaignOptions.linkText);
+        await applicationManagerHomePage.actions.clickOnSocialCampaignTile();
         await applicationManagerHomePage.actions.enterTileTitle(tileTitle);
-        await applicationManagerHomePage.actions.clickAddToHomeButton();
+        tileId = await applicationManagerHomePage.actions.clickAddToHomeButton();
         await applicationManagerHomePage.assertions.verifyTileIsDisplayed(tileTitle);
         await applicationManagerHomePage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await appManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
+        await applicationManagerHomePage.loadPage();
+        await applicationManagerHomePage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
+      }
+    );
+
+    test(
+      'in Zeus Verify custom user able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-21039'],
+      },
+      async ({ socialCampaignManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify custom user able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
+          zephyrTestId: 'CONT-21039',
+          storyId: 'CONT-21039',
+        });
+
+        const applicationManagerHomePage = socialCampaignManagerFixture.homePage;
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await socialCampaignManagerFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+          shouldWaitForSearchIndex: true,
+        });
+
+        const tileTitle = TestDataGenerator.generateRandomString();
+        campaignId = createdCampaign.campaignId;
+        await applicationManagerHomePage.loadPage();
+        await applicationManagerHomePage.actions.clickOnManageDashboardCarousel();
+        await applicationManagerHomePage.actions.clickOnAddTile();
+        await applicationManagerHomePage.actions.clickOnSocialCampaignTile();
+        await applicationManagerHomePage.actions.clickOnCustomSCTile();
+        await applicationManagerHomePage.page.waitForTimeout(10_000);
+        await applicationManagerHomePage.actions.enterTileTitle(tileTitle);
+        await applicationManagerHomePage.actions.setCustomSCTitle(campaignOptions.linkText);
+        tileId = await applicationManagerHomePage.actions.clickAddToHomeButton();
+        await applicationManagerHomePage.assertions.verifyTileIsDisplayed(tileTitle);
+        await applicationManagerHomePage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await applicationManagerHomePage.loadPage();
+        await applicationManagerHomePage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
       }
     );
   }

@@ -50,9 +50,10 @@ export class SocialCampaignHelper {
     recipient?: SocialCampaignRecipient;
     networks?: SocialCampaignNetwork[];
     audienceId?: string;
+    shouldWaitForSearchIndex?: boolean;
     overrides?: Partial<CreateSocialCampaignRequest>;
   }): Promise<SocialCampaign> {
-    const { message, url, recipient, networks, audienceId, overrides } = params;
+    const { message, url, recipient, networks, audienceId, shouldWaitForSearchIndex, overrides } = params;
 
     const timestamp = Date.now().toString().slice(-4);
     const randomId = Math.random().toString(36).substring(2, 6);
@@ -87,7 +88,6 @@ export class SocialCampaignHelper {
       ],
       url: createdCampaign.campaignUrl || campaignData.url,
     });
-
     return createdCampaign;
   }
 
