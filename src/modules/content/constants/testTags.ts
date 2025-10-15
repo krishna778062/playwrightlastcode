@@ -5,6 +5,7 @@ export enum ContentSuiteTags {
   SITE_DASHBOARD = '@site-dashboard',
   ALBUM_CREATION = '@album-creation',
   SITE_CREATION = '@site-creation',
+  SITE_DEACTIVATION = '@site-deactivation',
   SITE_CATEGORIES = '@site-categories',
   EVENT_CREATION = '@event-creation',
   MANAGE_SITE = '@manage-site',

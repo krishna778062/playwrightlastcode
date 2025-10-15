@@ -16,6 +16,7 @@ export interface IManageSiteActions {
 }
 
 export interface IManageSiteAssertions {
+  verifyNoSitesFound: (siteName: string) => Promise<void>;
   // Add assertions as needed
 }
 
@@ -28,6 +29,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly clickOnUpdateCategoryOption = this.page.getByRole('button', { name: 'Update category' });
   readonly clickOnSearchBar = this.page.getByRole('textbox', { name: 'Search sites…' });
   readonly clickingOnSearchButton = this.page.locator('[type="submit"][aria-label="Search"]');
+  readonly siteList = this.page.locator('.type--title').first();
 
   private manageSitesComponent: ManageSitesComponent;
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
@@ -88,5 +90,13 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     await this.clickOnElement(this.clickOnSearchBar);
     await this.page.getByPlaceholder('Search').nth(1).fill(siteName);
     await this.clickOnElement(this.clickingOnSearchButton);
+  }
+
+  async verifyNoSitesFound(siteName: string): Promise<void> {
+    const noSitesFound = this.siteList.filter({ hasText: siteName });
+    console.log('noSitesFound', noSitesFound);
+    await this.verifier.verifyTheElementIsNotVisible(noSitesFound, {
+      assertionMessage: 'No sites found should be visible on manage site page',
+    });
   }
 }
