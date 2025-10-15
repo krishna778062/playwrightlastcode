@@ -85,7 +85,11 @@ export class HeroMetricsComponent extends BaseComponent {
    */
   async verifyMetricValueIsLoadedForHeroMetric(expectedValue: number): Promise<void> {
     await test.step(`Verify hero metric value for ${this.metricTitle} is ${expectedValue}`, async () => {
-      await expect(this.metricValue, `Hero metric value should be ${expectedValue}`).toHaveText(
+      // Get the actual UI value and normalize it by removing commas
+      const actualValue = await this.getMetricValue();
+      const normalizedActualValue = actualValue.replace(/,/g, '');
+
+      expect(normalizedActualValue, `Hero metric value should be ${expectedValue} (UI shows: ${actualValue})`).toBe(
         expectedValue.toString()
       );
     });

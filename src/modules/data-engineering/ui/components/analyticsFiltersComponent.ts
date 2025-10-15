@@ -207,7 +207,7 @@ export class AnalyticsFiltersComponent extends BaseComponent {
           }
         );
       }
-      // await this.clickOnApplyButton();
+      await this.clickOnApplyButton();
     });
   }
 
