@@ -1,5 +1,6 @@
 import { ACTION_LABELS, DASHBOARD_BUTTONS } from '@integrations/constants/common';
 import { AIRTABLE_TILE } from '@integrations/test-data/app-tiles.test-data';
+import { ExternalAppProvider } from '@integrations/ui/pages/externalAppsPage';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { TileOperationsComponent } from '@integrations-components/tileOperationsComponent';
 import { TimeOffRequestTileComponent } from '@integrations-components/timeOffRequestTileComponent';
@@ -12,7 +13,7 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
  * Provides common tile management and verification methods
  */
 export class SiteDashboard {
-  private page!: Page;
+  readonly page: Page;
   private appTileComponent!: BaseAppTileComponent;
   private airtableComponent!: BaseAppTileComponent;
   private timeOffRequestTileComponent!: TimeOffRequestTileComponent;
@@ -83,6 +84,27 @@ export class SiteDashboard {
     await this.page.reload({ waitUntil: 'domcontentloaded' });
     await this.verifyThePageIsLoaded();
     await this.airtableComponent.isTilePresent(tileTitle);
+  }
+
+  /**
+   * Open the Add tile modal for a given external app provider (pre-title state)
+   */
+  async openAddAppTileModal(provider: ExternalAppProvider | string): Promise<void> {
+    await this.appTileComponent.openAddAppTileModal(String(provider));
+  }
+
+  /**
+   * Verify the connection helper text and connected email in the Add tile modal
+   */
+  async verifyConnectionMessage(expectedConnectionText: string, options: { connectedEmail: string }): Promise<void> {
+    await this.appTileComponent.verifyConnectionMessage(expectedConnectionText, options);
+  }
+
+  /**
+   * Click the 'My settings' link in the Add tile modal
+   */
+  async clickDialogLink(label: string): Promise<void> {
+    await this.appTileComponent.clickDialogLink(label);
   }
 
   /**
@@ -274,5 +296,157 @@ export class SiteDashboard {
    */
   async verifyDoceboContentStructure(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyDoceboTileContentStructure(tileTitle);
+  }
+  /**
+   * Verify button status using tile operations component
+   */
+  async verifyButtonStatus(status: string, buttonName: string): Promise<void> {
+    return this.tileOperationsComponent.verifyButtonStatus(status, buttonName);
+  }
+  /**
+   * Complete workflow to add an app tile with text field
+   * @param tileTitle - The title of the tile to add
+   * @param appName - The name of the app to add
+   * @param tileName - The name of the tile to add
+   * @param fieldName - The name of the field to add
+   * @param url - The value of the field to add
+   * @param fieldName2 - The name of the field to add
+   * @param id - The value of the field to add
+   * @param destination - The destination of the tile to add
+   */
+  async addTileWithTextField(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    fieldName: string,
+    url: string,
+    fieldName2: string,
+    id: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.appTileComponent.clickEditDashboard();
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
+      await this.appTileComponent.selectAppTile(appName);
+      await this.appTileComponent.selectTile(tileName);
+      await this.appTileComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
+      await this.appTileComponent.setTileTitle(tileTitle);
+      await this.appTileComponent.inputFieldByName(fieldName, url);
+      await this.appTileComponent.inputFieldByName(fieldName2, id);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
+
+  /**
+   * Complete workflow to add an app tile with manager defined configuration
+   * @param tileTitle - The title of the tile to add
+   * @param appName - The name of the app to add
+   * @param tileName - The name of the tile to add
+   * @param fieldName - The name of the field to add
+   * @param url - The value of the field to add
+   * @param destination - The destination of the tile to add
+   */
+  async addTilewithManagerDefined(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    fieldName: string,
+    url: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile with manager defined: ${tileTitle}`, async () => {
+      await this.appTileComponent.clickEditDashboard();
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
+      await this.appTileComponent.selectAppTile(appName);
+      await this.appTileComponent.selectTile(tileName);
+      await this.appTileComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
+      await this.appTileComponent.setTileTitle(tileTitle);
+      await this.appTileComponent.inputFieldByName(fieldName, url);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
+
+  /**
+   * Complete workflow to add an app tile with user defined configuration
+   * @param tileTitle - The title of the tile to add
+   * @param appName - The name of the app to add
+   * @param tileName - The name of the tile to add
+   * @param fieldName - The name of the field to add
+   * @param fieldValue - The value of the field to add
+   * @param fieldName2 - The name of the field to add
+   * @param fieldValue2 - The value of the field to add
+   * @param destination - The destination of the tile to add
+   */
+  async addTilewithUserDefined(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    fieldName: string,
+    fieldValue: string,
+    fieldName2: string,
+    fieldValue2: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.airtableComponent.clickEditDashboard();
+      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
+      await this.airtableComponent.selectAppTile(appName);
+      await this.airtableComponent.selectTile(tileName);
+      await this.airtableComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
+      await this.airtableComponent.setTileTitle(tileTitle);
+      await this.appTileComponent.inputFieldByName(fieldName, fieldValue);
+      await this.selectRadioOption(fieldName2, fieldValue2);
+      await this.airtableComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
+
+  /**
+   * Select radio button option by field name and option text
+   */
+  async selectRadioOption(fieldName: string, option: string): Promise<void> {
+    await this.tileOperationsComponent.selectRadioOption(fieldName, option);
+  }
+  /**
+   * Verify tasks with specific status are showing (at least one)
+   */
+  async verifyTasksWithStatusShowing(tileTitle: string, status: string): Promise<void> {
+    await this.tileOperationsComponent.verifyTasksWithStatusShowing(tileTitle, status);
+  }
+
+  /**
+   * Verify tile has task data (any combination of Mark complete/Completed)
+   */
+  async verifyTileHasTaskData(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyTileHasTaskData(tileTitle);
+  }
+
+  /**
+   * Verify team goals metadata is showing
+   */
+  async verifyTeamGoalsMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyTeamGoalsMetadata(tileTitle);
+  }
+
+  /**
+   * Verify personalize button is visible
+   */
+  async verifyPersonalizeVisible(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyPersonalizeVisible(tileTitle);
+  }
+
+  /**
+   * Personalize tile with specific field and value
+   */
+  async PersonalizeTile(tileTitle: string, fieldName: string, value: string): Promise<void> {
+    await this.tileOperationsComponent.personalizeTile(tileTitle, fieldName, value);
+  }
+  /**
+   * Verify label is visible using tile operations component
+   */
+  async verifyLabel(labelText: string): Promise<void> {
+    return this.tileOperationsComponent.verifyLabel(labelText);
   }
 }
