@@ -183,5 +183,36 @@ test.describe(
         await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
       }
     );
+
+    test(
+      'verify show more behavior for display docuSign tasks apptile on site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-25169',
+          storyId: 'INT-24586',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `DocuSign report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add and verify tile
+        await siteDashboard.addTile(createdTileTitle, AppName, tileName, UI_ACTIONS.ADD_TO_SITE);
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+
+        // Verify show more behavior
+        await siteDashboard.verifyShowMoreBehavior(createdTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
   }
 );
