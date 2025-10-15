@@ -214,7 +214,7 @@ export class ExternalAppsPage extends BasePage {
   }
 
   /**
-   * Connect a specific integration
+   * Connect a specific integration with robust Google OAuth flow
    */
   async connectGoogleAccountIntegration(
     provider: ExternalAppProvider,
@@ -222,16 +222,57 @@ export class ExternalAppsPage extends BasePage {
     password?: string
   ): Promise<void> {
     await test.step(`Connect ${provider} integration`, async () => {
+      // Step 1: Click "Sign in with Google" button
       const connectButton = this.page.locator(`button[aria-label="Sign in with Google"]`);
+      await connectButton.waitFor({ state: 'visible', timeout: 10000 });
       await connectButton.click();
-      await this.page.locator('input[type="email"]').fill(email!);
-      await this.page.getByRole('button', { name: 'Next' }).click();
-      await this.page.getByRole('button', { name: 'Try another way' }).click();
-      await this.page.getByText('Enter your password').click();
-      await this.page.locator('input[type="password"]').fill(password!);
-      await this.page.getByRole('button', { name: 'Next' }).click();
-      await this.page.getByRole('button', { name: 'Continue' }).click();
-      await this.page.getByRole('button', { name: 'Continue' }).click();
+      // Wait for Google login page to load
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });
+      // Step 2: Enter email and click Next
+      const emailInput = this.page.locator('input[type="email"]');
+      await emailInput.waitFor({ state: 'visible', timeout: 10000 });
+      await emailInput.fill(email!);
+      const nextButton1 = this.page.getByRole('button', { name: 'Next' });
+      await nextButton1.waitFor({ state: 'visible', timeout: 5000 });
+      await nextButton1.click();
+      // Wait for the next screen to load
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });
+      await this.page.waitForTimeout(2000); // Small delay for page transition
+      // Step 3: Click "Try another way"
+      const tryAnotherWayButton = this.page.getByRole('button', { name: 'Try another way' });
+      await tryAnotherWayButton.waitFor({ state: 'visible', timeout: 10000 });
+      await tryAnotherWayButton.click();
+      // Wait for authentication options screen
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });
+      await this.page.waitForTimeout(1500);
+      // Step 4: Click "Enter your password"
+      const enterPasswordOption = this.page.getByText('Enter your password');
+      await enterPasswordOption.waitFor({ state: 'visible', timeout: 10000 });
+      await enterPasswordOption.click();
+      // Wait for password screen to load
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });
+      await this.page.waitForTimeout(1500);
+      // Step 5: Enter password and click Next
+      const passwordInput = this.page.locator('input[type="password"]');
+      await passwordInput.waitFor({ state: 'visible', timeout: 10000 });
+      await passwordInput.fill(password!);
+      const nextButton2 = this.page.getByRole('button', { name: 'Next' });
+      await nextButton2.waitFor({ state: 'visible', timeout: 5000 });
+      await nextButton2.click();
+      // Wait for consent/permissions screen
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 20000 });
+      await this.page.waitForTimeout(2000);
+      // Step 6: Click first "Continue" button (permissions screen)
+      const continueButton1 = this.page.getByRole('button', { name: 'Continue' });
+      await continueButton1.waitFor({ state: 'visible', timeout: 10000 });
+      await continueButton1.click();
+      // Wait for next permissions screen
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });
+      await this.page.waitForTimeout(2000);
+      // Step 7: Click second "Continue" button (final permissions confirmation)
+      const continueButton2 = this.page.getByRole('button', { name: 'Continue' });
+      await continueButton2.waitFor({ state: 'visible', timeout: 10000 });
+      await continueButton2.click();
     });
   }
 

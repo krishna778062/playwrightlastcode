@@ -1020,6 +1020,7 @@ test.describe(
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
+          '@disconnectGoogleCalendar',
         ],
       },
       async ({ appManagerFixture: fixture, testSiteName, browser: testBrowser }) => {
@@ -1056,6 +1057,18 @@ test.describe(
           SitePermission.MEMBER,
           SiteMembershipAction.ADD
         );
+
+        externalAppsPage = new ExternalAppsPage(appManagerFixture.page);
+        await externalAppsPage.navigateToExternalAppsPage();
+        await externalAppsPage.verifyThePageIsLoaded();
+        if (!(await externalAppsPage.getConnectionStatus(ExternalAppProvider.GOOGLE_CALENDAR))) {
+          await externalAppsPage.connectGoogleAccountIntegration(
+            ExternalAppProvider.GOOGLE_CALENDAR,
+            GOOGLE_CALENDAR_USERS.APP_MANAGER.email,
+            GOOGLE_CALENDAR_USERS.APP_MANAGER.password
+          );
+          await externalAppsPage.verifyThePageIsLoaded();
+        }
 
         const eventTitle = `${EVENT_CONFIGS.RSVP_SYNC.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
@@ -1230,6 +1243,7 @@ test.describe(
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
+          '@disconnectGoogleCalendar',
         ],
       },
       async ({ appManagerFixture: fixture, testSiteName, browser: testBrowser }) => {
@@ -1266,6 +1280,18 @@ test.describe(
           SitePermission.MEMBER,
           SiteMembershipAction.ADD
         );
+
+        externalAppsPage = new ExternalAppsPage(appManagerFixture.page);
+        await externalAppsPage.navigateToExternalAppsPage();
+        await externalAppsPage.verifyThePageIsLoaded();
+        if (!(await externalAppsPage.getConnectionStatus(ExternalAppProvider.GOOGLE_CALENDAR))) {
+          await externalAppsPage.connectGoogleAccountIntegration(
+            ExternalAppProvider.GOOGLE_CALENDAR,
+            GOOGLE_CALENDAR_USERS.APP_MANAGER.email,
+            GOOGLE_CALENDAR_USERS.APP_MANAGER.password
+          );
+          await externalAppsPage.verifyThePageIsLoaded();
+        }
 
         const eventTitle = `${EVENT_CONFIGS.RSVP_SYNC.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
