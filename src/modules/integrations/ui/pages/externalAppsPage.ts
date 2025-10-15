@@ -215,6 +215,7 @@ export class ExternalAppsPage extends BasePage {
 
   /**
    * Connect a specific integration with robust Google OAuth flow
+   * Timeout: 6 minutes for Google OAuth flow
    */
   async connectGoogleAccountIntegration(
     provider: ExternalAppProvider,

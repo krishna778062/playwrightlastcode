@@ -883,6 +883,18 @@ test.describe(
           SiteMembershipAction.ADD
         );
 
+        const externalAppsPage = new ExternalAppsPage(appManagerFixture.page);
+        await externalAppsPage.navigateToExternalAppsPage();
+        await externalAppsPage.verifyThePageIsLoaded();
+        if (!(await externalAppsPage.getConnectionStatus(ExternalAppProvider.GOOGLE_CALENDAR))) {
+          await externalAppsPage.connectGoogleAccountIntegration(
+            ExternalAppProvider.GOOGLE_CALENDAR,
+            GOOGLE_CALENDAR_USERS.APP_MANAGER.email,
+            GOOGLE_CALENDAR_USERS.APP_MANAGER.password
+          );
+          await externalAppsPage.verifyThePageIsLoaded();
+        }
+
         const eventTitle = `${EVENT_CONFIGS.RSVP_SYNC.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
         const eventPayload = createEventPayload({
@@ -915,7 +927,7 @@ test.describe(
         assertEventSyncedToCalendar(endUserEventSyncResult);
 
         // Disconnect Google Calendar for Author
-        const externalAppsPage = new ExternalAppsPage(appManagerFixture.page);
+
         await externalAppsPage.navigateToExternalAppsPage();
         await externalAppsPage.verifyThePageIsLoaded();
         await externalAppsPage.disconnectIntegration(ExternalAppProvider.GOOGLE_CALENDAR);
@@ -923,9 +935,11 @@ test.describe(
         // Verify event is removed from Google Calendar for author and end user
         authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
           expectFound: false,
+          maxAttempts: 12,
         });
         endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
           expectFound: false,
+          maxAttempts: 12,
         });
 
         assertEventRemovedFromCalendar(authorEventSyncResult);
@@ -940,8 +954,12 @@ test.describe(
         await externalAppsPage.verifyThePageIsLoaded();
 
         // Verify event is synced back to Google Calendar for author and end user
-        authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
-        endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+        authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
+          maxAttempts: 12,
+        });
+        endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
+          maxAttempts: 12,
+        });
 
         assertEventSyncedToCalendar(authorEventSyncResult);
         assertEventSyncedToCalendar(endUserEventSyncResult);
@@ -964,6 +982,9 @@ test.describe(
 
     test.afterEach(async () => {
       if (isGoogleCalendarDisconnected) {
+        console.log(
+          'Inside afterEach for isGoogleCalendarDisconnected ---> google Calendar App Level Disconnect Tests '
+        );
         // Re-enable Google Calendar at app level
         await calendarIntegrationHelper.updateCalendarIntegrationConfig({
           googleCalendarEnabled: true,
@@ -1024,6 +1045,7 @@ test.describe(
         ],
       },
       async ({ appManagerFixture: fixture, testSiteName, browser: testBrowser }) => {
+        test.setTimeout(360000); // 6 minutes timeout
         appManagerFixture = fixture;
         browser = testBrowser;
 
@@ -1034,6 +1056,10 @@ test.describe(
         const userManagementService = new UserManagementService(
           appManagerFixture.apiContext,
           getEnvConfig().apiBaseUrl
+        );
+
+        console.log(
+          ' disconnects Google Calendar from App Level and Verify Event is removed from Google Calendar for both Author and End User '
         );
 
         // Login as app manager
@@ -1062,6 +1088,7 @@ test.describe(
         await externalAppsPage.navigateToExternalAppsPage();
         await externalAppsPage.verifyThePageIsLoaded();
         if (!(await externalAppsPage.getConnectionStatus(ExternalAppProvider.GOOGLE_CALENDAR))) {
+          console.log('Connecting Google Calendar for app manager');
           await externalAppsPage.connectGoogleAccountIntegration(
             ExternalAppProvider.GOOGLE_CALENDAR,
             GOOGLE_CALENDAR_USERS.APP_MANAGER.email,
@@ -1116,9 +1143,11 @@ test.describe(
         // Verify event is removed from Google Calendar for author and end user
         authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
           expectFound: false,
+          maxAttempts: 12,
         });
         endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
           expectFound: false,
+          maxAttempts: 12,
         });
 
         assertEventRemovedFromCalendar(authorEventSyncResult);
@@ -1166,8 +1195,12 @@ test.describe(
         isGoogleCalendarDisconnected = false; // Successfully reconnected
 
         // Verify event is synced back to Google Calendar for author and end user
-        authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
-        endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+        authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
+          maxAttempts: 12,
+        });
+        endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
+          maxAttempts: 12,
+        });
 
         assertEventSyncedToCalendar(authorEventSyncResult);
         assertEventSyncedToCalendar(endUserEventSyncResult);
@@ -1190,6 +1223,7 @@ test.describe(
 
     test.afterEach(async () => {
       if (isGoogleCalendarDomainRemoved) {
+        console.log('Inside afterEach for isGoogleCalendarDomainRemoved ---> google Calendar Domain Removal Tests ');
         // add Google Calendar domain to app level
         await calendarIntegrationHelper.addIntegrationDomain('simpplr.dev');
 
@@ -1247,6 +1281,7 @@ test.describe(
         ],
       },
       async ({ appManagerFixture: fixture, testSiteName, browser: testBrowser }) => {
+        test.setTimeout(360000); // 6 minutes timeout
         appManagerFixture = fixture;
         browser = testBrowser;
 
@@ -1259,6 +1294,9 @@ test.describe(
           getEnvConfig().apiBaseUrl
         );
 
+        console.log(
+          ' removes Google Calendar domain and Verify Event is removed from Google Calendar for both Author and End User '
+        );
         // Login as app manager
         const appManagerEmail = getEnvConfig().appManagerEmail;
         const organizerId = await userManagementService.getUserId(appManagerEmail);
@@ -1285,6 +1323,7 @@ test.describe(
         await externalAppsPage.navigateToExternalAppsPage();
         await externalAppsPage.verifyThePageIsLoaded();
         if (!(await externalAppsPage.getConnectionStatus(ExternalAppProvider.GOOGLE_CALENDAR))) {
+          console.log('Connecting Google Calendar for app manager');
           await externalAppsPage.connectGoogleAccountIntegration(
             ExternalAppProvider.GOOGLE_CALENDAR,
             GOOGLE_CALENDAR_USERS.APP_MANAGER.email,
@@ -1335,9 +1374,11 @@ test.describe(
         // Verify event is removed from Google Calendar for author and end user
         authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
           expectFound: false,
+          maxAttempts: 12,
         });
         endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
           expectFound: false,
+          maxAttempts: 12,
         });
 
         assertEventRemovedFromCalendar(authorEventSyncResult);
@@ -1383,8 +1424,12 @@ test.describe(
         isGoogleCalendarDomainRemoved = false; // Successfully reconnected
 
         // Verify event is synced back to Google Calendar for author and end user
-        authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
-        endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+        authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
+          maxAttempts: 12,
+        });
+        endUserEventSyncResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
+          maxAttempts: 12,
+        });
 
         assertEventSyncedToCalendar(authorEventSyncResult);
         assertEventSyncedToCalendar(endUserEventSyncResult);
