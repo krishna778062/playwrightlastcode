@@ -69,7 +69,6 @@ test.describe(
         });
 
         // Search for the unique app
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(
           uniqueTestData.searchTerm,
           {

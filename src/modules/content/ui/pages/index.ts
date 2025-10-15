@@ -1,6 +1,6 @@
 export * from './activityNotificationPage';
 export * from './albumCreationPage';
-export * from './applicationscreenPage';
+export * from './applicationsScreenPage';
 export * from './contentPreviewPage';
 export * from './editPagePage';
 export * from './eventCreationPage';
@@ -19,3 +19,4 @@ export * from './siteCreationPage';
 export * from './siteDetailsPage';
 export * from './sitePages';
 export * from './sitesListPage';
+export * from './socialCampaignSettingPage';

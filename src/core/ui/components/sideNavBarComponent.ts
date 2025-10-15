@@ -192,11 +192,11 @@ export class SideNavBarComponent extends BaseComponent {
    * @param options - The options for the step
    */
   async clickOnApplicationSettingsOptionInSideBar(
-    option: ApplicationSettingsOption,
+    menuOption: ApplicationSettingsOption,
     options?: TestOptions
   ): Promise<void> {
-    await test.step(options?.stepInfo || `side navbar: clicking ${option} in application settings`, async () => {
-      const optionLocator = this.page.getByRole('menuitem', { name: option, exact: true });
+    await test.step(options?.stepInfo || `side navbar: clicking ${menuOption} in application settings`, async () => {
+      const optionLocator = this.page.getByTestId('main-nav').getByRole('link', { name: menuOption });
       await this.clickOnElement(optionLocator);
     });
   }
@@ -207,14 +207,14 @@ export class SideNavBarComponent extends BaseComponent {
    * @param options - The options for the step
    */
   async openApplicationSettingsAndSelectMenuOptionFromSideNav(
-    option: ApplicationSettingsOption,
+    menuOption: ApplicationSettingsOption,
     options?: TestOptions
   ): Promise<void> {
     await test.step(
       options?.stepInfo || `side navbar: opening Application settings and selecting menu option from side navigation`,
       async () => {
         await this.clickOnElement(this.applicationSettings);
-        await this.clickOnApplicationSettingsOptionInSideBar(option);
+        await this.clickOnApplicationSettingsOptionInSideBar(menuOption);
       }
     );
   }

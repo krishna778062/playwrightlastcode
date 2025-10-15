@@ -18,7 +18,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [chat, platforms, global-search, content, de, reward, content-abac, frontline, content-settings] # de is short for data-engineering
+        module: [
+            chat,
+            platforms,
+            global-search,
+            content,
+            de,
+            reward,
+            content-abac,
+            frontline,
+            content-settings,
+            alert-notification,
+          ] # de is short for data-engineering
         environment: [qa]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
@@ -27,11 +38,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Create GitHub Secrets JSON
-        run: |
-          echo '${{ vars.GOOGLE_CALENDAR_SECRETS }}' > githubSecrets.json
-          echo "Created githubSecrets.json for CI environment"
 
       - name: set up Node.js
         uses: actions/setup-node@v3
