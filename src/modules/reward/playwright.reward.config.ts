@@ -22,7 +22,7 @@ export default defineConfig({
       name: 'Reward',
       use: {
         ...desktopChromeNoScale,
-        headless: false,
+        headless: !!process.env.CI,
         viewport: null,
         launchOptions: {
           args: [
