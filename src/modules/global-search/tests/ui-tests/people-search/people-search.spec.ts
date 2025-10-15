@@ -6,6 +6,7 @@ import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/tes
 import { PEOPLE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/people-search.test-data';
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
 import { ResultListingComponent } from '@/src/modules/global-search/ui/components/resultsListComponent';
+import { SidebarFilterComponent } from '@/src/modules/global-search/ui/components/sidebarFilterComponent';
 
 test.describe(
   'global Search - People Search functionality',
@@ -15,6 +16,8 @@ test.describe(
   () => {
     const testData = PEOPLE_SEARCH_TEST_DATA;
     let userId: string;
+    let testUserId: string;
+    let testExpertiseId: string;
 
     test.beforeEach(async ({ appManagerFixture }) => {
       // Get user ID using getIdentityUserId method with data from test file
@@ -32,6 +35,18 @@ test.describe(
         testData.createUpdatePayload(currentUserData, testData.updateFields)
       );
       console.log('User updated successfully with specified values ', updateResponse);
+    });
+
+    test.afterEach(async ({ appManagerFixture }) => {
+      // Cleanup: Unendorse user from expertise if it was created
+      try {
+        if (testUserId && testExpertiseId) {
+          await appManagerFixture.expertiseManagementService.unendorseUserFromExpertise(testUserId, testExpertiseId);
+          console.log(`User ${testUserId} unendorsed from expertise ${testExpertiseId} successfully`);
+        }
+      } catch (error) {
+        console.warn(`Failed to cleanup test data:`, error);
+      }
     });
 
     test(
@@ -112,32 +127,25 @@ test.describe(
           zephyrTestId: 'SEN-19474', // Replace with actual Zephyr test ID
         });
 
-        let testUserId: string;
-        let testExpertiseId: string;
+        // Get user ID using getIdentityUserId method with data from test file
+        testUserId = await appManagerFixture.identityManagementHelper.identityService.getIdentityUserId(
+          testData.firstName,
+          testData.lastName
+        );
 
-        try {
-          // Get user ID using getIdentityUserId method with data from test file
-          testUserId = await appManagerFixture.identityManagementHelper.identityService.getIdentityUserId(
-            testData.firstName,
-            testData.lastName
-          );
+        // Create expertise
+        const expertiseResponse = await appManagerFixture.expertiseManagementService.createExpertise(
+          testData.expertise.name
+        );
+        testExpertiseId = expertiseResponse.result.uuid;
+        console.log(`Expertise created: ${testData.expertise.name} with ID: ${testExpertiseId}`);
 
-          // Create expertise
-          const expertiseResponse = await appManagerFixture.expertiseManagementService.createExpertise(
-            testData.expertise.name
-          );
-          testExpertiseId = expertiseResponse.result.uuid;
-          console.log(`Expertise created: ${testData.expertise.name} with ID: ${testExpertiseId}`);
-
-          // Endorse user with expertise
-          const endorseResponse = await appManagerFixture.expertiseManagementService.endorseUserWithExpertise(
-            testUserId,
-            testExpertiseId
-          );
-          console.log(`User ${testUserId} endorsed with expertise ${testExpertiseId}:`, endorseResponse.message);
-        } catch (error) {
-          throw error;
-        }
+        // Endorse user with expertise
+        const endorseResponse = await appManagerFixture.expertiseManagementService.endorseUserWithExpertise(
+          testUserId,
+          testExpertiseId
+        );
+        console.log(`User ${testUserId} endorsed with expertise ${testExpertiseId}:`, endorseResponse.message);
 
         // Navigate to global search and search for the user
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(testData.searchTerm, {
@@ -157,69 +165,43 @@ test.describe(
 
         await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
 
-        // Test department filter with count tracking
-        const departmentOriginalCount = await globalSearchResultPage.verifyAndClickDepartmentSubFilter({
-          filterText: testData.label,
-          filterName: testData.peopleFilters.department,
-          departmentName: testData.updateFields.department,
-        });
-        await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
+        // Test people subfilters with count tracking using generic approach
+        const peopleSubFilters = [
+          {
+            filterName: testData.peopleFilters.department,
+            filterValue: testData.updateFields.department,
+          },
+          {
+            filterName: testData.peopleFilters.location,
+            filterValue: testData.updateFields.location,
+          },
+          {
+            filterName: testData.peopleFilters.expertise,
+            filterValue: testData.expertise.name,
+          },
+        ];
 
-        // Test location filter with count tracking
-        const locationOriginalCount = await globalSearchResultPage.verifyAndClickLocationSubFilter({
-          filterText: testData.label,
-          filterName: testData.peopleFilters.location,
-          locationName: testData.updateFields.location,
-        });
-        await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
+        // Test each subfilter, track counts, and verify reset functionality
+        for (const subFilter of peopleSubFilters) {
+          const peopleFilterComponent = new SidebarFilterComponent(appManagerFixture.page, {
+            filterText: testData.label,
+            globalFilterName: subFilter.filterName,
+          });
 
-        // Test expertise filter with count tracking
-        const expertiseOriginalCount = await globalSearchResultPage.verifyAndClickExpertiseSubFilter({
-          filterText: testData.label,
-          filterName: testData.peopleFilters.expertise,
-          expertiseName: testData.expertise.name,
-        });
-        await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
+          // Test the subfilter and get original count
+          const originalCount = await peopleFilterComponent.verifyAndClickPeopleSubFilter(subFilter.filterValue);
+          await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
 
-        // Verify department filter count tracking and reset
-        await globalSearchResultPage.verifyPeopleSubFilterWithCountTracking({
-          filterText: testData.label,
-          filterName: testData.peopleFilters.department,
-          originalCount: departmentOriginalCount,
-          expectedCountAfterFilter: 1,
-          stepInfo: `Verify ${testData.peopleFilters.department} filter count tracking and reset`,
-        });
-
-        // Verify location filter count tracking and reset
-        await globalSearchResultPage.verifyPeopleSubFilterWithCountTracking({
-          filterText: testData.label,
-          filterName: testData.peopleFilters.location,
-          originalCount: locationOriginalCount,
-          expectedCountAfterFilter: 1,
-          stepInfo: `Verify ${testData.peopleFilters.location} filter count tracking and reset`,
-        });
-
-        // Verify expertise filter count tracking and reset
-        await globalSearchResultPage.verifyPeopleSubFilterWithCountTracking({
-          filterText: testData.label,
-          filterName: testData.peopleFilters.expertise,
-          originalCount: expertiseOriginalCount,
-          expectedCountAfterFilter: 1,
-          stepInfo: `Verify ${testData.peopleFilters.expertise} filter count tracking and reset`,
-        });
-
-        await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
-
-        // Test-specific cleanup
-        try {
-          // Cleanup: Unendorse user from expertise
-          if (testUserId && testExpertiseId) {
-            await appManagerFixture.expertiseManagementService.unendorseUserFromExpertise(testUserId, testExpertiseId);
-            console.log(`User ${testUserId} unendorsed from expertise ${testExpertiseId} successfully`);
-          }
-        } catch (error) {
-          console.warn(`Failed to cleanup test data:`, error);
+          // Verify count tracking and reset functionality
+          await peopleFilterComponent.verifyPeopleSubFilterWithCountTracking({
+            filterName: subFilter.filterName,
+            originalCount: originalCount,
+            expectedCountAfterFilter: 1,
+            stepInfo: `Verify ${subFilter.filterName} filter count tracking and reset`,
+          });
         }
+
+        await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
       }
     );
   }

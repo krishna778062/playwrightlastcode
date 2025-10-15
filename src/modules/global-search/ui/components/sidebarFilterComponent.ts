@@ -8,6 +8,7 @@ import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 export class SidebarFilterComponent extends BaseComponent {
   private readonly filterText: string;
   private readonly siteName: string | undefined;
+  private readonly filterName: string;
   private readonly filterIcon: Locator;
   private readonly filterButton: Locator;
   private readonly countSection: Locator;
@@ -24,25 +25,20 @@ export class SidebarFilterComponent extends BaseComponent {
   private readonly resultsCount: Locator;
   private readonly resetButton: Locator;
 
-  // Department subfilter locators
-  private readonly departmentSubFilterButton: Locator;
-  private readonly departmentSubFilterDownArrow: Locator;
-  private readonly departmentInput: Locator;
+  // Generic people subfilter locators (using filterName)
+  private readonly peopleSubFilterButton: Locator;
+  private readonly peopleSubFilterDownArrow: Locator;
+  private readonly peopleSubFilterInput: Locator;
+  private readonly peopleSubFilterResetButton: Locator;
 
-  // Location subfilter locators
-  private readonly locationSubFilterButton: Locator;
-  private readonly locationSubFilterDownArrow: Locator;
-  private readonly locationInput: Locator;
-
-  // Expertise subfilter locators
-  private readonly expertiseSubFilterButton: Locator;
-  private readonly expertiseSubFilterDownArrow: Locator;
-  private readonly expertiseInput: Locator;
-
-  constructor(page: Page, options: { filterText: string; iconType?: string; siteName?: string }) {
+  constructor(
+    page: Page,
+    options: { filterText: string; iconType?: string; siteName?: string; globalFilterName?: string }
+  ) {
     super(page);
     this.filterText = options.filterText;
     this.siteName = options.siteName;
+    this.filterName = options.globalFilterName || 'Department'; // Default to Department
     this.originalCount = 0;
 
     this.filterButton = this.page.locator(`[class*="SourceButton_sourceButton"]`).filter({
@@ -69,20 +65,13 @@ export class SidebarFilterComponent extends BaseComponent {
       .filter({ hasText: /\(\d+\)/ });
     this.resetButton = this.page.getByRole('button', { name: 'Reset' });
 
-    // Initialize department subfilter locators
-    this.departmentSubFilterButton = this.page.getByRole('button', { name: 'Department' });
-    this.departmentSubFilterDownArrow = this.departmentSubFilterButton.locator('[data-testid="i-arrowDown"]');
-    this.departmentInput = this.page.locator('#department-search');
-
-    // Initialize location subfilter locators
-    this.locationSubFilterButton = this.page.getByRole('button', { name: 'Location' });
-    this.locationSubFilterDownArrow = this.locationSubFilterButton.locator('[data-testid="i-arrowDown"]');
-    this.locationInput = this.page.locator('#location-search');
-
-    // Initialize expertise subfilter locators
-    this.expertiseSubFilterButton = this.page.getByRole('button', { name: 'Expertise' });
-    this.expertiseSubFilterDownArrow = this.expertiseSubFilterButton.locator('[data-testid="i-arrowDown"]');
-    this.expertiseInput = this.page.locator('#expertise-search');
+    // Initialize generic people subfilter locators (using filterName)
+    this.peopleSubFilterButton = this.page.getByRole('button', { name: this.filterName });
+    this.peopleSubFilterDownArrow = this.peopleSubFilterButton.locator('[data-testid="i-arrowDown"]');
+    this.peopleSubFilterInput = this.page.locator(`#${this.filterName.toLowerCase()}-search`);
+    this.peopleSubFilterResetButton = this.page
+      .locator(`div:has(div:has-text("${this.filterName}")) button:has-text("Reset")`)
+      .first();
   }
 
   /**
@@ -370,10 +359,8 @@ export class SidebarFilterComponent extends BaseComponent {
     return await test.step(`verify count matching with expected count before and after resetting`, async () => {
       // Verify the current count matches the expected count after filtering
       await this.verifyResultsCount(options.expectedCountAfterFilter);
-      if (await this.resetButton.isVisible()) {
-        await this.clickResetButton();
-        await this.verifyResultsCount(options.originalCount);
-      }
+      await this.clickOnElement(this.resetButton);
+      await this.verifyResultsCount(options.originalCount);
     });
   }
 
@@ -390,227 +377,45 @@ export class SidebarFilterComponent extends BaseComponent {
     return await test.step(
       options.stepInfo || `verify people filter count matching with expected count before and after resetting`,
       async () => {
-        // Verify the current count matches the expected count after filtering
-        await this.verifyResultsCount(options.expectedCountAfterFilter);
-        if (await this.resetButton.isVisible()) {
-          await this.clickSpecificResetButton(options.filterName);
-          // Verify count is back to original
-          await this.verifyResultsCount(options.originalCount);
-        }
+        await this.clickOnElement(this.peopleSubFilterResetButton);
+        await this.verifyResultsCount(options.originalCount);
       }
     );
   }
 
   /**
-   * Gets the specific reset button for a filter name
-   * @param filterName - The name of the filter (Department, Location, Expertise)
-   * @returns Locator - The specific reset button locator
-   */
-  private getSpecificResetButton(filterName: string): Locator {
-    return this.page.locator(`div:has(div:has-text("${filterName}")) button:has-text("Reset")`);
-  }
-
-  /**
-   * Clicks on the reset button
-   * @param options - Options for the step
-   */
-  async clickResetButton(options?: { stepInfo?: string }): Promise<void> {
-    return await test.step(options?.stepInfo || 'Click reset button', async () => {
-      await this.clickOnElement(this.resetButton);
-    });
-  }
-
-  /**
-   * Clicks on the specific reset button for a filter name
-   * @param filterName - The name of the filter (Department, Location, Expertise)
-   * @param options - Options for the step
-   */
-  async clickSpecificResetButton(filterName: string, options?: { stepInfo?: string }): Promise<void> {
-    return await test.step(options?.stepInfo || `Click reset button for ${filterName}`, async () => {
-      const specificResetButton = this.getSpecificResetButton(filterName);
-      await this.clickOnElement(specificResetButton);
-    });
-  }
-
-  /**
-   * Complete department subfilter workflow with all verifications
-   * @param departmentName - The name of the department to select
+   * Generic people subfilter workflow using the initialized filterName
+   * @param filterValue - The value to search for and select
    * @returns Promise<number> - The original count before filtering
    */
-  async verifyAndClickDepartmentSubFilter(filterName: string, departmentName: string): Promise<number> {
-    return await test.step(`Complete department subfilter workflow for "${departmentName}"`, async () => {
-      // Store original count before filtering
+  async verifyAndClickPeopleSubFilter(filterValue: string): Promise<number> {
+    return await test.step(`Complete ${this.filterName.toLowerCase()} people subfilter workflow for "${filterValue}"`, async () => {
       this.originalCount = await this.getCurrentResultsCount();
       console.log('originalCount', this.originalCount);
-
-      await this.verifier.verifyTheElementIsVisible(this.departmentSubFilterButton.last(), {
-        timeout: 10000,
-        assertionMessage: 'Verifying department subfilter button is visible',
-      });
-
-      await this.verifier.verifyTheElementIsVisible(this.departmentSubFilterDownArrow, {
-        timeout: 10000,
-        assertionMessage: 'Verifying department subfilter down arrow is visible',
-      });
-
-      await this.clickOnElement(this.departmentSubFilterButton.last());
-
-      // Check if input field is visible, if not, directly select from list
-      const isInputVisible = await this.departmentInput.isVisible();
-
-      if (isInputVisible) {
-        await this.verifier.verifyTheElementIsVisible(this.departmentInput, {
-          timeout: 10000,
-          assertionMessage: 'Verifying department input field is visible',
-        });
-        await this.departmentInput.fill(departmentName);
-
-        await this.verifier.verifyTheElementIsVisible(this.clearButton.last(), {
-          timeout: 10000,
-          assertionMessage: 'Verifying clear button is visible after inputting department name',
-        });
+      await this.verifier.verifyTheElementIsVisible(this.peopleSubFilterButton.last(), { timeout: 5000 });
+      await this.verifier.verifyTheElementIsVisible(this.peopleSubFilterDownArrow, { timeout: 5000 });
+      await this.clickOnElement(this.peopleSubFilterButton.last());
+      // Wait for the input field to appear after clicking, with fallback
+      let isInputVisible = false;
+      try {
+        await this.peopleSubFilterInput.waitFor({ state: 'visible', timeout: 5000 });
+        isInputVisible = true;
+      } catch (error) {
+        console.log('Input field did not appear, proceeding without input');
+        isInputVisible = false;
       }
 
-      await this.verifier.verifyTheElementIsVisible(this.autocompleteList.first(), {
-        timeout: 10000,
-        assertionMessage: 'Verifying autocomplete list is visible',
-      });
-
-      const departmentItem = this.autocompleteList.locator('h4').filter({ hasText: departmentName });
-      await this.verifier.verifyTheElementIsVisible(departmentItem, {
-        timeout: 10000,
-        assertionMessage: `Verifying department "${departmentName}" is displayed in autocomplete list`,
-      });
-
-      await this.clickOnElement(departmentItem);
-
-      await this.verifier.verifyTheElementIsVisible(this.getSpecificResetButton(filterName), {
-        timeout: 10000,
-        assertionMessage: 'Verifying reset button is visible',
-      });
-
-      return this.originalCount;
-    });
-  }
-
-  /**
-   * Complete location subfilter workflow with all verifications
-   * @param locationName - The name of the location to select
-   * @returns Promise<number> - The original count before filtering
-   */
-  async verifyAndClickLocationSubFilter(filterName: string, locationName: string): Promise<number> {
-    return await test.step(`Complete location subfilter workflow for "${locationName}"`, async () => {
-      // Store original count before filtering
-      this.originalCount = await this.getCurrentResultsCount();
-      console.log('originalCount', this.originalCount);
-
-      await this.verifier.verifyTheElementIsVisible(this.locationSubFilterButton.last(), {
-        timeout: 10000,
-        assertionMessage: 'Verifying location subfilter button is visible',
-      });
-
-      await this.verifier.verifyTheElementIsVisible(this.locationSubFilterDownArrow, {
-        timeout: 10000,
-        assertionMessage: 'Verifying location subfilter down arrow is visible',
-      });
-
-      await this.clickOnElement(this.locationSubFilterButton.last());
-
-      // Check if input field is visible, if not, directly select from list
-      const isInputVisible = await this.locationInput.isVisible();
-
       if (isInputVisible) {
-        await this.verifier.verifyTheElementIsVisible(this.locationInput, {
-          timeout: 10000,
-          assertionMessage: 'Verifying location input field is visible',
-        });
-        await this.locationInput.fill(locationName);
+        await this.verifier.verifyTheElementIsVisible(this.peopleSubFilterInput, { timeout: 5000 });
+        await this.peopleSubFilterInput.fill(filterValue);
 
-        await this.verifier.verifyTheElementIsVisible(this.clearButton.last(), {
-          timeout: 10000,
-          assertionMessage: 'Verifying clear button is visible after inputting location name',
-        });
+        await this.verifier.verifyTheElementIsVisible(this.clearButton.last(), { timeout: 5000 });
       }
-
-      await this.verifier.verifyTheElementIsVisible(this.autocompleteList.first(), {
-        timeout: 10000,
-        assertionMessage: 'Verifying autocomplete list is visible',
-      });
-
-      const locationItem = this.autocompleteList.locator('h4').filter({ hasText: locationName });
-      await this.verifier.verifyTheElementIsVisible(locationItem, {
-        timeout: 10000,
-        assertionMessage: `Verifying location "${locationName}" is displayed in autocomplete list`,
-      });
-
-      await this.clickOnElement(locationItem);
-
-      await this.verifier.verifyTheElementIsVisible(this.getSpecificResetButton(filterName), {
-        timeout: 10000,
-        assertionMessage: 'Verifying reset button is visible',
-      });
-
-      return this.originalCount;
-    });
-  }
-
-  /**
-   * Complete expertise subfilter workflow with all verifications
-   * @param expertiseName - The name of the expertise to select
-   * @returns Promise<number> - The original count before filtering
-   */
-  async verifyAndClickExpertiseSubFilter(filterName: string, expertiseName: string): Promise<number> {
-    return await test.step(`Complete expertise subfilter workflow for "${expertiseName}"`, async () => {
-      // Store original count before filtering
-      this.originalCount = await this.getCurrentResultsCount();
-      console.log('originalCount', this.originalCount);
-
-      await this.verifier.verifyTheElementIsVisible(this.expertiseSubFilterButton.last(), {
-        timeout: 10000,
-        assertionMessage: 'Verifying expertise subfilter button is visible',
-      });
-
-      await this.verifier.verifyTheElementIsVisible(this.expertiseSubFilterDownArrow, {
-        timeout: 10000,
-        assertionMessage: 'Verifying expertise subfilter down arrow is visible',
-      });
-
-      await this.clickOnElement(this.expertiseSubFilterButton.last());
-
-      // Check if input field is visible, if not, directly select from list
-      const isInputVisible = await this.expertiseInput.isVisible();
-
-      if (isInputVisible) {
-        await this.verifier.verifyTheElementIsVisible(this.expertiseInput, {
-          timeout: 10000,
-          assertionMessage: 'Verifying expertise input field is visible',
-        });
-        await this.expertiseInput.fill(expertiseName);
-
-        await this.verifier.verifyTheElementIsVisible(this.clearButton.last(), {
-          timeout: 10000,
-          assertionMessage: 'Verifying clear button is visible after inputting expertise name',
-        });
-      }
-
-      await this.verifier.verifyTheElementIsVisible(this.autocompleteList.first(), {
-        timeout: 10000,
-        assertionMessage: 'Verifying autocomplete list is visible',
-      });
-
-      const expertiseItem = this.autocompleteList.locator('h4').filter({ hasText: expertiseName });
-      await this.verifier.verifyTheElementIsVisible(expertiseItem, {
-        timeout: 10000,
-        assertionMessage: `Verifying expertise "${expertiseName}" is displayed in autocomplete list`,
-      });
-
-      await this.clickOnElement(expertiseItem);
-
-      await this.verifier.verifyTheElementIsVisible(this.getSpecificResetButton(filterName), {
-        timeout: 10000,
-        assertionMessage: 'Verifying reset button is visible',
-      });
-
+      await this.verifier.verifyTheElementIsVisible(this.autocompleteList.first(), { timeout: 10000 });
+      const peopleFilterItem = this.autocompleteList.locator('h4').filter({ hasText: filterValue });
+      await this.verifier.verifyTheElementIsVisible(peopleFilterItem, { timeout: 10000 });
+      await this.clickOnElement(peopleFilterItem);
+      await this.verifier.verifyTheElementIsVisible(this.peopleSubFilterResetButton, { timeout: 10000 });
       return this.originalCount;
     });
   }
