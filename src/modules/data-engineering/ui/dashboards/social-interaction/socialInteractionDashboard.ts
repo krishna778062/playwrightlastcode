@@ -5,7 +5,6 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 
 import { Favorites } from './metrics/favorites';
 import { FeedPostsAndComments } from './metrics/feedPostsAndComments';
-import { LeastEngagedByDepartment } from './metrics/leastEngagedByDepartment';
 import { MostEngagedByDepartment } from './metrics/mostEngagedByDepartment';
 import { ReactionsOrLikes } from './metrics/reactionsOrLikes';
 import { Replies } from './metrics/replies';
@@ -21,7 +20,6 @@ export class SocialInteractionDashboard extends BaseAnalyticsDashboardPage {
   // Dedicated metric components using composition
   readonly socialCampaignShareDistribution: SocialCampaignShareDistribution;
   readonly mostEngagedByDepartment: MostEngagedByDepartment;
-  readonly leastEngagedByDepartment: LeastEngagedByDepartment;
   readonly reactionsOrLikesMetrics: ReactionsOrLikes;
   readonly feedPostsAndComments: FeedPostsAndComments;
   readonly replies: Replies;
@@ -35,7 +33,6 @@ export class SocialInteractionDashboard extends BaseAnalyticsDashboardPage {
     // Initialize dedicated metric components
     this.socialCampaignShareDistribution = new SocialCampaignShareDistribution(page, this.thoughtSpotIframe);
     this.mostEngagedByDepartment = new MostEngagedByDepartment(page, this.thoughtSpotIframe);
-    this.leastEngagedByDepartment = new LeastEngagedByDepartment(page, this.thoughtSpotIframe);
     this.reactionsOrLikesMetrics = new ReactionsOrLikes(page, this.thoughtSpotIframe);
     this.feedPostsAndComments = new FeedPostsAndComments(page, this.thoughtSpotIframe);
     this.replies = new Replies(page, this.thoughtSpotIframe);

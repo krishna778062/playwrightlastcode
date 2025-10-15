@@ -1,14 +1,11 @@
 import { FrameLocator, Page } from '@playwright/test';
 
+import { SOCIAL_INTERACTION_METRICS } from '@/src/modules/data-engineering/constants/socialInteractionMetrics';
 import { TabluarMetricsComponent } from '@/src/modules/data-engineering/ui/components/tabluarMetricsComponent';
 
 export class MostEngagedByDepartment extends TabluarMetricsComponent {
   constructor(page: Page, iframe: FrameLocator) {
-    const container = iframe.locator('[class*="answer-content-module__answerVizContainer"]').filter({
-      has: iframe.getByRole('heading', { name: 'Most engaged by Department', exact: true }),
-    });
-
-    super(page, iframe, container);
+    super(page, iframe, SOCIAL_INTERACTION_METRICS.MOST_ENGAGED_BY_DEPARTMENT.title);
   }
 
   /**
