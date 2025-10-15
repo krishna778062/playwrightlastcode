@@ -42,7 +42,10 @@ export class PeopleTabComponent extends BaseComponent {
   async clickOnTab(text: string): Promise<void> {
     await test.step(`Click on '${text}' tab`, async () => {
       await this.tabLocator(text).click();
-      await this.page.waitForTimeout(10000);
+      await expect(this.tabLocator(text), `expecting '${text}' tab to be visible after click`).toBeVisible({
+        timeout: 10000,
+      });
+      await this.page.waitForLoadState('networkidle', { timeout: 10000 });
     });
   }
 
@@ -76,7 +79,7 @@ export class PeopleTabComponent extends BaseComponent {
   async verifyAllUserFieldsAreDisplayed(): Promise<void> {
     await test.step('Verify all user fields are displayed', async () => {
       for (const field of PEOPLE_TAB.USER_FIELDS) {
-        await expect(this.fieldLabel(field)).toBeVisible();
+        await expect(this.fieldLabel(field), `expecting field '${field}' to be visible`).toBeVisible();
       }
     });
   }
