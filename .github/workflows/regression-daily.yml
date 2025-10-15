@@ -18,7 +18,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [chat, platforms, global-search, content, de, reward, content-abac, frontline, integrations] # de is short for data-engineering
+        module: [
+            chat,
+            platforms,
+            global-search,
+            content,
+            de,
+            reward,
+            content-abac,
+            frontline,
+            content-settings,
+            alert-notification,
+          ] # de is short for data-engineering
         environment: [qa]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2

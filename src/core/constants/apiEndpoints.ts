@@ -25,7 +25,7 @@ export const API_ENDPOINTS = {
         `/v1/chat/conversations/list?page=${page}&perPage=${perPage}&conversationType=GROUP`,
     },
     identity: {
-      listOfAudiences: '/v1/identity/audiences/list',
+      listOfAudiences: '/v1/identity/audience/list',
       v2IdentityAudiencesCategories: '/v2/identity/audiences/categories',
       v2IdentityAudiencesHierarchy: '/v2/identity/audiences/hierarchy',
       v2IdentityAudiences: '/v2/identity/audiences',
@@ -42,6 +42,7 @@ export const API_ENDPOINTS = {
     v2IdentityProfileQuestionsVerify: '/v2/identity/profile-questions/verify',
     v2IdentityUsersSetPassword: '/v2/identity/users/set-password',
     v2IdentityUsersRegisterProfile: '/v2/identity/users/register-profile',
+    roles: '/v1/identity/accounts/roles/list',
   },
   admin: {
     login: '/v2/identity/admin/login',
@@ -51,9 +52,16 @@ export const API_ENDPOINTS = {
     url: '/v1/content/sites',
     category: '/v1/content/siteCategories/list',
     deactivate: '/v1/content/sites/attributes?attribute=status',
+    activate: '/v1/content/sites/attributes?attribute=status',
+    updateAccess: '/v1/content/sites/attributes?attribute=access',
     listOfSites: '/v1/content/sites/list',
     manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
     membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,
+    unfeature: (siteId: string) => `/v1/content/sites/${siteId}/featured?action=unfeature`,
+    siteDetails: (siteId: string) => `/v1/content/sites/${siteId}`,
+    carouselItems: (siteId: string) => `/v1/content/sites/${siteId}/carousel/items/list`,
+    deleteCarouselItem: (siteId: string, carouselItemId: string) =>
+      `/v1/content/sites/${siteId}/carousel/items/${carouselItemId}`,
   },
 
   content: {
@@ -85,8 +93,22 @@ export const API_ENDPOINTS = {
     comment: (feedId: string) => `/v1/wfeed/feeds/${feedId}/comments`,
     rudderstack: 'https://rudderstack-data-plane.qa.simpplr.xyz/v1/track',
   },
+
+  socialCampaign: {
+    create: '/v1/socialcampaigns',
+    list: '/v1/socialcampaigns/list',
+    get: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
+    update: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
+    delete: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
+    updateStatus: (campaignId: string) => `/v1/socialcampaigns/${campaignId}/status`,
+    shareToFeed: (campaignId: string, sharedWith: string) =>
+      `/v1/socialcampaigns/${campaignId}/share/feed/${sharedWith}`,
+    metadata: '/v1/content/oembed/metadata',
+  },
   appConfig: {
     governance: '/v1/account/appConfig/app.setup.governance',
+    general: '/v1/account/appConfig/app',
+    appConfig: '/v1/account/appConfig',
   },
   apps: {
     settings: '/v1/account/apps-links-settings',
@@ -103,6 +125,7 @@ export const API_ENDPOINTS = {
     create: '/v1/promotions/w/qrcodes',
     contentList: '/v1/content/sites/content/list',
     delete: (qrCodeId: string) => `/v1/promotions/w/qrcodes/${qrCodeId}`,
+    list: (pageSize: number) => `/v1/promotions/r/qrcodes?pagesize=${pageSize}`,
   },
   integrations: {
     tiles: '/v1/tiles',

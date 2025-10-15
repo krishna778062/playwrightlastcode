@@ -12,6 +12,7 @@ export const ACTION_LABELS = {
   ADD: 'Add',
   CONNECT_ACCOUNT: 'Connect account',
   DISCONNECT_ACCOUNT: 'Disconnect account',
+  MY_SETTINGS: 'My settings',
 } as const;
 
 export const UI_ACTIONS = {
@@ -24,6 +25,8 @@ export const UI_ACTIONS = {
   UPLOAD: 'Upload',
   ADD_TO_HOME: 'Add to home',
   ADD_TO_SITE: 'Add to site dashboard',
+  ENABLED: 'enabled',
+  DISABLED: 'disabled',
 } as const;
 
 export const DASHBOARD_BUTTONS = {
@@ -66,6 +69,7 @@ export enum ActionType {
   Download = 'Download',
   Upload = 'Upload',
   Closed = 'Closed',
+  Done = 'Done',
 }
 
 export const NAVIGATION_LABELS = {

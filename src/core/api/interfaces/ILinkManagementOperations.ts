@@ -1,5 +1,3 @@
-import { AppsSettingsPayload } from '@/src/core/types/app.type';
-
 export interface ILinkManagementOperations {
   addExternalLink(link: {
     url: string;

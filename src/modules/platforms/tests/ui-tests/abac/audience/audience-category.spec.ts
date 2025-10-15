@@ -2,15 +2,15 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestSuite } from '@core/constants/testSuite';
 import { tagTest } from '@core/utils/testDecorator';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
-import { AudiencePage } from '@platforms/pages/abacPage/acgPage/audiencePage';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { AudiencePage } from '@/src/modules/platforms/ui/pages/abacPage/acgPage/audiencePage';
 
-test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSuite.AUDIENCE_CATEGORY] }, () => {
+test.describe('audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSuite.AUDIENCE_CATEGORY] }, () => {
   test(
-    'Create category modal: Verify category name and description fields accept alphanumeric and special characters',
-    { tag: [TestPriority.P2] },
-    async ({ appManagerPage }) => {
+    'create category modal: Verify category name and description fields accept alphanumeric and special characters',
+    { tag: [TestPriority.P2, `@ABAC`, `@acg`] },
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: [
           'PS-35395',
@@ -26,7 +26,7 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
         ],
       });
 
-      const audiencePage = new AudiencePage(appManagerPage);
+      const audiencePage = new AudiencePage(appManagerFixture.page);
       await audiencePage.loadPage();
       await audiencePage.openCreateCategoryModal();
       await audiencePage.addCategoryModal.verifyCategoryNameInputAcceptsInput(
@@ -40,9 +40,9 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
   );
 
   test(
-    'Create category modal: Verify category name and description strips out input length > max length allowed',
-    { tag: [TestPriority.P2] },
-    async ({ appManagerPage }) => {
+    'create category modal: Verify category name and description strips out input length > max length allowed',
+    { tag: [TestPriority.P2, `@ABAC`, `@acg`] },
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: [
           'PS-35395',
@@ -58,7 +58,7 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
         ],
       });
 
-      const audiencePage = new AudiencePage(appManagerPage);
+      const audiencePage = new AudiencePage(appManagerFixture.page);
       await audiencePage.loadPage();
       await audiencePage.openCreateCategoryModal();
       await audiencePage.addCategoryModal.verifyNameFieldMaxLength();
@@ -68,14 +68,14 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
   );
 
   test(
-    'Verify category should not get created when user clicks on Cancel button',
-    { tag: [TestPriority.P2] },
-    async ({ appManagerPage }) => {
+    'verify category should not get created when user clicks on Cancel button',
+    { tag: [TestPriority.P2, `@ABAC`, `@acg`] },
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35407'],
       });
 
-      const audiencePage = new AudiencePage(appManagerPage);
+      const audiencePage = new AudiencePage(appManagerFixture.page);
       await audiencePage.loadPage();
 
       // Verify Cancel button prevents category creation
@@ -84,14 +84,14 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
   );
 
   test(
-    'Verify category should not get created when user clicks on Close button',
-    { tag: [TestPriority.P2] },
-    async ({ appManagerPage }) => {
+    'verify category should not get created when user clicks on Close button',
+    { tag: [TestPriority.P2, `@ABAC`, `@acg`] },
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35408'],
       });
 
-      const audiencePage = new AudiencePage(appManagerPage);
+      const audiencePage = new AudiencePage(appManagerFixture.page);
       await audiencePage.loadPage();
 
       // Verify Close button prevents category creation
@@ -100,20 +100,20 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
   );
 
   test(
-    'Verify alert message when duplicate category name is provided and verify presence of three options under option menu dropdown for category',
-    { tag: [TestPriority.P0] },
-    async ({ appManagerPage, audienceCategoryManagementHelper }) => {
+    'verify alert message when duplicate category name is provided and verify presence of three options under option menu dropdown for category',
+    { tag: [TestPriority.P0, `@ABAC`, `@acg`] },
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35411', 'PS-35413'],
       });
 
-      const audiencePage = new AudiencePage(appManagerPage);
+      const audiencePage = new AudiencePage(appManagerFixture.page);
       const uniqueCategoryName = TestDataGenerator.generateCategoryName('001DuplicateTestCategory');
 
       await audiencePage.loadPage();
 
       // Create first category via API to establish duplicate scenario
-      await audienceCategoryManagementHelper.createCategory(uniqueCategoryName, {
+      await appManagerFixture.audienceCategoryManagementHelper.createCategory(uniqueCategoryName, {
         description: 'Category created via API for duplicate test',
       });
 
@@ -132,14 +132,14 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
   );
 
   test(
-    'Verify category WITH description should get created when user clicks on Add button under Create category popup',
-    { tag: [TestPriority.P1] },
-    async ({ appManagerPage }) => {
+    'verify category WITH description should get created when user clicks on Add button under Create category popup',
+    { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35410'],
       });
 
-      const audiencePage = new AudiencePage(appManagerPage);
+      const audiencePage = new AudiencePage(appManagerFixture.page);
       const categoryWithDescription = TestDataGenerator.generateCategoryName('001TestCategoryWithDesc');
       const categoryDescription = TestDataGenerator.generateRandomString();
 
@@ -156,14 +156,14 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
   );
 
   test(
-    'Verify category WITHOUT description should get created when user clicks on Add button under Create category popup',
-    { tag: [TestPriority.P1] },
-    async ({ appManagerPage }) => {
+    'verify category WITHOUT description should get created when user clicks on Add button under Create category popup',
+    { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35409'],
       });
 
-      const audiencePage = new AudiencePage(appManagerPage);
+      const audiencePage = new AudiencePage(appManagerFixture.page);
       const categoryWithoutDescription = TestDataGenerator.generateCategoryName('001TestCategoryNoDesc');
 
       await audiencePage.loadPage();
@@ -179,20 +179,20 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
   );
 
   test(
-    'Verify the appearance of Edit category modal, Save button behavior, and name field validation',
-    { tag: [TestPriority.P2] },
-    async ({ appManagerPage, audienceCategoryManagementHelper }) => {
+    'verify the appearance of Edit category modal, Save button behavior, and name field validation',
+    { tag: [TestPriority.P2, `@ABAC`, `@acg`] },
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35417', 'PS-35416', 'PS-35412'],
       });
 
-      const audiencePage = new AudiencePage(appManagerPage);
+      const audiencePage = new AudiencePage(appManagerFixture.page);
       const testCategoryName = TestDataGenerator.generateCategoryName('001EditTestCategory');
 
       await audiencePage.loadPage();
 
       // Create a category via API to edit (without description so we can test "Add description" button)
-      await audienceCategoryManagementHelper.createCategory(testCategoryName);
+      await appManagerFixture.audienceCategoryManagementHelper.createCategory(testCategoryName);
 
       // Reload the page to see the API-created category
       await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
@@ -216,24 +216,24 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
   );
 
   test(
-    'Verify the presence of alert message when duplicate category name is provided in name field under Edit category popup',
-    { tag: [TestPriority.P0] },
-    async ({ appManagerPage, audienceCategoryManagementHelper }) => {
+    'verify the presence of alert message when duplicate category name is provided in name field under Edit category popup',
+    { tag: [TestPriority.P0, `@ABAC`, `@acg`] },
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35415'],
       });
 
-      const audiencePage = new AudiencePage(appManagerPage);
+      const audiencePage = new AudiencePage(appManagerFixture.page);
       const firstCategoryName = TestDataGenerator.generateCategoryName('001EditDuplicateTest1');
       const secondCategoryName = TestDataGenerator.generateCategoryName('002EditDuplicateTest2');
 
       await audiencePage.loadPage();
 
       // Create two categories via API for the duplicate test
-      await audienceCategoryManagementHelper.createCategory(firstCategoryName, {
+      await appManagerFixture.audienceCategoryManagementHelper.createCategory(firstCategoryName, {
         description: `Creating first category with name : ${firstCategoryName} via API for edit duplicate test`,
       });
-      await audienceCategoryManagementHelper.createCategory(secondCategoryName, {
+      await appManagerFixture.audienceCategoryManagementHelper.createCategory(secondCategoryName, {
         description: `Creating second category with name : ${secondCategoryName} via API for edit duplicate test`,
       });
 
@@ -247,20 +247,20 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
   );
 
   test(
-    'Edit category modal: validations and basic actions',
-    { tag: [TestPriority.P1] },
-    async ({ appManagerPage, audienceCategoryManagementHelper }) => {
+    'edit category modal: validations and basic actions',
+    { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35418', 'PS-35419', 'PS-35420', 'PS-35421', 'PS-35422'],
       });
-      const audiencePage = new AudiencePage(appManagerPage);
+      const audiencePage = new AudiencePage(appManagerFixture.page);
       const testCategoryName = TestDataGenerator.generateCategoryName('001EditTestCategory');
 
       // Load the audience page
       await audiencePage.loadPage();
 
       // Step 1: Create category with no description
-      await audienceCategoryManagementHelper.createCategory(testCategoryName);
+      await appManagerFixture.audienceCategoryManagementHelper.createCategory(testCategoryName);
 
       // Reload the page to see the API-created category
       await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
@@ -286,16 +286,16 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
   );
 
   test(
-    'Verify category should not get updated when user clicks on Cancel or Close button under Edit category popup',
-    { tag: [TestPriority.P2] },
-    async ({ appManagerPage, audienceCategoryManagementHelper }) => {
+    'verify category should not get updated when user clicks on Cancel or Close button under Edit category popup',
+    { tag: [TestPriority.P2, `@ABAC`, `@acg`] },
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), { zephyrTestId: ['PS-35423', 'PS-35424'] });
-      const audiencePage = new AudiencePage(appManagerPage);
+      const audiencePage = new AudiencePage(appManagerFixture.page);
       const testCategoryName = TestDataGenerator.generateCategoryName('001EditTestCategory');
 
       // Setup: create a category
       await audiencePage.loadPage();
-      await audienceCategoryManagementHelper.createCategory(testCategoryName);
+      await appManagerFixture.audienceCategoryManagementHelper.createCategory(testCategoryName);
 
       // Reload the page to see the API-created category
       await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
@@ -304,6 +304,9 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
       await audiencePage.verifyCategoryCancelButtonBehavior();
       await audiencePage.verifyAudienceCategoryVisibilityInList(testCategoryName);
 
+      // Reload page to ensure clean state for next test
+      await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
+
       // Verify close button behavior
       await audiencePage.verifyCategoryCloseButtonBehavior();
       await audiencePage.verifyAudienceCategoryVisibilityInList(testCategoryName);
@@ -311,12 +314,12 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
   );
 
   test(
-    'Edit category modal: Update actions',
-    { tag: [TestPriority.P1] },
-    async ({ appManagerPage, audienceCategoryManagementHelper }) => {
+    'edit category modal: Update actions',
+    { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), { zephyrTestId: ['PS-35425', 'PS-35426', 'PS-35428', 'PS-35427'] });
 
-      const audiencePage = new AudiencePage(appManagerPage);
+      const audiencePage = new AudiencePage(appManagerFixture.page);
       const baseName = TestDataGenerator.generateCategoryName('001EditTestCategory');
       const updatedName = TestDataGenerator.generateCategoryName('002EditTestCategory');
 
@@ -327,7 +330,7 @@ test.describe('Audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
       // Setup: create a category to edit
       await audiencePage.loadPage();
-      await audienceCategoryManagementHelper.createCategory(baseName);
+      await appManagerFixture.audienceCategoryManagementHelper.createCategory(baseName);
 
       // Reload the page to see the API-created category
       await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });

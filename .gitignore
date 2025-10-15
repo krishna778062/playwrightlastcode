@@ -18,6 +18,11 @@ report.json
 /config/*.env
 !/config/*.env.example
 
+# Calendar Integration Secrets (sensitive data)
+src/modules/*/env/googleCalendarSecrets.env
+src/modules/*/env/outlookCalendarSecrets.env
+githubSecrets.json
+
 # Development artifacts
 *.log
 *.tmp

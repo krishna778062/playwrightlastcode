@@ -1,13 +1,16 @@
 # Global repository owners (for overall framework decisions)
-* @prateek-sqa
+* @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992
 
 
 # Core framework components (shared across all modules)
-/src/core/ @prateek-sqa
+/src/core/ @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992
 
 # Module-specific ownership
 # Chat Module
-/src/modules/chat/ @prateek-sqa @arvindsingh15992
+/src/modules/chat/ @prateek-sqa @arvindsingh15992 @JoshiMeenakshi30 @Shivam-kalkhanday
+
+# Frontline Module
+/src/modules/frontline/ @prateek-sqa @arvindsingh15992 @JoshiMeenakshi30  @Shivam-kalkhanday
 
 # Content Module
 /src/modules/content/ @prateek-sqa @SonaliGupta0608
@@ -20,7 +23,7 @@
 /src/modules/global-search/ @prateek-sqa @shubhambhar @NiroshaYadla @pinku-simpplr
 
 # Integrations Module
-/src/modules/integrations/ @prateek-sqa @Srikant5g @abhishekbisht-21 @aniketSri98
+/src/modules/integrations/ @prateek-sqa @Srikant5g @abhishekbisht-21 @aniketSri98 @chauhan03shivani
 
 # Platforms Module
 /src/modules/platforms/ @prateek-sqa @poojapathak188 @amanmmishra @LakshmiJoshi1527
@@ -31,18 +34,21 @@
 # Data Engineering Module
 /src/modules/data-engineering/ @prateek-sqa @dkSimpplr
 
+# Alert Notification Module
+/src/modules/alert-notification/ @prateek-sqa @krishnasingh7780 @ruhimirza-simpplr
+
 # Configuration and build files
-playwright.base.config.ts @prateek-sqa
-*.config.ts @prateek-sqa
-package.json @prateek-sqa
-tsconfig.json @prateek-sqa
+playwright.base.config.ts @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992
+*.config.ts @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992
+package.json @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992
+tsconfig.json @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992
 
 # Documentation
-README.md @prateek-sqa
-*.md @prateek-sqa
+README.md @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992
+*.md @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992
 
 # GitHub workflows
-.github/workflows/ @prateek-sqa
+.github/workflows/ @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992
 
 # Environment files
-env/ @prateek-sqa
+env/ @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992

@@ -5,12 +5,29 @@ export enum IntegrationsSuiteTags {
   EXPENSIFY = '@expensifyAppTiles',
   GITHUB = '@gitHubAppTiles',
   ABSOLUTE = '@absolute',
+  GAMMA = '@gamma',
+  PHOENIX = '@phoenix',
+  BAMBOOHR = '@bambooHRAppTiles',
+  SAP_SUCCESSFACTORS = '@sapSuccessFactorsAppTiles',
+  UKG_WFM = '@ukgWFMAppTiles',
+  UKG_PRO = '@ukgProAppTiles',
+  GOOGLE_CALENDAR_APPTILES = '@googleCalendarAppTiles',
+  DOCUSIGN = '@docuSignAppTiles',
+  DOCEBO = '@doceboAppTiles',
+  MONDAY_DOT_COM = '@mondayDotComAppTiles',
+  OUTLOOK_CALENDAR_APPTILES = '@outlookCalendarAppTiles',
+  CUSTOM_APP_TILES = '@customAppTiles',
+  SHOW_MORE = '@showMore',
+  PERSONALIZATION = '@personalization',
 }
 
 export enum IntegrationsFeatureTags {
   TILE_MANAGEMENT = '@tile-management',
   PERSONALIZATION = '@personalization',
   MULTI_USER = '@multi-user',
+  EVENT_SYNC = '@EventSync',
+  GOOGLE_CALENDAR_EVENTS_SYNC = '@google-calendar-eventsync',
+  OUTLOOK_CALENDAR_EVENTS_SYNC = '@outlook-calendar-eventsync',
 }
 
 export const TEST_TAGS = {
@@ -20,6 +37,28 @@ export const TEST_TAGS = {
   EXPENSIFY: IntegrationsSuiteTags.EXPENSIFY,
   GITHUB: IntegrationsSuiteTags.GITHUB,
   ABSOLUTE: IntegrationsSuiteTags.ABSOLUTE,
+  GAMMA: IntegrationsSuiteTags.GAMMA,
+  PHOENIX: IntegrationsSuiteTags.PHOENIX,
   TILE_MANAGEMENT: IntegrationsFeatureTags.TILE_MANAGEMENT,
   MULTI_USER: IntegrationsFeatureTags.MULTI_USER,
+  EVENT_SYNC: IntegrationsFeatureTags.EVENT_SYNC,
+  GOOGLE_CALENDAR_EVENTS_SYNC: IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
+  OUTLOOK_CALENDAR_EVENTS_SYNC: IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
+  BAMBOOHR: IntegrationsSuiteTags.BAMBOOHR,
+  SAP_SUCCESSFACTORS: IntegrationsSuiteTags.SAP_SUCCESSFACTORS,
+  UKG_WFM: IntegrationsSuiteTags.UKG_WFM,
+  UKG_PRO: IntegrationsSuiteTags.UKG_PRO,
+  GOOGLE_CALENDAR_APPTILES: IntegrationsSuiteTags.GOOGLE_CALENDAR_APPTILES,
+  OUTLOOK_CALENDAR_APPTILES: IntegrationsSuiteTags.OUTLOOK_CALENDAR_APPTILES,
+  DOCUSIGN: IntegrationsSuiteTags.DOCUSIGN,
+  MONDAY_DOT_COM: IntegrationsSuiteTags.MONDAY_DOT_COM,
+  DOCEBO: IntegrationsSuiteTags.DOCEBO,
+  CUSTOM_APP_TILES: IntegrationsSuiteTags.CUSTOM_APP_TILES,
+  SHOW_MORE: IntegrationsSuiteTags.SHOW_MORE,
+  PERSONALIZATION: IntegrationsSuiteTags.PERSONALIZATION,
 } as const;
+
+export enum GammaIntegrationsFeatureTags {
+  OKTA_GROUP = '@okta-group',
+  AD_GROUP = '@ad-group',
+}

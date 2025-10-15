@@ -1,18 +1,26 @@
-import { test } from '@playwright/test';
+import { APIRequestContext, test } from '@playwright/test';
 
 import { CreateChatGroupParams } from '@chat/types/chat.type';
-import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
-import { Roles } from '@core/constants/roles';
 import { UserTestDataBuilder } from '@core/test-data-builders/UserTestDataBuilder';
 import { User } from '@core/types/user.type';
 
-export class ChatGroupTestDataBuilder {
-  private readonly userBuilder: UserTestDataBuilder;
-  private readonly apiClient: AppManagerApiClient;
+import { UserManagementService } from '../../platforms/apis/services/UserManagementService';
+import { ChatService } from '../api/services/ChatService';
 
-  constructor(apiClient: AppManagerApiClient) {
-    this.apiClient = apiClient;
-    this.userBuilder = new UserTestDataBuilder(apiClient);
+import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
+
+export class ChatGroupTestDataBuilder {
+  readonly userBuilder: UserTestDataBuilder;
+  readonly apiRequestContext: APIRequestContext;
+  readonly baseUrl: string;
+  readonly chatService: ChatService;
+  readonly userManagementService: UserManagementService;
+  constructor(apiClient: APIRequestContext, baseUrl?: string) {
+    this.baseUrl = baseUrl || getEnvConfig().apiBaseUrl;
+    this.apiRequestContext = apiClient;
+    this.userBuilder = new UserTestDataBuilder(apiClient, this.baseUrl);
+    this.chatService = new ChatService(apiClient, this.baseUrl);
+    this.userManagementService = new UserManagementService(apiClient, this.baseUrl);
   }
 
   /**
@@ -33,7 +41,7 @@ export class ChatGroupTestDataBuilder {
   async createChatGroup(groupName: string, userIds: string[], groupParams?: CreateChatGroupParams) {
     return await test.step(`Creating chat group: ${groupName}`, async () => {
       if (userIds.length > 0) {
-        await this.apiClient.getChatService().createChatGroup(groupName, userIds, groupParams);
+        await this.chatService.createChatGroup(groupName, userIds, groupParams);
       }
       return groupName;
     });
@@ -47,7 +55,7 @@ export class ChatGroupTestDataBuilder {
    */
   async getChatUserId(firstName: string, lastName: string): Promise<string> {
     return await test.step(`Getting chat user ID for ${firstName} ${lastName}`, async () => {
-      return this.apiClient.getUserManagementService().getChatUserId(firstName, lastName);
+      return this.userManagementService.getChatUserId(firstName, lastName);
     });
   }
 
