@@ -67,8 +67,10 @@ export const PAGE_ENDPOINTS = {
   CUSTOM_APP_TILES_PAGE: '/manage/custom-app-tiles',
 
   //analytics pages
-  ANALYTICS_PAGE: '/analytics-landing',
-  APP_ANALYTICS_PAGE: '/analytics',
+  ANALYTICS_LANDING_PAGE: '/analytics-landing',
+  APP_ANALYTICS_OVERVIEW_DASHBOARD: '/analytics',
   SOCIAL_CAMPAIGNS_PAGE: '/campaigns/latest',
   ADD_SOCIAL_CAMPAIGNS: '/campaigns/add',
+  SOCIAL_INTERACTION_PAGE: '/analytics/engagement',
+  APP_ADOPTION_DASHBOARD: '/analytics/adoption',
 };

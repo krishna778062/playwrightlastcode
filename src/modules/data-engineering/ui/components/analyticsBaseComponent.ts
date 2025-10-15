@@ -9,19 +9,17 @@ export class AnalyticsBaseComponent extends BaseComponent {
   readonly getNoDataMessage: (title: string) => Locator;
   readonly getTableData: (metricTitle: string) => Promise<Locator[]>;
 
-  constructor(page: Page) {
-    super(page);
+  constructor(page: Page, rootLocator?: Locator) {
+    super(page, rootLocator);
 
-    const frame = this.page.locator('[id="_thoughtspot-embed"]').contentFrame();
+    const thoughtSpotIframe = this.page.locator('[id="_thoughtspot-embed"]').contentFrame();
 
-    this.getAnswerTitle = (title: string) =>
-      this.page.locator('[id="_thoughtspot-embed"]').contentFrame().getByRole('heading', { name: title, exact: true });
+    this.getAnswerTitle = (title: string) => thoughtSpotIframe.getByRole('heading', { name: title, exact: true });
 
-    this.getAnswerSubTitle = (subTitle: string) =>
-      this.page.locator('[id="_thoughtspot-embed"]').contentFrame().getByRole('heading', { name: subTitle });
+    this.getAnswerSubTitle = (subTitle: string) => thoughtSpotIframe.getByRole('heading', { name: subTitle });
 
     this.getTableColumnHeaderText = async (metricTitle: string) => {
-      const heading = frame.getByRole('heading', { name: metricTitle });
+      const heading = thoughtSpotIframe.getByRole('heading', { name: metricTitle });
       return await heading
         .locator('xpath=ancestor::div[contains(@class,"module__verticalLayoutContainer")]/following-sibling::div')
         .locator('div[class*="module__colHeaderText"]')
@@ -29,22 +27,27 @@ export class AnalyticsBaseComponent extends BaseComponent {
     };
 
     this.getNoDataMessage = (title: string) =>
-      this.page
-        .locator('[id="_thoughtspot-embed"]')
-        .contentFrame()
+      thoughtSpotIframe
         .locator('xpath=//span[@role="heading" and @aria-label="' + title + '"]')
         .locator('xpath=ancestor::div[contains(@class,"module__verticalLayoutContainer")]')
         .locator('xpath=following-sibling::div')
         .locator('xpath=.//h6[text()="No data found for this query"]');
 
     this.getTableData = async (metricTitle: string) => {
-      const heading = frame.getByRole('heading', { name: metricTitle });
+      const heading = thoughtSpotIframe.getByRole('heading', { name: metricTitle });
       return await heading
         .locator('xpath=ancestor::div[contains(@class,"module__verticalLayoutContainer")]/following-sibling::div')
         .locator('xpath=.//div[@class="ag-center-cols-container"]')
         .locator('xpath=.//div[@aria-rowindex]')
         .all();
     };
+  }
+
+  async waitUntilMetricValueIsLoaded(metricTitle: string): Promise<void> {
+    await test.step(`Wait until ${metricTitle} metric value is loaded`, async () => {
+      const metricValue = this.getAnswerTitle(metricTitle);
+      await this.verifier.verifyTheElementIsVisible(metricValue, { timeout: 30_000 });
+    });
   }
 
   async verifyAnswerTitleIsVisible(title: string): Promise<void> {
