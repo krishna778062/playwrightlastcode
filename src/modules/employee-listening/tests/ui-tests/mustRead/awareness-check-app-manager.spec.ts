@@ -1,22 +1,22 @@
-import { TestPriority } from '@core/constants/testPriority';
-import { TestGroupType } from '@core/constants/testType';
-import { tagTest } from '@core/utils/testDecorator';
-
 import { AwarenessCheckComponent } from '../../../components/awarenessCheckComponent';
 import { MustReadComponent } from '../../../components/mustReadComponent';
 import { test } from '../../../fixtures/loginFixture';
 import { ContentPreviewPage } from '../../../pages/contentPreviewPage';
 import { EMPLOYEE_LISTENING_TEST_DATA } from '../../../test-data/awarenessCheck';
 
-test.describe('Must Read and Awareness Check Content Functionality', () => {
+import { TestPriority } from '@/src/core/constants/testPriority';
+import { TestGroupType } from '@/src/core/constants/testType';
+import { tagTest } from '@/src/core/utils/testDecorator';
+
+test.describe('must Read and Awareness Check Content Functionality', () => {
   let createdContentId: string;
   let createdSiteId: string;
   let contentTitle: string;
 
-  test.beforeEach('Create test content for Awareness Check testing', async ({ contentManagementHelper }) => {
+  test.beforeEach('Create test content for Awareness Check testing', async ({ appManagerApiFixture }) => {
     const siteId = process.env.SITE_ID || 'default-site-id';
 
-    const pageDetails = await contentManagementHelper.createPage({
+    const pageDetails = await appManagerApiFixture.contentManagementHelper.createPage({
       siteId,
       contentInfo: {
         contentType: 'page',
@@ -34,10 +34,10 @@ test.describe('Must Read and Awareness Check Content Functionality', () => {
     console.log(`Created test content: ${contentTitle} (ID: ${createdContentId})`);
   });
 
-  test.afterAll('Cleanup test content', async ({ contentManagementHelper }) => {
+  test.afterAll('Cleanup test content', async ({ appManagerApiFixture }) => {
     if (createdContentId && createdSiteId) {
       try {
-        await contentManagementHelper.deleteContent(createdSiteId, createdContentId);
+        await appManagerApiFixture.contentManagementHelper.deleteContent(createdSiteId, createdContentId);
         console.log(`Cleaned up test content: ${createdContentId}`);
       } catch (error) {
         console.warn(`Failed to cleanup content:`, error);
@@ -45,7 +45,7 @@ test.describe('Must Read and Awareness Check Content Functionality', () => {
     }
   });
   test(
-    'Verify admin can create awareness check with single question',
+    'verify admin can create awareness check with single question',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN'],
     },
@@ -61,8 +61,6 @@ test.describe('Must Read and Awareness Check Content Functionality', () => {
       await contentPreviewPage.verifyThePageIsLoaded();
 
       const mustReadComponent = new MustReadComponent(appManagersPage);
-
-      await mustReadComponent.closeSurveyPrompt();
 
       await mustReadComponent.contentThreeDotsMenu.click();
 
@@ -87,7 +85,7 @@ test.describe('Must Read and Awareness Check Content Functionality', () => {
   );
 
   test(
-    'Verify admin can create awareness check with multiple questions',
+    'verify admin can create awareness check with multiple questions',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN'],
     },
@@ -103,8 +101,6 @@ test.describe('Must Read and Awareness Check Content Functionality', () => {
       await contentPreviewPage.verifyThePageIsLoaded();
 
       const mustReadComponent = new MustReadComponent(appManagersPage);
-
-      await mustReadComponent.closeSurveyPrompt();
 
       await mustReadComponent.contentThreeDotsMenu.click();
 
@@ -129,7 +125,7 @@ test.describe('Must Read and Awareness Check Content Functionality', () => {
   );
 
   test(
-    'Verify admin can edit awareness check question',
+    'verify admin can edit awareness check question',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN'],
     },
@@ -145,8 +141,6 @@ test.describe('Must Read and Awareness Check Content Functionality', () => {
       await contentPreviewPage.verifyThePageIsLoaded();
 
       const mustReadComponent = new MustReadComponent(appManagersPage);
-
-      await mustReadComponent.closeSurveyPrompt();
 
       await mustReadComponent.contentThreeDotsMenu.click();
 
@@ -166,6 +160,8 @@ test.describe('Must Read and Awareness Check Content Functionality', () => {
         EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
       );
       console.log('✓ Admin configuration completed successfully');
+
+      await mustReadComponent.closeSurveyPrompt();
 
       await awarenessCheckComponent.clickOnAwarenessThreeDots();
 
@@ -184,7 +180,7 @@ test.describe('Must Read and Awareness Check Content Functionality', () => {
   );
 
   test(
-    'Verify admin can remove awareness check question',
+    'verify admin can remove awareness check question',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN'],
     },
@@ -200,8 +196,6 @@ test.describe('Must Read and Awareness Check Content Functionality', () => {
       await contentPreviewPage.verifyThePageIsLoaded();
 
       const mustReadComponent = new MustReadComponent(appManagersPage);
-
-      await mustReadComponent.closeSurveyPrompt();
 
       await mustReadComponent.contentThreeDotsMenu.click();
 
@@ -221,6 +215,8 @@ test.describe('Must Read and Awareness Check Content Functionality', () => {
         EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
       );
       console.log('✓ Admin configuration completed successfully');
+
+      await mustReadComponent.closeSurveyPrompt();
 
       await awarenessCheckComponent.clickOnAwarenessThreeDots();
 

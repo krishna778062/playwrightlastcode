@@ -3,16 +3,27 @@ import { Page } from '@playwright/test';
 import { AwarenessCheckComponent } from '../components/awarenessCheckComponent';
 import { MustReadComponent } from '../components/mustReadComponent';
 
-import { ContentPreviewPage as BaseContentPreviewPage } from '@/src/modules/content/pages/contentPreviewPage';
-
-export class ContentPreviewPage extends BaseContentPreviewPage {
+/**
+ * ContentPreviewPage for employee-listening module
+ * Provides functionality for awareness check and must-read content features
+ */
+export class ContentPreviewPage {
   readonly awarenessCheckComponent: AwarenessCheckComponent;
   readonly mustReadComponent: MustReadComponent;
 
-  constructor(page: Page, siteId?: string, contentId?: string, contentType?: string) {
-    super(page, siteId, contentId, contentType);
+  constructor(
+    readonly page: Page,
+    readonly siteId?: string,
+    readonly contentId?: string,
+    readonly contentType?: string
+  ) {
     this.awarenessCheckComponent = new AwarenessCheckComponent(page);
     this.mustReadComponent = new MustReadComponent(page);
+  }
+
+  async verifyThePageIsLoaded(): Promise<void> {
+    await this.page.waitForLoadState('domcontentloaded');
+    await this.mustReadComponent.closeSurveyPrompt();
   }
 
   /**

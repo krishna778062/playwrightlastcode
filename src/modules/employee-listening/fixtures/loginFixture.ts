@@ -1,12 +1,13 @@
-import { BrowserContext, Page, test as base } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page, test as base } from '@playwright/test';
 
-import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
-import { StandardUserApiClient } from '@core/api/clients/standardUserApiClient';
-import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
-import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
-import { getEnvConfig } from '@core/utils/getEnvConfig';
-
+import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
+import { AppsManagementService } from '@/src/core/api/services/AppsManagementService';
+import { LinkManagementService } from '@/src/core/api/services/LinkManagementService';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
+import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
+import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/contentManagementHelper';
 
 export type UserType = 'appManager' | 'standardUser';
 
@@ -24,75 +25,214 @@ export const users = {
   },
 };
 
-export const test = base.extend<
+// API-only fixture type for API helpers and services
+export interface EmployeeListeningApiFixture {
+  apiContext: APIRequestContext;
+  appManagementService: AppsManagementService;
+  linkManagementService: LinkManagementService;
+  contentManagementHelper: ContentManagementHelper;
+}
+
+// UI-only fixture type for browser and page components
+export interface EmployeeListeningUiFixture {
+  browserContext: BrowserContext;
+  page: Page;
+  homePage: NewHomePage;
+  navigationHelper: NavigationHelper;
+}
+
+// Combined user fixture type that extends both API and UI fixtures
+export interface EmployeeListeningUserFixture extends EmployeeListeningApiFixture, EmployeeListeningUiFixture {}
+
+// Helper function to create API-only fixtures using existing API contexts
+async function createEmployeeListeningApiFixture(apiContext: APIRequestContext): Promise<EmployeeListeningApiFixture> {
+  const appManagementService = new AppsManagementService(apiContext, getEnvConfig().apiBaseUrl);
+  const linkManagementService = new LinkManagementService(apiContext, getEnvConfig().apiBaseUrl);
+  const contentManagementHelper = new ContentManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
+
+  return {
+    apiContext,
+    appManagementService,
+    linkManagementService,
+    contentManagementHelper,
+  };
+}
+
+// Helper function to create UI-only fixtures
+async function createEmployeeListeningUiFixture(
+  browser: any,
+  _apiContext: APIRequestContext
+): Promise<EmployeeListeningUiFixture> {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  await LoginHelper.loginWithPassword(page, {
+    email: getEnvConfig().appManagerEmail,
+    password: getEnvConfig().appManagerPassword,
+  });
+
+  const homePage = new NewHomePage(page);
+  await homePage.verifyThePageIsLoaded();
+
+  const navigationHelper = new NavigationHelper(page);
+
+  return {
+    browserContext: context,
+    page,
+    homePage,
+    navigationHelper,
+  };
+}
+
+export const employeeListeningTestFixtures = base.extend<
   {
+    // API-only fixtures - fast, no browser overhead
+    appManagerApiFixture: EmployeeListeningApiFixture;
+    standardUserApiFixture: EmployeeListeningApiFixture;
+
+    // UI-only fixtures - browser and page components
+    appManagerUiFixture: EmployeeListeningUiFixture;
+    standardUserUiFixture: EmployeeListeningUiFixture;
+
+    // Combined user fixtures - complete entry points with all helpers and services
+    appManagerFixture: EmployeeListeningUserFixture;
+    standardUserFixture: EmployeeListeningUserFixture;
+
+    // Legacy compatibility aliases
     appManagerPage: Page;
     appManagersPage: Page; // Alias for compatibility
     appManagerContext: BrowserContext;
     standardUserPage: Page;
     standardUserContext: BrowserContext;
-    contentManagementHelper: ContentManagementHelper;
   },
   {
     // Worker-scoped fixtures
-    appManagerApiClient: AppManagerApiClient;
-    standardUserApiClient: StandardUserApiClient;
+    appManagerApiContext: APIRequestContext;
+    standardUserApiContext: APIRequestContext;
   }
 >({
-  // Worker-scoped API client - shared across all tests in worker
-  appManagerApiClient: [
-    async ({}, use, workerInfo) => {
-      console.log(`Setting up app manager API client for worker ${workerInfo.workerIndex}`);
-
-      const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-        type: 'credentials',
-        credentials: {
-          username: envConfig.appManagerEmail,
-          password: envConfig.appManagerPassword,
-        },
-        baseUrl: envConfig.apiBaseUrl,
+  // Worker-scoped API context - shared across all tests in worker
+  appManagerApiContext: [
+    async ({}, use) => {
+      const context = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
+        email: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
       });
-
-      await use(appManagerApiClient);
-
-      // Cleanup worker-scoped resources
-      console.log(`Cleaning up app manager API client for worker ${workerInfo.workerIndex}`);
-    },
-    { scope: 'worker' },
-  ],
-  standardUserApiClient: [
-    async ({}, use, workerInfo) => {
-      const standardUserApiClient = await ApiClientFactory.createClient(StandardUserApiClient, {
-        type: 'credentials',
-        credentials: {
-          username: envConfig.endUserEmail || '',
-          password: envConfig.endUserPassword || '',
-        },
-        baseUrl: envConfig.apiBaseUrl,
-      });
-
-      await use(standardUserApiClient);
-
-      console.log(`Cleaning up standard user API client for worker ${workerInfo.workerIndex}`);
-    },
-    { scope: 'worker' },
-  ],
-  appManagerContext: [
-    async ({ browser }, use) => {
-      const context = await browser.newContext();
       await use(context);
-      await context?.close();
+      await context.dispose();
+    },
+    { scope: 'worker' },
+  ],
+
+  standardUserApiContext: [
+    async ({}, use) => {
+      const context = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
+        email: getEnvConfig().endUserEmail || '',
+        password: getEnvConfig().endUserPassword || '',
+      });
+      await use(context);
+      await context.dispose();
+    },
+    { scope: 'worker' },
+  ],
+
+  // API-only fixtures - fast, no browser overhead, using worker-scoped contexts
+  appManagerApiFixture: [
+    async ({ appManagerApiContext }, use) => {
+      const fixture = await createEmployeeListeningApiFixture(appManagerApiContext);
+      await use(fixture);
+
+      // Cleanup helpers that have cleanup methods
+      try {
+        await fixture.contentManagementHelper.cleanup();
+      } catch (error) {
+        console.warn('App manager API fixture cleanup failed:', error);
+      }
     },
     { scope: 'test' },
   ],
+
+  standardUserApiFixture: [
+    async ({ standardUserApiContext }, use) => {
+      const fixture = await createEmployeeListeningApiFixture(standardUserApiContext);
+      await use(fixture);
+
+      // Cleanup helpers that have cleanup methods
+      try {
+        await fixture.contentManagementHelper.cleanup();
+      } catch (error) {
+        console.warn('Standard user API fixture cleanup failed:', error);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  // UI-only fixtures - browser and page components
+  appManagerUiFixture: [
+    async ({ browser, appManagerApiContext }, use) => {
+      const fixture = await createEmployeeListeningUiFixture(browser, appManagerApiContext);
+      await use(fixture);
+
+      await fixture.browserContext.close();
+    },
+    { scope: 'test' },
+  ],
+
+  standardUserUiFixture: [
+    async ({ browser, standardUserApiContext: _standardUserApiContext }, use) => {
+      const context = await browser.newContext();
+      const page = await context.newPage();
+
+      await LoginHelper.loginWithPassword(page, users.standardUser);
+
+      const homePage = new NewHomePage(page);
+      await homePage.verifyThePageIsLoaded();
+
+      const navigationHelper = new NavigationHelper(page);
+
+      const fixture: EmployeeListeningUiFixture = {
+        browserContext: context,
+        page,
+        homePage,
+        navigationHelper,
+      };
+
+      await use(fixture);
+      await context.close();
+    },
+    { scope: 'test' },
+  ],
+
+  // Combined user fixtures - complete entry points
+  appManagerFixture: [
+    async ({ appManagerUiFixture, appManagerApiFixture }, use) => {
+      await use({ ...appManagerUiFixture, ...appManagerApiFixture });
+    },
+    { scope: 'test' },
+  ],
+
+  standardUserFixture: [
+    async ({ standardUserUiFixture, standardUserApiFixture }, use) => {
+      await use({ ...standardUserUiFixture, ...standardUserApiFixture });
+    },
+    { scope: 'test' },
+  ],
+
+  // Legacy compatibility fixtures
+  appManagerContext: [
+    async ({ appManagerUiFixture }, use) => {
+      await use(appManagerUiFixture.browserContext);
+    },
+    { scope: 'test' },
+  ],
+
   appManagerPage: [
-    async ({ appManagerContext }, use) => {
-      const page = await appManagerContext.newPage();
-      const appManagerHomePage = await LoginHelper.loginWithPassword(page, users.appManager);
-      await use(appManagerHomePage.page);
+    async ({ appManagerUiFixture }, use) => {
+      await use(appManagerUiFixture.page);
     },
     { scope: 'test' },
   ],
+
   // Alias for compatibility with existing tests
   appManagersPage: [
     async ({ appManagerPage }, use) => {
@@ -100,28 +240,21 @@ export const test = base.extend<
     },
     { scope: 'test' },
   ],
+
   standardUserContext: [
-    async ({ browser }, use) => {
-      const context = await browser.newContext();
-      await use(context);
-      await context?.close();
+    async ({ standardUserUiFixture }, use) => {
+      await use(standardUserUiFixture.browserContext);
     },
     { scope: 'test' },
   ],
+
   standardUserPage: [
-    async ({ standardUserContext }, use) => {
-      const page = await standardUserContext.newPage();
-      const standardUserHomePage = await LoginHelper.loginWithPassword(page, users.standardUser);
-      await use(standardUserHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-  contentManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const contentManagementHelper = new ContentManagementHelper(appManagerApiClient);
-      await use(contentManagementHelper);
-      // Note: Cleanup is handled manually in test afterAll hooks
+    async ({ standardUserUiFixture }, use) => {
+      await use(standardUserUiFixture.page);
     },
     { scope: 'test' },
   ],
 });
+
+// Export alias for backward compatibility
+export const test = employeeListeningTestFixtures;
