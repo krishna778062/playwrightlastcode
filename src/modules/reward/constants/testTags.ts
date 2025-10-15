@@ -18,6 +18,7 @@ export enum REWARD_FEATURE_TAGS {
   REWARDS_GIFTING_OPTIONS = '@rewards-gifting-options',
   REWARDS_PEER_GIFTING = '@rewards-peer-gifting',
   REWARDS_NOTIFICATIONS = '@rewards-notifications',
+  REWARDS_ALLOWANCE = '@rewards-allowance',
 
   // Recognition Hub Related Tags
   CREATE_RECOGNITION_WITH_POINTS = '@create-recognition-with-points',

@@ -374,4 +374,451 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       }
     }
   );
+
+  test(
+    '[RC-3431] Validate peer gifting option enabling in the same month as disabled when rewards is live and changes to allowances',
+    {
+      tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_PEER_GIFTING, TestPriority.P0],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Validate peer gifting option enabling in the same month as disabled when rewards is live and changes to allowances',
+        zephyrTestId: 'RC-3431',
+        storyId: 'RC-3431',
+      });
+
+      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
+
+      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
+
+      await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
+        state: 'visible',
+        timeout: 20000,
+      });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
+        stepInfo: 'Clicking on peer gifting toggle switch',
+      });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
+        stepInfo: 'Clicking on save button',
+      });
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.peerGifting.disableDialog);
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.peerGifting.disableDialogTitle,
+        'Disable peer gifting'
+      );
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.peerGifting.disableDialogConfirmText,
+        'Are you sure you want to disable peer gifting?'
+      );
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.peerGifting.disableDialogDescriptionText,
+        'Users will lose their monthly allowances and will no longer be able to gift points via peer recognition.'
+      );
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(
+        manageRewardsPage.peerGifting.disableDialogCancelButton
+      );
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(
+        manageRewardsPage.peerGifting.disableDialogDisableButton
+      );
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.disableDialogDisableButton, {
+        stepInfo: 'Clicking on disable button in dialog',
+      });
+      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
+
+      await recognitionHub.visitRecognitionHub();
+      await recognitionHub.clickOnGiveRecognition();
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(giveRecognitionModal.giftingToggle);
+
+      const amountToBeSetForUserAllowance = 15;
+      await manageRewardsPage.rewardsAllowance.visitAllowancePage();
+      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo(
+        '/manage/recognition/rewards/peer-gifting/allowances'
+      );
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(
+        manageRewardsPage.rewardsAllowance.rewardsUserAllowance.userAllowanceIcon
+      );
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.rewardsAllowance.rewardsUserAllowance.userAllowanceHeading,
+        'Users allowance'
+      );
+      const userAllowanceDescription = 'Add a monthly allowance for all intranet users';
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.rewardsAllowance.rewardsUserAllowance.userAllowanceDescription,
+        userAllowanceDescription
+      );
+
+      if (
+        await manageRewardsPage.verifier.isTheElementVisible(
+          manageRewardsPage.rewardsAllowance.rewardsUserAllowance.removeUserAllowance
+        )
+      ) {
+        if (await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.removeUserAllowance.isEnabled()) {
+          await manageRewardsPage.rewardsAllowance.removeTheExistingAllowance('user');
+          await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
+          await manageRewardsPage.clickOnElement(
+            manageRewardsPage.rewardsAllowance.rewardsUserAllowance.addUserAllowance,
+            {
+              stepInfo: 'Clicking add user allowance button',
+            }
+          );
+        } else {
+          await manageRewardsPage.clickOnElement(
+            manageRewardsPage.rewardsAllowance.rewardsUserAllowance.editUserAllowance,
+            {
+              stepInfo: 'Clicking edit user allowance button',
+            }
+          );
+        }
+      } else {
+        await manageRewardsPage.clickOnElement(
+          manageRewardsPage.rewardsAllowance.rewardsUserAllowance.addUserAllowance,
+          {
+            stepInfo: 'Clicking add user allowance button',
+          }
+        );
+      }
+
+      await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.increaseTheAmountBy(amountToBeSetForUserAllowance);
+      const currentAmount =
+        await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.getTheCurrentAmountInInputBox();
+      expect(currentAmount).toBe(amountToBeSetForUserAllowance);
+
+      await manageRewardsPage.rewardsAllowance.saveAmount();
+      await manageRewardsPage.page.waitForTimeout(2000);
+      await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
+
+      await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
+        state: 'visible',
+        timeout: 20000,
+      });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
+        stepInfo: 'Clicking on peer gifting toggle switch',
+      });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
+        stepInfo: 'Clicking on save button',
+      });
+      await manageRewardsPage.peerGifting.selectThePeerGiftingEnableType('Immediately');
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.peerGifting.grantAllowanceBoxDescription.nth(0),
+        'Allowances have been edited since peer gifting was disabled.'
+      );
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.peerGifting.grantAllowanceBoxDescription.nth(1),
+        'Users will receive the remainder of their previous allowances for the current month. New allowances will be applied from next month.'
+      );
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.grantAllowancesConfirmButton, {
+        stepInfo: 'Clicking on grant allowances confirm button',
+      });
+      await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
+
+      await recognitionHub.visitRecognitionHub();
+      await recognitionHub.clickOnGiveRecognition();
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(giveRecognitionModal.giftingToggle);
+    }
+  );
+
+  test(
+    '[RC-3430] Validate peer gifting option enabling in the same month as disabled when rewards is live and changes to allowances',
+    {
+      tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_PEER_GIFTING, TestPriority.P0],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Validate peer gifting option enabling in the same month as disabled when rewards is live and changes to allowances',
+        zephyrTestId: 'RC-3430',
+        storyId: 'RC-3430',
+      });
+
+      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
+
+      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
+
+      await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
+        state: 'visible',
+        timeout: 20000,
+      });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
+        stepInfo: 'Clicking on peer gifting toggle switch',
+      });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
+        stepInfo: 'Clicking on save button',
+      });
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.peerGifting.disableDialog);
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.peerGifting.disableDialogTitle,
+        'Disable peer gifting'
+      );
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.peerGifting.disableDialogConfirmText,
+        'Are you sure you want to disable peer gifting?'
+      );
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.peerGifting.disableDialogDescriptionText,
+        'Users will lose their monthly allowances and will no longer be able to gift points via peer recognition.'
+      );
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(
+        manageRewardsPage.peerGifting.disableDialogCancelButton
+      );
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(
+        manageRewardsPage.peerGifting.disableDialogDisableButton
+      );
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.disableDialogDisableButton, {
+        stepInfo: 'Clicking on disable button in dialog',
+      });
+      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
+
+      await recognitionHub.visitRecognitionHub();
+      await recognitionHub.clickOnGiveRecognition();
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(giveRecognitionModal.giftingToggle);
+
+      const amountToBeSetForUserAllowance = 15;
+      await manageRewardsPage.rewardsAllowance.visitAllowancePage();
+      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo(
+        '/manage/recognition/rewards/peer-gifting/allowances'
+      );
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(
+        manageRewardsPage.rewardsAllowance.rewardsUserAllowance.userAllowanceIcon
+      );
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.rewardsAllowance.rewardsUserAllowance.userAllowanceHeading,
+        'Users allowance'
+      );
+      const userAllowanceDescription = 'Add a monthly allowance for all intranet users';
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.rewardsAllowance.rewardsUserAllowance.userAllowanceDescription,
+        userAllowanceDescription
+      );
+
+      if (
+        await manageRewardsPage.verifier.isTheElementVisible(
+          manageRewardsPage.rewardsAllowance.rewardsUserAllowance.removeUserAllowance
+        )
+      ) {
+        if (await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.removeUserAllowance.isEnabled()) {
+          await manageRewardsPage.rewardsAllowance.removeTheExistingAllowance('user');
+          await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
+          await manageRewardsPage.clickOnElement(
+            manageRewardsPage.rewardsAllowance.rewardsUserAllowance.addUserAllowance,
+            {
+              stepInfo: 'Clicking add user allowance button',
+            }
+          );
+        } else {
+          await manageRewardsPage.clickOnElement(
+            manageRewardsPage.rewardsAllowance.rewardsUserAllowance.editUserAllowance,
+            {
+              stepInfo: 'Clicking edit user allowance button',
+            }
+          );
+        }
+      } else {
+        await manageRewardsPage.clickOnElement(
+          manageRewardsPage.rewardsAllowance.rewardsUserAllowance.addUserAllowance,
+          {
+            stepInfo: 'Clicking add user allowance button',
+          }
+        );
+      }
+
+      await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.increaseTheAmountBy(amountToBeSetForUserAllowance);
+      const currentAmount =
+        await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.getTheCurrentAmountInInputBox();
+      expect(currentAmount).toBe(amountToBeSetForUserAllowance);
+
+      await manageRewardsPage.rewardsAllowance.saveAmount();
+      await manageRewardsPage.page.waitForTimeout(2000);
+      await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
+
+      await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
+        state: 'visible',
+        timeout: 20000,
+      });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
+        stepInfo: 'Clicking on peer gifting toggle switch',
+      });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
+        stepInfo: 'Clicking on save button',
+      });
+      await manageRewardsPage.peerGifting.selectThePeerGiftingEnableType('Immediately');
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.peerGifting.grantAllowanceBoxDescription.nth(0),
+        'Allowances have been edited since peer gifting was disabled.'
+      );
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.peerGifting.grantAllowanceBoxDescription.nth(1),
+        'Users will receive the remainder of their previous allowances for the current month. New allowances will be applied from next month.'
+      );
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.grantAllowancesConfirmButton, {
+        stepInfo: 'Clicking on grant allowances confirm button',
+      });
+      await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
+
+      await recognitionHub.visitRecognitionHub();
+      await recognitionHub.clickOnGiveRecognition();
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(giveRecognitionModal.giftingToggle);
+    }
+  );
+
+  test(
+    '[RC-3432] Validate peer gifting option enabling in the same month as disabled when rewards is live and changes to allowances',
+    {
+      tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_PEER_GIFTING, TestPriority.P0],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Validate peer gifting option enabling in the same month as disabled when rewards is live and changes to allowances',
+        zephyrTestId: 'RC-3432',
+        storyId: 'RC-3432',
+      });
+
+      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
+
+      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
+
+      await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
+        state: 'visible',
+        timeout: 20000,
+      });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
+        stepInfo: 'Clicking on peer gifting toggle switch',
+      });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
+        stepInfo: 'Clicking on save button',
+      });
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.peerGifting.disableDialog);
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.peerGifting.disableDialogTitle,
+        'Disable peer gifting'
+      );
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.peerGifting.disableDialogConfirmText,
+        'Are you sure you want to disable peer gifting?'
+      );
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.peerGifting.disableDialogDescriptionText,
+        'Users will lose their monthly allowances and will no longer be able to gift points via peer recognition.'
+      );
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(
+        manageRewardsPage.peerGifting.disableDialogCancelButton
+      );
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(
+        manageRewardsPage.peerGifting.disableDialogDisableButton
+      );
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.disableDialogDisableButton, {
+        stepInfo: 'Clicking on disable button in dialog',
+      });
+      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
+
+      await recognitionHub.visitRecognitionHub();
+      await recognitionHub.clickOnGiveRecognition();
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(giveRecognitionModal.giftingToggle);
+
+      const amountToBeSetForUserAllowance = 15;
+      await manageRewardsPage.rewardsAllowance.visitAllowancePage();
+      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo(
+        '/manage/recognition/rewards/peer-gifting/allowances'
+      );
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(
+        manageRewardsPage.rewardsAllowance.rewardsUserAllowance.userAllowanceIcon
+      );
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.rewardsAllowance.rewardsUserAllowance.userAllowanceHeading,
+        'Users allowance'
+      );
+      const userAllowanceDescription = 'Add a monthly allowance for all intranet users';
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.rewardsAllowance.rewardsUserAllowance.userAllowanceDescription,
+        userAllowanceDescription
+      );
+
+      if (
+        await manageRewardsPage.verifier.isTheElementVisible(
+          manageRewardsPage.rewardsAllowance.rewardsUserAllowance.removeUserAllowance
+        )
+      ) {
+        if (await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.removeUserAllowance.isEnabled()) {
+          await manageRewardsPage.rewardsAllowance.removeTheExistingAllowance('user');
+          await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
+          await manageRewardsPage.clickOnElement(
+            manageRewardsPage.rewardsAllowance.rewardsUserAllowance.addUserAllowance,
+            {
+              stepInfo: 'Clicking add user allowance button',
+            }
+          );
+        } else {
+          await manageRewardsPage.clickOnElement(
+            manageRewardsPage.rewardsAllowance.rewardsUserAllowance.editUserAllowance,
+            {
+              stepInfo: 'Clicking edit user allowance button',
+            }
+          );
+        }
+      } else {
+        await manageRewardsPage.clickOnElement(
+          manageRewardsPage.rewardsAllowance.rewardsUserAllowance.addUserAllowance,
+          {
+            stepInfo: 'Clicking add user allowance button',
+          }
+        );
+      }
+
+      await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.increaseTheAmountBy(amountToBeSetForUserAllowance);
+      const currentAmount =
+        await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.getTheCurrentAmountInInputBox();
+      expect(currentAmount).toBe(amountToBeSetForUserAllowance);
+
+      await manageRewardsPage.rewardsAllowance.saveAmount();
+      await manageRewardsPage.page.waitForTimeout(2000);
+      await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
+
+      await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
+        state: 'visible',
+        timeout: 20000,
+      });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
+        stepInfo: 'Clicking on peer gifting toggle switch',
+      });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
+        stepInfo: 'Clicking on save button',
+      });
+      await manageRewardsPage.peerGifting.selectThePeerGiftingEnableType('Immediately');
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.peerGifting.grantAllowanceBoxDescription.nth(0),
+        'Allowances have been edited since peer gifting was disabled.'
+      );
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.peerGifting.grantAllowanceBoxDescription.nth(1),
+        'Users will receive the remainder of their previous allowances for the current month. New allowances will be applied from next month.'
+      );
+      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.grantAllowancesConfirmButton, {
+        stepInfo: 'Clicking on grant allowances confirm button',
+      });
+      await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
+
+      await recognitionHub.visitRecognitionHub();
+      await recognitionHub.clickOnGiveRecognition();
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(giveRecognitionModal.giftingToggle);
+    }
+  );
 });

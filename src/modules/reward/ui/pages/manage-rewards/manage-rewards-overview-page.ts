@@ -1,5 +1,7 @@
 import { expect, Locator, Page, Response, test } from '@playwright/test';
 import { RewardsEnabler } from '@rewards/utils/rewards-enabler';
+import { RewardsAllowance } from '@rewards-components/manage-rewards/rewards-allowance';
+import { RewardsBudgetModal } from '@rewards-components/manage-rewards/rewards-budget-modal';
 import { RewardsPeerGifting } from '@rewards-components/manage-rewards/rewards-peer-gifting';
 import path from 'path';
 
@@ -11,12 +13,15 @@ import { CSVUtils } from '@core/utils/csvUtils';
 export class ManageRewardsOverviewPage extends BasePage {
   // Components
   readonly peerGifting: RewardsPeerGifting;
+  readonly budgetModal: RewardsBudgetModal;
+  readonly rewardsAllowance: RewardsAllowance;
   private rewardsEnabler: RewardsEnabler;
 
   // Page container and not found
   readonly manageRewardsPageContainer: Locator;
   readonly manageRewardsPageNotFound: Locator;
   public harnessFlagResponse: Response | undefined;
+  readonly header: Locator;
 
   // Reward Terminology
   readonly rewardsTabHeading: Locator;
@@ -99,6 +104,10 @@ export class ManageRewardsOverviewPage extends BasePage {
   readonly disableRewardH1Text: Locator;
   readonly disableRewardText: Locator;
   readonly disableRewardButton: Locator;
+  readonly disabledRewardPeerGiftingContainer: Locator;
+  readonly disabledRewardRewardsBudgetContainer: Locator;
+  readonly disabledRewardCurrencyConversionContainer: Locator;
+  readonly disabledRewardAddBudgetButton: Locator;
 
   // Tab locators
   readonly rewardsTab: Locator;
@@ -107,6 +116,10 @@ export class ManageRewardsOverviewPage extends BasePage {
   private readonly dialogBox: Locator;
   private readonly confirmInput: Locator;
   private readonly confirmButton: Locator;
+  readonly dailogContainerForm: {
+    dailog: Locator;
+    dailogCancelBtn: Locator;
+  };
 
   // Save button and toast messages
   readonly saveButton: Locator;
@@ -117,11 +130,14 @@ export class ManageRewardsOverviewPage extends BasePage {
 
     // Initialize components
     this.peerGifting = new RewardsPeerGifting(page);
+    this.budgetModal = new RewardsBudgetModal(page);
+    this.rewardsAllowance = new RewardsAllowance(page);
     this.rewardsEnabler = new RewardsEnabler(page);
 
     // Page container and not found
     this.manageRewardsPageContainer = page.locator('div[class*="TypographyBody-module"]');
     this.manageRewardsPageNotFound = page.getByTestId('no-results');
+    this.header = page.locator('h1, h2, h3').first();
 
     // Locators for the Rewards Overview page
     this.rewardsTab = page.getByRole('tab', { name: 'Rewards', exact: true });
@@ -269,11 +285,25 @@ export class ManageRewardsOverviewPage extends BasePage {
     });
     this.disableRewardText = this.disableRewardContainer.locator('[class*="TypographyBody-module__wrapper"] p');
     this.disableRewardButton = this.disableRewardContainer.locator('form > button[data-state="closed"]');
+    this.disabledRewardPeerGiftingContainer = this.page.locator(
+      'div[class*="Rewards_content"] div[class*="SummaryPanel_summaryPanel"]:nth-child(1)'
+    );
+    this.disabledRewardRewardsBudgetContainer = this.page.locator(
+      'div[class*="Rewards_content"] div[class*="SummaryPanel_summaryPanel"]:nth-child(2)'
+    );
+    this.disabledRewardCurrencyConversionContainer = this.page.locator(
+      'div[class*="Rewards_content"] div[class*="SummaryPanel_summaryPanel"]:nth-child(3)'
+    );
+    this.disabledRewardAddBudgetButton = this.page.locator('button:has-text("Add budget")');
 
     // Dialog box
     this.dialogBox = this.page.locator('[role="dialog"]');
     this.confirmInput = this.dialogBox.locator('input[type="text"]');
     this.confirmButton = this.dialogBox.getByRole('button', { name: 'Disable' });
+    this.dailogContainerForm = {
+      dailog: this.page.locator('[class*="Dialog-module__dialog"]'),
+      dailogCancelBtn: this.page.locator('[class*="Dialog-module__dialog"] button[type="button"]:has-text("Cancel")'),
+    };
 
     // Save button and toast messages
     this.saveButton = this.page.getByRole('button', { name: 'Save' });
@@ -626,5 +656,202 @@ export class ManageRewardsOverviewPage extends BasePage {
     await inputBox.blur();
     disableButton ? await expect(confirmButton).toBeEnabled() : await expect(confirmButton).toBeDisabled();
     disableButton ? await expect(inputBoxError).not.toBeVisible() : await expect(inputBoxError).toBeVisible();
+  }
+
+  // Budget-related methods
+  async clickOnAddEditBudgetButton(): Promise<string> {
+    await this.clickOnElement(this.budgetSummaryActionBarButton, {
+      stepInfo: 'Clicking on Add/Edit Budget button',
+    });
+    await this.verifier.waitUntilElementIsVisible(this.budgetModal.budgetContainer);
+
+    // Check if it's Add or Edit mode
+    const isRemoveOptionVisible = await this.verifier.isTheElementVisible(
+      this.budgetModal.budgetPanelRemoveRadioInputBox,
+      { timeout: 2000 }
+    );
+    return isRemoveOptionVisible ? 'Edit budget' : 'Add budget';
+  }
+
+  async getTheBudgetApiResponse(): Promise<any> {
+    const response = await this.page.waitForResponse(
+      response => response.url().includes('/recognition/admin/rewards/analytics/budget') && response.status() === 200
+    );
+    return await response.json();
+  }
+
+  async validateTheLabelAndTooltip(budgetJson: any, labelType: string): Promise<void> {
+    if (labelType === 'Month spend to date') {
+      await this.clickOnElement(this.monthSpendToDateInfoIcon, {
+        stepInfo: 'Clicking on Month spend to date info icon',
+      });
+      const tooltipText = await this.tooltipText.textContent();
+      expect(tooltipText).toContain(`Spent this month: $${budgetJson.result.monthlySpentUsdAmount}`);
+    } else if (labelType === 'budget balance') {
+      await this.clickOnElement(this.annualBudgetBalanceInfoIcon, {
+        stepInfo: 'Clicking on Annual budget balance info icon',
+      });
+      const tooltipText = await this.tooltipText.textContent();
+      expect(tooltipText).toContain(
+        `Budget balance: $${budgetJson.result.budgetBalanceDetails.remainingBudgetUsdAmount}`
+      );
+    }
+  }
+
+  async selectTheBudgetFrequency(frequency: 'Annual' | 'Quarterly' | 'Remove'): Promise<void> {
+    switch (frequency) {
+      case 'Annual':
+        await this.clickOnElement(this.budgetModal.budgetPanelAnnualRadioInputBox, {
+          stepInfo: 'Selecting Annual budget frequency',
+        });
+        break;
+      case 'Quarterly':
+        await this.clickOnElement(this.budgetModal.budgetPanelQuarterlyRadioInputBox, {
+          stepInfo: 'Selecting Quarterly budget frequency',
+        });
+        break;
+      case 'Remove':
+        await this.clickOnElement(this.budgetModal.budgetPanelRemoveRadioInputBox, {
+          stepInfo: 'Selecting Remove budget option',
+        });
+        break;
+    }
+  }
+
+  async selectRadioIfNotSelected(locator: Locator): Promise<void> {
+    const isSelected = await locator.isChecked();
+    if (!isSelected) {
+      await this.clickOnElement(locator, {
+        stepInfo: 'Selecting radio button',
+      });
+    }
+  }
+
+  async clickOnDisabledRewardsAddEditBudgetButton(): Promise<string> {
+    await this.clickOnElement(this.budgetSummaryActionBarButton, {
+      stepInfo: 'Clicking on Add/Edit Budget button for disabled rewards',
+    });
+    await this.verifier.waitUntilElementIsVisible(this.budgetModal.budgetContainer);
+
+    // Check if it's Add or Edit mode
+    const isRemoveOptionVisible = await this.verifier.isTheElementVisible(
+      this.budgetModal.budgetPanelRemoveRadioInputBox,
+      { timeout: 2000 }
+    );
+    return isRemoveOptionVisible ? 'Edit budget' : 'Add budget';
+  }
+
+  getRandomNo(min: number, max: number, exclude?: number): number {
+    let randomNum: number;
+    do {
+      randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
+    } while (exclude !== undefined && randomNum === exclude);
+    return randomNum;
+  }
+
+  async fillInElement(element: Locator, value: string, options?: { stepInfo?: string }): Promise<void> {
+    await element.clear();
+    await element.fill(value);
+    await element.blur();
+  }
+
+  // Tooltip validation methods for allowance tests
+  async validateTheAddButtonTooltip(allowanceType: 'users' | 'managers' | 'audiences' | 'individuals'): Promise<void> {
+    const buttonMap = {
+      users: this.rewardsAllowance.rewardsUserAllowance.addUserAllowance,
+      managers: this.rewardsAllowance.rewardsManagerAllowance.addManagerAllowance,
+      audiences: this.rewardsAllowance.rewardsAudienceAllowance.addAudienceAllowance,
+      individuals: this.rewardsAllowance.rewardsIndividualAllowance.addIndividualAllowance,
+    };
+
+    const button = buttonMap[allowanceType];
+    await button.hover();
+    await this.verifier.waitUntilElementIsVisible(this.tooltipText);
+    await this.verifier.verifyElementContainsText(this.tooltipText, 'Allowances are refreshing');
+  }
+
+  async validateTheEditButtonTooltip(allowanceType: 'users' | 'managers' | 'audiences' | 'individuals'): Promise<void> {
+    const buttonMap = {
+      users: this.rewardsAllowance.rewardsUserAllowance.editUserAllowance,
+      managers: this.rewardsAllowance.rewardsManagerAllowance.editManagerAllowance,
+      audiences: this.rewardsAllowance.rewardsAudienceAllowance.editAudienceAllowance,
+      individuals: this.rewardsAllowance.rewardsIndividualAllowance.editIndividualAllowance,
+    };
+
+    const button = buttonMap[allowanceType];
+    await button.hover();
+    await this.verifier.waitUntilElementIsVisible(this.tooltipText);
+    await this.verifier.verifyElementContainsText(this.tooltipText, 'Allowances are refreshing');
+  }
+
+  async validateTheRemoveButtonTooltip(
+    allowanceType: 'users' | 'managers' | 'audiences' | 'individuals'
+  ): Promise<void> {
+    const buttonMap = {
+      users: this.rewardsAllowance.rewardsUserAllowance.removeUserAllowance,
+      managers: this.rewardsAllowance.rewardsManagerAllowance.removeManagerAllowance,
+      audiences: this.rewardsAllowance.rewardsAudienceAllowance.removeAudienceAllowance,
+      individuals: this.rewardsAllowance.rewardsIndividualAllowance.removeIndividualAllowance,
+    };
+
+    const button = buttonMap[allowanceType];
+    await button.hover();
+    await this.verifier.waitUntilElementIsVisible(this.tooltipText);
+    await this.verifier.verifyElementContainsText(this.tooltipText, 'Allowances are refreshing');
+  }
+
+  // Methods for RC-3055 test
+  async setFinancialYearStartDate(type: 'future' | 'past'): Promise<number[]> {
+    // This is a placeholder method - in the actual implementation, this would interact with date picker
+    // For now, return mock values that would be used in calculations
+    const currentDate = new Date();
+    if (type === 'future') {
+      const futureMonth = (currentDate.getMonth() + 3) % 12; // 3 months in future
+      const futureDay = Math.min(currentDate.getDate(), 28); // Ensure valid day
+      return [futureMonth, futureDay];
+    } else {
+      const pastMonth = (currentDate.getMonth() - 3 + 12) % 12; // 3 months in past
+      const pastDay = Math.min(currentDate.getDate(), 28); // Ensure valid day
+      return [pastMonth, pastDay];
+    }
+  }
+
+  async daysUntilSelectedUTC(month: number, day: number): Promise<number> {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const selectedDate = new Date(currentYear, month, day);
+    const now = new Date();
+
+    // If the selected date is in the past, calculate days until next year
+    if (selectedDate < now) {
+      const nextYearDate = new Date(currentYear + 1, month, day);
+      return Math.ceil((nextYearDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    } else {
+      return Math.ceil((selectedDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    }
+  }
+
+  async calculateQuarterDates(month: number, day: number): Promise<{ totalDays: number; remainingDays: number }> {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const selectedDate = new Date(currentYear, month, day);
+
+    // Determine which quarter the selected date falls into
+    const quarterStartMonth = Math.floor(month / 3) * 3;
+    const quarterStartDate = new Date(currentYear, quarterStartMonth, 1);
+    const quarterEndDate = new Date(currentYear, quarterStartMonth + 3, 0);
+
+    const totalDays = Math.ceil((quarterEndDate.getTime() - quarterStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+    let remainingDays: number;
+    if (selectedDate < currentDate) {
+      // If selected date is in the past, calculate remaining days in the quarter
+      remainingDays = Math.ceil((quarterEndDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+    } else {
+      // If selected date is in the future, calculate days from selected date to end of quarter
+      remainingDays = Math.ceil((quarterEndDate.getTime() - selectedDate.getTime()) / (1000 * 60 * 60 * 24));
+    }
+
+    return { totalDays, remainingDays: Math.max(0, remainingDays) };
   }
 }

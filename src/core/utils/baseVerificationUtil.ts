@@ -510,4 +510,52 @@ export class BaseVerificationUtil {
       );
     }
   }
+
+  async verifyElementHasClass(
+    locator: Locator,
+    className: string | RegExp,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to have class ${className}`).toHaveClass(
+        className,
+        {
+          timeout: options?.timeout || 8_000,
+        }
+      );
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element does not have expected class.\n${error}`
+      );
+    }
+  }
+
+  async verifyElementDoesNotHaveClass(
+    locator: Locator,
+    className: string | RegExp,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(
+        locator,
+        options?.assertionMessage ?? `expecting ${locator} to not have class ${className}`
+      ).not.toHaveClass(className, {
+        timeout: options?.timeout || 8_000,
+      });
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element has unexpected class.\n${error}`
+      );
+    }
+  }
 }
