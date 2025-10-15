@@ -28,9 +28,6 @@ test.describe(
     let tileId: string;
 
     test.beforeEach(async ({ socialCampaignManagerFixture }) => {
-      // Reset cleanup flag for each test
-      //clean up all the campaigns
-      await socialCampaignManagerFixture.socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
       manualCleanupNeeded = false;
     });
 
@@ -57,6 +54,9 @@ test.describe(
           zephyrTestId: 'CONT-33728',
           storyId: 'CONT-33728',
         });
+        // Reset cleanup flag for each test
+        //clean up all the campaigns
+        await socialCampaignManagerFixture.socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
 
         await socialCampaignManagerFixture.navigationHelper.clickOnSocialCampaigns();
         await socialCampaignPage.actions.clickAddCampaignButton();
@@ -952,6 +952,7 @@ test.describe(
         tileId = await applicationManagerHomePage.actions.clickAddToHomeButton();
         await applicationManagerHomePage.assertions.verifyTileIsDisplayed(tileTitle);
         await applicationManagerHomePage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await socialCampaignManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
         await applicationManagerHomePage.loadPage();
         await applicationManagerHomePage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
       }
@@ -1047,8 +1048,103 @@ test.describe(
         tileId = await applicationManagerHomePage.actions.clickAddToHomeButton();
         await applicationManagerHomePage.assertions.verifyTileIsDisplayed(tileTitle);
         await applicationManagerHomePage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await appManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
         await applicationManagerHomePage.loadPage();
         await applicationManagerHomePage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
+      }
+    );
+
+    test(
+      'in Zeus Verify App Manager able to create Custom SC Tile on Site Dashboard and SC removed from tile when it is expired',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-40721'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify App Manager able to create Custom SC Tile on Site Dashboard and SC removed from tile when it is expired',
+          zephyrTestId: 'CONT-40721',
+          storyId: 'CONT-40721',
+        });
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+          shouldWaitForSearchIndex: true,
+        });
+        const siteName = 'All Employees';
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+        const tileTitle = TestDataGenerator.generateRandomString();
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.actions.clickOnEditDashboard();
+        await siteDashboardPage.actions.clickOnAddTile();
+        await siteDashboardPage.actions.clickOnSocialCampaignTile();
+        await siteDashboardPage.actions.clickOnCustomSCTile();
+        await siteDashboardPage.actions.enterTileTitle(tileTitle);
+        await siteDashboardPage.actions.setCustomSCTitle(campaignOptions.linkText);
+        tileId = await siteDashboardPage.actions.clickAddToHomeButton();
+        await siteDashboardPage.assertions.verifyTileIsDisplayed(tileTitle);
+        await siteDashboardPage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
+      }
+    );
+
+    test(
+      'in Zeus Verify App Manager able to create latest and popular Tile on Site Dashboard and SC removed from tile when it is expired',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14900'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify App Manager able to create latest and popular Tile on Site Dashboard and SC removed from tile when it is expired',
+          zephyrTestId: 'CONT-14901',
+          storyId: 'CONT-14901',
+        });
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+        });
+
+        const siteName = 'All Employees';
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+        const tileTitle = TestDataGenerator.generateRandomString();
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.actions.clickOnEditDashboard();
+        await siteDashboardPage.actions.clickOnAddTile();
+        await siteDashboardPage.actions.clickOnSocialCampaignTile();
+        await siteDashboardPage.actions.enterTileTitle(tileTitle);
+        tileId = await siteDashboardPage.actions.clickAddToHomeButton();
+        await siteDashboardPage.assertions.verifyTileIsDisplayed(tileTitle);
+        await siteDashboardPage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
       }
     );
   }

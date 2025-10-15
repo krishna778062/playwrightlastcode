@@ -258,6 +258,7 @@ export class SiteManagementService implements ISiteManagementOperations {
         size: options.size || 1000,
         canManage: options.canManage !== undefined ? options.canManage : true,
         filter: options.filter || 'active',
+        includeDeactivated: false,
       };
 
       const response = await this.httpClient.post(API_ENDPOINTS.site.listOfSites, {
