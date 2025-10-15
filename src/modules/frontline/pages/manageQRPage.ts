@@ -263,6 +263,9 @@ export class ManageQRPage extends BasePage {
     await this.clickOnElement(this.saveAndVisitDashboardBtn, {
       stepInfo: 'Click on Save and visit dashboard button',
     });
+
+    // Wait for the QR list to load after navigation
+    await this.qrListRows.first().waitFor({ state: 'visible', timeout: 10000 });
   }
 
   async verifyManagePage() {
@@ -1165,16 +1168,13 @@ export class ManageQRPage extends BasePage {
       stepInfo: `Wait for download icon to be visible for QR: ${qrName}`,
     });
 
-    const result = await this.downloadFileWithCleanup(() => downloadIcon.click(), {
+    const result = await this.downloadFileWithCleanup(() => this.clickByInjectingJavaScript(downloadIcon), {
       stepInfo: `Download QR from table for "${qrName}"`,
       cleanup: false,
     });
 
-    // Process the downloaded file (handle PDF extraction if needed)
     return await QRCodeUtil.processDownloadedFile(result.downloadPath, qrName);
   }
-
-  // These methods are now handled by QRCodeUtil utility class
 
   async verifyQRCodeExpiredMessage(page: Page, expectedMessage: string): Promise<void> {
     await test.step(`Verify QR code expired message: "${expectedMessage}"`, async () => {
