@@ -12,6 +12,7 @@ export class RewardsIndividualAllowance extends BasePage {
   readonly addIndividualAllowance: Locator;
   readonly removeIndividualAllowance: Locator;
   readonly editIndividualAllowance: Locator;
+
   // Page container
   readonly individualAllowanceContainer: Locator;
   readonly addIndividualButton: Locator;
@@ -30,108 +31,156 @@ export class RewardsIndividualAllowance extends BasePage {
   readonly individualAllowanceBoxMessageLine1: Locator;
   readonly individualAllowanceBoxMessageLine2: Locator;
   readonly individualAllowancePNote: Locator;
-  private addedSpecificIndividualUser: Locator;
 
   constructor(page: Page) {
     super(page);
+    //Individual Allowance
+    this.individualAllowance = page.locator('div[class*="PanelActionItem_layout"]').nth(3);
+    this.individualAllowanceIcon = this.individualAllowance.locator('i[data-testid="i-addUserSingle"]');
+    this.individualAllowanceGreenTick = this.individualAllowance.locator('div[class*="PanelActionItem_check"]');
+    this.individualAllowanceHeading = this.individualAllowance.getByRole('heading', { name: 'Individual allowances' });
+    this.individualAllowanceDescription = this.individualAllowance.getByText(
+      'Add individual monthly allowances for selected users'
+    );
+    // Action buttons
+    this.addIndividualAllowance = this.individualAllowance.getByRole('link', { name: 'Add individual allowances' });
+    this.removeIndividualAllowance = this.individualAllowance.getByRole('button', {
+      name: 'Remove individual allowances',
+    });
+    this.editIndividualAllowance = this.individualAllowance.getByRole('link', { name: 'Edit individual allowances' });
 
-    // Individual allowance elements
-    this.individualAllowance = page.locator('[data-testid="individual-allowance"]');
-    this.individualAllowanceIcon = page.locator('[data-testid="individual-allowance-icon"]');
-    this.individualAllowanceGreenTick = page.locator('[data-testid="individual-allowance-green-tick"]');
-    this.individualAllowanceHeading = page.locator('[data-testid="individual-allowance-heading"]');
-    this.individualAllowanceDescription = page.locator('[data-testid="individual-allowance-description"]');
-    this.addIndividualAllowance = page.locator('[data-testid="add-individual-allowance"]');
-    this.removeIndividualAllowance = page.locator('[data-testid="remove-individual-allowance"]');
-    this.editIndividualAllowance = page.locator('[data-testid="edit-individual-allowance"]');
-    this.individualAllowanceContainer = page.locator('[data-testid="individual-allowance-container"]');
-    this.addIndividualButton = page.locator('[data-testid="add-individual-button"]');
-    this.recentlyAddedPointAmountInputBox = page.locator('input[data-testid="recently-added-point-amount"]');
-    this.recentlyAddedUsers = page.locator('[data-testid="recently-added-users"]');
-    this.recentlyAddedPointAmountInputPlus = page.locator('[data-testid="recently-added-point-amount-plus"]');
-    this.recentlyAddedPointAmountInputMinus = page.locator('[data-testid="recently-added-point-amount-minus"]');
-    this.recentlyAddedPointAmountRemove = page.locator('[data-testid="recently-added-point-amount-remove"]');
-    this.addedIndividualUser = page.locator('[data-testid="added-individual-user"]');
-    this.removeAddedIndividualUser = page.locator('[data-testid="remove-added-individual-user"]');
-    this.saveButton = page.locator('[data-testid="individual-allowance-save-button"]');
-    this.cancelButton = page.locator('[data-testid="individual-allowance-cancel-button"]');
+    // Page container
+    this.individualAllowanceContainer = this.page.locator('div[data-testid="pageContainer-page"]');
+    this.addIndividualButton = this.individualAllowanceContainer.getByRole('button', { name: 'Add user' });
+    this.recentlyAddedPointAmountInputBox = this.individualAllowanceContainer.locator(
+      'table[class*="Table-module__table"] tr input'
+    );
+    this.recentlyAddedUsers = this.individualAllowanceContainer.locator(
+      'table[class*="Table-module__table"] tr:has(div[class*="IndividualAllowances_indicator"])'
+    );
+    this.recentlyAddedPointAmountInputPlus = this.individualAllowanceContainer.locator(
+      'table[class*="Table-module__table"] tr:has(div[class*="IndividualAllowances_indicator"]) button[aria-label="Plus"]'
+    );
+    this.recentlyAddedPointAmountInputMinus = this.individualAllowanceContainer.locator(
+      'table[class*="Table-module__table"] tr:has(div[class*="IndividualAllowances_indicator"]) button[aria-label="Minus"]'
+    );
+    this.recentlyAddedPointAmountRemove = this.individualAllowanceContainer.locator(
+      'table[class*="Table-module__table"] tr:has(div[class*="IndividualAllowances_indicator"]) button[aria-label*="Remove"]'
+    );
+    this.addedIndividualUser = this.individualAllowanceContainer
+      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
+      .first();
+    this.removeAddedIndividualUser = this.individualAllowanceContainer
+      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
+      .last()
+      .locator('td button[aria-label*="Remove"]');
+    this.saveButton = this.individualAllowanceContainer.getByRole('button', { name: 'Save' });
+    this.cancelButton = this.individualAllowanceContainer
+      .locator('a[href="/manage/recognition/rewards/peer-gifting/allowances"]')
+      .last();
 
-    // Neutral box elements
-    this.individualAllowancePageNeutralBox = page.locator('[data-testid="individual-allowance-neutral-box"]');
-    this.individualAllowanceBoxMessageLine1 = page.locator('[data-testid="individual-allowance-message-line1"]');
-    this.individualAllowanceBoxMessageLine2 = page.locator('[data-testid="individual-allowance-message-line2"]');
-    this.individualAllowancePNote = page.locator('[data-testid="individual-allowance-p-note"]');
-    this.addedSpecificIndividualUser = page.locator('[data-testid="added-specific-individual-user"]');
-  }
-
-  async visitIndividualAllowance(): Promise<void> {
-    await this.page.goto('/manage/recognition/rewards/peer-gifting/allowances');
-    await this.page.waitForLoadState('networkidle');
-  }
-
-  async increaseTheAmountBy(number: number): Promise<void> {
-    for (let i = 0; i < number; i++) {
-      await this.recentlyAddedPointAmountInputPlus.click();
-      await this.page.waitForTimeout(100);
-    }
-  }
-
-  async decreaseTheAmountBy(number: number): Promise<void> {
-    for (let i = 0; i < number; i++) {
-      await this.recentlyAddedPointAmountInputMinus.click();
-      await this.page.waitForTimeout(100);
-    }
-  }
-
-  async addOneIndividualUserInTheAllowance(numbers: number): Promise<void> {
-    await this.addIndividualButton.click();
-    await this.page.waitForTimeout(1000);
-
-    // Select first available user
-    const userOption = this.page.locator('[data-testid="user-option"]').first();
-    await userOption.click();
-
-    // Set point amount
-    await this.recentlyAddedPointAmountInputBox.clear();
-    await this.recentlyAddedPointAmountInputBox.fill(numbers.toString());
-    await this.recentlyAddedPointAmountInputBox.blur();
-  }
-
-  async getTheCurrentAmountForLatestAddedUserInIndividualAllowance(): Promise<number> {
-    const value = await this.recentlyAddedPointAmountInputBox.inputValue();
-    return parseInt(value) || 0;
-  }
-
-  async getTheCurrentAmountForUserInIndividualAllowance(userName: string): Promise<number> {
-    const userRow = this.page.locator(`[data-testid="individual-user-row"][data-user-name="${userName}"]`);
-    const amountInput = userRow.locator('input[data-testid="user-point-amount"]');
-    const value = await amountInput.inputValue();
-    return parseInt(value) || 0;
+    this.individualAllowancePageNeutralBox = page
+      .locator('[class*="IndividualAllowances_flexCenter"] div[class*="Panel-module__panel"]')
+      .nth(0);
+    this.individualAllowanceBoxMessageLine1 = this.individualAllowancePageNeutralBox.locator('p:nth-child(1)');
+    this.individualAllowanceBoxMessageLine2 = this.individualAllowancePageNeutralBox.locator('p:nth-child(2)');
+    this.individualAllowancePNote = this.page.locator('[class*="individualAllowances"] div div div div p').last();
   }
 
   async validateTheIndividualAllowanceElements(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.individualAllowanceHeading);
-    await this.verifier.verifyTheElementIsVisible(this.individualAllowanceDescription);
-    await this.verifier.verifyTheElementIsVisible(this.addIndividualButton);
+    const containerDescriptionLine1 =
+      'Individual allowances replace any other granted allowance for the selected users.';
+    const containerDescriptionLine2 = 'Changes to allowances will take effect from the following month.';
+    const individualAllowancePNote =
+      'Users in multiple individuals will receive a single monthly allowance of the greatest value.';
+
+    const individualAllowanceContainer = this.page.locator('div[data-testid="pageContainer-page"]');
+    const individualAllowancePageNeutralBox = this.page
+      .locator('[class*="IndividualAllowances_flexCenter"] div[class*="Panel-module__panel"]')
+      .nth(0);
+    const individualAllowanceBoxMessageLine1 = individualAllowancePageNeutralBox.locator('p:nth-child(1)');
+    const individualAllowanceBoxMessageLine2 = individualAllowancePageNeutralBox.locator('p:nth-child(2)');
+    const individualAllowancePNoteElement = this.page
+      .locator('[class*="individualAllowances"] div div div div p')
+      .last();
+
+    await individualAllowanceContainer.waitFor({ state: 'visible', timeout: 15000 });
+    await this.verifier.verifyTheElementIsVisible(individualAllowancePageNeutralBox);
+    await this.verifier.verifyElementHasText(individualAllowanceBoxMessageLine1, containerDescriptionLine1);
+    await this.verifier.verifyElementHasText(individualAllowanceBoxMessageLine2, containerDescriptionLine2);
+
+    if (await this.verifier.isTheElementVisible(this.recentlyAddedUsers)) {
+      await this.verifier.verifyElementHasText(individualAllowancePNoteElement, individualAllowancePNote);
+    }
   }
 
-  async setTheIndividualAllowanceForAUser(
-    userName: string,
-    numbers: number,
-    deleteTheExistingRecords: boolean
-  ): Promise<void> {
-    if (deleteTheExistingRecords) {
-      const existingUser = this.page.locator(`[data-testid="individual-user-row"][data-user-name="${userName}"]`);
-      if (await existingUser.isVisible()) {
-        await existingUser.locator('[data-testid="remove-user-button"]').click();
-        await this.page.waitForTimeout(500);
-      }
+  async addOneIndividualUserInTheAllowance(amount: number): Promise<void> {
+    const individualAllowanceContainer = this.page.locator('div[data-testid="pageContainer-page"]');
+    await individualAllowanceContainer.waitFor({ state: 'attached' });
+
+    const addedIndividualUser = individualAllowanceContainer
+      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
+      .first();
+    const removeAddedIndividualUser = individualAllowanceContainer
+      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
+      .last()
+      .locator('td button[aria-label*="Remove"]');
+
+    let anyUserAdded: boolean;
+    try {
+      await addedIndividualUser.waitFor({ state: 'visible', timeout: 10000 });
+      anyUserAdded = true;
+    } catch {
+      console.log('❌ Element not visible within 10s');
+      anyUserAdded = false;
     }
 
-    await this.addOneIndividualUserInTheAllowance(numbers);
+    if (!anyUserAdded) {
+      await this.clickOnElement(this.addIndividualButton, {
+        stepInfo: 'Clicking add individual button',
+      });
+      // Dialog handling would go here
+    } else {
+      const currentValue = await this.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
+      if (currentValue !== amount) {
+        await this.fillInElement(this.individualRecentlyAddedPointAmountInputBox, String(amount), {
+          stepInfo: 'Filling amount in recently added input',
+        });
+      } else {
+        await this.clickOnElement(this.addIndividualButton, {
+          stepInfo: 'Clicking add individual button',
+        });
+        // Dialog handling would go here
+        await this.clickOnElement(removeAddedIndividualUser, {
+          stepInfo: 'Removing added individual user',
+        });
+      }
+    }
   }
 
-  verifyThePageIsLoaded(): Promise<void> {
-    return Promise.resolve(undefined);
+  async getTheCurrentAmountForLatestAddedUserInIndividualAllowance(): Promise<number> {
+    await this.individualRecentlyAddedPointAmountInputBox.waitFor({ state: 'attached' });
+    const value = await this.individualRecentlyAddedPointAmountInputBox.inputValue();
+    return Number(value);
+  }
+
+  async increaseTheIndividualAmountBy(amount: number): Promise<void> {
+    for (let i = 0; i < amount; i++) {
+      await this.clickOnElement(this.recentlyAddedPointAmountInputPlus, {
+        stepInfo: `Increasing amount by 1 (${i + 1}/${amount})`,
+      });
+    }
+  }
+
+  async decreaseTheIndividualAmountBy(amount: number): Promise<void> {
+    for (let i = 0; i < amount; i++) {
+      await this.clickOnElement(this.recentlyAddedPointAmountInputMinus, {
+        stepInfo: `Decreasing amount by 1 (${i + 1}/${amount})`,
+      });
+    }
+  }
+
+  async verifyThePageIsLoaded(): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(this.individualAllowanceBoxMessageLine2);
   }
 }

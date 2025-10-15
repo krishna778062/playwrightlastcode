@@ -50,22 +50,15 @@ export class RewardsAllowancePage extends BasePage {
   readonly increaseVariableMonthlyAmountButton: Locator;
   readonly decreaseVariableMonthlyAmountButton: Locator;
 
-  // Audience Allowance elements
+  //Audience allowance
   readonly audienceAllowance: Locator;
   readonly audienceAllowanceIcon: Locator;
   readonly audienceAllowanceGreenTick: Locator;
   readonly audienceAllowanceHeading: Locator;
   readonly audienceAllowanceDescription: Locator;
   readonly addAudienceAllowance: Locator;
-  readonly editAudienceAllowance: Locator;
   readonly removeAudienceAllowance: Locator;
-  readonly addAudienceButton: Locator;
-  readonly recentlyAddedIndicator: Locator;
-  readonly recentlyAddedPointAmountInputBox: Locator;
-  readonly recentlyAddedPointUserCount: Locator;
-  readonly errorTitle: Locator;
-  readonly errorSubtitle: Locator;
-  readonly errorReloadButton: Locator;
+  readonly editAudienceAllowance: Locator;
 
   // Individual Allowance elements
   readonly individualAllowance: Locator;
@@ -74,13 +67,8 @@ export class RewardsAllowancePage extends BasePage {
   readonly individualAllowanceHeading: Locator;
   readonly individualAllowanceDescription: Locator;
   readonly addIndividualAllowance: Locator;
-  readonly editIndividualAllowance: Locator;
   readonly removeIndividualAllowance: Locator;
-  readonly addIndividualButton: Locator;
-  readonly recentlyAddedUsers: Locator;
-  readonly individualRecentlyAddedPointAmountInputBox: Locator;
-  readonly recentlyAddedPointAmountInputPlus: Locator;
-  readonly recentlyAddedPointAmountInputMinus: Locator;
+  readonly editIndividualAllowance: Locator;
 
   constructor(page: Page) {
     super(page, '/manage/recognition/rewards/peer-gifting/allowances');
@@ -196,101 +184,33 @@ export class RewardsAllowancePage extends BasePage {
       .locator('[aria-label="Minus"]')
       .nth(1);
 
-    // Audience Allowance elements
+    // Audience
     this.audienceAllowance = page.locator('div[class*="PanelActionItem_layout"]').nth(2);
-    this.audienceAllowanceIcon = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .nth(2)
-      .locator('i[data-testid="i-addProfileImageMulti"]');
-    this.audienceAllowanceGreenTick = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .nth(2)
-      .locator('div[class*="PanelActionItem_check"]');
-    this.audienceAllowanceHeading = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .nth(2)
-      .getByRole('heading', { name: 'Audience allowances' });
-    this.audienceAllowanceDescription = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .nth(2)
-      .getByText('Add monthly allowances for users in selected audiences');
-    this.addAudienceAllowance = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .nth(2)
-      .getByRole('link', { name: 'Add audience allowances' });
-    this.editAudienceAllowance = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .nth(2)
-      .getByRole('link', { name: 'Edit audience allowances' });
-    this.removeAudienceAllowance = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .nth(2)
-      .getByRole('button', { name: 'Remove audience allowances' });
-    this.addAudienceButton = page
-      .locator('div[data-testid="pageContainer-page"]')
-      .getByRole('button', { name: 'Add audience' });
-    this.recentlyAddedIndicator = page
-      .locator('div[data-testid="pageContainer-page"]')
-      .locator('table[class*="Table-module__table"] tr:has(div[class*="AudienceAllowances_indicator"])');
-    this.recentlyAddedPointAmountInputBox = page
-      .locator('div[data-testid="pageContainer-page"]')
-      .locator('table[class*="Table-module__table"] tr:has(div[class*="AudienceAllowances_indicator"]) input');
-    this.recentlyAddedPointUserCount = page
-      .locator('div[data-testid="pageContainer-page"]')
-      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"] td:nth-child(2) p');
-    this.errorTitle = page.getByText('Something went wrong', { exact: true });
-    this.errorSubtitle = page.getByText('Reload the page to try again', { exact: true });
-    this.errorReloadButton = page.getByRole('button', { name: 'Reload' });
+    this.audienceAllowanceIcon = this.audienceAllowance.locator('i[data-testid="i-addProfileImageMulti"]');
+    this.audienceAllowanceGreenTick = this.audienceAllowance.locator('div[class*="PanelActionItem_check"]');
+    this.audienceAllowanceHeading = this.audienceAllowance.getByRole('heading', { name: 'Audience allowances' });
+    this.audienceAllowanceDescription = this.audienceAllowance.getByText(
+      'Add monthly allowances for users in selected audiences'
+    );
+    // Action buttons
+    this.addAudienceAllowance = this.audienceAllowance.getByRole('link', { name: 'Add audience allowances' });
+    this.removeAudienceAllowance = this.audienceAllowance.getByRole('button', { name: 'Remove audience allowances' });
+    this.editAudienceAllowance = this.audienceAllowance.getByRole('link', { name: 'Edit audience allowances' });
 
-    // Individual Allowance elements
+    // Individual Allowance
     this.individualAllowance = page.locator('div[class*="PanelActionItem_layout"]').nth(3);
-    this.individualAllowanceIcon = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .nth(3)
-      .locator('i[data-testid="i-addUserSingle"]');
-    this.individualAllowanceGreenTick = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .nth(3)
-      .locator('div[class*="PanelActionItem_check"]');
-    this.individualAllowanceHeading = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .nth(3)
-      .getByRole('heading', { name: 'Individual allowances' });
-    this.individualAllowanceDescription = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .nth(3)
-      .getByText('Add individual monthly allowances for selected users');
-    this.addIndividualAllowance = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .nth(3)
-      .getByRole('link', { name: 'Add individual allowances' });
-    this.editIndividualAllowance = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .nth(3)
-      .getByRole('link', { name: 'Edit individual allowances' });
-    this.removeIndividualAllowance = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .nth(3)
-      .getByRole('button', { name: 'Remove individual allowances' });
-    this.addIndividualButton = page
-      .locator('div[data-testid="pageContainer-page"]')
-      .getByRole('button', { name: 'Add user' });
-    this.recentlyAddedUsers = page
-      .locator('div[data-testid="pageContainer-page"]')
-      .locator('table[class*="Table-module__table"] tr:has(div[class*="IndividualAllowances_indicator"])');
-    this.individualRecentlyAddedPointAmountInputBox = page
-      .locator('div[data-testid="pageContainer-page"]')
-      .locator('table[class*="Table-module__table"] tr input');
-    this.recentlyAddedPointAmountInputPlus = page
-      .locator('div[data-testid="pageContainer-page"]')
-      .locator(
-        'table[class*="Table-module__table"] tr:has(div[class*="IndividualAllowances_indicator"]) button[aria-label="Plus"]'
-      );
-    this.recentlyAddedPointAmountInputMinus = page
-      .locator('div[data-testid="pageContainer-page"]')
-      .locator(
-        'table[class*="Table-module__table"] tr:has(div[class*="IndividualAllowances_indicator"]) button[aria-label="Minus"]'
-      );
+    this.individualAllowanceIcon = this.individualAllowance.locator('i[data-testid="i-addUserSingle"]');
+    this.individualAllowanceGreenTick = this.individualAllowance.locator('div[class*="PanelActionItem_check"]');
+    this.individualAllowanceHeading = this.individualAllowance.getByRole('heading', { name: 'Individual allowances' });
+    this.individualAllowanceDescription = this.individualAllowance.getByText(
+      'Add individual monthly allowances for selected users'
+    );
+    // Action buttons
+    this.addIndividualAllowance = this.individualAllowance.getByRole('link', { name: 'Add individual allowances' });
+    this.removeIndividualAllowance = this.individualAllowance.getByRole('button', {
+      name: 'Remove individual allowances',
+    });
+    this.editIndividualAllowance = this.individualAllowance.getByRole('link', { name: 'Edit individual allowances' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -449,22 +369,6 @@ export class RewardsAllowancePage extends BasePage {
     });
   }
 
-  async increaseTheUserAmountBy(amount: number): Promise<void> {
-    for (let i = 0; i < amount; i++) {
-      await this.clickOnElement(this.increaseAmountButton, {
-        stepInfo: `Increasing amount by 1 (${i + 1}/${amount})`,
-      });
-    }
-  }
-
-  async decreaseTheUserAmountBy(amount: number): Promise<void> {
-    for (let i = 0; i < amount; i++) {
-      await this.clickOnElement(this.decreaseAmountButton, {
-        stepInfo: `Decreasing amount by 1 (${i + 1}/${amount})`,
-      });
-    }
-  }
-
   async getTheCurrentAmountInInputBox(): Promise<number> {
     const value = await this.pointAmountInput.inputValue();
     return parseInt(value) || 0;
@@ -555,108 +459,6 @@ export class RewardsAllowancePage extends BasePage {
     await this.verifier.verifyTheElementIsVisible(managerAllowanceBoxMessageVariableLine2);
   }
 
-  // Audience Allowance methods
-  async validateTheAudienceAllowanceElements(): Promise<void> {
-    const allowancePageHeading = 'Audience allowances';
-    const allowancePageDescription = 'Add monthly allowances for users in selected audiences.';
-    const allowancePageDescription2 =
-      'Allowances refresh on the 1st of every month. Unused points expire and are not charged for.';
-    const containerDescriptionLine1 =
-      'Audience allowances apply individually to each audience member, replacing any users allowance these members may have.';
-    const containerDescriptionLine2 =
-      'Users eligible for both an audience and manager allowance will receive whichever single allowance has the greatest value.';
-    const containerDescriptionLine3 = 'Changes to allowances will take effect from the following month.';
-    const audienceAllowancePNote =
-      'Users in multiple audiences will receive a single monthly allowance of the greatest value.';
-
-    const audienceHeaderContainer = this.page.locator('header[class*="PageContainer-module__header"]');
-    const audienceAllowanceHeadingInContainer = audienceHeaderContainer.getByRole('heading', { level: 1 });
-    const audienceAllowanceDescriptionLine1 = audienceHeaderContainer.locator('p').nth(0);
-    const audienceAllowanceDescriptionLine2 = audienceHeaderContainer.locator('p').nth(1);
-    const audienceAllowancePageNeutralBox = this.page
-      .locator('[class*="AudienceAllowances_flexCenter"] div[class*="Panel-module__panel"]')
-      .nth(0);
-    const audienceAllowanceBoxMessageLine1 = audienceAllowancePageNeutralBox.locator('p:nth-child(1)');
-    const audienceAllowanceBoxMessageLine2 = audienceAllowancePageNeutralBox.locator('p:nth-child(2)');
-    const audienceAllowanceBoxMessageLine3 = audienceAllowancePageNeutralBox.locator('p:nth-child(3)');
-    const addedAudienceRowInContainer = this.page
-      .locator('div[data-testid="pageContainer-page"]')
-      .locator('tr:has(div[class*="AudienceAllowances"]) input');
-    const audienceAllowancePNoteElement = this.page.locator('[class*="AudienceAllowances"] div div div div p').last();
-
-    await audienceAllowancePageNeutralBox.waitFor({ state: 'visible' });
-    await this.verifier.verifyTheElementIsVisible(audienceAllowanceHeadingInContainer);
-    await this.verifier.verifyElementHasText(audienceAllowanceHeadingInContainer, allowancePageHeading);
-    await this.verifier.verifyElementHasText(audienceAllowanceDescriptionLine1, allowancePageDescription);
-    await this.verifier.verifyElementHasText(audienceAllowanceDescriptionLine2, allowancePageDescription2);
-    await this.verifier.verifyTheElementIsVisible(audienceAllowancePageNeutralBox);
-    await this.verifier.verifyElementHasText(audienceAllowanceBoxMessageLine1, containerDescriptionLine1);
-    await this.verifier.verifyElementHasText(audienceAllowanceBoxMessageLine2, containerDescriptionLine2);
-    await this.verifier.verifyElementHasText(audienceAllowanceBoxMessageLine3, containerDescriptionLine3);
-
-    if (await this.verifier.isTheElementVisible(addedAudienceRowInContainer)) {
-      await this.verifier.verifyElementHasText(audienceAllowancePNoteElement, audienceAllowancePNote);
-    }
-  }
-
-  async addOneAudienceInTheAllowance(amount: number): Promise<void> {
-    const audienceAllowanceContainer = this.page.locator('div[data-testid="pageContainer-page"]');
-    await audienceAllowanceContainer.waitFor({ state: 'attached' });
-
-    const alreadyAddedAudience = audienceAllowanceContainer
-      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
-      .first();
-    const alreadyAddedAudienceInputBox = audienceAllowanceContainer
-      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
-      .first()
-      .locator('td input');
-    const removeAddedAudience = audienceAllowanceContainer
-      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
-      .last()
-      .locator('td button[aria-label*="Remove"]');
-
-    let anyUserAdded: boolean;
-    try {
-      await alreadyAddedAudience.waitFor({ state: 'visible', timeout: 10000 });
-      anyUserAdded = true;
-    } catch {
-      console.log('❌ Element not visible within 10s');
-      anyUserAdded = false;
-    }
-
-    if (!anyUserAdded) {
-      await this.clickOnElement(this.addAudienceButton, {
-        stepInfo: 'Clicking add audience button',
-      });
-      // Dialog handling would go here
-    } else {
-      const currentValue = await alreadyAddedAudienceInputBox.inputValue();
-      if (Number(currentValue) !== amount) {
-        await this.fillInElement(this.recentlyAddedPointAmountInputBox, String(amount), {
-          stepInfo: 'Filling amount in recently added input',
-        });
-      } else {
-        await this.clickOnElement(this.addAudienceButton, {
-          stepInfo: 'Clicking add audience button',
-        });
-        // Dialog handling would go here
-        await this.clickOnElement(removeAddedAudience, {
-          stepInfo: 'Removing added audience',
-        });
-      }
-    }
-  }
-
-  async getTheCurrentAmountForLatestAddedAudience(): Promise<number> {
-    const value = await this.recentlyAddedPointAmountInputBox.inputValue();
-    return Number(value);
-  }
-
-  async getTheCurrentUserCountForLatestAddedAudience(): Promise<number> {
-    const userCountInAudience = await this.recentlyAddedPointUserCount.textContent();
-    return Number(userCountInAudience?.replace(/\D/g, ''));
-  }
-
   async visitAudienceAllowancePage(): Promise<void> {
     await this.page.goto('/manage/recognition/rewards/peer-gifting/allowances/audience');
     await this.verifyThePageIsLoaded();
@@ -664,114 +466,5 @@ export class RewardsAllowancePage extends BasePage {
 
   async visitToAllowanceWithInterruption(): Promise<void> {
     await this.page.route('**/recognition/admin/rewards/allowances/monthly/audience', route => route.abort());
-  }
-
-  async verifyErrorMessage(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.errorTitle);
-    await this.verifier.verifyTheElementIsVisible(this.errorSubtitle);
-    await this.verifier.verifyTheElementIsVisible(this.errorReloadButton);
-  }
-
-  async clickOnReloadButtonWithoutAnyInterruption(): Promise<void> {
-    await this.page.unroute('**/recognition/admin/rewards/allowances/monthly/audience');
-    await this.clickOnElement(this.errorReloadButton, {
-      stepInfo: 'Clicking reload button',
-    });
-    await this.page.waitForLoadState('domcontentloaded');
-    await this.verifier.verifyTheElementIsVisible(this.saveButton);
-  }
-
-  // Individual Allowance methods
-  async validateTheIndividualAllowanceElements(): Promise<void> {
-    const containerDescriptionLine1 =
-      'Individual allowances replace any other granted allowance for the selected users.';
-    const containerDescriptionLine2 = 'Changes to allowances will take effect from the following month.';
-    const individualAllowancePNote =
-      'Users in multiple individuals will receive a single monthly allowance of the greatest value.';
-
-    const individualAllowanceContainer = this.page.locator('div[data-testid="pageContainer-page"]');
-    const individualAllowancePageNeutralBox = this.page
-      .locator('[class*="IndividualAllowances_flexCenter"] div[class*="Panel-module__panel"]')
-      .nth(0);
-    const individualAllowanceBoxMessageLine1 = individualAllowancePageNeutralBox.locator('p:nth-child(1)');
-    const individualAllowanceBoxMessageLine2 = individualAllowancePageNeutralBox.locator('p:nth-child(2)');
-    const individualAllowancePNoteElement = this.page
-      .locator('[class*="individualAllowances"] div div div div p')
-      .last();
-
-    await individualAllowanceContainer.waitFor({ state: 'visible', timeout: 15000 });
-    await this.verifier.verifyTheElementIsVisible(individualAllowancePageNeutralBox);
-    await this.verifier.verifyElementHasText(individualAllowanceBoxMessageLine1, containerDescriptionLine1);
-    await this.verifier.verifyElementHasText(individualAllowanceBoxMessageLine2, containerDescriptionLine2);
-
-    if (await this.verifier.isTheElementVisible(this.recentlyAddedUsers)) {
-      await this.verifier.verifyElementHasText(individualAllowancePNoteElement, individualAllowancePNote);
-    }
-  }
-
-  async addOneIndividualUserInTheAllowance(amount: number): Promise<void> {
-    const individualAllowanceContainer = this.page.locator('div[data-testid="pageContainer-page"]');
-    await individualAllowanceContainer.waitFor({ state: 'attached' });
-
-    const addedIndividualUser = individualAllowanceContainer
-      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
-      .first();
-    const removeAddedIndividualUser = individualAllowanceContainer
-      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
-      .last()
-      .locator('td button[aria-label*="Remove"]');
-
-    let anyUserAdded: boolean;
-    try {
-      await addedIndividualUser.waitFor({ state: 'visible', timeout: 10000 });
-      anyUserAdded = true;
-    } catch {
-      console.log('❌ Element not visible within 10s');
-      anyUserAdded = false;
-    }
-
-    if (!anyUserAdded) {
-      await this.clickOnElement(this.addIndividualButton, {
-        stepInfo: 'Clicking add individual button',
-      });
-      // Dialog handling would go here
-    } else {
-      const currentValue = await this.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
-      if (currentValue !== amount) {
-        await this.fillInElement(this.individualRecentlyAddedPointAmountInputBox, String(amount), {
-          stepInfo: 'Filling amount in recently added input',
-        });
-      } else {
-        await this.clickOnElement(this.addIndividualButton, {
-          stepInfo: 'Clicking add individual button',
-        });
-        // Dialog handling would go here
-        await this.clickOnElement(removeAddedIndividualUser, {
-          stepInfo: 'Removing added individual user',
-        });
-      }
-    }
-  }
-
-  async getTheCurrentAmountForLatestAddedUserInIndividualAllowance(): Promise<number> {
-    await this.individualRecentlyAddedPointAmountInputBox.waitFor({ state: 'attached' });
-    const value = await this.individualRecentlyAddedPointAmountInputBox.inputValue();
-    return Number(value);
-  }
-
-  async increaseTheIndividualAmountBy(amount: number): Promise<void> {
-    for (let i = 0; i < amount; i++) {
-      await this.clickOnElement(this.recentlyAddedPointAmountInputPlus, {
-        stepInfo: `Increasing amount by 1 (${i + 1}/${amount})`,
-      });
-    }
-  }
-
-  async decreaseTheIndividualAmountBy(amount: number): Promise<void> {
-    for (let i = 0; i < amount; i++) {
-      await this.clickOnElement(this.recentlyAddedPointAmountInputMinus, {
-        stepInfo: `Decreasing amount by 1 (${i + 1}/${amount})`,
-      });
-    }
   }
 }

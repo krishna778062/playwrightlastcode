@@ -90,7 +90,7 @@ export class RewardsAllowance extends BasePage {
 
   async visitAllowancePage(): Promise<void> {
     await this.page.goto('/manage/recognition/rewards/peer-gifting/allowances');
-    await this.page.waitForLoadState('networkidle');
+    await this.verifyThePageIsLoaded();
   }
 
   async saveAmount(): Promise<void> {
@@ -110,7 +110,6 @@ export class RewardsAllowance extends BasePage {
 
   async removeTheExistingAllowance(allowanceType: 'user' | 'audience' | 'manager' | 'individual'): Promise<void> {
     let removeButton: Locator;
-    let dialogBox: Locator;
 
     switch (allowanceType) {
       case 'user':
@@ -131,7 +130,7 @@ export class RewardsAllowance extends BasePage {
     await this.page.waitForTimeout(1000);
 
     // Handle confirmation dialog
-    dialogBox = this.page.locator('[role="dialog"]');
+    const dialogBox = this.page.locator('[role="dialog"]');
     await this.verifier.verifyTheElementIsVisible(dialogBox);
     await this.dialogRemoveButton.click();
     await this.page.waitForTimeout(2000);
@@ -165,7 +164,7 @@ export class RewardsAllowance extends BasePage {
     }
   }
 
-  verifyThePageIsLoaded(): Promise<void> {
-    return Promise.resolve(undefined);
+  async verifyThePageIsLoaded(): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(this.rewardsUserAllowance.userAllowanceIcon);
   }
 }

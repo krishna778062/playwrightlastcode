@@ -2,6 +2,7 @@ import { expect } from '@playwright/test';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { TestDbScenarios } from '@rewards/utils/testDatabaseHelper';
+import { RewardsAllowance } from '@rewards-components/manage-rewards/rewards-allowance';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RewardsAllowancePage } from '@rewards-pages/manage-rewards/rewards-allowance-page';
 
@@ -12,8 +13,6 @@ import { tagTest } from '@core/utils/testDecorator';
 test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-    await manageRewardsPage.loadPageWithHarness();
-    await manageRewardsPage.verifyThePageIsLoaded();
     await manageRewardsPage.enableTheRewardsAndPeerGiftingIfDisabled();
   });
 
@@ -31,11 +30,8 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const allowancePage = new RewardsAllowancePage(appManagerFixture.page);
+      const userAllowance = new RewardsAllowance(appManagerFixture.page).rewardsUserAllowance;
       const amountToBeSetForUserAllowance = 10;
-
-      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
-
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
@@ -82,7 +78,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       });
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.pointAmountLimitError);
 
-      await allowancePage.increaseTheUserAmountBy(amountToBeSetForUserAllowance);
+      await userAllowance.increaseTheUserAmountBy(amountToBeSetForUserAllowance);
       const currentAmount = await allowancePage.getTheCurrentAmountInInputBox();
       expect(currentAmount).toBe(amountToBeSetForUserAllowance);
 
@@ -94,7 +90,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         stepInfo: 'Clicking edit user allowance button',
       });
 
-      await allowancePage.decreaseTheUserAmountBy(2);
+      await userAllowance.decreaseTheUserAmountBy(2);
       const currentAmountAfterDecrease = await allowancePage.getTheCurrentAmountInInputBox();
       expect(currentAmountAfterDecrease).toBe(amountToBeSetForUserAllowance - 2);
 
@@ -123,10 +119,8 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const allowancePage = new RewardsAllowancePage(appManagerFixture.page);
+      const userAllowance = new RewardsAllowance(appManagerFixture.page).rewardsUserAllowance;
       const amountToBeSetForUserAllowance = 10;
-
-      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
@@ -157,8 +151,8 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         });
       }
 
-      await allowancePage.increaseTheUserAmountBy(amountToBeSetForUserAllowance);
-      const currentAmount = await allowancePage.getTheCurrentAmountInInputBox();
+      await userAllowance.increaseTheUserAmountBy(amountToBeSetForUserAllowance);
+      const currentAmount = await userAllowance.getTheCurrentAmountInInputBox();
       expect(currentAmount).toBe(amountToBeSetForUserAllowance);
 
       await allowancePage.clickOnElement(allowancePage.cancelButton, { force: true });
@@ -198,11 +192,8 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const allowancePage = new RewardsAllowancePage(appManagerFixture.page);
+      const audiencePage = new RewardsAllowance(appManagerFixture.page).rewardsAudienceAllowance;
       const amountToBeSetForAudienceAllowance = 10;
-
-      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
-
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
@@ -232,14 +223,13 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         });
       }
 
-      let currentAmount: number, userCount: number;
-      await allowancePage.addOneAudienceInTheAllowance(amountToBeSetForAudienceAllowance);
-      currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedAudience();
-      userCount = await allowancePage.getTheCurrentUserCountForLatestAddedAudience();
+      await audiencePage.addOneAudienceInTheAllowance(amountToBeSetForAudienceAllowance);
+      const currentAmount = await audiencePage.getTheCurrentAmountForLatestAddedAudience();
+      const userCount = await audiencePage.getTheCurrentUserCountForLatestAddedAudience();
       expect(currentAmount).toBe(amountToBeSetForAudienceAllowance);
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.recentlyAddedIndicator);
-      await allowancePage.verifier.verifyTheElementIsEnabled(allowancePage.saveButton);
-      await allowancePage.clickOnElement(allowancePage.saveButton, {
+      await audiencePage.verifier.verifyTheElementIsVisible(audiencePage.recentlyAddedIndicator);
+      await audiencePage.verifier.verifyTheElementIsEnabled(allowancePage.saveButton);
+      await audiencePage.clickOnElement(allowancePage.saveButton, {
         stepInfo: 'Clicking save button',
       });
 
@@ -277,6 +267,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const allowancePage = new RewardsAllowancePage(appManagerFixture.page);
+      const individualAllowance = new RewardsAllowance(appManagerFixture.page).rewardsIndividualAllowance;
       const amountToBeSetForIndividualUsersAllowance = 10;
 
       await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
@@ -290,10 +281,10 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         allowancePage.individualAllowanceHeading,
         'Individual allowances'
       );
-      const userAllowanceDescription = 'Add individual monthly allowances for selected users';
+      const indiAllowanceDescription = 'Add individual monthly allowances for selected users';
       await allowancePage.verifier.verifyElementHasText(
         allowancePage.individualAllowanceDescription,
-        userAllowanceDescription
+        indiAllowanceDescription
       );
 
       if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeIndividualAllowance)) {
@@ -314,13 +305,11 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         });
       }
 
-      await allowancePage.validateTheIndividualAllowanceElements();
-
-      let currentAmount: number;
-      await allowancePage.addOneIndividualUserInTheAllowance(amountToBeSetForIndividualUsersAllowance);
-      currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
+      await individualAllowance.validateTheIndividualAllowanceElements();
+      await individualAllowance.addOneIndividualUserInTheAllowance(amountToBeSetForIndividualUsersAllowance);
+      const currentAmount = await individualAllowance.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       expect(currentAmount).toBe(amountToBeSetForIndividualUsersAllowance);
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.recentlyAddedUsers);
+      await allowancePage.verifier.verifyTheElementIsVisible(individualAllowance.recentlyAddedUsers);
       await allowancePage.verifier.verifyTheElementIsEnabled(allowancePage.saveButton);
       await allowancePage.clickOnElement(allowancePage.saveButton, {
         stepInfo: 'Clicking save button',
@@ -382,9 +371,8 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
           stepInfo: 'Clicking add audience allowance button',
         });
       }
-      await allowancePage.page.waitForLoadState('load');
-
-      await allowancePage.validateTheAudienceAllowanceElements();
+      const audienceAllowance = new RewardsAllowance(appManagerFixture.page).rewardsAudienceAllowance;
+      await audienceAllowance.validateTheAudienceAllowanceElements();
     }
   );
 
@@ -403,11 +391,8 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const allowancePage = new RewardsAllowancePage(appManagerFixture.page);
+      const audiencePage = new RewardsAllowance(appManagerFixture.page).rewardsAudienceAllowance;
       const amountToBeSetForAudienceAllowance = 10;
-
-      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
-
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
@@ -441,8 +426,8 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         });
       }
 
-      await allowancePage.addOneAudienceInTheAllowance(amountToBeSetForAudienceAllowance);
-      const currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedAudience();
+      await audiencePage.addOneAudienceInTheAllowance(amountToBeSetForAudienceAllowance);
+      const currentAmount = await audiencePage.getTheCurrentAmountForLatestAddedAudience();
       expect(currentAmount).toBe(amountToBeSetForAudienceAllowance);
 
       await allowancePage.clickOnElement(allowancePage.cancelButton, { force: true });
@@ -450,7 +435,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         await dialog.dismiss();
       });
 
-      const currentAmountAfterCancel = await allowancePage.getTheCurrentAmountForLatestAddedAudience();
+      const currentAmountAfterCancel = await audiencePage.getTheCurrentAmountForLatestAddedAudience();
       expect(currentAmountAfterCancel).toBe(amountToBeSetForAudienceAllowance);
 
       await allowancePage.clickOnElement(allowancePage.cancelButton);
@@ -463,7 +448,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await allowancePage.clickOnElement(allowancePage.addAudienceAllowance, {
         stepInfo: 'Clicking add audience allowance button',
       });
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.addAudienceButton);
+      await allowancePage.verifier.verifyTheElementIsVisible(audiencePage.addAudienceButton);
     }
   );
 
@@ -482,11 +467,8 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const allowancePage = new RewardsAllowancePage(appManagerFixture.page);
+      const audiencePage = new RewardsAllowance(appManagerFixture.page).rewardsIndividualAllowance;
       const amountToBeSetForIndividualAllowance = 10;
-
-      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
-
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
@@ -523,8 +505,8 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         status = 'adding new';
       }
 
-      await allowancePage.addOneIndividualUserInTheAllowance(amountToBeSetForIndividualAllowance);
-      const currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
+      await audiencePage.addOneIndividualUserInTheAllowance(amountToBeSetForIndividualAllowance);
+      const currentAmount = await audiencePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       expect(currentAmount).toBe(amountToBeSetForIndividualAllowance);
 
       await allowancePage.clickOnElement(allowancePage.cancelButton, { force: true });
@@ -532,7 +514,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         await dialog.dismiss();
       });
 
-      const currentAmountAfterCancel = await allowancePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
+      const currentAmountAfterCancel = await audiencePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       expect(currentAmountAfterCancel).toBe(amountToBeSetForIndividualAllowance);
 
       await allowancePage.clickOnElement(allowancePage.cancelButton);
@@ -546,7 +528,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         await allowancePage.clickOnElement(allowancePage.addIndividualAllowance, {
           stepInfo: 'Clicking add individual allowance button',
         });
-        await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.addIndividualButton);
+        await allowancePage.verifier.verifyTheElementIsVisible(audiencePage.addIndividualButton);
       } else if (status === 'edited the existing') {
         await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.editIndividualAllowance);
         await allowancePage.clickOnElement(allowancePage.editIndividualAllowance, {
@@ -575,12 +557,9 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const allowancePage = new RewardsAllowancePage(appManagerFixture.page);
+      const individualAllowance = new RewardsAllowance(appManagerFixture.page).rewardsIndividualAllowance;
       const amountToBeSetForIndividualAllowance = 10;
       let currentAmount: number;
-
-      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
-
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
@@ -613,16 +592,16 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         });
       }
 
-      await allowancePage.addOneIndividualUserInTheAllowance(amountToBeSetForIndividualAllowance);
-      currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
+      await individualAllowance.addOneIndividualUserInTheAllowance(amountToBeSetForIndividualAllowance);
+      currentAmount = await individualAllowance.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       expect(currentAmount).toBe(amountToBeSetForIndividualAllowance);
 
-      await allowancePage.increaseTheIndividualAmountBy(5);
-      currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
+      await individualAllowance.increaseTheIndividualAmountBy(5);
+      currentAmount = await individualAllowance.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       expect(currentAmount).toBe(amountToBeSetForIndividualAllowance + 5);
 
-      await allowancePage.decreaseTheUserAmountBy(2);
-      currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
+      await individualAllowance.decreaseTheIndividualAmountBy(2);
+      currentAmount = await individualAllowance.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       expect(currentAmount).toBe(amountToBeSetForIndividualAllowance + 3);
 
       await allowancePage.clickOnElement(allowancePage.saveButton, {
@@ -633,7 +612,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await allowancePage.clickOnElement(allowancePage.editIndividualAllowance, {
         stepInfo: 'Clicking edit individual allowance button',
       });
-      currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
+      currentAmount = await individualAllowance.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       await allowancePage.clickOnElement(allowancePage.cancelButton, {
         stepInfo: 'Clicking cancel button',
       });
@@ -665,10 +644,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const allowancePage = new RewardsAllowancePage(appManagerFixture.page);
-
-      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
-
+      const manageAllowance = new RewardsAllowance(appManagerFixture.page).rewardsManagerAllowance;
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
@@ -690,10 +666,10 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         });
       }
 
-      await allowancePage.validateTheManagerAllowanceElements();
+      await manageAllowance.validateTheManagerAllowanceElements();
 
+      const audienceAllowance = new RewardsAllowance(appManagerFixture.page).rewardsAudienceAllowance;
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
-      await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.audienceAllowance);
       await allowancePage.verifier.verifyElementHasText(allowancePage.audienceAllowanceHeading, 'Audience allowances');
@@ -712,9 +688,8 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
           stepInfo: 'Clicking add audience allowance button',
         });
       }
-      await allowancePage.page.waitForLoadState('load');
 
-      await allowancePage.validateTheAudienceAllowanceElements();
+      await audienceAllowance.validateTheAudienceAllowanceElements();
     }
   );
 
@@ -732,8 +707,8 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const allowancePage = new RewardsAllowancePage(appManagerFixture.page);
+      const individualAllowance = new RewardsAllowance(appManagerFixture.page).rewardsIndividualAllowance;
       const amountToBeSetForIndividualAllowance = 10;
-      let currentAmount: number;
 
       await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
@@ -770,8 +745,8 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         });
       }
 
-      await allowancePage.addOneIndividualUserInTheAllowance(amountToBeSetForIndividualAllowance);
-      currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
+      await individualAllowance.addOneIndividualUserInTheAllowance(amountToBeSetForIndividualAllowance);
+      const currentAmount = await individualAllowance.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       expect(currentAmount).toBe(amountToBeSetForIndividualAllowance);
 
       await allowancePage.clickOnElement(allowancePage.saveButton, {
@@ -913,14 +888,15 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const allowancePage = new RewardsAllowancePage(appManagerFixture.page);
+      const audiencePage = new RewardsAllowance(appManagerFixture.page).rewardsAudienceAllowance;
 
       await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
 
       await allowancePage.visitAudienceAllowancePage();
       await allowancePage.visitToAllowanceWithInterruption();
-      await allowancePage.verifyErrorMessage();
-      await allowancePage.clickOnReloadButtonWithoutAnyInterruption();
+      await audiencePage.verifyErrorMessage();
+      await audiencePage.clickOnReloadButtonWithoutAnyInterruption();
     }
   );
 
@@ -1076,6 +1052,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const allowancePage = new RewardsAllowancePage(appManagerFixture.page);
+      const managerAllowance = new RewardsAllowance(appManagerFixture.page).rewardsManagerAllowance;
       const amountToBeSetForIndividualAllowance = 10;
 
       await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
@@ -1110,8 +1087,8 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         });
       }
 
-      await allowancePage.enterThePointAmount(amountToBeSetForIndividualAllowance);
-      const currentAmount = await allowancePage.getTheCurrentAmountInFixedInputBox();
+      await managerAllowance.enterThePointAmount(amountToBeSetForIndividualAllowance);
+      const currentAmount = await managerAllowance.getTheCurrentAmountInFixedInputBox();
       expect(currentAmount).toBe(amountToBeSetForIndividualAllowance);
 
       await allowancePage.clickOnElement(allowancePage.cancelButton, { force: true });

@@ -22,44 +22,45 @@ export class RewardsUserAllowance extends BasePage {
   readonly pageContainer: Locator;
 
   constructor(page: Page) {
-    super(page);
+    super(page, '/manage/recognition/rewards/peer-gifting/allowances/user');
 
-    // User allowance elements
-    this.userAllowance = page.locator('[data-testid="user-allowance"]');
-    this.userAllowanceIcon = page.locator('[data-testid="user-allowance-icon"]');
-    this.userAllowanceGreenTick = page.locator('[data-testid="user-allowance-green-tick"]');
-    this.userAllowanceHeading = page.locator('[data-testid="user-allowance-heading"]');
-    this.userAllowanceDescription = page.locator('[data-testid="user-allowance-description"]');
-    this.addUserAllowance = page.locator('[data-testid="add-user-allowance"]');
-    this.removeUserAllowance = page.locator('[data-testid="remove-user-allowance"]');
-    this.editUserAllowance = page.locator('[data-testid="edit-user-allowance"]');
-    this.userAllowanceBoxMessageLine1 = page.locator('[data-testid="user-allowance-message-line1"]');
-    this.userAllowanceBoxMessageLine2 = page.locator('[data-testid="user-allowance-message-line2"]');
-    this.userAllowancePageNeutralBox = page.locator('[data-testid="user-allowance-neutral-box"]');
-    this.currencyConversionInfoIcon = page.locator('[data-testid="currency-conversion-info-icon"]');
-    this.pointAmountInputBox = page.locator('input[data-testid="point-amount-input"]');
-    this.pointAmountMinusButton = page.locator('[data-testid="point-amount-minus"]');
-    this.pointAmountPlusButton = page.locator('[data-testid="point-amount-plus"]');
-    this.pointAmountLimitError = page.locator('[data-testid="point-amount-limit-error"]');
-    this.pageContainer = page.locator('[data-testid="user-allowance-page-container"]');
+    this.userAllowance = page.locator('div[class*="PanelActionItem_layout"]').first();
+    this.userAllowanceIcon = this.userAllowance.locator('i[data-testid="i-addUserMulti"]');
+    this.userAllowanceGreenTick = this.userAllowance.locator('div[class*="PanelActionItem_check"]');
+    this.userAllowanceHeading = this.userAllowance.getByRole('heading', { name: 'Users allowance' });
+    this.userAllowanceDescription = this.userAllowance.getByText('Add a monthly allowance for');
+    // Action buttons
+    this.addUserAllowance = this.userAllowance.getByRole('link', { name: 'Add users allowance' });
+    this.removeUserAllowance = this.userAllowance.getByRole('button', { name: 'Remove users allowance' });
+    this.editUserAllowance = this.userAllowance.getByRole('link', { name: 'Edit users allowance' });
+
+    // User allowance page
+    this.pageContainer = this.page.locator('div[data-testid="pageContainer-page"]');
+    this.userAllowancePageNeutralBox = page.locator(
+      '[class*="UserAllowances_flexCenter"] div[class*="Panel-module__panel"]'
+    );
+    this.userAllowanceBoxMessageLine1 = this.userAllowancePageNeutralBox.locator('p:nth-child(1)');
+    this.userAllowanceBoxMessageLine2 = this.userAllowancePageNeutralBox.locator('p:nth-child(2)');
+    this.currencyConversionInfoIcon = page.locator('button[aria-label="Currency conversion information"]');
+    this.pointAmountInputBox = page.locator('#pointAmount');
+    this.pointAmountMinusButton = page.locator('[aria-label="Minus"]');
+    this.pointAmountPlusButton = page.locator('[aria-label="Plus"]');
+    this.pointAmountLimitError = page.locator('div[class*="Field-module__error"] p');
   }
 
-  async visitUserAllowancePage(): Promise<void> {
-    await this.page.goto('/manage/recognition/rewards/peer-gifting/allowances');
-    await this.page.waitForLoadState('networkidle');
-  }
-
-  async increaseTheAmountBy(number: number): Promise<void> {
-    for (let i = 0; i < number; i++) {
-      await this.pointAmountPlusButton.click();
-      await this.page.waitForTimeout(100);
+  async increaseTheUserAmountBy(amount: number): Promise<void> {
+    for (let i = 0; i < amount; i++) {
+      await this.clickOnElement(this.pointAmountPlusButton, {
+        stepInfo: `Increasing amount by 1 (${i + 1}/${amount})`,
+      });
     }
   }
 
-  async decreaseTheAmountBy(number: number): Promise<void> {
-    for (let i = 0; i < number; i++) {
-      await this.pointAmountMinusButton.click();
-      await this.page.waitForTimeout(100);
+  async decreaseTheUserAmountBy(amount: number): Promise<void> {
+    for (let i = 0; i < amount; i++) {
+      await this.clickOnElement(this.pointAmountInputBox, {
+        stepInfo: `Decreasing amount by 1 (${i + 1}/${amount})`,
+      });
     }
   }
 
@@ -82,7 +83,7 @@ export class RewardsUserAllowance extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.pointAmountPlusButton);
   }
 
-  verifyThePageIsLoaded(): Promise<void> {
-    return Promise.resolve(undefined);
+  async verifyThePageIsLoaded(): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(this.userAllowanceBoxMessageLine2);
   }
 }

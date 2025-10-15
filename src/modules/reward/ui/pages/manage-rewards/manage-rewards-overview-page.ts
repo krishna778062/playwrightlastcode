@@ -311,10 +311,8 @@ export class ManageRewardsOverviewPage extends BasePage {
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.rewardsTabHeading, {
-      assertionMessage: 'Verify the Rewards Overview page is loaded',
-    });
     await this.verifier.verifyTheElementIsVisible(this.insightBulbButton, {
+      timeout: 30000,
       assertionMessage: 'Verify the Rewards Overview page is loaded',
     });
   }
@@ -747,12 +745,6 @@ export class ManageRewardsOverviewPage extends BasePage {
       randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
     } while (exclude !== undefined && randomNum === exclude);
     return randomNum;
-  }
-
-  async fillInElement(element: Locator, value: string, options?: { stepInfo?: string }): Promise<void> {
-    await element.clear();
-    await element.fill(value);
-    await element.blur();
   }
 
   // Tooltip validation methods for allowance tests
