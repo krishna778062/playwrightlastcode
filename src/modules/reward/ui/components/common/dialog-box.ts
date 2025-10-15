@@ -10,6 +10,15 @@ export class DialogBox extends BasePage {
   readonly dialogConfirmButton: Locator;
   readonly dialogCloseButton: Locator;
 
+  // Additional properties for compatibility with tests
+  readonly container: Locator;
+  readonly title: Locator;
+  readonly descriptionText: Locator;
+  readonly inputBox: Locator;
+  readonly inputBoxError: Locator;
+  readonly confirmButton: Locator;
+  readonly skipButton: Locator;
+
   constructor(page: Page) {
     super(page);
 
@@ -19,6 +28,15 @@ export class DialogBox extends BasePage {
     this.dialogCancelButton = this.dialog.locator('button[data-testid="dialog-cancel"]');
     this.dialogConfirmButton = this.dialog.locator('button[data-testid="dialog-confirm"]');
     this.dialogCloseButton = this.dialog.locator('button[data-testid="dialog-close"]');
+
+    // Additional locators for compatibility
+    this.container = this.dialog;
+    this.title = this.dialogTitle;
+    this.descriptionText = this.dialogDescription;
+    this.inputBox = this.dialog.locator('input[type="text"]');
+    this.inputBoxError = this.dialog.locator('[data-testid="input-error"]');
+    this.confirmButton = this.dialogConfirmButton;
+    this.skipButton = this.dialog.locator('button[data-testid="skip-button"]');
   }
 
   async clickCancel(): Promise<void> {

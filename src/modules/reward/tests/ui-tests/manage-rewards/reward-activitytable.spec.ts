@@ -6,8 +6,8 @@ import { DialogBox } from '@rewards-components/common/dialog-box';
 import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -777,7 +777,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await recognitionHub.clickOnGiveRecognition();
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(recognizedUser);
-      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition('1');
       const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
       await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
       const rewardPointsText = await giveRecognitionModal.giftThePoints(1);
@@ -793,8 +793,8 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Handle dialog box if it appears
       const dialogBox = new DialogBox(appManagerFixture.page);
-      if (await dialogBox.container.isVisible()) {
-        await dialogBox.container.waitFor({ state: 'visible' });
+      if (await dialogBox.verifier.verifyTheElementIsVisible(dialogBox.dialog)) {
+        await dialogBox.dialog.waitFor({ state: 'visible' });
         await dialogBox.skipButton.click();
         await expect(dialogBox.container).not.toBeVisible();
       }
@@ -902,7 +902,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await recognitionHub.clickOnGiveRecognition();
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(recognizedUser);
-      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition('1');
       const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
       await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
       const rewardPointsText = await giveRecognitionModal.giftThePoints(1);

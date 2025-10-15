@@ -3,8 +3,8 @@ import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -102,7 +102,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         const rewardPoints = 1;
         const rewardPointsText =
           (await giveRecognitionModal.giftingOptionsContainerPillText.nth(rewardPoints - 1).textContent()) || '';
-        await giveRecognitionModal.selectTheUserForRecognition(1);
+        await giveRecognitionModal.selectTheUserForRecognition('1');
         await expect(giveRecognitionModal.doneButton).toBeEnabled();
         await giveRecognitionModal.doneButton.click({ force: true });
         const manageRecognition = new ManageRewardsOverviewPage(giveRecognitionModal.page);

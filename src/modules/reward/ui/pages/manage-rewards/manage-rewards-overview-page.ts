@@ -79,8 +79,8 @@ export class ManageRewardsOverviewPage extends BasePage {
   // Activity Container
   readonly activityContainer: Locator;
   readonly activityPanelHeader: Locator;
-  // readonly activityPanelLastUpdatedText: Locator;
-  // readonly activityPanelLastUpdatedInfoIcon: Locator;
+  readonly activityPanelLastUpdatedText: Locator;
+  readonly activityPanelLastUpdatedInfoIcon: Locator;
   readonly activityPanelFiltersButton: Locator;
   readonly activityPanelFiltersButtonText: Locator;
   readonly activityTableDownloadCSVButton: Locator;
@@ -238,10 +238,10 @@ export class ManageRewardsOverviewPage extends BasePage {
     // Activity Container
     this.activityContainer = page.locator('div[class*="Panel-module__panel"]');
     this.activityPanelHeader = this.activityContainer.getByRole('heading', { level: 3 });
-    // this.activityPanelLastUpdatedText = this.activityContainer.locator('h3+div span');
-    // this.activityPanelLastUpdatedInfoIcon = this.activityContainer.getByRole('button', {
-    //   name: 'Activity update time',
-    // });
+    this.activityPanelLastUpdatedText = this.activityContainer.locator('h3+div span');
+    this.activityPanelLastUpdatedInfoIcon = this.activityContainer.getByRole('button', {
+      name: 'Activity update time',
+    });
     this.activityPanelFiltersButton = this.activityContainer.locator('div[class^="Activity_filters"] input');
     this.activityPanelFiltersButtonText = this.activityContainer.locator(
       'div[class^="Activity_filters"] input + div span'

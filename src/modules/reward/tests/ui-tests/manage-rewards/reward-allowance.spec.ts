@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { TestDbScenarios } from '@rewards/utils/testDatabaseHelper';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RewardsAllowancePage } from '@rewards-pages/manage-rewards/rewards-allowance-page';
 
@@ -964,17 +965,11 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const allowancePage = new RewardsAllowancePage(appManagerFixture.page);
 
-      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
-
-      // Mock the API to simulate distribution failure
-      await appManagerFixture.page.route('**/recognition/admin/rewards/distribution/status', route =>
-        route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ isRefreshing: true }),
-        })
-      );
+      // Set distribution allowance as failed using test helper
+      const tenantCode = await appManagerFixture.page.evaluate(() => {
+        return (window as any).Simpplr?.Settings?.accountId;
+      });
+      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
@@ -986,7 +981,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.validateTheAddButtonTooltip('individuals');
 
       // Restore normal API behavior
-      await appManagerFixture.page.unroute('**/recognition/admin/rewards/distribution/status');
+      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
     }
   );
 
@@ -1008,14 +1003,11 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
 
-      // Mock the API to simulate distribution failure
-      await appManagerFixture.page.route('**/recognition/admin/rewards/distribution/status', route =>
-        route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ isRefreshing: true }),
-        })
-      );
+      // Set distribution allowance as failed using test helper
+      const tenantCode = await appManagerFixture.page.evaluate(() => {
+        return (window as any).Simpplr?.Settings?.accountId;
+      });
+      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
@@ -1027,7 +1019,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.validateTheEditButtonTooltip('individuals');
 
       // Restore normal API behavior
-      await appManagerFixture.page.unroute('**/recognition/admin/rewards/distribution/status');
+      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
     }
   );
 
@@ -1049,14 +1041,11 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
 
-      // Mock the API to simulate distribution failure
-      await appManagerFixture.page.route('**/recognition/admin/rewards/distribution/status', route =>
-        route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ isRefreshing: true }),
-        })
-      );
+      // Set distribution allowance as failed using test helper
+      const tenantCode = await appManagerFixture.page.evaluate(() => {
+        return (window as any).Simpplr?.Settings?.accountId;
+      });
+      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
@@ -1068,7 +1057,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.validateTheRemoveButtonTooltip('individuals');
 
       // Restore normal API behavior
-      await appManagerFixture.page.unroute('**/recognition/admin/rewards/distribution/status');
+      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
     }
   );
 
