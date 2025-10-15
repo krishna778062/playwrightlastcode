@@ -1,6 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 
-import { BasePage } from '../../../../core/ui/pages/basePage';
+import { BasePage } from '@core/ui/pages/basePage';
 
 export class RewardsIndividualAllowance extends BasePage {
   //Individual allowance
@@ -129,5 +129,9 @@ export class RewardsIndividualAllowance extends BasePage {
     }
 
     await this.addOneIndividualUserInTheAllowance(numbers);
+  }
+
+  verifyThePageIsLoaded(): Promise<void> {
+    return Promise.resolve(undefined);
   }
 }

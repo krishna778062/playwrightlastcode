@@ -38,31 +38,28 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsUserAllowance.userAllowanceIcon);
-      await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsUserAllowance.userAllowanceHeading,
-        'Users allowance'
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.userAllowanceIcon);
+      await allowancePage.verifier.verifyElementHasText(allowancePage.userAllowanceHeading, 'Users allowance');
       const userAllowanceDescription = 'Add a monthly allowance for all intranet users';
       await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsUserAllowance.userAllowanceDescription,
+        allowancePage.userAllowanceDescription,
         userAllowanceDescription
       );
 
-      if (await allowancePage.verifier.isTheElementVisible(allowancePage.rewardsUserAllowance.removeUserAllowance)) {
-        if (await allowancePage.rewardsUserAllowance.removeUserAllowance.isEnabled()) {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeUserAllowance)) {
+        if (await allowancePage.removeUserAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('user');
           await allowancePage.validateToastMessage('Saved changes successfully');
-          await allowancePage.clickOnElement(allowancePage.rewardsUserAllowance.addUserAllowance, {
+          await allowancePage.clickOnElement(allowancePage.addUserAllowance, {
             stepInfo: 'Clicking add user allowance button',
           });
         } else {
-          await allowancePage.clickOnElement(allowancePage.rewardsUserAllowance.editUserAllowance, {
+          await allowancePage.clickOnElement(allowancePage.editUserAllowance, {
             stepInfo: 'Clicking edit user allowance button',
           });
         }
       } else {
-        await allowancePage.clickOnElement(allowancePage.rewardsUserAllowance.addUserAllowance, {
+        await allowancePage.clickOnElement(allowancePage.addUserAllowance, {
           stepInfo: 'Clicking add user allowance button',
         });
       }
@@ -76,37 +73,37 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         headingDescriptionLine1,
         headingDescriptionLine2
       );
-      await allowancePage.rewardsUserAllowance.validateTheUsersAllowanceElements();
+      await allowancePage.validateTheUsersAllowanceElements();
 
-      await allowancePage.rewardsUserAllowance.enterThePointAmount(0);
-      await allowancePage.clickOnElement(allowancePage.rewardsUserAllowance.currencyConversionInfoIcon, {
+      await allowancePage.enterThePointAmount(0);
+      await allowancePage.clickOnElement(allowancePage.currencyConversionInfoIcon, {
         stepInfo: 'Clicking currency conversion info icon',
       });
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsUserAllowance.pointAmountLimitError);
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.pointAmountLimitError);
 
-      await allowancePage.rewardsUserAllowance.increaseTheAmountBy(amountToBeSetForUserAllowance);
-      const currentAmount = await allowancePage.rewardsUserAllowance.getTheCurrentAmountInInputBox();
+      await allowancePage.increaseTheUserAmountBy(amountToBeSetForUserAllowance);
+      const currentAmount = await allowancePage.getTheCurrentAmountInInputBox();
       expect(currentAmount).toBe(amountToBeSetForUserAllowance);
 
       await allowancePage.saveAmount();
       await allowancePage.validateToastMessage('Saved changes successfully');
 
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsUserAllowance.editUserAllowance);
-      await allowancePage.clickOnElement(allowancePage.rewardsUserAllowance.editUserAllowance, {
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.editUserAllowance);
+      await allowancePage.clickOnElement(allowancePage.editUserAllowance, {
         stepInfo: 'Clicking edit user allowance button',
       });
 
-      await allowancePage.rewardsUserAllowance.decreaseTheAmountBy(2);
-      const currentAmountAfterDecrease = await allowancePage.rewardsUserAllowance.getTheCurrentAmountInInputBox();
+      await allowancePage.decreaseTheUserAmountBy(2);
+      const currentAmountAfterDecrease = await allowancePage.getTheCurrentAmountInInputBox();
       expect(currentAmountAfterDecrease).toBe(amountToBeSetForUserAllowance - 2);
 
       await allowancePage.saveAmount();
       await allowancePage.validateToastMessage('Saved changes successfully');
 
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsUserAllowance.userAllowanceIcon);
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsUserAllowance.userAllowanceGreenTick);
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsUserAllowance.removeUserAllowance);
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsUserAllowance.editUserAllowance);
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.userAllowanceIcon);
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.userAllowanceGreenTick);
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.removeUserAllowance);
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.editUserAllowance);
     }
   );
 
@@ -133,37 +130,34 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsUserAllowance.userAllowanceIcon);
-      await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsUserAllowance.userAllowanceHeading,
-        'Users allowance'
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.userAllowanceIcon);
+      await allowancePage.verifier.verifyElementHasText(allowancePage.userAllowanceHeading, 'Users allowance');
       const userAllowanceDescription = 'Add a monthly allowance for all intranet users';
       await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsUserAllowance.userAllowanceDescription,
+        allowancePage.userAllowanceDescription,
         userAllowanceDescription
       );
 
-      if (await allowancePage.verifier.isTheElementVisible(allowancePage.rewardsUserAllowance.removeUserAllowance)) {
-        if (await allowancePage.rewardsUserAllowance.removeUserAllowance.isEnabled()) {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeUserAllowance)) {
+        if (await allowancePage.removeUserAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('user');
           await allowancePage.validateToastMessage('Saved changes successfully');
-          await allowancePage.clickOnElement(allowancePage.rewardsUserAllowance.addUserAllowance, {
+          await allowancePage.clickOnElement(allowancePage.addUserAllowance, {
             stepInfo: 'Clicking add user allowance button',
           });
         } else {
-          await allowancePage.clickOnElement(allowancePage.rewardsUserAllowance.editUserAllowance, {
+          await allowancePage.clickOnElement(allowancePage.editUserAllowance, {
             stepInfo: 'Clicking edit user allowance button',
           });
         }
       } else {
-        await allowancePage.clickOnElement(allowancePage.rewardsUserAllowance.addUserAllowance, {
+        await allowancePage.clickOnElement(allowancePage.addUserAllowance, {
           stepInfo: 'Clicking add user allowance button',
         });
       }
 
-      await allowancePage.rewardsUserAllowance.increaseTheAmountBy(amountToBeSetForUserAllowance);
-      const currentAmount = await allowancePage.rewardsUserAllowance.getTheCurrentAmountInInputBox();
+      await allowancePage.increaseTheUserAmountBy(amountToBeSetForUserAllowance);
+      const currentAmount = await allowancePage.getTheCurrentAmountInInputBox();
       expect(currentAmount).toBe(amountToBeSetForUserAllowance);
 
       await allowancePage.clickOnElement(allowancePage.cancelButton, { force: true });
@@ -171,7 +165,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         await dialog.dismiss();
       });
 
-      const currentAmountAfterCancel = await allowancePage.rewardsUserAllowance.getTheCurrentAmountInInputBox();
+      const currentAmountAfterCancel = await allowancePage.getTheCurrentAmountInInputBox();
       expect(currentAmountAfterCancel).toBe(amountToBeSetForUserAllowance);
 
       await allowancePage.clickOnElement(allowancePage.cancelButton);
@@ -180,11 +174,11 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       });
 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsUserAllowance.addUserAllowance);
-      await allowancePage.clickOnElement(allowancePage.rewardsUserAllowance.addUserAllowance, {
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.addUserAllowance);
+      await allowancePage.clickOnElement(allowancePage.addUserAllowance, {
         stepInfo: 'Clicking add user allowance button',
       });
-      const currentAmountAfterAccept = await allowancePage.rewardsUserAllowance.getTheCurrentAmountInInputBox();
+      const currentAmountAfterAccept = await allowancePage.getTheCurrentAmountInInputBox();
       expect(currentAmountAfterAccept).not.toBe(amountToBeSetForUserAllowance);
     }
   );
@@ -211,59 +205,46 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsAudienceAllowance.audienceAllowance);
-      await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsAudienceAllowance.audienceAllowanceHeading,
-        'Audience allowances'
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.audienceAllowance);
+      await allowancePage.verifier.verifyElementHasText(allowancePage.audienceAllowanceHeading, 'Audience allowances');
       const userAllowanceDescription = 'Add monthly allowances for users in selected audiences';
       await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsAudienceAllowance.audienceAllowanceDescription,
+        allowancePage.audienceAllowanceDescription,
         userAllowanceDescription
       );
 
-      if (
-        await allowancePage.verifier.isTheElementVisible(allowancePage.rewardsAudienceAllowance.removeAudienceAllowance)
-      ) {
-        if (await allowancePage.rewardsAudienceAllowance.removeAudienceAllowance.isEnabled()) {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeAudienceAllowance)) {
+        if (await allowancePage.removeAudienceAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('audience');
           await allowancePage.validateToastMessage('Saved changes successfully');
-          await allowancePage.clickOnElement(allowancePage.rewardsAudienceAllowance.addAudienceAllowance, {
+          await allowancePage.clickOnElement(allowancePage.addAudienceAllowance, {
             stepInfo: 'Clicking add audience allowance button',
           });
         } else {
-          await allowancePage.clickOnElement(allowancePage.rewardsAudienceAllowance.editAudienceAllowance, {
+          await allowancePage.clickOnElement(allowancePage.editAudienceAllowance, {
             stepInfo: 'Clicking edit audience allowance button',
           });
         }
       } else {
-        await allowancePage.clickOnElement(allowancePage.rewardsAudienceAllowance.addAudienceAllowance, {
+        await allowancePage.clickOnElement(allowancePage.addAudienceAllowance, {
           stepInfo: 'Clicking add audience allowance button',
         });
       }
 
       let currentAmount: number, userCount: number;
-      await allowancePage.rewardsAudienceAllowance.addOneAudienceInTheAllowance(amountToBeSetForAudienceAllowance);
-      currentAmount = await allowancePage.rewardsAudienceAllowance.getTheCurrentAmountForLatestAddedAudience();
-      userCount = await allowancePage.rewardsAudienceAllowance.getTheCurrentUserCountForLatestAddedAudience();
+      await allowancePage.addOneAudienceInTheAllowance(amountToBeSetForAudienceAllowance);
+      currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedAudience();
+      userCount = await allowancePage.getTheCurrentUserCountForLatestAddedAudience();
       expect(currentAmount).toBe(amountToBeSetForAudienceAllowance);
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsAudienceAllowance.recentlyAddedIndicator
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.recentlyAddedIndicator);
       await allowancePage.verifier.verifyTheElementIsEnabled(allowancePage.saveButton);
       await allowancePage.clickOnElement(allowancePage.saveButton, {
         stepInfo: 'Clicking save button',
       });
 
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsAudienceAllowance.audienceAllowanceGreenTick
-      );
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsAudienceAllowance.removeAudienceAllowance
-      );
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsAudienceAllowance.editAudienceAllowance
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.audienceAllowanceGreenTick);
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.removeAudienceAllowance);
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.editAudienceAllowance);
 
       await allowancePage.monthlyAllowanceIllustration.waitFor({
         state: 'visible',
@@ -303,68 +284,51 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsIndividualAllowance.individualAllowance
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.individualAllowance);
       await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsIndividualAllowance.individualAllowanceHeading,
+        allowancePage.individualAllowanceHeading,
         'Individual allowances'
       );
       const userAllowanceDescription = 'Add individual monthly allowances for selected users';
       await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsIndividualAllowance.individualAllowanceDescription,
+        allowancePage.individualAllowanceDescription,
         userAllowanceDescription
       );
 
-      if (
-        await allowancePage.verifier.isTheElementVisible(
-          allowancePage.rewardsIndividualAllowance.removeIndividualAllowance
-        )
-      ) {
-        if (await allowancePage.rewardsIndividualAllowance.removeIndividualAllowance.isEnabled()) {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeIndividualAllowance)) {
+        if (await allowancePage.removeIndividualAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('individual');
           await allowancePage.validateToastMessage('Saved changes successfully');
-          await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.addIndividualAllowance, {
+          await allowancePage.clickOnElement(allowancePage.addIndividualAllowance, {
             stepInfo: 'Clicking add individual allowance button',
           });
         } else {
-          await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.editIndividualAllowance, {
+          await allowancePage.clickOnElement(allowancePage.editIndividualAllowance, {
             stepInfo: 'Clicking edit individual allowance button',
           });
         }
       } else {
-        await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.addIndividualAllowance, {
+        await allowancePage.clickOnElement(allowancePage.addIndividualAllowance, {
           stepInfo: 'Clicking add individual allowance button',
         });
       }
 
-      await allowancePage.rewardsIndividualAllowance.validateTheIndividualAllowanceElements();
+      await allowancePage.validateTheIndividualAllowanceElements();
 
       let currentAmount: number;
-      await allowancePage.rewardsIndividualAllowance.addOneIndividualUserInTheAllowance(
-        amountToBeSetForIndividualUsersAllowance
-      );
-      currentAmount =
-        await allowancePage.rewardsIndividualAllowance.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
+      await allowancePage.addOneIndividualUserInTheAllowance(amountToBeSetForIndividualUsersAllowance);
+      currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       expect(currentAmount).toBe(amountToBeSetForIndividualUsersAllowance);
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsIndividualAllowance.recentlyAddedUsers
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.recentlyAddedUsers);
       await allowancePage.verifier.verifyTheElementIsEnabled(allowancePage.saveButton);
       await allowancePage.clickOnElement(allowancePage.saveButton, {
         stepInfo: 'Clicking save button',
       });
       await allowancePage.validateToastMessage('Saved changes successfully');
 
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsIndividualAllowance.individualAllowanceGreenTick
-      );
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsIndividualAllowance.removeIndividualAllowance
-      );
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsIndividualAllowance.editIndividualAllowance
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.individualAllowanceGreenTick);
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.removeIndividualAllowance);
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.editIndividualAllowance);
 
       await allowancePage.monthlyAllowanceIllustration.waitFor({ state: 'visible' });
       await allowancePage.verifier.verifyElementHasText(
@@ -400,31 +364,26 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsAudienceAllowance.audienceAllowance);
-      await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsAudienceAllowance.audienceAllowanceHeading,
-        'Audience allowances'
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.audienceAllowance);
+      await allowancePage.verifier.verifyElementHasText(allowancePage.audienceAllowanceHeading, 'Audience allowances');
       const audienceAllowanceText = 'Add monthly allowances for users in selected audiences';
       await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsAudienceAllowance.audienceAllowanceDescription,
+        allowancePage.audienceAllowanceDescription,
         audienceAllowanceText
       );
 
-      if (
-        await allowancePage.verifier.isTheElementVisible(allowancePage.rewardsAudienceAllowance.removeAudienceAllowance)
-      ) {
-        await allowancePage.clickOnElement(allowancePage.rewardsAudienceAllowance.editAudienceAllowance, {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeAudienceAllowance)) {
+        await allowancePage.clickOnElement(allowancePage.editAudienceAllowance, {
           stepInfo: 'Clicking edit audience allowance button',
         });
       } else {
-        await allowancePage.clickOnElement(allowancePage.rewardsAudienceAllowance.addAudienceAllowance, {
+        await allowancePage.clickOnElement(allowancePage.addAudienceAllowance, {
           stepInfo: 'Clicking add audience allowance button',
         });
       }
       await allowancePage.page.waitForLoadState('load');
 
-      await allowancePage.rewardsAudienceAllowance.validateTheAudienceAllowanceElements();
+      await allowancePage.validateTheAudienceAllowanceElements();
     }
   );
 
@@ -451,42 +410,38 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsAudienceAllowance.audienceAllowance);
-      await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsAudienceAllowance.audienceAllowanceHeading,
-        'Audience allowances'
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.audienceAllowance);
+      await allowancePage.verifier.verifyElementHasText(allowancePage.audienceAllowanceHeading, 'Audience allowances');
       const audienceAllowanceDescription = 'Add monthly allowances for users in selected audiences';
       await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsAudienceAllowance.audienceAllowanceDescription,
+        allowancePage.audienceAllowanceDescription,
         audienceAllowanceDescription
       );
 
       if (
-        await allowancePage.verifier.isTheElementVisible(
-          allowancePage.rewardsAudienceAllowance.removeAudienceAllowance,
-          { timeout: 5000 }
-        )
+        await allowancePage.verifier.isTheElementVisible(allowancePage.removeAudienceAllowance, {
+          timeout: 5000,
+        })
       ) {
-        if (await allowancePage.rewardsAudienceAllowance.removeAudienceAllowance.isEnabled()) {
+        if (await allowancePage.removeAudienceAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('audience');
           await allowancePage.validateToastMessage('Saved changes successfully');
-          await allowancePage.clickOnElement(allowancePage.rewardsAudienceAllowance.addAudienceAllowance, {
+          await allowancePage.clickOnElement(allowancePage.addAudienceAllowance, {
             stepInfo: 'Clicking add audience allowance button',
           });
         } else {
-          await allowancePage.clickOnElement(allowancePage.rewardsAudienceAllowance.editAudienceAllowance, {
+          await allowancePage.clickOnElement(allowancePage.editAudienceAllowance, {
             stepInfo: 'Clicking edit audience allowance button',
           });
         }
       } else {
-        await allowancePage.clickOnElement(allowancePage.rewardsAudienceAllowance.addAudienceAllowance, {
+        await allowancePage.clickOnElement(allowancePage.addAudienceAllowance, {
           stepInfo: 'Clicking add audience allowance button',
         });
       }
 
-      await allowancePage.rewardsAudienceAllowance.addOneAudienceInTheAllowance(amountToBeSetForAudienceAllowance);
-      const currentAmount = await allowancePage.rewardsAudienceAllowance.getTheCurrentAmountForLatestAddedAudience();
+      await allowancePage.addOneAudienceInTheAllowance(amountToBeSetForAudienceAllowance);
+      const currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedAudience();
       expect(currentAmount).toBe(amountToBeSetForAudienceAllowance);
 
       await allowancePage.clickOnElement(allowancePage.cancelButton, { force: true });
@@ -494,8 +449,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         await dialog.dismiss();
       });
 
-      const currentAmountAfterCancel =
-        await allowancePage.rewardsAudienceAllowance.getTheCurrentAmountForLatestAddedAudience();
+      const currentAmountAfterCancel = await allowancePage.getTheCurrentAmountForLatestAddedAudience();
       expect(currentAmountAfterCancel).toBe(amountToBeSetForAudienceAllowance);
 
       await allowancePage.clickOnElement(allowancePage.cancelButton);
@@ -504,13 +458,11 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       });
 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsAudienceAllowance.addAudienceAllowance
-      );
-      await allowancePage.clickOnElement(allowancePage.rewardsAudienceAllowance.addAudienceAllowance, {
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.addAudienceAllowance);
+      await allowancePage.clickOnElement(allowancePage.addAudienceAllowance, {
         stepInfo: 'Clicking add audience allowance button',
       });
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsAudienceAllowance.addAudienceButton);
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.addAudienceButton);
     }
   );
 
@@ -537,50 +489,41 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsIndividualAllowance.individualAllowance
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.individualAllowance);
       await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsIndividualAllowance.individualAllowanceHeading,
+        allowancePage.individualAllowanceHeading,
         'Individual allowances'
       );
       const individualAllowanceDescription = 'Add individual monthly allowances for selected users';
       await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsIndividualAllowance.individualAllowanceDescription,
+        allowancePage.individualAllowanceDescription,
         individualAllowanceDescription
       );
 
       let status: string;
-      if (
-        await allowancePage.verifier.isTheElementVisible(
-          allowancePage.rewardsIndividualAllowance.removeIndividualAllowance
-        )
-      ) {
-        if (await allowancePage.rewardsIndividualAllowance.removeIndividualAllowance.isEnabled()) {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeIndividualAllowance)) {
+        if (await allowancePage.removeIndividualAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('individual');
           await allowancePage.validateToastMessage('Saved changes successfully');
-          await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.addIndividualAllowance, {
+          await allowancePage.clickOnElement(allowancePage.addIndividualAllowance, {
             stepInfo: 'Clicking add individual allowance button',
           });
           status = 'removed the added';
         } else {
-          await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.editIndividualAllowance, {
+          await allowancePage.clickOnElement(allowancePage.editIndividualAllowance, {
             stepInfo: 'Clicking edit individual allowance button',
           });
           status = 'edited the existing';
         }
       } else {
-        await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.addIndividualAllowance, {
+        await allowancePage.clickOnElement(allowancePage.addIndividualAllowance, {
           stepInfo: 'Clicking add individual allowance button',
         });
         status = 'adding new';
       }
 
-      await allowancePage.rewardsIndividualAllowance.addOneIndividualUserInTheAllowance(
-        amountToBeSetForIndividualAllowance
-      );
-      const currentAmount =
-        await allowancePage.rewardsIndividualAllowance.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
+      await allowancePage.addOneIndividualUserInTheAllowance(amountToBeSetForIndividualAllowance);
+      const currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       expect(currentAmount).toBe(amountToBeSetForIndividualAllowance);
 
       await allowancePage.clickOnElement(allowancePage.cancelButton, { force: true });
@@ -588,8 +531,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         await dialog.dismiss();
       });
 
-      const currentAmountAfterCancel =
-        await allowancePage.rewardsIndividualAllowance.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
+      const currentAmountAfterCancel = await allowancePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       expect(currentAmountAfterCancel).toBe(amountToBeSetForIndividualAllowance);
 
       await allowancePage.clickOnElement(allowancePage.cancelButton);
@@ -599,27 +541,19 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       if (status === 'removed the added') {
-        await allowancePage.verifier.verifyTheElementIsVisible(
-          allowancePage.rewardsIndividualAllowance.addIndividualAllowance
-        );
-        await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.addIndividualAllowance, {
+        await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.addIndividualAllowance);
+        await allowancePage.clickOnElement(allowancePage.addIndividualAllowance, {
           stepInfo: 'Clicking add individual allowance button',
         });
-        await allowancePage.verifier.verifyTheElementIsVisible(
-          allowancePage.rewardsIndividualAllowance.addIndividualButton
-        );
+        await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.addIndividualButton);
       } else if (status === 'edited the existing') {
-        await allowancePage.verifier.verifyTheElementIsVisible(
-          allowancePage.rewardsIndividualAllowance.editIndividualAllowance
-        );
-        await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.editIndividualAllowance, {
+        await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.editIndividualAllowance);
+        await allowancePage.clickOnElement(allowancePage.editIndividualAllowance, {
           stepInfo: 'Clicking edit individual allowance button',
         });
       } else {
-        await allowancePage.verifier.verifyTheElementIsVisible(
-          allowancePage.rewardsIndividualAllowance.editIndividualAllowance
-        );
-        await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.editIndividualAllowance, {
+        await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.editIndividualAllowance);
+        await allowancePage.clickOnElement(allowancePage.editIndividualAllowance, {
           stepInfo: 'Clicking edit individual allowance button',
         });
       }
@@ -649,70 +583,56 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsIndividualAllowance.individualAllowance
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.individualAllowance);
       await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsIndividualAllowance.individualAllowanceHeading,
+        allowancePage.individualAllowanceHeading,
         'Individual allowances'
       );
       const individualAllowanceDescription = 'Add individual monthly allowances for selected users';
       await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsIndividualAllowance.individualAllowanceDescription,
+        allowancePage.individualAllowanceDescription,
         individualAllowanceDescription
       );
 
-      if (
-        await allowancePage.verifier.isTheElementVisible(
-          allowancePage.rewardsIndividualAllowance.removeIndividualAllowance
-        )
-      ) {
-        if (await allowancePage.rewardsIndividualAllowance.removeIndividualAllowance.isEnabled()) {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeIndividualAllowance)) {
+        if (await allowancePage.removeIndividualAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('individual');
           await allowancePage.validateToastMessage('Saved changes successfully');
-          await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.addIndividualAllowance, {
+          await allowancePage.clickOnElement(allowancePage.addIndividualAllowance, {
             stepInfo: 'Clicking add individual allowance button',
           });
         } else {
-          await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.editIndividualAllowance, {
+          await allowancePage.clickOnElement(allowancePage.editIndividualAllowance, {
             stepInfo: 'Clicking edit individual allowance button',
           });
         }
       } else {
-        await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.addIndividualAllowance, {
+        await allowancePage.clickOnElement(allowancePage.addIndividualAllowance, {
           stepInfo: 'Clicking add individual allowance button',
         });
       }
 
-      await allowancePage.rewardsIndividualAllowance.addOneIndividualUserInTheAllowance(
-        amountToBeSetForIndividualAllowance
-      );
-      currentAmount =
-        await allowancePage.rewardsIndividualAllowance.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
+      await allowancePage.addOneIndividualUserInTheAllowance(amountToBeSetForIndividualAllowance);
+      currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       expect(currentAmount).toBe(amountToBeSetForIndividualAllowance);
 
-      await allowancePage.rewardsIndividualAllowance.increaseTheAmountBy(5);
-      currentAmount =
-        await allowancePage.rewardsIndividualAllowance.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
+      await allowancePage.increaseTheIndividualAmountBy(5);
+      currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       expect(currentAmount).toBe(amountToBeSetForIndividualAllowance + 5);
 
-      await allowancePage.rewardsIndividualAllowance.decreaseTheAmountBy(2);
-      currentAmount =
-        await allowancePage.rewardsIndividualAllowance.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
+      await allowancePage.decreaseTheUserAmountBy(2);
+      currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       expect(currentAmount).toBe(amountToBeSetForIndividualAllowance + 3);
 
-      await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.saveButton, {
+      await allowancePage.clickOnElement(allowancePage.saveButton, {
         stepInfo: 'Clicking save button',
       });
 
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsIndividualAllowance.editIndividualAllowance
-      );
-      await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.editIndividualAllowance, {
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.editIndividualAllowance);
+      await allowancePage.clickOnElement(allowancePage.editIndividualAllowance, {
         stepInfo: 'Clicking edit individual allowance button',
       });
-      currentAmount =
-        await allowancePage.rewardsIndividualAllowance.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
+      currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       await allowancePage.clickOnElement(allowancePage.cancelButton, {
         stepInfo: 'Clicking cancel button',
       });
@@ -751,59 +671,49 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsManagerAllowance.managerAllowance);
-      await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsManagerAllowance.managerAllowanceHeading,
-        'Manager allowances'
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.managerAllowance);
+      await allowancePage.verifier.verifyElementHasText(allowancePage.managerAllowanceHeading, 'Manager allowances');
       const individualAllowanceDescription = 'Add monthly allowances for people managers';
       await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsManagerAllowance.managerAllowanceDescription,
+        allowancePage.managerAllowanceDescription,
         individualAllowanceDescription
       );
 
-      if (
-        await allowancePage.verifier.isTheElementVisible(allowancePage.rewardsManagerAllowance.removeManagerAllowance)
-      ) {
-        await allowancePage.clickOnElement(allowancePage.rewardsManagerAllowance.editManagerAllowance, {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeManagerAllowance)) {
+        await allowancePage.clickOnElement(allowancePage.editManagerAllowance, {
           stepInfo: 'Clicking edit manager allowance button',
         });
       } else {
-        await allowancePage.clickOnElement(allowancePage.rewardsManagerAllowance.addManagerAllowance, {
+        await allowancePage.clickOnElement(allowancePage.addManagerAllowance, {
           stepInfo: 'Clicking add manager allowance button',
         });
       }
 
-      await allowancePage.rewardsManagerAllowance.validateTheManagerAllowanceElements();
+      await allowancePage.validateTheManagerAllowanceElements();
 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsAudienceAllowance.audienceAllowance);
-      await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsAudienceAllowance.audienceAllowanceHeading,
-        'Audience allowances'
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.audienceAllowance);
+      await allowancePage.verifier.verifyElementHasText(allowancePage.audienceAllowanceHeading, 'Audience allowances');
       const individualAllowanceDescription2 = 'Add monthly allowances for users in selected audiences';
       await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsAudienceAllowance.audienceAllowanceDescription,
+        allowancePage.audienceAllowanceDescription,
         individualAllowanceDescription2
       );
 
-      if (
-        await allowancePage.verifier.isTheElementVisible(allowancePage.rewardsAudienceAllowance.removeAudienceAllowance)
-      ) {
-        await allowancePage.clickOnElement(allowancePage.rewardsAudienceAllowance.editAudienceAllowance, {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeAudienceAllowance)) {
+        await allowancePage.clickOnElement(allowancePage.editAudienceAllowance, {
           stepInfo: 'Clicking edit audience allowance button',
         });
       } else {
-        await allowancePage.clickOnElement(allowancePage.rewardsAudienceAllowance.addAudienceAllowance, {
+        await allowancePage.clickOnElement(allowancePage.addAudienceAllowance, {
           stepInfo: 'Clicking add audience allowance button',
         });
       }
       await allowancePage.page.waitForLoadState('load');
 
-      await allowancePage.rewardsAudienceAllowance.validateTheAudienceAllowanceElements();
+      await allowancePage.validateTheAudienceAllowanceElements();
     }
   );
 
@@ -830,49 +740,40 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsIndividualAllowance.individualAllowance
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.individualAllowance);
       await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsIndividualAllowance.individualAllowanceHeading,
+        allowancePage.individualAllowanceHeading,
         'Individual allowances'
       );
       const individualAllowanceDescription = 'Add individual monthly allowances for selected users';
       await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsIndividualAllowance.individualAllowanceDescription,
+        allowancePage.individualAllowanceDescription,
         individualAllowanceDescription
       );
 
-      if (
-        await allowancePage.verifier.isTheElementVisible(
-          allowancePage.rewardsIndividualAllowance.removeIndividualAllowance
-        )
-      ) {
-        if (await allowancePage.rewardsIndividualAllowance.removeIndividualAllowance.isEnabled()) {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeIndividualAllowance)) {
+        if (await allowancePage.removeIndividualAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('individual');
           await allowancePage.validateToastMessage('Saved changes successfully');
-          await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.addIndividualAllowance, {
+          await allowancePage.clickOnElement(allowancePage.addIndividualAllowance, {
             stepInfo: 'Clicking add individual allowance button',
           });
         } else {
-          await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.editIndividualAllowance, {
+          await allowancePage.clickOnElement(allowancePage.editIndividualAllowance, {
             stepInfo: 'Clicking edit individual allowance button',
           });
         }
       } else {
-        await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.addIndividualAllowance, {
+        await allowancePage.clickOnElement(allowancePage.addIndividualAllowance, {
           stepInfo: 'Clicking add individual allowance button',
         });
       }
 
-      await allowancePage.rewardsIndividualAllowance.addOneIndividualUserInTheAllowance(
-        amountToBeSetForIndividualAllowance
-      );
-      currentAmount =
-        await allowancePage.rewardsIndividualAllowance.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
+      await allowancePage.addOneIndividualUserInTheAllowance(amountToBeSetForIndividualAllowance);
+      currentAmount = await allowancePage.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       expect(currentAmount).toBe(amountToBeSetForIndividualAllowance);
 
-      await allowancePage.clickOnElement(allowancePage.rewardsIndividualAllowance.saveButton, {
+      await allowancePage.clickOnElement(allowancePage.saveButton, {
         stepInfo: 'Clicking save button',
       });
 
@@ -916,33 +817,28 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsManagerAllowance.managerAllowance);
-      await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsManagerAllowance.managerAllowanceHeading,
-        'Manager allowances'
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.managerAllowance);
+      await allowancePage.verifier.verifyElementHasText(allowancePage.managerAllowanceHeading, 'Manager allowances');
       const managerAllowanceDescription = 'Add monthly allowances for people managers';
       await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsManagerAllowance.managerAllowanceDescription,
+        allowancePage.managerAllowanceDescription,
         managerAllowanceDescription
       );
 
-      if (
-        await allowancePage.verifier.isTheElementVisible(allowancePage.rewardsManagerAllowance.removeManagerAllowance)
-      ) {
-        if (await allowancePage.rewardsManagerAllowance.removeManagerAllowance.isEnabled()) {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeManagerAllowance)) {
+        if (await allowancePage.removeManagerAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('manager');
           await allowancePage.validateToastMessage('Saved changes successfully');
-          await allowancePage.clickOnElement(allowancePage.rewardsManagerAllowance.addManagerAllowance, {
+          await allowancePage.clickOnElement(allowancePage.addManagerAllowance, {
             stepInfo: 'Clicking add manager allowance button',
           });
         } else {
-          await allowancePage.clickOnElement(allowancePage.rewardsManagerAllowance.editManagerAllowance, {
+          await allowancePage.clickOnElement(allowancePage.editManagerAllowance, {
             stepInfo: 'Clicking edit manager allowance button',
           });
         }
       } else {
-        await allowancePage.clickOnElement(allowancePage.rewardsManagerAllowance.addManagerAllowance, {
+        await allowancePage.clickOnElement(allowancePage.addManagerAllowance, {
           stepInfo: 'Clicking add manager allowance button',
         });
       }
@@ -956,64 +852,49 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         headingDescriptionLine1,
         headingDescriptionLine2
       );
-      await allowancePage.rewardsManagerAllowance.validateTheManagerAllowanceElements();
+      await allowancePage.validateTheManagerAllowanceElements();
 
-      await allowancePage.rewardsManagerAllowance.enterThePointAmount(0);
-      await allowancePage.clickOnElement(allowancePage.rewardsManagerAllowance.fixedCurrencyConversionInfoIcon, {
+      await allowancePage.enterThePointAmount(0);
+      await allowancePage.clickOnElement(allowancePage.fixedCurrencyConversionInfoIcon, {
         stepInfo: 'Clicking fixed currency conversion info icon',
       });
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsManagerAllowance.fixedPointAmountLimitError
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.fixedPointAmountLimitError);
 
-      await allowancePage.rewardsManagerAllowance.increaseTheFXMonthlyAmountBy(amountToBeSetForFixedMonthlyAllowance);
-      const currentAmount = await allowancePage.rewardsManagerAllowance.getTheCurrentAmountInFixedInputBox();
+      await allowancePage.increaseTheFXMonthlyAmountBy(amountToBeSetForFixedMonthlyAllowance);
+      const currentAmount = await allowancePage.getTheCurrentAmountInFixedInputBox();
       expect(currentAmount).toBe(amountToBeSetForFixedMonthlyAllowance);
 
       await allowancePage.saveAmount();
       await allowancePage.validateToastMessage('Saved changes successfully');
 
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsManagerAllowance.editManagerAllowance
-      );
-      await allowancePage.clickOnElement(allowancePage.rewardsManagerAllowance.editManagerAllowance, {
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.editManagerAllowance);
+      await allowancePage.clickOnElement(allowancePage.editManagerAllowance, {
         stepInfo: 'Clicking edit manager allowance button',
       });
 
-      await allowancePage.rewardsManagerAllowance.decreaseTheFXMonthlyAmountBy(2);
-      const currentAmountAfterDecrease =
-        await allowancePage.rewardsManagerAllowance.getTheCurrentAmountInFixedInputBox();
+      await allowancePage.decreaseTheFXMonthlyAmountBy(2);
+      const currentAmountAfterDecrease = await allowancePage.getTheCurrentAmountInFixedInputBox();
       expect(currentAmountAfterDecrease).toBe(amountToBeSetForFixedMonthlyAllowance - 2);
 
       await allowancePage.saveAmount();
       await allowancePage.validateToastMessage('Saved changes successfully');
 
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsManagerAllowance.editManagerAllowance
-      );
-      await allowancePage.clickOnElement(allowancePage.rewardsManagerAllowance.editManagerAllowance, {
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.editManagerAllowance);
+      await allowancePage.clickOnElement(allowancePage.editManagerAllowance, {
         stepInfo: 'Clicking edit manager allowance button',
       });
 
-      await allowancePage.rewardsManagerAllowance.addTheVariableAmount(amountToBeSetForVariableMonthlyAllowance);
-      const currentVariableAmount = await allowancePage.rewardsManagerAllowance.getTheCurrentAmountInVariableInputBox();
+      await allowancePage.addTheVariableAmount(amountToBeSetForVariableMonthlyAllowance);
+      const currentVariableAmount = await allowancePage.getTheCurrentAmountInVariableInputBox();
       expect(currentVariableAmount).toBe(amountToBeSetForVariableMonthlyAllowance);
 
       await allowancePage.saveAmount();
       await allowancePage.validateToastMessage('Saved changes successfully');
 
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsManagerAllowance.managerAllowanceIcon
-      );
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsManagerAllowance.managerAllowanceGreenTick
-      );
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsManagerAllowance.removeManagerAllowance
-      );
-      await allowancePage.verifier.verifyTheElementIsVisible(
-        allowancePage.rewardsManagerAllowance.editManagerAllowance
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.managerAllowanceIcon);
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.managerAllowanceGreenTick);
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.removeManagerAllowance);
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.editManagerAllowance);
     }
   );
 
@@ -1035,10 +916,10 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
 
-      await allowancePage.rewardsAudienceAllowance.visitAudienceAllowancePage();
-      await allowancePage.rewardsAudienceAllowance.visitToAllowanceWithInterruption();
-      await allowancePage.rewardsAudienceAllowance.verifyErrorMessage();
-      await allowancePage.rewardsAudienceAllowance.clickOnReloadButtonWithoutAnyInterruption();
+      await allowancePage.visitAudienceAllowancePage();
+      await allowancePage.visitToAllowanceWithInterruption();
+      await allowancePage.verifyErrorMessage();
+      await allowancePage.clickOnReloadButtonWithoutAnyInterruption();
     }
   );
 
@@ -1214,39 +1095,34 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsManagerAllowance.managerAllowance);
-      await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsManagerAllowance.managerAllowanceHeading,
-        'Manager allowances'
-      );
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.managerAllowance);
+      await allowancePage.verifier.verifyElementHasText(allowancePage.managerAllowanceHeading, 'Manager allowances');
       const individualAllowanceDescription = 'Add monthly allowances for people managers';
       await allowancePage.verifier.verifyElementHasText(
-        allowancePage.rewardsManagerAllowance.managerAllowanceDescription,
+        allowancePage.managerAllowanceDescription,
         individualAllowanceDescription
       );
 
-      if (
-        await allowancePage.verifier.isTheElementVisible(allowancePage.rewardsManagerAllowance.removeManagerAllowance)
-      ) {
-        if (await allowancePage.rewardsManagerAllowance.removeManagerAllowance.isEnabled()) {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeManagerAllowance)) {
+        if (await allowancePage.removeManagerAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('manager');
           await allowancePage.validateToastMessage('Saved changes successfully');
-          await allowancePage.clickOnElement(allowancePage.rewardsManagerAllowance.addManagerAllowance, {
+          await allowancePage.clickOnElement(allowancePage.addManagerAllowance, {
             stepInfo: 'Clicking add manager allowance button',
           });
         } else {
-          await allowancePage.clickOnElement(allowancePage.rewardsManagerAllowance.editManagerAllowance, {
+          await allowancePage.clickOnElement(allowancePage.editManagerAllowance, {
             stepInfo: 'Clicking edit manager allowance button',
           });
         }
       } else {
-        await allowancePage.clickOnElement(allowancePage.rewardsManagerAllowance.addManagerAllowance, {
+        await allowancePage.clickOnElement(allowancePage.addManagerAllowance, {
           stepInfo: 'Clicking add manager allowance button',
         });
       }
 
-      await allowancePage.rewardsManagerAllowance.enterThePointAmount(amountToBeSetForIndividualAllowance);
-      const currentAmount = await allowancePage.rewardsManagerAllowance.getTheCurrentAmountInFixedInputBox();
+      await allowancePage.enterThePointAmount(amountToBeSetForIndividualAllowance);
+      const currentAmount = await allowancePage.getTheCurrentAmountInFixedInputBox();
       expect(currentAmount).toBe(amountToBeSetForIndividualAllowance);
 
       await allowancePage.clickOnElement(allowancePage.cancelButton, { force: true });
@@ -1254,7 +1130,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         await dialog.dismiss();
       });
 
-      const currentAmountAfterCancel = await allowancePage.rewardsManagerAllowance.getTheCurrentAmountInFixedInputBox();
+      const currentAmountAfterCancel = await allowancePage.getTheCurrentAmountInFixedInputBox();
       expect(currentAmountAfterCancel).toBe(amountToBeSetForIndividualAllowance);
 
       await allowancePage.clickOnElement(allowancePage.cancelButton);
@@ -1263,11 +1139,11 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       });
 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.rewardsManagerAllowance.addManagerAllowance);
-      await allowancePage.clickOnElement(allowancePage.rewardsManagerAllowance.addManagerAllowance, {
+      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.addManagerAllowance);
+      await allowancePage.clickOnElement(allowancePage.addManagerAllowance, {
         stepInfo: 'Clicking add manager allowance button',
       });
-      const currentAmountAfterAccept = await allowancePage.rewardsManagerAllowance.getTheCurrentAmountInFixedInputBox();
+      const currentAmountAfterAccept = await allowancePage.getTheCurrentAmountInFixedInputBox();
       expect(currentAmountAfterAccept).toBe(0);
     }
   );

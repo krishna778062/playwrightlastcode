@@ -1,6 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 
-import { BasePage } from '../../../../core/ui/pages/basePage';
+import { BasePage } from '@core/ui/pages/basePage';
 
 export class RewardsManagerAllowance extends BasePage {
   //Manager allowance
@@ -131,5 +131,9 @@ export class RewardsManagerAllowance extends BasePage {
     await this.variableMonthlyInputBox.clear();
     await this.variableMonthlyInputBox.fill(number.toString());
     await this.variableMonthlyInputBox.blur();
+  }
+
+  verifyThePageIsLoaded(): Promise<void> {
+    return Promise.resolve(undefined);
   }
 }

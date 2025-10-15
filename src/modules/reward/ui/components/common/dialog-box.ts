@@ -44,4 +44,8 @@ export class DialogBox extends BasePage {
   async verifyDialogDescription(expectedDescription: string): Promise<void> {
     await this.verifier.verifyElementHasText(this.dialogDescription, expectedDescription);
   }
+
+  verifyThePageIsLoaded(): Promise<void> {
+    return Promise.resolve(undefined);
+  }
 }

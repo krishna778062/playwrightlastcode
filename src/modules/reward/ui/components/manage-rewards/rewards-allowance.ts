@@ -1,11 +1,10 @@
 import { Locator, Page } from '@playwright/test';
+import { RewardsAudienceAllowance } from '@rewards-components/manage-rewards/rewards-audience-allowance';
+import { RewardsIndividualAllowance } from '@rewards-components/manage-rewards/rewards-individual-allowance';
+import { RewardsManagerAllowance } from '@rewards-components/manage-rewards/rewards-manager-allowance';
+import { RewardsUserAllowance } from '@rewards-components/manage-rewards/rewards-user-allowance';
 
-import { BasePage } from '../../../../core/ui/pages/basePage';
-
-import { RewardsAudienceAllowance } from './rewards-audience-allowance';
-import { RewardsIndividualAllowance } from './rewards-individual-allowance';
-import { RewardsManagerAllowance } from './rewards-manager-allowance';
-import { RewardsUserAllowance } from './rewards-user-allowance';
+import { BasePage } from '@core/ui/pages/basePage';
 
 export class RewardsAllowance extends BasePage {
   get rewardsUserAllowance(): RewardsUserAllowance {
@@ -162,7 +161,11 @@ export class RewardsAllowance extends BasePage {
 
     if (visibleAllowances.length === 1) {
       // Only one allowance exists, should be disabled
-      await this.verifier.verifyTheElementIsNotEnabled(visibleAllowances[0]);
+      await this.verifier.verifyTheElementIsDisabled(visibleAllowances[0]);
     }
+  }
+
+  verifyThePageIsLoaded(): Promise<void> {
+    return Promise.resolve(undefined);
   }
 }

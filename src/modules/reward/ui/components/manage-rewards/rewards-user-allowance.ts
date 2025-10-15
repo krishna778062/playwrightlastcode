@@ -1,6 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 
-import { BasePage } from '../../../../core/ui/pages/basePage';
+import { BasePage } from '@core/ui/pages/basePage';
 
 export class RewardsUserAllowance extends BasePage {
   readonly userAllowance: Locator;
@@ -80,5 +80,9 @@ export class RewardsUserAllowance extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.pointAmountInputBox);
     await this.verifier.verifyTheElementIsVisible(this.pointAmountMinusButton);
     await this.verifier.verifyTheElementIsVisible(this.pointAmountPlusButton);
+  }
+
+  verifyThePageIsLoaded(): Promise<void> {
+    return Promise.resolve(undefined);
   }
 }

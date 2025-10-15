@@ -1,6 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 
-import { BasePage } from '../../../../core/ui/pages/basePage';
+import { BasePage } from '@core/ui/pages/basePage';
 
 export class RewardsAudienceAllowance extends BasePage {
   //Audience allowance
@@ -130,5 +130,9 @@ export class RewardsAudienceAllowance extends BasePage {
     await this.page.unroute('**/recognition/admin/rewards/**');
     await this.errorReloadButton.click();
     await this.page.waitForLoadState('networkidle');
+  }
+
+  verifyThePageIsLoaded(): Promise<void> {
+    return Promise.resolve(undefined);
   }
 }

@@ -128,4 +128,8 @@ export class RewardsBudgetModal extends BasePage {
 
     return { totalDays, remainingDays };
   }
+
+  verifyThePageIsLoaded(): Promise<void> {
+    return Promise.resolve(undefined);
+  }
 }
