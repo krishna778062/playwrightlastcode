@@ -5,8 +5,10 @@ import { CreateComponent } from '@content/ui/components/createComponent';
 
 import { TestOptions } from '../types';
 import { SideNavBarComponent, TopNavBarComponent } from '../ui/components';
+import { ApplicationSettingsOption } from '../ui/types/navigation.types';
 import { getEnvConfig } from '../utils/getEnvConfig';
 
+import { EmailNotificationAppSettingsPage } from '@/src/modules/alert-notification/ui/pages/emailNotificationAppSettingsPage';
 import { ChatNavigationComponent } from '@/src/modules/chat/ui/components/chatNavigationComponent';
 import { ChatAppPage } from '@/src/modules/chat/ui/pages/chatPage/chatPage';
 import { ContentType } from '@/src/modules/content/constants';
@@ -15,6 +17,7 @@ import {
   AlbumCreationPage,
   EventCreationPage,
   FeaturedSitePage,
+  ManageApplicationPage,
   NotificationComponent,
   PageCreationPage,
   SiteCreationPage,
@@ -240,5 +243,31 @@ export class NavigationHelper {
         await this.sideNavBarComponent.moreElement.click();
       }
     });
+  }
+
+  /**
+   * Navigates to email notification settings page by side nav bar
+   */
+  async navigateToEmailNotificationSettingsPageViaSideNavBar(options?: {
+    stepInfo?: string;
+  }): Promise<EmailNotificationAppSettingsPage> {
+    return await test.step(
+      options?.stepInfo || 'Navigating to email notification settings page via side nav bar',
+      async () => {
+        //click on application settings and click on application
+        await this.sideNavBarComponent.openApplicationSettingsAndSelectMenuOptionFromSideNav(
+          ApplicationSettingsOption.APPLICATION
+        );
+        //verify manage application page is visible
+        const manageApplicationPage = new ManageApplicationPage(this.page);
+        await manageApplicationPage.verifyThePageIsLoaded();
+        // move to defaults tab
+        await manageApplicationPage.actions.clickOnDefaults();
+        // verify email notification settings page is visible
+        const emailNotificationAppSettingsPage = new EmailNotificationAppSettingsPage(this.page);
+        await emailNotificationAppSettingsPage.verifyThePageIsLoaded();
+        return emailNotificationAppSettingsPage;
+      }
+    );
   }
 }
