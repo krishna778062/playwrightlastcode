@@ -20,7 +20,7 @@ test.describe(
       const userBuilder = new UserTestDataBuilder(appManagerApiContext, getEnvConfig().apiBaseUrl);
       // Add users to system
       const endUser = await userBuilder.addUsersWithEmpIdAndDepartmentToSystem(Roles.END_USER, 'Simpplr@2025');
-      console.log('Info: End user emp: ', endUser[0].emp); //username
+      console.log('Info: End user employee number: ', endUser[0].emp); //employee number
       console.log('Info: End user full name: ', endUser[0].fullName); //fullName
     });
 
