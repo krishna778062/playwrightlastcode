@@ -19,6 +19,7 @@ export enum IntegrationsSuiteTags {
   CUSTOM_APP_TILES = '@customAppTiles',
   SHOW_MORE = '@showMore',
   PERSONALIZATION = '@personalization',
+  ASANA = '@asanaAppTiles',
 }
 
 export enum IntegrationsFeatureTags {
@@ -56,6 +57,7 @@ export const TEST_TAGS = {
   CUSTOM_APP_TILES: IntegrationsSuiteTags.CUSTOM_APP_TILES,
   SHOW_MORE: IntegrationsSuiteTags.SHOW_MORE,
   PERSONALIZATION: IntegrationsSuiteTags.PERSONALIZATION,
+  ASANA: IntegrationsSuiteTags.ASANA,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {
