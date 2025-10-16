@@ -1,4 +1,4 @@
-import { ACTION_LABELS, DASHBOARD_BUTTONS } from '@integrations/constants/common';
+import { ACTION_LABELS, DASHBOARD_BUTTONS, ORGANIZATION_SETTINGS, UI_ACTIONS } from '@integrations/constants/common';
 import { AIRTABLE_TILE } from '@integrations/test-data/app-tiles.test-data';
 import { ExternalAppProvider } from '@integrations/ui/pages/externalAppsPage';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
@@ -15,7 +15,6 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 export class SiteDashboard {
   readonly page: Page;
   private appTileComponent!: BaseAppTileComponent;
-  private airtableComponent!: BaseAppTileComponent;
   private timeOffRequestTileComponent!: TimeOffRequestTileComponent;
   private tileOperationsComponent!: TileOperationsComponent;
   private appManagerApiClient?: any;
@@ -24,7 +23,7 @@ export class SiteDashboard {
     this.page = page;
     this.appManagerApiClient = appManagerApiClient;
     this.appTileComponent = new BaseAppTileComponent(page);
-    this.airtableComponent = new BaseAppTileComponent(page);
+    this.appTileComponent = new BaseAppTileComponent(page);
     this.timeOffRequestTileComponent = new TimeOffRequestTileComponent(page);
     this.tileOperationsComponent = new TileOperationsComponent(page);
   }
@@ -47,20 +46,20 @@ export class SiteDashboard {
   }
 
   async verifyToastMessage(message: string) {
-    return this.airtableComponent.verifyToastMessageIsVisibleWithText(message);
+    return this.appTileComponent.verifyToastMessageIsVisibleWithText(message);
   }
 
   async isTilePresent(tileTitle: string) {
-    return this.airtableComponent.isTilePresent(tileTitle);
+    return this.appTileComponent.isTilePresent(tileTitle);
   }
 
   async removeTile(tileTitle: string, successMessage: string) {
-    await this.airtableComponent.clickThreeDotsOnTile(tileTitle);
-    await this.airtableComponent.clickTileOption(ACTION_LABELS.REMOVE);
-    await this.airtableComponent.verifyRemovePopupAppears(tileTitle);
-    await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.REMOVE);
+    await this.appTileComponent.clickThreeDotsOnTile(tileTitle);
+    await this.appTileComponent.clickTileOption(ACTION_LABELS.REMOVE);
+    await this.appTileComponent.verifyRemovePopupAppears(tileTitle);
+    await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.REMOVE);
     if (successMessage) {
-      await this.airtableComponent.verifyToastMessageIsVisibleWithText(successMessage);
+      await this.appTileComponent.verifyToastMessageIsVisibleWithText(successMessage);
     }
   }
 
@@ -70,10 +69,10 @@ export class SiteDashboard {
    * @param newTileTitle - New tile title
    */
   async editTileName(oldTileTitle: string, newTileTitle: string): Promise<void> {
-    await this.airtableComponent.clickThreeDotsOnTile(oldTileTitle);
-    await this.airtableComponent.clickTileOption(ACTION_LABELS.EDIT);
-    await this.airtableComponent.setTileTitle(newTileTitle);
-    await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.SAVE);
+    await this.appTileComponent.clickThreeDotsOnTile(oldTileTitle);
+    await this.appTileComponent.clickTileOption(ACTION_LABELS.EDIT);
+    await this.appTileComponent.setTileTitle(newTileTitle);
+    await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.SAVE);
   }
 
   /**
@@ -83,7 +82,7 @@ export class SiteDashboard {
   async reloadAndVerifyTilePresent(tileTitle: string): Promise<void> {
     await this.page.reload({ waitUntil: 'domcontentloaded' });
     await this.verifyThePageIsLoaded();
-    await this.airtableComponent.isTilePresent(tileTitle);
+    await this.appTileComponent.isTilePresent(tileTitle);
   }
 
   /**
@@ -115,29 +114,75 @@ export class SiteDashboard {
    */
   async addAirtableTile(tileTitle: string, config: any, destination: string): Promise<void> {
     await test.step(`Add Airtable tile: ${tileTitle}`, async () => {
-      await this.airtableComponent.clickEditDashboard();
-      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
-      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
-      await this.airtableComponent.selectAppTile(AIRTABLE_TILE.APP_NAME);
-      await this.airtableComponent.setTileTitle(tileTitle);
-      await this.airtableComponent.configureAppTile(config);
-      await this.airtableComponent.submitTileToHomeOrDashboard(destination);
+      await this.appTileComponent.clickEditDashboard();
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
+      await this.appTileComponent.selectAppTile(AIRTABLE_TILE.APP_NAME);
+      await this.appTileComponent.setTileTitle(tileTitle);
+      await this.appTileComponent.configureAppTile(config);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
     });
   }
 
   /**
-   * Complete workflow to add an Airtable tile
+   * Generic method to configure tile fields based on configuration object
+   * @param config - Configuration object with field configurations
    */
-  async addTile(tileTitle: string, appName: string, tileName: string, destination: string): Promise<void> {
+  private async configureTileFields(config: {
+    fields?: Array<{ name: string; value: string }>;
+    radioOptions?: Array<{ fieldName: string; option: string }>;
+    radioOptionsWithValues?: Array<{ fieldName: string; option: string; value: string }>;
+  }): Promise<void> {
+    if (config.fields) {
+      for (const field of config.fields) {
+        await this.appTileComponent.inputFieldByName(field.name, field.value);
+      }
+    }
+
+    if (config.radioOptions) {
+      for (const radioOption of config.radioOptions) {
+        await this.selectRadioOption(radioOption.fieldName, radioOption.option);
+      }
+    }
+
+    if (config.radioOptionsWithValues) {
+      for (const radioOptionWithValue of config.radioOptionsWithValues) {
+        await this.selectRadioOptionandValue(
+          radioOptionWithValue.fieldName,
+          radioOptionWithValue.option,
+          radioOptionWithValue.value
+        );
+      }
+    }
+  }
+
+  /**
+   * Complete workflow to add an app tile with flexible configuration
+   * @param tileTitle - The title of the tile to add
+   * @param appName - The name of the app to add
+   * @param tileName - The name of the tile to add
+   * @param destination - The destination of the tile to add
+   * @param config - Optional configuration object for fields and options
+   */
+  async addTile(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    destination: string,
+    config?: {
+      fields?: Array<{ name: string; value: string }>;
+      radioOptions?: Array<{ fieldName: string; option: string }>;
+      radioOptionsWithValues?: Array<{ fieldName: string; option: string; value: string }>;
+    }
+  ): Promise<void> {
     await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
-      await this.airtableComponent.clickEditDashboard();
-      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
-      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
-      await this.airtableComponent.selectAppTile(appName);
-      await this.airtableComponent.selectTile(tileName);
-      await this.airtableComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
-      await this.airtableComponent.setTileTitle(tileTitle);
-      await this.airtableComponent.submitTileToHomeOrDashboard(destination);
+      await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
+
+      if (config) {
+        await this.configureTileFields(config);
+      }
+
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
     });
   }
 
@@ -213,13 +258,7 @@ export class SiteDashboard {
     destination: string
   ): Promise<void> {
     await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
-      await this.appTileComponent.clickEditDashboard();
-      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
-      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
-      await this.appTileComponent.selectAppTile(appName);
-      await this.appTileComponent.selectTile(tileName);
-      await this.appTileComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
-      await this.appTileComponent.setTileTitle(tileTitle);
+      await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
       await this.appTileComponent.enterUrl(fieldName, appManagerDefined, url);
       await this.appTileComponent.submitTileToHomeOrDashboard(destination);
     });
@@ -246,7 +285,7 @@ export class SiteDashboard {
   }
 
   /**
-   * Complete workflow to add an app tile
+   * Complete workflow to add an app tile with URL field
    */
   async addTileWithUrlField(
     tileTitle: string,
@@ -256,16 +295,8 @@ export class SiteDashboard {
     url: string,
     destination: string
   ): Promise<void> {
-    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
-      await this.appTileComponent.clickEditDashboard();
-      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
-      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
-      await this.appTileComponent.selectAppTile(appName);
-      await this.appTileComponent.selectTile(tileName);
-      await this.appTileComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
-      await this.appTileComponent.setTileTitle(tileTitle);
-      await this.appTileComponent.inputFieldByName(fieldName, url);
-      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    await this.addTile(tileTitle, appName, tileName, destination, {
+      fields: [{ name: fieldName, value: url }],
     });
   }
 
@@ -304,15 +335,7 @@ export class SiteDashboard {
     return this.tileOperationsComponent.verifyButtonStatus(status, buttonName);
   }
   /**
-   * Complete workflow to add an app tile with text field
-   * @param tileTitle - The title of the tile to add
-   * @param appName - The name of the app to add
-   * @param tileName - The name of the tile to add
-   * @param fieldName - The name of the field to add
-   * @param url - The value of the field to add
-   * @param fieldName2 - The name of the field to add
-   * @param id - The value of the field to add
-   * @param destination - The destination of the tile to add
+   * Complete workflow to add an app tile with text fields
    */
   async addTileWithTextField(
     tileTitle: string,
@@ -324,28 +347,16 @@ export class SiteDashboard {
     id: string,
     destination: string
   ): Promise<void> {
-    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
-      await this.appTileComponent.clickEditDashboard();
-      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
-      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
-      await this.appTileComponent.selectAppTile(appName);
-      await this.appTileComponent.selectTile(tileName);
-      await this.appTileComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
-      await this.appTileComponent.setTileTitle(tileTitle);
-      await this.appTileComponent.inputFieldByName(fieldName, url);
-      await this.appTileComponent.inputFieldByName(fieldName2, id);
-      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    await this.addTile(tileTitle, appName, tileName, destination, {
+      fields: [
+        { name: fieldName, value: url },
+        { name: fieldName2, value: id },
+      ],
     });
   }
 
   /**
-   * Complete workflow to add an app tile with manager defined configuration
-   * @param tileTitle - The title of the tile to add
-   * @param appName - The name of the app to add
-   * @param tileName - The name of the tile to add
-   * @param fieldName - The name of the field to add
-   * @param url - The value of the field to add
-   * @param destination - The destination of the tile to add
+   * Complete workflow to add an app tile with manager defined settings
    */
   async addTilewithManagerDefined(
     tileTitle: string,
@@ -355,29 +366,29 @@ export class SiteDashboard {
     url: string,
     destination: string
   ): Promise<void> {
-    await test.step(`Add ${appName} tile with manager defined: ${tileTitle}`, async () => {
-      await this.appTileComponent.clickEditDashboard();
-      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
-      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
-      await this.appTileComponent.selectAppTile(appName);
-      await this.appTileComponent.selectTile(tileName);
-      await this.appTileComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
-      await this.appTileComponent.setTileTitle(tileTitle);
-      await this.appTileComponent.inputFieldByName(fieldName, url);
-      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    await this.addTile(tileTitle, appName, tileName, destination, {
+      fields: [{ name: fieldName, value: url }],
     });
   }
 
   /**
-   * Complete workflow to add an app tile with user defined configuration
-   * @param tileTitle - The title of the tile to add
-   * @param appName - The name of the app to add
-   * @param tileName - The name of the tile to add
-   * @param fieldName - The name of the field to add
-   * @param fieldValue - The value of the field to add
-   * @param fieldName2 - The name of the field to add
-   * @param fieldValue2 - The value of the field to add
-   * @param destination - The destination of the tile to add
+   * Open add tile modal, select app and tile, then set tile title
+   * @param appName - The name of the app to select
+   * @param tileName - The name of the tile to select
+   * @param tileTitle - The title to set for the tile
+   */
+  async openModalSelectAppTileAndSetTitle(appName: string, tileName: string, tileTitle: string): Promise<void> {
+    await this.appTileComponent.clickEditDashboard();
+    await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+    await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
+    await this.appTileComponent.selectAppTile(appName);
+    await this.appTileComponent.selectTile(tileName);
+    await this.appTileComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
+    await this.appTileComponent.setTileTitle(tileTitle);
+  }
+
+  /**
+   * Complete workflow to add an app tile with user defined settings
    */
   async addTilewithUserDefined(
     tileTitle: string,
@@ -389,17 +400,23 @@ export class SiteDashboard {
     fieldValue2: string,
     destination: string
   ): Promise<void> {
-    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
-      await this.airtableComponent.clickEditDashboard();
-      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
-      await this.airtableComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
-      await this.airtableComponent.selectAppTile(appName);
-      await this.airtableComponent.selectTile(tileName);
-      await this.airtableComponent.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
-      await this.airtableComponent.setTileTitle(tileTitle);
-      await this.appTileComponent.inputFieldByName(fieldName, fieldValue);
-      await this.selectRadioOption(fieldName2, fieldValue2);
-      await this.airtableComponent.submitTileToHomeOrDashboard(destination);
+    await this.addTile(tileTitle, appName, tileName, destination, {
+      fields: [{ name: fieldName, value: fieldValue }],
+      radioOptions: [{ fieldName: fieldName2, option: fieldValue2 }],
+    });
+  }
+
+  /**
+   * Complete workflow to add an app tile with single field personalize option
+   */
+  async addTilewithPersonalizeSingleField(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    fieldName: string
+  ): Promise<void> {
+    await this.addTile(tileTitle, appName, tileName, UI_ACTIONS.ADD_TO_SITE, {
+      radioOptions: [{ fieldName, option: ORGANIZATION_SETTINGS.USER_DEFINED }],
     });
   }
 
@@ -448,5 +465,91 @@ export class SiteDashboard {
    */
   async verifyLabel(labelText: string): Promise<void> {
     return this.tileOperationsComponent.verifyLabel(labelText);
+  }
+  /**
+   * Select radio option and dropdown value using tile operations component
+   */
+  async selectRadioOptionandValue(fieldName: string, radioOption: string, dropdownValue: string): Promise<void> {
+    return this.tileOperationsComponent.selectRadioOptionandValue(fieldName, radioOption, dropdownValue);
+  }
+  /**
+   * Complete workflow to add app tile with site manager defined configuration
+   */
+  async addTileWithSiteManagerDefined(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    destination: string,
+    fieldName: string,
+    fieldValue: string,
+    fieldName2: string,
+    fieldValue2: string,
+    fieldName3: string,
+    fieldValue3: string
+  ): Promise<void> {
+    await this.addTile(tileTitle, appName, tileName, destination, {
+      radioOptionsWithValues: [
+        { fieldName, option: ORGANIZATION_SETTINGS.SITE_MANAGER_DEFINED, value: fieldValue },
+        { fieldName: fieldName2, option: ORGANIZATION_SETTINGS.SITE_MANAGER_DEFINED, value: fieldValue2 },
+        { fieldName: fieldName3, option: ORGANIZATION_SETTINGS.SITE_MANAGER_DEFINED, value: fieldValue3 },
+      ],
+    });
+  }
+  async verifyPersonalizedExpensifyReportData(
+    tileTitle: string,
+    expectedStatus: string,
+    expectedApprover: string,
+    maxDaysAgo: number = 30
+  ): Promise<void> {
+    await this.tileOperationsComponent.verifyPersonalizedExpensifyReportData(
+      tileTitle,
+      expectedStatus,
+      expectedApprover,
+      maxDaysAgo
+    );
+  }
+  /**
+   * Select value from Organization combobox dropdown
+   */
+  async selectFromDropdown(option: string, itemName: string): Promise<void> {
+    await this.tileOperationsComponent.selectFromDropdown(option, itemName);
+  }
+
+  async personalizeTileWithDropdowns(
+    tileTitle: string,
+    fieldName: string,
+    fieldValue: string,
+    fieldName2: string,
+    fieldValue2: string,
+    fieldName3: string,
+    fieldValue3: string
+  ): Promise<void> {
+    await test.step(`Personalize tile: ${tileTitle}`, async () => {
+      await this.appTileComponent.openPersonalizeOptions(tileTitle);
+      await this.selectFromDropdown(fieldName, fieldValue);
+      await this.selectFromDropdown(fieldName2, fieldValue2);
+      await this.selectFromDropdown(fieldName3, fieldValue3);
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.SAVE);
+    });
+  }
+  /**
+   * Complete workflow to add app tile with user defined configuration
+   */
+  async addTileWithUserDefinedOptions(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    fieldName: string,
+    fieldName2: string,
+    fieldName3: string,
+    destination: string
+  ): Promise<void> {
+    await this.addTile(tileTitle, appName, tileName, destination, {
+      radioOptions: [
+        { fieldName, option: ORGANIZATION_SETTINGS.USER_DEFINED },
+        { fieldName: fieldName2, option: ORGANIZATION_SETTINGS.USER_DEFINED },
+        { fieldName: fieldName3, option: ORGANIZATION_SETTINGS.USER_DEFINED },
+      ],
+    });
   }
 }
