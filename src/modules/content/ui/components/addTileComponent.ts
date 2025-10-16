@@ -54,7 +54,7 @@ export class AddTileComponent extends BaseComponent {
       const tileResponse = await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.addToHomeButton, { delay: 2_000 }),
         response =>
-          response.url().includes(API_ENDPOINTS.tile.create) &&
+          response.url().includes(API_ENDPOINTS.appManagement.tiles.create) &&
           response.request().method() === 'POST' &&
           response.status() === 201,
         {

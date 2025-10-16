@@ -83,7 +83,7 @@ export class NewHomePage extends BasePage {
     return this.addTileComponent.clickSocialCampaignsButton();
   }
 
-  async clickAddToHomeButton(): Promise<void> {
+  async clickAddToHomeButton(): Promise<string> {
     return this.addTileComponent.clickAddToHomeButton();
   }
 
