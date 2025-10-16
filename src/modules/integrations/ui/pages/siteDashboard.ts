@@ -558,4 +558,19 @@ export class SiteDashboard {
   async verifyDoceboReportData(tileTitle: string, EnrollmentStatus: string, CourseType: string): Promise<void> {
     await this.tileOperationsComponent.verifyDoceboReportData(tileTitle, EnrollmentStatus, CourseType);
   }
+  
+  /**
+   * Complete workflow to add an app tile with personalize option
+   */
+  async addTilewithPersonalize(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    fieldName: string,
+    destination: string
+  ): Promise<void> {
+    await this.addTile(tileTitle, appName, tileName, destination, {
+      radioOptions: [{ fieldName: fieldName, option: ORGANIZATION_SETTINGS.USER_DEFINED }],
+    });
+  }
 }
