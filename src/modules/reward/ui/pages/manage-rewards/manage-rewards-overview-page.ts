@@ -356,7 +356,7 @@ export class ManageRewardsOverviewPage extends BasePage {
     const [apiResponse] = await Promise.all([
       this.page.waitForResponse(
         res =>
-          res.url().includes('/recognition/admin/rewards') &&
+          res.url().endsWith('/recognition/admin/rewards') &&
           res.request().resourceType() === 'xhr' &&
           res.status() === 200 &&
           res.request().method() === 'GET'
@@ -753,48 +753,91 @@ export class ManageRewardsOverviewPage extends BasePage {
   }
 
   // Tooltip validation methods for allowance tests
-  async validateTheAddButtonTooltip(allowanceType: 'users' | 'managers' | 'audiences' | 'individuals'): Promise<void> {
-    const buttonMap = {
-      users: this.rewardsAllowance.rewardsUserAllowance.addUserAllowance,
-      managers: this.rewardsAllowance.rewardsManagerAllowance.addManagerAllowance,
-      audiences: this.rewardsAllowance.rewardsAudienceAllowance.addAudienceAllowance,
-      individuals: this.rewardsAllowance.rewardsIndividualAllowance.addIndividualAllowance,
+  async validateTheAddButtonTooltip(
+    allowanceType: 'Users allowance' | 'Manager allowances' | 'Audience allowances' | 'Individual allowances'
+  ): Promise<void> {
+    const buttonMap: Record<string, Locator> = {
+      'Users allowance': this.rewardsAllowance.rewardsUserAllowance.addUserAllowance,
+      'Manager allowances': this.rewardsAllowance.rewardsManagerAllowance.addManagerAllowance,
+      'Audience allowances': this.rewardsAllowance.rewardsAudienceAllowance.addAudienceAllowance,
+      'Individual allowances': this.rewardsAllowance.rewardsIndividualAllowance.addIndividualAllowance,
     };
 
     const button = buttonMap[allowanceType];
-    await button.hover();
-    await this.verifier.waitUntilElementIsVisible(this.tooltipText);
-    await this.verifier.verifyElementContainsText(this.tooltipText, 'Allowances are refreshing');
+    if (!button) {
+      throw new Error(`validateTheAddButtonTooltip: no button locator found for allowanceType="${allowanceType}"`);
+    }
+
+    // Wait for the button to be visible & enabled before hovering (best practice)
+    await expect(button).toBeVisible({ timeout: 5000 });
+
+    // Preferred: normal hover (avoid force unless UI requires it)
+    await button.hover({ force: true });
+
+    const locatorString = `//div[contains(@class,'PanelActionItem_layout')]//h3[text()="${allowanceType}"]//parent::div//following-sibling::div//div[@role="tooltip"]`;
+    await this.verifier.verifyTheElementIsVisible(this.page.locator(locatorString));
+    await this.verifier.verifyElementContainsText(
+      this.page.locator(locatorString),
+      'Allowances cannot be added while refreshing'
+    );
   }
 
-  async validateTheEditButtonTooltip(allowanceType: 'users' | 'managers' | 'audiences' | 'individuals'): Promise<void> {
-    const buttonMap = {
-      users: this.rewardsAllowance.rewardsUserAllowance.editUserAllowance,
-      managers: this.rewardsAllowance.rewardsManagerAllowance.editManagerAllowance,
-      audiences: this.rewardsAllowance.rewardsAudienceAllowance.editAudienceAllowance,
-      individuals: this.rewardsAllowance.rewardsIndividualAllowance.editIndividualAllowance,
+  async validateTheEditButtonTooltip(
+    allowanceType: 'Users allowance' | 'Manager allowances' | 'Audience allowances' | 'Individual allowances'
+  ): Promise<void> {
+    const buttonMap: Record<string, Locator> = {
+      'Users allowance': this.rewardsAllowance.rewardsUserAllowance.editUserAllowance,
+      'Manager allowances': this.rewardsAllowance.rewardsManagerAllowance.editManagerAllowance,
+      'Audience allowances': this.rewardsAllowance.rewardsAudienceAllowance.editAudienceAllowance,
+      'Individual allowances': this.rewardsAllowance.rewardsIndividualAllowance.editIndividualAllowance,
     };
 
     const button = buttonMap[allowanceType];
-    await button.hover();
-    await this.verifier.waitUntilElementIsVisible(this.tooltipText);
-    await this.verifier.verifyElementContainsText(this.tooltipText, 'Allowances are refreshing');
+    if (!button) {
+      throw new Error(`validateTheAddButtonTooltip: no button locator found for allowanceType="${allowanceType}"`);
+    }
+
+    // Wait for the button to be visible & enabled before hovering (best practice)
+    await expect(button).toBeVisible({ timeout: 5000 });
+
+    // Preferred: normal hover (avoid force unless UI requires it)
+    await button.hover({ force: true });
+
+    const locatorString = `//div[contains(@class,'PanelActionItem_layout')]//h3[text()="${allowanceType}"]//parent::div//following-sibling::div//div[@role="tooltip"]`;
+    await this.verifier.verifyTheElementIsVisible(this.page.locator(locatorString).last());
+    await this.verifier.verifyElementContainsText(
+      this.page.locator(locatorString).last(),
+      'Allowances cannot be edited while refreshing'
+    );
   }
 
   async validateTheRemoveButtonTooltip(
-    allowanceType: 'users' | 'managers' | 'audiences' | 'individuals'
+    allowanceType: 'Users allowance' | 'Manager allowances' | 'Audience allowances' | 'Individual allowances'
   ): Promise<void> {
-    const buttonMap = {
-      users: this.rewardsAllowance.rewardsUserAllowance.removeUserAllowance,
-      managers: this.rewardsAllowance.rewardsManagerAllowance.removeManagerAllowance,
-      audiences: this.rewardsAllowance.rewardsAudienceAllowance.removeAudienceAllowance,
-      individuals: this.rewardsAllowance.rewardsIndividualAllowance.removeIndividualAllowance,
+    const buttonMap: Record<string, Locator> = {
+      'Users allowance': this.rewardsAllowance.rewardsUserAllowance.removeUserAllowance,
+      'Manager allowances': this.rewardsAllowance.rewardsManagerAllowance.removeManagerAllowance,
+      'Audience allowances': this.rewardsAllowance.rewardsAudienceAllowance.removeAudienceAllowance,
+      'Individual allowances': this.rewardsAllowance.rewardsIndividualAllowance.removeIndividualAllowance,
     };
 
     const button = buttonMap[allowanceType];
-    await button.hover();
-    await this.verifier.waitUntilElementIsVisible(this.tooltipText);
-    await this.verifier.verifyElementContainsText(this.tooltipText, 'Allowances are refreshing');
+    if (!button) {
+      throw new Error(`validateTheAddButtonTooltip: no button locator found for allowanceType="${allowanceType}"`);
+    }
+
+    // Wait for the button to be visible & enabled before hovering (best practice)
+    await expect(button).toBeVisible({ timeout: 5000 });
+
+    // Preferred: normal hover (avoid force unless UI requires it)
+    await button.hover({ force: true });
+
+    const locatorString = `//div[contains(@class,'PanelActionItem_layout')]//h3[text()="${allowanceType}"]//parent::div//following-sibling::div//div[@role="tooltip"]`;
+    await this.verifier.verifyTheElementIsVisible(this.page.locator(locatorString).first());
+    await this.verifier.verifyElementContainsText(
+      this.page.locator(locatorString).first(),
+      'Allowances cannot be removed while refreshing'
+    );
   }
 
   // Methods for RC-3055 test

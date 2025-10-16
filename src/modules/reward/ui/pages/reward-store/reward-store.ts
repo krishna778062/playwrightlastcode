@@ -202,7 +202,7 @@ export class RewardsStore extends BasePage {
     const [apiResponse] = await Promise.all([
       this.page.waitForResponse(
         res =>
-          res.url().includes('/recognition/v1/tenant/config') &&
+          res.url().endsWith('/recognition/v1/tenant/config') &&
           res.status() === 200 &&
           res.request().resourceType() === 'xhr' &&
           res.request().method() === 'GET'

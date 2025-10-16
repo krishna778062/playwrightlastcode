@@ -423,7 +423,7 @@ export class RecognitionHubPage extends BasePage {
     const [apiResponse] = await Promise.all([
       this.page.waitForResponse(
         res =>
-          res.url().includes('/recognition/v1/tenant/config') &&
+          res.url().endsWith('/recognition/v1/tenant/config') &&
           res.request().resourceType() === 'xhr' &&
           res.status() === 200 &&
           res.request().method() === 'GET'

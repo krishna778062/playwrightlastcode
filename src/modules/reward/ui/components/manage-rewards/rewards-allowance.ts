@@ -165,6 +165,72 @@ export class RewardsAllowance extends BasePage {
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.waitUntilElementIsVisible(this.rewardsUserAllowance.userAllowanceIcon);
+    await this.verifier.waitUntilElementIsVisible(this.rewardsUserAllowance.userAllowanceHeading, {
+      timeout: 15000,
+    });
+  }
+
+  /**
+   * Build the response payload object (pure function — useful for unit testing / generating all combinations).
+   * - userAllowance/managerAllowance/audienceAllowance/individualAllowance: boolean | null | undefined
+   *   - truthy => include that type in results
+   *   - falsy (false / null / undefined) => exclude
+   */
+  async buildAllowanceResponse(
+    userAllowance?: boolean,
+    managerAllowance?: boolean,
+    audienceAllowance?: boolean,
+    individualAllowance?: boolean
+  ) {
+    // push in a consistent order (matches your "all" example ordering if all true)
+    const results: Array<{ type: string }> = [];
+
+    if (individualAllowance) results.push({ type: 'INDIVIDUAL' });
+    if (audienceAllowance) results.push({ type: 'AUDIENCE' });
+    if (userAllowance) results.push({ type: 'USER' });
+    if (managerAllowance) results.push({ type: 'MANAGER' });
+
+    if (results.length === 0) {
+      return { results: [] }; // matches your "if all null" example (no total)
+    }
+
+    return { results, total: results.length };
+  }
+
+  /**
+   * Playwright route-based mock.
+   *
+   * Usage:
+   *   await this.mockTheAllowances(true, false, false, null);
+   *
+   * Parameters:
+   *  - userAllowance, managerAllowance, audienceAllowance, individualAllowance:
+   *      boolean | null | undefined
+   */
+  async mockTheAllowances(
+    userAllowance?: boolean,
+    managerAllowance?: boolean,
+    audienceAllowance?: boolean,
+    individualAllowance?: boolean
+  ) {
+    // prepare the payload once (so we can JSON.stringify it inside route.fulfill)
+    const payload = await this.buildAllowanceResponse(
+      userAllowance,
+      managerAllowance,
+      audienceAllowance,
+      individualAllowance
+    );
+    console.log(payload);
+    await this.page.route('**/recognition/admin/rewards/allowances/monthly', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(payload),
+      });
+    });
+
+    // reload to trigger the request that will be served by the mocked route
+    await this.page.reload();
+    await this.verifyThePageIsLoaded();
   }
 }

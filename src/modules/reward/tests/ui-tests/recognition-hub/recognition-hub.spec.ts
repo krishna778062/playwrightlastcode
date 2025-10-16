@@ -124,7 +124,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   test(
     "[RC-3328] Verify if user's point(points to give) balance is 0 when allowances are refreshing",
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, TestPriority.P2],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -184,7 +184,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   test(
     '[RC-3326] Validate if user is able to Delete recognition with points rollback when Allowances are refreshing',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, TestPriority.P2],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {

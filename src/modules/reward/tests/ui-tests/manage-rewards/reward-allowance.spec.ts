@@ -13,8 +13,6 @@ import { tagTest } from '@core/utils/testDecorator';
 test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-    await manageRewardsPage.loadPageWithHarness();
-    await manageRewardsPage.verifyThePageIsLoaded();
     await manageRewardsPage.enableTheRewardsAndPeerGiftingIfDisabled();
   });
 
@@ -181,13 +179,13 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
   );
 
   test(
-    '[RC-2459] Verify user allowances index page for audience allowances',
+    '[RC-2459] Verify index page for audience allowances',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION, TestGroupType.SMOKE],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
-        description: 'Verify user allowances index page for audience allowances',
+        description: 'Verify index page for audience allowances',
         zephyrTestId: 'RC-2459',
         storyId: 'RC-2459',
       });
@@ -931,7 +929,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
   test(
     '[RC-3325] Validate that the user cannot add any allowance when Allowances are refreshing',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -948,15 +946,16 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         return (window as any).Simpplr?.Settings?.accountId;
       });
       await TestDbScenarios.setupAllowanceRefresh(tenantCode);
-
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
+      await manageRewardsPage.rewardsAllowance.mockTheAllowances(false, false, false, false);
+      await manageRewardsPage.rewardsAllowance.verifyThePageIsLoaded();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
 
       // Validate tooltips for disabled add buttons
-      await manageRewardsPage.validateTheAddButtonTooltip('users');
-      await manageRewardsPage.validateTheAddButtonTooltip('managers');
-      await manageRewardsPage.validateTheAddButtonTooltip('audiences');
-      await manageRewardsPage.validateTheAddButtonTooltip('individuals');
+      await manageRewardsPage.validateTheAddButtonTooltip('Users allowance');
+      await manageRewardsPage.validateTheAddButtonTooltip('Manager allowances');
+      await manageRewardsPage.validateTheAddButtonTooltip('Audience allowances');
+      await manageRewardsPage.validateTheAddButtonTooltip('Individual allowances');
 
       // Restore normal API behavior
       await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
@@ -966,7 +965,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
   test(
     '[RC-3323] Validate that the user cannot edit any allowance when Allowances are refreshing',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -986,15 +985,14 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         return (window as any).Simpplr?.Settings?.accountId;
       });
       await TestDbScenarios.setupAllowanceRefresh(tenantCode);
-
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
-      await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
+      await manageRewardsPage.rewardsAllowance.mockTheAllowances(true, true, true, true);
 
       // Validate tooltips for disabled edit buttons
-      await manageRewardsPage.validateTheEditButtonTooltip('users');
-      await manageRewardsPage.validateTheEditButtonTooltip('managers');
-      await manageRewardsPage.validateTheEditButtonTooltip('audiences');
-      await manageRewardsPage.validateTheEditButtonTooltip('individuals');
+      await manageRewardsPage.validateTheEditButtonTooltip('Users allowance');
+      await manageRewardsPage.validateTheEditButtonTooltip('Manager allowances');
+      await manageRewardsPage.validateTheEditButtonTooltip('Audience allowances');
+      await manageRewardsPage.validateTheEditButtonTooltip('Individual allowances');
 
       // Restore normal API behavior
       await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
@@ -1004,7 +1002,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
   test(
     '[RC-3324] Validate that the user cannot remove any allowance when Allowances are refreshing',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -1026,13 +1024,15 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await TestDbScenarios.setupAllowanceRefresh(tenantCode);
 
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
+      await manageRewardsPage.rewardsAllowance.mockTheAllowances(true, true, true, true);
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
+      await manageRewardsPage.rewardsAllowance.verifyThePageIsLoaded();
 
       // Validate tooltips for disabled remove buttons
-      await manageRewardsPage.validateTheRemoveButtonTooltip('users');
-      await manageRewardsPage.validateTheRemoveButtonTooltip('managers');
-      await manageRewardsPage.validateTheRemoveButtonTooltip('audiences');
-      await manageRewardsPage.validateTheRemoveButtonTooltip('individuals');
+      await manageRewardsPage.validateTheRemoveButtonTooltip('Users allowance');
+      await manageRewardsPage.validateTheRemoveButtonTooltip('Manager allowances');
+      await manageRewardsPage.validateTheRemoveButtonTooltip('Audience allowances');
+      await manageRewardsPage.validateTheRemoveButtonTooltip('Individual allowances');
 
       // Restore normal API behavior
       await TestDbScenarios.setupAllowanceRefresh(tenantCode);

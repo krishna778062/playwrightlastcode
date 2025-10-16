@@ -1,4 +1,5 @@
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { TestDbScenarios } from '@rewards/utils/testDatabaseHelper';
 import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 import { UserProfilePage } from '@rewards-pages/user-profile/user-profile-page';
@@ -114,7 +115,7 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
   test(
     '[RC-3418] Verify the tooltip on the User wallet section, when Allowances are refreshing',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P2],
+      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -126,10 +127,14 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
       const userProfilePage = new UserProfilePage(appManagerFixture.page);
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       await recognitionHub.visitRecognitionHub();
-      await recognitionHub.enableDistributionAllowanceAsFailed();
+      // Get tenant code
+      const tenantCode = await appManagerFixture.page.evaluate(() => {
+        return (window as any).Simpplr?.Settings?.accountId;
+      });
+      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
       await userProfilePage.navigateToCurrentUserProfile();
       await userProfilePage.validateAllowanceRefreshingTooltip();
-      await recognitionHub.disableDistributionAllowanceAsSuccess();
+      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
     }
   );
 });

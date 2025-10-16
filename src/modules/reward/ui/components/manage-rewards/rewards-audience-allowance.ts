@@ -1,4 +1,5 @@
-import { Locator, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
+import { DialogBox } from '@rewards-components/common/dialog-box';
 
 import { BasePage } from '@core/ui/pages/basePage';
 
@@ -51,9 +52,9 @@ export class RewardsAudienceAllowance extends BasePage {
       'Add monthly allowances for users in selected audiences'
     );
     // Action buttons
-    this.addAudienceAllowance = this.audienceAllowance.getByRole('link', { name: 'Add audience allowances' });
-    this.removeAudienceAllowance = this.audienceAllowance.getByRole('button', { name: 'Remove audience allowances' });
-    this.editAudienceAllowance = this.audienceAllowance.getByRole('link', { name: 'Edit audience allowances' });
+    this.addAudienceAllowance = this.audienceAllowance.locator('button[aria-label="Add audience allowances"]');
+    this.removeAudienceAllowance = this.audienceAllowance.locator('button[aria-label="Remove audience allowances"]');
+    this.editAudienceAllowance = this.audienceAllowance.locator('button[aria-label="Edit audience allowances"]');
 
     // Page container
     this.audienceHeaderContainer = page.locator('header[class*="PageContainer-module__header"]');
@@ -134,35 +135,18 @@ export class RewardsAudienceAllowance extends BasePage {
 
   async addOneAudienceInTheAllowance(amount: number): Promise<void> {
     const audienceAllowanceContainer = this.page.locator('div[data-testid="pageContainer-page"]');
-    await audienceAllowanceContainer.waitFor({ state: 'attached' });
+    await this.verifier.verifyTheElementIsVisible(audienceAllowanceContainer);
 
-    const alreadyAddedAudience = audienceAllowanceContainer
-      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
-      .first();
-    const alreadyAddedAudienceInputBox = audienceAllowanceContainer
-      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
-      .first()
-      .locator('td input');
-    const removeAddedAudience = audienceAllowanceContainer
-      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
-      .last()
-      .locator('td button[aria-label*="Remove"]');
+    const noAudienceList = audienceAllowanceContainer.locator(
+      '//p[text()="You haven’t created any audience allowances yet"]'
+    );
 
-    let anyUserAdded: boolean;
-    try {
-      await alreadyAddedAudience.waitFor({ state: 'visible', timeout: 10000 });
-      anyUserAdded = true;
-    } catch {
-      console.log('❌ Element not visible within 10s');
-      anyUserAdded = false;
-    }
+    if (!(await this.verifier.isTheElementVisible(noAudienceList))) {
+      const alreadyAddedAudienceInputBox = audienceAllowanceContainer
+        .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
+        .first()
+        .locator('td input');
 
-    if (!anyUserAdded) {
-      await this.clickOnElement(this.addAudienceButton, {
-        stepInfo: 'Clicking add audience button',
-      });
-      // Dialog handling would go here
-    } else {
       const currentValue = await alreadyAddedAudienceInputBox.inputValue();
       if (Number(currentValue) !== amount) {
         await this.fillInElement(this.recentlyAddedPointAmountInputBox, String(amount), {
@@ -172,11 +156,30 @@ export class RewardsAudienceAllowance extends BasePage {
         await this.clickOnElement(this.addAudienceButton, {
           stepInfo: 'Clicking add audience button',
         });
-        // Dialog handling would go here
-        await this.clickOnElement(removeAddedAudience, {
-          stepInfo: 'Removing added audience',
-        });
+        const dialogBox = new DialogBox(this.page);
+        await expect(dialogBox.title).toHaveText('Add audience allowance');
+        await expect(dialogBox.closeButton).toBeVisible();
+        await dialogBox.container.locator('input').last().waitFor({ state: 'visible' });
+        await dialogBox.container.locator('input').first().click();
+        await dialogBox.container.locator('[role="menuitem"]:not([aria-disabled="true"])').last().click();
+        await dialogBox.container.locator('input[id="pointAmount"]').fill(String(amount));
+        await expect(dialogBox.container.getByRole('button', { name: 'Add allowance' })).toBeEnabled();
+        await dialogBox.container.getByRole('button', { name: 'Add allowance' }).click();
+        await this.removeAddedAudience.click();
       }
+    } else {
+      await this.clickOnElement(this.addAudienceButton, {
+        stepInfo: 'Clicking add audience button',
+      });
+      const dialogBox = new DialogBox(this.page);
+      await expect(dialogBox.title).toHaveText('Add audience allowance');
+      await expect(dialogBox.closeButton).toBeVisible();
+      await dialogBox.container.locator('input').last().waitFor({ state: 'visible' });
+      await dialogBox.container.locator('input').first().click();
+      await dialogBox.container.locator('[role="menuitem"]:not([aria-disabled="true"])').last().click();
+      await dialogBox.container.locator('input[id="pointAmount"]').fill(String(amount));
+      await expect(dialogBox.container.getByRole('button', { name: 'Add allowance' })).toBeEnabled();
+      await dialogBox.container.getByRole('button', { name: 'Add allowance' }).click();
     }
   }
 

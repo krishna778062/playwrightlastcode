@@ -30,9 +30,9 @@ export class RewardsUserAllowance extends BasePage {
     this.userAllowanceHeading = this.userAllowance.getByRole('heading', { name: 'Users allowance' });
     this.userAllowanceDescription = this.userAllowance.getByText('Add a monthly allowance for');
     // Action buttons
-    this.addUserAllowance = this.userAllowance.getByRole('link', { name: 'Add users allowance' });
-    this.removeUserAllowance = this.userAllowance.getByRole('button', { name: 'Remove users allowance' });
-    this.editUserAllowance = this.userAllowance.getByRole('link', { name: 'Edit users allowance' });
+    this.addUserAllowance = this.userAllowance.locator('button[aria-label="Add users allowance"]');
+    this.removeUserAllowance = this.userAllowance.locator('button[aria-label="Remove users allowance"]');
+    this.editUserAllowance = this.userAllowance.locator('button[aria-label="Edit users allowance"]');
 
     // User allowance page
     this.pageContainer = this.page.locator('div[data-testid="pageContainer-page"]');
@@ -58,7 +58,7 @@ export class RewardsUserAllowance extends BasePage {
 
   async decreaseTheUserAmountBy(amount: number): Promise<void> {
     for (let i = 0; i < amount; i++) {
-      await this.clickOnElement(this.pointAmountInputBox, {
+      await this.clickOnElement(this.pointAmountMinusButton, {
         stepInfo: `Decreasing amount by 1 (${i + 1}/${amount})`,
       });
     }

@@ -44,11 +44,11 @@ export class RewardsIndividualAllowance extends BasePage {
       'Add individual monthly allowances for selected users'
     );
     // Action buttons
-    this.addIndividualAllowance = this.individualAllowance.getByRole('link', { name: 'Add individual allowances' });
-    this.removeIndividualAllowance = this.individualAllowance.getByRole('button', {
-      name: 'Remove individual allowances',
-    });
-    this.editIndividualAllowance = this.individualAllowance.getByRole('link', { name: 'Edit individual allowances' });
+    this.addIndividualAllowance = this.individualAllowance.locator('button[aria-label="Add individual allowances"]');
+    this.removeIndividualAllowance = this.individualAllowance.locator(
+      'button[aria-label="Remove individual allowances"]'
+    );
+    this.editIndividualAllowance = this.individualAllowance.locator('button[aria-label="Edit individual allowances"]');
 
     // Page container
     this.individualAllowanceContainer = this.page.locator('div[data-testid="pageContainer-page"]');
@@ -117,49 +117,50 @@ export class RewardsIndividualAllowance extends BasePage {
 
   async addOneIndividualUserInTheAllowance(amount: number): Promise<void> {
     const individualAllowanceContainer = this.page.locator('div[data-testid="pageContainer-page"]');
-    await individualAllowanceContainer.waitFor({ state: 'attached' });
+    await this.verifier.verifyTheElementIsVisible(individualAllowanceContainer);
 
-    const addedIndividualUser = individualAllowanceContainer
-      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
-      .first();
+    const noAudienceList = individualAllowanceContainer.locator(
+      '//p[text()="You haven’t created any individual allowances yet"]'
+    );
 
-    let anyUserAdded: boolean;
-    try {
-      await addedIndividualUser.waitFor({ state: 'visible', timeout: 10000 });
-      anyUserAdded = true;
-    } catch {
-      console.log('❌ Element not visible within 10s');
-      anyUserAdded = false;
-    }
-
-    if (!anyUserAdded) {
-      await this.clickOnElement(this.addIndividualButton, {
-        stepInfo: 'Clicking add individual button',
-      });
-      // Dialog handling would go here
-    } else {
-      const currentValue = await this.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
-      if (currentValue !== amount) {
+    if (!(await this.verifier.verifyTheElementIsVisible(noAudienceList))) {
+      const alreadyAddedUserInputBox = individualAllowanceContainer
+        .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
+        .first()
+        .locator('td input');
+      const currentValue = await alreadyAddedUserInputBox.inputValue();
+      if (Number(currentValue) !== amount) {
         await this.fillInElement(this.recentlyAddedPointAmountInputBox, String(amount), {
           stepInfo: 'Filling amount in recently added input',
         });
       } else {
-        await this.addIndividualButton.click();
+        await this.clickOnElement(this.addIndividualButton, {
+          stepInfo: 'Clicking add audience button',
+        });
         const dialogBox = new DialogBox(this.page);
         await expect(dialogBox.title).toHaveText('Add individual allowance');
-        await expect(dialogBox.cancelButton).toBeVisible();
+        await expect(dialogBox.closeButton).toBeVisible();
         await dialogBox.container.locator('input').last().waitFor({ state: 'visible' });
         await dialogBox.container.locator('input').first().click();
-        await dialogBox.container.locator('[role="menuitem"]:not([aria-disabled="true"])').first().click();
+        await dialogBox.container.locator('[role="menuitem"]:not([aria-disabled="true"])').last().click();
         await dialogBox.container.locator('input[id="pointAmount"]').fill(String(amount));
         await expect(dialogBox.container.getByRole('button', { name: 'Add allowance' })).toBeEnabled();
         await dialogBox.container.getByRole('button', { name: 'Add allowance' }).click();
-        const removeAddedIndividualUser = individualAllowanceContainer
-          .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
-          .last()
-          .locator('td button[aria-label*="Remove"]');
-        await removeAddedIndividualUser.click();
+        await this.removeAddedIndividualUser.click();
       }
+    } else {
+      await this.clickOnElement(this.addIndividualButton, {
+        stepInfo: 'Clicking add audience button',
+      });
+      const dialogBox = new DialogBox(this.page);
+      await expect(dialogBox.title).toHaveText('Add individual allowance');
+      await expect(dialogBox.closeButton).toBeVisible();
+      await dialogBox.container.locator('input').last().waitFor({ state: 'visible' });
+      await dialogBox.container.locator('input').first().click();
+      await dialogBox.container.locator('[role="menuitem"]:not([aria-disabled="true"])').last().click();
+      await dialogBox.container.locator('input[id="pointAmount"]').fill(String(amount));
+      await expect(dialogBox.container.getByRole('button', { name: 'Add allowance' })).toBeEnabled();
+      await dialogBox.container.getByRole('button', { name: 'Add allowance' }).click();
     }
   }
 
