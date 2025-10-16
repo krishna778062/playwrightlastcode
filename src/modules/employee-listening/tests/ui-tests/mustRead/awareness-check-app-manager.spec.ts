@@ -13,8 +13,11 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
   let createdSiteId: string;
   let contentTitle: string;
 
-  test.beforeEach('reate test content for Awareness Check testing', async ({ appManagerApiFixture }) => {
-    const siteId = process.env.SITE_ID || 'default-site-id';
+  test.beforeEach('create test content for Awareness Check testing', async ({ appManagerApiFixture }) => {
+    const siteId = process.env.SITE_ID;
+    if (!siteId) {
+      throw new Error('SITE_ID environment variable is not defined');
+    }
 
     const pageDetails = await appManagerApiFixture.contentManagementHelper.createPage({
       siteId,
@@ -52,7 +55,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
         description: 'Verify admin can create awareness check with single question',
-        zephyrTestId: 'EL-MR-001',
+        zephyrTestId: 'LS-3582',
         storyId: 'Awareness Check Creation',
       });
 
@@ -92,7 +95,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
         description: 'Verify admin can create awareness check with multiple questions',
-        zephyrTestId: 'EL-MR-001',
+        zephyrTestId: 'LS-3249',
         storyId: 'Awareness Check Creation',
       });
 
@@ -132,7 +135,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
         description: 'Verify admin can create awareness check with single question',
-        zephyrTestId: 'EL-MR-001',
+        zephyrTestId: 'LS-4951',
         storyId: 'Awareness Check Creation',
       });
 
@@ -187,7 +190,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
         description: 'Verify admin can create awareness check with single question',
-        zephyrTestId: 'EL-MR-001',
+        zephyrTestId: 'LS-4952',
         storyId: 'Awareness Check Creation',
       });
 
