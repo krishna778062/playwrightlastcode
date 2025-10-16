@@ -114,7 +114,5 @@ if [ -n "$EXTRA_ARGS" ]; then
     echo "Extra Playwright args: $EXTRA_ARGS"
 fi
 
-# Execute the test command
-# Playwright projects handle tenant routing automatically
 echo "Running: $CMD"
 eval $CMD
