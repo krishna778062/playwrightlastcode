@@ -137,10 +137,36 @@ export class BaseActionUtil {
     const selfHealing = options?.selfHealing ?? false;
     const eleToCheck = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
     await test.step(options?.stepInfo || `Check ${selectorOrLocator}`, async () => {
-      try {
-        await eleToCheck.check(options);
-      } catch (error) {
-        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.CLICK, selectorOrLocator);
+      if (await eleToCheck.isChecked()) {
+        console.log(`${selectorOrLocator} is already checked`);
+      } else {
+        try {
+          await eleToCheck.check(options);
+        } catch (error) {
+          throw PlaywrightErrorHandler.handle(error, PlaywrightAction.CLICK, selectorOrLocator);
+        }
+      }
+    });
+  }
+
+  /**
+   * Check an element
+   * @param selectorOrLocator - The selector or locator to check on
+   * @param options - The options to pass to the check method
+   */
+  async unCheckElement(selectorOrLocator: string | Locator, options?: CustomCheckOptions) {
+    //we will use this option later in catch block
+    const selfHealing = options?.selfHealing ?? false;
+    const eleToCheck = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
+    await test.step(options?.stepInfo || `Check ${selectorOrLocator}`, async () => {
+      if (await eleToCheck.isChecked()) {
+        try {
+          await eleToCheck.uncheck(options);
+        } catch (error) {
+          throw PlaywrightErrorHandler.handle(error, PlaywrightAction.CLICK, selectorOrLocator);
+        }
+      } else {
+        console.log(`${selectorOrLocator} is already unchecked`);
       }
     });
   }

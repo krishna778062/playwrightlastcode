@@ -510,4 +510,23 @@ export class BaseVerificationUtil {
       );
     }
   }
+
+  /**
+   * Verifies that the checkbox is checked
+   * @param locator - The locator to verify
+   * @param options - The options to pass to the verification
+   */
+  async verifyCheckboxIsChecked(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      stepInfo?: string;
+    }
+  ): Promise<boolean> {
+    return await test.step(options?.stepInfo || `Verify that the checkbox is checked`, async () => {
+      return await locator.isChecked({
+        timeout: options?.timeout || 8_000,
+      });
+    });
+  }
 }
