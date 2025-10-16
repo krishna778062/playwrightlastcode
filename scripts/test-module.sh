@@ -114,64 +114,7 @@ if [ -n "$EXTRA_ARGS" ]; then
     echo "Extra Playwright args: $EXTRA_ARGS"
 fi
 
-# Special handling for frontline module with login-with-otp test
-if [ "$MODULE_NAME" == "frontline" ] && [ -n "$ENV_NAME" ] && [ "$ENV_NAME" != "qa" ]; then
-    echo ""
-    echo "================================================"
-    echo "Special handling: login-with-otp.spec.ts will use qa.env"
-    echo "================================================"
-    echo ""
-    
-    # Run all tests except login-with-otp on the specified environment
-    echo "Step 1: Running all tests except login-with-otp on $ENV_NAME environment..."
-    EXCLUDE_OTP_CMD="$CMD --grep-invert=\"login with otp\""
-    echo "Running: $EXCLUDE_OTP_CMD"
-    eval $EXCLUDE_OTP_CMD
-    EXIT_CODE_1=$?
-    
-    # Check if login-with-otp.spec.ts exists and would be included
-    OTP_TEST_FILE="src/modules/frontline/tests/ui-tests/login-with-otp.spec.ts"
-    if [ -f "$OTP_TEST_FILE" ]; then
-        echo ""
-        echo "Step 2: Running login-with-otp test on qa environment..."
-        OTP_CMD="cross-env MODULE_NAME=$MODULE_NAME TEST_ENV=qa npx playwright test --config=$CONFIG_PATH"
-        
-        # Add grep pattern if test type matches P1 or includes login-with-otp
-        if [ -n "$TEST_TYPE" ]; then
-            OTP_CMD="$OTP_CMD --grep=\"login with otp\""
-        else
-            OTP_CMD="$OTP_CMD --grep=\"login with otp\""
-        fi
-        
-        if [ -n "$EXTRA_ARGS" ]; then
-            OTP_CMD="$OTP_CMD $EXTRA_ARGS"
-        fi
-        
-        echo "Running: $OTP_CMD"
-        eval $OTP_CMD
-        EXIT_CODE_2=$?
-        
-        # Exit with error if either test run failed
-        if [ $EXIT_CODE_1 -ne 0 ] || [ $EXIT_CODE_2 -ne 0 ]; then
-            echo ""
-            echo "================================================"
-            echo "Test execution completed with errors"
-            echo "Main tests exit code: $EXIT_CODE_1"
-            echo "OTP test exit code: $EXIT_CODE_2"
-            echo "================================================"
-            exit 1
-        fi
-        
-        echo ""
-        echo "================================================"
-        echo "All tests passed successfully!"
-        echo "================================================"
-    else
-        # If OTP test doesn't exist, just use the exit code from main tests
-        exit $EXIT_CODE_1
-    fi
-else
-    # Normal execution for other modules or when explicitly using qa
-    echo "Running: $CMD"
-    eval $CMD
-fi
+# Execute the test command
+# Playwright projects handle tenant routing automatically
+echo "Running: $CMD"
+eval $CMD
