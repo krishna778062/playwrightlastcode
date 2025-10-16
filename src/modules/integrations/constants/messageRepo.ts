@@ -46,5 +46,6 @@ export const MESSAGES = {
   getAppAddedMessage: (appName: string) => `${appName} added`,
   getAppDeletedMessage: (appName: string) => `${appName} deleted`,
   getAppEnabledMessage: (appName: string) => `${appName} enabled`,
+  getAppDisabledMessage: (appName: string) => `${appName} disabled`,
   getAppConnectedMessage: (appName: string) => `Connected to ${appName} successfully`,
 } as const;
