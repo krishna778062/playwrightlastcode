@@ -552,6 +552,31 @@ export class ManageQRPage extends BasePage {
     });
   }
 
+  async verifyQRAppearsFirstInSearch(qrName: string) {
+    await test.step(`Verify QR "${qrName}" appears first in search results`, async () => {
+      await this.searchForQRWithEnter(qrName);
+      await this.qrListRows.first().waitFor({ state: 'visible', timeout: 10000 });
+
+      const qrRows = this.qrListRows;
+      const rowCount = await qrRows.count();
+
+      if (rowCount === 0) {
+        throw new Error('No QR rows found in search results');
+      }
+
+      const firstRow = qrRows.first();
+      const firstRowText = await firstRow.textContent();
+
+      if (!firstRowText?.toLowerCase().includes(qrName.toLowerCase())) {
+        throw new Error(`QR "${qrName}" is not the first result in search. First result: "${firstRowText}"`);
+      }
+
+      await this.verifier.verifyTheElementIsVisible(firstRow.filter({ hasText: qrName }), {
+        assertionMessage: `QR "${qrName}" should be the first result in search`,
+      });
+    });
+  }
+
   async verifyNothingToShowMessage() {
     await this.verifier.verifyTheElementIsVisible(this.nothingToShowMessage, {
       assertionMessage: 'Nothing to show here message should be displayed',
@@ -752,6 +777,7 @@ export class ManageQRPage extends BasePage {
   async validateQRName(qrName: string): Promise<void> {
     // Wait for the QR list to be populated and the specific QR to be visible
     await this.qrListRows.first().waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.waitForTimeout(5000);
     await this.verifier.verifyTheElementIsVisible(this.qrNameHeaderLocator.filter({ hasText: qrName.trim() }), {
       assertionMessage: `QR with name "${qrName}" should be visible in the QR list`,
     });
