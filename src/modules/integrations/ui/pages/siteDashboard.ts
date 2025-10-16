@@ -23,7 +23,6 @@ export class SiteDashboard {
     this.page = page;
     this.appManagerApiClient = appManagerApiClient;
     this.appTileComponent = new BaseAppTileComponent(page);
-    this.appTileComponent = new BaseAppTileComponent(page);
     this.timeOffRequestTileComponent = new TimeOffRequestTileComponent(page);
     this.tileOperationsComponent = new TileOperationsComponent(page);
   }
@@ -558,7 +557,7 @@ export class SiteDashboard {
   async verifyDoceboReportData(tileTitle: string, EnrollmentStatus: string, CourseType: string): Promise<void> {
     await this.tileOperationsComponent.verifyDoceboReportData(tileTitle, EnrollmentStatus, CourseType);
   }
-  
+
   /**
    * Complete workflow to add an app tile with personalize option
    */

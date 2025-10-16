@@ -1,4 +1,4 @@
-import { DASHBOARD_BUTTONS,ORGANIZATION_SETTINGS, UI_ACTIONS } from '@integrations/constants/common';
+import { DASHBOARD_BUTTONS, ORGANIZATION_SETTINGS, UI_ACTIONS } from '@integrations/constants/common';
 import { ExternalAppProvider } from '@integrations/ui/pages/externalAppsPage';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { TileOperationsComponent } from '@integrations-components/tileOperationsComponent';
