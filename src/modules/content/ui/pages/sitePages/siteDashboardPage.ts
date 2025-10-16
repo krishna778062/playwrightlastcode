@@ -1,7 +1,6 @@
 import { CarouselComponent } from '@content-components/carouselComponent';
 import { EditBarComponent } from '@content-components/editBarComponent';
 import { ListFeedComponent } from '@content-components/listFeedComponent';
-import { SiteDashboardComponent } from '@content-components/siteDashboardComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseSitePage } from '@content/ui/pages/sitePages/baseSite';
@@ -10,7 +9,6 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 export interface ISiteDashboardActions {
   navigateToManageSite: () => Promise<void>;
-  verfiyFeedSection: () => Promise<void>;
   clickOnFeedLink: () => Promise<void>;
   clickOnEditCarousel: () => Promise<void>;
   clickOnAddTile: () => Promise<void>;
@@ -30,6 +28,8 @@ export interface ISiteDashboardAssertions {
   verifySocalCampaignInCarouselItem: (text: string) => Promise<void>;
   verifySocalCampaignIsNotInCarouselItem: (text: string) => Promise<void>;
   verifySocialCampaignShareButtonIsNotVisible: (description: string) => Promise<void>;
+  verifyFeedSectionIsVisible: () => Promise<void>;
+  verifyFeedSectionIsNotVisible: () => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -40,10 +40,10 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   readonly feedLink: Locator;
   readonly editDashboardButton = this.page.locator('div[data-title="Edit dashboard"]');
   readonly carouselItemText = (text: string) => this.page.locator('div').filter({ hasText: text });
+  readonly shareThoughtsButton: Locator;
 
   // Components
   readonly listFeedComponent: ListFeedComponent;
-  readonly siteDashboardComponent: SiteDashboardComponent;
   private carouselComponent: CarouselComponent;
   private editbarComponent: EditBarComponent;
   // Actions
@@ -53,7 +53,6 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   constructor(page: Page, siteId: string) {
     super(page, siteId);
-    this.siteDashboardComponent = new SiteDashboardComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
     this.carouselComponent = new CarouselComponent(page);
     this.editbarComponent = new EditBarComponent(page);
@@ -61,6 +60,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     this.categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
     this.categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
     this.siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
+    this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
   }
   /**
    * Verifies that site was created successfully by checking if site link is visible
@@ -124,12 +124,6 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     });
   }
 
-  async verfiyFeedSection(): Promise<void> {
-    await test.step('Verifying feed section', async () => {
-      await expect(this.siteDashboardComponent.verfiyFeedSection, 'expecting feed section to be hidden').toBeHidden();
-    });
-  }
-
   async clickOnFeedLink(): Promise<void> {
     await test.step('Click on feed link', async () => {
       await this.clickOnElement(this.feedLink);
@@ -180,5 +174,17 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   async selectCarouselItem(text: string): Promise<void> {
     return this.carouselComponent.selectCarouselItem(text);
+  }
+
+  async verifyFeedSectionIsVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.shareThoughtsButton, {
+      assertionMessage: 'Feed section should be visible',
+    });
+  }
+
+  async verifyFeedSectionIsNotVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.shareThoughtsButton, {
+      assertionMessage: 'Feed section should not be visible',
+    });
   }
 }

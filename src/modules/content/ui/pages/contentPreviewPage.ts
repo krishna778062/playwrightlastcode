@@ -10,7 +10,6 @@ export interface IContentPreviewPageActions {
   handlePromotionPageStep: () => Promise<void>;
   clickOnApproveOrRejectButton: (action: string) => Promise<void>;
   enterRejectReason: (reason: string) => Promise<void>;
-  checkCommentOption: () => Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -18,6 +17,8 @@ export interface IContentPreviewPageAssertions {
   verifyContentStatus: (status: string) => Promise<void>;
   verifyContentIsInPublishedStatus: () => Promise<void>;
   verifyContentHasSubmitForApprovalButton: () => Promise<void>;
+  verifyCommentOptionIsNotVisible: () => Promise<void>;
+  verifyCommentOptionIsVisible: () => Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
@@ -162,9 +163,15 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       });
     });
   }
-  async checkCommentOption(): Promise<void> {
+  async verifyCommentOptionIsNotVisible(): Promise<void> {
     await test.step('Checking comment option', async () => {
       await this.contentDetailsComponent.checkCommentOption.isHidden();
+    });
+  }
+
+  async verifyCommentOptionIsVisible(): Promise<void> {
+    await test.step('Checking comment option', async () => {
+      await this.contentDetailsComponent.checkCommentOption.isVisible();
     });
   }
 }

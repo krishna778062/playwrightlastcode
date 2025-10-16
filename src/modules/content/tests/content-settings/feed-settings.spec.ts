@@ -2,7 +2,6 @@ import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentFeatureTags, ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
 import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
-import { EditPagePage } from '@content/ui/pages/editPagePage';
 import { GovernanceScreenPage } from '@content/ui/pages/governanceScreenPage';
 import { ManageApplicationPage } from '@content/ui/pages/manageApplicationPage';
 import { ManageContentPage } from '@content/ui/pages/manageContentPage';
@@ -15,8 +14,13 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
+import { FeedPage } from '../../ui/pages/feedPage';
 
+import { initializeContentConfig } from '@/src/modules/content/config/contentConfig';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
+
+// Initialize config for contentSettings tenant
+initializeContentConfig('contentSettings');
 
 test.describe(
   `feed settings using different tenant`,
@@ -33,7 +37,6 @@ test.describe(
     let manageContentPage: ManageContentPage;
     let manageSitePage: ManageSitePage;
     let siteDetailsPage: SiteDetailsPage;
-    let editPagePage: EditPagePage;
 
     test.beforeEach('Setting up the environment', async ({ appManagerFixture }) => {
       // Configure app governance
@@ -56,15 +59,14 @@ test.describe(
       manageContentPage = new ManageContentPage(appManagerFixture.page);
       manageSitePage = new ManageSitePage(appManagerFixture.page, '');
       siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, '');
-      editPagePage = new EditPagePage(appManagerFixture.page);
       siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, '');
       contentPreviewPage = new ContentPreviewPage(appManagerFixture.page, '', '', '');
     });
 
     test(
-      'verify feed and comment should not be displayed when feed and comments are disabled app level',
+      'verify that feeds and comments are displayed when enabled and not displayed when disabled at the app level',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VERIFY_COMMENTS_AND_FEEDS],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VERIFY_COMMENTS_AND_FEEDS, '@CONT-26613'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -78,41 +80,33 @@ test.describe(
         await applicationScreenPage.actions.clickOnApplication();
         await manageApplicationPage.actions.clickOnGovernance();
         await governanceScreenPage.actions.clickOnTimeline();
-        await governanceScreenPage.actions.clickOnSave();
+        await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const feedPage = new FeedPage(appManagerFixture.page);
+        await feedPage.assertions.verifyFeedSectionIsNotVisible();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnContentCard();
         await manageContentPage.actions.clickOnContent();
-        await contentPreviewPage.actions.checkCommentOption();
+        await contentPreviewPage.assertions.verifyCommentOptionIsNotVisible();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnSitesCard();
         await manageSitePage.actions.clickOnSite();
         await siteDetailsPage.actions.ViewSite();
-        await siteDashboardPage.actions.verfiyFeedSection();
-        await appManagerFixture.navigationHelper.clickOnHomeButton();
-        await appManagerFixture.navigationHelper.clickOnFeedSideMenu();
-        await siteDashboardPage.actions.verfiyFeedSection();
-      }
-    );
-
-    test(
-      'zeus: Edit the validation Expired Content and Cancel',
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VALIDATION_REQUIRED_BAR_STATE],
-      },
-      async ({ appManagerFixture }) => {
-        tagTest(test.info(), {
-          description: 'Zeus: Edit the validation Expired Content and Cancel',
-          zephyrTestId: 'CONT-36069',
-          storyId: 'CONT-36069',
-        });
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await siteDashboardPage.assertions.verifyFeedSectionIsNotVisible();
+        await governanceScreenPage.loadPage();
+        await governanceScreenPage.actions.clickOnTimelineFeedEnabled();
+        await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        await feedPage.assertions.verifyFeedSectionIsVisible();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickOnViewAllButton();
-        await manageContentPage.actions.verifyingValidationRequiredBarState();
-        await manageContentPage.actions.clickOnEditButton();
-        await editPagePage.actions.clickOnCancel();
-        await manageContentPage.actions.verifyingValidationRequiredBarState();
+        await manageContentPage.actions.clickOnContent();
+        await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturePage.actions.clickOnSitesCard();
+        await manageSitePage.actions.clickOnSite();
+        await siteDetailsPage.actions.ViewSite();
+        await siteDashboardPage.assertions.verifyFeedSectionIsVisible();
       }
     );
   }

@@ -65,4 +65,16 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
       }
     });
   }
+  async clickOnTimelineFeedDisabled(): Promise<void> {
+    await test.step('Clicking on timeline feed disabled if not already checked', async () => {
+      const isChecked = await this.clickOnTimelineButton.isChecked();
+      if (!isChecked) {
+        await this.clickOnElement(this.timelineFeedEnabled);
+        await this.clickOnElement(this.clickOnSaveButton);
+        await this.verifier.verifyTheElementIsVisible(this.successToastMessage('Saved changes successfully'), {
+          assertionMessage: 'Timeline feed should be enabled',
+        });
+      }
+    });
+  }
 }

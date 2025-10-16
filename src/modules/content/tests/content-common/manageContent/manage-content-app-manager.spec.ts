@@ -3,6 +3,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { EditPagePage } from '../../../ui/pages/editPagePage';
+
 import { NewHomePage } from '@/src/core';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
@@ -28,6 +30,7 @@ test.describe(
     let manageApplicationPage: ManageApplicationPage;
     let defaultScreenPage: DefaultScreenPage;
     let homeFeedPage: HomeFeedPage;
+    let editPage: EditPagePage;
 
     test.beforeEach(async ({ appManagerFixture }) => {
       await appManagerFixture.homePage.verifyThePageIsLoaded();
@@ -37,6 +40,7 @@ test.describe(
       manageApplicationPage = new ManageApplicationPage(appManagerFixture.page);
       defaultScreenPage = new DefaultScreenPage(appManagerFixture.page);
       homeFeedPage = new HomeFeedPage(appManagerFixture.page);
+      editPage = new EditPagePage(appManagerFixture.page, '', '');
     });
 
     test(
@@ -253,6 +257,28 @@ test.describe(
           await standardUserFeedPage.actions.selectPostsToMe();
           await standardUserFeedPage.actions.selectPostDate();
         });
+      }
+    );
+
+    test(
+      'zeus: Edit the validation Expired Content and Cancel',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VALIDATION_REQUIRED_BAR_STATE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Zeus: Edit the validation Expired Content and Cancel',
+          zephyrTestId: 'CONT-36069',
+          storyId: 'CONT-36069',
+        });
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickOnViewAllButton();
+        await manageContentPage.actions.verifyingValidationRequiredBarState();
+        await manageContentPage.actions.clickOnEditButton();
+        await editPage.actions.clickOnCancel();
+        await manageContentPage.actions.verifyingValidationRequiredBarState();
       }
     );
   }
