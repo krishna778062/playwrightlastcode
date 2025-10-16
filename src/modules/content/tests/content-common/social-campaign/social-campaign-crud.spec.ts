@@ -900,5 +900,41 @@ test.describe(
         await applicationManagerHomePage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
       }
     );
+
+    test(
+      'zeus | Social Campaign | Verify App Manager able to create and delete Social Campaign for Everyone',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-14898', '@Social_Campaign_Add_Delete'],
+      },
+      async ({ appManagerFixture }) => {
+        socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
+        tagTest(test.info(), {
+          description:
+            'Zeus | Social Campaign | Verify App Manager able to create and delete Social Campaign for Everyone',
+          zephyrTestId: 'CONT-14898',
+          storyId: 'CONT-14898',
+        });
+
+        await appManagerFixture.navigationHelper.clickOnSocialCampaigns();
+        await socialCampaignPage.actions.clickAddCampaignButton();
+
+        // Create and post social campaign using wrapper function
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // When Add Campaign and Create
+        campaignId = await socialCampaignPage.actions.AddCampaignAndCreate(campaignOptions);
+        await socialCampaignPage.assertions.verifyToastMessage('Created social campaign successfully');
+        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+        await socialCampaignPage.actions.clickPopularLink();
+        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+
+        manualCleanupNeeded = true;
+      }
+    );
   }
 );

@@ -1,3 +1,5 @@
+import { differenceInDays, format, startOfYear, subDays, subMonths, subYears } from 'date-fns';
+
 /**
  * Helper class for date calculations in Data Engineering tests
  */
@@ -36,12 +38,12 @@ export class DateHelper {
 
     // Handle static periods (Last X days/months, Year to date)
     const daysToSubtract = this.getPeriodDays(period);
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - daysToSubtract);
+    const currentDate = new Date();
+    const startDate = subDays(currentDate, daysToSubtract);
 
     return {
-      startDate: `${startDate.toISOString().split('T')[0]} 00:00:00`,
-      endDate: `${new Date().toISOString().split('T')[0]} 23:59:59`,
+      startDate: `${format(startDate, 'yyyy-MM-dd')} 00:00:00`,
+      endDate: `${format(currentDate, 'yyyy-MM-dd')} 23:59:59`,
     };
   }
 
@@ -71,21 +73,14 @@ export class DateHelper {
     const monthsMatch = period.match(/Last (\d+) months?/i);
     if (monthsMatch) {
       const months = parseInt(monthsMatch[1], 10);
-      const targetDate = new Date(today);
-      targetDate.setMonth(today.getMonth() - months);
-
-      // Calculate actual days between the two dates
-      const diffTime = Math.abs(today.getTime() - targetDate.getTime());
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      return diffDays;
+      const targetDate = subMonths(today, months);
+      return differenceInDays(today, targetDate);
     }
 
     // Handle "Year to date"
     if (period.match(/Year to date/i)) {
-      const startOfYear = new Date(today.getFullYear(), 0, 1); // January 1st of current year
-      const diffTime = Math.abs(today.getTime() - startOfYear.getTime());
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      return diffDays;
+      const yearStart = startOfYear(today);
+      return differenceInDays(today, yearStart);
     }
 
     // Handle "Custom" or unknown periods
@@ -124,5 +119,62 @@ export class DateHelper {
     if (start > end) {
       throw new Error(`customStartDate (${startDate}) must be before or equal to customEndDate (${endDate})`);
     }
+  }
+
+  /**
+   * Creates a custom date range for testing purposes
+   * Start date: Current date - 1 year - 1 month
+   * End date: Current date - 1 day
+   *
+   * @returns Object with custom date range in ISO format
+   */
+  static createTestCustomDateRange(): {
+    startDate: string;
+    endDate: string;
+  } {
+    const currentDate = new Date();
+
+    // Calculate dates using date-fns (immutable operations)
+    const startDate = subMonths(subYears(currentDate, 1), 1);
+    const endDate = subDays(currentDate, 1);
+
+    // Log the calculated dates for debugging
+    console.log('Custom Period Filter Dates:');
+    console.log(`  ISO Format: ${format(startDate, 'yyyy-MM-dd')} to ${format(endDate, 'yyyy-MM-dd')}`);
+
+    return {
+      startDate: format(startDate, 'yyyy-MM-dd'),
+      endDate: format(endDate, 'yyyy-MM-dd'),
+    };
+  }
+
+  /**
+   * Converts ISO date strings to UI format for date picker components
+   * @param startDate - Start date in ISO format (YYYY-MM-DD)
+   * @param endDate - End date in ISO format (YYYY-MM-DD)
+   * @returns Object with UI format dates
+   */
+  static convertISOToUIFormat(
+    startDate: string,
+    endDate: string
+  ): {
+    customStartDate: { year: string; month: string; day: string };
+    customEndDate: { year: string; month: string; day: string };
+  } {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    return {
+      customStartDate: {
+        year: format(start, 'yyyy'),
+        month: format(start, 'MMM'),
+        day: format(start, 'd'),
+      },
+      customEndDate: {
+        year: format(end, 'yyyy'),
+        month: format(end, 'MMM'),
+        day: format(end, 'd'),
+      },
+    };
   }
 }
