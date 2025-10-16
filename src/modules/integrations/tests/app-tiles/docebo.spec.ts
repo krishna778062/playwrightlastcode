@@ -173,11 +173,19 @@ test.describe(
         createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
 
         //add,personalize,edit,verify
-        await homeDashboard.addTilewithPersonalizeDocebo(createdTileTitle, AppName, tileName, UI_ACTIONS.ADD_TO_HOME);
+        await homeDashboard.addTileWithUserDefinedOptions(
+          createdTileTitle,
+          AppName,
+          tileName,
+          DOCEBO_VALUES.ENROLLMENT_STATUS,
+          DOCEBO_VALUES.COURSE_TYPE,
+          DOCEBO_VALUES.ENROLLMENT_LEVEL,
+          UI_ACTIONS.ADD_TO_HOME
+        );
         await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
         await homeDashboard.verifyPersonalizeVisible(createdTileTitle);
-        await homeDashboard.PersonalizeTileDocebo(
+        await homeDashboard.personalizeTileWithDropdowns(
           createdTileTitle,
           DOCEBO_VALUES.ENROLLMENT_STATUS,
           DOCEBO_VALUES.COMPLETED,
@@ -206,7 +214,7 @@ test.describe(
         createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
 
         //add,personalize,edit,verify
-        await homeDashboard.addTilewithAppManagerDefinedDocebo(
+        await homeDashboard.addTileWithAppManagerDefined(
           createdTileTitle,
           AppName,
           tileName,
@@ -262,7 +270,15 @@ test.describe(
 
         //Generate a random tile title
         createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
-        await homeDashboard.addTilewithPersonalizeDocebo(createdTileTitle, AppName, tileName, UI_ACTIONS.ADD_TO_HOME);
+        await homeDashboard.addTileWithUserDefinedOptions(
+          createdTileTitle,
+          AppName,
+          tileName,
+          DOCEBO_VALUES.ENROLLMENT_STATUS,
+          DOCEBO_VALUES.COURSE_TYPE,
+          DOCEBO_VALUES.ENROLLMENT_LEVEL,
+          UI_ACTIONS.ADD_TO_HOME
+        );
         await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
 
