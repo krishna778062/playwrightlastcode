@@ -552,4 +552,10 @@ export class SiteDashboard {
       ],
     });
   }
+  /**
+   * Verify Docebo report data  shown in tile
+   */
+  async verifyDoceboReportData(tileTitle: string, EnrollmentStatus: string, CourseType: string): Promise<void> {
+    await this.tileOperationsComponent.verifyDoceboReportData(tileTitle, EnrollmentStatus, CourseType);
+  }
 }

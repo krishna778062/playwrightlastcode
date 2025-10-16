@@ -138,6 +138,8 @@ export const API_ENDPOINTS = {
     contentTilesList: '/v1/content/tiles/list',
     tilesByConnector: (connectorId: string) => `/v1/tiles?type=app&connectorId=${connectorId}`,
     createTileInstance: (tileId: string) => `/v1/tiles/${tileId}/instances`,
+    calendarIntegration: '/v1/account/appConfig/app.integrations.calendar.integration',
+    integrationDomains: '/v1/account/integration-domains',
   },
 } as const;
 
