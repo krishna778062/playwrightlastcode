@@ -54,7 +54,7 @@ export class HeroMetricsComponent extends BaseComponent {
    * Verifies that the answer title is visible (no need to check text since container was found by title)
    */
   async verifyAnswerTitleIsVisible(): Promise<void> {
-    await test.step(`Verify answer title is visible - with title as : ${this.answerTitle}`, async () => {
+    await test.step(`Verify answer title is visible - with title as : ${this.metricTitle}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.answerTitle, { timeout: 30_000 });
     });
   }
@@ -85,7 +85,11 @@ export class HeroMetricsComponent extends BaseComponent {
    */
   async verifyMetricValueIsLoadedForHeroMetric(expectedValue: number): Promise<void> {
     await test.step(`Verify hero metric value for ${this.metricTitle} is ${expectedValue}`, async () => {
-      await expect(this.metricValue, `Hero metric value should be ${expectedValue}`).toHaveText(
+      // Get the actual UI value and normalize it by removing commas
+      const actualValue = await this.getMetricValue();
+      const normalizedActualValue = actualValue.replace(/,/g, '');
+
+      expect(normalizedActualValue, `Hero metric value should be ${expectedValue} (UI shows: ${actualValue})`).toBe(
         expectedValue.toString()
       );
     });
