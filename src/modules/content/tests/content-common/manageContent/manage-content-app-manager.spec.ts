@@ -295,7 +295,7 @@ test.describe(
       }
     );
     test(
-      'to verify validate option in content',
+      'to verify validate option in manage content',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.CONTENT_VALIDATE_OPTION],
       },
