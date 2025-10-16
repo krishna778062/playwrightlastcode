@@ -246,66 +246,61 @@ test.describe(
   },
   () => {
     let appManagerFeedPage: FeedPage;
-    let standardUserFeedPage: FeedPage;
     let createdPostText: string;
     let appManagerPostId: string;
     let socialUserPostId: string;
-    let appManagerReplyText: string;
-    let standardUserReplyText: string;
-    let standardUserCommentText: string;
     let endUserInfo: { userId: string; fullName: string };
+    let socialUserInfo: { userId: string; fullName: string };
+    let appManagerInfo: { userId: string; fullName: string };
 
-    test.beforeEach(
-      'Setup test environment',
-      async ({ appManagerFixture, standardUserFixture, socialCampaignManagerFixture }) => {
-        // Configure app governance settings
-        await appManagerFixture.feedManagementHelper.configureAppGovernance({
-          feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
-        });
+    test.beforeEach('Setup test environment', async ({ appManagerFixture, socialCampaignManagerFixture }) => {
+      // Configure app governance settings
+      await appManagerFixture.feedManagementHelper.configureAppGovernance({
+        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+      });
 
-        // Initialize feed pages
-        appManagerFeedPage = new FeedPage(appManagerFixture.page);
-        standardUserFeedPage = new FeedPage(standardUserFixture.page);
+      // Initialize feed pages
+      appManagerFeedPage = new FeedPage(appManagerFixture.page);
 
-        // Generate test data
-        const feedTestDataByAppManager = TestDataGenerator.generateFeed({
-          scope: 'public',
-          siteId: undefined,
-          withAttachment: false,
-          waitForSearchIndex: false,
-        });
+      // Generate test data
+      const feedTestDataByAppManager = TestDataGenerator.generateFeed({
+        scope: 'public',
+        siteId: undefined,
+        withAttachment: false,
+        waitForSearchIndex: false,
+      });
 
-        // Generate test data
-        const feedTestDataBySocialUser = TestDataGenerator.generateFeed({
-          scope: 'public',
-          siteId: undefined,
-          withAttachment: false,
-          waitForSearchIndex: false,
-        });
+      // Generate test data
+      const feedTestDataBySocialUser = TestDataGenerator.generateFeed({
+        scope: 'public',
+        siteId: undefined,
+        withAttachment: false,
+        waitForSearchIndex: false,
+      });
 
-        // Create feed via API as app manager
-        const appManagerFeedResponse =
-          await appManagerFixture.feedManagementHelper.createFeed(feedTestDataByAppManager);
-        createdPostText = feedTestDataByAppManager.text;
-        appManagerPostId = appManagerFeedResponse.result.feedId;
+      // Create feed via API as app manager
+      const appManagerFeedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestDataByAppManager);
+      createdPostText = feedTestDataByAppManager.text;
+      appManagerPostId = appManagerFeedResponse.result.feedId;
 
-        // Create feed via API as app manager
-        const socialUserFeedResponse =
-          await socialCampaignManagerFixture.feedManagementHelper.createFeed(feedTestDataBySocialUser);
-        createdPostText = feedTestDataBySocialUser.text;
-        socialUserPostId = socialUserFeedResponse.result.feedId;
+      // Create feed via API as app manager
+      const socialUserFeedResponse =
+        await socialCampaignManagerFixture.feedManagementHelper.createFeed(feedTestDataBySocialUser);
+      createdPostText = feedTestDataBySocialUser.text;
+      socialUserPostId = socialUserFeedResponse.result.feedId;
 
-        // Generate comment and reply text
-        appManagerReplyText = TestDataGenerator.generateRandomText('Reply on feed post', 3, true);
-        standardUserReplyText = TestDataGenerator.generateRandomText('Reply to feed post', 3, true);
-        standardUserCommentText = TestDataGenerator.generateRandomText('Reply to comment on feed post', 3, true);
+      const [endUserData, socialUserData, appManagerData] = await Promise.all([
+        appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email),
+        appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.socialCampaignManager.email),
+        appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email),
+      ]);
 
-        const endUserData = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-        endUserInfo = { userId: endUserData.userId, fullName: endUserData.fullName };
+      endUserInfo = { userId: endUserData.userId, fullName: endUserData.fullName };
+      socialUserInfo = { userId: socialUserData.userId, fullName: socialUserData.fullName };
+      appManagerInfo = { userId: appManagerData.userId, fullName: appManagerData.fullName };
 
-        console.log(`Created feed via API: ${appManagerFeedResponse.result.feedId}`);
-      }
-    );
+      console.log(`Created feed via API: ${appManagerFeedResponse.result.feedId}`);
+    });
 
     test.afterEach('Cleanup created posts', async ({ appManagerFixture }) => {
       if (appManagerPostId) {
@@ -331,32 +326,31 @@ test.describe(
           storyId: 'CONT-30407',
         });
 
-        // App manager adds a reply to the feed post
-        const appManageReplyResponse = await appManagerFixture.feedManagementHelper.addComment(socialUserPostId, {
-          textHtml: appManagerReplyText,
-          textJson: appManagerReplyText,
-          listOfAttachedFiles: [],
-          ignoreToxic: false,
+        const appManagerReplyData = TestDataGenerator.generateReply({
+          userId: appManagerInfo.userId,
+          userName: appManagerInfo.fullName,
         });
+
+        const standardUserCommentData = TestDataGenerator.generateReply({
+          userId: endUserInfo.userId,
+          userName: endUserInfo.fullName,
+        });
+
+        const appManageReplyOnSocialUserPostResponse = await appManagerFixture.feedManagementHelper.addComment(
+          socialUserPostId,
+          appManagerReplyData
+        );
 
         // Standard user adds a comment to the feed post
         const standardUserCommentResponse = await standardUserFixture.feedManagementHelper.addComment(
           socialUserPostId,
-          {
-            textHtml: standardUserCommentText,
-            textJson: standardUserCommentText,
-            listOfAttachedFiles: [],
-            ignoreToxic: false,
-          }
+          standardUserCommentData
         );
 
-        // Standard user adds a reply to the comment on the feed post
-        const standardUserReplyResponse = await standardUserFixture.feedManagementHelper.addComment(appManagerPostId, {
-          textHtml: standardUserReplyText,
-          textJson: standardUserReplyText,
-          listOfAttachedFiles: [],
-          ignoreToxic: false,
-        });
+        const standardUserReplyOnAppManagerPostData = await standardUserFixture.feedManagementHelper.addComment(
+          appManagerPostId,
+          standardUserCommentData
+        );
 
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.homePage.verifyThePageIsLoaded();
@@ -366,9 +360,9 @@ test.describe(
         const activityNotificationPage = await notificationComponentSiteManager.actions.clickOnViewAllNotifications();
 
         // Verify notification message for mention in reply
-        const expectedNotificationMessage = `${endUserInfo.fullName} replied on "${standardUserCommentText}"`;
+        const expectedNotificationMessage = `${endUserInfo.fullName} replied to your post "${standardUserCommentData.replyText}"`;
         await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
-        const expectedNotificationMessage2 = `${endUserInfo.fullName} replied on "${standardUserReplyText}"`;
+        const expectedNotificationMessage2 = `${endUserInfo.fullName} also replied to "${socialUserInfo.fullName}"'s post`;
         await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage2);
       }
     );

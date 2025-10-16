@@ -353,8 +353,16 @@ export class FeedManagementService implements IFeedManagementOperations {
     }
   ): Promise<APIResponse> {
     return await test.step(`Adding comment to feed ${feedId}`, async () => {
+      const payload = {
+        textHtml: commentData.textHtml,
+        textJson: commentData.textJson,
+        listOfAttachedFiles: commentData.listOfAttachedFiles,
+        ignoreToxic: commentData.ignoreToxic,
+      };
+
+      console.log('request : ', JSON.stringify(payload));
       const response = await this.httpClient.post(API_ENDPOINTS.feed.comment(feedId), {
-        data: commentData,
+        data: payload,
       });
 
       const responseBody = await response.json();
