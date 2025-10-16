@@ -43,6 +43,7 @@ export const DASHBOARD_BUTTONS = {
 export const ORGANIZATION_SETTINGS = {
   USER_DEFINED: 'User defined',
   APP_MANAGER_DEFINED: 'App manager defined',
+  SITE_MANAGER_DEFINED: 'Site manager defined',
 } as const;
 
 export const FIELD_NAMES = {

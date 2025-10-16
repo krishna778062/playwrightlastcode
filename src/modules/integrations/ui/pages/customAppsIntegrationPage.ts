@@ -90,6 +90,14 @@ export class CustomAppsIntegrationPage extends BasePage {
     });
   }
 
+  async searchAndSelectAppWithName(appName: string): Promise<void> {
+    await test.step('Search and select app with name', async () => {
+      await this.customAppsListComponent.searchForApp(appName);
+      await this.customAppsListComponent.verifyCountOfAppsInListIs(1);
+      await this.customAppsListComponent.clickOnAppConnector(appName);
+    });
+  }
+
   async addPrebuiltApp(appName: string) {
     await test.step(`Add prebuilt app of type ${appName}`, async () => {
       await this.customAppsListComponent.clickAddCustomAppOption(CustomAppType.ADD_PREBUILT_APP);
@@ -109,10 +117,13 @@ export class CustomAppsIntegrationPage extends BasePage {
    */
   async enterCredentials(userId: string, userSecret: string): Promise<void> {
     await test.step(`Enter credentials: userId=${userId}`, async () => {
+      await this.usernameInput.waitFor({ state: 'visible' });
       await this.usernameInput.fill(userId);
       await this.usernameInput.blur();
+      await this.passwordInput.waitFor({ state: 'visible' });
       await this.passwordInput.fill(userSecret);
       await this.passwordInput.blur();
+      await this.saveButton.waitFor({ state: 'visible' });
       await this.clickSaveButton();
     });
   }
