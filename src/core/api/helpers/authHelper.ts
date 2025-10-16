@@ -90,7 +90,6 @@ export class AuthHelper {
     return request.newContext({
       extraHTTPHeaders: headers,
       storageState: storageState,
-      timeout: 60000, // 60 seconds timeout
     });
   }
 
