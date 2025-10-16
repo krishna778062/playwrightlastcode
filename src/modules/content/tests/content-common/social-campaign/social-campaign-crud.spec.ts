@@ -27,19 +27,19 @@ test.describe(
     let feedPage: FeedPage;
     let tileId: string;
 
-    test.beforeEach(async ({ socialCampaignManagerFixture }) => {
+    test.beforeEach(async ({ appManagerFixture }) => {
       // Reset cleanup flag for each test
-      await socialCampaignManagerFixture.socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
+      await appManagerFixture.socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
       manualCleanupNeeded = false;
     });
 
-    test.afterEach(async ({ socialCampaignManagerFixture }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
       if (manualCleanupNeeded && campaignId) {
-        await socialCampaignManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
+        await appManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
       }
 
       if (tileId) {
-        await socialCampaignManagerFixture.tileManagementHelper.deleteContentTile(tileId);
+        await appManagerFixture.tileManagementHelper.deleteContentTile(tileId);
       }
     });
 
@@ -1092,7 +1092,7 @@ test.describe(
         await siteDashboardPage.actions.clickOnCustomSCTile();
         await siteDashboardPage.actions.enterTileTitle(tileTitle);
         await siteDashboardPage.actions.setCustomSCTitle(campaignOptions.linkText);
-        tileId = await siteDashboardPage.actions.clickAddToHomeButton();
+        tileId = await siteDashboardPage.actions.clickAddToSiteButton();
         await siteDashboardPage.assertions.verifyTileIsDisplayed(tileTitle);
         await siteDashboardPage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
@@ -1138,7 +1138,7 @@ test.describe(
         await siteDashboardPage.actions.clickOnAddTile();
         await siteDashboardPage.actions.clickOnSocialCampaignTile();
         await siteDashboardPage.actions.enterTileTitle(tileTitle);
-        tileId = await siteDashboardPage.actions.clickAddToHomeButton();
+        tileId = await siteDashboardPage.actions.clickAddToSiteButton();
         await siteDashboardPage.assertions.verifyTileIsDisplayed(tileTitle);
         await siteDashboardPage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);

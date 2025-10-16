@@ -10,6 +10,7 @@ export class AddTileComponent extends BaseComponent {
   readonly showcaseRadioButton: Locator;
   readonly standardRadioButton: Locator;
   readonly addToHomeButton: Locator;
+  readonly addToSiteButton: Locator;
   readonly customTab: Locator;
   readonly mentionNameFirst: Locator;
   readonly tileTitleInput: Locator;
@@ -25,6 +26,7 @@ export class AddTileComponent extends BaseComponent {
     this.showcaseRadioButton = page.getByRole('radio', { name: 'Showcase' });
     this.standardRadioButton = page.getByRole('radio', { name: 'Standard' });
     this.addToHomeButton = page.getByRole('button', { name: 'Add to home' });
+    this.addToSiteButton = page.getByRole('button', { name: 'Add to site dashboard' });
     this.customTab = page.getByRole('tab', { name: 'Custom' });
     this.mentionNameFirst = page.locator('.Mention-name > .u-textTruncate').first();
     this.tileTitleInput = page.getByRole('textbox', { name: 'Tile title' });
@@ -105,5 +107,22 @@ export class AddTileComponent extends BaseComponent {
         }
       }
     }
+  }
+
+  async clickAddToSiteButton(): Promise<string> {
+    return await test.step(`Submitting event and wait for submit api response`, async () => {
+      const tileResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.addToSiteButton, { delay: 2_000 }),
+        response =>
+          response.url().includes(API_ENDPOINTS.tile.create) &&
+          response.request().method() === 'POST' &&
+          response.status() === 201,
+        {
+          timeout: 20_000,
+        }
+      );
+      const responseBody = await tileResponse.json();
+      return responseBody.result.id;
+    });
   }
 }

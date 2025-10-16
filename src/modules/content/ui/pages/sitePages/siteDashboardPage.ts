@@ -24,6 +24,7 @@ export interface ISiteDashboardActions {
   enterTileTitle: (tileTitle: string) => Promise<void>;
   setCustomSCTitle: (title: string) => Promise<void>;
   clickAddToHomeButton: () => Promise<string>;
+  clickAddToSiteButton: () => Promise<string>;
 }
 
 export interface ISiteDashboardAssertions {
@@ -241,5 +242,9 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
         assertionMessage: `Social campaign name '${socialCampaignName}' should be displayed`,
       });
     });
+  }
+
+  async clickAddToSiteButton(): Promise<string> {
+    return this.addTileComponent.clickAddToSiteButton();
   }
 }
