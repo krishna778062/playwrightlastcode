@@ -180,7 +180,7 @@ test.describe('rewards Success Dialog box message', { tag: [REWARD_SUITE_TAGS.RE
       await rewardsStore.verifier.verifyTheElementIsNotVisible(rewardsStore.rewardsDialogBox.container);
 
       // Get the redeemable points after failed redemption
-      const [walletResponse] = await Promise.all([
+      await Promise.all([
         rewardsStore.page.waitForResponse(
           resp => resp.url().match(/\/recognition\/rewards\/users\/.*\/wallet/) !== null && resp.status() === 200
         ),

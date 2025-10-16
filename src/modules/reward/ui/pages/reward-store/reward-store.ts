@@ -207,8 +207,8 @@ export class RewardsStore extends BasePage {
           res.request().resourceType() === 'xhr' &&
           res.request().method() === 'GET'
       ),
-      rewardStore.visit(), // action that triggers API
-      rewardStore.verifyThePageIsLoaded(),
+      this.loadPage(), // action that triggers API
+      this.verifyThePageIsLoaded(),
     ]);
     console.log('Status:', apiResponse.status(), 'URL:', apiResponse.url());
     const body = await apiResponse.json();
