@@ -51,23 +51,12 @@ async function createAuthenticatedSession(browser: Browser, userRole: UserRole):
 }
 
 /**
- * Creates Snowflake connection and query helpers
+ * Creates Snowflake connection
  */
-async function createSnowflakeConnection(): Promise<{
-  snowflakeHelper: SnowflakeHelper;
-  socialInteractionQueryHelper: SocialInteractionDashboardQueryHelper;
-}> {
+async function createSnowflakeConnection(): Promise<SnowflakeHelper> {
   const snowflakeHelper = new SnowflakeHelper();
   await snowflakeHelper.connect();
-
-  const orgId = process.env.ORG_ID || '';
-  if (!orgId) {
-    throw new Error('ORG_ID is not set, please set the ORG_ID environment variable');
-  }
-
-  const socialInteractionQueryHelper = new SocialInteractionDashboardQueryHelper(snowflakeHelper, orgId);
-
-  return { snowflakeHelper, socialInteractionQueryHelper };
+  return snowflakeHelper;
 }
 
 /**
@@ -86,7 +75,14 @@ export async function setupSocialInteractionDashboardForTest(
     //login user
     const page = await createAuthenticatedSession(browser, userRole);
     //create snowflake connection
-    const { snowflakeHelper, socialInteractionQueryHelper } = await createSnowflakeConnection();
+    const snowflakeHelper = await createSnowflakeConnection();
+
+    //create social interaction query helper
+    const orgId = process.env.ORG_ID || '';
+    if (!orgId) {
+      throw new Error('ORG_ID is not set, please set the ORG_ID environment variable');
+    }
+    const socialInteractionQueryHelper = new SocialInteractionDashboardQueryHelper(snowflakeHelper, orgId);
 
     //create social interaction dashboard
     const socialInteractionDashboard = new SocialInteractionDashboard(page);
@@ -114,12 +110,19 @@ export async function setupAppAdoptionDashboardForTest(
   page: Page;
   appAdoptionDashboard: AppAdoptionDashboard;
   snowflakeHelper: SnowflakeHelper;
-  appAdoptionQueryHelper: AppAdoptionDashboardQueryHelper; // For now, using existing helper
+  appAdoptionQueryHelper: AppAdoptionDashboardQueryHelper;
 }> {
   //login user
   const page = await createAuthenticatedSession(browser, userRole);
   //create snowflake connection
-  const { snowflakeHelper, socialInteractionQueryHelper } = await createSnowflakeConnection();
+  const snowflakeHelper = await createSnowflakeConnection();
+
+  //create app adoption query helper
+  const orgId = process.env.ORG_ID || '';
+  if (!orgId) {
+    throw new Error('ORG_ID is not set, please set the ORG_ID environment variable');
+  }
+  const appAdoptionQueryHelper = new AppAdoptionDashboardQueryHelper(snowflakeHelper, orgId);
 
   //create app adoption dashboard
   const appAdoptionDashboard = new AppAdoptionDashboard(page);
@@ -131,7 +134,7 @@ export async function setupAppAdoptionDashboardForTest(
     page,
     appAdoptionDashboard,
     snowflakeHelper,
-    socialInteractionQueryHelper, // TODO: Replace with appAdoptionQueryHelper when available
+    appAdoptionQueryHelper,
   };
 }
 
