@@ -86,6 +86,11 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
       const rewardsStore = new RewardsStore(appManagerFixture.page);
       const userProfilePage = new UserProfilePage(appManagerFixture.page);
       await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
+      // Get tenant code
+      const tenantCode = await appManagerFixture.page.evaluate(() => {
+        return (window as any).Simpplr?.Settings?.accountId;
+      });
+      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
       const walletData = await userProfilePage.navigateToUserProfileAndCaptureWalletData();
       await userProfilePage.validateWalletDataStructure(walletData);
       await userProfilePage.validateWalletDataInUI(walletData);
@@ -126,12 +131,13 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
 
       const userProfilePage = new UserProfilePage(appManagerFixture.page);
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
-      await recognitionHub.visitRecognitionHub();
       // Get tenant code
       const tenantCode = await appManagerFixture.page.evaluate(() => {
         return (window as any).Simpplr?.Settings?.accountId;
       });
       await TestDbScenarios.setupAllowanceRefresh(tenantCode);
+      await recognitionHub.visitRecognitionHub();
+      await recognitionHub.verifyThePageIsLoaded();
       await userProfilePage.navigateToCurrentUserProfile();
       await userProfilePage.validateAllowanceRefreshingTooltip();
       await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
