@@ -1,4 +1,4 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 import path from 'path';
 
 import baseConfig from '../../../playwright.base.config';
@@ -11,6 +11,19 @@ export default defineConfig({
   use: {
     ...baseConfig.use,
     baseURL: process.env.FRONTEND_BASE_URL,
+    actionTimeout: 15_000, // 15 seconds auto-wait for actions
+    navigationTimeout: 15_000, // 15 seconds auto-wait for navigation
   },
-  // Add employee-listening-specific overrides here
+  // Add em
+  //
+  // ployee-listening-specific overrides here
+
+  projects: [
+    {
+      name: 'employee-listening',
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
+  ],
 });

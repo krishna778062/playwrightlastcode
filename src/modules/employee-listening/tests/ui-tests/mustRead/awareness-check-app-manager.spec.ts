@@ -13,7 +13,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
   let createdSiteId: string;
   let contentTitle: string;
 
-  test.beforeEach('Create test content for Awareness Check testing', async ({ appManagerApiFixture }) => {
+  test.beforeEach('reate test content for Awareness Check testing', async ({ appManagerApiFixture }) => {
     const siteId = process.env.SITE_ID || 'default-site-id';
 
     const pageDetails = await appManagerApiFixture.contentManagementHelper.createPage({
