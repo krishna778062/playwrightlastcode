@@ -38,6 +38,7 @@ export interface IAssertions {
   verifySiteName: () => Promise<void>;
   verifySiteNameLink: () => Promise<void>;
   scheduledTagVisibleInManageContent: () => Promise<void>;
+  verifyManageContentListItemCount: (expectedCount: number) => Promise<void>;
 }
 
 export class ManageContentPage extends BasePage implements IActions, IAssertions {
@@ -162,6 +163,10 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickFilterButton(): Promise<void> {
     await this.manageContentComponent.clickFilterButton();
   }
+  async selectTheStatusFilter(status: string): Promise<void> {
+    await this.manageContentComponent.selectTheStatusFilter(status);
+  }
+
   async clickSiteSearchBar(siteName: string): Promise<void> {
     await this.manageContentComponent.clickSiteSearchBar(siteName);
   }
@@ -229,5 +234,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async applyButtonShouldBeDisabled(): Promise<void> {
     await this.manageContentComponent.applyButtonShouldBeDisabled();
+  }
+
+  async verifyManageContentListItemCount(expectedCount: number): Promise<void> {
+    await this.manageContentComponent.verifyManageContentListItemCount(expectedCount);
+  }
+  async clickShowMoreButton(): Promise<void> {
+    await this.manageContentComponent.clickShowMoreButton();
   }
 }

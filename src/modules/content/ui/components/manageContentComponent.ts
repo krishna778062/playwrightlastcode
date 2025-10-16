@@ -51,6 +51,8 @@ export class ManageContentComponent extends BaseComponent {
   readonly selectPublishOption: Locator;
   readonly crossButton: Locator;
   readonly scheduledTag: Locator;
+  readonly manageContentListItems: Locator;
+  readonly showMoreButton: Locator;
   constructor(page: Page) {
     super(page);
     this.searchBar = page.locator("[aria-label='Search…']");
@@ -74,6 +76,7 @@ export class ManageContentComponent extends BaseComponent {
     this.moveConfirmButton = page.getByRole('button', { name: 'Move' });
     this.siteListSelect = page.locator(`[role="listbox"]`).first();
     this.deleteButton = page.getByText('Delete', { exact: true });
+    this.showMoreButton = page.getByRole('button', { name: 'Show more' });
     this.selectAllButton = page.locator('[type="checkbox"]').first();
     this.validateButton = page.getByText('Validate', { exact: true });
     this.firstDropDownOption = page.locator(`[aria-label="Category option"]`).first();
@@ -84,6 +87,7 @@ export class ManageContentComponent extends BaseComponent {
     this.imageContainer = this.page.locator('[class*="ContentImageIcon"]').first();
     this.FilterButton = page.getByRole('button', { name: 'Filters' });
     this.siteSearchBar = page.getByRole('combobox', { name: 'Select site:' });
+    this.manageContentListItems = page.locator('.ManageContentListItem');
     this.listContainer = page.locator('.ListingItem-inner');
     this.authorName = this.listContainer.locator('.meta-link').first();
     this.siteHeading = this.listContainer.locator(`[target="_self"]`).first();
@@ -121,6 +125,11 @@ export class ManageContentComponent extends BaseComponent {
   async clickSearchBar(): Promise<void> {
     await test.step(`Clicking on the search bar`, async () => {
       await this.clickOnElement(this.searchBar);
+    });
+  }
+  async waitForManageContentListItems(): Promise<void> {
+    await test.step(`Waiting for manage content list items`, async () => {
+      await this.page.waitForSelector('.ManageContentListItem');
     });
   }
 
@@ -329,13 +338,32 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.FilterButton);
     });
   }
+
+  async selectTheStatusFilter(status: string): Promise<void> {
+    await test.step(`Selecting the status filter: ${status}`, async () => {
+      await this.clickOnElement(this.statusField);
+      await this.selectPublishOption.selectOption(status);
+    });
+  }
+  async verifyManageContentListItemCount(expectedCount: number): Promise<void> {
+    await test.step(`Verifying ManageContentListItem count is ${expectedCount}`, async () => {
+      await this.waitForManageContentListItems();
+      const actualCount = await this.manageContentListItems.count();
+      console.log(`Actual count: ${actualCount}`);
+      console.log(`Expected count: ${expectedCount}`);
+      if (actualCount < expectedCount) {
+        throw new Error(`Expected at least ${expectedCount} ManageContentListItem elements, but found ${actualCount}`);
+      }
+      console.log(`✅ Successfully verified ${actualCount} ManageContentListItem elements`);
+    });
+  }
   async clickSiteSearchBar(siteName: string): Promise<void> {
     await test.step(`Clicking the site search bar`, async () => {
       await this.clickOnElement(this.siteSearchBar);
       await this.siteSearchBar.type(siteName);
     });
   }
-  async selectSiteSearchBar(siteName: string): Promise<void> {
+  async selectSiteSearchBar(_siteName: string): Promise<void> {
     await test.step(`Selecting the site search bar`, async () => {});
   }
   async authorNameShouldBeVisible(): Promise<void> {
@@ -478,5 +506,17 @@ export class ManageContentComponent extends BaseComponent {
     await test.step('Checking if the apply button is disabled', async () => {
       await this.verifier.verifyTheElementIsDisabled(this.applyButton);
     });
+  }
+  async clickShowMoreButton(): Promise<void> {
+    await this.performActionAndWaitForResponse(
+      () => this.clickOnElement(this.showMoreButton, { delay: 2_000 }),
+      response =>
+        response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_SHOW_MORE_API) &&
+        response.request().method() === 'POST' &&
+        response.status() === 200,
+      {
+        timeout: 20_000,
+      }
+    );
   }
 }
