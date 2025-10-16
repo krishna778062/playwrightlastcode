@@ -150,5 +150,39 @@ test.describe(
         await manageQRPage.verifyContentPageIsOpenedSuccessfully(newPage);
       }
     );
+
+    test(
+      '[FL-212] Verify creation of content promotion QR from app manager',
+      {
+        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE],
+      },
+      async ({ appManagerHomePage }) => {
+        tagTest(test.info(), {
+          description: 'Verify creation of content promotion QR from app manager',
+          zephyrTestId: 'FL-212',
+          storyId: 'FL-212',
+        });
+
+        const qrName = TestDataGenerator.generateQRName('Content Promotion QR');
+        const qrDescription = TestDataGenerator.generateQRDescription('Content Promotion QR');
+        const manageQRPage = new ManageQRPage(appManagerHomePage.page);
+
+        await manageQRPage.loadPage();
+        await manageQRPage.clickOnAddQR('Content');
+        await manageQRPage.verifyContentQRModalHeading();
+        await manageQRPage.fillQRName(qrName);
+        await manageQRPage.fillDescription(qrDescription);
+        await manageQRPage.selectDateFromToday(2);
+        await manageQRPage.clickEyeIcon();
+        await manageQRPage.verifyPreviewPopup();
+        await manageQRPage.verifyQRImageDisplayOnPreview();
+        await manageQRPage.clickOnDownloadQRButton();
+        await manageQRPage.verifyDownloadOptionsAreVisible();
+        const pdfPath = await manageQRPage.downloadPDF();
+        downloadedFiles.push(pdfPath);
+        await manageQRPage.verifyContentPromoteModalIsClosed();
+        await manageQRPage.verifyManagePage();
+      }
+    );
   }
 );

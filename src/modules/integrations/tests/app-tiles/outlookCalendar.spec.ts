@@ -141,13 +141,6 @@ test.describe(
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
-        await siteDashboard.addTile(
-          createdTileTitle,
-          'Outlook Calendar',
-          'Display upcoming events',
-          UI_ACTIONS.ADD_TO_SITE
-        );
-
         //add, verify
         await siteDashboard.addTile(
           createdTileTitle,
