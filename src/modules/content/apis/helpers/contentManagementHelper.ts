@@ -11,6 +11,7 @@ import {
   ContentManagementService,
 } from '@/src/modules/content/apis/services/ContentManagementService';
 import { ImageUploaderService } from '@/src/modules/content/apis/services/ImageUploaderService';
+import { ContentSortBy, DateField } from '@/src/modules/content/constants';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
@@ -89,7 +90,7 @@ export class ContentManagementHelper {
     };
   }
 
-  async getContentCreatedAtDetails(sortBy: string, options?: { size?: number }): Promise<string | null> {
+  async getContentCreatedAtDetails(sortBy: ContentSortBy, options?: { size?: number }): Promise<string | null> {
     const size = options?.size || 1000;
     console.log('Calling getContentList with params:', {
       sortBy: sortBy,
@@ -104,13 +105,13 @@ export class ContentManagementHelper {
     });
 
     // Determine which date field to use based on sort type
-    let dateField: string;
-    if (sortBy.includes('published')) {
-      dateField = 'publishAt'; // API returns publishAt field
-    } else if (sortBy.includes('modified')) {
-      dateField = 'modifiedAt'; // Use 'modifiedAt' for modified sorts
+    let dateField: DateField;
+    if (sortBy === ContentSortBy.PUBLISHED_NEWEST || sortBy === ContentSortBy.PUBLISHED_OLDEST) {
+      dateField = DateField.PUBLISH_AT; // API returns publishAt field
+    } else if (sortBy === ContentSortBy.MODIFIED_NEWEST || sortBy === ContentSortBy.MODIFIED_OLDEST) {
+      dateField = DateField.MODIFIED_AT; // Use 'modifiedAt' for modified sorts
     } else {
-      dateField = 'createdAt';
+      dateField = DateField.CREATED_AT;
     }
 
     // Get the date from the first item in the API response
@@ -120,11 +121,11 @@ export class ContentManagementHelper {
     }
 
     let targetDate: string;
-    if (dateField === 'createdAt') {
+    if (dateField === DateField.CREATED_AT) {
       targetDate = firstItem.createdAt;
-    } else if (dateField === 'publishAt') {
+    } else if (dateField === DateField.PUBLISH_AT) {
       targetDate = firstItem.publishAt;
-    } else if (dateField === 'modifiedAt') {
+    } else if (dateField === DateField.MODIFIED_AT) {
       targetDate = firstItem.modifiedAt;
     } else {
       return null;

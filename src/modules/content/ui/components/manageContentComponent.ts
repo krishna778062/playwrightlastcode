@@ -1,5 +1,7 @@
 import { Locator, Page, test } from '@playwright/test';
 
+import { ContentStatus } from '@modules/content/constants';
+
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
@@ -442,7 +444,7 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
-  async selectTheStatusFilter(status: string): Promise<void> {
+  async selectTheStatusFilter(status: ContentStatus): Promise<void> {
     await test.step(`Selecting the status filter: ${status}`, async () => {
       await this.clickOnElement(this.statusField);
       await this.selectPublishOption.selectOption(status);

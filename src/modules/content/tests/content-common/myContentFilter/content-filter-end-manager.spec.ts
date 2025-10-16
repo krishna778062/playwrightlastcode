@@ -4,6 +4,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { ContentSortBy, ContentStatus } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 
@@ -65,22 +66,22 @@ test.describe(
         await manageContentPage.actions.selectContentFilterByType('authorByMe');
         await manageContentPage.actions.clickSortByButton();
         const contentCreatedAtDetailsNewest =
-          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails('createdNewest');
+          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.CREATED_NEWEST);
         await manageContentPage.actions.selectCreatedNewestOption();
         if (contentCreatedAtDetailsNewest !== null) {
           await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(contentCreatedAtDetailsNewest);
         }
         const contentCreatedAtDetailsOldest =
-          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails('createdOldest');
+          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.CREATED_OLDEST);
         await manageContentPage.actions.selectCreatedOldestOption();
         if (contentCreatedAtDetailsOldest !== null) {
           await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(contentCreatedAtDetailsOldest);
         }
         await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter('Published');
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
         await manageContentPage.actions.clickSortByButton();
         const contentCreatedAtDetailsNewestPublished =
-          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails('publishedNewest');
+          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.PUBLISHED_NEWEST);
         await manageContentPage.actions.selectCreateNewestPublishedOption();
         if (contentCreatedAtDetailsNewestPublished !== null) {
           await manageContentPage.assertions.verifyPublishedAtDateVisibleInManageContent(
@@ -88,11 +89,11 @@ test.describe(
           );
         }
         await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter('Published');
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectCreateOldestPublishedOption();
         const contentCreatedAtDetailsOldestPublished =
-          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails('publishedOldest');
+          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.PUBLISHED_OLDEST);
         if (contentCreatedAtDetailsOldestPublished !== null) {
           await manageContentPage.assertions.verifyPublishedAtDateVisibleInManageContent(
             contentCreatedAtDetailsOldestPublished
@@ -101,7 +102,7 @@ test.describe(
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectEditedNewestOption();
         const contentCreatedAtDetailsNewestEdited =
-          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails('modifiedNewest');
+          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.MODIFIED_NEWEST);
         if (contentCreatedAtDetailsNewestEdited !== null) {
           await manageContentPage.assertions.verifyEditedAtDateVisibleInManageContent(
             contentCreatedAtDetailsNewestEdited
@@ -112,7 +113,7 @@ test.describe(
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectEditedOldestOption();
         const contentCreatedAtDetailsOldestEdited =
-          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails('modifiedOldest');
+          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.MODIFIED_OLDEST);
         if (contentCreatedAtDetailsOldestEdited !== null) {
           await manageContentPage.assertions.verifyEditedAtDateVisibleInManageContent(
             contentCreatedAtDetailsOldestEdited
