@@ -1853,6 +1853,12 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  async verifyTileMenuOptionsVisible(): Promise<void> {
+    await test.step('Verify tile menu options are visible', async () => {
+      await this.expect(this.tileMenuOption).toBeVisible();
+    });
+  }
+
   async selectRadioForField(optionText: string, fieldLabel: string): Promise<void> {
     await test.step(`Select "${optionText}" option from "${fieldLabel}"`, async () => {
       const radioElement = this.radioLocator
