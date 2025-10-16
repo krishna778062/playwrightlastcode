@@ -37,6 +37,7 @@ export const PAGE_ENDPOINTS = {
   getEventCreationPage: (siteId: string) => `/site/${siteId}/event/add`,
   getPageCreationPage: (siteId: string) => `/site/${siteId}/page/add`,
   getFeedPage: (feedId: string) => `/feed/${feedId}`,
+  getTopicDetailsPage: (topicId: string) => `/topic/${topicId}`,
   APPLICATION_SETTINGS: 'manage/app/setup/general',
   GOVERNANCE_SCREEN: 'manage/app/setup/governance',
   MANAGE_TOPICS_SCREEN: 'manage/topics',

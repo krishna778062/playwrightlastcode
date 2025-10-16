@@ -24,7 +24,7 @@ const defaultBaseContentPayload = {
   title: 'Default title',
   language: 'en',
   isFeedEnabled: true,
-  listOfTopics: [],
+  listOfTopics: [] as { id: string; name: string }[],
   contentType: '',
   isNewTiptap: false,
 };
@@ -345,6 +345,29 @@ export class ContentManagementService implements IContentManagementServices {
           }
         )
         .toBe(true);
+    });
+  }
+
+  /**
+   * Creates a new topic
+   * @param topicName - The name of the topic to create
+   * @returns The created topic response
+   */
+  async createTopic(topicName: string): Promise<{ topicId: string; name: string }> {
+    return await test.step(`Creating topic: ${topicName}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.content.createTopic, {
+        data: {
+          name: topicName,
+        },
+      });
+      const json = await response.json();
+      if (json.status !== 'success' || !json.result?.topic_id) {
+        throw new Error(`Topic creation failed. Response: ${JSON.stringify(json)}`);
+      }
+      return {
+        topicId: json.result.topic_id,
+        name: json.result.name,
+      };
     });
   }
 

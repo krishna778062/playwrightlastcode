@@ -30,6 +30,7 @@ export enum ContentFeatureTags {
   MANAGE_TOPICS = '@manage-topics',
   EDIT_TOPICS = '@edit-topics',
   SEARCH_TOPICS = '@search-topics',
+  TOPIC_DETAILS_CONTENT = '@topic-details-content',
   CONT_38912 = '@cont-38912',
   MANAGE_SITE = '@manage-site',
   MY_CONTENT_FILTER = '@my-content-filter',
