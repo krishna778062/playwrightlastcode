@@ -416,3 +416,21 @@ test(
     await manageQRPage.verifyQRActionIcons();
   }
 );
+
+test(
+  '[FL-149] Verify Display QR Codes under Manage',
+  {
+    tag: [TestPriority.P2, FrontlineFeatureTags.QR_CODE],
+  },
+  async ({ promotionManagerHomePage }) => {
+    tagTest(test.info(), {
+      description: 'Display QR Codes under Manage',
+      zephyrTestId: 'FL-149',
+      storyId: 'FL-149',
+    });
+
+    const manageQRPage = new ManageQRPage(promotionManagerHomePage.page);
+    await manageQRPage.clickOnManage();
+    await manageQRPage.verifyQRCodeMenuVisible();
+  }
+);

@@ -750,8 +750,10 @@ export class ManageQRPage extends BasePage {
   }
 
   async validateQRName(qrName: string): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.qrNameHeaderLocator.filter({ hasText: qrName.trim() }).first(), {
-      assertionMessage: `QR with name "${qrName}" should be visible on first list item`,
+    // Wait for the QR list to be populated and the specific QR to be visible
+    await this.qrListRows.first().waitFor({ state: 'visible', timeout: 10000 });
+    await this.verifier.verifyTheElementIsVisible(this.qrNameHeaderLocator.filter({ hasText: qrName.trim() }), {
+      assertionMessage: `QR with name "${qrName}" should be visible in the QR list`,
     });
   }
 
