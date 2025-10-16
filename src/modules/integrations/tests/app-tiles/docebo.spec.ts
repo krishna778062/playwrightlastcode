@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
+import { TEST_TAGS } from '@integrations-constants/testTags';
 import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
 import { DOCEBO_VALUES, REDIRECT_URLS } from '@integrations-test-data/app-tiles.test-data';
 
@@ -220,6 +221,54 @@ test.describe(
         await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
         await homeDashboard.verifyDoceboReportData(createdTileTitle, DOCEBO_VALUES.COMPLETED, DOCEBO_VALUES.E_LEARNING);
+      }
+    );
+    test(
+      'verify Show more is visible after 4 courses for pending learning courses from Docebo on a tile',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-24685',
+          storyId: 'INT-24422',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.DISPLAY_LEARNING_COURSES,
+          CONNECTOR_IDS.DOCEBO
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+      }
+    );
+    test(
+      'verify Personalize button is visible when clicked on Show more',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28456',
+          storyId: 'INT-24422',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
+        await homeDashboard.addTilewithPersonalizeDocebo(createdTileTitle, AppName, tileName, UI_ACTIONS.ADD_TO_HOME);
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+        await homeDashboard.verifyPersonalizeVisible(createdTileTitle);
       }
     );
   }

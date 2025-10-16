@@ -100,6 +100,7 @@ export const REDIRECT_URLS = {
   UKG_WFM: 'https://kcfn01-cfn08-ath01.cfn.mykronos.com/',
   MONDAY_DOT_COM: 'https://clydenoronha48s-team.monday.com/',
   DOCEBO: 'https://simpplr.docebosaas.com/',
+  ASANA: 'https://app.asana.com/',
 } as const;
 
 /**

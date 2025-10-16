@@ -23,6 +23,7 @@ import {
   SiteCreationPage,
 } from '@/src/modules/content/ui';
 import { SiteCreationPageAbac } from '@/src/modules/content-abac/ui/pages/siteCreationPageAbac';
+import { AnalyticsLandingPage } from '@/src/modules/data-engineering/ui/pages/analyticsLandingPage';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/ui/pages/globalSearchResultPage';
 
 export interface ICommonHomePageActions {
@@ -292,5 +293,50 @@ export class NavigationHelper {
         return emailNotificationAppSettingsPage;
       }
     );
+  }
+
+  /**
+   * Navigates to the analytics landing page
+   * @param options - The options for the step
+   * @returns The analytics landing page
+   */
+  async navigateToAnalyticsLandingPage(options?: TestOptions): Promise<AnalyticsLandingPage> {
+    return await test.step(options?.stepInfo || 'Navigating to analytics landing page', async () => {
+      await this.sideNavBarComponent.clickOnAnalyticsButton(options);
+      const analyticsLandingPage = new AnalyticsLandingPage(this.page);
+      await analyticsLandingPage.verifyThePageIsLoaded();
+      return analyticsLandingPage;
+    });
+  }
+
+  async navigateToAppAnalytics(options?: TestOptions): Promise<void> {
+    return await test.step(options?.stepInfo || 'Navigating to app analytics', async () => {
+      const analyticsLandingPage = await this.navigateToAnalyticsLandingPage(options);
+      await analyticsLandingPage.openAppAnalytics();
+    });
+  }
+
+  /**
+   * Navigates to the recognition analytics page
+   * @param options - The options for the step
+   * @returns The recognition analytics page
+   */
+  async navigateToRecognitionAnalytics(options?: TestOptions): Promise<void> {
+    return await test.step(options?.stepInfo || 'Navigating to recognition analytics', async () => {
+      const analyticsLandingPage = await this.navigateToAnalyticsLandingPage(options);
+      await analyticsLandingPage.openRecognitionAnalytics();
+    });
+  }
+
+  /**
+   * Navigates to the campaign analytics page
+   * @param options - The options for the step
+   * @returns The campaign analytics page
+   */
+  async navigateToManageCampaigns(options?: TestOptions): Promise<void> {
+    return await test.step(options?.stepInfo || 'Navigating to campaign analytics', async () => {
+      const analyticsLandingPage = await this.navigateToAnalyticsLandingPage(options);
+      await analyticsLandingPage.openCampaignAnalytics();
+    });
   }
 }
