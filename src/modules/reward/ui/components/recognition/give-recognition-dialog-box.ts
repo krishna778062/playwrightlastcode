@@ -1,8 +1,7 @@
 import { Locator, Page } from '@playwright/test';
+import { DialogBox } from '@rewards-components/common/dialog-box';
 
-import { BasePage } from '@core/pages/basePage';
-
-export class GiveRecognitionDialogBox extends BasePage {
+export class GiveRecognitionDialogBox extends DialogBox {
   readonly dialog: Locator;
   readonly dialogTitle: Locator;
   readonly dialogDescription: Locator;
@@ -59,46 +58,39 @@ export class GiveRecognitionDialogBox extends BasePage {
     this.messageInput = this.dialog.locator('textarea[data-testid="message-input"]');
 
     // Additional locators for recognition functionality
-    this.profilePicture = this.dialog.locator('[data-testid="profile-picture"]');
-    this.peerRecognitionTab = this.dialog.locator('[data-testid="peer-recognition-tab"]');
-    this.spotAwardTab = this.dialog.locator('[data-testid="spot-award-tab"]');
-    this.recognitionRecipientsInput = this.dialog.locator('input[placeholder*="recipient"]');
-    this.selectAwardInput = this.dialog.locator('input[placeholder*="award"]');
-    this.selectPeerRecognitionInput = this.dialog.locator('input[placeholder*="recognition"]');
-    this.selectOptions = this.dialog.locator('[role="option"]');
-    this.suggesterContainer = this.dialog.locator('[data-testid="suggester-container"]');
-    this.recipientsInput = this.dialog.locator('input[data-testid="recipients-input"]');
-    this.descriptionTextArea = this.dialog.locator('textarea[data-testid="description-textarea"]');
-    this.companyValuesInput = this.dialog.locator('input[data-testid="company-values-input"]');
-    this.expertiseInput = this.dialog.locator('input[data-testid="expertise-input"]');
-    this.selectedAwardInRecognition = this.dialog.locator('[data-testid="selected-award"]');
-    this.recognizeButton = this.dialog.locator('button[data-testid="recognize-button"]');
-    this.doneButton = this.dialog.locator('button[data-testid="done-button"]');
-    this.giftingToggle = this.dialog.locator('[data-testid="gifting-toggle"]');
-    this.loadingIndicator = this.dialog.locator('[data-testid="loading-indicator"]');
-    this.insufficientPointErrorMessage = this.dialog.locator('[data-testid="insufficient-point-error"]');
-    this.minimumPointErrorMessage = this.dialog.locator('[data-testid="minimum-point-error"]');
-    this.insufficientPointWithRecipientsErrorMessage = this.dialog.locator(
-      '[data-testid="insufficient-point-with-recipients-error"]'
+    this.profilePicture = this.container.locator('[src*="data:image"]');
+    this.peerRecognitionTab = this.container.getByRole('tab', { name: 'Peer recognition' });
+    this.spotAwardTab = this.container.getByRole('tab', { name: 'Spot award' });
+    this.recognitionRecipientsInput = this.container.locator('[aria-label="Who do you want to recognize?"]');
+    this.selectAwardInput = this.container.getByTestId('field-Select award').locator('input[type="text"]');
+    this.selectPeerRecognitionInput = this.container.locator('input[aria-label="Select an award for the recognition"]');
+    this.selectedAwardInRecognition = this.container.locator('div[class*="AwardSelect_singleValueWrapper"] p');
+    this.suggesterContainer = this.container.getByRole('listbox');
+    this.selectOptions = this.container.getByRole('menuitem');
+    this.recipientsInput = this.container.locator('[data-testid*="awarding this"] input[type="text"]');
+    this.messageInput = this.container.getByRole('textbox');
+    this.descriptionTextArea = this.container.locator('[class*="tiptap ProseMirror"]');
+    this.companyValues = this.container.getByTestId('field-Company values');
+    this.companyValuesInput = this.container.getByTestId('field-Company values').locator('input[type="text"]');
+    this.expertiseInput = this.container.getByTestId('field-Expertise').locator('input[type="text"]');
+    this.recognizeButton = this.container.getByRole('button', { name: 'Recognize' });
+    this.doneButton = this.container.getByRole('button', { name: 'Done' });
+    this.giftingToggle = page.locator('button[role="switch"]');
+    this.loadingIndicator = page.locator('div[class*="LoadingIndicator-module__wrapper"]');
+    this.insufficientPointErrorMessage = this.container.locator('[role="alert"][id="gifting-points"]');
+    this.minimumPointErrorMessage = this.container.locator('//p[text()="Minimum 1 points required"]');
+    this.insufficientPointWithRecipientsErrorMessage = this.container.locator('div[style*="egative);"]');
+    this.giftingOptionsContainer = this.container.locator('div[class*="GiftingPointsToggle_giftingOptionsList"]');
+    this.giftingOptionsContainerPillText = this.giftingOptionsContainer.locator('label > div');
+    this.giftingOptionsContainerPill = this.giftingOptionsContainer.locator('label > input');
+    this.giftingPointsPrivacyText = this.container.locator(
+      '//button[@aria-label="Points privacy information"]//preceding-sibling::p'
     );
-    this.giftingOptionsContainer = this.dialog.locator('[data-testid="gifting-options-container"]');
-    this.giftingOptionsContainerPill = this.dialog.locator('[data-testid="gifting-options-pill"]');
-    this.giftingOptionsContainerPillText = this.dialog.locator('[data-testid="gifting-options-pill-text"]');
-    this.giftingPointsPrivacyText = this.dialog.locator('[data-testid="gifting-points-privacy-text"]');
-    this.giftingPointsPrivacyTooltipText = this.dialog.locator('[data-testid="gifting-points-privacy-tooltip"]');
-    this.giftingPointsPrivacyInfoIcon = this.dialog.locator('[data-testid="gifting-points-privacy-info-icon"]');
-    this.companyValues = this.dialog.locator('[data-testid="company-values"]');
-    this.clearButton = this.dialog.locator('button[data-testid="clear-button"]');
-    this.awardDisabledWarning = this.dialog.locator('[data-testid="award-disabled-warning"]');
-    this.shareIcon = this.dialog.locator('[data-testid="share-icon"]');
-  }
-
-  /**
-   * This method returns a locator for the awardee name.
-   * @returns {Locator} - The locator for the awardee text.
-   */
-  getAwardee(fullname: string): Locator {
-    return this.dialog.getByText(fullname);
+    this.giftingPointsPrivacyInfoIcon = this.container.locator('[aria-label="Points privacy information"]');
+    this.giftingPointsPrivacyTooltipText = this.container.locator('[id*="tippy"] p');
+    this.clearButton = this.container.getByRole('button', { name: 'Clear' });
+    this.awardDisabledWarning = this.container.locator('[class*="SpotAwardGuidanceAndWarningPanel"]');
+    this.shareIcon = page.locator('i[data-testid="i-share"]');
   }
 
   /**
@@ -112,42 +104,6 @@ export class GiveRecognitionDialogBox extends BasePage {
     } else {
       return this.suggesterContainer.locator('[role="option"]').nth(identifier);
     }
-  }
-
-  async clickCancel(): Promise<void> {
-    await this.dialogCancelButton.click();
-  }
-
-  async clickConfirm(): Promise<void> {
-    await this.dialogConfirmButton.click();
-  }
-
-  async clickClose(): Promise<void> {
-    await this.dialogCloseButton.click();
-  }
-
-  async verifyDialogIsVisible(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.dialog);
-  }
-
-  async verifyDialogTitle(expectedTitle: string): Promise<void> {
-    await this.verifier.verifyElementHasText(this.dialogTitle, expectedTitle);
-  }
-
-  async verifyDialogDescription(expectedDescription: string): Promise<void> {
-    await this.verifier.verifyElementHasText(this.dialogDescription, expectedDescription);
-  }
-
-  async enterRecipient(recipient: string): Promise<void> {
-    await this.recipientInput.fill(recipient);
-  }
-
-  async enterPoints(points: number): Promise<void> {
-    await this.pointsInput.fill(points.toString());
-  }
-
-  async enterMessage(message: string): Promise<void> {
-    await this.messageInput.fill(message);
   }
 
   /**
@@ -205,9 +161,10 @@ export class GiveRecognitionDialogBox extends BasePage {
     await this.giftingToggle.scrollIntoViewIfNeeded();
     await this.giftingToggle.click();
     await this.giftingOptionsContainerPill.last().waitFor({ state: 'visible' });
-    const rewardPointsText = await this.giftingOptionsContainerPillText.nth(rewardPoints - 1).textContent();
+    let rewardPointsText: string | null = '';
     if (!(await this.giftingOptionsContainerPill.nth(rewardPoints - 1).isChecked())) {
-      await this.giftingOptionsContainerPill.nth(rewardPoints - 1).click({ force: true });
+      await this.giftingOptionsContainerPill.nth(rewardPoints - 1).click();
+      rewardPointsText = await this.giftingOptionsContainerPillText.nth(rewardPoints - 1).textContent();
     }
     await this.recognizeButton.click();
     return rewardPointsText || '';
@@ -233,9 +190,13 @@ export class GiveRecognitionDialogBox extends BasePage {
   /**
    * Select the user for recognition
    */
-  async selectTheUserForRecognition(userName: string): Promise<void> {
+  async selectTheUserForRecognition(userName: string | number): Promise<void> {
     await this.recognitionRecipientsInput.click();
-    await this.recognitionRecipientsInput.fill(userName);
+    if (typeof userName === 'string') {
+      await this.recognitionRecipientsInput.fill(userName);
+    } else {
+      await this.recognitionRecipientsInput.click();
+    }
     await this.suggesterContainer.waitFor({ state: 'visible' });
     await this.getOption(userName).click();
   }
@@ -243,7 +204,7 @@ export class GiveRecognitionDialogBox extends BasePage {
   /**
    * Select the peer recognition award for recognition
    */
-  async selectThePeerRecognitionAwardForRecognition(awardName: string): Promise<void> {
+  async selectThePeerRecognitionAwardForRecognition(awardName: string | number): Promise<void> {
     await this.selectPeerRecognitionInput.click();
     await this.suggesterContainer.waitFor();
     await this.getOption(awardName).click();
@@ -252,18 +213,8 @@ export class GiveRecognitionDialogBox extends BasePage {
   /**
    * Enter the recognition message
    */
-  async enterTheRecognitionMessage(message: string): Promise<void> {
+  async enterTheRecognitionMessage(message: string): Promise<string | void> {
     await this.descriptionTextArea.fill(message);
-  }
-
-  /**
-   * Close button for the dialog
-   */
-  get closeButton(): Locator {
-    return this.dialogCloseButton;
-  }
-
-  verifyThePageIsLoaded(): Promise<void> {
-    return Promise.resolve(undefined);
+    return message;
   }
 }

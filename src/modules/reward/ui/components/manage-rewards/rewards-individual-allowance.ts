@@ -147,7 +147,7 @@ export class RewardsIndividualAllowance extends BasePage {
         await this.addIndividualButton.click();
         const dialogBox = new DialogBox(this.page);
         await expect(dialogBox.title).toHaveText('Add individual allowance');
-        await expect(dialogBox.dialogCancelButton).toBeVisible();
+        await expect(dialogBox.cancelButton).toBeVisible();
         await dialogBox.container.locator('input').last().waitFor({ state: 'visible' });
         await dialogBox.container.locator('input').first().click();
         await dialogBox.container.locator('[role="menuitem"]:not([aria-disabled="true"])').first().click();

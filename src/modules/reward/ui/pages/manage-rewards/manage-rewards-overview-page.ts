@@ -1,4 +1,5 @@
 import { expect, Locator, Page, Response, test } from '@playwright/test';
+import { DialogBox } from '@rewards-components/common/dialog-box';
 import { RewardsAllowance } from '@rewards-components/manage-rewards/rewards-allowance';
 import { RewardsBudgetModal } from '@rewards-components/manage-rewards/rewards-budget-modal';
 import { RewardsPeerGifting } from '@rewards-components/manage-rewards/rewards-peer-gifting';
@@ -297,6 +298,10 @@ export class ManageRewardsOverviewPage extends BasePage {
     this.toastMessage = this.page.locator('div.Toastify__toast-body p');
   }
 
+  get dialogContainerForm(): DialogBox {
+    return new DialogBox(this.page);
+  }
+
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.insightBulbButton, {
       timeout: 30000,
@@ -551,6 +556,7 @@ export class ManageRewardsOverviewPage extends BasePage {
     const rewardsStore = new RewardsStore(this.page);
 
     // Navigate to rewards store and validate
+    await rewardsStore.loadPage();
     await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
     await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
     await rewardsStore.selectDropdownByLabel(rewardsStore.rewardCountry, 'United States');

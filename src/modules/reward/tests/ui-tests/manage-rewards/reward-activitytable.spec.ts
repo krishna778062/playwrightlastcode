@@ -145,7 +145,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       tag: [
         REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE,
         REWARD_FEATURE_TAGS.POINTS_GIVEN_ACTIVITY,
-        TestPriority.P0,
+        TestPriority.P3,
         TestGroupType.SMOKE,
       ],
     },
@@ -230,14 +230,12 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       // Visit the Recognition Hub and give one recognition
       await recognitionHub.clickOnGiveRecognition();
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
-      const rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
-        0,
-        1,
-        'Test Message' + Math.floor(Math.random() * 1000),
-        rewardOptionIndex
-      );
-      await recognitionHub.visitRecognitionHub();
-      await recognitionHub.pointsToGive.waitFor({ state: 'attached' });
+      await giveRecognitionModal.selectTheUserForRecognition(1);
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
+      await giveRecognitionModal.enterTheRecognitionMessage('Test Message' + Math.floor(Math.random() * 1000));
+      const rewardOptionText = await giveRecognitionModal.giftThePoints(rewardOptionIndex);
+      await recognitionHub.page.reload();
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
         rewardOptionText,
@@ -775,14 +773,14 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       if (existingOptions.length < 2) {
         await recognitionHub.setupTheMultipleGiftingOptions();
       }
-
+      const rewardOptionIndex = 3;
       await recognitionHub.clickOnGiveRecognition();
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(recognizedUser);
-      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition('1');
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
       const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
       await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
-      const rewardPointsText = await giveRecognitionModal.giftThePoints(1);
+      const rewardOptionText = await giveRecognitionModal.giftThePoints(rewardOptionIndex);
 
       const [response] = await Promise.all([
         appManagerFixture.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
@@ -795,8 +793,8 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Handle dialog box if it appears
       const dialogBox = new DialogBox(appManagerFixture.page);
-      if (await dialogBox.verifier.verifyTheElementIsVisible(dialogBox.dialog)) {
-        await dialogBox.dialog.waitFor({ state: 'visible' });
+      if (await recognitionHub.verifier.verifyTheElementIsVisible(dialogBox.container)) {
+        await dialogBox.container.waitFor({ state: 'visible' });
         await dialogBox.skipButton.click();
         await expect(dialogBox.container).not.toBeVisible();
       }
@@ -804,7 +802,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await manageRewardsOverviewPage.verifyToastMessageIsVisibleWithText('Recognition published');
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
-        rewardPointsText,
+        rewardOptionText,
         'Only visible to you, your manager and app administrators'
       );
 
@@ -846,7 +844,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await appManagerFixture.page.goto(`${appURL}/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
-        rewardPointsText,
+        rewardOptionText,
         'Only visible to you, your manager and app administrators'
       );
 
@@ -904,7 +902,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await recognitionHub.clickOnGiveRecognition();
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(recognizedUser);
-      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition('1');
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
       const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
       await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
       const rewardPointsText = await giveRecognitionModal.giftThePoints(1);
@@ -1081,7 +1079,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     '[RC-3420] Verify Last synced data Note on Rewards Activity table',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.REGRESSION],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P3],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -1097,12 +1095,11 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       );
 
       await manageRewardsOverviewPage.loadPage();
-      await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.header);
-
       const apiResponse = await apiPromise;
       const json = await apiResponse.json();
       const lastUpdatedAtFromApi = json?.lastUpdatedAt ?? null;
+      await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.header);
 
       // Navigate to the Activity table
       await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(

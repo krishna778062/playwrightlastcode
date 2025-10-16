@@ -501,7 +501,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
 
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.pointBalanceSummaryAllowancePoints);
       await manageRewardsPage.clickOnAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
 
       await manageRewardsPage.selectTheBudgetFrequency('Annual');
       await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, '99999', {
@@ -511,11 +511,11 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
 
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.pointBalanceSummaryAllowancePoints);
       await manageRewardsPage.clickOnAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
 
       await manageRewardsPage.selectTheBudgetFrequency('Remove');
       await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.budgetModal.budgetPanelInputBox);
@@ -561,7 +561,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
 
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.pointBalanceSummaryAllowancePoints);
       await manageRewardsPage.clickOnAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.verifier.verifyElementContainsText(
         manageRewardsPage.budgetModal.budgetPanelHeader,
         'rewards budget'
@@ -575,7 +575,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.page.reload();
       const apiResponse = await manageRewardsPage.page.waitForResponse(
         response => response.url().includes('/recognition/admin/rewards') && response.status() === 200
@@ -587,14 +587,14 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
 
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.pointBalanceSummaryAllowancePoints);
       await manageRewardsPage.clickOnAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
 
       await manageRewardsPage.selectTheBudgetFrequency('Remove');
       await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.budgetModal.budgetPanelInputBox);
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.page.reload();
       const apiResponse2 = await manageRewardsPage.page.waitForResponse(
         response => response.url().includes('/recognition/admin/rewards') && response.status() === 200
@@ -641,7 +641,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
 
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.pointBalanceSummaryAllowancePoints);
       await manageRewardsPage.clickOnAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.verifier.verifyElementContainsText(
         manageRewardsPage.budgetModal.budgetPanelHeader,
         'rewards budget'
@@ -658,7 +658,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
       await manageRewardsPage.page.reload();
 
@@ -672,7 +672,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       expect(numericValue).toContain('99999');
 
       await manageRewardsPage.clickOnAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
 
       await manageRewardsPage.selectTheBudgetFrequency('Quarterly');
       await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, '19999', {
@@ -682,7 +682,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
       await manageRewardsPage.page.reload();
 
@@ -696,7 +696,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       expect(numericValue2).toContain('19999');
 
       await manageRewardsPage.clickOnAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
 
       await manageRewardsPage.selectRadioIfNotSelected(
         manageRewardsPage.budgetModal.budgetBalanceApplicationProRATABudget
@@ -704,7 +704,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
       await manageRewardsPage.page.reload();
 
@@ -718,13 +718,13 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       expect(Number(value)).toBeLessThan(19999);
 
       await manageRewardsPage.clickOnAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
 
       await manageRewardsPage.selectTheBudgetFrequency('Remove');
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.budgetSummaryActionBarButton);
     }
@@ -766,7 +766,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       }
 
       await manageRewardsPage.clickOnDisabledRewardsAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.verifier.verifyElementContainsText(
         manageRewardsPage.budgetModal.budgetPanelHeader,
         'rewards budget'
@@ -783,11 +783,11 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
 
       await manageRewardsPage.clickOnDisabledRewardsAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
 
       await manageRewardsPage.selectTheBudgetFrequency('Quarterly');
       await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, '19999', {
@@ -797,19 +797,21 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
 
       await manageRewardsPage.clickOnDisabledRewardsAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
 
       await manageRewardsPage.selectTheBudgetFrequency('Remove');
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.disabledRewardAddBudgetButton);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(
+        manageRewardsPage.peerGifting.disabledRewardAddBudgetButton
+      );
 
       await Promise.all([
         manageRewardsPage.page.waitForResponse(
@@ -878,15 +880,15 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
         stepInfo: 'Clicking on disabled reward currency conversion container',
       });
       await manageRewardsPage.clickOnDisabledRewardsAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.verifier.verifyElementContainsText(
         manageRewardsPage.budgetModal.budgetPanelHeader,
         'rewards budget'
       );
-      await manageRewardsPage.clickOnElement(manageRewardsPage.dailogContainerForm.dailogCancelBtn, {
+      await manageRewardsPage.clickOnElement(manageRewardsPage.dialogContainerForm.cancelButton, {
         stepInfo: 'Clicking on cancel button',
       });
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
 
       await Promise.all([
         manageRewardsPage.page.waitForResponse(
@@ -943,7 +945,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       });
 
       await manageRewardsPage.clickOnDisabledRewardsAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
       if (!(await manageRewardsPage.budgetModal.budgetPanelRemoveRadioInputBox.isHidden({ timeout: 5000 }))) {
         await manageRewardsPage.verifier.verifyElementContainsText(
           manageRewardsPage.budgetModal.budgetPanelHeader,
@@ -953,11 +955,13 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
         await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
           stepInfo: 'Clicking on save button',
         });
-        await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+        await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
         await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
-        await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.disabledRewardAddBudgetButton);
+        await manageRewardsPage.verifier.verifyTheElementIsVisible(
+          manageRewardsPage.peerGifting.disabledRewardAddBudgetButton
+        );
       } else {
-        await manageRewardsPage.clickOnElement(manageRewardsPage.dailogContainerForm.dailogCancelBtn, {
+        await manageRewardsPage.clickOnElement(manageRewardsPage.dialogContainerForm.cancelButton, {
           stepInfo: 'Clicking on cancel button',
         });
       }
@@ -971,7 +975,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
       await manageRewardsPage.page.reload();
       const apiResponse = await manageRewardsPage.page.waitForResponse(
@@ -1016,7 +1020,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       const customBudget = manageRewardsPage.getRandomNo(50000, 99999);
 
       await manageRewardsPage.clickOnAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.verifier.verifyElementContainsText(
         manageRewardsPage.budgetModal.budgetPanelHeader,
         'rewards budget'
@@ -1029,7 +1033,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
       await manageRewardsPage.page.reload();
       const apiResponse = await manageRewardsPage.page.waitForResponse(
@@ -1049,7 +1053,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       expect(numericValue).toContain(String(customBudget));
 
       await manageRewardsPage.clickOnAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
       if (await manageRewardsPage.budgetModal.budgetPanelRemoveRadioInputBox.isEnabled({ timeout: 5000 })) {
         await manageRewardsPage.verifier.verifyElementContainsText(
           manageRewardsPage.budgetModal.budgetPanelHeader,
@@ -1059,11 +1063,11 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
         await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
           stepInfo: 'Clicking on save button',
         });
-        await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+        await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
         await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
         await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.budgetModal.addBudgetButton);
       } else {
-        await manageRewardsPage.clickOnElement(manageRewardsPage.dailogContainerForm.dailogCancelBtn, {
+        await manageRewardsPage.clickOnElement(manageRewardsPage.dialogContainerForm.cancelButton, {
           stepInfo: 'Clicking on cancel button',
         });
       }
@@ -1086,7 +1090,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       const customBudget = manageRewardsPage.getRandomNo(50000, 99999);
 
       await manageRewardsPage.clickOnAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.verifier.verifyElementContainsText(
         manageRewardsPage.budgetModal.budgetPanelHeader,
         'rewards budget'
@@ -1099,7 +1103,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
       await manageRewardsPage.page.reload();
       const apiResponse = await manageRewardsPage.page.waitForResponse(
@@ -1120,7 +1124,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
 
       const newCustomBudget = manageRewardsPage.getRandomNo(50000, 99999, customBudget);
       await manageRewardsPage.clickOnAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.verifier.verifyElementContainsText(
         manageRewardsPage.budgetModal.budgetPanelHeader,
         'rewards budget'
@@ -1137,7 +1141,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
       await manageRewardsPage.page.reload();
       const apiResponse2 = await manageRewardsPage.page.waitForResponse(
@@ -1157,7 +1161,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       expect(numericValue2).toContain(String(newCustomBudget));
 
       await manageRewardsPage.clickOnAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
       if (await manageRewardsPage.budgetModal.budgetPanelRemoveRadioInputBox.isEnabled({ timeout: 5000 })) {
         await manageRewardsPage.verifier.verifyElementContainsText(
           manageRewardsPage.budgetModal.budgetPanelHeader,
@@ -1167,11 +1171,11 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
         await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
           stepInfo: 'Clicking on save button',
         });
-        await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+        await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
         await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
         await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.budgetModal.addBudgetButton);
       } else {
-        await manageRewardsPage.clickOnElement(manageRewardsPage.dailogContainerForm.dailogCancelBtn, {
+        await manageRewardsPage.clickOnElement(manageRewardsPage.dialogContainerForm.cancelButton, {
           stepInfo: 'Clicking on cancel button',
         });
       }
@@ -1247,7 +1251,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       const customBudget = manageRewardsPage.getRandomNo(50000, 99999);
 
       await manageRewardsPage.clickOnAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.verifier.verifyElementContainsText(
         manageRewardsPage.budgetModal.budgetPanelHeader,
         'rewards budget'
@@ -1260,7 +1264,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
       await manageRewardsPage.page.reload();
       const apiResponse = await manageRewardsPage.page.waitForResponse(
@@ -1301,7 +1305,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       });
 
       await manageRewardsPage.clickOnDisabledRewardsAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dailogContainerForm.dailog);
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
       if (
         await manageRewardsPage.verifier.isTheElementVisible(
           manageRewardsPage.budgetModal.budgetPanelRemoveRadioInputBox,
@@ -1316,11 +1320,13 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
         await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
           stepInfo: 'Clicking on save button',
         });
-        await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dailogContainerForm.dailog);
-        await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.disabledRewardAddBudgetButton);
+        await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
+        await manageRewardsPage.verifier.verifyTheElementIsVisible(
+          manageRewardsPage.peerGifting.disabledRewardAddBudgetButton
+        );
         await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
       } else {
-        await manageRewardsPage.clickOnElement(manageRewardsPage.dailogContainerForm.dailogCancelBtn, {
+        await manageRewardsPage.clickOnElement(manageRewardsPage.dialogContainerForm.cancelButton, {
           stepInfo: 'Clicking on cancel button',
         });
       }
