@@ -245,8 +245,6 @@ test.describe(
     tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER],
   },
   () => {
-    let appManagerFeedPage: FeedPage;
-    let createdPostText: string;
     let appManagerPostId: string;
     let socialUserPostId: string;
     let endUserInfo: { userId: string; fullName: string };
@@ -258,9 +256,6 @@ test.describe(
       await appManagerFixture.feedManagementHelper.configureAppGovernance({
         feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
       });
-
-      // Initialize feed pages
-      appManagerFeedPage = new FeedPage(appManagerFixture.page);
 
       // Generate test data
       const feedTestDataByAppManager = TestDataGenerator.generateFeed({
@@ -280,13 +275,11 @@ test.describe(
 
       // Create feed via API as app manager
       const appManagerFeedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestDataByAppManager);
-      createdPostText = feedTestDataByAppManager.text;
       appManagerPostId = appManagerFeedResponse.result.feedId;
 
       // Create feed via API as app manager
       const socialUserFeedResponse =
         await socialCampaignManagerFixture.feedManagementHelper.createFeed(feedTestDataBySocialUser);
-      createdPostText = feedTestDataBySocialUser.text;
       socialUserPostId = socialUserFeedResponse.result.feedId;
 
       const [endUserData, socialUserData, appManagerData] = await Promise.all([
