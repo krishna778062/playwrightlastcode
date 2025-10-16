@@ -28,6 +28,8 @@ test.describe(
     let tileId: string;
 
     test.beforeEach(async ({ socialCampaignManagerFixture }) => {
+      // Reset cleanup flag for each test
+      await socialCampaignManagerFixture.socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
       manualCleanupNeeded = false;
     });
 
@@ -54,9 +56,6 @@ test.describe(
           zephyrTestId: 'CONT-33728',
           storyId: 'CONT-33728',
         });
-        // Reset cleanup flag for each test
-        //clean up all the campaigns
-        await socialCampaignManagerFixture.socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
 
         await socialCampaignManagerFixture.navigationHelper.clickOnSocialCampaigns();
         await socialCampaignPage.actions.clickAddCampaignButton();
