@@ -204,6 +204,7 @@ export class RewardsStore extends BasePage {
         res =>
           res.url().includes('/recognition/v1/tenant/config') &&
           res.status() === 200 &&
+          res.request().resourceType() === 'xhr' &&
           res.request().method() === 'GET'
       ),
       rewardStore.visit(), // action that triggers API
@@ -216,10 +217,12 @@ export class RewardsStore extends BasePage {
     console.log(
       `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
     );
-    const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
-    await manageRecognitionPage.loadPage();
-    await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
-    await rewardStore.visit();
+    if (!isPeerGiftingDisabled || !isRewardEnabled) {
+      const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
+      await manageRecognitionPage.loadPage();
+      await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
+      await rewardStore.visit();
+    }
   }
 
   async selectAndRedeemGiftCard(giftCardName: string) {
@@ -520,30 +523,6 @@ export class RewardsStore extends BasePage {
 
   async validateTheResentConfirmation() {
     await this.verifyToastMessageIsVisibleWithText('Reward sent successfully');
-  }
-
-  /**
-   * Login as app manager and navigate to rewards store
-   */
-  async loginAsAppManagerAndNavigateToRewardsStore(): Promise<void> {
-    await this.loadPage();
-    await this.verifier.verifyTheElementIsVisible(this.header);
-    await this.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
-  }
-
-  /**
-   * Login as recognition user and navigate to rewards store
-   */
-  async loginAsRecognitionUserAndNavigateToRewardsStore(): Promise<void> {
-    const { LoginHelper } = await import('@core/helpers/loginHelper');
-    await LoginHelper.logoutByNavigatingToLogoutPage(this.page);
-    await LoginHelper.loginWithPassword(this.page, {
-      email: process.env.RECOGNITION_USER_USERNAME!,
-      password: process.env.RECOGNITION_USER_PASSWORD!,
-    });
-    await this.loadPage();
-    await this.verifier.verifyTheElementIsVisible(this.header);
-    await this.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
   }
 
   /**

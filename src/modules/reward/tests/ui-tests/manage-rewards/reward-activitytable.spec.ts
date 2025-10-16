@@ -17,8 +17,6 @@ import { tagTest } from '@core/utils/testDecorator';
 test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-    await manageRewardsOverviewPage.loadPageWithHarness();
-    await manageRewardsOverviewPage.verifyThePageIsLoaded();
     await manageRewardsOverviewPage.enableTheRewardsAndPeerGiftingIfDisabled();
   });
 

@@ -356,7 +356,10 @@ export class ManageRewardsOverviewPage extends BasePage {
     const [apiResponse] = await Promise.all([
       this.page.waitForResponse(
         res =>
-          res.url().includes('/recognition/admin/rewards') && res.status() === 200 && res.request().method() === 'GET'
+          res.url().includes('/recognition/admin/rewards') &&
+          res.request().resourceType() === 'xhr' &&
+          res.status() === 200 &&
+          res.request().method() === 'GET'
       ),
       manageRecognitionPage.loadPage(), // action that triggers API
       manageRecognitionPage.verifyThePageIsLoaded(),
@@ -369,8 +372,12 @@ export class ManageRewardsOverviewPage extends BasePage {
     console.log(
       `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
     );
-    await this.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
-    await manageRecognitionPage.loadPage();
+    if (!isPeerGiftingDisabled || !isRewardEnabled) {
+      await manageRecognitionPage.loadPage();
+      await manageRecognitionPage.verifyThePageIsLoaded();
+      await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
+      await this.loadPage();
+    }
   }
 
   async disableTheRewards(): Promise<void> {

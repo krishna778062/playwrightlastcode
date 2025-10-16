@@ -423,23 +423,28 @@ export class RecognitionHubPage extends BasePage {
     const [apiResponse] = await Promise.all([
       this.page.waitForResponse(
         res =>
-          res.url().includes('/recognition/admin/rewards') && res.status() === 200 && res.request().method() === 'GET'
+          res.url().includes('/recognition/v1/tenant/config') &&
+          res.request().resourceType() === 'xhr' &&
+          res.status() === 200 &&
+          res.request().method() === 'GET'
       ),
-      manageRecognitionPage.loadPage(), // action that triggers API
-      manageRecognitionPage.verifier.waitUntilElementIsVisible(manageRecognitionPage.rewardsTabHeading, {
-        timeout: 25000,
-      }),
+      this.loadPage(), // action that triggers API
+      this.verifyThePageIsLoaded(),
     ]);
     console.log('Status:', apiResponse.status(), 'URL:', apiResponse.url());
     const body = await apiResponse.json();
-    console.log(`/recognition/admin/rewards Response is:\n${JSON.stringify(body, null, 2)}`);
-    const isRewardEnabled = body.enabled;
-    const isPeerGiftingDisabled = body.peerGiftingEnabled;
+    console.log(`/recognition/v1/tenant/config Response is:\n${JSON.stringify(body, null, 2)}`);
+    const isRewardEnabled = body.rewardConfig?.enabled;
+    const isPeerGiftingDisabled = body.rewardConfig?.peerGiftingEnabled;
     console.log(
       `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
     );
-    await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
-    await this.loadPage();
+    if (!isPeerGiftingDisabled || !isRewardEnabled) {
+      await manageRecognitionPage.loadPage();
+      await manageRecognitionPage.verifyThePageIsLoaded();
+      await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
+      await this.loadPage();
+    }
   }
 
   /**
