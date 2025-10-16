@@ -79,7 +79,7 @@ test.describe(
         await appManagerFixture.navigationHelper.openApplicationSettings();
         await applicationScreenPage.actions.clickOnApplication();
         await manageApplicationPage.actions.clickOnGovernance();
-        await governanceScreenPage.actions.clickOnTimeline();
+        await governanceScreenPage.actions.clickOnTimelineFeedDisabled();
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const feedPage = new FeedPage(appManagerFixture.page);

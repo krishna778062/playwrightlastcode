@@ -4,9 +4,8 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 
 export interface IGovernanceScreenPageActions {
-  clickOnTimeline: () => Promise<void>;
-  clickOnSave: () => Promise<void>;
   clickOnTimelineFeedEnabled: () => Promise<void>;
+  clickOnTimelineFeedDisabled: () => Promise<void>;
 }
 
 export class GovernanceScreenPage extends BasePage implements IGovernanceScreenPageActions {
@@ -36,18 +35,6 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
       await this.verifier.verifyTheElementIsVisible(this.timelineAndFeed, {
         assertionMessage: 'Governance page should be visible',
       });
-    });
-  }
-
-  async clickOnTimeline(): Promise<void> {
-    await test.step('Clicking on timeline', async () => {
-      await this.clickOnElement(this.clickOnTimelineButton);
-    });
-  }
-
-  async clickOnSave(): Promise<void> {
-    await test.step('Clicking on save', async () => {
-      await this.clickOnElement(this.clickOnSaveButton);
     });
   }
 
