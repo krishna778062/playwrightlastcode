@@ -304,6 +304,9 @@ test.describe('audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
       await audiencePage.verifyCategoryCancelButtonBehavior();
       await audiencePage.verifyAudienceCategoryVisibilityInList(testCategoryName);
 
+      // Reload page to ensure clean state for next test
+      await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
+
       // Verify close button behavior
       await audiencePage.verifyCategoryCloseButtonBehavior();
       await audiencePage.verifyAudienceCategoryVisibilityInList(testCategoryName);

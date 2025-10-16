@@ -261,7 +261,7 @@ export class TestDataGenerator {
   }
 
   // Helper function to generate test description with timestamp
-  static generateRandomString(prefix: string = 'Test description for category'): string {
+  static generateRandomString(prefix: string = 'Test String'): string {
     return `${prefix} created at ${new Date().toISOString()}`;
   }
 
@@ -272,6 +272,7 @@ export class TestDataGenerator {
   }
 
   /**
+   *
    * Generates a random page with realistic data
    * @param contentType Content type for the page
    * @param imagePath Cover image file path

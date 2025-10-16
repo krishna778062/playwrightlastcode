@@ -43,6 +43,10 @@ for (const fileType of testData.fileTypes) {
         siteName = videoResult.siteName;
       });
 
+      test.afterEach('Cleanup uploaded files', async ({ appManagerFixture }) => {
+        await appManagerFixture.intranetFileHelper.cleanup();
+      });
+
       test(
         `Verify search results for a new video file of type ${fileType.type}`,
         {
