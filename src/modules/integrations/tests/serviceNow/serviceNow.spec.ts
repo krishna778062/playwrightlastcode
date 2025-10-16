@@ -55,7 +55,7 @@ test.describe(
         const endUserServiceNow = new ServiceNowTicketsPage(endUserPage);
         await endUserServiceNow.loadPage();
         await endUserServiceNow.verifyThePageIsLoaded();
-        await endUserServiceNow.clickButton('New ticket');
+        await endUserServiceNow.clickNewTicketButton();
         await endUserServiceNow.verifyNewTicketOptionVisible(true);
         await endUserServiceNow.clickButton('Cancel');
         await endUserServiceNow.verifyNewTicketOptionVisible(false);
