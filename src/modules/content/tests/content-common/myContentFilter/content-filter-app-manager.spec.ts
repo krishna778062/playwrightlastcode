@@ -80,5 +80,23 @@ test.describe(
         await manageContentPage.actions.applyButtonShouldBeDisabled();
       }
     );
+
+    test(
+      'verify user should be able to filter the content on the "Created Date Oldest First" filter',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25065'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'verify user should be able to filter the content on the "Created Date Oldest First" filter',
+          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
+          zephyrTestId: 'CONT-25065',
+          storyId: 'CONT-25065',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickSortByButton();
+      }
+    );
   }
 );
