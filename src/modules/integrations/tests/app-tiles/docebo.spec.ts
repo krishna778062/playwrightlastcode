@@ -402,7 +402,7 @@ test.describe(
       }
     );
     test(
-      'verify Personalize button is visible when clicked on Show more  on  Site Dashboard',
+      'verify Personalize button is visible when clicked on Show more on Site Dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
       },
