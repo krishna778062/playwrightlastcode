@@ -20,6 +20,7 @@ on:
           - 'frontline'
           - 'integrations'
           - 'alert-notification'
+          - 'employee-listening'
       priority_filter:
         description: 'Select test cases by priority'
         required: true
@@ -97,6 +98,11 @@ jobs:
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ghostscript imagemagick graphicsmagick
 
       - name: Run playwright tests
         id: run-tests

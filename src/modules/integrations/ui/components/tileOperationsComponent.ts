@@ -76,6 +76,10 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly goalAssignees: Locator;
   readonly goalStatuses: Locator;
   readonly goalProgress: Locator;
+  readonly expensifyReportContainers: Locator;
+  readonly expensifyStatusTag: Locator;
+  readonly expensifyApproverTag: Locator;
+  readonly expensifyLastUpdatedText: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -157,6 +161,10 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.goalAssignees = page.locator('[data-testid="tag"] p');
     this.goalStatuses = page.locator('[data-testid="tag"] p');
     this.goalProgress = page.locator('p.Typography-module__secondary__OGpiQ');
+    this.expensifyReportContainers = page.locator('[data-testid="container"]._loopContainer_tek69_21');
+    this.expensifyStatusTag = page.locator('[data-testid="tag"] p');
+    this.expensifyApproverTag = page.locator('div:has-text("$")').locator('+ div').locator('+ div p');
+    this.expensifyLastUpdatedText = page.locator('p:has-text("Last updated")');
   }
 
   /**
@@ -300,7 +308,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       const link = linkSelector ? tile.locator(linkSelector) : tile.locator(this.linkWithH3);
       await this.clickOnElement(link.first());
       const urlRegex = new RegExp(`^${expectedUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*`);
-      const popup = await this.page.waitForEvent('popup').catch(() => null);
+      const popup = await this.page.waitForEvent('popup', { timeout: 5000 }).catch(() => null);
       if (popup) {
         await expect(popup).toHaveURL(urlRegex);
         await popup.close();
@@ -341,6 +349,54 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   }
 
   /**
+   * Verify personalized Expensify report tile data with specific filters
+   * @param tileTitle - The title of the tile to verify
+   * @param expectedStatus - Expected status value (e.g., 'Processing')
+   * @param expectedApprover - Expected approver name (e.g., 'Srikant G')
+   * @param maxDaysAgo - Maximum days for last updated (e.g., 30)
+   */
+  async verifyPersonalizedExpensifyReportData(
+    tileTitle: string,
+    expectedStatus: string,
+    expectedApprover: string,
+    maxDaysAgo: number = 30
+  ): Promise<void> {
+    await test.step(`Verify personalized Expensify report tile data for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+
+      // Get all report containers within the tile
+      const reportContainers = tile.locator(this.expensifyReportContainers);
+
+      // Verify at least one report is present
+      await expect(reportContainers.first()).toBeVisible();
+
+      // Verify each report meets the personalized criteria
+      const reportCount = await reportContainers.count();
+      for (let i = 0; i < reportCount; i++) {
+        const report = reportContainers.nth(i);
+
+        // Verify status is exactly the expected status
+        const statusTag = report.locator(this.expensifyStatusTag);
+        await expect(statusTag).toHaveText(expectedStatus);
+
+        // Verify approver is exactly the expected approver
+        const approverTag = report.locator(this.expensifyApproverTag);
+        await expect(approverTag).toHaveText(expectedApprover);
+
+        // Verify last updated is within the specified days
+        const lastUpdatedText = await report.locator(this.expensifyLastUpdatedText).textContent();
+        if (lastUpdatedText) {
+          const daysMatch = lastUpdatedText.match(/(\d+)\s+day/i);
+          if (daysMatch) {
+            const daysAgo = parseInt(daysMatch[1]);
+            expect(daysAgo).toBeLessThanOrEqual(maxDaysAgo);
+          }
+        }
+      }
+    });
+  }
+
+  /**
    * Verify Airtable tile content structure with task records
    * @param tileTitle - The title of the tile to verify
    */
@@ -357,7 +413,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
 
       // Get task records and verify at least one exists
       const containers = tile.locator(this.container);
-      await expect(containers).toHaveCount(0);
+      const count = await containers.count();
+      expect(count, 'At least one container should be present in Airtable tile').toBeGreaterThan(0);
 
       // Verify first record has all required elements
       const firstRecord = containers.first();
