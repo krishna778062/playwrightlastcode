@@ -20,6 +20,7 @@ on:
           - 'frontline'
           - 'integrations'
           - 'alert-notification'
+          - 'employee-listening'
       priority_filter:
         description: 'Select test cases by priority'
         required: true
