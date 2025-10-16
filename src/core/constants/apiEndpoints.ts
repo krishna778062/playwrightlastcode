@@ -110,6 +110,9 @@ export const API_ENDPOINTS = {
     general: '/v1/account/appConfig/app',
     appConfig: '/v1/account/appConfig',
   },
+  tile: {
+    create: '/v1/content/tiles',
+  },
   apps: {
     settings: '/v1/account/apps-links-settings',
     list: '/v1/account/launchpad/apps/list',
