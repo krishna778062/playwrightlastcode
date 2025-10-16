@@ -61,7 +61,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
 
       // Set the Language as "French", Get All the categories in French language and validate
       await userProfile.mockAppConfigLanguage(rewardsStore.page, 3);
-      await rewardsStore.giftCardNames.last().waitFor({ state: 'visible' });
+      await rewardsStore.verifyThePageIsLoaded();
       const frenchCategories = [
         'Toutes les catégories',
         'Articles de sport',
@@ -93,7 +93,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
 
       // Set the Language as "German", Get All the categories in German language and validate
       await userProfile.mockAppConfigLanguage(rewardsStore.page, 6);
-      await rewardsStore.giftCardNames.last().waitFor({ state: 'visible' });
+      await rewardsStore.verifyThePageIsLoaded();
       const germanCategories = [
         'Alle Kategorien',
         'Autopflege',
@@ -144,7 +144,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
 
       // Set the Language as "French", Get All the countries in French language and validate
       await userProfile.mockAppConfigLanguage(rewardsStore.page, 3);
-      await rewardsStore.giftCardNames.last().waitFor({ state: 'visible' });
+      await rewardsStore.verifyThePageIsLoaded();
       const frenchCountries = [
         'Afghanistan',
         'Îles Åland',
@@ -200,7 +200,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
         'République démocratique du Congo',
         'Îles Cook',
         'Costa Rica',
-        "Côte d'Ivoire",
+        'Côte d’Ivoire',
         'Croatie',
         'Curaçao',
         'Chypre',
@@ -395,7 +395,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
 
       // Set the Language as "German", Get All the countries in German language and validate
       await userProfile.mockAppConfigLanguage(rewardsStore.page, 6);
-      await rewardsStore.giftCardNames.last().waitFor({ state: 'visible' });
+      await rewardsStore.verifyThePageIsLoaded();
       const germanCountries = [
         'Afghanistan',
         'Åland Inseln',

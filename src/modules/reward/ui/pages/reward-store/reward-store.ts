@@ -86,7 +86,7 @@ export class RewardsStore extends BasePage {
     this.resetButton = page.getByRole('button', { name: 'Reset' });
     this.legalTermText = page.locator('div[class*="Typography-module__secondary"]');
     // Gift card
-    this.giftCardItems = page.locator('[class*="UI_listItem"][aria-label*="Redeem"]');
+    this.giftCardItems = page.locator('li button[class*="UI_listItem"]');
     this.giftCardNames = this.giftCardItems.locator('[class*="UI_brandName"]');
     this.giftCardImages = this.giftCardItems.locator('[class*="UI_image--"]');
     this.giftCardLabel = this.giftCardItems.locator('[class*="Distribute-module__apart"] p').nth(0);
@@ -153,10 +153,7 @@ export class RewardsStore extends BasePage {
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.giftCardNames.last(), {
-      timeout: 30000,
-      assertionMessage: 'Gift card page is loaded.',
-    });
+    await this.verifier.waitUntilElementIsVisible(this.giftCardNames.last(), { timeout: 20000 });
   }
 
   async verifyGiftCardVisibility(giftCardName: string, visibility: 'Active' | 'Inactive') {
@@ -203,14 +200,13 @@ export class RewardsStore extends BasePage {
       this.page.waitForResponse(
         res =>
           res.url().endsWith('/recognition/v1/tenant/config') &&
-          res.status() === 200 &&
           res.request().resourceType() === 'xhr' &&
+          res.status() === 200 &&
           res.request().method() === 'GET'
       ),
-      this.loadPage(), // action that triggers API
-      this.verifyThePageIsLoaded(),
+      rewardStore.loadPage(), // action that triggers API
+      rewardStore.verifyThePageIsLoaded(),
     ]);
-    console.log('Status:', apiResponse.status(), 'URL:', apiResponse.url());
     const body = await apiResponse.json();
     console.log(`/recognition/v1/tenant/config Response is:\n${JSON.stringify(body, null, 2)}`);
     const isRewardEnabled = body.rewardConfig?.enabled;
@@ -402,8 +398,11 @@ export class RewardsStore extends BasePage {
   }
 
   async mockTheOrderAPIResponse() {
-    await this.page.route('**/recognition/redemption/orders*', async route => {
-      const fixture = await fs.promises.readFile(path.join(__dirname, '..', '..', 'test-data', 'orders.json'), 'utf8');
+    await this.page.route('**/recognition/redemption/orders?size=10&q=&skip=0', async route => {
+      const fixture = await fs.promises.readFile(
+        path.join(__dirname, '..', '..', '..', 'test-data', 'orders.json'),
+        'utf8'
+      );
       const data = JSON.parse(fixture);
       data.results[0].createdAt = new Date(Date.now() - 95 * 24 * 60 * 60 * 1000).toISOString();
       data.results[0].canResend = false;
@@ -413,6 +412,7 @@ export class RewardsStore extends BasePage {
         body: JSON.stringify(data),
       });
     });
+    await this.page.reload();
   }
 
   /**

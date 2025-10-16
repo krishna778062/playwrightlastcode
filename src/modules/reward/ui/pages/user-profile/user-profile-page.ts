@@ -209,7 +209,6 @@ export class UserProfilePage extends BasePage {
       } else {
         console.warn('⚠️ Could not find result.language in response, leaving unchanged');
       }
-      console.log(body);
 
       await route.fulfill({
         response: originalResponse,
@@ -221,7 +220,6 @@ export class UserProfilePage extends BasePage {
       });
     });
     await page.reload({ waitUntil: 'domcontentloaded' });
-    console.log(`✅ Mocked language set to "${langCode}" and page reloaded.`);
   }
 
   /**
