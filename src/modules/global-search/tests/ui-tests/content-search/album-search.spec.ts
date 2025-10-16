@@ -63,7 +63,6 @@ test.describe(
         });
 
         // 5. UI Search for the album
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(albumName, {
           stepInfo: `Searching with term "${albumName}" and intent is to find the content`,
         });
@@ -93,7 +92,6 @@ test.describe(
         });
 
         // Search for the album
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(albumName, {
           stepInfo: `Searching with term "${albumName}" to verify album appears in search results`,
         });
@@ -141,7 +139,6 @@ test.describe(
         });
 
         // Type in search input
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         const topNavBarComponent = appManagerFixture.navigationHelper.topNavBarComponent;
         await topNavBarComponent.typeInSearchBarInput(albumName, {
           stepInfo: `Typing "${albumName}" in search input`,

@@ -1,6 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 
-import { BasePage } from '@core/ui/pages/basePage';
+import { BasePage } from '@core/pages/basePage';
 
 export class RewardsDialogBox extends BasePage {
   readonly container: Locator;
@@ -185,6 +185,7 @@ export class RewardsDialogBox extends BasePage {
    * 5. And Click on the Close button To close the Success Dialog box.
    */
   async closeTheSuccessDialogBox() {
+    await this.verifier.verifyTheElementIsVisible(this.successOrderCloseButton.last());
     await this.clickOnElement(this.successOrderCloseButton.last(), {
       stepInfo: 'Closing success dialog box',
     });

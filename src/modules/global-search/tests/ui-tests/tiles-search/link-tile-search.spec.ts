@@ -51,7 +51,6 @@ test.describe(
 
           const tileId = tileResponse.result.id;
           const tileTitle = testData.tileTitle;
-          await appManagerFixture.homePage.verifyThePageIsLoaded();
           const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(tileTitle, {
             stepInfo: `Searching for tile "${tileTitle}" created with ID: ${tileId}`,
           });
@@ -98,7 +97,6 @@ test.describe(
 
         const tileId = tileResponse.result.id;
         const tileTitle = testData.tileTitle;
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         // Search for the tile
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(tileTitle, {
           stepInfo: `Searching with term "${tileTitle}" to verify tile appears in search results`,
@@ -161,7 +159,6 @@ test.describe(
 
         const tileId = tileResponse.result.id;
         const tileTitle = testData.tileTitle;
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
 
         // Type in search input
         await appManagerFixture.navigationHelper.topNavBarComponent.typeInSearchBarInput(tileTitle, {

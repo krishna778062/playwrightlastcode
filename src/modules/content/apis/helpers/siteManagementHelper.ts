@@ -871,4 +871,64 @@ export class SiteManagementHelper {
       };
     });
   }
+
+  /**
+   * Gets the list of carousel items for a site and removes them all
+   * @param siteId - The site ID to get carousel items from
+   * @returns Promise containing the number of items removed
+   */
+  async getAndRemoveAllCarouselItems(siteId: string): Promise<number> {
+    return await test.step(`Getting and removing all carousel items from site: ${siteId}`, async () => {
+      // Get the list of carousel items
+      const carouselResponse = await this.siteManagementService.getSiteCarouselItems(siteId);
+
+      if (!carouselResponse.result?.listOfItems?.length) {
+        console.log(`No carousel items found for site ${siteId}`);
+        return 0;
+      }
+
+      const carouselItems = carouselResponse.result.listOfItems;
+      console.log(`Found ${carouselItems.length} carousel items to remove`);
+
+      let removedCount = 0;
+
+      // Remove each carousel item
+      for (const item of carouselItems) {
+        try {
+          await this.siteManagementService.deleteSiteCarouselItem(siteId, item.carouselItemId);
+          console.log(`Successfully removed carousel item: ${item.carouselItemId}`);
+          removedCount++;
+        } catch (error) {
+          console.error(`Failed to remove carousel item ${item.carouselItemId}:`, error);
+          // Continue with other items even if one fails
+        }
+      }
+
+      console.log(`Successfully removed ${removedCount} out of ${carouselItems.length} carousel items`);
+      return removedCount;
+    });
+  }
+
+  /**
+   * Gets the list of carousel items for a site
+   * @param siteId - The site ID to get carousel items from
+   * @returns Promise containing the carousel items list
+   */
+  async getSiteCarouselItems(siteId: string): Promise<any> {
+    return await test.step(`Getting carousel items for site: ${siteId}`, async () => {
+      return await this.siteManagementService.getSiteCarouselItems(siteId);
+    });
+  }
+
+  /**
+   * Removes a specific carousel item from a site
+   * @param siteId - The site ID containing the carousel item
+   * @param carouselItemId - The carousel item ID to remove
+   * @returns Promise containing the delete response
+   */
+  async removeCarouselItem(siteId: string, carouselItemId: string): Promise<any> {
+    return await test.step(`Removing carousel item ${carouselItemId} from site ${siteId}`, async () => {
+      return await this.siteManagementService.deleteSiteCarouselItem(siteId, carouselItemId);
+    });
+  }
 }

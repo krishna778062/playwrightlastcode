@@ -439,4 +439,16 @@ export class CreateFeedPostComponent
       await this.clickOnElement(this.questionButton);
     });
   }
+
+  async verifyQuestionButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify question button is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.questionButton);
+    });
+  }
+
+  async verifyQuestionButtonIsVisible(): Promise<void> {
+    await test.step('Verify question button is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.questionButton);
+    });
+  }
 }
