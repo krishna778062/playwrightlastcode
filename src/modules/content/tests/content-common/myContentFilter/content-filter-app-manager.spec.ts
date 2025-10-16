@@ -80,5 +80,77 @@ test.describe(
         await manageContentPage.actions.applyButtonShouldBeDisabled();
       }
     );
+
+    test(
+      'verify different combination for filters for Manage By/Author By, Content type and sort by filter on Manage > Content screen',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25099'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify different combination for filters for Manage By/Author By, Content type and sort by filter on Manage > Content screen',
+          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
+          zephyrTestId: 'CONT-25099',
+          storyId: 'CONT-25099',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.selectContentFilterByType('manageByme');
+        await manageContentPage.actions.clickSortByButton();
+        const contentCreatedAtDetailsNewest =
+          await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails('createdNewest');
+        await manageContentPage.actions.selectCreatedNewestOption();
+        if (contentCreatedAtDetailsNewest !== null) {
+          await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(contentCreatedAtDetailsNewest);
+        }
+        const contentCreatedAtDetailsOldest =
+          await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails('createdOldest');
+        await manageContentPage.actions.selectCreatedOldestOption();
+        if (contentCreatedAtDetailsOldest !== null) {
+          await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(contentCreatedAtDetailsOldest);
+        }
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter('Published');
+        await manageContentPage.actions.clickSortByButton();
+        const contentCreatedAtDetailsNewestPublished =
+          await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails('publishedNewest');
+        await manageContentPage.actions.selectCreateNewestPublishedOption();
+        if (contentCreatedAtDetailsNewestPublished !== null) {
+          await manageContentPage.assertions.verifyPublishedAtDateVisibleInManageContent(
+            contentCreatedAtDetailsNewestPublished
+          );
+        }
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter('Published');
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.selectCreateOldestPublishedOption();
+        const contentCreatedAtDetailsOldestPublished =
+          await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails('publishedOldest');
+        if (contentCreatedAtDetailsOldestPublished !== null) {
+          await manageContentPage.assertions.verifyPublishedAtDateVisibleInManageContent(
+            contentCreatedAtDetailsOldestPublished
+          );
+        }
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.selectEditedNewestOption();
+        const contentCreatedAtDetailsNewestEdited =
+          await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails('modifiedNewest');
+        if (contentCreatedAtDetailsNewestEdited !== null) {
+          await manageContentPage.assertions.verifyEditedAtDateVisibleInManageContent(
+            contentCreatedAtDetailsNewestEdited
+          );
+          await manageContentPage.actions.clickSortByButton();
+          await manageContentPage.actions.selectEditedOldestOption();
+          const contentCreatedAtDetailsOldestEdited =
+            await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails('modifiedOldest');
+          if (contentCreatedAtDetailsOldestEdited !== null) {
+            await manageContentPage.assertions.verifyEditedAtDateVisibleInManageContent(
+              contentCreatedAtDetailsOldestEdited
+            );
+          }
+        }
+      }
+    );
   }
 );

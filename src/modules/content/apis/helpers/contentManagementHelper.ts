@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { APIRequestContext } from '@playwright/test';
 
+import { MANAGE_CONTENT_TEST_DATA } from '../../test-data/manage-content.test-data';
 import { SiteManagementService } from '../services/SiteManagementService';
 
 import { EventSyncPayload, RsvpPayload } from '@/src/core/types/contentManagement.types';
@@ -86,6 +87,89 @@ export class ContentManagementHelper {
       siteId: pageResult.siteId,
       contentId: pageResult.contentId,
     };
+  }
+
+  async getContentCreatedAtDetails(sortBy: string, options?: { size?: number }): Promise<string | null> {
+    const size = options?.size || 1000;
+    console.log('Calling getContentList with params:', {
+      sortBy: sortBy,
+      size: size,
+      contribution: 'all',
+    });
+
+    const siteListResponse = await this.contentManagementService.getContentList({
+      sortBy: sortBy,
+      size: size,
+      contribution: 'all',
+    });
+
+    // Determine which date field to use based on sort type
+    let dateField: string;
+    if (sortBy.includes('published')) {
+      dateField = 'publishAt'; // API returns publishAt field
+    } else if (sortBy.includes('modified')) {
+      dateField = 'modifiedAt'; // Use 'modifiedAt' for modified sorts
+    } else {
+      dateField = 'createdAt';
+    }
+
+    // Get the date from the first item in the API response
+    const firstItem = siteListResponse.result.listOfItems[0];
+    if (!firstItem) {
+      return null;
+    }
+
+    let targetDate: string;
+    if (dateField === 'createdAt') {
+      targetDate = firstItem.createdAt;
+    } else if (dateField === 'publishAt') {
+      targetDate = firstItem.publishAt;
+    } else if (dateField === 'modifiedAt') {
+      targetDate = firstItem.modifiedAt;
+    } else {
+      return null;
+    }
+
+    console.log('Date field selection debug:', {
+      dateField,
+      createdAt: firstItem.createdAt,
+      publishAt: firstItem.publishAt,
+      modifiedAt: firstItem.modifiedAt,
+      selectedTargetDate: targetDate,
+    });
+
+    if (!targetDate) {
+      console.log('Target date is null/undefined, returning null');
+      return null;
+    }
+
+    if (targetDate) {
+      const date = new Date(targetDate);
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      // Check if the date is today using UTC comparison
+      if (date.toISOString().split('T')[0] === today.toISOString().split('T')[0] && date <= today) {
+        console.log('Returning: Today');
+        return 'Today';
+      }
+
+      // Check if the date is yesterday using UTC comparison
+      if (date.toISOString().split('T')[0] === yesterday.toISOString().split('T')[0] && date <= today) {
+        console.log('Returning: Yesterday');
+        return 'Yesterday';
+      }
+
+      // For other dates (including future dates), return formatted date
+      // Use UTC methods to avoid timezone conversion issues
+      const monthNames = MANAGE_CONTENT_TEST_DATA.MONTH_NAMES;
+      const formattedDate = `${monthNames[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
+      console.log('Returning formatted date:', formattedDate);
+      return formattedDate; // Returns "Sep 30, 2025"
+    }
+
+    return null;
   }
 
   /**

@@ -118,6 +118,41 @@ export class ManageContentComponent extends BaseComponent {
   getPageName(pageName: string): Locator {
     return this.page.locator(`[aria-label="${pageName}"]`).first();
   }
+
+  createdAtDate(createdAtDate: string): Locator {
+    // Handle special cases for Today and Yesterday
+    if (createdAtDate.toLowerCase() === 'today') {
+      return this.page.getByText('Created: Today').first();
+    } else if (createdAtDate.toLowerCase() === 'yesterday') {
+      return this.page.getByText('Created: Yesterday').first();
+    } else {
+      // Handle regular date format
+      return this.page.getByText(`Created: ${createdAtDate}`).first();
+    }
+  }
+
+  publishedAtDate(publishedAtDate: string): Locator {
+    // Handle special cases for Today and Yesterday
+    if (publishedAtDate.toLowerCase() === 'today') {
+      return this.page.getByText('Published: Today').first();
+    } else if (publishedAtDate.toLowerCase() === 'yesterday') {
+      return this.page.getByText('Published: Yesterday').first();
+    } else {
+      // Handle regular date format - UI shows "Published: [date]" within the combined date string
+      return this.page.getByText(`Published: ${publishedAtDate}`).first();
+    }
+  }
+
+  editedAtDate(editedAtDate: string): Locator {
+    if (editedAtDate.toLowerCase() === 'today') {
+      return this.page.getByText('(edited: Today)').first();
+    } else if (editedAtDate.toLowerCase() === 'yesterday') {
+      return this.page.getByText('(edited: Yesterday)').first();
+    } else {
+      return this.page.getByText(`(edited: ${editedAtDate})`).first();
+    }
+  }
+
   async clickSearchBar(): Promise<void> {
     await test.step(`Clicking on the search bar`, async () => {
       await this.clickOnElement(this.searchBar);
@@ -129,6 +164,9 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickSearchBar();
       await this.searchBar.type(inputText);
     });
+  }
+  get contentFilter(): Locator {
+    return this.page.getByLabel('Content:');
   }
 
   async searchIcon(): Promise<void> {
@@ -158,6 +196,15 @@ export class ManageContentComponent extends BaseComponent {
   async placeHolderShouldBeVisible(): Promise<void> {
     await test.step(`Checking if the place holder text is visible`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.placeHolderText);
+    });
+  }
+
+  async createdAtDateShouldBeVisible(createdAtDate: string): Promise<void> {
+    await test.step(`Checking if the created at date is visible`, async () => {
+      const createdAtLocator = this.page.getByText(`Created-${createdAtDate}`);
+      await this.verifier.verifyTheElementIsVisible(createdAtLocator, {
+        assertionMessage: 'Created at date should be visible',
+      });
     });
   }
 
@@ -394,6 +441,24 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.sortByButton);
     });
   }
+
+  async selectTheStatusFilter(status: string): Promise<void> {
+    await test.step(`Selecting the status filter: ${status}`, async () => {
+      await this.clickOnElement(this.statusField);
+      await this.selectPublishOption.selectOption(status);
+    });
+  }
+
+  async selectEditedNewestOptionByText(): Promise<void> {
+    await test.step('Selecting the edited newest option by text', async () => {
+      await this.sortByButton.selectOption({ label: 'Edited date (newest first)' });
+    });
+  }
+  async selectEditedOldestOptionByText(): Promise<void> {
+    await test.step('Selecting the edited oldest option by text', async () => {
+      await this.sortByButton.selectOption({ label: 'Edited date (oldest first)' });
+    });
+  }
   async selectCreatedNewestOption(): Promise<void> {
     await test.step('Selecting the created newest option', async () => {
       await this.sortByButton.selectOption('createdNewest');
@@ -405,6 +470,23 @@ export class ManageContentComponent extends BaseComponent {
       await this.sortByButton.selectOption({ label: 'Created date (newest first)' });
     });
   }
+
+  async selectCreateNewestPublishedOptionByText(): Promise<void> {
+    await test.step('Selecting the create newest published option by text', async () => {
+      await this.sortByButton.selectOption({ label: 'Published date (newest first)' });
+    });
+  }
+  async selectCreateOldestPublishedOptionByText(): Promise<void> {
+    await test.step('Selecting the create oldest published option by text', async () => {
+      await this.sortByButton.selectOption({ label: 'Published date (oldest first)' });
+    });
+  }
+  async selectCreatedOldestOptionByText(): Promise<void> {
+    await test.step('Selecting the created oldest option by text', async () => {
+      await this.sortByButton.selectOption({ label: 'Created date (oldest first)' });
+    });
+  }
+
   async selectPageCategoryIfVisible(): Promise<void> {
     await test.step('Selecting the page category if visible', async () => {
       if (await this.verifier.isTheElementVisible(this.pageCategorySelectorDropdown)) {
@@ -477,6 +559,52 @@ export class ManageContentComponent extends BaseComponent {
   async applyButtonShouldBeDisabled(): Promise<void> {
     await test.step('Checking if the apply button is disabled', async () => {
       await this.verifier.verifyTheElementIsDisabled(this.applyButton);
+    });
+  }
+  async selectContentFilter(managedBy: string): Promise<void> {
+    await test.step('Selecting the content filter', async () => {
+      await this.contentFilter.selectOption(managedBy);
+    });
+  }
+
+  /**
+   * Unified function to select content filter based on the filter type
+   * @param filterType - 'manageByme' selects 'managing' option, 'authorByMe' selects 'owned' option
+   * @example
+   * // Instead of:
+   * // await page.getByLabel('Content:').selectOption('managing');
+   * // await page.getByLabel('Content:').selectOption('owned');
+   *
+   * // Use this unified function:
+   * await selectContentFilterByType('manageByme'); // Selects 'managing' option
+   * await selectContentFilterByType('authorByMe'); // Selects 'owned' option
+   */
+  async selectContentFilterByType(filterType: 'manageByme' | 'authorByMe'): Promise<void> {
+    await test.step(`Selecting content filter: ${filterType}`, async () => {
+      const filterValue = filterType === 'manageByme' ? 'managing' : 'owned';
+      await this.contentFilter.selectOption(filterValue);
+    });
+  }
+
+  async verifyPublishedAtDateVisibleInManageContent(publishedAtDate: string): Promise<void> {
+    await test.step('Verifying the published at date is visible in manage content', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.publishedAtDate(publishedAtDate), {
+        assertionMessage: 'Published at date should be visible',
+      });
+    });
+  }
+  async verifyEditedAtDateVisibleInManageContent(editedAtDate: string): Promise<void> {
+    await test.step('Verifying the edited at date is visible in manage content', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.editedAtDate(editedAtDate), {
+        assertionMessage: 'Edited at date should be visible',
+      });
+    });
+  }
+  async verifyCreatedAtDateVisibleInManageContent(createdAtDate: string): Promise<void> {
+    await test.step('Verifying the created at date is visible in manage content', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.createdAtDate(createdAtDate), {
+        assertionMessage: 'Created at date should be visible',
+      });
     });
   }
 }
