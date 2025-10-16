@@ -3,10 +3,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
-import {
-  VIDEO_FILE_SEARCH_TEST_DATA as testData,
-  VIDEO_FILE_SEARCH_TEST_DATA,
-} from '@/src/modules/global-search/test-data/video-file-search.test-data';
+import { VIDEO_FILE_SEARCH_TEST_DATA as testData } from '@/src/modules/global-search/test-data/video-file-search.test-data';
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
 import { IntranetFileListComponent } from '@/src/modules/global-search/ui/components/intranetFileListComponent';
 
@@ -50,7 +47,7 @@ for (const fileType of testData.fileTypes) {
       test(
         `Verify search results for a new video file of type ${fileType.type}`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
@@ -75,13 +72,13 @@ for (const fileType of testData.fileTypes) {
       );
 
       test(
-        `Verify Video File Search results with sidebar filter for ${fileType.type}`,
+        `verify Video File Search results with sidebar filter`,
         {
-          tag: [TestPriority.P1, TestGroupType.REGRESSION, '@test'],
+          tag: [TestPriority.P1, TestGroupType.REGRESSION],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
-            zephyrTestId: 'SEN-19284',
+            zephyrTestId: 'SEN-19543',
           });
           // Search for the video file
           const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(uploadedFileName, {
@@ -101,14 +98,14 @@ for (const fileType of testData.fileTypes) {
 
           // Click on the file filter in the sidebar to filter results by files only
           await globalSearchResultPage.verifyAndClickSidebarFilter({
-            filterText: VIDEO_FILE_SEARCH_TEST_DATA.filterText,
+            filterText: testData.filterText,
             iconType: fileType.label.toLowerCase(),
           });
 
           await fileResultItem.verifyNameIsDisplayed(uploadedFileName);
 
           const originalCount = await globalSearchResultPage.verifyAndClickSiteSubFilter({
-            filterText: VIDEO_FILE_SEARCH_TEST_DATA.filterText,
+            filterText: testData.filterText,
             siteName: siteName,
           });
 
@@ -116,7 +113,7 @@ for (const fileType of testData.fileTypes) {
 
           // Click on site subfilter, verify count tracking, and reset functionality
           await globalSearchResultPage.verifySiteSubFilterWithCountTracking({
-            filterText: VIDEO_FILE_SEARCH_TEST_DATA.filterText,
+            filterText: testData.filterText,
             siteName: siteName,
             originalCount: originalCount,
             expectedCountAfterFilter: 1,

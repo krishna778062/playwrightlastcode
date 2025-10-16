@@ -27,7 +27,6 @@ export class PeopleListComponent extends ResultListingComponent {
   async verifyJobTitleAndDepartmentIsDisplayed(jobTitle: string, department: string) {
     await test.step(`Verifying job title "${jobTitle}" and department "${department}" are displayed in the people result item`, async () => {
       const expectedText = `${jobTitle} - ${department}`;
-      // Try multiple locator strategies for better reliability
       const jobDeptElement = this.jobDeptLocationLocator.filter({ hasText: expectedText });
       await this.verifier.verifyElementHasText(jobDeptElement, expectedText, {
         timeout: 20000,
@@ -42,7 +41,6 @@ export class PeopleListComponent extends ResultListingComponent {
    */
   async verifyLocationIsDisplayed(location: string) {
     await test.step(`Verifying location "${location}" is displayed in the people result item`, async () => {
-      // Use text-based locator for better reliability
       const locationElement = this.jobDeptLocationLocator.filter({ hasText: location });
       await this.verifier.verifyElementHasText(locationElement, location, {
         timeout: 20000,

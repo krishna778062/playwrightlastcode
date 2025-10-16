@@ -56,7 +56,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'SEN-19472', // Replace with actual Zephyr test ID
+          zephyrTestId: 'SEN-19472',
         });
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(testData.searchTerm, {
           stepInfo: `Searching with term "${testData.searchTerm}" to verify people appear in search results`,
@@ -90,29 +90,22 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'SEN-19473', // Replace with actual Zephyr test ID
+          zephyrTestId: 'SEN-19473',
         });
 
-        // Type in search input
         const topNavBarComponent = appManagerFixture.navigationHelper.topNavBarComponent;
         await topNavBarComponent.typeInSearchBarInput(testData.searchTerm, {
           stepInfo: `Typing "${testData.searchTerm}" in search input`,
         });
 
-        // Wait for autocomplete to appear first
         const resultList = new ResultListingComponent(appManagerFixture.page);
         await resultList.waitForAndVerifyAutocompleteListIsDisplayed(
           topNavBarComponent.globalSearchInputBox,
           testData.searchTerm
         );
 
-        // Then get specific autocomplete item
         const peopleResult = resultList.getAutocompleteItemByName(testData.searchTerm);
-
-        // Verify autocomplete item data (name and label)
         await peopleResult.verifyAutocompleteItemData(testData.searchTerm, testData.label);
-
-        // Click on the autocomplete item and verify navigation
         await peopleResult.verifyAutocompleteNavigationToTitleLink(userId, testData.searchTerm, testData.label);
       }
     );
@@ -120,52 +113,41 @@ test.describe(
     test(
       `verify people search with sidebar filter functionality`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'SEN-19474', // Replace with actual Zephyr test ID
+          zephyrTestId: 'SEN-19542',
         });
 
-        // Get user ID using getIdentityUserId method with data from test file
         testUserId = await appManagerFixture.identityManagementHelper.identityService.getIdentityUserId(
           testData.firstName,
           testData.lastName
         );
 
-        // Create expertise
         const expertiseResponse = await appManagerFixture.expertiseManagementService.createExpertise(
           testData.expertise.name
         );
         testExpertiseId = expertiseResponse.result.uuid;
-        console.log(`Expertise created: ${testData.expertise.name} with ID: ${testExpertiseId}`);
 
-        // Endorse user with expertise
         const endorseResponse = await appManagerFixture.expertiseManagementService.endorseUserWithExpertise(
           testUserId,
           testExpertiseId
         );
-        console.log(`User ${testUserId} endorsed with expertise ${testExpertiseId}:`, endorseResponse.message);
 
-        // Navigate to global search and search for the user
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(testData.searchTerm, {
           stepInfo: `Searching with term "${testData.searchTerm}" to verify people appear in search results with sidebar filter`,
         });
-
-        // Verify the user appears in search results
         const peopleResult = await globalSearchResultPage.getPeopleResultItemExactlyMatchingTheSearchTerm(
           testData.searchTerm
         );
         await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
-
         await globalSearchResultPage.verifyAndClickSidebarFilter({
           filterText: testData.label,
           iconType: testData.label.toLowerCase(),
         });
-
         await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
 
-        // Test people subfilters with count tracking using generic approach
         const peopleSubFilters = [
           {
             filterName: testData.peopleFilters.department,
@@ -181,18 +163,15 @@ test.describe(
           },
         ];
 
-        // Test each subfilter, track counts, and verify reset functionality
         for (const subFilter of peopleSubFilters) {
           const peopleFilterComponent = new SidebarFilterComponent(appManagerFixture.page, {
             filterText: testData.label,
             globalFilterName: subFilter.filterName,
           });
 
-          // Test the subfilter and get original count
           const originalCount = await peopleFilterComponent.verifyAndClickPeopleSubFilter(subFilter.filterValue);
           await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
 
-          // Verify count tracking and reset functionality
           await peopleFilterComponent.verifyPeopleSubFilterWithCountTracking({
             filterName: subFilter.filterName,
             originalCount: originalCount,
