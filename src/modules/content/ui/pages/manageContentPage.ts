@@ -3,6 +3,7 @@ import { Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
+import { ContentStatus } from '@/src/modules/content/constants';
 import { ManageContentComponent } from '@/src/modules/content/ui/components/manageContentComponent';
 
 export interface IActions {
@@ -190,7 +191,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickSortByButton(): Promise<void> {
     await this.manageContentComponent.clickSortByButton();
   }
-  async selectTheStatusFilter(status: string): Promise<void> {
+  async selectTheStatusFilter(status: ContentStatus): Promise<void> {
     await this.manageContentComponent.selectTheStatusFilter(status);
   }
   async selectEditedNewestOption(): Promise<void> {
