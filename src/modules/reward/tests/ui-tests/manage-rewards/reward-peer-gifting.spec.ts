@@ -484,7 +484,9 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         );
       }
 
-      await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.increaseTheAmountBy(amountToBeSetForUserAllowance);
+      await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.increaseTheUserAmountBy(
+        amountToBeSetForUserAllowance
+      );
       const currentAmount =
         await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.getTheCurrentAmountInInputBox();
       expect(currentAmount).toBe(amountToBeSetForUserAllowance);
@@ -633,7 +635,9 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         );
       }
 
-      await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.increaseTheAmountBy(amountToBeSetForUserAllowance);
+      await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.increaseTheUserAmountBy(
+        amountToBeSetForUserAllowance
+      );
       const currentAmount =
         await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.getTheCurrentAmountInInputBox();
       expect(currentAmount).toBe(amountToBeSetForUserAllowance);
@@ -782,7 +786,9 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         );
       }
 
-      await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.increaseTheAmountBy(amountToBeSetForUserAllowance);
+      await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.increaseTheUserAmountBy(
+        amountToBeSetForUserAllowance
+      );
       const currentAmount =
         await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.getTheCurrentAmountInInputBox();
       expect(currentAmount).toBe(amountToBeSetForUserAllowance);

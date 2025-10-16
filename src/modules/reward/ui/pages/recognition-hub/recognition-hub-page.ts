@@ -1,9 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
-import { RewardsEnabler } from '@rewards/utils/rewards-enabler';
 import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RewardGiftingOptionsPage } from '@rewards-pages/manage-rewards/reward-gifting-options-page';
-import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
@@ -27,7 +25,6 @@ export class RecognitionHubPage extends BasePage {
   readonly allowanceRefreshing: Locator;
   readonly allowanceRefreshingInfoIcon: Locator;
   readonly allowanceRefreshingInfoIconTooltipText: Locator;
-  private rewardsEnabler: RewardsEnabler;
 
   // Delete recognition dialog box locators
   readonly deleteRecognitionDialogBoxContainer: Locator;
@@ -47,7 +44,6 @@ export class RecognitionHubPage extends BasePage {
    */
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.RECOGNITION_HUB);
-    this.rewardsEnabler = new RewardsEnabler(page);
 
     // Delete recognition dialog box locators
     this.deleteRecognitionDialogBoxContainer = page.locator('[data-state="open"][role="dialog"]');
@@ -419,81 +415,31 @@ export class RecognitionHubPage extends BasePage {
   }
 
   /**
-   * Enable rewards and peer gifting if disabled
-   */
-  async enableTheRewardsAndPeerGiftingIfDisabled(): Promise<void> {
-    const manageRewardsOverviewPage = new ManageRewardsOverviewPage(this.page);
-    await manageRewardsOverviewPage.loadPage();
-    await manageRewardsOverviewPage.enableTheRewardsAndPeerGiftingIfDisabled();
-  }
-
-  /**
-   * Enable reward store and peer gifting if disabled
-   */
-  async enableTheRewardStoreAndPeerGiftingIfDisabled(): Promise<void> {
-    const rewardsStore = new RewardsStore(this.page);
-    await rewardsStore.loadPage();
-    // Enable rewards first
-    const manageRewardsOverviewPage = new ManageRewardsOverviewPage(this.page);
-    await manageRewardsOverviewPage.enableTheRewardsAndPeerGiftingIfDisabled();
-  }
-
-  /**
    * Enable rewards and peer gifting if disabled (for Recognition Hub context)
    * This method checks the current state via API and enables both features if needed
    */
   async enableTheRewardsAndPeerGiftingForHubIfDisabled(): Promise<void> {
-    await this.rewardsEnabler.enableRewardsAndPeerGiftingIfDisabled({
-      apiEndpoint: '/recognition/v1/tenant/config',
-      responsePath: { enabled: 'rewardConfig.enabled', peerGiftingEnabled: 'rewardConfig.peerGiftingEnabled' },
-      triggerAction: async () => {
-        // Navigate to manage rewards page to enable rewards
-        const manageRewards = new ManageRewardsOverviewPage(this.page);
-        await manageRewards.loadPage();
-        await manageRewards.verifyThePageIsLoaded();
-      },
-      returnAction: async () => {
-        // Return to recognition hub after enabling
-        await this.visitRecognitionHub();
-        await this.verifyThePageIsLoaded();
-      },
-    });
-  }
-
-  /**
-   * Enable rewards and peer gifting if disabled (for Recognition Hub context)
-   * This method checks the current state via API and enables both features if needed
-   */
-  async enableTheRewardsInAndPeerGiftingIfDisabled(): Promise<void> {
+    const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
     const [apiResponse] = await Promise.all([
       this.page.waitForResponse(
         res =>
-          res.url().includes('/recognition/v1/tenant/config') &&
-          res.status() === 200 &&
-          res.request().method() === 'GET'
+          res.url().includes('/recognition/admin/rewards') && res.status() === 200 && res.request().method() === 'GET'
       ),
-      this.visitRecognitionHub(), // action that triggers API
+      manageRecognitionPage.loadPage(), // action that triggers API
+      manageRecognitionPage.verifier.waitUntilElementIsVisible(manageRecognitionPage.rewardsTabHeading, {
+        timeout: 25000,
+      }),
     ]);
     console.log('Status:', apiResponse.status(), 'URL:', apiResponse.url());
     const body = await apiResponse.json();
-    console.log(`/recognition/v1/tenant/config Response is:\n${JSON.stringify(body, null, 2)}`);
-    const isRewardEnabled = body.rewardConfig?.enabled;
-    const isPeerGiftingDisabled = body.rewardConfig?.peerGiftingEnabled;
+    console.log(`/recognition/admin/rewards Response is:\n${JSON.stringify(body, null, 2)}`);
+    const isRewardEnabled = body.enabled;
+    const isPeerGiftingDisabled = body.peerGiftingEnabled;
     console.log(
       `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
     );
-    const manageRewardsPage = new ManageRewardsOverviewPage(this.page);
-    await manageRewardsPage.loadPage();
-    await this.rewardsEnabler.enableRewardsAndPeerGiftingIfDisabled({
-      apiEndpoint: '/recognition/v1/tenant/config',
-      responsePath: { enabled: 'rewardConfig.enabled', peerGiftingEnabled: 'rewardConfig.peerGiftingEnabled' },
-      triggerAction: async () => {
-        await this.visitRecognitionHub();
-      },
-      returnAction: async () => {
-        await this.visitRecognitionHub();
-      },
-    });
+    await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
+    await this.loadPage();
   }
 
   /**

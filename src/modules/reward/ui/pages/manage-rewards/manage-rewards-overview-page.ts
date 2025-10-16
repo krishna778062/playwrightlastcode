@@ -1,5 +1,4 @@
 import { expect, Locator, Page, Response, test } from '@playwright/test';
-import { RewardsEnabler } from '@rewards/utils/rewards-enabler';
 import { RewardsAllowance } from '@rewards-components/manage-rewards/rewards-allowance';
 import { RewardsBudgetModal } from '@rewards-components/manage-rewards/rewards-budget-modal';
 import { RewardsPeerGifting } from '@rewards-components/manage-rewards/rewards-peer-gifting';
@@ -15,7 +14,6 @@ export class ManageRewardsOverviewPage extends BasePage {
   readonly peerGifting: RewardsPeerGifting;
   readonly budgetModal: RewardsBudgetModal;
   readonly rewardsAllowance: RewardsAllowance;
-  private rewardsEnabler: RewardsEnabler;
 
   // Page container and not found
   readonly manageRewardsPageContainer: Locator;
@@ -45,8 +43,8 @@ export class ManageRewardsOverviewPage extends BasePage {
   // Summary tile
   readonly summaryTiles: Locator;
   private summaryTilePElements: Locator;
-  private monthSpendToDateInfoIcon: Locator;
-  private annualBudgetBalanceInfoIcon: Locator;
+  readonly monthSpendToDateInfoIcon: Locator;
+  readonly annualBudgetBalanceInfoIcon: Locator;
   readonly pointBalanceSummaryAllowanceInfoIcon: Locator;
   readonly pointBalanceSummaryUserAllowanceInfoIcon: Locator;
   readonly pointBalanceSummaryAllowancePoints: Locator;
@@ -107,7 +105,6 @@ export class ManageRewardsOverviewPage extends BasePage {
   readonly disabledRewardPeerGiftingContainer: Locator;
   readonly disabledRewardRewardsBudgetContainer: Locator;
   readonly disabledRewardCurrencyConversionContainer: Locator;
-  readonly disabledRewardAddBudgetButton: Locator;
 
   // Tab locators
   readonly rewardsTab: Locator;
@@ -116,10 +113,6 @@ export class ManageRewardsOverviewPage extends BasePage {
   private readonly dialogBox: Locator;
   private readonly confirmInput: Locator;
   private readonly confirmButton: Locator;
-  readonly dailogContainerForm: {
-    dailog: Locator;
-    dailogCancelBtn: Locator;
-  };
 
   // Save button and toast messages
   readonly saveButton: Locator;
@@ -132,7 +125,6 @@ export class ManageRewardsOverviewPage extends BasePage {
     this.peerGifting = new RewardsPeerGifting(page);
     this.budgetModal = new RewardsBudgetModal(page);
     this.rewardsAllowance = new RewardsAllowance(page);
-    this.rewardsEnabler = new RewardsEnabler(page);
 
     // Page container and not found
     this.manageRewardsPageContainer = page.locator('div[class*="TypographyBody-module"]');
@@ -294,16 +286,11 @@ export class ManageRewardsOverviewPage extends BasePage {
     this.disabledRewardCurrencyConversionContainer = this.page.locator(
       'div[class*="Rewards_content"] div[class*="SummaryPanel_summaryPanel"]:nth-child(3)'
     );
-    this.disabledRewardAddBudgetButton = this.page.locator('button:has-text("Add budget")');
 
     // Dialog box
     this.dialogBox = this.page.locator('[role="dialog"]');
     this.confirmInput = this.dialogBox.locator('input[type="text"]');
     this.confirmButton = this.dialogBox.getByRole('button', { name: 'Disable' });
-    this.dailogContainerForm = {
-      dailog: this.page.locator('[class*="Dialog-module__dialog"]'),
-      dailogCancelBtn: this.page.locator('[class*="Dialog-module__dialog"] button[type="button"]:has-text("Cancel")'),
-    };
 
     // Save button and toast messages
     this.saveButton = this.page.getByRole('button', { name: 'Save' });
@@ -360,18 +347,25 @@ export class ManageRewardsOverviewPage extends BasePage {
   }
 
   async enableTheRewardsAndPeerGiftingIfDisabled(): Promise<void> {
-    await this.rewardsEnabler.enableRewardsAndPeerGiftingIfDisabled({
-      apiEndpoint: '/recognition/admin/rewards',
-      responsePath: { enabled: 'enabled', peerGiftingEnabled: 'peerGiftingEnabled' },
-      triggerAction: async () => {
-        await this.loadPage();
-        await this.verifyThePageIsLoaded();
-      },
-      returnAction: async () => {
-        await this.loadPage();
-        await this.verifyThePageIsLoaded();
-      },
-    });
+    const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
+    const [apiResponse] = await Promise.all([
+      this.page.waitForResponse(
+        res =>
+          res.url().includes('/recognition/admin/rewards') && res.status() === 200 && res.request().method() === 'GET'
+      ),
+      manageRecognitionPage.loadPage(), // action that triggers API
+      manageRecognitionPage.verifyThePageIsLoaded(),
+    ]);
+    console.log('Status:', apiResponse.status(), 'URL:', apiResponse.url());
+    const body = await apiResponse.json();
+    console.log(`/recognition/admin/rewards Response is:\n${JSON.stringify(body, null, 2)}`);
+    const isRewardEnabled = body.enabled;
+    const isPeerGiftingDisabled = body.peerGiftingEnabled;
+    console.log(
+      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
+    );
+    await this.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
+    await manageRecognitionPage.loadPage();
   }
 
   async disableTheRewards(): Promise<void> {
@@ -490,8 +484,6 @@ export class ManageRewardsOverviewPage extends BasePage {
       return 'Check the Job is failing, it is updated more than 2 hours';
     }
   }
-
-  // Methods from ManageRewardsPage
 
   /**
    * Load page with Harness flag response
@@ -798,11 +790,11 @@ export class ManageRewardsOverviewPage extends BasePage {
     // For now, return mock values that would be used in calculations
     const currentDate = new Date();
     if (type === 'future') {
-      const futureMonth = (currentDate.getMonth() + 3) % 12; // 3 months in future
+      const futureMonth = (currentDate.getMonth() + 3) % 12; // 3 months in the future
       const futureDay = Math.min(currentDate.getDate(), 28); // Ensure valid day
       return [futureMonth, futureDay];
     } else {
-      const pastMonth = (currentDate.getMonth() - 3 + 12) % 12; // 3 months in past
+      const pastMonth = (currentDate.getMonth() - 3 + 12) % 12; // 3 months in the past
       const pastDay = Math.min(currentDate.getDate(), 28); // Ensure valid day
       return [pastMonth, pastDay];
     }
@@ -837,13 +829,52 @@ export class ManageRewardsOverviewPage extends BasePage {
 
     let remainingDays: number;
     if (selectedDate < currentDate) {
-      // If selected date is in the past, calculate remaining days in the quarter
+      // If selected date is in the past, calculate the remaining days in the quarter
       remainingDays = Math.ceil((quarterEndDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
     } else {
-      // If selected date is in the future, calculate days from selected date to end of quarter
+      // If the selected date is in the future, calculate days from selected date to end of quarter
       remainingDays = Math.ceil((quarterEndDate.getTime() - selectedDate.getTime()) / (1000 * 60 * 60 * 24));
     }
 
     return { totalDays, remainingDays: Math.max(0, remainingDays) };
+  }
+
+  async checkTheRewardsIsEnabled(isRewardEnabled: boolean, isPeerGiftingDisabled: boolean): Promise<void> {
+    const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
+    if (!isRewardEnabled && !isPeerGiftingDisabled) {
+      await manageRecognitionPage.disabledRewardPeerGiftingContainer.waitFor({
+        state: 'visible',
+        timeout: 15000,
+      });
+      await manageRecognitionPage.peerGifting.clickOnDisabledRewardsAddEditPeerGiftingButton();
+      await manageRecognitionPage.peerGifting.peerGiftingToggleSwitch.click();
+      await manageRecognitionPage.peerGifting.saveButton.waitFor({ state: 'attached', timeout: 15000 });
+      await manageRecognitionPage.peerGifting.saveButton.click();
+      await manageRecognitionPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
+      await manageRecognitionPage.loadPage();
+      await manageRecognitionPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
+      await manageRecognitionPage.enableRewardsButton.click();
+      await manageRecognitionPage.rewardsAllowance.validateToastMessage('Rewards enabled');
+      await expect(manageRecognitionPage.rewardsTabHeading).toHaveText('Rewards overview');
+    } else if (!isRewardEnabled && isPeerGiftingDisabled) {
+      // Directly enable Rewards
+      await manageRecognitionPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
+      await manageRecognitionPage.enableRewardsButton.click();
+      await manageRecognitionPage.rewardsAllowance.validateToastMessage('Rewards enabled');
+      await expect(manageRecognitionPage.rewardsTabHeading).toHaveText('Rewards overview');
+    } else if (isRewardEnabled && !isPeerGiftingDisabled) {
+      await manageRecognitionPage.peerGifting.loadPage();
+      await manageRecognitionPage.verifier.waitUntilElementIsVisible(
+        manageRecognitionPage.peerGifting.peerGiftingHeading
+      );
+      await manageRecognitionPage.peerGifting.peerGiftingToggleSwitch.click();
+      await manageRecognitionPage.peerGifting.saveButton.click();
+      await manageRecognitionPage.peerGifting.selectThePeerGiftingEnableType('Immediately');
+      await manageRecognitionPage.peerGifting.grantAllowancesConfirmButton.click();
+      await manageRecognitionPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
+    } else if (isRewardEnabled && isPeerGiftingDisabled) {
+      // Both are already enabled, do nothing
+      console.log('Reward and Gifting is enabled.');
+    }
   }
 }

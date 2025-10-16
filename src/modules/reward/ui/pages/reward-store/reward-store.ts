@@ -1,5 +1,4 @@
 import { expect, Locator, Page, test } from '@playwright/test';
-import { RewardsEnabler } from '@rewards/utils/rewards-enabler';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RewardsDialogBox } from '@rewards-pages/reward-store/rewards-dialog-box';
 import fs from 'fs';
@@ -55,14 +54,12 @@ export class RewardsStore extends BasePage {
   readonly resentRewardInvalidEmailError: Locator;
   readonly resentRewardDoNotMatchEmailError: Locator;
   readonly rewardsDialogBox: RewardsDialogBox;
-  private rewardsEnabler: RewardsEnabler;
 
   /**
    * This is a rewards store class that contains locators and methods for the rewards store page.
    */
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.REWARD_STORE_PAGE);
-    this.rewardsEnabler = new RewardsEnabler(page);
     // Locators for the rewards store page
     this.rewardStorePageNotFound = page.locator('[data-testid="no-results"]');
     this.header = page.getByRole('heading', { name: 'Rewards store' });
@@ -201,22 +198,28 @@ export class RewardsStore extends BasePage {
    * This method checks the current state via API and enables both features if needed
    */
   async enableTheRewardStoreAndPeerGiftingIfDisabled() {
-    await this.rewardsEnabler.enableRewardsAndPeerGiftingIfDisabled({
-      apiEndpoint: '/recognition/v1/tenant/config',
-      responsePath: { enabled: 'rewardConfig.enabled', peerGiftingEnabled: 'rewardConfig.peerGiftingEnabled' },
-      triggerAction: async () => {
-        // Navigate to manage rewards page to enable rewards
-        const manageReward = new ManageRewardsOverviewPage(this.page);
-        await manageReward.loadPage();
-        await manageReward.verifyThePageIsLoaded();
-      },
-      returnAction: async () => {
-        // Return to rewards store after enabling
-        await this.visit();
-        await this.verifyThePageIsLoaded();
-      },
-      conditionalCheck: true, // Only enable if needed
-    });
+    const rewardStore = new RewardsStore(this.page);
+    const [apiResponse] = await Promise.all([
+      this.page.waitForResponse(
+        res =>
+          res.url().includes('/recognition/v1/tenant/config') &&
+          res.status() === 200 &&
+          res.request().method() === 'GET'
+      ),
+      rewardStore.visit(), // action that triggers API
+    ]);
+    console.log('Status:', apiResponse.status(), 'URL:', apiResponse.url());
+    const body = await apiResponse.json();
+    console.log(`/recognition/v1/tenant/config Response is:\n${JSON.stringify(body, null, 2)}`);
+    const isRewardEnabled = body.rewardConfig?.enabled;
+    const isPeerGiftingDisabled = body.rewardConfig?.peerGiftingEnabled;
+    console.log(
+      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
+    );
+    const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
+    await manageRecognitionPage.loadPage();
+    await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
+    await rewardStore.visit();
   }
 
   async selectAndRedeemGiftCard(giftCardName: string) {

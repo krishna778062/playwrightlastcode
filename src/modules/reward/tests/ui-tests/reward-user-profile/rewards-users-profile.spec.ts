@@ -73,7 +73,7 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
   test(
     '[RC-2963] Verify user wallet in users profile',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0],
+      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -85,7 +85,6 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
       const rewardsStore = new RewardsStore(appManagerFixture.page);
       const userProfilePage = new UserProfilePage(appManagerFixture.page);
       await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
-      await userProfilePage.navigateToCurrentUserProfile();
       const walletData = await userProfilePage.navigateToUserProfileAndCaptureWalletData();
       await userProfilePage.validateWalletDataStructure(walletData);
       await userProfilePage.validateWalletDataInUI(walletData);

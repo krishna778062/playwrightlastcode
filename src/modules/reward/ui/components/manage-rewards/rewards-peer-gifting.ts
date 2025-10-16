@@ -22,6 +22,16 @@ export class RewardsPeerGifting extends BasePage {
   readonly grantAllowancesRadioNextMonth: Locator;
   readonly grantAllowancesConfirmButton: Locator;
 
+  // Disabled rewards Locators
+  readonly disableRewardOptionsContainer: Locator;
+  readonly disabledRewardPeerGiftingContainer: Locator;
+  readonly disabledRewardAddPeerGiftingButton: Locator;
+  readonly disabledRewardEditPeerGiftingButton: Locator;
+  readonly disabledRewardRewardsBudgetContainer: Locator;
+  readonly disabledRewardAddBudgetButton: Locator;
+  readonly disabledRewardEditBudgetButton: Locator;
+  readonly disabledRewardCurrencyConversionContainer: Locator;
+
   constructor(page: Page) {
     super(page, '/manage/recognition/rewards/peer-gifting');
 
@@ -70,6 +80,31 @@ export class RewardsPeerGifting extends BasePage {
     this.giftingOptionIcon = page.locator('[data-testid="gifting-options-icon"]');
     this.AllowanceIcon = page.locator('[data-testid="allowance-icon"]');
     this.grantAllowanceBoxDescription = page.locator('[data-testid="grant-allowance-description"]');
+
+    // Disabled rewards locators
+    this.disableRewardOptionsContainer = page.locator('div[class*="Panel-module__panel"]').nth(1);
+    this.disabledRewardPeerGiftingContainer = this.disableRewardOptionsContainer
+      .locator('div[class*="PanelActionItem_layout"]')
+      .nth(0);
+    this.disabledRewardAddPeerGiftingButton = this.disabledRewardPeerGiftingContainer.locator(
+      'a[aria-label="Add peer gifting"]'
+    );
+    this.disabledRewardEditPeerGiftingButton = this.disabledRewardPeerGiftingContainer.locator(
+      'a[aria-label="Edit peer gifting"]'
+    );
+
+    this.disabledRewardRewardsBudgetContainer = this.disableRewardOptionsContainer
+      .locator('div[class*="PanelActionItem_layout"]')
+      .nth(1);
+    this.disabledRewardAddBudgetButton = this.disabledRewardRewardsBudgetContainer.locator(
+      'button[aria-label="Add rewards budget"]'
+    );
+    this.disabledRewardEditBudgetButton = this.disabledRewardRewardsBudgetContainer.locator(
+      'button[aria-label="Edit rewards budget"]'
+    );
+    this.disabledRewardCurrencyConversionContainer = this.disableRewardOptionsContainer
+      .locator('div[class*="PanelActionItem_layout"]')
+      .nth(2);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -161,5 +196,16 @@ export class RewardsPeerGifting extends BasePage {
    */
   async removePeerGiftingApiMock(): Promise<void> {
     await this.page.unroute('**/recognition/admin/rewards/config/peer');
+  }
+
+  async clickOnDisabledRewardsAddEditPeerGiftingButton() {
+    await this.disabledRewardPeerGiftingContainer.waitFor({ state: 'attached', timeout: 15000 });
+    if (await this.verifier.verifyTheElementIsVisible(this.disabledRewardAddPeerGiftingButton)) {
+      await this.clickOnElement(this.disabledRewardAddPeerGiftingButton);
+    } else if (await this.verifier.verifyTheElementIsVisible(this.disabledRewardEditPeerGiftingButton)) {
+      await this.clickOnElement(this.disabledRewardEditPeerGiftingButton);
+    } else {
+      throw new Error('Neither Add Budget nor Edit Peer Gifting button is visible.');
+    }
   }
 }
