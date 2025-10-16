@@ -1,5 +1,5 @@
 import { CustomAppsListComponent } from '@integrations-components/customAppsListComponent';
-import { Locator, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
@@ -69,6 +69,13 @@ export class ExternalAppsPage extends BasePage {
     this.disconnectButtons = page.locator('button[aria-label*="Disconnect"]');
     this.connectButtons = page.locator('button[aria-label*="Connect"]');
     this.customAppsListComponent = new CustomAppsListComponent(page);
+  }
+
+  /**
+   * Get external integration item locator by provider
+   */
+  getExternalIntegrationItem(provider: ExternalAppProvider): Locator {
+    return this.page.locator(`xpath=//*[text()="${provider}"]`);
   }
 
   /**
@@ -156,16 +163,35 @@ export class ExternalAppsPage extends BasePage {
   }
 
   /**
-   * Get connection status text for an integration
+   * Get connection status for an integration
+   * Returns true if next <p> tag contains "Connected as" text, false otherwise
    */
-  async getConnectionStatus(provider: ExternalAppProvider): Promise<string> {
+  async getConnectionStatus(provider: ExternalAppProvider): Promise<boolean> {
     return await test.step(`Get connection status for ${provider}`, async () => {
-      const integrationItem = this.getIntegrationItem(provider);
-      const statusText = integrationItem.locator('p');
-      if (await statusText.isVisible()) {
-        return (await statusText.textContent()) || '';
-      }
-      return '';
+      const integrationItem = this.getExternalIntegrationItem(provider);
+      const nextParagraph = integrationItem.locator('xpath=following-sibling::p[contains(text(), "Connected as")]');
+      const isVisible = await nextParagraph.isVisible({ timeout: 3000 }).catch(() => false);
+      return isVisible;
+    });
+  }
+
+  /**
+   * Verify disconnect modal texts for Google Calendar
+   */
+  async verifyGoogleCalendarDisconnectModalTexts(confirmModal: Locator): Promise<void> {
+    await test.step('Verify Google Calendar disconnect modal texts', async () => {
+      const text1 = confirmModal.locator(
+        'text=Disable event syncing with the Google Calendars of your site members and followers.'
+      );
+      await expect(text1).toBeVisible();
+      const text2 = confirmModal.locator(
+        'text=Delete all events in Google that you have created in Integrations QA Tenant from the calendars of all members, Events created directly in Google will stay.'
+      );
+      await expect(text2).toBeVisible();
+      const text3 = confirmModal.locator(
+        'text=We strongly recommend keeping your Google Calendar connected to ensure event syncing and to prevent loss of events.'
+      );
+      await expect(text3).toBeVisible();
     });
   }
 
@@ -174,27 +200,80 @@ export class ExternalAppsPage extends BasePage {
    */
   async disconnectIntegration(provider: ExternalAppProvider): Promise<void> {
     await test.step(`Disconnect ${provider} integration`, async () => {
-      const integrationItem = this.getIntegrationItem(provider);
-      const disconnectButton = integrationItem.locator('button[aria-label*="Disconnect"]');
+      const disconnectButton = this.page.locator(`button[aria-label="Disconnect your ${provider} account"]`);
       await disconnectButton.click();
-      const confirmModal = this.page.locator('div[role="dialog"], .modal, [class*="modal"]');
-      if (await confirmModal.isVisible()) {
-        const confirmButton = confirmModal.locator(
-          'button:has-text("Disconnect"), button:has-text("Confirm"), button[type="submit"]'
-        );
-        await confirmButton.click();
+      const confirmModal = this.page.locator('div[role="dialog"]');
+      if (ExternalAppProvider.GOOGLE_CALENDAR === provider) {
+        await this.verifyGoogleCalendarDisconnectModalTexts(confirmModal);
       }
+      await confirmModal.waitFor({ state: 'visible', timeout: 5000 });
+      const confirmButton = confirmModal.getByRole('button', { name: 'Disconnect' });
+      await confirmButton.click();
+      await confirmModal.waitFor({ state: 'hidden', timeout: 5000 });
     });
   }
 
   /**
-   * Connect a specific integration
+   * Connect a specific integration with robust Google OAuth flow
+   * Timeout: 6 minutes for Google OAuth flow
    */
-  async connectIntegration(provider: ExternalAppProvider): Promise<void> {
+  async connectGoogleAccountIntegration(
+    provider: ExternalAppProvider,
+    email?: string,
+    password?: string
+  ): Promise<void> {
     await test.step(`Connect ${provider} integration`, async () => {
-      const integrationItem = this.getIntegrationItem(provider);
-      const connectButton = integrationItem.locator('button[aria-label*="Connect"]');
+      // Step 1: Click "Sign in with Google" button
+      const connectButton = this.page.locator(`button[aria-label="Sign in with Google"]`);
+      await connectButton.waitFor({ state: 'visible', timeout: 10000 });
       await connectButton.click();
+      // Wait for Google login page to load
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });
+      // Step 2: Enter email and click Next
+      const emailInput = this.page.locator('input[type="email"]');
+      await emailInput.waitFor({ state: 'visible', timeout: 10000 });
+      await emailInput.fill(email!);
+      const nextButton1 = this.page.getByRole('button', { name: 'Next' });
+      await nextButton1.waitFor({ state: 'visible', timeout: 5000 });
+      await nextButton1.click();
+      // Wait for the next screen to load
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });
+      await this.page.waitForTimeout(2000); // Small delay for page transition
+      // Step 3: Click "Try another way"
+      const tryAnotherWayButton = this.page.getByRole('button', { name: 'Try another way' });
+      await tryAnotherWayButton.waitFor({ state: 'visible', timeout: 10000 });
+      await tryAnotherWayButton.click();
+      // Wait for authentication options screen
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });
+      await this.page.waitForTimeout(1500);
+      // Step 4: Click "Enter your password"
+      const enterPasswordOption = this.page.getByText('Enter your password');
+      await enterPasswordOption.waitFor({ state: 'visible', timeout: 10000 });
+      await enterPasswordOption.click();
+      // Wait for password screen to load
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });
+      await this.page.waitForTimeout(1500);
+      // Step 5: Enter password and click Next
+      const passwordInput = this.page.locator('input[type="password"]');
+      await passwordInput.waitFor({ state: 'visible', timeout: 10000 });
+      await passwordInput.fill(password!);
+      const nextButton2 = this.page.getByRole('button', { name: 'Next' });
+      await nextButton2.waitFor({ state: 'visible', timeout: 5000 });
+      await nextButton2.click();
+      // Wait for consent/permissions screen
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 20000 });
+      await this.page.waitForTimeout(2000);
+      // Step 6: Click first "Continue" button (permissions screen)
+      const continueButton1 = this.page.getByRole('button', { name: 'Continue' });
+      await continueButton1.waitFor({ state: 'visible', timeout: 10000 });
+      await continueButton1.click();
+      // Wait for next permissions screen
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });
+      await this.page.waitForTimeout(2000);
+      // Step 7: Click second "Continue" button (final permissions confirmation)
+      const continueButton2 = this.page.getByRole('button', { name: 'Continue' });
+      await continueButton2.waitFor({ state: 'visible', timeout: 10000 });
+      await continueButton2.click();
     });
   }
 
