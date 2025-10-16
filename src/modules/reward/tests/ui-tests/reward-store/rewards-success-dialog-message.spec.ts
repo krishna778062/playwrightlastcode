@@ -42,7 +42,7 @@ test.describe('rewards Success Dialog box message', { tag: [REWARD_SUITE_TAGS.RE
       // Redeem prepaid gift card and validate success
       await rewardsStore.redeemAndValidate({
         tab: rewardsStore.prepaidCardsTab,
-        giftCard: 'Virtual Promotional Prepaid Mastercard - USA & International Acceptance',
+        giftCard: 'Virtual Promotional',
         successMessage: 'Your reward has been sent',
         additionalMessages: ['Please check your email inbox for your reward details'],
       });
@@ -121,7 +121,7 @@ test.describe('rewards Success Dialog box message', { tag: [REWARD_SUITE_TAGS.RE
       await rewardsStore.verifier.verifyTheElementIsEnabled(rewardsStore.rewardsDialogBox.confirmOrder);
       await rewardsStore.rewardsDialogBox.clickOnConfirmOrder();
 
-      // Click on Confirm order button and validate the success message
+      // Click on the Confirm order button and validate the success message
       await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.rewardsDialogBox.successOrderLogo);
       await rewardsStore.verifier.verifyElementHasText(
         rewardsStore.rewardsDialogBox.successOrderHeading,
@@ -147,7 +147,6 @@ test.describe('rewards Success Dialog box message', { tag: [REWARD_SUITE_TAGS.RE
         storyId: 'RC-3068',
       });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
-      let preExistingPoints: string, postExistingPoints: string;
 
       // Navigate to rewards store and validate
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
@@ -155,7 +154,7 @@ test.describe('rewards Success Dialog box message', { tag: [REWARD_SUITE_TAGS.RE
 
       // Get the redeemable points before redemption
       await rewardsStore.giftCardNames.last().waitFor({ state: 'visible' });
-      preExistingPoints = (await rewardsStore.pointToSpend.textContent()) || '';
+      const preExistingPoints = (await rewardsStore.pointToSpend.textContent()) || '';
 
       // Redeem 1 gift card with failure
       await rewardsStore.checkOutTheGiftCardForInterruption('Amazon');
@@ -186,9 +185,10 @@ test.describe('rewards Success Dialog box message', { tag: [REWARD_SUITE_TAGS.RE
           resp => resp.url().match(/\/recognition\/rewards\/users\/.*\/wallet/) !== null && resp.status() === 200
         ),
         rewardsStore.page.reload(),
+        rewardsStore.verifyThePageIsLoaded(),
       ]);
       await rewardsStore.pointToSpend.waitFor({ state: 'attached' });
-      postExistingPoints = (await rewardsStore.pointToSpend.textContent()) || '';
+      const postExistingPoints = (await rewardsStore.pointToSpend.textContent()) || '';
 
       // Validate the both points are same
       expect(preExistingPoints).toBe(postExistingPoints);

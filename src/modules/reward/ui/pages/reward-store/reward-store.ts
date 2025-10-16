@@ -208,6 +208,7 @@ export class RewardsStore extends BasePage {
           res.request().method() === 'GET'
       ),
       rewardStore.visit(), // action that triggers API
+      rewardStore.verifyThePageIsLoaded(),
     ]);
     console.log('Status:', apiResponse.status(), 'URL:', apiResponse.url());
     const body = await apiResponse.json();
@@ -283,13 +284,13 @@ export class RewardsStore extends BasePage {
     await this.selectAndRedeemGiftCard(giftCard);
     await this.validateSuccessMessage(successMessage, additionalMessages);
     await this.visitTheOrderHistory();
-    await this.page.reload({ waitUntil: 'domcontentloaded' });
+    await this.verifier.waitUntilElementIsVisible(this.orderHistoryPanel.last());
+    await this.fillInElement(this.orderHistorySearchField, giftCard);
+    await this.verifier.waitUntilElementIsVisible(this.orderHistoryPanel.last());
     await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanel.first(), {
-      timeout: 10000,
       assertionMessage: ' Verify the order history panel is visible',
     });
     await this.verifier.verifyElementContainsText(this.orderHistoryPanelRewardName.first(), giftCard, {
-      timeout: 10000,
       assertionMessage: ' Verify the reward name in the order history panel',
     });
     await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardImage.first());
