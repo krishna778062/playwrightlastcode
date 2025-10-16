@@ -8,7 +8,6 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { SnowflakeHelper, SocialInteractionDashboardQueryHelper } from '../../../helpers';
-import { DateHelper } from '../../../helpers/dateHelper';
 import { SocialInteractionDashboard } from '../../../ui/dashboards';
 
 import {
@@ -18,13 +17,12 @@ import {
 } from '@/src/modules/data-engineering/helpers/dashboardSetupHelper';
 
 test.describe(
-  'social Interaction Dashboard - Custom Period Filter Impact Validation',
+  'social Interaction Dashboard - Static Period Filter Impact Validation',
   {
-    tag: [DataEngineeringTestSuite.SOCIAL_INTERACTION, '@period-filter-impact', '@custom-period'],
+    tag: [DataEngineeringTestSuite.SOCIAL_INTERACTION, '@period-filter-impact', '@static-period'],
   },
   () => {
-    // Generate dynamic custom date range
-    const customDateRange = DateHelper.createTestCustomDateRange();
+    const periodFilterTimeRange = PeriodFilterTimeRange.LAST_36_MONTHS;
 
     let testEnvironment: {
       page: Page;
@@ -37,13 +35,9 @@ test.describe(
       // Setup dashboard using dedicated method
       testEnvironment = await setupSocialInteractionDashboardForTest(browser, UserRole.APP_MANAGER);
 
-      // Apply custom period filter once (now using ISO format)
+      // Apply period filter
       await testEnvironment.socialInteractionDashboard.analyticsFiltersComponent.applyPeriodFilter(
-        PeriodFilterTimeRange.CUSTOM,
-        {
-          customStartDate: customDateRange.startDate,
-          customEndDate: customDateRange.endDate,
-        }
+        periodFilterTimeRange
       );
     });
 
@@ -53,13 +47,14 @@ test.describe(
     });
 
     test(
-      `verify Reaction/Like metric data validation - custom date range`,
+      `verify Reaction/Like metric data validation when period filter is changed to ${periodFilterTimeRange}`,
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@reactions-or-likes'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Reactions / Likes in Social Interaction dashboard',
+          description:
+            'To verify the answer of Reactions / Likes in Social Interaction dashboard responds to period filter change',
           zephyrTestId: 'DE-26105',
           storyId: 'DE-25753',
         });
@@ -67,9 +62,7 @@ test.describe(
         //get expected metric value from snowflake
         const expectedMetricValue = await testEnvironment.socialInteractionQueryHelper.getHeroMetricDataFromDB(
           SocialInteractionSql.Reaction_Count,
-          PeriodFilterTimeRange.CUSTOM,
-          customDateRange.startDate,
-          customDateRange.endDate
+          periodFilterTimeRange
         );
 
         //UI validation
@@ -80,7 +73,7 @@ test.describe(
     );
 
     test(
-      `verify Feed posts and comments metric data validation - custom date range`,
+      `verify Feed posts and comments metric data validation for period as ${periodFilterTimeRange}`,
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@feed-posts-and-comments'],
       },
@@ -94,9 +87,7 @@ test.describe(
         //get expected metric value from snowflake
         const expectedMetricValue = await testEnvironment.socialInteractionQueryHelper.getHeroMetricDataFromDB(
           SocialInteractionSql.Feed_Posts_Comments_Count,
-          PeriodFilterTimeRange.CUSTOM,
-          customDateRange.startDate,
-          customDateRange.endDate
+          periodFilterTimeRange
         );
 
         //UI validation
@@ -107,7 +98,7 @@ test.describe(
     );
 
     test(
-      `verify Replies metric data validation - custom date range`,
+      `verify Replies metric data validation for period as ${periodFilterTimeRange}`,
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@replies'],
       },
@@ -121,9 +112,7 @@ test.describe(
         //get expected metric value from snowflake
         const expectedMetricValue = await testEnvironment.socialInteractionQueryHelper.getHeroMetricDataFromDB(
           SocialInteractionSql.Replies_Count,
-          PeriodFilterTimeRange.CUSTOM,
-          customDateRange.startDate,
-          customDateRange.endDate
+          periodFilterTimeRange
         );
 
         //UI validation
@@ -134,7 +123,7 @@ test.describe(
     );
 
     test(
-      `verify Shares metric data validation - custom date range`,
+      `verify Shares metric data validation for period as ${periodFilterTimeRange}`,
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@shares'],
       },
@@ -148,9 +137,7 @@ test.describe(
         //get expected metric value from snowflake
         const expectedMetricValue = await testEnvironment.socialInteractionQueryHelper.getHeroMetricDataFromDB(
           SocialInteractionSql.Shares_Count,
-          PeriodFilterTimeRange.CUSTOM,
-          customDateRange.startDate,
-          customDateRange.endDate
+          periodFilterTimeRange
         );
 
         //UI validation
@@ -161,7 +148,7 @@ test.describe(
     );
 
     test(
-      `verify Favorites metric data validation - custom date range`,
+      `verify Favorites metric data validation for period as ${periodFilterTimeRange}`,
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@favorites'],
       },
@@ -175,9 +162,7 @@ test.describe(
         //get expected metric value from snowflake
         const expectedMetricValue = await testEnvironment.socialInteractionQueryHelper.getHeroMetricDataFromDB(
           SocialInteractionSql.Favorites_Count,
-          PeriodFilterTimeRange.CUSTOM,
-          customDateRange.startDate,
-          customDateRange.endDate
+          periodFilterTimeRange
         );
 
         //UI validation
@@ -189,7 +174,7 @@ test.describe(
 
     //tabular data validations
     test(
-      `verify social campaign shares tabular data validation - custom date range`,
+      `verify social campaign shares tabular data validation for period as ${periodFilterTimeRange}`,
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@social-campaign-shares'],
       },
@@ -201,9 +186,7 @@ test.describe(
         });
         const socialCampaignShareData = await testEnvironment.socialInteractionQueryHelper.getCampaignShareDataFromDB(
           SocialInteractionSql.Social_Campaign_Shares,
-          PeriodFilterTimeRange.CUSTOM,
-          customDateRange.startDate,
-          customDateRange.endDate
+          periodFilterTimeRange
         );
         //verify the same data is displayed in the dashboard
         const socialCampaignShareDistribution =
@@ -214,7 +197,7 @@ test.describe(
 
     //TODO: Implement the query - here
     test.fixme(
-      `verify Least engaged by Department tabular data validation - custom date range`,
+      `verify Least engaged by Department tabular data validation for period as ${periodFilterTimeRange}`,
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@least-engaged-by-department'],
       },
@@ -229,7 +212,7 @@ test.describe(
 
     //TODO: Implement the query - here
     test.fixme(
-      `verify Most engaged by Department tabular data validation - custom date range`,
+      `verify Most engaged by Department tabular data validation for period as ${periodFilterTimeRange}`,
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@most-engaged-by-department'],
       },

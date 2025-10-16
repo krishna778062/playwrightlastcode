@@ -2,6 +2,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { AnalyticsFilterLabels } from '../../constants/analyticsFilterLabels';
 import { PeriodFilterTimeRange } from '../../constants/periodFilterTimeRange';
+import { DateHelper } from '../../helpers/dateHelper';
 import { convertNumericMonthToAbbreviation } from '../../utils/dateUtils';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
@@ -184,28 +185,25 @@ export class AnalyticsFiltersComponent extends BaseComponent {
   async applyPeriodFilter(
     periodFilterOptions: (typeof PeriodFilterTimeRange)[keyof typeof PeriodFilterTimeRange],
     options?: {
-      customStartDate: {
-        year: string;
-        month: string;
-        day: string;
-      };
-      customEndDate: {
-        year: string;
-        month: string;
-        day: string;
-      };
+      customStartDate: string; // ISO format (YYYY-MM-DD)
+      customEndDate: string; // ISO format (YYYY-MM-DD)
     }
   ) {
     await test.step(`Apply Period filter: ${periodFilterOptions}`, async () => {
       await this.openFilter(AnalyticsFilterLabels.PERIOD);
       await this.selectFilterOptionByOptionName(periodFilterOptions.toString());
       if (periodFilterOptions === PeriodFilterTimeRange.CUSTOM) {
-        await this.selectCustomPeriodFilter(
-          options as {
-            customStartDate: { year: string; month: string; day: string };
-            customEndDate: { year: string; month: string; day: string };
-          }
-        );
+        if (!options?.customStartDate || !options.customEndDate) {
+          throw new Error('Custom period filter requires both customStartDate and customEndDate in ISO format');
+        }
+
+        // Convert ISO dates to UI format
+        const uiFormat = DateHelper.convertISOToUIFormat(options.customStartDate, options.customEndDate);
+
+        await this.selectCustomPeriodFilter({
+          customStartDate: uiFormat.customStartDate,
+          customEndDate: uiFormat.customEndDate,
+        });
       }
       await this.clickOnApplyButton();
     });

@@ -54,7 +54,7 @@ export class HeroMetricsComponent extends BaseComponent {
    * Verifies that the answer title is visible (no need to check text since container was found by title)
    */
   async verifyAnswerTitleIsVisible(): Promise<void> {
-    await test.step(`Verify answer title is visible - with title as : ${this.answerTitle}`, async () => {
+    await test.step(`Verify answer title is visible - with title as : ${this.metricTitle}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.answerTitle, { timeout: 30_000 });
     });
   }
