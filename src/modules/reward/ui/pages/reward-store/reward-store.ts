@@ -403,7 +403,7 @@ export class RewardsStore extends BasePage {
 
   async mockTheOrderAPIResponse() {
     await this.page.route('**/recognition/redemption/orders*', async route => {
-      const fixture = await fs.promises.readFile(path.join(__dirname, '..', '..', 'fixtures', 'orders.json'), 'utf8');
+      const fixture = await fs.promises.readFile(path.join(__dirname, '..', '..', 'test-data', 'orders.json'), 'utf8');
       const data = JSON.parse(fixture);
       data.results[0].createdAt = new Date(Date.now() - 95 * 24 * 60 * 60 * 1000).toISOString();
       data.results[0].canResend = false;

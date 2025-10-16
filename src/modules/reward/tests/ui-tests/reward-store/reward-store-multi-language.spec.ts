@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
+import { UserProfilePage } from '@rewards-pages/user-profile/user-profile-page';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -24,10 +25,9 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
         storyId: 'RC-3311',
       });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
-      const { UserProfilePage } = await import('@rewards-pages/user-profile/user-profile-page');
-      const userProfile = new UserProfilePage(rewardsStore.page);
+      const userProfile = new UserProfilePage(appManagerFixture.page);
 
-      // Open the Reward, and select the United States as country
+      // Open the Reward, and select the United States as a country
       await rewardsStore.selectCountry('United States');
 
       // Get All the categories in English language and validate
@@ -137,8 +137,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
         storyId: 'RC-3312',
       });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
-      const { UserProfilePage } = await import('@rewards-pages/user-profile/user-profile-page');
-      const userProfile = new UserProfilePage(rewardsStore.page);
+      const userProfile = new UserProfilePage(appManagerFixture.page);
 
       // Open the Reward, and select the United States as a country
       await rewardsStore.selectCountry('United States');
