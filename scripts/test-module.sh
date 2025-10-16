@@ -115,7 +115,7 @@ if [ -n "$EXTRA_ARGS" ]; then
 fi
 
 # Special handling for frontline module with login-with-otp test
-if [ "$MODULE_NAME" == "frontline" ] && [ -n "$ENV_NAME" ] && [ "$ENV_NAME" != "qa2" ]; then
+if [ "$MODULE_NAME" == "frontline" ] && [ -n "$ENV_NAME" ] && [ "$ENV_NAME" != "qa" ]; then
     echo ""
     echo "================================================"
     echo "Special handling: login-with-otp.spec.ts will use qa2.env"

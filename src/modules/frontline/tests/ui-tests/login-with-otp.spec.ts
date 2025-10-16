@@ -24,11 +24,7 @@ test.describe(
       const config = getFrontlineTenantConfigFor('secondary');
       console.log(`🔧 Running OTP test on: ${config.tenantName} (${config.frontendBaseUrl})`);
 
-      // CRITICAL: Set ORG_ID in process.env for the secondary tenant
-      // This is required for user activation API calls (x-smtip-tid header)
-      process.env.ORG_ID = config.orgId;
-      console.log(`🔧 Set ORG_ID to: ${config.orgId}`);
-
+      // UserManagementService will automatically use ORG_ID from frontline config
       const userBuilder = new UserTestDataBuilder(appManagerApiContext, config.apiBaseUrl);
       // Add users to system
       const endUser = await userBuilder.addUsersWithEmpIdAndDepartmentToSystem(Roles.END_USER, 'Simpplr@2025');

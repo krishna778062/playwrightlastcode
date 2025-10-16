@@ -49,9 +49,8 @@ initializeFrontlineConfig('secondary');
 test.describe('feature: login with otp', () => {
   test.beforeAll(async ({ appManagerApiContext }) => {
     const config = getFrontlineTenantConfigFor('secondary');
-    process.env.ORG_ID = config.orgId; // Set correct ORG_ID
 
-    // Create user on secondary tenant
+    // UserManagementService automatically reads ORG_ID from frontline config
     const userBuilder = new UserTestDataBuilder(appManagerApiContext, config.apiBaseUrl);
     await userBuilder.addUsersWithEmpIdAndDepartmentToSystem(Roles.END_USER, 'Simpplr@2025');
   });
@@ -195,9 +194,9 @@ test('[FL-434] login with otp', async ({ page, appManagerApiContext }) => {
 ## 🎓 Best Practices
 
 1. **Use Playwright Projects** for tenant routing (current implementation)
-2. **Set `process.env.ORG_ID`** in `beforeAll` when switching tenants
-3. **Initialize tenant config** at the top of test files
-4. **Use relative URLs** in tests (let projects handle `baseURL`)
+2. **Initialize tenant config** at the top of test files with `initializeFrontlineConfig()`
+3. **Use relative URLs** in tests (let projects handle `baseURL`)
+4. **No need to manually set `process.env.ORG_ID`** - `UserManagementService` reads it automatically from frontline config
 5. **Add console logs** for debugging tenant switches
 
 ---
@@ -211,13 +210,18 @@ test('[FL-434] login with otp', async ({ page, appManagerApiContext }) => {
 
 ### Issue: Wrong ORG_ID in activation
 
-**Cause:** `process.env.ORG_ID` not updated after tenant switch  
-**Fix:** Set `process.env.ORG_ID = config.orgId` in `beforeAll`
+**Cause:** Frontline config not initialized before user creation  
+**Fix:** Call `initializeFrontlineConfig('tenant')` at the top of test file - `UserManagementService` will automatically read ORG_ID from config
 
 ### Issue: Page navigates to wrong URL
 
 **Cause:** Using relative URL with wrong `baseURL`  
 **Fix:** Use Playwright Projects to set correct `baseURL` per test pattern
+
+### Issue: ORG_ID not found error
+
+**Cause:** Neither frontline config nor `process.env.ORG_ID` is available  
+**Fix:** Ensure `initializeFrontlineConfig()` is called for frontline tests, or `.env` file is loaded for other modules
 
 ---
 
