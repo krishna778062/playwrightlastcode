@@ -5,6 +5,15 @@ import path from 'path';
 import baseConfig from '../../../playwright.base.config';
 import { PROJECT_ROOT } from '../../core/constants/paths';
 
+import { getFrontlineTenantConfigFor, initializeFrontlineConfig } from './config/frontlineConfig';
+
+// Initialize frontline config with default 'primary' tenant
+// This will be loaded at config evaluation time
+initializeFrontlineConfig('primary');
+
+// Get config from cache for baseURL
+const config = getFrontlineTenantConfigFor('primary');
+
 export default defineConfig({
   ...baseConfig,
   name: 'Frontline UI Automation',
@@ -16,7 +25,7 @@ export default defineConfig({
       name: 'frontline-chromium',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env.FRONTEND_BASE_URL,
+        baseURL: config.frontendBaseUrl,
         headless: process.env.CI ? true : false,
         permissions: ['camera', 'microphone', 'clipboard-read', 'clipboard-write'],
         launchOptions: {
