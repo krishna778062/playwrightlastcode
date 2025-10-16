@@ -17,7 +17,7 @@
  */
 
 export type TenantKey = 'primary' | 'secondary';
-export type EnvironmentKey = 'qa' | 'qa2' | 'uat' | 'test';
+export type EnvironmentKey = 'qa' | 'uat' | 'test';
 
 /**
  * Get caller function information for debugging
@@ -86,19 +86,6 @@ export const config = {
       newUxEnabled: false,
       orgId: '4c5dc745-2941-4871-9b08-e985f24f6f22',
     },
-    qa2: {
-      tenantName: 'Frontline Primary QA2',
-      frontendBaseUrl: 'https://frontline.qa.simpplr.xyz',
-      apiBaseUrl: 'https://frontline-api.qa.simpplr.xyz',
-      appManagerEmail: '1473',
-      appManagerPassword: 'Informa@123',
-      endUserEmail: 'yashi.gupta@simpplr.com',
-      endUserPassword: 'Simp@123',
-      promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
-      promotionManagerPassword: 'Simp@123',
-      newUxEnabled: false,
-      orgId: 'a925141d-2dd4-4d18-b65f-723273302065',
-    },
     test: {
       tenantName: 'Frontline Primary TEST',
       frontendBaseUrl: 'https://frontline.test.simpplr.xyz',
@@ -129,19 +116,6 @@ export const config = {
   secondary: {
     qa: {
       tenantName: 'Frontline Secondary QA - OTP Tests',
-      frontendBaseUrl: 'https://frontline.qa.simpplr.xyz',
-      apiBaseUrl: 'https://frontline-api.qa.simpplr.xyz',
-      appManagerEmail: '1473',
-      appManagerPassword: 'Informa@123',
-      endUserEmail: 'yashi.gupta@simpplr.com',
-      endUserPassword: 'Simp@123',
-      promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
-      promotionManagerPassword: 'Simp@123',
-      newUxEnabled: false,
-      orgId: 'a925141d-2dd4-4d18-b65f-723273302065',
-    },
-    qa2: {
-      tenantName: 'Frontline Secondary QA2',
       frontendBaseUrl: 'https://frontline.qa.simpplr.xyz',
       apiBaseUrl: 'https://frontline-api.qa.simpplr.xyz',
       appManagerEmail: '1473',
@@ -191,12 +165,11 @@ export const config = {
 function getCurrentEnvironment(): EnvironmentKey {
   const testEnv = process.env.TEST_ENV || 'qa';
 
-  if (!['qa', 'qa2', 'uat', 'test'].includes(testEnv)) {
+  if (!['qa', 'uat', 'test'].includes(testEnv)) {
     throw new Error(
       `Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, qa2, uat, test\n` +
+        `Valid values are: qa, uat, test\n` +
         `Example: TEST_ENV=qa npm run test:module frontline\n` +
-        `Example: TEST_ENV=qa2 npm run test:module frontline\n` +
         `Example: TEST_ENV=uat npm run test:module frontline\n` +
         `Example: TEST_ENV=test npm run test:module frontline\n`
     );
