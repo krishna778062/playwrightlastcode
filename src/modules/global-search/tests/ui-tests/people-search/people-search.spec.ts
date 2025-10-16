@@ -120,7 +120,7 @@ test.describe(
     test(
       `verify people search with sidebar filter functionality`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck', '@test'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

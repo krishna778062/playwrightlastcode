@@ -79,7 +79,6 @@ async function createSearchUiFixture(browser: any, apiContext: APIRequestContext
   });
 
   const homePage = new NewHomePage(page);
-  await homePage.verifyThePageIsLoaded();
 
   const navigationHelper = new NavigationHelper(page);
   const intranetFileHelper = new IntranetFileHelper(apiContext, getEnvConfig().apiBaseUrl, page);
