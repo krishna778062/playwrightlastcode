@@ -96,7 +96,9 @@ async function createAnalyticsUiFixture(browser: any, userType: UserType): Promi
 }
 
 export const analyticsTestFixture = test.extend<
+  {},
   {
+    snowflakeHelper: SnowflakeHelper;
     // API-only fixtures - fast, no browser overhead
     appManagerApiFixture: AnalyticsApiFixture;
     standardUserApiFixture: AnalyticsApiFixture;
@@ -108,9 +110,6 @@ export const analyticsTestFixture = test.extend<
     // Combined user fixtures - complete entry points
     appManagerFixture: AnalyticsUserFixture;
     standardUserFixture: AnalyticsUserFixture;
-  },
-  {
-    snowflakeHelper: SnowflakeHelper;
   }
 >({
   snowflakeHelper: [
@@ -134,7 +133,7 @@ export const analyticsTestFixture = test.extend<
       const fixture = await createAnalyticsApiFixture(snowflakeHelper);
       await use(fixture);
     },
-    { scope: 'test' },
+    { scope: 'worker' },
   ],
 
   standardUserApiFixture: [
@@ -142,7 +141,7 @@ export const analyticsTestFixture = test.extend<
       const fixture = await createAnalyticsApiFixture(snowflakeHelper);
       await use(fixture);
     },
-    { scope: 'test' },
+    { scope: 'worker' },
   ],
 
   // UI-only fixtures - browser and page components for each user
@@ -152,7 +151,7 @@ export const analyticsTestFixture = test.extend<
       await use(fixture);
       await fixture.browserContext.close();
     },
-    { scope: 'test' },
+    { scope: 'worker' },
   ],
 
   standardUserUiFixture: [
@@ -161,7 +160,7 @@ export const analyticsTestFixture = test.extend<
       await use(fixture);
       await fixture.browserContext.close();
     },
-    { scope: 'test' },
+    { scope: 'worker' },
   ],
 
   // Combined user fixtures - complete entry points
@@ -169,14 +168,14 @@ export const analyticsTestFixture = test.extend<
     async ({ appManagerUiFixture, appManagerApiFixture }, use) => {
       await use({ ...appManagerUiFixture, ...appManagerApiFixture });
     },
-    { scope: 'test' },
+    { scope: 'worker' },
   ],
 
   standardUserFixture: [
     async ({ standardUserUiFixture, standardUserApiFixture }, use) => {
       await use({ ...standardUserUiFixture, ...standardUserApiFixture });
     },
-    { scope: 'test' },
+    { scope: 'worker' },
   ],
 });
 
