@@ -118,7 +118,7 @@ fi
 if [ "$MODULE_NAME" == "frontline" ] && [ -n "$ENV_NAME" ] && [ "$ENV_NAME" != "qa" ]; then
     echo ""
     echo "================================================"
-    echo "Special handling: login-with-otp.spec.ts will use qa2.env"
+    echo "Special handling: login-with-otp.spec.ts will use qa.env"
     echo "================================================"
     echo ""
     
@@ -133,8 +133,8 @@ if [ "$MODULE_NAME" == "frontline" ] && [ -n "$ENV_NAME" ] && [ "$ENV_NAME" != "
     OTP_TEST_FILE="src/modules/frontline/tests/ui-tests/login-with-otp.spec.ts"
     if [ -f "$OTP_TEST_FILE" ]; then
         echo ""
-        echo "Step 2: Running login-with-otp test on qa2 environment..."
-        OTP_CMD="cross-env MODULE_NAME=$MODULE_NAME TEST_ENV=qa2 npx playwright test --config=$CONFIG_PATH"
+        echo "Step 2: Running login-with-otp test on qa environment..."
+        OTP_CMD="cross-env MODULE_NAME=$MODULE_NAME TEST_ENV=qa npx playwright test --config=$CONFIG_PATH"
         
         # Add grep pattern if test type matches P1 or includes login-with-otp
         if [ -n "$TEST_TYPE" ]; then
@@ -171,7 +171,7 @@ if [ "$MODULE_NAME" == "frontline" ] && [ -n "$ENV_NAME" ] && [ "$ENV_NAME" != "
         exit $EXIT_CODE_1
     fi
 else
-    # Normal execution for other modules or when explicitly using qa2
+    # Normal execution for other modules or when explicitly using qa
     echo "Running: $CMD"
     eval $CMD
 fi
