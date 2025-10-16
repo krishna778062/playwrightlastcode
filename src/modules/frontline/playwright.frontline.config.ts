@@ -5,14 +5,12 @@ import path from 'path';
 import baseConfig from '../../../playwright.base.config';
 import { PROJECT_ROOT } from '../../core/constants/paths';
 
-import { getFrontlineTenantConfigFor, initializeFrontlineConfig } from './config/frontlineConfig';
+import { getFrontlineTenantConfigFor } from './config/frontlineConfig';
 
-// Initialize frontline config with default 'primary' tenant
-// This will be loaded at config evaluation time
-initializeFrontlineConfig('primary');
-
-// Get config from cache for baseURL
-const config = getFrontlineTenantConfigFor('primary');
+// Get both tenant configs without initializing cache
+// Each project will initialize its own tenant
+const primaryConfig = getFrontlineTenantConfigFor('primary');
+const secondaryConfig = getFrontlineTenantConfigFor('secondary');
 
 export default defineConfig({
   ...baseConfig,
@@ -22,10 +20,30 @@ export default defineConfig({
   testIgnore: '**/api-tests/**',
   projects: [
     {
-      name: 'frontline-chromium',
+      name: 'frontline-primary',
+      testMatch: /^(?!.*login-with-otp).*\.spec\.ts$/, // All tests EXCEPT login-with-otp
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: config.frontendBaseUrl,
+        baseURL: primaryConfig.frontendBaseUrl,
+        headless: process.env.CI ? true : false,
+        permissions: ['camera', 'microphone', 'clipboard-read', 'clipboard-write'],
+        launchOptions: {
+          args: [
+            '--disable-gpu',
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
+            '--use-fake-ui-for-media-stream',
+            '--use-fake-device-for-media-stream',
+          ],
+        },
+      },
+    },
+    {
+      name: 'frontline-secondary',
+      testMatch: /login-with-otp\.spec\.ts$/, // Only login-with-otp tests
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: secondaryConfig.frontendBaseUrl, // ⭐ Secondary tenant URL
         headless: process.env.CI ? true : false,
         permissions: ['camera', 'microphone', 'clipboard-read', 'clipboard-write'],
         launchOptions: {

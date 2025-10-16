@@ -24,6 +24,11 @@ test.describe(
       const config = getFrontlineTenantConfigFor('secondary');
       console.log(`🔧 Running OTP test on: ${config.tenantName} (${config.frontendBaseUrl})`);
 
+      // CRITICAL: Set ORG_ID in process.env for the secondary tenant
+      // This is required for user activation API calls (x-smtip-tid header)
+      process.env.ORG_ID = config.orgId;
+      console.log(`🔧 Set ORG_ID to: ${config.orgId}`);
+
       const userBuilder = new UserTestDataBuilder(appManagerApiContext, config.apiBaseUrl);
       // Add users to system
       const endUser = await userBuilder.addUsersWithEmpIdAndDepartmentToSystem(Roles.END_USER, 'Simpplr@2025');
@@ -43,8 +48,9 @@ test.describe(
           storyId: 'FL-434',
         });
 
+        // Project baseURL is set to secondary tenant, so relative path works
         await page.goto(PAGE_ENDPOINTS.LOGIN_PAGE);
-        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(5000);
       }
     );
   }
