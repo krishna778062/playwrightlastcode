@@ -19,6 +19,8 @@ export enum IntegrationsSuiteTags {
   CUSTOM_APP_TILES = '@customAppTiles',
   SHOW_MORE = '@showMore',
   PERSONALIZATION = '@personalization',
+  ASANA = '@asanaAppTiles',
+  SERVICENOW = '@serviceNow',
 }
 
 export enum IntegrationsFeatureTags {
@@ -56,9 +58,12 @@ export const TEST_TAGS = {
   CUSTOM_APP_TILES: IntegrationsSuiteTags.CUSTOM_APP_TILES,
   SHOW_MORE: IntegrationsSuiteTags.SHOW_MORE,
   PERSONALIZATION: IntegrationsSuiteTags.PERSONALIZATION,
+  ASANA: IntegrationsSuiteTags.ASANA,
+  SERVICENOW: IntegrationsSuiteTags.SERVICENOW,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {
   OKTA_GROUP = '@okta-group',
   AD_GROUP = '@ad-group',
+  PEOPLE_TAB = '@people',
 }
