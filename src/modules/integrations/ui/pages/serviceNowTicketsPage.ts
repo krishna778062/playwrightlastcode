@@ -31,7 +31,7 @@ export class ServiceNowTicketsPage extends BasePage {
     super(page, PAGE_ENDPOINTS.SERVICE_NOW_TICKETS_PAGE);
 
     // Ticket Creation Elements
-    this.newTicketButton = page.locator('//button[contains(text(),"New ticket")]');
+    this.newTicketButton = page.locator('//button[contains(text(),"New ticket")]').first();
     this.newTicketOption = page.locator('//span[contains(text(),"New ticket")]');
     this.createTicketButton = page.getByRole('button', { name: /Create ticket/i });
     this.ticketCreationPanel = page.getByRole('form').or(page.locator('form[class*="ServiceNowNewTicketForm"]'));
