@@ -13,7 +13,7 @@ export interface INewHomePageActions {
   clickOnEditCarousel: () => Promise<void>;
   clickOnAddTile: () => Promise<void>;
   clickOnSocialCampaignTile: (tileTitle: string) => Promise<void>;
-  clickAddToHomeButton: () => Promise<void>;
+  clickAddToHomeButton: () => Promise<string>;
   enterTileTitle: (tileTitle: string) => Promise<void>;
 }
 
