@@ -23,10 +23,6 @@ test.describe(
       homePage = new NewHomePage(standardUserFixture.page);
     });
 
-    test.afterEach(async ({ page }) => {
-      await page.close();
-    });
-
     test(
       'verify "Nothing to show here" should come when user searches non-existing content and on clicking x all results should come based on relevant filters - End User',
       {

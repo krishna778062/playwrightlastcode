@@ -220,23 +220,28 @@ export class SiteManagementService implements ISiteManagementOperations {
   async getVideoFileIdFromSearch(siteId: string, fileName: string): Promise<{ fileId: string; authorName: string }> {
     let file: any;
     await test.step(`Fetching video file id using search API for site: ${siteId} and file name: ${fileName}`, async () => {
-      await expect(async () => {
-        const response = await this.httpClient.post(API_ENDPOINTS.search.intranetFile, {
-          data: {
-            q: fileName,
-            site: siteId,
-            includeImages: true,
-          },
-        });
-        const json = await response.json();
-        file = json.result.listOfItems.find((item: any) => item.title === fileName);
-        expect(file).toBeDefined();
-      }).toPass({
-        intervals: [5_000, 10_000, 20_000, 40_000],
-        timeout: 60_000,
-      });
+      await expect(
+        async () => {
+          const response = await this.httpClient.post(API_ENDPOINTS.search.intranetFile, {
+            data: {
+              q: fileName,
+              site: siteId,
+              includeImages: true,
+            },
+          });
+          const responseBody = await response.json();
+          console.log('responseBody', responseBody);
+          // Find the specific file by checking the title field
+          file = responseBody.result?.listOfItems?.find((item: any) => item.item.title === fileName);
+          expect(file).toBeDefined();
+        },
+        {
+          message: `Video file "${fileName}" to appear in search results for site ${siteId}`,
+        }
+      ).toPass({ intervals: [10_000, 20_000, 40_000], timeout: 60_000 });
     });
-    return { fileId: file.fileId, authorName: file.owner.name };
+    console.log('fileID', file.item.fileId);
+    return { fileId: file.item.fileId, authorName: file.item.owner.name };
   }
 
   /**
@@ -422,6 +427,57 @@ export class SiteManagementService implements ISiteManagementOperations {
 
       if (!response.ok()) {
         throw new Error(`Failed to get site details for ${siteId}. Status: ${response.status()}`);
+      }
+
+      return responseBody;
+    });
+  }
+
+  /**
+   * Gets the carousel items list for a specific site
+   * @param siteId - The site ID to retrieve carousel items for
+   * @returns Promise containing the carousel items response
+   */
+  async getSiteCarouselItems(siteId: string): Promise<any> {
+    return await test.step(`Getting carousel items for site ID: ${siteId}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.site.carouselItems(siteId), {
+        data: {
+          siteId: siteId,
+        },
+      });
+
+      const responseBody = await response.json();
+      console.log('Carousel items response:', JSON.stringify(responseBody, null, 2));
+
+      if (!response.ok()) {
+        throw new Error(`Failed to get carousel items for ${siteId}. Status: ${response.status()}`);
+      }
+
+      return responseBody;
+    });
+  }
+
+  /**
+   * Deletes a carousel item from a specific site
+   * @param siteId - The site ID containing the carousel item
+   * @param carouselItemId - The carousel item ID to delete
+   * @returns Promise containing the delete response
+   */
+  async deleteSiteCarouselItem(siteId: string, carouselItemId: string): Promise<any> {
+    return await test.step(`Deleting carousel item ${carouselItemId} from site ${siteId}`, async () => {
+      const response = await this.httpClient.delete(API_ENDPOINTS.site.deleteCarouselItem(siteId, carouselItemId));
+
+      const responseBody = await response.json();
+      console.log('Delete carousel item response:', JSON.stringify(responseBody, null, 2));
+
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to delete carousel item ${carouselItemId} from site ${siteId}. Status: ${response.status()}`
+        );
+      }
+
+      if (responseBody.status !== 'success') {
+        throw new Error(`Delete carousel item failed. Response: ${JSON.stringify(responseBody)}`);
       }
 
       return responseBody;

@@ -19,6 +19,8 @@ export enum IntegrationsSuiteTags {
   CUSTOM_APP_TILES = '@customAppTiles',
   SHOW_MORE = '@showMore',
   PERSONALIZATION = '@personalization',
+  ASANA = '@asanaAppTiles',
+  SERVICENOW = '@serviceNow',
 }
 
 export enum IntegrationsFeatureTags {
@@ -26,8 +28,8 @@ export enum IntegrationsFeatureTags {
   PERSONALIZATION = '@personalization',
   MULTI_USER = '@multi-user',
   EVENT_SYNC = '@EventSync',
-  GOOGLE_CALENDAR = '@google-calendar',
-  OUTLOOK_CALENDAR = '@outlook-calendar',
+  GOOGLE_CALENDAR_EVENTS_SYNC = '@google-calendar-eventsync',
+  OUTLOOK_CALENDAR_EVENTS_SYNC = '@outlook-calendar-eventsync',
 }
 
 export const TEST_TAGS = {
@@ -42,7 +44,8 @@ export const TEST_TAGS = {
   TILE_MANAGEMENT: IntegrationsFeatureTags.TILE_MANAGEMENT,
   MULTI_USER: IntegrationsFeatureTags.MULTI_USER,
   EVENT_SYNC: IntegrationsFeatureTags.EVENT_SYNC,
-  GOOGLE_CALENDAR: IntegrationsFeatureTags.GOOGLE_CALENDAR,
+  GOOGLE_CALENDAR_EVENTS_SYNC: IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
+  OUTLOOK_CALENDAR_EVENTS_SYNC: IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
   BAMBOOHR: IntegrationsSuiteTags.BAMBOOHR,
   SAP_SUCCESSFACTORS: IntegrationsSuiteTags.SAP_SUCCESSFACTORS,
   UKG_WFM: IntegrationsSuiteTags.UKG_WFM,
@@ -55,9 +58,12 @@ export const TEST_TAGS = {
   CUSTOM_APP_TILES: IntegrationsSuiteTags.CUSTOM_APP_TILES,
   SHOW_MORE: IntegrationsSuiteTags.SHOW_MORE,
   PERSONALIZATION: IntegrationsSuiteTags.PERSONALIZATION,
+  ASANA: IntegrationsSuiteTags.ASANA,
+  SERVICENOW: IntegrationsSuiteTags.SERVICENOW,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {
   OKTA_GROUP = '@okta-group',
   AD_GROUP = '@ad-group',
+  PEOPLE_TAB = '@people',
 }

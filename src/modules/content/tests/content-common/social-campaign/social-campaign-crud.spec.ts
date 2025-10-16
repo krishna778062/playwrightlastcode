@@ -2,7 +2,6 @@ import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
 import { SOCIAL_CAMPAIGN_TEST_DATA } from '@content/test-data/social-campaign.test-data';
 import { FeedPage } from '@content/ui/pages/feedPage';
-import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage';
 import { SocialCampaignPage } from '@content/ui/pages/socialCampaignPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -14,6 +13,8 @@ import {
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
+
 test.describe(
   `social Campaign functionality`,
   {
@@ -24,17 +25,21 @@ test.describe(
     let manualCleanupNeeded: boolean = false;
     let campaignId: string;
     let feedPage: FeedPage;
+    let tileId: string;
 
-    test.beforeEach(async ({ socialCampaignManagerFixture }) => {
+    test.beforeEach(async ({ appManagerFixture }) => {
       // Reset cleanup flag for each test
-      //clean up all the campaigns
-      await socialCampaignManagerFixture.socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
+      await appManagerFixture.socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
       manualCleanupNeeded = false;
     });
 
-    test.afterEach(async ({ socialCampaignManagerFixture }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
       if (manualCleanupNeeded && campaignId) {
-        await socialCampaignManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
+        await appManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
+      }
+
+      if (tileId) {
+        await appManagerFixture.tileManagementHelper.deleteContentTile(tileId);
       }
     });
 
@@ -520,6 +525,661 @@ test.describe(
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnFeedLink();
         await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
+      }
+    );
+
+    test(
+      'in Zeus Verify User is unable to view Shared SC Feed Post when SC is Deleted',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26800'],
+      },
+      async ({ socialCampaignManagerFixture, appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify User is unable to view Shared SC Feed Post when SC is Deleted',
+          zephyrTestId: 'CONT-26800',
+          storyId: 'CONT-26800',
+        });
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+        });
+        campaignId = createdCampaign.campaignId;
+
+        const description = TestDataGenerator.generateRandomString();
+        await appManagerFixture.socialCampaignHelper.shareCampaignToFollowersFeed(campaignId, description);
+        // Load pages and navigate to feeds in parallel
+        await Promise.all([
+          appManagerFixture.homePage.loadPage(),
+          socialCampaignManagerFixture.homePage.loadPage(),
+          standardUserFixture.homePage.loadPage(),
+        ]);
+
+        await Promise.all([
+          appManagerFixture.navigationHelper.clickOnGlobalFeed(),
+          socialCampaignManagerFixture.navigationHelper.clickOnGlobalFeed(),
+          standardUserFixture.navigationHelper.clickOnGlobalFeed(),
+        ]);
+
+        const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+        const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+        const endUserFeedPage = new FeedPage(standardUserFixture.page);
+
+        await Promise.all([
+          appManagerFeedPage.verifyThePageIsLoaded(),
+          socialCampaignManagerFeedPage.verifyThePageIsLoaded(),
+          endUserFeedPage.verifyThePageIsLoaded(),
+        ]);
+
+        await Promise.all([
+          appManagerFeedPage.actions.clickOnShowOption('all'),
+          socialCampaignManagerFeedPage.actions.clickOnShowOption('all'),
+          endUserFeedPage.actions.clickOnShowOption('all'),
+        ]);
+
+        // Verify campaign is displayed in both feeds
+        await Promise.all([
+          appManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          socialCampaignManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          endUserFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+        ]);
+
+        // Delete campaign
+        await appManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
+
+        // Load pages and navigate to feeds in parallel
+        await Promise.all([
+          appManagerFixture.homePage.loadPage(),
+          socialCampaignManagerFixture.homePage.loadPage(),
+          standardUserFixture.homePage.loadPage(),
+        ]);
+
+        await Promise.all([
+          appManagerFixture.navigationHelper.clickOnGlobalFeed(),
+          socialCampaignManagerFixture.navigationHelper.clickOnGlobalFeed(),
+          standardUserFixture.navigationHelper.clickOnGlobalFeed(),
+        ]);
+
+        // Verify campaign is no longer displayed in both feeds
+        await Promise.all([
+          appManagerFeedPage.assertions.verifyCampaignLinkNotDisplayed(campaignOptions.linkText, description),
+          socialCampaignManagerFeedPage.assertions.verifyCampaignLinkNotDisplayed(
+            campaignOptions.linkText,
+            description
+          ),
+          endUserFeedPage.assertions.verifyCampaignLinkNotDisplayed(campaignOptions.linkText, description),
+        ]);
+      }
+    );
+
+    test(
+      'in Zeus Verify User is able to view Shared Expired Social Campaign Feed Post',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26799'],
+      },
+      async ({ socialCampaignManagerFixture, appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify User is able to view Shared Expired Social Campaign Feed Post',
+          zephyrTestId: 'CONT-26799',
+          storyId: 'CONT-26799',
+        });
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+        });
+        campaignId = createdCampaign.campaignId;
+
+        const description = TestDataGenerator.generateRandomString();
+        await appManagerFixture.socialCampaignHelper.shareCampaignToFollowersFeed(campaignId, description);
+        // Load pages and navigate to feeds in parallel
+        await Promise.all([
+          appManagerFixture.homePage.loadPage(),
+          socialCampaignManagerFixture.homePage.loadPage(),
+          standardUserFixture.homePage.loadPage(),
+        ]);
+
+        await Promise.all([
+          appManagerFixture.navigationHelper.clickOnGlobalFeed(),
+          socialCampaignManagerFixture.navigationHelper.clickOnGlobalFeed(),
+          standardUserFixture.navigationHelper.clickOnGlobalFeed(),
+        ]);
+
+        const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+        const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+        const endUserFeedPage = new FeedPage(standardUserFixture.page);
+
+        await Promise.all([
+          appManagerFeedPage.verifyThePageIsLoaded(),
+          socialCampaignManagerFeedPage.verifyThePageIsLoaded(),
+          endUserFeedPage.verifyThePageIsLoaded(),
+        ]);
+
+        await Promise.all([
+          appManagerFeedPage.actions.clickOnShowOption('all'),
+          socialCampaignManagerFeedPage.actions.clickOnShowOption('all'),
+          endUserFeedPage.actions.clickOnShowOption('all'),
+        ]);
+
+        // Verify campaign is displayed in both feeds
+        await Promise.all([
+          appManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          appManagerFeedPage.assertions.verifySocialCampaignShareButtonIsVisible(description),
+          socialCampaignManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          socialCampaignManagerFeedPage.assertions.verifySocialCampaignShareButtonIsVisible(description),
+          endUserFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          endUserFeedPage.assertions.verifySocialCampaignShareButtonIsVisible(description),
+        ]);
+
+        // Delete campaign
+        await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
+
+        // Load pages and navigate to feeds in parallel
+        await Promise.all([
+          appManagerFixture.homePage.loadPage(),
+          socialCampaignManagerFixture.homePage.loadPage(),
+          standardUserFixture.homePage.loadPage(),
+        ]);
+
+        await Promise.all([
+          appManagerFixture.navigationHelper.clickOnGlobalFeed(),
+          socialCampaignManagerFixture.navigationHelper.clickOnGlobalFeed(),
+          standardUserFixture.navigationHelper.clickOnGlobalFeed(),
+        ]);
+
+        // Verify campaign is no longer displayed in both feeds
+        await Promise.all([
+          appManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          appManagerFeedPage.assertions.verifySocialCampaignShareButtonIsNotVisible(description),
+          socialCampaignManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          socialCampaignManagerFeedPage.assertions.verifySocialCampaignShareButtonIsNotVisible(description),
+          endUserFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          endUserFeedPage.assertions.verifySocialCampaignShareButtonIsNotVisible(description),
+        ]);
+      }
+    );
+
+    test(
+      'in Zeus Verify App Manager able to add and remove Social Campaign to Site Carousel and remove when deleted',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14905'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
+          zephyrTestId: 'CONT-14905',
+          storyId: 'CONT-14905',
+        });
+
+        const siteName = 'All Employees';
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+        });
+        campaignId = createdCampaign.campaignId;
+
+        //remove all the carousel items from the site
+        await appManagerFixture.siteManagementHelper.getAndRemoveAllCarouselItems(siteId);
+
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.actions.clickOnEditDashboard();
+        await siteDashboardPage.actions.clickOnEditCarousel();
+        await siteDashboardPage.actions.enterSearchCarouselInput(campaignOptions.linkText);
+        await siteDashboardPage.actions.selectCarouselItem(campaignOptions.linkText);
+        await siteDashboardPage.assertions.verifySocalCampaignInCarouselModal(campaignOptions.linkText);
+        await siteDashboardPage.actions.clickDoneButton();
+        await siteDashboardPage.assertions.verifySocalCampaignInCarouselItem(campaignOptions.linkText);
+        // Delete campaign
+        await appManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.assertions.verifySocalCampaignIsNotInCarouselItem(campaignOptions.linkText);
+      }
+    );
+
+    test(
+      'in Zeus Verify App Manager able to share Social Campaign to Site Feed and unable to share to SN when expired',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14903'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
+          zephyrTestId: 'CONT-14903',
+          storyId: 'CONT-14903',
+        });
+
+        const siteName = 'All Employees';
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+        });
+        campaignId = createdCampaign.campaignId;
+
+        const description = TestDataGenerator.generateRandomString();
+        await appManagerFixture.socialCampaignHelper.shareCampaignToSiteFeed(campaignId, description, siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.actions.clickOnFeedLink();
+        await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
+
+        // Expire campaign
+        await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
+        await siteDashboardPage.assertions.verifySocialCampaignShareButtonIsNotVisible(description);
+      }
+    );
+
+    test(
+      'in Zeus Verify App Manager able to add and remove Social Campaign to Home Carousel and remove when expired',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14904'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
+          zephyrTestId: 'CONT-14904',
+          storyId: 'CONT-14904',
+        });
+
+        const siteName = 'All Employees';
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+        });
+        campaignId = createdCampaign.campaignId;
+
+        //remove all the carousel items from the site
+        await appManagerFixture.siteManagementHelper.getAndRemoveAllCarouselItems(siteId);
+
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.actions.clickOnEditDashboard();
+        await siteDashboardPage.actions.clickOnEditCarousel();
+        await siteDashboardPage.actions.enterSearchCarouselInput(campaignOptions.linkText);
+        await siteDashboardPage.actions.selectCarouselItem(campaignOptions.linkText);
+        await siteDashboardPage.assertions.verifySocalCampaignInCarouselModal(campaignOptions.linkText);
+        await siteDashboardPage.actions.clickDoneButton();
+        await siteDashboardPage.assertions.verifySocalCampaignInCarouselItem(campaignOptions.linkText);
+        // expire campaign
+        await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.assertions.verifySocalCampaignIsNotInCarouselItem(campaignOptions.linkText);
+      }
+    );
+
+    test(
+      'in Zeus Verify App Manager able to create latest and popular Tile on Home Dashboard and SC removed from tile when it is deleted',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14900'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify App Manager able to create latest and popular Tile on Home Dashboard and SC removed from tile when it is deleted',
+          zephyrTestId: 'CONT-14900',
+          storyId: 'CONT-14900',
+        });
+
+        const applicationManagerHomePage = appManagerFixture.homePage;
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+        });
+
+        const tileTitle = TestDataGenerator.generateRandomString();
+        campaignId = createdCampaign.campaignId;
+        await applicationManagerHomePage.loadPage();
+        await applicationManagerHomePage.actions.clickOnManageDashboardCarousel();
+        await applicationManagerHomePage.actions.clickOnAddTile();
+        await applicationManagerHomePage.actions.clickOnSocialCampaignTile();
+        await applicationManagerHomePage.actions.enterTileTitle(tileTitle);
+        tileId = await applicationManagerHomePage.actions.clickAddToHomeButton();
+        await applicationManagerHomePage.assertions.verifyTileIsDisplayed(tileTitle);
+        await applicationManagerHomePage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await appManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
+        await applicationManagerHomePage.loadPage();
+        await applicationManagerHomePage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
+      }
+    );
+
+    test(
+      'in Zeus Verify custom user able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-21039'],
+      },
+      async ({ socialCampaignManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify custom user able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
+          zephyrTestId: 'CONT-21039',
+          storyId: 'CONT-21039',
+        });
+
+        const applicationManagerHomePage = socialCampaignManagerFixture.homePage;
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await socialCampaignManagerFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+          shouldWaitForSearchIndex: true,
+        });
+
+        const tileTitle = TestDataGenerator.generateRandomString();
+        campaignId = createdCampaign.campaignId;
+        await applicationManagerHomePage.loadPage();
+        await applicationManagerHomePage.actions.clickOnManageDashboardCarousel();
+        await applicationManagerHomePage.actions.clickOnAddTile();
+        await applicationManagerHomePage.actions.clickOnSocialCampaignTile();
+        await applicationManagerHomePage.actions.clickOnCustomSCTile();
+        await applicationManagerHomePage.actions.enterTileTitle(tileTitle);
+        await applicationManagerHomePage.actions.setCustomSCTitle(campaignOptions.linkText);
+        tileId = await applicationManagerHomePage.actions.clickAddToHomeButton();
+        await applicationManagerHomePage.assertions.verifyTileIsDisplayed(tileTitle);
+        await applicationManagerHomePage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await socialCampaignManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
+        await applicationManagerHomePage.loadPage();
+        await applicationManagerHomePage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
+      }
+    );
+
+    test(
+      'in Zeus Verify custom user able to create latest and popular Tile on Home Dashboard and SC removed from tile when it is deleted',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-40602'],
+      },
+      async ({ socialCampaignManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify custom user able to create latest and popular Tile on Home Dashboard and SC removed from tile when it is deleted',
+          zephyrTestId: 'CONT-40602',
+          storyId: 'CONT-40602',
+        });
+
+        const applicationManagerHomePage = socialCampaignManagerFixture.homePage;
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await socialCampaignManagerFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+          shouldWaitForSearchIndex: true,
+        });
+
+        const tileTitle = TestDataGenerator.generateRandomString();
+        campaignId = createdCampaign.campaignId;
+        await applicationManagerHomePage.loadPage();
+        await applicationManagerHomePage.actions.clickOnManageDashboardCarousel();
+        await applicationManagerHomePage.actions.clickOnAddTile();
+        await applicationManagerHomePage.actions.clickOnSocialCampaignTile();
+        await applicationManagerHomePage.actions.enterTileTitle(tileTitle);
+        tileId = await applicationManagerHomePage.actions.clickAddToHomeButton();
+        await applicationManagerHomePage.assertions.verifyTileIsDisplayed(tileTitle);
+        await applicationManagerHomePage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await socialCampaignManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
+        await applicationManagerHomePage.loadPage();
+        await applicationManagerHomePage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
+      }
+    );
+
+    test(
+      'in Zeus Verify application manager able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-40519'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify application manager able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
+          zephyrTestId: 'CONT-40519',
+          storyId: 'CONT-40519',
+        });
+
+        const applicationManagerHomePage = appManagerFixture.homePage;
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+          shouldWaitForSearchIndex: true,
+        });
+
+        const tileTitle = TestDataGenerator.generateRandomString();
+        campaignId = createdCampaign.campaignId;
+        await applicationManagerHomePage.loadPage();
+        await applicationManagerHomePage.actions.clickOnManageDashboardCarousel();
+        await applicationManagerHomePage.actions.clickOnAddTile();
+        await applicationManagerHomePage.actions.clickOnSocialCampaignTile();
+        await applicationManagerHomePage.actions.clickOnCustomSCTile();
+        await applicationManagerHomePage.actions.enterTileTitle(tileTitle);
+        await applicationManagerHomePage.actions.setCustomSCTitle(campaignOptions.linkText);
+        tileId = await applicationManagerHomePage.actions.clickAddToHomeButton();
+        await applicationManagerHomePage.assertions.verifyTileIsDisplayed(tileTitle);
+        await applicationManagerHomePage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await appManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
+        await applicationManagerHomePage.loadPage();
+        await applicationManagerHomePage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
+      }
+    );
+
+    test(
+      'in Zeus Verify App Manager able to create Custom SC Tile on Site Dashboard and SC removed from tile when it is expired',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-40721'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify App Manager able to create Custom SC Tile on Site Dashboard and SC removed from tile when it is expired',
+          zephyrTestId: 'CONT-40721',
+          storyId: 'CONT-40721',
+        });
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+          shouldWaitForSearchIndex: true,
+        });
+        const siteName = 'All Employees';
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+        const tileTitle = TestDataGenerator.generateRandomString();
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.actions.clickOnEditDashboard();
+        await siteDashboardPage.actions.clickOnAddTile();
+        await siteDashboardPage.actions.clickOnSocialCampaignTile();
+        await siteDashboardPage.actions.clickOnCustomSCTile();
+        await siteDashboardPage.actions.enterTileTitle(tileTitle);
+        await siteDashboardPage.actions.setCustomSCTitle(campaignOptions.linkText);
+        tileId = await siteDashboardPage.actions.clickAddToSiteButton();
+        await siteDashboardPage.assertions.verifyTileIsDisplayed(tileTitle);
+        await siteDashboardPage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
+      }
+    );
+
+    test(
+      'in Zeus Verify App Manager able to create latest and popular Tile on Site Dashboard and SC removed from tile when it is expired',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14900'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify App Manager able to create latest and popular Tile on Site Dashboard and SC removed from tile when it is expired',
+          zephyrTestId: 'CONT-14901',
+          storyId: 'CONT-14901',
+        });
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+        });
+
+        const siteName = 'All Employees';
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+        const tileTitle = TestDataGenerator.generateRandomString();
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.actions.clickOnEditDashboard();
+        await siteDashboardPage.actions.clickOnAddTile();
+        await siteDashboardPage.actions.clickOnSocialCampaignTile();
+        await siteDashboardPage.actions.enterTileTitle(tileTitle);
+        tileId = await siteDashboardPage.actions.clickAddToSiteButton();
+        await siteDashboardPage.assertions.verifyTileIsDisplayed(tileTitle);
+        await siteDashboardPage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
+      }
+    );
+
+    test(
+      'zeus | Social Campaign | Verify App Manager able to create and delete Social Campaign for Everyone',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-14898', '@Social_Campaign_Add_Delete'],
+      },
+      async ({ appManagerFixture }) => {
+        socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
+        tagTest(test.info(), {
+          description:
+            'Zeus | Social Campaign | Verify App Manager able to create and delete Social Campaign for Everyone',
+          zephyrTestId: 'CONT-14898',
+          storyId: 'CONT-14898',
+        });
+
+        await appManagerFixture.navigationHelper.clickOnSocialCampaigns();
+        await socialCampaignPage.actions.clickAddCampaignButton();
+
+        // Create and post social campaign using wrapper function
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // When Add Campaign and Create
+        campaignId = await socialCampaignPage.actions.AddCampaignAndCreate(campaignOptions);
+        await socialCampaignPage.assertions.verifyToastMessage('Created social campaign successfully');
+        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+        await socialCampaignPage.actions.clickPopularLink();
+        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+
+        manualCleanupNeeded = true;
       }
     );
   }
