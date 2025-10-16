@@ -297,7 +297,7 @@ export class ManageQRPage extends BasePage {
   async verifyPopupDisplayedByHeader(popupType: PopupType) {
     if (popupType === PopupType.PromotionPopup) {
       await this.verifyPromotionPopup();
-    } else if (popupType === PopupType.PreviewPopup) {
+    } else {
       await this.verifyPreviewPopup();
     }
   }
@@ -1052,7 +1052,9 @@ export class ManageQRPage extends BasePage {
 
       // Only toggle if current state doesn't match desired state
       if (isCurrentlyEnabled !== enabled) {
-        await toggle.click();
+        await this.clickOnElement(toggle, {
+          stepInfo: `Toggle QR status for "${qrName}" to ${enabled ? 'enabled' : 'disabled'}`,
+        });
 
         // Wait for the toggle to reach the desired state
         const expectedState = enabled ? 'true' : 'false';
@@ -1187,6 +1189,12 @@ export class ManageQRPage extends BasePage {
       await this.verifier.verifyTheElementIsVisible(errorMessage, {
         assertionMessage: `Error message should be visible: ${expectedMessage}`,
       });
+    });
+  }
+
+  async verifyContentPromoteModalIsClosed(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.promoteContentQRHeading, {
+      assertionMessage: 'Content promote modal should be closed and not visible',
     });
   }
 }
