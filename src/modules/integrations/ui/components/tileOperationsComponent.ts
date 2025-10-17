@@ -80,6 +80,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly expensifyStatusTag: Locator;
   readonly expensifyApproverTag: Locator;
   readonly expensifyLastUpdatedText: Locator;
+  readonly tokenInput: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -109,6 +110,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.doceboImage = page.locator('img[src*="docebo"]');
     this.courseStatus = page.locator('span', { hasText: /In progress|Completed|Enrolled/ });
     this.courseType = page.locator('span', { hasText: /E-learning|Classroom/ });
+    this.tokenInput = page.locator('//input[@aria-label="Job board token"]');
     // Regex patterns for text matching
     this.prNumberPattern = /^#\d+/;
     this.createdAgoPattern = /^Created\s+.*\s+ago$/;
