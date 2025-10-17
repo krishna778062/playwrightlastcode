@@ -1,0 +1,285 @@
+import { expect, Locator, Page, test } from '@playwright/test';
+
+import { AnalyticsFilterLabels } from '../../constants/analyticsFilterLabels';
+import { PeriodFilterTimeRange } from '../../constants/periodFilterTimeRange';
+import { DateHelper } from '../../helpers/dateHelper';
+import { convertNumericMonthToAbbreviation } from '../../utils/dateUtils';
+
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+
+export class AnalyticsFiltersComponent extends BaseComponent {
+  /**
+   * Returns the filter pill button by its visible label (Department, Location, People Category, Company name, Period)
+   */
+  readonly filterGroup: (label: string) => Locator;
+
+  /**
+   * Root of the filter dialog (ThoughtSpot popover)
+   */
+  readonly filterDialog: Locator;
+
+  /**
+   * Returns a specific option within an open filter dialog by its visible text
+   */
+  readonly filterOptionByText: (text: string) => Locator;
+
+  /**
+   * Apply and Clear buttons within the filter dialog
+   */
+  readonly filterApplyButton: Locator;
+  readonly filterClearAllButton: Locator;
+
+  //data selector component
+  readonly fromDateInput: Locator;
+  readonly toDateInput: Locator;
+  readonly yearPicker: Locator;
+  readonly monthPicker: Locator;
+  readonly dayPicker: (day: string) => Locator;
+  constructor(page: Page) {
+    super(page);
+    this.filterGroup = (label: string) => this.page.getByText(label, { exact: true });
+    this.filterDialog = this.page.locator('[id*="tippy"]');
+    this.filterOptionByText = (filterName: string) => this.page.getByText(filterName, { exact: true });
+    this.filterApplyButton = this.page.getByRole('button', { name: 'Apply' }).first();
+    this.filterClearAllButton = this.page.getByRole('button', { name: 'Clear' }).first();
+
+    //PERIOD - DATE SELECTOR COMPONENT
+    this.fromDateInput = this.page.getByRole('button', { name: 'Date from' });
+    this.toDateInput = this.page.getByRole('button', { name: 'Date to' });
+    this.yearPicker = this.page.getByLabel('Select year');
+    this.monthPicker = this.page.getByLabel('Select month');
+    this.dayPicker = (day: string) => this.page.getByRole('gridcell', { name: day, exact: true });
+  }
+
+  /**
+   * Opens a filter dialog by label and waits for the dialog to be visible
+   * @param label - The filter label to open
+   */
+  async openFilter(label: AnalyticsFilterLabels) {
+    await test.step(`Open filter: ${label}`, async () => {
+      await this.clickOnElement(this.filterGroup(label), {
+        stepInfo: `Click on ${label} filter to open filter dialog`,
+        timeout: 40_000,
+      });
+      await expect(this.filterDialog, `Filter dialog should be visible for ${label}`).toBeVisible();
+    });
+  }
+
+  /**
+   * Clicks Clear button if visible in the filter dialog
+   */
+  async clearSelectedFilterOptions() {
+    await test.step('Clear all selected values if visible', async () => {
+      if (await this.filterClearAllButton.isVisible()) {
+        await this.clickOnElement(this.filterClearAllButton);
+      }
+    });
+  }
+
+  /**
+   * Selects an option from the open filter dialog by visible text
+   * @param optionText - The option to select
+   */
+  async selectFilterOptionByOptionName(optionText: string) {
+    await test.step(`Select option: ${optionText}`, async () => {
+      await this.clickOnElement(this.filterOptionByText(optionText));
+    });
+  }
+
+  /**
+   * Applies the current selections in the filter dialog and waits for dialog to close
+   */
+  async clickOnApplyButton() {
+    await test.step('Apply selected filter values', async () => {
+      await this.clickOnElement(this.filterApplyButton);
+      await expect(this.filterDialog, 'Filter dialog should be hidden after Apply').toBeHidden();
+    });
+  }
+
+  /**
+   * Convenience method to open a filter, clear previous values, select an option, and apply
+   * @param label - Filter label
+   * @param optionText - Option to select
+   */
+  async applyFilter(label: AnalyticsFilterLabels, optionText: string) {
+    await test.step(`Apply filter flow: ${label} => ${optionText}`, async () => {
+      await this.openFilter(label);
+      await this.clearSelectedFilterOptions();
+      await this.selectFilterOptionByOptionName(optionText);
+      // await this.clickOnApplyButton();
+    });
+  }
+
+  /**
+   * Verifies that common filters are visible on the dashboard (Department, Location, Company name, People Category, Period)
+   */
+  async verifyFiltersAreVisible() {
+    await test.step('Verify common filters are visible', async () => {
+      await expect(this.filterGroup('Department'), 'Department filter should be visible').toBeVisible();
+      await expect(this.filterGroup('Location'), 'Location filter should be visible').toBeVisible();
+      await expect(this.filterGroup('Company name'), 'Company name filter should be visible').toBeVisible();
+      await expect(this.filterGroup('People Category'), 'People Category filter should be visible').toBeVisible();
+      await expect(this.filterGroup('Period'), 'Period filter should be visible').toBeVisible();
+    });
+  }
+
+  /**
+   * Verifies that a filter dialog opens and core controls are present
+   * @param label - Filter label to check
+   */
+  async verifyFilterDialogUI(label: AnalyticsFilterLabels) {
+    await test.step(`Verify filter dialog UI: ${label}`, async () => {
+      await this.openFilter(label);
+      await expect(this.filterApplyButton, 'Apply button should be visible in filter dialog').toBeVisible();
+      await expect(this.filterClearAllButton, 'Clear button should be visible in filter dialog').toBeVisible();
+    });
+  }
+
+  /**
+   * Verifies Period filter lists all expected values and then closes the dialog by clicking outside
+   * @param label - The Period filter label (e.g., "Period")
+   */
+  async verifyFilterPeriodUI(label: AnalyticsFilterLabels) {
+    await test.step('Verify Period filter options', async () => {
+      await this.openFilter(label);
+      const options = [
+        'Last 7 days',
+        'Last 30 days',
+        'Last 90 days',
+        'Last 12 months',
+        'Last 36 months',
+        'Year to date',
+        'Custom',
+      ];
+      for (const option of options) {
+        await expect(
+          this.filterDialog.getByRole('radio', { name: option }),
+          `Period option "${option}" should be visible`
+        ).toBeVisible();
+      }
+      // Close the dialog by clicking on top of the page
+      await this.page.mouse.click(5, 5);
+      await expect(this.filterDialog, 'Filter dialog should be hidden after clicking outside').toBeHidden();
+    });
+  }
+
+  /**
+   * Opens a filter and returns all option texts currently visible in the dialog
+   * @param label - Filter label
+   * @returns List of option texts
+   */
+  async getOptionTexts(label: AnalyticsFilterLabels): Promise<string[]> {
+    return await test.step(`Get option texts for filter: ${label}`, async () => {
+      await this.openFilter(label);
+      const items = this.filterDialog.getByRole('option');
+      const texts = await items.allTextContents();
+      await this.clickOnApplyButton();
+      return texts.map(t => t.trim()).filter(Boolean);
+    });
+  }
+
+  /**
+   * Applies a Period filter by opening the dialog and selecting the provided option.
+   * @param periodFilterOptions - The Period filter option to select.
+   */
+  async applyPeriodFilter(
+    periodFilterOptions: (typeof PeriodFilterTimeRange)[keyof typeof PeriodFilterTimeRange],
+    options?: {
+      customStartDate: string; // ISO format (YYYY-MM-DD)
+      customEndDate: string; // ISO format (YYYY-MM-DD)
+    }
+  ) {
+    await test.step(`Apply Period filter: ${periodFilterOptions}`, async () => {
+      await this.openFilter(AnalyticsFilterLabels.PERIOD);
+      await this.selectFilterOptionByOptionName(periodFilterOptions.toString());
+      if (periodFilterOptions === PeriodFilterTimeRange.CUSTOM) {
+        if (!options?.customStartDate || !options.customEndDate) {
+          throw new Error('Custom period filter requires both customStartDate and customEndDate in ISO format');
+        }
+
+        // Convert ISO dates to UI format
+        const uiFormat = DateHelper.convertISOToUIFormat(options.customStartDate, options.customEndDate);
+
+        await this.selectCustomPeriodFilter({
+          customStartDate: uiFormat.customStartDate,
+          customEndDate: uiFormat.customEndDate,
+        });
+      }
+      await this.clickOnApplyButton();
+    });
+  }
+
+  /**
+   * Selects a custom period filter by opening the calendar picker and selecting the provided dates
+   * @param customStartDate - The start date to select
+   * @param customEndDate - The end date to select
+   */
+  async selectCustomPeriodFilter({
+    customStartDate,
+    customEndDate,
+  }: {
+    customStartDate: {
+      year: string;
+      month: string;
+      day: string;
+    };
+    customEndDate: {
+      year: string;
+      month: string;
+      day: string;
+    };
+  }) {
+    await test.step('Selecting the from date ${customStartDate.year}-${customStartDate.month}-${customStartDate.day}', async () => {
+      await this.clickOnElement(this.fromDateInput, {
+        stepInfo: 'Click on from date input to open calendar picker',
+      });
+      await this.waitUntilCalendarPickerIsVisible();
+
+      //select month (convert numeric to abbreviation)
+      await this.monthPicker.selectOption(convertNumericMonthToAbbreviation(customStartDate.month));
+
+      //select year
+      await this.yearPicker.selectOption(customStartDate.year);
+
+      //select day
+      await this.dayPicker(customStartDate.day).click();
+    });
+
+    await this.waitUntilCalendarPickerIsHidden();
+
+    //now click on to date input to open calendar picker
+    await test.step(`Selecting the to date ${customEndDate.year}-${customEndDate.month}-${customEndDate.day}`, async () => {
+      await this.clickOnElement(this.toDateInput, {
+        stepInfo: 'Click on to date input to open calendar picker',
+      });
+      await this.waitUntilCalendarPickerIsVisible();
+
+      //select month (convert numeric to abbreviation)
+      await this.monthPicker.selectOption(convertNumericMonthToAbbreviation(customEndDate.month));
+
+      //select year
+      await this.yearPicker.selectOption(customEndDate.year);
+
+      //select day
+      await this.dayPicker(customEndDate.day).click();
+    });
+  }
+
+  /**
+   * Waits for the calendar picker to be visible
+   */
+  async waitUntilCalendarPickerIsVisible() {
+    await test.step('Wait until calendar picker is visible', async () => {
+      await this.yearPicker.waitFor({ state: 'visible' });
+    });
+  }
+
+  /**
+   * Waits for the calendar picker to be hidden
+   */
+  async waitUntilCalendarPickerIsHidden() {
+    await test.step('Wait until calendar picker is hidden', async () => {
+      await this.yearPicker.waitFor({ state: 'hidden' });
+    });
+  }
+}

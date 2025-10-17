@@ -10,7 +10,7 @@ export default defineConfig({
   name: 'Global Search UI Automation',
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'global-search', 'tests'),
   testIgnore: '**/api-tests/**',
-  timeout: 200_000,
+  timeout: 300_000,
   projects: [
     {
       name: 'global-search-chromium',

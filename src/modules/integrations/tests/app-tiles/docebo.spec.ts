@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
+import { TEST_TAGS } from '@integrations-constants/testTags';
 import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
 import { DOCEBO_VALUES, REDIRECT_URLS } from '@integrations-test-data/app-tiles.test-data';
 
@@ -172,11 +173,19 @@ test.describe(
         createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
 
         //add,personalize,edit,verify
-        await homeDashboard.addTilewithPersonalizeDocebo(createdTileTitle, AppName, tileName, UI_ACTIONS.ADD_TO_HOME);
+        await homeDashboard.addTileWithUserDefinedOptions(
+          createdTileTitle,
+          AppName,
+          tileName,
+          DOCEBO_VALUES.ENROLLMENT_STATUS,
+          DOCEBO_VALUES.COURSE_TYPE,
+          DOCEBO_VALUES.ENROLLMENT_LEVEL,
+          UI_ACTIONS.ADD_TO_HOME
+        );
         await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
         await homeDashboard.verifyPersonalizeVisible(createdTileTitle);
-        await homeDashboard.PersonalizeTileDocebo(
+        await homeDashboard.personalizeTileWithDropdowns(
           createdTileTitle,
           DOCEBO_VALUES.ENROLLMENT_STATUS,
           DOCEBO_VALUES.COMPLETED,
@@ -205,7 +214,7 @@ test.describe(
         createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
 
         //add,personalize,edit,verify
-        await homeDashboard.addTilewithAppManagerDefinedDocebo(
+        await homeDashboard.addTileWithAppManagerDefined(
           createdTileTitle,
           AppName,
           tileName,
@@ -220,6 +229,214 @@ test.describe(
         await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
         await homeDashboard.verifyDoceboReportData(createdTileTitle, DOCEBO_VALUES.COMPLETED, DOCEBO_VALUES.E_LEARNING);
+      }
+    );
+    test(
+      'verify Show more is visible after 4 courses for pending learning courses from Docebo on a tile',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-24685',
+          storyId: 'INT-24422',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.DISPLAY_LEARNING_COURSES,
+          CONNECTOR_IDS.DOCEBO
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+      }
+    );
+    test(
+      'verify Personalize button is visible when clicked on Show more',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28456',
+          storyId: 'INT-24422',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
+        await homeDashboard.addTileWithUserDefinedOptions(
+          createdTileTitle,
+          AppName,
+          tileName,
+          DOCEBO_VALUES.ENROLLMENT_STATUS,
+          DOCEBO_VALUES.COURSE_TYPE,
+          DOCEBO_VALUES.ENROLLMENT_LEVEL,
+          UI_ACTIONS.ADD_TO_HOME
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+        await homeDashboard.verifyPersonalizeVisible(createdTileTitle);
+      }
+    );
+    test(
+      'verify users should be able to display pending learning courses from Docebo on a tile on Site dashboard - User defined',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28518',
+          storyId: 'INT-24422',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        //add,personalize,edit,verify
+        await siteDashboard.addTileWithUserDefinedOptions(
+          createdTileTitle,
+          AppName,
+          tileName,
+          DOCEBO_VALUES.ENROLLMENT_STATUS,
+          DOCEBO_VALUES.COURSE_TYPE,
+          DOCEBO_VALUES.ENROLLMENT_LEVEL,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.verifyPersonalizeVisible(createdTileTitle);
+        await siteDashboard.personalizeTileWithDropdowns(
+          createdTileTitle,
+          DOCEBO_VALUES.ENROLLMENT_STATUS,
+          DOCEBO_VALUES.COMPLETED,
+          DOCEBO_VALUES.COURSE_TYPE,
+          DOCEBO_VALUES.E_LEARNING,
+          DOCEBO_VALUES.ENROLLMENT_LEVEL,
+          DOCEBO_VALUES.STUDENT
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyDoceboReportData(createdTileTitle, DOCEBO_VALUES.COMPLETED, DOCEBO_VALUES.E_LEARNING);
+        createdTileTitle = undefined;
+      }
+    );
+    test(
+      'verify users should be able to display pending learning courses from Docebo on a tile on Site dashboard - Site manager defined',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28519',
+          storyId: 'INT-24422',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        //add,personalize,edit,verify
+        await siteDashboard.addTileWithSiteManagerDefined(
+          createdTileTitle,
+          AppName,
+          tileName,
+          UI_ACTIONS.ADD_TO_SITE,
+          DOCEBO_VALUES.ENROLLMENT_STATUS,
+          DOCEBO_VALUES.COMPLETED,
+          DOCEBO_VALUES.COURSE_TYPE,
+          DOCEBO_VALUES.E_LEARNING,
+          DOCEBO_VALUES.ENROLLMENT_LEVEL,
+          DOCEBO_VALUES.STUDENT
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.verifyDoceboReportData(createdTileTitle, DOCEBO_VALUES.COMPLETED, DOCEBO_VALUES.E_LEARNING);
+        createdTileTitle = undefined;
+      }
+    );
+    test(
+      'verify Show more is visible after 4 courses for pending learning courses from Docebo on a tile on  Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28530',
+          storyId: 'INT-24422',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        await siteDashboard.addTile(createdTileTitle, AppName, tileName, UI_ACTIONS.ADD_TO_SITE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+
+        // Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await siteDashboard.verifyShowMoreBehavior(createdTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+    test(
+      'verify Personalize button is visible when clicked on Show more on Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28531',
+          storyId: 'INT-24422',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        await siteDashboard.addTileWithUserDefinedOptions(
+          createdTileTitle,
+          AppName,
+          tileName,
+          DOCEBO_VALUES.ENROLLMENT_STATUS,
+          DOCEBO_VALUES.COURSE_TYPE,
+          DOCEBO_VALUES.ENROLLMENT_LEVEL,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+
+        // Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await siteDashboard.verifyShowMoreBehavior(createdTileTitle);
+        await siteDashboard.verifyPersonalizeVisible(createdTileTitle);
+        createdTileTitle = undefined;
       }
     );
   }

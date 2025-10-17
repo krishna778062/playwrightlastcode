@@ -100,6 +100,7 @@ export const REDIRECT_URLS = {
   UKG_WFM: 'https://kcfn01-cfn08-ath01.cfn.mykronos.com/',
   MONDAY_DOT_COM: 'https://clydenoronha48s-team.monday.com/',
   DOCEBO: 'https://simpplr.docebosaas.com/',
+  ASANA: 'https://app.asana.com/',
 } as const;
 
 /**
@@ -148,4 +149,17 @@ export const DOCEBO_VALUES = {
   COMPLETED: 'Completed',
   E_LEARNING: 'E-learning',
   STUDENT: 'Student',
+} as const;
+
+/**
+ * Data values for Expensify app tiles
+ */
+export const EXPENSIFY_VALUES = {
+  WORKSPACE: 'Workspace',
+  STATUS: 'Status',
+  DURATION: 'Duration',
+  PROCESSING: 'Processing',
+  APPROVER: 'Srikant G',
+  MAX_DAYS: 30,
+  WORKSPACE_VALUE: 'Sandbox-R&D',
 } as const;

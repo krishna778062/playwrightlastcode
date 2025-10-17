@@ -56,14 +56,13 @@ export interface IFeedActions {
   addReplyToPost: (replyText: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
   clickOnDeleteReplyButton: () => Promise<void>;
-  selectPostsToMe: () => Promise<void>;
-  selectPostDate: () => Promise<void>;
   clickShareThoughtsButton: () => Promise<void>;
   enterQuestionTitle: (title: string) => Promise<void>;
   clickAskQuestionButton: () => Promise<string>;
   clickQuestionButton: () => Promise<void>;
   editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
   clickOnShowOption: (optionValue: string) => Promise<void>;
+  clickOnSortByOption: (optionValue: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -99,6 +98,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   readonly shareThoughtsButton: Locator;
   readonly feedFilterSelect: Locator;
   readonly optionLocator: Locator;
+  readonly sortByLocator: Locator;
+  readonly sortByFilter: Locator;
 
   constructor(page: Page, feedId?: string) {
     super(page, feedId ? PAGE_ENDPOINTS.getFeedPage(feedId) : '');
@@ -108,6 +109,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.filePreviewComponent = new FilePreviewComponent(page);
     // Share thoughts section
     this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
+    this.sortByFilter = this.page.locator('[id="feed_sort"]');
+    this.sortByLocator = this.page.getByLabel('Sort by');
     // Feed filter dropdown
     this.feedFilterSelect = this.page.locator('select[id="feed_filter"]');
     this.optionLocator = this.page.getByLabel('Show', { exact: true });
@@ -340,13 +343,39 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifySortByRecentActivity();
   }
 
-  async selectPostsToMe(): Promise<void> {
-    await this.listFeedComponent.selectPostsToMe();
+  async clickOnShowOption(optionValue: string): Promise<void> {
+    await test.step(`Click on show option: ${optionValue}`, async () => {
+      // Wait for the select element to be present
+      await this.verifier.verifyTheElementIsVisible(this.feedFilterSelect, {
+        assertionMessage: 'Feed filter dropdown should be visible',
+      });
+
+      // Click on the select element to open dropdown
+      await this.clickOnElement(this.feedFilterSelect);
+
+      // Find and click the specific option
+      await this.optionLocator.selectOption(`${optionValue}`);
+
+      // Click on select again to close dropdown
+      await this.clickOnElement(this.feedFilterSelect);
+    });
   }
 
-  async selectPostDate(): Promise<void> {
-    await this.listFeedComponent.selectPostDate();
+  async clickOnSortByOption(optionValue: string): Promise<void> {
+    await test.step(`Click on show option: ${optionValue}`, async () => {
+      // Wait for the select element to be present
+      await this.verifier.verifyTheElementIsVisible(this.sortByFilter, {
+        assertionMessage: 'Sort by dropdown should be visible',
+      });
+      await this.clickOnElement(this.sortByFilter);
+
+      await this.sortByLocator.selectOption(`${optionValue}`);
+
+      // Click on select again to close dropdown
+      await this.clickOnElement(this.sortByFilter);
+    });
   }
+
   /**
    * Clicks the share thoughts button to open post editor
    */
@@ -409,23 +438,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    * Clicks on a specific option in the feed filter dropdown
    * @param optionValue - The text value of the option to select
    */
-  async clickOnShowOption(optionValue: string): Promise<void> {
-    await test.step(`Click on show option: ${optionValue}`, async () => {
-      // Wait for the select element to be present
-      await this.verifier.verifyTheElementIsVisible(this.feedFilterSelect, {
-        assertionMessage: 'Feed filter dropdown should be visible',
-      });
-
-      // Click on the select element to open dropdown
-      await this.clickOnElement(this.feedFilterSelect);
-
-      // Find and click the specific option
-      await this.optionLocator.selectOption(`${optionValue}`);
-
-      // Click on select again to close dropdown
-      await this.clickOnElement(this.feedFilterSelect);
-    });
-  }
 
   async verifyQuestionButtonIsNotVisible(): Promise<void> {
     await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
