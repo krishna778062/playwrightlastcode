@@ -1,5 +1,7 @@
 import { APIRequestContext, Browser, BrowserContext, request } from '@playwright/test';
 
+import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
+
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 
 export class AuthHelper {
@@ -55,7 +57,7 @@ export class AuthHelper {
   ): Promise<string> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const response = await httpClient.post('/v2/identity/users/validate', {
+        const response = await httpClient.post(API_ENDPOINTS.identity.validate, {
           data: { loginIdentifier: email },
           timeout: 30000, // Increase timeout to 30 seconds for parallel execution
         });
@@ -84,7 +86,7 @@ export class AuthHelper {
   }
 
   private static async getValidationToken(httpClient: HttpClient, email: string): Promise<string> {
-    const response = await httpClient.post('/v2/identity/users/validate', {
+    const response = await httpClient.post(API_ENDPOINTS.identity.validate, {
       data: { loginIdentifier: email },
       timeout: 30000, // Increase timeout to 30 seconds for parallel execution
     });
@@ -111,7 +113,7 @@ export class AuthHelper {
   ): Promise<void> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const response = await httpClient.post('/v2/identity/users/login', {
+        const response = await httpClient.post(API_ENDPOINTS.identity.login, {
           data: { password },
           headers: { 'x-smtip-tsid': token },
           timeout: 30000, // Increase timeout to 30 seconds for parallel execution
@@ -132,7 +134,7 @@ export class AuthHelper {
   }
 
   private static async performLogin(httpClient: HttpClient, token: string, password: string): Promise<void> {
-    const response = await httpClient.post('/v2/identity/users/login', {
+    const response = await httpClient.post(API_ENDPOINTS.identity.login, {
       data: { password },
       headers: { 'x-smtip-tsid': token },
       timeout: 30000, // Increase timeout to 30 seconds for parallel execution
