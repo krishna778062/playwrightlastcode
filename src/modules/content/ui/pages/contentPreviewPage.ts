@@ -3,11 +3,10 @@ import { Page, test } from '@playwright/test';
 import { PromotePageModal } from '@content/ui/components/promotePageModal';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
-import { CreateFeedPostComponent } from '../components/createFeedPostComponent';
-import { ListFeedComponent } from '../components/listFeedComponent';
-
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ContentDetailsComponent } from '@/src/modules/content/ui/components/contentDetailsComponent';
+import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
+import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
 
 export interface IContentPreviewPageActions {
   handlePromotionPageStep: () => Promise<void>;
