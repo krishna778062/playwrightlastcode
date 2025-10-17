@@ -64,6 +64,9 @@ export interface IFeedActions {
   clickQuestionButton: () => Promise<void>;
   editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
   clickOnShowOption: (optionValue: string) => Promise<void>;
+  selectShareOptionAsSiteFeed: () => Promise<void>;
+  searchForSiteName: (siteName: string) => Promise<void>;
+  enterFeedPostText: (text: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -87,6 +90,7 @@ export interface IFeedAssertions {
   verifyCampaignLinkNotDisplayed: (linkText: string, description: string) => Promise<void>;
   verifySocialCampaignShareButtonIsNotVisible: (description: string) => Promise<void>;
   verifySocialCampaignShareButtonIsVisible: (description: string) => Promise<void>;
+  verifyNoResultMessage: () => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -423,5 +427,34 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       // Click on select again to close dropdown
       await this.clickOnElement(this.feedFilterSelect);
     });
+  }
+
+  /**
+   * Selects "site feed" option from share dropdown in post creation
+   */
+  async selectShareOptionAsSiteFeed(): Promise<void> {
+    await this.createFeedPostComponent.selectShareOptionAsSiteFeed();
+  }
+
+  /**
+   * Searches for a site name without selecting it (to verify access)
+   * @param siteName - The site name to search for
+   */
+  async searchForSiteName(siteName: string): Promise<void> {
+    await this.createFeedPostComponent.searchForSiteName(siteName);
+  }
+
+  /**
+   * Enters text into the post editor
+   * @param text - The text to enter in the post
+   */
+  async enterFeedPostText(text: string): Promise<void> {
+    await this.createFeedPostComponent.createPost(text);
+  }
+  /**
+   * Verifies "No results" message is displayed when searching for inaccessible sites
+   */
+  async verifyNoResultMessage(): Promise<void> {
+    await this.createFeedPostComponent.verifyNoResultMessage();
   }
 }

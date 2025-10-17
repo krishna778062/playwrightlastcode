@@ -113,5 +113,51 @@ test.describe(
         createdPostId = ''; // Clear post ID as post is already deleted
       }
     );
+
+    test(
+      'verify End User should not be able to search an Private and Unlisted site if he is not a member of a site',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-24150'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify End User should not be able to search an Private and Unlisted site if he is not a member of a site',
+          zephyrTestId: 'CONT-24150',
+          storyId: 'CONT-24150',
+        });
+
+        // Step 1: App Manager creates a private site that standard user is NOT a member of
+        const privateSiteResult = await appManagerFixture.siteManagementHelper.createPrivateSite({
+          waitForSearchIndex: false,
+        });
+        const privateSiteName = privateSiteResult.siteName;
+        console.log(`Created private site: ${privateSiteName}`);
+
+        // Step 2: Standard User - Already logged in via standardUserFixture
+        await standardUserFixture.homePage.verifyThePageIsLoaded();
+
+        // Step 3: User clicks on Home-Global Feed
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        feedPage = new FeedPage(standardUserFixture.page);
+        await feedPage.verifyThePageIsLoaded();
+
+        // Step 4: Click on "Share your thoughts" button
+        await feedPage.actions.clickShareThoughtsButton();
+
+        // Step 5: Create a post and send it to the editor
+        const initialPostText = `Test post for site access validation ${faker.company.name()}`;
+        await feedPage.actions.enterFeedPostText(initialPostText);
+
+        // Step 6: User select share option as "site feed"
+        await feedPage.actions.selectShareOptionAsSiteFeed();
+
+        // Step 7: Enter private site name which User is not member of
+        await feedPage.actions.searchForSiteName(privateSiteName);
+
+        // Step 8: Verify "No results" is getting displayed
+        await feedPage.assertions.verifyNoResultMessage();
+      }
+    );
   }
 );

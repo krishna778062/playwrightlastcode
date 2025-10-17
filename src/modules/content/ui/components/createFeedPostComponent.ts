@@ -47,10 +47,13 @@ export interface ICreateFeedPostActions {
   clickEditOption: () => Promise<void>;
   updatePostText: (text: string) => Promise<void>;
   clickUpdateButton: () => Promise<void>;
+  selectShareOptionAsSiteFeed: () => Promise<void>;
+  searchForSiteName: (siteName: string) => Promise<void>;
 }
 
 export interface ICreateFeedPostAssertions {
   verifyEditorVisible: () => Promise<void>;
+  verifyNoResultMessage: () => Promise<void>;
 }
 
 export class CreateFeedPostComponent
@@ -83,6 +86,11 @@ export class CreateFeedPostComponent
   // Dropdown selection - parameterized
   readonly addSiteNameFromList = (name: string) =>
     this.page.locator("div[class*='ListingItem-module__details'] p").filter({ hasText: name });
+
+  // Share options section - for site feed sharing
+  readonly shareOptionDropdown = this.page.locator('select[id="shareSubject"]');
+  readonly selectSiteInput = this.page.locator('div:has-text("Select site") + div >> input');
+  readonly noResultsText = this.page.getByText('No results');
 
   // Dynamic locator functions
   /**
@@ -437,6 +445,41 @@ export class CreateFeedPostComponent
   async clickQuestionButton(): Promise<void> {
     await test.step('Click question button', async () => {
       await this.clickOnElement(this.questionButton);
+    });
+  }
+
+  /**
+   * Selects "site" option from the share dropdown to post to site feed
+   */
+  async selectShareOptionAsSiteFeed(): Promise<void> {
+    await test.step('Select share option: site feed', async () => {
+      await this.shareOptionDropdown.selectOption('site');
+    });
+  }
+
+  /**
+   * Searches for a site name in the site selector dropdown without selecting it
+   * This is used to verify if a site appears in search results
+   * @param siteName - The site name to search for
+   */
+  async searchForSiteName(siteName: string): Promise<void> {
+    await test.step(`Search for site name: ${siteName}`, async () => {
+      await this.clickOnElement(this.selectSiteInput);
+      await this.fillInElement(this.selectSiteInput, siteName);
+      // Wait a moment for search results to load
+      await this.page.waitForTimeout(1000);
+    });
+  }
+
+  /**
+   * Verifies that "No results" message is displayed (when searching for inaccessible sites)
+   */
+  async verifyNoResultMessage(): Promise<void> {
+    await test.step('Verify "No results" message is displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.noResultsText, {
+        timeout: 5000,
+        assertionMessage: 'Expected "No results" message to be visible',
+      });
     });
   }
 }
