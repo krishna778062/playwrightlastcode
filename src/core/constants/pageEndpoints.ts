@@ -4,16 +4,22 @@ export const PAGE_ENDPOINTS = {
   CHATS_PAGE: '/chat/conversations',
   AUDIO_VIDEO_CALL_PAGE: '/call',
   FEATURED_SITES_PAGE: '/sites/featured',
+  SITES_LIST_PAGE: '/sites',
   SITE_PAGE: (siteId: string) => `/site/${siteId}/`,
+  MANAGE_QR_PAGE: '/manage/promotions',
+  SOCIAL_CAMPAIGN_SETTING_PAGE: '/manage/app/integrations/campaigns',
 
   // Rewards pages
   MANAGE_REWARDS_PAGE: '/manage/recognition/rewards/overview',
   REWARDS_OPTIONS_PAGE: '/manage/recognition/rewards/reward-options',
   REWARD_STORE_PAGE: '/rewards-store/gift-cards',
   REWARD_STORE_ORDER_HISTORY_PAGE: '/rewards-store/order-history',
+  RECOGNITION_HUB: '/recognition',
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
   MANAGE_USERS_PAGE: '/manage/users',
+  PEOPLE_DIRECTORY_PAGE: '/people',
+  ACTIVITY_NOTIFICATION_PAGE: '/notifications/activity',
   LOGOUT: '/logout',
 
   // abac pages
@@ -22,9 +28,58 @@ export const PAGE_ENDPOINTS = {
 
   // content management pages
   getSiteDashboardPage: (siteId: string) => `/site/${siteId}/dashboard`,
+  getSiteFeedPage: (siteId: string) => `/site/${siteId}/feed`,
+  getSiteContentPage: (siteId: string) => `/site/${siteId}/content`,
+  getSiteQuestionsPage: (siteId: string) => `/site/${siteId}/questions`,
+  getSiteFilesPage: (siteId: string) => `/site/${siteId}/files`,
+  getSiteAboutPage: (siteId: string) => `/site/${siteId}/about/managers`,
   getContentPreviewPage: (siteId: string, contentId: string, contentType: string) =>
     `/site/${siteId}/${contentType}/${contentId}`,
   getAlbumCreationPage: (siteId: string) => `/site/${siteId}/album/add`,
   getEventCreationPage: (siteId: string) => `/site/${siteId}/event/add`,
   getPageCreationPage: (siteId: string) => `/site/${siteId}/page/add`,
+  getEditPage: (siteId: string, contentId: string) => `/site/${siteId}/page/${contentId}/edit`,
+  getFeedPage: (feedId: string) => `/feed/${feedId}`,
+  APPLICATION_SETTINGS: 'manage/app/setup/general',
+  GOVERNANCE_SCREEN: 'manage/app/setup/governance',
+  MANAGE_TOPICS_SCREEN: 'manage/topics',
+  PRIVILEGES_SCREEN: 'manage/app/setup/privileges',
+  DEFAULT_SCREEN: 'manage/app/defaults/email-notifications',
+  MANAGE_FEATURE: 'manage-features',
+  MANAGE_CONTENT: 'manage/content',
+  MANAGE_CONTENT_APPLY_API: '/manage',
+  MANAGE_CONTENT_MOVE_API: '/v1/page',
+  MANAGE_CONTENT_DELETE_API: '/v1/content/sites/',
+
+  MANAGE_SITE_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
+  SITE_DETAILS_PAGE: (siteId: string) => PAGE_ENDPOINTS.getSiteDashboardPage(siteId),
+  ADD_SITE_SCREEN_PAGE: '/manage/sites/add?nextLinkTo=/manage/sites',
+  SITE_CATEGORIES_PAGE: '/manage/site-categories',
+  PAGE_CREATION_PAGE: '/site/:siteId/page/:pageId',
+  ALBUM_CREATION_PAGE: '/site/:siteId/album/:albumId',
+  EVENT_CREATION_PAGE: '/site/:siteId/event/:albumId',
+
+  // Integrations page
+  CUSTOM_APPS_INTEGRATION_PAGE: '/manage/app/integrations/custom',
+  EXTERNAL_APPS_PAGE: '/people/:userId/edit/external-apps',
+  FILE_MANAGEMENT_PAGE: '/manage/app/integrations/files',
+  PEOPLE_DATA_PAGE: '/manage/app/integrations/people',
+  API_ACTIONS_PAGE: '/manage/app/integrations/api-actions',
+  DOMAIN_NAMES_PAGE: '/manage/app/integrations/domains',
+  EVENTS_PAGE: '/people/:userId/calendar',
+  CUSTOM_APP_TILES_PAGE: '/manage/custom-app-tiles',
+  SUPPORT_TICKETING_PAGE: '/manage/app/integrations/support',
+  SERVICE_NOW_TICKETS_PAGE: '/servicenow',
+  USER_SYNCING_PAGE: '/manage/app/people/user-syncing',
+
+  // Alert Notification pages
+  NOTIFICATION_CUSTOMIZATION_PAGE: '/manage/app/defaults/notification-customization',
+  EMAIL_NOTIFICATION_APP_SETTINGS_PAGE: '/manage/app/defaults/email-notifications',
+  //analytics pages
+  ANALYTICS_LANDING_PAGE: '/analytics-landing',
+  APP_ANALYTICS_OVERVIEW_DASHBOARD: '/analytics',
+  SOCIAL_CAMPAIGNS_PAGE: '/campaigns/latest',
+  ADD_SOCIAL_CAMPAIGNS: '/campaigns/add',
+  SOCIAL_INTERACTION_PAGE: '/analytics/engagement',
+  APP_ADOPTION_DASHBOARD: '/analytics/adoption',
 };

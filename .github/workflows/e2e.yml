@@ -14,8 +14,13 @@ on:
           - 'global-search'
           - 'reward'
           - 'content'
+          - 'content-settings'
           - 'de'
           - 'content-abac'
+          - 'frontline'
+          - 'integrations'
+          - 'alert-notification'
+          - 'employee-listening'
       priority_filter:
         description: 'Select test cases by priority'
         required: true
@@ -78,6 +83,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Create Calendar Secrets JSON
+        run: |
+          echo '${{ vars.CALENDAR_SECRETS }}' > githubSecrets.json
+          echo "✅ Created githubSecrets.json with Google and Outlook Calendar credentials for CI environment"
+
       - name: set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -88,6 +98,11 @@ jobs:
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ghostscript imagemagick graphicsmagick
 
       - name: Run playwright tests
         id: run-tests
@@ -120,10 +135,7 @@ jobs:
             echo "Running all tests without filters"
             npm run test:${{ inputs.module_name || 'chat' }} -- --workers=${{ inputs.workers }}
           else
-            GREP_REGEX=""
-            for tag in "${ALL_TAGS[@]}"; do
-              GREP_REGEX="${GREP_REGEX}(?=.*${tag})"
-            done
+            GREP_REGEX=$(IFS='|'; echo "${ALL_TAGS[*]}")
             echo "Running tests with grep filter: $GREP_REGEX"
             npm run test:${{ inputs.module_name || 'chat' }} -- --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
           fi

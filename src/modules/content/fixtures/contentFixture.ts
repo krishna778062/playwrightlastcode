@@ -1,275 +1,346 @@
-import { BrowserContext, Page, test } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
-import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
-import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
-import { ContentManagementHelper } from '@core/helpers/contentManagementHelper';
-import { FeedManagementHelper } from '@core/helpers/feedManagementHelper';
-import { LoginHelper } from '@core/helpers/loginHelper';
-import { SiteManagementHelper } from '@core/helpers/siteManagementHelper';
-import { getEnvConfig } from '@core/utils/getEnvConfig';
+import { AudienceManagementHelper } from '../apis/helpers/audienceManagementHelper';
+import { SocialCampaignHelper } from '../apis/helpers/socialCampaignHelper';
+import { TileManagementHelper } from '../apis/helpers/tileManagementHelper';
 
-import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
+import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
+import { LoginHelper } from '@/src/core/helpers/loginHelper';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
+import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/contentManagementHelper';
+import { FeedManagementHelper } from '@/src/modules/content/apis/helpers/feedManagementHelper';
+import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
+import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
+import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
+import { getContentTenantConfigFromCache } from '@/src/modules/content/config/contentConfig';
+import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
-export type UserType = 'appManager' | 'endUser';
-export type HomePageType = NewUxHomePage | OldUxHomePage;
+// API-only fixture type for API helpers and services
+export interface ApiFixture {
+  apiContext: APIRequestContext;
+  siteManagementHelper: SiteManagementHelper;
+  contentManagementHelper: ContentManagementHelper;
+  feedManagementHelper: FeedManagementHelper;
+  identityManagementHelper: IdentityManagementHelper;
+  socialCampaignHelper: SocialCampaignHelper;
+  tileManagementHelper: TileManagementHelper;
+  audienceManagementHelper: AudienceManagementHelper;
+  siteManagementService: SiteManagementService;
+  feedManagerService: FeedManagementService;
+}
 
-// Cache environment configuration to avoid repeated calls
-const envConfig = getEnvConfig();
+// UI-only fixture type for browser and page components
+export interface UiFixture {
+  browserContext: BrowserContext;
+  page: Page;
+  homePage: NewHomePage;
+  navigationHelper: NavigationHelper;
+}
+
+// Combined user fixture type that extends both API and UI fixtures
+export interface UserFixture extends ApiFixture, UiFixture {}
+
+export type UserType = 'appManager' | 'endUser' | 'siteManager' | 'socialCampaignManager';
 
 export const users = {
   appManager: {
-    email: envConfig.appManagerEmail,
-    password: envConfig.appManagerPassword,
+    email: getContentTenantConfigFromCache().appManagerEmail || '',
+    password: getContentTenantConfigFromCache().appManagerPassword || '',
   },
   endUser: {
-    email: envConfig.endUserEmail || '',
-    password: envConfig.endUserPassword || '',
+    email: getContentTenantConfigFromCache().endUserEmail || '',
+    password: getContentTenantConfigFromCache().endUserPassword || '',
   },
   siteManager: {
-    email: process.env.SITE_MANAGER_USERNAME || '',
-    password: process.env.SITE_MANAGER_PASSWORD || '',
+    email: getContentTenantConfigFromCache().siteManagerEmail || '',
+    password: getContentTenantConfigFromCache().siteManagerPassword || '',
+  },
+  socialCampaignManager: {
+    email: getContentTenantConfigFromCache().socialCampaignManagerEmail || '',
+    password: getContentTenantConfigFromCache().socialCampaignManagerPassword || '',
   },
 } as const;
 
-// Shared login function to reduce code duplication
-async function createAuthenticatedHomePage(
-  context: BrowserContext,
-  userCredentials: { email: string; password: string }
-): Promise<HomePageType> {
-  const page = await context.newPage();
-  const homePage = await LoginHelper.loginWithPassword(page, userCredentials);
-  await homePage.verifyThePageIsLoaded();
-  return homePage;
+// Helper function to create API-only fixtures using existing API contexts
+async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixture> {
+  // Create all helpers and services
+  const siteManagementHelper = new SiteManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+  const tileManagementHelper = new TileManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+  const contentManagementHelper = new ContentManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+  const feedManagementHelper = new FeedManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+  const identityManagementHelper = new IdentityManagementHelper(
+    apiContext,
+    getContentTenantConfigFromCache().apiBaseUrl
+  );
+  const socialCampaignHelper = new SocialCampaignHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+  const audienceManagementHelper = new AudienceManagementHelper(
+    apiContext,
+    getContentTenantConfigFromCache().apiBaseUrl
+  );
+
+  const siteManagementService = new SiteManagementService(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+  const feedManagerService = new FeedManagementService(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+
+  return {
+    apiContext,
+    siteManagementHelper,
+    contentManagementHelper,
+    feedManagementHelper,
+    identityManagementHelper,
+    socialCampaignHelper,
+    audienceManagementHelper,
+    siteManagementService,
+    tileManagementHelper,
+    feedManagerService,
+  };
 }
 
-// Shared logout function with error handling
-async function performLogout(homePage: HomePageType): Promise<void> {
-  try {
-    await LoginHelper.logoutByNavigatingToLogoutPage(homePage.page);
-  } catch (error) {
-    console.warn('Logout failed, continuing with test cleanup:', error);
-  }
+// Helper function to create UI-only fixtures
+async function createUiFixture(browser: any, userType: UserType): Promise<UiFixture> {
+  const user = users[userType];
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  await LoginHelper.loginWithPassword(page, {
+    email: user.email,
+    password: user.password,
+  });
+
+  const homePage = new NewHomePage(page);
+  await homePage.loadPage();
+  await homePage.verifyThePageIsLoaded();
+
+  const navigationHelper = new NavigationHelper(page);
+
+  return {
+    browserContext: context,
+    page,
+    homePage,
+    navigationHelper,
+  };
 }
 
 export const contentTestFixture = test.extend<
   {
-    // Browser contexts
-    appManagerContext: BrowserContext;
-    standardUserContext: BrowserContext;
+    // API-only fixtures - fast, no browser overhead
+    appManagerApiFixture: ApiFixture;
+    standardUserApiFixture: ApiFixture;
+    siteManagerApiFixture: ApiFixture;
+    socialCampaignManagerApiFixture: ApiFixture;
 
-    // Authenticated pages
-    appManagerHomePage: HomePageType;
-    appManagersPage: Page;
-    standardUserHomePage: HomePageType;
-    standardUserPage: Page;
+    // UI-only fixtures - browser and page components
+    appManagerUiFixture: UiFixture;
+    standardUserUiFixture: UiFixture;
+    siteManagerUiFixture: UiFixture;
+    socialCampaignManagerUiFixture: UiFixture;
 
-    // Helpers and services
-    siteManagementHelper: SiteManagementHelper;
-    siteManagerContext: BrowserContext;
-    siteManagerHomePage: NewUxHomePage | OldUxHomePage;
-    siteManagerPage: Page;
-    contentManagementHelper: ContentManagementHelper;
-    feedManagementHelper: FeedManagementHelper;
-
-    // Utility functions
-    loginAs: (userType: UserType) => Promise<void>;
-    switchUser: (fromPage: Page, toUserType: UserType) => Promise<HomePageType>;
+    // Combined user fixtures - complete entry points with all helpers and services
+    appManagerFixture: UserFixture;
+    standardUserFixture: UserFixture;
+    siteManagerFixture: UserFixture;
+    socialCampaignManagerFixture: UserFixture;
   },
   {
     // Worker-scoped fixtures
-    appManagerApiClient: AppManagerApiClient;
+    appManagerApiContext: APIRequestContext;
+    standardUserApiContext: APIRequestContext;
+    siteManagerApiContext: APIRequestContext;
+    socialCampaignManagerApiContext: APIRequestContext;
   }
 >({
   // Worker-scoped API client - shared across all tests in worker
-  appManagerApiClient: [
-    async ({}, use, workerInfo) => {
-      console.log(`Setting up app manager API client for worker ${workerInfo.workerIndex}`);
-
-      const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-        type: 'credentials',
-        credentials: {
-          username: envConfig.appManagerEmail,
-          password: envConfig.appManagerPassword,
-        },
-        baseUrl: envConfig.apiBaseUrl,
-      });
-
-      await use(appManagerApiClient);
-
-      // Cleanup worker-scoped resources
-      console.log(`Cleaning up app manager API client for worker ${workerInfo.workerIndex}`);
+  appManagerApiContext: [
+    async ({}, use) => {
+      const context = await RequestContextFactory.createAuthenticatedContext(
+        getContentTenantConfigFromCache().apiBaseUrl,
+        {
+          email: users.appManager.email,
+          password: users.appManager.password,
+        }
+      );
+      await use(context);
     },
     { scope: 'worker' },
   ],
-  // Browser contexts - isolated per test
-  appManagerContext: [
-    async ({ browser }, use) => {
-      const context = await browser.newContext({
-        // Optimize context creation
-        ignoreHTTPSErrors: true,
-        viewport: { width: 1920, height: 1080 },
-      });
 
-      await use(context);
-      await context.close();
-    },
-    { scope: 'test' },
-  ],
-  // Authenticated home pages
-  appManagerHomePage: [
-    async ({ appManagerContext }, use) => {
-      const homePage = await createAuthenticatedHomePage(appManagerContext, users.appManager);
-
-      await use(homePage);
-      await performLogout(homePage);
-    },
-    { scope: 'test' },
-  ],
-  standardUserContext: [
-    async ({ browser }, use) => {
-      const context = await browser.newContext({
-        // Optimize context creation
-        ignoreHTTPSErrors: true,
-        viewport: { width: 1920, height: 1080 },
-      });
-
-      await use(context);
-      await context.close();
-    },
-    { scope: 'test' },
-  ],
-
-  standardUserHomePage: [
-    async ({ standardUserContext }, use) => {
-      const homePage = await createAuthenticatedHomePage(standardUserContext, users.endUser);
-      await use(homePage);
-      await performLogout(homePage);
-    },
-    { scope: 'test' },
-  ],
-
-  standardUserPage: [
-    async ({ standardUserHomePage }, use) => {
-      await use(standardUserHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-
-  // Page references - lightweight wrappers
-  appManagersPage: [
-    async ({ appManagerHomePage }, use) => {
-      await use(appManagerHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-
-  siteManagerContext: [
-    async ({ browser }, use, workerInfo) => {
-      const context = await browser.newContext();
-      await use(context);
-      await context?.close();
-    },
-    { scope: 'test' },
-  ],
-
-  siteManagerHomePage: [
-    async ({ siteManagerContext }, use, workerInfo) => {
-      const page = await siteManagerContext.newPage();
-      const siteManagerHomePage = await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().siteManagerEmail || '',
-        password: getEnvConfig().siteManagerPassword || '',
-      });
-      await siteManagerHomePage.verifyThePageIsLoaded();
-      await use(siteManagerHomePage);
-      await page.close();
-    },
-    { scope: 'test' },
-  ],
-
-  siteManagerPage: [
-    async ({ siteManagerHomePage }, use, workerInfo) => {
-      await use(siteManagerHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-
-  feedManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const feedManagementHelper = new FeedManagementHelper(appManagerApiClient);
-      await use(feedManagementHelper);
-      // Ensure cleanup happens even if test fails
-      try {
-        await feedManagementHelper.cleanup();
-      } catch (error) {
-        console.warn('Feed management helper cleanup failed:', error);
-      }
-    },
-    { scope: 'test' },
-  ],
-
-  siteManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const helper = new SiteManagementHelper(appManagerApiClient);
-
-      await use(helper);
-
-      // Ensure cleanup happens even if test fails
-      try {
-        await helper.cleanup();
-      } catch (error) {
-        console.warn('Site management helper cleanup failed:', error);
-      }
-    },
-    { scope: 'test' },
-  ],
-
-  contentManagementHelper: [
-    async ({ appManagerApiClient }, use) => {
-      const helper = new ContentManagementHelper(appManagerApiClient);
-
-      await use(helper);
-
-      // Ensure cleanup happens even if test fails
-      try {
-        await helper.cleanup();
-      } catch (error) {
-        console.warn('Content management helper cleanup failed:', error);
-      }
-    },
-    { scope: 'test' },
-  ],
-
-  // Utility functions for user switching
-  loginAs: [
-    async ({ page }, use) => {
-      await use(async (userType: UserType) => {
-        const credentials = users[userType];
-        if (!credentials.email || !credentials.password) {
-          throw new Error(`Missing credentials for user type: ${userType}`);
-        }
-        await LoginHelper.loginWithPassword(page, credentials);
-      });
-    },
-    { scope: 'test' },
-  ],
-
-  switchUser: [
+  standardUserApiContext: [
     async ({}, use) => {
-      await use(async (fromPage: Page, toUserType: UserType) => {
-        // Logout current user
-        await LoginHelper.logoutByNavigatingToLogoutPage(fromPage);
-
-        // Login as new user
-        const credentials = users[toUserType];
-        if (!credentials.email || !credentials.password) {
-          throw new Error(`Missing credentials for user type: ${toUserType}`);
+      const context = await RequestContextFactory.createAuthenticatedContext(
+        getContentTenantConfigFromCache().apiBaseUrl,
+        {
+          email: users.endUser.email,
+          password: users.endUser.password,
         }
+      );
+      await use(context);
+    },
+    { scope: 'worker' },
+  ],
 
-        const homePage = await LoginHelper.loginWithPassword(fromPage, credentials);
-        await homePage.verifyThePageIsLoaded();
-        return homePage;
-      });
+  siteManagerApiContext: [
+    async ({}, use) => {
+      const context = await RequestContextFactory.createAuthenticatedContext(
+        getContentTenantConfigFromCache().apiBaseUrl,
+        {
+          email: users.siteManager.email,
+          password: users.siteManager.password,
+        }
+      );
+      await use(context);
+    },
+    { scope: 'worker' },
+  ],
+
+  socialCampaignManagerApiContext: [
+    async ({}, use) => {
+      const context = await RequestContextFactory.createAuthenticatedContext(
+        getContentTenantConfigFromCache().apiBaseUrl,
+        {
+          email: users.socialCampaignManager.email,
+          password: users.socialCampaignManager.password,
+        }
+      );
+      await use(context);
+    },
+    { scope: 'worker' },
+  ],
+
+  // API-only fixtures - fast, no browser overhead, using worker-scoped contexts
+  appManagerApiFixture: [
+    async ({ appManagerApiContext }, use) => {
+      const fixture = await createApiFixture(appManagerApiContext);
+      await use(fixture);
+
+      // Cleanup helpers that have cleanup methods
+      try {
+        await fixture.siteManagementHelper.cleanup();
+        await fixture.tileManagementHelper.cleanup();
+        await fixture.contentManagementHelper.cleanup();
+        await fixture.feedManagementHelper.cleanup();
+      } catch (error) {
+        console.warn('App manager API fixture cleanup failed:', error);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  standardUserApiFixture: [
+    async ({ standardUserApiContext }, use) => {
+      const fixture = await createApiFixture(standardUserApiContext);
+      await use(fixture);
+
+      // Cleanup helpers that have cleanup methods
+      try {
+        await fixture.siteManagementHelper.cleanup();
+        await fixture.tileManagementHelper.cleanup();
+        await fixture.contentManagementHelper.cleanup();
+        await fixture.feedManagementHelper.cleanup();
+      } catch (error) {
+        console.warn('Standard user API fixture cleanup failed:', error);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  siteManagerApiFixture: [
+    async ({ siteManagerApiContext }, use) => {
+      const fixture = await createApiFixture(siteManagerApiContext);
+      await use(fixture);
+
+      // Cleanup helpers that have cleanup methods
+      try {
+        await fixture.siteManagementHelper.cleanup();
+        await fixture.tileManagementHelper.cleanup();
+        await fixture.contentManagementHelper.cleanup();
+        await fixture.feedManagementHelper.cleanup();
+      } catch (error) {
+        console.warn('Site manager API fixture cleanup failed:', error);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  socialCampaignManagerApiFixture: [
+    async ({ socialCampaignManagerApiContext }, use) => {
+      const fixture = await createApiFixture(socialCampaignManagerApiContext);
+      await use(fixture);
+
+      // Cleanup helpers that have cleanup methods
+      try {
+        await fixture.siteManagementHelper.cleanup();
+        await fixture.tileManagementHelper.cleanup();
+        await fixture.contentManagementHelper.cleanup();
+        await fixture.feedManagementHelper.cleanup();
+      } catch (error) {
+        console.warn('Social campaign manager API fixture cleanup failed:', error);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  // UI-only fixtures - browser and page components
+  appManagerUiFixture: [
+    async ({ browser }, use) => {
+      const fixture = await createUiFixture(browser, 'appManager');
+      await use(fixture);
+      await fixture.browserContext.close();
+    },
+    { scope: 'test' },
+  ],
+
+  standardUserUiFixture: [
+    async ({ browser }, use) => {
+      const fixture = await createUiFixture(browser, 'endUser');
+      await use(fixture);
+      await fixture.browserContext.close();
+    },
+    { scope: 'test' },
+  ],
+
+  siteManagerUiFixture: [
+    async ({ browser }, use) => {
+      const fixture = await createUiFixture(browser, 'siteManager');
+      await use(fixture);
+      await fixture.browserContext.close();
+    },
+    { scope: 'test' },
+  ],
+
+  socialCampaignManagerUiFixture: [
+    async ({ browser }, use) => {
+      const fixture = await createUiFixture(browser, 'socialCampaignManager');
+      await use(fixture);
+      await fixture.browserContext.close();
+    },
+    { scope: 'test' },
+  ],
+
+  // Combined user fixtures - complete entry points
+  appManagerFixture: [
+    async ({ appManagerUiFixture, appManagerApiFixture }, use) => {
+      await use({ ...appManagerUiFixture, ...appManagerApiFixture });
+    },
+    { scope: 'test' },
+  ],
+
+  standardUserFixture: [
+    async ({ standardUserUiFixture, standardUserApiFixture }, use) => {
+      await use({ ...standardUserUiFixture, ...standardUserApiFixture });
+    },
+    { scope: 'test' },
+  ],
+
+  siteManagerFixture: [
+    async ({ siteManagerUiFixture, siteManagerApiFixture }, use) => {
+      await use({ ...siteManagerUiFixture, ...siteManagerApiFixture });
+    },
+    { scope: 'test' },
+  ],
+
+  socialCampaignManagerFixture: [
+    async ({ socialCampaignManagerUiFixture, socialCampaignManagerApiFixture }, use) => {
+      await use({ ...socialCampaignManagerUiFixture, ...socialCampaignManagerApiFixture });
     },
     { scope: 'test' },
   ],

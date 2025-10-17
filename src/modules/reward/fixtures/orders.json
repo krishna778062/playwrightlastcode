@@ -1,0 +1,37 @@
+{
+  "results": [
+    {
+      "orderId": "0199bacc-73db-7327-b715-64086b80008d",
+      "createdAt": "2025-07-06T18:33:05.247Z",
+      "order": {
+        "provider": "TANGO",
+        "rewardName": "Canadian Red Cross Donation",
+        "logoUrl": "https://dwwvg90koz96l.cloudfront.net/images/brands/b751232-300w-326ppi.png",
+        "points": 1,
+        "recipientEmail": "sonu.kumar+1@simpplr.com",
+        "rewardType": "DONATION",
+        "rewardValue": 0.06,
+        "currencyCode": "CAD",
+        "brandName": "Canadian Red Cross"
+      },
+      "canResend": false
+    },
+    {
+      "orderId": "0199baa6-979c-73c4-8fbc-b938aa24550e",
+      "createdAt": "2025-10-06T17:51:44.032Z",
+      "order": {
+        "provider": "TANGO",
+        "rewardName": "Virtual Promotional Prepaid Mastercard®       ",
+        "logoUrl": "https://dwwvg90koz96l.cloudfront.net/images/brands/b266419-300w-326ppi.png",
+        "points": 1,
+        "recipientEmail": "sonu.kumar+1@simpplr.com",
+        "rewardType": "CASH_EQUIVALENT",
+        "rewardValue": 0.04,
+        "currencyCode": "USD",
+        "brandName": "Virtual Promotional Prepaid Mastercard - USA & International Acceptance"
+      },
+      "canResend": true
+    }
+  ],
+  "total": 2
+}

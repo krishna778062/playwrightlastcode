@@ -6,13 +6,13 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { PlatformFeatureTags, PlatformSuiteTags } from '@platforms/constants/testTags';
 
 test.describe(
-  'Test Footer in Homepage',
+  'test Footer in Homepage',
   {
     tag: [PlatformSuiteTags.FOOTER],
   },
   () => {
     test(
-      'Verify that the footer is visible in the homepage',
+      'verify that the footer is visible in the homepage',
       {
         tag: [TestPriority.P0, PlatformFeatureTags.SEO],
       },
@@ -22,7 +22,7 @@ test.describe(
           password: getEnvConfig().appManagerPassword,
         });
         await homePage.verifyThePageIsLoaded();
-        await homePage.getFooterComponent().verifynavigationofprivacyPolicyLink();
+        await homePage.footer.verifyNavigationOfPrivacyPolicyLink();
       }
     );
   }

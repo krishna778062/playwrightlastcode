@@ -100,6 +100,29 @@ export class BaseVerificationUtil {
   }
 
   /**
+   * Verifies that the element is disabled
+   * @param locator - The locator to verify
+   * @param options - The options to pass to the verification
+   */
+  async verifyTheElementIsDisabled(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be disabled`).toBeDisabled();
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element not disabled.\n${error}`
+      );
+    }
+  }
+
+  /**
    * Verifies that the count of elements is equal to the expected count
    * @param locator - The locator to verify
    * @param expectedCount - The expected count of elements
@@ -220,6 +243,38 @@ export class BaseVerificationUtil {
         options?.assertionMessage
           ? `${options.assertionMessage}\n${error}`
           : `Verification failed: Element does not contain text.\n${error}`
+      );
+    }
+  }
+
+  /**
+   * Verifies that an input element's value matches the expected text.
+   * @param locator - The Playwright Locator for the input element
+   * @param text - The expected value of the input
+   * @param options - Optional configuration
+   *   - timeout: Time to wait for the assertion
+   *   - assertionMessage: Custom error message
+   */
+  async verifyTextOfInputElement(
+    locator: Locator,
+    text: string,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await this.verifyTheElementIsVisible(locator);
+      const inputValue = await locator.inputValue({ timeout: options?.timeout });
+      expect(
+        inputValue,
+        options?.assertionMessage ?? `Expected input value to be '${text}', but got '${inputValue}'`
+      ).toBe(text);
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Input element value does not match.\n${error}`
       );
     }
   }
@@ -454,5 +509,24 @@ export class BaseVerificationUtil {
         options?.stepInfo ? `${options.stepInfo}\n${error}` : `Verification failed: Element not in viewport.\n${error}`
       );
     }
+  }
+
+  /**
+   * Verifies that the checkbox is checked
+   * @param locator - The locator to verify
+   * @param options - The options to pass to the verification
+   */
+  async verifyCheckboxIsChecked(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      stepInfo?: string;
+    }
+  ): Promise<boolean> {
+    return await test.step(options?.stepInfo || `Verify that the checkbox is checked`, async () => {
+      return await locator.isChecked({
+        timeout: options?.timeout || 8_000,
+      });
+    });
   }
 }

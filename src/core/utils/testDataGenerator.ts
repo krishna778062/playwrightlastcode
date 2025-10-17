@@ -3,9 +3,9 @@ import { faker } from '@faker-js/faker';
 import { User } from '@core/types/user.type';
 
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
-import { AlbumCreationOptions } from '@/src/modules/content/pages/albumCreationPage';
-import { EventCreationOptions } from '@/src/modules/content/pages/eventCreationPage';
-import { PageCreationOptions } from '@/src/modules/content/pages/pageCreationPage';
+import { AlbumCreationOptions } from '@/src/modules/content/ui/pages/albumCreationPage';
+import { EventCreationOptions } from '@/src/modules/content/ui/pages/eventCreationPage';
+import { PageCreationOptions } from '@/src/modules/content/ui/pages/pageCreationPage';
 
 export class TestDataGenerator {
   /**
@@ -255,8 +255,13 @@ export class TestDataGenerator {
     return `${prefix}_${Date.now()}`;
   }
 
+  // Helper function to generate unique audience names with consistent timestamp-based naming
+  static generateAudienceName(prefix: string = 'TestAudience'): string {
+    return `${prefix}_${Date.now()}`;
+  }
+
   // Helper function to generate test description with timestamp
-  static generateRandomString(prefix: string = 'Test description for category'): string {
+  static generateRandomString(prefix: string = 'Test String'): string {
     return `${prefix} created at ${new Date().toISOString()}`;
   }
 
@@ -267,16 +272,17 @@ export class TestDataGenerator {
   }
 
   /**
+   *
    * Generates a random page with realistic data
    * @param contentType Content type for the page
-   * @param fileName Cover image file name
+   * @param imagePath Cover image file path
    * @param category Optional category for the page (if empty string generates random category)
    * @param overrides Optional properties to override in the generated page
    * @returns A PageCreationOptions object with random realistic data
    */
   static generatePage(
     contentType: PageContentType,
-    fileName: string,
+    imagePath: string,
     category?: string,
     overrides?: Partial<PageCreationOptions>
   ): PageCreationOptions {
@@ -289,7 +295,7 @@ export class TestDataGenerator {
       category: finalCategory,
       contentType: contentType,
       coverImage: {
-        fileName,
+        imagePath,
         cropOptions: {
           widescreen: false,
           square: false,
@@ -442,5 +448,301 @@ export class TestDataGenerator {
    */
   static generateSites(count: number, access: string, overrides?: Partial<any>): any[] {
     return Array.from({ length: count }, () => this.generateSite(access, overrides));
+  }
+
+  /**
+   * Generates a random QR code name with timestamp to ensure uniqueness
+   * @param prefix Optional prefix for the QR code name
+   * @returns A unique QR code name
+   */
+  static generateQRName(prefix: string = 'QR'): string {
+    const randomWord = faker.word.sample();
+    const timestamp = Date.now();
+    return `${prefix}-${randomWord}-${timestamp}`;
+  }
+
+  /**
+   * Generates a random QR code description
+   * @param prefix Optional prefix for the description
+   * @returns A random QR code description
+   */
+  static generateQRDescription(prefix: string = 'QR Code Description'): string {
+    const randomWords = faker.lorem.words(5);
+    const timestamp = Date.now();
+    return `${prefix}: ${randomWords} - ${timestamp}`;
+  }
+
+  /**
+   * Generates a unique category name with specified length and starting alphabet characters
+   * @param maxLength - Maximum length of the category name
+   * @param startingAlphabetCount - Number of alphabet characters to start with
+   * @returns Generated unique category name
+   */
+  static generateUniqueCategoryName(maxLength: number, startingAlphabetCount: number): string {
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+
+    // Start with alphabet characters (A-Z, a-z)
+    const alphabetChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    let startingPart = '';
+
+    // Generate starting alphabet characters
+    for (let i = 0; i < startingAlphabetCount; i++) {
+      startingPart += alphabetChars.charAt(Math.floor(Math.random() * alphabetChars.length));
+    }
+
+    // Combine: starting alphabets + random suffix + timestamp
+    const combined = `${startingPart}${randomSuffix}${timestamp}`;
+
+    // Ensure it doesn't exceed max length
+    const result = combined.substring(0, maxLength);
+
+    console.log(`Generated unique category name: ${result.substring(0, 30)}... (${result.length} characters)`);
+    return result;
+  }
+
+  static generateRandomText(
+    prefix: string = 'Automated Test Post',
+    wordCount: number = 2,
+    includeCompanyName: boolean = true
+  ): string {
+    const text = faker.lorem.words(wordCount);
+    return `${prefix} ${text} ${includeCompanyName ? faker.company.name() : ''}`;
+  }
+
+  /**
+   * Generates feed test data with customizable options
+   * @param options Configuration options for the feed
+   * @returns Object with feed creation parameters
+   *
+   * @example
+   * // Generate public feed without attachment
+   * const publicFeed = TestDataGenerator.generateFeed({ scope: 'public' });
+   *
+   * // Generate site feed with attachment
+   * const siteFeed = TestDataGenerator.generateFeed({
+   *   scope: 'site',
+   *   siteId: 'site123',
+   *   withAttachment: true
+   * });
+   *
+   * // Generate feed with custom text
+   * const customFeed = TestDataGenerator.generateFeed({
+   *   scope: 'public',
+   *   text: 'Custom post text'
+   * });
+   */
+  static generateFeed(
+    options:
+      | {
+          scope: string;
+          siteId?: string;
+          contentId?: string;
+          withAttachment?: false;
+          fileName?: undefined;
+          fileSize?: undefined;
+          mimeType?: undefined;
+          filePath?: undefined;
+          waitForSearchIndex?: boolean;
+        }
+      | {
+          scope: string;
+          siteId?: string;
+          contentId?: string;
+          withAttachment: true;
+          fileName: string;
+          fileSize: number;
+          mimeType: string;
+          filePath: string; // Required when withAttachment is true
+          waitForSearchIndex?: boolean;
+        }
+  ) {
+    if ('withAttachment' in options && options.withAttachment) {
+      const { scope, siteId, contentId, fileName, fileSize, mimeType, filePath, waitForSearchIndex = false } = options;
+      return {
+        text: `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Post - ${faker.commerce.productName()}`,
+        scope,
+        siteId: siteId || undefined,
+        contentId: contentId || undefined,
+        withAttachment: true as const,
+        fileName,
+        fileSize,
+        mimeType,
+        filePath,
+        options: {
+          waitForSearchIndex,
+        },
+      };
+    } else {
+      const { scope, siteId, contentId, waitForSearchIndex = false } = options;
+      return {
+        text: `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Post - ${faker.commerce.productName()}`,
+        scope,
+        siteId: siteId || undefined,
+        contentId: contentId || undefined,
+        withAttachment: false as const,
+        fileName: undefined,
+        fileSize: undefined,
+        mimeType: undefined,
+        filePath: undefined,
+        options: {
+          waitForSearchIndex,
+        },
+      };
+    }
+  }
+
+  /**
+   * Generates test data for feed comment/reply with user mention
+   * @param params Configuration for the reply
+   * @returns Object with reply creation parameters including textHtml, textJson, and other payload data
+   *
+   * @example
+   * // Generate reply with user mention
+   * const reply = TestDataGenerator.generateReply({
+   *   userId: 'ad3c871b-2444-4cbc-8438-c9b40852002a',
+   *   userName: 'Sonali Gupta',
+   *   replyText: 'This is a test reply'
+   * });
+   */
+  static generateReply(params: { userId: string; userName: string; replyText?: string }) {
+    const { userId, userName, replyText } = params;
+    const text = replyText || `Reply from - ${faker.lorem.sentence()}`;
+
+    // Generate textHtml with user mention
+    const textHtml = `<p><span data-type="user" data-id="${userId}" data-label="${userName}"><a href="/people/${userId}" target="_blank">@${userName}</a></span> ${text}</p>`;
+
+    // Generate textJson with user mention
+    const textJson = JSON.stringify({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          attrs: {
+            className: '',
+            'data-sw-sid': null,
+          },
+          content: [
+            {
+              type: 'UserAndSiteMention',
+              attrs: {
+                id: userId,
+                label: userName,
+                type: 'user',
+              },
+            },
+            {
+              type: 'text',
+              text: ` ${text}`,
+            },
+          ],
+        },
+      ],
+    });
+
+    return {
+      textHtml,
+      textJson,
+      listOfAttachedFiles: [],
+      ignoreToxic: false,
+      replyText: `@${userName} ${text}`, // For UI verification
+    };
+  }
+
+  /**
+   * Generates simple test data for feed comment/reply without user mention
+   * @param params Configuration for the reply
+   * @returns Object with reply creation parameters including textHtml, textJson, and other payload data
+   *
+   * @example
+   * // Generate simple reply without mention
+   * const reply = TestDataGenerator.generateSimpleReply({
+   *   replyText: 'This is a simple reply'
+   * });
+   */
+  static generateSimpleReply(params: { replyText?: string } = {}) {
+    const { replyText } = params;
+    const text = replyText || faker.lorem.sentence();
+
+    // Generate textHtml without user mention
+    const textHtml = `<p>${text}</p>`;
+
+    // Generate textJson without user mention
+    const textJson = JSON.stringify({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          attrs: {
+            className: '',
+            'data-sw-sid': null,
+          },
+          content: [
+            {
+              type: 'text',
+              text: text,
+            },
+          ],
+        },
+      ],
+    });
+
+    return {
+      textHtml,
+      textJson,
+      listOfAttachedFiles: [],
+      ignoreToxic: false,
+      replyText: text,
+    };
+  }
+
+  static generateValidLinkPair() {
+    return faker.internet.url();
+  }
+
+  /**
+   * Generates test data for social campaigns with customizable options
+   * @param options Configuration options for the social campaign
+   * @returns Object with social campaign creation parameters
+   *
+   * @example
+   * // Generate campaign for everyone with default settings
+   * const everyoneCampaign = TestDataGenerator.generateSocialCampaign({ recipient: 'everyone' });
+   *
+   * // Generate campaign for specific audience
+   * const audienceCampaign = TestDataGenerator.generateSocialCampaign({
+   *   recipient: 'audience',
+   *   audienceId: 'audience123'
+   * });
+   *
+   * // Generate campaign with custom message and URL
+   * const customCampaign = TestDataGenerator.generateSocialCampaign({
+   *   recipient: 'everyone',
+   *   message: 'Custom campaign message',
+   *   url: 'https://www.example.com',
+   *   networks: ['fb', 'ln']
+   * });
+   */
+  static generateSocialCampaign(
+    options: {
+      recipient?: 'everyone' | 'audience';
+      message?: string;
+      url?: string;
+      networks?: string[];
+      audienceId?: string;
+    } = {}
+  ) {
+    const { recipient = 'everyone', message, url, networks = ['fb', 'ln', 'tw'], audienceId } = options;
+
+    const timestamp = Date.now().toString().slice(-4);
+    const randomId = Math.random().toString(36).substring(2, 6);
+
+    return {
+      recipient,
+      message: message || `Test Social Campaign ${timestamp}_${randomId} - ${faker.company.buzzPhrase()}`,
+      url: url || faker.internet.url(),
+      networks,
+      ...(audienceId && { audienceId }),
+    };
   }
 }
