@@ -23,6 +23,8 @@ export class AnalyticsFiltersComponent extends BaseComponent {
    */
   readonly filterOptionByText: (text: string) => Locator;
 
+  readonly groupByOnUserParameterOption: (groupBy: string) => Locator;
+
   /**
    * Apply and Clear buttons within the filter dialog
    */
@@ -38,6 +40,8 @@ export class AnalyticsFiltersComponent extends BaseComponent {
   constructor(page: Page) {
     super(page);
     this.filterGroup = (label: string) => this.page.getByText(label, { exact: true });
+    this.groupByOnUserParameterOption = (groupBy: string) =>
+      this.page.locator("[class*='FilterGroupFilter-module']").getByText(groupBy, { exact: true });
     this.filterDialog = this.page.locator('[id*="tippy"]');
     this.filterOptionByText = (filterName: string) => this.page.getByText(filterName, { exact: true });
     this.filterApplyButton = this.page.getByRole('button', { name: 'Apply' }).first();
@@ -83,6 +87,16 @@ export class AnalyticsFiltersComponent extends BaseComponent {
   async selectFilterOptionByOptionName(optionText: string) {
     await test.step(`Select option: ${optionText}`, async () => {
       await this.clickOnElement(this.filterOptionByText(optionText));
+    });
+  }
+
+  async selectGroupByOnUserParameterOption(groupBy: 'Department' | 'Location' | 'User Category') {
+    await test.step(`Select Group By on User Parameter: ${groupBy}`, async () => {
+      //if its not already
+      const optionToSelect = this.page.getByRole('radio', { name: groupBy });
+      if (!(await optionToSelect.isChecked())) {
+        await optionToSelect.check();
+      }
     });
   }
 
@@ -210,6 +224,70 @@ export class AnalyticsFiltersComponent extends BaseComponent {
   }
 
   /**
+   * Applies a Department filter by opening the dialog and selecting the provided option.
+   * @param departmentFilterOptions - The Department filter option to select.
+   */
+  async applyDepartmentFilter(departmentFilterOptions: string[]) {
+    await test.step(`Apply Department filter: ${departmentFilterOptions.join(', ')}`, async () => {
+      await this.openFilter(AnalyticsFilterLabels.DEPARTMENT);
+      for (const department of departmentFilterOptions) {
+        await this.selectFilterOptionByOptionName(department);
+      }
+      await this.clickOnApplyButton();
+    });
+  }
+
+  /**
+   * Applies a Location filter by opening the dialog and selecting the provided option.
+   * @param locationFilterOptions - The Location filter option to select.
+   */
+  async applyLocationFilter(locationFilterOptions: string[]) {
+    await test.step(`Apply Location filter: ${locationFilterOptions.join(', ')}`, async () => {
+      await this.openFilter(AnalyticsFilterLabels.LOCATION);
+      for (const location of locationFilterOptions) {
+        await this.selectFilterOptionByOptionName(location);
+      }
+      await this.clickOnApplyButton();
+    });
+  }
+
+  /**
+   * Applies a Company Name filter by opening the dialog and selecting the provided option.
+   * @param companyNameFilterOptions - The Company Name filter option to select.
+   */
+  async applyCompanyNameFilter(companyNameFilterOptions: string[]) {
+    await test.step(`Apply Company Name filter: ${companyNameFilterOptions.join(', ')}`, async () => {
+      await this.openFilter(AnalyticsFilterLabels.COMPANY_NAME);
+      for (const companyName of companyNameFilterOptions) {
+        await this.selectFilterOptionByOptionName(companyName);
+      }
+      await this.clickOnApplyButton();
+    });
+  }
+
+  /**
+   * Applies a People Category filter by opening the dialog and selecting the provided option.
+   * @param peopleCategoryFilterOptions - The People Category filter option to select.
+   */
+  async applyPeopleCategoryFilter(peopleCategoryFilterOptions: string[]) {
+    await test.step(`Apply People Category filter: ${peopleCategoryFilterOptions.join(', ')}`, async () => {
+      //NEW LOCATOR for people category
+      const peopleCategoryFilter = this.page.getByRole('button', {
+        name: AnalyticsFilterLabels.PEOPLE_CATEGORY,
+        exact: true,
+      });
+      await this.clickOnElement(peopleCategoryFilter, {
+        stepInfo: 'Click on people category filter to open filter dialog',
+        timeout: 40_000,
+      });
+      for (const peopleCategory of peopleCategoryFilterOptions) {
+        await this.selectFilterOptionByOptionName(peopleCategory);
+      }
+      await this.clickOnApplyButton();
+    });
+  }
+
+  /**
    * Selects a custom period filter by opening the calendar picker and selecting the provided dates
    * @param customStartDate - The start date to select
    * @param customEndDate - The end date to select
@@ -280,6 +358,25 @@ export class AnalyticsFiltersComponent extends BaseComponent {
   async waitUntilCalendarPickerIsHidden() {
     await test.step('Wait until calendar picker is hidden', async () => {
       await this.yearPicker.waitFor({ state: 'hidden' });
+    });
+  }
+
+  /**
+   * Verifies that the filter component is visible
+   */
+  async verifyFilterComponentIsVisible() {
+    await test.step('Verify filter component is visible', async () => {
+      await expect(this.filterGroup('Department'), 'Department filter should be visible').toBeVisible({
+        timeout: 40_000,
+      });
+    });
+  }
+
+  async applyGroupByOnUserParameter(groupBy: 'Department' | 'Location' | 'User Category') {
+    await test.step(`Apply Group By on User Parameter: ${groupBy}`, async () => {
+      await this.openFilter(AnalyticsFilterLabels.USER_PARAMETER);
+      await this.selectGroupByOnUserParameterOption(groupBy);
+      await this.clickOnApplyButton();
     });
   }
 }

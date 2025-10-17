@@ -13,12 +13,14 @@ export class AppAdoptionDashboard extends BaseAnalyticsDashboardPage {
   readonly totalUsersMetrics: TotalUsersMetrics;
   readonly loggedInUsersMetrics: LoggedInUserMetrics;
   readonly contributorsAndParticipantsMetrics: ContributorsAndParticipantsMetrics;
+  // readonly adoptionLeadersMetrics: AdoptionLeadersMetrics;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.APP_ADOPTION_DASHBOARD);
     this.totalUsersMetrics = new TotalUsersMetrics(page, this.thoughtSpotIframe);
     this.loggedInUsersMetrics = new LoggedInUserMetrics(page, this.thoughtSpotIframe);
     this.contributorsAndParticipantsMetrics = new ContributorsAndParticipantsMetrics(page, this.thoughtSpotIframe);
+    // this.adoptionLeadersMetrics = new AdoptionLeadersMetrics(page, this.thoughtSpotIframe);
   }
 
   /**

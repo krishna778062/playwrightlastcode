@@ -1,4 +1,3 @@
-import { DateHelper } from './dateHelper';
 import { SnowflakeHelper } from './snowflakeHelper';
 
 /**
@@ -16,26 +15,15 @@ export abstract class BaseAnalyticsQueryHelper {
   }
 
   /**
-   * Executes a SQL query with standard parameters.
-   * Handles both static periods and custom date ranges.
+   * Executes a complete SQL query with filters already applied.
+   * Used by the new query builder approach.
    *
-   * @param query - The SQL query string
-   * @param timePeriod - Time period filter or 'Custom'
-   * @param customStartDate - Custom start date (YYYY-MM-DD format) - required if timePeriod is 'Custom'
-   * @param customEndDate - Custom end date (YYYY-MM-DD format) - required if timePeriod is 'Custom'
+   * @param query - The complete SQL query string with all filters applied
    * @returns Promise<any[]> - Raw query results
    */
-  async executeQuery(
-    query: string,
-    timePeriod: string,
-    customStartDate?: string,
-    customEndDate?: string
-  ): Promise<any[]> {
-    const dateReplacements = DateHelper.getDateReplacements(timePeriod, customStartDate, customEndDate);
-
+  async executeQuery(query: string): Promise<any[]> {
     return await this.snowflakeHelper.runQueryWithReplacements(query, {
       orgId: this.orgId,
-      ...dateReplacements,
     });
   }
 
@@ -44,19 +32,11 @@ export abstract class BaseAnalyticsQueryHelper {
    * Hero metrics are designed to return exactly 1 record with 1 numeric value.
    * This method encapsulates the business rule that hero metrics are single numbers.
    *
-   * @param query - The SQL query string (should return 1 record)
-   * @param timePeriod - Time period filter or 'Custom'
-   * @param customStartDate - Custom start date (YYYY-MM-DD format) - required if timePeriod is 'Custom'
-   * @param customEndDate - Custom end date (YYYY-MM-DD format) - required if timePeriod is 'Custom'
+   * @param query - The complete SQL query string with all filters applied (should return 1 record)
    * @returns Promise<number> - The hero metric value
    */
-  async getHeroMetricDataFromDB(
-    query: string,
-    timePeriod: string,
-    customStartDate?: string,
-    customEndDate?: string
-  ): Promise<number> {
-    const results = await this.executeQuery(query, timePeriod, customStartDate, customEndDate);
+  async getHeroMetricDataFromDB(query: string): Promise<number> {
+    const results = await this.executeQuery(query);
 
     // Business rule: Hero metrics always return 1 record with 1 numeric value
     if (results.length === 0) return 0;
@@ -71,25 +51,14 @@ export abstract class BaseAnalyticsQueryHelper {
    *
    * @param params - Object containing all parameters
    * @param params.uiValue - The UI metric value (e.g., "1,234")
-   * @param params.query - The SQL query string
-   * @param params.timePeriod - Time period filter or 'Custom'
-   * @param params.customStartDate - Custom start date (YYYY-MM-DD format) - required if timePeriod is 'Custom'
-   * @param params.customEndDate - Custom end date (YYYY-MM-DD format) - required if timePeriod is 'Custom'
+   * @param params.query - The complete SQL query string with all filters applied
    * @returns Promise<{ uiValue: number; dbValue: number; match: boolean }> - Comparison result
    */
   async compareHeroMetricWithDB(params: {
     uiValue: string;
     query: string;
-    timePeriod: string;
-    customStartDate?: string;
-    customEndDate?: string;
   }): Promise<{ uiValue: number; dbValue: number; match: boolean }> {
-    const dbValue = await this.getHeroMetricDataFromDB(
-      params.query,
-      params.timePeriod,
-      params.customStartDate,
-      params.customEndDate
-    );
+    const dbValue = await this.getHeroMetricDataFromDB(params.query);
     const numericUiValue = parseInt(params.uiValue.replace(/,/g, ''), 10);
 
     return {

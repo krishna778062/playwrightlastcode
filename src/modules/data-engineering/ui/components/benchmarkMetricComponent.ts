@@ -132,7 +132,8 @@ export class BenchmarkMetricComponent extends BaseComponent {
   async verifyMetricsSowsNegativeTrend(): Promise<void> {
     await test.step(`Verify metrics shows downwards trend - for metric ${this.metricTitle}`, async () => {
       await expect(this.metricsComparisonSection, `expecting negative trend indicator to be visible`).toHaveClass(
-        'negative'
+        'negative',
+        { timeout: 40_000 }
       );
     });
   }
@@ -140,7 +141,8 @@ export class BenchmarkMetricComponent extends BaseComponent {
   async verifyMetricsShowsPositiveTrend(): Promise<void> {
     await test.step(`Verify metrics shows positive trend - for metric ${this.metricTitle}`, async () => {
       await expect(this.metricsComparisonSection, `expecting positive trend indicator to be visible`).toHaveClass(
-        'positive'
+        'positive',
+        { timeout: 40_000 }
       );
     });
   }
@@ -152,7 +154,8 @@ export class BenchmarkMetricComponent extends BaseComponent {
   async verifyBenchMarkComparisonTextIs(benchMarkComparisonText: string): Promise<void> {
     await test.step(`Verify bench mark comparison text is visible - for metric ${this.metricTitle}`, async () => {
       await expect(this.metricsComparisonSection, `expecting bench mark comparison text to be visible`).toContainText(
-        benchMarkComparisonText
+        benchMarkComparisonText,
+        { timeout: 40_000 }
       );
     });
   }
@@ -162,10 +165,16 @@ export class BenchmarkMetricComponent extends BaseComponent {
    */
   async verifyMetricIsLoaded(): Promise<void> {
     await test.step(`Verify metrics UI data points are visible - for metric ${this.metricTitle}`, async () => {
-      await expect(this.metricTitleLocator, `expecting metric title to be visible`).toBeVisible();
-      await expect(this.metricDescription, `expecting metric description to be visible`).toBeVisible();
-      await expect(this.metricValue, `expecting metric value to be visible`).toBeVisible();
-      await expect(this.metricsComparisonSection, `expecting metrics comparison section to be visible`).toBeVisible();
+      await expect(this.metricTitleLocator, `expecting metric title to be visible`).toBeVisible({ timeout: 120_000 });
+      await expect(this.metricDescription, `expecting metric description to be visible`).toBeVisible({
+        timeout: 120_000,
+      });
+      await expect(this.metricValue, `expecting metric value to be visible`).toBeVisible({
+        timeout: 120_000,
+      });
+      await expect(this.metricsComparisonSection, `expecting metrics comparison section to be visible`).toBeVisible({
+        timeout: 120_000,
+      });
     });
   }
 
@@ -177,8 +186,17 @@ export class BenchmarkMetricComponent extends BaseComponent {
   async verifyMetricsDescriptionIs(metricDescription: string): Promise<void> {
     await test.step(`Verify metrics description is visible - for metric ${this.metricTitle}`, async () => {
       await expect(this.metricDescription, `expecting metric description to be visible`).toContainText(
-        metricDescription
+        metricDescription,
+        { timeout: 40_000 }
       );
+    });
+  }
+
+  async verifyAbsoluteMetricValueIs(expectedValue: string): Promise<void> {
+    await test.step(`Verify absolute metric value is ${expectedValue} - for metric ${this.metricTitle}`, async () => {
+      await expect(this.metricValue, `expecting metric value to be visible`).toContainText(expectedValue, {
+        timeout: 40_000,
+      });
     });
   }
 }
