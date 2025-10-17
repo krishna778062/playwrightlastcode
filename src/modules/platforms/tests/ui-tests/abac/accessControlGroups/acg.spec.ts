@@ -20,7 +20,7 @@ import { User } from '@/src/core/types/user.type';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 
 test.describe(
-  'Access Control Groups Testcases',
+  'access control groups testcases',
   {
     tag: [TestSuite.ABAC],
   },

@@ -7,7 +7,7 @@ import { TestSuite } from '@/src/core/constants/testSuite';
 import { ManageUsersPage } from '@/src/modules/platforms/ui/pages/managerUsersPage/manageUsersPage';
 
 test.describe(
-  'Manage Users Testcases',
+  'manage users testcases',
   {
     tag: [TestSuite.ABAC],
   },

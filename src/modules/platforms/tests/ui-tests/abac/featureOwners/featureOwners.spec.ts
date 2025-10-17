@@ -16,7 +16,7 @@ import {
 import { FeatureOwnersPage } from '@/src/modules/platforms/ui/pages/abacPage/featureOwnersPage/featureOwnersPage';
 
 test.describe(
-  'Feature Owners Testcases',
+  'feature owners testcases',
   {
     tag: [TestSuite.ABAC],
   },
