@@ -1,4 +1,4 @@
-import { DASHBOARD_BUTTONS, FIELD_NAMES, ORGANIZATION_SETTINGS, UI_ACTIONS } from '@integrations/constants/common';
+import { DASHBOARD_BUTTONS, ORGANIZATION_SETTINGS, UI_ACTIONS } from '@integrations/constants/common';
 import { ExternalAppProvider } from '@integrations/ui/pages/externalAppsPage';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { TileOperationsComponent } from '@integrations-components/tileOperationsComponent';
@@ -270,10 +270,11 @@ export class HomeDashboard extends BasePage {
     tileTitle: string,
     appName: string,
     tileName: string,
+    fieldName: string,
     destination: string
   ): Promise<void> {
     await this.addTile(tileTitle, appName, tileName, destination, {
-      radioOptions: [{ fieldName: FIELD_NAMES.ORGANIZATION, option: ORGANIZATION_SETTINGS.USER_DEFINED }],
+      radioOptions: [{ fieldName: fieldName, option: ORGANIZATION_SETTINGS.USER_DEFINED }],
     });
   }
 
