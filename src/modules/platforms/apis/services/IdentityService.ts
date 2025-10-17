@@ -683,8 +683,9 @@ export class IdentityService implements IIdentityAdminOperations {
 
   /**
    * Get all categories using hierarchy API
+   * Returns legacy format for backward compatibility with content-abac module
    */
-  async getCategories(): Promise<Array<{ id: string; name: string; description?: string }>> {
+  async getCategories(): Promise<Array<{ type: string; data: { id: string; name: string; description?: string } }>> {
     const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
       data: {
         nextPageToken: 0,
@@ -696,13 +697,25 @@ export class IdentityService implements IIdentityAdminOperations {
     });
 
     const json = await response.json();
-    return json?.result?.listOfItems || [];
+    const items = json?.result?.listOfItems || [];
+
+    return items.map((item: any) => ({
+      type: 'category',
+      data: {
+        id: item.id,
+        name: item.name,
+        description: item.description,
+      },
+    }));
   }
 
   /**
    * Get audiences in a specific category using hierarchy API
+   * Returns legacy format for backward compatibility with content-abac module
    */
-  async getAudiencesInCategory(categoryId: string): Promise<Array<{ id: string; name: string; description?: string }>> {
+  async getAudiencesInCategory(
+    categoryId: string
+  ): Promise<Array<{ type: string; data: { id: string; name: string; description?: string } }>> {
     const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
       data: {
         nextPageToken: 0,
@@ -715,7 +728,16 @@ export class IdentityService implements IIdentityAdminOperations {
     });
 
     const json = await response.json();
-    return json?.result?.listOfItems || [];
+    const items = json?.result?.listOfItems || [];
+
+    return items.map((item: any) => ({
+      type: 'audience',
+      data: {
+        id: item.id,
+        name: item.name,
+        description: item.description,
+      },
+    }));
   }
 
   /**
