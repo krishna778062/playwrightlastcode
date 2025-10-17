@@ -1,8 +1,7 @@
 import { expect, Page, test } from '@playwright/test';
-
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
-import { TIMEOUTS } from '../..';
+import { TIMEOUTS } from '@core/constants/timeouts';
 
 export abstract class BasePage extends BaseActionUtil {
   readonly verifier: BaseVerificationUtil;
