@@ -49,9 +49,7 @@ export class AudienceManagementHelper {
    * @returns Promise<string> - Random audience ID
    * @throws Error if no audiences found
    */
-  async getRandomAudienceId(
-    size: number = 16
-  ): Promise<{
+  async getRandomAudienceId(size: number = 16): Promise<{
     audienceId: string;
     name: string;
     count: string | number;
