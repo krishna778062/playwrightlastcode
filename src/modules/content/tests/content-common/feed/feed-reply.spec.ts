@@ -319,15 +319,9 @@ test.describe(
           storyId: 'CONT-30407',
         });
 
-        const appManagerReplyData = TestDataGenerator.generateReply({
-          userId: appManagerInfo.userId,
-          userName: appManagerInfo.fullName,
-        });
+        const appManagerReplyData = TestDataGenerator.generateSimpleReply();
 
-        const standardUserCommentData = TestDataGenerator.generateReply({
-          userId: endUserInfo.userId,
-          userName: endUserInfo.fullName,
-        });
+        const standardUserCommentData = TestDataGenerator.generateSimpleReply();
 
         const appManageReplyOnSocialUserPostResponse = await appManagerFixture.feedManagementHelper.addComment(
           socialUserPostId,
@@ -355,7 +349,7 @@ test.describe(
         // Verify notification message for mention in reply
         const expectedNotificationMessage = `${endUserInfo.fullName} replied to your post "${standardUserCommentData.replyText}"`;
         await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
-        const expectedNotificationMessage2 = `${endUserInfo.fullName} also replied to "${socialUserInfo.fullName}"'s post`;
+        const expectedNotificationMessage2 = `${endUserInfo.fullName} also replied to ${socialUserInfo.fullName}'s post`;
         await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage2);
       }
     );
