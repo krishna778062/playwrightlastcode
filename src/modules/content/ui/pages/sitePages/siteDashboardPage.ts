@@ -1,6 +1,3 @@
-import { CarouselComponent } from '@content-components/carouselComponent';
-import { EditBarComponent } from '@content-components/editBarComponent';
-import { ListFeedComponent } from '@content-components/listFeedComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { AddTileComponent } from '@content/ui/components/addTileComponent';
@@ -10,6 +7,9 @@ import { CreateFeedPostComponent } from '../../components/createFeedPostComponen
 import { CreateQuestionComponent, QuestionOptions, QuestionResult } from '../../components/createQuestionComponent';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { CarouselComponent } from '@/src/modules/content/ui/components/carouselComponent';
+import { EditBarComponent } from '@/src/modules/content/ui/components/editBarComponent';
+import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
 
 export interface ISiteDashboardActions {
   navigateToManageSite: () => Promise<void>;

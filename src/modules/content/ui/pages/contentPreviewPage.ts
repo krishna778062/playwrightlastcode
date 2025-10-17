@@ -5,11 +5,14 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ContentDetailsComponent } from '@/src/modules/content/ui/components/contentDetailsComponent';
+import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
+import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
 
 export interface IContentPreviewPageActions {
   handlePromotionPageStep: () => Promise<void>;
   clickOnApproveOrRejectButton: (action: string) => Promise<void>;
   enterRejectReason: (reason: string) => Promise<void>;
+  editPost: (currentText: string, newText: string) => Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -19,6 +22,7 @@ export interface IContentPreviewPageAssertions {
   verifyContentHasSubmitForApprovalButton: () => Promise<void>;
   verifyCommentOptionIsNotVisible: () => Promise<void>;
   verifyCommentOptionIsVisible: () => Promise<void>;
+  waitForPostToBeVisible: (expectedText: string) => Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
@@ -53,6 +57,8 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   // Page components
   readonly promotePageModal: PromotePageModal;
   private contentDetailsComponent: ContentDetailsComponent;
+  private createFeedPostComponent: CreateFeedPostComponent;
+  private listFeedComponent: ListFeedComponent;
 
   constructor(page: Page, siteId?: string, contentId?: string, contentType?: string) {
     super(
@@ -61,6 +67,8 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     );
     this.promotePageModal = new PromotePageModal(page);
     this.contentDetailsComponent = new ContentDetailsComponent(page);
+    this.createFeedPostComponent = new CreateFeedPostComponent(page);
+    this.listFeedComponent = new ListFeedComponent(page);
   }
 
   // Actions
@@ -173,5 +181,13 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     await test.step('Checking comment option', async () => {
       await this.contentDetailsComponent.checkCommentOption.isVisible();
     });
+  }
+
+  async editPost(currentText: string, newText: string): Promise<void> {
+    await this.createFeedPostComponent.editPost(currentText, newText);
+  }
+
+  async waitForPostToBeVisible(expectedText: string): Promise<void> {
+    await this.listFeedComponent.waitForPostToBeVisible(expectedText);
   }
 }
