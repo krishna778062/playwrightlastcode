@@ -167,7 +167,6 @@ export class IdentityService implements IIdentityAdminOperations {
           data: userData,
         }
       );
-      console.log(`Updated user ${userId}`, JSON.stringify(userData, null, 2));
       return await this.httpClient.parseResponse<UpdateUserResponse>(response);
     });
   }
@@ -277,7 +276,7 @@ export class IdentityService implements IIdentityAdminOperations {
     await test.step(`API Create category: ${name} if not created`, async () => {
       const findCategoryStatus: boolean = await this.findCategory(name, 10000);
       if (!findCategoryStatus) {
-        const data: any = {
+        const data: { name: string; description?: string } = {
           name: `${name}`,
         };
 
@@ -303,7 +302,6 @@ export class IdentityService implements IIdentityAdminOperations {
           categoryId = await this.getCategoryId(name, 10000);
         }
       } else {
-        console.log(`Category ${name} already created!!!`);
         categoryId = await this.getCategoryId(name, 10000);
       }
     });
@@ -408,25 +406,21 @@ export class IdentityService implements IIdentityAdminOperations {
       const responseJson = await this.httpClient.parseResponse<IdentityAudienceSearchResponse>(response);
       try {
         //if the list is not empty, check if the audience is present in the list or children list
-        if (responseJson.result.listOfItems.length > 0) {
-          for (let i = 0; i < responseJson.result.listOfItems.length; i++) {
-            if (responseJson.result.listOfItems[i].data.name == name) {
-              return true;
-            }
-            //if the item has children, check if the audience is present in the children list
-            if (responseJson.result.listOfItems[i].children.length > 0) {
-              for (let j = 0; j < responseJson.result.listOfItems[i].children.length; j++) {
-                if (responseJson.result.listOfItems[i].children[j].data.name == name) {
-                  return true;
-                }
+        for (let i = 0; i < responseJson.result.listOfItems.length; i++) {
+          if (responseJson.result.listOfItems[i].data.name == name) {
+            return true;
+          }
+          //if the item has children, check if the audience is present in the children list
+          if (responseJson.result.listOfItems[i].children.length > 0) {
+            for (let j = 0; j < responseJson.result.listOfItems[i].children.length; j++) {
+              if (responseJson.result.listOfItems[i].children[j].data.name == name) {
+                return true;
               }
             }
           }
-          //if the audience is not present in the list or children list, return false
-          return false;
-        } else {
-          return false;
         }
+        //if the audience is not present in the list or children list, return false
+        return false;
       } catch (error) {
         throw new Error(`Error in finding audience API call for ${name} under category ${categoryid}: ${error}`);
       }
@@ -498,14 +492,10 @@ export class IdentityService implements IIdentityAdminOperations {
         });
         expect(response.status(), `Audience created successfully`).toEqual(201);
         const responseJson = await this.httpClient.parseResponse<audienceCreationResponse>(response);
-        console.log(`Audience created: ${createAudienceParams.audienceName}`);
         audienceId = responseJson.result.audienceId;
       });
       return audienceId;
     } else {
-      console.log(
-        `Audience ${createAudienceParams.audienceName} already created under category ${createAudienceParams.categoryId}!!!`
-      );
       return '';
     }
   }
@@ -522,20 +512,16 @@ export class IdentityService implements IIdentityAdminOperations {
       const hasAttachedAudiences = await this.checkCategoryHasAudiences(categoryId);
 
       if (hasAttachedAudiences && !options?.forceDelete) {
-        console.warn(`Category ${categoryId} has audiences attached. Skipping deletion to maintain data integrity.`);
-        console.warn(`Use { forceDelete: true } option if you want to delete anyway.`);
         return;
       }
 
       if (hasAttachedAudiences && options?.forceDelete) {
-        console.warn(`Force deleting category ${categoryId} despite having attached audiences.`);
       }
 
       const response = await this.httpClient.delete(
         API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesCategories + '/' + categoryId
       );
       expect(response.status(), 'Category deleted successfully').toEqual(200);
-      console.log(`Category with categoryId: ${categoryId} is deleted`);
     });
   }
 
@@ -569,10 +555,8 @@ export class IdentityService implements IIdentityAdminOperations {
 
       // If category not found in first page, it might be on subsequent pages
       // For now, assume safe to delete if not found
-      console.warn(`Category ${categoryId} not found in hierarchy response. Assuming safe to delete.`);
       return false;
-    } catch (error) {
-      console.warn(`Could not check audiences for category ${categoryId}:`, error);
+    } catch {
       // If we can't check, assume it's safe to delete (fallback behavior)
       return false;
     }
@@ -589,7 +573,6 @@ export class IdentityService implements IIdentityAdminOperations {
           API_ENDPOINTS.appManagement.identity.v2IdentityAudiences + '/' + audienceId
         );
         expect(response.status(), 'Audience deleted successfully').toEqual(200);
-        console.log(`Audience with audienceId: ${audienceId} is deleted`);
       }, `Polling delete API for audience with audienceId: ${audienceId} until we get 200 response`).toPass({
         timeout: 10000,
         intervals: [1000, 4000, 7000, 10000],
@@ -605,12 +588,10 @@ export class IdentityService implements IIdentityAdminOperations {
     await test.step(`Deleting ACG with name: ${acgName}`, async () => {
       //first get the acg id
       const acgId = await this.getACGId(acgName);
-      console.log(`ACG id for ACG ${acgName} is ${acgId}`);
       const response = await this.httpClient.delete(
         API_ENDPOINTS.appManagement.identity.deleteAccessControlGroup(acgId)
       );
       expect(response.status(), 'ACG deleted successfully').toEqual(200);
-      console.log(`ACG with name: ${acgName} is deleted`);
     });
   }
 
@@ -624,7 +605,6 @@ export class IdentityService implements IIdentityAdminOperations {
         API_ENDPOINTS.appManagement.identity.deleteAccessControlGroup(acgId)
       );
       expect(response.status(), 'ACG deleted successfully').toEqual(200);
-      console.log(`ACG with id: ${acgId} is deleted`);
     });
   }
 
@@ -704,7 +684,7 @@ export class IdentityService implements IIdentityAdminOperations {
   /**
    * Get all categories using hierarchy API
    */
-  async getCategories(): Promise<any[]> {
+  async getCategories(): Promise<Array<{ id: string; name: string; description?: string }>> {
     const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
       data: {
         nextPageToken: 0,
@@ -722,7 +702,7 @@ export class IdentityService implements IIdentityAdminOperations {
   /**
    * Get audiences in a specific category using hierarchy API
    */
-  async getAudiencesInCategory(categoryId: string): Promise<any[]> {
+  async getAudiencesInCategory(categoryId: string): Promise<Array<{ id: string; name: string; description?: string }>> {
     const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
       data: {
         nextPageToken: 0,

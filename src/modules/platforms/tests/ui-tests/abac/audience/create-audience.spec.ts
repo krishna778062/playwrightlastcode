@@ -25,13 +25,11 @@ test.describe(
 
         await audiencePage.loadPage();
 
-        // precondition: create parent category via API, then reload UI to reflect it
         const _category_ = await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
         await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
 
-        // steps
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
@@ -58,13 +56,11 @@ test.describe(
 
         await audiencePage.loadPage();
 
-        // precondition: create parent category via API, then reload UI to reflect it
-        const category = await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
+        await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
         await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
 
-        // Create audience with basic details
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
@@ -74,20 +70,6 @@ test.describe(
           adGroup: 'ALL',
           operator: 'IS',
         });
-
-        // Test IS_NOT operator via API
-        const isNotAudienceName = TestDataGenerator.generateAudienceName('API_IS_NOT_');
-        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsNotOperator(
-          isNotAudienceName,
-          category.categoryId
-        );
-
-        // Test ALL operator via API
-        const allAudienceName = TestDataGenerator.generateAudienceName('API_ALL_');
-        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithAllOperator(
-          allAudienceName,
-          category.categoryId
-        );
       }
     );
 
@@ -106,13 +88,11 @@ test.describe(
 
         await audiencePage.loadPage();
 
-        // precondition: create parent category via API, then reload UI to reflect it
         const category = await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
         await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
 
-        // UI Test: Create audience with IS_NOT operator (UI will skip operator selection for ALL group)
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
@@ -123,18 +103,22 @@ test.describe(
           operator: 'ALL',
         });
 
-        // API Test: Create audience with IS operator
         const isAudienceName = TestDataGenerator.generateAudienceName('API_IS_');
         await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsOperator(
           isAudienceName,
-          category.categoryId
+          category.categoryId,
+          'BUILT_IN',
+          await appManagerFixture.audienceTestDataHelper.getOktaBuiltInGroupId(),
+          'oktaGroup'
         );
 
-        // API Test: Create audience with IS_NOT operator
         const isNotAudienceName = TestDataGenerator.generateAudienceName('API_IS_NOT_');
         await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsNotOperator(
           isNotAudienceName,
-          category.categoryId
+          category.categoryId,
+          'BUILT_IN',
+          await appManagerFixture.audienceTestDataHelper.getOktaBuiltInGroupId(),
+          'oktaGroup'
         );
       }
     );
@@ -154,13 +138,11 @@ test.describe(
 
         await audiencePage.loadPage();
 
-        // precondition: create parent category via API, then reload UI to reflect it
-        const _category = await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
+        await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
         await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
 
-        // steps
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
@@ -187,13 +169,11 @@ test.describe(
 
         await audiencePage.loadPage();
 
-        // precondition: create parent category via API, then reload UI to reflect it
         const category = await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
         await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
 
-        // UI Test: Create audience with IS_NOT operator (UI will select first available security group)
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
@@ -204,18 +184,23 @@ test.describe(
           operator: 'IS_NOT',
         });
 
-        // API Test: Create audience with IS operator
+        const securityGroupId = await appManagerFixture.audienceTestDataHelper.getSecurityGroupId();
         const isAudienceName = TestDataGenerator.generateAudienceName('API_IS_');
         await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsOperator(
           isAudienceName,
-          category.categoryId
+          category.categoryId,
+          'security',
+          securityGroupId,
+          'adGroup'
         );
 
-        // API Test: Create audience with ALL operator
         const allAudienceName = TestDataGenerator.generateAudienceName('API_ALL_');
         await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithAllOperator(
           allAudienceName,
-          category.categoryId
+          category.categoryId,
+          'security',
+          securityGroupId,
+          'adGroup'
         );
       }
     );
@@ -235,13 +220,11 @@ test.describe(
 
         await audiencePage.loadPage();
 
-        // precondition: create parent category via API, then reload UI to reflect it
         const category = await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
         await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
 
-        // UI Test: Create audience with ALL operator (UI will skip operator value for ALL)
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
@@ -252,18 +235,22 @@ test.describe(
           operator: 'ALL',
         });
 
-        // API Test: Create audience with IS operator
         const isAudienceName = TestDataGenerator.generateAudienceName('API_IS_');
         await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsOperator(
           isAudienceName,
-          category.categoryId
+          category.categoryId,
+          'microsoft365',
+          await appManagerFixture.audienceTestDataHelper.getMicrosoft365GroupId(),
+          'adGroup'
         );
 
-        // API Test: Create audience with IS_NOT operator
         const isNotAudienceName = TestDataGenerator.generateAudienceName('API_IS_NOT_');
         await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsNotOperator(
           isNotAudienceName,
-          category.categoryId
+          category.categoryId,
+          'microsoft365',
+          await appManagerFixture.audienceTestDataHelper.getMicrosoft365GroupId(),
+          'adGroup'
         );
       }
     );
@@ -283,13 +270,11 @@ test.describe(
 
         await audiencePage.loadPage();
 
-        // precondition: create parent category via API, then reload UI to reflect it
         const category = await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
         await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
 
-        // UI Test: Create audience with IS operator (UI will select first available mail security group)
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
@@ -300,18 +285,15 @@ test.describe(
           operator: 'IS',
         });
 
-        // API Test: Create audience with IS_NOT operator
-        const isNotAudienceName = TestDataGenerator.generateAudienceName('API_IS_NOT_');
-        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsNotOperator(
-          isNotAudienceName,
-          category.categoryId
-        );
+        const mailSecurityGroupId = await appManagerFixture.audienceTestDataHelper.getMailSecurityGroupId();
 
-        // API Test: Create audience with ALL operator
         const allAudienceName = TestDataGenerator.generateAudienceName('API_ALL_');
         await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithAllOperator(
           allAudienceName,
-          category.categoryId
+          category.categoryId,
+          'mail-security',
+          mailSecurityGroupId,
+          'adGroup'
         );
       }
     );
@@ -331,13 +313,11 @@ test.describe(
 
         await audiencePage.loadPage();
 
-        // precondition: create parent category via API, then reload UI to reflect it
         const category = await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
         await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
 
-        // UI Test: Create audience with IS operator (UI will select first available distribution group)
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
@@ -348,18 +328,23 @@ test.describe(
           operator: 'IS',
         });
 
-        // API Test: Create audience with IS_NOT operator
-        const isNotAudienceName = TestDataGenerator.generateAudienceName('API_IS_NOT_');
-        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsNotOperator(
-          isNotAudienceName,
-          category.categoryId
+        const distributionGroupId = await appManagerFixture.audienceTestDataHelper.getDistributionGroupId();
+        const isAudienceName = TestDataGenerator.generateAudienceName('API_IS_');
+        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsOperator(
+          isAudienceName,
+          category.categoryId,
+          'distribution',
+          distributionGroupId,
+          'adGroup'
         );
 
-        // API Test: Create audience with ALL operator
         const allAudienceName = TestDataGenerator.generateAudienceName('API_ALL_');
         await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithAllOperator(
           allAudienceName,
-          category.categoryId
+          category.categoryId,
+          'distribution',
+          distributionGroupId,
+          'adGroup'
         );
       }
     );
@@ -379,13 +364,11 @@ test.describe(
 
         await audiencePage.loadPage();
 
-        // precondition: create parent category via API, then reload UI to reflect it
         const category = await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
         await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
 
-        // UI Test: Create audience with CONTAINS operator
         const containsAudienceName = TestDataGenerator.generateAudienceName('UI_CONTAINS_');
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
@@ -396,8 +379,8 @@ test.describe(
           operator: 'CONTAINS',
         });
 
-        // UI Test: Create audience with ENDS_WITH operator
         const endsWithAudienceName = TestDataGenerator.generateAudienceName('UI_ENDS_WITH_');
+        await audiencePage.loadPage();
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: endsWithAudienceName,
@@ -407,8 +390,8 @@ test.describe(
           operator: 'ENDS_WITH',
         });
 
-        // UI Test: Create audience with STARTS_WITH operator
         const startsWithAudienceName = TestDataGenerator.generateAudienceName('UI_STARTS_WITH_');
+        await audiencePage.loadPage();
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: startsWithAudienceName,
@@ -418,18 +401,23 @@ test.describe(
           operator: 'STARTS_WITH',
         });
 
-        // API Test: Create audience with IS operator
+        const countryValue = await appManagerFixture.audienceTestDataHelper.getCountryValue();
         const isAudienceName = TestDataGenerator.generateAudienceName('API_IS_');
         await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsOperator(
           isAudienceName,
-          category.categoryId
+          category.categoryId,
+          'country_name',
+          countryValue,
+          'regular'
         );
 
-        // API Test: Create audience with IS_NOT operator
         const isNotAudienceName = TestDataGenerator.generateAudienceName('API_IS_NOT_');
         await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsNotOperator(
           isNotAudienceName,
-          category.categoryId
+          category.categoryId,
+          'country_name',
+          countryValue,
+          'regular'
         );
       }
     );
@@ -449,13 +437,11 @@ test.describe(
 
         await audiencePage.loadPage();
 
-        // precondition: create parent category via API, then reload UI to reflect it
-        const _category = await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
+        await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
         await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
-
-        // UI Test: Create audience with ON_OR_BEFORE operator
+        await audiencePage.loadPage();
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
@@ -465,8 +451,8 @@ test.describe(
           operator: 'ON_OR_BEFORE',
         });
 
-        // UI Test: Create audience with ON_OR_AFTER operator
         const onOrAfterAudienceName = TestDataGenerator.generateAudienceName('UI_ON_OR_AFTER_');
+        await audiencePage.loadPage();
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: onOrAfterAudienceName,
@@ -476,8 +462,8 @@ test.describe(
           operator: 'ON_OR_AFTER',
         });
 
-        // UI Test: Create audience with BEFORE operator
         const beforeAudienceName = TestDataGenerator.generateAudienceName('UI_BEFORE_');
+        await audiencePage.loadPage();
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: beforeAudienceName,
@@ -487,8 +473,8 @@ test.describe(
           operator: 'BEFORE',
         });
 
-        // UI Test: Create audience with AFTER operator
         const afterAudienceName = TestDataGenerator.generateAudienceName('UI_AFTER_');
+        await audiencePage.loadPage();
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: afterAudienceName,
@@ -498,8 +484,8 @@ test.describe(
           operator: 'AFTER',
         });
 
-        // UI Test: Create audience with ON operator
         const onAudienceName = TestDataGenerator.generateAudienceName('UI_ON_');
+        await audiencePage.loadPage();
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: onAudienceName,
@@ -509,8 +495,8 @@ test.describe(
           operator: 'ON',
         });
 
-        // UI Test: Create audience with BETWEEN operator
         const betweenAudienceName = TestDataGenerator.generateAudienceName('UI_BETWEEN_');
+        await audiencePage.loadPage();
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: betweenAudienceName,

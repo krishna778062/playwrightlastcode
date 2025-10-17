@@ -54,7 +54,6 @@ export class AudienceCategoryManagementHelper {
       // Track for cleanup
       this.categories.push({ categoryId, categoryName });
 
-      console.log(`Category created: ${categoryName} (ID: ${categoryId})`);
       return createdCategory;
     });
   }
@@ -83,7 +82,6 @@ export class AudienceCategoryManagementHelper {
    */
   registerCategoryForCleanup(categoryId: string, categoryName: string): void {
     this.categories.push({ categoryId, categoryName });
-    console.log(`Category registered for cleanup: ${categoryName} (ID: ${categoryId})`);
   }
 
   /**
@@ -93,13 +91,10 @@ export class AudienceCategoryManagementHelper {
   async cleanup() {
     await test.step('Cleaning up audience categories and audiences', async () => {
       // Clean up categories
-      for (const { categoryId, categoryName } of this.categories) {
+      for (const { categoryId, categoryName: _categoryName } of this.categories) {
         try {
           await this.identityService.deleteCategoryById(categoryId, { forceDelete: true });
-          console.log(`Deleted category ${categoryName} (${categoryId})`);
-        } catch (error) {
-          console.warn(`Failed to delete category ${categoryName} (${categoryId}):`, error);
-        }
+        } catch {}
       }
       // Clear the tracking arrays
       this.categories = [];
@@ -110,15 +105,19 @@ export class AudienceCategoryManagementHelper {
    * Creates an audience with IS_NOT operator via API
    * @param audienceName - Name of the audience
    * @param categoryId - Parent category ID
-   * @param attribute - Attribute type (e.g., 'OKTA_GROUP')
-   * @param value - Operator value
+   * @param attribute - Attribute type (e.g., 'security', 'OKTA_GROUP', 'BUILT_IN')
+   * @param value - Operator value (group ID or value to match against)
+   * @param fieldType - Field type ('adGroup', 'oktaGroup', 'regular')
+   * @param sourceType - Source type ('app_managed', 'user_managed', etc.)
    * @returns The created audience ID
    */
   async createAudienceWithIsNotOperator(
     audienceName: string,
     categoryId: string,
-    attribute: string = 'BUILT_IN',
-    value: string = '00g6vnon0k3BDmhMv5d7'
+    attribute: string,
+    value: string,
+    fieldType: string = 'adGroup',
+    sourceType: string = 'app_managed'
   ): Promise<string> {
     return await test.step(`Creating audience with IS_NOT operator: ${audienceName}`, async () => {
       const createAudienceParams = {
@@ -130,28 +129,31 @@ export class AudienceCategoryManagementHelper {
       };
       const options = {
         type: 'mixed',
-        fieldType: 'oktaGroup',
-        sourceType: 'app_managed',
+        fieldType,
+        sourceType,
       };
       const audienceId = await this.identityService.createAudience(createAudienceParams, options);
-      console.log(`✅ Created audience with IS_NOT operator: ${audienceName} (ID: ${audienceId})`);
       return audienceId;
     });
   }
 
   /**
-   * Creates an audience with IS operator via API using first available option
+   * Creates an audience with IS operator via API
    * @param audienceName - Name of the audience
    * @param categoryId - Parent category ID
-   * @param attribute - Attribute type (e.g., 'OKTA_GROUP')
-   * @param value - Operator value (defaults to first available Okta group)
+   * @param attribute - Attribute type (e.g., 'security', 'OKTA_GROUP', 'BUILT_IN')
+   * @param value - Operator value (group ID or value to match against)
+   * @param fieldType - Field type ('adGroup', 'oktaGroup', 'regular')
+   * @param sourceType - Source type ('app_managed', 'user_managed', etc.)
    * @returns The created audience ID
    */
   async createAudienceWithIsOperator(
     audienceName: string,
     categoryId: string,
-    attribute: string = 'BUILT_IN',
-    value: string = '00g6vnon0k3BDmhMv5d7'
+    attribute: string,
+    value: string,
+    fieldType: string = 'adGroup',
+    sourceType: string = 'app_managed'
   ): Promise<string> {
     return await test.step(`Creating audience with IS operator: ${audienceName}`, async () => {
       const createAudienceParams = {
@@ -163,13 +165,10 @@ export class AudienceCategoryManagementHelper {
       };
       const options = {
         type: 'mixed',
-        fieldType: 'oktaGroup',
-        sourceType: 'app_managed',
+        fieldType,
+        sourceType,
       };
       const audienceId = await this.identityService.createAudience(createAudienceParams, options);
-      console.log(
-        `✅ Created audience with IS operator: ${audienceName} (ID: ${audienceId}) - using first available option`
-      );
       return audienceId;
     });
   }
@@ -178,15 +177,19 @@ export class AudienceCategoryManagementHelper {
    * Creates an audience with ALL operator via API
    * @param audienceName - Name of the audience
    * @param categoryId - Parent category ID
-   * @param attribute - Attribute type (e.g., 'OKTA_GROUP')
-   * @param value - Operator value
+   * @param attribute - Attribute type (e.g., 'security', 'OKTA_GROUP', 'BUILT_IN')
+   * @param value - Operator value (group ID or value to match against)
+   * @param fieldType - Field type ('adGroup', 'oktaGroup', 'regular')
+   * @param sourceType - Source type ('app_managed', 'user_managed', etc.)
    * @returns The created audience ID
    */
   async createAudienceWithAllOperator(
     audienceName: string,
     categoryId: string,
-    attribute: string = 'OKTA_GROUP',
-    value: string = '00gj44gt9vJd2b0Vp5d7'
+    attribute: string,
+    value: string,
+    fieldType: string = 'adGroup',
+    sourceType: string = 'app_managed'
   ): Promise<string> {
     return await test.step(`Creating audience with ALL operator: ${audienceName}`, async () => {
       const createAudienceParams = {
@@ -198,10 +201,10 @@ export class AudienceCategoryManagementHelper {
       };
       const options = {
         type: 'mixed',
-        fieldType: 'oktaGroup',
+        fieldType,
+        sourceType,
       };
       const audienceId = await this.identityService.createAudience(createAudienceParams, options);
-      console.log(`✅ Created audience with ALL operator: ${audienceName} (ID: ${audienceId})`);
       return audienceId;
     });
   }
@@ -233,7 +236,6 @@ export class AudienceCategoryManagementHelper {
         fieldType: 'regular',
       };
       const audienceId = await this.identityService.createAudience(createAudienceParams, options);
-      console.log(`✅ Created audience with CONTAINS operator: ${audienceName} (ID: ${audienceId})`);
       return audienceId;
     });
   }
@@ -265,7 +267,6 @@ export class AudienceCategoryManagementHelper {
         fieldType: 'regular',
       };
       const audienceId = await this.identityService.createAudience(createAudienceParams, options);
-      console.log(`✅ Created audience with ENDS_WITH operator: ${audienceName} (ID: ${audienceId})`);
       return audienceId;
     });
   }
