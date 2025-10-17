@@ -240,8 +240,9 @@ function calculateTotals(tagStats) {
     totalKnownFailures += tagStats[tag].knownFailures || 0;
   });
 
-  // Calculate pass rate excluding known failures
-  const effectiveTotalTests = totalTests - totalKnownFailures;
+  // Calculate pass rate excluding known failures and skipped tests
+  // Only count tests that were actually executed (passed + failed + flaky)
+  const effectiveTotalTests = totalPassed + totalFailed + totalFlaky;
   const overallPassRate = effectiveTotalTests > 0 ? (totalPassed / effectiveTotalTests) * 100 : 0;
 
   return {
