@@ -13,11 +13,10 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
-import { FeedPage } from '../../ui/pages/feedPage';
-
 import { initializeContentConfig } from '@/src/modules/content/config/contentConfig';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
+import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 
 // Initialize config for contentSettings tenant
 initializeContentConfig('contentSettings');
