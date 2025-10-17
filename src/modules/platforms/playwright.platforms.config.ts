@@ -11,6 +11,13 @@ export default defineConfig({
   timeout: 180_000,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'platforms', 'tests'),
   testIgnore: '**/api-tests/**',
+  // Optimize for parallel execution
+  workers: process.env.CI ? 3 : 6, // Increase workers for better parallel execution
+  use: {
+    ...baseConfig.use,
+    actionTimeout: 30_000, // Increase action timeout for parallel execution
+    navigationTimeout: 45_000, // Increase navigation timeout
+  },
   projects: [
     {
       name: 'platforms-chromium',
