@@ -37,6 +37,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly successMessage = (message: string) =>
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
   readonly versionImageLocator = (fileId: string): Locator => this.page.locator(`img[src*="${fileId}"]`);
+  readonly showMoreCommentButton = this.page.locator("button[aria-label='Show more']").first();
 
   /**
    * Gets a locator for the post timestamp
@@ -404,6 +405,12 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.shareSocialCampaignButton(description), {
         assertionMessage: 'Share button should be visible',
       });
+    });
+  }
+
+  async clickShowMoreCommentButton(): Promise<void> {
+    await test.step('Click show more comment button', async () => {
+      await this.clickOnElement(this.showMoreCommentButton);
     });
   }
 }

@@ -249,7 +249,6 @@ test.describe(
     let socialUserPostId: string;
     let endUserInfo: { userId: string; fullName: string };
     let socialUserInfo: { userId: string; fullName: string };
-    let appManagerInfo: { userId: string; fullName: string };
 
     test.beforeEach('Setup test environment', async ({ appManagerFixture, socialCampaignManagerFixture }) => {
       // Configure app governance settings
@@ -290,7 +289,6 @@ test.describe(
 
       endUserInfo = { userId: endUserData.userId, fullName: endUserData.fullName };
       socialUserInfo = { userId: socialUserData.userId, fullName: socialUserData.fullName };
-      appManagerInfo = { userId: appManagerData.userId, fullName: appManagerData.fullName };
 
       console.log(`Created feed via API: ${appManagerFeedResponse.result.feedId}`);
     });
@@ -351,6 +349,54 @@ test.describe(
         await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
         const expectedNotificationMessage2 = `${endUserInfo.fullName} also replied to ${socialUserInfo.fullName}'s post`;
         await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage2);
+      }
+    );
+  }
+);
+
+// Test case for CONT-26348: Verify that application should allow user to edit the comment
+test.describe(
+  'comment Editing Tests',
+  {
+    tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER],
+  },
+  () => {
+    let appManagerFeedPage: FeedPage;
+    let createdPostText: string;
+    let createdPostId: string;
+    let originalReplyText: string;
+    let editedReplyText: string;
+
+    test(
+      'verify that application should allow user to edit the comment',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-26348'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify that application should allow user to edit the comment',
+          zephyrTestId: 'CONT-26348',
+          storyId: 'CONT-26348',
+        });
+
+        const { contentId, siteId, contentType } = await appManagerFixture.contentManagementHelper.getContentId();
+
+        const feedTestDataGenerated = TestDataGenerator.generateFeed({
+          scope: 'site',
+          siteId: siteId,
+          contentId: contentId,
+          withAttachment: false,
+          waitForSearchIndex: false,
+        });
+
+        const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestDataGenerated);
+        createdPostId = feedResponse.result.feedId;
+        createdPostText = feedTestDataGenerated.text;
+        const contentPreviewPage = new ContentPreviewPage(appManagerFixture.page, siteId, contentId, contentType);
+        await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+        const updatedPostText = TestDataGenerator.generateRandomText('Updated Test Post', 3, true);
+        await contentPreviewPage.actions.editPost(createdPostText, updatedPostText);
+        await contentPreviewPage.assertions.waitForPostToBeVisible(updatedPostText);
       }
     );
   }
