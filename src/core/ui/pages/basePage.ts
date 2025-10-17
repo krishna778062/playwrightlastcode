@@ -1,5 +1,6 @@
 import { expect, Page, test } from '@playwright/test';
 
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
 
@@ -73,7 +74,9 @@ export abstract class BasePage extends BaseActionUtil {
    */
   async verifyPageNotFoundVisibility(options?: { stepInfo?: string; timeout?: number }) {
     await test.step(options?.stepInfo || `Verify the page - Page not found`, async () => {
-      await expect(this.page.locator('h1', { hasText: 'Page not found' })).toBeVisible();
+      await expect(this.page.locator('h1', { hasText: 'Page not found' })).toBeVisible({
+        timeout: options?.timeout || TIMEOUTS.SHORT,
+      });
     });
   }
 

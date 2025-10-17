@@ -14,7 +14,7 @@ export class UserCountPopupComponent extends BaseComponent {
 
     // Initialize popup locators
     this.userCountPopupText = page.getByText(/\d+ users/);
-    this.foUserCountPopupModal = page.locator("[class*='AccessControlListItem-module-listItemContainer']");
+    this.foUserCountPopupModal = page.locator("[class*='UserList-module-peopleListingItemContainer']");
     this.foUserNamesOnUserCountPopup = page.locator("[class*='Spacing-module'] p a");
     this.foAppManagerTag = page.locator("[class*='AccessControlListItem-module-appManagerContainer'] p");
   }

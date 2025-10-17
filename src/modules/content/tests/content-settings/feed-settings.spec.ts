@@ -1,7 +1,6 @@
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentFeatureTags, ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
-import { ApplicationScreenPage } from '@content/ui/pages/applicationscreenPage';
 import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
 import { EditPagePage } from '@content/ui/pages/editPagePage';
 import { GovernanceScreenPage } from '@content/ui/pages/governanceScreenPage';
@@ -17,6 +16,8 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { FEED_TEST_DATA } from '../../test-data/feed.test-data';
 
+import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
+
 test.describe(
   `feed settings using different tenant`,
   {
@@ -25,7 +26,7 @@ test.describe(
   () => {
     let contentPreviewPage: ContentPreviewPage;
     let siteDashboardPage: SiteDashboardPage;
-    let applicationscreen: ApplicationScreenPage;
+    let applicationScreenPage: ApplicationScreenPage;
     let manageFeaturePage: ManageFeature;
     let manageApplicationPage: ManageApplicationPage;
     let governanceScreenPage: GovernanceScreenPage;
@@ -48,7 +49,7 @@ test.describe(
       await appManagerFixture.homePage.verifyThePageIsLoaded();
 
       // Initialize page objects for the test cases
-      applicationscreen = new ApplicationScreenPage(appManagerFixture.page);
+      applicationScreenPage = new ApplicationScreenPage(appManagerFixture.page);
       manageFeaturePage = new ManageFeature(appManagerFixture.page);
       manageApplicationPage = new ManageApplicationPage(appManagerFixture.page);
       governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
@@ -74,10 +75,9 @@ test.describe(
         // Create home page instance
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.openApplicationSettings();
-        await applicationscreen.actions.clickOnApplication();
+        await applicationScreenPage.actions.clickOnApplication();
         await manageApplicationPage.actions.clickOnGovernance();
         await governanceScreenPage.actions.clickOnTimeline();
-        await governanceScreenPage.actions.clickOnSave();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnContentCard();
         await manageContentPage.actions.clickOnContent();

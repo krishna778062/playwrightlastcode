@@ -50,7 +50,8 @@
       "@alert-notification-constants/*": ["./src/modules/alert-notification/constants/*"],
       "@alert-notification-test-data/*": ["src/modules/alert-notification/tests/test-data/*"],
       "@integrations-api/*": ["src/modules/integrations/apis/*"],
-      "@integrations-test-data/*": ["./src/modules/integrations/test-data/*"]
+      "@integrations-test-data/*": ["./src/modules/integrations/test-data/*"],
+      "@employee-listening/*": ["./src/modules/employee-listening/*"]
     },
     "target": "ES2019",
     "module": "commonjs",

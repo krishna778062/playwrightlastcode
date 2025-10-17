@@ -649,6 +649,53 @@ export class TestDataGenerator {
     };
   }
 
+  /**
+   * Generates simple test data for feed comment/reply without user mention
+   * @param params Configuration for the reply
+   * @returns Object with reply creation parameters including textHtml, textJson, and other payload data
+   *
+   * @example
+   * // Generate simple reply without mention
+   * const reply = TestDataGenerator.generateSimpleReply({
+   *   replyText: 'This is a simple reply'
+   * });
+   */
+  static generateSimpleReply(params: { replyText?: string } = {}) {
+    const { replyText } = params;
+    const text = replyText || faker.lorem.sentence();
+
+    // Generate textHtml without user mention
+    const textHtml = `<p>${text}</p>`;
+
+    // Generate textJson without user mention
+    const textJson = JSON.stringify({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          attrs: {
+            className: '',
+            'data-sw-sid': null,
+          },
+          content: [
+            {
+              type: 'text',
+              text: text,
+            },
+          ],
+        },
+      ],
+    });
+
+    return {
+      textHtml,
+      textJson,
+      listOfAttachedFiles: [],
+      ignoreToxic: false,
+      replyText: text,
+    };
+  }
+
   static generateValidLinkPair() {
     return faker.internet.url();
   }

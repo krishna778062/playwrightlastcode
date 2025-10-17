@@ -51,6 +51,7 @@ export class ManageContentComponent extends BaseComponent {
   readonly selectPublishOption: Locator;
   readonly crossButton: Locator;
   readonly scheduledTag: Locator;
+  readonly openingPanelMenu: Locator;
   constructor(page: Page) {
     super(page);
     this.searchBar = page.locator("[aria-label='Search…']");
@@ -103,12 +104,9 @@ export class ManageContentComponent extends BaseComponent {
     this.viewAllButton = page
       .getByRole('button', { name: 'View all' })
       .or(page.getByRole('link', { name: 'View all' }));
-    this.editButton = page
-      .getByRole('button', { name: 'Edit' })
-      .or(page.locator("div[role='menuitem'] > div").filter({ hasText: /^Edit$/ }));
-    this.validationRequiredBar = page.locator(
-      '[class*="ValidationRequired"], [data-testid*="validation"], .validation-bar, [class*="validation-required"]'
-    );
+    this.openingPanelMenu = page.locator('[aria-label="Category option"]').first();
+    this.editButton = page.getByRole('button', { name: 'Edit' });
+    this.validationRequiredBar = page.locator('.Stamp').first();
     this.clickOnCancelButton = page.getByRole('button', { name: 'Cancel' });
     this.selectPublishOption = page.getByLabel('Status:');
     this.crossButton = page.getByRole('button', { name: 'Dismiss' }).first();
@@ -431,6 +429,7 @@ export class ManageContentComponent extends BaseComponent {
   }
   async clickOnEditButton(): Promise<void> {
     await test.step('Clicking on edit button', async () => {
+      await this.clickOnElement(this.openingPanelMenu);
       await this.clickOnElement(this.editButton);
     });
   }

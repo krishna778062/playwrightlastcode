@@ -8,7 +8,7 @@ import { SiteDashboardPage } from '../../../ui/pages/sitePages';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
-import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
@@ -237,3 +237,121 @@ for (const testData of feedTestData) {
     }
   );
 }
+
+// Test case for CONT-30407: Verify user gets notified for replies on comments
+test.describe(
+  'feed Reply Notifications',
+  {
+    tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER],
+  },
+  () => {
+    let appManagerPostId: string;
+    let socialUserPostId: string;
+    let endUserInfo: { userId: string; fullName: string };
+    let socialUserInfo: { userId: string; fullName: string };
+    let appManagerInfo: { userId: string; fullName: string };
+
+    test.beforeEach('Setup test environment', async ({ appManagerFixture, socialCampaignManagerFixture }) => {
+      // Configure app governance settings
+      await appManagerFixture.feedManagementHelper.configureAppGovernance({
+        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+      });
+
+      // Generate test data
+      const feedTestDataByAppManager = TestDataGenerator.generateFeed({
+        scope: 'public',
+        siteId: undefined,
+        withAttachment: false,
+        waitForSearchIndex: false,
+      });
+
+      // Generate test data
+      const feedTestDataBySocialUser = TestDataGenerator.generateFeed({
+        scope: 'public',
+        siteId: undefined,
+        withAttachment: false,
+        waitForSearchIndex: false,
+      });
+
+      // Create feed via API as app manager
+      const appManagerFeedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestDataByAppManager);
+      appManagerPostId = appManagerFeedResponse.result.feedId;
+
+      // Create feed via API as app manager
+      const socialUserFeedResponse =
+        await socialCampaignManagerFixture.feedManagementHelper.createFeed(feedTestDataBySocialUser);
+      socialUserPostId = socialUserFeedResponse.result.feedId;
+
+      const [endUserData, socialUserData, appManagerData] = await Promise.all([
+        appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email),
+        appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.socialCampaignManager.email),
+        appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email),
+      ]);
+
+      endUserInfo = { userId: endUserData.userId, fullName: endUserData.fullName };
+      socialUserInfo = { userId: socialUserData.userId, fullName: socialUserData.fullName };
+      appManagerInfo = { userId: appManagerData.userId, fullName: appManagerData.fullName };
+
+      console.log(`Created feed via API: ${appManagerFeedResponse.result.feedId}`);
+    });
+
+    test.afterEach('Cleanup created posts', async ({ appManagerFixture }) => {
+      if (appManagerPostId) {
+        await appManagerFixture.feedManagementHelper.deleteFeed(appManagerPostId);
+        appManagerPostId = '';
+      }
+      if (socialUserPostId) {
+        await appManagerFixture.feedManagementHelper.deleteFeed(socialUserPostId);
+        socialUserPostId = '';
+      }
+    });
+
+    test(
+      'verify that User gets notified for getting a reply on its comment from another user on a feedpost for both authored by it and not authored by it',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-30407'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify that User gets notified for getting a reply on its comment from another user on a feedpost for both authored by it and not authored by it',
+          zephyrTestId: 'CONT-30407',
+          storyId: 'CONT-30407',
+        });
+
+        const appManagerReplyData = TestDataGenerator.generateSimpleReply();
+
+        const standardUserCommentData = TestDataGenerator.generateSimpleReply();
+
+        const appManageReplyOnSocialUserPostResponse = await appManagerFixture.feedManagementHelper.addComment(
+          socialUserPostId,
+          appManagerReplyData
+        );
+
+        // Standard user adds a comment to the feed post
+        const standardUserCommentResponse = await standardUserFixture.feedManagementHelper.addComment(
+          socialUserPostId,
+          standardUserCommentData
+        );
+
+        const standardUserReplyOnAppManagerPostData = await standardUserFixture.feedManagementHelper.addComment(
+          appManagerPostId,
+          standardUserCommentData
+        );
+
+        await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const notificationComponentSiteManager = await appManagerFixture.navigationHelper.clickOnBellIcon({
+          stepInfo: 'Application Manager clicking on bell icon to view notifications',
+        });
+        const activityNotificationPage = await notificationComponentSiteManager.actions.clickOnViewAllNotifications();
+
+        // Verify notification message for mention in reply
+        const expectedNotificationMessage = `${endUserInfo.fullName} replied to your post "${standardUserCommentData.replyText}"`;
+        await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
+        const expectedNotificationMessage2 = `${endUserInfo.fullName} also replied to ${socialUserInfo.fullName}'s post`;
+        await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage2);
+      }
+    );
+  }
+);

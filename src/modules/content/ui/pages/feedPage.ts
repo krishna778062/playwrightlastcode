@@ -66,7 +66,7 @@ export interface IFeedActions {
   clickOnShowOption: (optionValue: string) => Promise<void>;
   selectShareOptionAsSiteFeed: () => Promise<void>;
   searchForSiteName: (siteName: string) => Promise<void>;
-  enterFeedPostText: (text: string) => Promise<void>;
+  enterPostText: (text: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -445,16 +445,17 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   }
 
   /**
-   * Enters text into the post editor
-   * @param text - The text to enter in the post
-   */
-  async enterFeedPostText(text: string): Promise<void> {
-    await this.createFeedPostComponent.createPost(text);
-  }
-  /**
    * Verifies "No results" message is displayed when searching for inaccessible sites
    */
   async verifyNoResultMessage(): Promise<void> {
     await this.createFeedPostComponent.verifyNoResultMessage();
+  }
+
+  /**
+   * Enters text into the post editor
+   * @param text - The text to enter in the post
+   */
+  async enterPostText(text: string): Promise<void> {
+    await this.createFeedPostComponent.createPost(text);
   }
 }

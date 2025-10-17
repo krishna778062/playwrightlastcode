@@ -7,6 +7,7 @@ export const PAGE_ENDPOINTS = {
   SITES_LIST_PAGE: '/sites',
   SITE_PAGE: (siteId: string) => `/site/${siteId}/`,
   MANAGE_QR_PAGE: '/manage/promotions',
+  SOCIAL_CAMPAIGN_SETTING_PAGE: '/manage/app/integrations/campaigns',
 
   // Rewards pages
   MANAGE_REWARDS_PAGE: '/manage/recognition/rewards/overview',
@@ -66,13 +67,18 @@ export const PAGE_ENDPOINTS = {
   DOMAIN_NAMES_PAGE: '/manage/app/integrations/domains',
   EVENTS_PAGE: '/people/:userId/calendar',
   CUSTOM_APP_TILES_PAGE: '/manage/custom-app-tiles',
+  SUPPORT_TICKETING_PAGE: '/manage/app/integrations/support',
+  SERVICE_NOW_TICKETS_PAGE: '/servicenow',
+  USER_SYNCING_PAGE: '/manage/app/people/user-syncing',
 
   // Alert Notification pages
   NOTIFICATION_CUSTOMIZATION_PAGE: '/manage/app/defaults/notification-customization',
   EMAIL_NOTIFICATION_APP_SETTINGS_PAGE: '/manage/app/defaults/email-notifications',
   //analytics pages
-  ANALYTICS_PAGE: '/analytics-landing',
-  APP_ANALYTICS_PAGE: '/analytics',
+  ANALYTICS_LANDING_PAGE: '/analytics-landing',
+  APP_ANALYTICS_OVERVIEW_DASHBOARD: '/analytics',
   SOCIAL_CAMPAIGNS_PAGE: '/campaigns/latest',
   ADD_SOCIAL_CAMPAIGNS: '/campaigns/add',
+  SOCIAL_INTERACTION_PAGE: '/analytics/engagement',
+  APP_ADOPTION_DASHBOARD: '/analytics/adoption',
 };
