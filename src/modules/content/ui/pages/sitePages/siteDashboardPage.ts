@@ -1,7 +1,6 @@
 import { CarouselComponent } from '@content-components/carouselComponent';
 import { EditBarComponent } from '@content-components/editBarComponent';
 import { ListFeedComponent } from '@content-components/listFeedComponent';
-import { SiteDashboardComponent } from '@content-components/siteDashboardComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { AddTileComponent } from '@content/ui/components/addTileComponent';
@@ -14,7 +13,6 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 export interface ISiteDashboardActions {
   navigateToManageSite: () => Promise<void>;
-  verfiyFeedSection: () => Promise<void>;
   clickOnFeedLink: () => Promise<void>;
   clickOnEditCarousel: () => Promise<void>;
   clickOnAddTile: () => Promise<void>;
@@ -48,6 +46,8 @@ export interface ISiteDashboardAssertions {
   verifySocialCampaignNameInTheDisplayed: (socialCampaignName: string) => Promise<void>;
   verifySocialCampaignNameNotDisplayed: (socialCampaignName: string) => Promise<void>;
   verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
+  verifyFeedSectionIsVisible: () => Promise<void>;
+  verifyFeedSectionIsNotVisible: () => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -65,7 +65,6 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   // Components
   readonly listFeedComponent: ListFeedComponent;
-  readonly siteDashboardComponent: SiteDashboardComponent;
   private carouselComponent: CarouselComponent;
   private editbarComponent: EditBarComponent;
   private addTileComponent: AddTileComponent;
@@ -78,7 +77,6 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   constructor(page: Page, siteId: string) {
     super(page, siteId);
-    this.siteDashboardComponent = new SiteDashboardComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
     this.carouselComponent = new CarouselComponent(page);
     this.editbarComponent = new EditBarComponent(page);
@@ -150,12 +148,6 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     await test.step(`Verify dashboard URL matches expected URL for site ID: ${siteId}`, async () => {
       const expectedUrl = PAGE_ENDPOINTS.getSiteDashboardPage(siteId);
       await expect(this.page, `should match expected URL: ${expectedUrl}`).toHaveURL(expectedUrl);
-    });
-  }
-
-  async verfiyFeedSection(): Promise<void> {
-    await test.step('Verifying feed section', async () => {
-      await expect(this.siteDashboardComponent.verfiyFeedSection, 'expecting feed section to be hidden').toBeHidden();
     });
   }
 
@@ -285,5 +277,17 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   async clickAddToSiteButton(): Promise<string> {
     return this.addTileComponent.clickAddToSiteButton();
+  }
+
+  async verifyFeedSectionIsVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.shareThoughtsButton, {
+      assertionMessage: 'Feed section should be visible',
+    });
+  }
+
+  async verifyFeedSectionIsNotVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.shareThoughtsButton, {
+      assertionMessage: 'Feed section should not be visible',
+    });
   }
 }
