@@ -1,8 +1,7 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '@core/components/baseComponent';
-
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export class AddTileComponent extends BaseComponent {
   readonly addTileButton: Locator;
