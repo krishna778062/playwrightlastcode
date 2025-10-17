@@ -20,7 +20,7 @@ import { User } from '@/src/core/types/user.type';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 
 test.describe(
-  'aCG Testcases',
+  'Access Control Groups Testcases',
   {
     tag: [TestSuite.ABAC],
   },
@@ -379,26 +379,6 @@ test.describe(
         // Test search functionality with invalid string
         await featureOwnersPage.searchForFeature('sdbkfjskdfn', false);
         await featureOwnersPage.verifyNoResultsFoundMessages();
-      }
-    );
-
-    test(
-      'verify that clicking on owners count should trigger a popup displaying user info',
-      {
-        tag: [TestPriority.P1, `@ABAC`],
-      },
-      async ({ appManagerFixture }) => {
-        tagTest(test.info(), {
-          description: 'Verify that clicking on owners count should trigger a popup displaying user info',
-          zephyrTestId: 'PS-32884',
-        });
-        const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
-        // Navigate to Feature owners page
-        await featureOwnersPage.loadPage();
-        // Click on owner count button for the first available feature and get the count value
-        const clickedCount = await featureOwnersPage.clickOnCountButton(0); // Temporarily use index until we fix locator
-        // Verify that popup opens with the same count
-        await featureOwnersPage.verifyUserCountPopupOpened(clickedCount);
       }
     );
 

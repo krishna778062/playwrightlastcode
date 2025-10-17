@@ -16,7 +16,7 @@ import {
 import { FeatureOwnersPage } from '@/src/modules/platforms/ui/pages/abacPage/featureOwnersPage/featureOwnersPage';
 
 test.describe(
-  'feature Owners Testcases',
+  'Feature Owners Testcases',
   {
     tag: [TestSuite.ABAC],
   },
@@ -302,6 +302,25 @@ test.describe(
           }
           await featureOwnersPage.verifyAccessDeniedPageVisibility();
           await newUserContext.close();
+        }
+      );
+
+      test(
+        `Verify that clicking on owners count should trigger a popup displaying user info ${feature} feature`,
+        {
+          tag: [TestPriority.P1, `@featureOwners`, '@this-one'],
+        },
+        async ({ appManagerFixture }) => {
+          tagTest(test.info(), {
+            zephyrTestId: 'PS-32884',
+          });
+          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
+          // Navigate to Feature owners page
+          await featureOwnersPage.loadPage();
+          // Click on owner count button for the first available feature and get the count value
+          const clickedCount = await featureOwnersPage.clickOnCountButton(0); // Temporarily use index until we fix locator
+          // Verify that popup opens with the same count
+          await featureOwnersPage.verifyUserCountPopupOpened(clickedCount);
         }
       );
     }
