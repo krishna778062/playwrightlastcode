@@ -7,6 +7,9 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { AddTileComponent } from '@content/ui/components/addTileComponent';
 import { BaseSitePage } from '@content/ui/pages/sitePages/baseSite';
 
+import { CreateFeedPostComponent } from '../../components/createFeedPostComponent';
+import { CreateQuestionComponent, QuestionOptions, QuestionResult } from '../../components/createQuestionComponent';
+
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 export interface ISiteDashboardActions {
@@ -25,6 +28,10 @@ export interface ISiteDashboardActions {
   setCustomSCTitle: (title: string) => Promise<void>;
   clickAddToHomeButton: () => Promise<string>;
   clickAddToSiteButton: () => Promise<string>;
+  clickShareThoughtsButton: () => Promise<void>;
+  clickQuestionButton: () => Promise<void>;
+  createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
+  editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
 }
 
 export interface ISiteDashboardAssertions {
@@ -40,6 +47,7 @@ export interface ISiteDashboardAssertions {
   verifyTileIsDisplayed: (tileTitle: string) => Promise<void>;
   verifySocialCampaignNameInTheDisplayed: (socialCampaignName: string) => Promise<void>;
   verifySocialCampaignNameNotDisplayed: (socialCampaignName: string) => Promise<void>;
+  verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -53,6 +61,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   readonly tileListComponent = (tileTitle: string) => this.page.getByRole('heading', { name: tileTitle });
   readonly socialCampaignNameInTileList = (socialCampaignName: string) =>
     this.page.getByRole('button', { name: socialCampaignName }).first();
+  readonly shareThoughtsButton: Locator;
 
   // Components
   readonly listFeedComponent: ListFeedComponent;
@@ -60,6 +69,8 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   private carouselComponent: CarouselComponent;
   private editbarComponent: EditBarComponent;
   private addTileComponent: AddTileComponent;
+  private createQuestionComponent: CreateQuestionComponent;
+  private createFeedPostComponent: CreateFeedPostComponent;
   // Actions
   get actions(): ISiteDashboardActions {
     return this;
@@ -72,10 +83,13 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     this.carouselComponent = new CarouselComponent(page);
     this.editbarComponent = new EditBarComponent(page);
     this.addTileComponent = new AddTileComponent(page);
+    this.createFeedPostComponent = new CreateFeedPostComponent(page);
+    this.createQuestionComponent = new CreateQuestionComponent(page);
     this.feedLink = this.page.locator('a:has-text("eed")');
     this.categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
     this.categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
     this.siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
+    this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
   }
   /**
    * Verifies that site was created successfully by checking if site link is visible
@@ -242,6 +256,31 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
         assertionMessage: `Social campaign name '${socialCampaignName}' should be displayed`,
       });
     });
+  }
+
+  /**
+   * Clicks the share thoughts button to open post editor
+   */
+  async clickShareThoughtsButton(): Promise<void> {
+    await test.step('Click on Share your thoughts button', async () => {
+      await this.clickOnElement(this.shareThoughtsButton);
+    });
+  }
+
+  async clickQuestionButton(): Promise<void> {
+    await this.createFeedPostComponent.clickQuestionButton();
+  }
+
+  async createAndPostQuestion(options: QuestionOptions): Promise<QuestionResult> {
+    return this.createQuestionComponent.createAndPostQuestion(options);
+  }
+
+  async editQuestion(questionTitle: string, newTitle: string): Promise<void> {
+    await this.createQuestionComponent.editQuestion(questionTitle, newTitle);
+  }
+
+  async verifyQuestionCreatedSuccessfully(questionTitle: string): Promise<void> {
+    await this.createQuestionComponent.verifyQuestionCreatedSuccessfully(questionTitle);
   }
 
   async clickAddToSiteButton(): Promise<string> {
