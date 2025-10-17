@@ -698,4 +698,35 @@ export class TestDataGenerator {
       ...(audienceId && { audienceId }),
     };
   }
+
+  /**
+   * Generates a random number between min and max (inclusive),
+   * excluding a single existing number.
+   * If no valid number is available, it throws an error.
+   *
+   * @param min Minimum number (inclusive)
+   * @param max Maximum number (inclusive)
+   * @param existingNumber The number to exclude
+   * @returns A unique random number
+   */
+  static getRandomNo(min: number, max: number, existingNumber?: number): number {
+    if (min > max) {
+      throw new Error('min cannot be greater than max');
+    }
+
+    const rangeSize = max - min + 1;
+
+    // If the range only has one number and existingNumber is equal to it, no unique number can be generated
+    if (existingNumber !== undefined && rangeSize <= 1 && existingNumber >= min && existingNumber <= max) {
+      throw new Error('No unique number can be generated in the given range');
+    }
+
+    let randomNumber: number;
+
+    do {
+      randomNumber = Math.floor(Math.random() * rangeSize) + min;
+    } while (existingNumber !== undefined && randomNumber === existingNumber);
+
+    return randomNumber;
+  }
 }

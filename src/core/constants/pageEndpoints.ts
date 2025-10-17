@@ -18,6 +18,7 @@ export const PAGE_ENDPOINTS = {
   REWARD_STORE_PAGE: '/rewards-store/gift-cards',
   REWARD_STORE_ORDER_HISTORY_PAGE: '/rewards-store/order-history',
   RECOGNITION_HUB: '/recognition',
+  MANAGE_RECOGNITION_MILESTONES: '/manage/recognition/milestones',
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
   MANAGE_USERS_PAGE: '/manage/users',

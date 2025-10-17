@@ -1,5 +1,6 @@
 export enum REWARD_SUITE_TAGS {
   MANAGE_REWARD = '@manage-reward',
+  MANAGE_WORK_ANNIVERSARY = '@manage-work-anniversary',
   REWARD_STORE = '@reward-store',
   RECOGNITION_HUB = '@recognition-hub',
   USER_PROFILE = '@user-profile',
@@ -43,6 +44,10 @@ export enum REWARD_FEATURE_TAGS {
 
   //Allowance refreshing cases
   REWARDS_ALLOWANCE_REFRESH = '@allowance-refreshing',
+
+  //Work Anniversary Related Tags
+  REWARDS_WORK_ANNIVERSARY = '@rewards-work-anniversary',
+  WORK_ANNIVERSARY_WITH_POINTS = '@work-anniversary-with-points',
 }
 
 // Combined tags for the module
