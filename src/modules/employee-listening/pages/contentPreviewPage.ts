@@ -54,16 +54,4 @@ export class ContentPreviewPage {
       await this.page.goto(contentUrl);
     }
   }
-
-  async clickShareThoughtsButton(): Promise<void> {
-    await this.page.getByRole('button', { name: 'Share your thought' }).click();
-  }
-
-  async clickQuestionButton(): Promise<void> {
-    await this.page.getByRole('button', { name: 'Question' }).click();
-  }
-
-  async createAndPostQuestion(options: { title: string }): Promise<void> {
-    await this.page.getByRole('button', { name: 'Question' }).click();
-  }
 }
