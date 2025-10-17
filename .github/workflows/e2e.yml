@@ -49,6 +49,8 @@ on:
           - 'uat'
           - 'test'
           - 'dev'
+          - 'prodUS'
+          - 'prodEU'
       workers:
         description: 'Number of parallel workers to run tests'
         required: true

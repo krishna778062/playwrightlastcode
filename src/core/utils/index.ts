@@ -5,7 +5,6 @@ export * from './dateUtil';
 export * from './envLoader';
 export * from './fileUtil';
 export * from './getEnvConfig';
-export * from './knownFailure';
 export * from './logger';
 export * from './playwrightErrorHandler';
 export * from './testDataGenerator';

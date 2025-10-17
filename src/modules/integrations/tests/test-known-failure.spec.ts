@@ -3,7 +3,7 @@ import { test } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { knownFailure } from '@core/utils';
+import { knownFailure } from '@core/utils/testDecorator';
 
 test.describe('known Failures Demo', { tag: [IntegrationsSuiteTags.ABSOLUTE] }, () => {
   test(
