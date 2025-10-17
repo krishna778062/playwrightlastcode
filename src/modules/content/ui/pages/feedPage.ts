@@ -56,8 +56,6 @@ export interface IFeedActions {
   addReplyToPost: (replyText: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
   clickOnDeleteReplyButton: () => Promise<void>;
-  selectPostsToMe: () => Promise<void>;
-  selectPostDate: () => Promise<void>;
   clickShareThoughtsButton: () => Promise<void>;
   enterQuestionTitle: (title: string) => Promise<void>;
   clickAskQuestionButton: () => Promise<string>;
@@ -342,13 +340,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifySortByRecentActivity();
   }
 
-  async selectPostsToMe(): Promise<void> {
-    await this.listFeedComponent.selectPostsToMe();
-  }
-
-  async selectPostDate(): Promise<void> {
-    await this.listFeedComponent.selectPostDate();
-  }
   /**
    * Clicks the share thoughts button to open post editor
    */
