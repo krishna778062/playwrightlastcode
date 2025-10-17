@@ -22,6 +22,7 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
     await manageRewardsPage.loadPage();
     await manageRewardsPage.verifyThePageIsLoaded();
     await manageRewardsPage.enableTheRewardsAndPeerGiftingIfDisabled();
+    const currencyConversion = new RewardsCurrencyConversionPage(appManagerFixture.page);
 
     // Get tenant code
     tenantCode = await appManagerFixture.page.evaluate(() => {
@@ -29,11 +30,14 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
     });
 
     [currencyApiResponse] = await Promise.all([
-      appManagerFixture.page.waitForResponse(
+      manageRewardsPage.page.waitForResponse(
         response =>
-          response.url().endsWith('/recognition/admin/rewards/currencyConversions') && response.status() === 200
+          response.url().endsWith('/recognition/admin/rewards/currencyConversions') &&
+          response.request().resourceType() === 'xhr' &&
+          response.status() === 200
       ),
-      appManagerFixture.page.goto('/manage/recognition/rewards/currency-conversions'),
+      currencyConversion.loadPage(),
+      currencyConversion.verifyThePageIsLoaded(),
     ]);
     apiData = await currencyApiResponse.json();
   });

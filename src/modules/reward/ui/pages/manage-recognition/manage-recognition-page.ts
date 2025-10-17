@@ -1,6 +1,7 @@
 import { Locator, Page } from '@playwright/test';
 import { RewardsAllowance } from '@rewards-components/manage-rewards/rewards-allowance';
 import { WorkAnniversaryPage } from '@rewards-pages/work-anniversary';
+import * as console from 'node:console';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
@@ -48,5 +49,9 @@ export class ManageRecognitionPage extends BasePage {
 
   async navigateViaUrl(url: string) {
     await this.page.goto(url);
+  }
+
+  verifyThePageIsLoaded(): Promise<void> {
+    return Promise.resolve(undefined);
   }
 }

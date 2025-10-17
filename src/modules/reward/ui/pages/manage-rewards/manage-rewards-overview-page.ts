@@ -106,6 +106,9 @@ export class ManageRewardsOverviewPage extends BasePage {
   readonly disabledRewardPeerGiftingContainer: Locator;
   readonly disabledRewardRewardsBudgetContainer: Locator;
   readonly disabledRewardCurrencyConversionContainer: Locator;
+  readonly disableRewardOptionsContainer: Locator;
+  readonly disabledRewardAddPeerGiftingButton: Locator;
+  readonly disabledRewardEditPeerGiftingButton: Locator;
 
   // Tab locators
   readonly rewardsTab: Locator;
@@ -296,6 +299,17 @@ export class ManageRewardsOverviewPage extends BasePage {
     // Save button and toast messages
     this.saveButton = this.page.getByRole('button', { name: 'Save' });
     this.toastMessage = this.page.locator('div.Toastify__toast-body p');
+
+    this.disableRewardOptionsContainer = page.locator('div[class*="Panel-module__panel"]').nth(1);
+    this.disabledRewardPeerGiftingContainer = this.disableRewardOptionsContainer
+      .locator('div[class*="PanelActionItem_layout"]')
+      .nth(0);
+    this.disabledRewardAddPeerGiftingButton = this.disabledRewardPeerGiftingContainer.locator(
+      'a[aria-label="Add peer gifting"]'
+    );
+    this.disabledRewardEditPeerGiftingButton = this.disabledRewardPeerGiftingContainer.locator(
+      'a[aria-label="Edit peer gifting"]'
+    );
   }
 
   get dialogContainerForm(): DialogBox {
@@ -902,7 +916,7 @@ export class ManageRewardsOverviewPage extends BasePage {
         state: 'visible',
         timeout: 15000,
       });
-      await manageRecognitionPage.peerGifting.clickOnDisabledRewardsAddEditPeerGiftingButton();
+      await this.clickOnDisabledRewardsAddEditPeerGiftingButton();
       await manageRecognitionPage.peerGifting.peerGiftingToggleSwitch.click();
       await manageRecognitionPage.peerGifting.saveButton.waitFor({ state: 'attached', timeout: 15000 });
       await manageRecognitionPage.peerGifting.saveButton.click();
@@ -931,6 +945,17 @@ export class ManageRewardsOverviewPage extends BasePage {
     } else if (isRewardEnabled && isPeerGiftingDisabled) {
       // Both are already enabled, do nothing
       console.log('Reward and Gifting is enabled.');
+    }
+  }
+
+  async clickOnDisabledRewardsAddEditPeerGiftingButton(): Promise<void> {
+    await this.disabledRewardPeerGiftingContainer.waitFor({ state: 'attached', timeout: 15000 });
+    if (await this.verifier.verifyTheElementIsVisible(this.disabledRewardAddPeerGiftingButton)) {
+      await this.clickOnElement(this.disabledRewardAddPeerGiftingButton);
+    } else if (await this.verifier.verifyTheElementIsVisible(this.disabledRewardEditPeerGiftingButton)) {
+      await this.clickOnElement(this.disabledRewardEditPeerGiftingButton);
+    } else {
+      throw new Error('Neither Add Budget nor Edit Peer Gifting button is visible.');
     }
   }
 }

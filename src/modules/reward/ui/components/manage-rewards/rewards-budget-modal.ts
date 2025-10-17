@@ -24,21 +24,23 @@ export class RewardsBudgetModal extends BasePage {
     super(page);
 
     // Budget modal elements
-    this.editBudgetButton = page.locator('button[data-testid="edit-budget-button"]');
-    this.addBudgetButton = page.locator('button[data-testid="add-budget-button"]');
-    this.budgetContainer = page.locator('[data-testid="budget-modal-container"]');
-    this.budgetPanelHeader = page.locator('[data-testid="budget-panel-header"]');
-    this.budgetPanelDescription = page.locator('[data-testid="budget-panel-description"]');
-    this.budgetPanelAnnualRadioInputBox = page.locator('input[value="annual"]');
-    this.budgetPanelQuarterlyRadioInputBox = page.locator('input[value="quarterly"]');
-    this.budgetPanelRemoveRadioInputBox = page.locator('input[value="remove"]');
-    this.budgetPanelInputBox = page.locator('input[data-testid="budget-input"]');
-    this.budgetInputErrorMessage = page.locator('[data-testid="budget-input-error"]');
-    this.budgetBalanceApplicationFullAnnualBudget = page.locator('input[value="full-annual"]');
-    this.budgetBalanceApplicationProRATABudget = page.locator('input[value="pro-rata"]');
-    this.budgetBalanceApplicationCustomBudget = page.locator('input[value="custom"]');
-    this.budgetPanelSaveButton = page.locator('button[data-testid="budget-save-button"]');
-    this.proRataValue = page.locator('[data-testid="pro-rata-value"]');
+    this.editBudgetButton = page.getByRole('button', { name: 'Edit budget' });
+    this.addBudgetButton = page.getByRole('button', { name: 'Add budget' });
+    this.budgetContainer = page.locator('[role="dialog"][data-state="open"]');
+    this.budgetPanelHeader = this.budgetContainer.locator('h2[class*="Dialog-module__title"]>span');
+    this.budgetPanelDescription = this.budgetContainer.locator('p[class*="Typography-module__paragraph"]');
+    this.budgetPanelAnnualRadioInputBox = this.budgetContainer.locator('label[for="budgetFrequencyANNUAL"] input');
+    this.budgetPanelQuarterlyRadioInputBox = this.budgetContainer.locator(
+      'label[for="budgetFrequencyQUARTERLY"] input'
+    );
+    this.budgetPanelRemoveRadioInputBox = this.budgetContainer.locator('label[for="budgetFrequencyREMOVE"] input');
+    this.budgetPanelInputBox = this.budgetContainer.locator('input[id="budgetUsdAmount"]');
+    this.budgetPanelSaveButton = this.budgetContainer.locator('button[type="submit"]');
+    this.budgetInputErrorMessage = this.budgetContainer.locator('[class^="Field-module__error"] p');
+    this.budgetBalanceApplicationFullAnnualBudget = page.locator('input[id="balanceAllocationFULL"]');
+    this.budgetBalanceApplicationProRATABudget = page.locator('input[id="balanceAllocationPRORATA"]');
+    this.budgetBalanceApplicationCustomBudget = page.locator('input[id="balanceAllocationCUSTOM"]');
+    this.proRataValue = page.locator('input[id="prorataUsdBudget"]');
   }
 
   async selectTheBudgetFrequency(frequency: 'Annual' | 'Quarterly' | 'Remove'): Promise<void> {
