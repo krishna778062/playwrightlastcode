@@ -190,7 +190,7 @@ export class FeatureOwnersPage extends BasePage {
             .locator(`[class*='FeatureColumn-module-featureName'] p`)
             .filter({ hasText: featureNameOrIndex }),
         });
-        userCountButton = featureRow.locator('[class*="OwnerColumn-module-userCount"]');
+        userCountButton = featureRow.locator('[class*="FeatureOwnersCountDialog-module-ownerCountButton"] p');
       } else {
         // Find by index (fallback)
         userCountButton = this.userCountButton.nth(featureNameOrIndex);

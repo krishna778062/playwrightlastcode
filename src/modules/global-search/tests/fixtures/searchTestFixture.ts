@@ -13,6 +13,8 @@ import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteMan
 import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileManagementHelper';
 import { ExternalSearchManagementService } from '@/src/modules/global-search/apis/services/ExternalSearchManagementService';
 import { IntranetFileHelper } from '@/src/modules/global-search/ui/helpers/intranetFileHelper';
+import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
+import { ExpertiseManagementService } from '@/src/modules/platforms/apis/services/ExpertiseManagementService';
 
 // API-only fixture type for API helpers and services
 export interface SearchApiFixture {
@@ -24,6 +26,8 @@ export interface SearchApiFixture {
   appManagementService: AppsManagementService;
   linkManagementService: LinkManagementService;
   externalSearchManagementService: ExternalSearchManagementService;
+  expertiseManagementService: ExpertiseManagementService;
+  identityManagementHelper: IdentityManagementHelper;
 }
 
 // UI-only fixture type for browser and page components
@@ -47,6 +51,8 @@ async function createSearchApiFixture(apiContext: APIRequestContext): Promise<Se
   const appManagementService = new AppsManagementService(apiContext, getEnvConfig().apiBaseUrl);
   const linkManagementService = new LinkManagementService(apiContext, getEnvConfig().apiBaseUrl);
   const externalSearchManagementService = new ExternalSearchManagementService(apiContext, getEnvConfig().apiBaseUrl);
+  const expertiseManagementService = new ExpertiseManagementService(apiContext, getEnvConfig().apiBaseUrl);
+  const identityManagementHelper = new IdentityManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
 
   return {
     apiContext,
@@ -57,6 +63,8 @@ async function createSearchApiFixture(apiContext: APIRequestContext): Promise<Se
     appManagementService,
     linkManagementService,
     externalSearchManagementService,
+    expertiseManagementService,
+    identityManagementHelper,
   };
 }
 
@@ -71,7 +79,6 @@ async function createSearchUiFixture(browser: any, apiContext: APIRequestContext
   });
 
   const homePage = new NewHomePage(page);
-  await homePage.verifyThePageIsLoaded();
 
   const navigationHelper = new NavigationHelper(page);
   const intranetFileHelper = new IntranetFileHelper(apiContext, getEnvConfig().apiBaseUrl, page);
