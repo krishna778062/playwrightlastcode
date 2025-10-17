@@ -40,7 +40,7 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
       const automatedAwardPage = new AutomatedAwardPage(appManagerFixture.page);
 
       await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
-      await expect(editAutomatedAwardPage.awardSceduleEditIcon).toBeVisible();
+      await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
       await editAutomatedAwardPage.enableAndEditPoints();
       await automatedAwardPage.automatedAwardSaveButton.click();
       await manageRecognitionPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
@@ -65,7 +65,7 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
       const automatedAwardPage = new AutomatedAwardPage(appManagerFixture.page);
 
       await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
-      await expect(editAutomatedAwardPage.awardSceduleEditIcon).toBeVisible();
+      await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
       await editAutomatedAwardPage.verifyTheErrorForInvalidInput(-12);
       await editAutomatedAwardPage.verifyTheErrorForInvalidInput(0);
       await editAutomatedAwardPage.enableAndEditPoints();
@@ -94,7 +94,7 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
       await manageRecognitionPage.workAnniversaryWithPoints.cleanUpTheDataIfAlreadySet();
 
       await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
-      await expect(editAutomatedAwardPage.awardSceduleEditIcon).toBeVisible();
+      await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
       await editAutomatedAwardPage.clickWorkAnniversaryAwardInstanceEditButton(0);
       await manageRecognitionPage.dailogContainerForm.dailogHeader.waitFor({ state: 'visible' });
 
@@ -104,7 +104,7 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
       await expect(editAutomatedAwardPage.awardSchedulePointIcon).toBeVisible();
 
       await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
-      await expect(editAutomatedAwardPage.awardSceduleEditIcon).toBeVisible();
+      await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
       await editAutomatedAwardPage.clickWorkAnniversaryAwardInstanceEditButton(0);
       await manageRecognitionPage.dailogContainerForm.dailogHeader.waitFor({ state: 'visible' });
 
@@ -114,7 +114,7 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
       await expect(editAutomatedAwardPage.awardSchedulePointIcon).toBeVisible();
 
       await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
-      await expect(editAutomatedAwardPage.awardSceduleEditIcon).toBeVisible();
+      await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
       await editAutomatedAwardPage.clickWorkAnniversaryAwardInstanceEditButton(0);
       await manageRecognitionPage.dailogContainerForm.dailogHeader.waitFor({ state: 'visible' });
 
@@ -147,7 +147,7 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
       await manageRecognitionPage.workAnniversaryWithPoints.cleanUpTheDataIfAlreadySet();
 
       await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
-      await expect(editAutomatedAwardPage.awardSceduleEditIcon).toBeVisible();
+      await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
       await editAutomatedAwardPage.clickWorkAnniversaryAwardInstanceEditButton(0);
       await manageRecognitionPage.dailogContainerForm.dailogHeader.waitFor({ state: 'visible' });
 

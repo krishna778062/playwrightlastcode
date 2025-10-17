@@ -2,20 +2,19 @@ import { expect, Locator, Page } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
-import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 
 export class EditAutomatedAwardPage extends BasePage {
-  automatedAwardcontainer: Locator;
-  awardSceduleEditIcon: Locator;
-  awardSceduleMsgIcon: Locator;
+  readonly container: Locator;
+  awardScheduleEditIcon: Locator;
+  awardScheduleMsgIcon: Locator;
   awardSchedulePointIcon: Locator;
-  awardSceduleAwardIcon: Locator;
-  awardSceduleBadgeIcon: Locator;
-  awardSceduleAwardInstances: Locator;
-  awardSceduleAwardInstanceEyeBtn: Locator;
-  awardSceduleAwardInstancePencilBtn: Locator;
-  awardSceduleAwardInstanceBadge: Locator;
+  awardScheduleAwardIcon: Locator;
+  awardScheduleBadgeIcon: Locator;
+  awardScheduleAwardInstances: Locator;
+  awardScheduleAwardInstanceEyeBtn: Locator;
+  awardScheduleAwardInstancePencilBtn: Locator;
+  awardScheduleAwardInstanceBadge: Locator;
   previewAwardBtn: Locator;
   activateAwardHeader: Locator;
   makeAwardActiveToggle: Locator;
@@ -25,9 +24,8 @@ export class EditAutomatedAwardPage extends BasePage {
   customAwardMsgTextBox: Locator;
   selectedUserValue: Locator;
   customizeNoAuthorRadio: Locator;
-  recogAuthorIntranetNameRadio: Locator;
+  recognitionAuthorIntranetNameRadio: Locator;
   specificAnniversariesTextBox: Locator;
-  specificAnniversariesFooter: Locator;
   defaultAwardMsgRadioBtn: Locator;
   customAwardMsgError: Locator;
   readonly awardPointContainer: Locator;
@@ -45,15 +43,15 @@ export class EditAutomatedAwardPage extends BasePage {
    */
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
-
-    this.awardSceduleEditIcon = this.container.locator('[data-testid="i-edit"]').first();
-    this.awardSceduleMsgIcon = this.container.getByRole('button', { name: 'custom message' });
-    this.awardSceduleAwardIcon = this.container.getByRole('button', { name: 'custom author' });
-    this.awardSceduleBadgeIcon = this.container.getByRole('button', { name: 'custom badge' });
-    this.awardSceduleAwardInstances = this.container.getByText('year work anniversary');
-    this.awardSceduleAwardInstanceEyeBtn = this.container.locator('[data-testid="i-eyeOpen"]');
-    this.awardSceduleAwardInstancePencilBtn = this.container.locator('[data-testid="i-edit"]');
-    this.awardSceduleAwardInstanceBadge = this.container.locator('[class*="milestoneAwardIcon"]');
+    this.container = page.locator('[data-testid="edit-automated-award-container"]');
+    this.awardScheduleEditIcon = this.container.locator('[data-testid="i-edit"]').first();
+    this.awardScheduleMsgIcon = this.container.getByRole('button', { name: 'custom message' });
+    this.awardScheduleAwardIcon = this.container.getByRole('button', { name: 'custom author' });
+    this.awardScheduleBadgeIcon = this.container.getByRole('button', { name: 'custom badge' });
+    this.awardScheduleAwardInstances = this.container.getByText('year work anniversary');
+    this.awardScheduleAwardInstanceEyeBtn = this.container.locator('[data-testid="i-eyeOpen"]');
+    this.awardScheduleAwardInstancePencilBtn = this.container.locator('[data-testid="i-edit"]');
+    this.awardScheduleAwardInstanceBadge = this.container.locator('[class*="milestoneAwardIcon"]');
     this.previewAwardBtn = this.container.getByRole('button', { name: 'Preview award' });
     this.activateAwardHeader = this.container.getByRole('heading', { name: 'Activate this award' });
     this.makeAwardActiveToggle = this.container.getByRole('switch', { name: 'Make this award active' });
@@ -68,7 +66,7 @@ export class EditAutomatedAwardPage extends BasePage {
     this.customAwardMsgTextBox = page.locator('[class*="tiptap ProseMirror"]');
     this.selectedUserValue = this.container.locator('[class*="MultiValueLabelWithIcon"]').first();
     this.customizeNoAuthorRadio = this.container.getByRole('radio', { name: 'No author' });
-    this.recogAuthorIntranetNameRadio = this.container.getByRole('radio', { name: /Intranet name/ });
+    this.recognitionAuthorIntranetNameRadio = this.container.getByRole('radio', { name: /Intranet name/ });
     this.specificAnniversariesTextBox = this.container.locator('input#frequencyValue');
     this.customAwardMsgError = this.container.getByText(/Must not exceed 2500 characters./i);
     this.awardPointsToReceiver = page.getByRole('switch', { name: 'Award points to receivers' });
@@ -92,7 +90,7 @@ export class EditAutomatedAwardPage extends BasePage {
   }
 
   /**
-   * This method returns a locator for a edit button button based on the given index text.
+   * This method returns a locator for an edit button based on the given index text.
    * @param editButtonIndex - The exact index of edit button to locate.
    * @returns - A Locator for the specified edit button element.
    */
@@ -101,7 +99,7 @@ export class EditAutomatedAwardPage extends BasePage {
   }
 
   /**
-   * This method returns a locator for a eye button button based on the given index text.
+   * This method returns a locator for an eye button based on the given index text.
    * @param eyeButtonIndex - The exact index of eye button to locate.
    * @returns - A Locator for the specified eye button element.
    */
@@ -202,7 +200,7 @@ export class EditAutomatedAwardPage extends BasePage {
     const plusButton = dialogContainerForm.locator('button[aria-label="Plus"]');
     const minusButton = dialogContainerForm.locator('button[aria-label="Minus"]');
 
-    if (await BaseActionUtil.isVisible(dialogCustomizeAwardPoints, 5000)) {
+    if (await this.verifier.verifyTheElementIsVisible(dialogCustomizeAwardPoints)) {
       await dialogCustomizeAwardPoints.click();
     }
     const ariaChecked = await awardPointsToReceiver.getAttribute('aria-checked');
@@ -237,7 +235,7 @@ export class EditAutomatedAwardPage extends BasePage {
       .last();
     const awardPointsToReceiver = dialogContainerForm.getByRole('switch', { name: 'Award points to receivers' });
 
-    if (await BaseActionUtil.isVisible(dialogCustomizeAwardPoints, 5000)) {
+    if (await this.verifier.verifyTheElementIsVisible(dialogCustomizeAwardPoints)) {
       await dialogCustomizeAwardPoints.click();
     }
     const ariaChecked = await awardPointsToReceiver.getAttribute('aria-checked');
@@ -261,7 +259,7 @@ export class EditAutomatedAwardPage extends BasePage {
     const awardPointsToReceiver = dialogContainerForm.getByRole('switch', { name: 'Award points to receivers' });
     const removeCustomPoint = dialogContainerForm.locator('[aria-label*="Remove milestone instance"]').last();
 
-    if (await BaseActionUtil.isVisible(dialogCustomizeAwardPoints, 5000)) {
+    if (await this.verifier.verifyTheElementIsVisible(dialogCustomizeAwardPoints)) {
       await dialogCustomizeAwardPoints.click();
     }
     const ariaChecked = await awardPointsToReceiver.getAttribute('aria-checked');
@@ -272,7 +270,7 @@ export class EditAutomatedAwardPage extends BasePage {
       await expect(awardPointsToReceiver).toHaveAttribute('aria-checked', /^(false|unchecked)$/);
     }
 
-    if (await BaseActionUtil.isVisible(removeCustomPoint)) {
+    if (await this.verifier.verifyTheElementIsVisible(dialogCustomizeAwardPoints)) {
       await removeCustomPoint.click();
       await expect(awardPointsToReceiver).not.toBeVisible();
     }
@@ -285,5 +283,10 @@ export class EditAutomatedAwardPage extends BasePage {
    */
   getHeadingElementByText(text: string): Locator {
     return this.container.getByRole('heading', { name: text });
+  }
+
+  async verifyThePageIsLoaded(): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(this.awardPointsToReceiver);
+    return Promise.resolve(undefined);
   }
 }

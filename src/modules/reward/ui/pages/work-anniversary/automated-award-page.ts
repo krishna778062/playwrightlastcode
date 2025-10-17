@@ -5,7 +5,6 @@ import { BasePage } from '@core/pages/basePage';
 
 export class AutomatedAwardPage extends BasePage {
   readonly tableGridFirstRow: Locator;
-  readonly automatedAwardContainer: Locator;
   readonly deactivateAwardContainer: Locator;
   readonly editMilestoneTitle: Locator;
   readonly automatedAwardCancelButton: Locator;
@@ -66,12 +65,7 @@ export class AutomatedAwardPage extends BasePage {
     return this.page.getByText(buttonText);
   }
 
-  /**
-   * This method returns a locator for a table header button based on the given header text.
-   * @param headerText - The exact text of the table header button to locate.
-   * @returns - A Locator for the specified table header button element.
-   */
-  tableGridHeaderByText(headerText: string): Locator {
-    return this.page.locator(`button[aria-label="${headerText}"]`);
+  verifyThePageIsLoaded(): Promise<void> {
+    return Promise.resolve(undefined);
   }
 }

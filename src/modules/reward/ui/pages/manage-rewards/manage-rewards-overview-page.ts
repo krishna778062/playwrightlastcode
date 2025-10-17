@@ -121,6 +121,8 @@ export class ManageRewardsOverviewPage extends BasePage {
   // Save button and toast messages
   readonly saveButton: Locator;
   readonly toastMessage: Locator;
+  readonly disabledRewardAddBudgetButton: Locator;
+  readonly disabledRewardEditBudgetButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_REWARDS_PAGE);
@@ -310,6 +312,16 @@ export class ManageRewardsOverviewPage extends BasePage {
     this.disabledRewardEditPeerGiftingButton = this.disabledRewardPeerGiftingContainer.locator(
       'a[aria-label="Edit peer gifting"]'
     );
+
+    this.disabledRewardAddBudgetButton = this.disabledRewardRewardsBudgetContainer.locator(
+      'button[aria-label="Add rewards budget"]'
+    );
+    this.disabledRewardEditBudgetButton = this.disabledRewardRewardsBudgetContainer.locator(
+      'button[aria-label="Edit rewards budget"]'
+    );
+    this.disabledRewardCurrencyConversionContainer = this.disableRewardOptionsContainer
+      .locator('div[class*="PanelActionItem_layout"]')
+      .nth(2);
   }
 
   get dialogContainerForm(): DialogBox {

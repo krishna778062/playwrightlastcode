@@ -50,6 +50,7 @@ export class RewardsPeerGifting extends BasePage {
   readonly allowanceGreenTick: Locator;
   readonly giftingOptionIcon: Locator;
   readonly AllowanceIcon: Locator;
+  private disabledRewardRewardsBudgetContainer: any;
 
   constructor(page: Page) {
     super(page, '/manage/recognition/rewards/peer-gifting');

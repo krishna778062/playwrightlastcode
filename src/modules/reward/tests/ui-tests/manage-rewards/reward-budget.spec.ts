@@ -809,9 +809,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       });
       await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(
-        manageRewardsPage.peerGifting.disabledRewardAddBudgetButton
-      );
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.disabledRewardAddBudgetButton);
 
       await Promise.all([
         manageRewardsPage.page.waitForResponse(
@@ -957,9 +955,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
         });
         await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
         await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
-        await manageRewardsPage.verifier.verifyTheElementIsVisible(
-          manageRewardsPage.peerGifting.disabledRewardAddBudgetButton
-        );
+        await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.disabledRewardAddBudgetButton);
       } else {
         await manageRewardsPage.clickOnElement(manageRewardsPage.dialogContainerForm.cancelButton, {
           stepInfo: 'Clicking on cancel button',
@@ -1321,9 +1317,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
           stepInfo: 'Clicking on save button',
         });
         await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
-        await manageRewardsPage.verifier.verifyTheElementIsVisible(
-          manageRewardsPage.peerGifting.disabledRewardAddBudgetButton
-        );
+        await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.disabledRewardAddBudgetButton);
         await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
       } else {
         await manageRewardsPage.clickOnElement(manageRewardsPage.dialogContainerForm.cancelButton, {
