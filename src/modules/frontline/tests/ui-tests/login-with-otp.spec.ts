@@ -7,10 +7,16 @@ import { tagTest } from '@core/utils/testDecorator';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { Roles } from '@/src/core/constants/roles';
 import { UserTestDataBuilder } from '@/src/core/test-data-builders/UserTestDataBuilder';
+import { OTPUtils } from '@/src/core/utils/otpUtilsMailosaur';
 import { getFrontlineTenantConfigFor, initializeFrontlineConfig } from '@/src/modules/frontline/config/frontlineConfig';
 
 // Initialize with secondary tenant for OTP tests
 initializeFrontlineConfig('secondary');
+
+const otpUtils = new OTPUtils(
+  'RuhqTyBb8hp7JtPT', //api key
+  'znl8uqcc' //server id
+);
 
 test.describe(
   'feature: login with otp',
@@ -44,9 +50,36 @@ test.describe(
           storyId: 'FL-434',
         });
 
+        // Dummy case to test with phone number for OTP starting
+        // Use a test number
+        const testPhone = '+447457416481';
+
         // Project baseURL is set to secondary tenant, so relative path works
         await page.goto(PAGE_ENDPOINTS.LOGIN_PAGE);
+
+        await page.getByRole('textbox', { name: 'Employee number' }).click();
+        await page.getByRole('textbox', { name: 'Employee number' }).fill('1473');
+        await page.getByRole('button', { name: 'Continue' }).click();
+        await page.getByRole('button', { name: 'Use OTP' }).click();
+
+        //   //select mobile
+        await page.getByTestId('SelectInput').selectOption('mobile');
+
+        await page.getByRole('button', { name: 'Send OTP' }).click();
+
+        // ===== Mobile OTP =====
+        const otpM = await otpUtils.getOTPFromSMS(testPhone);
+        console.log('otp-mobile------', otpM);
+
+        // ===== Email OTP =====
+        // const otp = await otpUtils.getOTPFromEmail('green@znl8uqcc.mailosaur.net');
+        // console.log('otp-email------', otp);
+
+        await page.getByRole('textbox', { name: 'Enter OTP' }).click();
+        await page.getByRole('textbox', { name: 'Enter OTP' }).fill(otpM);
+        await page.getByRole('button', { name: 'Verify OTP' }).click();
         await page.waitForTimeout(5000);
+        // Dummy case to test with phone number for OTP ending
       }
     );
   }
