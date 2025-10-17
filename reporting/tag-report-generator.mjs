@@ -138,8 +138,9 @@ function generateTableRows(tagStats) {
     })
     .map(([tag, stats], index) => {
       // Calculate pass rate excluding known failures (they shouldn't count as failures)
+      // Include flaky tests in total count as they indicate instability
       const actualFailures = stats.failed - (stats.knownFailures || 0);
-      const actualTotal = stats.passed + actualFailures;
+      const actualTotal = stats.passed + actualFailures + stats.flaky;
       const passRate = actualTotal > 0 ? ((stats.passed / actualTotal) * 100).toFixed(2) : '0.00';
       const capitalizedTag = tag.charAt(0).toUpperCase() + tag.slice(1);
       const rowClass = index % 2 === 0 ? '' : 'bg-gray-50';
