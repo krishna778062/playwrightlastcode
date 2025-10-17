@@ -301,10 +301,10 @@ export class AccessControlGroupsPage extends BasePage {
       await this.searchInput.clear();
       await this.searchInput.fill(searchTerm);
 
-      // Wait for input to have value (state-based wait)
+      // Wait for input to have value
       await this.page.waitForFunction(
         () => {
-          const input = document.querySelector('[role="combobox"]');
+          const input = document.querySelector('[role="combobox"]') as HTMLInputElement;
           return input?.value && input.value.length > 0;
         },
         { timeout: TIMEOUTS.SHORT }
@@ -321,7 +321,7 @@ export class AccessControlGroupsPage extends BasePage {
         // Fallback: Try clicking on the input to trigger dropdown
         await this.searchInput.click();
 
-        // Wait for dropdown to appear after click (state-based wait)
+        // Wait for dropdown to appear after click
         await this.page.waitForFunction(
           () => {
             const options = document.querySelectorAll('[role="menuitem"], [role="option"]');
@@ -350,7 +350,7 @@ export class AccessControlGroupsPage extends BasePage {
           }
         );
       } catch {
-        // Fallback: wait for any element to be focused (state-based wait)
+        // Fallback: wait for any element to be focused
         await this.page.waitForFunction(
           () => {
             return document.activeElement !== null && document.activeElement !== document.body;
@@ -393,13 +393,13 @@ export class AccessControlGroupsPage extends BasePage {
 
   async verifyAdminUsersInManagerList(): Promise<void> {
     await test.step('Verify admin users in manager list', async () => {
-      // Wait for manager dialog specifically (not messaging dialogs)
+      // Wait for manager dialog specifically
       await this.page.waitForSelector('[role="dialog"]:not([aria-labelledby="your_messages_title"])', {
         state: 'visible',
         timeout: TIMEOUTS.MEDIUM,
       });
 
-      // Target admin elements in the manager dialog (excluding messaging dialogs)
+      // Target admin elements in the manager dialog
       const adminElements = this.page
         .locator('[role="dialog"]:not([aria-labelledby="your_messages_title"])')
         .getByText(/Admin/i);
