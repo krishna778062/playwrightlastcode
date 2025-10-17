@@ -197,4 +197,126 @@ export class RewardsIndividualAllowance extends BasePage {
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.waitUntilElementIsVisible(this.individualAllowanceBoxMessageLine2);
   }
+
+  async setTheIndividualAllowanceForAUser(
+    userName: string,
+    numbers: number,
+    deleteTheExistingRecords: boolean
+  ): Promise<void> {
+    await this.individualAllowanceContainer.waitFor({ state: 'attached' });
+
+    if (deleteTheExistingRecords) {
+      await this.clickOnElement(this.addIndividualButton, {
+        stepInfo: 'Clicking add individual button to delete existing records',
+      });
+      const dialogBox = new DialogBox(this.page);
+      await this.verifier.verifyElementHasText(dialogBox.title, 'Add individual allowance');
+      await this.verifier.verifyTheElementIsVisible(dialogBox.closeButton);
+      await this.verifier.waitUntilElementIsVisible(dialogBox.container.locator('input').last(), {
+        stepInfo: 'Wait for input to be visible',
+      });
+      await this.clickOnElement(dialogBox.container.locator('input').first(), {
+        stepInfo: 'Clicking on first input',
+      });
+      await this.clickOnElement(dialogBox.container.locator('[role="menuitem"]:not([aria-disabled="true"])').first(), {
+        stepInfo: 'Selecting first menu item',
+      });
+      await this.fillInElement(dialogBox.container.locator('input[id="pointAmount"]'), String(numbers), {
+        stepInfo: 'Filling point amount',
+      });
+      await this.verifier.verifyTheElementIsEnabled(dialogBox.container.getByRole('button', { name: 'Add allowance' }));
+      await this.clickOnElement(dialogBox.container.getByRole('button', { name: 'Add allowance' }), {
+        stepInfo: 'Clicking add allowance button',
+      });
+
+      const userDeleteButton = this.individualAllowanceContainer.locator(
+        `//tr[contains(@data-testid,"dataGridRow") and .//p[text()="${userName}"]]//button[contains(@aria-label,"Remove")]`
+      );
+      await this.clickOnElement(userDeleteButton, {
+        stepInfo: 'Clicking user delete button',
+      });
+      await this.verifier.verifyTheElementIsEnabled(this.saveButton);
+      await this.clickOnElement(this.saveButton, {
+        stepInfo: 'Clicking save button',
+      });
+      await this.verifyToastMessageIsVisibleWithText('Saved changes successfully');
+    } else {
+      let anyUserAdded: boolean;
+      const addedSpecificIndividualUser = this.individualAllowanceContainer.locator(
+        `//tr[contains(@data-testid,"dataGridRow")]//div[contains(@class,"IndividualAllowances_userName")]//p[text()="${userName}"]`
+      );
+
+      try {
+        anyUserAdded = await this.verifier.isTheElementVisible(addedSpecificIndividualUser, { timeout: 5000 });
+      } catch {
+        console.log('❌ Element not visible within 5s');
+        anyUserAdded = false;
+      }
+
+      if (!anyUserAdded) {
+        await this.clickOnElement(this.addIndividualButton, {
+          stepInfo: 'Clicking add individual button',
+        });
+        const dialogBox = new DialogBox(this.page);
+        await this.verifier.verifyElementHasText(dialogBox.title, 'Add individual allowance');
+        await this.verifier.verifyTheElementIsVisible(dialogBox.closeButton);
+        await this.verifier.waitUntilElementIsVisible(dialogBox.container.locator('input').last(), {
+          stepInfo: 'Wait for input to be visible',
+        });
+        await this.clickOnElement(dialogBox.container.locator('input').first(), {
+          stepInfo: 'Clicking on first input',
+        });
+        await this.fillInElement(dialogBox.container.locator('input').last(), userName, {
+          stepInfo: 'Filling user name',
+        });
+        await dialogBox.container.locator('input').last().blur();
+        await this.clickOnElement(
+          dialogBox.container.locator('[role="menuitem"]:not([aria-disabled="true"])').first(),
+          {
+            stepInfo: 'Selecting first menu item',
+          }
+        );
+        await this.fillInElement(dialogBox.container.locator('input[id="pointAmount"]'), String(numbers), {
+          stepInfo: 'Filling point amount',
+        });
+        await this.verifier.verifyTheElementIsEnabled(
+          dialogBox.container.getByRole('button', { name: 'Add allowance' })
+        );
+        await this.clickOnElement(dialogBox.container.getByRole('button', { name: 'Add allowance' }), {
+          stepInfo: 'Clicking add allowance button',
+        });
+        await this.verifier.verifyTheElementIsEnabled(this.saveButton);
+
+        const removableUsersLocator: Locator = this.individualAllowanceContainer.locator(
+          `//tr[contains(@data-testid,"dataGridRow")]//p[text()!="${userName}"]/ancestor::tr//button[contains(@aria-label,"Remove")]`
+        );
+        let count = await removableUsersLocator.count();
+        for (let i = 0; i < count; i++) {
+          await this.clickOnElement(removableUsersLocator.nth(i), {
+            stepInfo: `Removing user ${i + 1}`,
+          });
+          count = await removableUsersLocator.count();
+        }
+        await this.clickOnElement(this.saveButton, {
+          stepInfo: 'Clicking save button',
+        });
+        await this.verifyToastMessageIsVisibleWithText('Saved changes successfully');
+      } else {
+        const currentValue = await this.getTheCurrentAmountForUserInIndividualAllowance(userName);
+        if (currentValue !== numbers) {
+          await this.fillInElement(this.recentlyAddedPointAmountInputBox, String(numbers), {
+            stepInfo: 'Filling point amount in input box',
+          });
+          await this.verifier.verifyTheElementIsEnabled(this.saveButton);
+          await this.clickOnElement(this.saveButton, {
+            stepInfo: 'Clicking save button',
+          });
+          await this.verifyToastMessageIsVisibleWithText('Saved changes successfully');
+        } else {
+          // Navigate back to allowance page if no changes needed
+          await this.page.goto('/manage/recognition/rewards/peer-gifting/allowances');
+        }
+      }
+    }
+  }
 }
