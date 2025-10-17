@@ -782,16 +782,16 @@ export function generateHTML(tagStats, totals, timestamp, duration, moduleName, 
         </div>
 
         <!-- PASSED -->
-        <div class="p-3 bg-pass-green/10 border border-pass-green/30 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer">
+        <a href="index.html#?q=s:passed" target="_blank" class="p-3 bg-pass-green/10 border border-pass-green/30 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer block no-underline">
           <p class="text-xs font-semibold text-pass-green uppercase mb-1">Passed</p>
           <p class="text-2xl font-extrabold text-pass-green">${totalPassed}</p>
-        </div>
+        </a>
 
         <!-- FAILED -->
-        <div class="p-3 bg-fail-red/10 border border-fail-red/30 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer" title="${totalKnownFailures > 0 ? `${totalKnownFailures} known failures excluded from fail count` : 'No known failures'}">
+        <a href="index.html#?q=s:failed" target="_blank" class="p-3 bg-fail-red/10 border border-fail-red/30 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer block no-underline" title="${totalKnownFailures > 0 ? `${totalKnownFailures} known failures excluded from fail count` : 'No known failures'}">
           <p class="text-xs font-semibold text-fail-red uppercase mb-1">Failed</p>
           <p class="text-2xl font-extrabold text-fail-red">${totalFailed + totalKnownFailures}</p>
-        </div>
+        </a>
 
         <!-- KNOWN FAILURES -->
         <div class="p-3 bg-orange-100 border border-orange-300 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer">
@@ -800,10 +800,10 @@ export function generateHTML(tagStats, totals, timestamp, duration, moduleName, 
         </div>
     
         <!-- FLAKY -->
-        <div class="p-3 bg-flaky-amber/10 border border-flaky-amber/30 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer">
+        <a href="index.html#?q=s:flaky" target="_blank" class="p-3 bg-flaky-amber/10 border border-flaky-amber/30 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer block no-underline">
           <p class="text-xs font-semibold text-flaky-amber uppercase mb-1">Flaky</p>
           <p class="text-2xl font-extrabold text-flaky-amber">${totalFlaky}</p>
-        </div>
+        </a>
 
         <!-- PASS RATE (KPI) -->
         <div class="p-3 bg-primary-blue text-white rounded-lg shadow-lg text-center flex flex-col justify-center transform hover:scale-105 hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden">
