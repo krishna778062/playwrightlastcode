@@ -98,8 +98,15 @@ export class ContentManagementHelper {
   async createAlbum(params: {
     siteId: string;
     imageName: string;
-    options?: { albumName?: string; contentDescription?: string; accessType?: SITE_TYPES; listOfTopics?: string[] };
+    options?: {
+      albumName?: string;
+      contentDescription?: string;
+      accessType?: SITE_TYPES;
+      listOfTopics?: string[];
+      waitForSearchIndex?: boolean;
+    };
   }) {
+    const { options = {} } = params;
     const fileId = await this.imageUploaderService.uploadImageAndGetFileId(params.imageName);
     const finalAlbumName =
       params.options?.albumName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Album`;
@@ -128,11 +135,13 @@ export class ContentManagementHelper {
       listOfAlbumMedia: [{ id: fileId, description: '' }],
       ...(topicObjects.length > 0 && { listOfTopics: topicObjects }),
     });
-    // await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
-    //   apiClient: this.contentManagementService.httpClient,
-    //   searchTerm: finalAlbumName,
-    //   objectType: 'content',
-    // });
+    if (options.waitForSearchIndex) {
+      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+        apiClient: this.contentManagementService.httpClient,
+        searchTerm: finalAlbumName,
+        objectType: 'content',
+      });
+    }
     const createdContent = {
       siteId: params.siteId,
       contentId: albumResult.albumId,
@@ -140,7 +149,7 @@ export class ContentManagementHelper {
       authorName: albumResult.authorName,
       contentDescription: finalContentDescription,
     };
-    // this.content.push({ siteId: params.siteId, contentId: albumResult.albumId });
+    this.content.push({ siteId: params.siteId, contentId: albumResult.albumId });
     return { ...createdContent };
   }
 
@@ -203,6 +212,7 @@ export class ContentManagementHelper {
         objectType: 'content',
       });
     }
+
     const createdContent = {
       siteId,
       contentId: pageResult.pageId,
@@ -213,7 +223,7 @@ export class ContentManagementHelper {
       publishTo: pageResult.publishTo,
       isScheduled: pageResult.isScheduled,
     };
-    // this.content.push({ siteId, contentId: pageResult.pageId });
+    this.content.push({ siteId, contentId: pageResult.pageId });
     return { ...createdContent };
   }
 
@@ -240,6 +250,7 @@ export class ContentManagementHelper {
       eventSync?: EventSyncPayload;
       rsvp?: RsvpPayload;
       listOfTopics?: string[];
+      waitForSearchIndex?: boolean;
     };
   }) {
     const { siteId, contentInfo, options = {} } = params;
@@ -274,11 +285,13 @@ export class ContentManagementHelper {
       ...(options.eventSync && { eventSync: options.eventSync }),
       ...(options.rsvp && { rsvp: options.rsvp }),
     });
-    // await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
-    //   apiClient: this.contentManagementService.httpClient,
-    //   searchTerm: finalEventName,
-    //   objectType: 'content',
-    // });
+    if (options.waitForSearchIndex) {
+      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+        apiClient: this.contentManagementService.httpClient,
+        searchTerm: finalEventName,
+        objectType: 'content',
+      });
+    }
     const createdContent = {
       siteId,
       contentId: eventResult.eventId,
@@ -289,7 +302,7 @@ export class ContentManagementHelper {
       ...(eventResult.hasRsvp !== undefined && { hasRsvp: eventResult.hasRsvp }),
       ...(eventResult.rsvpDetails && { rsvpDetails: eventResult.rsvpDetails }),
     };
-    // this.content.push({ siteId, contentId: eventResult.eventId });
+    this.content.push({ siteId, contentId: eventResult.eventId });
     return { ...createdContent };
   }
 
