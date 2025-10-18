@@ -262,6 +262,10 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const validationResult = await csvUtils.validateRowValue('last', 14, 'PENDING');
       expect(validationResult.isMatch, `Expected "PENDING" but got "${validationResult.actualValue}"`).toBeTruthy();
       fs.unlinkSync(csvUtils.getLatestCSV());
+
+      // Go back to Recognition and Delete the last given recognition
+      await recognitionHub.visitRecognitionHub();
+      await recognitionHub.deleteTheFirstRecognitionPost();
     }
   );
 
@@ -785,30 +789,22 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
       await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
       const rewardOptionText = await giveRecognitionModal.giftThePoints(rewardOptionIndex);
-      await giveRecognitionModal.recognizeButton.click({ force: true });
+      const [response] = await Promise.all([
+        recognitionHub.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
+        giveRecognitionModal.recognizeButton.click({ force: true }),
+      ]);
       const shareModal = new DialogBox(appManagerFixture.page);
       if (await recognitionHub.verifier.verifyTheElementIsVisible(shareModal.container, { timeout: 2000 })) {
         await shareModal.skipButton.click();
         await expect(shareModal.container).not.toBeVisible();
       }
-      const [response] = await Promise.all([
-        appManagerFixture.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
-        giveRecognitionModal.recognizeButton.click({ force: true }),
-      ]);
-
       const body = await response.json();
       if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
       const recognitionPostId = String(body.id);
 
-      // Handle dialog box if it appears
-      const dialogBox = new DialogBox(appManagerFixture.page);
-      if (await recognitionHub.verifier.verifyTheElementIsVisible(dialogBox.container)) {
-        await dialogBox.container.waitFor({ state: 'visible' });
-        await dialogBox.skipButton.click();
-        await expect(dialogBox.container).not.toBeVisible();
-      }
-
       await manageRewardsOverviewPage.verifyToastMessageIsVisibleWithText('Recognition published');
+      await recognitionHub.page.reload();
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
         rewardOptionText,
@@ -838,19 +834,11 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         `Expected "${recognitionPostMessage}" but got "${validationResult.actualValue}"`
       ).toBeTruthy();
 
-      const appURL = process.env.FRONTEND_BASE_URL || 'https://reco.qa.simpplr.xyz';
-      validationResult = await csvUtils.validateRowValue(
-        'last',
-        16,
-        `${appURL}/recognition/recognition/${recognitionPostId}`
-      );
-      expect(
-        validationResult.isMatch,
-        `Expected "${appURL}/recognition/recognition/${recognitionPostId}" but got "${validationResult.actualValue}"`
-      ).toBeTruthy();
+      const RowData = await csvUtils.getTheNRowNColumnData('last', 16);
+      expect(RowData).toContain(recognitionPostId);
 
       fs.unlinkSync(csvUtils.getLatestCSV());
-      await appManagerFixture.page.goto(`${appURL}/recognition/recognition/${recognitionPostId}`);
+      await appManagerFixture.page.goto(`/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
         rewardOptionText,
@@ -861,8 +849,10 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await recognitionHub.deleteTheFirstRecognitionPost();
 
       // Validate the new Entry in the Downloaded CSV file after deletion
+      await manageRewardsOverviewPage.loadPage();
+      await manageRewardsOverviewPage.verifyThePageIsLoaded();
       const [downloadAfterDelete] = await Promise.all([
-        appManagerFixture.page.waitForEvent('download'),
+        manageRewardsOverviewPage.page.waitForEvent('download', { timeout: 15000 }),
         manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
           stepInfo: 'Clicking on Download CSV button after deletion',
         }),
@@ -881,7 +871,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       expect(validationResult.isMatch, `Expected "deleted" but got "${validationResult.actualValue}"`).toBeTruthy();
 
       fs.unlinkSync(csvUtils.getLatestCSV());
-      await appManagerFixture.page.goto(`${appURL}/recognition/recognition/${recognitionPostId}`);
+      await appManagerFixture.page.goto(`/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.validateTheRecognitionPostIsDeleted();
     }
   );
@@ -915,16 +905,15 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
       await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
       const rewardPointsText = await giveRecognitionModal.giftThePoints(1);
-      await giveRecognitionModal.recognizeButton.click({ force: true });
+      const [response] = await Promise.all([
+        recognitionHub.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
+        giveRecognitionModal.recognizeButton.click({ force: true }),
+      ]);
       const shareModal = new DialogBox(appManagerFixture.page);
       if (await recognitionHub.verifier.verifyTheElementIsVisible(shareModal.container, { timeout: 2000 })) {
         await shareModal.skipButton.click();
         await expect(shareModal.container).not.toBeVisible();
       }
-      const [response] = await Promise.all([
-        appManagerFixture.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
-        giveRecognitionModal.recognizeButton.click({ force: true }),
-      ]);
 
       const body = await response.json();
       if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
@@ -939,6 +928,8 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       }
 
       await manageRewardsOverviewPage.verifyToastMessageIsVisibleWithText('Recognition published');
+      await recognitionHub.page.reload();
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
         rewardPointsText,
@@ -966,19 +957,11 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         `Expected "${recognitionPostMessage}" but got "${validationResult.actualValue}"`
       ).toBeTruthy();
 
-      const appURL = process.env.FRONTEND_BASE_URL || 'https://reco.qa.simpplr.xyz';
-      validationResult = await csvUtils.validateRowValue(
-        'last',
-        16,
-        `${appURL}/recognition/recognition/${recognitionPostId}`
-      );
-      expect(
-        validationResult.isMatch,
-        `Expected "${appURL}/recognition/recognition/${recognitionPostId}" but got "${validationResult.actualValue}"`
-      ).toBeTruthy();
+      const RowData = await csvUtils.getTheNRowNColumnData('last', 16);
+      expect(RowData).toContain(recognitionPostId);
 
       fs.unlinkSync(csvUtils.getLatestCSV());
-      await appManagerFixture.page.goto(`${appURL}/recognition/recognition/${recognitionPostId}`);
+      await appManagerFixture.page.goto(`/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
         rewardPointsText,

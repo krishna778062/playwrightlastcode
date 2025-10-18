@@ -117,6 +117,39 @@ export class CSVUtils {
   }
 
   /**
+   * Get data of a specific row
+   * @param rowNumber : 'first', 'last', or row index (0-based)
+   * @param columnIndex : Column index (0-based)
+   * @returns Array of values in the specified row
+   */
+  async getTheNRowNColumnData(rowNumber: string, columnIndex: number): Promise<string> {
+    const csvPath = this.getLatestCSV();
+    const fileContent = fs.readFileSync(csvPath, 'utf-8');
+    const lines = fileContent.split('\n').filter(line => line.trim() !== '');
+
+    if (lines.length <= 1) {
+      return 'No Data';
+    }
+    let targetRowIndex: number;
+    const dataLines = lines.slice(1); // Skip header row
+    if (rowNumber === 'first') {
+      targetRowIndex = 0;
+    } else if (rowNumber === 'last') {
+      targetRowIndex = dataLines.length - 1;
+    } else if (rowNumber === 'second_last') {
+      targetRowIndex = dataLines.length - 2;
+    } else {
+      targetRowIndex = Number(rowNumber);
+    }
+
+    if (targetRowIndex < 0 || targetRowIndex >= dataLines.length) {
+      return 'No Data';
+    }
+    const rowValues = this.parseCSVLine(dataLines[targetRowIndex]);
+    return rowValues[columnIndex];
+  }
+
+  /**
    * Parse a CSV line handling quoted values
    */
   private parseCSVLine(line: string): string[] {

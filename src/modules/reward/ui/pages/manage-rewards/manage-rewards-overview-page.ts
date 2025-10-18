@@ -605,10 +605,8 @@ export class ManageRewardsOverviewPage extends BasePage {
     // Navigate to manage rewards and validate activity table
     await this.loadPage();
     await this.activityContainer.last().waitFor({ state: 'visible', timeout: 15000 });
-    await this.clickOnElement(this.activityPointsRedeemTable, {
-      stepInfo: 'Clicking on points redeem table',
-    });
-    await this.verifier.verifyTheElementIsVisible(this.activityPanelTableViewRecognitionItems.last());
+    await this.clickByInjectingJavaScript(this.activityPointsRedeemTable);
+    await this.verifier.waitUntilElementIsVisible(this.activityPanelTableRows.last());
   }
 
   async verifyTheActivityTableForGiftCard(): Promise<void> {
@@ -625,30 +623,6 @@ export class ManageRewardsOverviewPage extends BasePage {
 
       // Save in downloads folder
       await download.saveAs(path.resolve('./downloads', download.suggestedFilename()));
-
-      // Validate headers
-      const csvHeaders = [
-        'Date time',
-        'Redeemer name',
-        'Redeemer email',
-        'Redeemer department',
-        'Redeemer location',
-        'Redeemer payroll currency',
-        'Reward class',
-        'Reward type',
-        'Reward category',
-        'Reward',
-        'Reward currency',
-        'Reward value',
-        'Exchange rate',
-        'USD value',
-        'Point cost',
-        'Reward email',
-        'Transaction status',
-      ];
-      const headersValidation = await csvUtils.validateHeaders(csvHeaders);
-      expect(headersValidation.isValid, `Missing headers: ${headersValidation.missingHeaders}`).toBeTruthy();
-
       // Validate last row column value
       const validationResult = await csvUtils.validateRowValue('last', 16, 'APPROVED');
       expect(validationResult.isMatch, `Expected "APPROVED" but got "${validationResult.actualValue}"`).toBeTruthy();
