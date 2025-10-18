@@ -195,31 +195,34 @@ export class RewardsStore extends BasePage {
    * This method checks the current state via API and enables both features if needed
    */
   async enableTheRewardStoreAndPeerGiftingIfDisabled() {
+    const manageRewards = new ManageRewardsOverviewPage(this.page);
+    await manageRewards.enableTheRewardsAndPeerGiftingIfDisabled();
     const rewardStore = new RewardsStore(this.page);
-    const [apiResponse] = await Promise.all([
-      this.page.waitForResponse(
-        res =>
-          res.url().endsWith('/recognition/v1/tenant/config') &&
-          res.request().resourceType() === 'xhr' &&
-          res.status() === 200 &&
-          res.request().method() === 'GET'
-      ),
-      rewardStore.loadPage(), // action that triggers API
-      rewardStore.verifyThePageIsLoaded(),
-    ]);
-    const body = await apiResponse.json();
-    console.log(`/recognition/v1/tenant/config Response is:\n${JSON.stringify(body, null, 2)}`);
-    const isRewardEnabled = body.rewardConfig?.enabled;
-    const isPeerGiftingDisabled = body.rewardConfig?.peerGiftingEnabled;
-    console.log(
-      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
-    );
-    if (!isPeerGiftingDisabled || !isRewardEnabled) {
-      const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
-      await manageRecognitionPage.loadPage();
-      await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
-      await rewardStore.visit();
-    }
+    // const [apiResponse] = await Promise.all([
+    //   this.page.waitForResponse(
+    //     res =>
+    //       res.url().endsWith('/recognition/v1/tenant/config') &&
+    //       res.request().resourceType() === 'xhr' &&
+    //       res.status() === 200 &&
+    //       res.request().method() === 'GET'
+    //   ),
+    //   rewardStore.loadPage(), // action that triggers API
+    //   rewardStore.verifyThePageIsLoaded(),
+    // ]);
+    // const body = await apiResponse.json();
+    // console.log(`/recognition/v1/tenant/config Response is:\n${JSON.stringify(body, null, 2)}`);
+    // const isRewardEnabled = body.rewardConfig?.enabled;
+    // const isPeerGiftingDisabled = body.rewardConfig?.peerGiftingEnabled;
+    // console.log(
+    //   `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
+    // );
+    // if (!isPeerGiftingDisabled || !isRewardEnabled) {
+    //   const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
+    //   await manageRecognitionPage.loadPage();
+    //   await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
+    // }
+    await rewardStore.visit();
+    await rewardStore.verifyThePageIsLoaded();
   }
 
   async selectAndRedeemGiftCard(giftCardName: string) {

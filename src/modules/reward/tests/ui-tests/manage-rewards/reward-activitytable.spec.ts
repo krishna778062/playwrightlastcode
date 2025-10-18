@@ -232,6 +232,12 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
       await giveRecognitionModal.enterTheRecognitionMessage('Test Message' + Math.floor(Math.random() * 1000));
       const rewardOptionText = await giveRecognitionModal.giftThePoints(rewardOptionIndex);
+      await giveRecognitionModal.recognizeButton.click({ force: true });
+      const shareModal = new DialogBox(appManagerFixture.page);
+      if (await recognitionHub.verifier.verifyTheElementIsVisible(shareModal.container, { timeout: 2000 })) {
+        await shareModal.skipButton.click();
+        await expect(shareModal.container).not.toBeVisible();
+      }
       await recognitionHub.page.reload();
       await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
@@ -779,7 +785,12 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
       await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
       const rewardOptionText = await giveRecognitionModal.giftThePoints(rewardOptionIndex);
-
+      await giveRecognitionModal.recognizeButton.click({ force: true });
+      const shareModal = new DialogBox(appManagerFixture.page);
+      if (await recognitionHub.verifier.verifyTheElementIsVisible(shareModal.container, { timeout: 2000 })) {
+        await shareModal.skipButton.click();
+        await expect(shareModal.container).not.toBeVisible();
+      }
       const [response] = await Promise.all([
         appManagerFixture.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
         giveRecognitionModal.recognizeButton.click({ force: true }),
@@ -904,7 +915,12 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
       await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
       const rewardPointsText = await giveRecognitionModal.giftThePoints(1);
-
+      await giveRecognitionModal.recognizeButton.click({ force: true });
+      const shareModal = new DialogBox(appManagerFixture.page);
+      if (await recognitionHub.verifier.verifyTheElementIsVisible(shareModal.container, { timeout: 2000 })) {
+        await shareModal.skipButton.click();
+        await expect(shareModal.container).not.toBeVisible();
+      }
       const [response] = await Promise.all([
         appManagerFixture.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
         giveRecognitionModal.recognizeButton.click({ force: true }),

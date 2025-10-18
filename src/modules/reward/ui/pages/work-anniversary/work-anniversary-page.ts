@@ -76,7 +76,7 @@ export class WorkAnniversaryPage extends BasePage {
     this.editMileStonePageHeader = this.editMileStoneContainer.locator('h1');
     this.workAnniversarySaveChangesButton = this.editMileStoneContainer.getByRole('button', { name: 'Save changes' });
     this.editMileStoneWrapper = this.editMileStoneContainer.locator('[class*="AutomatedAward_wrapper"]');
-    this.awardDetailsHeader = this.editMileStoneWrapper.locator('header h2');
+    this.awardDetailsHeader = this.editMileStoneWrapper.locator('header h2').first();
 
     // Badge container
     this.badgeContainer = this.editMileStoneWrapper.locator('[data-testid="field-Badge"]');

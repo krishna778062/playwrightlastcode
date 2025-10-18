@@ -183,7 +183,6 @@ export class GiveRecognitionDialogBox extends DialogBox {
     if (!(await this.giftingOptionsContainerPill.nth(rewardPoints - 1).isChecked())) {
       await this.giftingOptionsContainerPill.nth(rewardPoints - 1).click({ force: true });
     }
-    await this.recognizeButton.click();
     return rewardPointsText || '';
   }
 
