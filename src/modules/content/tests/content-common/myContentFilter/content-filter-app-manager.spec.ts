@@ -103,13 +103,17 @@ test.describe(
           await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.CREATED_NEWEST);
         await manageContentPage.actions.selectCreatedNewestOption();
         if (contentCreatedAtDetailsNewest !== null) {
-          await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(contentCreatedAtDetailsNewest);
+          await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(
+            contentCreatedAtDetailsNewest[0]
+          );
         }
         const contentCreatedAtDetailsOldest =
           await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.CREATED_OLDEST);
         await manageContentPage.actions.selectCreatedOldestOption();
         if (contentCreatedAtDetailsOldest !== null) {
-          await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(contentCreatedAtDetailsOldest);
+          await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(
+            contentCreatedAtDetailsOldest[0]
+          );
         }
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
@@ -119,7 +123,7 @@ test.describe(
         await manageContentPage.actions.selectCreateNewestPublishedOption();
         if (contentCreatedAtDetailsNewestPublished !== null) {
           await manageContentPage.assertions.verifyPublishedAtDateVisibleInManageContent(
-            contentCreatedAtDetailsNewestPublished
+            contentCreatedAtDetailsNewestPublished[0]
           );
         }
         await manageContentPage.actions.clickFilterButton();
@@ -130,7 +134,7 @@ test.describe(
           await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.PUBLISHED_OLDEST);
         if (contentCreatedAtDetailsOldestPublished !== null) {
           await manageContentPage.assertions.verifyPublishedAtDateVisibleInManageContent(
-            contentCreatedAtDetailsOldestPublished
+            contentCreatedAtDetailsOldestPublished[0]
           );
         }
         await manageContentPage.actions.clickSortByButton();
@@ -139,7 +143,7 @@ test.describe(
           await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.MODIFIED_NEWEST);
         if (contentCreatedAtDetailsNewestEdited !== null) {
           await manageContentPage.assertions.verifyEditedAtDateVisibleInManageContent(
-            contentCreatedAtDetailsNewestEdited
+            contentCreatedAtDetailsNewestEdited[0]
           );
           await manageContentPage.actions.clickSortByButton();
           await manageContentPage.actions.selectEditedOldestOption();
@@ -147,9 +151,37 @@ test.describe(
             await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.MODIFIED_OLDEST);
           if (contentCreatedAtDetailsOldestEdited !== null) {
             await manageContentPage.assertions.verifyEditedAtDateVisibleInManageContent(
-              contentCreatedAtDetailsOldestEdited
+              contentCreatedAtDetailsOldestEdited[0]
             );
           }
+        }
+      }
+    );
+    test(
+      'verify user should be able to filter the content on the "Created Date Oldest First" filter',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25057'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'verify user should be able to filter the content on the "Created Date Oldest First" filter',
+          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
+          zephyrTestId: 'CONT-25057',
+          storyId: 'CONT-25057',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.selectCreatedOldestOption();
+
+        // Get dates from API
+        const contentCreatedAtDetailsOldest =
+          await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.CREATED_OLDEST);
+        console.log('contentCreatedAtDetailsOldest', contentCreatedAtDetailsOldest);
+
+        // Verify all dates from array are visible on UI
+        if (contentCreatedAtDetailsOldest !== null) {
+          await manageContentPage.assertions.verifyAllCreatedAtDatesFromArray(contentCreatedAtDetailsOldest);
         }
       }
     );

@@ -601,11 +601,21 @@ export class ManageContentComponent extends BaseComponent {
       });
     });
   }
+
   async verifyCreatedAtDateVisibleInManageContent(createdAtDate: string): Promise<void> {
     await test.step('Verifying the created at date is visible in manage content', async () => {
       await this.verifier.verifyTheElementIsVisible(this.createdAtDate(createdAtDate), {
         assertionMessage: 'Created at date should be visible',
       });
+    });
+  }
+
+  async verifyAllCreatedAtDatesFromArray(dates: string[]): Promise<void> {
+    await test.step('Verifying all created at dates from array', async () => {
+      for (let i = 0; i < dates.length; i++) {
+        const dateToCheck = dates[i];
+        await this.verifyCreatedAtDateVisibleInManageContent(dateToCheck);
+      }
     });
   }
 }
