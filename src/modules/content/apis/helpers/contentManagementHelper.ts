@@ -45,7 +45,7 @@ export class ContentManagementHelper {
     size?: number;
     status?: string;
     sortBy?: string;
-  }): Promise<{ siteId: string; contentId: string }> {
+  }): Promise<{ siteId: string; contentId: string; contentType: string }> {
     const response = await this.contentManagementService.getContentList(options);
 
     if (response.result?.listOfItems && response.result.listOfItems.length > 0) {
@@ -54,6 +54,7 @@ export class ContentManagementHelper {
       return {
         siteId: randomContent.site.siteId,
         contentId: randomContent.contentId || randomContent.id,
+        contentType: randomContent.type,
       };
     }
 
@@ -87,6 +88,7 @@ export class ContentManagementHelper {
     return {
       siteId: pageResult.siteId,
       contentId: pageResult.contentId,
+      contentType: 'page',
     };
   }
 
