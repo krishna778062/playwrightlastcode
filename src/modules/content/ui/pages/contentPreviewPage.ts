@@ -8,8 +8,6 @@ import {
 import { PromotePageModal } from '@content/ui/components/promotePageModal';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
-import { CreateFeedPostComponent } from '../components/createFeedPostComponent';
-
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ContentDetailsComponent } from '@/src/modules/content/ui/components/contentDetailsComponent';
 import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
@@ -72,7 +70,6 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   private contentDetailsComponent: ContentDetailsComponent;
   private createFeedPostComponent: CreateFeedPostComponent;
   private listFeedComponent: ListFeedComponent;
-  private createFeedPostComponent: CreateFeedPostComponent;
   private createQuestionComponent: CreateQuestionComponent;
 
   constructor(page: Page, siteId?: string, contentId?: string, contentType?: string) {
