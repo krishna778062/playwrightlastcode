@@ -159,14 +159,14 @@ test.describe(
     test(
       'verify user should be able to filter the content on the "Published Date Oldest First" filter',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25057'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25056'],
       },
       async ({ standardUserFixture }) => {
         tagTest(test.info(), {
-          description: 'verify user should be able to filter the content on the "Created Date Oldest First" filter',
+          description: 'verify user should be able to filter the content on the "Published Date Oldest First" filter',
           customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
-          zephyrTestId: 'CONT-25057',
-          storyId: 'CONT-25057',
+          zephyrTestId: 'CONT-25056',
+          storyId: 'CONT-25056',
         });
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
