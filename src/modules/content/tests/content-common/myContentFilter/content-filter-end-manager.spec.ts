@@ -4,6 +4,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { ContentSortBy, ContentStatus } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 
@@ -44,6 +45,82 @@ test.describe(
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickOnSelectAllButton();
         await manageContentPage.actions.applyButtonShouldBeDisabled();
+      }
+    );
+
+    test(
+      'verify different combination for filters for Manage By/Author By, Content type and sort by filter on Manage > Content screen',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25099'],
+      },
+      async ({ standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify different combination for filters for Manage By/Author By, Content type and sort by filter on Manage > Content screen',
+          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
+          zephyrTestId: 'CONT-25099',
+          storyId: 'CONT-25099',
+        });
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.selectContentFilterByType('authorByMe');
+        await manageContentPage.actions.clickSortByButton();
+        const contentCreatedAtDetailsNewest =
+          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.CREATED_NEWEST);
+        await manageContentPage.actions.selectCreatedNewestOption();
+        if (contentCreatedAtDetailsNewest !== null) {
+          await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(contentCreatedAtDetailsNewest);
+        }
+        const contentCreatedAtDetailsOldest =
+          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.CREATED_OLDEST);
+        await manageContentPage.actions.selectCreatedOldestOption();
+        if (contentCreatedAtDetailsOldest !== null) {
+          await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(contentCreatedAtDetailsOldest);
+        }
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.actions.clickSortByButton();
+        const contentCreatedAtDetailsNewestPublished =
+          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.PUBLISHED_NEWEST);
+        await manageContentPage.actions.selectCreateNewestPublishedOption();
+        if (contentCreatedAtDetailsNewestPublished !== null) {
+          await manageContentPage.assertions.verifyPublishedAtDateVisibleInManageContent(
+            contentCreatedAtDetailsNewestPublished
+          );
+        }
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.selectCreateOldestPublishedOption();
+        const contentCreatedAtDetailsOldestPublished =
+          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.PUBLISHED_OLDEST);
+        if (contentCreatedAtDetailsOldestPublished !== null) {
+          await manageContentPage.assertions.verifyPublishedAtDateVisibleInManageContent(
+            contentCreatedAtDetailsOldestPublished
+          );
+        }
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.selectEditedNewestOption();
+        const contentCreatedAtDetailsNewestEdited =
+          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.MODIFIED_NEWEST);
+        if (contentCreatedAtDetailsNewestEdited !== null) {
+          await manageContentPage.assertions.verifyEditedAtDateVisibleInManageContent(
+            contentCreatedAtDetailsNewestEdited
+          );
+        } else {
+          console.log('Skipping edited date verification - no modifiedAt date available');
+        }
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.selectEditedOldestOption();
+        const contentCreatedAtDetailsOldestEdited =
+          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.MODIFIED_OLDEST);
+        if (contentCreatedAtDetailsOldestEdited !== null) {
+          await manageContentPage.assertions.verifyEditedAtDateVisibleInManageContent(
+            contentCreatedAtDetailsOldestEdited
+          );
+        } else {
+          console.log('Skipping edited date verification - no modifiedAt date available');
+        }
       }
     );
   }
