@@ -40,6 +40,7 @@ export interface IAssertions {
   verifySiteName: () => Promise<void>;
   verifySiteNameLink: () => Promise<void>;
   scheduledTagVisibleInManageContent: () => Promise<void>;
+  verifyManageContentListItemCount: (expectedCount: number) => Promise<void>;
 }
 
 export class ManageContentPage extends BasePage implements IActions, IAssertions {
@@ -194,6 +195,11 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async selectTheStatusFilter(status: ContentStatus): Promise<void> {
     await this.manageContentComponent.selectTheStatusFilter(status);
   }
+
+  async selectTheStatusFilter(status: string): Promise<void> {
+    await this.manageContentComponent.selectTheStatusFilter(status);
+  }
+
   async selectEditedNewestOption(): Promise<void> {
     await this.manageContentComponent.selectEditedNewestOptionByText();
   }
@@ -265,5 +271,21 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async verifyPublishedAtDateVisibleInManageContent(publishedAtDate: string): Promise<void> {
     await this.manageContentComponent.verifyPublishedAtDateVisibleInManageContent(publishedAtDate);
+  }
+
+  async verifyAllCreatedAtDatesFromArray(dates: string[]): Promise<void> {
+    await this.manageContentComponent.verifyAllCreatedAtDatesFromArray(dates);
+  }
+
+  async verifyAllPublishedAtDatesFromArray(dates: string[]): Promise<void> {
+    await this.manageContentComponent.verifyAllPublishedAtDatesFromArray(dates);
+  }
+
+  async verifyManageContentListItemCount(expectedCount: number): Promise<void> {
+    await this.manageContentComponent.verifyManageContentListItemCount(expectedCount);
+  }
+
+  async clickShowMoreButton(): Promise<void> {
+    await this.manageContentComponent.clickShowMoreButton();
   }
 }

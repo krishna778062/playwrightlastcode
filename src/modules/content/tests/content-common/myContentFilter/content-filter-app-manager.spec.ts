@@ -5,7 +5,6 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
-import { ContentSortBy, ContentStatus } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
@@ -82,12 +81,14 @@ test.describe(
       }
     );
     test(
-      'verify for the list API for content listing, it should have a limit of 16 and show more button should come for more than 16 content',      {
+      'verify for the list API for content listing, it should have a limit of 16 and show more button should come for more than 16 content',
+      {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25055'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          description: 'Verify for the list API for content listing, it should have a limit of 16 and show more button should come for more than 16 content',
+          description:
+            'Verify for the list API for content listing, it should have a limit of 16 and show more button should come for more than 16 content',
           customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
           zephyrTestId: 'CONT-25055',
           storyId: 'CONT-25055',
@@ -95,7 +96,43 @@ test.describe(
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
-        
+        await manageContentPage.actions.selectTheStatusFilter('Published');
+        await manageContentPage.assertions.verifyManageContentListItemCount(16);
+        await manageContentPage.actions.clickShowMoreButton();
+        await manageContentPage.assertions.verifyManageContentListItemCount(32);
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter('Unpublished');
+        await manageContentPage.assertions.verifyManageContentListItemCount(16);
+        await manageContentPage.actions.clickShowMoreButton();
+        await manageContentPage.assertions.verifyManageContentListItemCount(32);
+      }
+    );
+
+    test(
+      'verify app manager should be able to filter the content for the content status as Published and Unpublished',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25058'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'verify app manager should be able to filter the content for the content status as Published and Unpublished',
+          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
+          zephyrTestId: 'CONT-25058',
+          storyId: 'CONT-25058',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter('Published');
+        await manageContentPage.assertions.verifyManageContentListItemCount(16);
+        await manageContentPage.actions.clickShowMoreButton();
+        await manageContentPage.assertions.verifyManageContentListItemCount(32);
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter('Unpublished');
+        await manageContentPage.assertions.verifyManageContentListItemCount(16);
+        await manageContentPage.actions.clickShowMoreButton();
+        await manageContentPage.assertions.verifyManageContentListItemCount(32);
       }
     );
   }
