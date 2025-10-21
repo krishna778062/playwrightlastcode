@@ -1,29 +1,30 @@
 import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
 import { QRManagementService } from '../apis/services/QRManagementService';
+import { getFrontlineTenantConfigFromCache } from '../config/frontlineConfig';
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
-import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
+import { OTPUtils } from '@/src/core/utils/otpUtilsMailosaur';
 
 export type UserType = 'appManager' | 'endUser' | 'promotionManager';
 
 export const users = {
   appManager: {
-    email: process.env.APP_MANAGER_USERNAME || '',
-    password: process.env.APP_MANAGER_PASSWORD || '',
+    email: getFrontlineTenantConfigFromCache().appManagerEmail || '',
+    password: getFrontlineTenantConfigFromCache().appManagerPassword || '',
   },
   endUser: {
-    email: process.env.END_USER_USERNAME || '',
-    password: process.env.END_USER_PASSWORD || '',
+    email: getFrontlineTenantConfigFromCache().endUserEmail || '',
+    password: getFrontlineTenantConfigFromCache().endUserPassword || '',
   },
   promotionManager: {
-    email: process.env.PROMOTION_MANAGER_USERNAME || '',
-    password: process.env.PROMOTION_MANAGER_PASSWORD || '',
+    email: getFrontlineTenantConfigFromCache().promotionManagerEmail || '',
+    password: getFrontlineTenantConfigFromCache().promotionManagerPassword || '',
   },
-};
+} as const;
 
 export const frontlineTestFixture = test.extend<
   {
@@ -49,14 +50,17 @@ export const frontlineTestFixture = test.extend<
   {
     appManagerApiContext: APIRequestContext;
     qrManagementService: QRManagementService;
+    otpUtils: OTPUtils;
+    config: ReturnType<typeof getFrontlineTenantConfigFromCache>;
   }
 >({
   // Worker-scoped API client - shared across all tests in worker
   appManagerApiContext: [
     async ({}, use) => {
-      const appManagerApiContext = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
-        email: getEnvConfig().appManagerEmail,
-        password: getEnvConfig().appManagerPassword,
+      const config = getFrontlineTenantConfigFromCache();
+      const appManagerApiContext = await RequestContextFactory.createAuthenticatedContext(config.apiBaseUrl, {
+        email: config.appManagerEmail,
+        password: config.appManagerPassword,
       });
 
       await use(appManagerApiContext);
@@ -66,18 +70,47 @@ export const frontlineTestFixture = test.extend<
   ],
   qrManagementService: [
     async ({ appManagerApiContext }, use) => {
-      const qrManagementService = new QRManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
+      const config = getFrontlineTenantConfigFromCache();
+      const qrManagementService = new QRManagementService(appManagerApiContext, config.apiBaseUrl);
       await use(qrManagementService);
+    },
+    { scope: 'worker' },
+  ],
+  config: [
+    async ({}, use) => {
+      const config = getFrontlineTenantConfigFromCache();
+      await use(config);
+    },
+    { scope: 'worker' },
+  ],
+  otpUtils: [
+    async ({}, use) => {
+      const config = getFrontlineTenantConfigFromCache();
+
+      // Only initialize OTP utils if Mailosaur credentials are available
+      if (config.mailosaurApiKey && config.mailosaurServerId) {
+        const otpUtils = new OTPUtils(config.mailosaurApiKey, config.mailosaurServerId);
+        await use(otpUtils);
+      } else {
+        // Provide a mock OTP utils if credentials are not available
+        const mockOtpUtils = {
+          getOTPFromSMS: async () => '123456',
+          getOTPFromEmail: async () => '123456',
+          generateTestEmail: () => 'test@example.com',
+        };
+        await use(mockOtpUtils as any);
+      }
     },
     { scope: 'worker' },
   ],
   appManagerBrowserContext: [
     async ({ browser }, use) => {
+      const config = getFrontlineTenantConfigFromCache();
       const context = await browser.newContext();
       const page = await context.newPage();
       await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().appManagerEmail,
-        password: getEnvConfig().appManagerPassword,
+        email: config.appManagerEmail,
+        password: config.appManagerPassword,
       });
       await use(context);
       await context.close();
@@ -86,11 +119,12 @@ export const frontlineTestFixture = test.extend<
   ],
   promotionManagerContext: [
     async ({ browser }, use) => {
+      const config = getFrontlineTenantConfigFromCache();
       const context = await browser.newContext();
       const page = await context.newPage();
       const promotionManagerHomePage = await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().promotionManagerEmail!,
-        password: getEnvConfig().promotionManagerPassword!,
+        email: config.promotionManagerEmail,
+        password: config.promotionManagerPassword,
       });
       await promotionManagerHomePage.verifyThePageIsLoaded();
       await use(context);
@@ -155,11 +189,12 @@ export const frontlineTestFixture = test.extend<
 
   endUserBrowserContext: [
     async ({ browser }, use) => {
+      const config = getFrontlineTenantConfigFromCache();
       const context = await browser.newContext();
       const page = await context.newPage();
       await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().endUserEmail!,
-        password: getEnvConfig().endUserPassword!,
+        email: config.endUserEmail,
+        password: config.endUserPassword,
       });
       await use(context);
       await context.close();

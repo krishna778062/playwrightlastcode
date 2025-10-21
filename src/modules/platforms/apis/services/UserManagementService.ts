@@ -40,6 +40,34 @@ export class UserManagementService implements IUserManagementOperations {
   }
 
   /**
+   * Get ORG_ID dynamically from frontline config if available, otherwise fall back to process.env
+   * This allows tenant-specific ORG_ID without manual process.env updates
+   */
+  private getOrgId(): string {
+    // Try to get ORG_ID from frontline config (if module is frontline)
+    try {
+      // Dynamic import to avoid circular dependencies
+      const frontlineConfigPath = '@/src/modules/frontline/config/frontlineConfig';
+
+      const { getFrontlineTenantConfigFromCache } = require(frontlineConfigPath);
+      const config = getFrontlineTenantConfigFromCache();
+      if (config?.orgId) {
+        console.log(`🔧 Using ORG_ID from frontline config: ${config.orgId}`);
+        return config.orgId;
+      }
+    } catch (error) {
+      // Frontline config not available (other modules) - fall back to process.env
+    }
+
+    // Fall back to process.env for other modules
+    if (!process.env.ORG_ID) {
+      throw new Error('ORG_ID not found in frontline config or process.env');
+    }
+    console.log(`🔧 Using ORG_ID from process.env: ${process.env.ORG_ID}`);
+    return process.env.ORG_ID;
+  }
+
+  /**
    * Adds a user to the system
    * @param user - The user to add
    * @param role - The role of the user
@@ -266,7 +294,7 @@ export class UserManagementService implements IUserManagementOperations {
             password: password,
           },
           headers: {
-            'x-smtip-tid': process.env.ORG_ID!,
+            'x-smtip-tid': this.getOrgId(),
             'x-smtip-uid': userId,
             'x-smtip-tenant-user-role': roleId.toString(),
           },
@@ -295,7 +323,7 @@ export class UserManagementService implements IUserManagementOperations {
             password: password,
           },
           headers: {
-            'x-smtip-tid': process.env.ORG_ID!,
+            'x-smtip-tid': this.getOrgId(),
             'x-smtip-uid': userId,
             'x-smtip-tenant-user-role': roleId.toString(),
           },
