@@ -1,4 +1,5 @@
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
+import { faker } from '@faker-js/faker';
 
 export const CONTENT_TEST_DATA = {
   COVER_IMAGES: {
@@ -10,6 +11,7 @@ export const CONTENT_TEST_DATA = {
   },
 
   DEFAULT_PAGE_CONTENT: {
+    title: `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Page`,
     content: 'page',
     category: 'Uncategorized',
     label: 'Page',

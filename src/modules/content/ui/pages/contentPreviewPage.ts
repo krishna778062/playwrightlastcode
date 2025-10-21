@@ -11,6 +11,8 @@ export interface IContentPreviewPageActions {
   clickOnApproveOrRejectButton: (action: string) => Promise<void>;
   enterRejectReason: (reason: string) => Promise<void>;
   checkCommentOption: () => Promise<void>;
+  unpublishingTheContent: () => Promise<void>;
+  publishingTheContent: () => Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -20,13 +22,14 @@ export interface IContentPreviewPageAssertions {
   verifyContentHasSubmitForApprovalButton: () => Promise<void>;
   verifyValidateOptionOnContentPreviewPage: () => Promise<void>;
   verifyingAlbumHeadingOnContentPreviewPage: () => Promise<void>;
+  verifyUnpulishedContentToastMessage: (toastMessage: string) => Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
   // Additional locators for promotion and verification
   readonly contentTitleHeading = (title: string) => this.page.locator('h1', { hasText: title });
   readonly successMessage = (message: string) => this.page.locator('div[class*="Toast-module"]').getByText(message);
-
+  readonly publishButton = this.page.getByRole('button', { name: 'Publish' });
   // Action locators
   readonly sendFeedbackTab = this.page.getByTestId('send-feedback-tab');
   readonly closeModalButton = this.page.getByTestId('close-modal-button');
@@ -46,11 +49,9 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly rejectButton = this.page.locator('span:has-text("Reject")');
   readonly rejectReasonTextarea = this.page.locator('div.Modal-content div textarea');
   readonly submitForApprovalButton = this.page.getByRole('button', { name: 'Submit for approval' });
-
-  // Assertion locators
   readonly sendHistoryPopup = this.page.getByTestId('send-history-popup');
   readonly versionHistoryPopup = this.page.getByTestId('version-history-popup');
-  readonly ellipsisButton = this.page.locator('[aria-label="Category option"]').first();
+  readonly ellipsisButton = this.page.locator('button[aria-label="Category option"]').first();
   readonly checkValidateOption = this.page.getByRole('button', { name: 'Validate' });
   readonly albumHeading = this.page.getByRole('heading', { name: 'Album', exact: true });
 
@@ -186,6 +187,24 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       await this.verifier.verifyTheElementIsVisible(this.albumHeading, {
         assertionMessage: 'Album heading should be visible on content preview page',
       });
+    });
+  }
+  async unpublishingTheContent(): Promise<void> {
+    await test.step('Unpublishing the content', async () => {
+      await this.hoverOverElementInJavaScript(this.ellipsisButton);
+      await this.clickOnElement(this.unpublishButton);
+    });
+  }
+  async verifyUnpulishedContentToastMessage(toastMessage: string): Promise<void> {
+    await test.step('Verifying unpulished content toast message', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.successMessage(toastMessage), {
+        assertionMessage: `Unpulished content toast message "${toastMessage}" should be visible`,
+      });
+    });
+  }
+  async publishingTheContent(): Promise<void> {
+    await test.step('Publishing the content', async () => {
+      await this.clickOnElement(this.publishButton);
     });
   }
 }

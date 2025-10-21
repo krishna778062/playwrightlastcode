@@ -2,8 +2,10 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 
 export class ManageContentComponent extends BaseComponent {
+  readonly baseActionUtil: BaseActionUtil;
   readonly searchBar: Locator;
   readonly searchIconButton: Locator;
   readonly nothingToShowHereText: Locator;
@@ -52,8 +54,10 @@ export class ManageContentComponent extends BaseComponent {
   readonly crossButton: Locator;
   readonly scheduledTag: Locator;
   readonly openingPanelMenu: Locator;
+  readonly ellipsisButton: Locator;
   constructor(page: Page) {
     super(page);
+    this.baseActionUtil = new BaseActionUtil(page);
     this.searchBar = page.locator("[aria-label='Search…']");
     this.searchIconButton = page.locator('.SearchField-submit');
     this.nothingToShowHereText = page.locator('p:has-text("Nothing to show here")');
@@ -111,6 +115,7 @@ export class ManageContentComponent extends BaseComponent {
     this.selectPublishOption = page.getByLabel('Status:');
     this.crossButton = page.getByRole('button', { name: 'Dismiss' }).first();
     this.scheduledTag = page.locator('[class="StampList"]:has-text("SCHEDULED")').first();
+    this.ellipsisButton = page.locator('.OptionsMenu-panel-main').first();
   }
 
   getPageName(pageName: string): Locator {
@@ -238,6 +243,7 @@ export class ManageContentComponent extends BaseComponent {
 
   async selectPublishButton(): Promise<void> {
     await test.step(`Selecting the publish button`, async () => {
+      await this.baseActionUtil.hoverOverElementInJavaScript(this.ellipsisButton);
       await this.clickOnElement(this.publishButton);
     });
   }
