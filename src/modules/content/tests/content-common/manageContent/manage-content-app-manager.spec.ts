@@ -7,12 +7,15 @@ import { NewHomePage } from '@/src/core';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
-import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationscreenPage';
+import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
+import { EditPagePage } from '@/src/modules/content/ui/pages/editPagePage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { HomeFeedPage } from '@/src/modules/content/ui/pages/manageApplicationDefaultHomeFeedPage';
 import { DefaultScreenPage } from '@/src/modules/content/ui/pages/manageApplicationDefaultScreenPage';
 import { ManageApplicationPage } from '@/src/modules/content/ui/pages/manageApplicationPage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
+import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
+import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
@@ -28,6 +31,9 @@ test.describe(
     let manageApplicationPage: ManageApplicationPage;
     let defaultScreenPage: DefaultScreenPage;
     let homeFeedPage: HomeFeedPage;
+    let editPage: EditPagePage;
+    let manageSitePage: ManageSitePage;
+    let siteDetailsPage: SiteDetailsPage;
 
     test.beforeEach(async ({ appManagerFixture }) => {
       await appManagerFixture.homePage.verifyThePageIsLoaded();
@@ -37,6 +43,10 @@ test.describe(
       manageApplicationPage = new ManageApplicationPage(appManagerFixture.page);
       defaultScreenPage = new DefaultScreenPage(appManagerFixture.page);
       homeFeedPage = new HomeFeedPage(appManagerFixture.page);
+      editPage = new EditPagePage(appManagerFixture.page, '', '');
+      homePage = new NewHomePage(appManagerFixture.page);
+      manageSitePage = new ManageSitePage(appManagerFixture.page, '');
+      siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, '');
     });
 
     test(
@@ -228,14 +238,14 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.HOME_FEED],
       },
-      async ({ standardUserFixture }) => {
+      async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description:
             'In Zeus Verify Default filters (Posts I follow and Recent Activity) are applied for Home Feed for New users',
           zephyrTestId: 'CONT-29493',
           storyId: 'CONT-29493',
         });
-        await standardUserFixture.navigationHelper.openApplicationSettings();
+        await appManagerFixture.navigationHelper.openApplicationSettings();
         await applicationScreenPage.actions.clickOnApplication();
         await manageApplicationPage.actions.clickOnDefaults();
         await defaultScreenPage.actions.clickOnHomeFeed();
@@ -250,9 +260,55 @@ test.describe(
           console.log('Verifying home feed defaults are applied for standard user');
           await standardUserFeedPage.assertions.verifyPostsIFollow();
           await standardUserFeedPage.assertions.verifySortByRecentActivity();
-          await standardUserFeedPage.actions.selectPostsToMe();
-          await standardUserFeedPage.actions.selectPostDate();
+          await standardUserFeedPage.actions.clickOnShowOption('toMe');
+          await standardUserFeedPage.actions.clickOnSortByOption('createdAt');
         });
+      }
+    );
+    test(
+      'to verify the site update category option in manage site user drop down sites',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.UPDATE_CATEGORY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'To verify the site update category option in manage site user drop down sites',
+          zephyrTestId: 'CONT-26056',
+          storyId: 'CONT-26056',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageSitePage.actions.clickOnUpdateCategory();
+        await manageSitePage.actions.clickOnCancelOption();
+        await manageSitePage.actions.clickOnSite();
+        await siteDetailsPage.assertions.validatingCategory();
+        await manageSitePage.actions.clickOnSites();
+        await manageSitePage.actions.clickOnUpdateCategory();
+        await manageSitePage.actions.updatingCategoryToUncategorized('Uncategorized');
+        await manageSitePage.actions.clickOnSite();
+        await siteDetailsPage.assertions.validatingCategoryToUncategorized();
+      }
+    );
+
+    test(
+      'zeus: Edit the validation Expired Content and Cancel',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VALIDATION_REQUIRED_BAR_STATE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Zeus: Edit the validation Expired Content and Cancel',
+          zephyrTestId: 'CONT-36069',
+          storyId: 'CONT-36069',
+        });
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickOnViewAllButton();
+        await manageContentPage.actions.verifyingValidationRequiredBarState();
+        await manageContentPage.actions.clickOnEditButton();
+        await editPage.actions.clickOnCancel();
+        await manageContentPage.actions.verifyingValidationRequiredBarState();
       }
     );
   }

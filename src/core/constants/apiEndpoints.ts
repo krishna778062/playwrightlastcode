@@ -16,6 +16,9 @@ export const API_ENDPOINTS = {
     roles: {
       list: '/v1/identity/accounts/roles/list',
     },
+    tiles: {
+      create: '/v1/content/tiles',
+    },
     groups: {
       create: '/v1/chat/conversations',
       addMembers: `/v1/chat/members`,
@@ -59,6 +62,9 @@ export const API_ENDPOINTS = {
     membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,
     unfeature: (siteId: string) => `/v1/content/sites/${siteId}/featured?action=unfeature`,
     siteDetails: (siteId: string) => `/v1/content/sites/${siteId}`,
+    carouselItems: (siteId: string) => `/v1/content/sites/${siteId}/carousel/items/list`,
+    deleteCarouselItem: (siteId: string, carouselItemId: string) =>
+      `/v1/content/sites/${siteId}/carousel/items/${carouselItemId}`,
   },
 
   content: {
@@ -98,12 +104,17 @@ export const API_ENDPOINTS = {
     update: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
     delete: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
     updateStatus: (campaignId: string) => `/v1/socialcampaigns/${campaignId}/status`,
+    shareToFeed: (campaignId: string, sharedWith: string) =>
+      `/v1/socialcampaigns/${campaignId}/share/feed/${sharedWith}`,
     metadata: '/v1/content/oembed/metadata',
   },
   appConfig: {
     governance: '/v1/account/appConfig/app.setup.governance',
     general: '/v1/account/appConfig/app',
     appConfig: '/v1/account/appConfig',
+  },
+  tile: {
+    create: '/v1/content/tiles',
   },
   apps: {
     settings: '/v1/account/apps-links-settings',
@@ -130,6 +141,8 @@ export const API_ENDPOINTS = {
     contentTilesList: '/v1/content/tiles/list',
     tilesByConnector: (connectorId: string) => `/v1/tiles?type=app&connectorId=${connectorId}`,
     createTileInstance: (tileId: string) => `/v1/tiles/${tileId}/instances`,
+    calendarIntegration: '/v1/account/appConfig/app.integrations.calendar.integration',
+    integrationDomains: '/v1/account/integration-domains',
   },
 } as const;
 

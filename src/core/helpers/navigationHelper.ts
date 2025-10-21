@@ -1,4 +1,3 @@
-import { CreateComponent as AbacCreateComponent } from '@content-abac/ui/components/globalCreateContainerComponent';
 import { Page, test } from '@playwright/test';
 
 import { CreateComponent } from '@content/ui/components/createComponent';
@@ -22,7 +21,9 @@ import {
   PageCreationPage,
   SiteCreationPage,
 } from '@/src/modules/content/ui';
+import { CreateComponent as AbacCreateComponent } from '@/src/modules/content-abac/ui/components/globalCreateContainerComponent';
 import { SiteCreationPageAbac } from '@/src/modules/content-abac/ui/pages/siteCreationPageAbac';
+import { AnalyticsLandingPage } from '@/src/modules/data-engineering/ui/pages/analyticsLandingPage';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/ui/pages/globalSearchResultPage';
 
 export interface ICommonHomePageActions {
@@ -241,7 +242,30 @@ export class NavigationHelper {
         console.log('DEBUG: Error clicking on social campaigns', error);
         console.log('DEBUG: Social campaigns is not visible, clicking on more to expand the menu');
         await this.sideNavBarComponent.moreElement.click();
+        await this.sideNavBarComponent.socialCampaignsElement.click();
       }
+    });
+  }
+
+  async verifySocialCampaignsOptionIsVisible(): Promise<void> {
+    await test.step('Verifying social campaigns option is visible', async () => {
+      if (await this.sideNavBarComponent.moreElement.isVisible()) {
+        await this.sideNavBarComponent.moreElement.click();
+      }
+      await this.sideNavBarComponent.verifier.verifyTheElementIsVisible(
+        this.sideNavBarComponent.socialCampaignsElement
+      );
+    });
+  }
+
+  async verifySocialCampaignsOptionIsNotVisible(): Promise<void> {
+    await test.step('Verifying social campaigns option is not visible', async () => {
+      if (await this.sideNavBarComponent.moreElement.isVisible()) {
+        await this.sideNavBarComponent.moreElement.click();
+      }
+      await this.sideNavBarComponent.verifier.verifyTheElementIsNotVisible(
+        this.sideNavBarComponent.socialCampaignsElement
+      );
     });
   }
 
@@ -269,5 +293,50 @@ export class NavigationHelper {
         return emailNotificationAppSettingsPage;
       }
     );
+  }
+
+  /**
+   * Navigates to the analytics landing page
+   * @param options - The options for the step
+   * @returns The analytics landing page
+   */
+  async navigateToAnalyticsLandingPage(options?: TestOptions): Promise<AnalyticsLandingPage> {
+    return await test.step(options?.stepInfo || 'Navigating to analytics landing page', async () => {
+      await this.sideNavBarComponent.clickOnAnalyticsButton(options);
+      const analyticsLandingPage = new AnalyticsLandingPage(this.page);
+      await analyticsLandingPage.verifyThePageIsLoaded();
+      return analyticsLandingPage;
+    });
+  }
+
+  async navigateToAppAnalytics(options?: TestOptions): Promise<void> {
+    return await test.step(options?.stepInfo || 'Navigating to app analytics', async () => {
+      const analyticsLandingPage = await this.navigateToAnalyticsLandingPage(options);
+      await analyticsLandingPage.openAppAnalytics();
+    });
+  }
+
+  /**
+   * Navigates to the recognition analytics page
+   * @param options - The options for the step
+   * @returns The recognition analytics page
+   */
+  async navigateToRecognitionAnalytics(options?: TestOptions): Promise<void> {
+    return await test.step(options?.stepInfo || 'Navigating to recognition analytics', async () => {
+      const analyticsLandingPage = await this.navigateToAnalyticsLandingPage(options);
+      await analyticsLandingPage.openRecognitionAnalytics();
+    });
+  }
+
+  /**
+   * Navigates to the campaign analytics page
+   * @param options - The options for the step
+   * @returns The campaign analytics page
+   */
+  async navigateToManageCampaigns(options?: TestOptions): Promise<void> {
+    return await test.step(options?.stepInfo || 'Navigating to campaign analytics', async () => {
+      const analyticsLandingPage = await this.navigateToAnalyticsLandingPage(options);
+      await analyticsLandingPage.openCampaignAnalytics();
+    });
   }
 }

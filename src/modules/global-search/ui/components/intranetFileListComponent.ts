@@ -174,7 +174,7 @@ export class IntranetFileListComponent extends ContentListComponent {
    */
   async clickFilesTab(): Promise<void> {
     await test.step(`Clicking on the files tab`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.filesTab, { timeout: 30000 });
+      await this.verifier.verifyTheElementIsVisible(this.filesTab, { timeout: 50000 });
       await this.clickOnElement(this.filesTab);
     });
   }

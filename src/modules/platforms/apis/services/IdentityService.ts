@@ -346,23 +346,43 @@ export class IdentityService implements IIdentityAdminOperations {
   async getCategoryId(name: string, size: number, options?: { nextPageToken: number; term: string }): Promise<string> {
     let categoryId: string = '';
     await test.step(`Getting category id for ${name}`, async () => {
-      const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
-        data: {
-          nextPageToken: options?.nextPageToken || 0,
-          type: 'category',
-          size: size,
-          term: options?.term || '',
-        },
-      });
-      const responseJson = await this.httpClient.parseResponse<IdentityAudienceSearchResponse>(response);
-      let i: number;
-      for (i = 0; i < responseJson.result.listOfItems.length; i++) {
-        if (responseJson.result.listOfItems[i].data.name == name) {
-          categoryId = responseJson.result.listOfItems[i].data.id;
+      let nextPageToken = options?.nextPageToken || 0;
+      const maxPages = 20; // Limit to prevent infinite loops
+      let currentPage = 0;
+
+      while (currentPage < maxPages) {
+        const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
+          data: {
+            nextPageToken: nextPageToken,
+            type: 'category',
+            size: size,
+            selectedFields: [], // Add this field to match the working curl request
+            term: options?.term || '',
+          },
+        });
+        const responseJson = await this.httpClient.parseResponse<IdentityAudienceSearchResponse>(response);
+
+        // Search for the category in current page
+        for (let i = 0; i < responseJson.result.listOfItems.length; i++) {
+          if (responseJson.result.listOfItems[i].data.name == name) {
+            categoryId = responseJson.result.listOfItems[i].data.id;
+            return categoryId;
+          }
+        }
+
+        // Check if there are more pages - increment nextPageToken by size to get next page
+        if (responseJson.result.listOfItems.length === size) {
+          nextPageToken += size;
+          currentPage++;
+        } else {
+          break;
         }
       }
+
       if (!categoryId) {
-        throw new Error(`Category ${name} not found in fetched list of categories`);
+        throw new Error(
+          `Category ${name} not found in fetched list of categories after searching ${currentPage + 1} pages`
+        );
       }
     });
     return categoryId;
