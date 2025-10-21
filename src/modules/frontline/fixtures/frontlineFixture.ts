@@ -51,6 +51,7 @@ export const frontlineTestFixture = test.extend<
     appManagerApiContext: APIRequestContext;
     qrManagementService: QRManagementService;
     otpUtils: OTPUtils;
+    config: ReturnType<typeof getFrontlineTenantConfigFromCache>;
   }
 >({
   // Worker-scoped API client - shared across all tests in worker
@@ -72,6 +73,13 @@ export const frontlineTestFixture = test.extend<
       const config = getFrontlineTenantConfigFromCache();
       const qrManagementService = new QRManagementService(appManagerApiContext, config.apiBaseUrl);
       await use(qrManagementService);
+    },
+    { scope: 'worker' },
+  ],
+  config: [
+    async ({}, use) => {
+      const config = getFrontlineTenantConfigFromCache();
+      await use(config);
     },
     { scope: 'worker' },
   ],

@@ -7,7 +7,6 @@ import { tagTest } from '@core/utils/testDecorator';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { Roles } from '@/src/core/constants/roles';
 import { UserTestDataBuilder } from '@/src/core/test-data-builders/UserTestDataBuilder';
-import { getSecondaryConfig } from '@/src/modules/frontline/config/secondaryTenantConfig';
 
 test.describe(
   'feature: login with otp',
@@ -15,9 +14,8 @@ test.describe(
     tag: [FrontlineSuiteTags.FRONTLINE],
   },
   () => {
-    test.beforeAll(async ({ appManagerApiContext }) => {
-      // Get secondary tenant config from dedicated config file
-      const config = getSecondaryConfig();
+    test.beforeAll(async ({ appManagerApiContext, config }) => {
+      // Get secondary tenant config from fixture
       console.log(`🔧 Running OTP test on: ${config.tenantName} (${config.frontendBaseUrl})`);
 
       // UserManagementService will automatically use ORG_ID from frontline config
