@@ -17,7 +17,7 @@ test.describe(
   },
   () => {
     let feedPage: FeedPage;
-    let createdPostId: string = '';
+    let createdPostText: string = '';
 
     test.beforeEach(async ({ standardUserFixture, appManagerFixture }) => {
       // Configure app governance settings and enable timeline comment post(feed)
@@ -34,9 +34,9 @@ test.describe(
 
     test.afterEach(async ({ appManagerFixture }) => {
       // Cleanup: Delete post using API if test failed and post still exists
-      if (createdPostId) {
+      if (createdPostText) {
         try {
-          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostText);
         } catch (error) {
           console.log('Failed to cleanup feed via API:', error);
         }
@@ -92,8 +92,8 @@ test.describe(
           },
         });
 
-        // Store postId for cleanup (postId would be available if using API creation)
-        createdPostId = postResult.postId || '';
+        // Store post text for cleanup
+        createdPostText = postResult.postText;
 
         // Wait for post to be visible and get timestamp
         await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
@@ -108,7 +108,7 @@ test.describe(
 
         // Step 4: Delete the post
         await feedPage.actions.deletePost(updatedPostText);
-        createdPostId = ''; // Clear post ID as post is already deleted
+        createdPostText = ''; // Clear post text as post is already deleted
       }
     );
 
