@@ -1,7 +1,5 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { ContentStatus } from '@modules/content/constants';
-
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
@@ -54,6 +52,8 @@ export class ManageContentComponent extends BaseComponent {
   readonly crossButton: Locator;
   readonly scheduledTag: Locator;
   readonly openingPanelMenu: Locator;
+  readonly manageContentListItems: Locator;
+  readonly showMoreButton: Locator;
   constructor(page: Page) {
     super(page);
     this.searchBar = page.locator("[aria-label='Search…']");
@@ -162,7 +162,7 @@ export class ManageContentComponent extends BaseComponent {
   }
   async waitForManageContentListItems(): Promise<void> {
     await test.step(`Waiting for manage content list items`, async () => {
-      await this.page.waitForSelector('.ManageContentListItem');
+      await this.manageContentListItems.first().waitFor();
     });
   }
 
@@ -384,22 +384,14 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
-  async selectTheStatusFilter(status: string): Promise<void> {
-    await test.step(`Selecting the status filter: ${status}`, async () => {
-      await this.clickOnElement(this.statusField);
-      await this.selectPublishOption.selectOption(status);
-    });
-  }
   async verifyManageContentListItemCount(expectedCount: number): Promise<void> {
     await test.step(`Verifying ManageContentListItem count is ${expectedCount}`, async () => {
       await this.waitForManageContentListItems();
       const actualCount = await this.manageContentListItems.count();
-      console.log(`Actual count: ${actualCount}`);
-      console.log(`Expected count: ${expectedCount}`);
+
       if (actualCount < expectedCount) {
         throw new Error(`Expected at least ${expectedCount} ManageContentListItem elements, but found ${actualCount}`);
       }
-      console.log(`✅ Successfully verified ${actualCount} ManageContentListItem elements`);
     });
   }
   async clickSiteSearchBar(siteName: string): Promise<void> {
@@ -408,9 +400,13 @@ export class ManageContentComponent extends BaseComponent {
       await this.siteSearchBar.type(siteName);
     });
   }
-  async selectSiteSearchBar(_siteName: string): Promise<void> {
-    await test.step(`Selecting the site search bar`, async () => {});
+
+  async selectSiteSearchBarOption(): Promise<void> {
+    await test.step(`Selecting the site search bar option`, async () => {
+      await this.clickOnElement(this.siteSearchBarOption);
+    });
   }
+
   async authorNameShouldBeVisible(): Promise<void> {
     await test.step(`Checking the author name should be visible`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.authorName);
@@ -436,16 +432,6 @@ export class ManageContentComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.siteStatusStamp);
     });
   }
-  async selectSiteSearchBarOption(): Promise<void> {
-    await test.step('Selecting the site search bar option', async () => {
-      const fullText = (await this.siteSearchBarOption.textContent()) || '';
-      // Extract site name by removing "Site" prefix
-      this.siteSearchBarOptionText = fullText.replace(/^Site/, '').trim();
-
-      // Click on the site search bar option
-      await this.clickOnElement(this.siteSearchBarOption);
-    });
-  }
 
   async verifySiteNameLink(): Promise<void> {
     await test.step('Verifying the site name', async () => {
@@ -468,7 +454,7 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
-  async selectTheStatusFilter(status: ContentStatus): Promise<void> {
+  async selectTheStatusFilter(status: string): Promise<void> {
     await test.step(`Selecting the status filter: ${status}`, async () => {
       await this.clickOnElement(this.statusField);
       await this.selectPublishOption.selectOption(status);
@@ -650,6 +636,21 @@ export class ManageContentComponent extends BaseComponent {
         const dateToCheck = dates[i];
         await this.verifyPublishedAtDateVisibleInManageContent(dateToCheck);
       }
+    });
+  }
+
+  async clickShowMoreButton(): Promise<void> {
+    await test.step('Clicking the show more button', async () => {
+      await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.showMoreButton, { delay: 2_000 }),
+        response =>
+          response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_SHOW_MORE_API) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
     });
   }
 }

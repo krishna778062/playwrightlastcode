@@ -165,12 +165,13 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickFilterButton(): Promise<void> {
     await this.manageContentComponent.clickFilterButton();
   }
-  async selectTheStatusFilter(status: string): Promise<void> {
-    await this.manageContentComponent.selectTheStatusFilter(status);
-  }
 
   async clickSiteSearchBar(siteName: string): Promise<void> {
     await this.manageContentComponent.clickSiteSearchBar(siteName);
+  }
+
+  async selectSiteSearchBarOption(): Promise<void> {
+    await this.manageContentComponent.selectSiteSearchBarOption();
   }
   async authorNameShouldBeVisible(): Promise<void> {
     await this.manageContentComponent.authorNameShouldBeVisible();
@@ -187,9 +188,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifySiteStatusStamp(): Promise<void> {
     await this.manageContentComponent.verifySiteStatusStamp();
   }
-  async selectSiteSearchBarOption(): Promise<void> {
-    await this.manageContentComponent.selectSiteSearchBarOption();
-  }
+
   async verifySiteNameLink(): Promise<void> {
     await this.manageContentComponent.verifySiteNameLink();
   }
@@ -199,6 +198,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async selectTheStatusFilter(status: ContentStatus): Promise<void> {
     await this.manageContentComponent.selectTheStatusFilter(status);
   }
+
   async selectEditedNewestOption(): Promise<void> {
     await this.manageContentComponent.selectEditedNewestOptionByText();
   }
@@ -278,5 +278,13 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async verifyAllPublishedAtDatesFromArray(dates: string[]): Promise<void> {
     await this.manageContentComponent.verifyAllPublishedAtDatesFromArray(dates);
+  }
+
+  async verifyManageContentListItemCount(expectedCount: number): Promise<void> {
+    await this.manageContentComponent.verifyManageContentListItemCount(expectedCount);
+  }
+
+  async clickShowMoreButton(): Promise<void> {
+    await this.manageContentComponent.clickShowMoreButton();
   }
 }
