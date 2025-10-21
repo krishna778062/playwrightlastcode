@@ -17,7 +17,8 @@ test.describe(
   },
   () => {
     let feedPage: FeedPage;
-    let createdPostText: string = '';
+    let createdPostText: string;
+    let createdPostId: string = '';
 
     test.beforeEach(async ({ standardUserFixture, appManagerFixture }) => {
       // Configure app governance settings and enable timeline comment post(feed)
@@ -34,9 +35,9 @@ test.describe(
 
     test.afterEach(async ({ appManagerFixture }) => {
       // Cleanup: Delete post using API if test failed and post still exists
-      if (createdPostText) {
+      if (createdPostId && appManagerFixture.feedManagementHelper) {
         try {
-          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostText);
+          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
         } catch (error) {
           console.log('Failed to cleanup feed via API:', error);
         }
@@ -92,8 +93,10 @@ test.describe(
           },
         });
 
-        // Store post text for cleanup
+        // Store created post text and postId for cleanup (postId would be available if using API creation)
+
         createdPostText = postResult.postText;
+        createdPostId = postResult.postId || '';
 
         // Wait for post to be visible and get timestamp
         await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
@@ -108,6 +111,7 @@ test.describe(
 
         // Step 4: Delete the post
         await feedPage.actions.deletePost(updatedPostText);
+        createdPostId = ''; // Clear post ID as post is already deleted
         createdPostText = ''; // Clear post text as post is already deleted
       }
     );
@@ -163,20 +167,15 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-36599'],
       },
-      async ({ appManagerFixture }) => {
+      async ({ standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'Verify user is able to add video to a feed post using "Browse files"',
           zephyrTestId: 'CONT-36599',
           storyId: 'CONT-36599',
         });
 
-        // Step 1: App Manager user is logged in
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
-
-        // Step 2: Navigate to Feed page
-        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-        feedPage = new FeedPage(appManagerFixture.page);
-        await feedPage.verifyThePageIsLoaded();
+        // Step 1: Standard User is already logged in via beforeEach
+        // Step 2: Feed page is already loaded via beforeEach
 
         // Step 3: Click on "Share your thoughts" button (Create Post)
         await feedPage.actions.clickShareThoughtsButton();

@@ -47,7 +47,7 @@ export class SideNavBarComponent extends BaseComponent {
     super(page);
     this.createSection = page.locator('span', { hasText: 'Create' });
     this.feedLink = page.locator('p', { hasText: 'Feed' });
-    this.homeLink = page.locator('p', { hasText: 'Home' });
+    this.homeLink = page.getByRole('menuitem', { name: /^Home/ });
     this.sitesButton = page.getByRole('button', { name: 'Sites' });
     this.navigateOnApplication = page.getByRole('menuitem', { name: 'Application settings', exact: true });
     this.clickOnManageFeature = page.locator('[aria-label="Manage features"]').first();

@@ -113,7 +113,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.listFeedComponent = new ListFeedComponent(page);
     this.filePreviewComponent = new FilePreviewComponent(page);
     // Share thoughts section
-    this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
+    this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thoughts' });
     // Feed filter dropdown
     this.feedFilterSelect = this.page.locator('select[id="feed_filter"]');
     this.optionLocator = this.page.getByLabel('Show', { exact: true });
