@@ -81,6 +81,24 @@ export class AudienceManagementService {
   }
 
   /**
+   * Updates an existing audience
+   * @param audienceId - ID of the audience to update
+   * @param request - Audience update request data
+   * @returns Promise<CreateAudienceResponse>
+   */
+  async updateAudience(audienceId: string, request: CreateAudienceRequest): Promise<CreateAudienceResponse> {
+    return await test.step(`Updating audience: ${audienceId}`, async () => {
+      const response = await this.httpClient.put(
+        `${API_ENDPOINTS.appManagement.identity.v2IdentityAudiences}/${audienceId}`,
+        {
+          data: request,
+        }
+      );
+      return (await response.json()) as CreateAudienceResponse;
+    });
+  }
+
+  /**
    * Creates a test audience for social campaigns
    * @param name - Name of the audience (optional, defaults to "Test Social Campaign Audience")
    * @param description - Description of the audience (optional)
