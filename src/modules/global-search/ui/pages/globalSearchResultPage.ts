@@ -13,6 +13,7 @@ import { AppsAndLinkContainerComponent } from '@/src/modules/global-search/ui/co
 import { ContentListComponent } from '@/src/modules/global-search/ui/components/contentListComponent';
 import { FeedListComponent } from '@/src/modules/global-search/ui/components/feedListComponent';
 import { IntranetFileListComponent } from '@/src/modules/global-search/ui/components/intranetFileListComponent';
+import { PeopleListComponent } from '@/src/modules/global-search/ui/components/peopleListComponent';
 import { ResultListingComponent } from '@/src/modules/global-search/ui/components/resultsListComponent';
 import { SidebarFilterComponent } from '@/src/modules/global-search/ui/components/sidebarFilterComponent';
 import { SiteListComponent } from '@/src/modules/global-search/ui/components/siteListComponent';
@@ -21,6 +22,7 @@ import { TileListComponent } from '@/src/modules/global-search/ui/components/til
 export class GlobalSearchResultPage extends BasePage {
   readonly resultListingComponent: ResultListingComponent;
   readonly siteListingComponent: SiteListComponent;
+  readonly peopleListingComponent: PeopleListComponent;
   readonly searchResultListContainer: Locator;
   readonly searchResultListItems: Locator;
   readonly siteResultItems: Locator;
@@ -29,6 +31,7 @@ export class GlobalSearchResultPage extends BasePage {
   readonly albumResultItems: Locator;
   readonly feedResultItems: Locator;
   readonly tileResultItems: Locator;
+  readonly peopleResultItems: Locator;
   readonly tileButton: Locator;
   readonly appResultContainer: Locator;
   readonly externalSearchResultItems: Locator;
@@ -38,6 +41,7 @@ export class GlobalSearchResultPage extends BasePage {
     super(page);
     this.resultListingComponent = new ResultListingComponent(page);
     this.siteListingComponent = new SiteListComponent(page);
+    this.peopleListingComponent = new PeopleListComponent(page);
     this.searchResultListContainer = this.page.locator("div[class*='ResultListWithSidebar_container']");
     this.searchResultListItems = this.searchResultListContainer.locator('li');
     this.siteResultItems = this.searchResultListItems.filter({
@@ -54,6 +58,9 @@ export class GlobalSearchResultPage extends BasePage {
     });
     this.tileResultItems = this.searchResultListItems.filter({
       has: this.page.getByTestId('i-tile'),
+    });
+    this.peopleResultItems = this.searchResultListItems.filter({
+      has: this.page.locator("span[class*='BreadcrumbItem-module']").filter({ hasText: 'People' }),
     });
     this.tileButton = this.page.getByRole('button', { name: 'Tiles' });
 
@@ -254,6 +261,27 @@ export class GlobalSearchResultPage extends BasePage {
   }
 
   /**
+   * Get the people result item exactly matching the search term
+   * @param searchTerm - the search term
+   * @returns the people result item
+   */
+  async getPeopleResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
+    await this.waitUntilSearchResultListIsDisplayed();
+    const peopleResultToLocate = this.peopleResultItems.filter({
+      has: this.page.locator('h2', { hasText: searchTerm }),
+    });
+
+    await this.handleExactMatchCheckboxRetry(async () => {
+      await this.verifier.verifyTheElementIsVisible(peopleResultToLocate, {
+        timeout: 40_000,
+        assertionMessage: `Verifying the people result item exactly matching the search term: ${searchTerm}`,
+      });
+    });
+
+    return new PeopleListComponent(this.page, peopleResultToLocate);
+  }
+
+  /**
    * Get the page result item exactly matching the search term
    * @param searchTerm - the search term
    * @returns the content result item
@@ -414,6 +442,26 @@ export class GlobalSearchResultPage extends BasePage {
     await siteSubFilter.verifySiteSubFilterWithCountTracking({
       expectedCountAfterFilter: options.expectedCountAfterFilter,
       originalCount: options.originalCount,
+    });
+  }
+
+  /**
+   * Generic people subfilter with count tracking and reset functionality
+   * @param options - Options including filter text, filter name, original count, and expected count after filter
+   */
+  async verifyPeopleSubFilterWithCountTracking(options: {
+    filterText: string;
+    filterName: string;
+    originalCount: number;
+    expectedCountAfterFilter: number;
+    stepInfo?: string;
+  }): Promise<void> {
+    const subFilter = this.getSidebarFilter(options);
+    await subFilter.verifyPeopleSubFilterWithCountTracking({
+      filterName: options.filterName,
+      expectedCountAfterFilter: options.expectedCountAfterFilter,
+      originalCount: options.originalCount,
+      stepInfo: options.stepInfo,
     });
   }
 
