@@ -7,6 +7,7 @@ import { RequestContextFactory } from '@/src/core/api/factories/requestContextFa
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
+import { OTPUtils } from '@/src/core/utils/otpUtilsMailosaur';
 
 export type UserType = 'appManager' | 'endUser' | 'promotionManager';
 
@@ -49,6 +50,8 @@ export const frontlineTestFixture = test.extend<
   {
     appManagerApiContext: APIRequestContext;
     qrManagementService: QRManagementService;
+    otpUtils: OTPUtils;
+    config: ReturnType<typeof getFrontlineTenantConfigFromCache>;
   }
 >({
   // Worker-scoped API client - shared across all tests in worker
@@ -70,6 +73,33 @@ export const frontlineTestFixture = test.extend<
       const config = getFrontlineTenantConfigFromCache();
       const qrManagementService = new QRManagementService(appManagerApiContext, config.apiBaseUrl);
       await use(qrManagementService);
+    },
+    { scope: 'worker' },
+  ],
+  config: [
+    async ({}, use) => {
+      const config = getFrontlineTenantConfigFromCache();
+      await use(config);
+    },
+    { scope: 'worker' },
+  ],
+  otpUtils: [
+    async ({}, use) => {
+      const config = getFrontlineTenantConfigFromCache();
+
+      // Only initialize OTP utils if Mailosaur credentials are available
+      if (config.mailosaurApiKey && config.mailosaurServerId) {
+        const otpUtils = new OTPUtils(config.mailosaurApiKey, config.mailosaurServerId);
+        await use(otpUtils);
+      } else {
+        // Provide a mock OTP utils if credentials are not available
+        const mockOtpUtils = {
+          getOTPFromSMS: async () => '123456',
+          getOTPFromEmail: async () => '123456',
+          generateTestEmail: () => 'test@example.com',
+        };
+        await use(mockOtpUtils as any);
+      }
     },
     { scope: 'worker' },
   ],

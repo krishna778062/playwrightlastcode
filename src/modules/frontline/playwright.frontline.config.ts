@@ -5,11 +5,14 @@ import path from 'path';
 import baseConfig from '../../../playwright.base.config';
 import { PROJECT_ROOT } from '../../core/constants/paths';
 
-import { getFrontlineTenantConfigFor } from './config/frontlineConfig';
+import { getFrontlineTenantConfigFor, initializeFrontlineConfig } from './config/frontlineConfig';
 
-// Get both tenant configs without initializing cache
-// Each project will initialize its own tenant
+// Initialize primary tenant as default
+initializeFrontlineConfig('primary');
 const primaryConfig = getFrontlineTenantConfigFor('primary');
+
+// Initialize secondary tenant for secondary project
+initializeFrontlineConfig('secondary');
 const secondaryConfig = getFrontlineTenantConfigFor('secondary');
 
 export default defineConfig({
@@ -43,7 +46,7 @@ export default defineConfig({
       testMatch: /login-with-otp\.spec\.ts$/, // Only login-with-otp tests
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: secondaryConfig.frontendBaseUrl, // ⭐ Secondary tenant URL
+        baseURL: secondaryConfig.frontendBaseUrl, // Secondary tenant URL from main config
         headless: process.env.CI ? true : false,
         permissions: ['camera', 'microphone', 'clipboard-read', 'clipboard-write'],
         launchOptions: {
