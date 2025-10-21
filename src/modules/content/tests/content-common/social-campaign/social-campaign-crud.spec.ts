@@ -1092,7 +1092,7 @@ test.describe(
         await siteDashboardPage.actions.clickOnCustomSCTile();
         await siteDashboardPage.actions.enterTileTitle(tileTitle);
         await siteDashboardPage.actions.setCustomSCTitle(campaignOptions.linkText);
-        tileId = await siteDashboardPage.actions.clickAddToSiteButton();
+        tileId = await siteDashboardPage.actions.clickAddToSiteButton(siteId);
         await siteDashboardPage.assertions.verifyTileIsDisplayed(tileTitle);
         await siteDashboardPage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
@@ -1138,7 +1138,7 @@ test.describe(
         await siteDashboardPage.actions.clickOnAddTile();
         await siteDashboardPage.actions.clickOnSocialCampaignTile();
         await siteDashboardPage.actions.enterTileTitle(tileTitle);
-        tileId = await siteDashboardPage.actions.clickAddToSiteButton();
+        tileId = await siteDashboardPage.actions.clickAddToSiteButton(siteId);
         await siteDashboardPage.assertions.verifyTileIsDisplayed(tileTitle);
         await siteDashboardPage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
