@@ -92,18 +92,20 @@ export class ContentManagementHelper {
     };
   }
 
-  async getContentCreatedAtDetails(sortBy: ContentSortBy, options?: { size?: number }): Promise<string[] | null> {
+  async getContentCreatedAtDetails(
+    sortBy: ContentSortBy,
+    options?: { size?: number; filter?: string; status?: string }
+  ): Promise<string[] | null> {
     const size = options?.size || 1000;
-    console.log('Calling getContentList with params:', {
-      sortBy: sortBy,
-      size: size,
-      contribution: 'all',
-    });
+    const filter = options?.filter || 'owned';
+    const status = options?.status || 'published';
 
     const siteListResponse = await this.contentManagementService.getContentList({
       sortBy: sortBy,
       size: size,
       contribution: 'all',
+      filter: filter, // Match curl command parameter
+      status: status, // Match curl command parameter
     });
 
     // Determine which date field to use based on sort type
@@ -118,15 +120,10 @@ export class ContentManagementHelper {
 
     // Get all items from the API response
     const items = siteListResponse.result.listOfItems;
-    if (!items || items.length === 0) {
-      return null;
-    }
 
     // Extract dates from items (limit to last 16-17 items)
     const dates: string[] = [];
     const maxItems = Math.min(items.length, 17); // Get up to 17 items
-
-    console.log(`Processing ${maxItems} items from total ${items.length} items`);
 
     for (let i = 0; i < maxItems; i++) {
       const item = items[i];
@@ -141,8 +138,6 @@ export class ContentManagementHelper {
       } else {
         continue;
       }
-
-      console.log(`Item ${i + 1}: ${dateField} = ${targetDate}`);
 
       if (targetDate) {
         const date = new Date(targetDate);
@@ -164,10 +159,10 @@ export class ContentManagementHelper {
           const formattedDate = `${monthNames[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
           dates.push(formattedDate);
         }
+      } else {
       }
     }
 
-    console.log('Returning dates array:', dates);
     return dates.length > 0 ? dates : null;
   }
 
