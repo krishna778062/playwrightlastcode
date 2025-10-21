@@ -168,3 +168,23 @@ export function formatDateForDisplay(date: Date): string {
 
   return `${month} ${day}, ${year}`;
 }
+
+/**
+ * Formats a date for display using UTC methods to avoid timezone conversion issues (e.g., "Sep 16, 2025")
+ * @param {Date} date - The date to format
+ * @returns {string} Formatted date string for display using UTC
+ */
+export function formatDateForDisplayUTC(date: Date): string {
+  // Validate the date object
+  if (!date || isNaN(date.getTime())) {
+    throw new Error(`Invalid date object: ${date}`);
+  }
+
+  // Use UTC methods to avoid timezone conversion issues
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const month = monthNames[date.getUTCMonth()];
+  const day = date.getUTCDate();
+  const year = date.getUTCFullYear();
+
+  return `${month} ${day}, ${year}`;
+}

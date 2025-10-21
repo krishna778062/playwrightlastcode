@@ -3,11 +3,11 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { NewHomePage } from '@/src/core';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
-
 test.describe(
   ContentSuiteTags.MANAGE_CONTENT,
   {
@@ -16,9 +16,11 @@ test.describe(
   () => {
     let manageFeaturePage: ManageFeaturesPage;
     let manageContentPage: ManageContentPage;
+    let homePage: NewHomePage;
     test.beforeEach(async ({ standardUserFixture }) => {
       manageFeaturePage = new ManageFeaturesPage(standardUserFixture.page);
       manageContentPage = new ManageContentPage(standardUserFixture.page);
+      homePage = new NewHomePage(standardUserFixture.page);
     });
 
     test(
