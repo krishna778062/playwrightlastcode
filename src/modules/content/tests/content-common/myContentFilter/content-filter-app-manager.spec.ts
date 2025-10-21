@@ -4,6 +4,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { ContentStatus } from '../../../constants';
+
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
@@ -96,12 +98,12 @@ test.describe(
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter('Published');
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
         await manageContentPage.assertions.verifyManageContentListItemCount(16);
         await manageContentPage.actions.clickShowMoreButton();
         await manageContentPage.assertions.verifyManageContentListItemCount(32);
         await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter('Unpublished');
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
         await manageContentPage.assertions.verifyManageContentListItemCount(16);
         await manageContentPage.actions.clickShowMoreButton();
         await manageContentPage.assertions.verifyManageContentListItemCount(32);
@@ -124,12 +126,12 @@ test.describe(
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter('Published');
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
         await manageContentPage.assertions.verifyManageContentListItemCount(16);
         await manageContentPage.actions.clickShowMoreButton();
         await manageContentPage.assertions.verifyManageContentListItemCount(32);
         await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter('Unpublished');
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
         await manageContentPage.assertions.verifyManageContentListItemCount(16);
         await manageContentPage.actions.clickShowMoreButton();
         await manageContentPage.assertions.verifyManageContentListItemCount(32);
