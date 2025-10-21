@@ -502,4 +502,18 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async clickPostButton(): Promise<void> {
     await this.createFeedPostComponent.clickPostButton();
   }
+
+  /**
+   * Verifies that the Question button is visible in the post editor
+   */
+  async verifyQuestionButtonIsVisible(): Promise<void> {
+    await this.createFeedPostComponent.verifyQuestionButtonIsVisible();
+  }
+
+  /**
+   * Verifies that the Question button is not visible in the post editor
+   */
+  async verifyQuestionButtonIsNotVisible(): Promise<void> {
+    await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
+  }
 }
