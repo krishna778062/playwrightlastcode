@@ -19,7 +19,7 @@
     "test:global-search": "cross-env MODULE_NAME=global-search npx playwright test --config=src/modules/global-search/playwright.global-search.config.ts",
     "test:global-search:P0": "cross-env MODULE_NAME=global-search npx playwright test --config=src/modules/global-search/playwright.global-search.config.ts --grep=@P0",
     "test:global-search:smoke": "cross-env MODULE_NAME=global-search npx playwright test --config=src/modules/global-search/playwright.global-search.config.ts --grep=@smoke",
-    "test:frontline": "cross-env MODULE_NAME=frontline npx playwright test --config=src/modules/frontline/playwright.frontline.config.ts",
+    "test:frontline": "cross-env MODULE_NAME=frontline npx playwright test --config=src/modules/frontline/playwright.frontline-primary.config.ts",
     "test:content": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts",
     "test:content-settings": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content-settings.config.ts",
     "test:content:P0": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts --grep=@P0",

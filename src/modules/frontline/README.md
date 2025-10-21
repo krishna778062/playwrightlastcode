@@ -16,7 +16,8 @@ frontline/
 │   └── frontlineConfig.ts          # Centralized configuration
 ├── fixtures/
 │   └── frontlineFixture.ts         # Test fixtures using config
-├── playwright.frontline.config.ts  # Playwright config with initialization
+├── playwright.frontline-primary.config.ts   # Primary tenant config
+├── playwright.frontline-secondary.config.ts # Secondary tenant config
 └── tests/
     └── ui-tests/
         └── *.spec.ts               # Test files using config
@@ -72,7 +73,7 @@ export interface FrontlineTenantConfig {
 
 ### **1. Automatic Initialization**
 
-The config is automatically initialized in `playwright.frontline.config.ts`:
+The config is automatically initialized in `playwright.frontline-primary.config.ts` and `playwright.frontline-secondary.config.ts`:
 
 ```typescript
 import { initializeFrontlineConfig, getFrontlineTenantConfigFor } from './config/frontlineConfig';
@@ -205,7 +206,7 @@ if (isFrontlineConfigInitialized()) {
 
 To use a different tenant:
 
-1. **Update `playwright.frontline.config.ts`:**
+1. **Update `playwright.frontline-primary.config.ts` or `playwright.frontline-secondary.config.ts`:**
 
 ```typescript
 initializeFrontlineConfig('secondary'); // Change from 'primary'
@@ -403,7 +404,7 @@ TEST_ENV=uat npm run test:module frontline
 ### **Example 3: Switching Tenants**
 
 ```typescript
-// In playwright.frontline.config.ts
+// In playwright.frontline-primary.config.ts or playwright.frontline-secondary.config.ts
 initializeFrontlineConfig('secondary'); // Switch to secondary tenant
 
 // Tests will now use secondary tenant config
