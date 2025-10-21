@@ -17,7 +17,6 @@ export interface ISiteDashboardActions {
   clickOnEditCarousel: () => Promise<void>;
   clickOnAddTile: () => Promise<void>;
   clickOnEditDashboard: () => Promise<void>;
-  clickOnChangeLayout: () => Promise<void>;
   enterSearchCarouselInput: (text: string) => Promise<void>;
   selectCarouselItem: (text: string) => Promise<void>;
   clickDoneButton: () => Promise<void>;
