@@ -18,6 +18,12 @@ test.describe(
   () => {
     let ukgSyncPage: UkgSyncPage;
 
+    test.beforeEach(async ({ appManagerPage }) => {
+      ukgSyncPage = new UkgSyncPage(appManagerPage);
+      await ukgSyncPage.loadPage();
+      await ukgSyncPage.verifyThePageIsLoaded();
+    });
+
     test(
       'UKGPro option should not be in syncing dropdown, if not enabled at People Data and validations at App level on connection',
       {
@@ -28,8 +34,6 @@ test.describe(
         tagTest(test.info(), {
           zephyrTestId: 'INT-7614',
         });
-        ukgSyncPage = new UkgSyncPage(appManagerPage);
-        await ukgSyncPage.navigateToPeopleDataPage();
         await ukgSyncPage.verifyScheduledSourcesCheckBox(SYNCING.UKG_PRO);
         await ukgSyncPage.clearInputField(
           SYNCING.UKG_PRO,
@@ -44,7 +48,7 @@ test.describe(
         await ukgSyncPage.clickOnButton(UI_ACTIONS.SAVE);
         await ukgSyncPage.verifyErrorMessage(MESSAGES.VALID_URL);
         await ukgSyncPage.navigateToUserSyncingProvisioningPage();
-        await ukgSyncPage.selectDropdown(SYNCING.SYNC_DROPDOWN);
+        await ukgSyncPage.selectDropdown();
         await ukgSyncPage.verifyVisibility(SYNCING.UKG_PRO);
       }
     );
@@ -59,8 +63,6 @@ test.describe(
         tagTest(test.info(), {
           zephyrTestId: 'INT-4060',
         });
-        ukgSyncPage = new UkgSyncPage(appManagerPage);
-        await ukgSyncPage.navigateToPeopleDataPage();
         await ukgSyncPage.verifyScheduledSourcesCheckBox(SYNCING.UKG_PRO);
         await ukgSyncPage.addUkgConnectionDetails(
           SYNCING.UKG_PRO,
@@ -72,11 +74,8 @@ test.describe(
         await ukgSyncPage.clickOnButton(UI_ACTIONS.SAVE);
         await ukgSyncPage.verifyToastMessageIsVisibleWithText(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
         await ukgSyncPage.navigateToUserSyncingProvisioningPage();
-        await ukgSyncPage.selectDropdown(SYNCING.SYNC_DROPDOWN);
+        await ukgSyncPage.selectDropdown();
         await ukgSyncPage.verifyVisibility(SYNCING.UKG_PRO);
-        await ukgSyncPage.navigateToPeopleDataPage();
-        await ukgSyncPage.uncheckScheduledSourcesCheckBox(SYNCING.UKG_PRO);
-        await ukgSyncPage.clickOnButton(UI_ACTIONS.SAVE);
       }
     );
 
@@ -90,27 +89,13 @@ test.describe(
         tagTest(test.info(), {
           zephyrTestId: 'INT-15305',
         });
-        ukgSyncPage = new UkgSyncPage(appManagerPage);
-        await ukgSyncPage.navigateToPeopleDataPage();
-        await ukgSyncPage.verifyScheduledSourcesCheckBox(SYNCING.UKG_PRO);
-        await ukgSyncPage.addUkgConnectionDetails(
-          SYNCING.UKG_PRO,
-          SYNCING.USERNAME,
-          SYNCING.PASSWORD,
-          SYNCING.BASE_URL,
-          SYNCING.KEY
-        );
-        await ukgSyncPage.clickOnButton(UI_ACTIONS.SAVE);
-        await ukgSyncPage.verifyToastMessageIsVisibleWithText(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
         await ukgSyncPage.navigateToUserSyncingProvisioningPage();
-        await ukgSyncPage.selectDropdown(SYNCING.SYNC_DROPDOWN);
+        await ukgSyncPage.selectDropdown();
         await ukgSyncPage.selectSyncOptions(SYNCING.UKG_PRO);
         await ukgSyncPage.verifyDetailsCheckBoxVisibility(SYNCING.PAY_CURRENCY);
         await ukgSyncPage.verifyDetailsCheckBoxVisibility(SYNCING.FIRST_NAME);
         await ukgSyncPage.selectDetailsSyncCheckBox(SYNCING.FIRST_NAME, SYNCING.NAME, SYNCING.PREFERRED_NAME);
         await ukgSyncPage.verifyDetailsCheckBoxVisibility(SYNCING.HIRE_DATE);
-        await ukgSyncPage.selectDetailsSyncCheckBox(SYNCING.HIRE_DATE, SYNCING.HIRE, SYNCING.SENIORITY_DATE);
-        await ukgSyncPage.navigateToPeopleDataPage();
       }
     );
   }

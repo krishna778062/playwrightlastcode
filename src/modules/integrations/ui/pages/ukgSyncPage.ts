@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { UkgSyncComponents } from '../components/ukgSyncComponent';
 
@@ -6,14 +6,12 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/pages/basePage';
 
 export class UkgSyncPage extends BasePage {
-  /**
-   * Navigate to people data page for a specific user
-   */
-  async navigateToPeopleDataPage(): Promise<void> {
-    await test.step('Navigate to external apps page', async () => {
-      const url = PAGE_ENDPOINTS.PEOPLE_DATA_PAGE;
-      await this.page.goto(url, { waitUntil: 'domcontentloaded' });
-    });
+  readonly ukgSyncComponents: UkgSyncComponents;
+  readonly scheduledSources: Locator;
+  constructor(page: Page) {
+    super(page, PAGE_ENDPOINTS.PEOPLE_DATA_PAGE);
+    this.scheduledSources = page.getByRole('heading', { name: 'Scheduled sources' });
+    this.ukgSyncComponents = new UkgSyncComponents(page);
   }
 
   /**
@@ -22,18 +20,17 @@ export class UkgSyncPage extends BasePage {
   async navigateToUserSyncingProvisioningPage(): Promise<void> {
     await test.step('Navigate to external apps page', async () => {
       const url = PAGE_ENDPOINTS.USER_SYNCING;
-      await this.page.goto(url, { waitUntil: 'domcontentloaded' });
+      await this.page.goto(url, { timeout: 30_000 });
     });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.page.waitForLoadState('domcontentloaded');
-  }
-
-  readonly ukgSyncComponents: UkgSyncComponents;
-  constructor(page: Page) {
-    super(page);
-    this.ukgSyncComponents = new UkgSyncComponents(page);
+    await test.step('Verify the page is loaded', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.scheduledSources, {
+        timeout: 30_000,
+        assertionMessage: 'Verifying the page is loaded',
+      });
+    });
   }
 
   async verifyScheduledSourcesCheckBox(name: string): Promise<void> {
@@ -56,8 +53,8 @@ export class UkgSyncPage extends BasePage {
     await this.ukgSyncComponents.addInputField(source, field, value);
   }
 
-  async selectDropdown(option: string): Promise<void> {
-    await this.ukgSyncComponents.selectDropdown(option);
+  async selectDropdown(): Promise<void> {
+    await this.ukgSyncComponents.selectDropdown();
   }
 
   async verifyVisibility(name: string): Promise<void> {
