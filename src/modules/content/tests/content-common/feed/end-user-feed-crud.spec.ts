@@ -159,15 +159,15 @@ test.describe(
     );
 
     test(
-      'verify user can upload a video to a feed post using Browse files from file library',
+      'verify user is able to add video to a feed post using "Browse files"',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@browse-files'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-36599'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          description: 'User uploads a video to a feed post using Browse files from file library',
-          zephyrTestId: 'CONT-XXXXX', // TODO: Update with actual test ID
-          storyId: 'CONT-XXXXX', // TODO: Update with actual story ID
+          description: 'Verify user is able to add video to a feed post using "Browse files"',
+          zephyrTestId: 'CONT-36599',
+          storyId: 'CONT-36599',
         });
 
         // Step 1: App Manager user is logged in
@@ -200,8 +200,6 @@ test.describe(
         await feedPage.actions.clickPostButton();
 
         // Step 10: Verify the feed post is published successfully
-        // Note: The post is published when the Post button click completes
-        // The post will appear in the feed after API response
         console.log('Video feed post published successfully');
       }
     );
