@@ -38,6 +38,15 @@ export const PEOPLE_SEARCH_TEST_DATA = {
   },
 
   /**
+   * Org Chart configuration test data
+   */
+  orgChart: {
+    enabled: { orgChartEnabled: true },
+    disabled: { orgChartEnabled: false },
+    tooltipText: 'View in org chart',
+  },
+
+  /**
    * Function to create complete update payload
    */
   createUpdatePayload: (currentUserData: any, updateFields: any) => ({

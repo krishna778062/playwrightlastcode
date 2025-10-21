@@ -18,6 +18,7 @@ test.describe(
     let userId: string;
     let testUserId: string;
     let testExpertiseId: string;
+    let originalOrgChartStatus: boolean | undefined;
 
     test.beforeEach(async ({ appManagerFixture }) => {
       // Get user ID using getIdentityUserId method with data from test file
@@ -46,6 +47,19 @@ test.describe(
         }
       } catch (error) {
         console.warn(`Failed to cleanup test data:`, error);
+      }
+
+      // Restore original app config settings
+      try {
+        if (originalOrgChartStatus !== undefined) {
+          await appManagerFixture.appConfigurationService.updateAppConfigField(
+            { orgChartEnabled: originalOrgChartStatus },
+            `Restore Org Chart to original state: ${originalOrgChartStatus}`
+          );
+          console.log(`App configuration restored to original settings`);
+        }
+      } catch (error) {
+        console.warn(`Failed to restore app configuration:`, error);
       }
     });
 
@@ -130,7 +144,7 @@ test.describe(
         );
         testExpertiseId = expertiseResponse.result.uuid;
 
-        const endorseResponse = await appManagerFixture.expertiseManagementService.endorseUserWithExpertise(
+        const _endorseResponse = await appManagerFixture.expertiseManagementService.endorseUserWithExpertise(
           testUserId,
           testExpertiseId
         );
@@ -181,6 +195,48 @@ test.describe(
         }
 
         await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
+      }
+    );
+
+    test(
+      `verify org chart icon visibility based on configuration`,
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-ORG-CHART-VISIBILITY',
+        });
+
+        // Store original app config settings
+        const currentConfig = await appManagerFixture.feedManagementHelper.feedManagementService.getAppConfig();
+        originalOrgChartStatus = currentConfig.result.orgChartEnabled;
+        console.log(`Current org chart status: ${originalOrgChartStatus}`);
+
+        // Enable org chart if not already enabled
+        if (originalOrgChartStatus !== testData.orgChart.enabled.orgChartEnabled) {
+          await appManagerFixture.appConfigurationService.updateAppConfigField(
+            testData.orgChart.enabled,
+            `Enable Org Chart feature`
+          );
+        }
+        await appManagerFixture.page.reload();
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(testData.searchTerm, {
+          stepInfo: `Searching with term "${testData.searchTerm}" to verify org chart icon visibility when enabled`,
+        });
+        const peopleResult = await globalSearchResultPage.getPeopleResultItemExactlyMatchingTheSearchTerm(
+          testData.searchTerm
+        );
+        await peopleResult.verifyOrgChartIconVisibility(testData.orgChart.enabled.orgChartEnabled);
+        await peopleResult.verifyOrgChartIconTooltip(testData.orgChart.tooltipText);
+        await peopleResult.clickOrgChartIconAndVerifyNavigation(userId);
+        await appManagerFixture.page.goBack();
+        await appManagerFixture.appConfigurationService.updateAppConfigField(
+          testData.orgChart.disabled,
+          `Disable Org Chart feature`
+        );
+        await appManagerFixture.page.reload();
+        await peopleResult.verifyOrgChartIconVisibility(testData.orgChart.disabled.orgChartEnabled);
       }
     );
   }
