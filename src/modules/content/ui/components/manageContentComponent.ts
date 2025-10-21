@@ -618,4 +618,12 @@ export class ManageContentComponent extends BaseComponent {
       }
     });
   }
+  async verifyAllPublishedAtDatesFromArray(dates: string[]): Promise<void> {
+    await test.step('Verifying all published at dates from array', async () => {
+      for (let i = 0; i < dates.length; i++) {
+        const dateToCheck = dates[i];
+        await this.verifyPublishedAtDateVisibleInManageContent(dateToCheck);
+      }
+    });
+  }
 }

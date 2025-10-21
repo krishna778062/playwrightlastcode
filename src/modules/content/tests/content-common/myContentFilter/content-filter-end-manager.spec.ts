@@ -156,5 +156,35 @@ test.describe(
         }
       }
     );
+    test(
+      'verify user should be able to filter the content on the "Published Date Oldest First" filter',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25057'],
+      },
+      async ({ standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'verify user should be able to filter the content on the "Created Date Oldest First" filter',
+          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
+          zephyrTestId: 'CONT-25057',
+          storyId: 'CONT-25057',
+        });
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.selectCreateOldestPublishedOption();
+
+        // Get dates from API
+        const contentPublishedAtDetailsOldest =
+          await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.PUBLISHED_OLDEST);
+        console.log('contentPublishedAtDetailsOldest', contentPublishedAtDetailsOldest);
+
+        // Verify all dates from array are visible on UI
+        if (contentPublishedAtDetailsOldest !== null) {
+          await manageContentPage.assertions.verifyAllPublishedAtDatesFromArray(contentPublishedAtDetailsOldest);
+        }
+      }
+    );
   }
 );
