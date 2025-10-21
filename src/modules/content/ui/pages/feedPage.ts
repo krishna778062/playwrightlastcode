@@ -65,6 +65,11 @@ export interface IFeedActions {
   selectShareOptionAsSiteFeed: () => Promise<void>;
   searchForSiteName: (siteName: string) => Promise<void>;
   enterFeedPostText: (text: string) => Promise<void>;
+  clickBrowseFilesButton: () => Promise<void>;
+  searchForFileInLibrary: (fileName: string) => Promise<void>;
+  selectFileFromLibrary: (fileName: string) => Promise<void>;
+  clickAttachButton: () => Promise<void>;
+  clickPostButton: () => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -89,6 +94,7 @@ export interface IFeedAssertions {
   verifySocialCampaignShareButtonIsNotVisible: (description: string) => Promise<void>;
   verifySocialCampaignShareButtonIsVisible: (description: string) => Promise<void>;
   verifyNoResultMessage: () => Promise<void>;
+  verifyFileIsAttached: (fileName: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -448,5 +454,50 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    */
   async enterFeedPostText(text: string): Promise<void> {
     await this.createFeedPostComponent.createPost(text);
+  }
+
+  /**
+   * Clicks the "browse files" button to open file library
+   */
+  async clickBrowseFilesButton(): Promise<void> {
+    await this.createFeedPostComponent.clickBrowseFilesButton();
+  }
+
+  /**
+   * Searches for a file in the file library
+   * @param fileName - The name of the file to search for (e.g., ".mp4")
+   */
+  async searchForFileInLibrary(fileName: string): Promise<void> {
+    await this.createFeedPostComponent.searchForFileInLibrary(fileName);
+  }
+
+  /**
+   * Selects a file from the file library by clicking its checkbox
+   * @param fileName - The name of the file to select
+   */
+  async selectFileFromLibrary(fileName: string): Promise<void> {
+    await this.createFeedPostComponent.selectFileFromLibrary(fileName);
+  }
+
+  /**
+   * Clicks the "Attach" button to attach selected files from library
+   */
+  async clickAttachButton(): Promise<void> {
+    await this.createFeedPostComponent.clickAttachButton();
+  }
+
+  /**
+   * Verifies that a file is attached to the post
+   * @param fileName - The name of the file to verify
+   */
+  async verifyFileIsAttached(fileName: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFileIsAttached(fileName);
+  }
+
+  /**
+   * Clicks the Post button to publish the feed post
+   */
+  async clickPostButton(): Promise<void> {
+    await this.createFeedPostComponent.clickPostButton();
   }
 }

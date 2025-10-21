@@ -49,11 +49,16 @@ export interface ICreateFeedPostActions {
   clickUpdateButton: () => Promise<void>;
   selectShareOptionAsSiteFeed: () => Promise<void>;
   searchForSiteName: (siteName: string) => Promise<void>;
+  clickBrowseFilesButton: () => Promise<void>;
+  searchForFileInLibrary: (fileName: string) => Promise<void>;
+  selectFileFromLibrary: (fileName: string) => Promise<void>;
+  clickAttachButton: () => Promise<void>;
 }
 
 export interface ICreateFeedPostAssertions {
   verifyEditorVisible: () => Promise<void>;
   verifyNoResultMessage: () => Promise<void>;
+  verifyFileIsAttached: (fileName: string) => Promise<void>;
 }
 
 export class CreateFeedPostComponent
@@ -91,6 +96,22 @@ export class CreateFeedPostComponent
   readonly shareOptionDropdown = this.page.locator('select[id="shareSubject"]');
   readonly selectSiteInput = this.page.locator('div:has-text("Select site") + div >> input');
   readonly noResultsText = this.page.getByText('No results');
+
+  // Browse files section - for selecting files from file library
+  readonly browseFilesButton = this.page.getByRole('button', { name: 'Browse files' });
+  readonly fileManagerModal = this.page.locator('div:has-text("File manager")').first();
+  readonly intranetFilesTab = this.page.getByText('Intranet files');
+  readonly fileSearchInput = this.page.locator('input[class*="SearchForm-input"]');
+  readonly attachButton = this.page.getByRole('button', { name: 'Attach' });
+  readonly uploadingFileIndicator = this.page.locator('[class*="uploading"], [data-uploading="true"]');
+
+  /**
+   * Gets a locator for a file checkbox in the file library by finding the row containing the file name
+   * @param fileName - The name of the file to select
+   * @returns Locator for the file checkbox in that row
+   */
+  readonly getFileCheckboxLocator = (fileName: string): Locator =>
+    this.page.locator(`tr:has-text("${fileName}")`).locator('input[type="checkbox"]').first();
 
   // Dynamic locator functions
   /**
@@ -480,6 +501,118 @@ export class CreateFeedPostComponent
         timeout: 5000,
         assertionMessage: 'Expected "No results" message to be visible',
       });
+    });
+  }
+
+  /**
+   * Clicks the "browse files" button to open file library
+   */
+  async clickBrowseFilesButton(): Promise<void> {
+    await test.step('Click "browse files" button', async () => {
+      await this.clickOnElement(this.browseFilesButton);
+      // Wait for File Manager modal to be visible
+      await this.verifier.verifyTheElementIsVisible(this.fileManagerModal, {
+        timeout: 5000,
+        assertionMessage: 'File Manager modal should be visible after clicking browse files',
+      });
+      // Verify we're on Intranet files tab
+      await this.verifier.verifyTheElementIsVisible(this.intranetFilesTab, {
+        timeout: 3000,
+        assertionMessage: 'Intranet files tab should be visible',
+      });
+    });
+  }
+
+  /**
+   * Searches for a file in the file library
+   * @param fileName - The name of the file to search for (e.g., ".mp4" or specific file name)
+   */
+  async searchForFileInLibrary(fileName: string): Promise<void> {
+    await test.step(`Search for file: ${fileName}`, async () => {
+      // Wait for the search input to be visible and ready
+      await this.verifier.verifyTheElementIsVisible(this.fileSearchInput, {
+        timeout: 10000,
+        assertionMessage: 'File search input should be visible and ready',
+      });
+
+      // Click on the input to focus it
+      await this.clickOnElement(this.fileSearchInput);
+
+      // Fill in the search term
+      await this.fillInElement(this.fileSearchInput, fileName);
+
+      // Press Enter to search
+      await this.fileSearchInput.press('Enter');
+
+      // Wait a moment for search results to load
+      await this.page.waitForTimeout(1500);
+    });
+  }
+
+  /**
+   * Selects a file from the file library by clicking its checkbox
+   * @param fileName - The name of the file to select
+   */
+  async selectFileFromLibrary(fileName: string): Promise<void> {
+    await test.step(`Select file from library: ${fileName}`, async () => {
+      const checkbox = this.getFileCheckboxLocator(fileName);
+      await this.verifier.verifyTheElementIsVisible(checkbox, {
+        timeout: 5000,
+        assertionMessage: `Checkbox for file "${fileName}" should be visible`,
+      });
+
+      // Check if checkbox is already selected
+      const isChecked = await checkbox.isChecked();
+      if (!isChecked) {
+        // Click the checkbox using JavaScript to ensure it works
+        await checkbox.check();
+        console.log(`Checkbox for "${fileName}" is now checked.`);
+      } else {
+        console.log(`Checkbox for "${fileName}" was already checked.`);
+      }
+    });
+  }
+
+  /**
+   * Clicks the "Attach" button to attach selected files from library
+   */
+  async clickAttachButton(): Promise<void> {
+    await test.step('Click "Attach" button', async () => {
+      await this.clickOnElement(this.attachButton);
+
+      // Wait for upload indicator to disappear (if it appears)
+      const isUploadingVisible = await this.verifier.isTheElementVisible(this.uploadingFileIndicator, {
+        timeout: 2000,
+      });
+      if (isUploadingVisible) {
+        console.log('Waiting for file upload to complete...');
+        await this.verifier.verifyTheElementIsNotVisible(this.uploadingFileIndicator, {
+          timeout: 50000,
+          assertionMessage: 'File upload should complete within 50 seconds',
+        });
+      }
+    });
+  }
+
+  /**
+   * Verifies that a file is attached to the post
+   * @param fileName - The name of the file to verify (can be partial match like ".mp4")
+   */
+  async verifyFileIsAttached(fileName: string): Promise<void> {
+    await test.step(`Verify file is attached: ${fileName}`, async () => {
+      // Wait for attached file to be visible
+      await this.verifier.verifyTheElementIsVisible(this.attachedFiles, {
+        timeout: 10000,
+        assertionMessage: `Expected attached file containing "${fileName}" to be visible`,
+      });
+
+      // Verify at least one file is attached
+      await this.verifier.verifyCountOfElementsIsGreaterThan(this.attachedFiles, 0, {
+        timeout: 5000,
+        assertionMessage: 'Expected at least one file to be attached',
+      });
+
+      console.log(`File containing "${fileName}" is successfully attached to the post`);
     });
   }
 }
