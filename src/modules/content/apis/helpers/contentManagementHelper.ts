@@ -92,18 +92,20 @@ export class ContentManagementHelper {
     };
   }
 
-  async getContentCreatedAtDetails(sortBy: ContentSortBy, options?: { size?: number }): Promise<string | null> {
+  async getContentCreatedAtDetails(
+    sortBy: ContentSortBy,
+    options?: { size?: number; filter?: string; status?: string }
+  ): Promise<string[] | null> {
     const size = options?.size || 1000;
-    console.log('Calling getContentList with params:', {
-      sortBy: sortBy,
-      size: size,
-      contribution: 'all',
-    });
+    const filter = options?.filter || 'owned';
+    const status = options?.status || 'published';
 
     const siteListResponse = await this.contentManagementService.getContentList({
       sortBy: sortBy,
       size: size,
       contribution: 'all',
+      filter: filter, // Match curl command parameter
+      status: status, // Match curl command parameter
     });
 
     // Determine which date field to use based on sort type
@@ -116,63 +118,52 @@ export class ContentManagementHelper {
       dateField = DateField.CREATED_AT;
     }
 
-    // Get the date from the first item in the API response
-    const firstItem = siteListResponse.result.listOfItems[0];
-    if (!firstItem) {
-      return null;
-    }
+    // Get all items from the API response
+    const items = siteListResponse.result.listOfItems;
 
-    let targetDate: string;
-    if (dateField === DateField.CREATED_AT) {
-      targetDate = firstItem.createdAt;
-    } else if (dateField === DateField.PUBLISH_AT) {
-      targetDate = firstItem.publishAt;
-    } else if (dateField === DateField.MODIFIED_AT) {
-      targetDate = firstItem.modifiedAt;
-    } else {
-      return null;
-    }
+    // Extract dates from items (limit to last 16-17 items)
+    const dates: string[] = [];
+    const maxItems = Math.min(items.length, 17); // Get up to 17 items
 
-    console.log('Date field selection debug:', {
-      dateField,
-      createdAt: firstItem.createdAt,
-      publishAt: firstItem.publishAt,
-      modifiedAt: firstItem.modifiedAt,
-      selectedTargetDate: targetDate,
-    });
+    for (let i = 0; i < maxItems; i++) {
+      const item = items[i];
+      let targetDate: string;
 
-    if (!targetDate) {
-      console.log('Target date is null/undefined, returning null');
-      return null;
-    }
-
-    if (targetDate) {
-      const date = new Date(targetDate);
-      const today = new Date();
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      // Check if the date is today using UTC comparison
-      if (date.toISOString().split('T')[0] === today.toISOString().split('T')[0] && date <= today) {
-        console.log('Returning: Today');
-        return 'Today';
+      if (dateField === DateField.CREATED_AT) {
+        targetDate = item.createdAt;
+      } else if (dateField === DateField.PUBLISH_AT) {
+        targetDate = item.publishAt;
+      } else if (dateField === DateField.MODIFIED_AT) {
+        targetDate = item.modifiedAt;
+      } else {
+        continue;
       }
 
-      // Check if the date is yesterday using UTC comparison
-      if (date.toISOString().split('T')[0] === yesterday.toISOString().split('T')[0] && date <= today) {
-        console.log('Returning: Yesterday');
-        return 'Yesterday';
-      }
+      if (targetDate) {
+        const date = new Date(targetDate);
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
 
-      // For other dates (including future dates), return formatted date
-      // Use UTC methods to avoid timezone conversion issues
-      const monthNames = MANAGE_CONTENT_TEST_DATA.MONTH_NAMES;
-      const formattedDate = `${monthNames[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
-      console.log('Returning formatted date:', formattedDate);
-      return formattedDate; // Returns "Sep 30, 2025"
+        // Check if the date is today using UTC comparison
+        if (date.toISOString().split('T')[0] === today.toISOString().split('T')[0] && date <= today) {
+          dates.push('Today');
+        }
+        // Check if the date is yesterday using UTC comparison
+        else if (date.toISOString().split('T')[0] === yesterday.toISOString().split('T')[0] && date <= today) {
+          dates.push('Yesterday');
+        }
+        // For other dates, return formatted date
+        else {
+          const monthNames = MANAGE_CONTENT_TEST_DATA.MONTH_NAMES;
+          const formattedDate = `${monthNames[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
+          dates.push(formattedDate);
+        }
+      } else {
+      }
     }
 
-    return null;
+    return dates.length > 0 ? dates : null;
   }
 
   /**

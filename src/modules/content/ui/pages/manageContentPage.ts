@@ -260,10 +260,15 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifyCreatedAtDateVisibleInManageContent(createdAtDate: string): Promise<void> {
     await this.manageContentComponent.verifyCreatedAtDateVisibleInManageContent(createdAtDate);
   }
+
   async verifyEditedAtDateVisibleInManageContent(editedAtDate: string): Promise<void> {
     await this.manageContentComponent.verifyEditedAtDateVisibleInManageContent(editedAtDate);
   }
   async verifyPublishedAtDateVisibleInManageContent(publishedAtDate: string): Promise<void> {
     await this.manageContentComponent.verifyPublishedAtDateVisibleInManageContent(publishedAtDate);
+  }
+
+  async verifyAllCreatedAtDatesFromArray(dates: string[]): Promise<void> {
+    await this.manageContentComponent.verifyAllCreatedAtDatesFromArray(dates);
   }
 }
