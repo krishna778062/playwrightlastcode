@@ -14,7 +14,6 @@ export class OTPUtils {
    * Retrieve OTP from SMS received by Mailosaur phone number
    */
   async getOTPFromSMS(phoneNumber: string): Promise<string> {
-    await new Promise(resolve => setTimeout(resolve, 5000));
     const sms = await this.mailosaurClient.messages.get(
       this.mailosaurServerId,
       { sentTo: phoneNumber },
@@ -32,7 +31,6 @@ export class OTPUtils {
    * Retrieve OTP from email received by Mailosaur email address
    */
   async getOTPFromEmail(emailAddress: string): Promise<string> {
-    await new Promise(resolve => setTimeout(resolve, 5000));
     const email = await this.mailosaurClient.messages.get(
       this.mailosaurServerId,
       { sentTo: emailAddress },

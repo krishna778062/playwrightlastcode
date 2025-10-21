@@ -63,6 +63,9 @@ export interface FrontlineTenantConfig {
   promotionManagerPassword: string;
   newUxEnabled: boolean;
   orgId: string;
+  // OTP credentials for Mailosaur
+  mailosaurApiKey?: string;
+  mailosaurServerId?: string;
 }
 
 // App-level configuration (same for all tenants/environments)
@@ -126,6 +129,9 @@ export const config = {
       promotionManagerPassword: 'Simp@123',
       newUxEnabled: false,
       orgId: 'a925141d-2dd4-4d18-b65f-723273302065',
+      // OTP credentials for Mailosaur
+      mailosaurApiKey: 'RuhqTyBb8hp7JtPT',
+      mailosaurServerId: 'znl8uqcc',
     },
     test: {
       tenantName: 'Frontline Secondary TEST',

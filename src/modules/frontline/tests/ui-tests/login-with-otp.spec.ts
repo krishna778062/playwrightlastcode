@@ -7,16 +7,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { Roles } from '@/src/core/constants/roles';
 import { UserTestDataBuilder } from '@/src/core/test-data-builders/UserTestDataBuilder';
-import { OTPUtils } from '@/src/core/utils/otpUtilsMailosaur';
-import { getFrontlineTenantConfigFor, initializeFrontlineConfig } from '@/src/modules/frontline/config/frontlineConfig';
-
-// Initialize with secondary tenant for OTP tests
-initializeFrontlineConfig('secondary');
-
-const otpUtils = new OTPUtils(
-  'RuhqTyBb8hp7JtPT', //api key
-  'znl8uqcc' //server id
-);
+import { getSecondaryConfig } from '@/src/modules/frontline/config/secondaryTenantConfig';
 
 test.describe(
   'feature: login with otp',
@@ -25,9 +16,8 @@ test.describe(
   },
   () => {
     test.beforeAll(async ({ appManagerApiContext }) => {
-      // Initialize UserTestDataBuilder with authenticated API context
-      // Using secondary tenant for OTP tests
-      const config = getFrontlineTenantConfigFor('secondary');
+      // Get secondary tenant config from dedicated config file
+      const config = getSecondaryConfig();
       console.log(`🔧 Running OTP test on: ${config.tenantName} (${config.frontendBaseUrl})`);
 
       // UserManagementService will automatically use ORG_ID from frontline config
@@ -43,7 +33,7 @@ test.describe(
       {
         tag: [TestPriority.P1],
       },
-      async ({ page }) => {
+      async ({ page, otpUtils }) => {
         tagTest(test.info(), {
           description: 'login with otp',
           zephyrTestId: 'FL-434',

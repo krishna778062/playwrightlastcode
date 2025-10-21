@@ -8,11 +8,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { initializeFrontlineConfig } from '@/src/modules/frontline/config/frontlineConfig';
-
-// Initialize with primary tenant for QR code tests
-initializeFrontlineConfig('primary');
-
 test.describe(
   'feature: QR Code Management',
   {
