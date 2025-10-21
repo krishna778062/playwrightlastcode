@@ -165,13 +165,8 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickFilterButton(): Promise<void> {
     await this.manageContentComponent.clickFilterButton();
   }
-
   async clickSiteSearchBar(siteName: string): Promise<void> {
     await this.manageContentComponent.clickSiteSearchBar(siteName);
-  }
-
-  async selectSiteSearchBarOption(): Promise<void> {
-    await this.manageContentComponent.selectSiteSearchBarOption();
   }
   async authorNameShouldBeVisible(): Promise<void> {
     await this.manageContentComponent.authorNameShouldBeVisible();
@@ -188,7 +183,9 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifySiteStatusStamp(): Promise<void> {
     await this.manageContentComponent.verifySiteStatusStamp();
   }
-
+  async selectSiteSearchBarOption(): Promise<void> {
+    await this.manageContentComponent.selectSiteSearchBarOption();
+  }
   async verifySiteNameLink(): Promise<void> {
     await this.manageContentComponent.verifySiteNameLink();
   }
@@ -196,6 +193,10 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
     await this.manageContentComponent.clickSortByButton();
   }
   async selectTheStatusFilter(status: ContentStatus): Promise<void> {
+    await this.manageContentComponent.selectTheStatusFilter(status);
+  }
+
+  async selectTheStatusFilter(status: string): Promise<void> {
     await this.manageContentComponent.selectTheStatusFilter(status);
   }
 
@@ -265,7 +266,6 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifyCreatedAtDateVisibleInManageContent(createdAtDate: string): Promise<void> {
     await this.manageContentComponent.verifyCreatedAtDateVisibleInManageContent(createdAtDate);
   }
-
   async verifyEditedAtDateVisibleInManageContent(editedAtDate: string): Promise<void> {
     await this.manageContentComponent.verifyEditedAtDateVisibleInManageContent(editedAtDate);
   }
@@ -276,6 +276,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifyAllCreatedAtDatesFromArray(dates: string[]): Promise<void> {
     await this.manageContentComponent.verifyAllCreatedAtDatesFromArray(dates);
   }
+
   async verifyAllPublishedAtDatesFromArray(dates: string[]): Promise<void> {
     await this.manageContentComponent.verifyAllPublishedAtDatesFromArray(dates);
   }

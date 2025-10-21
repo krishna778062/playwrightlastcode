@@ -1,5 +1,7 @@
 import { Locator, Page, test } from '@playwright/test';
 
+import { ContentStatus } from '@modules/content/constants';
+
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
@@ -160,6 +162,7 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.searchBar);
     });
   }
+
   async waitForManageContentListItems(): Promise<void> {
     await test.step(`Waiting for manage content list items`, async () => {
       await this.manageContentListItems.first().waitFor();
@@ -383,30 +386,15 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.FilterButton);
     });
   }
-
-  async verifyManageContentListItemCount(expectedCount: number): Promise<void> {
-    await test.step(`Verifying ManageContentListItem count is ${expectedCount}`, async () => {
-      await this.waitForManageContentListItems();
-      const actualCount = await this.manageContentListItems.count();
-
-      if (actualCount < expectedCount) {
-        throw new Error(`Expected at least ${expectedCount} ManageContentListItem elements, but found ${actualCount}`);
-      }
-    });
-  }
   async clickSiteSearchBar(siteName: string): Promise<void> {
     await test.step(`Clicking the site search bar`, async () => {
       await this.clickOnElement(this.siteSearchBar);
       await this.siteSearchBar.type(siteName);
     });
   }
-
-  async selectSiteSearchBarOption(): Promise<void> {
-    await test.step(`Selecting the site search bar option`, async () => {
-      await this.clickOnElement(this.siteSearchBarOption);
-    });
+  async selectSiteSearchBar(siteName: string): Promise<void> {
+    await test.step(`Selecting the site search bar`, async () => {});
   }
-
   async authorNameShouldBeVisible(): Promise<void> {
     await test.step(`Checking the author name should be visible`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.authorName);
@@ -432,6 +420,16 @@ export class ManageContentComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.siteStatusStamp);
     });
   }
+  async selectSiteSearchBarOption(): Promise<void> {
+    await test.step('Selecting the site search bar option', async () => {
+      const fullText = (await this.siteSearchBarOption.textContent()) || '';
+      // Extract site name by removing "Site" prefix
+      this.siteSearchBarOptionText = fullText.replace(/^Site/, '').trim();
+
+      // Click on the site search bar option
+      await this.clickOnElement(this.siteSearchBarOption);
+    });
+  }
 
   async verifySiteNameLink(): Promise<void> {
     await test.step('Verifying the site name', async () => {
@@ -454,10 +452,30 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
+  async selectTheStatusFilter(status: ContentStatus): Promise<void> {
+    await test.step(`Selecting the status filter: ${status}`, async () => {
+      await this.clickOnElement(this.statusField);
+      await this.selectPublishOption.selectOption(status);
+    });
+  }
+
   async selectTheStatusFilter(status: string): Promise<void> {
     await test.step(`Selecting the status filter: ${status}`, async () => {
       await this.clickOnElement(this.statusField);
       await this.selectPublishOption.selectOption(status);
+    });
+  }
+
+  async verifyManageContentListItemCount(expectedCount: number): Promise<void> {
+    await test.step(`Verifying ManageContentListItem count is ${expectedCount}`, async () => {
+      await this.waitForManageContentListItems();
+      const actualCount = await this.manageContentListItems.count();
+      console.log(`Actual count: ${actualCount}`);
+      console.log(`Expected count: ${expectedCount}`);
+      if (actualCount < expectedCount) {
+        throw new Error(`Expected at least ${expectedCount} ManageContentListItem elements, but found ${actualCount}`);
+      }
+      console.log(`✅ Successfully verified ${actualCount} ManageContentListItem elements`);
     });
   }
 
@@ -613,7 +631,6 @@ export class ManageContentComponent extends BaseComponent {
       });
     });
   }
-
   async verifyCreatedAtDateVisibleInManageContent(createdAtDate: string): Promise<void> {
     await test.step('Verifying the created at date is visible in manage content', async () => {
       await this.verifier.verifyTheElementIsVisible(this.createdAtDate(createdAtDate), {
@@ -630,6 +647,7 @@ export class ManageContentComponent extends BaseComponent {
       }
     });
   }
+
   async verifyAllPublishedAtDatesFromArray(dates: string[]): Promise<void> {
     await test.step('Verifying all published at dates from array', async () => {
       for (let i = 0; i < dates.length; i++) {

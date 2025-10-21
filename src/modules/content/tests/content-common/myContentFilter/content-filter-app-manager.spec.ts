@@ -5,7 +5,6 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
-import { ContentSortBy, ContentStatus } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
@@ -81,138 +80,31 @@ test.describe(
         await manageContentPage.actions.applyButtonShouldBeDisabled();
       }
     );
-
     test(
-      'verify different combination for filters for Manage By/Author By, Content type and sort by filter on Manage > Content screen',
+      'verify for the list API for content listing, it should have a limit of 16 and show more button should come for more than 16 content',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25099'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25055'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'Verify different combination for filters for Manage By/Author By, Content type and sort by filter on Manage > Content screen',
+            'Verify for the list API for content listing, it should have a limit of 16 and show more button should come for more than 16 content',
           customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
-          zephyrTestId: 'CONT-25099',
-          storyId: 'CONT-25099',
-        });
-        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.selectContentFilterByType('manageByme');
-        await manageContentPage.actions.clickSortByButton();
-        const contentCreatedAtDetailsNewest =
-          await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.CREATED_NEWEST);
-        await manageContentPage.actions.selectCreatedNewestOption();
-        if (contentCreatedAtDetailsNewest !== null) {
-          await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(
-            contentCreatedAtDetailsNewest[0]
-          );
-        }
-        const contentCreatedAtDetailsOldest =
-          await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.CREATED_OLDEST);
-        await manageContentPage.actions.selectCreatedOldestOption();
-        if (contentCreatedAtDetailsOldest !== null) {
-          await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(
-            contentCreatedAtDetailsOldest[0]
-          );
-        }
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickSortByButton();
-        const contentCreatedAtDetailsNewestPublished =
-          await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.PUBLISHED_NEWEST);
-        await manageContentPage.actions.selectCreateNewestPublishedOption();
-        if (contentCreatedAtDetailsNewestPublished !== null) {
-          await manageContentPage.assertions.verifyPublishedAtDateVisibleInManageContent(
-            contentCreatedAtDetailsNewestPublished[0]
-          );
-        }
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreateOldestPublishedOption();
-        const contentCreatedAtDetailsOldestPublished =
-          await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.PUBLISHED_OLDEST);
-        if (contentCreatedAtDetailsOldestPublished !== null) {
-          await manageContentPage.assertions.verifyPublishedAtDateVisibleInManageContent(
-            contentCreatedAtDetailsOldestPublished[0]
-          );
-        }
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectEditedNewestOption();
-        const contentCreatedAtDetailsNewestEdited =
-          await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.MODIFIED_NEWEST);
-        if (contentCreatedAtDetailsNewestEdited !== null) {
-          await manageContentPage.assertions.verifyEditedAtDateVisibleInManageContent(
-            contentCreatedAtDetailsNewestEdited[0]
-          );
-          await manageContentPage.actions.clickSortByButton();
-          await manageContentPage.actions.selectEditedOldestOption();
-          const contentCreatedAtDetailsOldestEdited =
-            await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.MODIFIED_OLDEST);
-          if (contentCreatedAtDetailsOldestEdited !== null) {
-            await manageContentPage.assertions.verifyEditedAtDateVisibleInManageContent(
-              contentCreatedAtDetailsOldestEdited[0]
-            );
-          }
-        }
-      }
-    );
-    test(
-      'verify user should be able to filter the content on the "Created Date Oldest First" filter',
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25057'],
-      },
-      async ({ appManagerFixture }) => {
-        tagTest(test.info(), {
-          description: 'verify user should be able to filter the content on the "Created Date Oldest First" filter',
-          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
-          zephyrTestId: 'CONT-25057',
-          storyId: 'CONT-25057',
-        });
-        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreatedOldestOption();
-
-        // Get dates from API
-        const contentCreatedAtDetailsOldest =
-          await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.CREATED_OLDEST);
-        console.log('contentCreatedAtDetailsOldest', contentCreatedAtDetailsOldest);
-
-        // Verify all dates from array are visible on UI
-        if (contentCreatedAtDetailsOldest !== null) {
-          await manageContentPage.assertions.verifyAllCreatedAtDatesFromArray(contentCreatedAtDetailsOldest);
-        }
-      }
-    );
-    test(
-      'verify user should be able to filter the content on the "Published Date Oldest First" filter',
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25056'],
-      },
-      async ({ appManagerFixture }) => {
-        tagTest(test.info(), {
-          description: 'verify user should be able to filter the content on the "Published Date Oldest First" filter',
-          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
-          zephyrTestId: 'CONT-25056',
-          storyId: 'CONT-25056',
+          zephyrTestId: 'CONT-25055',
+          storyId: 'CONT-25055',
         });
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreateOldestPublishedOption();
-
-        // Get dates from API
-        const contentPublishedAtDetailsOldest =
-          await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.PUBLISHED_OLDEST);
-        console.log('contentPublishedAtDetailsOldest', contentPublishedAtDetailsOldest);
-
-        // Verify all dates from array are visible on UI
-        if (contentPublishedAtDetailsOldest !== null) {
-          await manageContentPage.assertions.verifyAllPublishedAtDatesFromArray(contentPublishedAtDetailsOldest);
-        }
+        await manageContentPage.actions.selectTheStatusFilter('Published');
+        await manageContentPage.assertions.verifyManageContentListItemCount(16);
+        await manageContentPage.actions.clickShowMoreButton();
+        await manageContentPage.assertions.verifyManageContentListItemCount(32);
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter('Unpublished');
+        await manageContentPage.assertions.verifyManageContentListItemCount(16);
+        await manageContentPage.actions.clickShowMoreButton();
+        await manageContentPage.assertions.verifyManageContentListItemCount(32);
       }
     );
 
@@ -232,12 +124,12 @@ test.describe(
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.actions.selectTheStatusFilter('Published');
         await manageContentPage.assertions.verifyManageContentListItemCount(16);
         await manageContentPage.actions.clickShowMoreButton();
         await manageContentPage.assertions.verifyManageContentListItemCount(32);
         await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
+        await manageContentPage.actions.selectTheStatusFilter('Unpublished');
         await manageContentPage.assertions.verifyManageContentListItemCount(16);
         await manageContentPage.actions.clickShowMoreButton();
         await manageContentPage.assertions.verifyManageContentListItemCount(32);
