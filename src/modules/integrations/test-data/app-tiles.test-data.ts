@@ -163,3 +163,12 @@ export const EXPENSIFY_VALUES = {
   MAX_DAYS: 30,
   WORKSPACE_VALUE: 'Sandbox-R&D',
 } as const;
+/**
+ * Data values for Greenhouse app tiles
+ */
+export const GREENHOUSE_VALUES = {
+  JOB_TYPE: 'Job type',
+  ALL: 'All',
+  JOB_BOARD_TOKEN: 'Job board token',
+  JOB_BOARD_TOKEN_VALUE: 'mergeapiintegrationsandbox',
+} as const;
