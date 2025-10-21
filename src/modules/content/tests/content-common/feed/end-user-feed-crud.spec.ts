@@ -94,7 +94,6 @@ test.describe(
         });
 
         // Store created post text and postId for cleanup (postId would be available if using API creation)
-
         createdPostText = postResult.postText;
         createdPostId = postResult.postId || '';
 
