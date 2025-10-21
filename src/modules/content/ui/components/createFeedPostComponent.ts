@@ -59,6 +59,8 @@ export interface ICreateFeedPostAssertions {
   verifyEditorVisible: () => Promise<void>;
   verifyNoResultMessage: () => Promise<void>;
   verifyFileIsAttached: (fileName: string) => Promise<void>;
+  verifyQuestionButtonIsNotVisible: () => Promise<void>;
+  verifyQuestionButtonIsVisible: () => Promise<void>;
 }
 
 export class CreateFeedPostComponent
@@ -460,6 +462,18 @@ export class CreateFeedPostComponent
         attachmentCount: 0,
         postId,
       };
+    });
+  }
+
+  async verifyQuestionButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify question button is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.questionButton);
+    });
+  }
+
+  async verifyQuestionButtonIsVisible(): Promise<void> {
+    await test.step('Verify question button is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.questionButton);
     });
   }
 

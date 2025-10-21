@@ -95,6 +95,8 @@ export interface IFeedAssertions {
   verifySocialCampaignShareButtonIsVisible: (description: string) => Promise<void>;
   verifyNoResultMessage: () => Promise<void>;
   verifyFileIsAttached: (fileName: string) => Promise<void>;
+  verifyQuestionButtonIsVisible: () => Promise<void>;
+  verifyQuestionButtonIsNotVisible: () => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
