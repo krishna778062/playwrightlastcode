@@ -4,7 +4,30 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ConfluenceHelper } from '@/src/modules/integrations/apis/helpers/confluenceHelper';
 
-export class SupportAndTicketingPage extends BasePage {
+export interface IConfluenceActions {
+  connectConfluenceServiceAccount: () => Promise<void>;
+  toggleConfluenceIntegration: () => Promise<void>;
+  clickDisconnectConfluenceButton: () => Promise<void>;
+  selectCustomKnowledgeBaseWithName: (customKnowledgeBaseName: string) => Promise<void>;
+  selectDefaultKnowledgeBase: () => Promise<void>;
+  selectAllSpacesOption: () => Promise<void>;
+  selectSpecificSpacesOption: () => Promise<void>;
+  enterConfluenceUrl: () => Promise<void>;
+}
+
+export interface IConfluenceAssertions {
+  verifyThePageIsLoaded: () => Promise<void>;
+  verifyConfluenceServiceAccountConnected: () => Promise<void>;
+  verifyConfluenceServiceAccountIsDisconnected: () => Promise<void>;
+  verifyConfluenceIntegrationCheckboxState: (expectedState: boolean) => Promise<void>;
+  verifyConfluenceUrlIsRequired: () => Promise<void>;
+  verifyDefaultKnowledgeBaseIsSelected: () => Promise<void>;
+  verifyCustomKnowledgeBaseNameIsRequired: () => Promise<void>;
+  verifySearchSpaceSelectionIsRequired: () => Promise<void>;
+  isConfluenceServiceAccountConnected: () => Promise<boolean>;
+}
+
+export class SupportAndTicketingPage extends BasePage implements IConfluenceActions, IConfluenceAssertions {
   readonly serviceNowButton: Locator;
   readonly serviceNowConsumerKey: Locator;
   readonly serviceNowSecretKey: Locator;
@@ -64,10 +87,27 @@ export class SupportAndTicketingPage extends BasePage {
     this.confluenceUrl = 'https://simpplrdev.atlassian.net';
   }
 
+  get actions(): IConfluenceActions {
+    return this;
+  }
+
+  get assertions(): IConfluenceAssertions {
+    return this;
+  }
+
   async navigateToSupportAndTicketingPage(): Promise<void> {
     await test.step('Navigate to support and ticketing integrations page', async () => {
       const url = PAGE_ENDPOINTS.SUPPORT_TICKETING_PAGE;
       await this.page.goto(url, { waitUntil: 'domcontentloaded' });
+    });
+  }
+
+  async verifyThePageIsLoaded(): Promise<void> {
+    await test.step('Verify support and ticketing integrations page is loaded', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.serviceNowButton, {
+        timeout: 30_000,
+        assertionMessage: 'Verifying support and ticketing integrations page is loaded',
+      });
     });
   }
 
@@ -145,24 +185,17 @@ export class SupportAndTicketingPage extends BasePage {
     });
   }
 
-  async verifyThePageIsLoaded(): Promise<void> {
-    await test.step('Verify support and ticketing integrations page is loaded', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.serviceNowButton, {
-        timeout: 30_000,
-        assertionMessage: 'Verifying support and ticketing integrations page is loaded',
-      });
-    });
-  }
-
-  async verifyConfluenceCheckboxState(state: boolean): Promise<void> {
-    await test.step('Verify confluence checkbox is in the desired state', async () => {
+  async verifyConfluenceIntegrationCheckboxState(expectedState: boolean): Promise<void> {
+    await test.step(`Verify Confluence integration checkbox is ${expectedState ? 'checked' : 'unchecked'}`, async () => {
       const isChecked = await this.confluenceCheckbox.isChecked();
-      expect(isChecked).toBe(state);
+      expect(isChecked, `Confluence integration checkbox should be ${expectedState ? 'checked' : 'unchecked'}`).toBe(
+        expectedState
+      );
     });
   }
 
-  async clickOnConfluenceCheckbox(): Promise<void> {
-    await test.step('Click on confluence checkbox', async () => {
+  async toggleConfluenceIntegration(): Promise<void> {
+    await test.step('Toggle Confluence integration checkbox', async () => {
       await this.page.waitForLoadState('domcontentloaded');
       await this.confluenceCheckbox.waitFor({ state: 'visible', timeout: 15_000 });
       await this.confluenceCheckbox.click({ force: true });
@@ -176,19 +209,18 @@ export class SupportAndTicketingPage extends BasePage {
     });
   }
 
-  async verifyConfluenceEmptyUrlMessageVisible(): Promise<void> {
-    await test.step('Verify confluence empty url message is visible', async () => {
+  async verifyConfluenceUrlIsRequired(): Promise<void> {
+    await test.step('Verify Confluence URL is required', async () => {
       await this.verifier.verifyTheElementIsVisible(this.confluenceEmptyUrlMessage, {
         timeout: 15_000,
-        assertionMessage: 'Verifying confluence empty url message is visible',
+        assertionMessage: 'Confluence URL field should show validation error when left empty',
       });
     });
   }
 
   async enterConfluenceUrl(): Promise<void> {
-    await test.step('Enter confluence url', async () => {
+    await test.step(`Enter Confluence URL: "${this.confluenceUrl}"`, async () => {
       await this.confluenceUrlInput.waitFor({ state: 'visible', timeout: 15_000 });
-
       await this.confluenceUrlInput.fill(this.confluenceUrl);
       await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
       await this.saveButton.click();
@@ -196,16 +228,15 @@ export class SupportAndTicketingPage extends BasePage {
     });
   }
 
-  async verifyDefaultSelectedConfluenceKnowledgeBaseName(): Promise<void> {
-    await test.step('Verify selected knowledge base name', async () => {
-      const defaultSelectedKnowledgeBaseName = await this.confluenceDefaultKnowledgeBaseRadioBtn.isChecked();
-      console.log('defaultSelectedKnowledgeBaseName', defaultSelectedKnowledgeBaseName);
-      expect(defaultSelectedKnowledgeBaseName).toBe(true);
+  async verifyDefaultKnowledgeBaseIsSelected(): Promise<void> {
+    await test.step('Verify default knowledge base option is selected', async () => {
+      const isDefaultSelected = await this.confluenceDefaultKnowledgeBaseRadioBtn.isChecked();
+      expect(isDefaultSelected, 'Default knowledge base radio button should be selected').toBe(true);
     });
   }
 
-  async selectConfluenceCustomKnowledgeBaseRadioBtn(customKnowledgeBaseName: string): Promise<void> {
-    await test.step('Select custom knowledge base radio button', async () => {
+  async selectCustomKnowledgeBaseWithName(customKnowledgeBaseName: string): Promise<void> {
+    await test.step(`Select custom knowledge base option with name: "${customKnowledgeBaseName}"`, async () => {
       await this.confluenceCustomKnowledgeBaseRadioBtn.waitFor({ state: 'visible', timeout: 15_000 });
       await this.confluenceCustomKnowledgeBaseRadioBtn.click();
       await this.confluenceKnowledgeBaseNameInput.fill(customKnowledgeBaseName);
@@ -215,8 +246,8 @@ export class SupportAndTicketingPage extends BasePage {
     });
   }
 
-  async selectConfluenceDefaultKnowledgeBaseRadioBtn(): Promise<void> {
-    await test.step('Select default knowledge base radio button', async () => {
+  async selectDefaultKnowledgeBase(): Promise<void> {
+    await test.step('Select default knowledge base option', async () => {
       await this.confluenceDefaultKnowledgeBaseRadioBtn.waitFor({ state: 'visible', timeout: 15_000 });
       await this.confluenceDefaultKnowledgeBaseRadioBtn.click();
       await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
@@ -227,8 +258,8 @@ export class SupportAndTicketingPage extends BasePage {
     });
   }
 
-  async selectConfluenceAllSpacesRadioBtn(): Promise<void> {
-    await test.step('Select all spaces radio button', async () => {
+  async selectAllSpacesOption(): Promise<void> {
+    await test.step('Select "All spaces" option for Confluence spaces', async () => {
       await this.confluenceAllSpacesRadioBtn.waitFor({ state: 'visible', timeout: 15_000 });
       await this.confluenceAllSpacesRadioBtn.click();
       await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
@@ -237,8 +268,8 @@ export class SupportAndTicketingPage extends BasePage {
     });
   }
 
-  async selectConfluenceSelectedSpacesRadioBtn(): Promise<void> {
-    await test.step('Select selected spaces radio button', async () => {
+  async selectSpecificSpacesOption(): Promise<void> {
+    await test.step('Select "Select spaces" option for Confluence spaces', async () => {
       await this.confluenceSelectedSpacesRadioBtn.waitFor({ state: 'visible', timeout: 15_000 });
       await this.confluenceSelectedSpacesRadioBtn.click();
       await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
@@ -247,20 +278,20 @@ export class SupportAndTicketingPage extends BasePage {
     });
   }
 
-  async verifyBlankCustomNameForConfluence(): Promise<void> {
-    await test.step('Verify blank custom name for confluence', async () => {
+  async verifyCustomKnowledgeBaseNameIsRequired(): Promise<void> {
+    await test.step('Verify custom knowledge base name is required', async () => {
       await this.verifier.verifyTheElementIsVisible(this.errorMessageForBlankCustomNameForConfluence, {
         timeout: 15_000,
-        assertionMessage: 'Verifying error message for blank custom name for confluence is visible',
+        assertionMessage: 'Custom knowledge base name field should show validation error when left blank',
       });
     });
   }
 
-  async verifyNotSelectingSearchSpaceForConfluence(): Promise<void> {
-    await test.step('Verify not selecting search space for confluence', async () => {
+  async verifySearchSpaceSelectionIsRequired(): Promise<void> {
+    await test.step('Verify at least one search space must be selected', async () => {
       await this.verifier.verifyTheElementIsVisible(this.errorMessageForNotSelectingSearchSpaceForConfluence, {
         timeout: 15_000,
-        assertionMessage: 'Verifying error message for not selecting search space for confluence is visible',
+        assertionMessage: 'Search space selection should show validation error when no space is selected',
       });
     });
   }

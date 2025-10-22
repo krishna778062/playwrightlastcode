@@ -6,6 +6,25 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ConfluenceHelper } from '@/src/modules/integrations/apis/helpers/confluenceHelper';
 
+export interface IExternalAppsActions {
+  navigateToExternalAppsPage: (userId?: string) => Promise<void>;
+  disconnectIntegration: (provider: ExternalAppProvider) => Promise<void>;
+  connectGoogleAccountIntegration: (provider: ExternalAppProvider, email?: string, password?: string) => Promise<void>;
+  connectConfluenceServiceAccount: (incorrectCredentials?: boolean) => Promise<void>;
+}
+
+export interface IExternalAppsAssertions {
+  verifyThePageIsLoaded: () => Promise<void>;
+  verifyIntegrationNotConnected: (provider: ExternalAppProvider) => Promise<void>;
+  verifyIntegrationIsConnected: (provider: ExternalAppProvider, expectedStatus: boolean) => Promise<void>;
+  verifyToastMessageIsVisibleWithText: (message: string) => Promise<void>;
+  verifyGoogleCalendarDisconnectModalTexts: (confirmModal: Locator) => Promise<void>;
+  getConnectionStatus: (provider: ExternalAppProvider) => Promise<boolean>;
+  isIntegrationConnected: (provider: ExternalAppProvider) => Promise<boolean>;
+  getConnectedIntegrationsCount: () => Promise<number>;
+  getAllIntegrationsCount: () => Promise<number>;
+}
+
 export enum ExternalAppCategory {
   CALENDAR = 'Calendar',
   FILE_STORAGE = 'File storage',
@@ -42,7 +61,7 @@ export enum ExternalAppStatus {
   DISCONNECTED = 'Disconnected',
 }
 
-export class ExternalAppsPage extends BasePage {
+export class ExternalAppsPage extends BasePage implements IExternalAppsActions, IExternalAppsAssertions {
   readonly externalAppsTabPanel: Locator;
   readonly calendarSection: Locator;
   readonly fileStorageSection: Locator;
@@ -75,6 +94,14 @@ export class ExternalAppsPage extends BasePage {
     this.customAppsListComponent = new CustomAppsListComponent(page);
     this.acceptButton = page.locator('button[type="submit"]');
     this.connectConfluenceButton = page.locator('button[aria-label="Connect your Atlassian Confluence account"]');
+  }
+
+  get actions(): IExternalAppsActions {
+    return this;
+  }
+
+  get assertions(): IExternalAppsAssertions {
+    return this;
   }
 
   /**

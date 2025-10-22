@@ -14,7 +14,7 @@ import { SupportAndTicketingPage } from '@/src/modules/integrations/ui/pages/sup
 test.describe(
   'confluence test cases',
   {
-    tag: [IntegrationsSuiteTags.INTEGRATIONS, IntegrationsSuiteTags.PHOENIX],
+    tag: [IntegrationsSuiteTags.INTEGRATIONS, IntegrationsSuiteTags.PHOENIX, IntegrationsSuiteTags.CONFLUENCE],
   },
   () => {
     test(
@@ -31,27 +31,27 @@ test.describe(
 
         // Navigate to Support and Ticketing page
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();
-        await supportAndTicketingPage.verifyThePageIsLoaded();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
 
         // Verify App Level Connection & Disconnection Flow
-        await supportAndTicketingPage.clickDisconnectConfluenceButton();
-        await supportAndTicketingPage.verifyConfluenceServiceAccountIsDisconnected();
-        await supportAndTicketingPage.connectConfluenceServiceAccount();
-        await supportAndTicketingPage.verifyConfluenceServiceAccountConnected();
+        await supportAndTicketingPage.actions.clickDisconnectConfluenceButton();
+        await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountIsDisconnected();
+        await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
+        await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
 
         // navigate to external apps page
         const externalAppsPage = new ExternalAppsPage(appManagerFixture.page);
-        await externalAppsPage.navigateToExternalAppsPage();
-        await externalAppsPage.verifyThePageIsLoaded();
+        await externalAppsPage.actions.navigateToExternalAppsPage();
+        await externalAppsPage.assertions.verifyThePageIsLoaded();
 
         // Verify User Level Connection & Disconnection Flow
-        await externalAppsPage.verifyIntegrationIsConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE, false);
-        await externalAppsPage.connectConfluenceServiceAccount();
-        await externalAppsPage.verifyIntegrationIsConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE, true);
-        await externalAppsPage.disconnectIntegration(ExternalAppProvider.ATLASSIAN_CONFLUENCE);
-        await externalAppsPage.verifyIntegrationIsConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE, false);
-        await externalAppsPage.connectConfluenceServiceAccount();
-        await externalAppsPage.verifyIntegrationIsConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE, true);
+        await externalAppsPage.assertions.verifyIntegrationIsConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE, false);
+        await externalAppsPage.actions.connectConfluenceServiceAccount();
+        await externalAppsPage.assertions.verifyIntegrationIsConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE, true);
+        await externalAppsPage.actions.disconnectIntegration(ExternalAppProvider.ATLASSIAN_CONFLUENCE);
+        await externalAppsPage.assertions.verifyIntegrationIsConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE, false);
+        await externalAppsPage.actions.connectConfluenceServiceAccount();
+        await externalAppsPage.assertions.verifyIntegrationIsConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE, true);
       }
     );
 
@@ -69,35 +69,38 @@ test.describe(
 
         // Navigate to Support and Ticketing page
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();
-        await supportAndTicketingPage.verifyThePageIsLoaded();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
 
         // Verify App Level Connection
-        const isConnected = await supportAndTicketingPage.isConfluenceServiceAccountConnected();
+        const isConnected = await supportAndTicketingPage.assertions.isConfluenceServiceAccountConnected();
         if (!isConnected) {
-          await supportAndTicketingPage.connectConfluenceServiceAccount();
-          await supportAndTicketingPage.verifyConfluenceServiceAccountConnected();
+          await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
+          await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
         }
 
         // Navigate to external apps page
         const externalAppsPage = new ExternalAppsPage(appManagerFixture.page);
-        await externalAppsPage.navigateToExternalAppsPage();
-        await externalAppsPage.verifyThePageIsLoaded();
+        await externalAppsPage.actions.navigateToExternalAppsPage();
+        await externalAppsPage.assertions.verifyThePageIsLoaded();
 
         // check if User Level Connection is connected
-        const isUserLevelConnected = await externalAppsPage.isIntegrationConnected(
+        const isUserLevelConnected = await externalAppsPage.assertions.isIntegrationConnected(
           ExternalAppProvider.ATLASSIAN_CONFLUENCE
         );
         if (!isUserLevelConnected) {
-          await externalAppsPage.connectConfluenceServiceAccount();
-          await externalAppsPage.verifyIntegrationIsConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE, true);
+          await externalAppsPage.actions.connectConfluenceServiceAccount();
+          await externalAppsPage.assertions.verifyIntegrationIsConnected(
+            ExternalAppProvider.ATLASSIAN_CONFLUENCE,
+            true
+          );
         }
 
         // Navigate to Support and Ticketing page
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();
-        await supportAndTicketingPage.verifyThePageIsLoaded();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
 
         // Select Custom Knowledge Base Radio Button
-        await supportAndTicketingPage.selectConfluenceCustomKnowledgeBaseRadioBtn('Test Knowledge Base');
+        await supportAndTicketingPage.actions.selectCustomKnowledgeBaseWithName('Test Knowledge Base');
 
         // Search for Overview
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm('Overview', {
@@ -113,8 +116,8 @@ test.describe(
 
         // Cleanup
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();
-        await supportAndTicketingPage.verifyThePageIsLoaded();
-        await supportAndTicketingPage.selectConfluenceDefaultKnowledgeBaseRadioBtn();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
+        await supportAndTicketingPage.actions.selectDefaultKnowledgeBase();
       }
     );
 
@@ -132,10 +135,10 @@ test.describe(
 
         // Navigate to Support and Ticketing page
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();
-        await supportAndTicketingPage.verifyThePageIsLoaded();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
 
         // Select Custom Knowledge Base Radio Button
-        await supportAndTicketingPage.selectConfluenceCustomKnowledgeBaseRadioBtn('Confluence knowledge base');
+        await supportAndTicketingPage.actions.selectCustomKnowledgeBaseWithName('Confluence knowledge base');
 
         // Search for Overview
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm('Overview', {
@@ -165,12 +168,12 @@ test.describe(
 
         // Navigate to Support and Ticketing page
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();
-        await supportAndTicketingPage.verifyThePageIsLoaded();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
 
         // Select Custom Knowledge Base Radio Button
-        await supportAndTicketingPage.selectConfluenceCustomKnowledgeBaseRadioBtn('');
-        await supportAndTicketingPage.verifyBlankCustomNameForConfluence();
-        await supportAndTicketingPage.selectConfluenceDefaultKnowledgeBaseRadioBtn();
+        await supportAndTicketingPage.actions.selectCustomKnowledgeBaseWithName('');
+        await supportAndTicketingPage.assertions.verifyCustomKnowledgeBaseNameIsRequired();
+        await supportAndTicketingPage.actions.selectDefaultKnowledgeBase();
       }
     );
 
@@ -188,11 +191,11 @@ test.describe(
 
         // Navigate to Support and Ticketing page
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();
-        await supportAndTicketingPage.verifyThePageIsLoaded();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
 
         // Select Search Spaces Radio Button
-        await supportAndTicketingPage.selectConfluenceSelectedSpacesRadioBtn();
-        await supportAndTicketingPage.verifyNotSelectingSearchSpaceForConfluence();
+        await supportAndTicketingPage.actions.selectSpecificSpacesOption();
+        await supportAndTicketingPage.assertions.verifySearchSpaceSelectionIsRequired();
       }
     );
 
@@ -210,11 +213,11 @@ test.describe(
 
         // Navigate to Support and Ticketing page
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();
-        await supportAndTicketingPage.verifyThePageIsLoaded();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
 
         // Verify App Level Disconnection by unchecking the checkbox
-        await supportAndTicketingPage.clickOnConfluenceCheckbox();
-        await supportAndTicketingPage.verifyConfluenceCheckboxState(false);
+        await supportAndTicketingPage.actions.toggleConfluenceIntegration();
+        await supportAndTicketingPage.assertions.verifyConfluenceIntegrationCheckboxState(false);
       }
     );
 
@@ -232,14 +235,14 @@ test.describe(
 
         // Navigate to Support and Ticketing page
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();
-        await supportAndTicketingPage.verifyThePageIsLoaded();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
 
         // Verify App Level Connection by checking the checkbox
-        await supportAndTicketingPage.clickOnConfluenceCheckbox();
-        await supportAndTicketingPage.verifyConfluenceCheckboxState(true);
+        await supportAndTicketingPage.actions.toggleConfluenceIntegration();
+        await supportAndTicketingPage.assertions.verifyConfluenceIntegrationCheckboxState(true);
 
-        await supportAndTicketingPage.connectConfluenceServiceAccount();
-        await supportAndTicketingPage.verifyConfluenceServiceAccountConnected();
+        await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
+        await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
       }
     );
 
@@ -255,15 +258,15 @@ test.describe(
 
         // navigate to external apps page
         const externalAppsPage = new ExternalAppsPage(appManagerFixture.page);
-        await externalAppsPage.navigateToExternalAppsPage();
-        await externalAppsPage.verifyThePageIsLoaded();
+        await externalAppsPage.actions.navigateToExternalAppsPage();
+        await externalAppsPage.assertions.verifyThePageIsLoaded();
 
         // Verify User Level Connection with incorrect credentials
-        if (await externalAppsPage.isIntegrationConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE)) {
-          await externalAppsPage.disconnectIntegration(ExternalAppProvider.ATLASSIAN_CONFLUENCE);
+        if (await externalAppsPage.assertions.isIntegrationConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE)) {
+          await externalAppsPage.actions.disconnectIntegration(ExternalAppProvider.ATLASSIAN_CONFLUENCE);
         }
-        await externalAppsPage.connectConfluenceServiceAccount(true);
-        await externalAppsPage.verifyIntegrationIsConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE, false);
+        await externalAppsPage.actions.connectConfluenceServiceAccount(true);
+        await externalAppsPage.assertions.verifyIntegrationIsConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE, false);
       }
     );
 
@@ -279,27 +282,39 @@ test.describe(
 
         // Admin user - Verify Confluence is connected at app level
         const adminExternalAppsPage = new ExternalAppsPage(adminPage);
-        await adminExternalAppsPage.navigateToExternalAppsPage();
-        await adminExternalAppsPage.verifyThePageIsLoaded();
-        await adminExternalAppsPage.isIntegrationConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE);
+        await adminExternalAppsPage.actions.navigateToExternalAppsPage();
+        await adminExternalAppsPage.assertions.verifyThePageIsLoaded();
+        await adminExternalAppsPage.assertions.isIntegrationConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE);
 
         // End user - Verify User Level Connection & Disconnection Flow
         const endUserExternalAppsPage = new ExternalAppsPage(endUserPage);
-        await endUserExternalAppsPage.navigateToExternalAppsPage();
-        await endUserExternalAppsPage.verifyThePageIsLoaded();
+        await endUserExternalAppsPage.actions.navigateToExternalAppsPage();
+        await endUserExternalAppsPage.assertions.verifyThePageIsLoaded();
 
         // Verify end user can connect Confluence
-        await endUserExternalAppsPage.verifyIntegrationIsConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE, false);
-        await endUserExternalAppsPage.connectConfluenceServiceAccount();
-        await endUserExternalAppsPage.verifyIntegrationIsConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE, true);
+        await endUserExternalAppsPage.assertions.verifyIntegrationIsConnected(
+          ExternalAppProvider.ATLASSIAN_CONFLUENCE,
+          false
+        );
+        await endUserExternalAppsPage.actions.connectConfluenceServiceAccount();
+        await endUserExternalAppsPage.assertions.verifyIntegrationIsConnected(
+          ExternalAppProvider.ATLASSIAN_CONFLUENCE,
+          true
+        );
 
         // Verify end user can disconnect Confluence
-        await endUserExternalAppsPage.disconnectIntegration(ExternalAppProvider.ATLASSIAN_CONFLUENCE);
-        await endUserExternalAppsPage.verifyIntegrationIsConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE, false);
+        await endUserExternalAppsPage.actions.disconnectIntegration(ExternalAppProvider.ATLASSIAN_CONFLUENCE);
+        await endUserExternalAppsPage.assertions.verifyIntegrationIsConnected(
+          ExternalAppProvider.ATLASSIAN_CONFLUENCE,
+          false
+        );
 
         // Verify end user can reconnect Confluence
-        await endUserExternalAppsPage.connectConfluenceServiceAccount();
-        await endUserExternalAppsPage.verifyIntegrationIsConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE, true);
+        await endUserExternalAppsPage.actions.connectConfluenceServiceAccount();
+        await endUserExternalAppsPage.assertions.verifyIntegrationIsConnected(
+          ExternalAppProvider.ATLASSIAN_CONFLUENCE,
+          true
+        );
       }
     );
   }
