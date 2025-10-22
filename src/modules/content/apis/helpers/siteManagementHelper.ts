@@ -399,11 +399,18 @@ export class SiteManagementHelper {
    * @param options - Optional parameters for filtering sites
    * @returns Promise containing the sites response
    */
-  async getListOfSites(options?: { size?: number; canManage?: boolean; filter?: string; page?: number }) {
+  async getListOfSites(options?: {
+    size?: number;
+    canManage?: boolean;
+    filter?: string;
+    page?: number;
+    sortBy?: string;
+  }) {
     const defaultOptions = {
       size: 1000,
       canManage: true,
       filter: options?.filter || 'active',
+      sortBy: options?.sortBy || 'createdNewest',
       page: 0,
       ...options,
     };
