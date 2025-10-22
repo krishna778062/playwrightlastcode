@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker';
+
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';

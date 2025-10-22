@@ -98,7 +98,6 @@ export interface IFeedAssertions {
   verifyFileIsAttached: (fileName: string) => Promise<void>;
   verifyQuestionButtonIsVisible: () => Promise<void>;
   verifyQuestionButtonIsNotVisible: () => Promise<void>;
-  verifyQuestionButtonIsVisible: () => Promise<void>;
   verifyFeedSectionIsVisible: () => Promise<void>;
   verifyFeedSectionIsNotVisible: () => Promise<void>;
 }
@@ -530,6 +529,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    */
   async verifyQuestionButtonIsVisible(): Promise<void> {
     await this.createFeedPostComponent.verifyQuestionButtonIsVisible();
+  }
+
+  async verifyQuestionButtonIsNotVisible(): Promise<void> {
+    await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
   }
 
   async verifyFeedSectionIsVisible(): Promise<void> {
