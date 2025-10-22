@@ -18,6 +18,7 @@ export class SideNavBarComponent extends BaseComponent {
   readonly clickingOnHome: Locator;
   readonly socialCampaignsElement: Locator;
   readonly moreElement: Locator;
+  readonly createContent: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -34,6 +35,7 @@ export class SideNavBarComponent extends BaseComponent {
     this.clickingOnHome = page.getByRole('menuitem', { name: 'User mode' });
     this.socialCampaignsElement = page.locator('p', { hasText: 'Social campaigns' });
     this.moreElement = page.locator('p', { hasText: 'More' });
+    this.createContent = page.getByRole('button', { name: 'Create' });
   }
 
   /**
@@ -43,6 +45,14 @@ export class SideNavBarComponent extends BaseComponent {
   async clickOnCreateButton(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `Clicking Create button in side navigation`, async () => {
       await this.clickOnElement(this.createSection);
+    });
+  }
+
+  async verifyingCreateButtonIsVisible(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `Verifying Create button in side navigation is visible`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.createContent, {
+        assertionMessage: 'Create button is visible in side navigation',
+      });
     });
   }
 

@@ -17,6 +17,8 @@ export interface ISiteDashboardAssertions {
   verifySiteCreatedSuccessfully: (siteName: string) => Promise<void>;
   verifyCategoryCreatedSuccessfully: (categoryName: string) => Promise<void>;
   verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
+  verifyAddContentButtonIsNotVisible: () => Promise<void>;
+  verifyAddContentButtonIsVisible: () => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -119,5 +121,21 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   async verifyCampaignLinkDisplayed(linkText: string, description: string): Promise<void> {
     await this.listFeedComponent.verifyCampaignLinkDisplayed(linkText, description);
+  }
+
+  async verifyAddContentButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify add content button is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.addContentButton, {
+        assertionMessage: 'Add content button should not be visible',
+      });
+    });
+  }
+
+  async verifyAddContentButtonIsVisible(): Promise<void> {
+    await test.step('Verify add content button is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.addContentButton, {
+        assertionMessage: 'Add content button should not be visible',
+      });
+    });
   }
 }

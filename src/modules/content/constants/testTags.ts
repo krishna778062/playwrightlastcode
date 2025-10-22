@@ -13,6 +13,7 @@ export enum ContentSuiteTags {
   QUESTION_SETTINGS = '@question-settings',
   SOCIAL_CAMPAIGN = '@social-campaign',
   MY_CONTENT_FILTER = '@my-content-filter',
+  ENABLE_DISABLE_CONTENT_SUBMISSIONS = '@enable-disable-content-submissions',
 }
 
 export enum ContentFeatureTags {
