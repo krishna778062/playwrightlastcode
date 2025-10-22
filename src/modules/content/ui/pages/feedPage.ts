@@ -387,6 +387,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       await this.clickOnElement(this.sortByFilter);
     });
   }
+
   /**
    * Clicks the share thoughts button to open post editor
    */
@@ -454,6 +455,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    */
   async selectShareOptionAsSiteFeed(): Promise<void> {
     await this.createFeedPostComponent.selectShareOptionAsSiteFeed();
+  }
+
+  async verifyQuestionButtonIsNotVisible(): Promise<void> {
+    await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
   }
 
   /**
@@ -529,10 +534,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    */
   async verifyQuestionButtonIsVisible(): Promise<void> {
     await this.createFeedPostComponent.verifyQuestionButtonIsVisible();
-  }
-
-  async verifyQuestionButtonIsNotVisible(): Promise<void> {
-    await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
   }
 
   async verifyFeedSectionIsVisible(): Promise<void> {
