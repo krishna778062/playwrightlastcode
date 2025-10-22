@@ -10,28 +10,12 @@
 #   ./scripts/test-module.sh integrations P0 uat --max-failures=3 --timeout=60000
 
 MODULE_NAME="$1"
+TEST_TYPE="$2"
+ENV_NAME="$3"
 
-# Check if the second argument is a Playwright flag (starts with --)
-if [[ "$2" == --* ]]; then
-    # No test type provided, second arg is a Playwright flag
-    TEST_TYPE=""
-    ENV_NAME=""
-    shift 1
-    EXTRA_ARGS="$@"
-else
-    # Normal case: test type provided
-    TEST_TYPE="$2"
-    ENV_NAME="$3"
-    # All remaining arguments after the first 3 are passed to Playwright
-    shift 3
-    EXTRA_ARGS="$@"
-    
-    # If ENV_NAME starts with --, it's actually a Playwright flag
-    if [[ "$ENV_NAME" == --* ]]; then
-        EXTRA_ARGS="$ENV_NAME $EXTRA_ARGS"
-        ENV_NAME=""
-    fi
-fi
+# All remaining arguments after the first 3 are passed to Playwright
+shift 3
+EXTRA_ARGS="$@"
 
 if [ -z "$MODULE_NAME" ]; then
     echo "Usage: $0 <module-name> [test-type] [env] [playwright-flags...]"
