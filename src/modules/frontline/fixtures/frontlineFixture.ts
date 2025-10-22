@@ -7,7 +7,7 @@ import { RequestContextFactory } from '@/src/core/api/factories/requestContextFa
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
-import { OTPUtils } from '@/src/core/utils/otpUtilsMailosaur';
+import { OTPUtils } from '@/src/core/utils/smsUtil';
 
 export type UserType = 'appManager' | 'endUser' | 'promotionManager';
 
