@@ -51,22 +51,22 @@ test.describe(
         await page.getByRole('button', { name: 'Use OTP' }).click();
 
         //   //select mobile
-        await page.getByTestId('SelectInput').selectOption('mobile');
+        // await page.getByTestId('SelectInput').selectOption('mobile');
 
         await page.getByRole('button', { name: 'Send OTP' }).click();
+        await page.waitForTimeout(5000);
 
         // ===== Mobile OTP =====
-        const otpM = await otpUtils.getOTPFromSMS(testPhone);
-        console.log('otp-mobile------', otpM);
+        // const otpM = await otpUtils.getOTPFromSMS(testPhone);
+        // console.log('otp-mobile------', otpM);
 
         // ===== Email OTP =====
-        // const otp = await otpUtils.getOTPFromEmail('green@znl8uqcc.mailosaur.net');
-        // console.log('otp-email------', otp);
+        const otp = await otpUtils.getOTPFromEmail('green@znl8uqcc.mailosaur.net');
+        console.log('otp-email------', otp);
 
         await page.getByRole('textbox', { name: 'Enter OTP' }).click();
-        await page.getByRole('textbox', { name: 'Enter OTP' }).fill(otpM);
+        await page.getByRole('textbox', { name: 'Enter OTP' }).fill(otp);
         await page.getByRole('button', { name: 'Verify OTP' }).click();
-        await page.waitForTimeout(5000);
         // Dummy case to test with phone number for OTP ending
       }
     );
