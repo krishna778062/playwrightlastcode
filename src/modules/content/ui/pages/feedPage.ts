@@ -88,6 +88,8 @@ export interface IFeedAssertions {
   verifySocialCampaignShareButtonIsVisible: (description: string) => Promise<void>;
   verifyQuestionButtonIsNotVisible: () => Promise<void>;
   verifyQuestionButtonIsVisible: () => Promise<void>;
+  verifyFeedSectionIsVisible: () => Promise<void>;
+  verifyFeedSectionIsNotVisible: () => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -445,5 +447,17 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyQuestionButtonIsVisible(): Promise<void> {
     await this.createFeedPostComponent.verifyQuestionButtonIsVisible();
+  }
+
+  async verifyFeedSectionIsVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.shareThoughtsButton, {
+      assertionMessage: 'Feed section should be visible',
+    });
+  }
+
+  async verifyFeedSectionIsNotVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.shareThoughtsButton, {
+      assertionMessage: 'Feed section should not be visible',
+    });
   }
 }
