@@ -98,6 +98,9 @@ export interface IFeedAssertions {
   verifyFileIsAttached: (fileName: string) => Promise<void>;
   verifyQuestionButtonIsVisible: () => Promise<void>;
   verifyQuestionButtonIsNotVisible: () => Promise<void>;
+  verifyQuestionButtonIsVisible: () => Promise<void>;
+  verifyFeedSectionIsVisible: () => Promise<void>;
+  verifyFeedSectionIsNotVisible: () => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -529,10 +532,15 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.createFeedPostComponent.verifyQuestionButtonIsVisible();
   }
 
-  /**
-   * Verifies that the Question button is not visible in the post editor
-   */
-  async verifyQuestionButtonIsNotVisible(): Promise<void> {
-    await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
+  async verifyFeedSectionIsVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.shareThoughtsButton, {
+      assertionMessage: 'Feed section should be visible',
+    });
+  }
+
+  async verifyFeedSectionIsNotVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.shareThoughtsButton, {
+      assertionMessage: 'Feed section should not be visible',
+    });
   }
 }

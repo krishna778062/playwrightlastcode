@@ -4,9 +4,8 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 
 export interface IGovernanceScreenPageActions {
-  clickOnTimeline: () => Promise<void>;
-  clickOnSave: () => Promise<void>;
   clickOnTimelineFeedEnabled: () => Promise<void>;
+  clickOnTimelineFeedDisabled: () => Promise<void>;
 }
 
 export class GovernanceScreenPage extends BasePage implements IGovernanceScreenPageActions {
@@ -39,18 +38,6 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
     });
   }
 
-  async clickOnTimeline(): Promise<void> {
-    await test.step('Clicking on timeline', async () => {
-      await this.clickOnElement(this.clickOnTimelineButton);
-    });
-  }
-
-  async clickOnSave(): Promise<void> {
-    await test.step('Clicking on save', async () => {
-      await this.clickOnElement(this.clickOnSaveButton);
-    });
-  }
-
   async clickOnTimelineFeedEnabled(): Promise<void> {
     await test.step('Clicking on timeline feed enabled if not already checked', async () => {
       const isChecked = await this.timelineFeedEnabled.isChecked();
@@ -62,6 +49,18 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
         });
       } else {
         console.log('Timeline feed is already enabled, skipping click');
+      }
+    });
+  }
+  async clickOnTimelineFeedDisabled(): Promise<void> {
+    await test.step('Clicking on timeline feed disabled if not already checked', async () => {
+      const isChecked = await this.clickOnTimelineButton.isChecked();
+      if (!isChecked) {
+        await this.clickOnElement(this.clickOnTimelineButton);
+        await this.clickOnElement(this.clickOnSaveButton);
+        await this.verifier.verifyTheElementIsVisible(this.successToastMessage('Saved changes successfully'), {
+          assertionMessage: 'Timeline feed should be enabled',
+        });
       }
     });
   }
