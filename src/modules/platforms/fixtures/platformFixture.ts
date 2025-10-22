@@ -1,14 +1,45 @@
 import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
 import { RequestContextFactory } from '@core/api/factories/requestContextFactory';
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { LoginHelper } from '@core/helpers/loginHelper';
+import { LoginPage } from '@core/ui/pages/loginPage';
+import { NewHomePage } from '@core/ui/pages/newHomePage';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { AudienceCategoryManagementHelper, IdentityManagementHelper } from '../apis/helpers';
 import { UserManagementService } from '../apis/services/UserManagementService';
 
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
-import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
+
+// Local service desk login function - keeps service desk functionality within platform module
+async function loginToServiceDesk(page: Page, user: { email: string; password: string }): Promise<NewHomePage> {
+  const serviceDeskUrl = process.env.SERVICE_DESK_URL;
+  if (!serviceDeskUrl) {
+    throw new Error('Service Desk URL not configured in environment variables');
+  }
+
+  // Navigate to Service Desk login page
+  await page.goto(`${serviceDeskUrl}/login`);
+
+  // Use the existing LoginPage but with Service Desk URL
+  const loginPage = new LoginPage(page);
+
+  // Manually perform login steps without using loadPage (which uses standard URL)
+  await test.step(`Logging in to Service Desk with user ${user.email}`, async () => {
+    await loginPage.usernameInput.fill(user.email);
+    await loginPage.continueButton.click();
+    await page.waitForURL(/authenticate/, { timeout: TIMEOUTS.MEDIUM });
+    await loginPage.passwordInput.fill(user.password);
+    await loginPage.signInButton.click();
+  });
+
+  // Wait for successful login
+  await page.waitForURL(url => !url.pathname.includes('authenticate'), { timeout: TIMEOUTS.MEDIUM });
+
+  // Return a home page instance
+  return new NewHomePage(page);
+}
 
 // API-only fixture type for API helpers and services
 export interface PlatformApiFixture {
@@ -93,6 +124,7 @@ export const platformTestFixture = test.extend<
     // Combined user fixtures - complete entry points with all helpers and services
     appManagerFixture: PlatformUserFixture;
     userManagerFixture: PlatformUserFixture;
+    serviceDeskPage: Page;
   },
   {
     // Worker-scoped fixtures
@@ -186,6 +218,23 @@ export const platformTestFixture = test.extend<
   userManagerFixture: [
     async ({ userManagerUiFixture, userManagerApiFixture }, use) => {
       await use({ ...userManagerUiFixture, ...userManagerApiFixture });
+    },
+    { scope: 'test' },
+  ],
+
+  serviceDeskPage: [
+    async ({ page }, use) => {
+      const _serviceDeskHomePage = await loginToServiceDesk(page, {
+        email: process.env.SERVICE_DESK_USERNAME!,
+        password: process.env.SERVICE_DESK_PASSWORD!,
+      });
+      await use(page);
+
+      // Logout after each test case
+      const serviceDeskUrl = process.env.SERVICE_DESK_URL;
+      if (serviceDeskUrl) {
+        await page.goto(`${serviceDeskUrl}/logout`);
+      }
     },
     { scope: 'test' },
   ],
