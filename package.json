@@ -99,6 +99,7 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "nanoid": "^5.1.5",
+    "otpauth": "^9.4.1",
     "pg": "^8.16.3",
     "playwright": "^1.55.1",
     "snowflake-sdk": "^2.1.3",

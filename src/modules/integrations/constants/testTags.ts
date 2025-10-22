@@ -21,6 +21,7 @@ export enum IntegrationsSuiteTags {
   PERSONALIZATION = '@personalization',
   ASANA = '@asanaAppTiles',
   SERVICENOW = '@serviceNow',
+  CONFLUENCE = '@confluence',
   GREENHOUSE = '@greenhouseAppTiles',
 }
 
@@ -62,6 +63,7 @@ export const TEST_TAGS = {
   ASANA: IntegrationsSuiteTags.ASANA,
   SERVICENOW: IntegrationsSuiteTags.SERVICENOW,
   GREENHOUSE: IntegrationsSuiteTags.GREENHOUSE,
+  CONFLUENCE: IntegrationsSuiteTags.CONFLUENCE,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {
