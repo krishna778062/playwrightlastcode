@@ -32,6 +32,7 @@ export enum IntegrationsFeatureTags {
   EVENT_SYNC = '@EventSync',
   GOOGLE_CALENDAR_EVENTS_SYNC = '@google-calendar-eventsync',
   OUTLOOK_CALENDAR_EVENTS_SYNC = '@outlook-calendar-eventsync',
+  CONFLUENCE = '@confluence',
 }
 
 export const TEST_TAGS = {
