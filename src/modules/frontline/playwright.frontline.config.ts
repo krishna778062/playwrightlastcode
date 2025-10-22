@@ -20,7 +20,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         baseURL: (() => {
-          // Initialize config fresh for each worker to avoid cache issues
+          // Initialize config for primary tenant
           initializeFrontlineConfig('primary');
           const config = getFrontlineTenantConfigFor('primary');
           return config.frontendBaseUrl;
@@ -44,7 +44,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         baseURL: (() => {
-          // Initialize config fresh for each worker to avoid cache issues
+          // Initialize config for secondary tenant
           initializeFrontlineConfig('secondary');
           const config = getFrontlineTenantConfigFor('secondary');
           return config.frontendBaseUrl;
