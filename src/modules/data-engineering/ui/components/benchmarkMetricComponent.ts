@@ -103,10 +103,12 @@ export class BenchmarkMetricComponent extends BaseComponent {
     return await test.step(`Get metric value in percentage - for metric ${this.metricTitle}`, async () => {
       await expect(this.metricValue).not.toHaveText('');
       const metricValueText = await this.metricValue.textContent();
-      //it will be like "20 (57.1%)"
-      const percentage = metricValueText?.split('(')[1]?.split(')')[0];
-      console.log(`percentage value fetched from the metric value: ${metricValueText} is`, percentage);
-      return percentage?.trim() || '';
+      //it will be like "20 (57.1%)" or "20 (0)" or "1 (100.0%)"
+      const percentage = metricValueText?.split('(')[1]?.split(')')[0]?.trim();
+      // Remove the % symbol if present and return just the number
+      const cleanPercentage = percentage?.replace('%', '') || '';
+      console.log(`percentage value fetched from the metric value: ${metricValueText} is`, cleanPercentage);
+      return cleanPercentage;
     });
   }
 
@@ -192,11 +194,41 @@ export class BenchmarkMetricComponent extends BaseComponent {
     });
   }
 
+  /**
+   * Verifies the absolute metric value is as expected
+   * @param expectedValue - The expected absolute value
+   */
   async verifyAbsoluteMetricValueIs(expectedValue: string): Promise<void> {
     await test.step(`Verify absolute metric value is ${expectedValue} - for metric ${this.metricTitle}`, async () => {
-      await expect(this.metricValue, `expecting metric value to be visible`).toContainText(expectedValue, {
-        timeout: 40_000,
-      });
+      await expect(async () => {
+        const actualValue = await this.getAbsoluteMetricValue();
+        expect(actualValue, `Absolute metric value should be ${expectedValue}`).toBe(expectedValue);
+      }, `Polling for the metric value to be loaded and matches the expected value "${expectedValue}" for metric ${this.metricTitle}`).toPass(
+        { timeout: 20_000 }
+      );
+    });
+  }
+
+  /**
+   * Verifies the percentage metric value is as expected
+   * @param expectedValue - The expected percentage value
+   */
+  async verifyPercentageMetricValueIsAsExpected(expectedValue: number): Promise<void> {
+    await test.step(`Verify percentage metric value is as expected - for metric ${this.metricTitle} is ${expectedValue}`, async () => {
+      await expect(async () => {
+        const actualValue = await this.getMetricValueInPercentage();
+        const actualNumericValue = parseFloat(actualValue);
+        if (expectedValue === 0) {
+          expect(actualNumericValue, `Percentage metric value should be 0`).toBe(0);
+        } else {
+          expect(actualNumericValue, `Percentage metric value should be ${expectedValue}`).toBeCloseTo(
+            expectedValue,
+            0.1
+          );
+        }
+      }, `Polling for the metric value to be loaded and matches the expected value "${expectedValue}" for metric ${this.metricTitle}`).toPass(
+        { timeout: 20_000 }
+      );
     });
   }
 }

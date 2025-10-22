@@ -1,17 +1,23 @@
-import { DateHelper } from './dateHelper';
-import { BaseAnalyticsQueryHelper, SnowflakeHelper } from '.';
+import { GroupByOnUserParameter } from '../constants/filters';
+import { PeriodFilterTimeRange } from '../constants/periodFilterTimeRange';
+import { AdoptionSql } from '../sqlQueries/adoption';
 
-interface FilterOptions {
-  tenantCode: string;
-  timePeriod: string; // e.g., "Last 30 days", "Last 12 months", "Custom"
-  customStartDate?: string; // Required if timePeriod is "Custom"
-  customEndDate?: string; // Required if timePeriod is "Custom"
-  locations?: string[];
-  departments?: string[];
-  segments?: string[];
-  userCategories?: string[];
-  companyName?: string[];
-  groupBy?: 'department' | 'location' | 'user_category';
+import { DateHelper } from './dateHelper';
+import { BaseAnalyticsQueryHelper, FilterOptions, SnowflakeHelper } from '.';
+
+export interface AppWebPageViewsData {
+  webPageGroup: string;
+  totalPeople: number;
+  pageViewCount: number;
+  percentageContributionToTotalPageViews: number;
+}
+
+// Generic interface for adoption leaders data
+interface AdoptionLeadersData {
+  viewCategory: string;
+  loggedInUsers: number;
+  totalUsers: number;
+  adoptionRate: string;
 }
 
 export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
@@ -19,259 +25,495 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     super(snowflakeHelper, orgId);
   }
 
-  // ===== HELPER METHODS =====
-
-  /**
-   * Maps UI user category names to database UUIDs
-   * @param userCategoryNames - Array of UI user category names (e.g., ['Adil Option1'])
-   * @returns Promise<string[]> - Array of corresponding UUIDs
-   */
-  private async mapUserCategoryNamesToCodes(userCategoryNames?: string[]): Promise<string[]> {
-    if (!userCategoryNames || userCategoryNames.length === 0) return [];
-
-    const mappingQuery = `
-      select distinct user_category_code 
-      from udl.vw_user_as_is 
-      where tenant_code = '${this.orgId}' 
-        and user_category_name in (${userCategoryNames.map(name => `'${name}'`).join(', ')})
-    `;
-
-    const results = await this.executeQuery(mappingQuery);
-    return results.map(row => row.USER_CATEGORY_CODE).filter(code => code && code !== 'N/A');
-  }
-
-  /**
-   * Transforms a base query by adding filters, date replacements, GROUP BY, and ORDER BY
-   * @param baseQuery - The metric-specific query (with SELECT clause and placeholders)
-   * @param filterBy - Filter options (locations, departments, userCategories, etc.)
-   * @param dateReplacements - Date range replacements (startDate, endDate)
-   * @param groupByParam - Group by dimension ('department', 'location', 'segment', etc.)
-   * @param orderBy - Order by configuration {column, direction} (optional)
-   */
-  private async transformQuery({
-    baseQuery,
-    filterBy,
-    dateReplacements,
-    groupByParam,
-    orderBy,
-  }: {
-    baseQuery: string;
-    filterBy: FilterOptions;
-    dateReplacements: any;
-    groupByParam?: string;
-    orderBy?: { column: string; direction: 'asc' | 'desc' };
-  }): Promise<string> {
-    // Replace placeholders in base query
-    let query = baseQuery
-      .replace('{tenantCode}', filterBy.tenantCode)
-      .replace('{startDate}', dateReplacements.startDate)
-      .replace('{endDate}', dateReplacements.endDate);
-
-    // Add all filters (with internal mapping for user categories)
-    query = await this.addAllFilters(query, filterBy);
-
-    // Add GROUP BY if specified
-    if (groupByParam) {
-      query = this.addGroupBy(query, groupByParam);
-    }
-
-    // Add ORDER BY if specified
-    if (orderBy) {
-      query += `\n  order by ${orderBy.column} ${orderBy.direction}`;
-    }
-
-    return query;
-  }
-
-  /**
-   * Adds all filter clauses to the query
-   * Handles user category mapping internally if needed
-   */
-  private async addAllFilters(query: string, filterBy: FilterOptions): Promise<string> {
-    query += this.addLocationFilter(filterBy.locations);
-    query += this.addDepartmentFilter(filterBy.departments);
-    query += this.addSegmentFilter(filterBy.segments);
-
-    // Handle user category mapping internally
-    if (filterBy.userCategories && filterBy.userCategories.length > 0) {
-      const userCategoryCodes = await this.mapUserCategoryNamesToCodes(filterBy.userCategories);
-      query += this.addUserCategoryFilter(userCategoryCodes);
-    } else {
-      query += this.addUserCategoryFilter(filterBy.userCategories);
-    }
-
-    query += this.addCompanyNameFilter(filterBy.companyName);
-    return query;
-  }
-
-  /**
-   * Adds GROUP BY clause based on groupBy parameter
-   */
-  private addGroupBy(query: string, groupBy?: string): string {
-    if (!groupBy) return query;
-
-    const groupByMap: Record<string, string> = {
-      department: 'department',
-      location: 'location',
-      segment: 'segment_code',
-      user_category: 'user_category_code',
-      company_name: 'company_name',
-    };
-
-    const groupByColumn = groupByMap[groupBy];
-    if (groupByColumn) {
-      query += `\n  group by ${groupByColumn}`;
-    }
-
-    return query;
-  }
-
-  // ===== SHARED FILTER METHODS =====
-
-  private addLocationFilter(locations?: string[]): string {
-    if (!locations || locations.length === 0) return '';
-    const quotedValues = locations.map(v => `'${v}'`).join(', ');
-    return `\n  and u.location in (${quotedValues})`;
-  }
-
-  private addDepartmentFilter(departments?: string[]): string {
-    if (!departments || departments.length === 0) return '';
-    const quotedValues = departments.map(v => `'${v}'`).join(', ');
-    return `\n  and u.department in (${quotedValues})`;
-  }
-
-  private addSegmentFilter(segments?: string[]): string {
-    if (!segments || segments.length === 0) return '';
-    const quotedValues = segments.map(v => `'${v}'`).join(', ');
-    return `\n  and u.segment_code in (${quotedValues})`;
-  }
-
-  private addUserCategoryFilter(userCategories?: string[]): string {
-    if (!userCategories || userCategories.length === 0) return '';
-    const quotedValues = userCategories.map(v => `'${v}'`).join(', ');
-    return `\n  and u.user_category_code in (${quotedValues})`;
-  }
-
-  private addCompanyNameFilter(companyNames?: string[]): string {
-    if (!companyNames || companyNames.length === 0) return '';
-    const quotedValues = companyNames.map(v => `'${v}'`).join(', ');
-    return `\n  and u.company_name in (${quotedValues})`;
-  }
-
-  // ===== ENHANCED METHODS (With Filters) =====
-
   /**
    * Gets total users data from database with filters.
    * @param filterBy - Filter options including time period and user filters
    * @returns Promise<number> - Total users data
    */
   async getTotalUsersDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<number> {
-    const dateReplacements = DateHelper.getDateReplacements(
-      filterBy.timePeriod,
-      filterBy.customStartDate,
-      filterBy.customEndDate
-    );
-
-    const baseQuery = `
-      select count(distinct user_code) 
-      from udl.vw_daily_user_adoption dua 
-      inner join udl.vw_user_as_is u on dua.user_code = u.code 
-      where u.tenant_code = '{tenantCode}' 
-        and reporting_date >= '{startDate}' 
-        and reporting_date <= '{endDate}' 
-        and status_code = 'US001'
-    `;
-
-    const finalQuery = await this.transformQuery({
-      baseQuery,
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: AdoptionSql.TOTAL_USERS,
       filterBy,
-      dateReplacements,
     });
     return await this.getHeroMetricDataFromDB(finalQuery);
   }
 
-  async getAdoptionLeadersDataFromDB({
-    filterBy,
-    groupByParam = 'department',
-    orderBy = { column: 'adoption_rate', direction: 'desc' },
-  }: {
-    filterBy: FilterOptions;
-    groupByParam?: 'department' | 'location' | 'user_category';
-    orderBy?: { column: string; direction: 'asc' | 'desc' };
-  }): Promise<any[]> {
-    // Special handling for user_category - use dedicated method
-    if (groupByParam === 'user_category') {
-      return this.getAdoptionLeadersDataByUserCategory({ filterBy, orderBy });
-    }
+  /**
+   * Gets logged in users data from database with filters.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<{
+   *   absoluteValueOfLoggedInUsers: number;
+   *   percentageOfLoggedInUsersFromTotalUsers: number;
+   *   expectedTrendText: string;
+   * }> - Logged in users data with benchmarking
+   */
+  async getLoggedInUsersDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<{
+    absoluteValueOfLoggedInUsers: number;
+    percentageOfLoggedInUsersFromTotalUsers: number;
+    expectedTrendText: string;
+  }> {
+    /**
+     * 1. get the absolute value of logged in users
+     * 2. get the absolute value of total users
+     * 3. get the percentage of logged in users based on total users
+     * 4. get the benchmarking data and get the USERS_WHO_LOGGED_IN_AT_LEAST_ONCE_PERCENTAGE
+     * 5. compare the percentage of logged in users with the benchmarking data
+     * 6. return the result with trend text
+     */
+    let absoluteValueOfLoggedInUsers: number | undefined = undefined;
+    let percentageOfLoggedInUsersFromTotalUsers: number | undefined = undefined;
+    let expectedTrendText: string | undefined = undefined;
 
-    const dateReplacements = DateHelper.getDateReplacements(
-      filterBy.timePeriod,
-      filterBy.customStartDate,
-      filterBy.customEndDate
+    // Step 1: Get absolute value of logged-in users
+    const finalQueryToFetchLoggedInUsers = await this.transformQueryWithFilters({
+      baseQuery: AdoptionSql.LOGGED_IN_USERS,
+      filterBy,
+    });
+    absoluteValueOfLoggedInUsers = await this.getHeroMetricDataFromDB(finalQueryToFetchLoggedInUsers);
+    console.log(
+      `Absolute value of logged in users fetched from DB with given filters is `,
+      absoluteValueOfLoggedInUsers
     );
 
-    const baseQuery = `
-      select 
-        u.${groupByParam} as view_category,
-        count(distinct case when ul.has_logged_in then ul.user_code end) as logged_in_users,
-        count(distinct u.code) as total_users,
-        concat(round(count(distinct case when ul.has_logged_in then ul.user_code end) / count(distinct u.code) * 100, 1), '%') as adoption_rate
-      from udl.vw_user_as_is u 
-      inner join udl.vw_daily_user_adoption ul on u.code = ul.user_code 
-      where u.tenant_code = '{tenantCode}' 
-        and ul.reporting_date >= '{startDate}' 
-        and ul.reporting_date <= '{endDate}' 
-        and u.status_code = 'US001'
-    `;
+    // Step 2: Get total users count
+    const totalUsers = await this.getTotalUsersDataFromDBWithFilters({ filterBy });
+    console.log(`Total users fetched from DB with given filters is `, totalUsers);
 
-    const finalQuery = await this.transformQuery({
-      baseQuery,
-      filterBy,
-      dateReplacements,
-      groupByParam,
-      orderBy,
+    // Early validation - if no total users, return early
+    if (totalUsers === 0) {
+      console.log(`----> No total users found, returning early without benchmark data`);
+      return {
+        absoluteValueOfLoggedInUsers: 0,
+        percentageOfLoggedInUsersFromTotalUsers: 0,
+        expectedTrendText: 'No data available',
+      };
+    }
+
+    // Step 3: Calculate percentage of logged-in users from total users and round it to 1 decimal place
+    percentageOfLoggedInUsersFromTotalUsers = Math.round((absoluteValueOfLoggedInUsers / totalUsers) * 100 * 10) / 10;
+    console.log(`Percentage of logged in users from total users is `, percentageOfLoggedInUsersFromTotalUsers);
+
+    // Step 4 & 5: Get benchmarking data if period is 30 days
+    if (this.shouldFetchBenchmarkData(filterBy)) {
+      console.log(`----> We need to fetch the benchmarking data as the difference in days is exactly 30 days`);
+      const benchMarkData = await this.getBenchMarkDataForAdoptionDashboard();
+      console.log(`----> The bench mark retrieved results for adoption table is  `, benchMarkData);
+      const percentageOfLoggedInUsersFromBenchmark = benchMarkData.USERS_WHO_LOGGED_IN_AT_LEAST_ONCE_PERCENTAGE;
+      console.log(
+        `----> The percentage of logged in users from benchmark is  `,
+        percentageOfLoggedInUsersFromBenchmark
+      );
+
+      // Step 6: Calculate trend text
+      expectedTrendText = this.getTrendText(
+        percentageOfLoggedInUsersFromTotalUsers,
+        percentageOfLoggedInUsersFromBenchmark
+      );
+      console.log(`----> The expected trend text is  `, expectedTrendText);
+    } else {
+      console.log(`----> We do not need to fetch the benchmarking data as the difference in days is not exactly 30`);
+    }
+
+    console.log(`----> The data to return for logged in users is  `, {
+      absoluteValueOfLoggedInUsers,
+      percentageOfLoggedInUsersFromTotalUsers,
+      expectedTrendText: expectedTrendText || '',
     });
-    return await this.executeQuery(finalQuery);
+
+    return {
+      absoluteValueOfLoggedInUsers,
+      percentageOfLoggedInUsersFromTotalUsers,
+      expectedTrendText: expectedTrendText || '',
+    };
   }
 
   /**
-   * Special method for user category grouping that returns readable category names
+   * Gets contributors and participants data from database with filters.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<any[]> - Contributors and participants data
    */
-  private async getAdoptionLeadersDataByUserCategory({
+  async getContributorsAndParticipantsDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<{
+    absoluteValueOfContributorsAndParticipants: number;
+    percentageOfContributorsAndParticipantsFromLoggedInUsers: number;
+    expectedTrendText: string;
+  }> {
+    /**
+     * 1. get the absolute value of loggged in users
+     * 2. get the absolute value of contributors and participants who has logged in true
+     * 3. get the benchmarking data and get the CONTRIBUTORS_AND_PARTICIPANTS_PERCENTAGE
+     * 4. compare the absolute value of contributors and participants with the benchmarking data
+     * 5. return the result as {
+     *
+     *   absoluteValueOfContributorsAndParticipants: number,
+     *   percentageOfContributorsAndParticipantsFromLoggedInUsers: number,
+     *   percentageOfContributorsAndParticipantsFromBenchmark: number,
+     *   differenceInPercentage: number,
+     *   trend: 'positive' | 'negative' | 'neutral',
+     *
+     * }
+     * Note:
+     * 1. if the difference in percentage is positive, then the trend is positive
+     * 2. if the difference in percentage is negative, then the trend is negative
+     * 3. if the difference in percentage is 0, then the trend is neutral
+     */
+    let absoluteValueOfContributorsAndParticipants: number | undefined = undefined;
+    let percentageOfContributorsAndParticipantsFromLoggedInUsers: number | undefined = undefined;
+    let expectedTrendText: string | undefined = undefined;
+
+    const finalQueryToFetchAbsoluteValueOfContributorsAndParticipants = await this.transformQueryWithFilters({
+      baseQuery: AdoptionSql.CONTRIBUTORS_AND_PARTICIPANTS,
+      filterBy,
+    });
+    absoluteValueOfContributorsAndParticipants = await this.getHeroMetricDataFromDB(
+      finalQueryToFetchAbsoluteValueOfContributorsAndParticipants
+    );
+    console.log(
+      `Absolute value of contributors and particiapnts fetched from DB with given filters is `,
+      absoluteValueOfContributorsAndParticipants
+    );
+
+    //total logged in users
+    const loggedInUsersData = await this.getLoggedInUsersDataFromDBWithFilters({ filterBy });
+    console.log(`Total logged in users fetched from DB with given filters is `, loggedInUsersData);
+
+    // Early validation - if no logged-in users, return early
+    if (loggedInUsersData.absoluteValueOfLoggedInUsers === 0) {
+      console.log(`----> No logged-in users found, returning early without benchmark data`);
+      return {
+        absoluteValueOfContributorsAndParticipants: 0,
+        percentageOfContributorsAndParticipantsFromLoggedInUsers: 0,
+        expectedTrendText: 'No data available',
+      };
+    }
+
+    //percentage of contributors and participants from logged in users
+    percentageOfContributorsAndParticipantsFromLoggedInUsers =
+      Math.round(
+        (absoluteValueOfContributorsAndParticipants / loggedInUsersData.absoluteValueOfLoggedInUsers) * 100 * 10
+      ) / 10;
+    console.log(
+      `Percentage of contributors and participants from logged in users is `,
+      percentageOfContributorsAndParticipantsFromLoggedInUsers
+    );
+
+    //here we need to evaluate if we need to fetch the benchmarking data or not
+    /**
+     * Condition 1: if the period filter is last 30 days
+     * Condition 2: if the difference in days between the end date and start date is exactly 30 days
+     */
+    if (this.shouldFetchBenchmarkData(filterBy)) {
+      console.log(`----> We need to fetch the benchmarking data as the difference in days is exactly 30 days`);
+      const benchMarkData = await this.getBenchMarkDataForAdoptionDashboard();
+      console.log(`----> The bench mark retrieved results for adoption table is  `, benchMarkData);
+      const percentageOfContributorsAndParticipantsFromBenchmark =
+        benchMarkData.CONTRIBUTORS_AND_PARTICIPANTS_PERCENTAGE;
+      console.log(
+        `----> The percentage of contributors and participants from benchmark is  `,
+        percentageOfContributorsAndParticipantsFromBenchmark
+      );
+      //now get the trend
+      expectedTrendText = this.getTrendText(
+        percentageOfContributorsAndParticipantsFromLoggedInUsers,
+        percentageOfContributorsAndParticipantsFromBenchmark
+      );
+      console.log(`----> The expected trend text is  `, expectedTrendText);
+    } else {
+      console.log(`----> We do not need to fetch the benchmarking data as the difference in days is not exactly 30`);
+    }
+
+    console.log(`----> The data to return is  `, {
+      absoluteValueOfContributorsAndParticipants,
+      percentageOfContributorsAndParticipantsFromLoggedInUsers,
+      expectedTrendText: expectedTrendText || '',
+    });
+
+    return {
+      absoluteValueOfContributorsAndParticipants,
+      percentageOfContributorsAndParticipantsFromLoggedInUsers,
+      expectedTrendText: expectedTrendText || '',
+    };
+  }
+
+  /**
+   * Gets the benchmark data for the adoption dashboard
+   * @example getBenchMarkDataForAdoptionDashboard() -> returns the benchmark data for the adoption dashboard
+   * @example output
+   * {
+   *   "USERS_WHO_LOGGED_IN_AT_LEAST_ONCE_PERCENTAGE": 50,
+   *   "CONTRIBUTORS_AND_PARTICIPANTS_PERCENTAGE": 60
+   * }
+   * @returns Promise<{ USERS_WHO_LOGGED_IN_AT_LEAST_ONCE_PERCENTAGE: number; CONTRIBUTORS_AND_PARTICIPANTS_PERCENTAGE: number; }> - Benchmark data
+   */
+  async getBenchMarkDataForAdoptionDashboard(): Promise<{
+    USERS_WHO_LOGGED_IN_AT_LEAST_ONCE_PERCENTAGE: number;
+    CONTRIBUTORS_AND_PARTICIPANTS_PERCENTAGE: number;
+  }> {
+    //retrive the benchmark reporting month
+    /**
+     *
+     * Benchmark reporitng month logic is
+     * after 3rd of every month, the data gets stored in monthly tenant adoption snapshot table.
+     * so if current date is less than 3rd of the month, then we should use the n-2 month as the benchmark reporting month.
+     * otherwise we should use the n-1 month as the benchmark reporting month.
+     *
+     * so we need to get the current date and check if it is less than 3rd of the month.
+     * if it is, then we should use the n-2 month as the benchmark reporting month.
+     * otherwise we should use the n-1 month as the benchmark reporting month.
+     *
+     * One more clause is that for this to be visible or calculated, the period filter
+     * should be last 30 days other wise it wont be visible
+     * or end date -start date == 30 days
+     *
+     */
+    const benchmarkReportingMonth = this.getBenchmarkReportingMonth();
+    const benchMarkRetrievalQuery = AdoptionSql.BENCHMARK_DATA.replace('{tenantCode}', this.orgId).replace(
+      '{reportingMonth}',
+      benchmarkReportingMonth
+    );
+
+    //execute the query
+    const benchMarkRetrievalResults = await this.executeQuery(benchMarkRetrievalQuery);
+
+    console.log(`----> The bench mark retrieved results for adoption table is  `, benchMarkRetrievalResults);
+    //round of the percentage values to 1 decimal place (e.g., 2.37772 -> 2.4)
+    const usersWhoLoggedInAtLeastOncePercentage =
+      Math.round(Number(benchMarkRetrievalResults[0].USERS_WHO_LOGGED_IN_AT_LEAST_ONCE_PERCENTAGE) * 10) / 10;
+    const contributorsAndParticipantsPercentage =
+      Math.round(Number(benchMarkRetrievalResults[0].CONTRIBUTORS_AND_PARTICIPANTS_PERCENTAGE) * 10) / 10;
+    return {
+      USERS_WHO_LOGGED_IN_AT_LEAST_ONCE_PERCENTAGE: usersWhoLoggedInAtLeastOncePercentage,
+      CONTRIBUTORS_AND_PARTICIPANTS_PERCENTAGE: contributorsAndParticipantsPercentage,
+    };
+  }
+
+  /**
+   * Determines if benchmark data should be fetched based on filter criteria
+   * @param filterBy - Filter options including time period
+   * @returns boolean - True if benchmark data should be fetched
+   */
+  private shouldFetchBenchmarkData(filterBy: FilterOptions): boolean {
+    // Handle static period
+    if (filterBy.timePeriod === PeriodFilterTimeRange.LAST_30_DAYS) {
+      return true;
+    }
+
+    // Handle custom period - calculate date difference internally
+    if (filterBy.timePeriod === PeriodFilterTimeRange.CUSTOM) {
+      const dateReplacements = DateHelper.getDateReplacements(
+        filterBy.timePeriod,
+        filterBy.customStartDate,
+        filterBy.customEndDate
+      );
+      return DateHelper.differenceInDays(dateReplacements.startDate, dateReplacements.endDate) === 30;
+    }
+
+    return false;
+  }
+
+  /**
+   * Gets the benchmark reporting month
+   * @returns Promise<string> - Benchmark reporting month
+   * @example getBenchmarkReportingMonth() -> returns the benchmark reporting month for the current date
+   */
+  private getBenchmarkReportingMonth() {
+    const currentDate = new Date();
+    const currentDay = currentDate.getDate();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+    return currentDay < 3 ? `${currentYear}-${currentMonth - 1}-01` : `${currentYear}-${currentMonth}-01`;
+  }
+
+  /**
+   * Transforms the app web page views query using replacement approach
+   * Much simpler than trying to append filters after subqueries
+   */
+  private async transformAppWebPageViewsQuery({
+    baseQuery,
     filterBy,
-    orderBy = { column: 'adoption_rate', direction: 'desc' },
   }: {
+    baseQuery: string;
     filterBy: FilterOptions;
-    orderBy?: { column: string; direction: 'asc' | 'desc' };
-  }): Promise<any[]> {
+  }): Promise<string> {
+    // Handle date replacements internally
     const dateReplacements = DateHelper.getDateReplacements(
       filterBy.timePeriod,
       filterBy.customStartDate,
       filterBy.customEndDate
     );
 
-    const baseQuery = `
-      select 
-        coalesce(u.user_category_name, 'Uncategorized') as view_category,
-        count(distinct case when ul.has_logged_in then ul.user_code end) as logged_in_users,
-        count(distinct u.code) as total_users,
-        concat(round(count(distinct case when ul.has_logged_in then ul.user_code end) / count(distinct u.code) * 100, 1), '%') as adoption_rate
-      from udl.vw_user_as_is u 
-      inner join udl.vw_daily_user_adoption ul on u.code = ul.user_code 
-      where u.tenant_code = '{tenantCode}' 
-        and ul.reporting_date >= '{startDate}' 
-        and ul.reporting_date <= '{endDate}' 
-        and u.status_code = 'US001'
-      group by coalesce(u.user_category_name, 'Uncategorized')
-    `;
+    // Replace all placeholders in the base query
+    let query = baseQuery
+      .replace('{tenantCode}', filterBy.tenantCode)
+      .replace('{startDate}', dateReplacements.startDate)
+      .replace('{endDate}', dateReplacements.endDate)
+      .replace('{locationFilter}', this.addLocationFilter(filterBy.locations))
+      .replace('{departmentFilter}', this.addDepartmentFilter(filterBy.departments))
+      .replace('{segmentFilter}', this.addSegmentFilter(filterBy.segments))
+      .replace('{companyNameFilter}', this.addCompanyNameFilter(filterBy.companyName));
 
-    const finalQuery = await this.transformQuery({
+    // Handle user category mapping and replacement
+    if (filterBy.userCategories && filterBy.userCategories.length > 0) {
+      const userCategoryCodes = await this.mapUserCategoryNamesToCodes(filterBy.userCategories);
+      query = query.replace('{userCategoryFilter}', this.addUserCategoryFilter(userCategoryCodes));
+    } else {
+      query = query.replace('{userCategoryFilter}', this.addUserCategoryFilter(filterBy.userCategories));
+    }
+
+    return query;
+  }
+
+  /**
+   * Transforms raw database results to typed AppWebPageViewsData objects
+   * @param rawResults - Raw results from database query
+   * @returns AppWebPageViewsData[] - Properly typed and transformed data
+   */
+  private transformAppWebPageViewsResults(rawResults: any[]): AppWebPageViewsData[] {
+    return rawResults.map(result => ({
+      webPageGroup: result['Web page group'],
+      totalPeople: Number(result['Total people']),
+      pageViewCount: Number(result['Page view count']),
+      percentageContributionToTotalPageViews: Number(result['Percentage contribution to total page views']),
+    }));
+  }
+
+  /**
+   * Gets app web page views data from database with filters.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<AppWebPageViewsData[]> - App web page views data with proper typing
+   */
+  async getAppWebPageViewsDataFromDBWithFilters({
+    filterBy,
+  }: {
+    filterBy: FilterOptions;
+  }): Promise<AppWebPageViewsData[]> {
+    const finalQuery = await this.transformAppWebPageViewsQuery({
+      baseQuery: AdoptionSql.APP_WEB_PAGE_VIEWS,
+      filterBy,
+    });
+
+    const rawResults = await this.executeQuery(finalQuery);
+    return this.transformAppWebPageViewsResults(rawResults);
+  }
+
+  /**
+   * Gets adoption leaders data grouped by the specified criteria
+   * @param filterBy - Filter options including time period and user filters
+   * @param groupBy - The grouping criteria ('department', 'location', or 'user_category')
+   * @param orderDirection - Order direction (asc or desc)
+   * @returns Promise<AdoptionLeadersData[]> - Adoption leaders data grouped by specified criteria
+   */
+  async getAdoptionLeadersData({
+    filterBy,
+    groupBy = GroupByOnUserParameter.DEPARTMENT,
+    orderDirection = 'desc',
+  }: {
+    filterBy: FilterOptions;
+    groupBy?: GroupByOnUserParameter;
+    orderDirection?: 'asc' | 'desc';
+  }): Promise<AdoptionLeadersData[]> {
+    switch (groupBy) {
+      case GroupByOnUserParameter.DEPARTMENT:
+        return this.getAdoptionLeadersByDepartment({ filterBy, orderDirection });
+      case GroupByOnUserParameter.LOCATION:
+        return this.getAdoptionLeadersByLocation({ filterBy, orderDirection });
+      case GroupByOnUserParameter.USER_CATEGORY:
+        return this.getAdoptionLeadersByUserCategory({ filterBy, orderDirection });
+      default:
+        throw new Error(
+          `Unsupported groupBy: ${groupBy}. Supported values: ${Object.values(GroupByOnUserParameter).join(', ')}`
+        );
+    }
+  }
+
+  /**
+   * Gets adoption leaders data grouped by department
+   * @param filterBy - Filter options including time period and user filters
+   * @param orderDirection - Order direction (asc or desc)
+   * @returns Promise<AdoptionLeadersData[]> - Adoption leaders data grouped by department
+   */
+  async getAdoptionLeadersByDepartment({
+    filterBy,
+    orderDirection = 'desc',
+  }: {
+    filterBy: FilterOptions;
+    orderDirection?: 'asc' | 'desc';
+  }): Promise<AdoptionLeadersData[]> {
+    const baseQuery = AdoptionSql.ADOPTION_LEADERS_BY_DEPARTMENT.replace('{orderDirection}', orderDirection);
+
+    const finalQuery = await this.transformQueryWithFilters({
       baseQuery,
       filterBy,
-      dateReplacements,
-      // Don't pass groupByParam since we're handling GROUP BY manually
-      orderBy,
     });
-    return await this.executeQuery(finalQuery);
+
+    const rawResults = await this.executeQuery(finalQuery);
+    console.log(`----> The adoption leaders data grouped by department is  `, rawResults);
+    return this.transformAdoptionLeadersResults(rawResults);
+  }
+
+  /**
+   * Gets adoption leaders data grouped by location
+   * @param filterBy - Filter options including time period and user filters
+   * @param orderDirection - Order direction (asc or desc)
+   * @returns Promise<AdoptionLeadersData[]> - Adoption leaders data grouped by location
+   */
+  async getAdoptionLeadersByLocation({
+    filterBy,
+    orderDirection = 'desc',
+  }: {
+    filterBy: FilterOptions;
+    orderDirection?: 'asc' | 'desc';
+  }): Promise<AdoptionLeadersData[]> {
+    const baseQuery = AdoptionSql.ADOPTION_LEADERS_BY_LOCATION.replace('{orderDirection}', orderDirection);
+
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery,
+      filterBy,
+    });
+
+    const rawResults = await this.executeQuery(finalQuery);
+    return this.transformAdoptionLeadersResults(rawResults);
+  }
+
+  /**
+   * Gets adoption leaders data grouped by user category
+   * @param filterBy - Filter options including time period and user filters
+   * @param orderDirection - Order direction (asc or desc)
+   * @returns Promise<AdoptionLeadersData[]> - Adoption leaders data grouped by user category
+   */
+  async getAdoptionLeadersByUserCategory({
+    filterBy,
+    orderDirection = 'desc',
+  }: {
+    filterBy: FilterOptions;
+    orderDirection?: 'asc' | 'desc';
+  }): Promise<AdoptionLeadersData[]> {
+    const baseQuery = AdoptionSql.ADOPTION_LEADERS_BY_USER_CATEGORY.replace('{orderDirection}', orderDirection);
+
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery,
+      filterBy,
+    });
+
+    const rawResults = await this.executeQuery(finalQuery);
+    return this.transformAdoptionLeadersResults(rawResults);
+  }
+
+  /**
+   * Transforms raw database results to generic AdoptionLeadersData objects
+   * @param rawResults - Raw results from database query
+   * @returns AdoptionLeadersData[] - Properly typed and transformed data
+   */
+  private transformAdoptionLeadersResults(rawResults: any[]): AdoptionLeadersData[] {
+    // Handle empty/null results - just return empty array
+    if (rawResults.length === 0) {
+      console.log(`----> No adoption leaders data found, returning empty array`);
+      return [];
+    }
+    return rawResults.map(result => ({
+      viewCategory: result.VIEW_CATEGORY,
+      loggedInUsers: Number(result.LOGGED_IN_USERS),
+      totalUsers: Number(result.TOTAL_USERS),
+      adoptionRate: result.ADOPTION_RATE,
+    }));
   }
 }

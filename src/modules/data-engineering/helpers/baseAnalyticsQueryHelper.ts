@@ -1,4 +1,22 @@
+import { TREND_ARROWS } from '../constants/benchmarkMetricConstants';
+import { GroupByOnUserParameter } from '../constants/filters';
+
+import { DateHelper, PeriodFilterOption } from './dateHelper';
 import { SnowflakeHelper } from './snowflakeHelper';
+
+// Export FilterOptions interface for reuse across all dashboard query helpers
+export interface FilterOptions {
+  tenantCode: string;
+  timePeriod: PeriodFilterOption; // Period filter option from PeriodFilterTimeRange enum
+  customStartDate?: string; // Required if timePeriod is CUSTOM
+  customEndDate?: string; // Optional, defaults to current date if not provided
+  locations?: string[];
+  departments?: string[];
+  segments?: string[];
+  userCategories?: string[];
+  companyName?: string[];
+  groupBy?: GroupByOnUserParameter;
+}
 
 /**
  * Base Analytics Query Helper
@@ -66,5 +84,120 @@ export abstract class BaseAnalyticsQueryHelper {
       dbValue: dbValue,
       match: numericUiValue === dbValue,
     };
+  }
+
+  /**
+   *
+   * This method is used to get the trend text for the metric
+   * @param actualValue - actual value of the metric
+   * @param benchmarkValue - benchmark value of the metric
+   * @returns text as example "↑ 3.6% more than benchmark (3.9%)" or "↓ 3.6% less than benchmark (3.9%)" or "→ 3.6% equal to benchmark (3.9%)"
+   */
+  getTrendText(actualValue: number, benchmarkValue: number): string {
+    const differenceInValue = actualValue - benchmarkValue;
+    const roundedDifference = Math.round(Math.abs(differenceInValue) * 10) / 10;
+
+    if (differenceInValue > 0) {
+      return `${TREND_ARROWS.UP} ${roundedDifference}% more than benchmark (${benchmarkValue}%)`;
+    } else if (differenceInValue < 0) {
+      return `${TREND_ARROWS.DOWN} ${roundedDifference}% less than benchmark (${benchmarkValue}%)`;
+    } else {
+      return `${TREND_ARROWS.NEUTRAL} ${roundedDifference}% equal to benchmark (${benchmarkValue}%)`;
+    }
+  }
+
+  // ===== GENERIC FILTER METHODS =====
+  // These methods can be used by any dashboard query helper
+
+  /**
+   * Maps UI user category names to database UUIDs
+   * @param userCategoryNames - Array of UI user category names (e.g., ['Adil Option1'])
+   * @returns Promise<string[]> - Array of corresponding UUIDs
+   */
+  protected async mapUserCategoryNamesToCodes(userCategoryNames?: string[]): Promise<string[]> {
+    if (!userCategoryNames || userCategoryNames.length === 0) return [];
+
+    const mappingQuery = `
+      select distinct user_category_code 
+      from udl.vw_user_as_is 
+      where tenant_code = '${this.orgId}' 
+        and user_category_name in (${userCategoryNames.map(name => `'${name}'`).join(', ')})
+    `;
+
+    const results = await this.executeQuery(mappingQuery);
+    return results.map(row => row.USER_CATEGORY_CODE).filter(code => code && code !== 'N/A');
+  }
+
+  /**
+   * Transforms a base query by adding filters and date replacements ONLY
+   * Does NOT add GROUP BY or ORDER BY - assumes they're already in the base query
+   * @param baseQuery - The metric-specific query (with SELECT clause and placeholders)
+   * @param filterBy - Filter options (locations, departments, userCategories, etc.)
+   */
+  protected async transformQueryWithFilters({
+    baseQuery,
+    filterBy,
+  }: {
+    baseQuery: string;
+    filterBy: FilterOptions;
+  }): Promise<string> {
+    // Handle date replacements internally
+    const dateReplacements = DateHelper.getDateReplacements(
+      filterBy.timePeriod,
+      filterBy.customStartDate,
+      filterBy.customEndDate
+    );
+
+    // Replace all placeholders in base query
+    let query = baseQuery
+      .replace('{tenantCode}', filterBy.tenantCode)
+      .replace('{startDate}', dateReplacements.startDate)
+      .replace('{endDate}', dateReplacements.endDate)
+      .replace('{locationFilter}', this.addLocationFilter(filterBy.locations))
+      .replace('{departmentFilter}', this.addDepartmentFilter(filterBy.departments))
+      .replace('{segmentFilter}', this.addSegmentFilter(filterBy.segments))
+      .replace('{companyNameFilter}', this.addCompanyNameFilter(filterBy.companyName));
+
+    // Handle user category mapping and replacement
+    if (filterBy.userCategories && filterBy.userCategories.length > 0) {
+      const userCategoryCodes = await this.mapUserCategoryNamesToCodes(filterBy.userCategories);
+      query = query.replace('{userCategoryFilter}', this.addUserCategoryFilter(userCategoryCodes));
+    } else {
+      query = query.replace('{userCategoryFilter}', this.addUserCategoryFilter(filterBy.userCategories));
+    }
+
+    return query;
+  }
+
+  // ===== INDIVIDUAL FILTER METHODS =====
+
+  protected addLocationFilter(locations?: string[]): string {
+    if (!locations || locations.length === 0) return '';
+    const quotedValues = locations.map(v => `'${v}'`).join(', ');
+    return `\n  and u.location in (${quotedValues})`;
+  }
+
+  protected addDepartmentFilter(departments?: string[]): string {
+    if (!departments || departments.length === 0) return '';
+    const quotedValues = departments.map(v => `'${v}'`).join(', ');
+    return `\n  and u.department in (${quotedValues})`;
+  }
+
+  protected addSegmentFilter(segments?: string[]): string {
+    if (!segments || segments.length === 0) return '';
+    const quotedValues = segments.map(v => `'${v}'`).join(', ');
+    return `\n  and u.segment_code in (${quotedValues})`;
+  }
+
+  protected addUserCategoryFilter(userCategories?: string[]): string {
+    if (!userCategories || userCategories.length === 0) return '';
+    const quotedValues = userCategories.map(v => `'${v}'`).join(', ');
+    return `\n  and u.user_category_code in (${quotedValues})`;
+  }
+
+  protected addCompanyNameFilter(companyNames?: string[]): string {
+    if (!companyNames || companyNames.length === 0) return '';
+    const quotedValues = companyNames.map(v => `'${v}'`).join(', ');
+    return `\n  and u.company_name in (${quotedValues})`;
   }
 }

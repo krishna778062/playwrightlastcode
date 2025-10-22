@@ -1,62 +1,188 @@
 export const AdoptionSql = {
   /**
-   * 
-   * select count(distinct user_code) from udl.vw_daily_user_adoption dua 
-inner join udl.vw_user_as_is u on dua.user_code=u.code 
-where u.tenant_code='ea411953-6702-4a01-8b03-b98a172be511' 
-and reporting_date>='2025-08-13' and reporting_date<='2025-09-11' 
-and status_code='US001' 
-and u.location in () 
-and u.department in () 
-and u.segment_code in () 
-and u.user_category_code in ();
+   * Total Users Query Template
+   * Returns count of distinct users with filters applied
    */
-  Total_Users: `
-    SELECT COUNT(DISTINCT code) as "Total_Users"
-    FROM simpplr_common_tenant.udl.vw_user_as_is
-    WHERE tenant_code = '{orgId}'
-    AND status_code = 'US001'
-    AND created_date BETWEEN '{startDate}' AND '{endDate}'
-    `,
+  TOTAL_USERS: `
+    select count(distinct user_code) 
+    from udl.vw_daily_user_adoption dua 
+    inner join udl.vw_user_as_is u on dua.user_code = u.code 
+    where u.tenant_code = '{tenantCode}' 
+      and reporting_date >= '{startDate}' 
+      and reporting_date <= '{endDate}' 
+      and status_code = 'US001'
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
+  `,
 
-  Logged_In_Users: `
-    SELECT COUNT(DISTINCT code) as "Logged_In_Users"
-    FROM simpplr_common_tenant.udl.vw_user_as_is
-    WHERE tenant_code = '{orgId}'
-    AND status_code = 'US001'
-    AND last_login_date BETWEEN '{startDate}' AND '{endDate}'
-    `,
+  /**
+   * Logged In Users Query Template
+   * Returns count of distinct users who have logged in with filters applied
+   */
+  LOGGED_IN_USERS: `
+    select count(distinct user_code) as logged_in_users
+    from udl.vw_daily_user_adoption dua 
+    inner join udl.vw_user_as_is u on dua.user_code = u.code 
+    where u.tenant_code = '{tenantCode}' 
+      and reporting_date >= '{startDate}' 
+      and reporting_date <= '{endDate}' 
+      and u.status_code = 'US001'
+      and dua.has_logged_in = 'TRUE'
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
+  `,
 
-  Contributors_And_Participants: `
-    SELECT COUNT(DISTINCT code) as "Contributors_And_Participants"
-    FROM simpplr_common_tenant.udl.vw_user_as_is
-    WHERE tenant_code = '{orgId}'
-    AND status_code = 'US001'
-    AND is_contributor = true
-    AND is_participant = true
-    `,
+  /**
+   * Contributors and Participants Query Template
+   * Returns count of distinct users who are contributors or participants with filters applied
+   */
+  CONTRIBUTORS_AND_PARTICIPANTS: `
+    select count(distinct user_code) as contributorOrParticipantUsersCount
+    from udl.vw_daily_user_adoption dua 
+    inner join udl.vw_user_as_is u on dua.user_code = u.code 
+    where u.tenant_code = '{tenantCode}' 
+      and reporting_date >= '{startDate}' 
+      and reporting_date <= '{endDate}' 
+      and u.status_code = 'US001'
+      and (dua.is_contributor = 'TRUE' or dua.is_participant = 'TRUE')
+      and dua.has_logged_in = 'TRUE'
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
+  `,
 
-  App_Web_Page_Views: `
-    SELECT COUNT(DISTINCT code) as "App_Web_Page_Views"
-    FROM simpplr_common_tenant.udl.vw_user_as_is
-    WHERE tenant_code = '{orgId}'
-    AND status_code = 'US001'
-    AND app_web_page_views > 0
-    `,
+  /**
+   * App Web Page Views Query Template
+   * Returns page group data with view counts and percentages
+   */
+  APP_WEB_PAGE_VIEWS: `
+    select PAGES as "Web page group", 
+           TOTAL_PEOPLE as "Total people", 
+           TOTAL_VIEWS as "Page view count", 
+           PERCENT as "Percentage contribution to total page views"
+    from ( 
+        select case when rp.description='N/A' then 'Undefined' else rp.description end as 
+        PAGES,count(distinct case when u.status_code='US001' then 
+        ia.INTERACTED_BY_USER_CODE end) as TOTAL_PEOPLE,count(ia.code) as 
+        TOTAL_VIEWS, 
+        ROUND((TOTAL_VIEWS/SUM(TOTAL_VIEWS) over())*100) as WHOLE_VALUE, 
+        ROUND((TOTAL_VIEWS/SUM(TOTAL_VIEWS) over())*100,2) as PERCENT 
+        from SIMPPLR_COMMON_TENANT.UDL.REF_PAGE_GROUP rp join 
+        SIMPPLR_COMMON_TENANT.UDL.VW_INTERACTION ia on rp.code = ia.page_group_code 
+        inner join SIMPPLR_COMMON_TENANT.UDL.vw_user_as_is u on 
+        ia.interacted_by_user_code=u.code 
+        where ia.INTERACTION_DATETIME>='{startDate}' and 
+        ia.INTERACTION_DATETIME<='{endDate}'  
+        and ia.page_group_code!='PG102'  
+        and ia.INTERACTION_TYPE_CODE = 'IT001'  
+        and ia.tenant_code = '{tenantCode}'
+        {locationFilter}
+        {departmentFilter}
+        {segmentFilter}
+        {userCategoryFilter}
+        {companyNameFilter}
+        group by rp.description order by total_views desc
+    ) 
+  `,
 
-  Adoption_Leaders: `
-    SELECT COUNT(DISTINCT code) as "Adoption_Leaders"
-    FROM simpplr_common_tenant.udl.vw_user_as_is
-    WHERE tenant_code = '{orgId}'
-    AND status_code = 'US001'
-    AND adoption_score > 0
-    `,
+  /**
+   * Adoption Leaders by Department Query Template
+   * Returns adoption data grouped by department
+   */
+  ADOPTION_LEADERS_BY_DEPARTMENT: `
+    select 
+      u.department as view_category,
+      count(distinct case when ul.has_logged_in then ul.user_code end) as logged_in_users,
+      count(distinct u.code) as total_users,
+      concat(round(count(distinct case when ul.has_logged_in then ul.user_code end) / count(distinct u.code) * 100, 1), '%') as adoption_rate
+    from SIMPPLR_COMMON_TENANT.UDL.VW_USER_AS_IS u 
+    inner join SIMPPLR_COMMON_TENANT.UDL.VW_DAILY_USER_ADOPTION ul on u.code = ul.user_code 
+    where u.tenant_code = '{tenantCode}' 
+      and ul.reporting_date >= '{startDate}' 
+      and ul.reporting_date <= '{endDate}' 
+      and u.status_code = 'US001'
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
+    group by u.department
+    order by round(count(distinct case when ul.has_logged_in then ul.user_code end) / count(distinct u.code) * 100, 1) {orderDirection}
+  `,
 
-  Adoption_Laggards: `
-    SELECT COUNT(DISTINCT code) as "Adoption_Laggards"
-    FROM simpplr_common_tenant.udl.vw_user_as_is
-    WHERE tenant_code = '{orgId}'
-    AND status_code = 'US001'
-    AND adoption_score < 0
-    `,
+  /**
+   * Adoption Leaders by Location Query Template
+   * Returns adoption data grouped by location
+   */
+  ADOPTION_LEADERS_BY_LOCATION: `
+    select 
+      u.location as view_category,
+      count(distinct case when ul.has_logged_in then ul.user_code end) as logged_in_users,
+      count(distinct u.code) as total_users,
+      concat(round(count(distinct case when ul.has_logged_in then ul.user_code end) / count(distinct u.code) * 100, 1), '%') as adoption_rate
+    from SIMPPLR_COMMON_TENANT.UDL.VW_USER_AS_IS u 
+    inner join SIMPPLR_COMMON_TENANT.UDL.VW_DAILY_USER_ADOPTION ul on u.code = ul.user_code 
+    where u.tenant_code = '{tenantCode}' 
+      and ul.reporting_date >= '{startDate}' 
+      and ul.reporting_date <= '{endDate}' 
+      and u.status_code = 'US001'
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
+    group by u.location
+    order by round(count(distinct case when ul.has_logged_in then ul.user_code end) / count(distinct u.code) * 100, 1) {orderDirection}
+  `,
+
+  /**
+   * Adoption Leaders by User Category Query Template
+   * Returns adoption data grouped by user category
+   */
+  ADOPTION_LEADERS_BY_USER_CATEGORY: `
+    select 
+      coalesce(u.user_category_name, 'Uncategorized') as view_category,
+      count(distinct case when ul.has_logged_in then ul.user_code end) as logged_in_users,
+      count(distinct u.code) as total_users,
+      concat(round(count(distinct case when ul.has_logged_in then ul.user_code end) / count(distinct u.code) * 100, 1), '%') as adoption_rate
+    from SIMPPLR_COMMON_TENANT.UDL.VW_USER_AS_IS u 
+    inner join SIMPPLR_COMMON_TENANT.UDL.VW_DAILY_USER_ADOPTION ul on u.code = ul.user_code 
+    where u.tenant_code = '{tenantCode}' 
+      and ul.reporting_date >= '{startDate}' 
+      and ul.reporting_date <= '{endDate}' 
+      and u.status_code = 'US001'
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
+    group by coalesce(u.user_category_name, 'Uncategorized')
+    order by round(count(distinct case when ul.has_logged_in then ul.user_code end) / count(distinct u.code) * 100, 1) {orderDirection}
+  `,
+
+  /**
+   * Benchmark Data Query Template
+   * Returns benchmark data for adoption dashboard
+   */
+  BENCHMARK_DATA: `
+    select SUM(UNIQUE_LOGINS_OVERALL) / SUM(TOTAL_ACTIVE_USERS) * 100 as 
+           USERS_WHO_LOGGED_IN_AT_LEAST_ONCE_PERCENTAGE, 
+           ((SUM(PARTICIPANTS_OVERALL) / SUM(UNIQUE_LOGINS_OVERALL)) + 
+           (SUM(CONTRIBUTORS_OVERALL) / SUM(UNIQUE_LOGINS_OVERALL))) * 100 as 
+           CONTRIBUTORS_AND_PARTICIPANTS_PERCENTAGE 
+           from SIMPPLR_COMMON_TENANT.UDL.MONTHLY_TENANT_ADOPTION_SNAPSHOT mtas 
+           inner join SIMPPLR_COMMON_TENANT.UDL.TENANT_DETAILS td on 
+           mtas.customer_segment_code=td.customer_segment_code and 
+           mtas.INSTANCE_TYPE_CODE=td.INSTANCE_TYPE_CODE 
+           where td.TENANT_CODE = '{tenantCode}' AND 
+           REPORTING_MONTH = '{reportingMonth}'
+  `,
 };
