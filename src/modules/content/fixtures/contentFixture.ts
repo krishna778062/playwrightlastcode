@@ -98,6 +98,12 @@ async function createUiFixture(browser: any, userType: UserType): Promise<UiFixt
   const context = await browser.newContext();
   const page = await context.newPage();
 
+  // Handle browser alerts by clicking OK
+  page.on('dialog', async (dialog: any) => {
+    console.log(`Dialog appeared: ${dialog.message()}`);
+    await dialog.accept();
+  });
+
   await LoginHelper.loginWithPassword(page, {
     email: user.email,
     password: user.password,

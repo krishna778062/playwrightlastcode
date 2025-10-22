@@ -14,6 +14,7 @@ export enum ContentSuiteTags {
   SOCIAL_CAMPAIGN = '@social-campaign',
   MY_CONTENT_FILTER = '@my-content-filter',
   ENABLE_DISABLE_CONTENT_SUBMISSIONS = '@enable-disable-content-submissions',
+  LANGUAGE_IN_CONTENT = '@language-in-content',
 }
 
 export enum ContentFeatureTags {
