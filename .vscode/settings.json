@@ -30,5 +30,8 @@
   "playwright.showTrace": false,
   "emmet.includeLanguages": {
     "typescript": "html"
-  }
+  },
+  "cSpell.words": [
+    "domcontentloaded"
+  ]
 }

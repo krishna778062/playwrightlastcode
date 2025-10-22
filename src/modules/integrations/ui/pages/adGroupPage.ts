@@ -74,4 +74,8 @@ export class AdGroupPage extends BasePage {
   async clickOnSelectedGroupsTab(text: string): Promise<void> {
     return this.adGroupComponent.clickOnSelectedGroupsTab(text);
   }
+
+  async removeIfGroupsAreSelected(useGroupsRadioText: string, selectGroupsButtonText: string): Promise<void> {
+    return this.adGroupComponent.removeIfGroupsAreSelected(useGroupsRadioText, selectGroupsButtonText);
+  }
 }

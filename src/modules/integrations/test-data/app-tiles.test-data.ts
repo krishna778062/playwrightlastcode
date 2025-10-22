@@ -100,6 +100,7 @@ export const REDIRECT_URLS = {
   UKG_WFM: 'https://kcfn01-cfn08-ath01.cfn.mykronos.com/',
   MONDAY_DOT_COM: 'https://clydenoronha48s-team.monday.com/',
   DOCEBO: 'https://simpplr.docebosaas.com/',
+  ASANA: 'https://app.asana.com/',
 } as const;
 
 /**
@@ -132,4 +133,42 @@ export const STATUS_VALUES = {
   DRAFT: 'Draft',
   OPEN: 'Open',
   CLOSED: 'Closed',
+} as const;
+
+export const TEST_EMAIL = {
+  GOOGLE_CALENDAR: 'howard.nelson@simpplr.dev',
+  OUTLOOK_CALENDAR: 'howard.nelson@smplrdev.onmicrosoft.com',
+};
+/**
+ * Data values for Docebo app tiles
+ */
+export const DOCEBO_VALUES = {
+  ENROLLMENT_STATUS: 'Enrollment status',
+  COURSE_TYPE: 'Course type',
+  ENROLLMENT_LEVEL: 'Enrollment level',
+  COMPLETED: 'Completed',
+  E_LEARNING: 'E-learning',
+  STUDENT: 'Student',
+} as const;
+
+/**
+ * Data values for Expensify app tiles
+ */
+export const EXPENSIFY_VALUES = {
+  WORKSPACE: 'Workspace',
+  STATUS: 'Status',
+  DURATION: 'Duration',
+  PROCESSING: 'Processing',
+  APPROVER: 'Srikant G',
+  MAX_DAYS: 30,
+  WORKSPACE_VALUE: 'Sandbox-R&D',
+} as const;
+/**
+ * Data values for Greenhouse app tiles
+ */
+export const GREENHOUSE_VALUES = {
+  JOB_TYPE: 'Job type',
+  ALL: 'All',
+  JOB_BOARD_TOKEN: 'Job board token',
+  JOB_BOARD_TOKEN_VALUE: 'mergeapiintegrationsandbox',
 } as const;

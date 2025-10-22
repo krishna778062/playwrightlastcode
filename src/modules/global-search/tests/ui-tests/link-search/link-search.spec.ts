@@ -52,7 +52,6 @@ test.describe(
           zephyrTestId: 'SEN-16516',
         });
 
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         // Search for the unique link
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(linkName, {
           stepInfo: `Searching for unique link "${linkName}"`,

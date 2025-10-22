@@ -167,7 +167,6 @@ export class IdentityService implements IIdentityAdminOperations {
           data: userData,
         }
       );
-      console.log(`Updated user ${userId}`, JSON.stringify(userData, null, 2));
       return await this.httpClient.parseResponse<UpdateUserResponse>(response);
     });
   }
@@ -277,7 +276,7 @@ export class IdentityService implements IIdentityAdminOperations {
     await test.step(`API Create category: ${name} if not created`, async () => {
       const findCategoryStatus: boolean = await this.findCategory(name, 10000);
       if (!findCategoryStatus) {
-        const data: any = {
+        const data: { name: string; description?: string } = {
           name: `${name}`,
         };
 
@@ -303,7 +302,6 @@ export class IdentityService implements IIdentityAdminOperations {
           categoryId = await this.getCategoryId(name, 10000);
         }
       } else {
-        console.log(`Category ${name} already created!!!`);
         categoryId = await this.getCategoryId(name, 10000);
       }
     });
@@ -346,23 +344,43 @@ export class IdentityService implements IIdentityAdminOperations {
   async getCategoryId(name: string, size: number, options?: { nextPageToken: number; term: string }): Promise<string> {
     let categoryId: string = '';
     await test.step(`Getting category id for ${name}`, async () => {
-      const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
-        data: {
-          nextPageToken: options?.nextPageToken || 0,
-          type: 'category',
-          size: size,
-          term: options?.term || '',
-        },
-      });
-      const responseJson = await this.httpClient.parseResponse<IdentityAudienceSearchResponse>(response);
-      let i: number;
-      for (i = 0; i < responseJson.result.listOfItems.length; i++) {
-        if (responseJson.result.listOfItems[i].data.name == name) {
-          categoryId = responseJson.result.listOfItems[i].data.id;
+      let nextPageToken = options?.nextPageToken || 0;
+      const maxPages = 20; // Limit to prevent infinite loops
+      let currentPage = 0;
+
+      while (currentPage < maxPages) {
+        const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
+          data: {
+            nextPageToken: nextPageToken,
+            type: 'category',
+            size: size,
+            selectedFields: [], // Add this field to match the working curl request
+            term: options?.term || '',
+          },
+        });
+        const responseJson = await this.httpClient.parseResponse<IdentityAudienceSearchResponse>(response);
+
+        // Search for the category in current page
+        for (let i = 0; i < responseJson.result.listOfItems.length; i++) {
+          if (responseJson.result.listOfItems[i].data.name == name) {
+            categoryId = responseJson.result.listOfItems[i].data.id;
+            return categoryId;
+          }
+        }
+
+        // Check if there are more pages - increment nextPageToken by size to get next page
+        if (responseJson.result.listOfItems.length === size) {
+          nextPageToken += size;
+          currentPage++;
+        } else {
+          break;
         }
       }
+
       if (!categoryId) {
-        throw new Error(`Category ${name} not found in fetched list of categories`);
+        throw new Error(
+          `Category ${name} not found in fetched list of categories after searching ${currentPage + 1} pages`
+        );
       }
     });
     return categoryId;
@@ -382,41 +400,50 @@ export class IdentityService implements IIdentityAdminOperations {
           type: 'category',
           size: size,
           term: name,
-          selectedFields: [
-            {
-              key: 'audienceCategory',
-              value: [categoryid],
-            },
-          ],
+          parentCategoryId: categoryid,
         },
       });
       const responseJson = await this.httpClient.parseResponse<IdentityAudienceSearchResponse>(response);
       try {
         //if the list is not empty, check if the audience is present in the list or children list
-        if (responseJson.result.listOfItems.length > 0) {
-          for (let i = 0; i < responseJson.result.listOfItems.length; i++) {
-            if (responseJson.result.listOfItems[i].data.name == name) {
-              return true;
-            }
-            //if the item has children, check if the audience is present in the children list
-            if (responseJson.result.listOfItems[i].children.length > 0) {
-              for (let j = 0; j < responseJson.result.listOfItems[i].children.length; j++) {
-                if (responseJson.result.listOfItems[i].children[j].data.name == name) {
-                  return true;
-                }
+        for (let i = 0; i < responseJson.result.listOfItems.length; i++) {
+          if (responseJson.result.listOfItems[i].data.name == name) {
+            return true;
+          }
+          //if the item has children, check if the audience is present in the children list
+          if (responseJson.result.listOfItems[i].children.length > 0) {
+            for (let j = 0; j < responseJson.result.listOfItems[i].children.length; j++) {
+              if (responseJson.result.listOfItems[i].children[j].data.name == name) {
+                return true;
               }
             }
           }
-          //if the audience is not present in the list or children list, return false
-          return false;
-        } else {
-          return false;
         }
+        //if the audience is not present in the list or children list, return false
+        return false;
       } catch (error) {
         throw new Error(`Error in finding audience API call for ${name} under category ${categoryid}: ${error}`);
       }
     });
     return false;
+  }
+
+  /**
+   * Gets the appropriate fieldType for a given attribute
+   * @param attribute - The attribute name
+   * @returns - The appropriate fieldType
+   */
+  private getFieldTypeForAttribute(attribute: string): string {
+    // Okta group attributes
+    if (attribute === 'OKTA_GROUP' || attribute === 'okta_group') {
+      return 'oktaGroup';
+    }
+    // AD group attributes
+    if (attribute === 'AD_GROUP' || attribute === 'ad_group') {
+      return 'adGroup';
+    }
+    // Regular attributes (first_name, last_name, country_name, etc.)
+    return 'regular';
   }
 
   /**
@@ -427,7 +454,7 @@ export class IdentityService implements IIdentityAdminOperations {
    */
   async createAudience(
     createAudienceParams: audienceCreationParams,
-    options?: { type: string; fieldType: string }
+    options?: { type: string; fieldType: string; sourceType?: string }
   ): Promise<string> {
     const isAudienceCreated = await this.isAudienceCreated(
       createAudienceParams.audienceName,
@@ -453,25 +480,22 @@ export class IdentityService implements IIdentityAdminOperations {
                       ],
                       attribute: createAudienceParams.attribute,
                       operator: createAudienceParams.operator,
-                      fieldType: options?.fieldType || 'regular',
+                      fieldType: options?.fieldType || this.getFieldTypeForAttribute(createAudienceParams.attribute),
                     },
                   ],
                 },
               ],
             },
+            sourceType: options?.sourceType || 'app_managed',
             categoryId: createAudienceParams.categoryId,
           },
         });
         expect(response.status(), `Audience created successfully`).toEqual(201);
         const responseJson = await this.httpClient.parseResponse<audienceCreationResponse>(response);
-        console.log(`Audience created: ${createAudienceParams.audienceName}`);
         audienceId = responseJson.result.audienceId;
       });
       return audienceId;
     } else {
-      console.log(
-        `Audience ${createAudienceParams.audienceName} already created under category ${createAudienceParams.categoryId}!!!`
-      );
       return '';
     }
   }
@@ -488,20 +512,16 @@ export class IdentityService implements IIdentityAdminOperations {
       const hasAttachedAudiences = await this.checkCategoryHasAudiences(categoryId);
 
       if (hasAttachedAudiences && !options?.forceDelete) {
-        console.warn(`Category ${categoryId} has audiences attached. Skipping deletion to maintain data integrity.`);
-        console.warn(`Use { forceDelete: true } option if you want to delete anyway.`);
         return;
       }
 
       if (hasAttachedAudiences && options?.forceDelete) {
-        console.warn(`Force deleting category ${categoryId} despite having attached audiences.`);
       }
 
       const response = await this.httpClient.delete(
         API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesCategories + '/' + categoryId
       );
       expect(response.status(), 'Category deleted successfully').toEqual(200);
-      console.log(`Category with categoryId: ${categoryId} is deleted`);
     });
   }
 
@@ -535,10 +555,8 @@ export class IdentityService implements IIdentityAdminOperations {
 
       // If category not found in first page, it might be on subsequent pages
       // For now, assume safe to delete if not found
-      console.warn(`Category ${categoryId} not found in hierarchy response. Assuming safe to delete.`);
       return false;
-    } catch (error) {
-      console.warn(`Could not check audiences for category ${categoryId}:`, error);
+    } catch {
       // If we can't check, assume it's safe to delete (fallback behavior)
       return false;
     }
@@ -555,7 +573,6 @@ export class IdentityService implements IIdentityAdminOperations {
           API_ENDPOINTS.appManagement.identity.v2IdentityAudiences + '/' + audienceId
         );
         expect(response.status(), 'Audience deleted successfully').toEqual(200);
-        console.log(`Audience with audienceId: ${audienceId} is deleted`);
       }, `Polling delete API for audience with audienceId: ${audienceId} until we get 200 response`).toPass({
         timeout: 10000,
         intervals: [1000, 4000, 7000, 10000],
@@ -571,12 +588,10 @@ export class IdentityService implements IIdentityAdminOperations {
     await test.step(`Deleting ACG with name: ${acgName}`, async () => {
       //first get the acg id
       const acgId = await this.getACGId(acgName);
-      console.log(`ACG id for ACG ${acgName} is ${acgId}`);
       const response = await this.httpClient.delete(
         API_ENDPOINTS.appManagement.identity.deleteAccessControlGroup(acgId)
       );
       expect(response.status(), 'ACG deleted successfully').toEqual(200);
-      console.log(`ACG with name: ${acgName} is deleted`);
     });
   }
 
@@ -590,7 +605,6 @@ export class IdentityService implements IIdentityAdminOperations {
         API_ENDPOINTS.appManagement.identity.deleteAccessControlGroup(acgId)
       );
       expect(response.status(), 'ACG deleted successfully').toEqual(200);
-      console.log(`ACG with id: ${acgId} is deleted`);
     });
   }
 
@@ -669,8 +683,9 @@ export class IdentityService implements IIdentityAdminOperations {
 
   /**
    * Get all categories using hierarchy API
+   * Returns legacy format for backward compatibility with content-abac module
    */
-  async getCategories(): Promise<any[]> {
+  async getCategories(): Promise<Array<{ type: string; data: { id: string; name: string; description?: string } }>> {
     const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
       data: {
         nextPageToken: 0,
@@ -682,13 +697,25 @@ export class IdentityService implements IIdentityAdminOperations {
     });
 
     const json = await response.json();
-    return json?.result?.listOfItems || [];
+    const items = json?.result?.listOfItems || [];
+
+    return items.map((item: any) => ({
+      type: 'category',
+      data: {
+        id: item.id,
+        name: item.name,
+        description: item.description,
+      },
+    }));
   }
 
   /**
    * Get audiences in a specific category using hierarchy API
+   * Returns legacy format for backward compatibility with content-abac module
    */
-  async getAudiencesInCategory(categoryId: string): Promise<any[]> {
+  async getAudiencesInCategory(
+    categoryId: string
+  ): Promise<Array<{ type: string; data: { id: string; name: string; description?: string } }>> {
     const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
       data: {
         nextPageToken: 0,
@@ -701,7 +728,16 @@ export class IdentityService implements IIdentityAdminOperations {
     });
 
     const json = await response.json();
-    return json?.result?.listOfItems || [];
+    const items = json?.result?.listOfItems || [];
+
+    return items.map((item: any) => ({
+      type: 'audience',
+      data: {
+        id: item.id,
+        name: item.name,
+        description: item.description,
+      },
+    }));
   }
 
   /**

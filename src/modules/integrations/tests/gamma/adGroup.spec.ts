@@ -21,6 +21,7 @@ test.describe(
       adGroup = new AdGroupPage(appManagerFixture.page);
       await adGroup.loadPage();
       await adGroup.verifyThePageIsLoaded();
+      await adGroup.removeIfGroupsAreSelected(AD_GROUP.AD_GROUP_OPTION, AD_GROUP.GROUP_BUTTON);
       await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
       await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
     });

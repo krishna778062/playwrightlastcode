@@ -1,5 +1,3 @@
-import { faker } from '@faker-js/faker';
-
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
@@ -9,6 +7,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { FileUtil } from '@/src/core/utils/fileUtil';
+import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 
 test.describe(
   '@FeedPost',
@@ -59,8 +58,8 @@ test.describe(
         });
 
         // Generate test data
-        const initialPostText = `Automated Test Post ${faker.company.name()}`;
-        const updatedPostText = `Updated Test Post ${faker.company.buzzPhrase()}`;
+        const initialPostText = TestDataGenerator.generateRandomText('Test Post', 3, true);
+        const updatedPostText = TestDataGenerator.generateRandomText('Updated Test Post', 3, true);
 
         // Step 1: Create a new post with multiple attachments via UI
         // Note: Post can also be created via API using:
