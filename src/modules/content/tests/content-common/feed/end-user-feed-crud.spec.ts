@@ -1,5 +1,3 @@
-import { faker } from '@faker-js/faker';
-
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
@@ -148,7 +146,7 @@ test.describe(
         await feedPage.actions.clickShareThoughtsButton();
 
         // Step 5: Create a post and send it to the editor
-        const initialPostText = `Test post for site access validation ${faker.company.name()}`;
+        const initialPostText = TestDataGenerator.generateRandomText('Test Post', 3, true);
         await feedPage.actions.enterFeedPostText(initialPostText);
 
         // Step 6: User select share option as "site feed"
