@@ -310,6 +310,25 @@ export class TileManagementService implements ITileManagementOperations {
   }
 
   /**
+   * Delete a content tile via API
+   */
+  async deleteContentTile(tileId: string): Promise<APIResponse> {
+    const { frontendBaseUrl } = getEnvConfig();
+
+    return await this.httpClient.delete(
+      `${API_ENDPOINTS.integrations.contentTiles}/${tileId}?${API_QUERY_PARAMS.HIDE_TILE_FALSE}`,
+      {
+        headers: {
+          Origin: frontendBaseUrl,
+          Referer: frontendBaseUrl,
+          Accept: '*/*',
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  }
+
+  /**
    * Delete a link tile via API
    */
   async deleteTile(siteId: string, tileId: string): Promise<APIResponse> {

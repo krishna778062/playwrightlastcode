@@ -6,7 +6,9 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 
 test.describe(
   '@Q&A - Question and Answer functionality',
@@ -63,6 +65,56 @@ test.describe(
         const editTitle = TestDataGenerator.generateRandomText();
         await feedPage.actions.editQuestion(questionTitle, editTitle);
         await feedPage.assertions.verifyQuestionCreatedSuccessfully(editTitle);
+      }
+    );
+
+    test(
+      'verify User creates a question for sites',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33540'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify User creates a question for sites',
+          zephyrTestId: 'CONT-33540',
+          storyId: 'CONT-33540',
+        });
+
+        const siteName = 'All Employees';
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+        await siteDashboardPage.loadPage();
+        // And Click "Question"
+        await siteDashboardPage.actions.clickShareThoughtsButton();
+        await siteDashboardPage.actions.clickQuestionButton();
+        const questionTitle = TestDataGenerator.generateRandomText();
+        const questionResult = await siteDashboardPage.actions.createAndPostQuestion({ title: questionTitle });
+        createdPostId = questionResult.questionId!;
+        await siteDashboardPage.assertions.verifyQuestionCreatedSuccessfully(questionTitle);
+      }
+    );
+
+    test(
+      'verify User creates a question for content feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-34095'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify User creates a question for content feed',
+          zephyrTestId: 'CONT-34095',
+          storyId: 'CONT-34095',
+        });
+
+        const contentId = await appManagerFixture.contentManagementHelper.getContentId();
+        const contentPreviewPage = new ContentPreviewPage(appManagerFixture.page, contentId.siteId);
+        // And Click "Question"
+        await contentPreviewPage.actions.clickShareThoughtsButton();
+        await contentPreviewPage.actions.clickQuestionButton();
+        const questionTitle = TestDataGenerator.generateRandomText();
+        const questionResult = await contentPreviewPage.actions.createAndPostQuestion({ title: questionTitle });
+        createdPostId = questionResult.questionId!;
+        await contentPreviewPage.assertions.verifyQuestionCreatedSuccessfully(questionTitle);
       }
     );
   }

@@ -297,7 +297,7 @@ export class ManageQRPage extends BasePage {
   async verifyPopupDisplayedByHeader(popupType: PopupType) {
     if (popupType === PopupType.PromotionPopup) {
       await this.verifyPromotionPopup();
-    } else if (popupType === PopupType.PreviewPopup) {
+    } else {
       await this.verifyPreviewPopup();
     }
   }
@@ -552,6 +552,31 @@ export class ManageQRPage extends BasePage {
     });
   }
 
+  async verifyQRAppearsFirstInSearch(qrName: string) {
+    await test.step(`Verify QR "${qrName}" appears first in search results`, async () => {
+      await this.searchForQRWithEnter(qrName);
+      await this.qrListRows.first().waitFor({ state: 'visible', timeout: 10000 });
+
+      const qrRows = this.qrListRows;
+      const rowCount = await qrRows.count();
+
+      if (rowCount === 0) {
+        throw new Error('No QR rows found in search results');
+      }
+
+      const firstRow = qrRows.first();
+      const firstRowText = await firstRow.textContent();
+
+      if (!firstRowText?.toLowerCase().includes(qrName.toLowerCase())) {
+        throw new Error(`QR "${qrName}" is not the first result in search. First result: "${firstRowText}"`);
+      }
+
+      await this.verifier.verifyTheElementIsVisible(firstRow.filter({ hasText: qrName }), {
+        assertionMessage: `QR "${qrName}" should be the first result in search`,
+      });
+    });
+  }
+
   async verifyNothingToShowMessage() {
     await this.verifier.verifyTheElementIsVisible(this.nothingToShowMessage, {
       assertionMessage: 'Nothing to show here message should be displayed',
@@ -750,8 +775,11 @@ export class ManageQRPage extends BasePage {
   }
 
   async validateQRName(qrName: string): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.qrNameHeaderLocator.filter({ hasText: qrName.trim() }).first(), {
-      assertionMessage: `QR with name "${qrName}" should be visible on first list item`,
+    // Wait for the QR list to be populated and the specific QR to be visible
+    await this.qrListRows.first().waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.waitForTimeout(5000);
+    await this.verifier.verifyTheElementIsVisible(this.qrNameHeaderLocator.filter({ hasText: qrName.trim() }), {
+      assertionMessage: `QR with name "${qrName}" should be visible in the QR list`,
     });
   }
 
@@ -1052,7 +1080,9 @@ export class ManageQRPage extends BasePage {
 
       // Only toggle if current state doesn't match desired state
       if (isCurrentlyEnabled !== enabled) {
-        await toggle.click();
+        await this.clickOnElement(toggle, {
+          stepInfo: `Toggle QR status for "${qrName}" to ${enabled ? 'enabled' : 'disabled'}`,
+        });
 
         // Wait for the toggle to reach the desired state
         const expectedState = enabled ? 'true' : 'false';
@@ -1187,6 +1217,12 @@ export class ManageQRPage extends BasePage {
       await this.verifier.verifyTheElementIsVisible(errorMessage, {
         assertionMessage: `Error message should be visible: ${expectedMessage}`,
       });
+    });
+  }
+
+  async verifyContentPromoteModalIsClosed(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.promoteContentQRHeading, {
+      assertionMessage: 'Content promote modal should be closed and not visible',
     });
   }
 }

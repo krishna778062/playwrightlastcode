@@ -12,14 +12,17 @@ export interface INewHomePageActions {
   clickOnManageDashboardCarousel: (options?: { stepInfo?: string }) => Promise<void>;
   clickOnEditCarousel: () => Promise<void>;
   clickOnAddTile: () => Promise<void>;
-  clickOnSocialCampaignTile: (tileTitle: string) => Promise<void>;
-  clickAddToHomeButton: () => Promise<void>;
+  clickOnSocialCampaignTile: () => Promise<void>;
+  clickAddToHomeButton: () => Promise<string>;
   enterTileTitle: (tileTitle: string) => Promise<void>;
+  clickOnCustomSCTile: () => Promise<void>;
+  setCustomSCTitle: (title: string) => Promise<void>;
 }
 
 export interface INewHomePageAssertions {
   verifyTileIsDisplayed: (tileTitle: string) => Promise<void>;
   verifySocialCampaignNameInTheDisplayed: (socialCampaignName: string) => Promise<void>;
+  verifySocialCampaignNameNotDisplayed: (socialCampaignName: string) => Promise<void>;
 }
 
 export class NewHomePage extends BasePage {
@@ -79,11 +82,11 @@ export class NewHomePage extends BasePage {
     return this.editbarComponent.clickOnAddTile();
   }
 
-  async clickOnSocialCampaignTile(tileTitle: string): Promise<void> {
+  async clickOnSocialCampaignTile(): Promise<void> {
     return this.addTileComponent.clickSocialCampaignsButton();
   }
 
-  async clickAddToHomeButton(): Promise<void> {
+  async clickAddToHomeButton(): Promise<string> {
     return this.addTileComponent.clickAddToHomeButton();
   }
 
@@ -107,5 +110,22 @@ export class NewHomePage extends BasePage {
         assertionMessage: `Social campaign name '${socialCampaignName}' should be displayed`,
       });
     });
+  }
+
+  async verifySocialCampaignNameNotDisplayed(socialCampaignName: string): Promise<void> {
+    await test.step('Verifying social campaign name is displayed in the displayed', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.socialCampaignNameInTileList(socialCampaignName), {
+        timeout: 20000,
+        assertionMessage: `Social campaign name '${socialCampaignName}' should be displayed`,
+      });
+    });
+  }
+
+  async clickOnCustomSCTile(): Promise<void> {
+    return this.addTileComponent.clickCustomTab();
+  }
+
+  async setCustomSCTitle(title: string): Promise<void> {
+    return this.addTileComponent.setCustomSCTitle(title);
   }
 }

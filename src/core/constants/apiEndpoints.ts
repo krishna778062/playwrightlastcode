@@ -16,6 +16,9 @@ export const API_ENDPOINTS = {
     roles: {
       list: '/v1/identity/accounts/roles/list',
     },
+    tiles: {
+      create: '/v1/content/tiles',
+    },
     groups: {
       create: '/v1/chat/conversations',
       addMembers: `/v1/chat/members`,
@@ -110,6 +113,9 @@ export const API_ENDPOINTS = {
     general: '/v1/account/appConfig/app',
     appConfig: '/v1/account/appConfig',
   },
+  tile: {
+    create: '/v1/content/tiles',
+  },
   apps: {
     settings: '/v1/account/apps-links-settings',
     list: '/v1/account/launchpad/apps/list',
@@ -135,6 +141,8 @@ export const API_ENDPOINTS = {
     contentTilesList: '/v1/content/tiles/list',
     tilesByConnector: (connectorId: string) => `/v1/tiles?type=app&connectorId=${connectorId}`,
     createTileInstance: (tileId: string) => `/v1/tiles/${tileId}/instances`,
+    calendarIntegration: '/v1/account/appConfig/app.integrations.calendar.integration',
+    integrationDomains: '/v1/account/integration-domains',
   },
 } as const;
 
