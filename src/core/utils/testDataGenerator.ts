@@ -262,7 +262,8 @@ export class TestDataGenerator {
 
   // Helper function to generate test description with timestamp
   static generateRandomString(prefix: string = 'Test String'): string {
-    return `${prefix} created at ${new Date().toISOString()}`;
+    const randomString = faker.string.alphanumeric(6);
+    return `${prefix}_ ${randomString}`;
   }
 
   static generateCategoryNameAndDescription(): { name: string; description: string } {
@@ -646,6 +647,53 @@ export class TestDataGenerator {
       listOfAttachedFiles: [],
       ignoreToxic: false,
       replyText: `@${userName} ${text}`, // For UI verification
+    };
+  }
+
+  /**
+   * Generates simple test data for feed comment/reply without user mention
+   * @param params Configuration for the reply
+   * @returns Object with reply creation parameters including textHtml, textJson, and other payload data
+   *
+   * @example
+   * // Generate simple reply without mention
+   * const reply = TestDataGenerator.generateSimpleReply({
+   *   replyText: 'This is a simple reply'
+   * });
+   */
+  static generateSimpleReply(params: { replyText?: string } = {}) {
+    const { replyText } = params;
+    const text = replyText || faker.lorem.sentence();
+
+    // Generate textHtml without user mention
+    const textHtml = `<p>${text}</p>`;
+
+    // Generate textJson without user mention
+    const textJson = JSON.stringify({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          attrs: {
+            className: '',
+            'data-sw-sid': null,
+          },
+          content: [
+            {
+              type: 'text',
+              text: text,
+            },
+          ],
+        },
+      ],
+    });
+
+    return {
+      textHtml,
+      textJson,
+      listOfAttachedFiles: [],
+      ignoreToxic: false,
+      replyText: text,
     };
   }
 

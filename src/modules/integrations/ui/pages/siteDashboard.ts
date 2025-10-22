@@ -23,7 +23,6 @@ export class SiteDashboard {
     this.page = page;
     this.appManagerApiClient = appManagerApiClient;
     this.appTileComponent = new BaseAppTileComponent(page);
-    this.appTileComponent = new BaseAppTileComponent(page);
     this.timeOffRequestTileComponent = new TimeOffRequestTileComponent(page);
     this.tileOperationsComponent = new TileOperationsComponent(page);
   }
@@ -550,6 +549,27 @@ export class SiteDashboard {
         { fieldName: fieldName2, option: ORGANIZATION_SETTINGS.USER_DEFINED },
         { fieldName: fieldName3, option: ORGANIZATION_SETTINGS.USER_DEFINED },
       ],
+    });
+  }
+  /**
+   * Verify Docebo report data  shown in tile
+   */
+  async verifyDoceboReportData(tileTitle: string, EnrollmentStatus: string, CourseType: string): Promise<void> {
+    await this.tileOperationsComponent.verifyDoceboReportData(tileTitle, EnrollmentStatus, CourseType);
+  }
+
+  /**
+   * Complete workflow to add an app tile with personalize option
+   */
+  async addTilewithPersonalize(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    fieldName: string,
+    destination: string
+  ): Promise<void> {
+    await this.addTile(tileTitle, appName, tileName, destination, {
+      radioOptions: [{ fieldName: fieldName, option: ORGANIZATION_SETTINGS.USER_DEFINED }],
     });
   }
 }

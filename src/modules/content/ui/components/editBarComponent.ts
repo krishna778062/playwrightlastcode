@@ -1,6 +1,6 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '@core/components/baseComponent';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export interface IEditBarActions {
   clickEditCarousel: () => Promise<void>;

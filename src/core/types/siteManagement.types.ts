@@ -39,6 +39,7 @@ export interface SiteListOptions {
   size?: number;
   canManage?: boolean;
   filter?: string;
+  sortBy?: string;
 }
 
 export interface Site {
