@@ -5,6 +5,7 @@ import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { AudienceCategoryManagementHelper, IdentityManagementHelper } from '../apis/helpers';
+import { AudienceTestDataHelper } from '../apis/helpers/audienceTestDataHelper';
 import { UserManagementService } from '../apis/services/UserManagementService';
 
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
@@ -14,6 +15,7 @@ import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 export interface PlatformApiFixture {
   apiContext: APIRequestContext;
   audienceCategoryManagementHelper: AudienceCategoryManagementHelper;
+  audienceTestDataHelper: AudienceTestDataHelper;
   identityManagementHelper: IdentityManagementHelper;
   userManagementService: UserManagementService;
 }
@@ -45,12 +47,14 @@ export const platformUsers = {
 // Helper function to create API-only fixtures using existing API contexts
 async function createPlatformApiFixture(apiContext: APIRequestContext): Promise<PlatformApiFixture> {
   const audienceCategoryManagementHelper = new AudienceCategoryManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
+  const audienceTestDataHelper = new AudienceTestDataHelper(apiContext, getEnvConfig().apiBaseUrl);
   const identityManagementHelper = new IdentityManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
   const userManagementService = new UserManagementService(apiContext, getEnvConfig().apiBaseUrl);
 
   return {
     apiContext,
     audienceCategoryManagementHelper,
+    audienceTestDataHelper,
     identityManagementHelper,
     userManagementService,
   };

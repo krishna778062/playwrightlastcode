@@ -150,3 +150,25 @@ export const DOCEBO_VALUES = {
   E_LEARNING: 'E-learning',
   STUDENT: 'Student',
 } as const;
+
+/**
+ * Data values for Expensify app tiles
+ */
+export const EXPENSIFY_VALUES = {
+  WORKSPACE: 'Workspace',
+  STATUS: 'Status',
+  DURATION: 'Duration',
+  PROCESSING: 'Processing',
+  APPROVER: 'Srikant G',
+  MAX_DAYS: 30,
+  WORKSPACE_VALUE: 'Sandbox-R&D',
+} as const;
+/**
+ * Data values for Greenhouse app tiles
+ */
+export const GREENHOUSE_VALUES = {
+  JOB_TYPE: 'Job type',
+  ALL: 'All',
+  JOB_BOARD_TOKEN: 'Job board token',
+  JOB_BOARD_TOKEN_VALUE: 'mergeapiintegrationsandbox',
+} as const;
