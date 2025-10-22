@@ -8,6 +8,7 @@ import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/cons
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
+import { EditPagePage } from '@/src/modules/content/ui/pages/editPagePage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { HomeFeedPage } from '@/src/modules/content/ui/pages/manageApplicationDefaultHomeFeedPage';
 import { DefaultScreenPage } from '@/src/modules/content/ui/pages/manageApplicationDefaultScreenPage';
@@ -30,6 +31,7 @@ test.describe(
     let manageApplicationPage: ManageApplicationPage;
     let defaultScreenPage: DefaultScreenPage;
     let homeFeedPage: HomeFeedPage;
+    let editPage: EditPagePage;
     let manageSitePage: ManageSitePage;
     let siteDetailsPage: SiteDetailsPage;
 
@@ -41,6 +43,7 @@ test.describe(
       manageApplicationPage = new ManageApplicationPage(appManagerFixture.page);
       defaultScreenPage = new DefaultScreenPage(appManagerFixture.page);
       homeFeedPage = new HomeFeedPage(appManagerFixture.page);
+      editPage = new EditPagePage(appManagerFixture.page, '', '');
       homePage = new NewHomePage(appManagerFixture.page);
       manageSitePage = new ManageSitePage(appManagerFixture.page, '');
       siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, '');
@@ -284,6 +287,28 @@ test.describe(
         await manageSitePage.actions.updatingCategoryToUncategorized('Uncategorized');
         await manageSitePage.actions.clickOnSite();
         await siteDetailsPage.assertions.validatingCategoryToUncategorized();
+      }
+    );
+
+    test(
+      'zeus: Edit the validation Expired Content and Cancel',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VALIDATION_REQUIRED_BAR_STATE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Zeus: Edit the validation Expired Content and Cancel',
+          zephyrTestId: 'CONT-36069',
+          storyId: 'CONT-36069',
+        });
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickOnViewAllButton();
+        await manageContentPage.actions.verifyingValidationRequiredBarState();
+        await manageContentPage.actions.clickOnEditButton();
+        await editPage.actions.clickOnCancel();
+        await manageContentPage.actions.verifyingValidationRequiredBarState();
       }
     );
   }

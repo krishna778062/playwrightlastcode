@@ -75,6 +75,7 @@ export interface CreateAudienceResponse {
     description: string;
     type: string;
     audienceRule: AudienceRule;
+    audienceMemberCount: number;
   };
   errors: any[];
 }
