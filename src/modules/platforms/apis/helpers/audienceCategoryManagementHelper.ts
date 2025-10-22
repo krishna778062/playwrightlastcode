@@ -7,6 +7,15 @@ interface CreatedCategory {
   categoryName: string;
 }
 
+interface CreateAudienceParams {
+  audienceName: string;
+  categoryId: string;
+  attribute: string;
+  value: string;
+  fieldType?: string;
+  sourceType?: string;
+}
+
 /**
  * Helper class for managing audience categories through API operations.
  * Provides methods for creating categories and automatic cleanup.
@@ -103,22 +112,17 @@ export class AudienceCategoryManagementHelper {
 
   /**
    * Creates an audience with IS_NOT operator via API
-   * @param audienceName - Name of the audience
-   * @param categoryId - Parent category ID
-   * @param attribute - Attribute type (e.g., 'security', 'OKTA_GROUP', 'BUILT_IN')
-   * @param value - Operator value (group ID or value to match against)
-   * @param fieldType - Field type ('adGroup', 'oktaGroup', 'regular')
-   * @param sourceType - Source type ('app_managed', 'user_managed', etc.)
+   * @param params - Object containing audience creation parameters
+   * @param params.audienceName - Name of the audience
+   * @param params.categoryId - Parent category ID
+   * @param params.attribute - Attribute type (e.g., 'security', 'OKTA_GROUP', 'BUILT_IN')
+   * @param params.value - Operator value (group ID or value to match against)
+   * @param params.fieldType - Field type ('adGroup', 'oktaGroup', 'regular')
+   * @param params.sourceType - Source type ('app_managed', 'user_managed', etc.)
    * @returns The created audience ID
    */
-  async createAudienceWithIsNotOperator(
-    audienceName: string,
-    categoryId: string,
-    attribute: string,
-    value: string,
-    fieldType: string = 'adGroup',
-    sourceType: string = 'app_managed'
-  ): Promise<string> {
+  async createAudienceWithIsNotOperator(params: CreateAudienceParams): Promise<string> {
+    const { audienceName, categoryId, attribute, value, fieldType = 'adGroup', sourceType = 'app_managed' } = params;
     return await test.step(`Creating audience with IS_NOT operator: ${audienceName}`, async () => {
       const createAudienceParams = {
         audienceName,
@@ -139,22 +143,17 @@ export class AudienceCategoryManagementHelper {
 
   /**
    * Creates an audience with IS operator via API
-   * @param audienceName - Name of the audience
-   * @param categoryId - Parent category ID
-   * @param attribute - Attribute type (e.g., 'security', 'OKTA_GROUP', 'BUILT_IN')
-   * @param value - Operator value (group ID or value to match against)
-   * @param fieldType - Field type ('adGroup', 'oktaGroup', 'regular')
-   * @param sourceType - Source type ('app_managed', 'user_managed', etc.)
+   * @param params - Object containing audience creation parameters
+   * @param params.audienceName - Name of the audience
+   * @param params.categoryId - Parent category ID
+   * @param params.attribute - Attribute type (e.g., 'security', 'OKTA_GROUP', 'BUILT_IN')
+   * @param params.value - Operator value (group ID or value to match against)
+   * @param params.fieldType - Field type ('adGroup', 'oktaGroup', 'regular')
+   * @param params.sourceType - Source type ('app_managed', 'user_managed', etc.)
    * @returns The created audience ID
    */
-  async createAudienceWithIsOperator(
-    audienceName: string,
-    categoryId: string,
-    attribute: string,
-    value: string,
-    fieldType: string = 'adGroup',
-    sourceType: string = 'app_managed'
-  ): Promise<string> {
+  async createAudienceWithIsOperator(params: CreateAudienceParams): Promise<string> {
+    const { audienceName, categoryId, attribute, value, fieldType = 'adGroup', sourceType = 'app_managed' } = params;
     return await test.step(`Creating audience with IS operator: ${audienceName}`, async () => {
       const createAudienceParams = {
         audienceName,
@@ -175,22 +174,17 @@ export class AudienceCategoryManagementHelper {
 
   /**
    * Creates an audience with ALL operator via API
-   * @param audienceName - Name of the audience
-   * @param categoryId - Parent category ID
-   * @param attribute - Attribute type (e.g., 'security', 'OKTA_GROUP', 'BUILT_IN')
-   * @param value - Operator value (group ID or value to match against)
-   * @param fieldType - Field type ('adGroup', 'oktaGroup', 'regular')
-   * @param sourceType - Source type ('app_managed', 'user_managed', etc.)
+   * @param params - Object containing audience creation parameters
+   * @param params.audienceName - Name of the audience
+   * @param params.categoryId - Parent category ID
+   * @param params.attribute - Attribute type (e.g., 'security', 'OKTA_GROUP', 'BUILT_IN')
+   * @param params.value - Operator value (group ID or value to match against)
+   * @param params.fieldType - Field type ('adGroup', 'oktaGroup', 'regular')
+   * @param params.sourceType - Source type ('app_managed', 'user_managed', etc.)
    * @returns The created audience ID
    */
-  async createAudienceWithAllOperator(
-    audienceName: string,
-    categoryId: string,
-    attribute: string,
-    value: string,
-    fieldType: string = 'adGroup',
-    sourceType: string = 'app_managed'
-  ): Promise<string> {
+  async createAudienceWithAllOperator(params: CreateAudienceParams): Promise<string> {
+    const { audienceName, categoryId, attribute, value, fieldType = 'adGroup', sourceType = 'app_managed' } = params;
     return await test.step(`Creating audience with ALL operator: ${audienceName}`, async () => {
       const createAudienceParams = {
         audienceName,

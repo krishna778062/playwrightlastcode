@@ -529,8 +529,14 @@ export class AudiencePage extends BasePage {
       await this.clickOnElement(this.selectParentButton, { stepInfo: 'Open Select parent picker' });
       await expect(this.audiencePickerDialog).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
 
-      // Select the parent category directly from the list
+      // Wait for the dialog content to load by waiting for any list item to be visible
+      await this.page.waitForTimeout(2000); // Give the dialog time to load its content
+
+      // Wait for the category to be available in the dialog
       const itemExact = this.audiencePickerDialog.getByText(parentName, { exact: true }).first();
+      await expect(itemExact).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+
+      // Select the parent category directly from the list
       await this.clickOnElement(itemExact, { stepInfo: `Choose parent: ${parentName}` });
 
       await this.clickOnElement(this.audiencePickerDoneButton, { stepInfo: 'Confirm parent selection' });
@@ -584,10 +590,18 @@ export class AudiencePage extends BasePage {
    */
   async chooseAudienceType(typeLabel: string): Promise<void> {
     await test.step(`Choose audience Type: ${typeLabel}`, async () => {
-      await this.typeSelectInput.selectOption({ label: typeLabel }).catch(async () => {
+      // Wait for the select input to be visible and enabled
+      await expect(this.typeSelectInput).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await expect(this.typeSelectInput).toBeEnabled({ timeout: TIMEOUTS.MEDIUM });
+
+      // Try to select by label first
+      try {
+        await this.typeSelectInput.selectOption({ label: typeLabel });
+      } catch (error) {
         // Fallback to value if label select fails
+        console.log(`Failed to select by label "${typeLabel}", trying by value...`);
         await this.typeSelectInput.selectOption(typeLabel);
-      });
+      }
     });
   }
 

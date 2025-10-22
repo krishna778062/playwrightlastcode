@@ -1,6 +1,14 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
+import {
+  AD_GROUP_TYPES,
+  AUDIENCE_TYPES,
+  FIELD_TYPES,
+  OPERATORS,
+  PAGE_STATES,
+  TEST_DATA_PREFIXES,
+} from '@platforms/constants';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AudiencePage } from '@platforms/ui/pages/abacPage/acgPage/audiencePage';
 
@@ -19,24 +27,24 @@ test.describe(
         });
         const audiencePage = new AudiencePage(appManagerFixture.page);
 
-        const audienceName = TestDataGenerator.generateAudienceName('UI_');
-        const description = TestDataGenerator.generateRandomString('desc-');
-        const parentCategoryName = TestDataGenerator.generateCategoryName('001_Audience_UI_Category_');
+        const audienceName = TestDataGenerator.generateAudienceName(TEST_DATA_PREFIXES.UI_AUDIENCE);
+        const description = TestDataGenerator.generateRandomString(TEST_DATA_PREFIXES.DESCRIPTION);
+        const parentCategoryName = TestDataGenerator.generateCategoryName(TEST_DATA_PREFIXES.API_CATEGORY);
 
         await audiencePage.loadPage();
 
         const _category_ = await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
-        await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
+        await appManagerFixture.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
 
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
           description,
           parentCategoryName,
-          audienceType: 'okta',
-          adGroup: 'ALL',
+          audienceType: AUDIENCE_TYPES.OKTA,
+          adGroup: AD_GROUP_TYPES.ALL,
         });
       }
     );
@@ -50,25 +58,25 @@ test.describe(
         });
         const audiencePage = new AudiencePage(appManagerFixture.page);
 
-        const audienceName = TestDataGenerator.generateAudienceName('UI_');
-        const description = TestDataGenerator.generateRandomString('desc-');
-        const parentCategoryName = TestDataGenerator.generateCategoryName('0123_UI_Category_');
+        const audienceName = TestDataGenerator.generateAudienceName(TEST_DATA_PREFIXES.UI_AUDIENCE);
+        const description = TestDataGenerator.generateRandomString(TEST_DATA_PREFIXES.DESCRIPTION);
+        const parentCategoryName = TestDataGenerator.generateCategoryName(TEST_DATA_PREFIXES.API_CATEGORY);
 
         await audiencePage.loadPage();
 
         await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
-        await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
+        await appManagerFixture.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
 
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
           description,
           parentCategoryName,
-          audienceType: 'okta',
-          adGroup: 'ALL',
-          operator: 'IS',
+          audienceType: AUDIENCE_TYPES.OKTA,
+          adGroup: AD_GROUP_TYPES.ALL,
+          operator: OPERATORS.IS,
         });
       }
     );
@@ -83,43 +91,43 @@ test.describe(
         const audiencePage = new AudiencePage(appManagerFixture.page);
 
         const audienceName = TestDataGenerator.generateAudienceName('UI_IS_NOT_');
-        const description = TestDataGenerator.generateRandomString('desc-');
-        const parentCategoryName = TestDataGenerator.generateCategoryName('0123_UI_Category_');
+        const description = TestDataGenerator.generateRandomString(TEST_DATA_PREFIXES.DESCRIPTION);
+        const parentCategoryName = TestDataGenerator.generateCategoryName(TEST_DATA_PREFIXES.API_CATEGORY);
 
         await audiencePage.loadPage();
 
         const category = await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
-        await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
+        await appManagerFixture.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
 
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
           description,
           parentCategoryName,
-          audienceType: 'okta',
+          audienceType: AUDIENCE_TYPES.OKTA,
           adGroup: 'BUILT_IN',
-          operator: 'ALL',
+          operator: OPERATORS.ALL,
         });
 
         const isAudienceName = TestDataGenerator.generateAudienceName('API_IS_');
-        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsOperator(
-          isAudienceName,
-          category.categoryId,
-          'BUILT_IN',
-          await appManagerFixture.audienceTestDataHelper.getOktaBuiltInGroupId(),
-          'oktaGroup'
-        );
+        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsOperator({
+          audienceName: isAudienceName,
+          categoryId: category.categoryId,
+          attribute: AD_GROUP_TYPES.BUILT_IN,
+          value: await appManagerFixture.audienceTestDataHelper.getOktaBuiltInGroupId(),
+          fieldType: FIELD_TYPES.OKTA_GROUP,
+        });
 
         const isNotAudienceName = TestDataGenerator.generateAudienceName('API_IS_NOT_');
-        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsNotOperator(
-          isNotAudienceName,
-          category.categoryId,
-          'BUILT_IN',
-          await appManagerFixture.audienceTestDataHelper.getOktaBuiltInGroupId(),
-          'oktaGroup'
-        );
+        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsNotOperator({
+          audienceName: isNotAudienceName,
+          categoryId: category.categoryId,
+          attribute: AD_GROUP_TYPES.BUILT_IN,
+          value: await appManagerFixture.audienceTestDataHelper.getOktaBuiltInGroupId(),
+          fieldType: FIELD_TYPES.OKTA_GROUP,
+        });
       }
     );
 
@@ -133,23 +141,23 @@ test.describe(
         const audiencePage = new AudiencePage(appManagerFixture.page);
 
         const audienceName = TestDataGenerator.generateAudienceName('UI_AD_GROUP_');
-        const description = TestDataGenerator.generateRandomString('desc-');
-        const parentCategoryName = TestDataGenerator.generateCategoryName('0123_UI_Category_');
+        const description = TestDataGenerator.generateRandomString(TEST_DATA_PREFIXES.DESCRIPTION);
+        const parentCategoryName = TestDataGenerator.generateCategoryName(TEST_DATA_PREFIXES.API_CATEGORY);
 
         await audiencePage.loadPage();
 
         await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
-        await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
+        await appManagerFixture.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
 
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
           description,
           parentCategoryName,
-          audienceType: 'ad_group',
-          adGroup: 'ALL',
+          audienceType: AUDIENCE_TYPES.AD_GROUP,
+          adGroup: AD_GROUP_TYPES.ALL,
         });
       }
     );
@@ -164,44 +172,44 @@ test.describe(
         const audiencePage = new AudiencePage(appManagerFixture.page);
 
         const audienceName = TestDataGenerator.generateAudienceName('UI_ENTRA_SECURITY_');
-        const description = TestDataGenerator.generateRandomString('desc-');
-        const parentCategoryName = TestDataGenerator.generateCategoryName('0123_UI_Category_');
+        const description = TestDataGenerator.generateRandomString(TEST_DATA_PREFIXES.DESCRIPTION);
+        const parentCategoryName = TestDataGenerator.generateCategoryName(TEST_DATA_PREFIXES.API_CATEGORY);
 
         await audiencePage.loadPage();
 
         const category = await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
-        await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
+        await appManagerFixture.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
 
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
           description,
           parentCategoryName,
-          audienceType: 'ad_group',
+          audienceType: AUDIENCE_TYPES.AD_GROUP,
           adGroup: 'security',
-          operator: 'IS_NOT',
+          operator: OPERATORS.IS_NOT,
         });
 
         const securityGroupId = await appManagerFixture.audienceTestDataHelper.getSecurityGroupId();
         const isAudienceName = TestDataGenerator.generateAudienceName('API_IS_');
-        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsOperator(
-          isAudienceName,
-          category.categoryId,
-          'security',
-          securityGroupId,
-          'adGroup'
-        );
+        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsOperator({
+          audienceName: isAudienceName,
+          categoryId: category.categoryId,
+          attribute: AD_GROUP_TYPES.SECURITY,
+          value: securityGroupId,
+          fieldType: FIELD_TYPES.AD_GROUP,
+        });
 
         const allAudienceName = TestDataGenerator.generateAudienceName('API_ALL_');
-        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithAllOperator(
-          allAudienceName,
-          category.categoryId,
-          'security',
-          securityGroupId,
-          'adGroup'
-        );
+        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithAllOperator({
+          audienceName: allAudienceName,
+          categoryId: category.categoryId,
+          attribute: AD_GROUP_TYPES.SECURITY,
+          value: securityGroupId,
+          fieldType: FIELD_TYPES.AD_GROUP,
+        });
       }
     );
 
@@ -215,43 +223,43 @@ test.describe(
         const audiencePage = new AudiencePage(appManagerFixture.page);
 
         const audienceName = TestDataGenerator.generateAudienceName('UI_ENTRA_M365_');
-        const description = TestDataGenerator.generateRandomString('desc-');
-        const parentCategoryName = TestDataGenerator.generateCategoryName('0123_UI_Category_');
+        const description = TestDataGenerator.generateRandomString(TEST_DATA_PREFIXES.DESCRIPTION);
+        const parentCategoryName = TestDataGenerator.generateCategoryName(TEST_DATA_PREFIXES.API_CATEGORY);
 
         await audiencePage.loadPage();
 
         const category = await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
-        await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
+        await appManagerFixture.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
 
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
           description,
           parentCategoryName,
-          audienceType: 'ad_group',
+          audienceType: AUDIENCE_TYPES.AD_GROUP,
           adGroup: 'microsoft365',
-          operator: 'ALL',
+          operator: OPERATORS.ALL,
         });
 
         const isAudienceName = TestDataGenerator.generateAudienceName('API_IS_');
-        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsOperator(
-          isAudienceName,
-          category.categoryId,
-          'microsoft365',
-          await appManagerFixture.audienceTestDataHelper.getMicrosoft365GroupId(),
-          'adGroup'
-        );
+        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsOperator({
+          audienceName: isAudienceName,
+          categoryId: category.categoryId,
+          attribute: AD_GROUP_TYPES.MICROSOFT365,
+          value: await appManagerFixture.audienceTestDataHelper.getMicrosoft365GroupId(),
+          fieldType: FIELD_TYPES.AD_GROUP,
+        });
 
         const isNotAudienceName = TestDataGenerator.generateAudienceName('API_IS_NOT_');
-        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsNotOperator(
-          isNotAudienceName,
-          category.categoryId,
-          'microsoft365',
-          await appManagerFixture.audienceTestDataHelper.getMicrosoft365GroupId(),
-          'adGroup'
-        );
+        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsNotOperator({
+          audienceName: isNotAudienceName,
+          categoryId: category.categoryId,
+          attribute: AD_GROUP_TYPES.MICROSOFT365,
+          value: await appManagerFixture.audienceTestDataHelper.getMicrosoft365GroupId(),
+          fieldType: FIELD_TYPES.AD_GROUP,
+        });
       }
     );
 
@@ -265,36 +273,36 @@ test.describe(
         const audiencePage = new AudiencePage(appManagerFixture.page);
 
         const audienceName = TestDataGenerator.generateAudienceName('UI_ENTRA_MAIL_SECURITY_');
-        const description = TestDataGenerator.generateRandomString('desc-');
-        const parentCategoryName = TestDataGenerator.generateCategoryName('0123_UI_Category_');
+        const description = TestDataGenerator.generateRandomString(TEST_DATA_PREFIXES.DESCRIPTION);
+        const parentCategoryName = TestDataGenerator.generateCategoryName(TEST_DATA_PREFIXES.API_CATEGORY);
 
         await audiencePage.loadPage();
 
         const category = await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
-        await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
+        await appManagerFixture.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
 
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
           description,
           parentCategoryName,
-          audienceType: 'ad_group',
+          audienceType: AUDIENCE_TYPES.AD_GROUP,
           adGroup: 'mail-security',
-          operator: 'IS',
+          operator: OPERATORS.IS,
         });
 
         const mailSecurityGroupId = await appManagerFixture.audienceTestDataHelper.getMailSecurityGroupId();
 
         const allAudienceName = TestDataGenerator.generateAudienceName('API_ALL_');
-        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithAllOperator(
-          allAudienceName,
-          category.categoryId,
-          'mail-security',
-          mailSecurityGroupId,
-          'adGroup'
-        );
+        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithAllOperator({
+          audienceName: allAudienceName,
+          categoryId: category.categoryId,
+          attribute: AD_GROUP_TYPES.MAIL_SECURITY_DASH,
+          value: mailSecurityGroupId,
+          fieldType: FIELD_TYPES.AD_GROUP,
+        });
       }
     );
 
@@ -308,44 +316,44 @@ test.describe(
         const audiencePage = new AudiencePage(appManagerFixture.page);
 
         const audienceName = TestDataGenerator.generateAudienceName('UI_ENTRA_DISTRIBUTION_');
-        const description = TestDataGenerator.generateRandomString('desc-');
-        const parentCategoryName = TestDataGenerator.generateCategoryName('0123_UI_Category_');
+        const description = TestDataGenerator.generateRandomString(TEST_DATA_PREFIXES.DESCRIPTION);
+        const parentCategoryName = TestDataGenerator.generateCategoryName(TEST_DATA_PREFIXES.API_CATEGORY);
 
         await audiencePage.loadPage();
 
         const category = await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
-        await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
+        await appManagerFixture.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
 
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
           description,
           parentCategoryName,
-          audienceType: 'ad_group',
+          audienceType: AUDIENCE_TYPES.AD_GROUP,
           adGroup: 'distribution',
-          operator: 'IS',
+          operator: OPERATORS.IS,
         });
 
         const distributionGroupId = await appManagerFixture.audienceTestDataHelper.getDistributionGroupId();
         const isAudienceName = TestDataGenerator.generateAudienceName('API_IS_');
-        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsOperator(
-          isAudienceName,
-          category.categoryId,
-          'distribution',
-          distributionGroupId,
-          'adGroup'
-        );
+        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsOperator({
+          audienceName: isAudienceName,
+          categoryId: category.categoryId,
+          attribute: AD_GROUP_TYPES.DISTRIBUTION,
+          value: distributionGroupId,
+          fieldType: FIELD_TYPES.AD_GROUP,
+        });
 
         const allAudienceName = TestDataGenerator.generateAudienceName('API_ALL_');
-        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithAllOperator(
-          allAudienceName,
-          category.categoryId,
-          'distribution',
-          distributionGroupId,
-          'adGroup'
-        );
+        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithAllOperator({
+          audienceName: allAudienceName,
+          categoryId: category.categoryId,
+          attribute: AD_GROUP_TYPES.DISTRIBUTION,
+          value: distributionGroupId,
+          fieldType: FIELD_TYPES.AD_GROUP,
+        });
       }
     );
 
@@ -359,15 +367,15 @@ test.describe(
         const audiencePage = new AudiencePage(appManagerFixture.page);
 
         const _audienceName = TestDataGenerator.generateAudienceName('UI_COUNTRY_');
-        const description = TestDataGenerator.generateRandomString('desc-');
-        const parentCategoryName = TestDataGenerator.generateCategoryName('0123_UI_Category_');
+        const description = TestDataGenerator.generateRandomString(TEST_DATA_PREFIXES.DESCRIPTION);
+        const parentCategoryName = TestDataGenerator.generateCategoryName(TEST_DATA_PREFIXES.API_CATEGORY);
 
         await audiencePage.loadPage();
 
         const category = await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
-        await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
+        await appManagerFixture.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
 
         const containsAudienceName = TestDataGenerator.generateAudienceName('UI_CONTAINS_');
         await audiencePage.openCreateAudienceForm();
@@ -375,8 +383,8 @@ test.describe(
           name: containsAudienceName,
           description,
           parentCategoryName,
-          audienceType: 'country_name',
-          operator: 'CONTAINS',
+          audienceType: AUDIENCE_TYPES.COUNTRY_NAME,
+          operator: OPERATORS.CONTAINS,
         });
 
         const endsWithAudienceName = TestDataGenerator.generateAudienceName('UI_ENDS_WITH_');
@@ -386,8 +394,8 @@ test.describe(
           name: endsWithAudienceName,
           description,
           parentCategoryName,
-          audienceType: 'country_name',
-          operator: 'ENDS_WITH',
+          audienceType: AUDIENCE_TYPES.COUNTRY_NAME,
+          operator: OPERATORS.ENDS_WITH,
         });
 
         const startsWithAudienceName = TestDataGenerator.generateAudienceName('UI_STARTS_WITH_');
@@ -397,28 +405,28 @@ test.describe(
           name: startsWithAudienceName,
           description,
           parentCategoryName,
-          audienceType: 'country_name',
-          operator: 'STARTS_WITH',
+          audienceType: AUDIENCE_TYPES.COUNTRY_NAME,
+          operator: OPERATORS.STARTS_WITH,
         });
 
         const countryValue = await appManagerFixture.audienceTestDataHelper.getCountryValue();
         const isAudienceName = TestDataGenerator.generateAudienceName('API_IS_');
-        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsOperator(
-          isAudienceName,
-          category.categoryId,
-          'country_name',
-          countryValue,
-          'regular'
-        );
+        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsOperator({
+          audienceName: isAudienceName,
+          categoryId: category.categoryId,
+          attribute: AUDIENCE_TYPES.COUNTRY_NAME,
+          value: countryValue,
+          fieldType: FIELD_TYPES.REGULAR,
+        });
 
         const isNotAudienceName = TestDataGenerator.generateAudienceName('API_IS_NOT_');
-        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsNotOperator(
-          isNotAudienceName,
-          category.categoryId,
-          'country_name',
-          countryValue,
-          'regular'
-        );
+        await appManagerFixture.audienceCategoryManagementHelper.createAudienceWithIsNotOperator({
+          audienceName: isNotAudienceName,
+          categoryId: category.categoryId,
+          attribute: AUDIENCE_TYPES.COUNTRY_NAME,
+          value: countryValue,
+          fieldType: FIELD_TYPES.REGULAR,
+        });
       }
     );
 
@@ -431,79 +439,77 @@ test.describe(
         });
         const audiencePage = new AudiencePage(appManagerFixture.page);
 
-        const audienceName = TestDataGenerator.generateAudienceName('UI_HIRE_DATE_');
-        const description = TestDataGenerator.generateRandomString('desc-');
-        const parentCategoryName = TestDataGenerator.generateCategoryName('0123_UI_Category_');
+        const audienceName = TestDataGenerator.generateAudienceName(TEST_DATA_PREFIXES.UI_AUDIENCE);
+        const description = TestDataGenerator.generateRandomString(TEST_DATA_PREFIXES.DESCRIPTION);
+        const parentCategoryName = TestDataGenerator.generateCategoryName(TEST_DATA_PREFIXES.API_CATEGORY);
 
         await audiencePage.loadPage();
 
         await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
           description: 'Parent category for audience create UI flow',
         });
-        await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
+        await appManagerFixture.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
         await audiencePage.loadPage();
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: audienceName,
           description,
           parentCategoryName,
-          audienceType: 'start_date',
-          operator: 'ON_OR_BEFORE',
+          audienceType: AUDIENCE_TYPES.START_DATE,
+          operator: OPERATORS.ON_OR_BEFORE,
         });
 
-        const onOrAfterAudienceName = TestDataGenerator.generateAudienceName('UI_ON_OR_AFTER_');
-        await audiencePage.loadPage();
+        const onOrAfterAudienceName = TestDataGenerator.generateAudienceName(TEST_DATA_PREFIXES.UI_AUDIENCE);
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: onOrAfterAudienceName,
           description,
           parentCategoryName,
-          audienceType: 'start_date',
-          operator: 'ON_OR_AFTER',
+          audienceType: AUDIENCE_TYPES.START_DATE,
+          operator: OPERATORS.ON_OR_AFTER,
         });
 
-        const beforeAudienceName = TestDataGenerator.generateAudienceName('UI_BEFORE_');
+        const beforeAudienceName = TestDataGenerator.generateAudienceName(TEST_DATA_PREFIXES.UI_AUDIENCE);
         await audiencePage.loadPage();
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: beforeAudienceName,
           description,
           parentCategoryName,
-          audienceType: 'start_date',
-          operator: 'BEFORE',
+          audienceType: AUDIENCE_TYPES.START_DATE,
+          operator: OPERATORS.BEFORE,
         });
 
-        const afterAudienceName = TestDataGenerator.generateAudienceName('UI_AFTER_');
+        const afterAudienceName = TestDataGenerator.generateAudienceName(TEST_DATA_PREFIXES.UI_AUDIENCE);
         await audiencePage.loadPage();
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: afterAudienceName,
           description,
           parentCategoryName,
-          audienceType: 'start_date',
-          operator: 'AFTER',
+          audienceType: AUDIENCE_TYPES.START_DATE,
+          operator: OPERATORS.AFTER,
         });
 
-        const onAudienceName = TestDataGenerator.generateAudienceName('UI_ON_');
-        await audiencePage.loadPage();
+        const onAudienceName = TestDataGenerator.generateAudienceName(TEST_DATA_PREFIXES.UI_AUDIENCE);
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: onAudienceName,
           description,
           parentCategoryName,
-          audienceType: 'start_date',
-          operator: 'ON',
+          audienceType: AUDIENCE_TYPES.START_DATE,
+          operator: OPERATORS.ON,
         });
 
-        const betweenAudienceName = TestDataGenerator.generateAudienceName('UI_BETWEEN_');
+        const betweenAudienceName = TestDataGenerator.generateAudienceName(TEST_DATA_PREFIXES.UI_AUDIENCE);
         await audiencePage.loadPage();
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: betweenAudienceName,
           description,
           parentCategoryName,
-          audienceType: 'start_date',
-          operator: 'BETWEEN',
+          audienceType: AUDIENCE_TYPES.START_DATE,
+          operator: OPERATORS.BETWEEN,
         });
       }
     );
