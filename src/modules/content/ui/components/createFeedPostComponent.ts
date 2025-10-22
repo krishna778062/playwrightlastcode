@@ -59,8 +59,6 @@ export interface ICreateFeedPostAssertions {
   verifyEditorVisible: () => Promise<void>;
   verifyNoResultMessage: () => Promise<void>;
   verifyFileIsAttached: (fileName: string) => Promise<void>;
-  verifyQuestionButtonIsNotVisible: () => Promise<void>;
-  verifyQuestionButtonIsVisible: () => Promise<void>;
 }
 
 export class CreateFeedPostComponent

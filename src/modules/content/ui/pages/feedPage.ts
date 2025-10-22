@@ -94,10 +94,10 @@ export interface IFeedAssertions {
   verifyCampaignLinkNotDisplayed: (linkText: string, description: string) => Promise<void>;
   verifySocialCampaignShareButtonIsNotVisible: (description: string) => Promise<void>;
   verifySocialCampaignShareButtonIsVisible: (description: string) => Promise<void>;
+  verifyQuestionButtonIsNotVisible: () => Promise<void>;
   verifyNoResultMessage: () => Promise<void>;
   verifyFileIsAttached: (fileName: string) => Promise<void>;
   verifyQuestionButtonIsVisible: () => Promise<void>;
-  verifyQuestionButtonIsNotVisible: () => Promise<void>;
   verifyFeedSectionIsVisible: () => Promise<void>;
   verifyFeedSectionIsNotVisible: () => Promise<void>;
 }
@@ -355,6 +355,24 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifySortByRecentActivity();
   }
 
+  async clickOnShowOption(optionValue: string): Promise<void> {
+    await test.step(`Click on show option: ${optionValue}`, async () => {
+      // Wait for the select element to be present
+      await this.verifier.verifyTheElementIsVisible(this.feedFilterSelect, {
+        assertionMessage: 'Feed filter dropdown should be visible',
+      });
+
+      // Click on the select element to open dropdown
+      await this.clickOnElement(this.feedFilterSelect);
+
+      // Find and click the specific option
+      await this.optionLocator.selectOption(`${optionValue}`);
+
+      // Click on select again to close dropdown
+      await this.clickOnElement(this.feedFilterSelect);
+    });
+  }
+
   async clickOnSortByOption(optionValue: string): Promise<void> {
     await test.step(`Click on show option: ${optionValue}`, async () => {
       // Wait for the select element to be present
@@ -431,24 +449,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    * Clicks on a specific option in the feed filter dropdown
    * @param optionValue - The text value of the option to select
    */
-  async clickOnShowOption(optionValue: string): Promise<void> {
-    await test.step(`Click on show option: ${optionValue}`, async () => {
-      // Wait for the select element to be present
-      await this.verifier.verifyTheElementIsVisible(this.feedFilterSelect, {
-        assertionMessage: 'Feed filter dropdown should be visible',
-      });
-
-      // Click on the select element to open dropdown
-      await this.clickOnElement(this.feedFilterSelect);
-
-      // Find and click the specific option
-      await this.optionLocator.selectOption(`${optionValue}`);
-
-      // Click on select again to close dropdown
-      await this.clickOnElement(this.feedFilterSelect);
-    });
-  }
-
   /**
    * Selects "site feed" option from share dropdown in post creation
    */
