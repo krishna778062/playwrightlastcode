@@ -62,6 +62,7 @@ export interface IFeedActions {
   clickQuestionButton: () => Promise<void>;
   editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
   clickOnShowOption: (optionValue: string) => Promise<void>;
+  clickOnSortByOption: (optionValue: string) => Promise<void>;
   selectShareOptionAsSiteFeed: () => Promise<void>;
   searchForSiteName: (siteName: string) => Promise<void>;
   enterFeedPostText: (text: string) => Promise<void>;
@@ -107,6 +108,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   readonly shareThoughtsButton: Locator;
   readonly feedFilterSelect: Locator;
   readonly optionLocator: Locator;
+  readonly sortByLocator: Locator;
+  readonly sortByFilter: Locator;
 
   constructor(page: Page, feedId?: string) {
     super(page, feedId ? PAGE_ENDPOINTS.getFeedPage(feedId) : '');
@@ -115,7 +118,9 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.listFeedComponent = new ListFeedComponent(page);
     this.filePreviewComponent = new FilePreviewComponent(page);
     // Share thoughts section
-    this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thoughts' });
+    this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
+    this.sortByFilter = this.page.locator('[id="feed_sort"]');
+    this.sortByLocator = this.page.getByLabel('Sort by');
     // Feed filter dropdown
     this.feedFilterSelect = this.page.locator('select[id="feed_filter"]');
     this.optionLocator = this.page.getByLabel('Show', { exact: true });
@@ -348,6 +353,20 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifySortByRecentActivity();
   }
 
+  async clickOnSortByOption(optionValue: string): Promise<void> {
+    await test.step(`Click on show option: ${optionValue}`, async () => {
+      // Wait for the select element to be present
+      await this.verifier.verifyTheElementIsVisible(this.sortByFilter, {
+        assertionMessage: 'Sort by dropdown should be visible',
+      });
+      await this.clickOnElement(this.sortByFilter);
+
+      await this.sortByLocator.selectOption(`${optionValue}`);
+
+      // Click on select again to close dropdown
+      await this.clickOnElement(this.sortByFilter);
+    });
+  }
   /**
    * Clicks the share thoughts button to open post editor
    */
