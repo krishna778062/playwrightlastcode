@@ -1,4 +1,4 @@
-import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
+import { IntegrationsFeatureTags, IntegrationsSuiteTags } from '@integrations-constants/testTags';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -14,13 +14,18 @@ import { SupportAndTicketingPage } from '@/src/modules/integrations/ui/pages/sup
 test.describe(
   'confluence test cases',
   {
-    tag: [IntegrationsSuiteTags.INTEGRATIONS, IntegrationsSuiteTags.PHOENIX, IntegrationsSuiteTags.CONFLUENCE],
+    tag: [
+      IntegrationsSuiteTags.INTEGRATIONS,
+      IntegrationsSuiteTags.PHOENIX,
+      IntegrationsSuiteTags.CONFLUENCE,
+      IntegrationsFeatureTags.CONFLUENCE,
+    ],
   },
   () => {
     test(
       'verify confluence App & User Level Disconnection & Connection Flow for App Manager',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -58,7 +63,7 @@ test.describe(
     test(
       'verify Confluence Custom knowledge base name',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -124,7 +129,7 @@ test.describe(
     test(
       'verify Confluence Custom knowledge base name with Same Name as Default',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -157,7 +162,7 @@ test.describe(
     test(
       'verify Confluence Custom knowledge base name with blank value',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -180,7 +185,7 @@ test.describe(
     test(
       'verify Confluence Select spaces without selecting any space',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -202,7 +207,7 @@ test.describe(
     test(
       'verify App level Disconnection by unchecking the checkbox',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -224,7 +229,7 @@ test.describe(
     test(
       'verify App level Connection by checking the checkbox',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -249,7 +254,7 @@ test.describe(
     test(
       'verify Confluence user level connection with incorrect credentials',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -273,7 +278,7 @@ test.describe(
     multiUserTileFixture(
       'verify confluence User Level Connection & Disconnection Flow for End User',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
