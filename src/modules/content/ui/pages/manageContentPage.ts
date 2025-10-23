@@ -146,6 +146,9 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickOnFirstDropDownOption(): Promise<void> {
     await this.manageContentComponent.selectFirstDropDownOption();
   }
+  async hoverOnFirstDropDownOption(): Promise<void> {
+    await this.manageContentComponent.hoverOnFirstDropDownOption();
+  }
 
   async checkPublishOption(): Promise<void> {
     await this.manageContentComponent.checkPublishOption();
@@ -273,5 +276,51 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async verifyAllPublishedAtDatesFromArray(dates: string[]): Promise<void> {
     await this.manageContentComponent.verifyAllPublishedAtDatesFromArray(dates);
+  }
+  async selectPageOption(): Promise<void> {
+    await this.manageContentComponent.selectPageOption();
+  }
+  async verifyDraftTagVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyDraftTagVisibleInManageContent();
+  }
+  async verifyContentDetailsVisibility(pageName: string): Promise<void> {
+    await this.manageContentComponent.verifyContentDetailsVisibility(pageName);
+  }
+  async verifyPublishedStampVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyPublishedStampVisibleInManageContent();
+  }
+  async verifyUnpublishedStampVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyUnpublishedStampVisibleInManageContent();
+  }
+
+  async verifyEditOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyEditOptionVisibleInManageContent();
+  }
+  async verifyDeleteOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyDeleteOptionVisibleInManageContent();
+  }
+  async verifyUnpublishOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyUnpublishOptionVisibleInManageContent();
+  }
+  async verifyMoveOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyMoveOptionVisibleInManageContent();
+  }
+  async verifyPublishOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyPublishOptionVisibleInManageContent();
+  }
+  async verifyAddToCampaignOptionShouldNotBeVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyAddToCampaignOptionShouldNotBeVisibleInManageContent();
+  }
+  async clickOnContentEditButton(): Promise<void> {
+    await this.manageContentComponent.clickOnContentEditButton();
+  }
+  async UpdatedPageName(pageName: string): Promise<void> {
+    await this.manageContentComponent.UpdatedPageName(pageName);
+  }
+  async clickOnPublishChangesButton(): Promise<void> {
+    await this.manageContentComponent.clickOnPublishChangesButton();
+  }
+  async clickOnDeleteOption(): Promise<void> {
+    await this.manageContentComponent.clickOnDeleteOption();
   }
 }
