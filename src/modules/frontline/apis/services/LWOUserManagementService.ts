@@ -35,4 +35,18 @@ export class LWOUserManagementService {
       expect(response.status()).toBe(200);
     });
   }
+  async setLWOAsOptional(verificationType: string) {
+    let payload: any = '';
+    if (verificationType === 'optional') {
+      payload = { loginWithOtpEnabled: true, loginWithOtpVerificationType: 'optional' };
+    } else {
+      payload = { loginWithOtpEnabled: true, loginWithOtpVerificationType: 'mandatory' };
+    }
+    await test.step(`Create QR Using API`, async () => {
+      const response = await this.httpClient.put(API_ENDPOINTS.appConfig.appConfig + '/app.security.lwo', {
+        data: payload,
+      });
+      expect(response.status()).toBe(200);
+    });
+  }
 }

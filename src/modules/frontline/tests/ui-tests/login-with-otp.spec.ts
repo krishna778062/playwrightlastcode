@@ -48,70 +48,26 @@ test.describe(
       console.log('Info: End user last name: ', endUser[0].last_name); //lastName
     });
 
-    // test(
-    //   '[FL-434] login with otp',
-    //   {
-    //     tag: [TestPriority.P1],
-    //   },
-    //   async ({ page, otpUtils }) => {
-    //     tagTest(test.info(), {
-    //       description: 'login with otp',
-    //       zephyrTestId: 'FL-434',
-    //       storyId: 'FL-434',
-    //     });
-
-    //     // Dummy case to test with phone number for OTP starting
-    //     // Use a test number
-    //     const testPhone = '+447457416481';
-
-    //     // Project baseURL is set to secondary tenant, so relative path works
-    //     await page.goto(PAGE_ENDPOINTS.LOGIN_PAGE);
-
-    //     await page.getByRole('textbox', { name: 'Employee number' }).click();
-    //     await page.getByRole('textbox', { name: 'Employee number' }).fill('1473');
-    //     await page.getByRole('button', { name: 'Continue' }).click();
-    //     await page.getByRole('button', { name: 'Use OTP' }).click();
-
-    //     //   //select mobile
-    //     // await page.getByTestId('SelectInput').selectOption('mobile');
-
-    //     await page.getByRole('button', { name: 'Send OTP' }).click();
-    //     await page.waitForTimeout(5000);
-
-    //     // ===== Mobile OTP =====
-    //     // const otpM = await otpUtils.getOTPFromSMS(testPhone);
-    //     // console.log('otp-mobile------', otpM);
-
-    //     // ===== Email OTP =====
-    //     const otp = await otpUtils.getOTPFromEmail('green@znl8uqcc.mailosaur.net');
-    //     console.log('otp-email------', otp);
-
-    //     await page.getByRole('textbox', { name: 'Enter OTP' }).click();
-    //     await page.getByRole('textbox', { name: 'Enter OTP' }).fill(otp);
-    //     await page.getByRole('button', { name: 'Verify OTP' }).click();
-    //     // Dummy case to test with phone number for OTP ending
-    //   }
-    // );
-
     test(
-      '[FL-435] first time login with emp code lwo set as optional',
+      'scenario: Verify newly added user try to login and enter email only,when LWO is set as optional',
       {
         tag: [TestPriority.P0],
       },
       async ({ page, otpUtils, lwoUserManagementService }) => {
         tagTest(test.info(), {
-          description: 'first time login with emp code',
+          description: 'Verify newly added user try to login and enter email only,when LWO is set as optional',
           zephyrTestId: 'FL-435',
           storyId: 'FL-435',
         });
-        const testPhone = '+447457416481';
-        const testEmail = 'greennn@znl8uqcc.mailosaur.net';
+        const testPhone = '+447457416481'; // Test phone number for OTP
+        const testEmail = 'greennn@znl8uqcc.mailosaur.net'; // Test email for OTP
+        await lwoUserManagementService.setLWOAsOptional('optional'); // Set LWO as optional
 
         await LoginHelper.setPasswordForFirstTimeLogin(page, {
           email: userDetails.endUserEmpId,
           password: userDetails.endUserPassword,
         });
-        await LoginHelper.setUserProfileSecurityQuestions(page);
+        await LoginHelper.setUserProfileSecurityQuestions(page); // Set user profile security questions
 
         const loginWithOtpPage = new LoginWithOtpPage(page);
         await loginWithOtpPage.addMobileNumberOrEmailAndVerify(otpUtils, testPhone, testEmail, 'email');
@@ -121,15 +77,6 @@ test.describe(
           userDetails.endUserFirstName,
           userDetails.endUserLastName
         );
-
-        // await page.goto('https://frontline-dnd.test.simpplr.xyz/');
-        // await page.getByRole('textbox', { name: 'Employee number' }).click();
-        // await page.getByRole('textbox', { name: 'Employee number' }).fill('op001');
-        // await page.getByRole('button', { name: 'Continue' }).click();
-        // await page.getByRole('textbox', { name: 'Password' }).click();
-        // await page.getByRole('textbox', { name: 'Password' }).fill('_Simp_1234');
-        // await page.getByRole('button', { name: 'Sign in' }).click();
-        // await loginWithOtpPage.addMobileNumberOrEmailAndVerify(otpUtils, testPhone, testEmail, 'email');
       }
     );
   }
