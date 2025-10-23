@@ -25,7 +25,7 @@ const BASE_PATHS = {
  * Check if a tag is priority tag like P0, P1, P2, P3
  */
 export function isPriorityTag(tag) {
-  return /^@?p[0-3]$/i.test(tag);
+  return /^@?p[0-7]$/i.test(tag);
 }
 
 /**
@@ -129,6 +129,7 @@ function extractTagStatistics(testResults) {
  */
 function extractKnownFailures(testResults) {
   const knownFailures = [];
+  const resolvedKnownFailures = [];
 
   processSuites(testResults.suites, (suite, spec) => {
     spec.tests?.forEach(test => {
@@ -136,41 +137,58 @@ function extractKnownFailures(testResults) {
         const knownFailureAnnotation = result.annotations?.find(annotation => annotation.type === 'known_failure');
 
         if (knownFailureAnnotation) {
-          knownFailures.push(parseKnownFailureAnnotation(knownFailureAnnotation, spec, suite, test));
+          const knownFailureData = parseKnownFailureAnnotation(result.annotations, spec, suite, test);
+
+          // Check if this known failure test is now passing
+          if (result.status === 'passed') {
+            resolvedKnownFailures.push({
+              ...knownFailureData,
+              status: 'resolved',
+              resolvedDate: new Date().toISOString(),
+            });
+          } else {
+            knownFailures.push(knownFailureData);
+          }
         }
       });
     });
   });
 
-  return removeDuplicateFailures(knownFailures);
+  return {
+    activeKnownFailures: removeDuplicateFailures(knownFailures),
+    resolvedKnownFailures: removeDuplicateFailures(resolvedKnownFailures),
+  };
 }
 
 /**
- * Parse known failure annotation to extract details
+ * Parse known failure annotations to extract details
  */
-function parseKnownFailureAnnotation(annotation, spec, suite, test) {
-  const description = annotation.description || '';
-  const lines = description.split('\n');
-
-  // Parse each line to extract failure details
+function parseKnownFailureAnnotation(annotations, spec, suite, test) {
+  // Extract data from separate annotation types
   let bugTicket = '';
   let zephyrTestId = '';
   let note = '';
   let bugReportedDate = '';
-  let priority = 'Medium';
+  let priority = '';
 
-  lines.forEach(line => {
-    if (line.startsWith('BugTicket:')) {
-      bugTicket = line.replace('BugTicket:', '').trim();
-    } else if (line.startsWith('ZephyrTestId:')) {
-      const fullUrl = line.replace('ZephyrTestId:', '').trim();
-      zephyrTestId = fullUrl.split('/').pop() || fullUrl;
-    } else if (line.startsWith('Note:')) {
-      note = line.replace('Note:', '').trim();
-    } else if (line.startsWith('BugReportedDate:')) {
-      bugReportedDate = line.replace('BugReportedDate:', '').trim();
-    } else if (line.startsWith('Priority:')) {
-      priority = line.replace('Priority:', '').trim();
+  annotations.forEach(annotation => {
+    switch (annotation.type) {
+      case 'bug_ticket':
+        bugTicket = annotation.description || '';
+        break;
+      case 'bug_reported_date':
+        bugReportedDate = annotation.description || '';
+        break;
+      case 'known_failure_priority':
+        priority = annotation.description || '';
+        break;
+      case 'known_failure_note':
+        note = annotation.description || '';
+        break;
+      case 'zephyrId':
+        const fullUrl = annotation.description || '';
+        zephyrTestId = fullUrl.split('/').pop() || fullUrl;
+        break;
     }
   });
 
@@ -192,7 +210,7 @@ function parseKnownFailureAnnotation(annotation, spec, suite, test) {
     ticketUrl: bugTicket,
     note: note,
     bugReportedDate: bugReportedDate || 'Unknown',
-    priority: priority,
+    priority: priority || 'Unknown',
     suiteName: specFileName,
   };
 }
@@ -330,7 +348,7 @@ function generateTagReport() {
     // Process test data to get statistics
     const tagStats = extractTagStatistics(testResults);
     const totals = calculateTotals(tagStats);
-    const knownFailures = extractKnownFailures(testResults);
+    const knownFailureData = extractKnownFailures(testResults);
 
     // Get metadata for the report
     const timestamp =
@@ -345,7 +363,7 @@ function generateTagReport() {
       process.env.TEST_ENV?.toUpperCase() || testResults.config?.metadata?.environment?.toUpperCase() || 'QA';
 
     // Generate HTML report
-    const htmlContent = generateHTML(tagStats, totals, timestamp, duration, moduleName, testEnv, knownFailures);
+    const htmlContent = generateHTML(tagStats, totals, timestamp, duration, moduleName, testEnv, knownFailureData);
 
     if (!htmlContent || htmlContent.trim().length === 0) {
       throw new Error('Generated HTML content is empty');

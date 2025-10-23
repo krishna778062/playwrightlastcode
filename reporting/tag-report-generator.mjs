@@ -10,6 +10,91 @@
 import { formatDate, formatDuration, isPriorityTag } from './tag-report.mjs';
 
 /**
+ * Create HTML table rows for resolved known failures
+ * @param {KnownFailure[]} resolvedKnownFailures - Array of resolved known failure objects
+ * @returns {string} - HTML table rows for resolved known failures
+ */
+function generateResolvedKnownFailuresTableRows(resolvedKnownFailures) {
+  if (!resolvedKnownFailures || resolvedKnownFailures.length === 0) {
+    return '';
+  }
+
+  return resolvedKnownFailures
+    .sort((a, b) => {
+      // Sort by resolved date (most recent first)
+      const dateA = new Date(a.resolvedDate);
+      const dateB = new Date(b.resolvedDate);
+      return dateB - dateA;
+    })
+    .map((failure, index) => {
+      const rowClass = index % 2 === 0 ? '' : 'bg-gray-50';
+      const formattedDate =
+        failure.bugReportedDate === 'Unknown'
+          ? 'Unknown'
+          : new Date(failure.bugReportedDate).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            });
+
+      // Handle long test names with truncation
+      const maxTestNameLength = 60;
+      const maxSuiteNameLength = 35;
+
+      function smartTruncate(text, maxLength) {
+        if (text.length <= maxLength) return text;
+
+        const truncated = text.substring(0, maxLength - 3);
+        const lastSpace = truncated.lastIndexOf(' ');
+        const lastDash = truncated.lastIndexOf('-');
+        const lastUnderscore = truncated.lastIndexOf('_');
+
+        const breakPoint = Math.max(lastSpace, lastDash, lastUnderscore);
+
+        if (breakPoint > maxLength * 0.7) {
+          return truncated.substring(0, breakPoint) + '...';
+        } else {
+          return truncated + '...';
+        }
+      }
+
+      const truncatedTestName = smartTruncate(failure.testName, maxTestNameLength);
+      const truncatedSuiteName = smartTruncate(failure.suiteName, maxSuiteNameLength);
+
+      // Priority color mapping
+      const priorityColors = {
+        High: 'bg-red-100 text-red-800',
+        Medium: 'bg-yellow-100 text-yellow-800',
+        Low: 'bg-green-100 text-green-800',
+        Unknown: 'bg-gray-100 text-gray-800',
+      };
+
+      const priorityClass = priorityColors[failure.priority] || priorityColors.Unknown;
+
+      return `
+        <tr class="${rowClass} hover:bg-green-100 hover:text-green-700 transition-colors duration-200 cursor-pointer">
+          <td class="px-4 py-2 text-sm text-center">
+            <a href="index.html#?testId=${failure.testId}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium font-mono">${failure.testCaseNo}</a>
+          </td>
+          <td class="px-4 py-2 text-sm">
+            <div title="${failure.testName}" class="break-words">${truncatedTestName}</div>
+            <div class="text-xs text-gray-500 break-words">${truncatedSuiteName}</div>
+          </td>
+          <td class="px-4 py-2 text-sm text-center text-gray-600">${formattedDate}</td>
+          <td class="px-4 py-2 text-sm text-center">
+            <a href="${failure.ticketUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium">${failure.ticketId}</a>
+          </td>
+          <td class="px-4 py-2 text-sm text-center">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityClass}">
+              ${failure.priority}
+            </span>
+          </td>
+        </tr>`;
+    })
+    .join('');
+}
+
+/**
  * Create HTML table rows for known failures
  * @param {KnownFailure[]} knownFailures - Array of known failure objects
  * @returns {string} - HTML table rows for known failures
@@ -96,8 +181,8 @@ function generateKnownFailuresTableRows(knownFailures) {
         <tr class="${rowClass} hover:bg-blue-100 hover:text-blue-700 transition-colors duration-200 cursor-pointer">
           <td class="px-4 py-2 text-sm text-center">
             ${
-              failure.testCaseNo && failure.testCaseNo.startsWith('INT-')
-                ? `<a href="index.html#?testId=${failure.testId || ''}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium font-mono">${failure.testCaseNo}</a>`
+              failure.testCaseNo && failure.testId
+                ? `<a href="index.html#?testId=${failure.testId}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium font-mono">${failure.testCaseNo}</a>`
                 : `<span class="text-gray-600 font-mono">${failure.testCaseNo || 'N/A'}</span>`
             }
           </td>
@@ -444,17 +529,178 @@ function generateStyles() {
     
     /* Better text handling for known failures table */
     .known-failures-table {
-      table-layout: fixed;
+      table-layout: auto;
     }
     
     .known-failures-table td {
-      word-wrap: break-word;
-      overflow-wrap: break-word;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
     .known-failures-table .test-name-cell {
       min-width: 200px;
       max-width: 300px;
+      white-space: normal;
+    }
+    
+    /* Pass Rate Tooltip */
+    .pass-rate-card {
+      position: relative;
+    }
+    
+    .pass-rate-tooltip {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-bottom: 8px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      pointer-events: none;
+    }
+    
+    .pass-rate-card:hover .pass-rate-tooltip {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .tooltip-content {
+      background-color: #1f2937;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      min-width: 200px;
+      max-width: 300px;
+      font-size: 12px;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .tooltip-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    
+    .tooltip-line {
+      margin-bottom: 4px;
+    }
+    
+    .tooltip-formula {
+      margin-top: 8px;
+      padding-top: 4px;
+      border-top: 1px solid #374151;
+      font-weight: 600;
+    }
+    
+    .pass-rate-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 8px solid #1f2937;
+    }
+
+    /* Failed Tooltip */
+    .failed-card {
+      position: relative;
+    }
+    
+    .failed-tooltip {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-bottom: 8px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      pointer-events: none;
+    }
+    
+    .failed-card:hover .failed-tooltip {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .failed-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 8px solid #1f2937;
+    }
+
+    /* Responsive tooltip adjustments */
+    @media (max-width: 768px) {
+      .tooltip-content {
+        min-width: 180px;
+        max-width: 250px;
+        font-size: 11px;
+        padding: 8px 12px;
+      }
+      
+      .pass-rate-tooltip,
+      .failed-tooltip {
+        left: 0;
+        transform: none;
+        margin-left: 8px;
+      }
+      
+      .pass-rate-tooltip::after,
+      .failed-tooltip::after {
+        left: 20px;
+        transform: none;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .tooltip-content {
+        min-width: 160px;
+        max-width: 200px;
+        font-size: 10px;
+        padding: 6px 10px;
+      }
+      
+      .tooltip-line {
+        margin-bottom: 2px;
+      }
+      
+      .tooltip-formula {
+        font-size: 10px;
+        margin-top: 6px;
+        padding-top: 2px;
+      }
+    }
+    
+    /* Responsive Tag Results Table - Simplified */
+    .tag-results-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    @media (min-width: 1400px) {
+      .tag-results-container {
+        max-width: 100%;
+        margin: 0;
+      }
     }
     
   `;
@@ -715,12 +961,22 @@ function generateInteractiveCode() {
  * @param {KnownFailure[]} [knownFailures=[]] - Array of known failures
  * @returns {string} - Complete HTML report
  */
-export function generateHTML(tagStats, totals, timestamp, duration, moduleName, testEnv, knownFailures = []) {
-  const { totalTests, totalPassed, totalFailed, totalFlaky, totalKnownFailures, overallPassRate } = totals;
+export function generateHTML(
+  tagStats,
+  totals,
+  timestamp,
+  duration,
+  moduleName,
+  testEnv,
+  knownFailureData = { activeKnownFailures: [], resolvedKnownFailures: [] }
+) {
+  const { totalTests, totalPassed, totalFailed, totalSkipped, totalFlaky, totalKnownFailures, overallPassRate } =
+    totals;
   const formattedDate = formatDate(timestamp);
   const formattedDuration = formatDuration(duration);
   const tableRows = generateTableRows(tagStats);
-  const knownFailuresRows = generateKnownFailuresTableRows(knownFailures);
+  const knownFailuresRows = generateKnownFailuresTableRows(knownFailureData.activeKnownFailures);
+  const resolvedKnownFailuresRows = generateResolvedKnownFailuresTableRows(knownFailureData.resolvedKnownFailures);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -774,7 +1030,7 @@ export function generateHTML(tagStats, totals, timestamp, duration, moduleName, 
       <h2 class="text-xl font-bold mb-4 text-gray-800">Summary & Key Metrics</h2>
 
       <!-- Summary Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mb-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2 mb-8">
 
         <!-- TOTAL TESTS -->
         <div class="p-3 bg-indigo-50 border border-indigo-200 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer">
@@ -789,17 +1045,34 @@ export function generateHTML(tagStats, totals, timestamp, duration, moduleName, 
         </a>
 
         <!-- FAILED -->
-        <a href="index.html#?q=s:failed" target="_blank" class="p-3 bg-fail-red/10 border border-fail-red/30 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer block no-underline" title="${totalKnownFailures > 0 ? `${totalKnownFailures} known failures excluded from fail count` : 'No known failures'}">
+        <div class="failed-card p-3 bg-fail-red/10 border border-fail-red/30 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer">
           <p class="text-xs font-semibold text-fail-red uppercase mb-1">Failed</p>
           <p class="text-2xl font-extrabold text-fail-red">${totalFailed + totalKnownFailures}</p>
-        </a>
 
-        <!-- KNOWN FAILURES -->
+          <!-- Failed Tooltip -->
+          <div class="failed-tooltip">
+            <div class="tooltip-content">
+              <div class="tooltip-title">Failed Tests</div>
+              <div class="tooltip-line"><span class="text-red-400">❌ Total Failed:</span> ${totalFailed + totalKnownFailures}</div>
+              <div class="tooltip-line"><span class="text-yellow-400">⚠️ Known Failures:</span> ${totalKnownFailures}</div>
+              <div class="tooltip-formula">
+                <span class="text-red-400">🚨 Actual Failed:</span> ${totalFailed + totalKnownFailures} - ${totalKnownFailures} = <span class="text-red-400 font-bold">${totalFailed}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+                <!-- KNOWN FAILURES -->
         <div class="p-3 bg-orange-100 border border-orange-300 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer">
           <p class="text-xs font-semibold text-orange-600 uppercase mb-1">Known Failures</p>
           <p class="text-2xl font-extrabold text-orange-600">${totalKnownFailures}</p>
         </div>
-    
+
+        <!-- SKIPPED -->
+        <a href="index.html#?q=s:skipped" target="_blank" class="p-3 bg-gray-100 border border-gray-300 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer block no-underline">
+          <p class="text-xs font-semibold text-gray-600 uppercase mb-1">Skipped</p>
+          <p class="text-2xl font-extrabold text-gray-700">${totalSkipped}</p>
+        </a>
+
         <!-- FLAKY -->
         <a href="index.html#?q=s:flaky" target="_blank" class="p-3 bg-flaky-amber/10 border border-flaky-amber/30 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer block no-underline">
           <p class="text-xs font-semibold text-flaky-amber uppercase mb-1">Flaky</p>
@@ -807,9 +1080,26 @@ export function generateHTML(tagStats, totals, timestamp, duration, moduleName, 
         </a>
 
         <!-- PASS RATE (KPI) -->
-        <div class="p-3 bg-primary-blue text-white rounded-lg shadow-lg text-center flex flex-col justify-center transform hover:scale-105 hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden">
+        <div class="pass-rate-card p-3 bg-primary-blue text-white rounded-lg shadow-lg text-center flex flex-col justify-center transform hover:scale-105 hover:shadow-2xl transition-all duration-300 cursor-pointer">
           <p class="text-xs font-semibold uppercase mb-1">Overall Pass Rate</p>
           <p class="text-2xl font-black">${overallPassRate.toFixed(2)}%</p>
+          
+          <!-- Tooltip -->
+          <div class="pass-rate-tooltip">
+            <div class="tooltip-content">
+              <div class="tooltip-title">Pass Rate</div>
+              <div class="tooltip-line"><span class="text-green-400">✅ Passed:</span> ${totalPassed}</div>
+              <div class="tooltip-line"><span class="text-red-400">❌ Total Failed:</span> ${totalFailed + totalKnownFailures}</div>
+              <div class="tooltip-line"><span class="text-yellow-400">⚠️ Known Failures:</span> ${totalKnownFailures}</div>
+              <div class="tooltip-line"><span class="text-orange-400">🔄 Flaky:</span> ${totalFlaky}</div>
+              <div class="tooltip-formula">
+                <span class="text-red-400">🚨 Actual Failed:</span> ${totalFailed + totalKnownFailures} - ${totalKnownFailures} = <span class="text-red-400 font-bold">${totalFailed}</span>
+              </div>
+              <div class="tooltip-formula">
+                <span class="text-white font-bold">${totalPassed} ÷ ${totalPassed + totalFailed + totalFlaky} = ${overallPassRate.toFixed(2)}%</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     
@@ -849,7 +1139,7 @@ export function generateHTML(tagStats, totals, timestamp, duration, moduleName, 
       </div>
 
       <!-- Tag Report Table -->
-      <div class="overflow-x-auto scroll-container border border-gray-200 rounded-lg shadow-inner max-h-[400px] overflow-y-auto" id="tableWrapper">
+      <div class="tag-results-container overflow-x-auto scroll-container border border-gray-200 rounded-lg shadow-inner max-h-[400px] overflow-y-auto" id="tableWrapper">
         <table class="min-w-full divide-y divide-gray-200" id="resultsTable">
           <thead class="bg-gradient-to-r from-blue-600 to-blue-500 sticky top-0 z-10 shadow-md">
             <tr>
@@ -879,7 +1169,7 @@ export function generateHTML(tagStats, totals, timestamp, duration, moduleName, 
         <h2 class="text-xl font-bold mb-4 text-gray-800 flex items-center">
           <span class="text-2xl mr-2">⚠️</span>
           Known Failures
-          <span class="ml-2 text-sm font-normal text-gray-500">(${knownFailures.length})</span>
+          <span class="ml-2 text-sm font-normal text-gray-500">(${knownFailureData.activeKnownFailures.length})</span>
         </h2>
         
         <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
@@ -912,7 +1202,7 @@ export function generateHTML(tagStats, totals, timestamp, duration, moduleName, 
         </div>
         
         ${
-          knownFailures.length > 0
+          knownFailureData.activeKnownFailures.length > 0
             ? `
           <div class="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
             <div class="flex items-start">
@@ -942,6 +1232,60 @@ export function generateHTML(tagStats, totals, timestamp, duration, moduleName, 
         `
         }
       </div>
+
+      <!-- Resolved Known Failures Section -->
+      ${
+        knownFailureData.resolvedKnownFailures && knownFailureData.resolvedKnownFailures.length > 0
+          ? `
+      <div class="mt-12">
+        <h2 class="text-xl font-bold mb-4 text-gray-800 flex items-center">
+          <span class="text-2xl mr-2">✅</span>
+          Recently Resolved Known Failures
+          <span class="ml-2 text-sm font-normal text-gray-500">(${knownFailureData.resolvedKnownFailures.length})</span>
+        </h2>
+        
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+          <div class="overflow-x-auto scroll-container border border-gray-200 rounded-lg shadow-inner max-h-[400px] overflow-y-auto">
+            <table class="min-w-full divide-y divide-gray-200 known-failures-table">
+              <thead class="bg-gradient-to-r from-green-500 to-green-400 sticky top-0 z-10 shadow-md">
+                <tr>
+                  <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider">
+                    Test Case No
+                  </th>
+                  <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider min-w-[200px]">
+                    Test Name
+                  </th>
+                  <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider">
+                    Bug Reported Date
+                  </th>
+                  <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider">
+                    Ticket ID
+                  </th>
+                  <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider">
+                    Priority
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                ${resolvedKnownFailuresRows}
+              </tbody>
+            </table>
+          </div>
+        
+          <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div class="flex items-start">
+              <div class="text-green-600 text-lg mr-3">🎉</div>
+              <div class="text-sm text-green-800">
+                <p class="font-medium mb-1">Resolved Known Failures</p>
+                <p>These tests were previously marked as known failures but are now passing. This indicates the underlying issues have been fixed. Consider removing the known failure annotations from these tests.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      `
+          : ''
+      }
     
       <!-- Footer Timestamp -->
       <p class="mt-8 text-xs text-gray-400 text-center">Report created: ${new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short', timeZone: process.env.CI ? 'Asia/Kolkata' : undefined })}</p>

@@ -1,7 +1,7 @@
 import { TestInfo } from '@playwright/test';
 
 import { getStoryUrl, getZephyrTestCaseUrl } from '../constants/testInfraConfig';
-import { KnownMeta, TestMetadata } from '../constants/testMetaData';
+import { TestMetadata } from '../constants/testMetaData';
 
 /**
  * This function is used to add the test metadata to the test case.
@@ -18,6 +18,47 @@ export function addTestMetadata(testInfo: TestInfo, metadata: TestMetadata) {
     { type: 'description', description: metadata.description },
     { type: 'storyId', description: metadata.storyId ? getStoryUrl(metadata.storyId) : '' }
   );
+
+  // Handle known failure metadata if present
+  if (metadata.isKnownFailure) {
+    // Add main known_failure annotation to clearly indicate this is a known failure
+    testInfo.annotations.push({
+      type: 'known_failure',
+      description: 'This test is marked as a known failure',
+    });
+
+    // Add bug ticket as separate annotation if present
+    if (metadata.bugTicket) {
+      testInfo.annotations.push({
+        type: 'bug_ticket',
+        description: getZephyrTestCaseUrl(metadata.bugTicket),
+      });
+    }
+
+    // Add bug reported date as separate annotation if present
+    if (metadata.bugReportedDate) {
+      testInfo.annotations.push({
+        type: 'bug_reported_date',
+        description: metadata.bugReportedDate,
+      });
+    }
+
+    // Add priority as separate annotation if present
+    if (metadata.knownFailurePriority) {
+      testInfo.annotations.push({
+        type: 'known_failure_priority',
+        description: metadata.knownFailurePriority,
+      });
+    }
+
+    // Add note as separate annotation if present
+    if (metadata.knownFailureNote) {
+      testInfo.annotations.push({
+        type: 'known_failure_note',
+        description: metadata.knownFailureNote,
+      });
+    }
+  }
 }
 
 /**
@@ -27,50 +68,6 @@ export function addTestMetadata(testInfo: TestInfo, metadata: TestMetadata) {
  */
 export function tagTest(testInfo: TestInfo, metadata: TestMetadata) {
   addTestMetadata(testInfo, metadata);
-}
-
-/**
- * Formats the known failure metadata into a string for the annotation
- * @param meta - The metadata to format
- * @returns Formatted string
- */
-function formatKnownFailureDescription(meta: KnownMeta): string {
-  const parts: string[] = [];
-
-  if (meta.bugTicket) {
-    parts.push(`BugTicket: ${getZephyrTestCaseUrl(meta.bugTicket)}`);
-  }
-
-  if (meta.zephyrTestId) {
-    parts.push(`ZephyrTestId: ${getZephyrTestCaseUrl(meta.zephyrTestId)}`);
-  }
-
-  if (meta.bugReportedDate) {
-    parts.push(`BugReportedDate: ${meta.bugReportedDate}`);
-  }
-
-  if (meta.priority) {
-    parts.push(`Priority: ${meta.priority}`);
-  }
-
-  if (meta.note) {
-    parts.push(`Note: ${meta.note}`);
-  }
-
-  return parts.join('\n');
-}
-
-/**
- * Adds known failure annotation to the test
- * @param testInfo - The test info object
- * @param meta - The known failure metadata
- */
-export function knownFailure(testInfo: TestInfo, meta: KnownMeta) {
-  // add known failure annotation
-  testInfo.annotations.push({
-    type: 'known_failure',
-    description: formatKnownFailureDescription(meta),
-  });
 }
 
 /**TODO
