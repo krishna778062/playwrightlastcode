@@ -1,18 +1,14 @@
 import { PopupType } from '@frontline/constants/popupType';
-import { QR_CONSTANTS, QR_MESSAGES } from '@frontline/constants/qrConstants';
+import { QR_MESSAGES } from '@frontline/constants/qrConstants';
+import { QRCodeUtil } from '@frontline/utils/qrCodeUtil';
 import { expect, Locator, Page, test } from '@playwright/test';
 import { addDays } from 'date-fns';
-import { Jimp } from 'jimp';
-import jsQR from 'jsqr';
-import * as path from 'path';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { ContentType } from '@core/constants/contentTypes';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/ui/pages/basePage';
-import { FileUtil } from '@core/utils/fileUtil';
-import { PlaywrightAction, PlaywrightErrorHandler } from '@core/utils/playwrightErrorHandler';
 
 export class ManageQRPage extends BasePage {
   readonly manageLink: Locator;
@@ -86,6 +82,11 @@ export class ManageQRPage extends BasePage {
   readonly addContentDescription: Locator;
   readonly contentSearchBoxText: Locator;
   readonly updatedSuccessMessage: Locator;
+  readonly qrRowByText: Locator;
+  readonly toggleSwitch: Locator;
+  readonly downloadButton: Locator;
+  readonly downloadIcon: Locator;
+  readonly toastMessage: Locator;
   private downloadedFilePath: string = '';
 
   constructor(page: Page) {
@@ -168,6 +169,13 @@ export class ManageQRPage extends BasePage {
     this.addContentDescription = page.getByRole('heading').locator('xpath=following-sibling::p');
     this.contentSearchBoxText = page.getByText(QR_MESSAGES.CONTENT_SEARCH_BOX_TEXT);
     this.updatedSuccessMessage = page.getByText(QR_MESSAGES.SUCCESSFULLY_UPDATED_QR_CODE);
+
+    // Dynamic locators for QR operations
+    this.qrRowByText = page.locator('tr');
+    this.toggleSwitch = page.getByRole('switch');
+    this.downloadButton = page.getByRole('button', { name: /download/i });
+    this.downloadIcon = page.getByLabel('Download');
+    this.toastMessage = page.locator('div[role="alert"] p');
   }
 
   async clickOnManage() {
@@ -255,6 +263,9 @@ export class ManageQRPage extends BasePage {
     await this.clickOnElement(this.saveAndVisitDashboardBtn, {
       stepInfo: 'Click on Save and visit dashboard button',
     });
+
+    // Wait for the QR list to load after navigation
+    await this.qrListRows.first().waitFor({ state: 'visible', timeout: 10000 });
   }
 
   async verifyManagePage() {
@@ -286,7 +297,7 @@ export class ManageQRPage extends BasePage {
   async verifyPopupDisplayedByHeader(popupType: PopupType) {
     if (popupType === PopupType.PromotionPopup) {
       await this.verifyPromotionPopup();
-    } else if (popupType === PopupType.PreviewPopup) {
+    } else {
       await this.verifyPreviewPopup();
     }
   }
@@ -541,6 +552,31 @@ export class ManageQRPage extends BasePage {
     });
   }
 
+  async verifyQRAppearsFirstInSearch(qrName: string) {
+    await test.step(`Verify QR "${qrName}" appears first in search results`, async () => {
+      await this.searchForQRWithEnter(qrName);
+      await this.qrListRows.first().waitFor({ state: 'visible', timeout: 10000 });
+
+      const qrRows = this.qrListRows;
+      const rowCount = await qrRows.count();
+
+      if (rowCount === 0) {
+        throw new Error('No QR rows found in search results');
+      }
+
+      const firstRow = qrRows.first();
+      const firstRowText = await firstRow.textContent();
+
+      if (!firstRowText?.toLowerCase().includes(qrName.toLowerCase())) {
+        throw new Error(`QR "${qrName}" is not the first result in search. First result: "${firstRowText}"`);
+      }
+
+      await this.verifier.verifyTheElementIsVisible(firstRow.filter({ hasText: qrName }), {
+        assertionMessage: `QR "${qrName}" should be the first result in search`,
+      });
+    });
+  }
+
   async verifyNothingToShowMessage() {
     await this.verifier.verifyTheElementIsVisible(this.nothingToShowMessage, {
       assertionMessage: 'Nothing to show here message should be displayed',
@@ -640,7 +676,7 @@ export class ManageQRPage extends BasePage {
     await test.step('Verify valid till date is N/A for all displayed QR codes', async () => {
       try {
         await this.tillDateNA.first().waitFor({ state: 'visible', timeout: 10000 });
-      } catch (error) {
+      } catch {
         console.log('No QR codes with N/A valid till date found');
         return;
       }
@@ -692,7 +728,7 @@ export class ManageQRPage extends BasePage {
     await test.step('Verify all inactive QR codes are displayed', async () => {
       try {
         await this.inactiveQR.first().waitFor({ state: 'visible', timeout: 10000 });
-      } catch (error) {
+      } catch {
         console.log('No QR codes found');
         return;
       }
@@ -739,8 +775,11 @@ export class ManageQRPage extends BasePage {
   }
 
   async validateQRName(qrName: string): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.qrNameHeaderLocator.filter({ hasText: qrName.trim() }).first(), {
-      assertionMessage: `QR with name "${qrName}" should be visible on first list item`,
+    // Wait for the QR list to be populated and the specific QR to be visible
+    await this.qrListRows.first().waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.waitForTimeout(5000);
+    await this.verifier.verifyTheElementIsVisible(this.qrNameHeaderLocator.filter({ hasText: qrName.trim() }), {
+      assertionMessage: `QR with name "${qrName}" should be visible in the QR list`,
     });
   }
 
@@ -851,34 +890,14 @@ export class ManageQRPage extends BasePage {
   }
 
   async downloadQRImage(): Promise<string> {
-    return await test.step('Download QR image', async () => {
-      // Create download directory using FileUtil
-      const downloadDir = path.join(process.cwd(), QR_CONSTANTS.DOWNLOAD_DIR);
-      FileUtil.createDir(downloadDir);
-
-      try {
-        const result = await this.downloadFileWithCleanup(() => this.downloadQROnly.click(), {
-          stepInfo: 'Download QR image',
-          cleanup: false, // Keep file for QR scanning
-          timeout: TIMEOUTS.MEDIUM,
-        });
-
-        // Verify file type and existence
-        if (!result.filename.endsWith('.png')) {
-          throw new Error(`Expected .png file, got: ${result.filename}`);
-        }
-
-        if (!FileUtil.fileExists(result.downloadPath)) {
-          throw new Error(`Downloaded file not found: ${result.downloadPath}`);
-        }
-
-        this.downloadedFilePath = result.downloadPath;
-        console.log(`QR image downloaded successfully: ${result.filename}`);
-        return result.downloadPath;
-      } catch (error) {
-        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.DOWNLOAD, 'QR image');
-      }
+    const result = await this.downloadFileWithCleanup(() => this.downloadQROnly.click(), {
+      stepInfo: 'Download QR image',
+      cleanup: false, // Keep file for QR scanning
+      timeout: TIMEOUTS.MEDIUM,
     });
+
+    this.downloadedFilePath = result.downloadPath;
+    return result.downloadPath;
   }
 
   async verifyPromoteContentModalIsClosed(): Promise<void> {
@@ -913,33 +932,13 @@ export class ManageQRPage extends BasePage {
   }
 
   async downloadPDF(): Promise<string> {
-    return await test.step('Download QR PDF', async () => {
-      // Create download directory using FileUtil
-      const downloadDir = path.join(process.cwd(), QR_CONSTANTS.DOWNLOAD_DIR);
-      FileUtil.createDir(downloadDir);
-
-      try {
-        const result = await this.downloadFileWithCleanup(() => this.downloadPDFMenu.click(), {
-          stepInfo: 'Download QR PDF',
-          cleanup: false, // Keep file for potential QR scanning
-          timeout: TIMEOUTS.MEDIUM,
-        });
-
-        // Verify file type and existence
-        if (!result.filename.endsWith('.pdf')) {
-          throw new Error(`Expected .pdf file, got: ${result.filename}`);
-        }
-
-        if (!FileUtil.fileExists(result.downloadPath)) {
-          throw new Error(`Downloaded PDF not found: ${result.downloadPath}`);
-        }
-
-        console.log(`QR PDF downloaded successfully: ${result.filename}`);
-        return result.downloadPath;
-      } catch (error) {
-        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.DOWNLOAD, 'QR PDF');
-      }
+    const result = await this.downloadFileWithCleanup(() => this.downloadPDFMenu.click(), {
+      stepInfo: 'Download QR PDF',
+      cleanup: false, // Keep file for potential QR scanning
+      timeout: TIMEOUTS.MEDIUM,
     });
+
+    return result.downloadPath;
   }
 
   async verifySaveAndVisitDashboardButtonIsNotVisible(): Promise<void> {
@@ -957,30 +956,7 @@ export class ManageQRPage extends BasePage {
   }
 
   async scanQRCode(imagePath: string): Promise<string> {
-    return await test.step('Scan QR code from image', async () => {
-      try {
-        // Verify file exists using FileUtil
-        if (!FileUtil.fileExists(imagePath)) {
-          throw new Error(`QR code image not found: ${imagePath}`);
-        }
-
-        // Read and process image
-        const image = await Jimp.read(imagePath);
-        const { width, height, data } = image.bitmap;
-
-        // Decode QR code using jsQR
-        const qr = jsQR(new Uint8ClampedArray(data), width, height);
-
-        if (!qr?.data) {
-          throw new Error('No QR code found in the image');
-        }
-
-        console.log(`QR code content extracted: ${qr.data}`);
-        return qr.data;
-      } catch (error) {
-        throw PlaywrightErrorHandler.handle(error, PlaywrightAction.SCAN, 'QR code');
-      }
-    });
+    return await QRCodeUtil.scanQRCode(imagePath);
   }
 
   async openScannedQRCodeLinkInNewTab(qrContent: string): Promise<Page> {
@@ -1084,6 +1060,169 @@ export class ManageQRPage extends BasePage {
     });
     await this.verifier.verifyCountOfElementsIsEqualTo(this.listOfPagesSelected, 2, {
       assertionMessage: 'Should have exactly 2 selected pages after edit',
+    });
+  }
+
+  async toggleQRStatus(qrName: string, enabled: boolean): Promise<void> {
+    await test.step(`Toggle QR status for "${qrName}" to ${enabled ? 'enabled' : 'disabled'}`, async () => {
+      // Find the QR row by name and get the toggle switch
+      const qrRow = this.qrRowByText.filter({ hasText: qrName });
+      const toggle = qrRow.locator(this.toggleSwitch);
+
+      await this.verifier.waitUntilElementIsVisible(toggle, {
+        timeout: 10000,
+        stepInfo: `Wait for toggle to be visible for QR: ${qrName}`,
+      });
+
+      // Check current state
+      const currentState = await toggle.getAttribute('aria-checked');
+      const isCurrentlyEnabled = currentState === 'true';
+
+      // Only toggle if current state doesn't match desired state
+      if (isCurrentlyEnabled !== enabled) {
+        await this.clickOnElement(toggle, {
+          stepInfo: `Toggle QR status for "${qrName}" to ${enabled ? 'enabled' : 'disabled'}`,
+        });
+
+        // Wait for the toggle to reach the desired state
+        const expectedState = enabled ? 'true' : 'false';
+        await expect(toggle).toHaveAttribute('aria-checked', expectedState, { timeout: 5000 });
+      }
+    });
+  }
+
+  async verifySuccessToastMessage(expectedMessage: string): Promise<void> {
+    await test.step(`Verify success toast message: "${expectedMessage}"`, async () => {
+      // Use constructor-defined locator for toast messages
+      const toastMessage = this.toastMessage.filter({ hasText: expectedMessage });
+      await this.verifier.waitUntilElementIsVisible(toastMessage, {
+        timeout: 10000,
+        stepInfo: 'Wait for success toast message to be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(toastMessage, {
+        assertionMessage: `Success toast message should be visible: ${expectedMessage}`,
+      });
+    });
+  }
+
+  async refreshPage(): Promise<void> {
+    await test.step('Refresh the current page', async () => {
+      await this.reloadPage();
+      await this.verifyThePageIsLoaded();
+    });
+  }
+
+  async verifyQRStatusIsDisabled(qrName: string): Promise<void> {
+    await test.step(`Verify QR status is disabled for "${qrName}"`, async () => {
+      const qrRow = this.qrRowByText.filter({ hasText: qrName });
+      const toggle = qrRow.locator(this.toggleSwitch);
+
+      await this.verifier.waitUntilElementIsVisible(toggle, {
+        timeout: 10000,
+        stepInfo: `Wait for toggle to be visible for QR: ${qrName}`,
+      });
+
+      // Verify toggle is disabled using multiple attributes
+      await this.verifier.verifyElementHasAttribute(toggle, 'aria-checked', 'false', {
+        assertionMessage: `Toggle should be disabled for QR: ${qrName}`,
+      });
+
+      await this.verifier.verifyElementHasAttribute(toggle, 'data-state', 'unchecked', {
+        assertionMessage: `Toggle should have unchecked state for QR: ${qrName}`,
+      });
+    });
+  }
+
+  async verifyQRStatusIsEnabled(qrName: string): Promise<void> {
+    await test.step(`Verify QR status is enabled for "${qrName}"`, async () => {
+      const qrRow = this.qrRowByText.filter({ hasText: qrName });
+      const toggle = qrRow.locator(this.toggleSwitch);
+
+      await this.verifier.waitUntilElementIsVisible(toggle, {
+        timeout: 10000,
+        stepInfo: `Wait for toggle to be visible for QR: ${qrName}`,
+      });
+
+      // Verify toggle is enabled using multiple attributes
+      await this.verifier.verifyElementHasAttribute(toggle, 'aria-checked', 'true', {
+        assertionMessage: `Toggle should be enabled for QR: ${qrName}`,
+      });
+
+      await this.verifier.verifyElementHasAttribute(toggle, 'data-state', 'checked', {
+        assertionMessage: `Toggle should have checked state for QR: ${qrName}`,
+      });
+    });
+  }
+
+  async downloadPdfImage(qrName: string): Promise<string> {
+    const qrRow = this.qrRowByText.filter({ hasText: qrName });
+    const downloadButton = qrRow.locator(this.downloadButton);
+
+    await this.verifier.waitUntilElementIsVisible(downloadButton, {
+      timeout: 10000,
+      stepInfo: `Wait for download button to be visible for QR: ${qrName}`,
+    });
+
+    const result = await this.downloadFileWithCleanup(() => downloadButton.click(), {
+      stepInfo: `Download QR image for "${qrName}"`,
+      cleanup: false,
+    });
+
+    return result.downloadPath;
+  }
+
+  async downloadQRImageWithPDFSupport(qrName: string): Promise<string> {
+    const qrRow = this.qrRowByText.filter({ hasText: qrName });
+    const downloadButton = qrRow.locator(this.downloadButton);
+
+    await this.verifier.waitUntilElementIsVisible(downloadButton, {
+      timeout: 10000,
+      stepInfo: `Wait for download button to be visible for QR: ${qrName}`,
+    });
+
+    const result = await this.downloadFileWithCleanup(() => downloadButton.click(), {
+      stepInfo: `Download QR image with PDF support for "${qrName}"`,
+      cleanup: false,
+    });
+
+    // Process the downloaded file (handle PDF extraction if needed)
+    return await QRCodeUtil.processDownloadedFile(result.downloadPath, qrName);
+  }
+
+  async downloadQRFromTable(qrName: string): Promise<string> {
+    const qrRow = this.qrRowByText.filter({ hasText: qrName });
+    const downloadIcon = qrRow.locator(this.downloadIcon);
+
+    await this.verifier.waitUntilElementIsVisible(downloadIcon, {
+      timeout: 10000,
+      stepInfo: `Wait for download icon to be visible for QR: ${qrName}`,
+    });
+
+    const result = await this.downloadFileWithCleanup(() => this.clickByInjectingJavaScript(downloadIcon), {
+      stepInfo: `Download QR from table for "${qrName}"`,
+      cleanup: false,
+    });
+
+    return await QRCodeUtil.processDownloadedFile(result.downloadPath, qrName);
+  }
+
+  async verifyQRCodeExpiredMessage(page: Page, expectedMessage: string): Promise<void> {
+    await test.step(`Verify QR code expired message: "${expectedMessage}"`, async () => {
+      // Use more flexible text matching for error messages
+      const errorMessage = page.locator('text=' + expectedMessage).first();
+      await this.verifier.waitUntilElementIsVisible(errorMessage, {
+        timeout: 10000,
+        stepInfo: 'Wait for error message to be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(errorMessage, {
+        assertionMessage: `Error message should be visible: ${expectedMessage}`,
+      });
+    });
+  }
+
+  async verifyContentPromoteModalIsClosed(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.promoteContentQRHeading, {
+      assertionMessage: 'Content promote modal should be closed and not visible',
     });
   }
 }

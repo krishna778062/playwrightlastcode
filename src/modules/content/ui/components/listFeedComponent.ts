@@ -21,8 +21,6 @@ export class ListFeedComponent extends BaseComponent {
   readonly replyShowMoreButton: Locator;
   readonly postsIFollow: Locator;
   readonly sortByRecentActivity: Locator;
-  readonly postsToMe: Locator;
-  readonly postDate: Locator;
   readonly feedLinkWithDescription = (description: string) => this.page.locator('p').filter({ hasText: description });
   readonly sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
   readonly shareSocialCampaignButton = (description: string) =>
@@ -122,8 +120,6 @@ export class ListFeedComponent extends BaseComponent {
     this.replyShowMoreButton = this.page.getByTestId('replyContent').getByRole('button', { name: 'Show more' });
     this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
-    this.postsToMe = page.getByLabel('Show', { exact: true }).locator('option').filter({ hasText: 'Posts to me' });
-    this.postDate = page.getByLabel('Sort by').locator('option').filter({ hasText: 'Post date' });
   }
 
   /**
@@ -369,22 +365,6 @@ export class ListFeedComponent extends BaseComponent {
   async verifySortByRecentActivity(): Promise<void> {
     await test.step('Verify sort by recent activity', async () => {
       await this.verifier.verifyTheElementIsVisible(this.sortByRecentActivity);
-    });
-  }
-
-  async selectPostsToMe(): Promise<void> {
-    await test.step('Select posts to me', async () => {
-      await this.clickOnElement(this.postsIFollow);
-      await this.page.getByLabel('Show', { exact: true }).focus();
-      await this.clickOnElement(this.postsToMe);
-    });
-  }
-
-  async selectPostDate(): Promise<void> {
-    await test.step('Select post date', async () => {
-      await this.clickOnElement(this.sortByRecentActivity);
-      await this.page.getByLabel('Sort by', { exact: true }).focus();
-      await this.clickOnElement(this.postDate);
     });
   }
 

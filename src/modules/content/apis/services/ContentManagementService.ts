@@ -380,7 +380,9 @@ export class ContentManagementService implements IContentManagementServices {
     options: {
       size?: number;
       status?: string;
+      filter?: string;
       sortBy?: string;
+      contribution?: string;
     } = {}
   ) {
     return await test.step('Getting content list ', async () => {
@@ -388,6 +390,8 @@ export class ContentManagementService implements IContentManagementServices {
         size: options.size || 16,
         status: options.status || 'published',
         sortBy: options.sortBy || 'publishedNewest',
+        contribution: options.contribution || 'all',
+        filter: options.filter || 'managing',
       };
 
       const response = await this.httpClient.post(API_ENDPOINTS.content.contentListInSite, {

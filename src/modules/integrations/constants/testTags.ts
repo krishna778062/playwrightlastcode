@@ -20,6 +20,9 @@ export enum IntegrationsSuiteTags {
   SHOW_MORE = '@showMore',
   PERSONALIZATION = '@personalization',
   ASANA = '@asanaAppTiles',
+  SERVICENOW = '@serviceNow',
+  CONFLUENCE = '@confluence',
+  GREENHOUSE = '@greenhouseAppTiles',
 }
 
 export enum IntegrationsFeatureTags {
@@ -29,6 +32,7 @@ export enum IntegrationsFeatureTags {
   EVENT_SYNC = '@EventSync',
   GOOGLE_CALENDAR_EVENTS_SYNC = '@google-calendar-eventsync',
   OUTLOOK_CALENDAR_EVENTS_SYNC = '@outlook-calendar-eventsync',
+  CONFLUENCE = '@confluence',
 }
 
 export const TEST_TAGS = {
@@ -58,9 +62,13 @@ export const TEST_TAGS = {
   SHOW_MORE: IntegrationsSuiteTags.SHOW_MORE,
   PERSONALIZATION: IntegrationsSuiteTags.PERSONALIZATION,
   ASANA: IntegrationsSuiteTags.ASANA,
+  SERVICENOW: IntegrationsSuiteTags.SERVICENOW,
+  GREENHOUSE: IntegrationsSuiteTags.GREENHOUSE,
+  CONFLUENCE: IntegrationsSuiteTags.CONFLUENCE,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {
   OKTA_GROUP = '@okta-group',
   AD_GROUP = '@ad-group',
+  PEOPLE_TAB = '@people',
 }

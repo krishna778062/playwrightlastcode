@@ -13,6 +13,7 @@ import { FileUtil } from '@core/utils/fileUtil';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { NewHomePage } from '@/src/core';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 test.describe(
   `page Creation by Application Manager`,
@@ -27,6 +28,7 @@ test.describe(
     let createdSite: any;
     let siteDashboardPage: SiteDashboardPage;
     let manualCleanupNeeded = false;
+    let homePage: NewHomePage;
 
     test.beforeEach(
       'Setting up the test environment for page creation by opening page creation page from home page',
@@ -41,6 +43,7 @@ test.describe(
 
         // Initialize additional page objects for the moved test cases
         siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, '');
+        homePage = new NewHomePage(appManagerFixture.page);
 
         // Reset cleanup flag for each test
         manualCleanupNeeded = false;

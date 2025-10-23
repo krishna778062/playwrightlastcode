@@ -2,6 +2,7 @@ import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test'
 
 import { AudienceManagementHelper } from '../apis/helpers/audienceManagementHelper';
 import { SocialCampaignHelper } from '../apis/helpers/socialCampaignHelper';
+import { TileManagementHelper } from '../apis/helpers/tileManagementHelper';
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
@@ -23,6 +24,7 @@ export interface ApiFixture {
   feedManagementHelper: FeedManagementHelper;
   identityManagementHelper: IdentityManagementHelper;
   socialCampaignHelper: SocialCampaignHelper;
+  tileManagementHelper: TileManagementHelper;
   audienceManagementHelper: AudienceManagementHelper;
   siteManagementService: SiteManagementService;
   feedManagerService: FeedManagementService;
@@ -64,6 +66,7 @@ export const users = {
 async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixture> {
   // Create all helpers and services
   const siteManagementHelper = new SiteManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+  const tileManagementHelper = new TileManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
   const contentManagementHelper = new ContentManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
   const feedManagementHelper = new FeedManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
   const identityManagementHelper = new IdentityManagementHelper(
@@ -88,6 +91,7 @@ async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixtu
     socialCampaignHelper,
     audienceManagementHelper,
     siteManagementService,
+    tileManagementHelper,
     feedManagerService,
   };
 }
@@ -211,6 +215,7 @@ export const contentTestFixture = test.extend<
       // Cleanup helpers that have cleanup methods
       try {
         await fixture.siteManagementHelper.cleanup();
+        await fixture.tileManagementHelper.cleanup();
         await fixture.contentManagementHelper.cleanup();
         await fixture.feedManagementHelper.cleanup();
       } catch (error) {
@@ -228,6 +233,7 @@ export const contentTestFixture = test.extend<
       // Cleanup helpers that have cleanup methods
       try {
         await fixture.siteManagementHelper.cleanup();
+        await fixture.tileManagementHelper.cleanup();
         await fixture.contentManagementHelper.cleanup();
         await fixture.feedManagementHelper.cleanup();
       } catch (error) {
@@ -245,6 +251,7 @@ export const contentTestFixture = test.extend<
       // Cleanup helpers that have cleanup methods
       try {
         await fixture.siteManagementHelper.cleanup();
+        await fixture.tileManagementHelper.cleanup();
         await fixture.contentManagementHelper.cleanup();
         await fixture.feedManagementHelper.cleanup();
       } catch (error) {
@@ -262,6 +269,7 @@ export const contentTestFixture = test.extend<
       // Cleanup helpers that have cleanup methods
       try {
         await fixture.siteManagementHelper.cleanup();
+        await fixture.tileManagementHelper.cleanup();
         await fixture.contentManagementHelper.cleanup();
         await fixture.feedManagementHelper.cleanup();
       } catch (error) {
