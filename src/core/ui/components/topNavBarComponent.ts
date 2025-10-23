@@ -1,9 +1,8 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { API_ENDPOINTS } from '../..';
-
 import { ProfileDropdownComponent } from './profileDropdownComponent';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export class TopNavBarComponent extends BaseComponent {
