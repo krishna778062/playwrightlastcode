@@ -10,6 +10,8 @@ export class AudienceBuilderPage extends BasePage {
   // Page elements
   labelAudienceBuilder: Locator;
   filtersButton: Locator;
+  filterContainer: Locator;
+  closeButton: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.AUDIENCE_RULE_PAGE) {
     super(page, pageUrl);
@@ -20,6 +22,8 @@ export class AudienceBuilderPage extends BasePage {
 
     // Filter elements
     this.filtersButton = pageContainer.getByRole('button', { name: 'filters' });
+    this.filterContainer = page.locator('xpath=//div[contains(@class, "Dialog-module__children")]');
+    this.closeButton = page.locator('button[aria-label="Close"]');
   }
 
   // Verify that the Audience Builder page is loaded by checking if 'Audiences' heading is visible
@@ -73,8 +77,7 @@ export class AudienceBuilderPage extends BasePage {
    * @returns Locator for the filter element
    */
   getFilterElement(filterText: string): Locator {
-    const filterContainer = this.page.locator('xpath=//div[contains(@class, "Dialog-module__children")]');
-    return filterContainer.getByText(filterText);
+    return this.filterContainer.getByText(filterText);
   }
 
   /**
@@ -108,8 +111,7 @@ export class AudienceBuilderPage extends BasePage {
    * @returns Locator for the filter option element
    */
   getFilterOptionElement(optionText: string): Locator {
-    const filterContainer = this.page.locator('xpath=//div[contains(@class, "Dialog-module__children")]');
-    return filterContainer.getByText(optionText, { exact: true });
+    return this.filterContainer.getByText(optionText, { exact: true });
   }
 
   /**
@@ -126,7 +128,7 @@ export class AudienceBuilderPage extends BasePage {
    * @returns Locator for the close button
    */
   getCloseButton(): Locator {
-    return this.page.locator('button[aria-label="Close"]');
+    return this.closeButton;
   }
 
   /**
@@ -155,8 +157,7 @@ export class AudienceBuilderPage extends BasePage {
   async verifyFiltersDialogClosed(): Promise<void> {
     await test.step('Verify filters dialog is closed', async () => {
       await this.verifyElementVisibility(this.filtersButton, 'Verify filters button is visible after closing dialog');
-      const filterContainer = this.page.locator('xpath=//div[contains(@class, "Dialog-module__children")]');
-      await expect(filterContainer, 'Verify filters dialog container is not visible').not.toBeVisible({
+      await expect(this.filterContainer, 'Verify filters dialog container is not visible').not.toBeVisible({
         timeout: TIMEOUTS.SHORT,
       });
     });
