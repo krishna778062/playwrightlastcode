@@ -1,5 +1,6 @@
 import { FrontlineSuiteTags } from '@frontline/constants/testTags';
 import { frontlineTestFixture as test } from '@frontline/fixtures/frontlineFixture';
+import { LoginWithOtpPage } from '@frontline/pages/loginWithOtpPage';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { tagTest } from '@core/utils/testDecorator';
@@ -81,7 +82,7 @@ test.describe(
     // );
 
     test(
-      '[FL-435] first time login with emp code',
+      '[FL-435] first time login with emp code lwo set as optional',
       {
         tag: [TestPriority.P0],
       },
@@ -91,6 +92,8 @@ test.describe(
           zephyrTestId: 'FL-435',
           storyId: 'FL-435',
         });
+        const testPhone = '+447457416481';
+        const testEmail = 'greennn@znl8uqcc.mailosaur.net';
 
         await LoginHelper.setPasswordForFirstTimeLogin(page, {
           email: userDetails.endUserEmpId,
@@ -98,17 +101,17 @@ test.describe(
         });
         await LoginHelper.setUserProfileSecurityQuestions(page);
 
-        // await page.getByRole('textbox', { name: 'Email ID' }).click();
-        // await page.getByRole('textbox', { name: 'Email ID' }).fill('greennn@znl8uqcc.mailosaur.net');
-        // await page.getByRole('button', { name: 'Send OTP to verify' }).click();
-        // await page.waitForTimeout(5000);
-        // const otp = await otpUtils.getOTPFromEmail('greennn@znl8uqcc.mailosaur.net');
-        // console.log('otp-email------', otp);
+        const loginWithOtpPage = new LoginWithOtpPage(page);
+        await loginWithOtpPage.addMobileNumberOrEmailAndVerify(otpUtils, testPhone, testEmail, 'email');
 
-        // await page.getByRole('textbox', { name: 'Enter OTP*' }).click();
-        // await page.getByRole('textbox', { name: 'Enter OTP*' }).fill('014975');
-        // await page.getByRole('button', { name: 'Verify' }).click();
+        // await page.goto('https://frontline-dnd.test.simpplr.xyz/');
+        // await page.getByRole('textbox', { name: 'Employee number' }).click();
+        // await page.getByRole('textbox', { name: 'Employee number' }).fill('op001');
         // await page.getByRole('button', { name: 'Continue' }).click();
+        // await page.getByRole('textbox', { name: 'Password' }).click();
+        // await page.getByRole('textbox', { name: 'Password' }).fill('_Simp_1234');
+        // await page.getByRole('button', { name: 'Sign in' }).click();
+        // await loginWithOtpPage.addMobileNumberOrEmailAndVerify(otpUtils, testPhone, testEmail, 'email');
       }
     );
   }
