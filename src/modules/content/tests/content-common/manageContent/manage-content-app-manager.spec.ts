@@ -2,6 +2,7 @@ import { ManageFeaturesPage } from '@content/ui/pages/manageFeaturesPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
+import { ContentStatus } from '@modules/content/constants';
 
 import { NewHomePage } from '@/src/core';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
@@ -309,6 +310,35 @@ test.describe(
         await manageContentPage.actions.clickOnEditButton();
         await editPage.actions.clickOnCancel();
         await manageContentPage.actions.verifyingValidationRequiredBarState();
+      }
+    );
+
+    test(
+      'verify user able to move unpublished content under Content tab in Manage Site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20540'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'verify user able to move unpublished content under Content tab in Manage Site',
+          zephyrTestId: 'CONT-20540',
+          storyId: 'CONT-20540',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
+        await manageContentPage.actions.clickOnFirstContentButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnMoveButton();
+        await manageContentPage.actions.selectMoveApplyButton();
+        const site = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
+        await manageContentPage.actions.moveContentSearchBar(site?.name || '');
+        await manageContentPage.actions.siteListSelecting();
+        await manageContentPage.actions.selectPageCategoryIfVisible();
+        await manageContentPage.actions.selectPageCategory();
+        await manageContentPage.actions.clickOnMoveConfirmButton();
+        await manageContentPage.assertions.verifyTheContentIsMovedToContentTab();
       }
     );
   }
