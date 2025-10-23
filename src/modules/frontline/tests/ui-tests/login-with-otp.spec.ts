@@ -15,10 +15,18 @@ test.describe(
     tag: [FrontlineSuiteTags.FRONTLINE],
   },
   () => {
-    const userDetails: { endUserEmpId: string; endUserPassword: string; endUserId: string } = {
+    const userDetails: {
+      endUserEmpId: string;
+      endUserPassword: string;
+      endUserId: string;
+      endUserFirstName: string;
+      endUserLastName: string;
+    } = {
       endUserEmpId: '',
       endUserPassword: '',
       endUserId: '',
+      endUserFirstName: '',
+      endUserLastName: '',
     };
     test.beforeAll(async ({ appManagerApiContext, config }) => {
       // Get secondary tenant config from fixture
@@ -31,9 +39,13 @@ test.describe(
       userDetails.endUserEmpId = endUser[0].emp;
       userDetails.endUserPassword = 'Simpplr@2025';
       userDetails.endUserId = endUser[0].userId;
+      userDetails.endUserFirstName = endUser[0].first_name;
+      userDetails.endUserLastName = endUser[0].last_name;
       console.log('Info: End user employee number: ', userDetails.endUserEmpId); //employee number
       console.log('Info: End user full name: ', endUser[0].fullName); //fullName
       console.log('Info: End user userId: ', userDetails.endUserId); //userId
+      console.log('Info: End user first name: ', endUser[0].first_name); //firstName
+      console.log('Info: End user last name: ', endUser[0].last_name); //lastName
     });
 
     // test(
@@ -86,7 +98,7 @@ test.describe(
       {
         tag: [TestPriority.P0],
       },
-      async ({ page, otpUtils }) => {
+      async ({ page, otpUtils, qrManagementService }) => {
         tagTest(test.info(), {
           description: 'first time login with emp code',
           zephyrTestId: 'FL-435',
@@ -103,6 +115,12 @@ test.describe(
 
         const loginWithOtpPage = new LoginWithOtpPage(page);
         await loginWithOtpPage.addMobileNumberOrEmailAndVerify(otpUtils, testPhone, testEmail, 'email');
+        await qrManagementService.deleteEmailAndMobile(
+          userDetails.endUserId,
+          userDetails.endUserEmpId,
+          userDetails.endUserFirstName,
+          userDetails.endUserLastName
+        );
 
         // await page.goto('https://frontline-dnd.test.simpplr.xyz/');
         // await page.getByRole('textbox', { name: 'Employee number' }).click();

@@ -109,6 +109,30 @@ export class QRManagementService implements IQRManagementOperations {
     });
   }
 
+  async deleteEmailAndMobile(userID: string, empID: string, firstName: string, lastName: string) {
+    const payload = {
+      personal_info: {
+        first_name: firstName,
+        last_name: lastName,
+        mobile: null,
+        timezone_id: 17,
+        language_id: 1,
+        locale_id: 1,
+        email: null,
+        license_type: 'Corporate',
+      },
+      work_info: { department: 'QA', employee_number: empID },
+      role_id: 'a8d8c6b0-8968-44a7-a034-00110cc25817',
+      additional_role_id: [],
+    };
+    await test.step(`Delete Email and Mobile`, async () => {
+      const response = await this.httpClient.put(API_ENDPOINTS.appManagement.users.delete(userID), {
+        data: payload,
+      });
+      expect(response.status()).toBe(200);
+    });
+  }
+
   async deleteQRByID(qrCodeId: string): Promise<void> {
     await test.step(`Deleting QR code with ID "${qrCodeId}" via API delete request`, async () => {
       const response = await this.httpClient.delete(API_ENDPOINTS.qr.delete(qrCodeId));
