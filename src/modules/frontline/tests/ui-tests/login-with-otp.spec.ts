@@ -5,7 +5,7 @@ import { LoginWithOtpPage } from '@frontline/pages/loginWithOtpPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { MailosaurValues } from '../../config/frontlineConfig';
+import { mailosaurValues } from '../../config/frontlineConfig';
 
 import { Roles } from '@/src/core/constants/roles';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
@@ -61,8 +61,8 @@ test.describe(
           zephyrTestId: 'FL-435',
           storyId: 'FL-435',
         });
-        const testPhone = MailosaurValues.MAILOSAUR_PHONE; // Test phone number for OTP
-        const testEmail = MailosaurValues.MAILOSAUR_EMAIL; // Test email for OTP
+        const testPhone = mailosaurValues.mailosaurPhone; // Test phone number for OTP
+        const testEmail = mailosaurValues.mailosaurEmail; // Test email for OTP
         await lwoUserManagementService.setLWOAsOptional('optional'); // Set LWO as optional
 
         await LoginHelper.setPasswordForFirstTimeLogin(page, {

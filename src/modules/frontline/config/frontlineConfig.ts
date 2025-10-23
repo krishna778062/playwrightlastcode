@@ -19,13 +19,17 @@
 export type TenantKey = 'primary' | 'secondary';
 export type EnvironmentKey = 'qa' | 'uat' | 'test';
 
-export enum MailosaurValues {
-  // Mailosaur values for OTP tests
-  MAILOSAUR_API_KEY = 'RuhqTyBb8hp7JtPT',
-  MAILOSAUR_SERVER_ID = 'znl8uqcc',
-  MAILOSAUR_EMAIL = 'green@znl8uqcc.mailosaur.net',
-  MAILOSAUR_PHONE = '+447457416481',
-}
+export const mailosaurValues: {
+  mailosaurApiKey: string;
+  mailosaurServerId: string;
+  mailosaurEmail: string;
+  mailosaurPhone: string;
+} = {
+  mailosaurApiKey: 'RuhqTyBb8hp7JtPT',
+  mailosaurServerId: 'znl8uqcc',
+  mailosaurEmail: 'green@znl8uqcc.mailosaur.net',
+  mailosaurPhone: '+447457416481',
+};
 
 /**
  * Get caller function information for debugging
@@ -138,8 +142,8 @@ export const config = {
       newUxEnabled: false,
       orgId: 'a925141d-2dd4-4d18-b65f-723273302065',
       // OTP credentials for Mailosaur
-      mailosaurApiKey: MailosaurValues.MAILOSAUR_API_KEY,
-      mailosaurServerId: MailosaurValues.MAILOSAUR_SERVER_ID,
+      mailosaurApiKey: mailosaurValues.mailosaurApiKey,
+      mailosaurServerId: mailosaurValues.mailosaurServerId,
     },
     test: {
       tenantName: 'Frontline Secondary TEST',
@@ -154,8 +158,8 @@ export const config = {
       newUxEnabled: false,
       orgId: '3b170730-d660-4ec4-a600-55959d19fc29',
       // OTP credentials for Mailosaur
-      mailosaurApiKey: MailosaurValues.MAILOSAUR_API_KEY,
-      mailosaurServerId: MailosaurValues.MAILOSAUR_SERVER_ID,
+      mailosaurApiKey: mailosaurValues.mailosaurApiKey,
+      mailosaurServerId: mailosaurValues.mailosaurServerId,
     },
     uat: {
       tenantName: 'Frontline Secondary UAT',
