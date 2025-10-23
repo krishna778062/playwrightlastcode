@@ -7,6 +7,15 @@ interface CreatedCategory {
   categoryName: string;
 }
 
+interface CreateAudienceParams {
+  audienceName: string;
+  categoryId: string;
+  attribute: string;
+  value: string;
+  fieldType?: string;
+  sourceType?: string;
+}
+
 /**
  * Helper class for managing audience categories through API operations.
  * Provides methods for creating categories and automatic cleanup.
@@ -54,7 +63,6 @@ export class AudienceCategoryManagementHelper {
       // Track for cleanup
       this.categories.push({ categoryId, categoryName });
 
-      console.log(`Category created: ${categoryName} (ID: ${categoryId})`);
       return createdCategory;
     });
   }
@@ -83,7 +91,6 @@ export class AudienceCategoryManagementHelper {
    */
   registerCategoryForCleanup(categoryId: string, categoryName: string): void {
     this.categories.push({ categoryId, categoryName });
-    console.log(`Category registered for cleanup: ${categoryName} (ID: ${categoryId})`);
   }
 
   /**
@@ -91,18 +98,170 @@ export class AudienceCategoryManagementHelper {
    * This should be called in test cleanup to ensure proper resource management.
    */
   async cleanup() {
-    await test.step('Cleaning up audience categories', async () => {
-      for (const { categoryId, categoryName } of this.categories) {
+    await test.step('Cleaning up audience categories and audiences', async () => {
+      // Clean up categories
+      for (const { categoryId, categoryName: _categoryName } of this.categories) {
         try {
-          await this.identityService.deleteCategoryById(categoryId);
-          console.log(`Deleted category ${categoryName} (${categoryId})`);
-        } catch (error) {
-          console.warn(`Failed to delete category ${categoryName} (${categoryId}):`, error);
-        }
+          await this.identityService.deleteCategoryById(categoryId, { forceDelete: true });
+        } catch {}
       }
-
-      // Clear the tracking array
+      // Clear the tracking arrays
       this.categories = [];
+    });
+  }
+
+  /**
+   * Creates an audience with IS_NOT operator via API
+   * @param params - Object containing audience creation parameters
+   * @param params.audienceName - Name of the audience
+   * @param params.categoryId - Parent category ID
+   * @param params.attribute - Attribute type (e.g., 'security', 'OKTA_GROUP', 'BUILT_IN')
+   * @param params.value - Operator value (group ID or value to match against)
+   * @param params.fieldType - Field type ('adGroup', 'oktaGroup', 'regular')
+   * @param params.sourceType - Source type ('app_managed', 'user_managed', etc.)
+   * @returns The created audience ID
+   */
+  async createAudienceWithIsNotOperator(params: CreateAudienceParams): Promise<string> {
+    const { audienceName, categoryId, attribute, value, fieldType = 'adGroup', sourceType = 'app_managed' } = params;
+    return await test.step(`Creating audience with IS_NOT operator: ${audienceName}`, async () => {
+      const createAudienceParams = {
+        audienceName,
+        categoryId,
+        attribute,
+        operator: 'IS_NOT',
+        value,
+      };
+      const options = {
+        type: 'mixed',
+        fieldType,
+        sourceType,
+      };
+      const audienceId = await this.identityService.createAudience(createAudienceParams, options);
+      return audienceId;
+    });
+  }
+
+  /**
+   * Creates an audience with IS operator via API
+   * @param params - Object containing audience creation parameters
+   * @param params.audienceName - Name of the audience
+   * @param params.categoryId - Parent category ID
+   * @param params.attribute - Attribute type (e.g., 'security', 'OKTA_GROUP', 'BUILT_IN')
+   * @param params.value - Operator value (group ID or value to match against)
+   * @param params.fieldType - Field type ('adGroup', 'oktaGroup', 'regular')
+   * @param params.sourceType - Source type ('app_managed', 'user_managed', etc.)
+   * @returns The created audience ID
+   */
+  async createAudienceWithIsOperator(params: CreateAudienceParams): Promise<string> {
+    const { audienceName, categoryId, attribute, value, fieldType = 'adGroup', sourceType = 'app_managed' } = params;
+    return await test.step(`Creating audience with IS operator: ${audienceName}`, async () => {
+      const createAudienceParams = {
+        audienceName,
+        categoryId,
+        attribute,
+        operator: 'IS',
+        value,
+      };
+      const options = {
+        type: 'mixed',
+        fieldType,
+        sourceType,
+      };
+      const audienceId = await this.identityService.createAudience(createAudienceParams, options);
+      return audienceId;
+    });
+  }
+
+  /**
+   * Creates an audience with ALL operator via API
+   * @param params - Object containing audience creation parameters
+   * @param params.audienceName - Name of the audience
+   * @param params.categoryId - Parent category ID
+   * @param params.attribute - Attribute type (e.g., 'security', 'OKTA_GROUP', 'BUILT_IN')
+   * @param params.value - Operator value (group ID or value to match against)
+   * @param params.fieldType - Field type ('adGroup', 'oktaGroup', 'regular')
+   * @param params.sourceType - Source type ('app_managed', 'user_managed', etc.)
+   * @returns The created audience ID
+   */
+  async createAudienceWithAllOperator(params: CreateAudienceParams): Promise<string> {
+    const { audienceName, categoryId, attribute, value, fieldType = 'adGroup', sourceType = 'app_managed' } = params;
+    return await test.step(`Creating audience with ALL operator: ${audienceName}`, async () => {
+      const createAudienceParams = {
+        audienceName,
+        categoryId,
+        attribute,
+        operator: 'ALL',
+        value,
+      };
+      const options = {
+        type: 'mixed',
+        fieldType,
+        sourceType,
+      };
+      const audienceId = await this.identityService.createAudience(createAudienceParams, options);
+      return audienceId;
+    });
+  }
+
+  /**
+   * Creates an audience with CONTAINS operator via API
+   * @param audienceName - Name of the audience
+   * @param categoryId - Parent category ID
+   * @param attribute - Attribute type (e.g., 'COUNTRY')
+   * @param value - Operator value
+   * @returns The created audience ID
+   */
+  async createAudienceWithContainsOperator(
+    audienceName: string,
+    categoryId: string,
+    attribute: string = 'COUNTRY',
+    value: string = 'India'
+  ): Promise<string> {
+    return await test.step(`Creating audience with CONTAINS operator: ${audienceName}`, async () => {
+      const createAudienceParams = {
+        audienceName,
+        categoryId,
+        attribute,
+        operator: 'CONTAINS',
+        value,
+      };
+      const options = {
+        type: 'mixed',
+        fieldType: 'regular',
+      };
+      const audienceId = await this.identityService.createAudience(createAudienceParams, options);
+      return audienceId;
+    });
+  }
+
+  /**
+   * Creates an audience with ENDS_WITH operator via API
+   * @param audienceName - Name of the audience
+   * @param categoryId - Parent category ID
+   * @param attribute - Attribute type (e.g., 'COUNTRY')
+   * @param value - Operator value
+   * @returns The created audience ID
+   */
+  async createAudienceWithEndsWithOperator(
+    audienceName: string,
+    categoryId: string,
+    attribute: string = 'COUNTRY',
+    value: string = 'a'
+  ): Promise<string> {
+    return await test.step(`Creating audience with ENDS_WITH operator: ${audienceName}`, async () => {
+      const createAudienceParams = {
+        audienceName,
+        categoryId,
+        attribute,
+        operator: 'ENDS_WITH',
+        value,
+      };
+      const options = {
+        type: 'mixed',
+        fieldType: 'regular',
+      };
+      const audienceId = await this.identityService.createAudience(createAudienceParams, options);
+      return audienceId;
     });
   }
 }

@@ -98,6 +98,7 @@
     "eslint-plugin-unused-imports": "^4.2.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mailosaur": "^9.0.0",
     "nanoid": "^5.1.5",
     "otpauth": "^9.4.1",
     "pg": "^8.16.3",
