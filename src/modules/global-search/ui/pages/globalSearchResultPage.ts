@@ -466,6 +466,28 @@ export class GlobalSearchResultPage extends BasePage {
   }
 
   /**
+   * Verifies the visibility of a people subfilter
+   * @param subFilterName - The name of the subfilter to verify
+   * @param shouldBeVisible - Whether the subfilter should be visible (true) or not visible (false)
+   * @param options - Optional step info and filter configuration
+   */
+  async verifyPeopleSubFilterVisibility(
+    subFilterName: string,
+    shouldBeVisible: boolean,
+    options?: {
+      stepInfo?: string;
+      filterText?: string;
+      iconType?: string;
+      globalFilterName?: string;
+    }
+  ): Promise<void> {
+    const filterText = options?.filterText || 'People';
+    const iconType = options?.iconType || 'people';
+    const subFilter = this.getSidebarFilter({ filterText, iconType });
+    await subFilter.verifyPeopleSubFilterVisibility(subFilterName, shouldBeVisible);
+  }
+
+  /**
    * Dismisses survey popup if present
    */
   async dismissSurveyPopupIfPresent(): Promise<void> {

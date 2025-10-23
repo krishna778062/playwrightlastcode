@@ -7,6 +7,7 @@ import { PEOPLE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/p
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
 import { ResultListingComponent } from '@/src/modules/global-search/ui/components/resultsListComponent';
 import { SidebarFilterComponent } from '@/src/modules/global-search/ui/components/sidebarFilterComponent';
+import { PeopleFieldConfigurationHelper } from '@/src/modules/global-search/ui/helpers/peopleFieldConfigurationHelper';
 
 test.describe(
   'global Search - People Search functionality',
@@ -237,6 +238,86 @@ test.describe(
         );
         await appManagerFixture.page.reload();
         await peopleResult.verifyOrgChartIconVisibility(testData.orgChart.disabled.orgChartEnabled);
+      }
+    );
+
+    test(
+      `verify people subfilters visibility based on field display settings via API`,
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@test'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-PEOPLE-SUBFILTER-VISIBILITY-API',
+        });
+
+        const fieldConfigHelper = new PeopleFieldConfigurationHelper(appManagerFixture.appConfigurationService);
+        let originalFields: any = {};
+
+        try {
+          const fieldConfig = await fieldConfigHelper.getFieldConfiguration(testData.fieldConfiguration.fieldsToTest);
+          originalFields = {
+            originalDepartmentField: fieldConfig.departmentField,
+            originalCityField: fieldConfig.cityField,
+            originalStateField: fieldConfig.stateField,
+            originalCountryField: fieldConfig.countryField,
+          };
+
+          await fieldConfigHelper.enableAllFields(fieldConfig);
+
+          const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(testData.searchTerm, {
+            stepInfo: `Searching with term "${testData.searchTerm}" to verify subfilters when fields are enabled via API`,
+          });
+
+          await globalSearchResultPage.verifyAndClickSidebarFilter({
+            filterText: testData.label,
+            iconType: testData.label.toLowerCase(),
+          });
+
+          await globalSearchResultPage.verifyPeopleSubFilterVisibility('Department', true, {
+            stepInfo: 'Verify Department subfilter is visible when Department field is enabled via API',
+            filterText: testData.label,
+            iconType: testData.label.toLowerCase(),
+            globalFilterName: testData.peopleFilters.department,
+          });
+
+          await globalSearchResultPage.verifyPeopleSubFilterVisibility('Location', true, {
+            stepInfo: 'Verify Location subfilter is visible when City, State, and Country fields are enabled via API',
+            filterText: testData.label,
+            iconType: testData.label.toLowerCase(),
+            globalFilterName: testData.peopleFilters.location,
+          });
+
+          await fieldConfigHelper.disableDepartmentField(fieldConfig.departmentField);
+          await fieldConfigHelper.disableLocationFields({
+            cityField: fieldConfig.cityField,
+            stateField: fieldConfig.stateField,
+            countryField: fieldConfig.countryField,
+          });
+
+          await appManagerFixture.page.reload();
+
+          await globalSearchResultPage.verifyPeopleSubFilterVisibility('Department', false, {
+            stepInfo: 'Verify Department subfilter is not visible when Department field is disabled via API',
+            filterText: testData.label,
+            iconType: testData.label.toLowerCase(),
+            globalFilterName: testData.peopleFilters.department,
+          });
+
+          await globalSearchResultPage.verifyPeopleSubFilterVisibility('Location', false, {
+            stepInfo:
+              'Verify Location subfilter is not visible when all location fields (City, State, Country) are disabled via API',
+            filterText: testData.label,
+            iconType: testData.label.toLowerCase(),
+            globalFilterName: testData.peopleFilters.location,
+          });
+        } finally {
+          try {
+            await fieldConfigHelper.restoreOriginalSettings(originalFields);
+          } catch (error) {
+            console.warn('Test cleanup completed with error:', error);
+          }
+        }
       }
     );
   }
