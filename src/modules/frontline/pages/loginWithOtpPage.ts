@@ -74,7 +74,7 @@ export class LoginWithOtpPage extends BasePage {
         await this.verifier.verifyTheElementIsVisible(this.mobileText);
         await this.verifier.verifyTheElementIsVisible(this.emailText);
         await this.clickOnElement(this.sendOtpToVerifyButton);
-        await this.page.waitForTimeout(5000);
+        await this.page.waitForTimeout(8000);
         const otpEmail = await otpUtils.getOTPFromEmail(email);
         console.log('otpEmail------', otpEmail);
         await this.enterOtpInput.fill(otpEmail);

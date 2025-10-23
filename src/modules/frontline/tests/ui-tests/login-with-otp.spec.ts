@@ -98,7 +98,7 @@ test.describe(
       {
         tag: [TestPriority.P0],
       },
-      async ({ page, otpUtils, qrManagementService }) => {
+      async ({ page, otpUtils, lwoUserManagementService }) => {
         tagTest(test.info(), {
           description: 'first time login with emp code',
           zephyrTestId: 'FL-435',
@@ -115,7 +115,7 @@ test.describe(
 
         const loginWithOtpPage = new LoginWithOtpPage(page);
         await loginWithOtpPage.addMobileNumberOrEmailAndVerify(otpUtils, testPhone, testEmail, 'email');
-        await qrManagementService.deleteEmailAndMobile(
+        await lwoUserManagementService.deleteEmailAndMobile(
           userDetails.endUserId,
           userDetails.endUserEmpId,
           userDetails.endUserFirstName,
