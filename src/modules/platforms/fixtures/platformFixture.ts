@@ -1,21 +1,21 @@
-import { APIRequestContext, Browser, BrowserContext, Page, test } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
 import { RequestContextFactory } from '@core/api/factories/requestContextFactory';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { LoginHelper } from '@core/helpers/loginHelper';
-import { NavigationHelper } from '@core/helpers/navigationHelper';
 import { LoginPage } from '@core/ui/pages/loginPage';
 import { NewHomePage } from '@core/ui/pages/newHomePage';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
-import { getEnvVar } from '@core/utils/getEnvConfig';
 
 import { AudienceCategoryManagementHelper, IdentityManagementHelper } from '../apis/helpers';
 import { AudienceTestDataHelper } from '../apis/helpers/audienceTestDataHelper';
 import { UserManagementService } from '../apis/services/UserManagementService';
 
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+
 // Local service desk login function - keeps service desk functionality within platform module
 async function loginToServiceDesk(page: Page, user: { email: string; password: string }): Promise<NewHomePage> {
-  const serviceDeskUrl = getEnvVar('SERVICE_DESK_URL', false);
+  const serviceDeskUrl = process.env.SERVICE_DESK_URL;
   if (!serviceDeskUrl) {
     throw new Error('Service Desk URL not configured in environment variables');
   }
@@ -36,7 +36,7 @@ async function loginToServiceDesk(page: Page, user: { email: string; password: s
   });
 
   // Wait for successful login
-  await page.waitForURL((url: URL) => !url.pathname.includes('authenticate'), { timeout: TIMEOUTS.MEDIUM });
+  await page.waitForURL(url => !url.pathname.includes('authenticate'), { timeout: TIMEOUTS.MEDIUM });
 
   // Return a home page instance
   return new NewHomePage(page);
@@ -92,7 +92,7 @@ async function createPlatformApiFixture(apiContext: APIRequestContext): Promise<
 }
 
 // Helper function to create UI-only fixtures
-async function createPlatformUiFixture(browser: Browser, userType: PlatformUserType): Promise<PlatformUiFixture> {
+async function createPlatformUiFixture(browser: any, userType: PlatformUserType): Promise<PlatformUiFixture> {
   const user = platformUsers[userType];
   const context = await browser.newContext();
   const page = await context.newPage();
@@ -138,7 +138,7 @@ export const platformTestFixture = test.extend<
 >({
   // Worker-scoped API contexts - shared across all tests in worker
   appManagerApiContext: [
-    async (_: unknown, use: (context: APIRequestContext) => Promise<void>) => {
+    async ({}, use) => {
       const context = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
         email: getEnvConfig().appManagerEmail,
         password: getEnvConfig().appManagerPassword,
@@ -150,7 +150,7 @@ export const platformTestFixture = test.extend<
   ],
 
   userManagerApiContext: [
-    async (_: unknown, use: (context: APIRequestContext) => Promise<void>) => {
+    async ({}, use) => {
       const context = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
         email: getEnvConfig().userManagerEmail!,
         password: getEnvConfig().appManagerPassword,
@@ -163,10 +163,7 @@ export const platformTestFixture = test.extend<
 
   // API-only fixtures - fast, no browser overhead, using worker-scoped contexts
   appManagerApiFixture: [
-    async (
-      { appManagerApiContext }: { appManagerApiContext: APIRequestContext },
-      use: (fixture: PlatformApiFixture) => Promise<void>
-    ) => {
+    async ({ appManagerApiContext }, use) => {
       const fixture = await createPlatformApiFixture(appManagerApiContext);
       await use(fixture);
 
@@ -181,10 +178,7 @@ export const platformTestFixture = test.extend<
   ],
 
   userManagerApiFixture: [
-    async (
-      { userManagerApiContext }: { userManagerApiContext: APIRequestContext },
-      use: (fixture: PlatformApiFixture) => Promise<void>
-    ) => {
+    async ({ userManagerApiContext }, use) => {
       const fixture = await createPlatformApiFixture(userManagerApiContext);
       await use(fixture);
 
@@ -200,7 +194,7 @@ export const platformTestFixture = test.extend<
 
   // UI-only fixtures - browser and page components
   appManagerUiFixture: [
-    async ({ browser }: { browser: Browser }, use: (fixture: PlatformUiFixture) => Promise<void>) => {
+    async ({ browser }, use) => {
       const fixture = await createPlatformUiFixture(browser, 'appManager');
       await use(fixture);
       await fixture.browserContext.close();
@@ -209,7 +203,7 @@ export const platformTestFixture = test.extend<
   ],
 
   userManagerUiFixture: [
-    async ({ browser }: { browser: Browser }, use: (fixture: PlatformUiFixture) => Promise<void>) => {
+    async ({ browser }, use) => {
       const fixture = await createPlatformUiFixture(browser, 'userManager');
       await use(fixture);
       await fixture.browserContext.close();
@@ -219,43 +213,29 @@ export const platformTestFixture = test.extend<
 
   // Combined user fixtures - complete entry points
   appManagerFixture: [
-    async (
-      {
-        appManagerUiFixture,
-        appManagerApiFixture,
-      }: { appManagerUiFixture: PlatformUiFixture; appManagerApiFixture: PlatformApiFixture },
-      use: (fixture: PlatformUserFixture) => Promise<void>
-    ) => {
+    async ({ appManagerUiFixture, appManagerApiFixture }, use) => {
       await use({ ...appManagerUiFixture, ...appManagerApiFixture });
     },
     { scope: 'test' },
   ],
 
   userManagerFixture: [
-    async (
-      {
-        userManagerUiFixture,
-        userManagerApiFixture,
-      }: { userManagerUiFixture: PlatformUiFixture; userManagerApiFixture: PlatformApiFixture },
-      use: (fixture: PlatformUserFixture) => Promise<void>
-    ) => {
+    async ({ userManagerUiFixture, userManagerApiFixture }, use) => {
       await use({ ...userManagerUiFixture, ...userManagerApiFixture });
     },
     { scope: 'test' },
   ],
 
   serviceDeskPage: [
-    async ({ page }: { page: Page }, use: (page: Page) => Promise<void>) => {
-      const serviceDeskUsername = getEnvVar('SERVICE_DESK_USERNAME', false);
-      const serviceDeskPassword = getEnvVar('SERVICE_DESK_PASSWORD', false);
+    async ({ page }, use) => {
       const _serviceDeskHomePage = await loginToServiceDesk(page, {
-        email: serviceDeskUsername ?? '',
-        password: serviceDeskPassword ?? '',
+        email: process.env.SERVICE_DESK_USERNAME!,
+        password: process.env.SERVICE_DESK_PASSWORD!,
       });
       await use(page);
 
       // Logout after each test case
-      const serviceDeskUrl = getEnvVar('SERVICE_DESK_URL', false);
+      const serviceDeskUrl = process.env.SERVICE_DESK_URL;
       if (serviceDeskUrl) {
         await page.goto(`${serviceDeskUrl}/logout`);
       }
