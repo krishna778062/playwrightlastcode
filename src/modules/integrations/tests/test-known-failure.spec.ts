@@ -20,7 +20,7 @@ test.describe('known Failures Demo', { tag: [IntegrationsSuiteTags.ABSOLUTE] }, 
   test(
     'should pass and be removed from known failures',
     {
-      tag: [TestPriority.P2, TestGroupType.SANITY],
+      tag: [TestPriority.P2, TestGroupType.SANITY, '@demo-known-fail'],
     },
     async ({ page }) => {
       tagTest(test.info(), {
