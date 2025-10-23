@@ -28,6 +28,7 @@ export class ManageContentComponent extends BaseComponent {
   readonly publishOption: Locator;
   readonly unpublishOption: Locator;
   readonly deleteOption: Locator;
+  readonly deleteOptionButton: Locator;
   readonly deleteModalConfirmButton: Locator;
   readonly imageContainer: Locator;
   readonly FilterButton: Locator;
@@ -56,6 +57,11 @@ export class ManageContentComponent extends BaseComponent {
   readonly openingPanelMenu: Locator;
   readonly pageOption: Locator;
   readonly draftTag: Locator;
+  readonly publishedTag: Locator;
+  readonly addToCampaignOption: Locator;
+  readonly pageTitleInput: Locator;
+  readonly publishConfirmButton: Locator;
+  readonly unpublishedTag: Locator;
   constructor(page: Page) {
     super(page);
     this.searchBar = page.locator("[aria-label='Search…']");
@@ -68,7 +74,7 @@ export class ManageContentComponent extends BaseComponent {
     this.firstContentCheckbox = page.locator('[type="checkbox"]').nth(1);
     this.actionDropdownContainer = page.locator(`[class="Bulk Bulk--footer"]`);
     this.actionDropdown = page.locator('#action');
-    this.unpublishButton = page.getByText('Unpublish', { exact: true });
+    this.unpublishButton = page.getByRole('button', { name: 'Unpublish' });
     this.applyButton = page.getByRole('button', { name: 'Apply' });
     this.publishButton = page.getByText('Publish', { exact: true });
     this.moveButton = page.getByText('Move', { exact: true });
@@ -81,7 +87,7 @@ export class ManageContentComponent extends BaseComponent {
     this.deleteButton = page.getByText('Delete', { exact: true });
     this.selectAllButton = page.locator('[type="checkbox"]').first();
     this.validateButton = page.getByText('Validate', { exact: true });
-    this.firstDropDownOption = page.locator(`[aria-label="Category option"]`).first();
+    this.firstDropDownOption = page.getByRole('button', { name: 'Category option' }).first();
     this.publishOption = page.locator(`[title="Publish"]`).first();
     this.unpublishOption = page.locator(`[title="Unpublish"]`).first();
     this.deleteOption = page.locator(`[title="Delete"]`).first();
@@ -105,6 +111,7 @@ export class ManageContentComponent extends BaseComponent {
     this.pageCategorySelectorDropdownOptions = page.locator('[id="undefined-list"]').first();
     this.createdNewestOption = page.locator('option').filter({ hasText: 'Created date (newest first)' }).first();
     this.createdNewestOptionOuterDiv = page.locator('[class="NativeSelect"]');
+    this.deleteOptionButton = page.getByRole('button', { name: 'Delete' });
     this.viewAllButton = page
       .getByRole('button', { name: 'View all' })
       .or(page.getByRole('link', { name: 'View all' }));
@@ -120,8 +127,18 @@ export class ManageContentComponent extends BaseComponent {
       .locator('div')
       .filter({ hasText: /^Draft$/ })
       .first();
+    this.publishedTag = page
+      .locator('div')
+      .filter({ hasText: /^Published$/ })
+      .first();
+    this.unpublishedTag = page
+      .locator('div')
+      .filter({ hasText: /^Unpublished$/ })
+      .first();
+    this.addToCampaignOption = page.getByText('Add to campaign', { exact: true });
+    this.pageTitleInput = page.locator('[id="contentTitle"]').first();
+    this.publishConfirmButton = page.getByRole('button', { name: 'Publish changes' }).first();
   }
-
   getPageName(pageName: string): Locator {
     return this.page.locator(`[aria-label="${pageName}"]`).first();
   }
@@ -346,6 +363,11 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.firstDropDownOption);
     });
   }
+  async hoverOnFirstDropDownOption(): Promise<void> {
+    await test.step(`Hovering on the first drop down option`, async () => {
+      await this.hoverOverElementInJavaScript(this.firstDropDownOption);
+    });
+  }
 
   // has to fix this in next PR by aditya
   async checkPublishOption(): Promise<void> {
@@ -389,9 +411,7 @@ export class ManageContentComponent extends BaseComponent {
       await this.siteSearchBar.type(siteName);
     });
   }
-  async selectSiteSearchBar(siteName: string): Promise<void> {
-    await test.step(`Selecting the site search bar`, async () => {});
-  }
+
   async authorNameShouldBeVisible(): Promise<void> {
     await test.step(`Checking the author name should be visible`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.authorName);
@@ -564,6 +584,12 @@ export class ManageContentComponent extends BaseComponent {
       });
     });
   }
+
+  async verifyContentDetailsVisibility(pageName: string): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.getPageName(pageName), {
+      assertionMessage: 'Content details should be visible',
+    });
+  }
   async applyButtonShouldBeDisabled(): Promise<void> {
     await test.step('Checking if the apply button is disabled', async () => {
       await this.verifier.verifyTheElementIsDisabled(this.applyButton);
@@ -643,6 +669,93 @@ export class ManageContentComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.draftTag, {
         assertionMessage: 'Draft tag should be visible',
       });
+    });
+  }
+  async verifyPublishedStampVisibleInManageContent(): Promise<void> {
+    await test.step('Verifying the published stamp is visible in manage content', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.publishedTag, {
+        assertionMessage: 'Published stamp should be visible',
+      });
+    });
+  }
+  async verifyUnpublishedStampVisibleInManageContent(): Promise<void> {
+    await test.step('Verifying the unpublished stamp is visible in manage content', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.unpublishedTag, {
+        assertionMessage: 'Unpublished stamp should be visible',
+      });
+    });
+  }
+  async verifyEditOptionVisibleInManageContent(): Promise<void> {
+    await test.step('Verifying the edit option is visible in manage content', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.editButton, {
+        assertionMessage: 'Edit option should be visible',
+      });
+    });
+  }
+  async verifyDeleteOptionVisibleInManageContent(): Promise<void> {
+    await test.step('Verifying the delete option is visible in manage content', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.deleteButton, {
+        assertionMessage: 'Delete option should be visible',
+      });
+    });
+  }
+  async verifyUnpublishOptionVisibleInManageContent(): Promise<void> {
+    await test.step('Verifying the unpublish option is visible in manage content', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.unpublishButton, {
+        assertionMessage: 'Unpublish option should be visible',
+      });
+    });
+  }
+  async verifyMoveOptionVisibleInManageContent(): Promise<void> {
+    await test.step('Verifying the move option is visible in manage content', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.moveButton, {
+        assertionMessage: 'Move option should be visible',
+      });
+    });
+  }
+  async verifyPublishOptionVisibleInManageContent(): Promise<void> {
+    await test.step('Verifying the publish option is visible in manage content', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.publishButton, {
+        assertionMessage: 'Publish option should be visible',
+      });
+    });
+  }
+
+  async verifyAddToCampaignOptionShouldNotBeVisibleInManageContent(): Promise<void> {
+    await test.step('Verifying the add to campaign option is not visible in manage content', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.addToCampaignOption, {
+        assertionMessage: 'Add to campaign option should not be visible',
+      });
+    });
+  }
+  async clickOnContentEditButton(): Promise<void> {
+    await test.step('Clicking on content edit button', async () => {
+      await this.clickOnElement(this.editButton);
+    });
+  }
+  async UpdatedPageName(pageName: string): Promise<void> {
+    await test.step('Verifying the updated page name', async () => {
+      await this.pageTitleInput.fill(pageName);
+    });
+  }
+  async clickOnPublishChangesButton(): Promise<void> {
+    await test.step('Clicking on publish changes button', async () => {
+      await this.clickOnElement(this.publishConfirmButton);
+      await test.step('Click info icon', async () => {
+        const fileApiPromise = this.page.waitForResponse(
+          response =>
+            response.url().includes(`${PAGE_ENDPOINTS.CONTENT_PAGE_UPDATE_API}`) &&
+            response.request().method() === 'PUT' &&
+            response.status() === 201
+        );
+
+        await fileApiPromise;
+      });
+    });
+  }
+  async clickOnDeleteOption(): Promise<void> {
+    await test.step('Clicking on delete option', async () => {
+      await this.clickOnElement(this.deleteButton);
     });
   }
 }
