@@ -8,6 +8,7 @@ export enum PlatformSuiteTags {
   ACG = '@acg',
   FEATURE_OWNERS = '@feature-owners',
   AUDIENCE = '@audience',
+  SERVICE_DESK = '@service-desk',
 }
 
 export enum PlatformFeatureTags {
