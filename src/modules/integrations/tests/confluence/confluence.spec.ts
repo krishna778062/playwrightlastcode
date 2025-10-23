@@ -1,14 +1,13 @@
 import { IntegrationsFeatureTags, IntegrationsSuiteTags } from '@integrations-constants/testTags';
+import { multiUserTileFixture } from '@integrations-fixtures/multiUserTileFixture';
+import { ConfluenceHelper } from '@integrations-helpers/confluenceHelper';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ConfluenceHelper } from '../../apis/helpers/confluenceHelper';
-import { multiUserTileFixture } from '../../fixtures/multiUserTileFixture';
-import { ExternalAppProvider, ExternalAppsPage } from '../../ui/pages/externalAppsPage';
-
 import { integrationsFixture as test } from '@/src/modules/integrations/fixtures/integrationsFixture';
+import { ExternalAppProvider, ExternalAppsPage } from '@/src/modules/integrations/ui/pages/externalAppsPage';
 import { SupportAndTicketingPage } from '@/src/modules/integrations/ui/pages/supportAndTicketingPage';
 
 test.describe(
