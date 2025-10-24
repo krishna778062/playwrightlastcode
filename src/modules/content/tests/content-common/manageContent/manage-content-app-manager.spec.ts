@@ -6,8 +6,10 @@ import { tagTest } from '@core/utils/testDecorator';
 import { NewHomePage } from '@/src/core';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
+import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { EditPagePage } from '@/src/modules/content/ui/pages/editPagePage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { HomeFeedPage } from '@/src/modules/content/ui/pages/manageApplicationDefaultHomeFeedPage';
@@ -16,6 +18,7 @@ import { ManageApplicationPage } from '@/src/modules/content/ui/pages/manageAppl
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
@@ -34,6 +37,8 @@ test.describe(
     let editPage: EditPagePage;
     let manageSitePage: ManageSitePage;
     let siteDetailsPage: SiteDetailsPage;
+    let siteDashboardPage: SiteDashboardPage;
+    let contentPreviewPage: ContentPreviewPage;
 
     test.beforeEach(async ({ appManagerFixture }) => {
       await appManagerFixture.homePage.verifyThePageIsLoaded();
@@ -47,6 +52,8 @@ test.describe(
       homePage = new NewHomePage(appManagerFixture.page);
       manageSitePage = new ManageSitePage(appManagerFixture.page, '');
       siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, '');
+      siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, '');
+      contentPreviewPage = new ContentPreviewPage(appManagerFixture.page);
     });
 
     test(
@@ -284,6 +291,59 @@ test.describe(
         await siteDetailsPage.assertions.validatingCategoryToUncategorized();
       }
     );
+    test(
+      'to verify validate option in manage content',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.CONTENT_VALIDATE_OPTION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify validate option in manage content',
+          zephyrTestId: 'CONT-33591',
+          storyId: 'CONT-33591',
+        });
+        // Get the "All Employees" site ID for API page creation
+        const allEmployeesSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+
+        // Use test data for page name
+        const randomPageName = CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.title;
+
+        // Create page using API
+        const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
+          siteId: allEmployeesSiteId,
+          contentInfo: {
+            contentType: 'page',
+            contentSubType: 'knowledge',
+          },
+          options: {
+            pageName: randomPageName,
+            contentDescription: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.description,
+            waitForSearchIndex: false,
+          },
+        });
+
+        console.log(
+          `Created page via API: Test Page Title with ID: ${pageInfo.contentId} and name ${pageInfo.pageName} in All Employees site: ${allEmployeesSiteId}`
+        );
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.writeRandomTextInSearchBar(randomPageName);
+        await manageContentPage.actions.clickSearchIcon();
+        await appManagerFixture.page.reload();
+        await manageContentPage.assertions.checkValidateOptionInBulkActions();
+        await manageContentPage.actions.openContentDetailsPage();
+        await contentPreviewPage.assertions.verifyValidateOptionOnContentPreviewPage();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageSitePage.actions.searchForSite('All Employees');
+        await manageSitePage.actions.clickOnSite();
+        await siteDetailsPage.actions.clickOnContentTab();
+        await siteDetailsPage.actions.typeContentInSearchBar(randomPageName);
+        await siteDetailsPage.actions.clickSearchIcon();
+        await siteDetailsPage.actions.openContentDetailsPage();
+        await contentPreviewPage.assertions.verifyValidateOptionOnContentPreviewPage();
+      }
+    );
 
     test(
       'zeus: Edit the validation Expired Content and Cancel',
@@ -348,6 +408,22 @@ test.describe(
         await manageContentPage.actions.clickOnUnpublishButton();
         await manageContentPage.actions.verifyUnpublishedStampVisibleInManageContent();
         await manageContentPage.actions.clickOnDeleteOption();
+
+    test(
+      'verify user able to select all max 50 items under Content tab in Manage Content page',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20541'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify user able to select all max 50 items under Content tab in Manage Content page',
+          zephyrTestId: 'CONT-20541',
+          storyId: 'CONT-20541',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.verifyAllContentsAreSelected(17);
       }
     );
   }
