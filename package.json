@@ -92,6 +92,7 @@
     "xmldom": "^0.6.0"
   },
   "dependencies": {
+    "@types/papaparse": "^5.3.16",
     "crypto": "^1.0.1",
     "date-fns": "^4.1.0",
     "dotenv": "^16.6.1",
@@ -101,6 +102,7 @@
     "mailosaur": "^9.0.0",
     "nanoid": "^5.1.5",
     "otpauth": "^9.4.1",
+    "papaparse": "^5.5.3",
     "pg": "^8.16.3",
     "playwright": "^1.55.1",
     "snowflake-sdk": "^2.1.3",
