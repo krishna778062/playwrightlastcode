@@ -62,6 +62,7 @@ export class ManageContentComponent extends BaseComponent {
   readonly pageTitleInput: Locator;
   readonly publishConfirmButton: Locator;
   readonly unpublishedTag: Locator;
+  readonly checkBoxOfContent: Locator;
   constructor(page: Page) {
     super(page);
     this.searchBar = page.locator("[aria-label='Search…']");
@@ -138,6 +139,7 @@ export class ManageContentComponent extends BaseComponent {
     this.addToCampaignOption = page.getByText('Add to campaign', { exact: true });
     this.pageTitleInput = page.locator('[id="contentTitle"]').first();
     this.publishConfirmButton = page.getByRole('button', { name: 'Publish changes' }).first();
+    this.checkBoxOfContent = page.locator('[type="checkbox"]');
   }
   getPageName(pageName: string): Locator {
     return this.page.locator(`[aria-label="${pageName}"]`).first();
@@ -756,6 +758,26 @@ export class ManageContentComponent extends BaseComponent {
   async clickOnDeleteOption(): Promise<void> {
     await test.step('Clicking on delete option', async () => {
       await this.clickOnElement(this.deleteButton);
+
+  async verifyAllContentsAreSelected(expectedCount: number = 16): Promise<void> {
+    await test.step(`Verifying ${expectedCount} contents are selected`, async () => {
+      const checkBoxes = await this.checkBoxOfContent.all();
+      const selectedCheckBoxes = [];
+
+      for (let i = 0; i < checkBoxes.length; i++) {
+        const checkBox = checkBoxes[i];
+        const isChecked = await checkBox.isChecked();
+        if (isChecked) {
+          selectedCheckBoxes.push(checkBox);
+        }
+      }
+
+      const actualCount = selectedCheckBoxes.length;
+      if (actualCount !== expectedCount) {
+        throw new Error(`Expected ${expectedCount} selected checkboxes, but found ${actualCount}`);
+      }
+
+      console.log(`✓ Verified ${actualCount} checkboxes are selected`);
     });
   }
 }

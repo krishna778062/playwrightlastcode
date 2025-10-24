@@ -17,13 +17,13 @@ export default defineConfig({
     baseURL: process.env.FRONTEND_BASE_URL,
     actionTimeout: 15_000, // 15 seconds auto-wait for actions
     navigationTimeout: 15_000, // 15 seconds auto-wait for navigation
-    headless: process.env.CI ? true : false,
   },
   projects: [
     {
       name: 'data-engineering-chromium',
       use: {
         ...devices['Desktop Chrome'],
+        headless: process.env.CI ? true : false,
       },
     },
   ],
