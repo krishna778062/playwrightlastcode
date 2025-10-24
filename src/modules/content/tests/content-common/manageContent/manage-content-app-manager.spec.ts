@@ -26,7 +26,7 @@ test.describe(
   () => {
     let manageFeaturesPage: ManageFeaturesPage;
     let manageContentPage: ManageContentPage;
-    let _homePage: NewHomePage;
+    let homePage: NewHomePage;
     let applicationScreenPage: ApplicationScreenPage;
     let manageApplicationPage: ManageApplicationPage;
     let defaultScreenPage: DefaultScreenPage;
@@ -44,7 +44,7 @@ test.describe(
       defaultScreenPage = new DefaultScreenPage(appManagerFixture.page);
       homeFeedPage = new HomeFeedPage(appManagerFixture.page);
       editPage = new EditPagePage(appManagerFixture.page, '', '');
-      _homePage = new NewHomePage(appManagerFixture.page);
+      homePage = new NewHomePage(appManagerFixture.page);
       manageSitePage = new ManageSitePage(appManagerFixture.page, '');
       siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, '');
     });
