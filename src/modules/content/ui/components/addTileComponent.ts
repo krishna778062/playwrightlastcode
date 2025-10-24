@@ -108,12 +108,12 @@ export class AddTileComponent extends BaseComponent {
     }
   }
 
-  async clickAddToSiteButton(): Promise<string> {
+  async clickAddToSiteButton(siteId: string): Promise<string> {
     return await test.step(`Submitting event and wait for submit api response`, async () => {
       const tileResponse = await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.addToSiteButton, { delay: 2_000 }),
         response =>
-          response.url().includes(API_ENDPOINTS.tile.create) &&
+          response.url().includes(API_ENDPOINTS.tile.siteCreate(siteId)) &&
           response.request().method() === 'POST' &&
           response.status() === 201,
         {

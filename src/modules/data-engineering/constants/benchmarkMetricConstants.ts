@@ -6,6 +6,7 @@
 export const TREND_DIRECTIONS = {
   UP: 'up',
   DOWN: 'down',
+  NEUTRAL: 'neutral',
 } as const;
 
 export const TREND_COLORS = {
