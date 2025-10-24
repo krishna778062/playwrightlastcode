@@ -103,21 +103,3 @@ export const APP_LABELS = {
   DISABLE_LABEL: 'Disable',
   DELETE_LABEL: 'Delete',
 } as const;
-
-export const SYNCING = {
-  UKG_PRO: 'UKG Pro',
-  UKG_PRO_SYNCING: 'UkgPro',
-  USERNAME: 'username',
-  PASSWORD: 'password',
-  BASE_URL: 'baseUrl',
-  KEY: 'apiKey',
-  SYNC_DROPDOWN: 'syncSource',
-  TEST: 'test',
-  PAY_CURRENCY: 'Pay Currency',
-  FIRST_NAME: 'First name',
-  HIRE_DATE: 'Hire date',
-  SENIORITY_DATE: 'Seniority Date',
-  PREFERRED_NAME: 'Preferred Name',
-  NAME: 'First Name',
-  HIRE: 'Hire Date',
-} as const;
