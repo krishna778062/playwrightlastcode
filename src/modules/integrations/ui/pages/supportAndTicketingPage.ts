@@ -64,6 +64,9 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
   readonly confluenceReconnectButton: Locator;
   readonly disconnectModalMessage: Locator;
 
+  readonly serviceNowCustomNameRadioButton: Locator;
+  readonly serviceNowDefaultNameRadioButton: Locator;
+  readonly serviceNowCustomNameInput: Locator;
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.SUPPORT_TICKETING_PAGE);
     this.serviceNowButton = page.locator('[id="servicenow"]');
@@ -75,6 +78,9 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
     );
     this.confirmButton = page.getByRole('button', { name: 'Confirm' });
     this.connectServiceAccountButton = page.getByRole('button', { name: 'Connect service account' });
+    this.serviceNowDefaultNameRadioButton = page.locator('#serviceNowTicketingNameRadiodefault'); // locator for the default name field in the ServiceNow Tickets Page
+    this.serviceNowCustomNameRadioButton = page.locator('#serviceNowTicketingNameRadiocustom'); // locator for the custom name field in the ServiceNow Tickets Page
+    this.serviceNowCustomNameInput = page.locator('#serviceNowTicketingName'); // locator for the custom name input field in the ServiceNow Tickets Page
     this.confluenceChangeuserButton = page.locator(
       'h2:has-text("Atlassian Confluence") >> xpath=ancestor::div[contains(@class,"Panel-module__panel")]//button[contains(.,"Change user")]'
     );
@@ -438,6 +444,62 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
         timeout: 15_000,
         assertionMessage: 'Verifying ServiceNow URL field is visible',
       });
+    });
+  }
+
+  async selectCustomNameAndFillValue(customName: string): Promise<void> {
+    await test.step(`Select custom name option and fill value: ${customName}`, async () => {
+      // Wait for elements to be ready
+      await this.serviceNowCustomNameRadioButton.waitFor({ state: 'visible', timeout: 10_000 });
+      await this.serviceNowCustomNameInput.waitFor({ state: 'visible', timeout: 10_000 });
+      await this.serviceNowDefaultNameRadioButton.waitFor({ state: 'visible', timeout: 10_000 });
+
+      // Check if custom is already selected - if so, switch to default first
+      const isCustomAlreadyChecked = await this.serviceNowCustomNameRadioButton.isChecked();
+
+      if (isCustomAlreadyChecked) {
+        await test.step('Custom is already selected - switching to default first', async () => {
+          await this.serviceNowDefaultNameRadioButton.check();
+          await expect(this.serviceNowDefaultNameRadioButton).toBeChecked();
+          await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
+          if (await this.saveButton.isEnabled()) {
+            await this.saveButton.click();
+            await this.page.waitForLoadState('domcontentloaded');
+          }
+        });
+      }
+
+      // Now select custom name option
+      await this.serviceNowCustomNameRadioButton.check();
+
+      // Verify radio button is selected
+      await expect(this.serviceNowCustomNameRadioButton).toBeChecked();
+
+      // Fill the custom name input
+      await this.serviceNowCustomNameInput.clear();
+      await this.serviceNowCustomNameInput.fill(customName);
+
+      // Verify the value was entered correctly
+      await expect(this.serviceNowCustomNameInput).toHaveValue(customName);
+
+      // Wait for save button to be enabled and click
+      await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
+      if (await this.saveButton.isEnabled()) {
+        await this.saveButton.click();
+        await this.page.waitForLoadState('domcontentloaded');
+      }
+    });
+  }
+
+  async selectDefaultName(): Promise<void> {
+    await test.step('Select default name option', async () => {
+      await this.serviceNowDefaultNameRadioButton.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.serviceNowDefaultNameRadioButton.click();
+      await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
+      if (await this.saveButton.isEnabled()) {
+        await this.saveButton.click();
+        await this.page.waitForLoadState('domcontentloaded');
+      }
     });
   }
 }
