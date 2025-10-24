@@ -1,4 +1,4 @@
-import { FrontlineSuiteTags } from '@frontline/constants/testTags';
+import { FrontlineFeatureTags, FrontlineSuiteTags } from '@frontline/constants/testTags';
 import { frontlineTestFixture as test } from '@frontline/fixtures/frontlineFixture';
 import { LoginWithOtpPage } from '@frontline/pages/loginWithOtpPage';
 
@@ -12,9 +12,9 @@ import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { UserTestDataBuilder } from '@/src/core/test-data-builders/UserTestDataBuilder';
 
 test.describe(
-  'feature: login with otp',
+  'feature: login with otp test cases for optional LWO',
   {
-    tag: [FrontlineSuiteTags.FRONTLINE],
+    tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP],
   },
   () => {
     const userDetails: {
@@ -30,40 +30,29 @@ test.describe(
       endUserFirstName: '',
       endUserLastName: '',
     };
-    test.beforeAll(async ({ appManagerApiContext, config }) => {
-      // Get secondary tenant config from fixture
-      console.log(`🔧 Running OTP test on: ${config.tenantName} (${config.frontendBaseUrl})`);
 
-      // UserManagementService will automatically use ORG_ID from frontline config
-      const userBuilder = new UserTestDataBuilder(appManagerApiContext, config.apiBaseUrl);
-      // Add users to system
-      const endUser = await userBuilder.addUsersWithEmpIdAndDepartmentToSystemWithoutPassword(Roles.END_USER);
-      userDetails.endUserEmpId = endUser[0].emp;
-      userDetails.endUserPassword = 'Simpplr@2025';
-      userDetails.endUserId = endUser[0].userId;
-      userDetails.endUserFirstName = endUser[0].first_name;
-      userDetails.endUserLastName = endUser[0].last_name;
-      console.log('Info: End user employee number: ', userDetails.endUserEmpId); //employee number
-      console.log('Info: End user full name: ', endUser[0].fullName); //fullName
-      console.log('Info: End user userId: ', userDetails.endUserId); //userId
-      console.log('Info: End user first name: ', endUser[0].first_name); //firstName
-      console.log('Info: End user last name: ', endUser[0].last_name); //lastName
+    test.beforeAll(async ({ lwoUserManagementService }) => {
+      await lwoUserManagementService.setLWOAsOptional('optional'); // Set LWO as optional
     });
 
     test(
-      'scenario: Verify newly added user try to login and enter email only,when LWO is set as optional',
+      'scenario: Verify newly added user try to login and enter mobile only,when LWO is set as optional',
       {
-        tag: [TestPriority.P0],
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
       },
-      async ({ page, otpUtils, lwoUserManagementService }) => {
+      async ({ page, otpUtils, lwoUserManagementService, appManagerApiContext, config }) => {
         tagTest(test.info(), {
-          description: 'Verify newly added user try to login and enter email only,when LWO is set as optional',
+          description: 'Verify newly added user try to login and enter mobile only,when LWO is set as optional',
           zephyrTestId: 'FL-435',
           storyId: 'FL-435',
         });
-        const testPhone = mailosaurValues.mailosaurPhone; // Test phone number for OTP
-        const testEmail = mailosaurValues.mailosaurEmail; // Test email for OTP
-        await lwoUserManagementService.setLWOAsOptional('optional'); // Set LWO as optional
+        const userBuilder = new UserTestDataBuilder(appManagerApiContext, config.apiBaseUrl);
+        const endUser = await userBuilder.addUsersWithEmpIdAndDepartmentToSystemWithoutPassword(Roles.END_USER);
+        userDetails.endUserEmpId = endUser[0].emp;
+        userDetails.endUserPassword = 'Simpplr@2025';
+        userDetails.endUserId = endUser[0].userId;
+        userDetails.endUserFirstName = endUser[0].first_name;
+        userDetails.endUserLastName = endUser[0].last_name;
 
         await LoginHelper.setPasswordForFirstTimeLogin(page, {
           email: userDetails.endUserEmpId,
@@ -72,7 +61,79 @@ test.describe(
         await LoginHelper.setUserProfileSecurityQuestions(page); // Set user profile security questions
 
         const loginWithOtpPage = new LoginWithOtpPage(page);
-        await loginWithOtpPage.addMobileNumberOrEmailAndVerify(otpUtils, testPhone, testEmail, 'email');
+        await loginWithOtpPage.addMobileNumberOrEmailAndVerify(
+          otpUtils,
+          mailosaurValues.mailosaurPhone,
+          mailosaurValues.mailosaurEmail,
+          'mobile'
+        );
+        await lwoUserManagementService.deleteEmailAndMobile(
+          userDetails.endUserId,
+          userDetails.endUserEmpId,
+          userDetails.endUserFirstName,
+          userDetails.endUserLastName
+        );
+      }
+    );
+
+    test(
+      'scenario: Verify added user try to login and enter email only,when LWO is set as optional',
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+      },
+      async ({ page, otpUtils, lwoUserManagementService }) => {
+        tagTest(test.info(), {
+          description: 'Verify newly added user try to login and enter email only,when LWO is set as optional',
+          zephyrTestId: 'FL-435',
+          storyId: 'FL-435',
+        });
+
+        await LoginHelper.loginWithPassword(page, {
+          email: userDetails.endUserEmpId,
+          password: userDetails.endUserPassword,
+        });
+
+        const loginWithOtpPage = new LoginWithOtpPage(page);
+        await loginWithOtpPage.addMobileNumberOrEmailAndVerify(
+          otpUtils,
+          mailosaurValues.mailosaurPhone,
+          mailosaurValues.mailosaurEmail,
+          'email'
+        );
+        await lwoUserManagementService.deleteEmailAndMobile(
+          userDetails.endUserId,
+          userDetails.endUserEmpId,
+          userDetails.endUserFirstName,
+          userDetails.endUserLastName
+        );
+      }
+    );
+
+    test(
+      'scenario: Verify added user try to login and enter both mobile and email,when LWO is set as optional',
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+      },
+      async ({ page, otpUtils, lwoUserManagementService }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify newly added user try to login and enter both mobile and email,when LWO is set as optional',
+          zephyrTestId: 'FL-435',
+          storyId: 'FL-435',
+        });
+
+        await LoginHelper.loginWithPassword(page, {
+          email: userDetails.endUserEmpId,
+          password: userDetails.endUserPassword,
+        });
+
+        const loginWithOtpPage = new LoginWithOtpPage(page);
+        await loginWithOtpPage.addMobileNumberOrEmailAndVerify(
+          otpUtils,
+          mailosaurValues.mailosaurPhone,
+          mailosaurValues.mailosaurEmail,
+          'both'
+        );
         await lwoUserManagementService.deleteEmailAndMobile(
           userDetails.endUserId,
           userDetails.endUserEmpId,

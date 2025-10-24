@@ -15,8 +15,13 @@ export class LoginWithOtpPage extends BasePage {
   readonly mobileText: Locator;
   readonly emailText: Locator;
   readonly sendOtpToVerifyButton: Locator;
+  readonly skipForNowButton: Locator;
+  readonly dontShowThisAgainButton: Locator;
+  readonly backArrowButton: Locator;
   readonly step1Heading: Locator;
+  readonly step2Heading: Locator;
   readonly mobileVerificationHeading: Locator;
+  readonly emailVerificationHeading: Locator;
   readonly otpSentToHeading: Locator;
   readonly enterOtpInput: Locator;
   readonly verifyButton: Locator;
@@ -35,8 +40,13 @@ export class LoginWithOtpPage extends BasePage {
     this.emailText = page.getByText('Email ID');
 
     this.sendOtpToVerifyButton = page.getByRole('button', { name: 'Send OTP to verify' });
+    this.skipForNowButton = page.getByRole('button', { name: 'Skip for now' });
+    this.dontShowThisAgainButton = page.getByRole('button', { name: 'Don’t show this again' });
+    this.backArrowButton = page.getByTestId('i-directionalArrowLeft');
     this.step1Heading = page.getByRole('heading', { name: 'Step 1/' });
+    this.step2Heading = page.getByRole('heading', { name: 'Step 2/' });
     this.mobileVerificationHeading = page.getByRole('heading', { name: 'Mobile verification' });
+    this.emailVerificationHeading = page.getByRole('heading', { name: 'Email verification' });
     this.otpSentToHeading = page.getByRole('heading', { name: 'OTP sent to' });
     this.enterOtpInput = page.getByText('Enter OTP*');
     this.verifyButton = page.getByRole('button', { name: 'Verify' });
@@ -51,6 +61,53 @@ export class LoginWithOtpPage extends BasePage {
       });
     });
   }
+
+  async verifyAddForceContactPageIsLoadedForOptionalLWO(): Promise<void> {
+    await test.step('Verifying add force contact page is loaded', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.optionalHeading);
+      await this.verifier.verifyTheElementIsVisible(this.addMobileNumberOrEmailHeading);
+      await this.verifier.verifyTheElementIsVisible(this.weRecommendAddingPhoneHeading);
+      await this.verifier.verifyTheElementIsVisible(this.countryCodeRequiredFor);
+      await this.verifier.verifyTheElementIsVisible(this.mobileText);
+      await this.verifier.verifyTheElementIsVisible(this.emailText);
+      await this.verifier.verifyTheElementIsVisible(this.skipForNowButton);
+      await this.verifier.verifyTheElementIsVisible(this.dontShowThisAgainButton);
+    });
+  }
+
+  async verifyEmailOrMobileVerificationPageIsLoadedForOptionalLWO(verificationType: string): Promise<void> {
+    await test.step('Verifying add force contact page is loaded', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.backArrowButton);
+      if (verificationType === 'email') {
+        await this.verifier.verifyTheElementIsVisible(this.emailVerificationHeading);
+      } else if (verificationType === 'mobile') {
+        await this.verifier.verifyTheElementIsVisible(this.mobileVerificationHeading);
+      }
+      await this.verifier.verifyTheElementIsVisible(this.otpSentToHeading);
+      await this.verifier.verifyTheElementIsVisible(this.enterOtpInput);
+      await this.verifier.verifyTheElementIsVisible(this.verifyButton);
+      await this.verifier.verifyTheElementIsVisible(this.resendOtpButton);
+    });
+  }
+
+  async verifyForBothMobileAndEmailVerificationPageIsLoadedForOptionalLWO(verificationType: string): Promise<void> {
+    await test.step('Verifying add force contact page is loaded', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.backArrowButton);
+      if (verificationType === 'mobile') {
+        await this.verifier.verifyTheElementIsVisible(this.step1Heading);
+        await this.verifier.verifyTheElementIsVisible(this.mobileVerificationHeading);
+      } else if (verificationType === 'email') {
+        // TODO: verify that error message should not be visible
+        await this.verifier.verifyTheElementIsVisible(this.step2Heading);
+        await this.verifier.verifyTheElementIsVisible(this.emailVerificationHeading);
+      }
+      await this.verifier.verifyTheElementIsVisible(this.otpSentToHeading);
+      await this.verifier.verifyTheElementIsVisible(this.enterOtpInput);
+      await this.verifier.verifyTheElementIsVisible(this.verifyButton);
+      await this.verifier.verifyTheElementIsVisible(this.resendOtpButton);
+    });
+  }
+
   async addMobileNumberOrEmailAndVerify(
     otpUtils: OTPUtils,
     phone: string,
@@ -62,45 +119,51 @@ export class LoginWithOtpPage extends BasePage {
         timeout: TIMEOUTS.MEDIUM,
       });
     });
-    await this.page.waitForTimeout(3000);
+
+    let otpEmail = '';
+    let otpMobile = '';
 
     switch (enterType) {
       case 'email':
+        await this.verifyAddForceContactPageIsLoadedForOptionalLWO();
         await this.fillInElement(this.emailInput, email);
-        await this.verifier.verifyTheElementIsVisible(this.optionalHeading);
-        await this.verifier.verifyTheElementIsVisible(this.addMobileNumberOrEmailHeading);
-        await this.verifier.verifyTheElementIsVisible(this.weRecommendAddingPhoneHeading);
-        await this.verifier.verifyTheElementIsVisible(this.countryCodeRequiredFor);
-        await this.verifier.verifyTheElementIsVisible(this.mobileText);
-        await this.verifier.verifyTheElementIsVisible(this.emailText);
         await this.clickOnElement(this.sendOtpToVerifyButton);
+        await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalLWO('email');
         await this.page.waitForTimeout(8000);
-        const otpEmail = await otpUtils.getOTPFromEmail(email);
-        console.log('otpEmail------', otpEmail);
+        otpEmail = await otpUtils.getOTPFromEmail(email);
         await this.enterOtpInput.fill(otpEmail);
         await this.clickOnElement(this.verifyButton);
-        await this.page.waitForTimeout(5000);
         await this.clickOnElement(this.continueButton);
-
         break;
 
       case 'mobile':
+        await this.verifyAddForceContactPageIsLoadedForOptionalLWO();
         await this.fillInElement(this.mobileInput, phone);
-        await this.verifier.verifyTheElementIsVisible(this.optionalHeading);
-        await this.verifier.verifyTheElementIsVisible(this.addMobileNumberOrEmailHeading);
-        await this.verifier.verifyTheElementIsVisible(this.weRecommendAddingPhoneHeading);
-        await this.verifier.verifyTheElementIsVisible(this.countryCodeRequiredFor);
-        await this.verifier.verifyTheElementIsVisible(this.mobileText);
-        await this.verifier.verifyTheElementIsVisible(this.emailText);
         await this.clickOnElement(this.sendOtpToVerifyButton);
-        await this.page.waitForTimeout(5000);
-        const otpMobile = await otpUtils.getOTPFromSMS(phone);
-        console.log('otpMobile------', otpMobile);
+        await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalLWO('mobile');
+        await this.page.waitForTimeout(8000);
+        otpMobile = await otpUtils.getOTPFromSMS(phone);
         await this.enterOtpInput.fill(otpMobile);
         await this.clickOnElement(this.verifyButton);
-        await this.page.waitForTimeout(5000);
         await this.clickOnElement(this.continueButton);
+        break;
 
+      case 'both':
+        await this.verifyAddForceContactPageIsLoadedForOptionalLWO();
+        await this.fillInElement(this.mobileInput, phone);
+        await this.fillInElement(this.emailInput, email);
+        await this.clickOnElement(this.sendOtpToVerifyButton);
+        await this.verifyForBothMobileAndEmailVerificationPageIsLoadedForOptionalLWO('mobile');
+        await this.page.waitForTimeout(8000);
+        otpMobile = await otpUtils.getOTPFromSMS(phone);
+        await this.enterOtpInput.fill(otpMobile);
+        await this.clickOnElement(this.verifyButton);
+        await this.verifyForBothMobileAndEmailVerificationPageIsLoadedForOptionalLWO('email');
+        await this.page.waitForTimeout(8000);
+        otpEmail = await otpUtils.getOTPFromEmail(email);
+        await this.enterOtpInput.fill(otpEmail);
+        await this.clickOnElement(this.verifyButton);
+        await this.clickOnElement(this.continueButton);
         break;
     }
   }
