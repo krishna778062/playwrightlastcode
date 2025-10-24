@@ -413,6 +413,8 @@ test.describe(
         await manageContentPage.actions.clickOnDeleteButton();
         await manageContentPage.actions.selectDeleteApplyButton();
         await manageContentPage.assertions.searchAllContentsInGlobalSearchBar(contentNames);
+      }
+    );
 
     test(
       'verify user able to select all max 50 items under Content tab in Manage Content page',

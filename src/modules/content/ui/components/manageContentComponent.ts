@@ -668,6 +668,9 @@ export class ManageContentComponent extends BaseComponent {
         });
         await topNavBar.clickOnXButtonToClearGlobalSearchBarInput();
       }
+    });
+  }
+
   async selectPageOption(): Promise<void> {
     await test.step('Selecting the page option', async () => {
       await this.clickOnElement(this.pageOption);
