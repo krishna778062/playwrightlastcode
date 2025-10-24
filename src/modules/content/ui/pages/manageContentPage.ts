@@ -274,7 +274,4 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifyAllPublishedAtDatesFromArray(dates: string[]): Promise<void> {
     await this.manageContentComponent.verifyAllPublishedAtDatesFromArray(dates);
   }
-  async verifyTheContentIsMovedToContentTab(): Promise<void> {
-    await this.manageContentComponent.verifyTheContentIsMovedToContentTab();
-  }
 }

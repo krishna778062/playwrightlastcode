@@ -338,7 +338,7 @@ test.describe(
         await manageContentPage.actions.selectPageCategoryIfVisible();
         await manageContentPage.actions.selectPageCategory();
         await manageContentPage.actions.clickOnMoveConfirmButton();
-        await manageContentPage.assertions.verifyTheContentIsMovedToContentTab();
+        await manageContentPage.verifyToastMessageIsVisibleWithText('Moved 1 item successfully');
       }
     );
   }

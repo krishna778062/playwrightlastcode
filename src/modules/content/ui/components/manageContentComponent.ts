@@ -54,7 +54,6 @@ export class ManageContentComponent extends BaseComponent {
   readonly crossButton: Locator;
   readonly scheduledTag: Locator;
   readonly openingPanelMenu: Locator;
-  readonly moveTabConfirmationMessage: Locator;
   constructor(page: Page) {
     super(page);
     this.searchBar = page.locator("[aria-label='Search…']");
@@ -114,7 +113,6 @@ export class ManageContentComponent extends BaseComponent {
     this.selectPublishOption = page.getByLabel('Status:');
     this.crossButton = page.getByRole('button', { name: 'Dismiss' }).first();
     this.scheduledTag = page.locator('[class="StampList"]:has-text("SCHEDULED")').first();
-    this.moveTabConfirmationMessage = page.getByText('Moved 1 item successfully');
   }
 
   getPageName(pageName: string): Locator {
@@ -626,13 +624,6 @@ export class ManageContentComponent extends BaseComponent {
         const dateToCheck = dates[i];
         await this.verifyPublishedAtDateVisibleInManageContent(dateToCheck);
       }
-    });
-  }
-  async verifyTheContentIsMovedToContentTab(): Promise<void> {
-    await test.step('Verifying the content is moved to content tab', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.moveTabConfirmationMessage, {
-        assertionMessage: 'Content is moved to content tab',
-      });
     });
   }
 }
