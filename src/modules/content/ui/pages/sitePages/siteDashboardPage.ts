@@ -28,7 +28,7 @@ export interface ISiteDashboardActions {
   enterTileTitle: (tileTitle: string) => Promise<void>;
   setCustomSCTitle: (title: string) => Promise<void>;
   clickAddToHomeButton: () => Promise<string>;
-  clickAddToSiteButton: () => Promise<string>;
+  clickAddToSiteButton: (siteId: string) => Promise<string>;
   clickShareThoughtsButton: () => Promise<void>;
   clickQuestionButton: () => Promise<void>;
   createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
@@ -285,8 +285,8 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     await this.createQuestionComponent.verifyQuestionCreatedSuccessfully(questionTitle);
   }
 
-  async clickAddToSiteButton(): Promise<string> {
-    return this.addTileComponent.clickAddToSiteButton();
+  async clickAddToSiteButton(siteId: string): Promise<string> {
+    return this.addTileComponent.clickAddToSiteButton(siteId);
   }
 
   async verifyFeedSectionIsVisible(): Promise<void> {
