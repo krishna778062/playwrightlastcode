@@ -747,4 +747,32 @@ export class SiteManagementHelper {
       return await this.siteManagementService.deleteSiteCarouselItem(siteId, carouselItemId);
     });
   }
+
+  async getSiteWithUserAsOwner(userId: string): Promise<{ siteId: string; siteName: string }> {
+    const siteListResponse = await this.getListOfSites({ filter: 'active' });
+    if (siteListResponse.result.listOfItems.length) {
+      const memberListResponse = await this.siteManagementService.getSiteMembershipList(
+        siteListResponse.result.listOfItems[0].siteId
+      );
+      if (
+        memberListResponse.result.listOfItems.find(
+          (member: any) => member.peopleId === userId && member.isOwner === true
+        )
+      ) {
+        return {
+          siteId: memberListResponse.result.listOfItems[0].siteId,
+          siteName: memberListResponse.result.listOfItems[0].name,
+        };
+      } else {
+        const createdSite = await this.createSite({
+          accessType: SITE_TYPES.PUBLIC,
+          siteName: `Site for ${userId}`,
+          category: { name: 'Public', categoryId: 'public' },
+          waitForSearchIndex: true,
+        });
+        return { siteId: createdSite.siteId, siteName: createdSite.siteName };
+      }
+    }
+    throw new Error('No active sites found');
+  }
 }
