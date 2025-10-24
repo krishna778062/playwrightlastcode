@@ -80,6 +80,9 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly expensifyStatusTag: Locator;
   readonly expensifyApproverTag: Locator;
   readonly expensifyLastUpdatedText: Locator;
+  readonly greenhouseImage: Locator;
+  readonly jobId: RegExp;
+  readonly Published: RegExp;
 
   constructor(page: Page) {
     super(page);
@@ -109,6 +112,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.doceboImage = page.locator('img[src*="docebo"]');
     this.courseStatus = page.locator('span', { hasText: /In progress|Completed|Enrolled/ });
     this.courseType = page.locator('span', { hasText: /E-learning|Classroom/ });
+    this.greenhouseImage = page.locator('img[src*="greenhouse"]');
     // Regex patterns for text matching
     this.prNumberPattern = /^#\d+/;
     this.createdAgoPattern = /^Created\s+.*\s+ago$/;
@@ -127,6 +131,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.fromPattern = /From/;
     this.sentPattern = /Sent \d+ days? ago/;
     this.courseId = /^[A-Z]-/;
+    this.jobId = /Job ID:\s*\d+/;
+    this.Published = /Published.*ago/;
 
     // Schedule tile locators
     this.scheduleContainer = page
@@ -800,6 +806,32 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       // Verify progress percentages are present
       const progress = tile.locator(this.goalProgress);
       await expect(progress.first()).toBeVisible();
+    });
+  }
+  /**
+   * Verify Greenhouse tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyGreenhouseTileContentStructure(tileTitle: string): Promise<void> {
+    await test.step(`Verify Greenhouse tile content structure for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Greenhouse tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+      // Verify added Tile data
+      await expect(tile.locator(this.greenhouseImage), 'Greenhouse image should be visible in tile').toBeVisible();
+      // Get task records and verify at least one exists
+      const containers = tile.locator(this.container);
+      const count = await containers.count();
+      expect(count, 'At least one container should be present in Greenhouse tile').toBeGreaterThan(0);
+      // Verify first record has all required elements
+      const firstRecord = containers.first();
+      await expect(
+        firstRecord.getByText(this.jobId).first(),
+        'Job ID should be visible in the first record'
+      ).toBeVisible();
+      await expect(
+        firstRecord.getByText(this.Published).first(),
+        'Published text should be visible in the first record'
+      ).toBeVisible();
     });
   }
 }
