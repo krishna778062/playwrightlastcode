@@ -4,6 +4,7 @@ import { RecordAudioPromptComponent } from '@chat/ui/components/recordAudioPromp
 import { RecordVideoPromptComponent } from '@chat/ui/components/recordVideoPromptComponent';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { MessageEmojis } from '@/src/core/constants/messageEmojis';
 
 export interface FormattingOptions {
   usesBold?: boolean;
@@ -39,6 +40,11 @@ export class ChatEditorComponent extends BaseComponent {
   readonly emojiPickerContainer: Locator;
   readonly emojiSearchInput: Locator;
   readonly emojiSearchResults: Locator;
+
+  // reaction emoji picker
+
+  readonly reactionEmojiSearchInput: Locator;
+  readonly reactionEmojiSearchResults: Locator;
 
   //actions buttons
   readonly addMediaAttachmentButton: Locator;
@@ -87,6 +93,11 @@ export class ChatEditorComponent extends BaseComponent {
     this.emojiSearchInput = this.page.locator('input[placeholder="Search for an emoji…"]');
     this.emojiSearchResults = this.page.locator(`//div[contains(@class,'emojiPicker')]//button`);
 
+    //reaction emoji picker
+
+    this.reactionEmojiSearchInput = this.page.locator('input[placeholder="Search for an emoji…"]');
+    this.reactionEmojiSearchResults = this.page.locator(`//div[contains(@class,'emojiPicker')]//button`);
+
     //action buttons on editor footer
     this.addMediaAttachmentButton = this.chatEditorComponentContainer.getByLabel('Choose files');
     this.recordAudioButton = this.chatEditorComponentContainer.getByLabel('Record audio');
@@ -109,6 +120,7 @@ export class ChatEditorComponent extends BaseComponent {
   ): Promise<void> {
     await test.step(options?.stepInfo ?? `Sending message: ${message}`, async () => {
       await this.fillInElement(this.inputTextBox, message);
+      await this.page.waitForTimeout(2000);
       await this.clickOnSendMessageButton();
     });
   }
@@ -340,6 +352,36 @@ export class ChatEditorComponent extends BaseComponent {
    * @param emojiCount - Number of emojis to select sequentially
    */
   async selectEmojisFromPicker(emojiCount: number): Promise<void> {
+    await test.step(`Selecting ${emojiCount} emojis from picker`, async () => {
+      for (let i = 1; i <= emojiCount; i++) {
+        await this.clickOnElement(this.emojiButton);
+        await this.verifier.verifyTheElementIsVisible(this.emojiPickerContainer);
+
+        const emojiButtons = this.emojiPickerContainer.locator(
+          `//div[@aria-label='People section' or @aria-label='']/..//button[${i}]`
+        );
+
+        await this.clickOnElement(emojiButtons);
+
+        await this.verifier.verifyTheElementIsNotVisible(this.emojiPickerContainer);
+      }
+    });
+  }
+
+  async reactOnMessageAddreactionbutton(reaction: MessageEmojis, options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo ?? `Picking any random emoji from the emoji picker`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.reactionEmojiPickerbutton, {
+        assertionMessage: 'expecting emoji picker container to be visible',
+      });
+      await this.clickOnElement(this.reactionEmojiPickerbutton.getByLabel(reaction));
+    });
+  }
+
+  /**
+   * Selects emojis from the emoji picker
+   * @param emojiCount - Number of emojis to select sequentially
+   */
+  async selectEmojisbyHoveringOnMessage(emojiCount: number): Promise<void> {
     await test.step(`Selecting ${emojiCount} emojis from picker`, async () => {
       for (let i = 1; i <= emojiCount; i++) {
         await this.clickOnElement(this.emojiButton);
