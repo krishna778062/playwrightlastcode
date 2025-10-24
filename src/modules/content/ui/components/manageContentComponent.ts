@@ -669,6 +669,9 @@ export class ManageContentComponent extends BaseComponent {
           timeout: 20_000,
         }
       );
+    });
+  }
+
   async selectPageOption(): Promise<void> {
     await test.step('Selecting the page option', async () => {
       await this.clickOnElement(this.pageOption);
