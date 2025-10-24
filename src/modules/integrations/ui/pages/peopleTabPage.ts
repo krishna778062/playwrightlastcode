@@ -103,4 +103,31 @@ export class PeopleTabPage extends BasePage {
   async verifyToastMessage(message: string): Promise<void> {
     await this.verifyToastMessageIsVisibleWithText(message);
   }
+
+  async verifySpecificFieldsUncheckedAndDisabledForSyncing(): Promise<void> {
+    await this.peopleTabComponent.verifySpecificFieldsUncheckedAndDisabledForSyncing();
+  }
+
+  async verifySpecificFieldsUncheckedAndDisabledForProvisioning(): Promise<void> {
+    await this.peopleTabComponent.verifySpecificFieldsUncheckedAndDisabledForProvisioning();
+  }
+
+  async verifyFieldOrder(firstFieldName: string, secondFieldName: string): Promise<void> {
+    await this.peopleTabComponent.verifyFieldOrder(firstFieldName, secondFieldName);
+  }
+
+  async verifyNamePronunciationFieldIsEnabledInColumn(
+    columnType: 'display' | 'editable',
+    condition: 'enabled' | 'disabled' = 'enabled'
+  ): Promise<void> {
+    await this.peopleTabComponent.verifyNamePronunciationFieldIsEnabledInColumn(columnType, condition);
+  }
+
+  async verifyNamePronunciationFieldIsEnabledInDisplayColumn(): Promise<void> {
+    await this.peopleTabComponent.verifyNamePronunciationFieldIsEnabledInDisplayColumn();
+  }
+
+  async verifyNamePronunciationFieldIsEnabledInEditableColumn(): Promise<void> {
+    await this.peopleTabComponent.verifyNamePronunciationFieldIsEnabledInEditableColumn();
+  }
 }

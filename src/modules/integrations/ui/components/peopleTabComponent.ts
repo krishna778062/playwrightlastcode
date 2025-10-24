@@ -51,7 +51,10 @@ export class PeopleTabComponent extends BaseComponent {
     this.apiClientToggle = () => this.rootLocator.getByLabel(/API client/i);
   }
 
-  private getFieldCheckbox(fieldName: string, columnType: 'editable' | 'display' | 'syncing'): Locator {
+  private getFieldCheckbox(
+    fieldName: string,
+    columnType: 'editable' | 'display' | 'syncing' | 'provisioning'
+  ): Locator {
     return this.rootLocator.locator(
       `li:has(.provisionSyncDisplay__labelText:has-text("${fieldName}")) .provisionSyncDisplay__${columnType} input[type="checkbox"]`
     );
@@ -272,5 +275,83 @@ export class PeopleTabComponent extends BaseComponent {
       await this.refreshTokenInput().fill(params.refreshToken);
       await this.saveButton().click();
     });
+  }
+
+  async verifySpecificFieldsUncheckedAndDisabledForSyncing(): Promise<void> {
+    await test.step('Verify specific fields are unchecked and disabled for syncing', async () => {
+      for (const fieldName of PEOPLE_TAB.DISABLED_FIELDS) {
+        const isSyncingChecked = await this.isFieldSyncing(fieldName);
+        const syncingCheckbox = this.fieldSyncingCheckbox(fieldName);
+        const isSyncingDisabled = await syncingCheckbox.isDisabled();
+
+        expect(isSyncingChecked, `${fieldName} field should not be checked in syncing column`).toBe(false);
+        expect(isSyncingDisabled, `${fieldName} field should be disabled in syncing column`).toBe(true);
+      }
+    });
+  }
+
+  async verifySpecificFieldsUncheckedAndDisabledForProvisioning(): Promise<void> {
+    await test.step('Verify specific fields are unchecked and disabled for provisioning', async () => {
+      for (const fieldName of PEOPLE_TAB.DISABLED_FIELDS) {
+        const provisioningCheckbox = this.getFieldCheckbox(fieldName, 'provisioning');
+        const isProvisioningChecked = await provisioningCheckbox.isChecked();
+        const isProvisioningDisabled = await provisioningCheckbox.isDisabled();
+
+        expect(isProvisioningChecked, `${fieldName} field should not be checked in provisioning column`).toBe(false);
+        expect(isProvisioningDisabled, `${fieldName} field should be disabled in provisioning column`).toBe(true);
+      }
+    });
+  }
+
+  async verifyFieldOrder(firstFieldName: string, secondFieldName: string): Promise<void> {
+    await test.step(`Verify '${secondFieldName}' field is displayed after '${firstFieldName}' field`, async () => {
+      const firstFieldLocator = this.fieldLabel(firstFieldName);
+      const secondFieldLocator = this.fieldLabel(secondFieldName);
+
+      await expect(firstFieldLocator, `expecting field '${firstFieldName}' to be visible`).toBeVisible();
+      await expect(secondFieldLocator, `expecting field '${secondFieldName}' to be visible`).toBeVisible();
+
+      const firstFieldBox = await firstFieldLocator.boundingBox();
+      const secondFieldBox = await secondFieldLocator.boundingBox();
+
+      expect(
+        firstFieldBox?.y,
+        `'${firstFieldName}' field should appear before '${secondFieldName}' field`
+      ).toBeLessThan(secondFieldBox?.y || 0);
+    });
+  }
+
+  async verifyNamePronunciationFieldIsEnabledInColumn(
+    columnType: 'display' | 'editable',
+    condition: 'enabled' | 'disabled' = 'enabled'
+  ): Promise<void> {
+    await test.step(`Verify "Name pronunciation" field is ${condition} for check and uncheck in ${columnType} column`, async () => {
+      const fieldName = 'Name pronunciation';
+      const checkbox =
+        columnType === 'display' ? this.fieldDisplayCheckbox(fieldName) : this.fieldEditableCheckbox(fieldName);
+
+      await expect(checkbox, `expecting ${fieldName} ${columnType} checkbox to be visible`).toBeVisible();
+      const isDisabled = await checkbox.isDisabled();
+
+      if (condition === 'enabled') {
+        expect(isDisabled, `${fieldName} field should be enabled in ${columnType} column`).toBe(false);
+        await checkbox.check();
+        const isCheckedAfterCheck = await checkbox.isChecked();
+        expect(isCheckedAfterCheck, `${fieldName} field should be checked after clicking check`).toBe(true);
+        await checkbox.uncheck();
+        const isCheckedAfterUncheck = await checkbox.isChecked();
+        expect(isCheckedAfterUncheck, `${fieldName} field should be unchecked after clicking uncheck`).toBe(false);
+      } else {
+        expect(isDisabled, `${fieldName} field should be disabled in ${columnType} column`).toBe(true);
+      }
+    });
+  }
+
+  async verifyNamePronunciationFieldIsEnabledInDisplayColumn(): Promise<void> {
+    await this.verifyNamePronunciationFieldIsEnabledInColumn('display');
+  }
+
+  async verifyNamePronunciationFieldIsEnabledInEditableColumn(): Promise<void> {
+    await this.verifyNamePronunciationFieldIsEnabledInColumn('editable');
   }
 }
