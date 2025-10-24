@@ -23,6 +23,7 @@ export enum IntegrationsSuiteTags {
   SERVICENOW = '@serviceNow',
   CONFLUENCE = '@confluence',
   GREENHOUSE = '@greenhouseAppTiles',
+  RECONNECT_AND_CHANGE_USER = '@reconnectAndChangeUser',
 }
 
 export enum IntegrationsFeatureTags {
@@ -33,6 +34,7 @@ export enum IntegrationsFeatureTags {
   GOOGLE_CALENDAR_EVENTS_SYNC = '@google-calendar-eventsync',
   OUTLOOK_CALENDAR_EVENTS_SYNC = '@outlook-calendar-eventsync',
   CONFLUENCE = '@confluence',
+  RECONNECT_AND_CHANGE_USER = '@reconnectAndChangeUser',
 }
 
 export const TEST_TAGS = {
@@ -65,6 +67,7 @@ export const TEST_TAGS = {
   SERVICENOW: IntegrationsSuiteTags.SERVICENOW,
   GREENHOUSE: IntegrationsSuiteTags.GREENHOUSE,
   CONFLUENCE: IntegrationsSuiteTags.CONFLUENCE,
+  RECONNECT_AND_CHANGE_USER: IntegrationsFeatureTags.RECONNECT_AND_CHANGE_USER,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {
