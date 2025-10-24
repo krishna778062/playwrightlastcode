@@ -572,4 +572,22 @@ export class SiteDashboard {
       radioOptions: [{ fieldName: fieldName, option: ORGANIZATION_SETTINGS.USER_DEFINED }],
     });
   }
+  /**
+   * Complete workflow to add a Greenhouse tile with App Manager Defined settings
+   */
+  async addAppManagerDefinedWithOptions(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    destination: string,
+    fieldName: string,
+    fieldValue: string,
+    fieldName2: string,
+    fieldValue2: string
+  ): Promise<void> {
+    await this.addTile(tileTitle, 'Greenhouse', tileName, destination, {
+      radioOptionsWithValues: [{ fieldName: fieldName, option: 'Site manager defined', value: fieldValue }],
+      fields: [{ name: fieldName2, value: fieldValue2 }],
+    });
+  }
 }

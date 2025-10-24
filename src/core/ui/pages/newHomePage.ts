@@ -6,6 +6,7 @@ import { BasePage } from '@core/ui/pages/basePage';
 import { FooterComponent } from '../components/footerComponent';
 
 import { AddTileComponent } from '@/src/modules/content/ui/components/addTileComponent';
+import { ChangeLayoutComponent } from '@/src/modules/content/ui/components/changeLayoutComponent';
 import { EditBarComponent } from '@/src/modules/content/ui/components/editBarComponent';
 
 export interface INewHomePageActions {
@@ -17,6 +18,8 @@ export interface INewHomePageActions {
   enterTileTitle: (tileTitle: string) => Promise<void>;
   clickOnCustomSCTile: () => Promise<void>;
   setCustomSCTitle: (title: string) => Promise<void>;
+  clickOnChangeLayout: () => Promise<void>;
+  clickExcludeFeed: () => Promise<void>;
 }
 
 export interface INewHomePageAssertions {
@@ -26,6 +29,7 @@ export interface INewHomePageAssertions {
 }
 
 export class NewHomePage extends BasePage {
+  readonly changeLayoutComponent: ChangeLayoutComponent;
   readonly footerComponent: FooterComponent;
   readonly manageDashboardCarouselButton: Locator;
   readonly editbarComponent: EditBarComponent;
@@ -42,6 +46,7 @@ export class NewHomePage extends BasePage {
     this.tileListComponent = (tileTitle: string) => page.getByRole('heading', { name: tileTitle });
     this.socialCampaignNameInTileList = (socialCampaignName: string) =>
       page.getByRole('button', { name: socialCampaignName }).first();
+    this.changeLayoutComponent = new ChangeLayoutComponent(page);
   }
 
   get actions(): INewHomePageActions {
@@ -127,5 +132,13 @@ export class NewHomePage extends BasePage {
 
   async setCustomSCTitle(title: string): Promise<void> {
     return this.addTileComponent.setCustomSCTitle(title);
+  }
+
+  async clickOnChangeLayout(): Promise<void> {
+    return this.editbarComponent.clickChangeLayout();
+  }
+
+  async clickExcludeFeed(): Promise<void> {
+    return this.changeLayoutComponent.clickExcludeFeed();
   }
 }
