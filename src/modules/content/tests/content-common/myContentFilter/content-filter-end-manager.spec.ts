@@ -206,6 +206,26 @@ test.describe(
         await manageContentPage.assertions.verifyManageContentListItemCount(16);
         await manageContentPage.actions.clickShowMoreButton();
         await manageContentPage.assertions.verifyManageContentListItemCount(17);
+      'application allow to filter on my content page using Author By filter',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-10822'],
+      },
+      async ({ standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'Application allow to filter on my content page using Author By filter',
+          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
+          zephyrTestId: 'CONT-10822',
+          storyId: 'CONT-10822',
+        });
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.selectCreatedNewestOption();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectPageOption();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.DRAFT);
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.verifyDraftTagVisibleInManageContent();
       }
     );
   }

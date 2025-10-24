@@ -5,10 +5,12 @@ import { BaseComponent } from '@/src/core';
 export class SubjectLineCustomizationComponent extends BaseComponent {
   readonly customSubjectLineOption: Locator;
   readonly defaultSubjectLineOption: Locator;
+  readonly customSubjectTextarea: Locator;
   constructor(page: Page) {
     super(page);
     this.customSubjectLineOption = page.getByLabel('Custom subject line');
     this.defaultSubjectLineOption = page.getByLabel('Default subject line');
+    this.customSubjectTextarea = page.locator('#customSubjectTextarea');
   }
 
   /**
@@ -46,7 +48,38 @@ export class SubjectLineCustomizationComponent extends BaseComponent {
    */
   async fillCustomSubjectLine(customSubjectLine: string): Promise<void> {
     await test.step(`Fill custom subject line: ${customSubjectLine}`, async () => {
-      await this.page.locator('#customSubjectTextarea').fill(customSubjectLine);
+      await this.customSubjectTextarea.fill(customSubjectLine);
+    });
+  }
+
+  /**
+   * Verifies the default subject line label is visible
+   */
+  async verifyDefaultSubjectLineIsVisible(): Promise<void> {
+    await test.step('Verify default subject line label is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.defaultSubjectLineOption, {
+        assertionMessage: 'Default subject line label should be visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies the custom subject line label is visible
+   */
+  async verifyCustomSubjectLineIsVisible(): Promise<void> {
+    await test.step('Verify custom subject line label is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.customSubjectLineOption, {
+        assertionMessage: 'Custom subject line label should be visible',
+      });
+    });
+  }
+
+  /**
+   * Clears the custom subject line
+   */
+  async clearCustomSubjectLine(): Promise<void> {
+    await test.step('Clear custom subject line', async () => {
+      await this.customSubjectTextarea.clear();
     });
   }
 }

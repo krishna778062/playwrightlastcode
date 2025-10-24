@@ -1,5 +1,4 @@
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
-import { SocialInteractionSql } from '@data-engineering/sqlQueries/social-interaction';
 import { Page, test } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
@@ -8,6 +7,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { PeriodFilterTimeRange } from '../../../constants/periodFilterTimeRange';
 import { SnowflakeHelper, SocialInteractionDashboardQueryHelper } from '../../../helpers';
+import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
 import { SocialInteractionDashboard } from '../../../ui/dashboards';
 
 import {
@@ -17,7 +17,7 @@ import {
 } from '@/src/modules/data-engineering/helpers/dashboardSetupHelper';
 
 test.describe(
-  'social Interaction Dashboard - Default State Validation',
+  'social Interaction Dashboard - Metrics Default Load State',
   {
     tag: [DataEngineeringTestSuite.SOCIAL_INTERACTION, '@default-state'],
   },
@@ -28,13 +28,23 @@ test.describe(
       socialInteractionQueryHelper: SocialInteractionDashboardQueryHelper;
       snowflakeHelper: SnowflakeHelper;
     };
+    let testFiltersConfig: FilterOptions;
 
-    const defaultPeriodFilter = PeriodFilterTimeRange.LAST_30_DAYS;
-
-    test.beforeAll('Setup Social Interaction Dashboard', async ({ browser }) => {
+    test.beforeAll('Setup Social Interaction Dashboard with default filters', async ({ browser }) => {
       // Setup dashboard using dedicated method
-      // No filters applied - testing default state (Last 30 days)
       testEnvironment = await setupSocialInteractionDashboardForTest(browser, UserRole.APP_MANAGER);
+
+      // Define unified filter configuration for default state (Last 30 days)
+      testFiltersConfig = {
+        tenantCode: process.env.ORG_ID!,
+        timePeriod: PeriodFilterTimeRange.LAST_30_DAYS,
+      };
+
+      const { analyticsFiltersComponent } = testEnvironment.socialInteractionDashboard;
+      await analyticsFiltersComponent.verifyFilterComponentIsVisible();
+
+      // Apply filters using unified configuration
+      await analyticsFiltersComponent.applyFiltersFromConfig(testFiltersConfig);
     });
 
     test.afterAll('Cleanup Social Interaction Dashboard', async () => {
@@ -54,13 +64,14 @@ test.describe(
           storyId: 'DE-25753',
         });
 
-        //get expected metric value from snowflake with default period (Last 30 days)
-        const expectedMetricValue = await testEnvironment.socialInteractionQueryHelper.getHeroMetricDataFromDB(
-          SocialInteractionSql.Reaction_Count,
-          defaultPeriodFilter
-        );
+        const { socialInteractionQueryHelper } = testEnvironment;
 
-        //UI validation
+        // Get expected metric value from snowflake with filters applied
+        const expectedMetricValue = await socialInteractionQueryHelper.getReactionCountDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // UI validation
         const reactionsOrLikesMetric = testEnvironment.socialInteractionDashboard.reactionsOrLikesMetrics;
         await reactionsOrLikesMetric.verifyMetricUIDataPoints();
         await reactionsOrLikesMetric.verifyMetricValue(expectedMetricValue);
@@ -80,16 +91,18 @@ test.describe(
           storyId: 'DE-25754',
         });
 
-        //get expected metric value from snowflake with default period (Last 30 days)
-        const expectedMetricValue = await testEnvironment.socialInteractionQueryHelper.getHeroMetricDataFromDB(
-          SocialInteractionSql.Feed_Posts_Comments_Count,
-          defaultPeriodFilter
-        );
+        const { socialInteractionQueryHelper } = testEnvironment;
 
-        //UI validation
+        // Get expected metric value from snowflake with filters applied
+        const expectedMetricValue =
+          await socialInteractionQueryHelper.getFeedPostsAndCommentsCountDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // UI validation
         const feedPostsAndCommentsMetric = testEnvironment.socialInteractionDashboard.feedPostsAndComments;
         await feedPostsAndCommentsMetric.verifyMetricIsLoaded();
-        await feedPostsAndCommentsMetric.verifyMetricValueIsLoadedForHeroMetric(expectedMetricValue);
+        await feedPostsAndCommentsMetric.verifyMetricValue(expectedMetricValue);
       }
     );
 
@@ -105,16 +118,17 @@ test.describe(
           storyId: 'DE-25754',
         });
 
-        //get expected metric value from snowflake with default period (Last 30 days)
-        const expectedMetricValue = await testEnvironment.socialInteractionQueryHelper.getHeroMetricDataFromDB(
-          SocialInteractionSql.Replies_Count,
-          defaultPeriodFilter
-        );
+        const { socialInteractionQueryHelper } = testEnvironment;
 
-        //UI validation
+        // Get expected metric value from snowflake with filters applied
+        const expectedMetricValue = await socialInteractionQueryHelper.getRepliesCountDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // UI validation
         const repliesMetric = testEnvironment.socialInteractionDashboard.replies;
         await repliesMetric.verifyMetricIsLoaded();
-        await repliesMetric.verifyMetricValueIsLoadedForHeroMetric(expectedMetricValue);
+        await repliesMetric.verifyMetricValue(expectedMetricValue);
       }
     );
 
@@ -130,16 +144,17 @@ test.describe(
           storyId: 'DE-25769',
         });
 
-        //get expected metric value from snowflake with default period (Last 30 days)
-        const expectedMetricValue = await testEnvironment.socialInteractionQueryHelper.getHeroMetricDataFromDB(
-          SocialInteractionSql.Shares_Count,
-          defaultPeriodFilter
-        );
+        const { socialInteractionQueryHelper } = testEnvironment;
 
-        //UI validation
+        // Get expected metric value from snowflake with filters applied
+        const expectedMetricValue = await socialInteractionQueryHelper.getSharesCountDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // UI validation
         const sharesMetric = testEnvironment.socialInteractionDashboard.shares;
         await sharesMetric.verifyMetricIsLoaded();
-        await sharesMetric.verifyMetricValueIsLoadedForHeroMetric(expectedMetricValue);
+        await sharesMetric.verifyMetricValue(expectedMetricValue);
       }
     );
 
@@ -155,20 +170,21 @@ test.describe(
           storyId: 'DE-25756',
         });
 
-        //get expected metric value from snowflake with default period (Last 30 days)
-        const expectedMetricValue = await testEnvironment.socialInteractionQueryHelper.getHeroMetricDataFromDB(
-          SocialInteractionSql.Favorites_Count,
-          defaultPeriodFilter
-        );
+        const { socialInteractionQueryHelper } = testEnvironment;
 
-        //UI validation
+        // Get expected metric value from snowflake with filters applied
+        const expectedMetricValue = await socialInteractionQueryHelper.getFavoritesCountDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // UI validation
         const favoritesMetric = testEnvironment.socialInteractionDashboard.favorites;
         await favoritesMetric.verifyMetricIsLoaded();
-        await favoritesMetric.verifyMetricValueIsLoadedForHeroMetric(expectedMetricValue);
+        await favoritesMetric.verifyMetricValue(expectedMetricValue);
       }
     );
 
-    //tabular data validations
+    // Tabular data validations
     test(
       'verify social campaign shares tabular data validation with default period filter (Last 30 days)',
       {
@@ -182,15 +198,17 @@ test.describe(
           storyId: 'DE-25757',
         });
 
-        const socialCampaignShareData = await testEnvironment.socialInteractionQueryHelper.getCampaignShareDataFromDB(
-          SocialInteractionSql.Social_Campaign_Shares,
-          defaultPeriodFilter
-        );
+        const { socialInteractionQueryHelper } = testEnvironment;
 
-        //verify the same data is displayed in the dashboard
+        // Get expected data from snowflake with filters applied
+        const socialCampaignShareData = await socialInteractionQueryHelper.getCampaignShareDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // Verify the same data is displayed in the dashboard
         const socialCampaignShareDistribution =
           testEnvironment.socialInteractionDashboard.socialCampaignShareDistribution;
-        await socialCampaignShareDistribution.verifyDataMatchesWithSnowflakeData(socialCampaignShareData);
+        await socialCampaignShareDistribution.verifyUIDataMatchesWithSnowflakeData(socialCampaignShareData);
       }
     );
 
