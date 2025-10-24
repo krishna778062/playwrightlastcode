@@ -1,6 +1,6 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { ContentStatus, SortOptionLabels } from '@modules/content/constants';
+import { SortOptionLabels } from '@modules/content/constants';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
@@ -495,6 +495,9 @@ export class ManageContentComponent extends BaseComponent {
   async selectSortOption(sortBy: SortOptionLabels): Promise<void> {
     await test.step(`Selecting sort option: ${sortBy}`, async () => {
       await this.sortByButton.selectOption({ label: sortBy });
+    });
+  }
+
   async verifyManageContentListItemCount(expectedCount: number): Promise<void> {
     await test.step(`Verifying ManageContentListItem count is ${expectedCount}`, async () => {
       await this.waitForManageContentListItems();
