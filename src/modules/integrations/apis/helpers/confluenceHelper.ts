@@ -58,6 +58,16 @@ export class ConfluenceHelper {
   }
 
   async handleConfluenceLogin(incorrectCredentials: boolean = false): Promise<void> {
+    await this.page.waitForLoadState('domcontentloaded');
+    if (await this.acceptButton.isVisible({ timeout: 10000 })) {
+      await this.acceptButton.click();
+      await this.page.waitForLoadState('domcontentloaded');
+    }
+
+    if (!(await this.usernameInput.isVisible({ timeout: 10000 }))) {
+      return;
+    }
+
     await this.usernameInput.waitFor({ state: 'visible', timeout: 10000 });
     await this.usernameInput.fill(CONFLUENCE_CREDENTIALS.username);
     await this.loginButton.click();
@@ -88,8 +98,7 @@ export class ConfluenceHelper {
     globalSearchResultPage: GlobalSearchResultPage
   ): Promise<void> {
     await test.step('Click confluence knowledge base name in search results', async () => {
-      await globalSearchResultPage.page.waitForLoadState('domcontentloaded');
-      await globalSearchResultPage.page.waitForTimeout(10000);
+      await globalSearchResultPage.verifyThePageIsLoaded();
       await globalSearchResultPage.page.locator(`span:has-text("${knowledgeBaseName}")`).first().click();
     });
   }
@@ -99,11 +108,10 @@ export class ConfluenceHelper {
     globalSearchResultPage: GlobalSearchResultPage
   ): Promise<void> {
     await test.step('Verify confluence knowledge base name in search results', async () => {
-      await globalSearchResultPage.page.waitForLoadState('domcontentloaded');
-      await globalSearchResultPage.page.waitForTimeout(10000);
+      await globalSearchResultPage.verifyThePageIsLoaded();
       await globalSearchResultPage.page.waitForSelector(`span:has-text("${knowledgeBaseName}")`, {
         state: 'visible',
-        timeout: 10000,
+        timeout: 30000,
       });
       const knowledgeBaseNameInSearchResults = globalSearchResultPage.page.locator(
         `span:has-text("${knowledgeBaseName}")`

@@ -90,6 +90,7 @@ export interface IFeedAssertions {
   verifyQuestionButtonIsVisible: () => Promise<void>;
   verifyFeedSectionIsVisible: () => Promise<void>;
   verifyFeedSectionIsNotVisible: () => Promise<void>;
+  verifySmartFeedBlocksAreNotVisible: () => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -102,6 +103,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   readonly optionLocator: Locator;
   readonly sortByLocator: Locator;
   readonly sortByFilter: Locator;
+  readonly celebrityFeedBlocks: Locator;
+  readonly newHireFeedBlocks: Locator;
 
   constructor(page: Page, feedId?: string) {
     super(page, feedId ? PAGE_ENDPOINTS.getFeedPage(feedId) : '');
@@ -116,6 +119,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     // Feed filter dropdown
     this.feedFilterSelect = this.page.locator('select[id="feed_filter"]');
     this.optionLocator = this.page.getByLabel('Show', { exact: true });
+    this.celebrityFeedBlocks = this.page.locator('strong:has-text("celebration")');
+    this.newHireFeedBlocks = this.page.locator('strong:has-text("new hire")');
   }
 
   get actions(): IFeedActions {
@@ -458,6 +463,15 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async verifyFeedSectionIsNotVisible(): Promise<void> {
     await this.verifier.verifyTheElementIsNotVisible(this.shareThoughtsButton, {
       assertionMessage: 'Feed section should not be visible',
+    });
+  }
+
+  async verifySmartFeedBlocksAreNotVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.celebrityFeedBlocks, {
+      assertionMessage: 'Smart feed blocks should not be visible',
+    });
+    await this.verifier.verifyTheElementIsNotVisible(this.newHireFeedBlocks, {
+      assertionMessage: 'Smart feed blocks should not be visible',
     });
   }
 }

@@ -38,7 +38,7 @@ test.describe(
         await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
 
         // Verify App Level Connection & Disconnection Flow
-        await supportAndTicketingPage.actions.clickDisconnectConfluenceButton();
+        await supportAndTicketingPage.actions.disconnectConfluenceServiceAccount();
         await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountIsDisconnected();
         await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
         await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
