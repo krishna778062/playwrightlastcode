@@ -86,6 +86,13 @@ export class CSVUtils {
       throw new Error(`Line 4 does not contain valid headers: "${headerLine}"`);
     }
 
+    console.log(`Debug: Headers found at line 4: [${headerLine}]`);
+    console.log(
+      `Debug: Headers split: [${headerLine
+        .split(',')
+        .map(h => h.trim())
+        .join(', ')}]`
+    );
     return headerLine.split(',').map(h => h.trim());
   }
 
@@ -148,6 +155,7 @@ export class CSVUtils {
     data: CSVRow[];
   }> {
     // Debug: Log all lines to understand the structure
+    console.log(`Debug: Parsing CSV file from path: ${csvPath}`);
     const lines = this.getCSVLines(csvPath);
     console.log('=== CSV File Structure Debug ===');
     console.log(`Total lines: ${lines.length}`);
@@ -192,6 +200,7 @@ export class CSVUtils {
     dateRangeMatch: boolean;
     metadata: CSVReportMetadata;
   }> {
+    console.log('Validating CSV metadata...');
     // Use the new dedicated metadata method
     const metadata = this.getReportMetadataFromCSV(csvPath);
     const headers = this.getHeadersFromReportCSV(csvPath);
@@ -246,7 +255,7 @@ export class CSVUtils {
     unexpectedHeaders: string[];
     metadata: CSVReportMetadata;
   }> {
-    // Use the new dedicated metadata method
+    console.log('Validating CSV headers...');
     const metadata = this.getReportMetadataFromCSV(csvPath);
     const actualHeaders = this.getHeadersFromReportCSV(csvPath);
 

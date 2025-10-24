@@ -183,10 +183,8 @@ export class CSVValidationUtil {
     try {
       //step1: generate expected date range
       const expectedDateRange = DateHelper.generateExpectedCSVDateRange(selectedPeriod as any);
-      console.log(`📅 Expected date range for ${selectedPeriod}: ${expectedDateRange}`);
+      console.log(`Expected date range for ${selectedPeriod}: ${expectedDateRange}`);
 
-      //step2: validate metadata (title and date range)
-      console.log('🔍 Validating CSV metadata...');
       const metadataValidation = await CSVUtils.validateReportMetadata(metricName, expectedDateRange, csvPath);
 
       result.validationDetails.metadata.isValid = metadataValidation.isValid;
@@ -198,11 +196,10 @@ export class CSVValidationUtil {
           `Metadata validation failed. Title match: ${metadataValidation.titleMatch}, Date range match: ${metadataValidation.dateRangeMatch}`
         );
       } else {
-        console.log('✅ CSV metadata validation passed');
+        console.log('Info: CSV metadata validation passed');
       }
 
       //step3: validate headers
-      console.log('🔍 Validating CSV headers...');
       const headersValidation = await CSVUtils.validateReportHeaders(expectedHeaders, csvPath);
 
       result.validationDetails.headers.isValid = headersValidation.isValid;
@@ -214,35 +211,36 @@ export class CSVValidationUtil {
           `Headers validation failed. Missing: [${headersValidation.missingHeaders.join(', ')}]. Unexpected: [${headersValidation.unexpectedHeaders.join(', ')}]`
         );
       } else {
-        console.log('✅ CSV headers validation passed');
+        console.log('Info: CSV headers validation passed');
       }
 
       //step4: parse CSV data
-      console.log('📊 Parsing CSV data...');
       const reportData = await CSVUtils.parseReportCSV(csvPath);
       result.summary.csvRecordCount = reportData.data.length;
 
       //step4.5: transform CSV data to DB format
-      console.log('🔄 Transforming CSV data to DB format...');
+      console.log('Info:Transforming CSV data to DB format...');
       const transformedCSVData = this.transformCSVToDBFormat(reportData.data, transformations);
-      console.log(`✅ Transformed ${transformedCSVData.length} CSV records to DB format`);
+      console.log(`Info: Transformed ${transformedCSVData.length} CSV records to DB format`);
 
       if (reportData.data.length === 0) {
         if (expectedDBData.length > 0) {
           result.errors.push(
             `CSV file has no data rows but DB has ${expectedDBData.length} records - this is an error`
           );
-          console.log(`❌ CSV file has no data rows but DB has ${expectedDBData.length} records - validation failed`);
+          console.log(
+            `Error: CSV file has no data rows but DB has ${expectedDBData.length} records - validation failed`
+          );
         } else {
           result.errors.push('CSV file has no data rows and DB also has no records - this might be expected');
-          console.log('⚠️ CSV file has no data rows and DB also has no records - this might be expected');
+          console.log('Info: CSV file has no data rows and DB also has no records - this might be expected');
         }
         return result;
       }
 
       //step5: validate data integrity
       console.log(
-        `🔍 Validating ${transformedCSVData.length} transformed CSV rows against ${expectedDBData.length} DB records`
+        `Debug: Validating ${transformedCSVData.length} transformed CSV rows against ${expectedDBData.length} DB records`
       );
 
       //step6: check row count matches

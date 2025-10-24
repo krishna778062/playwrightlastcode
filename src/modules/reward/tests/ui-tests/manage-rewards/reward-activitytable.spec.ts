@@ -480,7 +480,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
           const headersValidation = await CSVUtils.validateHeaders(csvHeaders, csvFile.filePath);
           expect(
             headersValidation.isValid,
-            `Missing headers: ${headersValidation.missingHeaders}. Unexpected headers: ${headersValidation.unexpectedHeaders}`
+            `Expecting csv headers: ${csvHeaders} to be present in the downloaded CSV file`
           ).toBeTruthy();
         } finally {
           // Clean up using FileUtil
