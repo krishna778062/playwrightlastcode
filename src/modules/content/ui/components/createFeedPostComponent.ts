@@ -96,7 +96,7 @@ export class CreateFeedPostComponent
     this.page.locator("div[class*='ListingItem-module__details'] p").filter({ hasText: name });
 
   // Share options section - for site feed sharing
-  readonly shareOptionDropdown = this.page.locator('select[id="shareSubject"]');
+  readonly shareOptionDropdown = this.page.getByLabel('Post in');
   readonly selectSiteInput = this.page.locator('div:has-text("Select site") + div >> input');
   readonly noResultsText = this.page.getByText('No results');
 
@@ -581,9 +581,6 @@ export class CreateFeedPostComponent
       if (!isChecked) {
         // Click the checkbox using JavaScript to ensure it works
         await checkbox.check();
-        console.log(`Checkbox for "${fileName}" is now checked.`);
-      } else {
-        console.log(`Checkbox for "${fileName}" was already checked.`);
       }
     });
   }
