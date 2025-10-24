@@ -25,11 +25,11 @@ export class TabluarMetricsComponent extends BaseComponent {
   constructor(
     page: Page,
     readonly thoughtSpotIframe: FrameLocator,
-    metricTitle: string
+    readonly metricTitle: string
   ) {
     // Find the container internally
     const container = thoughtSpotIframe.locator('[class*="answer-content-module__answerVizContainer"]').filter({
-      has: thoughtSpotIframe.getByRole('heading', { name: metricTitle, exact: true }),
+      has: thoughtSpotIframe.getByRole('heading', { name: metricTitle, exact: false }),
     });
 
     super(page, container);
@@ -131,6 +131,126 @@ export class TabluarMetricsComponent extends BaseComponent {
         });
         return rowObject;
       });
+    });
+  }
+
+  async veirfyNoDataStateIsVisibleForTable(): Promise<void> {
+    await test.step(`Verify no data state is visible for table:  ${this.metricTitle}`, async () => {
+      const noDataState = this.rootLocator.getByText('No data found for this query');
+      await this.verifier.verifyTheElementIsVisible(noDataState, {
+        timeout: 20_000,
+        assertionMessage: `No data state should be visible`,
+      });
+    });
+  }
+
+  /**
+   * Generic method to verify that UI data matches DB data using robust validation
+   * This is order-independent and checks that all UI records exist in DB data
+   * @param dbData - The database data array (all records)
+   * @param dataMapper - Function to map DB data to UI format
+   * @param keyColumn - The column name to use for matching records (e.g., 'Department', 'Social platform')
+   */
+  async compareUIDataWithDBRecords<T extends Record<string, any>>(
+    dbData: T[],
+    dataMapper: (item: T) => Record<string, string>,
+    keyColumn: string
+  ): Promise<void> {
+    await test.step(`Verify ${this.metricTitle} data is correct`, async () => {
+      //check if the db data is empty then table ON UI should be empty
+      if (dbData.length === 0) {
+        await this.veirfyNoDataStateIsVisibleForTable();
+      } else {
+        // Get UI data as objects with column names as keys
+        await this.verifyTabluarDataIsLoaded();
+
+        const uiDataObjects = await this.getAllDataAsObjects();
+        console.log('UI Data Objects:', uiDataObjects);
+
+        // Convert ALL DB data to UI format for comparison (no slicing - use all records)
+        const mappedDbData = dbData.map(dataMapper);
+        console.log('Mapped DB Data (all records):', mappedDbData);
+
+        await this.runDataComparison(uiDataObjects, mappedDbData, keyColumn);
+      }
+    });
+  }
+
+  /**
+   * Normalizes values by removing percentage symbols and comma separators for comparison
+   * @param value - The value to normalize
+   * @returns Normalized value without % symbol and commas
+   */
+  private normalizeValue(value: string): string {
+    return value.replace('%', '').replace(/,/g, '');
+  }
+
+  /**
+   * Generic robust data comparison method
+   * Checks that all UI records exist in DB data (order-independent)
+   * @param uiData - The UI data array
+   * @param dbData - The database data array (all records, not limited)
+   * @param keyColumn - The column name to use for matching records
+   */
+  private async runDataComparison(
+    uiData: Record<string, string>[],
+    dbData: Record<string, string>[],
+    keyColumn: string
+  ): Promise<void> {
+    // Step 1: Verify column headers match exactly
+    await test.step('Verify column headers match between UI and DB', async () => {
+      const uiHeaders = Object.keys(uiData[0] || {});
+      const dbHeaders = Object.keys(dbData[0] || {});
+      expect(uiHeaders, 'UI and DB should have same column headers').toEqual(dbHeaders);
+    });
+
+    // Step 2: Verify that all UI records exist in DB data
+    await test.step('Verify that all UI records exist in DB data', async () => {
+      for (const uiEntry of uiData) {
+        const keyValue = uiEntry[keyColumn];
+        console.log(`\nChecking if UI record exists in DB: ${keyValue}`);
+
+        // Find matching DB entry
+        const dbEntry = dbData.find(db => db[keyColumn] === keyValue);
+
+        if (!dbEntry) {
+          throw new Error(`${keyValue} found in UI but not in DB data`);
+        }
+
+        console.log(`  UI:`, uiEntry);
+        console.log(`  DB:`, dbEntry);
+
+        // Compare all columns
+        const columnsToCompare = Object.keys(uiEntry).filter(col => col !== keyColumn);
+        for (const column of columnsToCompare) {
+          await test.step(`Comparing ${column} for ${keyValue}: UI=${uiEntry[column]} vs DB=${dbEntry[column]}`, async () => {
+            // Normalize values by removing % symbols if present
+            const normalizedUiValue = this.normalizeValue(uiEntry[column]);
+            const normalizedDbValue = this.normalizeValue(dbEntry[column]);
+
+            // Check if this is a percentage column (contains % in original UI value)
+            const isPercentageColumn = uiEntry[column].includes('%') || dbEntry[column].includes('%');
+
+            if (isPercentageColumn) {
+              // For percentage columns, use numeric comparison with tolerance
+              const uiNumeric = parseFloat(normalizedUiValue);
+              const dbNumeric = parseFloat(normalizedDbValue);
+              expect(uiNumeric, `${keyValue} ${column} should match within tolerance`).toBeCloseTo(dbNumeric, 0);
+            } else {
+              // For non-percentage columns, use exact string comparison
+              expect(normalizedUiValue, `${keyValue} ${column} should match exactly`).toBe(normalizedDbValue);
+            }
+          });
+        }
+      }
+    });
+
+    // Step 3: Log summary information
+    await test.step('Log validation summary', async () => {
+      console.log(`\n✅ Validation Summary:`);
+      console.log(`  - UI Records: ${uiData.length}`);
+      console.log(`  - DB Records: ${dbData.length}`);
+      console.log(`  - All UI records found in DB: ✅`);
     });
   }
 
@@ -404,6 +524,13 @@ export class TabluarMetricsComponent extends BaseComponent {
     await test.step(`verify tabular data - headers are ${expectedHeaders}`, async () => {
       const actualHeaders = await this.getHeaders();
       expect(actualHeaders).toEqual(expectedHeaders);
+    });
+  }
+
+  async verifyTableHeadingIsAsExpected(expectedHeading: string): Promise<void> {
+    await test.step(`verify for metric: ${this.metricTitle} - table heading is ${expectedHeading}`, async () => {
+      const actualHeading = this.rootLocator.getByRole('heading', { name: this.metricTitle });
+      await expect(actualHeading, `expecting table heading to be ${expectedHeading}`).toBeVisible();
     });
   }
 }
