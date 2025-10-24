@@ -167,7 +167,8 @@ test.describe(
         });
 
         await appAdoptionDashboard.appWebPageViewsMetrics.scrollToComponent();
-        // await appAdoptionDashboard.appWebPageViewsMetrics.verifyUIDataMatchesWithSnowflakeData(totalAppWebPageViews);
+        //UI Data Validation
+        await appAdoptionDashboard.appWebPageViewsMetrics.verifyUIDataMatchesWithSnowflakeData(totalAppWebPageViews);
 
         //verify the downloaded file is not empty
         const { filePath } = await appAdoptionDashboard.appWebPageViewsMetrics.downloadDataAsCSV();
@@ -241,10 +242,10 @@ test.describe(
         console.log(`Downloaded data from UI should be saved at: ${filePath}`);
 
         //validate the data on UI matches with the data from snowflake
-        // await leadersMetrics.verifyUIDataMatchesWithSnowflakeData(
-        //   adoptionLeadersDataFromSnowflake,
-        //   GroupByOnUserParameter.DEPARTMENT
-        // );
+        await leadersMetrics.verifyUIDataMatchesWithSnowflakeData(
+          adoptionLeadersDataFromSnowflake,
+          GroupByOnUserParameter.DEPARTMENT
+        );
 
         //validate the data in the CSV matches with the data from snowflake
         await CSVValidationUtil.validateAndAssert({
