@@ -311,5 +311,23 @@ test.describe(
         await manageContentPage.actions.verifyingValidationRequiredBarState();
       }
     );
+
+    test(
+      'verify user able to select all max 50 items under Content tab in Manage Content page',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20541'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify user able to select all max 50 items under Content tab in Manage Content page',
+          zephyrTestId: 'CONT-20541',
+          storyId: 'CONT-20541',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.verifyAllContentsAreSelected(17);
+      }
+    );
   }
 );
