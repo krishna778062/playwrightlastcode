@@ -10,6 +10,12 @@ import { BasePage } from '@/src/core/ui/pages/basePage';
 export interface ILoginPageActions {
   performLogin: (username: string, password: string, options?: { timeout?: number }) => Promise<NewHomePage>;
   performLoginWithPassword: (username: string, password: string, options?: { timeout?: number }) => Promise<void>;
+  performFirstTimeLoginBySettingPassword: (
+    username: string,
+    password: string,
+    options?: { timeout?: number }
+  ) => Promise<void>;
+  setUserProfileSecurityQuestions: () => Promise<void>;
 }
 
 export class LoginPage extends BasePage implements ILoginPageActions {
@@ -17,6 +23,15 @@ export class LoginPage extends BasePage implements ILoginPageActions {
   readonly continueButton: Locator;
   readonly passwordInput: Locator;
   readonly signInButton: Locator;
+  readonly newPasswordInput: Locator;
+  readonly confirmPasswordInput: Locator;
+  readonly selectDepartment: Locator;
+  readonly firstQuestion: Locator;
+  readonly firstAnswer: Locator;
+  readonly secondQuestion: Locator;
+  readonly secondAnswer: Locator;
+  readonly thirdQuestion: Locator;
+  readonly thirdAnswer: Locator;
 
   get actions(): ILoginPageActions {
     return this;
@@ -28,6 +43,15 @@ export class LoginPage extends BasePage implements ILoginPageActions {
     this.continueButton = this.page.getByRole('button', { name: 'Continue' });
     this.passwordInput = this.page.locator("input[name='inputPassword']");
     this.signInButton = this.page.getByRole('button', { name: 'Sign in' });
+    this.newPasswordInput = this.page.locator("input[name='initialPassword']");
+    this.confirmPasswordInput = this.page.locator("input[name='confirmPasswordField']");
+    this.selectDepartment = this.page.getByTestId('SelectInput');
+    this.firstQuestion = this.page.locator('#firstQuestion');
+    this.firstAnswer = this.page.locator('#firstAnswer');
+    this.secondQuestion = this.page.locator('#secondQuestion');
+    this.secondAnswer = this.page.locator('#secondAnswer');
+    this.thirdQuestion = this.page.locator('#thirdQuestion');
+    this.thirdAnswer = this.page.locator('#thirdAnswer');
   }
 
   /**
@@ -77,6 +101,39 @@ export class LoginPage extends BasePage implements ILoginPageActions {
       });
       await this.passwordInput.fill(password);
       await this.signInButton.click();
+    });
+  }
+
+  async performFirstTimeLoginBySettingPassword(
+    username: string,
+    password: string,
+    options?: {
+      timeout?: number;
+    }
+  ) {
+    await test.step(`Logging in with username ${username} and password ${password}`, async () => {
+      await this.fillInElement(this.usernameInput, username);
+      await this.clickOnElement(this.continueButton);
+      await this.selectDepartment.selectOption('QA');
+      await this.clickOnElement(this.continueButton);
+      await this.fillInElement(this.newPasswordInput, password);
+      await this.fillInElement(this.confirmPasswordInput, password);
+      await this.clickOnElement(this.signInButton);
+    });
+  }
+
+  async setUserProfileSecurityQuestions(options?: { timeout?: number }): Promise<void> {
+    await test.step('Setting user profile security questions for user', async () => {
+      await this.page.waitForURL(/login\/profile-update/, {
+        timeout: options?.timeout || TIMEOUTS.MEDIUM,
+      });
+      await this.firstQuestion.selectOption('What is your favorite time of the day?');
+      await this.fillInElement(this.firstAnswer, 'automation');
+      await this.secondQuestion.selectOption('What is the maiden name of your mother?');
+      await this.fillInElement(this.secondAnswer, 'automation');
+      await this.thirdQuestion.selectOption('Which is your favorite animal?');
+      await this.fillInElement(this.thirdAnswer, 'automation');
+      await this.clickOnElement(this.continueButton);
     });
   }
 }
