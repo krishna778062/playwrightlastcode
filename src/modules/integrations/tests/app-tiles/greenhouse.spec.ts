@@ -10,7 +10,7 @@ import { UI_ACTIONS } from '../../constants/common';
 import { GREENHOUSE_VALUES } from '../../test-data/app-tiles.test-data';
 
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
-// import { GREENHOUSE_VALUES } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import { REDIRECT_URLS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 test.describe(
   'greenhouse App Tiles Integration',
@@ -167,7 +167,7 @@ test.describe(
           tileName,
           UI_ACTIONS.ADD_TO_SITE,
           GREENHOUSE_VALUES.JOB_TYPE,
-          GREENHOUSE_VALUES.INTERNAL,
+          GREENHOUSE_VALUES.ALL,
           GREENHOUSE_VALUES.JOB_BOARD_TOKEN,
           GREENHOUSE_VALUES.JOB_BOARD_TOKEN_VALUE
         );
@@ -218,6 +218,80 @@ test.describe(
         await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
         await siteDashboard.isTilePresent(updatedTileTitle);
         createdTileTitle = updatedTileTitle;
+        createdTileTitle = undefined;
+      }
+    );
+    test(
+      'verify UI layout for Greenhouse App Tiles on Home Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-28686', 'INT-28687'],
+          storyId: 'INT-24587',
+        });
+
+        // Use homeDashboard from fixture
+        createdTileTitle = `Greenhouse  report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add,personalize,edit,verify
+        await homeDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          AppName,
+          tileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          GREENHOUSE_VALUES.JOB_TYPE,
+          GREENHOUSE_VALUES.ALL,
+          GREENHOUSE_VALUES.JOB_BOARD_TOKEN,
+          GREENHOUSE_VALUES.JOB_BOARD_TOKEN_VALUE
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // Verify tile content structure
+        await homeDashboard.verifyGreenhouseContentStructure(createdTileTitle);
+        await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.GREENHOUSE);
+      }
+    );
+    test(
+      'verify UI layout for Greenhouse App Tiles on Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-28688', 'INT-28689'],
+          storyId: 'INT-24587',
+        });
+
+        // Use homeDashboard from fixture
+        createdTileTitle = `Greenhouse  report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        //add,personalize,edit,verify
+        await siteDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          AppName,
+          tileName,
+          UI_ACTIONS.ADD_TO_SITE,
+          GREENHOUSE_VALUES.JOB_TYPE,
+          GREENHOUSE_VALUES.ALL,
+          GREENHOUSE_VALUES.JOB_BOARD_TOKEN,
+          GREENHOUSE_VALUES.JOB_BOARD_TOKEN_VALUE
+        );
+        await siteDashboard.isTilePresent(createdTileTitle);
+
+        // Verify tile content structure
+        await siteDashboard.verifyGreenhouseContentStructure(createdTileTitle);
+        await siteDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.GREENHOUSE);
         createdTileTitle = undefined;
       }
     );
