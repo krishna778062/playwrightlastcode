@@ -347,8 +347,8 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
   // verify integration is connected
   async verifyIntegrationIsConnected(provider: ExternalAppProvider, expectedStatus: boolean): Promise<void> {
     await test.step(`Verify ${provider} integration is ${expectedStatus ? 'connected' : 'disconnected'}`, async () => {
+      await this.verifyThePageIsLoaded();
       await this.page.waitForLoadState('domcontentloaded');
-      await this.page.waitForTimeout(10000);
       const isConnected = await this.isIntegrationConnected(provider);
       expect(isConnected).toBe(expectedStatus);
     });
@@ -359,7 +359,7 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
       await this.connectConfluenceButton.click();
 
       await this.page.waitForLoadState('domcontentloaded');
-      await this.page.waitForTimeout(10000);
+      await this.verifyThePageIsLoaded();
       await this.acceptButton.waitFor({ state: 'visible', timeout: 10000 });
       const currentUrl = this.page.url();
       const isConsentPage = currentUrl.includes('/oauth2/authorize/server/consent');

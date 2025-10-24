@@ -297,38 +297,66 @@ export class AccessControlGroupsPage extends BasePage {
    */
   async searchAndSelectUserWithEnter(searchTerm: string): Promise<void> {
     await test.step(`Search for "${searchTerm}" and select with Enter key`, async () => {
-      // Fill search term
+      // Clear and fill search term
+      await this.searchInput.clear();
       await this.searchInput.fill(searchTerm);
 
+      // Wait for input to have value
+      await this.page.waitForFunction(
+        () => {
+          const input = document.querySelector('[role="combobox"]') as HTMLInputElement;
+          return input?.value && input.value.length > 0;
+        },
+        { timeout: TIMEOUTS.SHORT }
+      );
+
       // Wait for dropdown options to appear (state-based wait)
+      // Looking for menuitem which is the correct role for user dropdown
       try {
-        await this.page.waitForSelector('[role="option"]', {
+        await this.page.waitForSelector('[role="menuitem"], [role="option"]', {
           state: 'visible',
-          timeout: TIMEOUTS.VERY_SHORT,
+          timeout: TIMEOUTS.SHORT,
         });
       } catch {
-        // Fallback: wait for any dropdown/listbox to appear
-        await this.page.waitForSelector('[role="listbox"], [class*="dropdown"], [class*="menu"]', {
+        // Fallback: Try clicking on the input to trigger dropdown
+        await this.searchInput.click();
+
+        // Wait for dropdown to appear after click
+        await this.page.waitForFunction(
+          () => {
+            const options = document.querySelectorAll('[role="menuitem"], [role="option"]');
+            return options.length > 0;
+          },
+          { timeout: TIMEOUTS.VERY_SHORT }
+        );
+
+        // Try waiting for dropdown again
+        await this.page.waitForSelector('[role="menuitem"], [role="option"]', {
           state: 'visible',
           timeout: TIMEOUTS.VERY_SHORT,
         });
       }
 
-      // Navigate to first option
+      // Navigate to first option using ArrowDown
       await this.searchInput.press('ArrowDown');
 
-      // Wait for option to be highlighted/active (state-based wait)
+      // Wait for option to be highlighted/active (checking for both menuitem and option roles)
       try {
         await this.page.waitForSelector(
-          '[role="option"][aria-selected="true"], [role="option"].selected, [role="option"]:focus',
+          '[role="menuitem"][aria-selected="true"], [role="option"][aria-selected="true"], [role="menuitem"]:focus, [role="option"]:focus',
           {
             state: 'visible',
             timeout: TIMEOUTS.VERY_VERY_SHORT,
           }
         );
       } catch {
-        // Fallback: short wait for dropdown navigation
-        await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT / 4);
+        // Fallback: wait for any element to be focused
+        await this.page.waitForFunction(
+          () => {
+            return document.activeElement !== null && document.activeElement !== document.body;
+          },
+          { timeout: TIMEOUTS.VERY_SHORT }
+        );
       }
 
       // Select the highlighted option
@@ -365,15 +393,20 @@ export class AccessControlGroupsPage extends BasePage {
 
   async verifyAdminUsersInManagerList(): Promise<void> {
     await test.step('Verify admin users in manager list', async () => {
-      // Wait for the dialog to be fully loaded
-      await this.page.waitForSelector('[role="dialog"]', { state: 'visible', timeout: 10000 });
+      // Wait for manager dialog specifically
+      await this.page.waitForSelector('[role="dialog"]:not([aria-labelledby="your_messages_title"])', {
+        state: 'visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
 
-      // Directly target admin elements in the dialog
-      const adminElements = this.page.locator('[role="dialog"]').getByText(/Admin/i);
+      // Target admin elements in the manager dialog
+      const adminElements = this.page
+        .locator('[role="dialog"]:not([aria-labelledby="your_messages_title"])')
+        .getByText(/Admin/i);
 
       // Use base verification method with auto-retry and polling mechanism
       await this.verifier.verifyCountOfElementsIsGreaterThan(adminElements, 0, {
-        timeout: 10000,
+        timeout: TIMEOUTS.MEDIUM,
         assertionMessage: 'Should have at least one admin user in manager list',
       });
     });

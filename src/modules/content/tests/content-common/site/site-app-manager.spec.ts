@@ -1,11 +1,15 @@
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { ManageFeaturesPage } from '@content/ui/pages/manageFeaturesPage';
+import { ManageSitePage } from '@content/ui/pages/manageSitePage';
 import { SiteCreationPage as ContentSiteCreationPage, SiteCreationPage } from '@content/ui/pages/siteCreationPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
+
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 /**
  * This test suite is used to test the site creation functionality with different access types.
@@ -45,10 +49,14 @@ test.describe(
     let createdSiteId: string;
     let createdSiteName: string;
     let manualCleanupNeeded = false;
-
+    let manageFeaturesPage: ManageFeaturesPage;
+    let manageSitePage: ManageSitePage;
     test.beforeEach('Setting up the test environment for site creation', async ({ appManagerFixture }) => {
       // Create home page instance and verify it's loaded
       await appManagerFixture.homePage.verifyThePageIsLoaded();
+
+      manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
+      manageSitePage = new ManageSitePage(appManagerFixture.page, '');
 
       // Reset cleanup flag for each test
       manualCleanupNeeded = false;
@@ -110,5 +118,31 @@ test.describe(
         }
       );
     }
+    test(
+      `to verify the deactivate option in manage site user drop down sites`,
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.SITE_DEACTIVATION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'To verify the deactivate option in manage site user drop down sites',
+          zephyrTestId: 'CONT-26176',
+          storyId: 'CONT-26176',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
+          hasPages: true,
+        });
+        const siteId = siteInfo.siteId;
+        const siteName = siteInfo.name;
+        await appManagerFixture.siteManagementHelper.siteManagementService.deactivateSite(siteId);
+
+        // Search for the deactivated site in the search bar
+        await manageSitePage.actions.searchForSite(siteName);
+        await manageSitePage.assertions.verifyNoSitesFound(siteName);
+        await appManagerFixture.siteManagementHelper.siteManagementService.activateSite(siteId);
+      }
+    );
   }
 );
