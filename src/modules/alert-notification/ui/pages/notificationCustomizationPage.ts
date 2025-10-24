@@ -19,7 +19,8 @@ export class NotificationCustomizationPage extends BasePage {
   readonly saveButton: Locator;
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.NOTIFICATION_CUSTOMIZATION_PAGE);
-    this.addCustomizationButton = page.getByText('Add customization');
+    // "Add customization" is a link in QA, not a button
+    this.addCustomizationButton = page.locator('a[href*="notifications-customization/add-override"]');
     this.selectNotificationStep = new SelectNotificationStep(page);
     this.subjectLineCustomizationComponent = new SubjectLineCustomizationComponent(page);
     this.nextButton = page.getByRole('button', { name: 'Next' });
@@ -33,6 +34,7 @@ export class NotificationCustomizationPage extends BasePage {
     await test.step('Verify the page is loaded', async () => {
       await this.verifier.verifyTheElementIsVisible(this.addCustomizationButton, {
         assertionMessage: 'Add customization button is visible',
+        timeout: 30000,
       });
     });
   }
@@ -61,20 +63,60 @@ export class NotificationCustomizationPage extends BasePage {
   }
 
   /**
-   * Clicks on the next button
+   * Verifies the next button is disabled
    */
-  async clickOnNextButton(): Promise<void> {
-    await test.step('Click on next button', async () => {
-      await this.clickOnElement(this.nextButton, { stepInfo: 'Click on next button' });
+  async verifyNextButtonIsDisabled(): Promise<void> {
+    await test.step('Verify next button is disabled', async () => {
+      await this.verifier.verifyTheElementIsDisabled(this.nextButton, {
+        assertionMessage: 'Next button should be disabled',
+      });
+    });
+  }
+
+  async clickButton(buttonName: string, step?: string, timeout = 30_000): Promise<void> {
+    const stepName = step || `Click ${buttonName}`;
+    await test.step(stepName, async () => {
+      const button = this.page.getByRole('button', { name: buttonName });
+      await this.clickOnElement(button, { timeout });
     });
   }
 
   /**
-   * Clicks on the save button
+   * Verifies that a toast message with the specified text is visible
+   * @param message - The expected toast message text
    */
-  async clickOnSaveButton(): Promise<void> {
-    await test.step('Click on save button', async () => {
-      await this.clickOnElement(this.saveButton, { stepInfo: 'Click on save button' });
+  async verifyToastMessage(message: string): Promise<void> {
+    await test.step(`Verify toast message: ${message}`, async () => {
+      const specificAlert = this.page.getByRole('alert').filter({ hasText: message }).first();
+      await this.verifier.verifyTheElementIsVisible(specificAlert, {
+        timeout: 15_000,
+        assertionMessage: `Toast should contain: ${message}`,
+      });
+    });
+  }
+
+  /**
+   * Deletes a customization from the menu
+   * @param customizationText - Optional text to identify the specific customization row
+   */
+  async deleteCustomizationFromMenu(customizationText?: string): Promise<void> {
+    await test.step('Delete customization from menu', async () => {
+      // Click the 'More' menu button (first one if no specific text provided)
+      const menuButton = customizationText
+        ? this.page.locator(`tr:has-text("${customizationText}")`).getByRole('button', { name: 'More' }).first()
+        : this.page.getByRole('button', { name: 'More' }).first();
+
+      await this.clickOnElement(menuButton, { timeout: 10_000 });
+
+      // Click delete option from menu
+      const deleteOption = this.page.getByRole('button', { name: 'Delete' });
+      await this.clickOnElement(deleteOption);
+
+      // Wait for dialog and confirm deletion
+      const dialog = this.page.getByRole('dialog');
+      await dialog.waitFor({ state: 'visible', timeout: 5_000 });
+      const confirmDeleteButton = dialog.getByRole('button', { name: 'Delete' });
+      await this.clickOnElement(confirmDeleteButton);
     });
   }
 }
