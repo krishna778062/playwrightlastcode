@@ -156,7 +156,7 @@ test.describe('edit Topic', () => {
       await appManagerFixture.navigationHelper.openApplicationSettings();
       await applicationScreenPage.actions.clickOnTopics();
       await manageTopicsPage.actions.searchingTopicInSearchBar(topicName);
-      await manageTopicsPage.actions.openingSearchedTopic();
+      await manageTopicsPage.actions.openingSearchedTopic(topicName);
       await topicDetailsPage.assertions.verifyingCreatedContentInTopicDetailsPage(albumName, eventName, randomPageName);
       await topicDetailsPage.actions.clickAndVerifyTheCreatedAlbum(albumName);
     }
@@ -195,7 +195,7 @@ test.describe('edit Topic', () => {
       await appManagerFixture.navigationHelper.openApplicationSettings();
       await applicationScreenPage.actions.clickOnTopics();
       await manageTopicsPage.actions.searchingTopicInSearchBar(topicName);
-      await manageTopicsPage.actions.openingSearchedTopic();
+      await manageTopicsPage.actions.openingSearchedTopic(topicName);
       await topicDetailsPage.actions.clickOnFeedTab();
 
       // Verify the created feed is visible in the feed tab
@@ -205,7 +205,7 @@ test.describe('edit Topic', () => {
       await appManagerFixture.navigationHelper.openApplicationSettings();
       await applicationScreenPage.actions.clickOnTopics();
       await manageTopicsPage.actions.searchingTopicInSearchBar(topicName);
-      await manageTopicsPage.actions.openingSearchedTopic();
+      await manageTopicsPage.actions.openingSearchedTopic(topicName);
       await topicDetailsPage.actions.clickOnFeedTab();
       await topicDetailsPage.actions.hoveringOnFeed();
       await topicDetailsPage.assertions.verifyingEllipsesOptions();
