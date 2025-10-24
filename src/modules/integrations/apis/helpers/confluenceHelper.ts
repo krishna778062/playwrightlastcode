@@ -58,6 +58,11 @@ export class ConfluenceHelper {
   }
 
   async handleConfluenceLogin(incorrectCredentials: boolean = false): Promise<void> {
+    if (await this.acceptButton.isVisible({ timeout: 10000 })) {
+      await this.acceptButton.click();
+      await this.page.waitForLoadState('domcontentloaded');
+    }
+
     await this.usernameInput.waitFor({ state: 'visible', timeout: 10000 });
     await this.usernameInput.fill(CONFLUENCE_CREDENTIALS.username);
     await this.loginButton.click();
