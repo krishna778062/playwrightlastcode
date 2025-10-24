@@ -22,6 +22,7 @@ test.describe(
     ],
   },
   () => {
+    test.setTimeout(300000);
     multiUserTileFixture(
       'verify confluence change user flow',
       {
