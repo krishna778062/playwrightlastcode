@@ -1,12 +1,9 @@
-import { expect } from '@playwright/test';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 import { dualUserChatFixture as test } from '@modules/chat/fixtures/dualUserChatFixture';
 
-import CONSTANT_DATA from '../../../constants/constantData';
 import { CHAT_SUITE_TAGS } from '../../../constants/testTags';
 
 import { MessageEmojis } from '@/src/core/constants/messageEmojis';
@@ -16,13 +13,13 @@ import { MessageEmojis } from '@/src/core/constants/messageEmojis';
  * Tests adding emoji reactions to messages in direct messages
  */
 test.describe(
-  'Emoji Reaction Tests - Direct Message',
+  'emoji Reaction Tests - Direct Message',
   {
     tag: [CHAT_SUITE_TAGS.DIRECT_MESSAGE, TestPriority.P2],
   },
   () => {
     test(
-      'Send message and then send emojis as a reaction',
+      'send message and then send emojis as a reaction',
       {
         tag: [TestPriority.P2, TestGroupType.SMOKE],
       },
@@ -44,7 +41,6 @@ test.describe(
         // When: User 1 sends a message
         const testMessage = TestDataGenerator.generateRandomText('Test message for emoji reaction', 1);
         await test.step('User 1 sends a message', async () => {
-          console.log('Generated random test message:', testMessage);
           await chatPages.user1ChatPage.actions.sendMessage(testMessage);
         });
 
@@ -63,7 +59,7 @@ test.describe(
           // Loop through first 4 emojis in the MessageEmojis enum and add them as reactions
           for (const emojiKey of Object.keys(MessageEmojis).slice(0, 4)) {
             const emojiValue = MessageEmojis[emojiKey as keyof typeof MessageEmojis];
-            console.log(`Adding emoji reaction: ${emojiValue}`);
+
             await chatPages.user1ChatPage.page.waitForTimeout(1000);
             await latestMessage.reactOnMessage(emojiValue);
           }

@@ -214,16 +214,6 @@ export class MessageCardComponent extends MessageBaseComponent {
     });
   }
 
-  async pickAnyRandomEmojiFromReactionEmojiPicker(count: number = 1, options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo ?? `Picking ${count} random emoji(s) from the emoji picker`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.emojiPickerContainer, {
-        assertionMessage: 'expecting emoji picker container to be visible',
-      });
-      for (let i = 1; i < count; i++) {
-        await this.clickOnElement(this.emojiPickerContainer.locator('span').nth(i));
-      }
-    });
-  }
   async openMessageActionsMenuFrom3Dots(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Opening the message actions menu from 3 dots`, async () => {
       await this.focusedMessageContainer.hover();

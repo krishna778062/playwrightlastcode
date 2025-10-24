@@ -18,9 +18,9 @@ const OPEN_RADIO_LABEL = 'Open (Everyone can post or comment)';
 /**
  * Group management and settings test suite
  */
-test.describe('Group Management - Settings', { tag: [CHAT_SUITE_TAGS.GROUP_CHAT, TestPriority.P2] }, () => {
+test.describe('group Management - Settings', { tag: [CHAT_SUITE_TAGS.GROUP_CHAT, TestPriority.P2] }, () => {
   test(
-    'Verify group settings are accessible and radio options are visible',
+    'verify group settings are accessible and radio options are visible',
     { tag: [TestPriority.P2, TestGroupType.SMOKE] },
     async ({ appManagerHomePage }) => {
       tagTest(test.info(), {
@@ -49,11 +49,11 @@ test.describe('Group Management - Settings', { tag: [CHAT_SUITE_TAGS.GROUP_CHAT,
 });
 
 test.describe(
-  'Group Management - Chat Editor Visibility',
+  'group Management - Chat Editor Visibility',
   { tag: [CHAT_SUITE_TAGS.GROUP_CHAT, TestPriority.P2] },
   () => {
-    test.only(
-      'Verify chat editor input box is hidden when navigating to all-company group',
+    test(
+      'verify chat editor input box is hidden when navigating to all-company group',
       { tag: [TestPriority.P2, TestGroupType.SMOKE] },
       async ({ browser }) => {
         tagTest(test.info(), {

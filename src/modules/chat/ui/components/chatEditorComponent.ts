@@ -4,7 +4,6 @@ import { RecordAudioPromptComponent } from '@chat/ui/components/recordAudioPromp
 import { RecordVideoPromptComponent } from '@chat/ui/components/recordVideoPromptComponent';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
-import { MessageEmojis } from '@/src/core/constants/messageEmojis';
 
 export interface FormattingOptions {
   usesBold?: boolean;
@@ -365,15 +364,6 @@ export class ChatEditorComponent extends BaseComponent {
 
         await this.verifier.verifyTheElementIsNotVisible(this.emojiPickerContainer);
       }
-    });
-  }
-
-  async reactOnMessageAddreactionbutton(reaction: MessageEmojis, options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo ?? `Picking any random emoji from the emoji picker`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.reactionEmojiPickerbutton, {
-        assertionMessage: 'expecting emoji picker container to be visible',
-      });
-      await this.clickOnElement(this.reactionEmojiPickerbutton.getByLabel(reaction));
     });
   }
 
