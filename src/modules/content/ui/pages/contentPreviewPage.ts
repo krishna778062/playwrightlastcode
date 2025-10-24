@@ -1,5 +1,10 @@
 import { Page, test } from '@playwright/test';
 
+import {
+  CreateQuestionComponent,
+  QuestionOptions,
+  QuestionResult,
+} from '@content/ui/components/createQuestionComponent';
 import { PromotePageModal } from '@content/ui/components/promotePageModal';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
@@ -13,6 +18,10 @@ export interface IContentPreviewPageActions {
   clickOnApproveOrRejectButton: (action: string) => Promise<void>;
   enterRejectReason: (reason: string) => Promise<void>;
   editPost: (currentText: string, newText: string) => Promise<void>;
+  clickShareThoughtsButton: () => Promise<void>;
+  clickQuestionButton: () => Promise<void>;
+  createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
+  editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -20,9 +29,11 @@ export interface IContentPreviewPageAssertions {
   verifyContentStatus: (status: string) => Promise<void>;
   verifyContentIsInPublishedStatus: () => Promise<void>;
   verifyContentHasSubmitForApprovalButton: () => Promise<void>;
+  verifyValidateOptionOnContentPreviewPage: () => Promise<void>;
   verifyCommentOptionIsNotVisible: () => Promise<void>;
   verifyCommentOptionIsVisible: () => Promise<void>;
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
+  verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
@@ -53,12 +64,16 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   // Assertion locators
   readonly sendHistoryPopup = this.page.getByTestId('send-history-popup');
   readonly versionHistoryPopup = this.page.getByTestId('version-history-popup');
+  readonly ellipsisButton = this.page.locator('[aria-label="Category option"]').first();
+  readonly checkValidateOption = this.page.getByRole('button', { name: 'Validate' });
+  readonly shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
 
   // Page components
   readonly promotePageModal: PromotePageModal;
   private contentDetailsComponent: ContentDetailsComponent;
   private createFeedPostComponent: CreateFeedPostComponent;
   private listFeedComponent: ListFeedComponent;
+  private createQuestionComponent: CreateQuestionComponent;
 
   constructor(page: Page, siteId?: string, contentId?: string, contentType?: string) {
     super(
@@ -69,6 +84,8 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     this.contentDetailsComponent = new ContentDetailsComponent(page);
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
+    this.createFeedPostComponent = new CreateFeedPostComponent(page);
+    this.createQuestionComponent = new CreateQuestionComponent(page);
   }
 
   // Actions
@@ -177,6 +194,14 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     });
   }
 
+  async verifyValidateOptionOnContentPreviewPage(): Promise<void> {
+    await test.step('Verifying validate option on content preview page', async () => {
+      await this.hoverOverElementInJavaScript(this.ellipsisButton);
+      await this.verifier.verifyTheElementIsVisible(this.checkValidateOption, {
+        assertionMessage: 'Validate option should be visible on content preview page',
+      });
+    });
+  }
   async verifyCommentOptionIsVisible(): Promise<void> {
     await test.step('Checking comment option', async () => {
       await this.contentDetailsComponent.checkCommentOption.isVisible();
@@ -189,5 +214,30 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await this.listFeedComponent.waitForPostToBeVisible(expectedText);
+  }
+
+  /**
+   * Clicks the share thoughts button to open post editor
+   */
+  async clickShareThoughtsButton(): Promise<void> {
+    await test.step('Click on Share your thoughts button', async () => {
+      await this.clickOnElement(this.shareThoughtsButton);
+    });
+  }
+
+  async clickQuestionButton(): Promise<void> {
+    await this.createFeedPostComponent.clickQuestionButton();
+  }
+
+  async createAndPostQuestion(options: QuestionOptions): Promise<QuestionResult> {
+    return this.createQuestionComponent.createAndPostQuestion(options);
+  }
+
+  async editQuestion(questionTitle: string, newTitle: string): Promise<void> {
+    await this.createQuestionComponent.editQuestion(questionTitle, newTitle);
+  }
+
+  async verifyQuestionCreatedSuccessfully(questionTitle: string): Promise<void> {
+    await this.createQuestionComponent.verifyQuestionCreatedSuccessfully(questionTitle);
   }
 }
