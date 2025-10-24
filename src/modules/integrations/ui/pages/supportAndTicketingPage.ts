@@ -63,10 +63,13 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
   readonly serviceNowReconnectButton: Locator;
   readonly confluenceReconnectButton: Locator;
   readonly disconnectModalMessage: Locator;
-
   readonly serviceNowCustomNameRadioButton: Locator;
   readonly serviceNowDefaultNameRadioButton: Locator;
   readonly serviceNowCustomNameInput: Locator;
+  readonly serviceNowKnowledgeBaseDefaultRadioButton: Locator;
+  readonly serviceNowKnowledgeBaseCustomRadioButton: Locator;
+  readonly serviceNowKnowledgeBaseNameInput: Locator;
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.SUPPORT_TICKETING_PAGE);
     this.serviceNowButton = page.locator('[id="servicenow"]');
@@ -80,7 +83,12 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
     this.connectServiceAccountButton = page.getByRole('button', { name: 'Connect service account' });
     this.serviceNowDefaultNameRadioButton = page.locator('#serviceNowTicketingNameRadiodefault'); // locator for the default name field in the ServiceNow Tickets Page
     this.serviceNowCustomNameRadioButton = page.locator('#serviceNowTicketingNameRadiocustom'); // locator for the custom name field in the ServiceNow Tickets Page
-    this.serviceNowCustomNameInput = page.locator('#serviceNowTicketingName'); // locator for the custom name input field in the ServiceNow Tickets Page
+    this.serviceNowCustomNameInput = page.locator('#serviceNowTicketingName');
+    this.serviceNowKnowledgeBaseDefaultRadioButton = page.locator('#serviceNowKnowledgeBaseNameRadiodefault');
+    this.serviceNowKnowledgeBaseCustomRadioButton = page.locator('#serviceNowKnowledgeBaseNameRadiocustom');
+    this.serviceNowKnowledgeBaseNameInput = page.locator('#serviceNowKnowledgeBaseName');
+
+    // locator for the custom name input field in the ServiceNow Tickets Page
     this.confluenceChangeuserButton = page.locator(
       'h2:has-text("Atlassian Confluence") >> xpath=ancestor::div[contains(@class,"Panel-module__panel")]//button[contains(.,"Change user")]'
     );
@@ -500,6 +508,27 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
         await this.saveButton.click();
         await this.page.waitForLoadState('domcontentloaded');
       }
+    });
+  }
+
+  async selectServiceNowCustomKnowledgeBaseName(customKnowledgeBaseName: string): Promise<void> {
+    await test.step(`Configure ServiceNow knowledge base with custom name: '${customKnowledgeBaseName}'`, async () => {
+      await this.serviceNowKnowledgeBaseCustomRadioButton.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.serviceNowKnowledgeBaseCustomRadioButton.click();
+      await this.serviceNowKnowledgeBaseNameInput.fill(customKnowledgeBaseName);
+      await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
+      await this.saveButton.click();
+      await this.page.waitForLoadState('domcontentloaded');
+    });
+  }
+
+  async selectServiceNowDefaultKnowledgeBaseName(): Promise<void> {
+    await test.step('Select default service now knowledge base name option', async () => {
+      await this.serviceNowKnowledgeBaseDefaultRadioButton.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.serviceNowKnowledgeBaseDefaultRadioButton.click();
+      await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
+      await this.saveButton.click();
+      await this.page.waitForLoadState('domcontentloaded');
     });
   }
 }

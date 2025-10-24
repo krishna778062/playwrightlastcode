@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 
@@ -35,6 +36,10 @@ export class ServiceNowTicketsPage extends BasePage {
 
   // Menu Navigation Locators
   readonly serviceNowMenuButton: Locator;
+  readonly serviceNowKbSourceButton: Locator;
+  readonly topNavBarComponent: TopNavBarComponent;
+  readonly listTitle: Locator;
+  readonly updatedDateElement: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.SERVICE_NOW_TICKETS_PAGE);
@@ -69,6 +74,10 @@ export class ServiceNowTicketsPage extends BasePage {
 
     // Menu Navigation Elements - ServiceNow menu item
     this.serviceNowMenuButton = page.locator('a[href="/servicenow"][role="menuitem"]');
+    this.topNavBarComponent = new TopNavBarComponent(page);
+    this.serviceNowKbSourceButton = page.getByRole('button').filter({ has: page.getByAltText('ServiceNow') });
+    this.listTitle = page.locator('h2[class*="listTitle"]');
+    this.updatedDateElement = page.getByText(/Updated .*/i);
   }
 
   async clickButton(buttonName: string, step?: string, timeout = 30_000): Promise<void> {
@@ -372,6 +381,42 @@ export class ServiceNowTicketsPage extends BasePage {
 
       // Also verify button is visible but not enabled
       await expect(this.createTicketButton).toBeVisible();
+    });
+  }
+
+  async searchForTerm(searchText: string): Promise<void> {
+    await test.step(`Search for '${searchText}' in global search`, async () => {
+      await this.topNavBarComponent.searchForTerm(searchText, { stepInfo: `Search for '${searchText}'` });
+    });
+  }
+
+  async clickServiceNowKbSource(): Promise<void> {
+    await test.step('Click ServiceNow KB source and verify results', async () => {
+      await this.serviceNowKbSourceButton.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.serviceNowKbSourceButton.click();
+      await this.listTitle.first().waitFor({ state: 'visible', timeout: 10_000 });
+      const listTitleCount = await this.listTitle.count();
+      expect(listTitleCount).toBeGreaterThanOrEqual(1);
+      await this.updatedDateElement.first().waitFor({ state: 'visible', timeout: 10_000 });
+      const updatedDateCount = await this.updatedDateElement.count();
+      expect(updatedDateCount).toBeGreaterThanOrEqual(1);
+    });
+  }
+
+  async searchAndSelectServiceNowKb(searchText: string): Promise<void> {
+    await test.step(`Search for '${searchText}' and select ServiceNow KB source`, async () => {
+      await this.searchForTerm(searchText);
+      await this.clickServiceNowKbSource();
+    });
+  }
+
+  async VerifyServiceNowKnowledgeBaseName(expectedKnowledgeBaseName: string): Promise<void> {
+    await test.step(`Verify ServiceNow KB source button displays: '${expectedKnowledgeBaseName}'`, async () => {
+      await this.page.reload();
+      await this.serviceNowKbSourceButton.waitFor({ state: 'visible', timeout: 15_000 });
+      const buttonText = await this.serviceNowKbSourceButton.textContent();
+      expect(buttonText?.trim()).toContain(expectedKnowledgeBaseName);
+      await expect(this.serviceNowKbSourceButton).toBeVisible();
     });
   }
 }

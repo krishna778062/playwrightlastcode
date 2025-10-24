@@ -45,7 +45,7 @@ test.describe(
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: ['INT-9699', 'INT-9700'],
+          zephyrTestId: ['INT-9699', 'INT-9700', 'INT-9971'],
           storyId: 'INT-28224',
         });
 
@@ -333,6 +333,52 @@ test.describe(
 
         // Verify sorting works for end user too (using unified function)
         await endUserServiceNowTicketsPage.verifyTicketSortingByStatus('Status, Z-A');
+      }
+    );
+
+    multiUserTileFixture(
+      'Verify when the ServiceNow tab is clicked list should be displayed for app manager and end user',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY],
+      },
+      async ({ adminPage, endUserPage }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: ['INT-10436', 'INT-10437', 'INT-10439', 'INT-10435'],
+          storyId: 'INT-28224',
+        });
+
+        const adminHomeDashboard = new ServiceNowTicketsPage(adminPage);
+        await adminHomeDashboard.loadPage();
+        await adminHomeDashboard.verifyThePageIsLoaded();
+        await adminHomeDashboard.searchAndSelectServiceNowKb('Test');
+        const endUserServiceNow = new ServiceNowTicketsPage(endUserPage);
+        await endUserServiceNow.loadPage();
+        await endUserServiceNow.verifyThePageIsLoaded();
+        await endUserServiceNow.searchAndSelectServiceNowKb('Test');
+      }
+    );
+
+    multiUserTileFixture(
+      'Verify ServiceNow Knowledge base results tab name should update as per name in App level connection',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY],
+      },
+      async ({ adminPage, endUserPage }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: ['INT-10438'],
+          storyId: 'INT-28224',
+        });
+
+        const adminHomeDashboard = new SupportAndTicketingPage(adminPage);
+        await adminHomeDashboard.loadPage();
+        await adminHomeDashboard.verifyThePageIsLoaded();
+        const endUserServiceNow = new ServiceNowTicketsPage(endUserPage);
+        await endUserServiceNow.loadPage();
+        await endUserServiceNow.verifyThePageIsLoaded();
+        await adminHomeDashboard.selectServiceNowCustomKnowledgeBaseName('Test Knowledge Base');
+        await endUserServiceNow.searchForTerm('Test');
+        await endUserServiceNow.VerifyServiceNowKnowledgeBaseName('Test Knowledge Base');
+        await adminHomeDashboard.selectServiceNowDefaultKnowledgeBaseName();
       }
     );
   }
