@@ -83,3 +83,21 @@ export const UKG_CREDS = {
   BASE_URL: 'https://Servicet.ultipro.com',
   KEY: 'YHLQJ',
 } as const;
+
+export const SYNCING = {
+  UKG_PRO: 'UKG Pro',
+  UKG_PRO_SYNCING: 'UkgPro',
+  USERNAME: 'username',
+  PASSWORD: 'password',
+  BASE_URL: 'baseUrl',
+  KEY: 'apiKey',
+  SYNC_DROPDOWN: 'syncSource',
+  TEST: 'test',
+  PAY_CURRENCY: 'Pay Currency',
+  FIRST_NAME: 'First name',
+  HIRE_DATE: 'Hire date',
+  SENIORITY_DATE: 'Seniority Date',
+  PREFERRED_NAME: 'Preferred Name',
+  NAME: 'First Name',
+  HIRE: 'Hire Date',
+} as const;

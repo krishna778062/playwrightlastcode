@@ -1,9 +1,8 @@
 import { UKG_CREDS } from '@integrations/test-data/gamma-data-file';
-import { expect, Locator, Page } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
-import { SYNCING } from '../constants/common';
-
-import { BaseComponent } from '@/src/core/components/baseComponent';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { SYNCING } from '@/src/modules/integrations/test-data/gamma-data-file';
 
 export class UkgSyncComponents extends BaseComponent {
   readonly syncSourceDropdown: () => Locator;
@@ -19,31 +18,35 @@ export class UkgSyncComponents extends BaseComponent {
         .or(this.rootLocator.getByRole('listbox').filter({ hasText: text }));
   }
   protected userSyncingDropdown(option: string): Locator {
-    return this.page.getByRole('combobox', { name: new RegExp(option, 'i') });
+    return this.rootLocator.getByRole('combobox', { name: new RegExp(option, 'i') });
   }
 
   protected scheduledSourcesCheckbox(name: string): Locator {
-    return this.page.getByText(`${name}`).locator('xpath=ancestor::div[3]//input');
+    return this.rootLocator.getByText(`${name}`).locator('xpath=ancestor::div[3]//input');
   }
 
   protected inputField(source: string, field: string): Locator {
-    return this.page.getByText(`${source}`).locator(`xpath=ancestor::div[3]//input[contains(@name,"${field}")]`);
+    return this.rootLocator.getByText(`${source}`).locator(`xpath=ancestor::div[3]//input[contains(@name,"${field}")]`);
   }
 
   protected spanText(name: string): Locator {
-    return this.page.locator(`span:has-text("${name}")`);
+    return this.rootLocator.locator(`span:has-text("${name}")`);
   }
 
   protected optionText(name: string): Locator {
-    return this.page.locator(`option:has-text("${name}")`);
+    return this.rootLocator.locator(`option:has-text("${name}")`);
   }
 
   protected optionValue(name: string): Locator {
-    return this.page.locator(`option[value="${name}"]`);
+    return this.rootLocator.locator(`option[value="${name}"]`);
   }
 
   protected syncDetailsCheckBox(option: string): Locator {
-    return this.page.getByText(`${option}`).locator('xpath=ancestor::div[2]').locator('input[type="checkbox"]').nth(2);
+    return this.rootLocator
+      .getByText(`${option}`)
+      .locator('xpath=ancestor::div[2]')
+      .locator('input[type="checkbox"]')
+      .nth(2);
   }
 
   protected syncDropdown(option: string): Locator {
@@ -51,53 +54,67 @@ export class UkgSyncComponents extends BaseComponent {
   }
 
   async verifyScheduledSourcesCheckBox(name: string): Promise<void> {
-    const checkbox = this.scheduledSourcesCheckbox(name).first();
-    const status = await checkbox.isChecked();
-    if (status) {
-      await checkbox.click();
-      await this.spanText('Save').click();
-      await checkbox.click();
-    } else {
-      await checkbox.click();
-      console.log('Checkbox is already unchecked');
-    }
+    await test.step(`Verify Scheduled Sources Checkbox: ${name}`, async () => {
+      const checkbox = this.scheduledSourcesCheckbox(name).first();
+      const status = await checkbox.isChecked();
+      if (status) {
+        await checkbox.click();
+        await this.spanText('Save').click();
+        await checkbox.click();
+      } else {
+        await checkbox.click();
+        console.log('Checkbox is already unchecked');
+      }
+    });
   }
 
   async clearInputField(source: string, username: string, password: string, url: string, key: string): Promise<void> {
-    const fields = [
-      { name: SYNCING.USERNAME, value: username },
-      { name: SYNCING.PASSWORD, value: password },
-      { name: SYNCING.BASE_URL, value: url },
-      { name: SYNCING.KEY, value: key },
-    ];
+    await test.step(`Clear Input Field: ${source}`, async () => {
+      const fields = [
+        { name: SYNCING.USERNAME, value: username },
+        { name: SYNCING.PASSWORD, value: password },
+        { name: SYNCING.BASE_URL, value: url },
+        { name: SYNCING.KEY, value: key },
+      ];
 
-    for (const field of fields) {
-      const inputElement = this.inputField(source, field.value);
-      await inputElement.clear();
-      expect(inputElement, `${field.name} field should be empty`).toHaveValue('');
-    }
+      for (const field of fields) {
+        const inputElement = this.inputField(source, field.value);
+        await inputElement.clear();
+        await expect(inputElement, `${field.name} field should be empty`).toHaveValue('');
+      }
+    });
   }
 
   async clickOnButton(text: string): Promise<void> {
-    await this.spanText(text).click();
+    await test.step(`Click on span text button: ${text}`, async () => {
+      await this.spanText(text).click();
+    });
   }
 
   async verifyErrorMessage(message: string): Promise<void> {
-    const errorMessage = await this.spanText(message).first().textContent();
-    expect(errorMessage, 'Not the correct error message').toContain(message);
+    await test.step(`Verify Error Message: ${message}`, async () => {
+      const errorMessage = await this.spanText(message).first().textContent();
+      expect(errorMessage, 'Not the correct error message').toContain(message);
+    });
   }
 
   async addInputField(source: string, field: string, value: string): Promise<void> {
-    this.inputField(source, field).fill(value);
+    await test.step(`Add Input Field: ${source}`, async () => {
+      await this.inputField(source, field).fill(value);
+    });
   }
 
   async verifyVisibility(name: string): Promise<void> {
-    const optionElement = (await this.syncDropdown(name)).nth(1);
-    expect(optionElement, `${name} is visible`).not.toBeVisible();
+    await test.step(`Verify Visibility: ${name}`, async () => {
+      const optionElement = this.syncDropdown(name).nth(1);
+      await expect(optionElement, `${name} is visible`).not.toBeVisible();
+    });
   }
 
   async selectDropdown(): Promise<void> {
-    await this.syncSourceDropdown().click();
+    await test.step(`Select Dropdown`, async () => {
+      await this.syncSourceDropdown().click();
+    });
   }
 
   async addUkgConnectionDetails(
@@ -107,38 +124,48 @@ export class UkgSyncComponents extends BaseComponent {
     url: string,
     key: string
   ): Promise<void> {
-    const fields = [
-      { name: UKG_CREDS.USERNAME, value: username },
-      { name: UKG_CREDS.PASSWORD, value: password },
-      { name: UKG_CREDS.BASE_URL, value: url },
-      { name: UKG_CREDS.KEY, value: key },
-    ];
+    await test.step(`Add Ukg Connection Details: ${source}`, async () => {
+      const fields = [
+        { name: UKG_CREDS.USERNAME, value: username },
+        { name: UKG_CREDS.PASSWORD, value: password },
+        { name: UKG_CREDS.BASE_URL, value: url },
+        { name: UKG_CREDS.KEY, value: key },
+      ];
 
-    for (const field of fields) {
-      const inputElement = this.inputField(source, field.value);
-      await inputElement.fill(field.name);
-    }
+      for (const field of fields) {
+        const inputElement = this.inputField(source, field.value);
+        await inputElement.fill(field.name);
+      }
+    });
   }
 
   async selectSyncOptions(name: string): Promise<void> {
-    await this.syncSourceDropdown().selectOption(name);
+    await test.step(`Select Sync Options: ${name}`, async () => {
+      await this.syncSourceDropdown().selectOption(name);
+    });
   }
 
   async verifyDetailsCheckBoxVisibility(name: string): Promise<void> {
-    await expect(this.spanText(name), 'Detail checkbox option not visible').toBeVisible();
+    await test.step(`Verify Details CheckBox Visibility: ${name}`, async () => {
+      await expect(this.spanText(name), 'Detail checkbox option not visible').toBeVisible();
+    });
   }
 
   async selectDetailsSyncCheckBox(source: string, sync: string, name: string): Promise<void> {
-    await this.syncDetailsCheckBox(source).click();
-    await this.syncCheckBox(sync).selectOption(name);
+    await test.step(`Select Details Sync CheckBox: ${source}`, async () => {
+      await this.syncDetailsCheckBox(source).click();
+      await this.syncCheckBox(sync).selectOption(name);
+    });
   }
 
   async uncheckScheduledSourcesCheckBox(name: string): Promise<void> {
-    const actual: string = (await this.scheduledSourcesCheckbox(name).getAttribute('value')) ?? '';
-    if (actual.includes('true')) {
-      await this.scheduledSourcesCheckbox(name).click();
-    } else {
-      console.log('Already checked');
-    }
+    await test.step(`Uncheck Scheduled Sources CheckBox: ${name}`, async () => {
+      const actual: string = (await this.scheduledSourcesCheckbox(name).getAttribute('value')) ?? '';
+      if (actual.includes('true')) {
+        await this.scheduledSourcesCheckbox(name).click();
+      } else {
+        console.log('Already checked');
+      }
+    });
   }
 }

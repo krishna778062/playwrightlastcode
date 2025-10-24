@@ -3,7 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { UkgSyncComponents } from '../components/ukgSyncComponent';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { BasePage } from '@/src/core/pages/basePage';
+import { BasePage } from '@/src/core/ui/pages/basePage';
 
 export class UkgSyncPage extends BasePage {
   readonly ukgSyncComponents: UkgSyncComponents;
