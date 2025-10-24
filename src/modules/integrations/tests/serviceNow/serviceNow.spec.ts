@@ -273,7 +273,7 @@ test.describe(
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-9977',
+          zephyrTestId: 'INT-9979',
           storyId: 'INT-28224',
         });
 
@@ -304,11 +304,11 @@ test.describe(
     multiUserTileFixture(
       'Verify ServiceNow tickets Sorting by Status, Z-A',
       {
-        tag: [TestPriority.P4, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-9978',
+          zephyrTestId: 'INT-9980',
           storyId: 'INT-28224',
         });
 
