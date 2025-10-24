@@ -377,14 +377,12 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
       const isConsentPage = currentUrl.includes('/oauth2/authorize/server/consent');
 
       if (isConsentPage) {
-        console.log('Consent page found, clicking accept button');
         await this.acceptButton.click();
       } else {
         const confluenceHelper = new ConfluenceHelper(this.page);
         await confluenceHelper.handleConfluenceLogin(incorrectCredentials);
       }
       await this.page.waitForLoadState('domcontentloaded');
-      console.log('Waiting for 10 seconds');
       await this.page.waitForTimeout(10000);
       if (incorrectCredentials) {
         await this.navigateToExternalAppsPage();
