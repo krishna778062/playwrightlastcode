@@ -391,9 +391,6 @@ export class ManageContentComponent extends BaseComponent {
       await this.siteSearchBar.type(siteName);
     });
   }
-  async selectSiteSearchBar(siteName: string): Promise<void> {
-    await test.step(`Selecting the site search bar`, async () => {});
-  }
   async authorNameShouldBeVisible(): Promise<void> {
     await test.step(`Checking the author name should be visible`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.authorName);
@@ -645,6 +642,8 @@ export class ManageContentComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.draftTag, {
         assertionMessage: 'Draft tag should be visible',
       });
+    });
+  }
   async verifyAllContentsAreSelected(expectedCount: number = 16): Promise<void> {
     await test.step(`Verifying ${expectedCount} contents are selected`, async () => {
       const checkBoxes = await this.checkBoxOfContent.all();
