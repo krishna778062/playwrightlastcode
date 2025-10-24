@@ -408,6 +408,8 @@ test.describe(
         await manageContentPage.actions.clickOnUnpublishButton();
         await manageContentPage.actions.verifyUnpublishedStampVisibleInManageContent();
         await manageContentPage.actions.clickOnDeleteOption();
+      }
+    );
 
     test(
       'verify user able to select all max 50 items under Content tab in Manage Content page',

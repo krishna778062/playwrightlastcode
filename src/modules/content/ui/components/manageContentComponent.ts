@@ -758,7 +758,8 @@ export class ManageContentComponent extends BaseComponent {
   async clickOnDeleteOption(): Promise<void> {
     await test.step('Clicking on delete option', async () => {
       await this.clickOnElement(this.deleteButton);
-
+    });
+  }
   async verifyAllContentsAreSelected(expectedCount: number = 16): Promise<void> {
     await test.step(`Verifying ${expectedCount} contents are selected`, async () => {
       const checkBoxes = await this.checkBoxOfContent.all();
