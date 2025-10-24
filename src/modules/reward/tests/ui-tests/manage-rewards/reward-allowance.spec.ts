@@ -232,15 +232,12 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await audiencePage.clickOnElement(allowancePage.saveButton, {
         stepInfo: 'Clicking save button',
       });
-
+      await allowancePage.waitForCallToBeCompleted('/recognition/admin/rewards/allowances/monthly/estimate');
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.audienceAllowanceGreenTick);
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.removeAudienceAllowance);
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.editAudienceAllowance);
-
-      await allowancePage.monthlyAllowanceIllustration.waitFor({
-        state: 'visible',
-        timeout: 15000,
-      });
+      await allowancePage.verifier.waitUntilElementIsVisible(allowancePage.monthlyAllowanceIllustration);
+      await allowancePage.monthlyAllowanceIllustration.scrollIntoViewIfNeeded();
       await allowancePage.verifier.verifyElementHasText(
         allowancePage.monthlyAllowanceIllustrationDescriptionText,
         '*Monthly totals are for guidance only, based on latest edits and current active users.'
@@ -820,7 +817,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       }
 
       const headingText = 'Manager allowances';
-      const headingDescriptionLine1 = 'Add monthly allowances for people managers.';
+      const headingDescriptionLine1 = `Add monthly allowances for simpplifiers managers.`;
       const headingDescriptionLine2 =
         'Allowances refresh on the 1st of every month. Unused points expire and are not charged for.';
       await allowancePage.validateAllowanceAddAndEditPageHeader(
@@ -893,7 +890,6 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
 
-      await allowancePage.visitAudienceAllowancePage();
       await allowancePage.visitToAllowanceWithInterruption();
       await audiencePage.verifyErrorMessage();
       await audiencePage.clickOnReloadButtonWithoutAnyInterruption();
@@ -941,15 +937,11 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const allowancePage = new RewardsAllowancePage(appManagerFixture.page);
 
-      // Set distribution allowance as failed using test helper
-      const tenantCode = await appManagerFixture.page.evaluate(() => {
-        return (window as any).Simpplr?.Settings?.accountId;
-      });
-      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
+      await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
+      await manageRewardsPage.rewardsAllowance.mockTheRewardAPI('isDistributingAllowance', true);
       await manageRewardsPage.rewardsAllowance.mockTheAllowances(false, false, false, false);
       await manageRewardsPage.rewardsAllowance.verifyThePageIsLoaded();
-      await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
 
       // Validate tooltips for disabled add buttons
       await manageRewardsPage.validateTheAddButtonTooltip('Users allowance');
@@ -957,8 +949,8 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await manageRewardsPage.validateTheAddButtonTooltip('Audience allowances');
       await manageRewardsPage.validateTheAddButtonTooltip('Individual allowances');
 
-      // Restore normal API behavior
-      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
+      // Clean up - remove API mocks
+      await manageRewardsPage.rewardsAllowance.removeRewardAPIMocks();
     }
   );
 
@@ -975,8 +967,6 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       });
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-      const allowancePage = new RewardsAllowancePage(appManagerFixture.page);
-
       await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
 

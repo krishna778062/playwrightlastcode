@@ -14,8 +14,12 @@ export class RewardsManagerAllowance extends BasePage {
   readonly editManagerAllowance: Locator;
 
   readonly fixedCurrencyConversionInfoIcon: Locator;
-  readonly variableCurrencyConversionInfoIcon: Locator;
+  readonly fixedVariableCurrencyConversionInfoIcon: Locator;
 
+  readonly managerAllowancePageContainer: Locator;
+  readonly headerTitle: Locator;
+  readonly headerDescription1: Locator;
+  readonly headerDescription2: Locator;
   readonly managerAllowanceLabel: Locator;
   private managerAllowancePageNeutralBox: Locator;
   readonly managerAllowanceBoxMessageLine1: Locator;
@@ -24,19 +28,22 @@ export class RewardsManagerAllowance extends BasePage {
   readonly fixedMonthlyAllowanceRadioButton: Locator;
   readonly variableMonthlyAllowanceRadioButton: Locator;
   readonly managerAllowancePNote: Locator;
-  private fixedMonthlyInput: Locator;
+  private fixedMonthlyContainer: Locator;
+  private fixedMonthlyLabel: Locator;
   private fixedMonthlyInputBox: Locator;
   readonly fixedMonthlyPointAmountMinusButton: Locator;
   readonly fixedMonthlyPointAmountPlusButton: Locator;
   readonly fixedPointAmountLimitError: Locator;
-  private variableMonthlyInput: Locator;
+  private variableMonthlyContainer: Locator;
+  private variableMonthlyLabel: Locator;
   private variableMonthlyInputBox: Locator;
   readonly variableMonthlyPointAmountMinusButton: Locator;
   readonly variableMonthlyPointAmountPlusButton: Locator;
   readonly variablePointAmountLimitError: Locator;
   readonly managerAllowancePageVariableNeutralBox: Locator;
-  private managerAllowanceBoxMessageVariableLine1: Locator;
-  private managerAllowanceBoxMessageVariableLine2: Locator;
+  readonly managerAllowanceBoxMessageVariableLine1: Locator;
+  readonly managerAllowanceBoxMessageVariableLine2: Locator;
+  readonly headerContainer: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -45,13 +52,20 @@ export class RewardsManagerAllowance extends BasePage {
     this.managerAllowanceIcon = this.managerAllowance.locator('i[data-testid="i-orgchartUser"]');
     this.managerAllowanceGreenTick = this.managerAllowance.locator('div[class*="PanelActionItem_check"]');
     this.managerAllowanceHeading = this.managerAllowance.getByRole('heading', { name: 'Manager allowances' });
-    this.managerAllowanceDescription = this.managerAllowance.getByText('Add monthly allowances for people managers');
+    this.managerAllowanceDescription = this.managerAllowance.getByText(
+      'Add monthly allowances for simpplifiers managers'
+    );
     // Action buttons
     this.addManagerAllowance = this.managerAllowance.locator('button[aria-label="Add manager allowances"]');
     this.removeManagerAllowance = this.managerAllowance.locator('button[aria-label="Remove manager allowances"]');
     this.editManagerAllowance = this.managerAllowance.locator('button[aria-label="Edit manager allowances"]');
 
     // Manager Allowance page
+    this.managerAllowancePageContainer = page.locator('[data-testid="pageContainer-page"]');
+    this.headerContainer = this.managerAllowancePageContainer.locator('header');
+    this.headerTitle = this.headerContainer.locator('h1').nth(0);
+    this.headerDescription1 = this.headerContainer.locator('p').nth(0);
+    this.headerDescription2 = this.headerContainer.locator('p').nth(1);
     this.managerAllowanceLabel = page.locator('[for="allowanceType"]');
     this.managerAllowancePageNeutralBox = page
       .locator('[class*="ManagerAllowances_flexCenter"] div[class*="Panel-module__panel"]')
@@ -62,17 +76,20 @@ export class RewardsManagerAllowance extends BasePage {
     this.fixedMonthlyAllowanceRadioButton = page.locator('label[for="allowanceTypeFIXED"] input');
     this.variableMonthlyAllowanceRadioButton = page.locator('label[for="allowanceTypePER_DIRECT_REPORT"] input');
     this.managerAllowancePNote = page.locator('[class*="Field-module__note"]');
-    this.fixedMonthlyInput = page.locator('[class*="NumberInput-module"]');
-    this.fixedMonthlyInputBox = this.fixedMonthlyInput.locator('input');
-    this.fixedMonthlyPointAmountMinusButton = this.fixedMonthlyInput.locator('[aria-label="Minus"]');
-    this.fixedMonthlyPointAmountPlusButton = this.fixedMonthlyInput.locator('[aria-label="Plus"]');
 
+    //fixed monthly allowance elements
+    this.fixedMonthlyContainer = page.locator('[class^="Allowances_numberInput-"]').first();
+    this.fixedMonthlyLabel = this.fixedMonthlyContainer.locator('label');
+    this.fixedMonthlyInputBox = this.fixedMonthlyContainer.locator('input');
+    this.fixedMonthlyPointAmountMinusButton = this.fixedMonthlyContainer.locator('[aria-label="Minus"]');
     this.fixedCurrencyConversionInfoIcon = page
       .locator('[class*="Allowances_numberInput"] button[aria-label="Currency conversion information"]')
       .nth(0);
-    this.variableCurrencyConversionInfoIcon = page
+    this.fixedMonthlyPointAmountPlusButton = this.fixedMonthlyContainer.locator('[aria-label="Plus"]');
+    this.fixedVariableCurrencyConversionInfoIcon = page
       .locator('[class*="Allowances_numberInput"] button[aria-label="Currency conversion information"]')
       .nth(1);
+
     this.managerAllowancePageVariableNeutralBox = page
       .locator('[class*="ManagerAllowances_flexCenter"] div[class*="Panel-module__panel"]')
       .nth(1);
@@ -81,12 +98,13 @@ export class RewardsManagerAllowance extends BasePage {
     this.managerAllowanceBoxMessageVariableLine2 =
       this.managerAllowancePageVariableNeutralBox.locator('p:nth-child(2)');
     this.fixedPointAmountLimitError = page.locator('[class*="Allowances_numberInput"] p[role="alert"]').nth(0);
-    this.variablePointAmountLimitError = page.locator('[class*="Allowances_numberInput"] p[role="alert"]').nth(1);
 
-    this.variableMonthlyInput = page.locator('[class*="NumberInput-module"]');
-    this.variableMonthlyInputBox = this.variableMonthlyInput.locator('input').nth(1);
-    this.variableMonthlyPointAmountMinusButton = this.variableMonthlyInput.locator('[aria-label="Minus"]').nth(1);
-    this.variableMonthlyPointAmountPlusButton = this.variableMonthlyInput.locator('[aria-label="Plus"]').nth(1);
+    this.variableMonthlyContainer = page.locator('[class^="Allowances_numberInput-"]').last();
+    this.variableMonthlyLabel = this.variableMonthlyContainer.locator('label');
+    this.variableMonthlyInputBox = this.variableMonthlyContainer.locator('input');
+    this.variableMonthlyPointAmountMinusButton = this.variableMonthlyContainer.locator('[aria-label="Minus"]');
+    this.variableMonthlyPointAmountPlusButton = this.variableMonthlyContainer.locator('[aria-label="Plus"]');
+    this.variablePointAmountLimitError = this.variableMonthlyContainer.locator('p[role="alert"]');
   }
 
   async visitManagerAllowance(): Promise<void> {
@@ -125,8 +143,9 @@ export class RewardsManagerAllowance extends BasePage {
   }
 
   async validateTheManagerAllowanceElements(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.managerAllowanceHeading);
-    await this.verifier.verifyTheElementIsVisible(this.managerAllowanceDescription);
+    await this.verifier.verifyTheElementIsVisible(this.headerTitle);
+    await this.verifier.verifyTheElementIsVisible(this.headerDescription1);
+    await this.verifier.verifyTheElementIsVisible(this.headerDescription2);
     await this.verifier.verifyTheElementIsVisible(this.fixedMonthlyAllowanceRadioButton);
     await this.verifier.verifyTheElementIsVisible(this.variableMonthlyAllowanceRadioButton);
     await this.verifier.verifyTheElementIsVisible(this.fixedMonthlyInputBox);

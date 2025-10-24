@@ -377,7 +377,7 @@ export class RewardsAllowancePage extends BasePage {
   // Manager Allowance methods
   async validateTheManagerAllowanceElements(): Promise<void> {
     const containerDescriptionLine1 =
-      'Manager allowances apply individually to every people manager, replacing any users allowance they have.';
+      'Manager allowances apply individually to every simpplifiers manager, replacing any users allowance they have.';
     const containerDescriptionLine2 =
       'Users eligible for both a manager and audience allowance will receive whichever single allowance has the greatest value.';
     const containerDescriptionLine3 = 'Changes to allowances will take effect from the following month.';
@@ -459,12 +459,17 @@ export class RewardsAllowancePage extends BasePage {
     await this.verifier.verifyTheElementIsVisible(managerAllowanceBoxMessageVariableLine2);
   }
 
-  async visitAudienceAllowancePage(): Promise<void> {
+  async visitToAllowanceWithInterruption(): Promise<void> {
     await this.page.goto('/manage/recognition/rewards/peer-gifting/allowances/audience');
+    await this.page.route('**/recognition/admin/rewards/allowances/monthly/audience', route => route.abort());
     await this.verifyThePageIsLoaded();
   }
 
-  async visitToAllowanceWithInterruption(): Promise<void> {
-    await this.page.route('**/recognition/admin/rewards/allowances/monthly/audience', route => route.abort());
+  async waitForCallToBeCompleted(url: string, timeout = 8000) {
+    await this.page.waitForResponse(
+      response =>
+        response.url().endsWith(url) && response.request().resourceType() === 'xhr' && response.status() === 200,
+      { timeout }
+    );
   }
 }

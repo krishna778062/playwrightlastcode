@@ -14,6 +14,7 @@ export class RewardsAudienceAllowance extends BasePage {
   readonly removeAudienceAllowance: Locator;
   readonly editAudienceAllowance: Locator;
   // Page container
+  readonly audienceRow: Locator;
   readonly audienceAllowanceContainer: Locator;
   readonly addAudienceButton: Locator;
   readonly addedAudienceRowInContainer: Locator;
@@ -75,17 +76,12 @@ export class RewardsAudienceAllowance extends BasePage {
     this.recentlyAddedPointUserCount = this.audienceAllowanceContainer.locator(
       'table[class*="Table-module__table"] tr[data-testid*="dataGridRow"] td:nth-child(2) p'
     );
-    this.alreadyAddedAudience = this.audienceAllowanceContainer
-      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
-      .first();
-    this.alreadyAddedAudienceInputBox = this.audienceAllowanceContainer
-      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
-      .first()
-      .locator('td input');
-    this.removeAddedAudience = this.audienceAllowanceContainer
-      .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
-      .last()
-      .locator('td button[aria-label*="Remove"]');
+    this.audienceRow = this.audienceAllowanceContainer.locator(
+      'table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]'
+    );
+    this.alreadyAddedAudience = this.audienceRow.first();
+    this.alreadyAddedAudienceInputBox = this.alreadyAddedAudience.locator('td input');
+    this.removeAddedAudience = this.audienceRow.last().locator('td button[aria-label*="Remove"]');
 
     this.audienceAllowancePageNeutralBox = page
       .locator('[class*="AudienceAllowances_flexCenter"] div[class*="Panel-module__panel"]')
@@ -141,7 +137,7 @@ export class RewardsAudienceAllowance extends BasePage {
       '//p[text()="You haven’t created any audience allowances yet"]'
     );
 
-    if (!(await this.verifier.isTheElementVisible(noAudienceList))) {
+    if (!(await this.verifier.isTheElementVisible(noAudienceList, { timeout: 5000 }))) {
       const alreadyAddedAudienceInputBox = audienceAllowanceContainer
         .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
         .first()

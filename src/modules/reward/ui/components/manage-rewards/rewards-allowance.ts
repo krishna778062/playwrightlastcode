@@ -142,28 +142,6 @@ export class RewardsAllowance extends BasePage {
     await this.page.waitForTimeout(2000);
   }
 
-  async checkTheSingleDeletion(page: Page): Promise<void> {
-    // Check if only one allowance exists and cannot be deleted
-    const userAllowance = this.rewardsUserAllowance.removeUserAllowance;
-    const managerAllowance = this.rewardsManagerAllowance.removeManagerAllowance;
-    const audienceAllowance = this.rewardsAudienceAllowance.removeAudienceAllowance;
-    const individualAllowance = this.rewardsIndividualAllowance.removeIndividualAllowance;
-
-    const allowances = [userAllowance, managerAllowance, audienceAllowance, individualAllowance];
-    const visibleAllowances = [];
-
-    for (const allowance of allowances) {
-      if (await allowance.isVisible()) {
-        visibleAllowances.push(allowance);
-      }
-    }
-
-    if (visibleAllowances.length === 1) {
-      // Only one allowance exists, should be disabled
-      await this.verifier.verifyTheElementIsDisabled(visibleAllowances[0]);
-    }
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.waitUntilElementIsVisible(this.rewardsUserAllowance.userAllowanceHeading, {
       timeout: 15000,
@@ -220,7 +198,6 @@ export class RewardsAllowance extends BasePage {
       audienceAllowance,
       individualAllowance
     );
-    console.log(payload);
     await this.page.route('**/recognition/admin/rewards/allowances/monthly', async route => {
       await route.fulfill({
         status: 200,
@@ -232,5 +209,84 @@ export class RewardsAllowance extends BasePage {
     // reload to trigger the request that will be served by the mocked route
     await this.page.reload();
     await this.verifyThePageIsLoaded();
+  }
+
+  async mockTheRewardAPI(key: string, value: any) {
+    console.log(`Mocking API with key: ${key}, value: ${value}`);
+
+    // Mock the main tenant config API that contains reward configuration
+    await this.page.route('**/recognition/v1/tenant/config', async route => {
+      const mockResponse = {
+        rewardConfig: {
+          enabled: true,
+          peerGiftingEnabled: true,
+          hasAllowances: true,
+          hasGiftingOptions: true,
+          [key]: value,
+          // Add distribution status if the key is isDistributingAllowance
+          ...(key === 'isDistributingAllowance' && { isDistributingAllowance: value }),
+        },
+        // Add other expected properties
+        tenantId: 'test-tenant',
+        features: {
+          rewards: true,
+          peerGifting: true,
+        },
+      };
+
+      console.log('Mocking /recognition/v1/tenant/config with:', JSON.stringify(mockResponse, null, 2));
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockResponse),
+      });
+    });
+
+    // Also mock the admin rewards config endpoint
+    await this.page.route('**/recognition/admin/rewards/config', async route => {
+      const mockResponse = {
+        enabled: true,
+        peerGiftingEnabled: true,
+        hasAllowances: true,
+        hasGiftingOptions: true,
+        [key]: value,
+        // Add distribution status if the key is isDistributingAllowance
+        ...(key === 'isDistributingAllowance' && { isDistributingAllowance: value }),
+      };
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockResponse),
+      });
+    });
+
+    // Mock the peer gifting config endpoint
+    await this.page.route('**/recognition/admin/rewards/config/peer', async route => {
+      const mockResponse = {
+        peerGiftingEnabled: true,
+        hasAllowances: true,
+        hasGiftingOptions: true,
+        [key]: value,
+        // Add distribution status if the key is isDistributingAllowance
+        ...(key === 'isDistributingAllowance' && { isDistributingAllowance: value }),
+      };
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockResponse),
+      });
+    });
+  }
+
+  /**
+   * Remove all API mocks
+   */
+  async removeRewardAPIMocks(): Promise<void> {
+    await this.page.unroute('**/recognition/v1/tenant/config');
+    await this.page.unroute('**/recognition/admin/rewards/config');
+    await this.page.unroute('**/recognition/admin/rewards/config/peer');
   }
 }
