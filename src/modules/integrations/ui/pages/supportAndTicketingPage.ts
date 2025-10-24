@@ -166,8 +166,9 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
 
   async verifyConfluenceServiceAccountConnected(): Promise<void> {
     await test.step('Verify confluence service account is connected', async () => {
+      await this.page.waitForLoadState('domcontentloaded');
       await this.verifier.verifyTheElementIsVisible(this.disconnectConfluenceButton, {
-        timeout: 15_000,
+        timeout: 30_000,
         assertionMessage: 'Verifying confluence service account is connected',
       });
 

@@ -63,14 +63,16 @@ test.describe(
 
         // navigate to external apps page
         const externalAppsPage = new ExternalAppsPage(adminPage);
+        const endUserExternalAppsPage = new ExternalAppsPage(endUserPage);
+
         await externalAppsPage.actions.navigateToExternalAppsPage();
         await externalAppsPage.assertions.verifyThePageIsLoaded();
 
-        // Verify User Level Connection
-        const isConfluenceConnected = await externalAppsPage.assertions.isIntegrationConnected(
+        // Verify User Level Connection of confluence for admin user and end user
+        const isConfluenceConnectedForAdmin = await externalAppsPage.assertions.isIntegrationConnected(
           ExternalAppProvider.ATLASSIAN_CONFLUENCE
         );
-        if (!isConfluenceConnected) {
+        if (!isConfluenceConnectedForAdmin) {
           await externalAppsPage.actions.connectConfluenceServiceAccount();
           await externalAppsPage.assertions.verifyIntegrationIsConnected(
             ExternalAppProvider.ATLASSIAN_CONFLUENCE,
@@ -78,6 +80,19 @@ test.describe(
           );
         }
 
+        // Verify User Level Connection of confluence for end user
+        await endUserExternalAppsPage.actions.navigateToExternalAppsPage();
+        await endUserExternalAppsPage.assertions.verifyThePageIsLoaded();
+        const isConfluenceConnectedForEndUser = await endUserExternalAppsPage.assertions.isIntegrationConnected(
+          ExternalAppProvider.ATLASSIAN_CONFLUENCE
+        );
+        if (!isConfluenceConnectedForEndUser) {
+          await endUserExternalAppsPage.actions.connectConfluenceServiceAccount();
+          await endUserExternalAppsPage.assertions.verifyIntegrationIsConnected(
+            ExternalAppProvider.ATLASSIAN_CONFLUENCE,
+            true
+          );
+        }
         // Navigate to Support and Ticketing page
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();
         await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
@@ -92,7 +107,6 @@ test.describe(
         await externalAppsPage.assertions.verifyIntegrationIsConnected(ExternalAppProvider.ATLASSIAN_CONFLUENCE, true);
 
         // Also check for end user user level connection are connected
-        const endUserExternalAppsPage = new ExternalAppsPage(endUserPage);
         await endUserExternalAppsPage.actions.navigateToExternalAppsPage();
         await endUserExternalAppsPage.assertions.verifyThePageIsLoaded();
         await endUserExternalAppsPage.assertions.verifyIntegrationIsConnected(
