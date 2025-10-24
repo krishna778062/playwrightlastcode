@@ -101,6 +101,7 @@ export const REDIRECT_URLS = {
   MONDAY_DOT_COM: 'https://clydenoronha48s-team.monday.com/',
   DOCEBO: 'https://simpplr.docebosaas.com/',
   ASANA: 'https://app.asana.com/',
+  GREENHOUSE: 'https://job-boards.greenhouse.io/',
 } as const;
 
 /**
