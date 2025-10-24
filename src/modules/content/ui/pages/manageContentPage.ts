@@ -301,6 +301,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async searchAllContentsInGlobalSearchBar(contentNames: string[]): Promise<void> {
     await this.manageContentComponent.searchAllContentsInGlobalSearchBar(contentNames);
+  }
 
   async verifyManageContentListItemCount(expectedCount: number): Promise<void> {
     await this.manageContentComponent.verifyManageContentListItemCount(expectedCount);

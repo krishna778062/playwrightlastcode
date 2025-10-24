@@ -689,6 +689,8 @@ export class ManageContentComponent extends BaseComponent {
         });
         await topNavBar.clickOnXButtonToClearGlobalSearchBarInput();
       }
+    });
+  }
 
   async clickShowMoreButton(): Promise<void> {
     await test.step('Clicking the show more button', async () => {
