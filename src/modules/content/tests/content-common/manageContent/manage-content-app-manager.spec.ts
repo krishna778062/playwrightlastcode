@@ -399,6 +399,10 @@ test.describe(
         await manageContentPage.actions.selectPageCategory();
         await manageContentPage.actions.clickOnMoveConfirmButton();
         await manageContentPage.verifyToastMessageIsVisibleWithText('Moved 1 item successfully');
+      }
+    );
+
+    test(
       'verify user able to select all max 50 items under Content tab in Manage Content page',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20541'],
