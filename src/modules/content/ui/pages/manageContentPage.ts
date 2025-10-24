@@ -3,7 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { ContentStatus } from '@/src/modules/content/constants';
+import { ContentStatus, SortOptionLabels } from '@/src/modules/content/constants';
 import { ManageContentComponent } from '@/src/modules/content/ui/components/manageContentComponent';
 
 export interface IActions {
@@ -19,7 +19,7 @@ export interface IActions {
   clickSiteSearchBar: (siteName: string) => Promise<void>;
   clickOnTheSiteName: () => Promise<void>;
   clickSortByButton: () => Promise<void>;
-  selectCreatedNewestOption: () => Promise<void>;
+  selectSortOption: (sortBy: SortOptionLabels) => Promise<void>;
   selectPageCategoryIfVisible: () => Promise<void>;
   selectPageCategory: () => Promise<void>;
   clickOnContent: () => Promise<void>;
@@ -202,22 +202,17 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
     await this.manageContentComponent.selectTheStatusFilter(status);
   }
   async selectEditedNewestOption(): Promise<void> {
-    await this.manageContentComponent.selectEditedNewestOptionByText();
+    await this.selectSortOption(SortOptionLabels.MODIFIED_NEWEST);
   }
   async selectEditedOldestOption(): Promise<void> {
-    await this.manageContentComponent.selectEditedOldestOptionByText();
+    await this.selectSortOption(SortOptionLabels.MODIFIED_OLDEST);
   }
-  async selectCreatedNewestOption(): Promise<void> {
-    await this.manageContentComponent.selectCreatedNewestOptionByText();
-  }
-  async selectCreateNewestPublishedOption(): Promise<void> {
-    await this.manageContentComponent.selectCreateNewestPublishedOptionByText();
-  }
-  async selectCreateOldestPublishedOption(): Promise<void> {
-    await this.manageContentComponent.selectCreateOldestPublishedOptionByText();
-  }
-  async selectCreatedOldestOption(): Promise<void> {
-    await this.manageContentComponent.selectCreatedOldestOptionByText();
+  /**
+   * Parameterized function to select any sort option by SortOptionLabels enum
+   * @param sortBy - The sort option to select
+   */
+  async selectSortOption(sortBy: SortOptionLabels): Promise<void> {
+    await this.manageContentComponent.selectSortOption(sortBy);
   }
 
   async selectPageCategory(): Promise<void> {

@@ -1,6 +1,6 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { ContentStatus } from '@modules/content/constants';
+import { ContentStatus, SortOptionLabels } from '@modules/content/constants';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
@@ -478,41 +478,13 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
-  async selectEditedNewestOptionByText(): Promise<void> {
-    await test.step('Selecting the edited newest option by text', async () => {
-      await this.sortByButton.selectOption({ label: 'Edited date (newest first)' });
-    });
-  }
-  async selectEditedOldestOptionByText(): Promise<void> {
-    await test.step('Selecting the edited oldest option by text', async () => {
-      await this.sortByButton.selectOption({ label: 'Edited date (oldest first)' });
-    });
-  }
-  async selectCreatedNewestOption(): Promise<void> {
-    await test.step('Selecting the created newest option', async () => {
-      await this.sortByButton.selectOption('createdNewest');
-    });
-  }
-
-  async selectCreatedNewestOptionByText(): Promise<void> {
-    await test.step('Selecting the created newest option by text', async () => {
-      await this.sortByButton.selectOption({ label: 'Created date (newest first)' });
-    });
-  }
-
-  async selectCreateNewestPublishedOptionByText(): Promise<void> {
-    await test.step('Selecting the create newest published option by text', async () => {
-      await this.sortByButton.selectOption({ label: 'Published date (newest first)' });
-    });
-  }
-  async selectCreateOldestPublishedOptionByText(): Promise<void> {
-    await test.step('Selecting the create oldest published option by text', async () => {
-      await this.sortByButton.selectOption({ label: 'Published date (oldest first)' });
-    });
-  }
-  async selectCreatedOldestOptionByText(): Promise<void> {
-    await test.step('Selecting the created oldest option by text', async () => {
-      await this.sortByButton.selectOption({ label: 'Created date (oldest first)' });
+  /**
+   * Parameterized function to select any sort option by SortOptionLabels enum
+   * @param sortBy - The sort option to select
+   */
+  async selectSortOption(sortBy: SortOptionLabels): Promise<void> {
+    await test.step(`Selecting sort option: ${sortBy}`, async () => {
+      await this.sortByButton.selectOption({ label: sortBy });
     });
   }
 

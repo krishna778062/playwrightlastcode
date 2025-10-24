@@ -4,6 +4,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { NewHomePage } from '@/src/core';
+import { SortOptionLabels } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
@@ -232,7 +233,7 @@ test.describe(
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreatedNewestOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
       }
     );
     test(
@@ -388,7 +389,7 @@ test.describe(
         });
         console.log('pageInfo', pageInfo);
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreateNewestPublishedOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
         await manageContentPage.actions.verifyPublishedStampVisibleInManageContent();
         await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.actions.hoverOnFirstDropDownOption();
@@ -403,29 +404,30 @@ test.describe(
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreateNewestPublishedOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
         await manageContentPage.actions.hoverOnFirstDropDownOption();
         await manageContentPage.actions.clickOnUnpublishButton();
         await manageContentPage.actions.verifyUnpublishedStampVisibleInManageContent();
         await manageContentPage.actions.clickOnDeleteOption();
+        await manageContentPage.actions.clickDeleteModalConfirmButton();
+      }
+    );
 
-        test(
-          'verify user able to select all max 50 items under Content tab in Manage Content page',
-          {
-            tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20541'],
-          },
-          async ({ appManagerFixture }) => {
-            tagTest(test.info(), {
-              description: 'Verify user able to select all max 50 items under Content tab in Manage Content page',
-              zephyrTestId: 'CONT-20541',
-              storyId: 'CONT-20541',
-            });
-            await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-            await manageFeaturesPage.actions.clickOnContentCard();
-            await manageContentPage.actions.clickOnSelectAllButton();
-            await manageContentPage.actions.verifyAllContentsAreSelected(17);
-          }
-        );
+    test(
+      'verify user able to select all max 50 items under Content tab in Manage Content page',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20541'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify user able to select all max 50 items under Content tab in Manage Content page',
+          zephyrTestId: 'CONT-20541',
+          storyId: 'CONT-20541',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.verifyAllContentsAreSelected(17);
       }
     );
   }
