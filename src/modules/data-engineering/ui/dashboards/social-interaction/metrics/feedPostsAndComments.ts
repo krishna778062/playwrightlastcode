@@ -7,4 +7,12 @@ export class FeedPostsAndComments extends HeroMetricsComponent {
   constructor(page: Page, iframe: FrameLocator) {
     super(page, iframe, SOCIAL_INTERACTION_METRICS.FEED_POSTS_COMMENTS.title);
   }
+
+  /**
+   * Verifies the metric value matches the expected value
+   * @param expectedValue - The expected metric value
+   */
+  async verifyMetricValue(expectedValue: number): Promise<void> {
+    await this.verifyMetricValueIsLoadedForHeroMetric(expectedValue);
+  }
 }

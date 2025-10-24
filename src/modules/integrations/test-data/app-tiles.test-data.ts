@@ -169,6 +169,8 @@ export const EXPENSIFY_VALUES = {
 export const GREENHOUSE_VALUES = {
   JOB_TYPE: 'Job type',
   ALL: 'All',
+  EXTERNAL: 'External',
+  INTERNAL: 'Internal',
   JOB_BOARD_TOKEN: 'Job board token',
   JOB_BOARD_TOKEN_VALUE: 'mergeapiintegrationsandbox',
 } as const;
