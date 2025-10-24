@@ -194,3 +194,47 @@ export const AZURE_SYNCING = {
     department: 'Product',
   },
 } as const;
+
+/**
+ * Adding links inside add links feature
+ */
+export const links = [
+  { url: 'https://www.google.com/', label: 'Google' },
+  { url: 'https://www.youtube.com/', label: 'YouTube' },
+  { url: 'https://www.amazon.com/', label: 'Amazon' },
+  { url: 'https://www.flipkart.com/', label: 'Flipkart' },
+  { url: 'https://www.simpplr.com/', label: 'Simpplr' },
+];
+export const formattedLinks = links.map(link => ({
+  Link_URL: link.url,
+  Link_Label: link.label,
+}));
+
+export const APPS_LINKS = {
+  CUSTOM_JSON: 'Custom JSON',
+  APPS_LINKS: 'Apps & links',
+  APPS_TEXT: 'Apps',
+  LINKS_TEXT: 'Links',
+  GOOGLE_DRIVE: 'Google Drive',
+  YOUTUBE: 'YouTube',
+  FAVORITES: 'Favorites',
+  AMAZON: 'Amazon',
+  SIMMPLR: 'Simpplr',
+  FLIPKART: 'Flipkart',
+  MICROSOFT_365: 'Microsoft 365',
+  APPS_CAPS_OFF: 'app',
+  LINKS_CAPS_OFF: 'link',
+  GOOGLE_DRIVE_LINK: 'https://workspace.google.com/products/drive/',
+  MICROSOFT_LINK: 'https://www.office.com/',
+  GOOGLE_LINK: 'https://www.google.com/',
+  YOUTUBE_LINK: 'https://www.youtube.com/',
+  AMAZON_LINK: 'https://www.amazon.com/',
+  FLIPKART_LINK: 'https://www.flipkart.com/',
+  SIMPPLR_LINK: 'https://www.simpplr.com/',
+  CUSTOM_LINKS: 'Custom links',
+  GOOGLE: 'Google',
+  ORG_LINKS: 'Org links',
+  NONE: 'None',
+  TRUE: 'true',
+  FALSE: 'false',
+} as const;
