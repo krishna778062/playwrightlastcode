@@ -131,7 +131,7 @@ export class LoginWithOtpPage extends BasePage {
         await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalLWO('email');
         await this.page.waitForTimeout(8000);
         otpEmail = await otpUtils.getOTPFromEmail(email);
-        await this.enterOtpInput.fill(otpEmail);
+        await this.fillInElement(this.enterOtpInput, otpEmail);
         await this.clickOnElement(this.verifyButton);
         await this.clickOnElement(this.continueButton);
         break;
@@ -143,7 +143,7 @@ export class LoginWithOtpPage extends BasePage {
         await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalLWO('mobile');
         await this.page.waitForTimeout(8000);
         otpMobile = await otpUtils.getOTPFromSMS(phone);
-        await this.enterOtpInput.fill(otpMobile);
+        await this.fillInElement(this.enterOtpInput, otpMobile);
         await this.clickOnElement(this.verifyButton);
         await this.clickOnElement(this.continueButton);
         break;
@@ -156,12 +156,12 @@ export class LoginWithOtpPage extends BasePage {
         await this.verifyForBothMobileAndEmailVerificationPageIsLoadedForOptionalLWO('mobile');
         await this.page.waitForTimeout(8000);
         otpMobile = await otpUtils.getOTPFromSMS(phone);
-        await this.enterOtpInput.fill(otpMobile);
+        await this.fillInElement(this.enterOtpInput, otpMobile);
         await this.clickOnElement(this.verifyButton);
         await this.verifyForBothMobileAndEmailVerificationPageIsLoadedForOptionalLWO('email');
         await this.page.waitForTimeout(8000);
         otpEmail = await otpUtils.getOTPFromEmail(email);
-        await this.enterOtpInput.fill(otpEmail);
+        await this.fillInElement(this.enterOtpInput, otpEmail);
         await this.clickOnElement(this.verifyButton);
         await this.clickOnElement(this.continueButton);
         break;
