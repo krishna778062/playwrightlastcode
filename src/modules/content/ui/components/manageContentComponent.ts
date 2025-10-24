@@ -645,6 +645,9 @@ export class ManageContentComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.draftTag, {
         assertionMessage: 'Draft tag should be visible',
       });
+    });
+  }
+
   async verifyAllContentsAreSelected(expectedCount: number = 16): Promise<void> {
     await test.step(`Verifying ${expectedCount} contents are selected`, async () => {
       const checkBoxes = await this.checkBoxOfContent.all();
