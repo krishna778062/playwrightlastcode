@@ -1,5 +1,6 @@
 import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
+import { LWOUserManagementService } from '../apis/services/LWOUserManagementService';
 import { QRManagementService } from '../apis/services/QRManagementService';
 import { getFrontlineTenantConfigFromCache, initializeFrontlineConfig } from '../config/frontlineConfig';
 
@@ -53,6 +54,7 @@ export const frontlineTestFixture = test.extend<
   {
     appManagerApiContext: APIRequestContext;
     qrManagementService: QRManagementService;
+    lwoUserManagementService: LWOUserManagementService;
     otpUtils: OTPUtils;
     config: ReturnType<typeof getFrontlineTenantConfigFromCache>;
     tenantInitializer: void;
@@ -98,6 +100,15 @@ export const frontlineTestFixture = test.extend<
     },
     { scope: 'worker' },
   ],
+  lwoUserManagementService: [
+    async ({ appManagerApiContext, tenantInitializer }, use) => {
+      const config = getFrontlineTenantConfigFromCache();
+      const lwoUserManagementService = new LWOUserManagementService(appManagerApiContext, config.apiBaseUrl);
+      await use(lwoUserManagementService);
+    },
+    { scope: 'worker' },
+  ],
+
   config: [
     async ({ tenantInitializer }, use) => {
       const config = getFrontlineTenantConfigFromCache();

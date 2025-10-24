@@ -55,6 +55,8 @@ export class ManageContentComponent extends BaseComponent {
   readonly crossButton: Locator;
   readonly scheduledTag: Locator;
   readonly openingPanelMenu: Locator;
+  readonly manageContentListItems: Locator;
+  readonly showMoreButton: Locator;
   readonly pageOption: Locator;
   readonly draftTag: Locator;
   readonly publishedTag: Locator;
@@ -86,6 +88,7 @@ export class ManageContentComponent extends BaseComponent {
     this.moveConfirmButton = page.getByRole('button', { name: 'Move' });
     this.siteListSelect = page.locator(`[role="listbox"]`).first();
     this.deleteButton = page.getByText('Delete', { exact: true });
+    this.showMoreButton = page.getByRole('button', { name: 'Show more' });
     this.selectAllButton = page.locator('[type="checkbox"]').first();
     this.validateButton = page.getByText('Validate', { exact: true });
     this.firstDropDownOption = page.getByRole('button', { name: 'Category option' }).first();
@@ -96,6 +99,7 @@ export class ManageContentComponent extends BaseComponent {
     this.imageContainer = this.page.locator('[class*="ContentImageIcon"]').first();
     this.FilterButton = page.getByRole('button', { name: 'Filters' });
     this.siteSearchBar = page.getByRole('combobox', { name: 'Select site:' });
+    this.manageContentListItems = page.locator('.ManageContentListItem');
     this.listContainer = page.locator('.ListingItem-inner');
     this.authorName = this.listContainer.locator('.meta-link').first();
     this.siteHeading = this.listContainer.locator(`[target="_self"]`).first();
@@ -182,6 +186,12 @@ export class ManageContentComponent extends BaseComponent {
   async clickSearchBar(): Promise<void> {
     await test.step(`Clicking on the search bar`, async () => {
       await this.clickOnElement(this.searchBar);
+    });
+  }
+
+  async waitForManageContentListItems(): Promise<void> {
+    await test.step(`Waiting for manage content list items`, async () => {
+      await this.manageContentListItems.first().waitFor();
     });
   }
 
@@ -471,7 +481,7 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
-  async selectTheStatusFilter(status: ContentStatus): Promise<void> {
+  async selectTheStatusFilter(status: string): Promise<void> {
     await test.step(`Selecting the status filter: ${status}`, async () => {
       await this.clickOnElement(this.statusField);
       await this.selectPublishOption.selectOption(status);
@@ -485,6 +495,54 @@ export class ManageContentComponent extends BaseComponent {
   async selectSortOption(sortBy: SortOptionLabels): Promise<void> {
     await test.step(`Selecting sort option: ${sortBy}`, async () => {
       await this.sortByButton.selectOption({ label: sortBy });
+  async verifyManageContentListItemCount(expectedCount: number): Promise<void> {
+    await test.step(`Verifying ManageContentListItem count is ${expectedCount}`, async () => {
+      await this.waitForManageContentListItems();
+      const actualCount = await this.manageContentListItems.count();
+      console.log(`Actual count: ${actualCount}`);
+      console.log(`Expected count: ${expectedCount}`);
+      if (actualCount < expectedCount) {
+        throw new Error(`Expected at least ${expectedCount} ManageContentListItem elements, but found ${actualCount}`);
+      }
+      console.log(`✅ Successfully verified ${actualCount} ManageContentListItem elements`);
+    });
+  }
+
+  async selectEditedNewestOptionByText(): Promise<void> {
+    await test.step('Selecting the edited newest option by text', async () => {
+      await this.sortByButton.selectOption({ label: 'Edited date (newest first)' });
+    });
+  }
+  async selectEditedOldestOptionByText(): Promise<void> {
+    await test.step('Selecting the edited oldest option by text', async () => {
+      await this.sortByButton.selectOption({ label: 'Edited date (oldest first)' });
+    });
+  }
+  async selectCreatedNewestOption(): Promise<void> {
+    await test.step('Selecting the created newest option', async () => {
+      await this.sortByButton.selectOption('createdNewest');
+    });
+  }
+
+  async selectCreatedNewestOptionByText(): Promise<void> {
+    await test.step('Selecting the created newest option by text', async () => {
+      await this.sortByButton.selectOption({ label: 'Created date (newest first)' });
+    });
+  }
+
+  async selectCreateNewestPublishedOptionByText(): Promise<void> {
+    await test.step('Selecting the create newest published option by text', async () => {
+      await this.sortByButton.selectOption({ label: 'Published date (newest first)' });
+    });
+  }
+  async selectCreateOldestPublishedOptionByText(): Promise<void> {
+    await test.step('Selecting the create oldest published option by text', async () => {
+      await this.sortByButton.selectOption({ label: 'Published date (oldest first)' });
+    });
+  }
+  async selectCreatedOldestOptionByText(): Promise<void> {
+    await test.step('Selecting the created oldest option by text', async () => {
+      await this.sortByButton.selectOption({ label: 'Created date (oldest first)' });
     });
   }
 
@@ -608,7 +666,6 @@ export class ManageContentComponent extends BaseComponent {
       });
     });
   }
-
   async verifyCreatedAtDateVisibleInManageContent(createdAtDate: string): Promise<void> {
     await test.step('Verifying the created at date is visible in manage content', async () => {
       await this.verifier.verifyTheElementIsVisible(this.createdAtDate(createdAtDate), {
@@ -625,6 +682,7 @@ export class ManageContentComponent extends BaseComponent {
       }
     });
   }
+
   async verifyAllPublishedAtDatesFromArray(dates: string[]): Promise<void> {
     await test.step('Verifying all published at dates from array', async () => {
       for (let i = 0; i < dates.length; i++) {
@@ -633,6 +691,22 @@ export class ManageContentComponent extends BaseComponent {
       }
     });
   }
+
+  async clickShowMoreButton(): Promise<void> {
+    await test.step('Clicking the show more button', async () => {
+      await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.showMoreButton, { delay: 2_000 }),
+        response =>
+          response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_SHOW_MORE_API) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+    });
+  }
+
   async selectPageOption(): Promise<void> {
     await test.step('Selecting the page option', async () => {
       await this.clickOnElement(this.pageOption);
