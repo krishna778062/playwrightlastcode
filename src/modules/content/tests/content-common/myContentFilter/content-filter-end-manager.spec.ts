@@ -206,6 +206,10 @@ test.describe(
         await manageContentPage.assertions.verifyManageContentListItemCount(16);
         await manageContentPage.actions.clickShowMoreButton();
         await manageContentPage.assertions.verifyManageContentListItemCount(17);
+      }
+    );
+
+    test(
       'application allow to filter on my content page using Author By filter',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-10822'],
