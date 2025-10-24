@@ -68,6 +68,22 @@ export class UserTestDataBuilder {
     return createdUsers;
   }
 
+  async addUsersWithEmpIdAndDepartmentToSystemWithoutPassword(role: Roles): Promise<TestUser[]> {
+    const createdUsers: TestUser[] = [];
+
+    await test.step(`Adding user with emp id and department with role ${role}`, async () => {
+      const user = TestDataGenerator.generateUserWithEmp();
+      const { userId } = await this.addAndActivateUserWithEmpIdAndDepartmentWithoutPassword(user, role);
+      createdUsers.push({
+        ...user,
+        userId,
+        fullName: `${user.first_name} ${user.last_name}`,
+        role,
+      });
+    });
+    return createdUsers;
+  }
+
   /**
    * Creates users with different roles
    * @param usersByRole - Object mapping roles to number of users to create
@@ -130,6 +146,21 @@ export class UserTestDataBuilder {
     return await test.step(`Adding and activating user ${user.first_name} ${user.last_name}`, async () => {
       const addUserResponse = await this.userManagementService.addUserWithEmpIdAndDepartment(user, role);
       await this.userManagementService.activateUserWithEmpIdAndDepartment(user.first_name, user.last_name, password);
+      return {
+        ...user,
+        userId: addUserResponse.user_id,
+        fullName: `${user.first_name} ${user.last_name}`,
+        role,
+      };
+    });
+  }
+
+  async addAndActivateUserWithEmpIdAndDepartmentWithoutPassword(
+    user: UserWithLicenseAndDepartment,
+    role: Roles
+  ): Promise<TestUser> {
+    return await test.step(`Adding and activating user ${user.first_name} ${user.last_name}`, async () => {
+      const addUserResponse = await this.userManagementService.addUserWithEmpIdAndDepartment(user, role);
       return {
         ...user,
         userId: addUserResponse.user_id,

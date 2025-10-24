@@ -3,7 +3,6 @@ import { Locator, Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { ContentStatus } from '@/src/modules/content/constants';
 import { ManageContentComponent } from '@/src/modules/content/ui/components/manageContentComponent';
 
 export interface IActions {
@@ -41,6 +40,7 @@ export interface IAssertions {
   verifySiteName: () => Promise<void>;
   verifySiteNameLink: () => Promise<void>;
   scheduledTagVisibleInManageContent: () => Promise<void>;
+  verifyManageContentListItemCount: (expectedCount: number) => Promise<void>;
   checkValidateOptionInBulkActions: () => Promise<void>;
 }
 
@@ -198,9 +198,11 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickSortByButton(): Promise<void> {
     await this.manageContentComponent.clickSortByButton();
   }
-  async selectTheStatusFilter(status: ContentStatus): Promise<void> {
+
+  async selectTheStatusFilter(status: string): Promise<void> {
     await this.manageContentComponent.selectTheStatusFilter(status);
   }
+
   async selectEditedNewestOption(): Promise<void> {
     await this.manageContentComponent.selectEditedNewestOptionByText();
   }
@@ -283,7 +285,6 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifyCreatedAtDateVisibleInManageContent(createdAtDate: string): Promise<void> {
     await this.manageContentComponent.verifyCreatedAtDateVisibleInManageContent(createdAtDate);
   }
-
   async verifyEditedAtDateVisibleInManageContent(editedAtDate: string): Promise<void> {
     await this.manageContentComponent.verifyEditedAtDateVisibleInManageContent(editedAtDate);
   }
@@ -294,9 +295,19 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifyAllCreatedAtDatesFromArray(dates: string[]): Promise<void> {
     await this.manageContentComponent.verifyAllCreatedAtDatesFromArray(dates);
   }
+
   async verifyAllPublishedAtDatesFromArray(dates: string[]): Promise<void> {
     await this.manageContentComponent.verifyAllPublishedAtDatesFromArray(dates);
   }
+
+  async verifyManageContentListItemCount(expectedCount: number): Promise<void> {
+    await this.manageContentComponent.verifyManageContentListItemCount(expectedCount);
+  }
+
+  async clickShowMoreButton(): Promise<void> {
+    await this.manageContentComponent.clickShowMoreButton();
+  }
+
   async selectPageOption(): Promise<void> {
     await this.manageContentComponent.selectPageOption();
   }
