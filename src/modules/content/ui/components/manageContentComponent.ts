@@ -644,6 +644,7 @@ export class ManageContentComponent extends BaseComponent {
       });
     });
   }
+
   async verifyAllContentsAreSelected(expectedCount: number = 16): Promise<void> {
     await test.step(`Verifying ${expectedCount} contents are selected`, async () => {
       const checkBoxes = await this.checkBoxOfContent.all();
