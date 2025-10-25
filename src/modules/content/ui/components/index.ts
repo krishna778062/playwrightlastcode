@@ -13,6 +13,7 @@ export * from './listFeedComponent';
 export * from './manageApplicationComponent';
 export * from './manageContentComponent';
 export * from './manageFeatureComponent';
+export * from './manageSitesComponent';
 export * from './notificationComponent';
 export * from './promotePageModal';
 export * from './protectedAuthorComponent';
