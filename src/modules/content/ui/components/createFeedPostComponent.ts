@@ -65,7 +65,10 @@ export class CreateFeedPostComponent
   readonly postButton = this.page.locator("div[class*='PostFormShareContainer']").getByRole('button', { name: 'Post' });
 
   // Post editing section
-  readonly editButton = this.page.locator("div[role='menuitem'] > div").filter({ hasText: /^Edit$/ });
+  readonly editButton = this.page
+    .locator("div[role='menuitem'] > div")
+    .filter({ hasText: /^Edit$/ })
+    .first();
   readonly updateButton = this.page.getByRole('button', { name: 'Update' });
 
   // File upload section
@@ -293,7 +296,7 @@ export class CreateFeedPostComponent
    */
   async clickEditOption(): Promise<void> {
     await test.step('Click edit option', async () => {
-      await this.clickOnElement(this.editButton);
+      await this.clickByInjectingJavaScript(this.editButton);
     });
   }
 
@@ -437,6 +440,18 @@ export class CreateFeedPostComponent
   async clickQuestionButton(): Promise<void> {
     await test.step('Click question button', async () => {
       await this.clickOnElement(this.questionButton);
+    });
+  }
+
+  async verifyQuestionButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify question button is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.questionButton);
+    });
+  }
+
+  async verifyQuestionButtonIsVisible(): Promise<void> {
+    await test.step('Verify question button is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.questionButton);
     });
   }
 }

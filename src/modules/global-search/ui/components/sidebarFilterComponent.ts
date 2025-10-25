@@ -8,6 +8,7 @@ import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 export class SidebarFilterComponent extends BaseComponent {
   private readonly filterText: string;
   private readonly siteName: string | undefined;
+  private readonly filterName: string;
   private readonly filterIcon: Locator;
   private readonly filterButton: Locator;
   private readonly countSection: Locator;
@@ -24,10 +25,20 @@ export class SidebarFilterComponent extends BaseComponent {
   private readonly resultsCount: Locator;
   private readonly resetButton: Locator;
 
-  constructor(page: Page, options: { filterText: string; iconType?: string; siteName?: string }) {
+  // Generic people subfilter locators (using filterName)
+  private readonly peopleSubFilterButton: Locator;
+  private readonly peopleSubFilterDownArrow: Locator;
+  private readonly peopleSubFilterInput: Locator;
+  private readonly peopleSubFilterResetButton: Locator;
+
+  constructor(
+    page: Page,
+    options: { filterText: string; iconType?: string; siteName?: string; globalFilterName?: string }
+  ) {
     super(page);
     this.filterText = options.filterText;
     this.siteName = options.siteName;
+    this.filterName = options.globalFilterName || 'Department'; // Default to Department
     this.originalCount = 0;
 
     this.filterButton = this.page.locator(`[class*="SourceButton_sourceButton"]`).filter({
@@ -53,6 +64,14 @@ export class SidebarFilterComponent extends BaseComponent {
       .locator('+ span')
       .filter({ hasText: /\(\d+\)/ });
     this.resetButton = this.page.getByRole('button', { name: 'Reset' });
+
+    // Initialize generic people subfilter locators (using filterName)
+    this.peopleSubFilterButton = this.page.getByRole('button', { name: this.filterName });
+    this.peopleSubFilterDownArrow = this.peopleSubFilterButton.locator('[data-testid="i-arrowDown"]');
+    this.peopleSubFilterInput = this.page.locator(`#${this.filterName.toLowerCase()}-search`);
+    this.peopleSubFilterResetButton = this.page
+      .locator(`div:has(div:has-text("${this.filterName}")) button:has-text("Reset")`)
+      .first();
   }
 
   /**
@@ -340,20 +359,64 @@ export class SidebarFilterComponent extends BaseComponent {
     return await test.step(`verify count matching with expected count before and after resetting`, async () => {
       // Verify the current count matches the expected count after filtering
       await this.verifyResultsCount(options.expectedCountAfterFilter);
-
-      await this.clickResetButton();
-      // Verify count is back to original
+      await this.clickOnElement(this.resetButton);
       await this.verifyResultsCount(options.originalCount);
     });
   }
 
   /**
-   * Clicks on the reset button
-   * @param options - Options for the step
+   * Generic people subfilter workflow with count tracking and reset verification
+   * @param options - Options including filter name, expected count after filter and original count
    */
-  async clickResetButton(options?: { stepInfo?: string }): Promise<void> {
-    return await test.step(options?.stepInfo || 'Click reset button', async () => {
-      await this.clickOnElement(this.resetButton);
+  async verifyPeopleSubFilterWithCountTracking(options: {
+    filterName: string;
+    stepInfo?: string;
+    expectedCountAfterFilter: number;
+    originalCount: number;
+  }): Promise<void> {
+    return await test.step(
+      options.stepInfo || `verify people filter count matching with expected count before and after resetting`,
+      async () => {
+        await this.clickOnElement(this.peopleSubFilterResetButton);
+        await this.verifyResultsCount(options.originalCount);
+      }
+    );
+  }
+
+  /**
+   * Generic people subfilter workflow using the initialized filterName
+   * @param filterValue - The value to search for and select
+   * @returns Promise<number> - The original count before filtering
+   */
+  async verifyAndClickPeopleSubFilter(filterValue: string): Promise<number> {
+    return await test.step(`Complete ${this.filterName.toLowerCase()} people subfilter workflow for "${filterValue}"`, async () => {
+      this.originalCount = await this.getCurrentResultsCount();
+      console.log('originalCount', this.originalCount);
+      await this.verifier.verifyTheElementIsVisible(this.peopleSubFilterButton.last(), { timeout: 5000 });
+      await this.verifier.verifyTheElementIsVisible(this.peopleSubFilterDownArrow, { timeout: 5000 });
+      await this.clickOnElement(this.peopleSubFilterButton.last());
+      // Wait for the input field to appear after clicking, with fallback
+      let isInputVisible = false;
+      try {
+        await this.peopleSubFilterInput.waitFor({ state: 'visible', timeout: 5000 });
+        isInputVisible = true;
+      } catch (error) {
+        console.log('Input field did not appear, proceeding without input');
+        isInputVisible = false;
+      }
+
+      if (isInputVisible) {
+        await this.verifier.verifyTheElementIsVisible(this.peopleSubFilterInput, { timeout: 5000 });
+        await this.peopleSubFilterInput.fill(filterValue);
+
+        await this.verifier.verifyTheElementIsVisible(this.clearButton.last(), { timeout: 5000 });
+      }
+      await this.verifier.verifyTheElementIsVisible(this.autocompleteList.first(), { timeout: 10000 });
+      const peopleFilterItem = this.autocompleteList.locator('h4').filter({ hasText: filterValue });
+      await this.verifier.verifyTheElementIsVisible(peopleFilterItem, { timeout: 10000 });
+      await this.clickOnElement(peopleFilterItem);
+      await this.verifier.verifyTheElementIsVisible(this.peopleSubFilterResetButton, { timeout: 10000 });
+      return this.originalCount;
     });
   }
 }

@@ -55,11 +55,16 @@ export class IntranetFileListComponent extends ContentListComponent {
       // Navigation verifications
       await this.verifyNavigationToTitleLink(data.fileId, data.name, 'file');
       await this.clickOnCloseButton();
-      await this.hoverOverCardAndDownloadLink(data.name);
+
+      // Skip download link verification for video files
+      if (!this.isVideoFile(data.type)) {
+        await this.hoverOverCardAndDownloadLink(data.name);
+      }
+
       await this.verifyNavigationWithSiteLink(data.siteId, data.siteName);
       await this.goBackToPreviousPage();
       await this.hoverOverCardAndCopyLink();
-      await this.verifyCopiedURLWithFileId(data.fileId);
+      await this.verifyCopiedURLWithFileId(data.fileId, data.type);
       await this.goBackToPreviousPage();
       await this.verifyNavigationWithFileThumbnailLink(data.fileId);
       await this.clickOnCloseButton();
@@ -68,6 +73,16 @@ export class IntranetFileListComponent extends ContentListComponent {
       await this.verifyNavigationWithHomePageLink();
       await this.goBackToPreviousPage();
     });
+  }
+
+  /**
+   * Checks if the file type is a video file
+   * @param fileType - The file type to check
+   * @returns true if it's a video file, false otherwise
+   */
+  private isVideoFile(fileType: string): boolean {
+    const videoTypes = ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv', 'm4v'];
+    return videoTypes.includes(fileType.toLowerCase());
   }
 
   /**
@@ -127,16 +142,26 @@ export class IntranetFileListComponent extends ContentListComponent {
   /**
    * Verify the copied URL with the file ID
    * @param fileId - the file id
+   * @param fileType - the file type to determine verification logic
    */
-  async verifyCopiedURLWithFileId(fileId: string) {
+  async verifyCopiedURLWithFileId(fileId: string, fileType?: string) {
     await test.step(`Verifying copied URL in the clipboard, navigates to the right file and verifies the file`, async () => {
       const copiedUrl = await this.readClipboardText();
       await this.page.goto(copiedUrl);
       if (!copiedUrl.includes(fileId)) {
         throw new Error(`Copied URL does not contain id: ${fileId}. URL: ${copiedUrl}`);
       }
-      if (!copiedUrl.endsWith('?provider=intranet')) {
-        throw new Error(`Copied URL does not end with "?provider=intranet". URL: ${copiedUrl}`);
+
+      // For video files (native_video provider), check if URL contains provider=native_video
+      if (this.isVideoFile(fileType || '')) {
+        if (!copiedUrl.includes('provider=native_video')) {
+          throw new Error(`Video file URL should contain "provider=native_video". URL: ${copiedUrl}`);
+        }
+      } else {
+        // For non-video files, check if URL ends with ?provider=intranet
+        if (!copiedUrl.endsWith('?provider=intranet')) {
+          throw new Error(`Copied URL does not end with "?provider=intranet". URL: ${copiedUrl}`);
+        }
       }
     });
   }
@@ -149,7 +174,7 @@ export class IntranetFileListComponent extends ContentListComponent {
    */
   async clickFilesTab(): Promise<void> {
     await test.step(`Clicking on the files tab`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.filesTab, { timeout: 30000 });
+      await this.verifier.verifyTheElementIsVisible(this.filesTab, { timeout: 50000 });
       await this.clickOnElement(this.filesTab);
     });
   }

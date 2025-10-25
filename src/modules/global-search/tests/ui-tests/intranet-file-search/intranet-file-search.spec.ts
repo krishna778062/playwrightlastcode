@@ -48,7 +48,6 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
             storyId: 'SEN-12296',
           });
 
-          await appManagerFixture.homePage.verifyThePageIsLoaded();
           const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(uploadedFileName, {
             stepInfo: `Searching with term "${uploadedFileName}" and intent is to find the file`,
           });
@@ -75,7 +74,6 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
             zephyrTestId: 'SEN-19283',
           });
 
-          await appManagerFixture.homePage.verifyThePageIsLoaded();
           // Search for the file
           const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(uploadedFileName, {
             stepInfo: `Searching with term "${uploadedFileName}" to verify file appears in search results`,

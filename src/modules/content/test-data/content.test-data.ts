@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker';
+
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { faker } from '@faker-js/faker';
 

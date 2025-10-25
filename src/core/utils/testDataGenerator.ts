@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { User } from '@core/types/user.type';
+import { User, UserWithLicenseAndDepartment } from '@core/types/user.type';
 
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
 import { AlbumCreationOptions } from '@/src/modules/content/ui/pages/albumCreationPage';
@@ -131,7 +131,7 @@ export class TestDataGenerator {
    * @param overrides Optional properties to override in the generated user
    * @returns A User object with only emp
    */
-  static generateUserWithEmp(overrides?: Partial<User>): User {
+  static generateUserWithEmp(overrides?: Partial<UserWithLicenseAndDepartment>): UserWithLicenseAndDepartment {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
 
@@ -142,6 +142,8 @@ export class TestDataGenerator {
       email: '', // Empty string for compatibility
       mobile: 0, // Default value for compatibility
       emp: faker.string.alphanumeric(8).toUpperCase(),
+      license_type: 'Corporate',
+      department: 'QA',
       timezone_id: 17,
       language_id: 1,
       locale_id: 1,
@@ -261,8 +263,9 @@ export class TestDataGenerator {
   }
 
   // Helper function to generate test description with timestamp
-  static generateRandomString(prefix: string = 'Test description for category'): string {
-    return `${prefix} created at ${new Date().toISOString()}`;
+  static generateRandomString(prefix: string = 'Test String'): string {
+    const randomString = faker.string.alphanumeric(6);
+    return `${prefix}_ ${randomString}`;
   }
 
   static generateCategoryNameAndDescription(): { name: string; description: string } {
@@ -272,6 +275,7 @@ export class TestDataGenerator {
   }
 
   /**
+   *
    * Generates a random page with realistic data
    * @param contentType Content type for the page
    * @param imagePath Cover image file path
@@ -645,6 +649,53 @@ export class TestDataGenerator {
       listOfAttachedFiles: [],
       ignoreToxic: false,
       replyText: `@${userName} ${text}`, // For UI verification
+    };
+  }
+
+  /**
+   * Generates simple test data for feed comment/reply without user mention
+   * @param params Configuration for the reply
+   * @returns Object with reply creation parameters including textHtml, textJson, and other payload data
+   *
+   * @example
+   * // Generate simple reply without mention
+   * const reply = TestDataGenerator.generateSimpleReply({
+   *   replyText: 'This is a simple reply'
+   * });
+   */
+  static generateSimpleReply(params: { replyText?: string } = {}) {
+    const { replyText } = params;
+    const text = replyText || faker.lorem.sentence();
+
+    // Generate textHtml without user mention
+    const textHtml = `<p>${text}</p>`;
+
+    // Generate textJson without user mention
+    const textJson = JSON.stringify({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          attrs: {
+            className: '',
+            'data-sw-sid': null,
+          },
+          content: [
+            {
+              type: 'text',
+              text: text,
+            },
+          ],
+        },
+      ],
+    });
+
+    return {
+      textHtml,
+      textJson,
+      listOfAttachedFiles: [],
+      ignoreToxic: false,
+      replyText: text,
     };
   }
 

@@ -1,5 +1,3 @@
-import { faker } from '@faker-js/faker';
-
 import { ManageFeaturesPage } from '@content/ui/pages/manageFeaturesPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -8,9 +6,11 @@ import { tagTest } from '@core/utils/testDecorator';
 import { NewHomePage } from '@/src/core';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
-import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationscreenPage';
+import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
+import { EditPagePage } from '@/src/modules/content/ui/pages/editPagePage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { HomeFeedPage } from '@/src/modules/content/ui/pages/manageApplicationDefaultHomeFeedPage';
 import { DefaultScreenPage } from '@/src/modules/content/ui/pages/manageApplicationDefaultScreenPage';
@@ -34,6 +34,7 @@ test.describe(
     let manageApplicationPage: ManageApplicationPage;
     let defaultScreenPage: DefaultScreenPage;
     let homeFeedPage: HomeFeedPage;
+    let editPage: EditPagePage;
     let manageSitePage: ManageSitePage;
     let siteDetailsPage: SiteDetailsPage;
     let siteDashboardPage: SiteDashboardPage;
@@ -47,6 +48,7 @@ test.describe(
       manageApplicationPage = new ManageApplicationPage(appManagerFixture.page);
       defaultScreenPage = new DefaultScreenPage(appManagerFixture.page);
       homeFeedPage = new HomeFeedPage(appManagerFixture.page);
+      editPage = new EditPagePage(appManagerFixture.page, '', '');
       homePage = new NewHomePage(appManagerFixture.page);
       manageSitePage = new ManageSitePage(appManagerFixture.page, '');
       siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, '');
@@ -295,7 +297,7 @@ test.describe(
       }
     );
     test(
-      'to verify validate option in content',
+      'to verify validate option in manage content',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.CONTENT_VALIDATE_OPTION],
       },
@@ -308,8 +310,8 @@ test.describe(
         // Get the "All Employees" site ID for API page creation
         const allEmployeesSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
 
-        // Generate random page name using faker
-        const randomPageName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Page`;
+        // Use test data for page name
+        const randomPageName = CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.title;
 
         // Create page using API
         const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
@@ -320,7 +322,7 @@ test.describe(
           },
           options: {
             pageName: randomPageName,
-            contentDescription: 'This is a test page description',
+            contentDescription: CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.description,
             waitForSearchIndex: false,
           },
         });
@@ -345,6 +347,46 @@ test.describe(
         await siteDetailsPage.actions.clickSearchIcon();
         await siteDetailsPage.actions.openContentDetailsPage();
         await contentPreviewPage.assertions.verifyValidateOptionOnContentPreviewPage();
+      }
+    );
+
+    test(
+      'zeus: Edit the validation Expired Content and Cancel',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VALIDATION_REQUIRED_BAR_STATE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Zeus: Edit the validation Expired Content and Cancel',
+          zephyrTestId: 'CONT-36069',
+          storyId: 'CONT-36069',
+        });
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickOnViewAllButton();
+        await manageContentPage.actions.verifyingValidationRequiredBarState();
+        await manageContentPage.actions.clickOnEditButton();
+        await editPage.actions.clickOnCancel();
+        await manageContentPage.actions.verifyingValidationRequiredBarState();
+      }
+    );
+
+    test(
+      'verify user able to select all max 50 items under Content tab in Manage Content page',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20541'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify user able to select all max 50 items under Content tab in Manage Content page',
+          zephyrTestId: 'CONT-20541',
+          storyId: 'CONT-20541',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.verifyAllContentsAreSelected(17);
       }
     );
   }

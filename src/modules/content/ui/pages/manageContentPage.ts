@@ -28,6 +28,7 @@ export interface IActions {
   clickOnCancel: () => Promise<void>;
   addPublishContentFilter: () => Promise<void>;
   openContentDetailsPage: () => Promise<void>;
+  selectContentFilterByType: (filterType: 'manageByme' | 'authorByMe') => Promise<void>;
 }
 
 export interface IAssertions {
@@ -39,6 +40,7 @@ export interface IAssertions {
   verifySiteName: () => Promise<void>;
   verifySiteNameLink: () => Promise<void>;
   scheduledTagVisibleInManageContent: () => Promise<void>;
+  verifyManageContentListItemCount: (expectedCount: number) => Promise<void>;
   checkValidateOptionInBulkActions: () => Promise<void>;
 }
 
@@ -193,8 +195,28 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickSortByButton(): Promise<void> {
     await this.manageContentComponent.clickSortByButton();
   }
+
+  async selectTheStatusFilter(status: string): Promise<void> {
+    await this.manageContentComponent.selectTheStatusFilter(status);
+  }
+
+  async selectEditedNewestOption(): Promise<void> {
+    await this.manageContentComponent.selectEditedNewestOptionByText();
+  }
+  async selectEditedOldestOption(): Promise<void> {
+    await this.manageContentComponent.selectEditedOldestOptionByText();
+  }
   async selectCreatedNewestOption(): Promise<void> {
     await this.manageContentComponent.selectCreatedNewestOptionByText();
+  }
+  async selectCreateNewestPublishedOption(): Promise<void> {
+    await this.manageContentComponent.selectCreateNewestPublishedOptionByText();
+  }
+  async selectCreateOldestPublishedOption(): Promise<void> {
+    await this.manageContentComponent.selectCreateOldestPublishedOptionByText();
+  }
+  async selectCreatedOldestOption(): Promise<void> {
+    await this.manageContentComponent.selectCreatedOldestOptionByText();
   }
 
   async selectPageCategory(): Promise<void> {
@@ -248,5 +270,49 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
     await this.clickOnElement(this.clickingOnCheckbox);
     await this.page.keyboard.press('Tab');
     await this.page.keyboard.press('Enter');
+  }
+
+  async selectContentManagedBy(managedBy: string): Promise<void> {
+    await this.manageContentComponent.selectContentFilter(managedBy);
+  }
+
+  async selectContentFilterByType(filterType: 'manageByme' | 'authorByMe'): Promise<void> {
+    await this.manageContentComponent.selectContentFilterByType(filterType);
+  }
+  async verifyCreatedAtDateVisibleInManageContent(createdAtDate: string): Promise<void> {
+    await this.manageContentComponent.verifyCreatedAtDateVisibleInManageContent(createdAtDate);
+  }
+  async verifyEditedAtDateVisibleInManageContent(editedAtDate: string): Promise<void> {
+    await this.manageContentComponent.verifyEditedAtDateVisibleInManageContent(editedAtDate);
+  }
+  async verifyPublishedAtDateVisibleInManageContent(publishedAtDate: string): Promise<void> {
+    await this.manageContentComponent.verifyPublishedAtDateVisibleInManageContent(publishedAtDate);
+  }
+
+  async verifyAllCreatedAtDatesFromArray(dates: string[]): Promise<void> {
+    await this.manageContentComponent.verifyAllCreatedAtDatesFromArray(dates);
+  }
+
+  async verifyAllPublishedAtDatesFromArray(dates: string[]): Promise<void> {
+    await this.manageContentComponent.verifyAllPublishedAtDatesFromArray(dates);
+  }
+
+  async verifyManageContentListItemCount(expectedCount: number): Promise<void> {
+    await this.manageContentComponent.verifyManageContentListItemCount(expectedCount);
+  }
+
+  async clickShowMoreButton(): Promise<void> {
+    await this.manageContentComponent.clickShowMoreButton();
+  }
+
+  async selectPageOption(): Promise<void> {
+    await this.manageContentComponent.selectPageOption();
+  }
+  async verifyDraftTagVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyDraftTagVisibleInManageContent();
+  }
+
+  async verifyAllContentsAreSelected(expectedCount: number = 16): Promise<void> {
+    await this.manageContentComponent.verifyAllContentsAreSelected(expectedCount);
   }
 }
