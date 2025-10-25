@@ -4,7 +4,6 @@ import { ApplicationSettingsOption } from '../types/navigation.types';
 
 import type { TestOptions } from '@/src/core/types/test.types';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
-import { AnalyticsLandingPage } from '@/src/modules/data-engineering/pages/analyticsLandingPage';
 
 export class SideNavBarComponent extends BaseComponent {
   readonly createSection: Locator;
@@ -48,7 +47,7 @@ export class SideNavBarComponent extends BaseComponent {
     super(page);
     this.createSection = page.locator('span', { hasText: 'Create' });
     this.feedLink = page.locator('p', { hasText: 'Feed' });
-    this.homeLink = page.locator('p', { hasText: 'Home' });
+    this.homeLink = page.locator('p:text-is("Home")');
     this.sitesButton = page.getByRole('button', { name: 'Sites' });
     this.navigateOnApplication = page.getByRole('menuitem', { name: 'Application settings', exact: true });
     this.clickOnManageFeature = page.locator('[aria-label="Manage features"]').first();
@@ -163,11 +162,10 @@ export class SideNavBarComponent extends BaseComponent {
    * Clicks on the Analytics button in the side navigation
    * @param options - The options for the step
    */
-  async clickOnAnalyticsButton(options?: TestOptions): Promise<AnalyticsLandingPage> {
+  async clickOnAnalyticsButton(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `side navbar: clicking Analytics button on side navbar`, async () => {
       await this.clickOnElement(this.analyticsButton);
     });
-    return new AnalyticsLandingPage(this.page);
   }
 
   /**
@@ -194,11 +192,11 @@ export class SideNavBarComponent extends BaseComponent {
    * @param options - The options for the step
    */
   async clickOnApplicationSettingsOptionInSideBar(
-    option: ApplicationSettingsOption,
+    menuOption: ApplicationSettingsOption,
     options?: TestOptions
   ): Promise<void> {
-    await test.step(options?.stepInfo || `side navbar: clicking ${option} in application settings`, async () => {
-      const optionLocator = this.page.getByRole('menuitem', { name: option, exact: true });
+    await test.step(options?.stepInfo || `side navbar: clicking ${menuOption} in application settings`, async () => {
+      const optionLocator = this.page.getByTestId('main-nav').getByRole('link', { name: menuOption });
       await this.clickOnElement(optionLocator);
     });
   }
@@ -209,14 +207,14 @@ export class SideNavBarComponent extends BaseComponent {
    * @param options - The options for the step
    */
   async openApplicationSettingsAndSelectMenuOptionFromSideNav(
-    option: ApplicationSettingsOption,
+    menuOption: ApplicationSettingsOption,
     options?: TestOptions
   ): Promise<void> {
     await test.step(
       options?.stepInfo || `side navbar: opening Application settings and selecting menu option from side navigation`,
       async () => {
         await this.clickOnElement(this.applicationSettings);
-        await this.clickOnApplicationSettingsOptionInSideBar(option);
+        await this.clickOnApplicationSettingsOptionInSideBar(menuOption);
       }
     );
   }
@@ -236,6 +234,12 @@ export class SideNavBarComponent extends BaseComponent {
   async openRecognitionAnalytics(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `side navbar: opening Recognition Analytics`, async () => {
       await this.clickOnElement(this.recognitionButton);
+    });
+  }
+
+  async verifyingCreateButtonIsVisible(): Promise<void> {
+    await test.step('Verifying Create button is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.createSection.first());
     });
   }
 }

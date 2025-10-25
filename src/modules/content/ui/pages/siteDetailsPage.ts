@@ -58,7 +58,9 @@ export class SiteDetailsPage extends BasePage {
 
   async validatingCategoryToUncategorized(): Promise<void> {
     await test.step('Validating category to Uncategorized', async () => {
-      await this.categoryName.isVisible();
+      await this.verifier.verifyTheElementIsVisible(this.categoryName, {
+        assertionMessage: 'Category name should be Uncategorized',
+      });
     });
   }
   async clickOnContentTab(): Promise<void> {
