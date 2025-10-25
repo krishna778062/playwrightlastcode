@@ -4,6 +4,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { NewHomePage } from '@/src/core';
+import { SortOptionLabels } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
@@ -232,7 +233,7 @@ test.describe(
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreatedNewestOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
       }
     );
     test(
@@ -388,7 +389,7 @@ test.describe(
         });
         console.log('pageInfo', pageInfo);
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreateNewestPublishedOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
         await manageContentPage.actions.verifyPublishedStampVisibleInManageContent();
         await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.actions.hoverOnFirstDropDownOption();
@@ -403,11 +404,12 @@ test.describe(
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreateNewestPublishedOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
         await manageContentPage.actions.hoverOnFirstDropDownOption();
         await manageContentPage.actions.clickOnUnpublishButton();
         await manageContentPage.actions.verifyUnpublishedStampVisibleInManageContent();
         await manageContentPage.actions.clickOnDeleteOption();
+        await manageContentPage.actions.clickDeleteModalConfirmButton();
       }
     );
 

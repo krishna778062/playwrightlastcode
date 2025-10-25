@@ -1,5 +1,7 @@
 import { Locator, Page, test } from '@playwright/test';
 
+import { SortOptionLabels } from '@modules/content/constants';
+
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
@@ -483,6 +485,16 @@ export class ManageContentComponent extends BaseComponent {
     await test.step(`Selecting the status filter: ${status}`, async () => {
       await this.clickOnElement(this.statusField);
       await this.selectPublishOption.selectOption(status);
+    });
+  }
+
+  /**
+   * Parameterized function to select any sort option by SortOptionLabels enum
+   * @param sortBy - The sort option to select
+   */
+  async selectSortOption(sortBy: SortOptionLabels): Promise<void> {
+    await test.step(`Selecting sort option: ${sortBy}`, async () => {
+      await this.sortByButton.selectOption({ label: sortBy });
     });
   }
 
