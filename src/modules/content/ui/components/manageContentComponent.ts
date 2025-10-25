@@ -424,6 +424,7 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
+
   async authorNameShouldBeVisible(): Promise<void> {
     await test.step(`Checking the author name should be visible`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.authorName);
@@ -828,6 +829,12 @@ export class ManageContentComponent extends BaseComponent {
       }
 
       console.log(`✓ Verified ${actualCount} checkboxes are selected`);
+    });
+  }
+
+  async clickOnValidateApplyButton(): Promise<void> {
+    await test.step(`Clicking on validate apply button`, async () => {
+      await this.clickOnElement(this.applyButton);
     });
   }
 }

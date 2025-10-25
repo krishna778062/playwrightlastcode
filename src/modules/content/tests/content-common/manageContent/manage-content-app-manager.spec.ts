@@ -211,7 +211,12 @@ test.describe(
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
         const publicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        await manageContentPage.actions.clickSiteSearchBar(publicSite.name);
+        let publicNewOneSite = publicSite;
+        if (publicSite === null) {
+          await appManagerFixture.siteManagementHelper.createSite({ accessType: SITE_TYPES.PUBLIC });
+          publicNewOneSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        }
+        await manageContentPage.actions.selectSiteSearchBar(publicSite?.name || publicNewOneSite?.name || '');
         await manageContentPage.actions.selectSiteSearchBarOption();
         await manageContentPage.assertions.verifySiteNameLink();
       }

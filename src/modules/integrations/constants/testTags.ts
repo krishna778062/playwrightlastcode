@@ -56,7 +56,6 @@ export const TEST_TAGS = {
   UKG_WFM: IntegrationsSuiteTags.UKG_WFM,
   UKG_PRO: IntegrationsSuiteTags.UKG_PRO,
   GOOGLE_CALENDAR_APPTILES: IntegrationsSuiteTags.GOOGLE_CALENDAR_APPTILES,
-  OUTLOOK_CALENDAR_APPTILES: IntegrationsSuiteTags.OUTLOOK_CALENDAR_APPTILES,
   DOCUSIGN: IntegrationsSuiteTags.DOCUSIGN,
   MONDAY_DOT_COM: IntegrationsSuiteTags.MONDAY_DOT_COM,
   DOCEBO: IntegrationsSuiteTags.DOCEBO,
