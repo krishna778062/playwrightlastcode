@@ -7,6 +7,8 @@ import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 export interface IGovernanceScreenPageActions {
   disableContentSubmissions: (message: string) => Promise<void>;
   enableContentSubmissions: (message: string) => Promise<void>;
+  clickOnTimelineFeedEnabled: () => Promise<void>;
+  clickOnTimelineFeedDisabled: () => Promise<void>;
 }
 
 export interface IGovernanceScreenPageAssertions {}
