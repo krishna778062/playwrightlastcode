@@ -320,4 +320,13 @@ export class ManageSitesComponent extends BaseComponent {
       });
     });
   }
+
+  async verifyNoSitesFoundAction(siteName: string): Promise<void> {
+    await test.step(`Verify no sites found for: ${siteName}`, async () => {
+      const siteLink = this.page.getByText(siteName).first();
+      await this.verifier.verifyTheElementIsNotVisible(siteLink, {
+        assertionMessage: `Site "${siteName}" should not be found but was visible in search results`,
+      });
+    });
+  }
 }

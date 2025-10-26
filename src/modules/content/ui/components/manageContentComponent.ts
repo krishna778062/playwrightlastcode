@@ -78,7 +78,7 @@ export class ManageContentComponent extends BaseComponent {
     this.firstContentCheckbox = page.locator('[type="checkbox"]').nth(1);
     this.actionDropdownContainer = page.locator(`[class="Bulk Bulk--footer"]`);
     this.actionDropdown = page.locator('#action');
-    this.unpublishButton = page.getByRole('button', { name: 'Unpublish' });
+    this.unpublishButton = page.getByText('Unpublish', { exact: true });
     this.applyButton = page.getByRole('button', { name: 'Apply' });
     this.publishButton = page.getByText('Publish', { exact: true });
     this.moveButton = page.getByText('Move', { exact: true });

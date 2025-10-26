@@ -3,6 +3,7 @@ import { Page } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
+import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
 
 export interface IManageSiteActions {
   clickOnSite: () => Promise<void>;
@@ -18,6 +19,11 @@ export interface IManageSiteActions {
   searchEventInSearchBar: (eventName: string) => Promise<void>;
   clickOntheMemberButton: () => Promise<void>;
   clickOnInsideContentButton: () => Promise<void>;
+  clickOnUpdateCategory: () => Promise<void>;
+  clickOnCancelOption: () => Promise<void>;
+  clickOnSites: () => Promise<void>;
+  updatingCategoryToUncategorized: (categoryName: string) => Promise<void>;
+  searchForSite: (siteName: string) => Promise<void>;
 }
 
 export interface IManageSiteAssertions {
@@ -33,15 +39,18 @@ export interface IManageSiteAssertions {
   verifyEventsTabImageIsDisplayed: () => Promise<void>;
   verifyAlbumTabImageIsDisplayed: () => Promise<void>;
   verifyPageTabImageIsDisplayed: () => Promise<void>;
+  verifyNoSitesFound: (siteName: string) => Promise<void>;
   // Add assertions as needed
 }
 
 export class ManageSitePage extends BasePage implements IManageSiteActions, IManageSiteAssertions {
   private manageSitesComponent: ManageSitesComponent;
+  private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId));
     this.manageSitesComponent = new ManageSitesComponent(page);
+    this.updateSiteCategoryComponent = new UpdateSiteCategoryComponent(page);
     this.clickOnSite = this.clickOnSite.bind(this);
   }
 
@@ -157,5 +166,29 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
   async verifyPageTabImageIsDisplayed(): Promise<void> {
     await this.manageSitesComponent.verifyPageTabImageIsDisplayed();
+  }
+
+  async clickOnUpdateCategory(): Promise<void> {
+    await this.updateSiteCategoryComponent.hoverOverElementInJavaScript(this.updateSiteCategoryComponent.ellipses);
+  }
+
+  async clickOnCancelOption(): Promise<void> {
+    await this.updateSiteCategoryComponent.clickOnCancelOption();
+  }
+
+  async clickOnSites(): Promise<void> {
+    await this.manageSitesComponent.clickOnSiteAction();
+  }
+
+  async updatingCategoryToUncategorized(categoryName: string): Promise<void> {
+    await this.updateSiteCategoryComponent.updatingCategoryToUncategorized(categoryName);
+  }
+
+  async searchForSite(siteName: string): Promise<void> {
+    await this.manageSitesComponent.searchEventInSearchBarAction(siteName);
+  }
+
+  async verifyNoSitesFound(siteName: string): Promise<void> {
+    await this.manageSitesComponent.verifyNoSitesFoundAction(siteName);
   }
 }
