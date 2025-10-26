@@ -4,6 +4,7 @@ import { SortOptionLabels } from '@modules/content/constants';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
 
 export class ManageContentComponent extends BaseComponent {
   readonly searchBar: Locator;
@@ -149,6 +150,12 @@ export class ManageContentComponent extends BaseComponent {
   }
   getPageName(pageName: string): Locator {
     return this.page.locator(`[aria-label="${pageName}"]`).first();
+  }
+  getGlobalSearchResultPageName(pageName: string): Locator {
+    return this.page.locator(`h2:has-text("${pageName}")`).first();
+  }
+  getContentNameLocator(text: string): Locator {
+    return this.manageContentListItems.locator(`a:has-text("${text}")`).first();
   }
 
   createdAtDate(createdAtDate: string): Locator {
@@ -717,6 +724,37 @@ export class ManageContentComponent extends BaseComponent {
       }
     });
   }
+  async getAllContentNames(): Promise<string[]> {
+    return await test.step('Get all content names from manage content page', async () => {
+      const contentNames = await this.listContainer.allInnerTexts();
+      return contentNames
+        .map(content => {
+          // Extract the title from the content text
+          // Format: 'PUBLISHED\nTitle_Name\nBy...'
+          const lines = content.split('\n');
+          if (lines.length >= 2) {
+            return lines[1].trim(); // Get the second line which contains the title
+          }
+          return content.trim();
+        })
+        .filter(name => name.length > 0);
+    });
+  }
+
+  async searchAllContentsInGlobalSearchBar(contentNames: string[]): Promise<void> {
+    await test.step('Searching all contents in global search bar', async () => {
+      const topNavBar = new TopNavBarComponent(this.page);
+      for (let i = 0; i < contentNames.length; i++) {
+        const contentName = contentNames[i];
+        await topNavBar.typeInSearchBarInput(contentName);
+        await topNavBar.clickSearchButton();
+        await this.verifier.verifyTheElementIsNotVisible(this.getGlobalSearchResultPageName(contentName), {
+          assertionMessage: `Content ${contentName} should not be visible in global search bar`,
+        });
+        await topNavBar.clickOnXButtonToClearGlobalSearchBarInput();
+      }
+    });
+  }
 
   async clickShowMoreButton(): Promise<void> {
     await test.step('Clicking the show more button', async () => {
@@ -857,6 +895,14 @@ export class ManageContentComponent extends BaseComponent {
   async clickOnValidateApplyButton(): Promise<void> {
     await test.step(`Clicking on validate apply button`, async () => {
       await this.clickOnElement(this.applyButton);
+    });
+  }
+  async verifyAllContentsAreDeleted(contentNames: string[]): Promise<void> {
+    await test.step('Verifying all contents are deleted', async () => {
+      const contentNameLocator = this.getContentNameLocator(contentNames[0]);
+      await this.verifier.verifyTheElementIsNotVisible(contentNameLocator, {
+        assertionMessage: `Content ${contentNames[0]} should not be visible`,
+      });
     });
   }
 }

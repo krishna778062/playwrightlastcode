@@ -313,6 +313,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifyAllPublishedAtDatesFromArray(dates: string[]): Promise<void> {
     await this.manageContentComponent.verifyAllPublishedAtDatesFromArray(dates);
   }
+  async getAllContentNames(): Promise<string[]> {
+    return await this.manageContentComponent.getAllContentNames();
+  }
+  async searchAllContentsInGlobalSearchBar(contentNames: string[]): Promise<void> {
+    await this.manageContentComponent.searchAllContentsInGlobalSearchBar(contentNames);
+  }
 
   async verifyManageContentListItemCount(expectedCount: number): Promise<void> {
     await this.manageContentComponent.verifyManageContentListItemCount(expectedCount);
@@ -370,5 +376,8 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async verifyAllContentsAreSelected(expectedCount: number = 16): Promise<void> {
     await this.manageContentComponent.verifyAllContentsAreSelected(expectedCount);
+  }
+  async verifyAllContentsAreDeleted(deletedContentNames: string[]): Promise<void> {
+    await this.manageContentComponent.verifyAllContentsAreDeleted(deletedContentNames);
   }
 }

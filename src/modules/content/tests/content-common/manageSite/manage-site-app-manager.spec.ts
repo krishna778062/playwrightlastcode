@@ -111,4 +111,42 @@ test.describe('manage Site Tests', () => {
       await onboardingComponent.verifyTagShouldNotBeVisibleOnContent(OnboardingOption.SITE_ONBOARDING_TAG);
     }
   );
+  test(
+    'verify user able to apply publish unpublish delete actions on selected contents under Content tab in Manage Site',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20538'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Verify Scheduled stamp and its options menu under-manage site content tab',
+        zephyrTestId: 'CONT-20538',
+        storyId: 'CONT-20538',
+      });
+      await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+      await manageFeaturesPage.actions.clickOnContentCard();
+      await manageContentPage.actions.clickFilterButton();
+      await manageContentPage.actions.selectTheStatusFilter('Published');
+      await manageContentPage.actions.clickOnFirstContentButton();
+      await manageContentPage.actions.clickOnSelectActionDropdown();
+      await manageContentPage.actions.clickOnUnpublishButton();
+      await manageContentPage.actions.clickOnApplyButton();
+      await manageContentPage.actions.verifyUnpublishedStampVisibleInManageContent();
+      await appManagerFixture.page.reload();
+      await manageContentPage.actions.clickFilterButton();
+      await manageContentPage.actions.selectTheStatusFilter('Unpublished');
+      await manageContentPage.actions.clickOnFirstContentButton();
+      await manageContentPage.actions.clickOnSelectActionDropdown();
+      await manageContentPage.actions.clickOnPublishButton();
+      await manageContentPage.actions.clickOnApplyButton();
+      await manageContentPage.actions.verifyPublishedStampVisibleInManageContent();
+      await appManagerFixture.page.reload();
+      const contentNames = await manageContentPage.actions.getAllContentNames();
+      console.log('contentNames', contentNames);
+      await manageContentPage.actions.clickOnFirstContentButton();
+      await manageContentPage.actions.clickOnSelectActionDropdown();
+      await manageContentPage.actions.clickOnDeleteButton();
+      await manageContentPage.actions.selectDeleteApplyButton();
+      await manageContentPage.actions.verifyAllContentsAreDeleted(contentNames);
+    }
+  );
 });
