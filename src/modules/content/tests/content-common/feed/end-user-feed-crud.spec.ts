@@ -134,22 +134,36 @@ test.describe(
         const privateSiteName = privateSiteResult.siteName;
         console.log(`Created private site: ${privateSiteName}`);
 
-        // Step 2: Standard User is already on Feed page and feedPage is already initialized and verified in beforeEach
+        // Step 2: App Manager creates an unlisted site that standard user is NOT a member of
+        const unlistedSiteResult = await appManagerFixture.siteManagementHelper.createUnlistedSite({
+          waitForSearchIndex: false,
+        });
+        const unlistedSiteName = unlistedSiteResult.siteName;
+        console.log(`Created unlisted site: ${unlistedSiteName}`);
 
-        // Step 3: Click on "Share your thoughts" button
+        // Step 3: Standard User is already on Feed page (from beforeEach setup)
+
+        // Step 4: Click on "Share your thoughts" button
         await feedPage.actions.clickShareThoughtsButton();
 
-        // Step 4: Create a post and send it to the editor
+        // Step 5: Create a post and send it to the editor
         const initialPostText = TestDataGenerator.generateRandomText('Test Post', 3, true);
         await feedPage.actions.enterFeedPostText(initialPostText);
 
-        // Step 5: User select share option as "site feed"
+        // Step 6: User select share option as "site feed"
         await feedPage.actions.selectShareOptionAsSiteFeed();
 
-        // Step 6: Enter private site name which User is not member of
+        // Step 7: Enter private site name which User is not member of
         await feedPage.actions.searchForSiteName(privateSiteName);
 
-        // Step 7: Verify "No results" is getting displayed
+        // Step 8: Verify "No results" is getting displayed for private site
+        await feedPage.assertions.verifyNoResultMessage();
+
+        // Step 9: Close the dropdown and search again for unlisted site
+        await standardUserFixture.page.keyboard.press('Escape'); // Close the dropdown
+        await feedPage.actions.searchForSiteName(unlistedSiteName);
+
+        // Step 10: Verify "No results" is getting displayed for unlisted site
         await feedPage.assertions.verifyNoResultMessage();
       }
     );
