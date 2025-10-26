@@ -7,6 +7,7 @@ import { BaseComponent } from '@/src/core';
 export enum NotificationFeatures {
   MUST_READS = 'Must reads',
   ALERTS = 'Alerts',
+  FOLLOWS = 'Follows',
 }
 
 export class SelectNotificationStep extends BaseComponent {

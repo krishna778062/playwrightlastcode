@@ -5,6 +5,7 @@ import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 export interface IEditBarActions {
   clickEditCarousel: () => Promise<void>;
   clickOnAddTile: () => Promise<void>;
+  clickChangeLayout: () => Promise<void>;
 }
 
 export interface IEditBarAssertions {}
@@ -13,6 +14,7 @@ export class EditBarComponent extends BaseComponent implements IEditBarActions, 
   // Action buttons
   readonly editCarouselButton: Locator;
   readonly addTileButton: Locator;
+  readonly changeLayoutButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -20,16 +22,7 @@ export class EditBarComponent extends BaseComponent implements IEditBarActions, 
     // Initialize locators in constructor
     this.editCarouselButton = this.page.getByRole('button', { name: 'Edit carousel' });
     this.addTileButton = this.page.getByRole('button', { name: 'Add tile' });
-  }
-
-  // Actions
-  get actions(): IEditBarActions {
-    return this;
-  }
-
-  // Assertions
-  get assertions(): IEditBarAssertions {
-    return this;
+    this.changeLayoutButton = this.page.getByRole('button', { name: 'Change layout' });
   }
 
   async clickEditCarousel(): Promise<void> {
@@ -41,6 +34,12 @@ export class EditBarComponent extends BaseComponent implements IEditBarActions, 
   async clickOnAddTile(): Promise<void> {
     await test.step('Click add tile', async () => {
       await this.clickOnElement(this.addTileButton);
+    });
+  }
+
+  async clickChangeLayout(): Promise<void> {
+    await test.step('Click change layout', async () => {
+      await this.clickOnElement(this.changeLayoutButton);
     });
   }
 }
