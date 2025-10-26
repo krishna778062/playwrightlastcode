@@ -47,7 +47,6 @@ export interface ICreateFeedPostActions {
   clickEditOption: () => Promise<void>;
   updatePostText: (text: string) => Promise<void>;
   clickUpdateButton: () => Promise<void>;
-  selectShareOptionAsSiteFeed: () => Promise<void>;
   searchForSiteName: (siteName: string) => Promise<void>;
   clickBrowseFilesButton: () => Promise<void>;
   searchForFileInLibrary: (fileName: string) => Promise<void>;
@@ -485,15 +484,6 @@ export class CreateFeedPostComponent
   }
 
   /**
-   * Selects "site" option from the share dropdown to post to site feed
-   */
-  async selectShareOptionAsSiteFeed(): Promise<void> {
-    await test.step('Select share option: site feed', async () => {
-      await this.shareOptionDropdown.selectOption('site');
-    });
-  }
-
-  /**
    * Searches for a site name in the site selector dropdown without selecting it
    * This is used to verify if a site appears in search results
    * @param siteName - The site name to search for
@@ -559,8 +549,12 @@ export class CreateFeedPostComponent
       // Press Enter to search
       await this.fileSearchInput.press('Enter');
 
-      // Wait a moment for search results to load
-      await this.page.waitForTimeout(1500);
+      // Wait for search results to load by waiting for a row containing the searched file
+      const fileResultRow = this.page.locator(`tr:has-text("${fileName}")`).first();
+      await this.verifier.verifyTheElementIsVisible(fileResultRow, {
+        timeout: 10000,
+        assertionMessage: `File "${fileName}" should appear in search results`,
+      });
     });
   }
 

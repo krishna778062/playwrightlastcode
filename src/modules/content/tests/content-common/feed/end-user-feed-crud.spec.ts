@@ -134,28 +134,22 @@ test.describe(
         const privateSiteName = privateSiteResult.siteName;
         console.log(`Created private site: ${privateSiteName}`);
 
-        // Step 2: Standard User - Already logged in via standardUserFixture
-        await standardUserFixture.homePage.verifyThePageIsLoaded();
+        // Step 2: Standard User is already on Feed page and feedPage is already initialized and verified in beforeEach
 
-        // Step 3: User clicks on Home-Global Feed
-        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
-        feedPage = new FeedPage(standardUserFixture.page);
-        await feedPage.verifyThePageIsLoaded();
-
-        // Step 4: Click on "Share your thoughts" button
+        // Step 3: Click on "Share your thoughts" button
         await feedPage.actions.clickShareThoughtsButton();
 
-        // Step 5: Create a post and send it to the editor
+        // Step 4: Create a post and send it to the editor
         const initialPostText = TestDataGenerator.generateRandomText('Test Post', 3, true);
         await feedPage.actions.enterFeedPostText(initialPostText);
 
-        // Step 6: User select share option as "site feed"
+        // Step 5: User select share option as "site feed"
         await feedPage.actions.selectShareOptionAsSiteFeed();
 
-        // Step 7: Enter private site name which User is not member of
+        // Step 6: Enter private site name which User is not member of
         await feedPage.actions.searchForSiteName(privateSiteName);
 
-        // Step 8: Verify "No results" is getting displayed
+        // Step 7: Verify "No results" is getting displayed
         await feedPage.assertions.verifyNoResultMessage();
       }
     );
