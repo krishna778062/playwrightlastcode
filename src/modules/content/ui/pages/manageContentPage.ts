@@ -3,8 +3,9 @@ import { Locator, Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { SortOptionLabels } from '@/src/modules/content/constants';
+import { OnboardingOption, SortOptionLabels } from '@/src/modules/content/constants';
 import { ManageContentComponent } from '@/src/modules/content/ui/components/manageContentComponent';
+import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
 
 export interface IActions {
   writeRandomTextInSearchBar: (inputText: string) => Promise<void>;
@@ -47,6 +48,7 @@ export interface IAssertions {
 
 export class ManageContentPage extends BasePage implements IActions, IAssertions {
   private manageContentComponent: ManageContentComponent;
+  private onboardingComponent: OnboardingComponent;
   readonly clickingOnCheckbox: Locator = this.page.locator('input[type="checkbox"][aria-label="Select"]').first();
   readonly clickOnBulkOptions: Locator = this.page.locator('input[type="text"]#action');
   readonly validateOption: Locator = this.page.getByText('Validate');
@@ -55,6 +57,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_CONTENT);
     this.manageContentComponent = new ManageContentComponent(page);
+    this.onboardingComponent = new OnboardingComponent(page);
   }
 
   async load(): Promise<void> {
@@ -157,6 +160,18 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async hoverOnFirstDropDownOption(): Promise<void> {
     await this.manageContentComponent.hoverOnFirstDropDownOption();
   }
+  async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyOnboardingOptionVisibleInManageContent();
+  }
+  async clickOnOnboardingOption(): Promise<void> {
+    await this.manageContentComponent.clickOnOnboardingOption();
+  }
+  async verifyAlreadySelectedOnboardingOptionVisible(option: OnboardingOption): Promise<void> {
+    await this.onboardingComponent.verifyAlreadySelectedOnboardingOptionVisible(option);
+  }
+  async selectOnboardingOption(option: OnboardingOption): Promise<void> {
+    await this.onboardingComponent.selectOnboardingOption(option);
+  }
 
   async checkPublishOption(): Promise<void> {
     await this.manageContentComponent.checkPublishOption();
@@ -176,12 +191,8 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
     await this.manageContentComponent.clickFilterButton();
   }
   async selectSiteSearchBar(siteName: string): Promise<void> {
-    await this.manageContentComponent.selectSiteSearchBar(siteName);
+    await this.manageContentComponent.clickSiteSearchBar(siteName);
   }
-  async selectTheStatusFilter(status: string): Promise<void> {
-    await this.manageContentComponent.selectTheStatusFilter(status);
-  }
-
   async authorNameShouldBeVisible(): Promise<void> {
     await this.manageContentComponent.authorNameShouldBeVisible();
   }

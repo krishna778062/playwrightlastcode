@@ -693,6 +693,60 @@ export class SiteManagementHelper {
 
     return { siteId, name: siteName, authorName };
   }
+  async getSiteBySpecificName(
+    Name: string,
+    options?: {
+      hasPages?: boolean;
+      hasEvents?: boolean;
+      hasAlbums?: boolean;
+      hasDashboard?: boolean;
+      landingPage?: string;
+      name?: string;
+      isOwner?: boolean;
+      isMembershipAutoApproved?: boolean;
+      isBroadcast?: boolean;
+      waitForSearchIndex?: boolean;
+    }
+  ): Promise<{
+    siteId: string;
+    name: string;
+    authorName?: string;
+    memberCount?: number;
+    managerCount?: number;
+    followerCount?: number;
+    isPublic?: boolean;
+    isPrivate?: boolean;
+    isActive?: boolean;
+  }> {
+    const siteListResponse = await this.getListOfSites({ sortBy: 'alphabetical' });
+    console.log('siteListResponse', siteListResponse.result.listOfItems);
+    let siteDetails = siteListResponse.result.listOfItems.find(site => site.isActive === true && site.name === Name);
+    let siteId: string | undefined, siteName: string | undefined;
+
+    if (siteDetails) {
+      // Check if the existing site matches the required options
+      const matchesRequirements =
+        (options?.hasPages === undefined || siteDetails.hasPages === options.hasPages) &&
+        (options?.hasEvents === undefined || siteDetails.hasEvents === options.hasEvents) &&
+        (options?.hasAlbums === undefined || siteDetails.hasAlbums === options.hasAlbums);
+
+      if (matchesRequirements) {
+        siteId = siteDetails.siteId;
+        siteName = siteDetails.name;
+
+        console.log(`Found site with name '${Name}': ${siteName} (${siteId})`);
+      } else {
+        console.log(`Site '${Name}' found but doesn't match requirements`);
+        siteDetails = undefined; // Reset to undefined so we create a new site
+      }
+    }
+
+    if (!siteId) {
+      throw new Error(`No site found with name '${Name}'`);
+    }
+
+    return { siteId, name: siteName || '' };
+  }
 
   async getSiteAuthorNameAndEventStartDate(): Promise<{
     siteId: string;

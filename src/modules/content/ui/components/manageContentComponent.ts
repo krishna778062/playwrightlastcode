@@ -65,6 +65,7 @@ export class ManageContentComponent extends BaseComponent {
   readonly publishConfirmButton: Locator;
   readonly unpublishedTag: Locator;
   readonly checkBoxOfContent: Locator;
+  readonly onboardingOption: Locator;
   constructor(page: Page) {
     super(page);
     this.searchBar = page.locator("[aria-label='Search…']");
@@ -144,6 +145,7 @@ export class ManageContentComponent extends BaseComponent {
     this.pageTitleInput = page.locator('[id="contentTitle"]').first();
     this.publishConfirmButton = page.getByRole('button', { name: 'Publish changes' }).first();
     this.checkBoxOfContent = page.locator('[type="checkbox"]');
+    this.onboardingOption = page.getByText('Onboarding', { exact: true });
   }
   getPageName(pageName: string): Locator {
     return this.page.locator(`[aria-label="${pageName}"]`).first();
@@ -380,7 +382,17 @@ export class ManageContentComponent extends BaseComponent {
       await this.hoverOverElementInJavaScript(this.firstDropDownOption);
     });
   }
+  async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
+    await test.step(`Verifying the onboarding option is visible in manage content`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.onboardingOption);
+    });
+  }
 
+  async clickOnOnboardingOption(): Promise<void> {
+    await test.step(`Clicking on the onboarding option`, async () => {
+      await this.clickOnElement(this.onboardingOption);
+    });
+  }
   // has to fix this in next PR by aditya
   async checkPublishOption(): Promise<void> {
     await test.step(`Checking the publish option`, async () => {
@@ -423,7 +435,6 @@ export class ManageContentComponent extends BaseComponent {
       await this.siteSearchBar.type(siteName);
     });
   }
-
 
   async authorNameShouldBeVisible(): Promise<void> {
     await test.step(`Checking the author name should be visible`, async () => {
@@ -496,6 +507,17 @@ export class ManageContentComponent extends BaseComponent {
   async selectSortOption(sortBy: SortOptionLabels): Promise<void> {
     await test.step(`Selecting sort option: ${sortBy}`, async () => {
       await this.sortByButton.selectOption({ label: sortBy });
+      const sortByResponse = await this.performActionAndWaitForResponse(
+        () => this.sortByButton.selectOption({ label: sortBy }),
+        response =>
+          response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_SHOW_MORE_API) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      return sortByResponse;
     });
   }
 

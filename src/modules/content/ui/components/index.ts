@@ -15,6 +15,7 @@ export * from './manageContentComponent';
 export * from './manageFeatureComponent';
 export * from './manageSitesComponent';
 export * from './notificationComponent';
+export * from './onboardingComponent';
 export * from './promotePageModal';
 export * from './protectedAuthorComponent';
 export * from './siteDetailsComponent';
