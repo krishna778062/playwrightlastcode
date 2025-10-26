@@ -380,4 +380,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifyAllContentsAreDeleted(deletedContentNames: string[]): Promise<void> {
     await this.manageContentComponent.verifyAllContentsAreDeleted(deletedContentNames);
   }
+  async verifyContentVisibleInManageSite(contentName: string): Promise<void> {
+    await this.manageContentComponent.verifyContentVisibleInManageSite(contentName);
+  }
 }

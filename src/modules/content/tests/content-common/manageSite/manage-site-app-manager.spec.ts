@@ -2,18 +2,15 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { OnboardingOption } from '../../../constants/onboardingOptions';
-import { SortOptionLabels } from '../../../constants/sortOptionLabels';
-import { ManageSitesComponent } from '../../../ui/components/manageSitesComponent';
-import { OnboardingComponent } from '../../../ui/components/onboardingComponent';
-import { SiteDetailsPage } from '../../../ui/pages/siteDetailsPage';
-import { SiteDashboardPage } from '../../../ui/pages/sitePages/siteDashboardPage';
-
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
+import { OnboardingOption, SortOptionLabels } from '@/src/modules/content/constants';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { ManageSitesComponent, OnboardingComponent } from '@/src/modules/content/ui/components';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
+import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe('manage Site Tests', () => {

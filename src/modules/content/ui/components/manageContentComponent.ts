@@ -905,4 +905,11 @@ export class ManageContentComponent extends BaseComponent {
       });
     });
   }
+  async verifyContentVisibleInManageSite(contentName: string): Promise<void> {
+    await test.step('Verifying the content is visible in manage site', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getContentNameLocator(contentName), {
+        assertionMessage: 'Content should be visible',
+      });
+    });
+  }
 }
