@@ -191,7 +191,8 @@ test.describe(
         await feedPage.actions.clickPostButton();
 
         // Step 10: Verify the feed post is published successfully
-        console.log('Video feed post published successfully');
+        // The post editor should close and Share thoughts button should be visible again
+        await feedPage.verifyThePageIsLoaded();
       }
     );
   }
