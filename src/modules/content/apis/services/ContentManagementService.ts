@@ -226,6 +226,58 @@ export class ContentManagementService implements IContentManagementServices {
   }
 
   /**
+   * Saves page content as draft to a site.
+   * @param siteId - The site ID.
+   * @param overrides - Page content overrides.
+   * @returns The created draft page's ID.
+   */
+  async savePageAsDraft(siteId: string, overrides: Partial<ReturnType<typeof defaultPageContentPayload>> = {}) {
+    return await test.step('Saving page content as draft via API post request', async () => {
+      const payload = {
+        ...defaultPageContentPayload(),
+        ...overrides,
+        category: {
+          ...defaultPageContentPayload().category,
+          ...overrides.category,
+        },
+      };
+      const response = await this.httpClient.post(
+        API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.saveDraft,
+        {
+          data: {
+            contentSubType: payload.contentSubType,
+            listOfFiles: payload.listOfFiles,
+            publishAt: payload.publishAt,
+            body: payload.body,
+            imgCaption: payload.imgCaption,
+            publishingStatus: payload.publishingStatus,
+            bodyHtml: payload.bodyHtml,
+            imgLayout: payload.imgLayout,
+            title: payload.title,
+            language: payload.language,
+            isFeedEnabled: payload.isFeedEnabled,
+            listOfTopics: payload.listOfTopics,
+            category: {
+              id: payload.category.id,
+              name: payload.category.name,
+            },
+            contentType: payload.contentType,
+            isNewTiptap: payload.isNewTiptap,
+            ...(payload.publishAt && { publishAt: payload.publishAt }),
+            ...(payload.publishTo && { publishTo: payload.publishTo }),
+          },
+        }
+      );
+      const json = await response.json();
+      console.log('Draft page created:', json);
+      return {
+        pageId: json.result.id,
+        authorName: json.result.authoredBy?.name,
+      };
+    });
+  }
+
+  /**
    * Publishes new event content to a site.
    * @param siteId - The site ID.
    * @param overrides - Event content overrides.

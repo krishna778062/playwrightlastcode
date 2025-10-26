@@ -71,6 +71,7 @@ export const API_ENDPOINTS = {
   content: {
     category: '/pageCategories/list',
     publish: '/content?action=publish',
+    saveDraft: '/content?action=saveDraft',
     delete: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}`,
     file: (fileId: string) => `/v1/content/files/${fileId}`,
     signedUrl: '/v1/content/static/signedurl/upload',

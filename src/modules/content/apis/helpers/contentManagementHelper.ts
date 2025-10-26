@@ -265,6 +265,48 @@ export class ContentManagementHelper {
   }
 
   /**
+   * Creates a page as draft (not published)
+   * @param params - Page creation parameters
+   * @returns Created draft page information
+   */
+  async createDraftPage(params: {
+    siteId: string;
+    contentInfo: { contentType: string; contentSubType: string };
+    options?: {
+      pageName?: string;
+      contentDescription?: string;
+    };
+  }) {
+    const { siteId, contentInfo, options = {} } = params;
+    const pageCategory = await this.contentManagementService.getPageCategoryID(siteId);
+    const finalPageName = options.pageName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Page`;
+    const finalContentDescription = options.contentDescription || 'AutomatePageDescription';
+    const { body, bodyHtml } = buildBodyAndBodyHtml(finalContentDescription, 'page');
+
+    const pageResult = await this.contentManagementService.savePageAsDraft(siteId, {
+      title: finalPageName,
+      body,
+      bodyHtml,
+      category: {
+        id: pageCategory.categoryId,
+        name: pageCategory.name,
+      },
+      contentType: contentInfo.contentType,
+      contentSubType: contentInfo.contentSubType,
+    });
+
+    const createdContent = {
+      siteId,
+      contentId: pageResult.pageId,
+      pageName: finalPageName,
+      authorName: pageResult.authorName,
+      contentDescription: finalContentDescription,
+    };
+    this.content.push({ siteId, contentId: pageResult.pageId });
+    return { ...createdContent };
+  }
+
+  /**
    * Creates a new scheduled page in an existing site
    * @param siteId - The ID of the existing site
    * @param contentInfo - The content type information
