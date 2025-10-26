@@ -2,18 +2,17 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { OnboardingOption } from '../../../constants/onboardingOptions';
-import { SortOptionLabels } from '../../../constants/sortOptionLabels';
-import { ManageSitesComponent } from '../../../ui/components/manageSitesComponent';
-import { OnboardingComponent } from '../../../ui/components/onboardingComponent';
-import { SiteDetailsPage } from '../../../ui/pages/siteDetailsPage';
-import { SiteDashboardPage } from '../../../ui/pages/sitePages/siteDashboardPage';
-
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
+import { OnboardingOption, SortOptionLabels } from '@/src/modules/content/constants';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
+import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
+import { ManageSitesComponent, OnboardingComponent } from '@/src/modules/content/ui/components';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
+import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe('manage Site Tests', () => {
@@ -147,6 +146,50 @@ test.describe('manage Site Tests', () => {
       await manageContentPage.actions.clickOnDeleteButton();
       await manageContentPage.actions.selectDeleteApplyButton();
       await manageContentPage.actions.verifyAllContentsAreDeleted(contentNames);
+    }
+  );
+
+  test(
+    'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-20536'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site',
+        customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
+        zephyrTestId: 'CONT-20536',
+        storyId: 'CONT-20536',
+      });
+
+      const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+      const pageInfo = await appManagerFixture.contentManagementHelper.createAlbum({
+        siteId: siteInfo.siteId,
+        imageName: 'beach.jpg',
+        options: {
+          albumName: MANAGE_CONTENT_TEST_DATA.UPDATED_PAGE_NAME,
+          contentDescription: MANAGE_SITE_TEST_DATA.DESCRIPTION.DESCRIPTION,
+        },
+      });
+      console.log('pageInfo', pageInfo);
+      await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+      await manageFeaturesPage.actions.clickOnContentCard();
+      await manageContentPage.actions.clickSortByButton();
+      await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+      await manageContentPage.actions.verifyPublishedStampVisibleInManageContent();
+      await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.albumName);
+      await manageContentPage.actions.hoverOnFirstDropDownOption();
+      await manageContentPage.actions.verifyEditOptionVisibleInManageContent();
+      await manageContentPage.actions.verifyDeleteOptionVisibleInManageContent();
+      await manageContentPage.actions.verifyUnpublishOptionVisibleInManageContent();
+      await manageContentPage.actions.verifyMoveOptionVisibleInManageContent();
+      await manageContentPage.actions.verifyAddToCampaignOptionShouldNotBeVisibleInManageContent();
+      await manageContentPage.actions.clickOnUnpublishButton();
+      await manageContentPage.actions.verifyUnpublishedStampVisibleInManageContent();
+      await manageContentPage.actions.hoverOnFirstDropDownOption();
+      await manageContentPage.actions.clickOnDeleteOption();
+      await manageContentPage.actions.clickDeleteModalConfirmButton();
     }
   );
 });
