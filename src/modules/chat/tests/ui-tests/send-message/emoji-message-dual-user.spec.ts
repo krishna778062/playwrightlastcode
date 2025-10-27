@@ -1,11 +1,8 @@
-import { expect } from '@playwright/test';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 import { dualUserChatFixture as test } from '@modules/chat/fixtures/dualUserChatFixture';
 
-import CONSTANT_DATA from '../../../constants/constantData';
 import { CHAT_SUITE_TAGS } from '../../../constants/testTags';
 
 /**
@@ -13,13 +10,13 @@ import { CHAT_SUITE_TAGS } from '../../../constants/testTags';
  * Tests sending messages with emojis in direct messages
  */
 test.describe(
-  'Emoji Message Send Tests - Direct Message',
+  'emoji Message Send Tests - Direct Message',
   {
     tag: [CHAT_SUITE_TAGS.DIRECT_MESSAGE, TestPriority.P2],
   },
   () => {
     test(
-      'Send message with first 4 emojis from emoji picker',
+      'send message with first 4 emojis from emoji picker',
       {
         tag: [TestPriority.P2, TestGroupType.SMOKE],
       },
@@ -61,13 +58,13 @@ test.describe(
     );
 
     test(
-      'Send text message with emojis',
+      'send text message with emojis',
       {
         tag: [TestPriority.P2, TestGroupType.SMOKE],
       },
       async ({ multiUserChatTestHelper, chatPages }) => {
         tagTest(test.info(), {
-          description: 'User types text, adds emojis, and sends message',
+          description: 'user types text, adds emojis, and sends message',
           zephyrTestId: 'CHAT-2307',
           storyId: 'CHAT-2307',
         });
@@ -106,13 +103,13 @@ test.describe(
     );
 
     test(
-      'Send message with emojis from search input',
+      'send message with emojis from search input',
       {
         tag: [TestPriority.P2, TestGroupType.SMOKE],
       },
       async ({ multiUserChatTestHelper, chatPages }) => {
         tagTest(test.info(), {
-          description: 'User searched a emoji, adds emojis, and sends message',
+          description: 'user searched a emoji, adds emojis, and sends message',
           zephyrTestId: 'CHAT-2308',
           storyId: 'CHAT-2308',
         });
