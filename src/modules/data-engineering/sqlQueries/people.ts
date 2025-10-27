@@ -1,0 +1,31 @@
+export const PeopleSql = {
+  Total_Users_Count: `
+SELECT COUNT(code) as user_count 
+FROM SIMPPLR_COMMON_TENANT.UDL.VW_USER_AS_IS 
+WHERE STATUS_CODE = 'US001' 
+AND TENANT_CODE = '{orgId}';
+  `,
+
+  Departments_Count: `
+SELECT COUNT(DISTINCT(DEPARTMENT)) as department_count 
+FROM SIMPPLR_COMMON_TENANT.UDL.VW_USER_AS_IS 
+WHERE TENANT_CODE = '{orgId}' 
+AND STATUS_CODE = 'US001';
+  `,
+
+  Locations_Count: `
+SELECT COUNT(DISTINCT(LOCATION)) as location_count 
+FROM SIMPPLR_COMMON_TENANT.UDL.VW_USER_AS_IS 
+WHERE TENANT_CODE = '{orgId}' 
+AND STATUS_CODE = 'US001';
+  `,
+
+  User_Category_Count: `
+SELECT COUNT(DISTINCT(USER_CATEGORY_CODE)) as user_category_count 
+FROM SIMPPLR_COMMON_TENANT.UDL.VW_USER_AS_IS 
+WHERE TENANT_CODE = '{orgId}' 
+AND STATUS_CODE = 'US001' 
+AND ACTIVE_FLAG 
+AND USER_CATEGORY_CODE <> 'N/A';
+  `,
+};
