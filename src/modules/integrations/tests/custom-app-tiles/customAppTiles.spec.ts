@@ -3,6 +3,7 @@ import {
   CUSTOM_APP_TILES_TEST_DATA,
   DEFAULT_CUSTOM_APP_TILE_CONFIG,
 } from '@integrations/test-data/customAppTiles.test-data';
+import { MESSAGES } from '@integrations-constants/messageRepo';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
@@ -78,7 +79,7 @@ test.describe(
         // Test no results
         await customAppTilesPage.searchForTiles(CUSTOM_APP_TILES_TEST_DATA.SEARCH_TERMS.NO_RESULTS);
         await customAppTilesPage.verifyResultCount(0);
-        await customAppTilesPage.verifyNoResultsText(CUSTOM_APP_TILES_TEST_DATA.MESSAGES.NO_RESULTS_TEXT);
+        await customAppTilesPage.verifyNoResultsText(MESSAGES.NO_RESULTS_TEXT);
       }
     );
 

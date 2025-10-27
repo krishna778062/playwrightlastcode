@@ -159,6 +159,7 @@ export class CustomAppTilesPage extends BasePage {
   readonly tileRowByPrefix: Locator;
   readonly saveButtonGeneric: Locator;
   readonly nextButtonGeneric: Locator;
+  readonly fieldContainer: Locator;
 
   // Dynamic locators for dropdown options
   readonly arrayOption: Locator;
@@ -347,6 +348,7 @@ export class CustomAppTilesPage extends BasePage {
     this.tileRowByPrefix = page.locator('tr');
     this.saveButtonGeneric = page.locator('button');
     this.nextButtonGeneric = page.locator('button');
+    this.fieldContainer = page.locator('[data-testid^="field-"]');
 
     // Dynamic locators for dropdown options
     this.arrayOption = page.locator('[data-testid="array-option"]');
@@ -390,6 +392,9 @@ export class CustomAppTilesPage extends BasePage {
     this.fieldLabelLocator = page.locator('[data-testid^="field-"]');
   }
 
+  /**
+   * Verify that the Custom App Tiles page is fully loaded
+   */
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify Custom App Tiles page is loaded', async () => {
       await this.verifier.verifyTheElementIsVisible(this.pageTitle, {
@@ -399,6 +404,9 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Click the Create custom app tile button
+   */
   async clickCreateCustomAppTileButton(): Promise<void> {
     await test.step('Click on Create custom app tile button', async () => {
       await this.clickOnElement(this.createCustomAppTileButton, {
@@ -407,6 +415,10 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Enter the tile name in the input field
+   * @param tileName - The name of the tile to enter
+   */
   async enterTileName(tileName: string): Promise<void> {
     await test.step(`Enter tile name: ${tileName}`, async () => {
       await this.fillInElement(this.tileNameInput, tileName, {
@@ -415,6 +427,10 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Enter the tile description in the input field
+   * @param description - The description of the tile to enter
+   */
   async enterTileDescription(description: string): Promise<void> {
     await test.step(`Enter tile description: ${description}`, async () => {
       await this.fillInElement(this.tileDescriptionInput, description, {
@@ -423,22 +439,34 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Select a tile type from the dropdown
+   * @param option - The tile type option to select
+   */
   async selectTileType(option: string): Promise<void> {
     await test.step(`Select tile type: ${option}`, async () => {
       await this.tileTypeSelect.selectOption(option);
     });
   }
 
+  /**
+   * Verify the available tile type options
+   * @param expectedOptions - Array of expected tile type options
+   */
   async verifyTileTypeOptions(expectedOptions: string[]): Promise<void> {
     await test.step(`Verify tile type options: ${expectedOptions.join(', ')}`, async () => {
       const options = await this.tileTypeSelect.locator('option').allTextContents();
 
       for (const expectedOption of expectedOptions) {
-        this.expect(options).toContain(expectedOption);
+        this.expect(options, `Expected option "${expectedOption}" to be in the list`).toContain(expectedOption);
       }
     });
   }
 
+  /**
+   * Select an app from the dropdown
+   * @param appName - The name of the app to select
+   */
   async selectApp(appName: string): Promise<void> {
     await test.step(`Select app: ${appName}`, async () => {
       await this.appSelect.click();
@@ -446,6 +474,10 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Select an API action from the dropdown
+   * @param actionName - The name of the API action to select
+   */
   async selectApiAction(actionName: string): Promise<void> {
     await test.step(`Select API action: ${actionName}`, async () => {
       await this.apiActionSelect.click();
@@ -453,6 +485,10 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Click a button by its name
+   * @param buttonName - The name/text of the button to click
+   */
   async clickButton(buttonName: string): Promise<void> {
     await test.step(`Click ${buttonName} button`, async () => {
       // Try to find as button first, then as link if not found
@@ -471,6 +507,9 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Verify the states of all buttons in the footer (Cancel, Save, Next)
+   */
   async verifyButtonStates(): Promise<void> {
     await test.step('Verify button states in footer', async () => {
       // Verify Cancel button is enabled
@@ -502,6 +541,10 @@ export class CustomAppTilesPage extends BasePage {
   }
 
   // Search functionality
+  /**
+   * Search for tiles using the provided search term
+   * @param searchTerm - The term to search for in the tiles list
+   */
   async searchForTiles(searchTerm: string): Promise<void> {
     await test.step(`Search for tiles with term: ${searchTerm}`, async () => {
       // Click on search field to ensure it's focused
@@ -519,11 +562,16 @@ export class CustomAppTilesPage extends BasePage {
         });
 
         // Wait for the search input to have some value (it may be truncated due to maxlength)
-        await this.expect(this.searchInput).not.toHaveValue('', { timeout: 5000 });
+        await this.expect(this.searchInput, 'Expected search input to have a value').not.toHaveValue('', {
+          timeout: 5000,
+        });
       }
     });
   }
 
+  /**
+   * Clear the search input field
+   */
   async clearSearch(): Promise<void> {
     await test.step('Clear search field', async () => {
       // Wait for search input to be visible and have value before clearing
@@ -540,49 +588,74 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Verify that the search field is empty
+   */
   async verifySearchFieldIsEmpty(): Promise<void> {
     await test.step('Verify search field is empty', async () => {
-      await this.expect(this.searchInput).toHaveValue('');
+      await this.expect(this.searchInput, 'Expected search field to be empty').toHaveValue('');
     });
   }
 
+  /**
+   * Verify the result count matches the expected value
+   * @param expectedCount - The expected number of tiles in the results
+   */
   async verifyResultCount(expectedCount: number): Promise<void> {
     await test.step(`Verify result count is ${expectedCount}`, async () => {
       // Wait for the result count to match expected value (search may take time to complete)
-      await this.expect(this.resultCount).toHaveText(new RegExp(`^${expectedCount}\\s+tile`), { timeout: 15000 });
+      await this.expect(this.resultCount, `Expected result count to be ${expectedCount} tiles`).toHaveText(
+        new RegExp(`^${expectedCount}\\s+tile`),
+        { timeout: 15000 }
+      );
     });
   }
 
+  /**
+   * Verify that all app tiles are visible on the page
+   */
   async verifyAllAppTilesVisible(): Promise<void> {
     await test.step('Verify all app tiles are visible', async () => {
       // Wait for tiles to load after search is cleared
       await this.tileRows.first().waitFor({ state: 'visible', timeout: 10000 });
       const tiles = this.tileRows;
-      await this.expect(tiles.first()).toBeVisible();
+      await this.expect(tiles.first(), 'Expected at least one tile to be visible').toBeVisible();
       const count = await tiles.count();
-      this.expect(count).toBeGreaterThan(0);
+      this.expect(count, 'Expected tile count to be greater than 0').toBeGreaterThan(0);
     });
   }
 
+  /**
+   * Verify the no results message text
+   * @param expectedText - The expected text to be displayed when there are no results
+   */
   async verifyNoResultsText(expectedText: string): Promise<void> {
     await test.step(`Verify no results text: ${expectedText}`, async () => {
-      await this.expect(this.noResultsHeading).toBeVisible();
-      await this.expect(this.noResultsDescription).toBeVisible();
+      await this.expect(this.noResultsHeading, 'Expected "No results" heading to be visible').toBeVisible();
+      await this.expect(this.noResultsDescription, 'Expected no results description to be visible').toBeVisible();
       const actualText = `${await this.noResultsHeading.textContent()} ${await this.noResultsDescription.textContent()}`;
-      this.expect(actualText.trim()).toBe(expectedText);
+      this.expect(actualText.trim(), `Expected text to be "${expectedText}"`).toBe(expectedText);
     });
   }
 
   // Apps dropdown functionality
+  /**
+   * Verify that the custom apps count is at most the specified maximum
+   * @param maxCount - The maximum expected count of custom apps
+   */
   async verifyCustomAppsCountAtMost(maxCount: number): Promise<void> {
     await test.step(`Verify custom apps count is at most ${maxCount}`, async () => {
       await this.clickOnElement(this.appsDropdown);
       const count = await this.appOptionLabels.count();
-      this.expect(count).toBeLessThanOrEqual(maxCount);
+      this.expect(count, `Expected app count to be at most ${maxCount}`).toBeLessThanOrEqual(maxCount);
       await this.page.keyboard.press('Escape');
     });
   }
 
+  /**
+   * Select apps in the apps dropdown
+   * @param appNames - Array of app names to select
+   */
   async selectAppsInDropdown(appNames: string[]): Promise<void> {
     await test.step(`Select apps in dropdown: ${appNames.join(', ')}`, async () => {
       // Click on apps dropdown to open it
@@ -614,25 +687,27 @@ export class CustomAppTilesPage extends BasePage {
               await this.appsSearchInput.fill(trimmedAppName);
 
               // Wait for the search input to have the value
-              await this.expect(this.appsSearchInput).toHaveValue(trimmedAppName, { timeout: 2000 });
+              await this.expect(
+                this.appsSearchInput,
+                `Expected search input to have value "${trimmedAppName}"`
+              ).toHaveValue(trimmedAppName, { timeout: 2000 });
 
               // Wait for the specific app option to appear by checking for the text in the options
               // The search should filter the results
               const searchedOption = this.appOptionLabels.filter({ hasText: trimmedAppName });
 
               // Wait for the filtered option to become visible (Playwright will retry)
-              await this.expect(searchedOption.first()).toBeVisible({ timeout: 5000 });
+              await this.expect(
+                searchedOption.first(),
+                `Expected app option "${trimmedAppName}" to be visible`
+              ).toBeVisible({ timeout: 5000 });
 
               // Get the count after search
               optionCount = await searchedOption.count();
               appOption = searchedOption;
-            } catch (searchError) {
-              console.log(`Search failed for "${trimmedAppName}":`, searchError);
+            } catch {
               // Continue without searching
             }
-          } else {
-            // If search input is not visible, skip searching and continue with error
-            console.log(`Search input not visible, skipping search for "${trimmedAppName}"`);
           }
         }
 
@@ -645,6 +720,10 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Verify that the specified apps are visible in the tile list
+   * @param expectedApps - Array of app names that should be visible
+   */
   async verifyVisibleApps(expectedApps: string[]): Promise<void> {
     await test.step(`Verify visible apps: ${expectedApps.join(', ')}`, async () => {
       // Wait for the table to be visible and updated
@@ -680,17 +759,24 @@ export class CustomAppTilesPage extends BasePage {
       const trimmedExpected = expectedApps.map(app => app.trim());
 
       for (const expectedApp of trimmedExpected) {
-        this.expect(trimmedActual).toContain(expectedApp);
+        this.expect(trimmedActual, `Expected visible apps to contain "${expectedApp}"`).toContain(expectedApp);
       }
     });
   }
 
+  /**
+   * Close the apps dropdown using the Escape key
+   */
   async closeAppsDropdownWithEscapeKey(): Promise<void> {
     await test.step('Close apps dropdown with Escape key', async () => {
       await this.page.keyboard.press('Escape');
     });
   }
 
+  /**
+   * Select a status filter (Draft or Published)
+   * @param status - The status to filter by
+   */
   async selectStatusFilter(status: 'Draft' | 'Published'): Promise<void> {
     await test.step(`Select status filter: ${status}`, async () => {
       await this.clickOnElement(this.statusDropdown);
@@ -699,6 +785,9 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Clear the status filter
+   */
   async clearStatusFilter(): Promise<void> {
     await test.step('Clear status filter', async () => {
       await this.clickOnElement(this.statusDropdown);
@@ -707,36 +796,56 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Click on the apps dropdown to open it
+   */
   async clickOnAppsDropdown(): Promise<void> {
     await test.step('Click on apps dropdown', async () => {
       await this.clickOnElement(this.appsDropdown);
     });
   }
 
+  /**
+   * Type text into the apps search field
+   * @param text - The text to search for
+   */
   async typeInAppsSearch(text: string): Promise<void> {
     await test.step(`Type in apps search: ${text}`, async () => {
       await this.fillInElement(this.appsSearchInput, text);
     });
   }
 
+  /**
+   * Click the search field cross/clear button
+   */
   async clickSearchFieldCross(): Promise<void> {
     await test.step('Click search field cross button', async () => {
       await this.clickOnElement(this.clearSearchButton);
     });
   }
 
+  /**
+   * Verify that the apps search field is empty
+   */
   async verifySearchFieldIsNill(): Promise<void> {
     await test.step('Verify search field is empty', async () => {
-      await this.expect(this.appsSearchInput).toHaveValue('');
+      await this.expect(this.appsSearchInput, 'Expected apps search field to be empty').toHaveValue('');
     });
   }
 
+  /**
+   * Click the clear button above the search field
+   */
   async clickClearButtonAboveSearch(): Promise<void> {
     await test.step('Click clear button above search', async () => {
       await this.clickOnElement(this.appsClearButton);
     });
   }
 
+  /**
+   * Verify that the apps filter is applied with the expected number of apps selected
+   * @param expectedAppCount - The expected number of apps selected in the filter
+   */
   async verifyAppsFilterApplied(expectedAppCount: number): Promise<void> {
     await test.step(`Verify apps filter is applied with ${expectedAppCount} apps selected`, async () => {
       // Wait for the filter to apply by waiting for the table to update
@@ -746,10 +855,15 @@ export class CustomAppTilesPage extends BasePage {
       const appsDropdownText = await this.appsDropdown.textContent();
 
       // The dropdown should show the count of selected apps
-      this.expect(appsDropdownText).toContain(expectedAppCount.toString());
+      this.expect(appsDropdownText, `Expected dropdown text to show count ${expectedAppCount}`).toContain(
+        expectedAppCount.toString()
+      );
     });
   }
 
+  /**
+   * Clear the apps filter and wait for the page to update
+   */
   async clearAppsFilterAndWait(): Promise<void> {
     await test.step('Clear apps filter and wait for page to update', async () => {
       await this.clickOnAppsDropdown();
@@ -761,44 +875,70 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Verify that no app checkbox is selected
+   */
   async verifyNoAppCheckboxIsSelected(): Promise<void> {
     await test.step('Verify no app checkbox is selected', async () => {
       const count = await this.checkboxes.count();
       for (let i = 0; i < count; i++) {
         const isChecked = await this.checkboxes.nth(i).isChecked();
-        this.expect(isChecked).toBe(false);
+        this.expect(isChecked, `Expected checkbox ${i + 1} to be unchecked`).toBe(false);
       }
     });
   }
 
   // Show more functionality
+  /**
+   * Verify the "Show more" button is visible if tile count is above threshold
+   * @param threshold - The threshold count for showing the "Show more" button
+   */
   async verifyShowMoreIsVisibleIfAboveThreshold(threshold: number): Promise<void> {
     await test.step(`Verify show more is visible if above threshold: ${threshold}`, async () => {
       const tileCount = await this.getRenderedTileCount();
 
       if (tileCount > threshold) {
-        await this.expect(this.showMoreButton).toBeVisible();
+        await this.expect(
+          this.showMoreButton,
+          'Expected "Show more" button to be visible when above threshold'
+        ).toBeVisible();
       }
     });
   }
 
+  /**
+   * Click the "Show more" button
+   */
   async clickShowMore(): Promise<void> {
     await test.step('Click show more button', async () => {
       await this.clickOnElement(this.showMoreButton);
     });
   }
 
+  /**
+   * Verify that the "Show more" button is not visible
+   */
   async verifyShowMoreIsNotVisible(): Promise<void> {
     await test.step('Verify show more button is not visible', async () => {
-      await this.expect(this.showMoreButton).not.toBeVisible();
+      await this.expect(this.showMoreButton, 'Expected "Show more" button to not be visible').not.toBeVisible();
     });
   }
 
+  /**
+   * Get the count of rendered tiles on the page
+   * @returns The number of tiles currently visible
+   */
   async getRenderedTileCount(): Promise<number> {
     return await this.tileRows.count();
   }
 
   // Enhanced tile creation methods
+  /**
+   * Enter a dynamic answer with a random suffix
+   * @param fieldLabel - The label of the field (unused)
+   * @param baseAnswer - The base answer string
+   * @returns The final answer with random suffix
+   */
   async enterDynamicAnswer(fieldLabel: string, baseAnswer: string): Promise<string> {
     const suffix = Math.random().toString(36).substring(2, 7);
     const finalAnswer = `${baseAnswer}_${suffix}`;
@@ -806,13 +946,19 @@ export class CustomAppTilesPage extends BasePage {
     return finalAnswer;
   }
 
+  /**
+   * Verify that the API action dropdown is disabled
+   */
   async verifyApiActionDisabled(): Promise<void> {
     await test.step('Verify API action dropdown is disabled', async () => {
       await this.apiActionWrapperDisabled.waitFor({ state: 'visible', timeout: 10000 });
-      await this.expect(this.apiActionWrapperDisabled).toBeVisible();
+      await this.expect(this.apiActionWrapperDisabled, 'Expected API action wrapper to be visible').toBeVisible();
     });
   }
 
+  /**
+   * Verify that the API action dropdown is enabled
+   */
   async verifyApiActionEnabled(): Promise<void> {
     await test.step('Verify API action dropdown is enabled', async () => {
       // Wait for the API action wrapper to be visible
@@ -821,14 +967,17 @@ export class CustomAppTilesPage extends BasePage {
       // Check if the control is not disabled by looking for enabled state
       // or by checking that aria-disabled is not "true"
       const isDisabled = await this.apiActionWrapper.getAttribute('aria-disabled');
-      this.expect(isDisabled).not.toBe('true');
+      this.expect(isDisabled, 'Expected API action wrapper to not be disabled').not.toBe('true');
 
       // Also verify the input is not disabled
       const inputDisabled = await this.reactSelectInput.getAttribute('disabled');
-      this.expect(inputDisabled).toBeNull();
+      this.expect(inputDisabled, 'Expected input to not be disabled').toBeNull();
     });
   }
 
+  /**
+   * Click the "Add custom app" link
+   */
   async clickAddCustomAppLink(): Promise<void> {
     await test.step('Click Add custom app link', async () => {
       await this.clickOnElement(this.addCustomAppLink, {
@@ -837,6 +986,9 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Click the "Create API action" link
+   */
   async clickCreateApiActionLink(): Promise<void> {
     await test.step('Click Create API action link', async () => {
       await this.clickOnElement(this.createApiActionLink, {
@@ -845,6 +997,11 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Click a link and verify redirect to expected URL
+   * @param linkType - The type of link to click ('addCustomApp' or 'createApiAction')
+   * @param expectedUrlPattern - The expected URL pattern to redirect to
+   */
   async clickLinkAndVerifyRedirect(
     linkType: 'addCustomApp' | 'createApiAction',
     expectedUrlPattern: string
@@ -860,10 +1017,17 @@ export class CustomAppTilesPage extends BasePage {
 
       // Verify redirect to expected URL
       await this.page.waitForURL(`**${expectedUrlPattern}**`);
-      await this.expect(this.page).toHaveURL(new RegExp(`.*${expectedUrlPattern}`));
+      await this.expect(this.page, `Expected page to redirect to URL containing "${expectedUrlPattern}"`).toHaveURL(
+        new RegExp(`.*${expectedUrlPattern}`)
+      );
     });
   }
 
+  /**
+   * Click a create button and verify redirect
+   * @param buttonText - The text of the button to click
+   * @param expectedEndpoint - The expected endpoint to redirect to
+   */
   async clickCreateButton(buttonText: string, expectedEndpoint: string): Promise<void> {
     await test.step(`Click ${buttonText} button and verify redirect`, async () => {
       // Find and click the button/link by text
@@ -877,33 +1041,46 @@ export class CustomAppTilesPage extends BasePage {
         }),
       ]);
 
-      // Wait for the new page to load
-      await newPage.waitForLoadState('networkidle');
-
-      // Verify redirect to expected endpoint in the new tab
-      await newPage.waitForURL(`**${expectedEndpoint}**`);
-      await this.expect(newPage).toHaveURL(new RegExp(`.*${expectedEndpoint}`));
+      // Wait for the new page to load by checking URL instead of networkidle
+      await newPage.waitForURL(`**${expectedEndpoint}**`, { timeout: 30000 });
+      await this.expect(newPage, `Expected new page to redirect to "${expectedEndpoint}"`).toHaveURL(
+        new RegExp(`.*${expectedEndpoint}`)
+      );
 
       // Close the new tab
       await newPage.close();
     });
   }
 
+  /**
+   * Verify redirect to custom apps page
+   */
   async verifyRedirectToCustomAppsPage(): Promise<void> {
     await test.step('Verify redirect to custom apps page', async () => {
       await this.page.waitForURL(`**${PAGE_ENDPOINTS.CUSTOM_APPS_INTEGRATION_PAGE}**`);
-      await this.expect(this.page).toHaveURL(new RegExp(`.*${PAGE_ENDPOINTS.CUSTOM_APPS_INTEGRATION_PAGE}`));
+      await this.expect(this.page, `Expected page to redirect to custom apps page`).toHaveURL(
+        new RegExp(`.*${PAGE_ENDPOINTS.CUSTOM_APPS_INTEGRATION_PAGE}`)
+      );
     });
   }
 
+  /**
+   * Verify redirect to API actions page
+   */
   async verifyRedirectToApiActionsPage(): Promise<void> {
     await test.step('Verify redirect to API actions page', async () => {
       await this.page.waitForURL(`**${PAGE_ENDPOINTS.API_ACTIONS_PAGE}**`);
-      await this.expect(this.page).toHaveURL(new RegExp(`.*${PAGE_ENDPOINTS.API_ACTIONS_PAGE}`));
+      await this.expect(this.page, `Expected page to redirect to API actions page`).toHaveURL(
+        new RegExp(`.*${PAGE_ENDPOINTS.API_ACTIONS_PAGE}`)
+      );
     });
   }
 
   // Canvas and drag-drop functionality
+  /**
+   * Drag an image and text rows block into the canvas
+   * @param imageBlock - The name of the image block to drag
+   */
   async dragImageAndTextRowsIntoCanvas(imageBlock: string): Promise<void> {
     await test.step(`Drag ${imageBlock} block into canvas`, async () => {
       // Use constructor-assigned locator with filter for specific aria-label
@@ -923,9 +1100,7 @@ export class CustomAppTilesPage extends BasePage {
       try {
         // Try the standard dragTo method first
         await blockSelector.dragTo(canvasSelector, { timeout: 20000 });
-      } catch (error) {
-        console.log('Standard dragTo failed, trying alternative method:', error);
-
+      } catch {
         // Alternative method using mouse events
         await this.performDragWithMouseEvents(blockSelector, canvasSelector);
       }
@@ -995,6 +1170,9 @@ export class CustomAppTilesPage extends BasePage {
       .catch(() => {});
   }
 
+  /**
+   * Drag a container block into the canvas
+   */
   async dragContainerBlockIntoCanvas(): Promise<void> {
     await test.step('Drag container block into canvas', async () => {
       // Wait for the container block to be visible first
@@ -1010,103 +1188,17 @@ export class CustomAppTilesPage extends BasePage {
       try {
         // Try the standard dragTo method first
         await this.containerBlock.dragTo(this.canvasContainer, { timeout: 20000 });
-      } catch (error) {
-        console.log('Standard dragTo failed, trying alternative method:', error);
-
+      } catch {
         // Alternative method using mouse events
         await this.performDragWithMouseEvents(this.containerBlock, this.canvasContainer);
       }
     });
   }
 
-  async dragImageAndTextRowsTemplateIntoCanvas(): Promise<void> {
-    await test.step('Drag Image and text rows template into canvas', async () => {
-      // Try multiple selectors to find the Image and text rows template using constructor-assigned locators
-      let imageTextRowsTemplate;
-
-      try {
-        // First try: div with role='button' (Selenium approach)
-        imageTextRowsTemplate = this.dynamicImageTextRowsTemplate.filter({
-          has: this.dynamicParagraphs.filter({ hasText: 'Image and text rows' }),
-        });
-        await imageTextRowsTemplate.waitFor({ state: 'visible', timeout: 5000 });
-      } catch (error) {
-        console.log('div[role="button"] selector failed, trying button element:', (error as Error).message);
-
-        try {
-          // Second try: button element with aria-label
-          imageTextRowsTemplate = this.dynamicImageTextRowsTemplate.filter({ hasText: 'Image and text rows' });
-          await imageTextRowsTemplate.waitFor({ state: 'visible', timeout: 5000 });
-        } catch (error2) {
-          console.log('button[aria-label] selector failed, trying button with paragraph:', (error2 as Error).message);
-
-          // Third try: button element containing paragraph
-          imageTextRowsTemplate = this.dynamicImageTextRowsTemplate.filter({
-            has: this.dynamicParagraphs.filter({ hasText: 'Image and text rows' }),
-          });
-          await imageTextRowsTemplate.waitFor({ state: 'visible', timeout: 5000 });
-        }
-      }
-
-      // Use the unified canvas locator used elsewhere in the page object
-      const canvasElement = this.canvasContainer;
-
-      // Wait for canvas to be fully ready (visibility + non-zero size)
-      await this.waitForCanvasToBeReady();
-
-      // Debug: Log available elements to help identify the correct selector
-      const allButtons = await this.dynamicSaveButton.count();
-      const allDivsWithRole = await this.dynamicImageTextRowsTemplate.count();
-      const paragraphsWithText = await this.dynamicParagraphs.filter({ hasText: 'Image and text rows' }).count();
-
-      console.log(
-        `Debug - Found ${allButtons} buttons, ${allDivsWithRole} divs with role="button", ${paragraphsWithText} paragraphs with "Image and text rows"`
-      );
-
-      // Scroll canvas into view (similar to Selenium's scrollIntoView)
-      await canvasElement.scrollIntoViewIfNeeded();
-
-      // Wait for elements to be stable
-      await Promise.all([
-        imageTextRowsTemplate.waitFor({ state: 'attached' }),
-        canvasElement.waitFor({ state: 'attached' }),
-      ]);
-
-      // Get bounding boxes for precise positioning
-      const sourceBox = await imageTextRowsTemplate.boundingBox();
-      const targetBox = await canvasElement.boundingBox();
-
-      if (!sourceBox || !targetBox) {
-        throw new Error('Could not get bounding boxes for drag operation');
-      }
-
-      // Calculate center point of canvas (similar to Selenium's offset calculation)
-      const canvasCenterX = targetBox.x + targetBox.width / 2;
-      const canvasCenterY = targetBox.y + targetBox.height / 2;
-
-      // Calculate offset from source to target center
-      const xOffset = canvasCenterX - (sourceBox.x + sourceBox.width / 2);
-      const yOffset = canvasCenterY - (sourceBox.y + sourceBox.height / 2);
-
-      // Perform drag operation using mouse events (similar to Selenium Actions)
-      await this.page.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2);
-      await this.page.mouse.down();
-      // Wait for drag start to be processed
-      await this.page
-        .waitForFunction(() => document.querySelector('[data-dragging]') !== null, { timeout: 1000 })
-        .catch(() => {});
-
-      await this.page.mouse.move(
-        sourceBox.x + sourceBox.width / 2 + xOffset,
-        sourceBox.y + sourceBox.height / 2 + yOffset
-      );
-      // Wait for drag movement to be processed
-      await this.page.waitForFunction(() => true, { timeout: 200 }).catch(() => {});
-
-      await this.page.mouse.up();
-    });
-  }
-
+  /**
+   * Drag a text block to the container
+   * @param block - The name of the text block to drag
+   */
   async dragTextBlockToContainer(block: string): Promise<void> {
     await test.step(`Drag ${block} text block to container`, async () => {
       const textBlock = this.dynamicTextBlock.filter({ hasText: block });
@@ -1124,9 +1216,7 @@ export class CustomAppTilesPage extends BasePage {
       try {
         // Try the standard dragTo method first
         await textBlock.dragTo(this.containerPlaceholder, { timeout: 20000 });
-      } catch (error) {
-        console.log('Standard dragTo failed, trying alternative method:', error);
-
+      } catch {
         // Alternative method using mouse events
         await this.performDragWithMouseEvents(textBlock, this.containerPlaceholder);
       }
@@ -1134,6 +1224,10 @@ export class CustomAppTilesPage extends BasePage {
   }
 
   // Generic drag by visible text into canvas (simple and reusable like Selenium)
+  /**
+   * Drag a block by its text into the canvas
+   * @param blockText - The text of the block to drag
+   */
   async dragBlockByTextIntoCanvas(blockText: string): Promise<void> {
     await test.step(`Drag block/template with text "${blockText}" into canvas`, async () => {
       // Use constructor-assigned locator with filter for specific text
@@ -1172,6 +1266,10 @@ export class CustomAppTilesPage extends BasePage {
     }
   }
 
+  /**
+   * Get the size of the small image placeholder
+   * @returns The width and height of the image placeholder
+   */
   async getSmallImagePlaceholderSize(): Promise<{ width: number; height: number }> {
     const locator = await this.getSmallImagePlaceholderLocator();
     const boundingBox = await locator.boundingBox();
@@ -1217,11 +1315,19 @@ export class CustomAppTilesPage extends BasePage {
     }
   }
 
+  /**
+   * Get the flex direction of the image container
+   * @returns The flex direction (e.g., 'row', 'column')
+   */
   async getImageContainerFlexDirection(): Promise<string> {
     const row = await this.getImageRowContainerLocator();
     return await row.evaluate(el => getComputedStyle(el).flexDirection);
   }
 
+  /**
+   * Get the child count of the image container
+   * @returns The number of children in the image container
+   */
   async getImageContainerChildCount(): Promise<number> {
     // Count children by walking from the small image placeholder up to the nearest row flex container
     const placeholder = await this.getSmallImagePlaceholderLocator();
@@ -1257,73 +1363,127 @@ export class CustomAppTilesPage extends BasePage {
     }
   }
 
+  /**
+   * Get the flex direction of the inner text container
+   * @returns The flex direction of the inner container
+   */
   async getInnerContainerFlexDirection(): Promise<string> {
     const container = await this.getInnerTextContainerLocator();
     return await container.evaluate(el => getComputedStyle(el).flexDirection);
   }
 
+  /**
+   * Get the child count of the inner text container
+   * @returns The number of children in the inner container
+   */
   async getInnerContainerChildCount(): Promise<number> {
     const container = await this.getInnerTextContainerLocator();
     // Count direct child blocks that contain a text component (h3 or p)
     return await container.locator(':scope > div').filter({ has: this.dynamicTextElements }).count();
   }
 
+  /**
+   * Get the count of heading components (h3 elements)
+   * @returns The number of heading components
+   */
   async getHeadingComponentCount(): Promise<number> {
     return await this.innerTextContainers.locator('h3').count();
   }
 
+  /**
+   * Get the count of body components (p elements)
+   * @returns The number of body components
+   */
   async getBodyComponentCount(): Promise<number> {
     return await this.innerTextContainer.locator('p').count();
   }
 
+  /**
+   * Get the Y position of the image row
+   * @returns The Y coordinate of the image row
+   */
   async getImageRowY(): Promise<number> {
     const boundingBox = await this.imageRowContainer.boundingBox();
     return boundingBox?.y || 0;
   }
 
+  /**
+   * Get the Y position of the divider
+   * @returns The Y coordinate of the divider
+   */
   async getDividerY(): Promise<number> {
     const boundingBox = await this.dividerHr.boundingBox();
     return boundingBox?.y || 0;
   }
 
+  /**
+   * Get the child count of the canvas container
+   * @returns The number of children in the canvas container
+   */
   async getCanvasContainerChildCount(): Promise<number> {
     return await this.canvasComponentContainers.count();
   }
 
+  /**
+   * Check if looping is enabled
+   * @returns True if looping is enabled, false otherwise
+   */
   async isLoopingEnabled(): Promise<boolean> {
     const classes = await this.canvasContainer.getAttribute('class');
     return classes?.includes('Enabled') || false;
   }
 
+  /**
+   * Check if the outer direction is column
+   * @returns True if the outer direction is column
+   */
   async isOuterDirectionColumn(): Promise<boolean> {
     const flexDirection = await this.canvasContainer.evaluate(el => getComputedStyle(el).flexDirection);
     return flexDirection === 'column';
   }
 
+  /**
+   * Check if a property is visible in the canvas
+   * @param propertyKey - The property key to check
+   * @returns True if the property is in the canvas
+   */
   async isInCanvas(propertyKey: string): Promise<boolean> {
     const locator = this.dynamicPropertyLocator.filter({ hasText: propertyKey });
     return await locator.isVisible();
   }
 
   // Data tab functionality
+  /**
+   * Click the Data tab
+   */
   async clickDataTab(): Promise<void> {
     await test.step('Click data tab', async () => {
       await this.clickOnElement(this.dataTab);
     });
   }
 
+  /**
+   * Click the Tile Builder tab
+   */
   async clickTileBuilderTab(): Promise<void> {
     await test.step('Click tile builder tab', async () => {
       await this.clickOnElement(this.tileBuilderTab);
     });
   }
 
+  /**
+   * Enable the loop data toggle
+   */
   async enableLoopDataToggle(_input: string): Promise<void> {
     await test.step('Enable loop data toggle', async () => {
       await this.clickOnElement(this.loopDataToggle);
     });
   }
 
+  /**
+   * Select an array option from the dropdown
+   * @param option - The array option to select
+   */
   async selectArrayOption(option: string): Promise<void> {
     await test.step(`Select array option: ${option}`, async () => {
       await this.clickOnElement(this.arrayObjectDropdown);
@@ -1331,12 +1491,21 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Select the expand tile to show more option
+   */
   async selectExpandTileToShowMore(_option: string): Promise<void> {
     await test.step('Select expand tile to show more', async () => {
       await this.clickOnElement(this.expandTileRadio);
     });
   }
 
+  /**
+   * Select nested dropdown keys
+   * @param arrayKey - The array key to select
+   * @param objectKey - The object key to select
+   * @param finalKey - The final key to select
+   */
   async selectNestedDropdownKeys(arrayKey: string, objectKey: string, finalKey: string): Promise<void> {
     await test.step(`Select nested dropdown keys: ${arrayKey} -> ${objectKey} -> ${finalKey}`, async () => {
       await this.clickOnElement(this.dropdownItem.filter({ hasText: arrayKey }));
@@ -1345,12 +1514,20 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Enter the external URL button text
+   * @param text - The button text to enter
+   */
   async enterExternalUrlButtonText(text: string): Promise<void> {
     await test.step(`Enter external URL button text: ${text}`, async () => {
       await this.fillInElement(this.externalUrlButtonText, text);
     });
   }
 
+  /**
+   * Select the initial display count
+   * @param count - The count value to select
+   */
   async selectInitialDisplayCount(count: string): Promise<void> {
     await test.step(`Select initial display count: ${count}`, async () => {
       await this.clickOnElement(this.initialDisplayCountDropdown);
@@ -1358,29 +1535,47 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Verify the loop iteration count matches the expected value
+   * @param expectedCount - The expected number of loop iterations
+   */
   async verifyLoopIterationCount(expectedCount: number): Promise<void> {
     await test.step(`Verify loop iteration count is ${expectedCount}`, async () => {
       const count = await this.loopContainers.count();
-      this.expect(count).toBe(expectedCount);
+      this.expect(count, `Expected loop iteration count to be ${expectedCount}`).toBe(expectedCount);
     });
   }
 
+  /**
+   * Verify the tile loop iteration count for a specific tile
+   * @param expectedCount - The expected number of loop iterations
+   * @param tileName - The name of the tile to verify
+   */
   async verifyTileLoopIterationCount(expectedCount: number, tileName: string): Promise<void> {
     await test.step(`Verify tile loop iteration count is ${expectedCount} for tile: ${tileName}`, async () => {
       const tile = this.dynamicTileSection.filter({ hasText: tileName });
       const loops = tile.locator('[data-testid*="loop-container"]');
       const count = await loops.count();
-      this.expect(count).toBe(expectedCount);
+      this.expect(count, `Expected loop iteration count to be ${expectedCount} for tile ${tileName}`).toBe(
+        expectedCount
+      );
     });
   }
 
   // Image configuration
+  /**
+   * Click on the image container
+   */
   async clickImageContainer(): Promise<void> {
     await test.step('Click image container', async () => {
       await this.clickOnElement(this.imageContainer);
     });
   }
 
+  /**
+   * Select an image size
+   * @param size - The image size to select
+   */
   async selectImageSize(size: string): Promise<void> {
     await test.step(`Select image size: ${size}`, async () => {
       await this.clickOnElement(this.imageSizeDropdown);
@@ -1388,36 +1583,56 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Verify the image container width matches the expected value
+   * @param expectedWidth - The expected width of the image container (e.g., '100px')
+   */
   async verifyImageContainerWidth(expectedWidth: string): Promise<void> {
     await test.step(`Verify image container width is ${expectedWidth}`, async () => {
       const actualWidth = await this.imageContainer.evaluate(el => getComputedStyle(el).width);
-      this.expect(actualWidth).toBe(expectedWidth);
+      this.expect(actualWidth, `Expected image container width to be ${expectedWidth}`).toBe(expectedWidth);
     });
   }
 
+  /**
+   * Enter a target URL
+   * @param url - The target URL to enter
+   */
   async enterTargetUrl(url: string): Promise<void> {
     await test.step(`Enter target URL: ${url}`, async () => {
       await this.fillInElement(this.targetUrlInput, url);
     });
   }
 
+  /**
+   * Click on an image with hyperlink
+   */
   async clickOnImageWithHyperlink(): Promise<void> {
     await test.step('Click on image with hyperlink', async () => {
       await this.clickOnElement(this.imageWithHyperlink);
     });
   }
 
+  /**
+   * Verify that a new tab URL contains the expected part
+   * @param expectedUrlPart - The expected URL part to verify
+   */
   async verifyNewTabUrlContains(expectedUrlPart: string): Promise<void> {
     await test.step(`Verify new tab URL contains: ${expectedUrlPart}`, async () => {
       const [newPage] = await Promise.all([this.page.context().waitForEvent('page'), this.clickOnImageWithHyperlink()]);
 
       await newPage.waitForLoadState();
       const currentUrl = newPage.url();
-      this.expect(currentUrl).toContain(expectedUrlPart);
+      this.expect(currentUrl, `Expected new tab URL to contain "${expectedUrlPart}"`).toContain(expectedUrlPart);
       await newPage.close();
     });
   }
 
+  /**
+   * Upload a file to the tile
+   * @param fileName - The name of the file to upload
+   * @param fileType - The type of file (image, document, or other)
+   */
   async uploadFile(fileName: string, fileType: 'image' | 'document' | 'other' = 'image'): Promise<void> {
     await test.step(`Upload ${fileType}: ${fileName}`, async () => {
       // Wait for the file input to be present and make it visible
@@ -1453,10 +1668,18 @@ export class CustomAppTilesPage extends BasePage {
   }
 
   // Convenience method for backward compatibility
+  /**
+   * Upload an image file
+   * @param imageFileName - The name of the image file to upload
+   */
   async uploadImage(imageFileName: string): Promise<void> {
     await this.uploadFile(imageFileName, 'image');
   }
 
+  /**
+   * Verify that a parameter exists on the page
+   * @param parameterText - The parameter text to verify
+   */
   async verifyParameterExists(parameterText: string): Promise<void> {
     await test.step(`Verify parameter "${parameterText}" exists`, async () => {
       // Wait for page to load completely
@@ -1464,72 +1687,103 @@ export class CustomAppTilesPage extends BasePage {
 
       // Look for the parameter text in any paragraph element
       const parameterElement = this.parameterLocator.filter({ hasText: parameterText });
-      await this.expect(parameterElement).toBeVisible({ timeout: 50000 });
+      await this.expect(parameterElement, `Expected parameter "${parameterText}" to be visible`).toBeVisible({
+        timeout: 50000,
+      });
     });
   }
 
   // Form configuration
+  /**
+   * Click the configure button
+   */
   async clickConfigureButton(): Promise<void> {
     await test.step('Click configure button', async () => {
       await this.clickOnElement(this.configureApiActionButton);
     });
   }
 
+  /**
+   * Verify a toast message is visible
+   * @param message - The message to verify
+   */
   async verifyToastMessage(message: string) {
     return this.appTileComponent.verifyToastMessageIsVisibleWithText(message);
   }
 
+  /**
+   * Verify the form is inside a container
+   */
   async verifyFormInsideContainer(): Promise<void> {
     await test.step('Verify form is inside container', async () => {
-      await this.expect(this.formContainerSubmitButton).toBeVisible();
+      await this.expect(this.formContainerSubmitButton, 'Expected form submit button to be visible').toBeVisible();
     });
   }
 
+  /**
+   * Verify the canvas is auto-populated with a button
+   */
   async verifyCanvasIsAutoPopulatedWithButton(): Promise<void> {
     await test.step('Verify canvas is auto-populated with button', async () => {
-      await this.expect(this.formContainerButton).toBeVisible();
+      await this.expect(this.formContainerButton, 'Expected form button to be visible').toBeVisible();
       const label = await this.formContainerButton.textContent();
-      this.expect(label?.trim()).not.toBe('');
+      this.expect(label?.trim(), 'Expected button label to not be empty').not.toBe('');
     });
   }
 
+  /**
+   * Verify inline form fields in a tile
+   * @param fieldsCsv - Comma-separated list of field names to verify
+   */
   async verifyInlineFormFieldsInTile(fieldsCsv: string): Promise<void> {
     await test.step(`Verify inline form fields in tile: ${fieldsCsv}`, async () => {
       const fields = fieldsCsv.split(',').map(f => f.trim());
       for (const field of fields) {
         if (field.toLowerCase() === 'submit') {
-          await this.expect(this.formContainerSubmitButton).toBeVisible();
+          await this.expect(this.formContainerSubmitButton, `Expected "${field}" field to be visible`).toBeVisible();
         } else {
           const fieldLabel = this.inlineTileFieldLabel.filter({ hasText: field });
-          await this.expect(fieldLabel).toBeVisible();
+          await this.expect(fieldLabel, `Expected field label "${field}" to be visible`).toBeVisible();
         }
       }
     });
   }
 
+  /**
+   * Verify that overlay form fields are visible
+   */
   async verifyOverlayFormFieldsVisible(): Promise<void> {
     await test.step('Verify overlay form fields are visible', async () => {
       await this.clickOnElement(this.formContainerButton);
-      await this.expect(this.overlayBody).toBeVisible();
+      await this.expect(this.overlayBody, 'Expected overlay body to be visible').toBeVisible();
 
       const fields = ['Email', 'Summary', 'Description'];
       for (const field of fields) {
         const fieldLabel = this.overlayFieldLabel.filter({ hasText: field });
-        await this.expect(fieldLabel).toBeVisible();
+        await this.expect(fieldLabel, `Expected overlay field "${field}" to be visible`).toBeVisible();
       }
     });
   }
 
   // Success/Error handling
+  /**
+   * Verify the success message with ticket and bot link
+   */
   async verifySuccessMessageWithTicketAndBotLink(): Promise<void> {
     await test.step('Verify success message with ticket and bot link', async () => {
       const successText = await this.successMessage.textContent();
-      this.expect(successText).toContain('Ticket created successfully with ID:');
-      this.expect(successText).toContain('BOT-');
-      await this.expect(this.botLink).toBeVisible();
+      this.expect(successText, 'Expected success text to contain "Ticket created successfully with ID:"').toContain(
+        'Ticket created successfully with ID:'
+      );
+      this.expect(successText, 'Expected success text to contain "BOT-"').toContain('BOT-');
+      await this.expect(this.botLink, 'Expected bot link to be visible').toBeVisible();
     });
   }
 
+  /**
+   * Click bot link and verify redirect
+   * @param expectedUrl - The expected URL to redirect to
+   */
   async clickBotLinkAndVerifyRedirect(expectedUrl: string): Promise<void> {
     await test.step(`Click bot link and verify redirect to: ${expectedUrl}`, async () => {
       const [newPage] = await Promise.all([
@@ -1539,21 +1793,30 @@ export class CustomAppTilesPage extends BasePage {
 
       await newPage.waitForLoadState();
       const actualUrl = newPage.url();
-      this.expect(actualUrl).toContain(expectedUrl);
+      this.expect(actualUrl, `Expected URL to contain "${expectedUrl}"`).toContain(expectedUrl);
       await newPage.close();
     });
   }
 
   // Tile management
+  /**
+   * Click the three dots menu for a tile starting with the given prefix
+   * @param prefix - The prefix to match tiles
+   */
   async clickThreeDotsForTileStartingWith(prefix: string): Promise<void> {
     await test.step(`Click three dots for tile starting with: ${prefix}`, async () => {
       // Get the first tile with the prefix to avoid strict mode violation
       const tileRow = this.dynamicTileRow.filter({ hasText: prefix }).first();
-      const moreBtn = tileRow.locator('button[aria-label="Show more"]');
+      // Scope the constructor-defined tileMoreButton to the specific row
+      const moreBtn = tileRow.locator(this.tileMoreButton);
       await this.clickOnElement(moreBtn);
     });
   }
 
+  /**
+   * Select an option from the tile menu dropdown
+   * @param option - The menu option to select
+   */
   async selectOptionFromTileMenuDropdown(option: string): Promise<void> {
     await test.step(`Select option from tile menu dropdown: ${option}`, async () => {
       // Wait for dropdown menu to be visible
@@ -1565,21 +1828,28 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Click the confirm delete button
+   */
   async clickConfirmDeleteButton(): Promise<void> {
     await test.step('Click confirm delete button', async () => {
       await this.clickOnElement(this.confirmDeleteButton);
     });
   }
 
+  /**
+   * Delete all tiles that start with the given prefix
+   * @param prefix - The prefix to match tiles for deletion
+   */
   async deleteAllTilesWithPrefix(prefix: string): Promise<void> {
     await test.step(`Delete all tiles with prefix: ${prefix}`, async () => {
       let deletedCount = 0;
-      const maxAttempts = 100; // Allow more attempts
+      const maxAttempts = 30; // Allow more attempts
 
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
         try {
           // Check if any tiles with prefix exist without reloading first
-          const firstTile = this.page.locator('tbody tr').filter({ hasText: prefix }).first();
+          const firstTile = this.tileRows.filter({ hasText: prefix }).first();
           const tileExists = await firstTile.isVisible({ timeout: 2000 }).catch(() => false);
 
           if (!tileExists) {
@@ -1623,12 +1893,24 @@ export class CustomAppTilesPage extends BasePage {
 
           // Reload the page if we're getting errors to get back to a good state
           if (attempt > 0 && attempt % 3 === 0) {
-            console.log('Reloading page to reset state...');
-            await this.page.reload({ waitUntil: 'domcontentloaded' });
-            await this.tileRows
-              .first()
-              .waitFor({ state: 'attached', timeout: 10000 })
-              .catch(() => {});
+            try {
+              console.log('Reloading page to reset state...');
+              // Check if page is still open before reloading
+              if (!this.page.isClosed()) {
+                await this.page.reload({ waitUntil: 'domcontentloaded' });
+                await this.tileRows
+                  .first()
+                  .waitFor({ state: 'attached', timeout: 10000 })
+                  .catch(() => {});
+              } else {
+                console.log('Page is closed, skipping reload');
+                break;
+              }
+            } catch (reloadError) {
+              console.error('Failed to reload page:', reloadError);
+              // If reload fails, likely page is closed, break the loop
+              break;
+            }
           }
         }
       }
@@ -1637,34 +1919,52 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  /**
+   * Verify the save button is enabled
+   */
   async verifySaveButtonIsEnabled(): Promise<void> {
     await test.step('Verify save button is enabled', async () => {
-      await this.expect(this.saveButtonForVerification).toBeEnabled();
+      await this.expect(this.saveButtonForVerification, 'Expected save button to be enabled').toBeEnabled();
     });
   }
 
+  /**
+   * Verify the next button is primary (has primary class)
+   */
   async verifyNextButtonIsPrimary(): Promise<void> {
     await test.step('Verify next button is primary', async () => {
-      await this.expect(this.nextButtonForVerification).toHaveClass(/Button-module__primary__/);
+      await this.expect(this.nextButtonForVerification, 'Expected next button to have primary class').toHaveClass(
+        /Button-module__primary__/
+      );
     });
   }
 
+  /**
+   * Verify the status of the created tile
+   * @param status - The expected status of the tile (e.g., 'Draft', 'Published')
+   */
   async verifyCreatedTileStatus(status: string): Promise<void> {
     await test.step(`Verify created tile status is: ${status}`, async () => {
-      // Verify the status of the first tile (most recently created)
-      // Use Playwright's getByText within the first row
       const tileStatus = this.firstTileRow.getByText(status);
-      await this.expect(tileStatus).toBeVisible();
+      await this.expect(tileStatus, `Expected tile status to be "${status}"`).toBeVisible();
     });
   }
 
+  /**
+   * Verify that a tile is on top of the list
+   * @param tileName - The name of the tile that should be on top
+   */
   async verifyTileIsOnTop(tileName: string): Promise<void> {
     await test.step(`Verify tile is on top: ${tileName}`, async () => {
       const topTile = await this.topTileName.textContent();
-      this.expect(topTile?.trim()).toBe(tileName);
+      this.expect(topTile?.trim(), `Expected top tile name to be "${tileName}"`).toBe(tileName);
     });
   }
 
+  /**
+   * Verify that a tile has the specified fields
+   * @param fields - Array of field names to verify (e.g., 'label', 'link', 'image')
+   */
   async verifyTileHasFields(fields: string[]): Promise<void> {
     await test.step(`Verify tile has fields: ${fields.join(', ')}`, async () => {
       for (const field of fields) {
@@ -1682,103 +1982,155 @@ export class CustomAppTilesPage extends BasePage {
           default:
             throw new Error(`Unknown field: ${field}`);
         }
-        await this.expect(locator).toBeVisible();
+        await this.expect(locator, `Expected field "${field}" to be visible`).toBeVisible();
       }
     });
   }
 
   // Utility methods
+  /**
+   * Verify that save and next buttons are disabled
+   * @param saveText - The save button text
+   * @param nextText - The next button text
+   */
   async verifySaveAndNextDisabled(saveText: string, nextText: string): Promise<void> {
     await test.step(`Verify save and next buttons are disabled: ${saveText}, ${nextText}`, async () => {
       const saveBtn = this.dynamicSaveButton.filter({ hasText: saveText });
       const nextBtn = this.dynamicNextButton.filter({ hasText: nextText });
 
-      await this.expect(saveBtn).toBeDisabled();
-      await this.expect(nextBtn).toBeDisabled();
+      await this.expect(saveBtn, `Expected save button "${saveText}" to be disabled`).toBeDisabled();
+      await this.expect(nextBtn, `Expected next button "${nextText}" to be disabled`).toBeDisabled();
     });
   }
 
+  /**
+   * Verify display dropdown options
+   * @param option1 - The first expected option
+   * @param option2 - The second expected option
+   */
   async verifyDisplayDropdownOptions(option1: string, option2: string): Promise<void> {
     await test.step(`Verify display dropdown options: ${option1}, ${option2}`, async () => {
       const options = await this.formBehaviorDropdownOptions.allTextContents();
       const trimmedOptions = options.map(opt => opt.trim());
 
-      this.expect(trimmedOptions).toContain(option1);
-      this.expect(trimmedOptions).toContain(option2);
-      this.expect(trimmedOptions.length).toBe(2);
+      this.expect(trimmedOptions, `Expected dropdown options to contain "${option1}"`).toContain(option1);
+      this.expect(trimmedOptions, `Expected dropdown options to contain "${option2}"`).toContain(option2);
+      this.expect(trimmedOptions.length, 'Expected exactly 2 dropdown options').toBe(2);
     });
   }
 
+  /**
+   * Select a display option in form behavior dropdown
+   * @param option - The option to select
+   */
   async selectDisplayOptionInFormBehaviour(option: string): Promise<void> {
     await test.step(`Select display option in form behaviour: ${option}`, async () => {
       await this.formBehaviorDropdown.selectOption(option);
     });
   }
 
+  /**
+   * Verify the incomplete settings message
+   * @param messageText - The expected message text
+   */
   async verifyIncompleteSettingMessage(messageText: string): Promise<void> {
     await test.step(`Verify incomplete setting message: ${messageText}`, async () => {
       const message = this.incompleteSettingsMessageLocator.filter({ hasText: messageText });
-      await this.expect(message).toBeVisible();
+      await this.expect(message, `Expected incomplete settings message "${messageText}" to be visible`).toBeVisible();
     });
   }
 
+  /**
+   * Verify the change tile type popup
+   * @param messageText - The expected popup message text
+   */
   async verifyChangeTileTypePopup(messageText: string): Promise<void> {
     await test.step(`Verify change tile type popup: ${messageText}`, async () => {
       const dialog = this.changeTileTypeDialog.filter({ hasText: messageText });
-      await this.expect(dialog).toBeVisible();
+      await this.expect(dialog, `Expected change tile type dialog "${messageText}" to be visible`).toBeVisible();
     });
   }
 
+  /**
+   * Verify the tile type change message
+   * @param messageText - The expected message text
+   */
   async verifyTileTypeChangeMessage(messageText: string): Promise<void> {
     await test.step(`Verify tile type change message: ${messageText}`, async () => {
       const message = this.changeTileTypeMessageLocator.filter({ hasText: messageText });
-      await this.expect(message).toBeVisible();
+      await this.expect(message, `Expected tile type change message "${messageText}" to be visible`).toBeVisible();
     });
   }
 
+  /**
+   * Verify old canvas elements are cleared
+   */
   async verifyOldCanvasElementsAreCleared(): Promise<void> {
     await test.step('Verify old canvas elements are cleared', async () => {
-      await this.expect(this.previousLinkLocator).not.toBeVisible();
-      await this.expect(this.previousDividerLocator).not.toBeVisible();
+      await this.expect(this.previousLinkLocator, 'Expected previous link to not be visible').not.toBeVisible();
+      await this.expect(this.previousDividerLocator, 'Expected previous divider to not be visible').not.toBeVisible();
     });
   }
 
+  /**
+   * Verify canvas reset state
+   */
   async verifyCanvasResetState(): Promise<void> {
     await test.step('Verify canvas reset state', async () => {
-      await this.expect(this.formHeadingLocator).toBeVisible();
-      await this.expect(this.configureButtonLocator).toBeVisible();
+      await this.expect(this.formHeadingLocator, 'Expected form heading to be visible').toBeVisible();
+      await this.expect(this.configureButtonLocator, 'Expected configure button to be visible').toBeVisible();
     });
   }
 
+  /**
+   * Verify that a tile is not displayed
+   * @param tileName - The name of the tile that should not be displayed
+   */
   async verifyTileIsNotDisplayed(tileName: string): Promise<void> {
     await test.step(`Verify tile is not displayed: ${tileName}`, async () => {
       const tileHeader = this.dynamicTileHeader.filter({ hasText: tileName });
-      await this.expect(tileHeader).not.toBeVisible();
+      await this.expect(tileHeader, `Expected tile "${tileName}" to not be visible`).not.toBeVisible();
     });
   }
 
+  /**
+   * Click API action dropdown and verify no results message
+   */
   async clickApiActionDropdownAndVerifyNoResults(): Promise<void> {
     await test.step('Click API action dropdown and verify no results', async () => {
       await this.clickOnElement(this.apiActionSelect);
-      await this.expect(this.apiActionNoResults).toBeVisible();
+      await this.expect(this.apiActionNoResults, 'Expected "no results" message to be visible').toBeVisible();
     });
   }
 
+  /**
+   * Verify the small image placeholder size
+   * @param expectedWidth - The expected width
+   * @param expectedHeight - The expected height
+   */
   async verifySmallImagePlaceholderSize(expectedWidth: number, expectedHeight: number): Promise<void> {
     await test.step(`Verify small image placeholder size: ${expectedWidth}x${expectedHeight}`, async () => {
       const imageSize = await this.getSmallImagePlaceholderSize();
-      this.expect(imageSize.width).toBe(expectedWidth);
-      this.expect(imageSize.height).toBe(expectedHeight);
+      this.expect(imageSize.width, `Expected image width to be ${expectedWidth}`).toBe(expectedWidth);
+      this.expect(imageSize.height, `Expected image height to be ${expectedHeight}`).toBe(expectedHeight);
     });
   }
 
+  /**
+   * Verify the image container flex direction
+   * @param expectedDirection - The expected flex direction
+   */
   async verifyImageContainerFlexDirection(expectedDirection: string): Promise<void> {
     await test.step(`Verify image container flex direction is: ${expectedDirection}`, async () => {
       const flexDirection = await this.getImageContainerFlexDirection();
-      this.expect(flexDirection).toBe(expectedDirection);
+      this.expect(flexDirection, `Expected flex direction to be ${expectedDirection}`).toBe(expectedDirection);
     });
   }
 
+  /**
+   * Verify the image container has at least the minimum child count
+   * @param minCount - The minimum expected child count
+   */
   async verifyImageContainerChildCount(minCount: number): Promise<void> {
     await test.step(`Verify image container has at least ${minCount} children`, async () => {
       // Poll for children to appear, resilient to late hydration
@@ -1791,17 +2143,27 @@ export class CustomAppTilesPage extends BasePage {
         await this.page.waitForLoadState('domcontentloaded');
       } while (Date.now() < deadline);
 
-      this.expect(childCount).toBeGreaterThanOrEqual(minCount);
+      this.expect(childCount, `Expected child count to be at least ${minCount}`).toBeGreaterThanOrEqual(minCount);
     });
   }
 
+  /**
+   * Verify the inner container flex direction
+   * @param expectedDirection - The expected flex direction
+   */
   async verifyInnerContainerFlexDirection(expectedDirection: string): Promise<void> {
     await test.step(`Verify inner container flex direction is: ${expectedDirection}`, async () => {
       const innerFlexDirection = await this.getInnerContainerFlexDirection();
-      this.expect(innerFlexDirection).toBe(expectedDirection);
+      this.expect(innerFlexDirection, `Expected inner flex direction to be ${expectedDirection}`).toBe(
+        expectedDirection
+      );
     });
   }
 
+  /**
+   * Verify the inner container child count
+   * @param expectedCount - The expected child count
+   */
   async verifyInnerContainerChildCount(expectedCount: number): Promise<void> {
     await test.step(`Verify inner container has ${expectedCount} text components`, async () => {
       const deadline = Date.now() + 10000;
@@ -1813,65 +2175,94 @@ export class CustomAppTilesPage extends BasePage {
         await this.page.waitForLoadState('domcontentloaded');
       } while (Date.now() < deadline);
 
-      this.expect(count).toBe(expectedCount);
+      this.expect(count, `Expected child count to be ${expectedCount}`).toBe(expectedCount);
     });
   }
 
+  /**
+   * Verify the heading component count
+   * @param expectedCount - The expected heading component count
+   */
   async verifyHeadingComponentCount(expectedCount: number): Promise<void> {
     await test.step(`Verify heading component count is: ${expectedCount}`, async () => {
       const headingCount = await this.getHeadingComponentCount();
-      this.expect(headingCount).toBe(expectedCount);
+      this.expect(headingCount, `Expected heading component count to be ${expectedCount}`).toBe(expectedCount);
     });
   }
 
+  /**
+   * Verify the body component count
+   * @param expectedCount - The expected body component count
+   */
   async verifyBodyComponentCount(expectedCount: number): Promise<void> {
     await test.step(`Verify body component count is: ${expectedCount}`, async () => {
       const bodyCount = await this.getBodyComponentCount();
-      this.expect(bodyCount).toBe(expectedCount);
+      this.expect(bodyCount, `Expected body component count to be ${expectedCount}`).toBe(expectedCount);
     });
   }
 
+  /**
+   * Verify the divider is positioned below the image row
+   */
   async verifyDividerPositionBelowImageRow(): Promise<void> {
     await test.step('Verify divider is positioned below image row', async () => {
       const imageRowY = await this.getImageRowY();
       const dividerY = await this.getDividerY();
-      this.expect(dividerY).toBeGreaterThan(imageRowY);
+      this.expect(dividerY, 'Expected divider Y position to be greater than image row Y').toBeGreaterThan(imageRowY);
     });
   }
 
+  /**
+   * Verify that looping is enabled
+   */
   async verifyLoopingIsEnabled(): Promise<void> {
     await test.step('Verify looping is enabled', async () => {
       const isLoopingEnabled = await this.isLoopingEnabled();
-      this.expect(isLoopingEnabled).toBe(true);
+      this.expect(isLoopingEnabled, 'Expected looping to be enabled').toBe(true);
     });
   }
 
+  /**
+   * Verify that the outer direction is column
+   */
   async verifyOuterDirectionIsColumn(): Promise<void> {
     await test.step('Verify outer direction is column', async () => {
       const isOuterDirectionColumn = await this.isOuterDirectionColumn();
-      this.expect(isOuterDirectionColumn).toBe(true);
+      this.expect(isOuterDirectionColumn, 'Expected outer direction to be column').toBe(true);
     });
   }
 
+  /**
+   * Verify that the display dropdown is disabled
+   */
   async verifyDisplayDropdownIsDisabled(): Promise<void> {
     await test.step('Verify display dropdown is disabled', async () => {
-      await this.expect(this.imageSizeDropdown).toBeDisabled();
+      await this.expect(this.imageSizeDropdown, 'Expected display dropdown to be disabled').toBeDisabled();
     });
   }
 
+  /**
+   * Verify that tile menu options are visible
+   */
   async verifyTileMenuOptionsVisible(): Promise<void> {
     await test.step('Verify tile menu options are visible', async () => {
-      await this.expect(this.tileMenuOption).toBeVisible();
+      await this.expect(this.tileMenuOption, 'Expected tile menu option to be visible').toBeVisible();
     });
   }
 
+  /**
+   * Select a radio option for a field
+   * @param optionText - The radio option text to select
+   * @param fieldLabel - The field label to select the option in
+   */
   async selectRadioForField(optionText: string, fieldLabel: string): Promise<void> {
     await test.step(`Select "${optionText}" option from "${fieldLabel}"`, async () => {
-      const radioElement = this.radioLocator
-        .filter({
-          has: this.fieldLabelLocator.filter({ hasText: fieldLabel }),
-        })
-        .filter({ hasText: 'userDefined' });
+      // Find the field container by data-testid
+      const fieldContainer = this.fieldContainer.filter({ hasText: fieldLabel });
+
+      // Use Playwright's getByRole to find the radio by its label text within the container
+      const radioElement = fieldContainer.getByRole('radio', { name: optionText, exact: true });
+
       await this.clickOnElement(radioElement, {
         stepInfo: `Select "${optionText}" option from "${fieldLabel}"`,
       });

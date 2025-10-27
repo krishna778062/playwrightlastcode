@@ -1,3 +1,5 @@
+import { MESSAGES } from '@integrations-constants/messageRepo';
+
 /**
  * Test data constants for Custom App Tiles functionality
  * Centralized test data for consistent testing across custom app tiles tests
@@ -75,21 +77,6 @@ export const CUSTOM_APP_TILES_TEST_DATA = {
     NO_RESULTS: 'mndfg',
     APPS_SEARCH: 'text',
     NO_APPS_RESULTS: 'zxyxz',
-  },
-
-  MESSAGES: {
-    NO_RESULTS_TEXT: 'No results Try adjusting search term or filters',
-    TILE_SAVED_DRAFT: 'Tile saved as draft',
-    TILE_PUBLISHED: 'Tile published',
-    API_ACTION_EXECUTED: 'API action executed',
-    ADD_TILE_SUCCESS: 'addTileSuccessMessage',
-    REMOVED_TILE_SUCCESS: 'Removed tile from dashboard successfully',
-    INCOMPLETE_SUCCESS_SETTINGS: 'Incomplete success settings',
-    INCOMPLETE_ERROR_SETTINGS: 'Incomplete error settings',
-    SAVE_TILE_FAILED: 'Save tile failed',
-    CHANGE_TILE_TYPE: 'Change tile type',
-    CHANGE_TILE_TYPE_MESSAGE:
-      'Changing the tile type will reset the current canvas configuration. Do you want to continue?',
   },
 
   FIELD_TYPES: {
