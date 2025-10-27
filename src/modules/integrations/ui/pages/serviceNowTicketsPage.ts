@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 
@@ -20,12 +21,25 @@ export class ServiceNowTicketsPage extends BasePage {
   readonly ticketDescriptionField: Locator;
   readonly ticketCategoryDropdown: Locator;
   readonly cancelTicketCreationButton: Locator;
-
+  readonly closeTicketCreationButton: Locator;
+  readonly ticketSubcategoryDropdown: Locator;
+  readonly impactMediumRadioButton: Locator;
+  readonly urgencyHighRadioButton: Locator;
   // Sorting Locators (only what's used)
   readonly sortDropdown: Locator;
   readonly sortOptions: (optionText: string) => Locator;
   readonly ticketRows: Locator;
   readonly ticketDateCells: Locator;
+  readonly ticketStatusCells: Locator;
+  // Page Title Locators
+  readonly pageTitle: Locator;
+
+  // Menu Navigation Locators
+  readonly serviceNowMenuButton: Locator;
+  readonly serviceNowKbSourceButton: Locator;
+  readonly topNavBarComponent: TopNavBarComponent;
+  readonly listTitle: Locator;
+  readonly updatedDateElement: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.SERVICE_NOW_TICKETS_PAGE);
@@ -36,17 +50,34 @@ export class ServiceNowTicketsPage extends BasePage {
     this.createTicketButton = page.getByRole('button', { name: /Create ticket/i });
     this.ticketCreationPanel = page.getByRole('form').or(page.locator('form[class*="ServiceNowNewTicketForm"]'));
     this.cancelTicketCreationButton = page.getByText('Cancel');
+    this.closeTicketCreationButton = page.getByTestId('i-crossThick');
 
     // Ticket Form Elements (only what's used)
     this.ticketTitleField = page.getByRole('textbox', { name: /title/i });
     this.ticketDescriptionField = page.getByRole('textbox', { name: /description/i });
     this.ticketCategoryDropdown = page.getByRole('combobox', { name: /category/i });
+    this.ticketSubcategoryDropdown = page.getByRole('combobox', { name: /Subcategory/i });
+    this.impactMediumRadioButton = page.locator('label[for="impactmedium"]');
+    this.urgencyHighRadioButton = page.locator('label[for="urgencyhigh"]');
 
     // Sorting Elements (only what's used)
     this.sortDropdown = page.locator('[class*="SortDropdown"]');
     this.sortOptions = (optionText: string) => page.getByText(optionText, { exact: false });
     this.ticketRows = page.getByTestId(/dataGridRow/);
     this.ticketDateCells = page.locator('td[class*="Cell-module"]');
+    this.ticketStatusCells = page.locator('td.Cell-module__cell__Tt8L7.Cell-module__textMiddle__Tt8L7').filter({
+      hasText: /New|Canceled|Open|Closed|In Progress/i,
+    });
+
+    // Page Title Elements
+    this.pageTitle = page.getByRole('heading', { level: 1 });
+
+    // Menu Navigation Elements - ServiceNow menu item
+    this.serviceNowMenuButton = page.locator('a[href="/servicenow"][role="menuitem"]');
+    this.topNavBarComponent = new TopNavBarComponent(page);
+    this.serviceNowKbSourceButton = page.getByRole('button').filter({ has: page.getByAltText('ServiceNow') });
+    this.listTitle = page.locator('h2[class*="listTitle"]');
+    this.updatedDateElement = page.getByText(/Updated .*/i);
   }
 
   async clickButton(buttonName: string, step?: string, timeout = 30_000): Promise<void> {
@@ -71,6 +102,19 @@ export class ServiceNowTicketsPage extends BasePage {
     await test.step('Click New Ticket button', async () => {
       await this.newTicketButton.waitFor({ state: 'visible', timeout: 15000 });
       await this.clickOnElement(this.newTicketButton);
+    });
+  }
+
+  async verifyTicketListIsVisible(): Promise<void> {
+    await test.step('Verify Ticket list is visible', async () => {
+      // Wait for at least one ticket row to be visible
+      await expect(this.ticketRows.first()).toBeVisible({
+        timeout: 30_000,
+      });
+
+      // Verify we have at least one ticket in the list
+      const ticketCount = await this.ticketRows.count();
+      expect(ticketCount).toBeGreaterThan(0);
     });
   }
 
@@ -109,6 +153,8 @@ export class ServiceNowTicketsPage extends BasePage {
       await this.ticketCreationPanel.waitFor({ state: 'visible' });
 
       // Fill in ticket details
+      await this.impactMediumRadioButton.click();
+      await this.urgencyHighRadioButton.click();
       await this.fillInElement(this.ticketTitleField, ticketData.title);
       await this.fillInElement(this.ticketDescriptionField, ticketData.description);
 
@@ -152,6 +198,60 @@ export class ServiceNowTicketsPage extends BasePage {
     await test.step('Sort tickets by Last Updated, Newest', async () => {
       await this.clickSortDropdown();
       await this.selectSortOption('Last updated, oldest');
+    });
+  }
+
+  async sortByStatus(sortOption: string): Promise<void> {
+    await test.step(`Sort tickets by Status: ${sortOption}`, async () => {
+      await this.clickSortDropdown();
+      await this.selectSortOption(sortOption);
+    });
+  }
+
+  async verifyTicketSortingByStatus(sortOrder: string): Promise<void> {
+    await test.step(`Verify tickets are sorted by status: ${sortOrder}`, async () => {
+      // Wait for tickets to load after sorting
+      await this.page.waitForTimeout(3000);
+
+      // Create specific locators for New and Canceled status
+      const newStatusCells = this.ticketStatusCells.filter({ hasText: 'New' });
+      const canceledStatusCells = this.ticketStatusCells.filter({ hasText: 'Canceled' });
+
+      if (sortOrder === 'Status, A-Z') {
+        // A-Z: "New" should come first
+        await newStatusCells.first().waitFor({ state: 'visible', timeout: 15000 });
+
+        // Verify that the first status cell with "New" text is visible and comes first
+        await expect(newStatusCells.first()).toBeVisible();
+
+        // Get all status cells text content to verify order
+        const allStatusTexts = await this.ticketStatusCells.allTextContents();
+        const firstNewPosition = allStatusTexts.findIndex(text => text.trim() === 'New');
+        const firstCanceledPosition = allStatusTexts.findIndex(text => text.trim() === 'Canceled');
+
+        // Verify New comes before Canceled (if both exist)
+        if (firstNewPosition !== -1 && firstCanceledPosition !== -1) {
+          expect(firstNewPosition).toBeLessThan(firstCanceledPosition);
+        }
+      } else if (sortOrder === 'Status, Z-A') {
+        // Z-A: "Canceled" should come first
+        await canceledStatusCells.first().waitFor({ state: 'visible', timeout: 15000 });
+
+        // Verify that the first status cell with "Canceled" text is visible and comes first
+        await expect(canceledStatusCells.first()).toBeVisible();
+
+        // Get all status cells text content to verify order
+        const allStatusTexts = await this.ticketStatusCells.allTextContents();
+        const firstCanceledPosition = allStatusTexts.findIndex(text => text.trim() === 'Canceled');
+        const firstNewPosition = allStatusTexts.findIndex(text => text.trim() === 'New');
+
+        // Verify Canceled comes before New (if both exist)
+        if (firstCanceledPosition !== -1 && firstNewPosition !== -1) {
+          expect(firstCanceledPosition).toBeLessThan(firstNewPosition);
+        }
+      } else {
+        throw new Error(`Unsupported sort order: ${sortOrder}`);
+      }
     });
   }
 
@@ -221,5 +321,74 @@ export class ServiceNowTicketsPage extends BasePage {
 
   async verifyTicketsSortedByDateAscending(): Promise<boolean> {
     return this.verifyTicketSortingByDate('asc');
+  }
+
+  async verifyServiceNowTicketsPageTitle(expectedCustomName: string): Promise<void> {
+    await this.page.reload();
+    await this.pageTitle.waitFor({ state: 'visible', timeout: 15000 });
+    await expect(this.pageTitle).toContainText(expectedCustomName);
+  }
+
+  async verifyCustomNameInServiceNowMenu(expectedCustomName: string): Promise<void> {
+    await test.step(`Verify custom name '${expectedCustomName}' is displayed in ServiceNow menu button`, async () => {
+      await this.serviceNowMenuButton.waitFor({ state: 'visible', timeout: 15_000 });
+      const menuTextElement = this.serviceNowMenuButton.locator('p.Typography-module__paragraph__OGpiQ');
+      await menuTextElement.waitFor({ state: 'visible', timeout: 10_000 });
+      const actualMenuText = await menuTextElement.textContent();
+      expect(actualMenuText?.trim()).toContain(expectedCustomName);
+      await expect(this.serviceNowMenuButton).toBeVisible();
+      await expect(menuTextElement).toBeVisible();
+    });
+  }
+
+  async clickCloseTicketCreationButton(): Promise<void> {
+    await test.step('Click Close Ticket Creation button', async () => {
+      await this.closeTicketCreationButton.waitFor({ state: 'visible', timeout: 15000 });
+      await this.clickOnElement(this.closeTicketCreationButton);
+    });
+  }
+
+  async verifyCreateTicketButtonIsDisabled(): Promise<void> {
+    await test.step('Verify Create Ticket button is disabled', async () => {
+      await this.createTicketButton.waitFor({ state: 'visible', timeout: 15_000 });
+      await expect(this.createTicketButton).toBeDisabled();
+      await expect(this.createTicketButton).toBeVisible();
+    });
+  }
+
+  async searchForTerm(searchText: string): Promise<void> {
+    await test.step(`Search for '${searchText}' in global search`, async () => {
+      await this.topNavBarComponent.searchForTerm(searchText, { stepInfo: `Search for '${searchText}'` });
+    });
+  }
+
+  async clickServiceNowKbSource(): Promise<void> {
+    await test.step('Click ServiceNow KB source and verify results', async () => {
+      await this.serviceNowKbSourceButton.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.serviceNowKbSourceButton.click();
+      await this.listTitle.first().waitFor({ state: 'visible', timeout: 10_000 });
+      const listTitleCount = await this.listTitle.count();
+      expect(listTitleCount).toBeGreaterThanOrEqual(1);
+      await this.updatedDateElement.first().waitFor({ state: 'visible', timeout: 10_000 });
+      const updatedDateCount = await this.updatedDateElement.count();
+      expect(updatedDateCount).toBeGreaterThanOrEqual(1);
+    });
+  }
+
+  async searchAndSelectServiceNowKb(searchText: string): Promise<void> {
+    await test.step(`Search for '${searchText}' and select ServiceNow KB source`, async () => {
+      await this.searchForTerm(searchText);
+      await this.clickServiceNowKbSource();
+    });
+  }
+
+  async VerifyServiceNowKnowledgeBaseName(expectedKnowledgeBaseName: string): Promise<void> {
+    await test.step(`Verify ServiceNow KB source button displays: '${expectedKnowledgeBaseName}'`, async () => {
+      await this.page.reload();
+      await this.serviceNowKbSourceButton.waitFor({ state: 'visible', timeout: 15_000 });
+      const buttonText = await this.serviceNowKbSourceButton.textContent();
+      expect(buttonText?.trim()).toContain(expectedKnowledgeBaseName);
+      await expect(this.serviceNowKbSourceButton).toBeVisible();
+    });
   }
 }

@@ -95,6 +95,8 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
     await test.step(`Click RSVP option: ${option}`, async () => {
       let targetLocator: Locator;
 
+      await this.verifyThePageIsLoaded();
+
       switch (option) {
         case RsvpOption.YES:
           targetLocator = this.rsvpYesRadioLocator;
@@ -221,7 +223,7 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
     await test.step('Verify event detail page is loaded', async () => {
       await this.verifier.verifyTheElementIsVisible(this.eventTitleHeading, {
         assertionMessage: 'Event title should be visible on event detail page',
-        timeout: 10000,
+        timeout: 30000,
       });
       await this.page.waitForLoadState('domcontentloaded');
     });

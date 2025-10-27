@@ -23,7 +23,6 @@ export class SiteDashboard {
     this.page = page;
     this.appManagerApiClient = appManagerApiClient;
     this.appTileComponent = new BaseAppTileComponent(page);
-    this.appTileComponent = new BaseAppTileComponent(page);
     this.timeOffRequestTileComponent = new TimeOffRequestTileComponent(page);
     this.tileOperationsComponent = new TileOperationsComponent(page);
   }
@@ -557,5 +556,38 @@ export class SiteDashboard {
    */
   async verifyDoceboReportData(tileTitle: string, EnrollmentStatus: string, CourseType: string): Promise<void> {
     await this.tileOperationsComponent.verifyDoceboReportData(tileTitle, EnrollmentStatus, CourseType);
+  }
+
+  /**
+   * Complete workflow to add an app tile with personalize option
+   */
+  async addTilewithPersonalize(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    fieldName: string,
+    destination: string
+  ): Promise<void> {
+    await this.addTile(tileTitle, appName, tileName, destination, {
+      radioOptions: [{ fieldName: fieldName, option: ORGANIZATION_SETTINGS.USER_DEFINED }],
+    });
+  }
+  /**
+   * Complete workflow to add a Greenhouse tile with App Manager Defined settings
+   */
+  async addAppManagerDefinedWithOptions(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    destination: string,
+    fieldName: string,
+    fieldValue: string,
+    fieldName2: string,
+    fieldValue2: string
+  ): Promise<void> {
+    await this.addTile(tileTitle, 'Greenhouse', tileName, destination, {
+      radioOptionsWithValues: [{ fieldName: fieldName, option: 'Site manager defined', value: fieldValue }],
+      fields: [{ name: fieldName2, value: fieldValue2 }],
+    });
   }
 }
