@@ -10,6 +10,20 @@ export interface User {
   locale_id?: number;
 }
 
+export interface UserWithLicenseAndDepartment {
+  first_name: string;
+  last_name: string;
+  username: string;
+  email: string;
+  mobile: number;
+  emp: string;
+  license_type: string;
+  department: string;
+  timezone_id?: number;
+  language_id?: number;
+  locale_id?: number;
+}
+
 export interface StaticUsers {
   email: string;
   password?: string;

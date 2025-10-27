@@ -54,6 +54,9 @@ export class ManageContentComponent extends BaseComponent {
   readonly crossButton: Locator;
   readonly scheduledTag: Locator;
   readonly openingPanelMenu: Locator;
+  readonly pageOption: Locator;
+  readonly draftTag: Locator;
+  readonly checkBoxOfContent: Locator;
   constructor(page: Page) {
     super(page);
     this.searchBar = page.locator("[aria-label='Search…']");
@@ -113,6 +116,12 @@ export class ManageContentComponent extends BaseComponent {
     this.selectPublishOption = page.getByLabel('Status:');
     this.crossButton = page.getByRole('button', { name: 'Dismiss' }).first();
     this.scheduledTag = page.locator('[class="StampList"]:has-text("SCHEDULED")').first();
+    this.pageOption = page.getByText('Page', { exact: true });
+    this.draftTag = page
+      .locator('div')
+      .filter({ hasText: /^Draft$/ })
+      .first();
+    this.checkBoxOfContent = page.locator('[type="checkbox"]');
   }
 
   getPageName(pageName: string): Locator {
@@ -624,6 +633,40 @@ export class ManageContentComponent extends BaseComponent {
         const dateToCheck = dates[i];
         await this.verifyPublishedAtDateVisibleInManageContent(dateToCheck);
       }
+    });
+  }
+  async selectPageOption(): Promise<void> {
+    await test.step('Selecting the page option', async () => {
+      await this.clickOnElement(this.pageOption);
+    });
+  }
+  async verifyDraftTagVisibleInManageContent(): Promise<void> {
+    await test.step('Verifying the draft tag is visible in manage content', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.draftTag, {
+        assertionMessage: 'Draft tag should be visible',
+      });
+    });
+  }
+
+  async verifyAllContentsAreSelected(expectedCount: number = 16): Promise<void> {
+    await test.step(`Verifying ${expectedCount} contents are selected`, async () => {
+      const checkBoxes = await this.checkBoxOfContent.all();
+      const selectedCheckBoxes = [];
+
+      for (let i = 0; i < checkBoxes.length; i++) {
+        const checkBox = checkBoxes[i];
+        const isChecked = await checkBox.isChecked();
+        if (isChecked) {
+          selectedCheckBoxes.push(checkBox);
+        }
+      }
+
+      const actualCount = selectedCheckBoxes.length;
+      if (actualCount !== expectedCount) {
+        throw new Error(`Expected ${expectedCount} selected checkboxes, but found ${actualCount}`);
+      }
+
+      console.log(`✓ Verified ${actualCount} checkboxes are selected`);
     });
   }
 }
