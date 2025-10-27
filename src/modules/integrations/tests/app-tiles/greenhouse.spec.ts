@@ -248,6 +248,7 @@ test.describe(
           GREENHOUSE_VALUES.JOB_BOARD_TOKEN,
           GREENHOUSE_VALUES.JOB_BOARD_TOKEN_VALUE
         );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
 
         // Verify tile content structure
