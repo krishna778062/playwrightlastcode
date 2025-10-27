@@ -48,10 +48,6 @@ export const MESSAGES = {
   getAppEnabledMessage: (appName: string) => `${appName} enabled`,
   getAppDisabledMessage: (appName: string) => `${appName} disabled`,
   getAppConnectedMessage: (appName: string) => `Connected to ${appName} successfully`,
-  AIRTABLE_ADDED_MESSAGE: 'Airtable added',
-  AIRTABLE_DELETE_MESSAGE: 'Airtable deleted',
-  AIRTABLE_ENABLE_MESSAGE: 'Airtable enabled',
-  AIRTABLE_CONNECT_SUCCESS_MESSAGE: 'Connected to Airtable successfully',
   VALID_URL: 'This is not a valid URL',
   MISSING_FIELD: 'Please fill out this field',
 } as const;
