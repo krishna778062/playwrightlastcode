@@ -371,7 +371,10 @@ export class AnalyticsFiltersComponent extends BaseComponent {
    */
   async verifyFilterComponentIsVisible() {
     await test.step('Verify filter component is visible', async () => {
-      await expect(this.filterGroup('Department'), 'Department filter should be visible').toBeVisible({
+      await expect(
+        this.filterGroup(AnalyticsFilterLabels.USER_PARAMETER),
+        'Department filter should be visible'
+      ).toBeVisible({
         timeout: 40_000,
       });
     });
