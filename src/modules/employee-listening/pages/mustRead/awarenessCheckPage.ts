@@ -177,7 +177,7 @@ export class AwarenessCheckPage extends BaseComponent {
 
   async clickOnMakeMustReadButton(): Promise<void> {
     await test.step('Click on make must read button', async () => {
-      await this.clickOnElement(this.makeMustReadButton, { force: true });
+      await this.clickOnElement(this.makeMustReadButton, { timeout: 2000 });
       await this.verifier.verifyTheElementIsVisible(this.mustReadSuccessMessage, {
         assertionMessage: 'Must read success message should be visible',
       });
@@ -195,25 +195,25 @@ export class AwarenessCheckPage extends BaseComponent {
 
   async clickOnAwarenessThreeDots(): Promise<void> {
     await test.step('Click on edit awareness check three dots', async () => {
-      await this.clickOnElement(this.awarenessCheckThreeDots, { force: true });
+      await this.clickOnElement(this.awarenessCheckThreeDots, { timeout: 2000 });
     });
   }
 
   async clickOnEditAwarenessCheck(): Promise<void> {
     await test.step('Click on edit awareness check', async () => {
-      await this.clickOnElement(this.editAwarenessCheckButton, { force: true });
+      await this.clickOnElement(this.editAwarenessCheckButton, { timeout: 2000 });
     });
   }
 
   async clickOnRemoveAwarenessCheck(): Promise<void> {
     await test.step('Click on remove awareness check', async () => {
-      await this.clickOnElement(this.removeAwarenessCheckButton, { force: true });
+      await this.clickOnElement(this.removeAwarenessCheckButton, { timeout: 2000 });
     });
   }
 
   async removeAwarenessCheck(): Promise<void> {
     await test.step('Verify awareness check question is removed', async () => {
-      await this.clickOnElement(this.confirmRemoveAwarenessCheckButton, { force: true });
+      await this.clickOnElement(this.confirmRemoveAwarenessCheckButton, { timeout: 2000 });
     });
   }
 

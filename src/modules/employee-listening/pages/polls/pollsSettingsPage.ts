@@ -37,7 +37,10 @@ export class PollsSettingsPage extends BasePage {
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify poll AI settings is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.enableDisablePollTitle, { timeout: TIMEOUTS.MEDIUM });
+      await this.verifier.verifyTheElementIsVisible(this.enableAIPollHeading, {
+        assertionMessage: 'Enable/disable polls',
+        timeout: 3000,
+      });
     });
   }
 
@@ -50,14 +53,22 @@ export class PollsSettingsPage extends BasePage {
 
   async verifyAIPollHeadingIsVisible(): Promise<void> {
     await test.step('Verify AI poll heading is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.enableAIPollHeading, { timeout: TIMEOUTS.MEDIUM });
+      await this.verifier.verifyTheElementIsVisible(this.enableAIPollHeading, {
+        assertionMessage: 'Enable AI poll generation (recommended)',
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 
   async verifyDisablePollsIsVisible(): Promise<void> {
     await test.step('Verify disable polls settings are visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.disablePollRadioButton, { timeout: TIMEOUTS.MEDIUM });
-      await this.verifier.verifyTheElementIsVisible(this.disablePollText, { timeout: TIMEOUTS.MEDIUM });
+      await this.verifier.verifyTheElementIsVisible(this.disablePollRadioButton, {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.verifier.verifyTheElementIsVisible(this.disablePollText, {
+        assertionMessage: 'Disable polls',
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 
@@ -68,16 +79,10 @@ export class PollsSettingsPage extends BasePage {
     const targetButton = isEnable ? this.enablePollRadioButton : this.disablePollRadioButton;
     const currentlyChecked = isEnable ? enableChecked : disableChecked;
 
-    console.log(`Current: Enable(${enableChecked ? '✓' : '✗'}), Disable(${disableChecked ? '✓' : '✗'})`);
-
     if (!currentlyChecked) {
-      console.log(`${isEnable ? 'Enabling' : 'Disabling'} polls...`);
       await targetButton.click();
       await this.saveButton.click();
       await this.verifyToastMessageIsVisibleWithText('Saved changes successfully', { timeout: TIMEOUTS.LONG });
-      console.log(`Polls ${isEnable ? 'enabled' : 'disabled'} successfully`);
-    } else {
-      console.log(`Polls already ${isEnable ? 'enabled' : 'disabled'}`);
     }
 
     if (enableAI !== undefined && isEnable) {
@@ -85,13 +90,9 @@ export class PollsSettingsPage extends BasePage {
       const isCurrentlyEnabled = (await this.enableAIPollToggle.getAttribute('data-state')) === 'checked';
 
       if (enableAI !== isCurrentlyEnabled) {
-        console.log(`${enableAI ? 'Enabling' : 'Disabling'} AI toggle...`);
         await this.enableAIPollToggle.click();
         await this.saveButton.click();
         await this.verifyToastMessageIsVisibleWithText('Saved changes successfully', { timeout: TIMEOUTS.LONG });
-        console.log(`AI toggle ${enableAI ? 'enabled' : 'disabled'} successfully`);
-      } else {
-        console.log(`AI toggle already ${enableAI ? 'enabled' : 'disabled'}`);
       }
     }
   }

@@ -1,12 +1,20 @@
-import { test } from '../../../fixtures/loginFixture';
-import { PollsListeningPage } from '../../../pages/polls/pollsPage';
-import { PollsSettingsPage } from '../../../pages/polls/pollsSettingsPage';
-
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
+import { test } from '@/src/modules/employee-listening/fixtures/loginFixture';
+import { PollsListeningPage } from '@/src/modules/employee-listening/pages/polls/pollsPage';
+import { PollsSettingsPage } from '@/src/modules/employee-listening/pages/polls/pollsSettingsPage';
 
 test.describe('polls Management Tests', () => {
+  let pollsSettingsPage: PollsSettingsPage;
+
+  test.beforeEach(async ({ appManagersPage }) => {
+    pollsSettingsPage = new PollsSettingsPage(appManagersPage);
+
+    await pollsSettingsPage.loadPage();
+    await pollsSettingsPage.verifyThePageIsLoaded();
+  });
+
   test(
     'verify Polls from Manage application setting',
     {
@@ -19,12 +27,6 @@ test.describe('polls Management Tests', () => {
         storyId: 'Polls Settings Management',
       });
 
-      const pollsSettingsPage = new PollsSettingsPage(appManagersPage);
-
-      // Navigate to Application settings > Application > Employee Listening tab
-      await pollsSettingsPage.loadPage();
-      await pollsSettingsPage.verifyThePageIsLoaded();
-
       await pollsSettingsPage.verifyEnablePollsIsVisible();
       await pollsSettingsPage.verifyAIPollHeadingIsVisible();
       await pollsSettingsPage.verifyDisablePollsIsVisible();
@@ -32,8 +34,6 @@ test.describe('polls Management Tests', () => {
       const pollsListeningPage = new PollsListeningPage(appManagersPage);
       await pollsListeningPage.loadPage();
       await pollsListeningPage.verifyThePageIsLoaded();
-
-      console.log('✓ Polls settings verification completed successfully');
     }
   );
 
@@ -49,17 +49,11 @@ test.describe('polls Management Tests', () => {
         storyId: 'Polls Settings Management',
       });
 
-      const pollsSettingsPage = new PollsSettingsPage(appManagersPage);
-
-      await pollsSettingsPage.loadPage();
-      await pollsSettingsPage.verifyThePageIsLoaded();
       await pollsSettingsPage.togglePolls('enable', false);
 
       const pollsListeningPage = new PollsListeningPage(appManagersPage);
       await pollsListeningPage.loadPage();
       await pollsListeningPage.verifyAIPollIsNotVisible();
-
-      console.log('✓ Polls disable/enable functionality completed successfully');
     }
   );
 
@@ -75,15 +69,11 @@ test.describe('polls Management Tests', () => {
         storyId: 'Polls Settings Management',
       });
 
-      const pollsSettingsPage = new PollsSettingsPage(appManagersPage);
-      await pollsSettingsPage.loadPage();
-      await pollsSettingsPage.verifyThePageIsLoaded();
       await pollsSettingsPage.togglePolls('enable', true);
 
       const pollsListeningPage = new PollsListeningPage(appManagersPage);
       await pollsListeningPage.loadPage();
       await pollsListeningPage.verifyAIPollIsVisible();
-      console.log('✓ AI Polls enable functionality completed successfully');
     }
   );
 
@@ -99,17 +89,12 @@ test.describe('polls Management Tests', () => {
         storyId: 'Polls Page Validation',
       });
 
-      const pollsSettingsPage = new PollsSettingsPage(appManagersPage);
-      await pollsSettingsPage.loadPage();
-      await pollsSettingsPage.verifyThePageIsLoaded();
       await pollsSettingsPage.togglePolls('enable', true);
 
       const pollsListeningPage = new PollsListeningPage(appManagersPage);
       await pollsListeningPage.loadPage();
       await pollsListeningPage.createPollButton.isVisible();
       await pollsListeningPage.pollsPageValidation();
-
-      console.log('✓ Polls page validation completed successfully');
     }
   );
 
@@ -129,7 +114,6 @@ test.describe('polls Management Tests', () => {
       await pollsListeningPage.loadPage({ stepInfo: 'Loading Polls page' });
       await pollsListeningPage.verifyThePageIsLoaded();
       await pollsListeningPage.searchPoll();
-      console.log('✓ Polls search functionality completed successfully');
     }
   );
 });

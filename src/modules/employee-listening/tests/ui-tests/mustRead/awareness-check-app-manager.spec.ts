@@ -12,29 +12,37 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
   let createdSiteId: string;
   let contentTitle: string;
 
-  test.beforeEach('create test content for Awareness Check testing', async ({ appManagerApiFixture }) => {
-    const siteId = process.env.SITE_ID;
-    if (!siteId) {
-      throw new Error('SITE_ID environment variable is not defined');
+  test.beforeEach(
+    'create test content for Awareness Check testing',
+    async ({ appManagerApiFixture, appManagersPage }) => {
+      const siteId = process.env.SITE_ID;
+      if (!siteId) {
+        throw new Error('SITE_ID environment variable is not defined');
+      }
+
+      const pageDetails = await appManagerApiFixture.contentManagementHelper.createPage({
+        siteId,
+        contentInfo: {
+          contentType: 'page',
+          contentSubType: 'news',
+        },
+        options: {
+          contentDescription: 'This content tests Must Read and Awareness Check functionality for admin and end users.',
+        },
+      });
+
+      createdContentId = pageDetails.contentId;
+      createdSiteId = siteId;
+      contentTitle = pageDetails.pageName;
+
+      console.log(`Created test content: ${contentTitle} (ID: ${createdContentId})`);
+
+      const contentPreviewPage = new ContentPreviewPage(appManagersPage);
+      await contentPreviewPage.navigateToContentDetail(createdContentId, createdSiteId);
+      await contentPreviewPage.verifyThePageIsLoaded();
+      await contentPreviewPage.clickOnSkipThisStepButton();
     }
-
-    const pageDetails = await appManagerApiFixture.contentManagementHelper.createPage({
-      siteId,
-      contentInfo: {
-        contentType: 'page',
-        contentSubType: 'news',
-      },
-      options: {
-        contentDescription: 'This content tests Must Read and Awareness Check functionality for admin and end users.',
-      },
-    });
-
-    createdContentId = pageDetails.contentId;
-    createdSiteId = siteId;
-    contentTitle = pageDetails.pageName;
-
-    console.log(`Created test content: ${contentTitle} (ID: ${createdContentId})`);
-  });
+  );
 
   test.afterAll('Cleanup test content', async ({ appManagerApiFixture }) => {
     if (createdContentId && createdSiteId) {
@@ -59,8 +67,6 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
       });
 
       const contentPreviewPage = new ContentPreviewPage(appManagersPage);
-      await contentPreviewPage.navigateToContentDetail(createdContentId, createdSiteId);
-      await contentPreviewPage.verifyThePageIsLoaded();
 
       await contentPreviewPage.clickOnContentThreeDotsMenu();
 
@@ -79,8 +85,6 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
       await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
         EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
       );
-
-      console.log('✓ Admin configuration completed successfully');
     }
   );
 
@@ -97,8 +101,6 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
       });
 
       const contentPreviewPage = new ContentPreviewPage(appManagersPage);
-      await contentPreviewPage.navigateToContentDetail(createdContentId, createdSiteId);
-      await contentPreviewPage.verifyThePageIsLoaded();
 
       await contentPreviewPage.clickOnContentThreeDotsMenu();
 
@@ -117,8 +119,6 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
       await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
         EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.MULTIPLE[0].question
       );
-
-      console.log('✓ Admin configuration completed successfully');
     }
   );
 
@@ -135,8 +135,6 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
       });
 
       const contentPreviewPage = new ContentPreviewPage(appManagersPage);
-      await contentPreviewPage.navigateToContentDetail(createdContentId, createdSiteId);
-      await contentPreviewPage.verifyThePageIsLoaded();
 
       await contentPreviewPage.clickOnContentThreeDotsMenu();
 
@@ -155,7 +153,6 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
       await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
         EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
       );
-      console.log('✓ Admin configuration completed successfully');
 
       await contentPreviewPage.closeSurveyPrompt();
 
@@ -188,8 +185,6 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
       });
 
       const contentPreviewPage = new ContentPreviewPage(appManagersPage);
-      await contentPreviewPage.navigateToContentDetail(createdContentId, createdSiteId);
-      await contentPreviewPage.verifyThePageIsLoaded();
 
       await contentPreviewPage.clickOnContentThreeDotsMenu();
 
@@ -208,7 +203,6 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
       await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
         EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
       );
-      console.log('✓ Admin configuration completed successfully');
 
       await contentPreviewPage.closeSurveyPrompt();
 
@@ -221,8 +215,6 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
       await awarenessCheckPage.verifyAwarenessCheckQuestionIsRemoved(
         EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
       );
-
-      console.log('✓ Admin configuration completed successfully');
     }
   );
 });
