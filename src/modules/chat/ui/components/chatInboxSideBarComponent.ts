@@ -32,7 +32,9 @@ export class ChatInboxSideBarComponent extends BaseComponent {
     this.dropDownOptionCreateNewMessage = this.page.getByLabel('Create new message').locator('p');
     this.dropDownOptionCreateNewGroup = this.page.getByLabel('Create new group').locator('p');
     this.createNewMessageForm = this.page.getByTestId('message-form');
-    this.inputBoxInCreateNewMessageForm = this.page.getByRole('combobox', { name: 'Select people' });
+    this.inputBoxInCreateNewMessageForm = this.page
+      .getByRole('combobox', { name: 'Select people' })
+      .or(this.page.getByRole('combobox', { name: 'Select simpplers' }));
     this.startChatButton = this.page.getByTestId('dmStartChatButton');
     this.userSelectionDropdownOptions = this.page.locator("div[role='menuitem']");
     this.createNewMessageIcon = this.page.getByTestId('newMessageButton');

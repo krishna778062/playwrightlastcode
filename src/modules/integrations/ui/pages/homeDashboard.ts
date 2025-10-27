@@ -1,4 +1,4 @@
-import { DASHBOARD_BUTTONS, FIELD_NAMES, ORGANIZATION_SETTINGS, UI_ACTIONS } from '@integrations/constants/common';
+import { DASHBOARD_BUTTONS, ORGANIZATION_SETTINGS, UI_ACTIONS } from '@integrations/constants/common';
 import { ExternalAppProvider } from '@integrations/ui/pages/externalAppsPage';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { TileOperationsComponent } from '@integrations-components/tileOperationsComponent';
@@ -270,10 +270,11 @@ export class HomeDashboard extends BasePage {
     tileTitle: string,
     appName: string,
     tileName: string,
+    fieldName: string,
     destination: string
   ): Promise<void> {
     await this.addTile(tileTitle, appName, tileName, destination, {
-      radioOptions: [{ fieldName: FIELD_NAMES.ORGANIZATION, option: ORGANIZATION_SETTINGS.USER_DEFINED }],
+      radioOptions: [{ fieldName: fieldName, option: ORGANIZATION_SETTINGS.USER_DEFINED }],
     });
   }
 
@@ -716,6 +717,25 @@ export class HomeDashboard extends BasePage {
     await this.addTile(tileTitle, appName, tileName, destination, {
       fields: [{ name: fieldName, value: fieldValue }],
       radioOptions: [{ fieldName: fieldName2, option: fieldValue2 }],
+    });
+  }
+
+  /**
+   * Complete workflow to add a Greenhouse tile with App Manager Defined settings
+   */
+  async addAppManagerDefinedWithOptions(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    destination: string,
+    fieldName: string,
+    fieldValue: string,
+    fieldName2: string,
+    fieldValue2: string
+  ): Promise<void> {
+    await this.addTile(tileTitle, 'Greenhouse', tileName, destination, {
+      radioOptionsWithValues: [{ fieldName: fieldName, option: 'App Manager Defined', value: fieldValue }],
+      fields: [{ name: fieldName2, value: fieldValue2 }],
     });
   }
 }

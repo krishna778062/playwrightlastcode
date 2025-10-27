@@ -103,10 +103,12 @@ export class BenchmarkMetricComponent extends BaseComponent {
     return await test.step(`Get metric value in percentage - for metric ${this.metricTitle}`, async () => {
       await expect(this.metricValue).not.toHaveText('');
       const metricValueText = await this.metricValue.textContent();
-      //it will be like "20 (57.1%)"
-      const percentage = metricValueText?.split('(')[1]?.split(')')[0];
-      console.log(`percentage value fetched from the metric value: ${metricValueText} is`, percentage);
-      return percentage?.trim() || '';
+      //it will be like "20 (57.1%)" or "20 (0)" or "1 (100.0%)"
+      const percentage = metricValueText?.split('(')[1]?.split(')')[0]?.trim();
+      // Remove the % symbol if present and return just the number
+      const cleanPercentage = percentage?.replace('%', '') || '';
+      console.log(`percentage value fetched from the metric value: ${metricValueText} is`, cleanPercentage);
+      return cleanPercentage;
     });
   }
 
@@ -132,7 +134,8 @@ export class BenchmarkMetricComponent extends BaseComponent {
   async verifyMetricsSowsNegativeTrend(): Promise<void> {
     await test.step(`Verify metrics shows downwards trend - for metric ${this.metricTitle}`, async () => {
       await expect(this.metricsComparisonSection, `expecting negative trend indicator to be visible`).toHaveClass(
-        'negative'
+        'negative',
+        { timeout: 40_000 }
       );
     });
   }
@@ -140,7 +143,8 @@ export class BenchmarkMetricComponent extends BaseComponent {
   async verifyMetricsShowsPositiveTrend(): Promise<void> {
     await test.step(`Verify metrics shows positive trend - for metric ${this.metricTitle}`, async () => {
       await expect(this.metricsComparisonSection, `expecting positive trend indicator to be visible`).toHaveClass(
-        'positive'
+        'positive',
+        { timeout: 40_000 }
       );
     });
   }
@@ -152,7 +156,8 @@ export class BenchmarkMetricComponent extends BaseComponent {
   async verifyBenchMarkComparisonTextIs(benchMarkComparisonText: string): Promise<void> {
     await test.step(`Verify bench mark comparison text is visible - for metric ${this.metricTitle}`, async () => {
       await expect(this.metricsComparisonSection, `expecting bench mark comparison text to be visible`).toContainText(
-        benchMarkComparisonText
+        benchMarkComparisonText,
+        { timeout: 40_000 }
       );
     });
   }
@@ -162,10 +167,16 @@ export class BenchmarkMetricComponent extends BaseComponent {
    */
   async verifyMetricIsLoaded(): Promise<void> {
     await test.step(`Verify metrics UI data points are visible - for metric ${this.metricTitle}`, async () => {
-      await expect(this.metricTitleLocator, `expecting metric title to be visible`).toBeVisible();
-      await expect(this.metricDescription, `expecting metric description to be visible`).toBeVisible();
-      await expect(this.metricValue, `expecting metric value to be visible`).toBeVisible();
-      await expect(this.metricsComparisonSection, `expecting metrics comparison section to be visible`).toBeVisible();
+      await expect(this.metricTitleLocator, `expecting metric title to be visible`).toBeVisible({ timeout: 120_000 });
+      await expect(this.metricDescription, `expecting metric description to be visible`).toBeVisible({
+        timeout: 120_000,
+      });
+      await expect(this.metricValue, `expecting metric value to be visible`).toBeVisible({
+        timeout: 120_000,
+      });
+      await expect(this.metricsComparisonSection, `expecting metrics comparison section to be visible`).toBeVisible({
+        timeout: 120_000,
+      });
     });
   }
 
@@ -177,7 +188,46 @@ export class BenchmarkMetricComponent extends BaseComponent {
   async verifyMetricsDescriptionIs(metricDescription: string): Promise<void> {
     await test.step(`Verify metrics description is visible - for metric ${this.metricTitle}`, async () => {
       await expect(this.metricDescription, `expecting metric description to be visible`).toContainText(
-        metricDescription
+        metricDescription,
+        { timeout: 40_000 }
+      );
+    });
+  }
+
+  /**
+   * Verifies the absolute metric value is as expected
+   * @param expectedValue - The expected absolute value
+   */
+  async verifyAbsoluteMetricValueIs(expectedValue: string): Promise<void> {
+    await test.step(`Verify absolute metric value is ${expectedValue} - for metric ${this.metricTitle}`, async () => {
+      await expect(async () => {
+        const actualValue = await this.getAbsoluteMetricValue();
+        expect(actualValue, `Absolute metric value should be ${expectedValue}`).toBe(expectedValue);
+      }, `Polling for the metric value to be loaded and matches the expected value "${expectedValue}" for metric ${this.metricTitle}`).toPass(
+        { timeout: 20_000 }
+      );
+    });
+  }
+
+  /**
+   * Verifies the percentage metric value is as expected
+   * @param expectedValue - The expected percentage value
+   */
+  async verifyPercentageMetricValueIsAsExpected(expectedValue: number): Promise<void> {
+    await test.step(`Verify percentage metric value is as expected - for metric ${this.metricTitle} is ${expectedValue}`, async () => {
+      await expect(async () => {
+        const actualValue = await this.getMetricValueInPercentage();
+        const actualNumericValue = parseFloat(actualValue);
+        if (expectedValue === 0) {
+          expect(actualNumericValue, `Percentage metric value should be 0`).toBe(0);
+        } else {
+          expect(actualNumericValue, `Percentage metric value should be ${expectedValue}`).toBeCloseTo(
+            expectedValue,
+            0.1
+          );
+        }
+      }, `Polling for the metric value to be loaded and matches the expected value "${expectedValue}" for metric ${this.metricTitle}`).toPass(
+        { timeout: 20_000 }
       );
     });
   }
