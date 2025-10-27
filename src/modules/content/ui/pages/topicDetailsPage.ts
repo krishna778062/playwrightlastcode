@@ -5,7 +5,7 @@ import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
-import { SharePostComponent } from '@/src/modules/content/ui/components/sharePostComponent';
+import { ShareSocialCampaignComponent } from '@/src/modules/content/ui/components/shareSocialCampaignComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 export interface ITopicDetailsPageActions {
   clickAndVerifyTheCreatedAlbum: (albumName: string) => Promise<void>;
@@ -31,8 +31,8 @@ export interface ITopicDetailsPageAssertions {
 }
 export class TopicDetailsPage extends BasePage implements ITopicDetailsPageActions, ITopicDetailsPageAssertions {
   private contentPreviewPage: ContentPreviewPage;
-  private sharePostComponent: SharePostComponent;
   private baseActionUtil: BaseActionUtil;
+  private shareSocialCampaignComponent: ShareSocialCampaignComponent;
   readonly clickingOnFeedTab: Locator = this.page.getByRole('tab', { name: 'Feed' });
   readonly ellipsesButton: Locator = this.page.getByRole('button', { name: 'Show more' });
   readonly editOption: Locator = this.page.getByText('Edit');
@@ -52,7 +52,7 @@ export class TopicDetailsPage extends BasePage implements ITopicDetailsPageActio
     super(page, PAGE_ENDPOINTS.getTopicDetailsPage(topicId));
     this.contentPreviewPage = new ContentPreviewPage(page);
     this.baseActionUtil = new BaseActionUtil(page);
-    this.sharePostComponent = new SharePostComponent(page);
+    this.shareSocialCampaignComponent = new ShareSocialCampaignComponent(page);
   }
 
   get actions(): ITopicDetailsPageActions {
@@ -158,7 +158,7 @@ export class TopicDetailsPage extends BasePage implements ITopicDetailsPageActio
   }
 
   async clickingOnSharePostButton(): Promise<void> {
-    await this.sharePostComponent.clickingOnSharePostButton();
+    await this.shareSocialCampaignComponent.clickShareButton();
   }
 
   async verifyingSharePostToastMessage(message: string): Promise<void> {
