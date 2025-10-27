@@ -14,6 +14,9 @@ import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedC
 export interface ISiteDashboardActions {
   navigateToManageSite: () => Promise<void>;
   clickOnFeedLink: () => Promise<void>;
+  clickOnOptionsMenu: (commentText: string) => Promise<void>;
+  editPost: (currentText: string, newText: string) => Promise<void>;
+  deletePost: (postText: string) => Promise<void>;
   clickOnEditCarousel: () => Promise<void>;
   clickOnAddTile: () => Promise<void>;
   clickOnEditDashboard: () => Promise<void>;
@@ -48,6 +51,9 @@ export interface ISiteDashboardAssertions {
   verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
   verifyFeedSectionIsVisible: () => Promise<void>;
   verifyFeedSectionIsNotVisible: () => Promise<void>;
+  verifyEditAndDeleteOptionsVisible: (commentText: string) => Promise<void>;
+  validatePostText: (postText: string) => Promise<void>;
+  validatePostNotVisible: (postText: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -267,6 +273,10 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     return this.createQuestionComponent.createAndPostQuestion(options);
   }
 
+  async clickOnOptionsMenu(commentText: string): Promise<void> {
+    await this.listFeedComponent.openPostOptionsMenu(commentText);
+  }
+
   async editQuestion(questionTitle: string, newTitle: string): Promise<void> {
     await this.createQuestionComponent.editQuestion(questionTitle, newTitle);
   }
@@ -289,5 +299,29 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     await this.verifier.verifyTheElementIsNotVisible(this.shareThoughtsButton, {
       assertionMessage: 'Feed section should not be visible',
     });
+  }
+
+  async verifyEditAndDeleteOptionsVisible(commentText: string): Promise<void> {
+    await this.createFeedPostComponent.verifyEditAndDeleteOptionsVisible(commentText);
+  }
+
+  async editPost(currentText: string, newText: string): Promise<void> {
+    await this.createFeedPostComponent.editPost(currentText, newText);
+  }
+
+  async deletePost(postText: string): Promise<void> {
+    await test.step(`Deleting post with text: ${postText}`, async () => {
+      await this.listFeedComponent.openPostOptionsMenu(postText);
+      await this.listFeedComponent.clickDeleteOption();
+      await this.listFeedComponent.confirmDelete();
+    });
+  }
+
+  async validatePostText(postText: string): Promise<void> {
+    await this.listFeedComponent.validatePostText(postText);
+  }
+
+  async validatePostNotVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.validatePostNotVisible(postText);
   }
 }
