@@ -208,10 +208,6 @@ export class ServiceNowTicketsPage extends BasePage {
     });
   }
 
-  /**
-   * Verifies that tickets are sorted by status in the expected order
-   * @param sortOrder - Either "Status, A-Z" or "Status, Z-A"
-   */
   async verifyTicketSortingByStatus(sortOrder: string): Promise<void> {
     await test.step(`Verify tickets are sorted by status: ${sortOrder}`, async () => {
       // Wait for tickets to load after sorting
@@ -327,35 +323,19 @@ export class ServiceNowTicketsPage extends BasePage {
     return this.verifyTicketSortingByDate('asc');
   }
 
-  /**
-   * Verifies that the page title displays the expected custom ServiceNow name
-   * @param expectedCustomName - The custom name that should be displayed in the page title
-   */
   async verifyServiceNowTicketsPageTitle(expectedCustomName: string): Promise<void> {
     await this.page.reload();
     await this.pageTitle.waitFor({ state: 'visible', timeout: 15000 });
     await expect(this.pageTitle).toContainText(expectedCustomName);
   }
 
-  /**
-   * Verifies that the ServiceNow menu button displays the expected custom name
-   * @param expectedCustomName - The custom name that should be displayed in the menu button
-   */
   async verifyCustomNameInServiceNowMenu(expectedCustomName: string): Promise<void> {
     await test.step(`Verify custom name '${expectedCustomName}' is displayed in ServiceNow menu button`, async () => {
-      // Wait for menu button to be visible
       await this.serviceNowMenuButton.waitFor({ state: 'visible', timeout: 15_000 });
-
-      // Get the paragraph text inside the menu item
       const menuTextElement = this.serviceNowMenuButton.locator('p.Typography-module__paragraph__OGpiQ');
       await menuTextElement.waitFor({ state: 'visible', timeout: 10_000 });
-
       const actualMenuText = await menuTextElement.textContent();
-
-      // Verify the custom name matches exactly (or contains the expected text)
       expect(actualMenuText?.trim()).toContain(expectedCustomName);
-
-      // Also verify the menu button elements are visible
       await expect(this.serviceNowMenuButton).toBeVisible();
       await expect(menuTextElement).toBeVisible();
     });
@@ -368,18 +348,10 @@ export class ServiceNowTicketsPage extends BasePage {
     });
   }
 
-  /**
-   * Verifies that the Create Ticket button is disabled
-   */
   async verifyCreateTicketButtonIsDisabled(): Promise<void> {
     await test.step('Verify Create Ticket button is disabled', async () => {
-      // Wait for button to be visible
       await this.createTicketButton.waitFor({ state: 'visible', timeout: 15_000 });
-
-      // Verify button is disabled
       await expect(this.createTicketButton).toBeDisabled();
-
-      // Also verify button is visible but not enabled
       await expect(this.createTicketButton).toBeVisible();
     });
   }

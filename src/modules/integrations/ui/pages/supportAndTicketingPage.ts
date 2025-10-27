@@ -461,8 +461,6 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
       await this.serviceNowCustomNameRadioButton.waitFor({ state: 'visible', timeout: 10_000 });
       await this.serviceNowCustomNameInput.waitFor({ state: 'visible', timeout: 10_000 });
       await this.serviceNowDefaultNameRadioButton.waitFor({ state: 'visible', timeout: 10_000 });
-
-      // Check if custom is already selected - if so, switch to default first
       const isCustomAlreadyChecked = await this.serviceNowCustomNameRadioButton.isChecked();
 
       if (isCustomAlreadyChecked) {
@@ -477,20 +475,11 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
         });
       }
 
-      // Now select custom name option
       await this.serviceNowCustomNameRadioButton.check();
-
-      // Verify radio button is selected
       await expect(this.serviceNowCustomNameRadioButton).toBeChecked();
-
-      // Fill the custom name input
       await this.serviceNowCustomNameInput.clear();
       await this.serviceNowCustomNameInput.fill(customName);
-
-      // Verify the value was entered correctly
       await expect(this.serviceNowCustomNameInput).toHaveValue(customName);
-
-      // Wait for save button to be enabled and click
       await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
       if (await this.saveButton.isEnabled()) {
         await this.saveButton.click();
