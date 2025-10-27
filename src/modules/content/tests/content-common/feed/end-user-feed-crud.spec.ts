@@ -1,7 +1,8 @@
 import { ContentTestSuite } from '@content/constants/testSuite';
-import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { FeedPage } from '@content/ui/pages/feedPage';
+import { SiteDashboardPage } from '@content/ui/pages/sitePages';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
@@ -18,6 +19,7 @@ test.describe(
     let feedPage: FeedPage;
     let createdPostText: string;
     let createdPostId: string = '';
+    let siteDashboardPage: SiteDashboardPage;
 
     test.beforeEach(async ({ standardUserFixture, appManagerFixture }) => {
       // Configure app governance settings and enable timeline comment post(feed)
@@ -110,6 +112,49 @@ test.describe(
         // Step 4: Delete the post
         await feedPage.actions.deletePost(updatedPostText);
         createdPostId = ''; // Clear post ID as post is already deleted
+      }
+    );
+
+    test(
+      'sU : Verify site owner or manager can edit or delete comments from other users',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26611'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'Test feed post creation, editing and deletion with file attachments',
+          zephyrTestId: 'CONT-26611',
+          storyId: 'CONT-26611',
+        });
+
+        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteWithUserAsOwner(users.endUser.email);
+
+        const feedTestData = TestDataGenerator.generateFeed({
+          scope: 'site',
+          siteId: siteDetails.siteId,
+          waitForSearchIndex: false,
+        });
+
+        const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestData);
+        createdPostText = feedTestData.text;
+        createdPostId = feedResponse.result.feedId;
+
+        siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
+        await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+
+        await siteDashboardPage.actions.clickOnFeedLink();
+        await siteDashboardPage.actions.clickOnOptionsMenu(createdPostText);
+        await siteDashboardPage.assertions.verifyEditAndDeleteOptionsVisible(createdPostText);
+        await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+        const updatedPostText = TestDataGenerator.generateRandomText('Updated Test Post', 3, true);
+        // Step 3: Edit the post
+        await siteDashboardPage.actions.editPost(createdPostText, updatedPostText);
+        await siteDashboardPage.assertions.validatePostText(updatedPostText);
+
+        // Step 4: Delete the post
+        await siteDashboardPage.actions.deletePost(updatedPostText);
+        createdPostId = ''; // Clear post ID as post is already deleted
+        await siteDashboardPage.assertions.validatePostNotVisible(updatedPostText);
       }
     );
   }
