@@ -25,6 +25,17 @@ export class LoginHelper {
     return homePage;
   }
 
+  public static async setPasswordForFirstTimeLogin(page: Page, user: UserCredentials): Promise<void> {
+    const loginPage = new LoginPage(page);
+    await loginPage.loadPage({ stepInfo: `Loading login page for user ${user.email}` });
+    await loginPage.actions.performFirstTimeLoginBySettingPassword(user.email, user.password!);
+  }
+  // step to set user profile security questions
+  public static async setUserProfileSecurityQuestions(page: Page): Promise<void> {
+    const loginPage = new LoginPage(page);
+    await loginPage.actions.setUserProfileSecurityQuestions();
+  }
+
   /**
    * Logs out a user through the UI.
    * @param page - The page instance which is logged in.

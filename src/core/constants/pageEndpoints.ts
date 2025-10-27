@@ -4,6 +4,7 @@ export const PAGE_ENDPOINTS = {
   CHATS_PAGE: '/chat/conversations',
   AUDIO_VIDEO_CALL_PAGE: '/call',
   FEATURED_SITES_PAGE: '/sites/featured',
+  MANAGE_CONTENT_SHOW_MORE_API: '/v1/content/sites/content/list',
   SITES_LIST_PAGE: '/sites',
   SITE_PAGE: (siteId: string) => `/site/${siteId}/`,
   MANAGE_QR_PAGE: '/manage/promotions',
@@ -38,6 +39,7 @@ export const PAGE_ENDPOINTS = {
   getAlbumCreationPage: (siteId: string) => `/site/${siteId}/album/add`,
   getEventCreationPage: (siteId: string) => `/site/${siteId}/event/add`,
   getPageCreationPage: (siteId: string) => `/site/${siteId}/page/add`,
+  getEditPage: (siteId: string, contentId: string) => `/site/${siteId}/page/${contentId}/edit`,
   getFeedPage: (feedId: string) => `/feed/${feedId}`,
   APPLICATION_SETTINGS: 'manage/app/setup/general',
   GOVERNANCE_SCREEN: 'manage/app/setup/governance',
@@ -47,6 +49,7 @@ export const PAGE_ENDPOINTS = {
   MANAGE_FEATURE: 'manage-features',
   MANAGE_CONTENT: 'manage/content',
   MANAGE_CONTENT_APPLY_API: '/manage',
+  MANAGE_CONTENT_STATUS_API: '/manage/content/status',
   MANAGE_CONTENT_MOVE_API: '/v1/page',
   MANAGE_CONTENT_DELETE_API: '/v1/content/sites/',
 
