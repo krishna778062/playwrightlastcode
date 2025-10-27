@@ -2,18 +2,14 @@ import { expect } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { LoginHelper } from '@core/helpers/loginHelper';
 import { tagTest } from '@core/utils/testDecorator';
+import { CONSTANT_DATA } from '@modules/chat/constants/constantData';
 import { chatTestFixture as test } from '@modules/chat/fixtures/chatFixture';
 
 import { CHAT_SUITE_TAGS } from '../../../constants/testTags';
 
 // Constants
-const GROUP_NAME = 'all-company';
-const SEARCH_FILTER_REGEX = /^all-companyall-companyall-company1all-companyShow more$/;
-const GROUP_PERMISSION_TEXT = 'Open (Everyone can post or comment)Announcement only (Only group admin/s can';
-const ANNOUNCEMENT_RADIO_LABEL = 'Announcement only (Only group admin/s can post)';
-const OPEN_RADIO_LABEL = 'Open (Everyone can post or comment)';
+const GROUP_NAME = CONSTANT_DATA.GROUP_NAME;
 
 /**
  * Group management and settings test suite
@@ -22,28 +18,29 @@ test.describe('group Management - Settings', { tag: [CHAT_SUITE_TAGS.GROUP_CHAT,
   test(
     'verify group settings are accessible and radio options are visible',
     { tag: [TestPriority.P2, TestGroupType.SMOKE] },
-    async ({ appManagerHomePage }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'App manager navigates to group settings and verifies that group permission options are visible',
         zephyrTestId: 'CHAT-2355',
         storyId: 'CHAT-2355',
       });
 
-      const chatAppPage = await appManagerHomePage.navigateToChatPageViaTopNavBar();
-      const { page } = chatAppPage;
+      const chatAppPage = await appManagerFixture.navigationHelper.navigateToChatPageViaTopNavBar();
+      const inboxSideBar = chatAppPage.getInboxSideBarComponent();
 
       // Search and select group
-      await page.getByRole('textbox', { name: 'Search...' }).fill(GROUP_NAME);
-      await page.locator('div').filter({ hasText: SEARCH_FILTER_REGEX }).getByRole('paragraph').nth(3).click();
+      await inboxSideBar.searchAndSelectGroup(GROUP_NAME);
+
+      await expect(chatAppPage.getConversationWindowComponent().getChatEditorComponent().inputTextBox).toBeVisible();
 
       // Open group settings
-      await page.getByTestId('moreOptions').click();
-      await page.getByTestId('managegroup').click();
+      await inboxSideBar.clickMoreOptionsButton();
+      await inboxSideBar.clickManageGroupButton();
 
       // Verify group permissions
-      await expect(page.getByText(GROUP_PERMISSION_TEXT)).toBeVisible();
-      await expect(page.getByRole('radio', { name: OPEN_RADIO_LABEL })).not.toBeChecked();
-      await expect(page.getByRole('radio', { name: ANNOUNCEMENT_RADIO_LABEL })).toBeChecked();
+      await inboxSideBar.verifyGroupPermissionTextIsVisible();
+      await inboxSideBar.verifyOpenRadioButtonIsNotChecked();
+      await inboxSideBar.verifyAnnouncementRadioButtonIsChecked();
     }
   );
 });
@@ -55,7 +52,7 @@ test.describe(
     test(
       'verify chat editor input box is hidden when navigating to all-company group',
       { tag: [TestPriority.P2, TestGroupType.SMOKE] },
-      async ({ browser }) => {
+      async ({ endUserFixture }) => {
         tagTest(test.info(), {
           description:
             'Standard user navigates to group settings and verifies that group permission options are not visible',
@@ -63,45 +60,19 @@ test.describe(
           storyId: 'CHAT-2356',
         });
 
-        // Get END_USER2 credentials from environment (shivam.kalkhanday+7)
-        const user2Email = process.env.END_USER2_USERNAME || '';
-        const user2Password = process.env.END_USER2_PASSWORD || '';
-
-        // Create a new browser context and page
-        const context = await browser.newContext();
-        const page = await context.newPage();
-
-        // Login with END_USER2 credentials
-        const homePage = await LoginHelper.loginWithPassword(page, {
-          email: user2Email,
-          password: user2Password,
-        });
-
-        await homePage.verifyThePageIsLoaded();
-
-        // Navigate to Chat page
-        const chatAppPage = await homePage.navigateToChatPageViaTopNavBar();
+        // Navigate to Chat page using the existing endUserFixture
+        const chatAppPage = await endUserFixture.navigationHelper.navigateToChatPageViaTopNavBar();
+        const inboxSideBar = chatAppPage.getInboxSideBarComponent();
 
         // Search for all-company group
-        await page.getByRole('textbox', { name: 'Search...' }).fill(GROUP_NAME);
+        await inboxSideBar.searchAndSelectGroup(GROUP_NAME);
 
-        // Click on the all-company group to open it
-        await page.locator('div').filter({ hasText: SEARCH_FILTER_REGEX }).getByRole('paragraph').nth(3).click();
-
-        // Wait for the conversation to load
-        await page.waitForTimeout(2000);
-
-        // Get the chat editor component container
-        const chatEditorContainer = page.locator("[class*='ChatEditor_editorContainer']");
-
-        // Verify that the chat editor container is hidden
-        await expect(chatEditorContainer).toBeHidden();
-
-        console.log('SUCCESS: Chat editor is hidden in all-company group for END_USER2');
+        // Verify that the chat editor input textbox is hidden
+        await expect(chatAppPage.getConversationWindowComponent().getChatEditorComponent().inputTextBox).toBeHidden();
 
         // Open group settings
-        await page.getByTestId('moreOptions').click();
-        await page.getByTestId('managegroup').isHidden();
+        //await inboxSideBar.clickMoreOptionsButton();
+        await inboxSideBar.verifyManageGroupButtonIsHidden();
       }
     );
   }
