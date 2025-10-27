@@ -269,7 +269,7 @@ test.describe(
         });
 
         // Use homeDashboard from fixture
-        createdTileTitle = `Greenhouse  report ${faker.string.alphanumeric({ length: 6 })}`;
+        createdTileTitle = `Greenhouse report ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
         const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
@@ -287,6 +287,7 @@ test.describe(
           GREENHOUSE_VALUES.JOB_BOARD_TOKEN,
           GREENHOUSE_VALUES.JOB_BOARD_TOKEN_VALUE
         );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await siteDashboard.isTilePresent(createdTileTitle);
 
         // Verify tile content structure
