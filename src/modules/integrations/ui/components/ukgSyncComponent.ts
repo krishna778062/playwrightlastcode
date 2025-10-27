@@ -42,6 +42,11 @@ export class UkgSyncComponents extends BaseComponent {
     this.syncDropdown = (option: string) => this.rootLocator.getByRole('option', { name: option });
   }
 
+  /**
+   * Verify the scheduled sources checkbox is checked or unchecked
+   * @param name - The name of the scheduled source checkbox
+   * @returns void
+   */
   async verifyScheduledSourcesCheckBox(name: string): Promise<void> {
     await test.step(`Verify Scheduled Sources Checkbox: ${name}`, async () => {
       const checkbox = this.scheduledSourcesCheckbox(name).first();
