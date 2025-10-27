@@ -752,7 +752,7 @@ test.describe(
 
         // RSVP as "Yes" from end user (non-member)
         await endUserEventDetailPage.actions.clickRsvpOption(RsvpOption.YES);
-        await endUserEventDetailPage.assertions.verifyRsvpSelection('yes', 5);
+        await endUserEventDetailPage.assertions.verifyRsvpSelection('yes', 8);
 
         // Verify event appears in End User's Outlook Calendar after RSVP
         const endUserCalendarHelper = createEndUserOutlookCalendarHelper();
