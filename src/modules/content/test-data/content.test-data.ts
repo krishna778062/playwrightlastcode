@@ -1,5 +1,6 @@
-import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { faker } from '@faker-js/faker';
+
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 
 export const CONTENT_TEST_DATA = {
   COVER_IMAGES: {

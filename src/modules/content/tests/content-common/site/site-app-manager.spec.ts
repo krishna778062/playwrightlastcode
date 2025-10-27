@@ -1,7 +1,6 @@
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
-import { ApplicationScreenPage } from '@content/ui/pages/applicationscreenPage';
 import { GovernanceScreenPage } from '@content/ui/pages/governanceScreenPage';
 import { ManageApplicationPage } from '@content/ui/pages/manageApplicationPage';
 import { ManageFeaturesPage } from '@content/ui/pages/manageFeaturesPage';
@@ -15,7 +14,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { SideNavBarComponent } from '@/src/core/components/sideNavBarComponent';
+import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
+import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 /**
  * This test suite is used to test the site creation functionality with different access types.

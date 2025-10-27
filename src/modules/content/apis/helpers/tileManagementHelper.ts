@@ -116,5 +116,20 @@ export class TileManagementHelper {
     });
   }
 
+  /**
+   * Delete a content tile by ID
+   * @param tileId - The ID of the tile to delete
+   */
+  async deleteContentTile(tileId: string): Promise<void> {
+    await test.step(`Delete content tile: ${tileId}`, async () => {
+      const response = await this.tileManagementService.deleteContentTile(tileId);
+
+      if (!response.ok()) {
+        const errorText = await response.text();
+        throw new Error(`Failed to delete content tile "${tileId}": ${response.status()} - ${errorText}`);
+      }
+    });
+  }
+
   async cleanup(): Promise<void> {}
 }

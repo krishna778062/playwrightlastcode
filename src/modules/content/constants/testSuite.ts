@@ -20,4 +20,6 @@ export enum ContentTestSuite {
   ADD_CONTENT_ON_UNLISTED_SITE = '@add-content-on-unlisted-site',
   Q_AND_A = '@q-and-a',
   SOCIAL_CAMPAIGN = '@social-campaign',
+  QUESTION_SETTINGS = '@question-settings',
+  FEED_LAYOUT = '@feed-layout',
 }
