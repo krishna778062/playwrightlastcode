@@ -7,6 +7,14 @@ import { SYNCING } from '@/src/modules/integrations/test-data/gamma-data-file';
 export class UkgSyncComponents extends BaseComponent {
   readonly syncSourceDropdown: () => Locator;
   readonly syncCheckBox: (text: string) => Locator;
+  readonly userSyncingDropdown: (option: string) => Locator;
+  readonly scheduledSourcesCheckbox: (name: string) => Locator;
+  readonly inputField: (source: string, field: string) => Locator;
+  readonly spanText: (name: string) => Locator;
+  readonly optionText: (name: string) => Locator;
+  readonly optionValue: (name: string) => Locator;
+  readonly syncDetailsCheckBox: (option: string) => Locator;
+  readonly syncDropdown: (option: string) => Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
@@ -16,41 +24,22 @@ export class UkgSyncComponents extends BaseComponent {
         .getByRole('combobox')
         .filter({ hasText: text })
         .or(this.rootLocator.getByRole('listbox').filter({ hasText: text }));
-  }
-  protected userSyncingDropdown(option: string): Locator {
-    return this.rootLocator.getByRole('combobox', { name: new RegExp(option, 'i') });
-  }
-
-  protected scheduledSourcesCheckbox(name: string): Locator {
-    return this.rootLocator.getByText(`${name}`).locator('xpath=ancestor::div[3]//input');
-  }
-
-  protected inputField(source: string, field: string): Locator {
-    return this.rootLocator.getByText(`${source}`).locator(`xpath=ancestor::div[3]//input[contains(@name,"${field}")]`);
-  }
-
-  protected spanText(name: string): Locator {
-    return this.rootLocator.locator(`span:has-text("${name}")`);
-  }
-
-  protected optionText(name: string): Locator {
-    return this.rootLocator.locator(`option:has-text("${name}")`);
-  }
-
-  protected optionValue(name: string): Locator {
-    return this.rootLocator.locator(`option[value="${name}"]`);
-  }
-
-  protected syncDetailsCheckBox(option: string): Locator {
-    return this.rootLocator
-      .getByText(`${option}`)
-      .locator('xpath=ancestor::div[2]')
-      .locator('input[type="checkbox"]')
-      .nth(2);
-  }
-
-  protected syncDropdown(option: string): Locator {
-    return this.rootLocator.getByRole('option', { name: option });
+    this.userSyncingDropdown = (option: string) =>
+      this.rootLocator.getByRole('combobox', { name: new RegExp(option, 'i') });
+    this.scheduledSourcesCheckbox = (name: string) =>
+      this.rootLocator.getByText(`${name}`).locator('xpath=ancestor::div[3]//input');
+    this.inputField = (source: string, field: string) =>
+      this.rootLocator.getByText(`${source}`).locator(`xpath=ancestor::div[3]//input[contains(@name,"${field}")]`);
+    this.spanText = (name: string) => this.rootLocator.locator(`span:has-text("${name}")`);
+    this.optionText = (name: string) => this.rootLocator.locator(`option:has-text("${name}")`);
+    this.optionValue = (name: string) => this.rootLocator.locator(`option[value="${name}"]`);
+    this.syncDetailsCheckBox = (option: string) =>
+      this.rootLocator
+        .getByText(`${option}`)
+        .locator('xpath=ancestor::div[2]')
+        .locator('input[type="checkbox"]')
+        .nth(2);
+    this.syncDropdown = (option: string) => this.rootLocator.getByRole('option', { name: option });
   }
 
   async verifyScheduledSourcesCheckBox(name: string): Promise<void> {

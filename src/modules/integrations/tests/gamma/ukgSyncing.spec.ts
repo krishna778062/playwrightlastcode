@@ -50,6 +50,8 @@ test.describe(
         await ukgSyncPage.navigateToUserSyncingProvisioningPage();
         await ukgSyncPage.selectDropdown();
         await ukgSyncPage.verifyVisibility(SYNCING.UKG_PRO);
+        await ukgSyncPage.loadPage();
+        await ukgSyncPage.verifyThePageIsLoaded();
       }
     );
 
@@ -76,6 +78,8 @@ test.describe(
         await ukgSyncPage.navigateToUserSyncingProvisioningPage();
         await ukgSyncPage.selectDropdown();
         await ukgSyncPage.verifyVisibility(SYNCING.UKG_PRO);
+        await ukgSyncPage.loadPage();
+        await ukgSyncPage.verifyThePageIsLoaded();
       }
     );
 
