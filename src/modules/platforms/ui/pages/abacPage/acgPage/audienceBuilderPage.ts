@@ -12,6 +12,8 @@ export class AudienceBuilderPage extends BasePage {
   filtersButton: Locator;
   filterContainer: Locator;
   closeButton: Locator;
+  public filterName: (filterName: string) => Locator;
+  public filterOptionName: (filterOptionName: string) => Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.AUDIENCE_RULE_PAGE) {
     super(page, pageUrl);
@@ -24,6 +26,9 @@ export class AudienceBuilderPage extends BasePage {
     this.filtersButton = pageContainer.getByRole('button', { name: 'filters' });
     this.filterContainer = page.locator('xpath=//div[contains(@class, "Dialog-module__children")]');
     this.closeButton = page.locator('button[aria-label="Close"]');
+    this.filterName = (name: string) => this.filterContainer.locator('button h3', { hasText: name });
+    this.filterOptionName = (name: string) =>
+      this.filterContainer.locator('[role="region"][data-state="open"]').getByText(name, { exact: true });
   }
 
   // Verify that the Audience Builder page is loaded by checking if 'Audiences' heading is visible
@@ -76,16 +81,13 @@ export class AudienceBuilderPage extends BasePage {
    * @param filterText - The text content of the filter element
    * @returns Locator for the filter element
    */
-  getFilterElement(filterText: string): Locator {
-    return this.filterContainer.getByText(filterText);
-  }
 
   /**
    * Verify the presence of a specific filter element
    * @param filterText - The text content of the filter element to verify
    */
   async verifyFilterElementPresence(filterText: string): Promise<void> {
-    const filterElement = this.getFilterElement(filterText);
+    const filterElement = this.filterName(filterText);
     await this.verifyElementVisibility(
       filterElement,
       `Verify "${filterText}" filter element is visible after clicking filters`
@@ -98,7 +100,7 @@ export class AudienceBuilderPage extends BasePage {
    */
   async clickFilterElement(filterText: string): Promise<void> {
     await test.step(`Click on "${filterText}" filter`, async () => {
-      const filterElement = this.getFilterElement(filterText);
+      const filterElement = this.filterName(filterText);
       await this.clickOnElement(filterElement, {
         stepInfo: `Click ${filterText} filter`,
       });
@@ -110,16 +112,13 @@ export class AudienceBuilderPage extends BasePage {
    * @param optionText - The text content of the filter option element
    * @returns Locator for the filter option element
    */
-  getFilterOptionElement(optionText: string): Locator {
-    return this.filterContainer.getByText(optionText, { exact: true });
-  }
 
   /**
    * Verify the presence of a specific filter option element
    * @param optionText - The text content of the filter option element to verify
    */
   async verifyFilterOptionPresence(optionText: string): Promise<void> {
-    const optionElement = this.getFilterOptionElement(optionText);
+    const optionElement = this.filterOptionName(optionText);
     await this.verifyElementVisibility(optionElement, `Verify "${optionText}" filter option is visible`);
   }
 
