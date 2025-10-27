@@ -512,13 +512,15 @@ export class CustomAppTilesPage extends BasePage {
       // Clear any existing text first
       await this.searchInput.fill('');
 
-      // Type the search term
-      await this.fillInElement(this.searchInput, searchTerm, {
-        stepInfo: `Search for tiles with term: ${searchTerm}`,
-      });
+      // Type the search term (if not empty)
+      if (searchTerm) {
+        await this.fillInElement(this.searchInput, searchTerm, {
+          stepInfo: `Search for tiles with term: ${searchTerm}`,
+        });
 
-      // Wait for search to be processed
-      await this.page.waitForLoadState('networkidle');
+        // Wait for the search input to have some value (it may be truncated due to maxlength)
+        await this.expect(this.searchInput).not.toHaveValue('', { timeout: 5000 });
+      }
     });
   }
 
@@ -546,9 +548,8 @@ export class CustomAppTilesPage extends BasePage {
 
   async verifyResultCount(expectedCount: number): Promise<void> {
     await test.step(`Verify result count is ${expectedCount}`, async () => {
-      const countText = await this.resultCount.textContent();
-      const actualCount = parseInt(countText?.split(' ')[0] || '0');
-      this.expect(actualCount).toBe(expectedCount);
+      // Wait for the result count to match expected value (search may take time to complete)
+      await this.expect(this.resultCount).toHaveText(new RegExp(`^${expectedCount}\\s+tile`), { timeout: 15000 });
     });
   }
 
@@ -611,12 +612,20 @@ export class CustomAppTilesPage extends BasePage {
               // Clear any existing search and type the app name
               await this.appsSearchInput.fill('');
               await this.appsSearchInput.fill(trimmedAppName);
-              // Wait for search results to appear
-              await this.appOptionLabels.first().waitFor({ state: 'visible', timeout: 5000 });
 
-              // Try to find the app again after searching
-              appOption = this.appOptionLabels.filter({ hasText: trimmedAppName });
-              optionCount = await appOption.count();
+              // Wait for the search input to have the value
+              await this.expect(this.appsSearchInput).toHaveValue(trimmedAppName, { timeout: 2000 });
+
+              // Wait for the specific app option to appear by checking for the text in the options
+              // The search should filter the results
+              const searchedOption = this.appOptionLabels.filter({ hasText: trimmedAppName });
+
+              // Wait for the filtered option to become visible (Playwright will retry)
+              await this.expect(searchedOption.first()).toBeVisible({ timeout: 5000 });
+
+              // Get the count after search
+              optionCount = await searchedOption.count();
+              appOption = searchedOption;
             } catch (searchError) {
               console.log(`Search failed for "${trimmedAppName}":`, searchError);
               // Continue without searching
@@ -1565,43 +1574,38 @@ export class CustomAppTilesPage extends BasePage {
   async deleteAllTilesWithPrefix(prefix: string): Promise<void> {
     await test.step(`Delete all tiles with prefix: ${prefix}`, async () => {
       let deletedCount = 0;
-      const maxAttempts = 20; // Prevent infinite loop
+      const maxAttempts = 100; // Allow more attempts
 
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
         try {
-          // Get the first tile with the prefix
-          const firstTile = this.dynamicTileRow.filter({ hasText: prefix }).first();
+          // Check if any tiles with prefix exist without reloading first
+          const firstTile = this.page.locator('tbody tr').filter({ hasText: prefix }).first();
+          const tileExists = await firstTile.isVisible({ timeout: 2000 }).catch(() => false);
 
-          // Check if any tiles with prefix still exist
-          if (!(await firstTile.isVisible())) {
+          if (!tileExists) {
             console.log(`No more tiles with prefix "${prefix}" found. Deleted ${deletedCount} tiles.`);
             break;
           }
 
           console.log(`Deleting tile ${deletedCount + 1} with prefix "${prefix}"`);
 
-          // Click the three dots menu
+          // Click the three dots menu for the first tile with the prefix
           await this.clickThreeDotsForTileStartingWith(prefix);
+
           // Wait for menu to appear
           await this.page.waitForSelector('[role="menu"]', { state: 'visible', timeout: 5000 });
 
           // Select Delete option
           await this.selectOptionFromTileMenuDropdown('Delete');
+
           // Wait for confirmation dialog
           await this.confirmDeleteButton.waitFor({ state: 'visible', timeout: 5000 });
 
           // Confirm deletion
           await this.clickConfirmDeleteButton();
-          // Wait for deletion to complete by checking if tile is removed
-          await this.page
-            .waitForFunction(
-              () => {
-                const tiles = document.querySelectorAll('tr[data-testid^="dataGridRow-"]');
-                return Array.from(tiles).every(tile => !tile.textContent?.includes(prefix)); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
-              },
-              { timeout: 10000 }
-            )
-            .catch(() => {});
+
+          // Wait for the confirmation dialog to close
+          await this.confirmDeleteButton.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
 
           deletedCount++;
         } catch (error) {
@@ -1610,20 +1614,21 @@ export class CustomAppTilesPage extends BasePage {
           // Try to close any open dropdowns or modals
           try {
             await this.page.keyboard.press('Escape');
-            // Wait for any open modals/dropdowns to close
             await this.page
-              .waitForFunction(() => document.querySelector('[role="menu"], [role="dialog"]') === null, {
-                timeout: 2000,
-              })
+              .waitForSelector('[role="menu"], [role="dialog"]', { state: 'hidden', timeout: 2000 })
               .catch(() => {});
           } catch (closeError) {
             console.error('Failed to close dropdown/modal:', closeError);
           }
 
-          // If we've tried multiple times, break
-          if (attempt >= 2) {
-            console.error('Too many deletion failures, stopping');
-            break;
+          // Reload the page if we're getting errors to get back to a good state
+          if (attempt > 0 && attempt % 3 === 0) {
+            console.log('Reloading page to reset state...');
+            await this.page.reload({ waitUntil: 'domcontentloaded' });
+            await this.tileRows
+              .first()
+              .waitFor({ state: 'attached', timeout: 10000 })
+              .catch(() => {});
           }
         }
       }
@@ -1646,8 +1651,9 @@ export class CustomAppTilesPage extends BasePage {
 
   async verifyCreatedTileStatus(status: string): Promise<void> {
     await test.step(`Verify created tile status is: ${status}`, async () => {
-      // Find the first tile (most recently created) and verify its status
-      const tileStatus = this.dynamicTileStatus.filter({ hasText: status });
+      // Verify the status of the first tile (most recently created)
+      // Use Playwright's getByText within the first row
+      const tileStatus = this.firstTileRow.getByText(status);
       await this.expect(tileStatus).toBeVisible();
     });
   }
