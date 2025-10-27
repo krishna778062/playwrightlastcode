@@ -1,5 +1,4 @@
 import { UI_ACTIONS } from '@integrations-constants/common';
-import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
 import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
 
 import { TestPriority } from '@core/constants/testPriority';
@@ -7,13 +6,14 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
+import { GammaIntegrationsFeatureTags, IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
 import { SYNCING } from '@/src/modules/integrations/test-data/gamma-data-file';
 import { UkgSyncPage } from '@/src/modules/integrations/ui/pages/ukgSyncPage';
 
 test.describe(
   'feature: UKG Pro Syncing',
   {
-    tag: [IntegrationsSuiteTags.UKG_SYNCING, IntegrationsSuiteTags.GAMMA],
+    tag: [IntegrationsSuiteTags.GAMMA, GammaIntegrationsFeatureTags.UKG_SYNCING],
   },
   () => {
     let ukgSyncPage: UkgSyncPage;
