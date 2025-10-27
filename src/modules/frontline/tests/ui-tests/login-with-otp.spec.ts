@@ -10,6 +10,24 @@ import { mailosaurValues } from '../../config/frontlineConfig';
 import { Roles } from '@/src/core/constants/roles';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { UserTestDataBuilder } from '@/src/core/test-data-builders/UserTestDataBuilder';
+import { PropertiesFile } from '@/src/core/utils/propertiesFile';
+
+// Path to properties file for storing user details across workers
+const USER_DETAILS_FILE = 'src/modules/frontline/test-data/userDetails.properties';
+
+/**
+ * Load user details from properties file
+ */
+function loadUserDetails() {
+  const prop = new PropertiesFile(USER_DETAILS_FILE);
+  return {
+    endUserEmpId: prop.getProperty('endUserEmpId') || '',
+    endUserPassword: prop.getProperty('endUserPassword') || '',
+    endUserId: prop.getProperty('endUserId') || '',
+    endUserFirstName: prop.getProperty('endUserFirstName') || '',
+    endUserLastName: prop.getProperty('endUserLastName') || '',
+  };
+}
 
 test.describe(
   'feature: login with otp test cases for optional LWO',
@@ -17,20 +35,6 @@ test.describe(
     tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP],
   },
   () => {
-    const userDetails: {
-      endUserEmpId: string;
-      endUserPassword: string;
-      endUserId: string;
-      endUserFirstName: string;
-      endUserLastName: string;
-    } = {
-      endUserEmpId: '',
-      endUserPassword: '',
-      endUserId: '',
-      endUserFirstName: '',
-      endUserLastName: '',
-    };
-
     test.beforeAll(async ({ lwoUserManagementService }) => {
       await lwoUserManagementService.setLWOSetting('optional'); // Set LWO as optional
     });
@@ -48,12 +52,17 @@ test.describe(
         });
         const userBuilder = new UserTestDataBuilder(appManagerApiContext, config.apiBaseUrl);
         const endUser = await userBuilder.addUsersWithEmpIdAndDepartmentToSystemWithoutPassword(Roles.END_USER);
-        userDetails.endUserEmpId = endUser[0].emp;
-        userDetails.endUserPassword = 'Simpplr@2025';
-        userDetails.endUserId = endUser[0].userId;
-        userDetails.endUserFirstName = endUser[0].first_name;
-        userDetails.endUserLastName = endUser[0].last_name;
 
+        // Store user details in properties file
+        const prop = new PropertiesFile(USER_DETAILS_FILE);
+        prop.setProperty('endUserEmpId', endUser[0].emp);
+        prop.setProperty('endUserPassword', 'Simpplr@2025');
+        prop.setProperty('endUserId', endUser[0].userId);
+        prop.setProperty('endUserFirstName', endUser[0].first_name);
+        prop.setProperty('endUserLastName', endUser[0].last_name);
+        prop.store(null);
+
+        const userDetails = loadUserDetails();
         await LoginHelper.setPasswordForFirstTimeLogin(page, {
           email: userDetails.endUserEmpId,
           password: userDetails.endUserPassword,
@@ -89,6 +98,7 @@ test.describe(
           storyId: 'FL-435',
         });
 
+        const userDetails = loadUserDetails();
         await LoginHelper.loginWithPassword(page, {
           email: userDetails.endUserEmpId,
           password: userDetails.endUserPassword,
@@ -124,6 +134,7 @@ test.describe(
           storyId: 'FL-435',
         });
 
+        const userDetails = loadUserDetails();
         await LoginHelper.loginWithPassword(page, {
           email: userDetails.endUserEmpId,
           password: userDetails.endUserPassword,
