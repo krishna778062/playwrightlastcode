@@ -102,14 +102,24 @@ test.describe(
         // Test apps dropdown
         await customAppTilesPage.verifyCustomAppsCountAtMost(100);
 
-        // Test show more functionality BEFORE clicking it
-        await customAppTilesPage.verifyShowMoreIsVisibleIfAboveThreshold(12);
+        // Test show more functionality - get actual tile count first
+        const tileCount = await customAppTilesPage.getRenderedTileCount();
+        const showMoreThreshold = 10; // "Show more" appears when there are 10 or more tiles
 
-        // Click "Show more" to see all tiles including older Servicenow tiles
-        await customAppTilesPage.clickShowMore();
+        // Verify "Show more" button behavior based on actual tile count
+        if (tileCount >= showMoreThreshold) {
+          // When tile count is 10 or more, "Show more" should be visible
+          await customAppTilesPage.verifyShowMoreIsVisibleIfAboveThreshold(showMoreThreshold - 1);
 
-        // Verify "Show more" button is no longer visible after clicking it
-        await customAppTilesPage.verifyShowMoreIsNotVisible();
+          // Click "Show more" to see all tiles
+          await customAppTilesPage.clickShowMore();
+
+          // Verify "Show more" button is no longer visible after clicking it
+          await customAppTilesPage.verifyShowMoreIsNotVisible();
+        } else {
+          // When tile count is less than 10, "Show more" should NOT be visible
+          await customAppTilesPage.verifyShowMoreIsNotVisible();
+        }
 
         // Now select apps and verify both are visible after showing more tiles
         await customAppTilesPage.selectAppsInDropdown([

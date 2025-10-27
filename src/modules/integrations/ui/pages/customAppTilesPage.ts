@@ -22,6 +22,9 @@ export interface TileFilter {
 export class CustomAppTilesPage extends BasePage {
   readonly appTileComponent: BaseAppTileComponent;
 
+  // Selector strings for reusable components
+  readonly showMoreButtonSelector: string;
+
   // Page header elements
   readonly pageTitle: Locator;
   readonly createCustomAppTileButton: Locator;
@@ -205,6 +208,9 @@ export class CustomAppTilesPage extends BasePage {
 
     this.appTileComponent = new BaseAppTileComponent(page);
 
+    // Initialize selector strings
+    this.showMoreButtonSelector = 'button[aria-label="Show more"]';
+
     // Page header elements
     this.pageTitle = page.locator('h1', { hasText: 'Custom app tiles' });
     this.createCustomAppTileButton = page.getByRole('link', { name: 'Create custom app tile' });
@@ -228,7 +234,7 @@ export class CustomAppTilesPage extends BasePage {
     this.resultCount = page.locator('.TilesList_resultCount--kEOjb');
 
     // Tile management elements
-    this.tileMoreButton = page.locator('button[aria-label="Show more"]');
+    this.tileMoreButton = page.locator(this.showMoreButtonSelector);
     this.tileMenuOption = page
       .locator('[role="menuitem"], .dropdown-menu-item, [data-testid*="menu-item"], [data-testid*="option"]')
       .first();
@@ -1807,8 +1813,7 @@ export class CustomAppTilesPage extends BasePage {
     await test.step(`Click three dots for tile starting with: ${prefix}`, async () => {
       // Get the first tile with the prefix to avoid strict mode violation
       const tileRow = this.dynamicTileRow.filter({ hasText: prefix }).first();
-      // Scope the constructor-defined tileMoreButton to the specific row
-      const moreBtn = tileRow.locator(this.tileMoreButton);
+      const moreBtn = tileRow.locator(this.showMoreButtonSelector);
       await this.clickOnElement(moreBtn);
     });
   }
