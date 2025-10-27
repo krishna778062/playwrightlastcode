@@ -20,6 +20,12 @@ test.describe(
     tag: [IntegrationsSuiteTags.CUSTOM_APP_TILES, IntegrationsSuiteTags.ABSOLUTE],
   },
   () => {
+    test.beforeEach(async ({ appManagerFixture }) => {
+      const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+      await customAppTilesPage.loadPage();
+      await customAppTilesPage.verifyThePageIsLoaded();
+    });
+
     test(
       'verify Custom App Tiles page loads correctly',
       {
@@ -33,16 +39,11 @@ test.describe(
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
-        // Generate unique tile data
         const tileName = `Test Tile ${faker.string.alphanumeric({ length: 6 })}`;
         const tileDescription = `Test Description ${faker.lorem.sentence()}`;
 
-        // test data
         const { tileType, app, apiAction, previewButton, nextButton } = DEFAULT_CUSTOM_APP_TILE_CONFIG;
 
-        // Navigate to Custom App Tiles page and verify it loads
-        await customAppTilesPage.loadPage();
-        await customAppTilesPage.verifyThePageIsLoaded();
         await customAppTilesPage.clickCreateCustomAppTileButton();
         await customAppTilesPage.enterTileName(tileName);
         await customAppTilesPage.enterTileDescription(tileDescription);
@@ -67,16 +68,10 @@ test.describe(
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
-        await customAppTilesPage.loadPage();
-        await customAppTilesPage.verifyThePageIsLoaded();
-
-        // Test search functionality
         await customAppTilesPage.searchForTiles(CUSTOM_APP_TILES_TEST_DATA.SEARCH_TERMS.JIRA_TEST);
         await customAppTilesPage.clearSearch();
         await customAppTilesPage.verifySearchFieldIsEmpty();
         await customAppTilesPage.verifyAllAppTilesVisible();
-
-        // Test no results
         await customAppTilesPage.searchForTiles(CUSTOM_APP_TILES_TEST_DATA.SEARCH_TERMS.NO_RESULTS);
         await customAppTilesPage.verifyResultCount(0);
         await customAppTilesPage.verifyNoResultsText(MESSAGES.NO_RESULTS_TEXT);
@@ -96,50 +91,31 @@ test.describe(
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
-        await customAppTilesPage.loadPage();
-        await customAppTilesPage.verifyThePageIsLoaded();
-
-        // Test apps dropdown
         await customAppTilesPage.verifyCustomAppsCountAtMost(100);
 
-        // Test show more functionality - get actual tile count first
+        // "Show more" button appears when there are 10 or more tiles
+        // This test handles varying tile counts dynamically
         const tileCount = await customAppTilesPage.getRenderedTileCount();
-        const showMoreThreshold = 10; // "Show more" appears when there are 10 or more tiles
-
-        // Verify "Show more" button behavior based on actual tile count
+        const showMoreThreshold = 10;
         if (tileCount >= showMoreThreshold) {
-          // When tile count is 10 or more, "Show more" should be visible
+          // Verify and interact with "Show more" button
           await customAppTilesPage.verifyShowMoreIsVisibleIfAboveThreshold(showMoreThreshold - 1);
-
-          // Click "Show more" to see all tiles
           await customAppTilesPage.clickShowMore();
-
-          // Verify "Show more" button is no longer visible after clicking it
           await customAppTilesPage.verifyShowMoreIsNotVisible();
         } else {
-          // When tile count is less than 10, "Show more" should NOT be visible
+          // Verify "Show more" is not visible when tile count is below threshold
           await customAppTilesPage.verifyShowMoreIsNotVisible();
         }
-
-        // Now select apps and verify both are visible after showing more tiles
         await customAppTilesPage.selectAppsInDropdown([
           CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
           CUSTOM_APP_TILES_TEST_DATA.APPS.SERVICENOW_CUSTOM_APP,
         ]);
         await customAppTilesPage.closeAppsDropdownWithEscapeKey();
-
-        // Verify that the apps filter is applied (should show "2" in the dropdown)
         await customAppTilesPage.verifyAppsFilterApplied(2);
-
-        // Verify that at least Jira apps are visible (we know these exist)
         await customAppTilesPage.verifyVisibleApps([CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH]);
-
-        // Test that we can clear the filter and see all apps
         await customAppTilesPage.clickOnAppsDropdown();
         await customAppTilesPage.clickClearButtonAboveSearch();
         await customAppTilesPage.closeAppsDropdownWithEscapeKey();
-
-        // Now verify that both app types are visible when no filter is applied
         await customAppTilesPage.verifyVisibleApps([
           CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
           CUSTOM_APP_TILES_TEST_DATA.APPS.SERVICENOW_CUSTOM_APP,
@@ -159,19 +135,12 @@ test.describe(
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
-
-        await customAppTilesPage.loadPage();
-        await customAppTilesPage.verifyThePageIsLoaded();
         await customAppTilesPage.clickCreateCustomAppTileButton();
-
-        // Generate unique tile data
         const tileName = `Test Tile ${faker.string.alphanumeric({ length: 6 })}`;
         const tileDescription = `Test Description ${faker.lorem.sentence()}`;
-
         await customAppTilesPage.enterTileName(tileName);
         await customAppTilesPage.enterTileDescription(tileDescription);
-
-        // Verify API action is disabled
+        // verify API action is disabled without selecting app
         await customAppTilesPage.verifyApiActionDisabled();
       }
     );
@@ -188,12 +157,8 @@ test.describe(
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
-
-        await customAppTilesPage.loadPage();
-        await customAppTilesPage.verifyThePageIsLoaded();
         await customAppTilesPage.clickCreateCustomAppTileButton();
-
-        // Generate unique tile data
+        // enter tile name and description
         const tileName = `Test Tile ${faker.string.alphanumeric({ length: 6 })}`;
         const tileDescription = `Test Description ${faker.lorem.sentence()}`;
 
@@ -202,24 +167,20 @@ test.describe(
         await customAppTilesPage.selectTileType(CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY);
         await customAppTilesPage.selectApp(CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH);
 
-        // Verify buttons are disabled initially
+        // Buttons are disabled until API action is selected
         await customAppTilesPage.verifySaveAndNextDisabled('Save', 'Next');
-
         await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS);
-
-        // Verify Save button is now enabled after filling all required fields
         await customAppTilesPage.verifySaveButtonIsEnabled();
-
         await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.SAVE);
 
-        // Verify that Save was successful - Next button should turn blue
+        // After saving, Next button should turn primary (blue) to indicate progress
         await customAppTilesPage.verifyNextButtonIsPrimary();
 
         // Navigate back to tiles list to verify the tile was saved
         await customAppTilesPage.loadPage();
         await customAppTilesPage.verifyThePageIsLoaded();
 
-        // Verify tile is saved and appears in list
+        // Verify tile was saved and appears at the top of the list (most recent first)
         await customAppTilesPage.verifyCreatedTileStatus(CUSTOM_APP_TILES_TEST_DATA.TILE_STATUS.DRAFT);
         await customAppTilesPage.verifyTileIsOnTop(tileName);
       }
@@ -237,12 +198,9 @@ test.describe(
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
-
-        await customAppTilesPage.loadPage();
-        await customAppTilesPage.verifyThePageIsLoaded();
         await customAppTilesPage.clickCreateCustomAppTileButton();
 
-        // Generate unique tile data
+        // enter tile name and description
         const tileName = `Test Tile ${faker.string.alphanumeric({ length: 6 })}`;
         const tileDescription = `Test Description ${faker.lorem.sentence()}`;
 
@@ -252,29 +210,29 @@ test.describe(
         await customAppTilesPage.selectApp(CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH);
         await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.NEXT);
 
-        // Configure API action
+        // Configure API action to get form fields from user input
         await customAppTilesPage.clickButton('Configure API action');
         await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.CREATE_TICKET);
 
-        // Select "Get from user" options for form fields
+        // Select "Get from user" option for all form fields (Email, Summary, Description)
         await customAppTilesPage.selectRadioForField('Get from user', 'Email');
         await customAppTilesPage.selectRadioForField('Get from user', 'Summary');
         await customAppTilesPage.selectRadioForField('Get from user', 'Description');
 
         await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.SAVE);
 
-        // Verify "Display in tile" and "Display in overlay" two options are there
+        // Verify both display options are available (inline vs overlay)
         await customAppTilesPage.verifyDisplayDropdownOptions(
           CUSTOM_APP_TILES_TEST_DATA.FORM_BEHAVIOR.DISPLAY_IN_TILE,
           CUSTOM_APP_TILES_TEST_DATA.FORM_BEHAVIOR.DISPLAY_IN_OVERLAY
         );
 
-        // Select overlay behavior
+        // select display option in form behaviour
         await customAppTilesPage.selectDisplayOptionInFormBehaviour(
           CUSTOM_APP_TILES_TEST_DATA.FORM_BEHAVIOR.DISPLAY_IN_OVERLAY
         );
 
-        // Verify canvas is auto-populated with button
+        // verify canvas is auto populated with button
         await customAppTilesPage.verifyCanvasIsAutoPopulatedWithButton();
       }
     );
@@ -287,25 +245,22 @@ test.describe(
       async ({ appManagerFixture }) => {
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
-        await customAppTilesPage.loadPage();
-        await customAppTilesPage.verifyThePageIsLoaded();
         await customAppTilesPage.clickCreateCustomAppTileButton();
 
-        // Verify buttons are disabled initially (empty form)
+        // Verify buttons are disabled on empty form (no tile name/description yet)
         await customAppTilesPage.verifyButtonStates();
 
-        // Test with only tile name
+        // enter tile name and description
         const tileName = `Validation Test ${faker.string.alphanumeric({ length: 6 })}`;
         await customAppTilesPage.enterTileName(tileName);
 
-        // Verify buttons are still disabled
+        // Still disabled - missing description, app, and API action
         await customAppTilesPage.verifyButtonStates();
 
-        // Test with tile name and description
         const tileDescription = `Validation Description ${faker.lorem.sentence()}`;
         await customAppTilesPage.enterTileDescription(tileDescription);
 
-        // Verify buttons are still disabled (missing app and API action)
+        // Still disabled - missing app and API action (required fields)
         await customAppTilesPage.verifyButtonStates();
       }
     );
@@ -317,23 +272,18 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
-
-        await customAppTilesPage.loadPage();
-        await customAppTilesPage.verifyThePageIsLoaded();
         await customAppTilesPage.clickCreateCustomAppTileButton();
 
-        // Fill required fields
+        // enter tile name and description
         const tileName = `API Test ${faker.string.alphanumeric({ length: 6 })}`;
         const tileDescription = `API Test Description ${faker.lorem.sentence()}`;
 
         await customAppTilesPage.enterTileName(tileName);
         await customAppTilesPage.enterTileDescription(tileDescription);
         await customAppTilesPage.selectTileType(CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY);
-
-        // Select an app
         await customAppTilesPage.selectApp(CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH);
 
-        // Verify API action dropdown is enabled
+        // verify API action is enabled after app selection
         await customAppTilesPage.verifyApiActionEnabled();
       }
     );
@@ -345,22 +295,17 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
-
-        await customAppTilesPage.loadPage();
-        await customAppTilesPage.verifyThePageIsLoaded();
         await customAppTilesPage.clickCreateCustomAppTileButton();
 
-        // Fill some data
+        // enter tile name and description
         const tileName = `Cancel Test ${faker.string.alphanumeric({ length: 6 })}`;
         const tileDescription = `Cancel Test Description ${faker.lorem.sentence()}`;
 
         await customAppTilesPage.enterTileName(tileName);
         await customAppTilesPage.enterTileDescription(tileDescription);
-
-        // Click cancel
         await customAppTilesPage.clickButton('Cancel');
 
-        // Verify we're back on the main page
+        // verify the page is loaded
         await customAppTilesPage.verifyThePageIsLoaded();
       }
     );
@@ -373,18 +318,15 @@ test.describe(
       async ({ appManagerFixture }) => {
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
-        await customAppTilesPage.loadPage();
-        await customAppTilesPage.verifyThePageIsLoaded();
-
-        // Test search with special characters
+        // Test search with special characters (should return no results)
         await customAppTilesPage.searchForTiles('!@#$%^&*()');
         await customAppTilesPage.verifyResultCount(0);
 
-        // Test search with empty string
+        // Test search with empty string (should show all tiles)
         await customAppTilesPage.searchForTiles('');
         await customAppTilesPage.verifyAllAppTilesVisible();
 
-        // Test search with very long string
+        // Test search with very long string (maxlength is 64, so will be truncated)
         const longSearchTerm = 'a'.repeat(100);
         await customAppTilesPage.searchForTiles(longSearchTerm);
         await customAppTilesPage.verifyResultCount(0);
@@ -399,19 +341,10 @@ test.describe(
       async ({ appManagerFixture }) => {
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
-        await customAppTilesPage.loadPage();
-        await customAppTilesPage.verifyThePageIsLoaded();
-
-        // Find a tile to test with
         const tileCount = await customAppTilesPage.getRenderedTileCount();
         if (tileCount > 0) {
-          // Click on the first tile's more options button
           await customAppTilesPage.clickOnElement(customAppTilesPage.tileMoreButton.first());
-
-          // Verify menu options are visible
           await customAppTilesPage.verifyTileMenuOptionsVisible();
-
-          // Close menu
           await customAppTilesPage.page.keyboard.press('Escape');
         }
       }
@@ -424,12 +357,9 @@ test.describe(
       },
       async ({ appManagerUiFixture }) => {
         const customAppTilesPage = new CustomAppTilesPage(appManagerUiFixture.page);
-
-        await customAppTilesPage.loadPage();
-        await customAppTilesPage.verifyThePageIsLoaded();
         await customAppTilesPage.clickCreateCustomAppTileButton();
 
-        // Click on "Add custom app" link and verify redirect to new tab
+        // click add custom app button and verify redirect to custom apps integration page
         await customAppTilesPage.clickCreateButton(
           'Add custom app',
           `${PAGE_ENDPOINTS.CUSTOM_APPS_INTEGRATION_PAGE}/new`
@@ -444,12 +374,9 @@ test.describe(
       },
       async ({ appManagerUiFixture }) => {
         const customAppTilesPage = new CustomAppTilesPage(appManagerUiFixture.page);
-
-        await customAppTilesPage.loadPage();
-        await customAppTilesPage.verifyThePageIsLoaded();
         await customAppTilesPage.clickCreateCustomAppTileButton();
 
-        // Click on "Create API action" link and verify redirect to new tab
+        // click create API action button and verify redirect to API actions page
         await customAppTilesPage.clickCreateButton('Create API action', `${PAGE_ENDPOINTS.API_ACTIONS_PAGE}/create`);
       }
     );
@@ -467,10 +394,7 @@ test.describe(
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
-        await customAppTilesPage.loadPage();
-        await customAppTilesPage.verifyThePageIsLoaded();
-
-        // Clean up all test tiles
+        // Delete all test tiles created during test runs (cleanup)
         await customAppTilesPage.deleteAllTilesWithPrefix('Test Tile');
       }
     );
