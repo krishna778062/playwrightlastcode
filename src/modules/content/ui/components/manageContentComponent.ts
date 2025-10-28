@@ -1,5 +1,8 @@
 import { Locator, Page, test } from '@playwright/test';
 
+import { SortOptionLabels } from '@modules/content/constants';
+
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
@@ -447,6 +450,14 @@ export class ManageContentComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.siteStatusStamp);
     });
   }
+  async selectSiteSearchBar(siteName: string): Promise<void> {
+    await test.step(`Selecting site search bar with name: ${siteName}`, async () => {
+      await this.clickOnElement(this.siteSearchBar);
+      await this.fillInElement(this.siteSearchBar, siteName);
+      await this.selectSiteSearchBarOption();
+    });
+  }
+
   async selectSiteSearchBarOption(): Promise<void> {
     await test.step('Selecting the site search bar option', async () => {
       const fullText = (await this.siteSearchBarOption.textContent()) || '';
@@ -483,6 +494,16 @@ export class ManageContentComponent extends BaseComponent {
     await test.step(`Selecting the status filter: ${status}`, async () => {
       await this.clickOnElement(this.statusField);
       await this.selectPublishOption.selectOption(status);
+    });
+  }
+
+  /**
+   * Parameterized function to select any sort option by SortOptionLabels enum
+   * @param sortBy - The sort option to select
+   */
+  async selectSortOption(sortBy: SortOptionLabels): Promise<void> {
+    await test.step(`Selecting sort option: ${sortBy}`, async () => {
+      await this.sortByButton.selectOption({ label: sortBy });
     });
   }
 
@@ -618,6 +639,13 @@ export class ManageContentComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsDisabled(this.applyButton);
     });
   }
+
+  async clickOnValidateApplyButton(): Promise<void> {
+    await test.step(`Clicking on validate apply button`, async () => {
+      await this.clickOnElement(this.applyButton);
+    });
+  }
+
   async selectContentFilter(managedBy: string): Promise<void> {
     await test.step('Selecting the content filter', async () => {
       await this.contentFilter.selectOption(managedBy);
@@ -688,7 +716,7 @@ export class ManageContentComponent extends BaseComponent {
       await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.showMoreButton, { delay: 2_000 }),
         response =>
-          response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_SHOW_MORE_API) &&
+          response.url().includes(API_ENDPOINTS.content.contentListInSite) &&
           response.request().method() === 'POST' &&
           response.status() === 200,
         {

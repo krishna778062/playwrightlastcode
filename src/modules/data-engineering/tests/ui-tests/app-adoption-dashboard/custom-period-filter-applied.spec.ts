@@ -106,7 +106,6 @@ test.describe(
         const loggedInUsersMetricData = await appAdoptionQueryHelper.getLoggedInUsersDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
-        console.log(`Fetched dbValues for given query : ${JSON.stringify(loggedInUsersMetricData)}`);
 
         const loggedInUsersMetrics = testEnvironment.appAdoptionDashboard.loggedInUsersMetrics;
         //verify the absolute value of logged in users is as expected
@@ -137,7 +136,6 @@ test.describe(
           await appAdoptionQueryHelper.getContributorsAndParticipantsDataFromDBWithFilters({
             filterBy: testFiltersConfig,
           });
-        console.log(`Fetched dbValues for given query : ${JSON.stringify(contributorsAndParticipantsData)}`);
 
         const contributorsAndParticipantsMetrics =
           testEnvironment.appAdoptionDashboard.contributorsAndParticipantsMetrics;
@@ -166,7 +164,6 @@ test.describe(
         const totalAppWebPageViews = await appAdoptionQueryHelper.getAppWebPageViewsDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
-        console.log(`Fetched dbValues for given query : ${JSON.stringify(totalAppWebPageViews)}`);
 
         const totalAppWebPageViewsMetrics = appAdoptionDashboard.appWebPageViewsMetrics;
         await totalAppWebPageViewsMetrics.scrollToComponent();

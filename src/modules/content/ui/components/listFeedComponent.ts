@@ -250,6 +250,18 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
+  /**
+   * Validates that a post contains the expected text
+   * @param postText - The expected text content to validate
+   */
+  async validatePostNotVisible(postText: string): Promise<void> {
+    await test.step(`Validating post contains text: "${postText}"`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.postTextLocator(postText), {
+        assertionMessage: `Post "${postText}" should not be visible`,
+      });
+    });
+  }
+
   async clickInfoIcon(fileId: string): Promise<void> {
     await test.step('Click info icon', async () => {
       await this.imageButton.hover();
