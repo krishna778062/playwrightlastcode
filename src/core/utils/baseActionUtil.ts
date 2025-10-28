@@ -414,10 +414,8 @@ export class BaseActionUtil {
     options?: { stepInfo?: string; timeout?: number }
   ): Promise<void> {
     await test.step(options?.stepInfo ?? `Verifying ${toastMessage} toast message`, async () => {
-      await expect(
-        this.toastMessages.filter({ hasText: toastMessage }),
-        `expecting ${toastMessage} toast message`
-      ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      const matchingToast = this.toastMessages.filter({ hasText: toastMessage }).first();
+      await expect(matchingToast, `expecting ${toastMessage} toast message`).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     });
   }
 

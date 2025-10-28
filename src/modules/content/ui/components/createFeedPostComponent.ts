@@ -51,6 +51,8 @@ export interface ICreateFeedPostActions {
 
 export interface ICreateFeedPostAssertions {
   verifyEditorVisible: () => Promise<void>;
+  verifyAttachedFileCount: (expectedCount: number) => Promise<void>;
+  verifyUpdateButtonDisabled: () => Promise<void>;
 }
 
 export class CreateFeedPostComponent
@@ -63,6 +65,9 @@ export class CreateFeedPostComponent
   readonly attachedFiles = this.page.locator("div[class='FileItem-name']");
   readonly deleteFileIcon = this.page.locator("button[class*='delete']");
   readonly postButton = this.page.locator("div[class*='PostFormShareContainer']").getByRole('button', { name: 'Post' });
+  readonly fileUploadWarningMessage = this.page.locator(
+    'div:has-text("It\'s not possible to add more than 10 photos/files")'
+  );
 
   // Post editing section
   readonly editButton = this.page
@@ -310,8 +315,9 @@ export class CreateFeedPostComponent
    */
   async updatePostText(text: string): Promise<void> {
     await test.step('Update post text', async () => {
-      await this.feedEditor.clear();
-      await this.fillInElement(this.feedEditor, text);
+      const editor = this.feedEditor.first();
+      await editor.clear();
+      await this.fillInElement(editor, text);
     });
   }
 
@@ -463,6 +469,40 @@ export class CreateFeedPostComponent
     await test.step('Verify edit and delete options are visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.editButton);
       await this.verifier.verifyTheElementIsVisible(this.deleteButton);
+    });
+  }
+  /**
+   * Verifies the count of attached files matches the expected count
+   * @param expectedCount - The expected number of attached files
+   */
+  async verifyAttachedFileCount(expectedCount: number): Promise<void> {
+    await test.step(`Verify attached file count is ${expectedCount}`, async () => {
+      await this.verifier.verifyCountOfElementsIsEqualTo(this.attachedFiles, expectedCount, {
+        timeout: 10000,
+        assertionMessage: `Expected ${expectedCount} attached files, but verification failed`,
+      });
+    });
+  }
+
+  /**
+   * Verifies that the update button is disabled
+   */
+  async verifyUpdateButtonDisabled(): Promise<void> {
+    await test.step('Verify update button is disabled', async () => {
+      await expect(this.updateButton).toBeDisabled();
+    });
+  }
+
+  /**
+   * Uploads files to the post without waiting for all uploads to complete
+   * Useful for testing file upload limits
+   * @param filePaths - Array of file paths to upload
+   */
+  async uploadFilesWithoutWaiting(filePaths: string[]): Promise<void> {
+    await test.step('Upload files to feed post without waiting', async () => {
+      await this.fileUploadInput.setInputFiles(filePaths);
+      // Only wait for the UI to update with file names, not for all uploads to complete
+      await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
     });
   }
 }
