@@ -16,6 +16,9 @@ export const API_ENDPOINTS = {
     roles: {
       list: '/v1/identity/accounts/roles/list',
     },
+    tiles: {
+      create: '/v1/content/tiles',
+    },
     groups: {
       create: '/v1/chat/conversations',
       addMembers: `/v1/chat/members`,
@@ -110,6 +113,10 @@ export const API_ENDPOINTS = {
     governance: '/v1/account/appConfig/app.setup.governance',
     general: '/v1/account/appConfig/app',
     appConfig: '/v1/account/appConfig',
+  },
+  tile: {
+    create: '/v1/content/tiles',
+    siteCreate: (siteId: string) => `/v1/content/sites/${siteId}/tiles`,
   },
   apps: {
     settings: '/v1/account/apps-links-settings',

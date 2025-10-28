@@ -1,7 +1,9 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { AnalyticsFilterLabels } from '../../constants/analyticsFilterLabels';
+import { GroupByOnUserParameter } from '../../constants/filters';
 import { PeriodFilterTimeRange } from '../../constants/periodFilterTimeRange';
+import { FilterOptions } from '../../helpers/baseAnalyticsQueryHelper';
 import { DateHelper } from '../../helpers/dateHelper';
 import { convertNumericMonthToAbbreviation } from '../../utils/dateUtils';
 
@@ -23,6 +25,8 @@ export class AnalyticsFiltersComponent extends BaseComponent {
    */
   readonly filterOptionByText: (text: string) => Locator;
 
+  readonly groupByOnUserParameterOption: (groupBy: string) => Locator;
+
   /**
    * Apply and Clear buttons within the filter dialog
    */
@@ -38,6 +42,8 @@ export class AnalyticsFiltersComponent extends BaseComponent {
   constructor(page: Page) {
     super(page);
     this.filterGroup = (label: string) => this.page.getByText(label, { exact: true });
+    this.groupByOnUserParameterOption = (groupBy: string) =>
+      this.page.locator("[class*='FilterGroupFilter-module']").getByText(groupBy, { exact: true });
     this.filterDialog = this.page.locator('[id*="tippy"]');
     this.filterOptionByText = (filterName: string) => this.page.getByText(filterName, { exact: true });
     this.filterApplyButton = this.page.getByRole('button', { name: 'Apply' }).first();
@@ -82,7 +88,34 @@ export class AnalyticsFiltersComponent extends BaseComponent {
    */
   async selectFilterOptionByOptionName(optionText: string) {
     await test.step(`Select option: ${optionText}`, async () => {
-      await this.clickOnElement(this.filterOptionByText(optionText));
+      //check if the filter is already selected if yes then dont do anything and if no then select
+      const filterOption = this.filterOptionByText(optionText);
+      if (!(await filterOption.isChecked())) {
+        await filterOption.check();
+      }
+    });
+  }
+
+  /**
+   * Selects a Period filter option by opening the dialog and selecting the provided option.
+   * @param periodFilterOption - The Period filter option to select.
+   */
+  async selectPeriodFilterOption(periodFilterOption: string) {
+    await test.step(`Select Period filter option: ${periodFilterOption}`, async () => {
+      const optionToSelect = this.page.getByRole('radio', { name: periodFilterOption });
+      if (!(await optionToSelect.isChecked())) {
+        await optionToSelect.check();
+      }
+    });
+  }
+
+  async selectGroupByOnUserParameterOption(groupBy: GroupByOnUserParameter) {
+    await test.step(`Select Group By on User Parameter: ${groupBy}`, async () => {
+      //if its not already
+      const optionToSelect = this.page.getByRole('radio', { name: groupBy });
+      if (!(await optionToSelect.isChecked())) {
+        await optionToSelect.check();
+      }
     });
   }
 
@@ -93,20 +126,6 @@ export class AnalyticsFiltersComponent extends BaseComponent {
     await test.step('Apply selected filter values', async () => {
       await this.clickOnElement(this.filterApplyButton);
       await expect(this.filterDialog, 'Filter dialog should be hidden after Apply').toBeHidden();
-    });
-  }
-
-  /**
-   * Convenience method to open a filter, clear previous values, select an option, and apply
-   * @param label - Filter label
-   * @param optionText - Option to select
-   */
-  async applyFilter(label: AnalyticsFilterLabels, optionText: string) {
-    await test.step(`Apply filter flow: ${label} => ${optionText}`, async () => {
-      await this.openFilter(label);
-      await this.clearSelectedFilterOptions();
-      await this.selectFilterOptionByOptionName(optionText);
-      // await this.clickOnApplyButton();
     });
   }
 
@@ -191,7 +210,7 @@ export class AnalyticsFiltersComponent extends BaseComponent {
   ) {
     await test.step(`Apply Period filter: ${periodFilterOptions}`, async () => {
       await this.openFilter(AnalyticsFilterLabels.PERIOD);
-      await this.selectFilterOptionByOptionName(periodFilterOptions.toString());
+      await this.selectPeriodFilterOption(periodFilterOptions.toString());
       if (periodFilterOptions === PeriodFilterTimeRange.CUSTOM) {
         if (!options?.customStartDate || !options.customEndDate) {
           throw new Error('Custom period filter requires both customStartDate and customEndDate in ISO format');
@@ -204,6 +223,70 @@ export class AnalyticsFiltersComponent extends BaseComponent {
           customStartDate: uiFormat.customStartDate,
           customEndDate: uiFormat.customEndDate,
         });
+      }
+      await this.clickOnApplyButton();
+    });
+  }
+
+  /**
+   * Applies a Department filter by opening the dialog and selecting the provided option.
+   * @param departmentFilterOptions - The Department filter option to select.
+   */
+  async applyDepartmentFilter(departmentFilterOptions: string[]) {
+    await test.step(`Apply Department filter: ${departmentFilterOptions.join(', ')}`, async () => {
+      await this.openFilter(AnalyticsFilterLabels.DEPARTMENT);
+      for (const department of departmentFilterOptions) {
+        await this.selectFilterOptionByOptionName(department);
+      }
+      await this.clickOnApplyButton();
+    });
+  }
+
+  /**
+   * Applies a Location filter by opening the dialog and selecting the provided option.
+   * @param locationFilterOptions - The Location filter option to select.
+   */
+  async applyLocationFilter(locationFilterOptions: string[]) {
+    await test.step(`Apply Location filter: ${locationFilterOptions.join(', ')}`, async () => {
+      await this.openFilter(AnalyticsFilterLabels.LOCATION);
+      for (const location of locationFilterOptions) {
+        await this.selectFilterOptionByOptionName(location);
+      }
+      await this.clickOnApplyButton();
+    });
+  }
+
+  /**
+   * Applies a Company Name filter by opening the dialog and selecting the provided option.
+   * @param companyNameFilterOptions - The Company Name filter option to select.
+   */
+  async applyCompanyNameFilter(companyNameFilterOptions: string[]) {
+    await test.step(`Apply Company Name filter: ${companyNameFilterOptions.join(', ')}`, async () => {
+      await this.openFilter(AnalyticsFilterLabels.COMPANY_NAME);
+      for (const companyName of companyNameFilterOptions) {
+        await this.selectFilterOptionByOptionName(companyName);
+      }
+      await this.clickOnApplyButton();
+    });
+  }
+
+  /**
+   * Applies a People Category filter by opening the dialog and selecting the provided option.
+   * @param peopleCategoryFilterOptions - The People Category filter option to select.
+   */
+  async applyPeopleCategoryFilter(peopleCategoryFilterOptions: string[]) {
+    await test.step(`Apply People Category filter: ${peopleCategoryFilterOptions.join(', ')}`, async () => {
+      //NEW LOCATOR for people category
+      const peopleCategoryFilter = this.page.getByRole('button', {
+        name: AnalyticsFilterLabels.PEOPLE_CATEGORY,
+        exact: true,
+      });
+      await this.clickOnElement(peopleCategoryFilter, {
+        stepInfo: 'Click on people category filter to open filter dialog',
+        timeout: 40_000,
+      });
+      for (const peopleCategory of peopleCategoryFilterOptions) {
+        await this.selectFilterOptionByOptionName(peopleCategory);
       }
       await this.clickOnApplyButton();
     });
@@ -280,6 +363,77 @@ export class AnalyticsFiltersComponent extends BaseComponent {
   async waitUntilCalendarPickerIsHidden() {
     await test.step('Wait until calendar picker is hidden', async () => {
       await this.yearPicker.waitFor({ state: 'hidden' });
+    });
+  }
+
+  /**
+   * Verifies that the filter component is visible
+   */
+  async verifyFilterComponentIsVisible() {
+    await test.step('Verify filter component is visible', async () => {
+      await expect(
+        this.filterGroup(AnalyticsFilterLabels.USER_PARAMETER),
+        'Department filter should be visible'
+      ).toBeVisible({
+        timeout: 40_000,
+      });
+    });
+  }
+
+  async applyGroupByOnUserParameter(groupBy: GroupByOnUserParameter) {
+    await test.step(`Apply Group By on User Parameter: ${groupBy}`, async () => {
+      await this.openFilter(AnalyticsFilterLabels.USER_PARAMETER);
+      await this.selectGroupByOnUserParameterOption(groupBy);
+      await this.clickOnApplyButton();
+    });
+  }
+
+  /**
+   * Applies filters from a unified configuration object (same as DB FilterOptions)
+   * Only applies filters that are provided (optional filters)
+   * @param filterConfig - Unified filter configuration object
+   */
+  async applyFiltersFromConfig(filterConfig: FilterOptions) {
+    await test.step('Apply filters from unified configuration', async () => {
+      // Apply period filter (always required)
+      if (filterConfig.timePeriod === PeriodFilterTimeRange.CUSTOM) {
+        if (!filterConfig.customStartDate || !filterConfig.customEndDate) {
+          throw new Error('Custom period filter requires both customStartDate and customEndDate');
+        }
+        await this.applyPeriodFilter(filterConfig.timePeriod, {
+          customStartDate: filterConfig.customStartDate,
+          customEndDate: filterConfig.customEndDate,
+        });
+      } else {
+        await this.applyPeriodFilter(filterConfig.timePeriod);
+      }
+      await this.page.waitForTimeout(1000);
+
+      // Apply optional filters only if provided
+      if (filterConfig.departments && filterConfig.departments.length > 0) {
+        await this.applyDepartmentFilter(filterConfig.departments);
+        await this.page.waitForTimeout(1000);
+      }
+
+      if (filterConfig.locations && filterConfig.locations.length > 0) {
+        await this.applyLocationFilter(filterConfig.locations);
+        await this.page.waitForTimeout(1000);
+      }
+
+      if (filterConfig.userCategories && filterConfig.userCategories.length > 0) {
+        await this.applyPeopleCategoryFilter(filterConfig.userCategories);
+        await this.page.waitForTimeout(1000);
+      }
+
+      if (filterConfig.companyName && filterConfig.companyName.length > 0) {
+        await this.applyCompanyNameFilter(filterConfig.companyName);
+        await this.page.waitForTimeout(1000);
+      }
+
+      if (filterConfig.groupBy) {
+        await this.applyGroupByOnUserParameter(filterConfig.groupBy);
+        await this.page.waitForTimeout(1000);
+      }
     });
   }
 }

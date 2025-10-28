@@ -5,6 +5,9 @@ import {
 } from '@data-engineering/ui/dashboards/app-adoption/metrics';
 import { Page, test } from '@playwright/test';
 
+import { AdoptionLeadersMetrics } from './metrics/adoptionLeadersMetrics';
+import { AppWebPageViewMetrics } from './metrics/appWebPageViewMetrics';
+
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseAnalyticsDashboardPage } from '@/src/modules/data-engineering/ui/pages/baseAnalyticsDashboardPage';
 
@@ -13,12 +16,16 @@ export class AppAdoptionDashboard extends BaseAnalyticsDashboardPage {
   readonly totalUsersMetrics: TotalUsersMetrics;
   readonly loggedInUsersMetrics: LoggedInUserMetrics;
   readonly contributorsAndParticipantsMetrics: ContributorsAndParticipantsMetrics;
+  readonly adoptionLeadersMetrics: AdoptionLeadersMetrics;
+  readonly appWebPageViewsMetrics: AppWebPageViewMetrics;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.APP_ADOPTION_DASHBOARD);
     this.totalUsersMetrics = new TotalUsersMetrics(page, this.thoughtSpotIframe);
     this.loggedInUsersMetrics = new LoggedInUserMetrics(page, this.thoughtSpotIframe);
     this.contributorsAndParticipantsMetrics = new ContributorsAndParticipantsMetrics(page, this.thoughtSpotIframe);
+    this.adoptionLeadersMetrics = new AdoptionLeadersMetrics(page, this.thoughtSpotIframe);
+    this.appWebPageViewsMetrics = new AppWebPageViewMetrics(page, this.thoughtSpotIframe);
   }
 
   /**

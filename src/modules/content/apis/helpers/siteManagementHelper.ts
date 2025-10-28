@@ -786,23 +786,82 @@ export class SiteManagementHelper {
   }
 
   async getSiteWithMembers(
-    siteId: string,
-    options?: { size?: number; type?: string }
+    accessType: string,
+    expectedMemberCount?: number,
+    options?: { size?: number; type?: string; maxAttempts?: number }
   ): Promise<{
     site: any;
     members: any;
   }> {
-    return await test.step(`Getting site ${siteId} with its members`, async () => {
-      // Get site details
-      const siteDetails = await this.siteManagementService.getSiteDetails(siteId);
-      // Get site members
-      const membersResponse = await this.getSiteMembershipList(siteId, options);
+    const maxAttempts = options?.maxAttempts || 10;
+    let attempts = 0;
 
-      return {
-        site: siteDetails.result,
-        members: membersResponse.result,
-      };
-    });
+    const seenSiteIds = new Set<string>();
+
+    return await test.step(
+      expectedMemberCount ? `Getting site with ${expectedMemberCount} members` : `Getting site with its members`,
+      async () => {
+        while (attempts < maxAttempts) {
+          // Get sites list
+          const sitesResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+          const sites = sitesResponse.result.listOfItems.filter(
+            (site: any) => site.isActive === true && site.isManager === false && site.isMember === false
+          );
+
+          // Filter out seen sites to try different ones
+          const unseenSites = sites.filter((site: any) => !seenSiteIds.has(site.siteId));
+
+          if (unseenSites.length === 0) {
+            // All sites seen, reset and start over
+            seenSiteIds.clear();
+            seenSiteIds.add(sites[0]?.siteId);
+          }
+
+          // Get first unseen site
+          const siteInfo = unseenSites.length > 0 ? unseenSites[0] : sites[0];
+          const siteId = siteInfo.siteId;
+          seenSiteIds.add(siteId);
+
+          // Get site details
+          const siteDetails = await this.siteManagementService.getSiteDetails(siteId);
+
+          // Get site members
+          const membersResponse = await this.getSiteMembershipList(siteId, options);
+          const memberCount = membersResponse.result?.listOfItems?.length || 0;
+
+          console.log(`Site ${siteInfo.name} (${siteId}) has ${memberCount} members`);
+
+          // If no expected count specified, return immediately
+          if (expectedMemberCount === undefined) {
+            return {
+              site: siteDetails.result,
+              members: membersResponse.result,
+            };
+          }
+
+          console.log(`Expected: ${expectedMemberCount} members`);
+
+          // Check if this site has the expected number of members
+          if (memberCount >= expectedMemberCount) {
+            console.log(`✓ Found site with ${memberCount} members`);
+            return {
+              site: siteDetails.result,
+              members: membersResponse.result,
+            };
+          }
+
+          attempts++;
+          console.log(`Attempt ${attempts}/${maxAttempts}: Site has ${memberCount} members, trying another site...`);
+
+          // Wait a bit before next attempt to avoid rapid API calls
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        throw new Error(
+          `Failed to find a site with at least ${expectedMemberCount} members after ${maxAttempts} attempts`
+        );
+      }
+    );
   }
 
   /**
@@ -935,6 +994,79 @@ export class SiteManagementHelper {
   async removeCarouselItem(siteId: string, carouselItemId: string): Promise<any> {
     return await test.step(`Removing carousel item ${carouselItemId} from site ${siteId}`, async () => {
       return await this.siteManagementService.deleteSiteCarouselItem(siteId, carouselItemId);
+    });
+  }
+
+  /**
+   * Creates a site and assigns the user as owner
+   * @param userId - The user ID to make owner
+   * @returns Promise with site details
+   */
+  private async createSiteWithUserAsOwner(userId: string): Promise<{ siteId: string; siteName: string }> {
+    const createdSite = await this.createSite({
+      accessType: SITE_TYPES.PUBLIC,
+      siteName: `Site for ${userId}`,
+      category: { name: 'Public', categoryId: 'public' },
+      waitForSearchIndex: true,
+    });
+    await this.makeUserSiteMembership(createdSite.siteId, userId, SitePermission.MEMBER, SiteMembershipAction.ADD);
+    await this.makeUserSiteMembership(
+      createdSite.siteId,
+      userId,
+      SitePermission.OWNER,
+      SiteMembershipAction.SET_PERMISSION
+    );
+    return { siteId: createdSite.siteId, siteName: createdSite.siteName };
+  }
+
+  async getSiteWithUserAsOwner(userId: string): Promise<{ siteId: string; siteName: string }> {
+    const siteListResponse = await this.getListOfSites({ filter: 'active' });
+    if (siteListResponse.result.listOfItems.length) {
+      const memberListResponse = await this.siteManagementService.getSiteMembershipList(
+        siteListResponse.result.listOfItems[0].siteId
+      );
+      if (
+        memberListResponse.result.listOfItems.find(
+          (member: any) => member.peopleId === userId && member.isOwner === true
+        )
+      ) {
+        return {
+          siteId: memberListResponse.result.listOfItems[0].siteId,
+          siteName: memberListResponse.result.listOfItems[0].name,
+        };
+      } else {
+        return await this.createSiteWithUserAsOwner(userId);
+      }
+    } else {
+      return await this.createSiteWithUserAsOwner(userId);
+    }
+  }
+
+  async getSiteInUserIsNotMemberOrOwner(userId: string): Promise<{ siteId: string; siteName: string }> {
+    return await test.step(`Getting site in user is not a member or owner: ${userId}`, async () => {
+      const siteListResponse = await this.getListOfSites({ filter: 'active' });
+      if (siteListResponse.result.listOfItems.length) {
+        // Iterate through each site and check membership
+        for (const site of siteListResponse.result.listOfItems) {
+          const memberListResponse = await this.siteManagementService.getSiteMembershipList(site.siteId);
+
+          // Check if user is neither a member nor owner
+          const userMembership = memberListResponse.result.listOfItems.find(
+            (member: any) => member.peopleId === userId
+          );
+
+          if (!userMembership) {
+            return { siteId: site.siteId, siteName: site.name };
+          }
+        }
+      }
+      // If no site found where user is not a member/owner, create a new site
+      return await this.createSite({
+        accessType: SITE_TYPES.PUBLIC,
+        siteName: `Site for ${userId}`,
+        category: { name: 'Public', categoryId: 'public' },
+        waitForSearchIndex: true,
+      });
     });
   }
 }
