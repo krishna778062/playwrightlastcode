@@ -29,6 +29,7 @@ export interface IContentPreviewPageAssertions {
   verifyContentStatus: (status: string) => Promise<void>;
   verifyContentIsInPublishedStatus: () => Promise<void>;
   verifyContentHasSubmitForApprovalButton: () => Promise<void>;
+  verifyValidateOptionOnContentPreviewPage: () => Promise<void>;
   verifyCommentOptionIsNotVisible: () => Promise<void>;
   verifyCommentOptionIsVisible: () => Promise<void>;
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
@@ -63,6 +64,8 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   // Assertion locators
   readonly sendHistoryPopup = this.page.getByTestId('send-history-popup');
   readonly versionHistoryPopup = this.page.getByTestId('version-history-popup');
+  readonly ellipsisButton = this.page.locator('[aria-label="Category option"]').first();
+  readonly checkValidateOption = this.page.getByRole('button', { name: 'Validate' });
   readonly shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
 
   // Page components
@@ -191,6 +194,14 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     });
   }
 
+  async verifyValidateOptionOnContentPreviewPage(): Promise<void> {
+    await test.step('Verifying validate option on content preview page', async () => {
+      await this.hoverOverElementInJavaScript(this.ellipsisButton);
+      await this.verifier.verifyTheElementIsVisible(this.checkValidateOption, {
+        assertionMessage: 'Validate option should be visible on content preview page',
+      });
+    });
+  }
   async verifyCommentOptionIsVisible(): Promise<void> {
     await test.step('Checking comment option', async () => {
       await this.contentDetailsComponent.checkCommentOption.isVisible();

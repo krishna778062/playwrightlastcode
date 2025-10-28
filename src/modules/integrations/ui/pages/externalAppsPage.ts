@@ -348,8 +348,20 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
   async verifyIntegrationIsConnected(provider: ExternalAppProvider, expectedStatus: boolean): Promise<void> {
     await test.step(`Verify ${provider} integration is ${expectedStatus ? 'connected' : 'disconnected'}`, async () => {
       await this.page.waitForLoadState('domcontentloaded');
-      await this.page.waitForTimeout(10000);
-      const isConnected = await this.isIntegrationConnected(provider);
+      let isConnected = await this.isIntegrationConnected(provider);
+      for (let attempt = 1; attempt <= 5; attempt++) {
+        try {
+          await this.navigateToExternalAppsPage();
+          await this.verifyThePageIsLoaded();
+          isConnected = await this.isIntegrationConnected(provider);
+          if (isConnected === expectedStatus) {
+            break;
+          }
+          await this.page.waitForTimeout(5000);
+        } catch (error) {
+          if (attempt === 3) throw error;
+        }
+      }
       expect(isConnected).toBe(expectedStatus);
     });
   }
@@ -359,7 +371,7 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
       await this.connectConfluenceButton.click();
 
       await this.page.waitForLoadState('domcontentloaded');
-      await this.page.waitForTimeout(10000);
+      await this.verifyThePageIsLoaded();
       await this.acceptButton.waitFor({ state: 'visible', timeout: 10000 });
       const currentUrl = this.page.url();
       const isConsentPage = currentUrl.includes('/oauth2/authorize/server/consent');
@@ -370,7 +382,8 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
         const confluenceHelper = new ConfluenceHelper(this.page);
         await confluenceHelper.handleConfluenceLogin(incorrectCredentials);
       }
-
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.page.waitForTimeout(10000);
       if (incorrectCredentials) {
         await this.navigateToExternalAppsPage();
       }

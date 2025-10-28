@@ -95,12 +95,13 @@ export const REDIRECT_URLS = {
   AIRTABLE: 'https://airtable.com/',
   UKG_PRO: 'https://et19.ultipro.com/',
   GOOGLE_CALENDAR: 'https://workspace.google.com/',
-  OUTLOOK_CALENDAR: 'https://login.microsoftonline.com/',
+  OUTLOOK_CALENDAR: 'https://outlook.office365.com',
   DOCUSIGN: 'https://account-d.docusign.com/',
   UKG_WFM: 'https://kcfn01-cfn08-ath01.cfn.mykronos.com/',
   MONDAY_DOT_COM: 'https://clydenoronha48s-team.monday.com/',
   DOCEBO: 'https://simpplr.docebosaas.com/',
   ASANA: 'https://app.asana.com/',
+  GREENHOUSE: 'https://job-boards.greenhouse.io/',
 } as const;
 
 /**
@@ -169,6 +170,8 @@ export const EXPENSIFY_VALUES = {
 export const GREENHOUSE_VALUES = {
   JOB_TYPE: 'Job type',
   ALL: 'All',
+  EXTERNAL: 'External',
+  INTERNAL: 'Internal',
   JOB_BOARD_TOKEN: 'Job board token',
   JOB_BOARD_TOKEN_VALUE: 'mergeapiintegrationsandbox',
 } as const;
