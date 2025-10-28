@@ -50,13 +50,15 @@ export class ContentPreviewPage extends BasePage {
 
   async clickOnContentThreeDotsMenu(): Promise<void> {
     await test.step('Click on content three dots menu', async () => {
+      await this.contentThreeDotsMenu.waitFor({ state: 'attached' });
       await this.contentThreeDotsMenu.click({ timeout: 2000 });
     });
   }
 
   async selectMustReadFromMenuOptions(): Promise<void> {
     await test.step('Click on make must read option', async () => {
-      await this.makeMustReadOption.click({ timeout: 2000 });
+      await this.makeMustReadOption.waitFor({ state: 'attached' });
+      await this.makeMustReadOption.click({ timeout: 3000 });
     });
   }
 

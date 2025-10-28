@@ -37,9 +37,8 @@ export class PollsSettingsPage extends BasePage {
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify poll AI settings is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.enableDisablePollTitle, {
-        assertionMessage: 'Enable/disable polls',
-        timeout: 6000,
+      await this.verifier.waitUntilElementIsVisible(this.enableAIPollHeading, {
+        timeout: TIMEOUTS.MEDIUM,
       });
     });
   }
