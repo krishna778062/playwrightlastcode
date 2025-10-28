@@ -79,7 +79,7 @@ export class ManageContentComponent extends BaseComponent {
     this.firstContentCheckbox = page.locator('[type="checkbox"]').nth(1);
     this.actionDropdownContainer = page.locator(`[class="Bulk Bulk--footer"]`);
     this.actionDropdown = page.locator('#action');
-    this.unpublishButton = page.getByText('Unpublish', { exact: true });
+    this.unpublishButton = page.getByRole('button', { name: 'Unpublish' });
     this.applyButton = page.getByRole('button', { name: 'Apply' });
     this.publishButton = page.getByText('Publish', { exact: true });
     this.moveButton = page.getByText('Move', { exact: true });
@@ -383,11 +383,6 @@ export class ManageContentComponent extends BaseComponent {
       await this.hoverOverElementInJavaScript(this.firstDropDownOption);
     });
   }
-  async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
-    await test.step(`Verifying the onboarding option is visible in manage content`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.onboardingOption);
-    });
-  }
 
   async clickOnOnboardingOption(): Promise<void> {
     await test.step(`Clicking on the onboarding option`, async () => {
@@ -462,6 +457,14 @@ export class ManageContentComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.siteStatusStamp);
     });
   }
+  async selectSiteSearchBar(siteName: string): Promise<void> {
+    await test.step(`Selecting site search bar with name: ${siteName}`, async () => {
+      await this.clickOnElement(this.siteSearchBar);
+      await this.fillInElement(this.siteSearchBar, siteName);
+      await this.selectSiteSearchBarOption();
+    });
+  }
+
   async selectSiteSearchBarOption(): Promise<void> {
     await test.step('Selecting the site search bar option', async () => {
       const fullText = (await this.siteSearchBarOption.textContent()) || '';
@@ -508,17 +511,6 @@ export class ManageContentComponent extends BaseComponent {
   async selectSortOption(sortBy: SortOptionLabels): Promise<void> {
     await test.step(`Selecting sort option: ${sortBy}`, async () => {
       await this.sortByButton.selectOption({ label: sortBy });
-      const sortByResponse = await this.performActionAndWaitForResponse(
-        () => this.sortByButton.selectOption({ label: sortBy }),
-        response =>
-          response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_SHOW_MORE_API) &&
-          response.request().method() === 'POST' &&
-          response.status() === 200,
-        {
-          timeout: 20_000,
-        }
-      );
-      return sortByResponse;
     });
   }
 
@@ -654,6 +646,13 @@ export class ManageContentComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsDisabled(this.applyButton);
     });
   }
+
+  async clickOnValidateApplyButton(): Promise<void> {
+    await test.step(`Clicking on validate apply button`, async () => {
+      await this.clickOnElement(this.applyButton);
+    });
+  }
+
   async selectContentFilter(managedBy: string): Promise<void> {
     await test.step('Selecting the content filter', async () => {
       await this.contentFilter.selectOption(managedBy);
