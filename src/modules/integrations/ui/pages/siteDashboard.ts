@@ -591,6 +591,12 @@ export class SiteDashboard {
     });
   }
   /**
+   * Verify Workday pending learning courses tile data
+   */
+  async verifyPendingLearningCoursesTileData(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyPendingLearningCoursesTileData(tileTitle);
+  }
+  /**
    * Verify Greenhouse tile content structure with task records
    * @param tileTitle - The title of the tile to verify
    */
