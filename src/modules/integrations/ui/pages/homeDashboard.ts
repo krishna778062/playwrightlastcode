@@ -745,4 +745,11 @@ export class HomeDashboard extends BasePage {
   async verifyGreenhouseContentStructure(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyGreenhouseTileContentStructure(tileTitle);
   }
+
+  /**
+   * Verify Workday pending learning courses tile data
+   */
+  async verifyPendingLearningCoursesTileData(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyPendingLearningCoursesTileData(tileTitle);
+  }
 }
