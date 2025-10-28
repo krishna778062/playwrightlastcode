@@ -1,3 +1,4 @@
+import { PeriodFilterTimeRange } from '@data-engineering/constants/periodFilterTimeRange';
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
 import { Page, test } from '@playwright/test';
 
@@ -5,7 +6,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { PeriodFilterTimeRange } from '../../../constants/periodFilterTimeRange';
 import { PeopleDashboardQueryHelper, SnowflakeHelper } from '../../../helpers';
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
 import { PeopleDashboard } from '../../../ui/dashboards/people/peopleDashboard';
@@ -17,11 +17,13 @@ import {
 } from '@/src/modules/data-engineering/helpers/dashboardSetupHelper';
 
 test.describe(
-  'people dashboard - default state validation',
+  'people dashboard - Static Period Filter Impact Validation',
   {
-    tag: [DataEngineeringTestSuite.PEOPLE, '@default-state'],
+    tag: [DataEngineeringTestSuite.PEOPLE, '@period-filter-impact', '@static-period'],
   },
   () => {
+    const periodFilterTimeRange = PeriodFilterTimeRange.LAST_36_MONTHS;
+
     let testEnvironment: {
       page: Page;
       peopleDashboard: PeopleDashboard;
@@ -30,14 +32,14 @@ test.describe(
     };
     let testFiltersConfig: FilterOptions;
 
-    test.beforeAll('Setup People Dashboard with default filters', async ({ browser }) => {
+    test.beforeAll('Setup People Dashboard with static period filter', async ({ browser }) => {
       // Setup dashboard using dedicated method
       testEnvironment = await setupPeopleDashboardForTest(browser, UserRole.APP_MANAGER);
 
-      // Define unified filter configuration for default state (Last 30 days)
+      // Define unified filter configuration for static period (Last 36 months)
       testFiltersConfig = {
         tenantCode: process.env.ORG_ID!,
-        timePeriod: PeriodFilterTimeRange.LAST_30_DAYS,
+        timePeriod: periodFilterTimeRange,
       };
 
       const { analyticsFiltersComponent } = testEnvironment.peopleDashboard;
@@ -52,13 +54,13 @@ test.describe(
     });
 
     test(
-      'verify Total Users metric data validation with default period filter (Last 30 days)',
+      `verify Total Users metric data validation when period filter is changed to ${periodFilterTimeRange}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@total-users'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@total-users'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Total users in People Dashboard',
+          description: 'To verify the answer Total users in People dashboard responds to period filter change',
           zephyrTestId: 'DE-25869',
           storyId: 'DE-24673',
         });
@@ -77,13 +79,13 @@ test.describe(
     );
 
     test(
-      'verify Departments metric data validation with default period filter (Last 30 days)',
+      `verify Departments metric data validation for period as ${periodFilterTimeRange}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@departments'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@departments'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Departments in People Dashboard',
+          description: 'To verify the answer Departments in People dashboard',
           zephyrTestId: 'DE-25870',
           storyId: 'DE-24669',
         });
@@ -103,13 +105,13 @@ test.describe(
     );
 
     test(
-      'verify Locations metric data validation with default period filter (Last 30 days)',
+      `verify Locations metric data validation for period as ${periodFilterTimeRange}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@locations'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@locations'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Location in People Dashboard',
+          description: 'To verify the answer Location in People dashboard',
           zephyrTestId: 'DE-25871',
           storyId: 'DE-25569',
         });
@@ -129,13 +131,13 @@ test.describe(
     );
 
     test(
-      'verify User Category metric data validation with default period filter (Last 30 days)',
+      `verify User Category metric data validation for period as ${periodFilterTimeRange}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@user-category'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@user-category'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer User Category in People Dashboard',
+          description: 'To verify the answer User Category in People dashboard',
           zephyrTestId: 'DE-25872',
           storyId: 'DE-25560',
         });
@@ -156,13 +158,13 @@ test.describe(
 
     // Tabular data validations
     test(
-      'verify Content Published tabular data validation with default period filter (Last 30 days)',
+      `verify Content Published tabular data validation for period as ${periodFilterTimeRange}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@content-published'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@content-published'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Content published in People Dashboard',
+          description: 'To verify the answer Content published in People dashboard',
           zephyrTestId: 'DE-25873',
           storyId: 'DE-25561',
         });
@@ -181,13 +183,13 @@ test.describe(
     );
 
     test(
-      'verify Favorites Received tabular data validation with default period filter (Last 30 days)',
+      `verify Favorites Received tabular data validation for period as ${periodFilterTimeRange}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorites-received'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@favorites-received'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Favorites received in People Dashboard',
+          description: 'To verify the answer Favorites received in People dashboard',
           zephyrTestId: 'DE-25874',
           storyId: 'DE-25568',
         });
@@ -206,13 +208,13 @@ test.describe(
     );
 
     test(
-      'verify Reactions Made tabular data validation with default period filter (Last 30 days)',
+      `verify Reactions Made tabular data validation for period as ${periodFilterTimeRange}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions-made'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@reactions-made'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Reactions made in People Dashboard',
+          description: 'To verify the answer Reactions made in People dashboard',
           zephyrTestId: 'DE-25875',
           storyId: 'DE-25762',
         });
@@ -231,13 +233,13 @@ test.describe(
     );
 
     test(
-      'verify Reactions Received tabular data validation with default period filter (Last 30 days)',
+      `verify Reactions Received tabular data validation for period as ${periodFilterTimeRange}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions-received'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@reactions-received'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Reactions received in People Dashboard',
+          description: 'To verify the answer Reactions received in People dashboard',
           zephyrTestId: 'DE-25876',
           storyId: 'DE-25763',
         });
@@ -256,13 +258,13 @@ test.describe(
     );
 
     test(
-      'verify Feed Posts and Content Comments tabular data validation with default period filter (Last 30 days)',
+      `verify Feed Posts and Content Comments tabular data validation for period as ${periodFilterTimeRange}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@feed-posts-comments'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@feed-posts-comments'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Feed posts and content comments in People Dashboard',
+          description: 'To verify the answer Feed posts and content comments in People dashboard',
           zephyrTestId: 'DE-25877',
           storyId: 'DE-25764',
         });
@@ -281,13 +283,13 @@ test.describe(
     );
 
     test(
-      'verify Replies tabular data validation with default period filter (Last 30 days)',
+      `verify Replies tabular data validation for period as ${periodFilterTimeRange}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@replies'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Replies in People Dashboard',
+          description: 'To verify the answer Replies in People dashboard',
           zephyrTestId: 'DE-25878',
           storyId: 'DE-25765',
         });
@@ -306,13 +308,13 @@ test.describe(
     );
 
     test(
-      'verify Replies from Other Users tabular data validation with default period filter (Last 30 days)',
+      `verify Replies from Other Users tabular data validation for period as ${periodFilterTimeRange}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies-from-other-users'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@replies-from-other-users'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Replies from other users in People Dashboard',
+          description: 'To verify the answer Replies from other users in People dashboard',
           zephyrTestId: 'DE-25879',
           storyId: 'DE-25770',
         });
@@ -331,13 +333,13 @@ test.describe(
     );
 
     test(
-      'verify Shares Received tabular data validation with default period filter (Last 30 days)',
+      `verify Shares Received tabular data validation for period as ${periodFilterTimeRange}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@shares-received'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@shares-received'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Shares received in People Dashboard',
+          description: 'To verify the answer Shares received in People dashboard',
           zephyrTestId: 'DE-25880',
           storyId: 'DE-25771',
         });
@@ -356,13 +358,13 @@ test.describe(
     );
 
     test(
-      'verify Profile Views tabular data validation with default period filter (Last 30 days)',
+      `verify Profile Views tabular data validation for period as ${periodFilterTimeRange}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@profile-views'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@profile-views'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Profile views in People Dashboard',
+          description: 'To verify the answer Profile views in People dashboard',
           zephyrTestId: 'DE-25881',
           storyId: 'DE-25772',
         });
@@ -380,27 +382,6 @@ test.describe(
       }
     );
 
-    test(
-      'verify Profile Completeness tabular data validation (time-independent)',
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@profile-completeness'],
-      },
-      async () => {
-        tagTest(test.info(), {
-          description: 'TS To verify the answer Profile completeness in People Dashboard',
-          zephyrTestId: 'DE-25882',
-          storyId: 'DE-25907',
-        });
-
-        const { peopleQueryHelper } = testEnvironment;
-
-        // Get expected data from Snowflake (no time filter for this metric)
-        const profileCompletenessData = await peopleQueryHelper.getProfileCompletenessDataFromDB();
-
-        // Verify the same data is displayed in the dashboard
-        const profileCompletenessMetric = testEnvironment.peopleDashboard.profileCompleteness;
-        await profileCompletenessMetric.verifyUIDataMatchesWithSnowflakeData(profileCompletenessData);
-      }
-    );
+    // Note: Profile Completeness is time-independent, so it's not included in period filter tests
   }
 );

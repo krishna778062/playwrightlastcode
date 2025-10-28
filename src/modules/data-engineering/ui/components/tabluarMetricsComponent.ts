@@ -27,9 +27,9 @@ export class TabluarMetricsComponent extends BaseComponent {
     readonly thoughtSpotIframe: FrameLocator,
     readonly metricTitle: string
   ) {
-    // Find the container internally
+    // Find the container with exact match to avoid strict mode violations
     const container = thoughtSpotIframe.locator('[class*="answer-content-module__answerVizContainer"]').filter({
-      has: thoughtSpotIframe.getByRole('heading', { name: metricTitle, exact: false }),
+      has: thoughtSpotIframe.getByRole('heading', { name: metricTitle, exact: true }),
     });
 
     super(page, container);
@@ -177,12 +177,16 @@ export class TabluarMetricsComponent extends BaseComponent {
   }
 
   /**
-   * Normalizes values by removing percentage symbols and comma separators for comparison
+   * Normalizes values by removing percentage symbols, comma separators, and percentages in parentheses for comparison
    * @param value - The value to normalize
-   * @returns Normalized value without % symbol and commas
+   * @returns Normalized value without % symbol, commas, and parenthetical percentages
    */
   private normalizeValue(value: string): string {
-    return value.replace('%', '').replace(/,/g, '');
+    // Remove percentages in parentheses like "14 (40%)" -> "14"
+    return value
+      .replace(/\s*\([^)]*%\)/, '')
+      .replace('%', '')
+      .replace(/,/g, '');
   }
 
   /**

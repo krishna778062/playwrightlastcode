@@ -1,10 +1,12 @@
-import { BaseAnalyticsQueryHelper } from './baseAnalyticsQueryHelper';
+import { PeopleSql } from '../sqlQueries/people';
+
+import { BaseAnalyticsQueryHelper, FilterOptions } from './baseAnalyticsQueryHelper';
 import { SnowflakeHelper } from './snowflakeHelper';
 
 /**
  * People Dashboard Query Helper
- * Provides database operations specific to the People dashboard
- * Extends BaseAnalyticsQueryHelper for common operations
+ * Handles all database operations specific to the People dashboard
+ * Extends BaseAnalyticsQueryHelper to inherit common database operations
  */
 export class PeopleDashboardQueryHelper extends BaseAnalyticsQueryHelper {
   constructor(snowflakeHelper: SnowflakeHelper, orgId: string) {
@@ -12,70 +14,137 @@ export class PeopleDashboardQueryHelper extends BaseAnalyticsQueryHelper {
   }
 
   /**
-   * Gets total users count from database
-   * Note: This query doesn't use date filters as it counts current active users
-   * @param query - SQL query string for total users count
-   * @returns Promise<number> - The total users count
+   * Gets total users count from database with filters applied
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<number> - Total users count
    */
-  async getTotalUsersCount(query: string): Promise<number> {
-    const results = await this.snowflakeHelper.runQueryWithReplacements(query, {
-      orgId: this.orgId,
+  async getTotalUsersDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<number> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: PeopleSql.TOTAL_USERS,
+      filterBy,
     });
-
-    if (results.length === 0) return 0;
-    const firstResult = results[0];
-    const dbValue = Object.values(firstResult)[0];
-    return typeof dbValue === 'string' ? parseInt(dbValue, 10) : Number(dbValue);
+    return await this.getHeroMetricDataFromDB(finalQuery);
   }
 
   /**
-   * Gets departments count from database
-   * Note: This query doesn't use date filters as it counts current departments
-   * @param query - SQL query string for departments count
-   * @returns Promise<number> - The departments count
+   * Gets departments count from database with filters applied
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<number> - Departments count
    */
-  async getDepartmentsCount(query: string): Promise<number> {
-    const results = await this.snowflakeHelper.runQueryWithReplacements(query, {
-      orgId: this.orgId,
+  async getDepartmentsCountDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<number> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: PeopleSql.DEPARTMENTS_COUNT,
+      filterBy,
     });
-
-    if (results.length === 0) return 0;
-    const firstResult = results[0];
-    const dbValue = Object.values(firstResult)[0];
-    return typeof dbValue === 'string' ? parseInt(dbValue, 10) : Number(dbValue);
+    return await this.getHeroMetricDataFromDB(finalQuery);
   }
 
   /**
-   * Gets locations count from database
-   * Note: This query doesn't use date filters as it counts current locations
-   * @param query - SQL query string for locations count
-   * @returns Promise<number> - The locations count
+   * Gets locations count from database with filters applied
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<number> - Locations count
    */
-  async getLocationsCount(query: string): Promise<number> {
-    const results = await this.snowflakeHelper.runQueryWithReplacements(query, {
-      orgId: this.orgId,
+  async getLocationsCountDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<number> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: PeopleSql.LOCATIONS_COUNT,
+      filterBy,
     });
-
-    if (results.length === 0) return 0;
-    const firstResult = results[0];
-    const dbValue = Object.values(firstResult)[0];
-    return typeof dbValue === 'string' ? parseInt(dbValue, 10) : Number(dbValue);
+    return await this.getHeroMetricDataFromDB(finalQuery);
   }
 
   /**
-   * Gets user category count from database
-   * Note: This query doesn't use date filters and excludes N/A categories
-   * @param query - SQL query string for user category count
-   * @returns Promise<number> - The user category count
+   * Gets user category count from database with filters applied
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<number> - User category count
    */
-  async getUserCategoryCount(query: string): Promise<number> {
-    const results = await this.snowflakeHelper.runQueryWithReplacements(query, {
-      orgId: this.orgId,
+  async getUserCategoryCountDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<number> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: PeopleSql.USER_CATEGORY_COUNT,
+      filterBy,
     });
+    return await this.getHeroMetricDataFromDB(finalQuery);
+  }
 
-    if (results.length === 0) return 0;
-    const firstResult = results[0];
-    const dbValue = Object.values(firstResult)[0];
-    return typeof dbValue === 'string' ? parseInt(dbValue, 10) : Number(dbValue);
+  /**
+   * Gets content published data (top 5 users) from database with filters applied
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<any[]> - Content published data records
+   */
+  async getContentPublishedDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<any[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: PeopleSql.CONTENT_PUBLISHED,
+      filterBy,
+    });
+    return await this.executeQuery(finalQuery);
+  }
+
+  async getFavoritesReceivedDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<any[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: PeopleSql.FAVORITES_RECEIVED,
+      filterBy,
+    });
+    return await this.executeQuery(finalQuery);
+  }
+
+  async getReactionsMadeDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<any[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: PeopleSql.REACTIONS_MADE,
+      filterBy,
+    });
+    return await this.executeQuery(finalQuery);
+  }
+
+  async getReactionsReceivedDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<any[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: PeopleSql.REACTIONS_RECEIVED,
+      filterBy,
+    });
+    return await this.executeQuery(finalQuery);
+  }
+
+  async getFeedPostsAndCommentsDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<any[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: PeopleSql.FEED_POSTS_AND_COMMENTS,
+      filterBy,
+    });
+    return await this.executeQuery(finalQuery);
+  }
+
+  async getRepliesDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<any[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: PeopleSql.REPLIES,
+      filterBy,
+    });
+    return await this.executeQuery(finalQuery);
+  }
+
+  async getRepliesFromOtherUsersDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<any[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: PeopleSql.REPLIES_FROM_OTHER_USERS,
+      filterBy,
+    });
+    return await this.executeQuery(finalQuery);
+  }
+
+  async getSharesReceivedDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<any[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: PeopleSql.SHARES_RECEIVED,
+      filterBy,
+    });
+    return await this.executeQuery(finalQuery);
+  }
+
+  async getProfileViewsDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<any[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: PeopleSql.PROFILE_VIEWS,
+      filterBy,
+    });
+    return await this.executeQuery(finalQuery);
+  }
+
+  async getProfileCompletenessDataFromDB(): Promise<any[]> {
+    // Profile completeness is time-independent, only needs tenant code
+    const finalQuery = PeopleSql.PROFILE_COMPLETENESS.replace('{tenantCode}', this.orgId);
+    return await this.executeQuery(finalQuery);
   }
 }

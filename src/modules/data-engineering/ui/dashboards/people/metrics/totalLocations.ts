@@ -8,18 +8,6 @@ export class TotalLocations extends HeroMetricsComponent {
     super(page, iframe, PEOPLE_METRICS.LOCATIONS.title);
   }
 
-  /**
-   * Verifies all UI data points for the Locations metric
-   */
-  async verifyMetricUIDataPoints(): Promise<void> {
-    await this.verifyAnswerTitleIsVisible();
-    await this.verifyAnswerSubTitleIsVisible(PEOPLE_METRICS.LOCATIONS.subtitle);
-  }
-
-  /**
-   * Verifies the metric value matches the expected value
-   * @param expectedValue - The expected metric value
-   */
   async verifyMetricValue(expectedValue: number): Promise<void> {
     await this.verifyMetricValueIsLoadedForHeroMetric(expectedValue);
   }

@@ -8,18 +8,6 @@ export class TotalUserCategories extends HeroMetricsComponent {
     super(page, iframe, PEOPLE_METRICS.USER_CATEGORY.title);
   }
 
-  /**
-   * Verifies all UI data points for the User Category metric
-   */
-  async verifyMetricUIDataPoints(): Promise<void> {
-    await this.verifyAnswerTitleIsVisible();
-    // No subtitle for this metric
-  }
-
-  /**
-   * Verifies the metric value matches the expected value
-   * @param expectedValue - The expected metric value
-   */
   async verifyMetricValue(expectedValue: number): Promise<void> {
     await this.verifyMetricValueIsLoadedForHeroMetric(expectedValue);
   }
