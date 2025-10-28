@@ -3,6 +3,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
+import { ContentStatus } from '@/src/modules/content/constants/contentStatus';
 import { SortOptionLabels } from '@/src/modules/content/constants/sortOptionLabels';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
@@ -98,7 +99,7 @@ test.describe(
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter('Unpublished');
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
         await manageContentPage.actions.clickOnSelectAllButton();
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnPublishButton();

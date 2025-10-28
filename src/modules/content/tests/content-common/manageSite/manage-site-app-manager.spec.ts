@@ -2,18 +2,18 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { OnboardingOption } from '../../../constants/onboardingOptions';
-import { SortOptionLabels } from '../../../constants/sortOptionLabels';
-import { ManageSitesComponent } from '../../../ui/components/manageSitesComponent';
-import { OnboardingComponent } from '../../../ui/components/onboardingComponent';
-import { SiteDetailsPage } from '../../../ui/pages/siteDetailsPage';
-import { SiteDashboardPage } from '../../../ui/pages/sitePages/siteDashboardPage';
-
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
+import { ContentStatus } from '@/src/modules/content/constants/contentStatus';
+import { OnboardingOption } from '@/src/modules/content/constants/onboardingOptions';
+import { SortOptionLabels } from '@/src/modules/content/constants/sortOptionLabels';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
+import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
+import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe('manage Site Tests', () => {
@@ -125,7 +125,7 @@ test.describe('manage Site Tests', () => {
       await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
       await manageFeaturesPage.actions.clickOnContentCard();
       await manageContentPage.actions.clickFilterButton();
-      await manageContentPage.actions.selectTheStatusFilter('Published');
+      await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
       await manageContentPage.actions.clickOnFirstContentButton();
       await manageContentPage.actions.clickOnSelectActionDropdown();
       await manageContentPage.actions.clickOnUnpublishButton();
@@ -133,7 +133,7 @@ test.describe('manage Site Tests', () => {
       await manageContentPage.actions.verifyUnpublishedStampVisibleInManageContent();
       await appManagerFixture.page.reload();
       await manageContentPage.actions.clickFilterButton();
-      await manageContentPage.actions.selectTheStatusFilter('Unpublished');
+      await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
       await manageContentPage.actions.clickOnFirstContentButton();
       await manageContentPage.actions.clickOnSelectActionDropdown();
       await manageContentPage.actions.clickOnPublishButton();
