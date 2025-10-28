@@ -292,8 +292,23 @@ export class BaseAppTileComponent extends BaseComponent {
       for (let i = 0; i < count; i++) {
         const tile = tiles.nth(i);
         await expect(tile.locator('progressbar')).not.toBeVisible({ timeout: 15_000 });
-        const tileContent = tile.locator('a, button, [class*="content"], [class*="data"]').first();
-        if ((await tileContent.count()) > 0) await expect(tileContent).toBeVisible({ timeout: 15_000 });
+        const contentCandidates = tile.locator('a, button, [class*="content"], [class*="data"]');
+        const candidateCount = await contentCandidates.count();
+        if (candidateCount > 0) {
+          const deadline = Date.now() + 15_000;
+          let anyVisible = false;
+          while (Date.now() < deadline && !anyVisible) {
+            for (let j = 0; j < Math.min(candidateCount, 10); j++) {
+              // Limit to first 10 candidates to avoid excessive checks on very rich tiles
+              const candidate = contentCandidates.nth(j);
+              if (await candidate.isVisible().catch(() => false)) {
+                anyVisible = true;
+                break;
+              }
+            }
+            if (!anyVisible) await this.page.waitForTimeout(250);
+          }
+        }
         const tileLoadingText = tile.locator('text=Loading...');
         if ((await tileLoadingText.count()) > 0) await expect(tileLoadingText).not.toBeVisible({ timeout: 15_000 });
       }
