@@ -94,6 +94,30 @@ export const AdoptionSql = {
   `,
 
   /**
+   * Debug query for App Web Page Views - 'App launch' record investigation
+   * Removes date filters to investigate why 'App launch' record is missing
+   */
+  APP_WEB_PAGE_VIEWS_DEBUG_APP_LAUNCH: `
+    select 
+      rp.code as page_group_code,
+      rp.description as page_description,
+      count(ia.code) as total_interactions,
+      count(distinct ia.interacted_by_user_code) as unique_users,
+      count(distinct case when u.status_code='US001' then ia.interacted_by_user_code end) as active_users,
+      min(ia.INTERACTION_DATETIME) as earliest_interaction,
+      max(ia.INTERACTION_DATETIME) as latest_interaction,
+      ia.INTERACTION_TYPE_CODE,
+      ia.tenant_code
+    from SIMPPLR_COMMON_TENANT.UDL.REF_PAGE_GROUP rp 
+    left join SIMPPLR_COMMON_TENANT.UDL.VW_INTERACTION ia on rp.code = ia.page_group_code 
+    left join SIMPPLR_COMMON_TENANT.UDL.vw_user_as_is u on ia.interacted_by_user_code=u.code 
+    where rp.description = 'App launch'
+      and ia.tenant_code = '{tenantCode}'
+    group by rp.code, rp.description, ia.INTERACTION_TYPE_CODE, ia.tenant_code
+    order by latest_interaction desc
+  `,
+
+  /**
    * Adoption Leaders by Department Query Template
    * Returns adoption data grouped by department
    */

@@ -2,6 +2,7 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { SortOptionLabels } from '@modules/content/constants';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
@@ -700,7 +701,7 @@ export class ManageContentComponent extends BaseComponent {
       await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.showMoreButton, { delay: 2_000 }),
         response =>
-          response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_SHOW_MORE_API) &&
+          response.url().includes(API_ENDPOINTS.content.contentListInSite) &&
           response.request().method() === 'POST' &&
           response.status() === 200,
         {

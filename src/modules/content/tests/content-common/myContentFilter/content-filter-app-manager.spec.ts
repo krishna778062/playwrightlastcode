@@ -243,5 +243,28 @@ test.describe(
         await manageContentPage.assertions.verifyManageContentListItemCount(32);
       }
     );
+
+    test(
+      'verify for the list API for content listing, it should have a limit of 16 and show more button should come for more than 16 content',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25050'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify for the list API for content listing, it should have a limit of 16 and show more button should come for more than 16 content',
+          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
+          zephyrTestId: 'CONT-25050',
+          storyId: 'CONT-25050',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.assertions.verifyManageContentListItemCount(16);
+        await manageContentPage.actions.clickShowMoreButton();
+        await manageContentPage.assertions.verifyManageContentListItemCount(32);
+      }
+    );
   }
 );
