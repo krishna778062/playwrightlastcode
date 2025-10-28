@@ -2,8 +2,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ContentStatus } from '../../../constants/contentStatus';
-
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { ContentSortBy, ContentStatus, SortOptionLabels } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';

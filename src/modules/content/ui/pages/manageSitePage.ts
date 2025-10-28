@@ -1,6 +1,7 @@
 import { Page } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
@@ -52,7 +53,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly contentTab = this.page.locator(
     'a[href*="/content"], button:has-text("Content"), [data-testid="content-tab"]'
   );
-  readonly siteCell: Locator;
   readonly ellipses = this.page.locator('[aria-label="Category option"]').first();
   readonly clickOnUpdateCategoryOption = this.page.getByRole('button', { name: 'Update category' });
   readonly clickOnSearchBar = this.page.getByRole('textbox', { name: 'Search sites…' });
@@ -209,6 +209,9 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   }
 
   async verifyNoSitesFound(siteName: string): Promise<void> {
-    await this.manageSitesComponent.verifyNoSitesFoundAction(siteName);
+    const noSitesFound = this.siteList.filter({ hasText: siteName });
+    await this.verifier.verifyTheElementIsNotVisible(noSitesFound, {
+      assertionMessage: 'No sites found should be visible on manage site page',
+    });
   }
 }

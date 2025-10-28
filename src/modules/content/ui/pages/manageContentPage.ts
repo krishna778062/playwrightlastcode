@@ -31,6 +31,8 @@ export interface IActions {
   addPublishContentFilter: () => Promise<void>;
   openContentDetailsPage: () => Promise<void>;
   selectContentFilterByType: (filterType: 'manageByme' | 'authorByMe') => Promise<void>;
+  verifyOnboardingOptionVisibleInManageContent: () => Promise<void>;
+  clickOnOnboardingOption: () => Promise<void>;
 }
 
 export interface IAssertions {
@@ -343,6 +345,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async verifyAddToCampaignOptionShouldNotBeVisibleInManageContent(): Promise<void> {
     await this.manageContentComponent.verifyAddToCampaignOptionShouldNotBeVisibleInManageContent();
+  }
+  async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyOnboardingOptionVisibleInManageContent();
+  }
+  async clickOnOnboardingOption(): Promise<void> {
+    await this.manageContentComponent.clickOnOnboardingOption();
   }
   async clickOnContentEditButton(): Promise<void> {
     await this.manageContentComponent.clickOnContentEditButton();
