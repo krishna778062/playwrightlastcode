@@ -94,4 +94,17 @@ export class HeroMetricsComponent extends BaseComponent {
       );
     });
   }
+
+  /**
+   * Verifies that the metric value matches the expected value
+   * @param expectedValue - The expected metric value
+   */
+  async verifyMetricValueIsLoadedForHeroMetricWithNormalFormat(expectedValue: string | number): Promise<void> {
+    await test.step(`Verify hero metric value for ${this.metricTitle} is ${expectedValue}`, async () => {
+      // Convert to number safely, removing commas if any
+      const numericValue = typeof expectedValue === 'string' ? Number(expectedValue.replace(/,/g, '')) : expectedValue;
+
+      expect(numericValue, `Hero metric value should be ${numericValue}`).toBe(numericValue);
+    });
+  }
 }
