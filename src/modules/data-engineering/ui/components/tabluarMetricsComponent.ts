@@ -22,6 +22,8 @@ export class TabluarMetricsComponent extends BaseComponent {
   readonly headerRow: Locator;
   readonly dataRow: Locator;
 
+  readonly downloadCSVButton: Locator;
+
   constructor(
     page: Page,
     readonly thoughtSpotIframe: FrameLocator,
@@ -49,6 +51,7 @@ export class TabluarMetricsComponent extends BaseComponent {
     this.drillDownButton = this.thoughtSpotIframe.getByRole('tab', { name: 'Drill down' });
     this.drillDownOptionsMenu = this.thoughtSpotIframe.getByTestId('DRILL');
     this.drillDownOption = (option: string) => this.thoughtSpotIframe.getByRole('tab', { name: option });
+    this.downloadCSVButton = this.rootLocator.getByRole('button', { name: 'Download CSV' });
   }
 
   /**
@@ -531,6 +534,30 @@ export class TabluarMetricsComponent extends BaseComponent {
     await test.step(`verify for metric: ${this.metricTitle} - table heading is ${expectedHeading}`, async () => {
       const actualHeading = this.rootLocator.getByRole('heading', { name: this.metricTitle });
       await expect(actualHeading, `expecting table heading to be ${expectedHeading}`).toBeVisible();
+    });
+  }
+
+  /**
+   * Downloads the data as csv
+   * @returns The downloaded file path and filename
+   */
+  async downloadDataAsCSV(): Promise<{ filePath: string; fileName: string }> {
+    return await test.step(`download data as csv`, async () => {
+      /**
+       * 1. first hover over the container, it should reveal the download csv button
+       * 2. click on the download csv button
+       * 3. save the file to downloads folder
+       * 4. return the downloaded file path and filename
+       */
+      const downloadAction = async () => {
+        await this.rootLocator.hover();
+        await this.verifier.verifyTheElementIsVisible(this.downloadCSVButton, {
+          timeout: 10_000,
+          assertionMessage: `Download csv button should be visible`,
+        });
+        await this.clickOnElement(this.downloadCSVButton, { stepInfo: `Click on download csv button` });
+      };
+      return await this.downloadAndSaveFile(downloadAction, { stepInfo: `Download csv file` });
     });
   }
 }
