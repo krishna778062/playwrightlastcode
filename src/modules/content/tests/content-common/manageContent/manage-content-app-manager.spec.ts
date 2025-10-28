@@ -212,8 +212,7 @@ test.describe(
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
         const publicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        await manageContentPage.actions.clickSiteSearchBar(publicSite.name);
-        await manageContentPage.actions.selectSiteSearchBarOption();
+        await manageContentPage.actions.selectSiteSearchBar(publicSite.name);
         await manageContentPage.assertions.verifySiteNameLink();
       }
     );
