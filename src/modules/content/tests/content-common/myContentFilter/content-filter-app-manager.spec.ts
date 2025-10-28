@@ -1,13 +1,13 @@
-import { ManageContentPage } from '@content/ui/pages/manageContentPage';
-import { ManageFeaturesPage as ApplicationScreenPage } from '@content/ui/pages/manageFeaturesPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
-import { ContentSortBy, ContentStatus } from '@/src/modules/content/constants';
+import { ContentSortBy, ContentStatus, SortOptionLabels } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
+import { ManageFeaturesPage as ApplicationScreenPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
@@ -35,17 +35,17 @@ test.describe(
           '@CONT-33059',
         ],
       },
-      async ({ appManagerFixture }) => {
+      async ({ appManagerApiFixture, appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify published status for scheduled page by app manager',
           customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
           zephyrTestId: 'CONT-33059',
           storyId: 'CONT-33059',
         });
-        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
           hasPages: true,
         });
-        const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
+        const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
           options: {
@@ -56,7 +56,7 @@ test.describe(
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreatedNewestOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
         await manageContentPage.actions.scheduledTagVisibleInManageContent();
         await manageContentPage.actions.checkContentDetailsVisibility(pageInfo.pageName);
       }
@@ -83,6 +83,56 @@ test.describe(
     );
 
     test(
+      'verify application manager should be able to apply bulk options on selecting the Select All option',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25063'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify application manager should be able to apply bulk options on selecting the Select All option',
+          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
+          zephyrTestId: 'CONT-25063',
+          storyId: 'CONT-25063',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter('Unpublished');
+        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnPublishButton();
+        await manageContentPage.actions.clickOnApplyButton();
+        await manageContentPage.page.reload();
+        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnUnpublishButton();
+        await manageContentPage.actions.clickOnApplyButton();
+        await manageContentPage.page.reload();
+        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnValidateButton();
+        await manageContentPage.actions.clickOnValidateApplyButton();
+        await manageContentPage.page.reload();
+        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnMoveButton();
+        await manageContentPage.actions.selectMoveApplyButton();
+        const site = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
+        await manageContentPage.actions.moveContentSearchBar(site.name || '');
+        await manageContentPage.actions.siteListSelecting();
+        await manageContentPage.actions.selectPageCategoryIfVisible();
+        await manageContentPage.actions.selectPageCategory();
+        await manageContentPage.actions.clickOnMoveConfirmButton();
+        await manageContentPage.page.reload();
+        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnDeleteButton();
+        await manageContentPage.actions.selectDeleteApplyButton();
+      }
+    );
+
+    test(
       'verify different combination for filters for Manage By/Author By, Content type and sort by filter on Manage > Content screen',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25099'],
@@ -101,7 +151,7 @@ test.describe(
         await manageContentPage.actions.clickSortByButton();
         const contentCreatedAtDetailsNewest =
           await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.CREATED_NEWEST);
-        await manageContentPage.actions.selectCreatedNewestOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
         if (contentCreatedAtDetailsNewest !== null) {
           await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(
             contentCreatedAtDetailsNewest[0]
@@ -109,7 +159,7 @@ test.describe(
         }
         const contentCreatedAtDetailsOldest =
           await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.CREATED_OLDEST);
-        await manageContentPage.actions.selectCreatedOldestOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_OLDEST);
         if (contentCreatedAtDetailsOldest !== null) {
           await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(
             contentCreatedAtDetailsOldest[0]
@@ -120,7 +170,7 @@ test.describe(
         await manageContentPage.actions.clickSortByButton();
         const contentCreatedAtDetailsNewestPublished =
           await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.PUBLISHED_NEWEST);
-        await manageContentPage.actions.selectCreateNewestPublishedOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
         if (contentCreatedAtDetailsNewestPublished !== null) {
           await manageContentPage.assertions.verifyPublishedAtDateVisibleInManageContent(
             contentCreatedAtDetailsNewestPublished[0]
@@ -129,7 +179,7 @@ test.describe(
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreateOldestPublishedOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_OLDEST);
         const contentCreatedAtDetailsOldestPublished =
           await appManagerFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.PUBLISHED_OLDEST);
         if (contentCreatedAtDetailsOldestPublished !== null) {
@@ -172,7 +222,7 @@ test.describe(
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreatedOldestOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_OLDEST);
 
         // Get dates from API
         const contentCreatedAtDetailsOldest =
@@ -202,7 +252,7 @@ test.describe(
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreateOldestPublishedOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_OLDEST);
 
         // Get dates from API
         const contentPublishedAtDetailsOldest =
