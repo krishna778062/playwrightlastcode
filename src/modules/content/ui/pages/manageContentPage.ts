@@ -3,7 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { SortOptionLabels } from '@/src/modules/content/constants';
+import { ManageContentOptions, ManageContentTags, SortOptionLabels } from '@/src/modules/content/constants';
 import { ManageContentComponent } from '@/src/modules/content/ui/components/manageContentComponent';
 
 export interface IActions {
@@ -119,9 +119,6 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickOnUnpublishButton(): Promise<void> {
     await this.manageContentComponent.selectUnpublishButton();
   }
-  async verifyTagVisibleInManageContent(tag: string): Promise<void> {
-    await this.manageContentComponent.verifyTagVisibleInManageContent(tag);
-  }
 
   async clickOnApplyButton(): Promise<void> {
     await this.manageContentComponent.selectApplyButton();
@@ -192,6 +189,15 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async selectSiteSearchBar(siteName: string): Promise<void> {
     await this.manageContentComponent.selectSiteSearchBar(siteName);
+  }
+  async clickSiteSearchBar(siteName: string): Promise<void> {
+    await this.manageContentComponent.clickSiteSearchBar(siteName);
+  }
+  async selectCreatedNewestOption(): Promise<void> {
+    await this.manageContentComponent.selectCreatedNewestOption();
+  }
+  async selectCreateNewestPublishedOption(): Promise<void> {
+    await this.manageContentComponent.selectCreateNewestPublishedOptionByText();
   }
   async selectTheStatusFilter(status: string): Promise<void> {
     await this.manageContentComponent.selectTheStatusFilter(status);
@@ -305,6 +311,10 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifyPublishedAtDateVisibleInManageContent(publishedAtDate: string): Promise<void> {
     await this.manageContentComponent.verifyPublishedAtDateVisibleInManageContent(publishedAtDate);
   }
+  async verifyTagVisibleInManageContent(tag: ManageContentTags): Promise<void> {
+    await this.manageContentComponent.verifyTagVisibleInManageContent(tag);
+  }
+
   async verifyContentDetailsVisibility(pageName: string): Promise<void> {
     await this.manageContentComponent.verifyContentDetailsVisibility(pageName);
   }
@@ -339,9 +349,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifyOptionVisibleInManageContent(option: ManageContentOptions): Promise<void> {
     await this.manageContentComponent.verifyOptionVisibleInManageContent(option);
   }
-  async verifyContentDetailsVisibility(pageName: string): Promise<void> {
-    await this.manageContentComponent.verifyContentDetailsVisibility(pageName);
-  }
+
   async verifyPublishedStampVisibleInManageContent(): Promise<void> {
     await this.manageContentComponent.verifyPublishedStampVisibleInManageContent();
   }
@@ -364,9 +372,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifyPublishOptionVisibleInManageContent(): Promise<void> {
     await this.manageContentComponent.verifyPublishOptionVisibleInManageContent();
   }
-  async verifyAddToCampaignOptionShouldNotBeVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyAddToCampaignOptionShouldNotBeVisibleInManageContent();
-  }
+
   async clickOnContentEditButton(): Promise<void> {
     await this.manageContentComponent.clickOnContentEditButton();
   }
