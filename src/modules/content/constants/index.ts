@@ -7,5 +7,6 @@ export * from './manageContentOptions';
 export * from './pageContentType';
 export * from './sitePageEnums';
 export * from './siteTypes';
+export * from './sortOptionLabels';
 export * from './testSuite';
 export * from './testTags';
