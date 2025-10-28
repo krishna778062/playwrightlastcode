@@ -17,6 +17,7 @@ export interface IConfluenceActions {
   changeUserServiceNowServiceAccount: () => Promise<void>;
   reconnectConfluenceServiceAccount: () => Promise<void>;
   reconnectServiceNowServiceAccount: () => Promise<void>;
+  reloadPageAndWait: () => Promise<void>;
 }
 
 export interface IConfluenceAssertions {
@@ -517,6 +518,14 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
       await this.serviceNowKnowledgeBaseDefaultRadioButton.click();
       await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
       await this.saveButton.click();
+      await this.page.waitForLoadState('domcontentloaded');
+    });
+  }
+
+  // reload the page and wait for the page to be loaded
+  async reloadPageAndWait(): Promise<void> {
+    await test.step('Reload page and wait for the page to be loaded', async () => {
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
       await this.page.waitForLoadState('domcontentloaded');
     });
   }

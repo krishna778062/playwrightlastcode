@@ -3,8 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { OnboardingOption, SortOptionLabels } from '@/src/modules/content/constants';
-import { ContentStatus } from '@/src/modules/content/constants/contentStatus';
+import { SortOptionLabels } from '@/src/modules/content/constants';
 import { ManageContentComponent } from '@/src/modules/content/ui/components/manageContentComponent';
 import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
 
@@ -161,18 +160,6 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async hoverOnFirstDropDownOption(): Promise<void> {
     await this.manageContentComponent.hoverOnFirstDropDownOption();
   }
-  async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyOnboardingOptionVisibleInManageContent();
-  }
-  async clickOnOnboardingOption(): Promise<void> {
-    await this.manageContentComponent.clickOnOnboardingOption();
-  }
-  async verifyAlreadySelectedOnboardingOptionVisible(option: OnboardingOption): Promise<void> {
-    await this.onboardingComponent.verifyAlreadySelectedOnboardingOptionVisible(option);
-  }
-  async selectOnboardingOption(option: OnboardingOption): Promise<void> {
-    await this.onboardingComponent.selectOnboardingOption(option);
-  }
 
   async checkPublishOption(): Promise<void> {
     await this.manageContentComponent.checkPublishOption();
@@ -192,8 +179,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
     await this.manageContentComponent.clickFilterButton();
   }
   async selectSiteSearchBar(siteName: string): Promise<void> {
-    await this.manageContentComponent.clickSiteSearchBar(siteName);
+    await this.manageContentComponent.selectSiteSearchBar(siteName);
   }
+  async selectTheStatusFilter(status: string): Promise<void> {
+    await this.manageContentComponent.selectTheStatusFilter(status);
+  }
+
   async authorNameShouldBeVisible(): Promise<void> {
     await this.manageContentComponent.authorNameShouldBeVisible();
   }
@@ -217,10 +208,6 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async clickSortByButton(): Promise<void> {
     await this.manageContentComponent.clickSortByButton();
-  }
-
-  async selectTheStatusFilter(status: ContentStatus): Promise<void> {
-    await this.manageContentComponent.selectTheStatusFilter(status);
   }
 
   async selectEditedNewestOption(): Promise<void> {

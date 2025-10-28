@@ -24,6 +24,7 @@ export enum IntegrationsSuiteTags {
   CONFLUENCE = '@confluence',
   GREENHOUSE = '@greenhouseAppTiles',
   RECONNECT_AND_CHANGE_USER = '@reconnectAndChangeUser',
+  WORKDAY = '@workdayAppTiles',
 }
 
 export enum IntegrationsFeatureTags {
@@ -67,6 +68,7 @@ export const TEST_TAGS = {
   GREENHOUSE: IntegrationsSuiteTags.GREENHOUSE,
   CONFLUENCE: IntegrationsSuiteTags.CONFLUENCE,
   RECONNECT_AND_CHANGE_USER: IntegrationsFeatureTags.RECONNECT_AND_CHANGE_USER,
+  WORKDAY: IntegrationsSuiteTags.WORKDAY,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {

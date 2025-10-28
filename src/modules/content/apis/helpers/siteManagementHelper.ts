@@ -9,6 +9,8 @@ import {
   SiteMembershipResponse,
   SitePermission,
 } from '@/src/core/types/siteManagement.types';
+import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
+import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
@@ -38,8 +40,8 @@ export class SiteManagementHelper {
     private apiRequestContext: APIRequestContext,
     baseUrl?: string
   ) {
-    this.siteManagementService = new SiteManagementService(apiRequestContext, baseUrl || '');
-    this.contentManagementService = new ContentManagementService(apiRequestContext, baseUrl || '');
+    this.siteManagementService = new SiteManagementService(apiRequestContext, baseUrl);
+    this.contentManagementService = new ContentManagementService(apiRequestContext, baseUrl);
   }
 
   /**
@@ -405,7 +407,8 @@ export class SiteManagementHelper {
     // Get the list of sites
     const sitesResponse = await this.siteManagementService.getListOfSites({
       size: 1000, // Get a large number to ensure we find the site if it exists
-      filter: 'mySites',
+      filter: 'active',
+      canManage: true,
       sortBy: 'alphabetical',
     });
 
@@ -473,23 +476,32 @@ export class SiteManagementHelper {
    * @param options - Optional parameters for filtering sites
    * @returns Promise containing the sites response
    */
-  async getListOfSites(options?: {
-    size?: number;
-    canManage?: boolean;
-    filter?: string;
-    page?: number;
-    sortBy?: string;
-  }) {
+  async getListOfSites(options?: { size?: number; filter?: string; sortBy?: string }) {
     const defaultOptions = {
-      size: 1000,
-      canManage: true,
-      filter: options?.filter || 'active',
-      sortBy: options?.sortBy || 'createdNewest',
-      page: 0,
+      size: options?.size || 16,
+      filter: options?.filter || 'mySites',
+      sortBy: options?.sortBy || 'alphabetical',
       ...options,
     };
 
     return await this.siteManagementService.getListOfSites(defaultOptions);
+  }
+
+  async getMemberList(options?: {
+    size?: number;
+    filter?: string;
+    page?: number;
+    siteId?: string;
+    nextPageToken?: number;
+    sortBy?: string;
+  }) {
+    const defaultOptions = {
+      size: 1000,
+      filter: options?.filter || 'active',
+      page: 0,
+      ...options,
+    };
+    return await this.siteManagementService.getSiteMembershipList(options?.siteId || '', defaultOptions);
   }
 
   async getMemberList(options?: {
@@ -656,8 +668,14 @@ export class SiteManagementHelper {
       isBroadcast?: boolean;
       waitForSearchIndex?: boolean;
     }
-  ): Promise<{ siteId: string; name: string; authorName?: string }> {
-    const siteListResponse = await this.getListOfSites({ filter: 'mySites' });
+  ): Promise<{ siteId: string; name: string }> {
+    // Defensive check to ensure accessType is a string
+    if (typeof accessType !== 'string') {
+      throw new Error(
+        `Expected accessType to be a string, but received: ${typeof accessType}. Value: ${JSON.stringify(accessType)}`
+      );
+    }
+    const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
     let siteDetails = siteListResponse.result.listOfItems.find(site => site.isActive === true);
     let siteId: string | undefined, siteName: string | undefined, authorName: string | undefined;
 
@@ -691,7 +709,38 @@ export class SiteManagementHelper {
       throw new Error(`No site found or created with access type ${accessType}`);
     }
 
-    return { siteId, name: siteName, authorName };
+    return { siteId, name: siteName };
+  }
+
+  async getSiteAuthorNameAndEventStartDate(): Promise<{
+    siteId: string;
+    authorName?: string;
+    startsAt?: string;
+    eventName?: string;
+    siteName?: string;
+  }> {
+    const siteListResponse = await this.getListOfSites();
+
+    for (const _site of siteListResponse.result.listOfItems) {
+      // Get individual site details to check for coverImage and hasEvents
+      const response = await this.contentManagementService.getContentList();
+      const content = response.result.listOfItems.find((item: any) => item.authoredBy?.name !== undefined);
+      const siteName = response.result.listOfItems.find((item: any) => item.site?.name !== undefined);
+      const startsAt = response.result.listOfItems.find((item: any) => item.startsAt !== undefined);
+      const siteId = siteListResponse.result.listOfItems.find((item: any) => item.siteId !== undefined);
+
+      if (content) {
+        return {
+          siteId: siteId?.siteId || '',
+          authorName: content.authoredBy.name,
+          startsAt: startsAt?.startsAt,
+          eventName: content.title,
+          siteName: siteName?.site.name,
+        };
+      }
+    }
+
+    throw new Error('No site found with cover image and hasEvents: true');
   }
   async getSiteBySpecificName(
     Name: string,
@@ -785,6 +834,11 @@ export class SiteManagementHelper {
    * @returns Boolean indicating if the site has a valid coverImage
    */
   /**
+   * Checks if a site has a valid coverImage
+   * @param site - Site object to check
+   * @returns Boolean indicating if the site has a valid coverImage
+   */
+  /**
    * Ensures user is a member of the site with the specified role
    * First checks if user is already a member, if not adds them, then assigns the role
    * @param params - Object containing siteId, userId, and role
@@ -842,23 +896,82 @@ export class SiteManagementHelper {
   }
 
   async getSiteWithMembers(
-    siteId: string,
-    options?: { size?: number; type?: string }
+    accessType: string,
+    expectedMemberCount?: number,
+    options?: { size?: number; type?: string; maxAttempts?: number }
   ): Promise<{
     site: any;
     members: any;
   }> {
-    return await test.step(`Getting site ${siteId} with its members`, async () => {
-      // Get site details
-      const siteDetails = await this.siteManagementService.getSiteDetails(siteId);
-      // Get site members
-      const membersResponse = await this.getSiteMembershipList(siteId, options);
+    const maxAttempts = options?.maxAttempts || 10;
+    let attempts = 0;
 
-      return {
-        site: siteDetails.result,
-        members: membersResponse.result,
-      };
-    });
+    const seenSiteIds = new Set<string>();
+
+    return await test.step(
+      expectedMemberCount ? `Getting site with ${expectedMemberCount} members` : `Getting site with its members`,
+      async () => {
+        while (attempts < maxAttempts) {
+          // Get sites list
+          const sitesResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+          const sites = sitesResponse.result.listOfItems.filter(
+            (site: any) => site.isActive === true && site.isManager === false && site.isMember === false
+          );
+
+          // Filter out seen sites to try different ones
+          const unseenSites = sites.filter((site: any) => !seenSiteIds.has(site.siteId));
+
+          if (unseenSites.length === 0) {
+            // All sites seen, reset and start over
+            seenSiteIds.clear();
+            seenSiteIds.add(sites[0]?.siteId);
+          }
+
+          // Get first unseen site
+          const siteInfo = unseenSites.length > 0 ? unseenSites[0] : sites[0];
+          const siteId = siteInfo.siteId;
+          seenSiteIds.add(siteId);
+
+          // Get site details
+          const siteDetails = await this.siteManagementService.getSiteDetails(siteId);
+
+          // Get site members
+          const membersResponse = await this.getSiteMembershipList(siteId, options);
+          const memberCount = membersResponse.result?.listOfItems?.length || 0;
+
+          console.log(`Site ${siteInfo.name} (${siteId}) has ${memberCount} members`);
+
+          // If no expected count specified, return immediately
+          if (expectedMemberCount === undefined) {
+            return {
+              site: siteDetails.result,
+              members: membersResponse.result,
+            };
+          }
+
+          console.log(`Expected: ${expectedMemberCount} members`);
+
+          // Check if this site has the expected number of members
+          if (memberCount >= expectedMemberCount) {
+            console.log(`✓ Found site with ${memberCount} members`);
+            return {
+              site: siteDetails.result,
+              members: membersResponse.result,
+            };
+          }
+
+          attempts++;
+          console.log(`Attempt ${attempts}/${maxAttempts}: Site has ${memberCount} members, trying another site...`);
+
+          // Wait a bit before next attempt to avoid rapid API calls
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        throw new Error(
+          `Failed to find a site with at least ${expectedMemberCount} members after ${maxAttempts} attempts`
+        );
+      }
+    );
   }
 
   /**
