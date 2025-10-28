@@ -52,7 +52,8 @@ export class LoginWithOtpPage extends BasePage {
     this.mobileVerificationHeading = page.getByRole('heading', { name: 'Mobile verification' });
     this.emailVerificationHeading = page.getByRole('heading', { name: 'Email verification' });
     this.otpSentToHeading = page.getByRole('heading', { name: 'OTP sent to' });
-    this.enterOtpInput = page.getByText('Enter OTP*');
+    this.enterOtpInput = page.getByText('Enter OTP');
+    //this.enterOtpInput = page.locator("//input[@id='otp']");
     this.verifyButton = page.getByRole('button', { name: 'Verify' });
     this.resendOtpButton = page.getByRole('button', { name: 'Resend OTP' });
     this.continueButton = page.getByRole('button', { name: 'Continue' });
@@ -158,6 +159,22 @@ export class LoginWithOtpPage extends BasePage {
     });
   }
 
+  /**
+   * Ensures the user is on the "Force Add Contact" page.
+   * If currently on an email or mobile verification screen, navigates back first.
+   * Then verifies the form fields are visible and clears their values.
+   */
+  async checkScreenAndNavigateToForceAddContactPageWithClearFields(): Promise<void> {
+    await test.step('Ensure we are on Force Add Contact page and clear form fields', async () => {
+      if (await this.verifier.isTheElementVisible(this.enterOtpInput, { timeout: 5000 })) {
+        await this.clickOnElement(this.backArrowButton);
+        await this.verifier.verifyTheElementIsVisible(this.addMobileNumberOrEmailHeading);
+        await this.mobileInput.clear();
+        await this.emailInput.clear();
+      }
+    });
+  }
+
   async addMobileNumberOrEmailAndVerify(
     otpUtils: OTPUtils,
     phone: string,
@@ -173,6 +190,8 @@ export class LoginWithOtpPage extends BasePage {
 
     let otpEmail = '';
     let otpMobile = '';
+
+    await this.checkScreenAndNavigateToForceAddContactPageWithClearFields();
 
     switch (enterType) {
       case 'email':
