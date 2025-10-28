@@ -892,11 +892,6 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
-  async clickOnValidateApplyButton(): Promise<void> {
-    await test.step(`Clicking on validate apply button`, async () => {
-      await this.clickOnElement(this.applyButton);
-    });
-  }
   async verifyAllContentsAreDeleted(contentNames: string[]): Promise<void> {
     await test.step('Verifying all contents are deleted', async () => {
       const contentNameLocator = this.getContentNameLocator(contentNames[0]);

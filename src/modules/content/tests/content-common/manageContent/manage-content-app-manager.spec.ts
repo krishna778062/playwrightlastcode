@@ -1,11 +1,9 @@
-import { ManageFeaturesPage } from '@content/ui/pages/manageFeaturesPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-import { ContentStatus } from '@modules/content/constants';
 
 import { NewHomePage } from '@/src/core';
-import { SortOptionLabels } from '@/src/modules/content/constants';
+import { ContentStatus, SortOptionLabels } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
@@ -18,6 +16,7 @@ import { HomeFeedPage } from '@/src/modules/content/ui/pages/manageApplicationDe
 import { DefaultScreenPage } from '@/src/modules/content/ui/pages/manageApplicationDefaultScreenPage';
 import { ManageApplicationPage } from '@/src/modules/content/ui/pages/manageApplicationPage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
+import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';

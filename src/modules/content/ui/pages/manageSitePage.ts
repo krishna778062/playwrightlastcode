@@ -52,7 +52,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly contentTab = this.page.locator(
     'a[href*="/content"], button:has-text("Content"), [data-testid="content-tab"]'
   );
-  readonly siteCell: Locator;
   readonly ellipses = this.page.locator('[aria-label="Category option"]').first();
   readonly clickOnUpdateCategoryOption = this.page.getByRole('button', { name: 'Update category' });
   readonly clickOnSearchBar = this.page.getByRole('textbox', { name: 'Search sites…' });
@@ -60,14 +59,12 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly siteList = this.page.locator('.type--title').first();
 
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
-  private sideNavBarComponent: SideNavBarComponent;
   private manageSitesComponent: ManageSitesComponent;
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId));
     this.manageSitesComponent = new ManageSitesComponent(page);
     this.updateSiteCategoryComponent = new UpdateSiteCategoryComponent(page);
-    this.sideNavBarComponent = new SideNavBarComponent(page);
     this.manageSitesComponent = new ManageSitesComponent(page);
     this.clickOnSite = this.clickOnSite.bind(this);
   }

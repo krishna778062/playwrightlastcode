@@ -28,6 +28,7 @@ export class ManageSitesComponent extends BaseComponent {
   readonly eventsTabImage: Locator;
   readonly albumTabImage: Locator;
   readonly pageTabImage: Locator;
+  readonly nothingToShowHereText: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -55,6 +56,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.pageTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
+    this.nothingToShowHereText = page.locator('p:has-text("Nothing to show here")');
   }
 
   getAuthorNameByLabel(authorName: string): Locator {
@@ -317,6 +319,14 @@ export class ManageSitesComponent extends BaseComponent {
     await test.step('Verify page tab image is displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.pageTabImage, {
         assertionMessage: 'Page tab image should be visible',
+      });
+    });
+  }
+
+  async verifyNoSitesFoundAction(siteName: string): Promise<void> {
+    await test.step(`Verify no sites found for search term: ${siteName}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.nothingToShowHereText, {
+        assertionMessage: `No sites found message should be visible when searching for: ${siteName}`,
       });
     });
   }

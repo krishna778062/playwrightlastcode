@@ -4,8 +4,11 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
+import { SortOptionLabels } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { ManageSitesComponent } from '@/src/modules/content/ui/components';
+import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { SiteCategoriesPage } from '@/src/modules/content/ui/pages/siteCategoriesPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
@@ -20,6 +23,8 @@ test.describe(
     let siteManagementHelper: SiteManagementHelper;
     let siteCategoriesPage: SiteCategoriesPage;
     let usedSiteIds: string[] = []; // Track used site IDs across tests
+    let manageSitesComponent: ManageSitesComponent;
+    let manageContentPage: ManageContentPage;
 
     // Helper function to get a unique site that hasn't been used before
     async function getUniqueSite(
@@ -59,6 +64,8 @@ test.describe(
       await appManagerFixture.homePage.verifyThePageIsLoaded();
       siteCategoriesPage = new SiteCategoriesPage(appManagerFixture.page);
       siteManagementHelper = appManagerFixture.siteManagementHelper;
+      manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
+      manageContentPage = new ManageContentPage(appManagerFixture.page);
 
       // Clear used site IDs at the start of each test for fresh tracking
       usedSiteIds = [];
@@ -174,6 +181,35 @@ test.describe(
         await manageSitePageAppManagerSite.assertions.checkMarkedAsFavoriteInPeopleListShouldNotBeVisible(
           membersName.membersName[0]
         );
+      }
+    );
+
+    test(
+      'verify draft stamp and its options menu on content under Content tab in Manage Site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20535'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify draft stamp and its options menu on content under Content tab in Manage Site',
+          zephyrTestId: 'CONT-20535',
+          storyId: 'CONT-20535',
+        });
+        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const pageInfo = await appManagerFixture.contentManagementHelper.createDraftPage({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        });
+        const newSiteDashboard = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
+        await newSiteDashboard.loadPage();
+        await manageSitesComponent.clickOnTheManageSiteButtonAction();
+        await manageSitesComponent.clickOnInsideContentButtonAction();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPage.actions.verifyDraftTagVisibleInManageContent();
+        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPage.actions.hoverOnFirstDropDownOption();
+        await manageContentPage.actions.verifyEditOptionVisibleInManageContent();
+        await manageContentPage.actions.verifyDeleteOptionVisibleInManageContent();
       }
     );
   }
