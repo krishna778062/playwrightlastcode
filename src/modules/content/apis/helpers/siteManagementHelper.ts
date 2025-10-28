@@ -780,23 +780,82 @@ export class SiteManagementHelper {
   }
 
   async getSiteWithMembers(
-    siteId: string,
-    options?: { size?: number; type?: string }
+    accessType: string,
+    expectedMemberCount?: number,
+    options?: { size?: number; type?: string; maxAttempts?: number }
   ): Promise<{
     site: any;
     members: any;
   }> {
-    return await test.step(`Getting site ${siteId} with its members`, async () => {
-      // Get site details
-      const siteDetails = await this.siteManagementService.getSiteDetails(siteId);
-      // Get site members
-      const membersResponse = await this.getSiteMembershipList(siteId, options);
+    const maxAttempts = options?.maxAttempts || 10;
+    let attempts = 0;
 
-      return {
-        site: siteDetails.result,
-        members: membersResponse.result,
-      };
-    });
+    const seenSiteIds = new Set<string>();
+
+    return await test.step(
+      expectedMemberCount ? `Getting site with ${expectedMemberCount} members` : `Getting site with its members`,
+      async () => {
+        while (attempts < maxAttempts) {
+          // Get sites list
+          const sitesResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+          const sites = sitesResponse.result.listOfItems.filter(
+            (site: any) => site.isActive === true && site.isManager === false && site.isMember === false
+          );
+
+          // Filter out seen sites to try different ones
+          const unseenSites = sites.filter((site: any) => !seenSiteIds.has(site.siteId));
+
+          if (unseenSites.length === 0) {
+            // All sites seen, reset and start over
+            seenSiteIds.clear();
+            seenSiteIds.add(sites[0]?.siteId);
+          }
+
+          // Get first unseen site
+          const siteInfo = unseenSites.length > 0 ? unseenSites[0] : sites[0];
+          const siteId = siteInfo.siteId;
+          seenSiteIds.add(siteId);
+
+          // Get site details
+          const siteDetails = await this.siteManagementService.getSiteDetails(siteId);
+
+          // Get site members
+          const membersResponse = await this.getSiteMembershipList(siteId, options);
+          const memberCount = membersResponse.result?.listOfItems?.length || 0;
+
+          console.log(`Site ${siteInfo.name} (${siteId}) has ${memberCount} members`);
+
+          // If no expected count specified, return immediately
+          if (expectedMemberCount === undefined) {
+            return {
+              site: siteDetails.result,
+              members: membersResponse.result,
+            };
+          }
+
+          console.log(`Expected: ${expectedMemberCount} members`);
+
+          // Check if this site has the expected number of members
+          if (memberCount >= expectedMemberCount) {
+            console.log(`✓ Found site with ${memberCount} members`);
+            return {
+              site: siteDetails.result,
+              members: membersResponse.result,
+            };
+          }
+
+          attempts++;
+          console.log(`Attempt ${attempts}/${maxAttempts}: Site has ${memberCount} members, trying another site...`);
+
+          // Wait a bit before next attempt to avoid rapid API calls
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        throw new Error(
+          `Failed to find a site with at least ${expectedMemberCount} members after ${maxAttempts} attempts`
+        );
+      }
+    );
   }
 
   /**
