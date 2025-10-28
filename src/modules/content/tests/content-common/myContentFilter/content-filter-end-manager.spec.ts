@@ -1,5 +1,3 @@
-import { ManageContentPage } from '@content/ui/pages/manageContentPage';
-import { ManageFeaturesPage as ApplicationScreenPage } from '@content/ui/pages/manageFeaturesPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
@@ -7,6 +5,8 @@ import { tagTest } from '@core/utils/testDecorator';
 import { ContentSortBy, ContentStatus, SortOptionLabels } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
+import { ManageFeaturesPage as ApplicationScreenPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 
 test.describe(
   ContentSuiteTags.MY_CONTENT_FILTER,
